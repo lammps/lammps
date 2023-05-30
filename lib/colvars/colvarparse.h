@@ -34,10 +34,10 @@ public:
   colvarparse(const std::string& conf);
 
   /// Set the object ready to parse a new configuration string
-  void init();
+  void clear();
 
   /// Set a new config string for this object
-  void init(std::string const &conf);
+  void set_string(std::string const &conf);
 
   /// Default destructor
   virtual ~colvarparse();
@@ -68,7 +68,7 @@ public:
     /// The call is being executed from a read_restart() function
     parse_restart = (1<<18),
     /// Alias for old default behavior (should be phased out)
-    parse_normal = (1<<2) | (1<<1) | (1<<17),
+    parse_normal = (1<<1) | (1<<2) | (1<<17),
     /// Settings for a deprecated keyword
     parse_deprecated = (1<<1) | (1<<3) | (1<<17)
   };
@@ -332,6 +332,12 @@ public:
   static void split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest);
 
 protected:
+
+  /// Characters allowed immediately to the left of a kewyord
+  std::string const keyword_delimiters_left;
+
+  /// Characters allowed immediately to the right of a kewyord
+  std::string const keyword_delimiters_right;
 
   /// \brief List of legal keywords for this object: this is updated
   /// by each call to colvarparse::get_keyval() or

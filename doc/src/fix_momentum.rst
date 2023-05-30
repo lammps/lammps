@@ -21,7 +21,8 @@ Syntax
 * momentum = style name of this fix command
 * N = adjust the momentum every this many timesteps
   one or more keyword/value pairs may be appended
-* keyword = *linear* or *angular* or *rescale*
+
+.. parsed-literal::
 
    fix ID group-ID momentum/chunk N chunkID keyword values ...
 
@@ -30,7 +31,7 @@ Syntax
 * N = adjust the momentum per chunk every this many timesteps
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 
-  one or more keyword/value pairs may be appended
+  one or more keyword/value settings may be appended to each of the fix commands:
 * keyword = *linear* or *angular* or *rescale*
 
   .. parsed-literal::
@@ -68,7 +69,7 @@ the corresponding flag to 0.
 If the *angular* keyword is used, the angular momentum is zeroed by
 subtracting a rotational component from each atom.
 
-This command can be used to insure the entire collection of atoms (or
+This command can be used to ensure the entire collection of atoms (or
 a subset of them) does not drift or rotate during the simulation due
 to random perturbations (e.g. :doc:`fix langevin <fix_langevin>`
 thermostatting).

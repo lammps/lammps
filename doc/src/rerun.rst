@@ -188,23 +188,22 @@ involve pair interactions, such as use compute msd to calculated
 displacements over time, you do not need to define a :doc:`pair style
 <pair_style>`, which may also mean neighbor lists will not need to be
 calculated which saves time.  The :doc:`comm_modify cutoff
-<comm_modify>` command can also be used to insure ghost atoms are
+<comm_modify>` command can also be used to ensure ghost atoms are
 acquired from far enough away for operations like bond and angle
 evaluations, if no pair style is being used.
 
-Every time a snapshot is read, the timestep for the simulation is
-reset, as if the :doc:`reset_timestep <reset_timestep>` command were
-used.  This command has some restrictions as to what fixes can be
-defined.  See its page for details.  For example, the :doc:`fix
-deposit <fix_deposit>` and :doc:`fix dt/reset <fix_dt_reset>` fixes
-are in this category.  They also make no sense to use with a rerun
-command.
+Every time a snapshot is read, the timestep for the simulation is reset,
+as if the :doc:`reset_timestep <reset_timestep>` command were used.
+This command has some restrictions as to what fixes can be defined.  See
+its documentation page for details.  For example, the :doc:`fix deposit
+<fix_deposit>` and :doc:`fix dt/reset <fix_dt_reset>` fixes are in this
+category.  They also make no sense to use with a rerun command.
 
 If time-averaging fixes like :doc:`fix ave/time <fix_ave_time>` are
 used, they are invoked on timesteps that are a function of their
 *Nevery*, *Nrepeat*, and *Nfreq* settings.  As an example, see the
 :doc:`fix ave/time <fix_ave_time>` page for details.  You must
-insure those settings are consistent with the snapshot timestamps that
+ensure those settings are consistent with the snapshot timestamps that
 are read from the dump file(s).  If an averaging fix is not invoked on
 a timestep it expects to be, LAMMPS will flag an error.
 

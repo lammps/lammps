@@ -67,13 +67,14 @@
 
 #ifndef KOKKOS_ATOMIC_HPP
 #define KOKKOS_ATOMIC_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ATOMIC
+#endif
 
 #include <Kokkos_Macros.hpp>
 
 #ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-#define DESUL_HAVE_OPENMP_ATOMICS
-#endif
 #include <Kokkos_Atomics_Desul_Wrapper.hpp>
 #include <Kokkos_Atomics_Desul_Volatile_Wrapper.hpp>
 #include <impl/Kokkos_Utilities.hpp>
@@ -146,8 +147,7 @@ KOKKOS_INLINE_FUNCTION T desul_atomic_compare_exchange(
 
 #define KOKKOS_ENABLE_CUDA_ATOMICS
 
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU) || \
-    defined(KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE)
+#elif defined(KOKKOS_ENABLE_HIP)
 
 #define KOKKOS_ENABLE_HIP_ATOMICS
 
@@ -418,4 +418,8 @@ KOKKOS_INLINE_FUNCTION T desul_atomic_compare_exchange(
 }  // namespace Kokkos
 
 #endif /* !KOKKOS_ENABLE_IMPL_DESUL_ATOMICS */
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ATOMIC
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ATOMIC
+#endif
 #endif /* KOKKOS_ATOMIC_HPP */

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,18 +41,17 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-#define MAXLINE 1024
 #define DELTA 4
 #define PGDELTA 1
 
 static const char cite_ilp[] =
     "ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848\n"
     "@Article{Ouyang2018\n"
-    " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
+    " author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
     " journal = {Nano Letters},\n"
     " volume =  18,\n"
-    " pages =   {6009}\n"
+    " pages =   6009,\n"
     " year =    2018,\n"
     "}\n\n";
 
@@ -314,14 +313,14 @@ void PairILPGrapheneHBN::read_file(char *filename)
       for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
           if (n >= 0)
-            error->all(FLERR, "{} potential file {} has a duplicate entry", variant_map[variant],
-                       filename);
+            error->all(FLERR, "{} potential file {} has a duplicate entry for: {} {}",
+                       variant_map[variant], filename, elements[i], elements[j]);
           n = m;
         }
       }
       if (n < 0)
-        error->all(FLERR, "{} potential file {} is missing an entry", variant_map[variant],
-                   filename);
+        error->all(FLERR, "{} potential file {} is missing an entry for: {} {}",
+                   variant_map[variant], filename, elements[i], elements[j]);
       elem2param[i][j] = n;
       cutILPsq[i][j] = params[n].rcut * params[n].rcut;
     }

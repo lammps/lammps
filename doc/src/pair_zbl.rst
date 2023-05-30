@@ -73,7 +73,7 @@ be included in a pair_coeff command.
 
    The numerical values of the exponential decay constants in the
    screening function depend on the unit of distance. In the above
-   equation they are given for units of angstroms. LAMMPS will
+   equation they are given for units of Angstroms. LAMMPS will
    automatically convert these values to the distance unit of the
    specified LAMMPS :doc:`units <units>` setting.  The values of Z should
    always be given as multiples of a proton's charge, e.g. 29.0 for
@@ -140,4 +140,4 @@ none
 .. _Ziegler:
 
 **(Ziegler)** J.F. Ziegler, J. P. Biersack and U. Littmark, "The
-Stopping and Range of Ions in Matter," Volume 1, Pergamon, 1985.
+Stopping and Range of Ions in Matter", Volume 1, Pergamon, 1985.

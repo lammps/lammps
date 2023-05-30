@@ -12,8 +12,8 @@
 !--------------------------------------------------------------------------
 
 !! ------------------------------------------------------------------------
-!   Contributing author:  Karl D. Hammond <karlh@ugcs.caltech.edu>
-!                         University of Tennessee, Knoxville (USA), 2012
+!   Contributing author:  Karl D. Hammond <hammondkd@missouri.edu>
+!                         University of Missouri (USA), 2012
 !--------------------------------------------------------------------------
 
 !! LAMMPS, a Fortran 2003 module containing an interface between Fortran

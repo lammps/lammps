@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -67,8 +66,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  fix_dummy = dynamic_cast<FixDummy *>( modify->add_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me) +
-                                           " all DUMMY"));
+  fix_dummy = dynamic_cast<FixDummy *>(
+      modify->add_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me) + " all DUMMY"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -443,8 +442,10 @@ void PairGranHookeHistory::init_style()
 
   // need a granular neighbor list
 
-  if (history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
-  else neighbor->add_request(this, NeighConst::REQ_SIZE);
+  if (history)
+    neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY);
+  else
+    neighbor->add_request(this, NeighConst::REQ_SIZE);
 
   dt = update->dt;
 
@@ -454,8 +455,8 @@ void PairGranHookeHistory::init_style()
 
   if (history && (fix_history == nullptr)) {
     auto cmd = fmt::format("NEIGH_HISTORY_HH{} all NEIGH_HISTORY {}", instance_me, size_history);
-    fix_history = dynamic_cast<FixNeighHistory *>( modify->replace_fix(
-        "NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me), cmd, 1));
+    fix_history = dynamic_cast<FixNeighHistory *>(
+        modify->replace_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me), cmd, 1));
     fix_history->pair = this;
   }
 
@@ -476,7 +477,8 @@ void PairGranHookeHistory::init_style()
     if (ifix->rigid_flag) {
       if (fix_rigid)
         error->all(FLERR, "Only one fix rigid command at a time allowed");
-      else fix_rigid = ifix;
+      else
+        fix_rigid = ifix;
     }
   }
 
@@ -521,8 +523,9 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    fix_history = dynamic_cast<FixNeighHistory *>( modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me)));
-    if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
+    fix_history = dynamic_cast<FixNeighHistory *>(
+        modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me)));
+    if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
   }
 }
 
@@ -686,7 +689,7 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
   mi = rmass[i];
   mj = rmass[j];
   if (fix_rigid) {
-    // NOTE: insure mass_rigid is current for owned+ghost atoms?
+    // NOTE: ensure mass_rigid is current for owned+ghost atoms?
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
     if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }

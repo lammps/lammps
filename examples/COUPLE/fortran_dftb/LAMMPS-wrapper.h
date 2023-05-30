@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
     LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-    www.cs.sandia.gov/~sjplimp/lammps.html
-    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+    https://www.lammps.org/, Sandia National Laboratories
+    LAMMPS development team: developers@lammps.org
  
     Copyright (2003) Sandia Corporation.  Under the terms of Contract
     DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-    Contributing author:  Karl D. Hammond <karlh@ugcs.caltech.edu>
-                          University of Tennessee, Knoxville (USA), 2012
+    Contributing author:  Karl D. Hammond <hammondkd@missouri.edu>
+                          University of Missouri (USA), 2012
 ------------------------------------------------------------------------- */
 
 /* This is set of "wrapper" functions to assist LAMMPS.F90, which itself

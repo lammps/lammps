@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -187,10 +187,16 @@ class PairMEAMSWSpline : public Pair {
     }
 
     /// Returns the number of bytes used by this function object.
-    double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
+    double memory_usage() const
+    {
+      return sizeof(*this) + sizeof(X[0]) * N * 3;
+    }
 
     /// Returns the cutoff radius of this function.
-    double cutoff() const { return X[N - 1]; }
+    double cutoff() const
+    {
+      return X[N - 1];
+    }
 
     /// Writes a Gnuplot script that plots the spline function.
     void writeGnuplot(const char *filename, const char *title = nullptr) const;

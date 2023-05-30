@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -122,7 +122,7 @@ void DeleteBonds::command(int narg, char **arg)
   auto histories = modify->get_fix_by_style("BOND_HISTORY");
   int n_histories = histories.size();
 
-  // border swap to insure type and mask is current for off-proc atoms
+  // border swap to ensure type and mask is current for off-proc atoms
   // enforce PBC before in case atoms are outside box
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

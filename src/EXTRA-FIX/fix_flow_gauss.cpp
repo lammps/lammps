@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_flow_gauss[] =
-  "Gaussian dynamics package:\n\n"
+  "Gaussian dynamics package: doi:10.1021/acs.jpcb.6b09387\n\n"
   "@Article{strong_water_2017,\n"
   "title = {The Dynamics of Water in Porous Two-Dimensional Crystals},\n"
   "volume = {121},\n"
@@ -41,7 +41,7 @@ static const char cite_flow_gauss[] =
   "url = {https://doi.org/10.1021/acs.jpcb.6b09387},\n"
   "doi = {10.1021/acs.jpcb.6b09387},\n"
   "urldate = {2016-12-07},\n"
-  "journal = {J. Phys. Chem. B},\n"
+  "journal = {J.~Phys.\\ Chem.~B},\n"
   "author = {Strong, Steven E. and Eaves, Joel D.},\n"
   "year = {2017},\n"
   "pages = {189--207}\n"
@@ -123,7 +123,7 @@ void FixFlowGauss::init()
   //if respa level specified by fix_modify, then override default (outermost)
   //if specified level too high, set to max level
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0)
       ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -146,9 +146,9 @@ void FixFlowGauss::setup(int vflag)
     error->all(FLERR,"Invalid group mass in fix flow/gauss");
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
   else
     post_force(vflag);

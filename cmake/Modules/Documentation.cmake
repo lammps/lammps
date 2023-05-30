@@ -4,20 +4,24 @@
 option(BUILD_DOC "Build LAMMPS HTML documentation" OFF)
 
 if(BUILD_DOC)
-  # Sphinx 3.x requires at least Python 3.5
+  # Current Sphinx versions require at least Python 3.8
   if(CMAKE_VERSION VERSION_LESS 3.12)
-    find_package(PythonInterp 3.5 REQUIRED)
-    set(VIRTUALENV ${PYTHON_EXECUTABLE} -m virtualenv -p ${PYTHON_EXECUTABLE})
+    find_package(PythonInterp 3.8 REQUIRED)
+    set(VIRTUALENV ${PYTHON_EXECUTABLE} -m venv)
   else()
-    find_package(Python3 REQUIRED COMPONENTS Interpreter)
-    if(Python3_VERSION VERSION_LESS 3.5)
-      message(FATAL_ERROR "Python 3.5 and up is required to build the HTML documentation")
+    # use default (or custom) Python executable, if version is sufficient
+    if(Python_VERSION VERSION_GREATER_EQUAL 3.8)
+      set(Python3_EXECUTABLE ${Python_EXECUTABLE})
     endif()
-    set(VIRTUALENV ${Python3_EXECUTABLE} -m virtualenv -p ${Python3_EXECUTABLE})
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    if(Python3_VERSION VERSION_LESS 3.8)
+      message(FATAL_ERROR "Python 3.8 and up is required to build the HTML documentation")
+    endif()
+    set(VIRTUALENV ${Python3_EXECUTABLE} -m venv)
   endif()
   find_package(Doxygen 1.8.10 REQUIRED)
 
-  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
+  file(GLOB DOC_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
 
   add_custom_command(
@@ -56,16 +60,27 @@ if(BUILD_DOC)
   )
 
   set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.1.3.tar.gz" CACHE STRING "URL for MathJax tarball")
-  set(MATHJAX_MD5 "d1c98c746888bfd52ca8ebc10704f92f" CACHE STRING "MD5 checksum of MathJax tarball")
+  set(MATHJAX_MD5 "b81661c6e6ba06278e6ae37b30b0c492" CACHE STRING "MD5 checksum of MathJax tarball")
   mark_as_advanced(MATHJAX_URL)
+  GetFallbackURL(MATHJAX_URL MATHJAX_FALLBACK)
 
   # download mathjax distribution and unpack to folder "mathjax"
   if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/mathjax/es5)
-    file(DOWNLOAD ${MATHJAX_URL}
-      "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz"
-      EXPECTED_MD5 ${MATHJAX_MD5})
+    if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
+      file(MD5 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
+    endif()
+    if(NOT "${DL_MD5}" STREQUAL "${MATHJAX_MD5}")
+      file(DOWNLOAD ${MATHJAX_URL} "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz" STATUS DL_STATUS SHOW_PROGRESS)
+      file(MD5 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz DL_MD5)
+      if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_MD5}" STREQUAL "${MATHJAX_MD5}"))
+        message(WARNING "Download from primary URL ${MATHJAX_URL} failed\nTrying fallback URL ${MATHJAX_FALLBACK}")
+        file(DOWNLOAD ${MATHJAX_FALLBACK} ${CMAKE_BINARY_DIR}/libpace.tar.gz EXPECTED_HASH MD5=${MATHJAX_MD5} SHOW_PROGRESS)
+      endif()
+    else()
+      message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/libpace.tar.gz")
+    endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
+    file(GLOB MATHJAX_VERSION_DIR ${CONFIGURE_DEPENDS} ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)
   endif()
 

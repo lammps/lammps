@@ -136,7 +136,7 @@ keyword/value pair. The required keywords are *rcutfac* and
 *twojmax*\ . Optional keywords are *rfac0*, *rmin0*,
 *switchflag*, *bzeroflag*, *quadraticflag*, *chemflag*,
 *bnormflag*, *wselfallflag*,  *switchinnerflag*,
-*rinner*, *drinner*, *chunksize*, and *parallelthresh*\ .
+*sinner*, *dinner*, *chunksize*, and *parallelthresh*\ .
 
 The default values for these keywords are
 
@@ -151,6 +151,9 @@ The default values for these keywords are
 * *switchinnerflag* = 0
 * *chunksize* = 32768
 * *parallelthresh* = 8192
+
+For detailed definitions of all of these keywords,
+see the :doc:`compute sna/atom <compute_sna_atom>` doc page.
 
 If *quadraticflag* is set to 1, then the SNAP energy expression includes
 additional quadratic terms that have been shown to increase the overall
@@ -194,7 +197,7 @@ pair_coeff command, to avoid ambiguity in the number of coefficients.
 The keyword *switchinnerflag* activates an additional switching function
 that smoothly turns off contributions to the SNAP potential from neighbor
 atoms at short separations. If *switchinnerflag* is set to 1 then
-the additional keywords *rinner* and *drinner* must also be provided.
+the additional keywords *sinner* and *dinner* must also be provided.
 Each of these is followed by *nelements* values, where *nelements*
 is the number of unique elements appearing in appearing in the LAMMPS
 pair_coeff command. The element order should correspond to the order
@@ -216,9 +219,6 @@ leads to more divergence and can hurt performance when the system is
 already large enough to saturate the GPU threads.  Extra parallelism
 will be performed if the *chunksize* (or total number of atoms per GPU)
 is smaller than *parallelthresh*.
-
-Detailed definitions for all the other keywords
-are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
 
 .. note::
 

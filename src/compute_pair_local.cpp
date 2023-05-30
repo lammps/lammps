@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -68,7 +68,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
       pstyle[nvalues++] = DZ;
     else if (arg[iarg][0] == 'p') {
       int n = atoi(&arg[iarg][1]);
-      if (n <= 0) error->all(FLERR, "Invalid keyword in compute pair/local command");
+      if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute pair/local command", arg[iarg]);
       pstyle[nvalues] = PN;
       pindex[nvalues++] = n - 1;
 
@@ -209,7 +209,7 @@ int ComputePairLocal::compute_pairs(int flag)
   // loop over neighbors of my atoms
   // skip if I or J are not in group
   // for newton = 0 and J = ghost atom,
-  //   need to insure I,J pair is only output by one proc
+  //   need to ensure I,J pair is only output by one proc
   //   use same itag,jtag logic as in Neighbor::neigh_half_nsq()
   // for flag = 0, just count pair interactions within force cutoff
   // for flag = 1, calculate requested output fields

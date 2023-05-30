@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -55,16 +55,3 @@ class NBinIntel : public NBinStandard {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-E: Intel package expects no atoms within cutoff of {1e15,1e15,1e15}.
-
-The Intel package can make use of dummy atoms for padding with a large position
-that should not be within the cutoff.
-
-*/

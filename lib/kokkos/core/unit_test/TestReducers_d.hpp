@@ -79,6 +79,21 @@ TEST(TEST_CATEGORY, reducers_half_t) {
   TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(25);
 }
 
+TEST(TEST_CATEGORY, reducers_bhalf_t) {
+  using ThisTestType = Kokkos::Experimental::bhalf_t;
+
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(2);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(25);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(50);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(51);
+
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(5);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(10);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(15);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(20);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(25);
+}
+
 TEST(TEST_CATEGORY, reducers_int8_t) {
   using ThisTestType = int8_t;
 

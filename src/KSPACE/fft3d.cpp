@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -211,7 +211,8 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
       *(out_ptr++) *= norm;
       *(out_ptr++) *= norm;
 #elif defined(FFT_MKL)
-      out[i] *= norm;
+      out[i].real *= norm;
+      out[i].imag *= norm;
 #else  /* FFT_KISS */
       out[i].re *= norm;
       out[i].im *= norm;
@@ -802,7 +803,8 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
       *(data_ptr++) *= norm;
       *(data_ptr++) *= norm;
 #elif defined(FFT_MKL)
-      data[i] *= norm;
+      data[i].real *= norm;
+      data[i].imag *= norm;
 #else
       data[i].re *= norm;
       data[i].im *= norm;

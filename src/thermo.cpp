@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,7 +13,7 @@
 
 // lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
+//   before lmptype.h can set flags to ensure it is done correctly
 
 #include "thermo.h"
 
@@ -47,6 +47,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -335,10 +336,8 @@ void Thermo::header()
         hdr += fmt::format("{:^14} ", head);
       else if ((vtype[i] == INT) || (vtype[i] == BIGINT))
         hdr += fmt::format("{:^11} ", head);
-    } else if (lineflag == YAMLLINE) {
-      hdr += keyword[i];
-      hdr += ", ";
-    }
+    } else if (lineflag == YAMLLINE)
+      hdr += fmt::format("'{}', ", head);
   }
   if (lineflag == YAMLLINE)
     hdr += "]\ndata:";
@@ -500,14 +499,14 @@ bigint Thermo::lost_check()
 
 void Thermo::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR, "Illegal thermo_modify command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "thermo_modify", error);
 
   modified = 1;
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "temp") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify temp", error);
       if (index_temp < 0) error->all(FLERR, "Thermo style does not use temp");
       delete[] id_compute[index_temp];
       id_compute[index_temp] = utils::strdup(arg[iarg + 1]);
@@ -542,7 +541,7 @@ void Thermo::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "press") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify press", error);
       if (index_press_scalar < 0 && index_press_vector < 0)
         error->all(FLERR, "Thermo style does not use press");
 
@@ -565,7 +564,7 @@ void Thermo::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "lost") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify lost", error);
       if (strcmp(arg[iarg + 1], "ignore") == 0)
         lostflag = Thermo::IGNORE;
       else if (strcmp(arg[iarg + 1], "warn") == 0)
@@ -573,11 +572,11 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "error") == 0)
         lostflag = Thermo::ERROR;
       else
-        error->all(FLERR, "Illegal thermo_modify command");
+        error->all(FLERR, "Unknown thermo_modify lost argument: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "lost/bond") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify lost/bond", error);
       if (strcmp(arg[iarg + 1], "ignore") == 0)
         lostbond = Thermo::IGNORE;
       else if (strcmp(arg[iarg + 1], "warn") == 0)
@@ -585,11 +584,11 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "error") == 0)
         lostbond = Thermo::ERROR;
       else
-        error->all(FLERR, "Illegal thermo_modify command");
+        error->all(FLERR, "Unknown thermo_modify lost/bond argument: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "warn") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify warn", error);
       if (strcmp(arg[iarg + 1], "ignore") == 0)
         error->set_maxwarn(-1);
       else if (strcmp(arg[iarg + 1], "always") == 0)
@@ -606,18 +605,18 @@ void Thermo::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "norm") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify norm", error);
       normuserflag = 1;
       normuser = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "flush") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify flush", error);
       flushflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "line") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify line", error);
       if (strcmp(arg[iarg + 1], "one") == 0)
         lineflag = ONELINE;
       else if (strcmp(arg[iarg + 1], "multi") == 0)
@@ -625,19 +624,19 @@ void Thermo::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "yaml") == 0)
         lineflag = YAMLLINE;
       else
-        error->all(FLERR, "Illegal thermo_modify command");
+        error->all(FLERR, "Unknown thermo_modify line argument: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "colname") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
       if (strcmp(arg[iarg + 1], "default") == 0) {
-        for (auto item : keyword_user) item.clear();
+        for (auto &item : keyword_user) item.clear();
         iarg += 2;
       } else {
-        if (iarg + 3 > narg) error->all(FLERR, "Illegal thermo_modify command");
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
-          icol = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
+          icol = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
           if (icol < 0) icol = nfield_initial + icol + 1;
           icol--;
         } else {
@@ -647,24 +646,25 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if ((icol < 0) || (icol >= nfield_initial)) error->all(FLERR, "Illegal thermo_modify command");
-        keyword_user[icol] = arg[iarg+2];
+        if ((icol < 0) || (icol >= nfield_initial))
+          error->all(FLERR, "Invalid thermo_modify colname argument: {}", arg[iarg + 1]);
+        keyword_user[icol] = arg[iarg + 2];
         iarg += 3;
       }
     } else if (strcmp(arg[iarg], "format") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify format", error);
 
       if (strcmp(arg[iarg + 1], "none") == 0) {
         format_line_user.clear();
         format_int_user.clear();
         format_bigint_user.clear();
         format_float_user.clear();
-        for (auto item : format_column_user) item.clear();
+        for (auto &item : format_column_user) item.clear();
         iarg += 2;
         continue;
       }
 
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal thermo_modify command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify format", error);
 
       if (strcmp(arg[iarg + 1], "line") == 0) {
         format_line_user = arg[iarg + 2];
@@ -675,9 +675,23 @@ void Thermo::modify_params(int narg, char **arg)
         found = format_int_user.find('d', found);
         if (found == std::string::npos)
           error->all(FLERR, "Thermo_modify int format does not contain a d conversion character");
-        format_bigint_user = format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+        format_bigint_user =
+            format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
+      } else if (utils::strmatch(arg[iarg + 1], "^\\d*\\*\\d*$")) {
+        // handles cases such as 2*6; currently doesn't allow negatives
+        int nlo, nhi;
+        utils::bounds(FLERR, arg[iarg + 1], 1, nfield_initial, nlo, nhi, error);
+        int icol = -1;
+        for (int i = nlo - 1; i < nhi; i++) {
+          if (i < 0) icol = nfield_initial + i + 1; // doesn't happen currently
+          else icol = i;
+          if (icol < 0 || (icol >= nfield_initial))
+            error->all(FLERR, "Invalid thermo_modify format argument: {}",
+              arg[iarg + 1]);
+          format_column_user[icol] = arg[iarg + 2];
+        }
       } else {
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
@@ -691,13 +705,14 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if (icol < 0 || icol >= nfield_initial + 1) error->all(FLERR, "Illegal thermo_modify command");
+        if ((icol < 0) || (icol >= nfield_initial))
+          error->all(FLERR, "Invalid thermo_modify format argument: {}", arg[iarg + 1]);
         format_column_user[icol] = arg[iarg + 2];
       }
       iarg += 3;
 
     } else
-      error->all(FLERR, "Illegal thermo_modify command");
+      error->all(FLERR, "Unknown thermo_modify keyword: {}", arg[iarg]);
   }
 }
 
@@ -746,9 +761,7 @@ void Thermo::allocate()
 
   int i = 0;
   key2col.clear();
-  for (auto item : utils::split_words(line)) {
-    key2col[item] = i++;
-  }
+  for (const auto &item : utils::split_words(line)) { key2col[item] = i++; }
 }
 
 /* ----------------------------------------------------------------------
@@ -1105,7 +1118,7 @@ int Thermo::add_variable(const char *id)
 }
 
 /* ----------------------------------------------------------------------
-  check whether temperature compute is defined, available, and current
+   check whether temperature compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_temp(const std::string &keyword)
@@ -1113,18 +1126,16 @@ void Thermo::check_temp(const std::string &keyword)
   if (!temperature)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init temperature",
                keyword);
-  if (update->whichflag == 0) {
-    if (temperature->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 temperature->style, temperature->id);
-  } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
     temperature->compute_scalar();
     temperature->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether potential energy compute is defined, available, and current
+   check whether potential energy compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_pe(const std::string &keyword)
@@ -1134,47 +1145,41 @@ void Thermo::check_pe(const std::string &keyword)
   if (!pe)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
                keyword);
-  if (update->whichflag == 0) {
-    if (pe->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pe->style, pe->id);
-  } else {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(pe->invoked_flag & Compute::INVOKED_SCALAR)) {
     pe->compute_scalar();
     pe->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether scalar pressure compute is defined, available, and current
+   check whether scalar pressure compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_press_scalar(const std::string &keyword)
 {
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
-  if (update->whichflag == 0) {
-    if (pressure->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pressure->style, pressure->id);
-  } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
     pressure->compute_scalar();
     pressure->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether pressure tensor compute is defined, available, and current
+   check whether tensor pressure compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_press_vector(const std::string &keyword)
 {
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
-  if (update->whichflag == 0) {
-    if (pressure->invoked_vector != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pressure->style, pressure->id);
-  } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;
   }
@@ -1201,8 +1206,6 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   // invoke a lo-level thermo routine to compute the variable value
   // if keyword requires a compute, error if thermo doesn't use the compute
-  // if inbetween runs and needed compute is not current, error
-  // if in middle of run and needed compute is not current, invoke it
   // for keywords that use energy (evdwl, ebond, etc):
   //   check if energy was tallied on this timestep and set pe->invoked_flag
   //   this will trigger next timestep for energy tallying via addstep()

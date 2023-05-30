@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,8 +16,6 @@
 
 #include "bond.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class BondBPM : public Bond {
@@ -29,9 +27,8 @@ class BondBPM : public Bond {
   void init_style() override;
   void settings(int, char **) override;
   double equilibrium_distance(int) override;
-  void write_restart(FILE *) override{};
-  void read_restart(FILE *) override{};
-  void write_data(FILE *) override{};
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
   double single(int, double, int, int, double &) override = 0;
 
  protected:
@@ -53,7 +50,7 @@ class BondBPM : public Bond {
   FnPtrPack *pack_choice;    // ptrs to pack functions
   double *output_data;
 
-  int prop_atom_flag, nvalues, overlay_flag;
+  int prop_atom_flag, nvalues, overlay_flag, break_flag;
   int index_x_ref, index_y_ref, index_z_ref;
 
   void pack_id1(int, int, int);
@@ -70,29 +67,3 @@ class BondBPM : public Bond {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot find fix store/local
-
-Fix id cannot be found.
-
-E: Illegal bond_style command
-
-Self-explanatory.
-
-E: Bond style bpm must include at least one value to output
-
-Must include at least one bond property to store in fix store/local
-
-E: Bond style bpm cannot be used with 3,4-body interactions
-
-No angle, dihedral, or improper styles can be defined when using
-bond style bpm.
-
-E: Bond style bpm cannot be used with atom style template
-
-This bond style can change the bond topology which is not
-allowed with this atom style.
-
-*/

@@ -56,10 +56,7 @@ int YukawaColloidT::init(const int ntypes,
   if (success!=0)
     return success;
 
-  if (this->ucl_device->shared_memory() && sizeof(numtyp)==sizeof(double))
-    _shared_view=true;
-  else
-    _shared_view=false;
+  _shared_view = this->ucl_device->shared_memory() && sizeof(numtyp)==sizeof(double);
 
   // allocate rad
 

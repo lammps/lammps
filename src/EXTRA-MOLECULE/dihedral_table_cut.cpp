@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,13 +36,13 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_dihedral_tablecut[] =
-  "dihedral_style  table/cut  command:\n\n"
+  "dihedral_style table/cut command: doi:10.1021/acs.jctc.7b01229\n\n"
   "@Article{Salerno17,\n"
   " author =  {K. M. Salerno and N. Bernstein},\n"
   " title =   {Persistence Length, End-to-End Distance, and Structure of Coarse-Grained Polymers},\n"
-  " journal = {J.~Chem.~Theory Comput.},\n"
+  " journal = {J.~Chem.\\ Theory Comput.},\n"
   " year =    2018,\n"
-  " DOI = 10.1021/acs.jctc.7b01229"
+  " DOI = \"10.1021/acs.jctc.7b01229\"\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */
@@ -539,7 +539,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
       ffile_tmp[i] = tb->ffile[i];
       if ((i>0) && (phifile_tmp[i] < phifile_tmp[i-1])) {
         //There should only be at most one discontinuity, because we have
-        //insured that the data was sorted before imaging, and because the
+        //ensured that the data was sorted before imaging, and because the
         //range of angle values does not exceed 2*PI.
         i_discontinuity = i;
       }

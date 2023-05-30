@@ -42,15 +42,19 @@
 //@HEADER
 */
 
-#include <cstdio>
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <cstring>
 #include <cstdlib>
 
-#include <ostream>
+#include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>
 #include <impl/Kokkos_Error.hpp>
+#include <impl/Kokkos_Stacktrace.hpp>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 
 //----------------------------------------------------------------------------
@@ -58,18 +62,24 @@
 
 namespace Kokkos {
 namespace Impl {
-
-void host_abort(const char *const message) {
-  fwrite(message, 1, strlen(message), stderr);
-  fflush(stderr);
-  ::abort();
+void traceback_callstack(std::ostream &msg) {
+#ifdef KOKKOS_IMPL_ENABLE_STACKTRACE
+  msg << "\nBacktrace:\n";
+  save_stacktrace();
+  print_demangled_saved_stacktrace(msg);
+#else
+  msg << "\nTraceback functionality not available\n";
+#endif
 }
 
 void throw_runtime_exception(const std::string &msg) {
-  std::ostringstream o;
-  o << msg;
-  traceback_callstack(o);
-  throw std::runtime_error(o.str());
+  throw std::runtime_error(msg);
+}
+
+void host_abort(const char *const message) {
+  std::cerr << message;
+  traceback_callstack(std::cerr);
+  ::abort();
 }
 
 std::string human_memory_size(size_t arg_bytes) {
@@ -132,6 +142,9 @@ void Experimental::RawMemoryAllocationFailure::print_error_message(
     case AllocationMechanism::CudaHostAlloc: o << "cudaHostAlloc()."; break;
     case AllocationMechanism::HIPMalloc: o << "hipMalloc()."; break;
     case AllocationMechanism::HIPHostMalloc: o << "hipHostMalloc()."; break;
+    case AllocationMechanism::HIPMallocManaged:
+      o << "hipMallocManaged().";
+      break;
     case AllocationMechanism::SYCLMallocDevice:
       o << "sycl::malloc_device().";
       break;
@@ -159,13 +172,6 @@ std::string Experimental::RawMemoryAllocationFailure::get_error_message()
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-namespace Impl {
-
-void traceback_callstack(std::ostream &msg) {
-  msg << std::endl << "Traceback functionality not available" << std::endl;
-}
-
-}  // namespace Impl
 
 #ifdef KOKKOS_ENABLE_CUDA
 namespace Experimental {

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,6 +47,7 @@ PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) : PairLJCut
   nmax = 0;
   ftmp = nullptr;
   efield = nullptr;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,7 +64,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
 {
   int i, ii, j, jj, inum, jnum, itype, jtype, itable;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double fraction, table;
   double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
   double egamma, fgamma, prefactor, prefactorE, efield_i;
@@ -100,16 +101,14 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
   double *area = atom->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;
@@ -208,12 +207,6 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
           efield[i][1] += dely * efield_i;
           efield[i][2] += delz * efield_i;
 
-          if (newton_pair && j >= nlocal) {
-            fpair_j = (forcecoul * eps[j] + factor_lj * forcelj) * r2inv;
-            f[j][0] -= delx * fpair_j;
-            f[j][1] -= dely * fpair_j;
-            f[j][2] -= delz * fpair_j;
-          }
         } else {
 
           // separate LJ and Coulombic forces
@@ -223,11 +216,6 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
           f[i][0] += delx * fpair;
           f[i][1] += dely * fpair;
           f[i][2] += delz * fpair;
-          if (newton_pair) {
-            f[j][0] -= delx * fpair;
-            f[j][1] -= dely * fpair;
-            f[j][2] -= delz * fpair;
-          }
 
           fpair_i = (forcecoul * etmp) * r2inv;
           ftmp[i][0] += delx * fpair_i;
@@ -238,22 +226,15 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
           efield[i][0] += delx * efield_i;
           efield[i][1] += dely * efield_i;
           efield[i][2] += delz * efield_i;
-
-          if (newton_pair && j >= nlocal) {
-            fpair_j = (forcecoul * eps[j]) * r2inv;
-            ftmp[j][0] -= delx * fpair_j;
-            ftmp[j][1] -= dely * fpair_j;
-            ftmp[j][2] -= delz * fpair_j;
-          }
         }
 
         if (eflag) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor * (etmp + eps[j]) * egamma;
+              ecoul = prefactor * 0.5 * (etmp + eps[j]) * egamma;
             else {
               table = etable[itable] + fraction * detable[itable];
-              ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
+              ecoul = qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
             }
             if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
           } else
@@ -288,15 +269,17 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
 double PairLJCutCoulMSMDielectric::single(int i, int j, int itype, int jtype, double rsq,
                                           double factor_coul, double factor_lj, double &fforce)
 {
-  double r2inv, r6inv, r, egamma, fgamma, prefactor;
+  double r2inv, r6inv, r, egamma, fgamma, ei, ej, prefactor;
   double fraction, table, forcecoul, forcelj, phicoul, philj;
   int itable;
+  double *q = atom->q_scaled;
+  double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq) {
       r = sqrt(rsq);
-      prefactor = force->qqrd2e * atom->q[i] * atom->q[j] / r;
+      prefactor = force->qqrd2e * q[i] * q[j] / r;
       egamma = 1.0 - (r / cut_coul) * force->kspace->gamma(r / cut_coul);
       fgamma = 1.0 + (rsq / cut_coulsq) * force->kspace->dgamma(r / cut_coul);
       forcecoul = prefactor * fgamma;
@@ -308,10 +291,10 @@ double PairLJCutCoulMSMDielectric::single(int i, int j, int itype, int jtype, do
       itable >>= ncoulshiftbits;
       fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction * dftable[itable];
-      forcecoul = atom->q[i] * atom->q[j] * table;
+      forcecoul = q[i] * q[j] * table;
       if (factor_coul < 1.0) {
         table = ctable[itable] + fraction * dctable[itable];
-        prefactor = atom->q[i] * atom->q[j] * table;
+        prefactor = q[i] * q[j] * table;
         forcecoul -= (1.0 - factor_coul) * prefactor;
       }
     }
@@ -327,12 +310,20 @@ double PairLJCutCoulMSMDielectric::single(int i, int j, int itype, int jtype, do
   fforce = (forcecoul + factor_lj * forcelj) * r2inv;
 
   double eng = 0.0;
+  if (eps[i] == 1)
+    ei = 0;
+  else
+    ei = eps[i];
+  if (eps[j] == 1)
+    ej = 0;
+  else
+    ej = eps[j];
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor * egamma;
+      phicoul = prefactor * 0.5 * (ei + ej) * egamma;
     else {
       table = etable[itable] + fraction * detable[itable];
-      phicoul = atom->q[i] * atom->q[j] * table;
+      phicoul = q[i] * q[j] * 0.5 * (ei + ej) * table;
     }
     if (factor_coul < 1.0) phicoul -= (1.0 - factor_coul) * prefactor;
     eng += phicoul;
@@ -359,7 +350,7 @@ void PairLJCutCoulMSMDielectric::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;

@@ -60,7 +60,7 @@ it is possible to "compute" what the next LAMMPS command should be.
       can be executed using with the lammps API with the following Python code if ``lmp`` is an
       instance of :py:class:`lammps <lammps.lammps>`:
 
-      .. code-block:: Python
+      .. code-block:: python
 
          from lammps import lammps
 
@@ -73,7 +73,7 @@ it is possible to "compute" what the next LAMMPS command should be.
       The arguments of the command can be passed as one string, or
       individually.
 
-      .. code-block:: Python
+      .. code-block:: python
 
          from lammps import PyLammps
 
@@ -93,14 +93,14 @@ it is possible to "compute" what the next LAMMPS command should be.
       parameterization. In the lammps API parameterization needed to be done
       manually by creating formatted command strings.
 
-      .. code-block:: Python
+      .. code-block:: python
 
          lmp.command("region box block %f %f %f %f %f %f" % (xlo, xhi, ylo, yhi, zlo, zhi))
 
       In contrast, methods of PyLammps accept parameters directly and will convert
       them automatically to a final command string.
 
-      .. code-block:: Python
+      .. code-block:: python
 
          L.region("box block", xlo, xhi, ylo, yhi, zlo, zhi)
 

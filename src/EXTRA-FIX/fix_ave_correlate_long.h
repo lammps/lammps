@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,18 +58,27 @@ class FixAveCorrelateLong : public Fix {
   int length;    // Length of result arrays
   int kmax;      // Maximum correlator attained during simulation
 
-  int me, nvalues;
-  int nfreq;
+  struct value_t {
+    int which;         // type of data: COMPUTE, FIX, VARIABLE
+    int argindex;      // 1-based index if data is vector, else 0
+    std::string id;    // compute/fix/variable ID
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+
+  int nvalues, nfreq;
   bigint nvalid, nvalid_last, last_accumulated_step;
-  int *which, *argindex, *value2index;
-  char **ids;
   FILE *fp;
 
   int type, startstep, overwrite;
   bigint filepos;
 
   int npair;    // number of correlation pairs to calculate
-  double *values;
+  double *cvalues;
 
   void accumulate();
   void evaluate();
@@ -83,68 +92,3 @@ class FixAveCorrelateLong : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot open fix ave/correlate/long file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-E: Compute ID for fix ave/correlate/long does not exist
-
-Self-explanatory.
-
-E: Fix ave/correlate/long compute does not calculate a scalar
-
-Self-explanatory.
-
-E: Fix ave/correlate/long compute does not calculate a vector
-
-Self-explanatory.
-
-E: Fix ave/correlate/long compute vector is accessed out-of-range
-
-The index for the vector is out of bounds.
-
-E: Fix ID for fix ave/correlate/long does not exist
-
-Self-explanatory.
-
-E: Fix ave/correlate/long fix does not calculate a scalar
-
-Self-explanatory.
-
-E: Fix ave/correlate/long fix does not calculate a vector
-
-Self-explanatory.
-
-E: Fix ave/correlate/long fix vector is accessed out-of-range
-
-The index for the vector is out of bounds.
-
-E: Fix for fix ave/correlate/long not computed at compatible time
-
-Fixes generate their values on specific timesteps.  Fix ave/correlate/long
-is requesting a value on a non-allowed timestep.
-
-E: Variable name for fix ave/correlate/long does not exist
-
-Self-explanatory.
-
-E: Fix ave/correlate/long variable is not equal-style variable
-
-Self-explanatory.
-
-E: Invalid timestep reset for fix ave/correlate/long
-
-Resetting the timestep has invalidated the sequence of timesteps this
-fix needs to process.
-
-*/

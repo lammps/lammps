@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_CORE_EXP_INTEROP_HPP
 #define KOKKOS_CORE_EXP_INTEROP_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_INTEROP
+#endif
 
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_Layout.hpp>
@@ -144,4 +148,8 @@ auto as_python_type(Tp&& _v) {
 }  // namespace Experimental
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_INTEROP
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_INTEROP
+#endif
 #endif

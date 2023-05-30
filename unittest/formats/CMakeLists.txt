@@ -46,9 +46,8 @@ target_link_libraries(test_dump_atom PRIVATE lammps GTest::GMock)
 add_test(NAME DumpAtom COMMAND test_dump_atom)
 set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
-if(PKG_COMPRESS)
-    find_program(GZIP_BINARY NAMES gzip REQUIRED)
-
+find_program(GZIP_EXECUTABLE NAMES gzip)
+if(PKG_COMPRESS AND GZIP_FOUND)
     add_executable(test_dump_atom_compressed test_dump_atom_compressed.cpp compressed_dump_test_main.cpp)
     target_link_libraries(test_dump_atom_compressed PRIVATE lammps GTest::GMock)
 
@@ -65,39 +64,39 @@ if(PKG_COMPRESS)
     target_link_libraries(test_dump_xyz_compressed PRIVATE lammps GTest::GMock)
 
     add_test(NAME DumpAtomGZ COMMAND test_dump_atom_compressed gz)
-    set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
+    set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${GZIP_EXECUTABLE}")
 
     add_test(NAME DumpCustomGZ COMMAND test_dump_custom_compressed gz)
-    set_tests_properties(DumpCustomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
+    set_tests_properties(DumpCustomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${GZIP_EXECUTABLE}")
 
     add_test(NAME DumpCfgGZ COMMAND test_dump_cfg_compressed gz)
-    set_tests_properties(DumpCfgGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
+    set_tests_properties(DumpCfgGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${GZIP_EXECUTABLE}")
 
     add_test(NAME DumpLocalGZ COMMAND test_dump_local_compressed gz)
-    set_tests_properties(DumpLocalGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
+    set_tests_properties(DumpLocalGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${GZIP_EXECUTABLE}")
 
     add_test(NAME DumpXYZGZ COMMAND test_dump_xyz_compressed gz)
-    set_tests_properties(DumpXYZGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
+    set_tests_properties(DumpXYZGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${GZIP_EXECUTABLE}")
 
-    find_package(PkgConfig REQUIRED)
+    find_package(PkgConfig)
     pkg_check_modules(Zstd IMPORTED_TARGET libzstd>=1.4)
-    find_program(ZSTD_BINARY NAMES zstd)
+    find_program(ZSTD_EXECUTABLE NAMES zstd)
 
-    if(Zstd_FOUND AND ZSTD_BINARY)
+    if(Zstd_FOUND AND ZSTD_EXECUTABLE)
         add_test(NAME DumpAtomZstd COMMAND test_dump_atom_compressed zstd)
-        set_tests_properties(DumpAtomZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
+        set_tests_properties(DumpAtomZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${ZSTD_EXECUTABLE}")
 
         add_test(NAME DumpCustomZstd COMMAND test_dump_custom_compressed zstd)
-        set_tests_properties(DumpCustomZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
+        set_tests_properties(DumpCustomZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${ZSTD_EXECUTABLE}")
 
         add_test(NAME DumpCfgZstd COMMAND test_dump_cfg_compressed zstd)
-        set_tests_properties(DumpCfgZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
+        set_tests_properties(DumpCfgZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${ZSTD_EXECUTABLE}")
 
         add_test(NAME DumpLocalZstd COMMAND test_dump_local_compressed zstd)
-        set_tests_properties(DumpLocalZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
+        set_tests_properties(DumpLocalZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${ZSTD_EXECUTABLE}")
 
         add_test(NAME DumpXYZZstd COMMAND test_dump_xyz_compressed zstd)
-        set_tests_properties(DumpXYZZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
+        set_tests_properties(DumpXYZZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_EXECUTABLE=${ZSTD_EXECUTABLE}")
     endif()
 endif()
 
@@ -122,11 +121,11 @@ if(PKG_NETCDF)
   target_link_libraries(test_dump_netcdf PRIVATE lammps GTest::GMock)
   add_test(NAME DumpNetCDF COMMAND test_dump_netcdf)
   if(NOT (NCDUMP STREQUAL "NCDUMP-NOTFOUND"))
-    set_tests_properties(DumpNetCDF PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};NCDUMP_BINARY=${NCDUMP}")
+    set_tests_properties(DumpNetCDF PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};NCDUMP_EXECUTABLE=${NCDUMP}")
   endif()
 endif()
 
 if(BUILD_TOOLS)
-    set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
-    set_tests_properties(DumpCustom PROPERTIES ENVIRONMENT "BINARY2TXT_BINARY=$<TARGET_FILE:binary2txt>")
+    set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "BINARY2TXT_EXECUTABLE=$<TARGET_FILE:binary2txt>")
+    set_tests_properties(DumpCustom PROPERTIES ENVIRONMENT "BINARY2TXT_EXECUTABLE=$<TARGET_FILE:binary2txt>")
 endif()

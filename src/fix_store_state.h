@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,10 +44,22 @@ class FixStoreState : public Fix {
   int maxsize_restart() override;
 
  private:
-  int nvalues;
-  int *which, *argindex, *value2index;
-  char **ids;
-  double **values;    // archived atom properties
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+      int d;
+      int i;
+    } val;
+    void (FixStoreState::* pack_choice)(int);    // ptr to pack function
+  };
+  std::vector<value_t> values;
+
+  double **avalues;    // archived atom properties
   double *vbuf;       // 1d ptr to values
 
   int comflag;
@@ -55,9 +67,6 @@ class FixStoreState : public Fix {
 
   int kflag, cfv_flag, firstflag;
   int cfv_any;    // 1 if any compute/fix/variable specified
-
-  typedef void (FixStoreState::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
   void pack_molecule(int);
@@ -113,87 +122,6 @@ class FixStoreState : public Fix {
   void pack_tqy(int);
   void pack_tqz(int);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix store/state for atom property that isn't allocated
-
-Self-explanatory.
-
-E: Compute ID for fix store/state does not exist
-
-Self-explanatory.
-
-E: Fix store/state compute does not calculate per-atom values
-
-Computes that calculate global or local quantities cannot be used
-with fix store/state.
-
-E: Fix store/state compute does not calculate a per-atom vector
-
-The compute calculates a per-atom vector.
-
-E: Fix store/state compute does not calculate a per-atom array
-
-The compute calculates a per-atom vector.
-
-E: Fix store/state compute array is accessed out-of-range
-
-Self-explanatory.
-
-E: Custom integer vector for fix store/state does not exist
-
-The command is accessing a vector added by the fix property/atom
-command, that does not exist.
-
-E: Custom floating point vector for fix store/state does not exist
-
-The command is accessing a vector added by the fix property/atom
-command, that does not exist.
-
-E: Fix ID for fix store/state does not exist
-
-Self-explanatory
-
-E: Fix store/state fix does not calculate per-atom values
-
-Fixes that calculate global or local quantities cannot be used with
-fix store/state.
-
-E: Fix store/state fix does not calculate a per-atom vector
-
-The fix calculates a per-atom array.
-
-E: Fix store/state fix does not calculate a per-atom array
-
-The fix calculates a per-atom vector.
-
-E: Fix store/state fix array is accessed out-of-range
-
-Self-explanatory.
-
-E: Fix for fix store/state not computed at compatible time
-
-Fixes generate their values on specific timesteps.  Fix store/state
-is requesting a value on a non-allowed timestep.
-
-E: Variable name for fix store/state does not exist
-
-Self-explanatory.
-
-E: Fix store/state variable is not atom-style variable
-
-Only atom-style variables calculate per-atom quantities.
-
-*/

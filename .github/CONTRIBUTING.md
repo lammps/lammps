@@ -5,8 +5,8 @@ Thank your for considering to contribute to the LAMMPS software project.
 The following is a set of guidelines as well as explanations of policies and work flows for contributing to the LAMMPS molecular dynamics software project. These guidelines focus on submitting issues or pull requests on the LAMMPS GitHub project.
 
 Thus please also have a look at:
-* [The guide for submitting new features in the LAMMPS manual](https://lammps.sandia.gov/doc/Modify_contribute.html)
-* [The guide on programming style and requirement in the LAMMPS manual](https://lammps.sandia.gov/doc/Modify_contribute.html)
+* [The guide for submitting new features in the LAMMPS manual](https://www.lammps.org/doc/Modify_contribute.html)
+* [The guide on programming style and requirement in the LAMMPS manual](https://www.lammps.org/doc/Modify_style.html)
 * [The GitHub tutorial in the LAMMPS manual](http://lammps.sandia.gov/doc/Howto_github.html)
 
 ## Table of Contents

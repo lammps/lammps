@@ -58,17 +58,13 @@ namespace Impl {
 // Reduction-only implementation
 //----------------------------------------------------------------------------
 
-template <class FunctorType, class ArgTag, bool UseShfl>
+template <class FunctorType, bool UseShfl>
 struct HIPReductionsFunctor;
 
-template <typename FunctorType, typename ArgTag>
-struct HIPReductionsFunctor<FunctorType, ArgTag, true> {
-  using ValueTraits  = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin    = FunctorValueJoin<FunctorType, ArgTag>;
-  using ValueInit    = FunctorValueInit<FunctorType, ArgTag>;
-  using ValueOps     = FunctorValueOps<FunctorType, ArgTag>;
-  using pointer_type = typename ValueTraits::pointer_type;
-  using Scalar       = typename ValueTraits::value_type;
+template <typename FunctorType>
+struct HIPReductionsFunctor<FunctorType, true> {
+  using pointer_type = typename FunctorType::pointer_type;
+  using Scalar       = typename FunctorType::value_type;
 
   __device__ static inline void scalar_intra_warp_reduction(
       FunctorType const& functor,
@@ -79,7 +75,7 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, true> {
       Scalar& result) {
     for (int delta = skip_vector ? blockDim.x : 1; delta < width; delta *= 2) {
       Scalar tmp = Kokkos::Experimental::shfl_down(value, delta, width);
-      ValueJoin::join(functor, &value, &tmp);
+      functor.join(&value, &tmp);
     }
 
     Experimental::Impl::in_place_shfl(result, value, 0, width);
@@ -109,16 +105,16 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, true> {
     for (int w = shared_elements; w < num_warps; w += shared_elements) {
       if (warp_id >= w && warp_id < w + shared_elements) {
         if ((threadIdx.y * blockDim.x + threadIdx.x) % warp_size == 0)
-          ValueJoin::join(functor, my_shared_team_buffer_element, &value);
+          functor.join(my_shared_team_buffer_element, &value);
       }
       __syncthreads();
     }
 
     if (warp_id == 0) {
-      ValueInit::init(functor, &value);
+      functor.init(&value);
       for (unsigned int i = threadIdx.y * blockDim.x + threadIdx.x;
            i < blockDim.y * blockDim.x / warp_size; i += warp_size) {
-        ValueJoin::join(functor, &value, &shared_team_buffer_element[i]);
+        functor.join(&value, &shared_team_buffer_element[i]);
       }
       scalar_intra_warp_reduction(functor, value, false, warp_size,
                                   *my_global_team_buffer_element);
@@ -147,14 +143,12 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, true> {
     scalar_intra_block_reduction(functor, value, true,
                                  my_global_team_buffer_element, shared_elements,
                                  shared_team_buffer_elements);
-    __threadfence();
     __syncthreads();
 
     // Use the last block that is done to do the do the reduction across the
     // block
     __shared__ unsigned int num_teams_done;
     if (threadIdx.x + threadIdx.y == 0) {
-      __threadfence();
       num_teams_done = Kokkos::atomic_fetch_add(global_flags, 1) + 1;
     }
     bool is_last_block = false;
@@ -165,10 +159,10 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, true> {
     if (num_teams_done == gridDim.x) {
       is_last_block = true;
       *global_flags = 0;
-      ValueInit::init(functor, &value);
+      functor.init(&value);
       for (int i = threadIdx.y * blockDim.x + threadIdx.x; i < global_elements;
            i += blockDim.x * blockDim.y) {
-        ValueJoin::join(functor, &value, &global_team_buffer_element[i]);
+        functor.join(&value, &global_team_buffer_element[i]);
       }
       scalar_intra_block_reduction(
           functor, value, false, shared_team_buffer_elements + blockDim.y - 1,
@@ -179,14 +173,10 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, true> {
   }
 };
 
-template <typename FunctorType, typename ArgTag>
-struct HIPReductionsFunctor<FunctorType, ArgTag, false> {
-  using ValueTraits  = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin    = FunctorValueJoin<FunctorType, ArgTag>;
-  using ValueInit    = FunctorValueInit<FunctorType, ArgTag>;
-  using ValueOps     = FunctorValueOps<FunctorType, ArgTag>;
-  using pointer_type = typename ValueTraits::pointer_type;
-  using Scalar       = typename ValueTraits::value_type;
+template <typename FunctorType>
+struct HIPReductionsFunctor<FunctorType, false> {
+  using pointer_type = typename FunctorType::pointer_type;
+  using Scalar       = typename FunctorType::value_type;
 
   __device__ static inline void scalar_intra_warp_reduction(
       FunctorType const& functor,
@@ -199,7 +189,7 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, false> {
                         ::Kokkos::Experimental::Impl::HIPTraits::WarpSize;
     for (int delta = skip_vector ? blockDim.x : 1; delta < width; delta *= 2) {
       if (lane_id + delta < ::Kokkos::Experimental::Impl::HIPTraits::WarpSize) {
-        ValueJoin::join(functor, value, value + delta);
+        functor.join(value, value + delta);
       }
     }
     *value = *(value - lane_id);
@@ -235,11 +225,11 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, false> {
     }
   }
 
+  template <typename SizeType>
   __device__ static inline bool scalar_inter_block_reduction(
       FunctorType const& functor,
       ::Kokkos::Experimental::HIP::size_type const block_count,
-      ::Kokkos::Experimental::HIP::size_type* const shared_data,
-      ::Kokkos::Experimental::HIP::size_type* const global_data,
+      SizeType* const shared_data, SizeType* const global_data,
       ::Kokkos::Experimental::HIP::size_type* const global_flags) {
     Scalar* const global_team_buffer_element =
         reinterpret_cast<Scalar*>(global_data);
@@ -263,7 +253,6 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, false> {
     // block
     __shared__ unsigned int num_teams_done;
     if (threadIdx.x + threadIdx.y == 0) {
-      __threadfence();
       num_teams_done = Kokkos::atomic_fetch_add(global_flags, 1) + 1;
     }
     bool is_last_block = false;
@@ -274,10 +263,10 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, false> {
     if (num_teams_done == gridDim.x) {
       is_last_block = true;
       *global_flags = 0;
-      ValueInit::init(functor, &value);
+      functor.init(&value);
       for (int i = threadIdx.y * blockDim.x + threadIdx.x; i < global_elements;
            i += blockDim.x * blockDim.y) {
-        ValueJoin::join(functor, &value, &global_team_buffer_element[i]);
+        functor.join(&value, &global_team_buffer_element[i]);
       }
       scalar_intra_block_reduction(
           functor, value, false, shared_team_buffer_elements + (blockDim.y - 1),
@@ -293,75 +282,103 @@ struct HIPReductionsFunctor<FunctorType, ArgTag, false> {
 //----------------------------------------------------------------------------
 /*
  *  Algorithmic constraints:
- *   (a) blockDim.y is a power of two
- *   (b) blockDim.y <= 1024
- *   (c) blockDim.x == blockDim.z == 1
+ *   (a) blockDim.y <= 1024
+ *   (b) blockDim.x == blockDim.z == 1
  */
 
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class FunctorType>
 __device__ void hip_intra_block_reduce_scan(
     FunctorType const& functor,
-    typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type const
-        base_data) {
-  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
+    typename FunctorType::pointer_type const base_data) {
+  using pointer_type = typename FunctorType::pointer_type;
 
-  using pointer_type = typename ValueTraits::pointer_type;
+  const unsigned value_count = functor.length();
+  const unsigned not_less_power_of_two =
+      (1 << (Impl::int_log2(blockDim.y - 1) + 1));
+  const unsigned BlockSizeMask = not_less_power_of_two - 1;
+  // There is at most one warp that is neither completely full or empty.
+  // For that warp, we shift all indices logically to the end and ignore join
+  // operations with unassigned indices in the warp when performing the intra
+  // warp reduction/scan.
+  const bool is_full_warp =
+      (((threadIdx.y >> Experimental::Impl::HIPTraits::WarpIndexShift) + 1)
+       << Experimental::Impl::HIPTraits::WarpIndexShift) <= blockDim.y;
 
-  unsigned int const value_count   = ValueTraits::value_count(functor);
-  unsigned int const BlockSizeMask = blockDim.y - 1;
-  int const WarpMask = Experimental::Impl::HIPTraits::WarpSize - 1;
+  auto block_reduce_step = [&functor, value_count](
+                               int const R, pointer_type const TD, int const S,
+                               pointer_type memory_start, int index_shift) {
+    const auto join_ptr = TD - (value_count << S) + value_count * index_shift;
+    if (R > ((1 << S) - 1) && join_ptr >= memory_start) {
+      functor.join(TD, join_ptr);
+    }
+  };
 
-  // Must have power of two thread count
-  if ((blockDim.y - 1) & blockDim.y) {
-    Kokkos::abort(
-        "HIP::hip_intra_block_reduce_scan requires power-of-two "
-        "blockDim.y\n");
-  }
-
-  auto block_reduce_step =
-      [&functor, value_count](int const R, pointer_type const TD, int const S) {
-        if (R > ((1 << S) - 1)) {
-          ValueJoin::join(functor, TD, (TD - (value_count << S)));
-        }
-      };
-
-  {  // Intra-warp reduction:
-    const unsigned rtid_intra      = threadIdx.y & WarpMask;
+  // Intra-warp reduction:
+  {
+    const unsigned mapped_idx =
+        threadIdx.y + (is_full_warp
+                           ? 0
+                           : (not_less_power_of_two - blockDim.y) &
+                                 (Experimental::Impl::HIPTraits::WarpSize - 1));
     const pointer_type tdata_intra = base_data + value_count * threadIdx.y;
-
-    block_reduce_step(rtid_intra, tdata_intra, 0);
-    block_reduce_step(rtid_intra, tdata_intra, 1);
-    block_reduce_step(rtid_intra, tdata_intra, 2);
-    block_reduce_step(rtid_intra, tdata_intra, 3);
-    block_reduce_step(rtid_intra, tdata_intra, 4);
-    block_reduce_step(rtid_intra, tdata_intra, 5);
+    const pointer_type warp_start =
+        base_data +
+        value_count *
+            ((threadIdx.y >> Experimental::Impl::HIPTraits::WarpIndexShift)
+             << Experimental::Impl::HIPTraits::WarpIndexShift);
+    block_reduce_step(mapped_idx, tdata_intra, 0, warp_start, 0);
+    block_reduce_step(mapped_idx, tdata_intra, 1, warp_start, 0);
+    block_reduce_step(mapped_idx, tdata_intra, 2, warp_start, 0);
+    block_reduce_step(mapped_idx, tdata_intra, 3, warp_start, 0);
+    block_reduce_step(mapped_idx, tdata_intra, 4, warp_start, 0);
+    block_reduce_step(mapped_idx, tdata_intra, 5, warp_start, 0);
   }
 
   __syncthreads();  // Wait for all warps to reduce
 
-  {  // Inter-warp reduce-scan by a single warp to avoid extra synchronizations
-    unsigned int const rtid_inter =
-        ((threadIdx.y + 1) << Experimental::Impl::HIPTraits::WarpIndexShift) -
-        1;
-
-    if (rtid_inter < blockDim.y) {
-      pointer_type const tdata_inter = base_data + value_count * rtid_inter;
+  // Inter-warp reduce-scan by a single warp to avoid extra synchronizations
+  {
+    // There is at most one warp where the memory address to be used is not
+    // (HIPTraits::WarpSize - 1) away from the warp start adress. For the
+    // following reduction, we shift all indices logically to the end of the
+    // next power-of-two to the number of warps.
+    const unsigned n_active_warps =
+        ((blockDim.y - 1) >> Experimental::Impl::HIPTraits::WarpIndexShift) + 1;
+    if (threadIdx.y < n_active_warps) {
+      const bool is_full_warp_inter =
+          threadIdx.y <
+          (blockDim.y >> Experimental::Impl::HIPTraits::WarpIndexShift);
+      pointer_type const tdata_inter =
+          base_data +
+          value_count *
+              (is_full_warp_inter
+                   ? (threadIdx.y
+                      << Experimental::Impl::HIPTraits::WarpIndexShift) +
+                         (Experimental::Impl::HIPTraits::WarpSize - 1)
+                   : blockDim.y - 1);
+      const unsigned index_shift =
+          is_full_warp_inter
+              ? 0
+              : blockDim.y - (threadIdx.y
+                              << Experimental::Impl::HIPTraits::WarpIndexShift);
+      const int rtid_inter =
+          (threadIdx.y << Experimental::Impl::HIPTraits::WarpIndexShift) +
+          (Experimental::Impl::HIPTraits::WarpSize - 1) - index_shift;
 
       if ((1 << 6) < BlockSizeMask) {
-        block_reduce_step(rtid_inter, tdata_inter, 6);
+        block_reduce_step(rtid_inter, tdata_inter, 6, base_data, index_shift);
       }
       if ((1 << 7) < BlockSizeMask) {
-        block_reduce_step(rtid_inter, tdata_inter, 7);
+        block_reduce_step(rtid_inter, tdata_inter, 7, base_data, index_shift);
       }
       if ((1 << 8) < BlockSizeMask) {
-        block_reduce_step(rtid_inter, tdata_inter, 8);
+        block_reduce_step(rtid_inter, tdata_inter, 8, base_data, index_shift);
       }
       if ((1 << 9) < BlockSizeMask) {
-        block_reduce_step(rtid_inter, tdata_inter, 9);
+        block_reduce_step(rtid_inter, tdata_inter, 9, base_data, index_shift);
       }
       if ((1 << 10) < BlockSizeMask) {
-        block_reduce_step(rtid_inter, tdata_inter, 10);
+        block_reduce_step(rtid_inter, tdata_inter, 10, base_data, index_shift);
       }
     }
   }
@@ -371,12 +388,16 @@ __device__ void hip_intra_block_reduce_scan(
   if (DoScan) {
     // Update all the values for the respective warps (except for the last one)
     // by adding from the last value of the previous warp.
+    const unsigned int WarpMask = Experimental::Impl::HIPTraits::WarpSize - 1;
+    const int is_last_thread_in_warp =
+        is_full_warp ? ((threadIdx.y & WarpMask) ==
+                        Experimental::Impl::HIPTraits::WarpSize - 1)
+                     : (threadIdx.y == blockDim.y - 1);
     if (threadIdx.y >= Experimental::Impl::HIPTraits::WarpSize &&
-        (threadIdx.y & WarpMask) !=
-            Experimental::Impl::HIPTraits::WarpSize - 1) {
+        !is_last_thread_in_warp) {
       const int offset_to_previous_warp_total = (threadIdx.y & (~WarpMask)) - 1;
-      ValueJoin::join(functor, base_data + value_count * threadIdx.y,
-                      base_data + value_count * offset_to_previous_warp_total);
+      functor.join(base_data + value_count * threadIdx.y,
+                   base_data + value_count * offset_to_previous_warp_total);
     }
   }
 }
@@ -390,21 +411,16 @@ __device__ void hip_intra_block_reduce_scan(
  *  Global reduce result is in the last threads' 'shared_data' location.
  */
 
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, typename FunctorType, typename SizeType>
 __device__ bool hip_single_inter_block_reduce_scan_impl(
     FunctorType const& functor,
     ::Kokkos::Experimental::HIP::size_type const block_id,
     ::Kokkos::Experimental::HIP::size_type const block_count,
-    ::Kokkos::Experimental::HIP::size_type* const shared_data,
-    ::Kokkos::Experimental::HIP::size_type* const global_data,
+    SizeType* const shared_data, SizeType* const global_data,
     ::Kokkos::Experimental::HIP::size_type* const global_flags) {
-  using size_type   = ::Kokkos::Experimental::HIP::size_type;
-  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
-  using ValueInit   = FunctorValueInit<FunctorType, ArgTag>;
-  using ValueOps    = FunctorValueOps<FunctorType, ArgTag>;
-
-  using pointer_type = typename ValueTraits::pointer_type;
+  using size_type    = SizeType;
+  using value_type   = typename FunctorType::value_type;
+  using pointer_type = typename FunctorType::pointer_type;
 
   // '__ffs' = position of the least significant bit set to 1.
   // 'blockDim.y' is guaranteed to be a power of two so this
@@ -419,13 +435,14 @@ __device__ bool hip_single_inter_block_reduce_scan_impl(
         "blockDim");
   }
 
-  integral_nonzero_constant<size_type, ValueTraits::StaticValueSize /
-                                           sizeof(size_type)> const
-      word_count(ValueTraits::value_size(functor) / sizeof(size_type));
+  const integral_nonzero_constant<
+      size_type, std::is_pointer<typename FunctorType::reference_type>::value
+                     ? 0
+                     : sizeof(value_type) / sizeof(size_type)>
+      word_count((sizeof(value_type) * functor.length()) / sizeof(size_type));
 
   // Reduce the accumulation for the entire block.
-  hip_intra_block_reduce_scan<false, FunctorType, ArgTag>(
-      functor, pointer_type(shared_data));
+  hip_intra_block_reduce_scan<false>(functor, pointer_type(shared_data));
 
   {
     // Write accumulation total to global scratch space.
@@ -450,7 +467,6 @@ __device__ bool hip_single_inter_block_reduce_scan_impl(
   n_done = 0;
   __syncthreads();
   if (threadIdx.y == 0) {
-    __threadfence();
     n_done = 1 + atomicInc(global_flags, block_count - 1);
   }
   __syncthreads();
@@ -465,32 +481,34 @@ __device__ bool hip_single_inter_block_reduce_scan_impl(
                         BlockSizeShift;
 
     {
-      void* const shared_ptr = shared_data + word_count.value * threadIdx.y;
-      /* reference_type shared_value = */ ValueInit::init(functor, shared_ptr);
+      pointer_type const shared_data_thread = reinterpret_cast<pointer_type>(
+          shared_data + word_count.value * threadIdx.y);
+      /* reference_type shared_value = */ functor.init(shared_data_thread);
 
       for (size_type i = b; i < e; ++i) {
-        ValueJoin::join(functor, shared_ptr,
-                        global_data + word_count.value * i);
+        functor.join(
+            shared_data_thread,
+            reinterpret_cast<pointer_type>(global_data + word_count.value * i));
       }
     }
 
-    hip_intra_block_reduce_scan<DoScan, FunctorType, ArgTag>(
-        functor, pointer_type(shared_data));
+    hip_intra_block_reduce_scan<DoScan>(functor, pointer_type(shared_data));
 
     if (DoScan) {
-      size_type* const shared_value =
+      pointer_type const shared_value = reinterpret_cast<pointer_type>(
           shared_data +
-          word_count.value * (threadIdx.y ? threadIdx.y - 1 : blockDim.y);
+          word_count.value * (threadIdx.y ? threadIdx.y - 1 : blockDim.y));
 
       if (!threadIdx.y) {
-        ValueInit::init(functor, shared_value);
+        functor.init(shared_value);
       }
 
       // Join previous inclusive scan value to each member
       for (size_type i = b; i < e; ++i) {
-        size_type* const global_value = global_data + word_count.value * i;
-        ValueJoin::join(functor, shared_value, global_value);
-        ValueOps::copy(functor, global_value, shared_value);
+        pointer_type const global_value =
+            reinterpret_cast<pointer_type>(global_data + word_count.value * i);
+        functor.join(shared_value, global_value);
+        functor.copy(global_value, shared_value);
       }
     }
   }
@@ -498,37 +516,52 @@ __device__ bool hip_single_inter_block_reduce_scan_impl(
   return is_last_block;
 }
 
-template <bool DoScan, typename FunctorType, typename ArgTag>
+template <bool DoScan, typename FunctorType, typename SizeType>
 __device__ bool hip_single_inter_block_reduce_scan(
     FunctorType const& functor,
     ::Kokkos::Experimental::HIP::size_type const block_id,
     ::Kokkos::Experimental::HIP::size_type const block_count,
-    ::Kokkos::Experimental::HIP::size_type* const shared_data,
-    ::Kokkos::Experimental::HIP::size_type* const global_data,
+    SizeType* const shared_data, SizeType* const global_data,
     ::Kokkos::Experimental::HIP::size_type* const global_flags) {
-  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
-  // If we are doing a reduction and StaticValueSize is true, we use the
+  // If we are doing a reduction and we don't do an array reduction, we use the
   // reduction-only path. Otherwise, we use the common path between reduction
   // and scan.
-  if (!DoScan && static_cast<bool>(ValueTraits::StaticValueSize))
+  if (!DoScan && !std::is_pointer<typename FunctorType::reference_type>::value)
     // FIXME_HIP_PERFORMANCE I don't know where 16 comes from. This inequality
     // determines if we use shared memory (false) or shuffle (true)
     return Kokkos::Impl::HIPReductionsFunctor<
-        FunctorType, ArgTag, (ValueTraits::StaticValueSize > 16)>::
-        scalar_inter_block_reduction(functor, block_count, shared_data,
-                                     global_data, global_flags);
+        FunctorType, (sizeof(typename FunctorType::value_type) >
+                      16)>::scalar_inter_block_reduction(functor, block_count,
+                                                         shared_data,
+                                                         global_data,
+                                                         global_flags);
   else {
-    return hip_single_inter_block_reduce_scan_impl<DoScan, FunctorType, ArgTag>(
+    return hip_single_inter_block_reduce_scan_impl<DoScan>(
         functor, block_id, block_count, shared_data, global_data, global_flags);
   }
 }
 
 // Size in bytes required for inter block reduce or scan
 template <bool DoScan, class FunctorType, class ArgTag>
-inline unsigned hip_single_inter_block_reduce_scan_shmem(
-    const FunctorType& functor, const unsigned BlockSize) {
-  return (BlockSize + 2) *
-         Impl::FunctorValueTraits<FunctorType, ArgTag>::value_size(functor);
+inline std::enable_if_t<DoScan, unsigned>
+hip_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
+                                         const unsigned BlockSize) {
+  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
+                                         RangePolicy<Experimental::HIP, ArgTag>,
+                                         FunctorType>;
+
+  return (BlockSize + 2) * Analysis::value_size(functor);
+}
+
+template <bool DoScan, class FunctorType, class ArgTag>
+inline std::enable_if_t<!DoScan, unsigned>
+hip_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
+                                         const unsigned BlockSize) {
+  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                                         RangePolicy<Experimental::HIP, ArgTag>,
+                                         FunctorType>;
+
+  return (BlockSize + 2) * Analysis::value_size(functor);
 }
 
 }  // namespace Impl

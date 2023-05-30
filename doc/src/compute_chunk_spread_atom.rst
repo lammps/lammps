@@ -6,7 +6,7 @@ compute chunk/spread/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID chunk/spread/atom chunkID input1 input2 ...
 
@@ -18,10 +18,10 @@ Syntax
 
   .. parsed-literal::
 
-       c_ID = global vector calculated by a compute with ID
-       c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
-       f_ID = global vector calculated by a fix with ID
-       f_ID[I] = Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
+     c_ID = global vector calculated by a compute with ID
+     c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
+     f_ID = global vector calculated by a fix with ID
+     f_ID[I] = Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
 
 Examples
 """"""""

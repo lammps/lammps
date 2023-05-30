@@ -97,6 +97,11 @@ int cvscript_command_n_args_max(char const *c)
         COLVARSCRIPT_OK) {                                              \
       return COLVARSCRIPT_ERROR;                                        \
     }                                                                   \
+    if (objc > 1) {                                                     \
+      /* Silence unused parameter warning */                            \
+      (void) pobj;                                                      \
+      (void) objv[0];                                                   \
+    }                                                                   \
     FN_BODY;                                                            \
   }
 #undef CVSCRIPT

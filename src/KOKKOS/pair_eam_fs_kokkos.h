@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -119,7 +119,6 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
   typename AT::t_x_array x;
   typename AT::t_f_array f;
   typename AT::t_int_1d type;
-  typename AT::t_tagint_1d tag;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
@@ -191,28 +190,3 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use chosen neighbor list style with pair eam/kk/fs
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: No matching element in EAM potential file
-
-The EAM potential file does not contain elements that match the
-requested elements.
-
-E: Cannot open EAM potential file %s
-
-The specified EAM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect element names in EAM potential file
-
-The element names in the EAM file do not match those requested.
-
-*/

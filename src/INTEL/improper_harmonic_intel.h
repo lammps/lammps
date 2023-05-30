@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,7 +32,6 @@ namespace LAMMPS_NS {
 class ImproperHarmonicIntel : public ImproperHarmonic {
  public:
   ImproperHarmonicIntel(class LAMMPS *);
-  ~ImproperHarmonicIntel() override;
   void compute(int, int) override;
   void init_style() override;
 
@@ -78,16 +76,3 @@ class ImproperHarmonicIntel : public ImproperHarmonic {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Improper problem: %d %ld %d %d %d %d
-
-Conformation of the 4 listed improper atoms is extreme; you may want
-to check your simulation geometry.
-
-E: Incorrect args for improper coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

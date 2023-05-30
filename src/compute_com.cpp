@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,18 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_com.h"
-#include "update.h"
-#include "group.h"
 #include "error.h"
+#include "group.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeCOM::ComputeCOM(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeCOM::ComputeCOM(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute com command");
+  if (narg != 3) error->all(FLERR, "Illegal compute com command");
 
   vector_flag = 1;
   size_vector = 3;
@@ -37,7 +35,7 @@ ComputeCOM::ComputeCOM(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCOM::~ComputeCOM()
 {
-  delete [] vector;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,5 +52,5 @@ void ComputeCOM::compute_vector()
   invoked_vector = update->ntimestep;
   if (group->dynamic[igroup]) masstotal = group->mass(igroup);
 
-  group->xcm(igroup,masstotal,vector);
+  group->xcm(igroup, masstotal, vector);
 }

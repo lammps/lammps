@@ -1,4 +1,4 @@
-# crusher_kokkos = KOKKOS/HIP, AMD MI250X GPU and AMD EPYC 7A53 "Optimized 3rd Gen EPYC" CPU, Cray MPICH, hipcc compiler
+# crusher_kokkos = KOKKOS/HIP, AMD MI250X GPU and AMD EPYC 7A53 "Optimized 3rd Gen EPYC" CPU, Cray MPICH, hipcc compiler, hipFFT
 
 SHELL = /bin/sh
 
@@ -9,7 +9,7 @@ SHELL = /bin/sh
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 
 CC =		hipcc
-CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG
+CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -54,9 +54,12 @@ MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =
+MY_HIP_EXE = $(shell which hipcc)
+MY_HIP_PATH = $(dir ${MY_HIP_EXE})
+
+FFT_INC = -DFFT_HIPFFT
 FFT_PATH =
-FFT_LIB =
+FFT_LIB = -L${MY_HIP_PATH}../lib -lhipfft
 
 # JPEG and/or PNG library
 # see discussion in Section 3.5.4 of manual

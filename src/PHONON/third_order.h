@@ -23,9 +23,8 @@ class ThirdOrder : public Command {
   void setup();
 
  protected:
-  int eflag,vflag;            // flags for energy/virial computation
-  int external_force_clear;   // clear forces locally or externally
-
+  int eflag, vflag;            // flags for energy/virial computation
+  int external_force_clear;    // clear forces locally or externally
 
   int triclinic;    // 0 if domain is orthog, 1 if triclinic
   int pairflag;
@@ -37,8 +36,7 @@ class ThirdOrder : public Command {
 
   virtual void update_force();
   virtual void force_clear();
-  virtual void openfile(const char* filename);
-
+  virtual void openfile(const char *filename);
 
  protected:
   void options(int, char **);
@@ -54,7 +52,7 @@ class ThirdOrder : public Command {
   double conv_distance;
   double conv_mass;
   double del;
-  int igroup,groupbit;
+  int igroup, groupbit;
   bigint dynlen;
   bigint dynlenb;
   int scaleflag;

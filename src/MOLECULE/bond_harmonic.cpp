@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp)
 {
-  reinitflag = 1;
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -200,13 +200,26 @@ double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/, double &
   return rk * dr;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void BondHarmonic::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double dr = r - r0[type];
+  du2 = 0.0;
+  du = 0.0;
+  du2 = 2 * k[type];
+  if (r > 0.0) du = du2 * dr;
+}
+
 /* ----------------------------------------------------------------------
-    Return ptr to internal members upon request.
+   return ptr to internal members upon request
 ------------------------------------------------------------------------ */
+
 void *BondHarmonic::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -69,7 +69,7 @@ void MinLineSearchKokkos::init()
 {
   MinKokkos::init();
 
-  if (linestyle == 1) linemin = &MinLineSearchKokkos::linemin_quadratic;
+  if (linestyle == QUADRATIC) linemin = &MinLineSearchKokkos::linemin_quadratic;
   else error->all(FLERR,"Kokkos minimize only supports the 'min_modify line "
    "quadratic' option");
 }
@@ -111,9 +111,6 @@ void MinLineSearchKokkos::reset_vectors()
   x0 = fix_minimize_kk->request_vector_kokkos(0);
   g = fix_minimize_kk->request_vector_kokkos(1);
   h = fix_minimize_kk->request_vector_kokkos(2);
-
-  auto h_fvec = Kokkos::create_mirror_view(fvec);
-  Kokkos::deep_copy(h_fvec,fvec);
 }
 
 /* ----------------------------------------------------------------------
@@ -181,6 +178,8 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
   fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
 
+  atomKK->sync(Device,X_MASK|F_MASK);
+
   // fdothall = projection of search dir along downhill gradient
   // if search direction is not downhill, exit with error
 
@@ -206,7 +205,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   // for atom coords, max amount = dmax
   // for extra per-atom dof, max amount = extra_max[]
   // for extra global dof, max amount is set by fix
-  // also insure alphamax <= ALPHA_MAX
+  // also ensure alphamax <= ALPHA_MAX
   // else will have to backtrack from huge value when forces are tiny
   // if all search dir components are already 0.0, exit with error
 
@@ -264,7 +263,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   //        etmp-eoriginal+alphatmp*fdothall);
   // alpha_step(0.0,1);
 
-  while (1) {
+  while (true) {
     ecurrent = alpha_step(alpha,1);
 
     // compute new fh, alpha, delfh
@@ -364,8 +363,8 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
   // reset to starting point
 
   if (nextra_global) modify->min_step(0.0,hextra);
-  atomKK->k_x.clear_sync_state(); // ignore if host positions since device
-                                  //  positions will be reset below
+  atomKK->k_x.clear_sync_state(); // ignore if host positions modified since
+                                  //  device positions will be reset below
   {
     // local variables for lambda capture
 
@@ -377,10 +376,14 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
     });
   }
 
+  atomKK->modified(Device,X_MASK);
+
   // step forward along h
 
   if (alpha > 0.0) {
     if (nextra_global) modify->min_step(alpha,hextra);
+
+  atomKK->sync(Device,X_MASK); // positions can be modified by fix box/relax
 
     // local variables for lambda capture
 
@@ -408,6 +411,8 @@ double MinLineSearchKokkos::compute_dir_deriv(double &ff)
 {
   double dot[2],dotall[2];
   double fh;
+
+  atomKK->sync(Device,F_MASK);
 
   // compute new fh, alpha, delfh
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,7 +40,7 @@ namespace LAMMPS_NS {
 class DumpCustomADIOSInternal {
 
  public:
-  DumpCustomADIOSInternal(){};
+  DumpCustomADIOSInternal() = default;
   ~DumpCustomADIOSInternal() = default;
 
   // name of adios group, referrable in adios2_config.xml
@@ -70,13 +70,17 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
 
   internal = new DumpCustomADIOSInternal();
   try {
-    internal->ad = new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+#if defined(MPI_STUBS)
+    internal->ad = new adios2::ADIOS("adios2_config.xml");
+#else
+    internal->ad = new adios2::ADIOS("adios2_config.xml", world);
+#endif
   } catch (std::ios_base::failure &e) {
     error->all(FLERR, "ADIOS initialization failed with error: {}", e.what());
   }
 
   internal->columnNames.reserve(nfield);
-  for (int i = 0; i < nfield; ++i) { internal->columnNames.push_back(earg[i]); }
+  for (int i = 0; i < nfield; ++i) { internal->columnNames.emplace_back(earg[i]); }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,11 +100,19 @@ void DumpCustomADIOS::openfile()
   if (multifile) {
     // if one file per timestep, replace '*' with current timestep
     auto filecurrent = utils::star_subst(filename, update->ntimestep, padflag);
+#if defined(MPI_STUBS)
+    internal->fh = internal->io.Open(filecurrent, adios2::Mode::Write);
+#else
     internal->fh = internal->io.Open(filecurrent, adios2::Mode::Write, world);
+#endif
     if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filecurrent);
   } else {
     if (!singlefile_opened) {
+#if defined(MPI_STUBS)
+      internal->fh = internal->io.Open(filename, adios2::Mode::Write);
+#else
       internal->fh = internal->io.Open(filename, adios2::Mode::Write, world);
+#endif
       if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filename);
       singlefile_opened = 1;
     }
@@ -146,14 +158,14 @@ void DumpCustomADIOS::write()
 
   // Now we know the global size and the local subset size and offset
   // of the atoms table
-  auto  nAtomsGlobal = static_cast<size_t>(ntotal);
-  auto  startRow = static_cast<size_t>(atomOffset);
-  auto  nAtomsLocal = static_cast<size_t>(nme);
-  auto  nColumns = static_cast<size_t>(size_one);
+  auto nAtomsGlobal = static_cast<size_t>(ntotal);
+  auto startRow = static_cast<size_t>(atomOffset);
+  auto nAtomsLocal = static_cast<size_t>(nme);
+  auto nColumns = static_cast<size_t>(size_one);
   internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
   internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
-  // insure filewriter proc can receive everyone's info
+  // ensure filewriter proc can receive everyone's info
   // limit nmax*size_one to int since used as arg in MPI_Rsend() below
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()
@@ -219,10 +231,12 @@ void DumpCustomADIOS::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
-    if (keyword_user[icol].size()) combined += keyword_user[icol];
-    else combined += item;
+    if (keyword_user[icol].size())
+      combined += keyword_user[icol];
+    else
+      combined += item;
     ++icol;
   }
   columns = utils::strdup(combined);
@@ -249,34 +263,30 @@ void DumpCustomADIOS::init_style()
    */
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
-  int icompute;
   for (int i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR, "Could not find dump custom compute ID");
-    compute[i] = modify->compute[icompute];
+    compute[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!compute[i])
+      error->all(FLERR, "Could not find dump custom/adios compute ID {}", id_compute[i]);
   }
 
-  int ifix;
   for (int i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR, "Could not find dump custom fix ID");
-    fix[i] = modify->fix[ifix];
-    if (nevery % modify->fix[ifix]->peratom_freq)
-      error->all(FLERR, "Dump custom and fix not computed at compatible times");
+    fix[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fix[i]) error->all(FLERR, "Could not find dump custom/adios fix ID {}", id_fix[i]);
+    if (nevery % fix[i]->peratom_freq)
+      error->all(FLERR, "dump custom/adios and fix {} with ID {} not computed at compatible times",
+                 fix[i]->style, id_fix[i]);
   }
 
   int ivariable;
   for (int i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
-    if (ivariable < 0) error->all(FLERR, "Could not find dump custom variable name");
+    if (ivariable < 0) error->all(FLERR, "Could not find dump custom/adios variable name");
     variable[i] = ivariable;
   }
 
   // set index and check validity of region
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1) error->all(FLERR, "Region ID for dump custom does not exist");
-  }
+  if (idregion && !domain->get_region_by_id(idregion))
+    error->all(FLERR, "Region {} for dump custom/adios does not exist", idregion);
 
   /* Define the group of variables for the atom style here since it's a fixed
    * set */
@@ -316,7 +326,7 @@ void DumpCustomADIOS::init_style()
   int *boundaryptr = reinterpret_cast<int *>(domain->boundary);
   internal->io.DefineAttribute<int>("boundary", boundaryptr, 6);
 
-  auto  nColumns = static_cast<size_t>(size_one);
+  auto nColumns = static_cast<size_t>(size_one);
   internal->io.DefineAttribute<std::string>("columns", internal->columnNames.data(), nColumns);
   internal->io.DefineAttribute<std::string>("columnstr", columns);
   internal->io.DefineAttribute<std::string>("boundarystr", boundstr);

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -109,29 +109,3 @@ class PairDSMC : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Pair dsmc: num_of_collisions > number_of_A
-
-Collision model in DSMC is breaking down.
-
-W: Pair dsmc: num_of_collisions > number_of_B
-
-Collision model in DSMC is breaking down.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Tried to convert a double to int, but input_double > INT_MAX
-
-Self-explanatory.
-
-*/

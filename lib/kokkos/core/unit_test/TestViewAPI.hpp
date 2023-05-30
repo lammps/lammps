@@ -45,7 +45,6 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -57,8 +56,14 @@ size_t allocation_count(const Kokkos::View<T, P...> &view) {
   const size_t alloc = view.span();
 
   const int memory_span = Kokkos::View<int *>::required_allocation_size(100);
+  const int memory_span_layout =
+      Kokkos::View<int *, Kokkos::LayoutRight>::required_allocation_size(
+          Kokkos::LayoutRight(100));
 
-  return (card <= alloc && memory_span == 400) ? alloc : 0;
+  return ((card <= alloc) && (memory_span == 400) &&
+          (memory_span_layout == 400))
+             ? alloc
+             : 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -104,8 +109,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 8> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -200,8 +204,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -278,8 +281,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -354,8 +356,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -442,8 +443,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -512,8 +512,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -605,8 +604,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -681,8 +679,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &input) {
+  static void join(value_type &update, const value_type &input) {
     update |= input;
   }
 
@@ -892,8 +889,8 @@ struct TestViewMirror {
     for (int i = 0; i < 10; i++) {
       a_h(i) = (double)i;
     }
-    auto a_d = Kokkos::create_mirror_view(DeviceType(), a_h,
-                                          Kokkos::WithoutInitializing);
+    auto a_d = Kokkos::create_mirror_view(Kokkos::WithoutInitializing,
+                                          DeviceType(), a_h);
 
     int equal_ptr_h_d = (a_h.data() == a_d.data()) ? 1 : 0;
     constexpr int is_same_memspace =
@@ -1023,6 +1020,91 @@ class TestViewAPI {
 #endif
   }
 
+  static void run_test_contruction_from_layout() {
+    using hView0 = typename dView0::HostMirror;
+    using hView1 = typename dView1::HostMirror;
+    using hView2 = typename dView2::HostMirror;
+    using hView3 = typename dView3::HostMirror;
+    using hView4 = typename dView4::HostMirror;
+
+    hView0 hv_0("dView0::HostMirror");
+    hView1 hv_1("dView1::HostMirror", N0);
+    hView2 hv_2("dView2::HostMirror", N0);
+    hView3 hv_3("dView3::HostMirror", N0);
+    hView4 hv_4("dView4::HostMirror", N0);
+
+    dView0 dv_0_1(nullptr, 0);
+    dView0 dv_0_2(hv_0.label(), hv_0.layout());
+
+    dView1 dv_1_1(nullptr, 0);
+    dView1 dv_1_2(hv_1.label(), hv_1.layout());
+
+    dView2 dv_2_1(nullptr, 0);
+    dView2 dv_2_2(hv_2.label(), hv_2.layout());
+
+    dView3 dv_3_1(nullptr, 0);
+    dView3 dv_3_2(hv_3.label(), hv_3.layout());
+
+    dView4 dv_4_1(nullptr, 0);
+    dView4 dv_4_2(hv_4.label(), hv_4.layout());
+  }
+
+  static void run_test_contruction_from_layout_2() {
+    using dView3_0 = Kokkos::View<T ***, device>;
+    using dView3_1 = Kokkos::View<T * * [N1], device>;
+    using dView3_2 = Kokkos::View<T * [N1][N2], device>;
+    using dView3_3 = Kokkos::View<T[N0][N1][N2], device>;
+
+    dView3_0 v_0("v_0", N0, N1, N2);
+    dView3_1 v_1("v_1", N0, N1);
+    dView3_2 v_2("v_2", N0);
+    dView3_3 v_3("v_2");
+
+    dView3_1 v_1_a("v_1", N0, N1, N2);
+    dView3_2 v_2_a("v_2", N0, N1, N2);
+    dView3_3 v_3_a("v_2", N0, N1, N2);
+
+    {
+      dView3_0 dv_1(v_0.label(), v_0.layout());
+      dView3_0 dv_2(v_1.label(), v_1.layout());
+      dView3_0 dv_3(v_2.label(), v_2.layout());
+      dView3_0 dv_4(v_3.label(), v_3.layout());
+      dView3_0 dv_5(v_1_a.label(), v_1_a.layout());
+      dView3_0 dv_6(v_2_a.label(), v_2_a.layout());
+      dView3_0 dv_7(v_3_a.label(), v_3_a.layout());
+    }
+
+    {
+      dView3_1 dv_1(v_0.label(), v_0.layout());
+      dView3_1 dv_2(v_1.label(), v_1.layout());
+      dView3_1 dv_3(v_2.label(), v_2.layout());
+      dView3_1 dv_4(v_3.label(), v_3.layout());
+      dView3_1 dv_5(v_1_a.label(), v_1_a.layout());
+      dView3_1 dv_6(v_2_a.label(), v_2_a.layout());
+      dView3_1 dv_7(v_3_a.label(), v_3_a.layout());
+    }
+
+    {
+      dView3_2 dv_1(v_0.label(), v_0.layout());
+      dView3_2 dv_2(v_1.label(), v_1.layout());
+      dView3_2 dv_3(v_2.label(), v_2.layout());
+      dView3_2 dv_4(v_3.label(), v_3.layout());
+      dView3_2 dv_5(v_1_a.label(), v_1_a.layout());
+      dView3_2 dv_6(v_2_a.label(), v_2_a.layout());
+      dView3_2 dv_7(v_3_a.label(), v_3_a.layout());
+    }
+
+    {
+      dView3_3 dv_1(v_0.label(), v_0.layout());
+      dView3_3 dv_2(v_1.label(), v_1.layout());
+      dView3_3 dv_3(v_2.label(), v_2.layout());
+      dView3_3 dv_4(v_3.label(), v_3.layout());
+      dView3_3 dv_5(v_1_a.label(), v_1_a.layout());
+      dView3_3 dv_6(v_2_a.label(), v_2_a.layout());
+      dView3_3 dv_7(v_3_a.label(), v_3_a.layout());
+    }
+  }
+
   static void run_test() {
     // mfh 14 Feb 2014: This test doesn't actually create instances of
     // these types.  In order to avoid "unused type alias"
@@ -1082,10 +1164,24 @@ class TestViewAPI {
     dx = dView4("dx", N0);
     dy = dView4("dy", N0);
 
-    ASSERT_EQ(dx.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
 
     dView4_unmanaged unmanaged_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+
+    // Test self assignment
+#if defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+#endif
+    dx = dx;  // copy-assignment operator
+#if defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    ASSERT_EQ(dx.use_count(), 1);
+    dx = reinterpret_cast<typename dView4::uniform_type &>(
+        dx);  // conversion assignment operator
+    ASSERT_EQ(dx.use_count(), 1);
 
     dView4_unmanaged unmanaged_from_ptr_dx = dView4_unmanaged(
         dx.data(), dx.extent(0), dx.extent(1), dx.extent(2), dx.extent(3));
@@ -1097,24 +1193,24 @@ class TestViewAPI {
     }
 
     const_dView4 const_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     {
       const_dView4 const_dx2;
       const_dx2 = const_dx;
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
 
       const_dx2 = dy;
-      ASSERT_EQ(dx.use_count(), size_t(2));
+      ASSERT_EQ(dx.use_count(), 2);
 
       const_dView4 const_dx3(dx);
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
 
       dView4_unmanaged dx4_unmanaged(dx);
-      ASSERT_EQ(dx.use_count(), size_t(3));
+      ASSERT_EQ(dx.use_count(), 3);
     }
 
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     ASSERT_NE(dx.data(), nullptr);
     ASSERT_NE(const_dx.data(), nullptr);
@@ -1477,6 +1573,13 @@ class TestViewAPI {
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
     if (std::is_same<typename dView1::memory_space,
                      Kokkos::Experimental::OpenMPTargetSpace>::value)
+      return;
+#endif
+// FIXME_MSVC_WITH_CUDA
+// This test doesn't behave as expected on Windows with CUDA
+#if defined(_WIN32) && defined(KOKKOS_ENABLE_CUDA)
+    if (std::is_same<typename dView1::memory_space,
+                     Kokkos::CudaUVMSpace>::value)
       return;
 #endif
     auto alloc_size = std::numeric_limits<size_t>::max() - 42;

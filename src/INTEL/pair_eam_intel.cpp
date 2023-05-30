@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -347,14 +347,15 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           p = MIN(p,(flt_t)1.0);
           if (!ONETYPE)
             rhor_joff = rhor_ioff + jtype * jstride;
-          const int joff = rhor_joff + m;
+          const int joff = IP_PRE_dword_index(rhor_joff + m);
           flt_t ra;
           ra = ((rhor_spline_e[joff].a*p + rhor_spline_e[joff].b) * p +
                 rhor_spline_e[joff].c) * p + rhor_spline_e[joff].d;
           rhoi += ra;
           if (NEWTON_PAIR) {
             if (!ONETYPE) {
-              const int ioff = jtype * istride + itype * jstride + m;
+              const int ioff = IP_PRE_dword_index(jtype * istride + itype *
+                                                  jstride + m);
               ra = ((rhor_spline_e[ioff].a*p + rhor_spline_e[ioff].b)*p +
                     rhor_spline_e[ioff].c) * p + rhor_spline_e[ioff].d;
             }
@@ -439,7 +440,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       #pragma vector aligned
       #endif
       for (int ii = iifrom; ii < iito; ++ii) {
-        const int i = ilist[ii];
+        const int i = IP_PRE_dword_index(ilist[ii]);
         int itype;
         if (!ONETYPE) itype = x[i].w;
         flt_t p = rho[i]*frdrho + (flt_t)1.0;
@@ -448,7 +449,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         p -= m;
         p = MIN(p,(flt_t)1.0);
         if (!ONETYPE) frho_ioff = itype * fstride;
-        const int ioff = frho_ioff + m;
+        const int ioff = IP_PRE_dword_index(frho_ioff + m);
         fp_f[i] = (frho_spline_f[ioff].a*p + frho_spline_f[ioff].b)*p +
           frho_spline_f[ioff].c;
         if (EFLAG) {
@@ -553,13 +554,14 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           p = MIN(p,(flt_t)1.0);
           if (!ONETYPE)
             rhor_joff = rhor_ioff + jtype * jstride;
-          const int joff = rhor_joff + m;
+          const int joff = IP_PRE_dword_index(rhor_joff + m);
           const flt_t rhojp = (rhor_spline_f[joff].a*p +
                                rhor_spline_f[joff].b)*p +
             rhor_spline_f[joff].c;
           flt_t rhoip;
           if (!ONETYPE) {
-            const int ioff = jtype * istride + itype * jstride + m;
+            const int ioff = IP_PRE_dword_index(jtype * istride +
+                                                itype * jstride + m);
             rhoip = (rhor_spline_f[ioff].a*p + rhor_spline_f[ioff].b)*p +
               rhor_spline_f[ioff].c;
           } else

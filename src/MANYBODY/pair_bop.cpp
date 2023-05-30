@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,7 +40,6 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_special.h"
@@ -95,6 +94,7 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   pairParameters = nullptr;
   tripletParameters = nullptr;
   bop_elements = nullptr;
+  bop_masses = nullptr;
   bop_types = 0;
 
   pairlist1 = nullptr;
@@ -183,17 +183,13 @@ PairBOP::~PairBOP()
   if (bop_elements)
     for (int i = 0; i < bop_types; i++) delete[] bop_elements[i];
   delete[] bop_elements;
+  delete[] bop_masses;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairBOP::compute(int eflag, int vflag)
 {
-  double minbox = MIN(MIN(domain->xprd, domain->yprd), domain->zprd);
-  if (minbox-0.001 < 6.0*cutmax)
-    error->all(FLERR,"Pair style bop requires system dimension "
-               "of at least {:.4}",6.0*cutmax);
-
   int i, ii, j, jj;
   int nlisti, *ilist;
   tagint i_tag,j_tag, itype, jtype;
@@ -203,6 +199,7 @@ void PairBOP::compute(int eflag, int vflag)
 
   int newton_pair = force->newton_pair;
   int nlocal = atom->nlocal;
+  double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   tagint *tag = atom->tag;
@@ -226,7 +223,15 @@ void PairBOP::compute(int eflag, int vflag)
       temp_ij = BOP_index[i] + jj;
       j = ilist[neigh_index[temp_ij]];
       j_tag = tag[j];
-      if (j_tag <= i_tag) continue;
+      if (i_tag > j_tag) {
+        if ((i_tag+j_tag) % 2 == 0) continue;
+      } else if (i_tag < j_tag) {
+        if ((i_tag+j_tag) % 2 == 1) continue;
+      } else {
+        if (x[j][2] < x[i][2]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] < x[i][1]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] == x[i][1] && x[j][0] < x[i][0]) continue;
+      }
       jtype = map[type[j]];
       int param_ij = elem2param[itype][jtype];
       sigB_0 = SigmaBo(ii,jj);
@@ -256,7 +261,15 @@ void PairBOP::compute(int eflag, int vflag)
       temp_ij = BOP_index2[i] + jj;
       j = ilist[neigh_index2[temp_ij]];
       j_tag = tag[j];
-      if (j_tag <= i_tag) continue;
+      if (i_tag > j_tag) {
+        if ((i_tag+j_tag) % 2 == 0) continue;
+      } else if (i_tag < j_tag) {
+        if ((i_tag+j_tag) % 2 == 1) continue;
+      } else {
+        if (x[j][2] < x[i][2]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] < x[i][1]) continue;
+        if (x[j][2] == x[i][2] && x[j][1] == x[i][1] && x[j][0] < x[i][0]) continue;
+      }
       PairList2 & p2_ij = pairlist2[temp_ij];
       dpr2 = -p2_ij.dRep / p2_ij.r;
       ftmp1 = dpr2 * p2_ij.dis[0];
@@ -349,16 +362,16 @@ void PairBOP::settings(int narg, char **arg)
 
 void PairBOP::coeff(int narg, char **arg)
 {
-  const int n = atom->ntypes;
-  delete [] map;
-  map = new int[n+1];
+  const int np1 = atom->ntypes+1;
+  delete[] map;
+  map = new int[np1];
   memory->destroy(setflag);
   memory->destroy(cutsq);
   memory->destroy(cutghost);
-  memory->create(setflag,n+1,n+1,"BOP:setflag");
-  memory->create(cutsq,n+1,n+1,"BOP:cutsq");
-  memory->create(cutghost,n+1,n+1,"BOP:cutghost");
-  bytes = (n+1)*(n+1) * (sizeof (int) + 2.0*sizeof (double));
+  memory->create(setflag,np1,np1,"BOP:setflag");
+  memory->create(cutsq,np1,np1,"BOP:cutsq");
+  memory->create(cutghost,np1,np1,"BOP:cutghost");
+  bytes = np1*np1*(sizeof (int) + 2.0*sizeof (double));
 
   map_element2type(narg-3, arg+3);
 
@@ -370,22 +383,23 @@ void PairBOP::coeff(int narg, char **arg)
   // and check for missing elements
 
   if (comm->me == 0) {
-    for (int i = 1; i <= n; i++) {
+    for (int i = 1; i < np1; i++) {
       int j;
       if (map[i] >= 0) {
         for (j = 0; j < bop_types; j++) {
-          if (strcmp(elements[map[i]],bop_elements[j]) == 0) {
+          if (strcmp(elements[map[i]], bop_elements[j]) == 0) {
             map[i] = j;
+            atom->set_mass(FLERR, i, bop_masses[j]);
             break;
           }
         }
         if (j == bop_types)
           error->one(FLERR,"Element {} not found in bop potential file {}",
-                     elements[map[i]],arg[2]);
+                     elements[map[i]], arg[2]);
       }
     }
   }
-  MPI_Bcast(map,atom->ntypes+1,MPI_INT,0,world);
+  MPI_Bcast(map,np1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -1849,23 +1863,24 @@ void PairBOP::read_table(char *filename)
   PotentialFileReader *reader = nullptr;
 
   if (bop_elements) {
-    for (int i = 0; i < bop_types; i++) delete [] bop_elements[i];
-    delete [] bop_elements;
+    for (int i = 0; i < bop_types; i++) delete[] bop_elements[i];
+    delete[] bop_elements;
   }
+  delete[] bop_masses;
 
   if (comm->me == 0) {
     try {
       reader = new PotentialFileReader(lmp, filename, "BOP");
       bop_types = reader->next_int();
       if (bop_types <= 0)
-        error->one(FLERR,fmt::format("BOP potential file with {} "
-                                     "elements",bop_types));
+        error->one(FLERR,fmt::format("BOP potential file with {} elements",bop_types));
 
       bop_elements = new char*[bop_types];
+      bop_masses = new double[bop_types];
       for (int i=0; i < bop_types; ++i) {
         ValueTokenizer values = reader->next_values(3);
-        values.next_int();      //  element number in PTE (ignored)
-        values.next_double();   //  element mass (ignored)
+        values.next_int();                    //  element number (ignored)
+        bop_masses[i] = values.next_double(); //  element mass
         bop_elements[i] = utils::strdup(values.next_string());
       }
     } catch (TokenizerException &e) {
@@ -1878,8 +1893,12 @@ void PairBOP::read_table(char *filename)
   allocate();
   memory->create(rcut,npairs,"BOP:rcut");
 
-  //  copy element labels to all MPI ranks for use with write_tables()
-  if (comm->me != 0) bop_elements = new char*[bop_types];
+  // copy element labels and masses to all MPI ranks for use with
+  // write_tables() and to set the per-type masses
+  if (comm->me != 0) {
+    bop_elements = new char*[bop_types];
+    bop_masses = new double[bop_types];
+  }
   for (int i = 0; i < bop_types; ++i) {
     int n=0;
     if (comm->me == 0) n = strlen(bop_elements[i])+1;
@@ -1887,6 +1906,7 @@ void PairBOP::read_table(char *filename)
     if (comm->me != 0) bop_elements[i] = new char[n];
     MPI_Bcast(bop_elements[i],n,MPI_CHAR,0,world);
   }
+  MPI_Bcast(bop_masses, bop_types, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
     try {
@@ -2015,7 +2035,7 @@ void PairBOP::read_table(char *filename)
       }
     }
   }
-  delete [] singletable;
+  delete[] singletable;
 
   singletable = new double[nr];
   for (int i = 0; i < npairs; i++) {
@@ -2043,7 +2063,7 @@ void PairBOP::read_table(char *filename)
     p.betaP = new TabularFunction();
     (p.betaP)->set_values(nr, 0.0, rcut[i], singletable);
   }
-  delete [] singletable;
+  delete[] singletable;
 
   singletable = new double[nBOt];
   for (int i = 0; i < npairs; i++) {
@@ -2053,7 +2073,7 @@ void PairBOP::read_table(char *filename)
     p.bo = new TabularFunction();
     (p.bo)->set_values(nBOt, 0.0, 1.0, singletable);
   }
-  delete [] singletable;
+  delete[] singletable;
 
   nbuf = 0;
   for (int i = 0; i < bop_types; i++) {
@@ -2107,7 +2127,7 @@ void PairBOP::read_table(char *filename)
         (p.cphi)->set_values(nr, 0.0, rcut[i], singletable);
       }
     }
-    delete [] singletable;
+    delete[] singletable;
   }
 
   memory->destroy(rcut);

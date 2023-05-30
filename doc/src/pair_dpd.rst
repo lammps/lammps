@@ -26,8 +26,8 @@ Syntax
    pair_style dpd T cutoff seed
    pair_style dpd/tstat Tstart Tstop cutoff seed
 
-* T = temperature (temperature units)
-* Tstart,Tstop = desired temperature at start/end of run (temperature units)
+* T = temperature (temperature units) (dpd only)
+* Tstart,Tstop = desired temperature at start/end of run (temperature units) (dpd/tstat only)
 * cutoff = global cutoff for DPD interactions (distance units)
 * seed = random # seed (positive integer)
 
@@ -40,9 +40,9 @@ Examples
    pair_coeff * * 3.0 1.0
    pair_coeff 1 1 3.0 1.0 1.0
 
-   pair_style dpd/tstat 1.0 1.0 2.5 34387
-   pair_coeff * * 1.0
-   pair_coeff 1 1 1.0 1.0
+   pair_style hybrid/overlay lj/cut 2.5 dpd/tstat 1.0 1.0 2.5 34387
+   pair_coeff * * lj/cut 1.0 1.0
+   pair_coeff * * dpd/tstat 1.0
 
 Description
 """""""""""
@@ -53,11 +53,13 @@ Style *dpd* computes a force field for dissipative particle dynamics
 Style *dpd/tstat* invokes a DPD thermostat on pairwise interactions,
 which is equivalent to the non-conservative portion of the DPD force
 field.  This pairwise thermostat can be used in conjunction with any
-:doc:`pair style <pair_style>`, and in leiu of per-particle thermostats
+:doc:`pair style <pair_style>`, and instead of per-particle thermostats
 like :doc:`fix langevin <fix_langevin>` or ensemble thermostats like
 Nose Hoover as implemented by :doc:`fix nvt <fix_nh>`.  To use
-*dpd/tstat* as a thermostat for another pair style, use the :doc:`pair_style hybrid/overlay <pair_hybrid>` command to compute both the desired
-pair interaction and the thermostat for each pair of particles.
+*dpd/tstat* as a thermostat for another pair style, use the
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command to compute both
+the desired pair interaction and the thermostat for each pair of
+particles.
 
 For style *dpd*, the force on atom I due to atom J is given as a sum
 of 3 terms
@@ -66,31 +68,32 @@ of 3 terms
 
    \vec{f}  = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
    F^C      = & A w(r) \\
-   F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
+   F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v}_{ij}) \\
    F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
-   w(r)     = & 1 - r/r_c
+   w(r)     = & 1 - \frac{r}{r_c}
 
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
-force, and :math:`F^R` is a random force.  :math:`r_{ij}` is a unit
-vector in the direction :math:`r_i - r_j`, :math:`v_{ij}` is the vector
-difference in velocities of the two atoms :math:`= \vec{v}_i -
-\vec{v}_j`, :math:`\alpha` is a Gaussian random number with zero mean and
-unit variance, dt is the timestep size, and w(r) is a weighting factor
-that varies between 0 and 1.  :math:`r_c` is the cutoff.  :math:`\sigma`
-is set equal to :math:`\sqrt{2 k_B T \gamma}`, where :math:`k_B` is the
-Boltzmann constant and T is the temperature parameter in the pair_style
-command.
+force, and :math:`F^R` is a random force.  :math:`\hat{r_{ij}}` is a
+unit vector in the direction :math:`r_i - r_j`, :math:`\vec{v}_{ij}` is
+the vector difference in velocities of the two atoms :math:`\vec{v}_i -
+\vec{v}_j`, :math:`\alpha` is a Gaussian random number with zero mean
+and unit variance, *dt* is the timestep size, and :math:`w(r)` is a
+weighting factor that varies between 0 and 1.  :math:`r_c` is the
+pairwise cutoff.  :math:`\sigma` is set equal to :math:`\sqrt{2 k_B T
+\gamma}`, where :math:`k_B` is the Boltzmann constant and *T* is the
+temperature parameter in the pair_style command.
 
-For style *dpd/tstat*, the force on atom I due to atom J is the same
-as the above equation, except that the conservative Fc term is
-dropped.  Also, during the run, T is set each timestep to a ramped
-value from Tstart to Tstop.
+For style *dpd/tstat*, the force on atom I due to atom J is the same as
+the above equation, except that the conservative :math:`F^C` term is
+dropped.  Also, during the run, *T* is set each timestep to a ramped
+value from *Tstart* to *Tstop*.
 
-For style *dpd*, the pairwise energy associated with style *dpd* is
-only due to the conservative force term Fc, and is shifted to be zero
-at the cutoff distance Rc.  The pairwise virial is calculated using
-all 3 terms.  For style *dpd/tstat* there is no pairwise energy, but
-the last two terms of the formula make a contribution to the virial.
+For style *dpd*, the pairwise energy associated with style *dpd* is only
+due to the conservative force term :math:`F^C`, and is shifted to be
+zero at the cutoff distance :math:`r_c`.  The pairwise virial is
+calculated using all 3 terms.  For style *dpd/tstat* there is no
+pairwise energy, but the last two terms of the formula make a
+contribution to the virial.
 
 For style *dpd*, the following coefficients must be defined for each
 pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
@@ -102,14 +105,18 @@ commands:
 * :math:`\gamma` (force/velocity units)
 * cutoff (distance units)
 
-The last coefficient is optional.  If not specified, the global DPD
+The cutoff coefficient is optional.  If not specified, the global DPD
 cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the :doc:`pair_style <pair_style>`
 command so it does not need to be specified.
 
 For style *dpd/tstat*, the coefficients defined for each pair of
-atoms types via the :doc:`pair_coeff <pair_coeff>` command is the same,
-except that A is not included.
+atoms types via the :doc:`pair_coeff <pair_coeff>` command are:
+
+* :math:`\gamma` (force/velocity units)
+* cutoff (distance units)
+
+The cutoff coefficient is optional.
 
 The GPU-accelerated versions of these styles are implemented based on
 the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
@@ -132,6 +139,12 @@ the work of :ref:`(Afshar) <Afshar>` and :ref:`(Phillips) <Phillips>`.
    numbers are applied and thus the individual forces and therefore
    also the virial/pressure.
 
+.. note::
+
+   For more consistent time integration and force computation you may
+   consider using :doc:`fix mvv/dpd <fix_mvv_dpd>` instead of :doc:`fix
+   nve <fix_nve>`.
+
 ----------
 
 .. include:: accel_styles.rst
@@ -146,8 +159,8 @@ I,J pairs must be specified explicitly.
 
 These pair styles do not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.  Note that as
-discussed above, the energy due to the conservative Fc term is already
-shifted to be 0.0 at the cutoff distance Rc.
+discussed above, the energy due to the conservative :math:`F^C` term is already
+shifted to be 0.0 at the cutoff distance :math:`r_c`.
 
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for these pair styles.
@@ -203,7 +216,9 @@ command for more details.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`pair_style srp <pair_srp>`
+:doc:`pair_style dpd/ext <pair_dpd_ext>`, :doc:`pair_coeff <pair_coeff>`,
+:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`,
+:doc:`pair_style srp <pair_srp>`, :doc:`fix mvv/dpd <fix_mvv_dpd>`.
 
 Default
 """""""

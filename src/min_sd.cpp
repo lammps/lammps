@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,9 +36,9 @@ MinSD::MinSD(LAMMPS *lmp) : MinLineSearch(lmp) {}
 
 int MinSD::iterate(int maxiter)
 {
-  int i,m,n,fail,ntimestep;
+  int i, m, n, fail, ntimestep;
   double fdotf;
-  double *fatom,*hatom;
+  double *fatom, *hatom;
 
   // initialize working vectors
 
@@ -56,8 +55,7 @@ int MinSD::iterate(int maxiter)
 
   for (int iter = 0; iter < maxiter; iter++) {
 
-    if (timer->check_timeout(niter))
-      return TIMEOUT;
+    if (timer->check_timeout(niter)) return TIMEOUT;
 
     ntimestep = ++update->ntimestep;
     niter++;
@@ -66,7 +64,7 @@ int MinSD::iterate(int maxiter)
     // h = downhill gradient direction
 
     eprevious = ecurrent;
-    fail = (this->*linemin)(ecurrent,alpha_final);
+    fail = (this->*linemin)(ecurrent, alpha_final);
     if (fail) return fail;
 
     // function evaluation criterion
@@ -75,19 +73,23 @@ int MinSD::iterate(int maxiter)
 
     // energy tolerance criterion
 
-    if (fabs(ecurrent-eprevious) <
-        update->etol * 0.5*(fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
+    if (fabs(ecurrent - eprevious) <
+        update->etol * 0.5 * (fabs(ecurrent) + fabs(eprevious) + EPS_ENERGY))
       return ETOL;
 
     // force tolerance criterion
 
     fdotf = 0.0;
     if (update->ftol > 0.0) {
-      if (normstyle == MAX) fdotf = fnorm_max();        // max force norm
-      else if (normstyle == INF) fdotf = fnorm_inf();   // infinite force norm
-      else if (normstyle == TWO) fdotf = fnorm_sqr();   // Euclidean force 2-norm
-      else error->all(FLERR,"Illegal min_modify command");
-      if (fdotf < update->ftol*update->ftol) return FTOL;
+      if (normstyle == MAX)
+        fdotf = fnorm_max();    // max force norm
+      else if (normstyle == INF)
+        fdotf = fnorm_inf();    // infinite force norm
+      else if (normstyle == TWO)
+        fdotf = fnorm_sqr();    // Euclidean force 2-norm
+      else
+        error->all(FLERR, "Illegal min_modify command");
+      if (fdotf < update->ftol * update->ftol) return FTOL;
     }
 
     // set new search direction h to f = -Grad(x)

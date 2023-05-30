@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,18 +33,13 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "id5p";
-  fields_copy = (char *) "id5p";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "id5p";
-  fields_border_vel = (char *) "";
-  fields_exchange = (char *) "id5p";
-  fields_restart = (char *) "id5p";
-  fields_create = (char *) "";
-  fields_data_atom = (char *) "id type x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"id5p"};
+  fields_copy = {"id5p"};
+  fields_border = {"id5p"};
+  fields_exchange = {"id5p"};
+  fields_restart = {"id5p"};
+  fields_data_atom = {"id", "type", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,19 +30,24 @@ class PPPMDispDielectric : public PPPMDisp {
   ~PPPMDispDielectric() override;
   double memory_usage() override;
   void compute(int, int) override;
-  void qsum_qsq();
-  void slabcorr(int);
+  void slabcorr(int) override;
 
   double **efield;
   double *phi;
   int potflag;    // 1/0 if per-atom electrostatic potential phi is needed
 
  protected:
+  void make_rho_c() override;
   void fieldforce_c_ik() override;
   void fieldforce_c_ad() override;
   void fieldforce_c_peratom() override;
+  void qsum_qsq(int warning_flag = 1) override;
 
   class AtomVecDielectric *avec;
+  bool use_qscaled;
+
+  void compute_ave_epsilon();
+  double epsilon_ave;
   int mu_flag;
 };
 
@@ -50,13 +55,3 @@ class PPPMDispDielectric : public PPPMDisp {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

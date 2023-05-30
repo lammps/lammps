@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,15 +33,3 @@ class FixRigidNPH : public FixRigidNH {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Did not set pressure for fix rigid/nph
-
-The press keyword must be specified.
-
-E: Cannot set temperature for fix rigid/nph
-
-The temp keyword cannot be specified.
-
-*/

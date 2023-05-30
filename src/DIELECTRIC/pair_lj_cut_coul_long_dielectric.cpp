@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -45,6 +45,7 @@ PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) : PairLJC
   efield = nullptr;
   epot = nullptr;
   nmax = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,12 +62,11 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 {
   int i, ii, j, jj, inum, jnum, itype, jtype, itable;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double fraction, table;
-  double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
+  double r, rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double rsq;
 
   evdwl = ecoul = 0.0;
   ev_init(eflag, vflag);
@@ -81,16 +81,14 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
   double *area = atom->area;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;
@@ -123,7 +121,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
 
-    epot[i] = 0;
+    epot[i] = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -196,23 +194,14 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
         epot[i] += epot_i;
 
-        if (newton_pair && j >= nlocal) {
-
-          fpair_j = (forcecoul * eps[j] + factor_lj * forcelj) * r2inv;
-          f[j][0] -= delx * fpair_j;
-          f[j][1] -= dely * fpair_j;
-          f[j][2] -= delz * fpair_j;
-        }
-
         if (eflag) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq)
-              ecoul = prefactor * (etmp + eps[j]) * erfc;
+              ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
             else {
               table = etable[itable] + fraction * detable[itable];
-              ecoul = qtmp * q[j] * (etmp + eps[j]) * table;
+              ecoul = qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
             }
-            ecoul *= 0.5;
             if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
           } else
             ecoul = 0.0;
@@ -245,7 +234,7 @@ void PairLJCutCoulLongDielectric::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
@@ -263,6 +252,7 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
   double r2inv, r6inv, r, grij, expm2, t, erfc, ei, ej, prefactor;
   double fraction, table, forcecoul, forcelj, phicoul, philj;
   int itable;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
@@ -273,7 +263,7 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
       expm2 = exp(-grij * grij);
       t = 1.0 / (1.0 + EWALD_P * grij);
       erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-      prefactor = force->qqrd2e * atom->q[i] * atom->q[j] / r;
+      prefactor = force->qqrd2e * q[i] * q[j] / r;
       forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
       if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
     } else {
@@ -283,10 +273,10 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
       itable >>= ncoulshiftbits;
       fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction * dftable[itable];
-      forcecoul = atom->q[i] * atom->q[j] * table;
+      forcecoul = q[i] * q[j] * table;
       if (factor_coul < 1.0) {
         table = ctable[itable] + fraction * dctable[itable];
-        prefactor = atom->q[i] * atom->q[j] * table;
+        prefactor = q[i] * q[j] * table;
         forcecoul -= (1.0 - factor_coul) * prefactor;
       }
     }
@@ -312,12 +302,11 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
     ej = eps[j];
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor * (ei + ej) * erfc;
+      phicoul = prefactor * 0.5 * (ei + ej) * erfc;
     else {
       table = etable[itable] + fraction * detable[itable];
-      phicoul = atom->q[i] * atom->q[j] * (ei + ej) * table;
+      phicoul = q[i] * q[j] * 0.5 * (ei + ej) * table;
     }
-    phicoul *= 0.5;
     if (factor_coul < 1.0) phicoul -= (1.0 - factor_coul) * prefactor;
     eng += phicoul;
   }

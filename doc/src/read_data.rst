@@ -56,7 +56,7 @@ Examples
    read_data ../run7/data.polymer.gz
    read_data data.protein fix mycmap crossterm CMAP
    read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
-   read_data data.water add merge 1 group solvent
+   read_data data.water add merge group solvent
 
 Description
 """""""""""
@@ -71,8 +71,14 @@ Also see the explanation of the :doc:`-restart command-line switch
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the *add*, *offset*, and
-*shift* keywords.  See more details below, which includes the use case
-for the *extra* keywords.
+*shift* keywords.  However, it is important to understand that several
+system parameters, like the number of types of different kinds and per
+atom settings are **locked in** after the first *read_data* command,
+which means that no type ID (including its offset) may have a larger
+value when processing additional data files than what is set by the
+first data file and the corresponding *read_data* command options.  See
+more details on this situation below, which includes the use case for
+the *extra* keywords.
 
 The *group* keyword adds all the atoms in the data file to the
 specified group-ID.  The group will be created if it does not already
@@ -143,9 +149,9 @@ is required representing the equivalent offset for molecule IDs.
 If *merge* is specified, the data file atoms
 are added to the current system without changing their IDs.  They are
 assumed to merge (without duplication) with the currently defined
-atoms.  It is up to you to insure there are no multiply defined atom
+atoms.  It is up to you to ensure there are no multiply defined atom
 IDs, as LAMMPS only performs an incomplete check that this is the case
-by insuring the resulting max atom-ID >= the number of atoms. For
+by ensuring the resulting max atom-ID >= the number of atoms. For
 molecule IDs, there is no check done at all.
 
 The *offset* and *shift* keywords can only be used if the *add*
@@ -164,11 +170,17 @@ other types already exist.  All five offset values must be specified,
 but individual values will be ignored if the data file does not use
 that attribute (e.g. no bonds).
 
+.. note::
+
+   Offsets are **ignored** on lines using type labels, as the type
+   labels will determine the actual types directly depending on the
+   current :doc:`labelmap <labelmap>` settings.
+
 The *shift* keyword can be used to specify an (Sx, Sy, Sz)
 displacement applied to the coordinates of each atom.  Sz must be 0.0
 for a 2d simulation.  This is a mechanism for adding structured
 collections of atoms at different locations within the simulation box,
-to build up a complex geometry.  It is up to you to insure atoms do
+to build up a complex geometry.  It is up to you to ensure atoms do
 not end up overlapping unphysically which would lead to bad dynamics.
 Note that the :doc:`displace_atoms <displace_atoms>` command can be used
 to move a subset of atoms after they have been read from a data file.
@@ -227,22 +239,27 @@ The file will be read line by line, but there is a limit of 254
 characters per line and characters beyond that limit will be ignored.
 
 A data file has a header and a body.  The header appears first.  The
-first line of the header is always skipped; it typically contains a
-description of the file.  Then lines are read one at a time.  Lines
-can have a trailing comment starting with '#' that is ignored.  If the
-line is blank (only white-space after comment is deleted), it is
-skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it does not contain a header
-keyword, the line begins the body of the file.
+first line of the header and thus of the data file is *always* skipped;
+it typically contains a description of the file or a comment from the
+software that created the file.
 
-The body of the file contains zero or more sections.  The first line
-of a section has only a keyword.  This line can have a trailing
-comment starting with '#' that is either ignored or can be used to
-check for a style match, as described below.  The next line is
-skipped.  The remaining lines of the section contain values.  The
-number of lines depends on the section keyword as described below.
-Zero or more blank lines can be used between sections.  Sections can
-appear in any order, with a few exceptions as noted below.
+Then lines are read one line at a time.  Lines can have a trailing
+comment starting with '#' that is ignored.  There *must* be at least one
+blank between any valid content and the comment. If a line is blank
+(i.e. contains only white-space after comments are deleted), it is
+skipped.  If the line contains a header keyword, the corresponding
+value(s) is/are read from the line.  A line that is *not* blank and does
+*not* contain a header keyword begins the body of the file.
+
+The body of the file contains zero or more sections.  The first line of
+a section has only a keyword.  This line can have a trailing comment
+starting with '#' that is either ignored or can be used to check for a
+style match, as described below.  There must be a blank between the
+keyword and any comment. The *next* line is *always* skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used *between* sections.  Sections can appear in any order,
+with a few exceptions as noted below.
 
 The keyword *fix* can be used one or more times.  Each usage specifies
 a fix that will be used to process a specific portion of the data
@@ -323,16 +340,20 @@ and are called "tilt factors" because they are the amount of
 displacement applied to faces of an originally orthogonal box to
 transform it into the parallelepiped.
 
-By default, the tilt factors (xy,xz,yz) can not skew the box more than
-half the distance of the corresponding parallel box length.  For
-example, if xlo = 2 and xhi = 12, then the x box length is 10 and the
-xy tilt factor must be between -5 and 5.  Similarly, both xz and yz
-must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not
-a limitation, since if the maximum tilt factor is 5 (as in this
-example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
-... are all geometrically equivalent.  If you wish to define a box
-with tilt factors that exceed these limits, you can use the :doc:`box tilt <box>` command, with a setting of *large*\ ; a setting of
-*small* is the default.
+The tilt factors (xy,xz,yz) should not skew the box more than half the
+distance of the corresponding parallel box length.  For example, if
+:math:`x_\text{lo} = 2` and :math:`x_\text{hi} = 12`, then the :math:`x`
+box length is 10 and the :math:`xy` tilt factor must be between
+:math:`-5` and :math:`5`.  Similarly, both :math:`xz` and :math:`yz`
+must be between :math:`-(x_\text{hi}-x_\text{lo})/2` and
+:math:`+(y_\text{hi}-y_\text{lo})/2`.  Note that this is not a
+limitation, since if the maximum tilt factor is 5 (as in this example),
+then configurations with tilt :math:`= \dots, -15`, :math:`-5`,
+:math:`5`, :math:`15`, :math:`25, \dots` are all geometrically
+equivalent.  Simulations with large tilt factors will run inefficiently,
+since they require more ghost atoms and thus more communication.  With
+very large tilt factors, LAMMPS will eventually produce incorrect
+trajectories and stop with errors due to lost atoms or similar.
 
 See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
@@ -477,6 +498,7 @@ These are the section keywords for the body of the file.
 
 * *Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
+* *Atom Type Labels, Bond Type Labels, Angle Type Labels, Dihedral Type Labels, Improper Type Labels* = type label maps
 * *Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs* = force field sections
 * *BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs* = class 2 force field sections
 
@@ -503,7 +525,8 @@ section is described including the number of lines it must contain and
 rules (if any) for where it can appear in the data file.
 
 Any individual line in the various sections can have a trailing
-comment starting with "#" for annotation purposes.  E.g. in the
+comment starting with "#" for annotation purposes. There must be at least
+one blank between valid content and the comment. E.g. in the
 Atoms section:
 
 .. parsed-literal::
@@ -533,6 +556,26 @@ angle style.  See the :doc:`angle_style <angle_style>` and
 :doc:`angle_coeff <angle_coeff>` commands for details.  Coefficients can
 also be set via the :doc:`angle_coeff <angle_coeff>` command in the
 input script.
+
+----------
+
+*Angle Type Labels* section:
+
+* one line per angle type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = angle type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric angle type.  These
+can be used in the Angles section in place of a numeric type, but only
+if the this section appears before the Angles section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -568,7 +611,7 @@ input script.
   .. parsed-literal::
 
        ID = number of angle (1-Nangles)
-       type = angle type (1-Nangletype)
+       type = angle type (1-Nangletype, or type label)
        atom1,atom2,atom3 = IDs of 1st,2nd,3rd atom in angle
 
 example:
@@ -580,8 +623,15 @@ example:
 The 3 atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
 E.g. H,O,H for a water molecule.  The *Angles* section must appear
-after the *Atoms* section.  All values in this section must be
-integers (1, not 1.0).
+after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or an Angle Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -594,6 +644,26 @@ integers (1, not 1.0).
 
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*Atom Type Labels* section:
+
+* one line per atom type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = numeric atom type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric atom type.  These
+can be used in the Atoms section in place of a numeric type, but only
+if the Atom Type Labels section appears before the Atoms section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -622,6 +692,8 @@ of analysis.
      - atom-ID molecule-ID atom-type x y z
    * - charge
      - atom-ID atom-type q x y z
+   * - dielectric
+     - atom-ID atom-type q x y z normx normy normz area ed em epsilon curvature
    * - dipole
      - atom-ID atom-type q x y z mux muy muz
    * - dpd
@@ -629,7 +701,7 @@ of analysis.
    * - edpd
      - atom-ID atom-type edpd_temp edpd_cv x y z
    * - electron
-     - atom-ID atom-type q spin eradius x y z
+     - atom-ID atom-type q espin eradius x y z
    * - ellipsoid
      - atom-ID atom-type ellipsoidflag density x y z
    * - full
@@ -638,8 +710,6 @@ of analysis.
      - atom-ID molecule-ID atom-type lineflag density x y z
    * - mdpd
      - atom-ID atom-type rho x y z
-   * - mesont
-     - atom-ID molecule-ID atom-type bond_nt mass mradius mlength buckling x y z
    * - molecular
      - atom-ID molecule-ID atom-type x y z
    * - peri
@@ -661,39 +731,35 @@ of analysis.
    * - tri
      - atom-ID molecule-ID atom-type triangleflag density x y z
    * - wavepacket
-     - atom-ID atom-type charge spin eradius etag cs_re cs_im x y z
+     - atom-ID atom-type charge espin eradius etag cs_re cs_im x y z
    * - hybrid
      - atom-ID atom-type x y z sub-style1 sub-style2 ...
 
 The per-atom values have these meanings and units, listed alphabetically:
 
 * atom-ID = integer ID of atom
-* atom-type = type of atom (1-Ntype)
+* atom-type = type of atom (1-Ntype, or type label)
 * bodyflag = 1 for body particles, 0 for point particles
-* bond_nt = bond NT factor for MESONT particles (?? units)
-* buckling = buckling factor for MESONT particles (?? units)
 * ccN = chemical concentration for tDPD particles for each species (mole/volume units)
 * cradius = contact radius for SMD particles (distance units)
 * cs_re,cs_im = real/imaginary parts of wave packet coefficients
 * cv = heat capacity (need units) for SPH particles
 * density = density of particle (mass/distance\^3 or mass/distance\^2 or mass/distance units, depending on dimensionality of particle)
 * diameter = diameter of spherical atom (distance units)
-* esph = energy (need units) for SPH particles
 * edpd_temp = temperature for eDPD particles (temperature units)
 * edpd_cv = volumetric heat capacity for eDPD particles (energy/temperature/volume units)
 * ellipsoidflag = 1 for ellipsoidal particles, 0 for point particles
 * eradius = electron radius (or fixed-core radius)
+* esph = energy (need units) for SPH particles
+* espin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 * etag = integer ID of electron that each wave packet belongs to
 * kradius = kernel radius for SMD particles (distance units)
 * lineflag = 1 for line segment particles, 0 for point or spherical particles
 * mass = mass of particle (mass units)
-* mlength = ?? length for MESONT particles (distance units)
 * molecule-ID = integer ID of molecule the atom belongs to
-* mradius = ?? radius for MESONT particles (distance units)
 * mux,muy,muz = components of dipole moment of atom (dipole units)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles
-* spin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
 * sp = magnitude of magnetic spin of atom (Bohr magnetons)
 * spx,spy,spz = components of magnetic spin of atom (unit vector)
 * template-atom = which atom within a template molecule the atom is
@@ -719,6 +785,13 @@ map array is used, but not if an atom map hash is used; see the
 not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
+
+The atom-type can be a numeric value or an alphanumeric label.  The
+latter is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or an Atom Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 The molecule ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
@@ -930,6 +1003,26 @@ script.
 
 ----------
 
+*Bond Type Labels* section:
+
+* one line per bond type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = bond type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric bond type.  These can
+be used in the Bonds section in place of a numeric type, but only if
+the this section appears before the Angles section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
+
+----------
+
 *BondAngle Coeffs* section:
 
 * one line per angle type
@@ -974,7 +1067,7 @@ script.
   .. parsed-literal::
 
        ID = bond number (1-Nbonds)
-       type = bond type (1-Nbondtype)
+       type = bond type (1-Nbondtype, or type label)
        atom1,atom2 = IDs of 1st,2nd atom in bond
 
 * example:
@@ -983,8 +1076,15 @@ script.
 
        12 3 17 29
 
-The *Bonds* section must appear after the *Atoms* section.  All values
-in this section must be integers (1, not 1.0).
+The *Bonds* section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Bond Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1012,6 +1112,26 @@ Coefficients can also be set via the
 
 ----------
 
+*Dihedral Type Labels* section:
+
+* one line per dihedral type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = dihedral type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric dihedral type.  These
+can be used in the Dihedrals section in place of a numeric type, but
+only if the this section appears before the Dihedrals section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
+
+----------
+
 *Dihedrals* section:
 
 * one line per dihedral
@@ -1020,7 +1140,7 @@ Coefficients can also be set via the
   .. parsed-literal::
 
        ID = number of dihedral (1-Ndihedrals)
-       type = dihedral type (1-Ndihedraltype)
+       type = dihedral type (1-Ndihedraltype, or type label)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in dihedral
 
 * example:
@@ -1030,8 +1150,15 @@ Coefficients can also be set via the
        12 4 17 29 30 21
 
 The 4 atoms are ordered linearly within the dihedral.  The *Dihedrals*
-section must appear after the *Atoms* section.  All values in this
-section must be integers (1, not 1.0).
+section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Dihedral Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1113,6 +1240,26 @@ Coefficients can also be set via the
 
 ----------
 
+*Improper Type Labels* section:
+
+* one line per improper type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = improper type (1-N)
+       label = alphanumeric type label
+
+Define alphanumeric type labels for each numeric improper type.  These
+can be used in the Impropers section in place of a numeric type, but
+only if the this section appears before the Impropers section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
+
+----------
+
 *Impropers* section:
 
 * one line per improper
@@ -1121,7 +1268,7 @@ Coefficients can also be set via the
   .. parsed-literal::
 
        ID = number of improper (1-Nimpropers)
-       type = improper type (1-Nimpropertype)
+       type = improper type (1-Nimpropertype, or type label)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in improper
 
 * example:
@@ -1131,11 +1278,19 @@ Coefficients can also be set via the
        12 3 17 29 13 100
 
 The ordering of the 4 atoms determines the definition of the improper
-angle used in the formula for each :doc:`improper style <improper_style>`.  See the doc pages for individual styles
-for details.
+angle used in the formula for each :doc:`improper style
+<improper_style>`.  See the doc pages for individual styles for
+details.
 
-The *Impropers* section must appear after the *Atoms* section.  All
-values in this section must be integers (1, not 1.0).
+The *Impropers* section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Improper Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1179,7 +1334,7 @@ The *Lines* section must appear after the *Atoms* section.
 
   .. parsed-literal::
 
-       ID = atom type (1-N)
+       ID = atom type (1-N or atom type label)
        mass = mass value
 
 * example:
@@ -1192,6 +1347,13 @@ This defines the mass of each atom type.  This can also be set via the
 :doc:`mass <mass>` command in the input script.  This section cannot be
 used for atom styles that define a mass for individual atoms -
 e.g. :doc:`atom_style sphere <atom_style>`.
+
+Using type labels instead of atom type numbers is only allowed if the
+type label has been defined by the :doc:`labelmap <labelmap>` command or
+a Atom Type Labels section earlier in the data file.  See the
+:doc:`Howto type labels <Howto_type_labels>` doc page for the allowed
+syntax of type labels and a general discussion of how type labels can be
+used.
 
 ----------
 
@@ -1315,10 +1477,12 @@ The *Triangles* section must appear after the *Atoms* section.
 
 where the keywords have these meanings:
 
-vx,vy,vz = translational velocity of atom
-lx,ly,lz = angular momentum of aspherical atom
-wx,wy,wz = angular velocity of spherical atom
-ervel = electron radial velocity (0 for fixed-core):ul
+   .. parsed-literal::
+
+      vx,vy,vz = translational velocity of atom
+      lx,ly,lz = angular momentum of aspherical atom
+      wx,wy,wz = angular velocity of spherical atom
+      ervel = electron radial velocity (0 for fixed-core)
 
 The velocity lines can appear in any order.  This section can only be
 used after an *Atoms* section.  This is because the *Atoms* section
@@ -1361,11 +1525,14 @@ To read gzipped data files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
+Label maps are currently not supported when using the KOKKOS package.
+
 Related commands
 """"""""""""""""
 
 :doc:`read_dump <read_dump>`, :doc:`read_restart <read_restart>`,
-:doc:`create_atoms <create_atoms>`, :doc:`write_data <write_data>`
+:doc:`create_atoms <create_atoms>`, :doc:`write_data <write_data>`,
+:doc:`labelmap <labelmap>`
 
 Default
 """""""

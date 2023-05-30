@@ -3,7 +3,7 @@
 /* ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,22 +40,3 @@ class Ndx2Group : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Must have atom IDs for ndx2group command
-
-There are no atom IDs defined in the system, but they are required
-to identify atoms in a gromacs style index file.
-
-E: Cannot open index file for reading
-
-Self-explanatory. Check your filename, permissions, and disk space or quota.
-
-*/

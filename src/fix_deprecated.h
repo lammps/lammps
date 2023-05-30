@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,17 +42,3 @@ class FixDeprecated : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: This fix command has been removed from LAMMPS
-
-UNDOCUMENTED
-
-U: The fix ave/spatial command has been removed from LAMMPS
-
-It has been replaced by the more flexible fix ave/chunk and compute
-chunk/atom commands.  All the fix ave/spatial keywords and options are
-available in those two newer commands.
-
-*/

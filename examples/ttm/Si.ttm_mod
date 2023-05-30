@@ -1,0 +1,44 @@
+a_0, energy/(temperature*electron) units
+-0.00012899
+a_1, energy/(temperature^2*electron) units
+-0.0000000293276
+a_2, energy/(temperature^3*electron) units
+-0.0000229991
+a_3, energy/(temperature^4*electron) units
+-0.000000927036
+a_4, energy/(temperature^5*electron) units
+-0.0000011747
+C_0, energy/(temperature*electron) units
+0.000129
+A, 1/temperature units
+0.180501
+rho_e, electrons/volume units
+0.05
+D_e, length^2/time units
+20000
+gamma_p, mass/time units
+39.235
+gamma_s, mass/time units
+24.443
+v_0, length/time units
+79.76
+I_0, energy/(time*length^2) units
+0
+lsurface, electron grid units (positive integer)
+0
+rsurface, electron grid units (positive integer)
+1
+l_skin, length units
+1
+tau, time units
+0
+B, dimensionless
+0
+lambda, length units
+0
+n_ion, ions/volume units
+0.05
+surface_movement: 0 to disable tracking of surface motion, 1 to enable
+0
+T_e_min, temperature units
+0

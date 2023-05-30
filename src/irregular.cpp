@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -427,7 +427,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
   }
 
   // sort proc_recv and length_recv by proc ID if requested
-  // useful for debugging to insure reproducible ordering of received atoms
+  // useful for debugging to ensure reproducible ordering of received atoms
   // invoke by adding final arg = 1 to create_atom() call in migrate_atoms()
 
   if (sortflag) {
@@ -458,7 +458,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
     delete [] length_recv_ordered;
   }
 
-  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // barrier to ensure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_atom() and send to me
 
   MPI_Barrier(world);
@@ -702,7 +702,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
   nrecvdatum += num_self;
 
   // sort proc_recv and num_recv by proc ID if requested
-  // useful for debugging to insure reproducible ordering of received datums
+  // useful for debugging to ensure reproducible ordering of received datums
 
   if (sortflag) {
     int *order = new int[nrecv_proc];
@@ -732,7 +732,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
     delete [] num_recv_ordered;
   }
 
-  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // barrier to ensure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_data() and send to me
 
   MPI_Barrier(world);
@@ -876,7 +876,7 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
   nrecvdatum += num_self;
 
   // sort proc_recv and num_recv by proc ID if requested
-  // useful for debugging to insure reproducible ordering of received datums
+  // useful for debugging to ensure reproducible ordering of received datums
 
   if (sortflag) {
     int *order = new int[nrecv_proc];
@@ -905,7 +905,7 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
     delete [] num_recv_ordered;
   }
 
-  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // barrier to ensure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_data() and send to me
 
   MPI_Barrier(world);

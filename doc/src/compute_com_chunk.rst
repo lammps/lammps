@@ -6,7 +6,7 @@ compute com/chunk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID com/chunk chunkID
 
@@ -34,7 +34,7 @@ molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_c
 doc pages for details of how chunks can be defined and examples of how
 they can be used to measure properties of a system.
 
-This compute calculates the x,y,z coordinates of the center-of-mass
+This compute calculates the :math:`(x,y,z)` coordinates of the center of mass
 for each chunk, which includes all effects due to atoms passing through
 periodic boundaries.
 
@@ -54,7 +54,8 @@ non-zero chunk IDs.
    for a discussion of "unwrapped" coordinates.  See the Atoms section of
    the :doc:`read_data <read_data>` command for a discussion of image flags
    and how they are set for each atom.  You can reset the image flags
-   (e.g. to 0) before invoking this compute by using the :doc:`set image <set>` command.
+   (e.g., to 0) before invoking this compute by using the
+   :doc:`set image <set>` command.
 
 The simplest way to output the results of the compute com/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
@@ -70,8 +71,8 @@ Output info
 """""""""""
 
 This compute calculates a global array where the number of rows = the
-number of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of columns =
-3 for the x,y,z center-of-mass coordinates of each chunk.  These
+number of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of columns is
+3 for the :math:`(x,y,z)` center-of-mass coordinates of each chunk.  These
 values can be accessed by any command that uses global array values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.

@@ -94,7 +94,9 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   else
     _threads_per_atom=device->threads_per_three();
 
-  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
+  bool charge = false;
+  bool rot = false;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 
@@ -471,8 +473,7 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_three_center_noev.max_subgroup_size(_block_size));
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_three_end_noev.max_subgroup_size(_block_size));
     #endif
-    if (_threads_per_atom > mx_subgroup_sz)
-      _threads_per_atom = mx_subgroup_sz;
+    if (_threads_per_atom > (int)mx_subgroup_sz) _threads_per_atom = mx_subgroup_sz;
     device->set_simd_size(mx_subgroup_sz);
   }
   #endif

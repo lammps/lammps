@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,7 +50,7 @@ class PairEDIPMulti : public Pair {
     double mu, Q0;            // coefficients for function Q(Z)
     double u1, u2, u3, u4;    // coefficients for function tau(Z)
     double cutsq;
-    int ielement, jelement, kelement, dummy; // dummy added for better alignment
+    int ielement, jelement, kelement, dummy;    // dummy added for better alignment
   };
 
   double *preForceCoord;

@@ -1,0 +1,103 @@
+name: "Run Coverity Scan"
+
+on:
+  schedule:
+    - cron: "0 0 * * FRI"
+
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    container:
+      image: lammps/buildenv:ubuntu20.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 2
+
+    - name: Create Build and Download Folder
+      run: mkdir build download
+
+    - name: Cache Coverity
+      id: cache-coverity
+      uses: actions/cache@v3
+      with:
+        path: ./download/
+        key: ${{ runner.os }}-download-${{ hashFiles('**/coverity_tool.*') }}
+
+    - name: Download Coverity if necessary
+      if: steps.cache-coverity.outputs.cache-hit != 'true'
+      working-directory: download
+      run: |
+        wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS" -O coverity_tool.tgz
+        wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS&md5=1" -O coverity_tool.md5
+        echo " coverity_tool.tgz" >> coverity_tool.md5
+        md5sum -c coverity_tool.md5
+
+    - name: Setup Coverity
+      run: |
+        tar xzf download/coverity_tool.tgz
+        ln -s cov-analysis-linux64-* coverity
+
+    - name: Configure LAMMPS via CMake
+      shell: bash
+      working-directory: build
+      run: |
+        cmake \
+        -C ../cmake/presets/clang.cmake \
+        -C ../cmake/presets/most.cmake \
+        -C ../cmake/presets/kokkos-openmp.cmake \
+        -D CMAKE_BUILD_TYPE="RelWithDebug" \
+        -D CMAKE_TUNE_FLAGS="-Wall -Wextra -Wno-unused-result" \
+        -D BUILD_MPI=on \
+        -D BUILD_OMP=on \
+        -D BUILD_SHARED_LIBS=on \
+        -D LAMMPS_SIZES=SMALLBIG \
+        -D LAMMPS_EXCEPTIONS=off \
+        -D PKG_MESSAGE=on \
+        -D PKG_MPIIO=on \
+        -D PKG_ATC=on \
+        -D PKG_AWPMD=on \
+        -D PKG_BOCS=on \
+        -D PKG_EFF=on \
+        -D PKG_H5MD=on \
+        -D PKG_INTEL=on \
+        -D PKG_LATBOLTZ=on \
+        -D PKG_MANIFOLD=on \
+        -D PKG_MGPT=on \
+        -D PKG_ML-PACE=on \
+        -D PKG_ML-RANN=on \
+        -D PKG_MOLFILE=on \
+        -D PKG_NETCDF=on \
+        -D PKG_PTM=on \
+        -D PKG_QTB=on \
+        -D PKG_SMTBQ=on \
+        -D PKG_TALLY=on \
+        ../cmake
+
+    - name: Run Coverity Scan
+      shell: bash
+      working-directory: build
+      run: |
+        export PATH=$GITHUB_WORKSPACE/coverity/bin:$PATH
+        cov-build --dir cov-int cmake --build . --parallel 2
+
+    - name: Create tarball with scan results
+      shell: bash
+      working-directory: build
+      run: tar czf lammps.tgz cov-int
+
+    - name: Upload scan result to Coverity
+      shell: bash
+      run: |
+        curl --form token=${{ secrets.COVERITY_TOKEN }} \
+             --form email=${{ secrets.COVERITY_EMAIL }} \
+             --form file=@build/lammps.tgz \
+             --form version=${{ github.sha }} \
+             --form description="LAMMPS automated build" \
+             https://scan.coverity.com/builds?project=LAMMPS

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,10 +43,10 @@ namespace RANN {
     void write_values(FILE *) override;
     void init(int *, int) override;
     void allocate() override;
-    void compute_fingerprint(double *, double *, double *, double *, double *, double *,
-                                     double *, double *, double *, double *, double *, double *,
-                                     double *, double *, bool *, int, int, double *, double *,
-                                     double *, int *, int, int *) override;    //spin,screen
+    void compute_fingerprint(double *, double *, double *, double *, double *, double *, double *,
+                             double *, double *, double *, double *, double *, double *, double *,
+                             bool *, int, int, double *, double *, double *, int *, int,
+                             int *) override;    //spin,screen
     int get_length() override;
 
     double *radialtable;

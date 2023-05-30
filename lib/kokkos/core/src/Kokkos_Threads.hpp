@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_THREADS_HPP
 #define KOKKOS_THREADS_HPP
 
@@ -57,7 +66,7 @@
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
-#include <impl/Kokkos_ExecSpaceInitializer.hpp>
+#include <impl/Kokkos_InitializationSettings.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -72,7 +81,7 @@ enum class fence_is_static { yes, no };
 
 namespace Kokkos {
 
-/** \brief  Execution space for a pool of Pthreads or C11 threads on a CPU. */
+/** \brief  Execution space for a pool of C++11 threads on a CPU. */
 class Threads {
  public:
   //! \name Type declarations that all Kokkos devices must provide.
@@ -99,7 +108,7 @@ class Threads {
   static int in_parallel();
 
   /// \brief Print configuration information to the given output stream.
-  static void print_configuration(std::ostream&, const bool detail = false);
+  void print_configuration(std::ostream& os, bool verbose = false) const;
 
   /// \brief Wait until all dispatched functors complete.
   ///
@@ -107,11 +116,10 @@ class Threads {
   /// return asynchronously, before the functor completes.  This
   /// method does not return until all dispatched functors on this
   /// device have completed.
-  static void impl_static_fence();
   static void impl_static_fence(const std::string& name);
 
-  void fence() const;
-  void fence(const std::string&) const;
+  void fence(const std::string& name =
+                 "Kokkos::Threads::fence: Unnamed Instance Fence") const;
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency();
@@ -127,27 +135,7 @@ class Threads {
   //! \name Space-specific functions
   //@{
 
-  /** \brief Initialize the device in the "ready to work" state.
-   *
-   *  The device is initialized in a "ready to work" or "awake" state.
-   *  This state reduces latency and thus improves performance when
-   *  dispatching work.  However, the "awake" state consumes resources
-   *  even when no work is being done.  You may call sleep() to put
-   *  the device in a "sleeping" state that does not consume as many
-   *  resources, but it will take time (latency) to awaken the device
-   *  again (via the wake()) method so that it is ready for work.
-   *
-   *  Teams of threads are distributed as evenly as possible across
-   *  the requested number of numa regions and cores per numa region.
-   *  A team will not be split across a numa region.
-   *
-   *  If the 'use_' arguments are not supplied the hwloc is queried
-   *  to use all available cores.
-   */
-  static void impl_initialize(unsigned threads_count             = 0,
-                              unsigned use_numa_count            = 0,
-                              unsigned use_cores_per_numa        = 0,
-                              bool allow_asynchronous_threadpool = false);
+  static void impl_initialize(InitializationSettings const&);
 
   static int impl_is_initialized();
 
@@ -156,11 +144,14 @@ class Threads {
   //----------------------------------------
 
   static int impl_thread_pool_size(int depth = 0);
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  static int impl_thread_pool_rank();
-#else
-  KOKKOS_INLINE_FUNCTION static int impl_thread_pool_rank() { return 0; }
-#endif
+
+  static int impl_thread_pool_rank_host();
+
+  static KOKKOS_FUNCTION int impl_thread_pool_rank() {
+    KOKKOS_IF_ON_HOST((return impl_thread_pool_rank_host();))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
+  }
 
   inline static unsigned impl_max_hardware_threads() {
     return impl_thread_pool_size(0);
@@ -181,24 +172,10 @@ namespace Experimental {
 template <>
 struct DeviceTypeTraits<Threads> {
   static constexpr DeviceType id = DeviceType::Threads;
+  static int device_id(const Threads&) { return 0; }
 };
 }  // namespace Experimental
 }  // namespace Tools
-
-namespace Impl {
-
-class ThreadsSpaceInitializer : public ExecSpaceInitializerBase {
- public:
-  ThreadsSpaceInitializer()  = default;
-  ~ThreadsSpaceInitializer() = default;
-  void initialize(const InitArguments& args) final;
-  void finalize(const bool) final;
-  void fence() final;
-  void fence(const std::string&) final;
-  void print_configuration(std::ostream& msg, const bool detail) final;
-};
-
-}  // namespace Impl
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -223,7 +200,10 @@ struct MemorySpaceAccess<Kokkos::Threads::memory_space,
 #include <Kokkos_Parallel.hpp>
 #include <Threads/Kokkos_ThreadsExec.hpp>
 #include <Threads/Kokkos_ThreadsTeam.hpp>
-#include <Threads/Kokkos_Threads_Parallel.hpp>
+#include <Threads/Kokkos_Threads_Parallel_Range.hpp>
+#include <Threads/Kokkos_Threads_Parallel_MDRange.hpp>
+#include <Threads/Kokkos_Threads_Parallel_Team.hpp>
+#include <Threads/Kokkos_Threads_UniqueToken.hpp>
 
 #include <KokkosExp_MDRangePolicy.hpp>
 

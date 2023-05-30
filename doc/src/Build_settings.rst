@@ -1,8 +1,8 @@
 Optional build settings
 =======================
 
-LAMMPS can be built with several optional settings.  Each sub-section
-explain how to do this for building both with CMake and make.
+LAMMPS can be built with several optional settings.  Each subsection
+explains how to do this for building both with CMake and make.
 
 * `C++11 standard compliance`_ when building all of LAMMPS
 * `FFT library`_ for use with the :doc:`kspace_style pppm <kspace_style>` command
@@ -41,7 +41,7 @@ FFT library
 When the KSPACE package is included in a LAMMPS build, the
 :doc:`kspace_style pppm <kspace_style>` command performs 3d FFTs which
 require use of an FFT library to compute 1d FFTs.  The KISS FFT
-library is included with LAMMPS but other libraries can be faster.
+library is included with LAMMPS, but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 
 .. tabs::
@@ -63,9 +63,9 @@ LAMMPS can use them if they are available on your system.
       Usually these settings are all that is needed.  If FFTW3 is
       selected, then CMake will try to detect, if threaded FFTW
       libraries are available and enable them by default.  This setting
-      is independent of whether OpenMP threads are enabled and a
-      packages like KOKKOS or OPENMP is used.  If CMake cannot detect
-      the FFT library, you can set these variables to assist:
+      is independent of whether OpenMP threads are enabled and a package
+      like KOKKOS or OPENMP is used.  If CMake cannot detect the FFT
+      library, you can set these variables to assist:
 
       .. code-block:: bash
 
@@ -111,26 +111,25 @@ LAMMPS can use them if they are available on your system.
       files in its default search path.  You must specify ``FFT_LIB``
       with the appropriate FFT libraries to include in the link.
 
-The `KISS FFT library <http://kissfft.sf.net>`_ is included in the LAMMPS
-distribution.  It is portable across all platforms.  Depending on the size
-of the FFTs and the number of processors used, the other libraries listed
-here can be faster.
+The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
+included in the LAMMPS distribution.  It is portable across all
+platforms.  Depending on the size of the FFTs and the number of
+processors used, the other libraries listed here can be faster.
 
 However, note that long-range Coulombics are only a portion of the
-per-timestep CPU cost, FFTs are only a portion of long-range
-Coulombics, and 1d FFTs are only a portion of the FFT cost (parallel
-communication can be costly).  A breakdown of these timings is printed
-to the screen at the end of a run when using the
-:doc:`kspace_style pppm <kspace_style>` command. The
-:doc:`Screen and logfile output <Run_output>`
-page gives more details.  A more detailed (and time consuming)
-report of the FFT performance is generated with the
+per-timestep CPU cost, FFTs are only a portion of long-range Coulombics,
+and 1d FFTs are only a portion of the FFT cost (parallel communication
+can be costly).  A breakdown of these timings is printed to the screen
+at the end of a run when using the :doc:`kspace_style pppm
+<kspace_style>` command. The :doc:`Screen and logfile output
+<Run_output>` page gives more details.  A more detailed (and time
+consuming) report of the FFT performance is generated with the
 :doc:`kspace_modify fftbench yes <kspace_modify>` command.
 
 FFTW is a fast, portable FFT library that should also work on any
-platform and can be faster than the KISS FFT library.  You can
-download it from `www.fftw.org <http://www.fftw.org>`_.  LAMMPS requires
-version 3.X; the legacy version 2.1.X is no longer supported.
+platform and can be faster than the KISS FFT library.  You can download
+it from `www.fftw.org <https://www.fftw.org>`_.  LAMMPS requires version
+3.X; the legacy version 2.1.X is no longer supported.
 
 Building FFTW for your box should be as simple as ``./configure; make;
 make install``.  The install command typically requires root privileges
@@ -142,18 +141,18 @@ The Intel MKL math library is part of the Intel compiler suite.  It
 can be used with the Intel or GNU compiler (see the ``FFT_LIB`` setting
 above).
 
-Performing 3d FFTs in parallel can be time consuming due to data
-access and required communication.  This cost can be reduced by
-performing single-precision FFTs instead of double precision.  Single
-precision means the real and imaginary parts of a complex datum are
-4-byte floats.  Double precision means they are 8-byte doubles.  Note
-that Fourier transform and related PPPM operations are somewhat less
-sensitive to floating point truncation errors and thus the resulting
-error is less than the difference in precision. Using the ``-DFFT_SINGLE``
-setting trades off a little accuracy for reduced memory use and
-parallel communication costs for transposing 3d FFT data.
+Performing 3d FFTs in parallel can be time-consuming due to data access
+and required communication.  This cost can be reduced by performing
+single-precision FFTs instead of double precision.  Single precision
+means the real and imaginary parts of a complex datum are 4-byte floats.
+Double precision means they are 8-byte doubles.  Note that Fourier
+transform and related PPPM operations are somewhat less sensitive to
+floating point truncation errors, and thus the resulting error is
+generally less than the difference in precision. Using the
+``-DFFT_SINGLE`` setting trades off a little accuracy for reduced memory
+use and parallel communication costs for transposing 3d FFT data.
 
-When using ``-DFFT_SINGLE`` with FFTW3 you may need to build the FFTW
+When using ``-DFFT_SINGLE`` with FFTW3, you may need to build the FFTW
 library a second time with support for single-precision.
 
 For FFTW3, do the following, which should produce the additional
@@ -178,11 +177,11 @@ ARRAY mode.
 Size of LAMMPS integer types and size limits
 --------------------------------------------
 
-LAMMPS has a few integer data types which can be defined as either
-4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
-This has an impact on the size of a system that can be simulated
-or how large counters can become before "rolling over".
-The default setting of "smallbig" is almost always adequate.
+LAMMPS uses a few custom integer data types, which can be defined as
+either 4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
+This has an impact on the size of a system that can be simulated, or how
+large counters can become before "rolling over".  The default setting of
+"smallbig" is almost always adequate.
 
 .. tabs::
 
@@ -255,7 +254,7 @@ topology information, though IDs are enabled by default.  The
 :doc:`atom_modify id no <atom_modify>` command will turn them off.  Atom
 IDs are required for molecular systems with bond topology (bonds,
 angles, dihedrals, etc).  Similarly, some force or compute or fix styles
-require atom IDs.  Thus if you model a molecular system or use one of
+require atom IDs.  Thus, if you model a molecular system or use one of
 those styles with more than 2 billion atoms, you need the "bigbig"
 setting.
 
@@ -265,7 +264,7 @@ systems and 500 million for systems with bonds (the additional
 restriction is due to using the 2 upper bits of the local atom index
 in neighbor lists for storing special bonds info).
 
-Image flags store 3 values per atom in a single integer which count the
+Image flags store 3 values per atom in a single integer, which count the
 number of times an atom has moved through the periodic box in each
 dimension.  See the :doc:`dump <dump>` manual page for a discussion.  If
 an atom moves through the periodic box more than this limit, the value
@@ -286,9 +285,9 @@ Output of JPG, PNG, and movie files
 --------------------------------------------------
 
 The :doc:`dump image <dump_image>` command has options to output JPEG or
-PNG image files.  Likewise the :doc:`dump movie <dump_image>` command
-outputs movie files in MPEG format.  Using these options requires the
-following settings:
+PNG image files.  Likewise, the :doc:`dump movie <dump_image>` command
+outputs movie files in a variety of movie formats.  Using these options
+requires the following settings:
 
 .. tabs::
 
@@ -328,11 +327,12 @@ following settings:
          JPG_LIB = -ljpeg -lpng -lz       # library names
 
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
-      if make can find the graphics header and library files.  You must
-      specify ``JPG_LIB`` with a list of graphics libraries to include
-      in the link.  You must insure ffmpeg is in a directory where
-      LAMMPS can find it at runtime, that is a directory in your PATH
-      environment variable.
+      if make can find the graphics header and library files in their
+      default system locations.  You must specify ``JPG_LIB`` with a
+      list of graphics libraries to include in the link.  You must make
+      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+      in a directory where LAMMPS can find it at runtime; that is
+      usually a directory list in your ``PATH`` environment variable.
 
 Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.
@@ -354,7 +354,7 @@ Read or write compressed files
 If this option is enabled, large files can be read or written with
 compression by ``gzip`` or similar tools by several LAMMPS commands,
 including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
-:doc:`dump <dump>`.  Currently supported compression tools are:
+:doc:`dump <dump>`.  Supported compression tools are currently
 ``gzip``, ``bzip2``, ``zstd``, and ``lzma``.
 
 .. tabs::
@@ -394,7 +394,7 @@ Memory allocation alignment
 ---------------------------------------
 
 This setting enables the use of the "posix_memalign()" call instead of
-"malloc()" when LAMMPS allocates large chunks or memory.  Vector
+"malloc()" when LAMMPS allocates large chunks of memory.  Vector
 instructions on CPUs may become more efficient, if dynamically allocated
 memory is aligned on larger-than-default byte boundaries.  On most
 current operating systems, the "malloc()" implementation returns
@@ -496,7 +496,7 @@ Trigger selected floating-point exceptions
 ------------------------------------------
 
 Many kinds of CPUs have the capability to detect when a calculation
-results in an invalid math operation like a division by zero or calling
+results in an invalid math operation, like a division by zero or calling
 the square root with a negative argument.  The default behavior on
 most operating systems is to continue and have values for ``NaN`` (= not
 a number) or ``Inf`` (= infinity).  This allows software to detect and

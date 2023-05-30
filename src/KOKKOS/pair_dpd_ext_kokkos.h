@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,7 +16,7 @@
 PairStyle(dpd/ext/kk,PairDPDExtKokkos<LMPDeviceType>);
 PairStyle(dpd/ext/kk/device,PairDPDExtKokkos<LMPDeviceType>);
 PairStyle(dpd/ext/kk/host,PairDPDExtKokkos<LMPHostType>);
-// clang-format on
+// clang-format off
 #else
 
 #ifndef LMP_PAIR_DPD_EXT_KOKKOS_H
@@ -80,7 +80,7 @@ class PairDPDExtKokkos : public PairDPDExt {
       const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
  private:
-  double special_lj[4];
+  double special_lj[4], special_rf[4];
   int eflag,vflag;
   int neighflag,nlocal;
   double dtinvsqrt;

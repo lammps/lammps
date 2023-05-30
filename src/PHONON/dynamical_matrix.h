@@ -52,9 +52,9 @@ class DynamicalMatrix : public Command {
   double conv_mass;
   double del;
   int igroup, groupbit;
-  bigint gcount;    // number of atoms in group
-  bigint dynlen;    // rank of dynamical matrix
-  bigint dynlenb;   // new dynlen if folded
+  bigint gcount;     // number of atoms in group
+  bigint dynlen;     // rank of dynamical matrix
+  bigint dynlenb;    // new dynlen if folded
   int scaleflag;
   int me;
   bigint *groupmap;

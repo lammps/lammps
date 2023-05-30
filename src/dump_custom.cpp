@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_atom.h"
 #include "group.h"
 #include "input.h"
 #include "memory.h"
@@ -41,7 +41,7 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
+     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,HEATFLOW,TEMPERATURE,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE,IVEC,DVEC,IARRAY,DARRAY};
@@ -53,14 +53,13 @@ enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 /* ---------------------------------------------------------------------- */
 
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg),
-  idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr), thresh_value(nullptr),
-  thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr), thresh_first(nullptr),
-  earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), columns_default(nullptr),
-  choose(nullptr), dchoose(nullptr), clist(nullptr), field2index(nullptr), argindex(nullptr),
-  id_compute(nullptr), compute(nullptr), id_fix(nullptr), fix(nullptr), id_variable(nullptr),
-  variable(nullptr), vbuf(nullptr), id_custom(nullptr), custom(nullptr), custom_flag(nullptr),
-  typenames(nullptr), pack_choice(nullptr)
+  Dump(lmp, narg, arg), idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr),
+  thresh_value(nullptr), thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr),
+  thresh_first(nullptr), earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr),
+  columns_default(nullptr), choose(nullptr), dchoose(nullptr), clist(nullptr),
+  field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
+  fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
+  custom(nullptr), custom_flag(nullptr), typenames(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 
@@ -87,39 +86,16 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   buffer_allow = 1;
   buffer_flag = 1;
-  iregion = -1;
-  idregion = nullptr;
 
   nthresh = 0;
-  thresh_array = nullptr;
-  thresh_op = nullptr;
-  thresh_value = nullptr;
-  thresh_last = nullptr;
-
   nthreshlast = 0;
-  thresh_fix = nullptr;
-  thresh_fixID = nullptr;
-  thresh_first = nullptr;
 
   // computes, fixes, variables which the dump accesses
 
   ncompute = 0;
-  id_compute = nullptr;
-  compute = nullptr;
-
   nfix = 0;
-  id_fix = nullptr;
-  fix = nullptr;
-
   nvariable = 0;
-  id_variable = nullptr;
-  variable = nullptr;
-  vbuf = nullptr;
-
   ncustom = 0;
-  id_custom = nullptr;
-  custom = nullptr;
-  custom_flag = nullptr;
 
   // process attributes
   // ioptional = start of additional optional args in expanded args
@@ -144,9 +120,6 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // atom selection arrays
 
   maxlocal = 0;
-  choose = nullptr;
-  dchoose = nullptr;
-  clist = nullptr;
 
   // default element name for all types = C
 
@@ -268,7 +241,7 @@ void DumpCustom::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
     if (keyword_user[icol].size()) combined += keyword_user[icol];
     else combined += item;
@@ -289,10 +262,11 @@ void DumpCustom::init_style()
 
   auto words = utils::split_words(format);
   if ((int) words.size() < nfield)
-    error->all(FLERR,"Dump_modify format line is too short");
+    error->all(FLERR,"Dump_modify format line is too short: {}", format);
 
   int i=0;
   for (const auto &word : words) {
+    if (i >= nfield) break;
     delete[] vformat[i];
 
     if (format_column_user[i])
@@ -364,13 +338,10 @@ void DumpCustom::init_style()
     else if (flag && cols) custom_flag[i] = DARRAY;
   }
 
-  // set index and check validity of region
+  // check validity of region
 
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1)
-      error->all(FLERR,"Region ID for dump custom does not exist");
-  }
+  if (idregion && !domain->get_region_by_id(idregion))
+    error->all(FLERR,"Region {} for dump custom does not exist", idregion);
 
   // open single file, one time only
 
@@ -585,21 +556,15 @@ int DumpCustom::count()
   }
 
   // invoke Computes for per-atom quantities
-  // only if within a run or minimize
-  // else require that computes are current
-  // this prevents a compute from being invoked by the WriteDump class
+  // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->whichflag == 0) {
-      for (i = 0; i < ncompute; i++)
-        if (compute[i]->invoked_peratom != update->ntimestep)
-          error->all(FLERR,"Compute used in dump between runs is not current");
-    } else {
-      for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
-          compute[i]->compute_peratom();
-          compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
-        }
+    if (update->first_update == 0)
+      error->all(FLERR,"Dump compute cannot be invoked before first run");
+    for (i = 0; i < ncompute; i++) {
+      if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
+        compute[i]->compute_peratom();
+        compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
       }
     }
   }
@@ -625,8 +590,8 @@ int DumpCustom::count()
 
   // un-choose if not in region
 
-  if (iregion >= 0) {
-    Region *region = domain->regions[iregion];
+  if (idregion) {
+    auto region = domain->get_region_by_id(idregion);
     region->prematch();
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
@@ -960,6 +925,18 @@ int DumpCustom::count()
         for (i = 0; i < nlocal; i++) dchoose[i] = 2.0*radius[i];
         ptr = dchoose;
         nstride = 1;
+      } else if (thresh_array[ithresh] == HEATFLOW) {
+        if (!atom->heatflow_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = atom->heatflow;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == TEMPERATURE) {
+        if (!atom->temperature_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = atom->temperature;
+        nstride = 1;
       } else if (thresh_array[ithresh] == OMEGAX) {
         if (!atom->omega_flag)
           error->all(FLERR,
@@ -1179,6 +1156,7 @@ int DumpCustom::count()
 void DumpCustom::pack(tagint *ids)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
+
   if (ids) {
     tagint *tag = atom->tag;
     for (int i = 0; i < nchoose; i++)
@@ -1273,11 +1251,14 @@ int DumpCustom::parse_fields(int narg, char **arg)
 {
   // customize by adding to if statement
 
+  has_id = 0;
+
   for (int iarg = 0; iarg < narg; iarg++) {
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_id;
       if (sizeof(tagint) == sizeof(smallint)) vtype[iarg] = Dump::INT;
       else vtype[iarg] = Dump::BIGINT;
+      has_id = 1;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
@@ -1409,6 +1390,16 @@ int DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->radius_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[iarg] = &DumpCustom::pack_diameter;
+      vtype[iarg] = Dump::DOUBLE;
+    } else if (strcmp(arg[iarg],"heatflow") == 0) {
+      if (!atom->heatflow_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[iarg] = &DumpCustom::pack_heatflow;
+      vtype[iarg] = Dump::DOUBLE;
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (!atom->temperature_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[iarg] = &DumpCustom::pack_temperature;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
@@ -1690,19 +1681,20 @@ int DumpCustom::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"region") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"none") == 0) iregion = -1;
-    else {
-      iregion = domain->find_region(arg[1]);
-      if (iregion == -1)
-        error->all(FLERR,"Dump_modify region ID {} does not exist",arg[1]);
+    if (strcmp(arg[1],"none") == 0) {
       delete[] idregion;
+      idregion = nullptr;
+    } else {
+      delete[] idregion;
+      if (!domain->get_region_by_id(arg[1]))
+        error->all(FLERR,"Dump_modify region {} does not exist", arg[1]);
       idregion = utils::strdup(arg[1]);
     }
     return 2;
   }
 
   if (strcmp(arg[0],"format") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
     if (strcmp(arg[1],"none") == 0) {
       // just clear format_column_user allocated by this dump child class
@@ -1713,7 +1705,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       return 2;
     }
 
-    if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
     if (strcmp(arg[1],"int") == 0) {
       delete[] format_int_user;
@@ -1739,7 +1731,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
-        error->all(FLERR,"Illegal dump_modify command");
+        error->all(FLERR,"Unknown dump_modify format ID keyword: {}", arg[1]);
       delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
@@ -1760,7 +1752,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"refresh") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify refresh", error);
     ArgInfo argi(arg[1],ArgInfo::COMPUTE);
     if ((argi.get_type() != ArgInfo::COMPUTE) || (argi.get_dim() != 0))
       error->all(FLERR,"Illegal dump_modify command");
@@ -1772,7 +1764,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"thresh") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify thresh", error);
     if (strcmp(arg[1],"none") == 0) {
       if (nthresh) {
         memory->destroy(thresh_array);
@@ -1794,7 +1786,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       return 2;
     }
 
-    if (narg < 4) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 4) utils::missing_cmd_args(FLERR, "dump_modify thresh", error);
 
     // grow threshold arrays
 
@@ -1874,6 +1866,8 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
     else if (strcmp(arg[1],"diameter") == 0) thresh_array[nthresh] = DIAMETER;
+    else if (strcmp(arg[1],"heatflow") == 0) thresh_array[nthresh] = HEATFLOW;
+    else if (strcmp(arg[1],"temperature") == 0) thresh_array[nthresh] = TEMPERATURE;
     else if (strcmp(arg[1],"omegax") == 0) thresh_array[nthresh] = OMEGAX;
     else if (strcmp(arg[1],"omegay") == 0) thresh_array[nthresh] = OMEGAY;
     else if (strcmp(arg[1],"omegaz") == 0) thresh_array[nthresh] = OMEGAZ;
@@ -2029,16 +2023,16 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
       thresh_last[nthresh] = -1;
     } else {
-      thresh_fix = (FixStore **)
-        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),"dump:thresh_fix");
+      thresh_fix = (FixStoreAtom **)
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStoreAtom *),"dump:thresh_fix");
       thresh_fixID = (char **)
         memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
-      threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
-      thresh_fix[nthreshlast] = dynamic_cast<FixStore *>( modify->add_fix(threshid));
+      threshid += fmt::format(" {} STORE/ATOM 1 0 0 1", group->names[igroup]);
+      thresh_fix[nthreshlast] = dynamic_cast<FixStoreAtom *>(modify->add_fix(threshid));
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;
@@ -2782,6 +2776,30 @@ void DumpCustom::pack_diameter(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = 2.0*radius[clist[i]];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_heatflow(int n)
+{
+  double *heatflow = atom->heatflow;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = heatflow[clist[i]];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_temperature(int n)
+{
+  double *temperature = atom->temperature;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = temperature[clist[i]];
     n += size_one;
   }
 }

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1254,7 +1254,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         delx_j [niters] = delx;
         dely_j [niters] = dely;
         delz_j [niters] = delz;
-        if (OneType == false)
+        if (!OneType)
           cutsq_j[niters] = cutsq_ij;
 
         neigh_j[niters] = d_neighbors(i,jptr);
@@ -1705,7 +1705,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {

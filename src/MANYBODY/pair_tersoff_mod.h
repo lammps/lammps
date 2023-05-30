@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -79,29 +79,3 @@ class PairTersoffMOD : public PairTersoff {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open Tersoff potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in Tersoff potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal Tersoff parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-E: Potential file has duplicate entry
-
-The potential file has more than one entry for the same element.
-
-E: Potential file is missing an entry
-
-The potential file does not have a needed entry.
-
-*/

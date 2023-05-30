@@ -1,7 +1,7 @@
 ---
 lammps_version: 17 Feb 2022
 date_generated: Fri Mar 18 22:17:48 2022
-epsilon: 5e-13
+epsilon: 5e-12
 skip_tests:
 prerequisites: ! |
   pair pace

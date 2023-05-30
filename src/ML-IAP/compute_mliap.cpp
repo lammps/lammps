@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,6 +22,7 @@
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
+#include "mliap_descriptor_so3.h"
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
@@ -54,7 +55,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
   // default values
 
-  gradgradflag = 1;
+  int gradgradflag = 1;
 
   // set flags for required keywords
 
@@ -89,13 +90,15 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
         if (iarg+3 > narg) error->all(FLERR,"Illegal compute mliap command");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
+      } else if (strcmp(arg[iarg+1],"so3") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
+        iarg += 3;
       } else error->all(FLERR,"Illegal compute mliap command");
       descriptorflag = 1;
     } else if (strcmp(arg[iarg],"gradgradflag") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal compute mliap command");
-      gradgradflag = atoi(arg[iarg+1]);
-      if (gradgradflag != 0 && gradgradflag != 1)
-        error->all(FLERR,"Illegal compute mliap command");
+      gradgradflag = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR,"Illegal compute mliap command");
@@ -227,7 +230,7 @@ void ComputeMLIAP::compute_array()
 
   descriptor->compute_descriptors(data);
 
-  if (gradgradflag == 1) {
+  if (data->gradgradflag == 1) {
 
     // calculate double gradient w.r.t. parameters and descriptors
 
@@ -237,7 +240,7 @@ void ComputeMLIAP::compute_array()
 
     descriptor->compute_force_gradients(data);
 
-  } else if (gradgradflag == 0) {
+  } else if (data->gradgradflag == 0) {
 
     // calculate descriptor gradients
 

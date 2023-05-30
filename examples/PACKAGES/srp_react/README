@@ -1,0 +1,16 @@
+This directory contains an input script for performing 
+simulations with the srp/react pair style. The pair style
+srp/react interfaces fix bond/break and fix bond/create commands
+with the segmental repulsive potential. This is useful in simulating 
+reactions with soft potentials such as DPD where minimizing 
+topological violations is important.
+
+The input script in.srp_react is an example of a simulation of
+a degrading nanogel particle. An initial equilibrated structure
+of a nanogel particle (prior to degradation) is read from the 
+restart file. The degradation reaction is simulated via 
+the fix bond/break command. The simulation will generate the 
+file bonds_broken.txt containing the number of bonds 
+broken and fraction of bonds intact over the simulation time. 
+For more details see the LAMMPS online documentation and the 
+paper: Palkar, V., & Kuksenok, O. (2022). JPC B, 126, 336.

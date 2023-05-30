@@ -1,0 +1,43 @@
+# 3d Lennard-Jones melt - MDI driver script
+
+variable        x index 5
+variable        y index 5
+variable        z index 5
+
+units           lj
+atom_style      atomic
+atom_modify     map array
+
+read_data       data.snapshot
+
+velocity        all create 1.44 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+fix             1 all nve
+
+fix             2 all mdi/qm add no every 100 virial yes
+
+compute         1 all pressure NULL virial
+variable        evirial equal (f_2[1]+f_2[2]+f_2[3])/3
+
+thermo_style    custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
+
+thermo          100
+
+dump            1 all custom 100 dump.snapshot.driver.plugin &
+                id type x y z f_2[1] f_2[2] f_2[3]
+dump_modify     1 sort id
+
+mdi             plugin lammps mdi "-role ENGINE -name LMP2 -method LINK" &
+                infile in.snapshot.engine &
+                extra "-log log.snapshot.engine.plugin" &
+                command """
+                run 300 pre no post no every 100
+                "print 'QM eng = $(f_2/atoms)'"
+                "print 'QM virial = $(v_evirial) $(f_2[1]) $(f_2[2]) $(f_2[3])'"
+                """

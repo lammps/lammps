@@ -18,10 +18,10 @@
 colvar::orientation::orientation(std::string const &conf)
   : cvc()
 {
-  function_type = "orientation";
+  set_function_type("orientation");
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_quaternion);
-  init(conf);
+  colvar::orientation::init(conf);
 }
 
 
@@ -36,7 +36,7 @@ int colvar::orientation::init(std::string const &conf)
     cvm::log("Using reference positions from input file.\n");
     if (ref_pos.size() != atoms->size()) {
       return cvm::error("Error: reference positions do not "
-                        "match the number of requested atoms.\n", INPUT_ERROR);
+                        "match the number of requested atoms.\n", COLVARS_INPUT_ERROR);
     }
   }
 
@@ -51,7 +51,7 @@ int colvar::orientation::init(std::string const &conf)
         bool found = get_keyval(conf, "refPositionsColValue", file_col_value, 0.0);
         if (found && file_col_value==0.0) {
           return cvm::error("Error: refPositionsColValue, "
-                            "if provided, must be non-zero.\n", INPUT_ERROR);
+                            "if provided, must be non-zero.\n", COLVARS_INPUT_ERROR);
         }
       }
 
@@ -63,19 +63,21 @@ int colvar::orientation::init(std::string const &conf)
 
   if (!ref_pos.size()) {
     return cvm::error("Error: must define a set of "
-                      "reference coordinates.\n", INPUT_ERROR);
+                      "reference coordinates.\n", COLVARS_INPUT_ERROR);
   }
 
 
-  cvm::log("Centering the reference coordinates: it is "
-            "assumed that each atom is the closest "
-            "periodic image to the center of geometry.\n");
   cvm::rvector ref_cog(0.0, 0.0, 0.0);
   size_t i;
   for (i = 0; i < ref_pos.size(); i++) {
     ref_cog += ref_pos[i];
   }
   ref_cog /= cvm::real(ref_pos.size());
+  cvm::log("Centering the reference coordinates on the origin by subtracting "
+           "the center of geometry at "+
+           cvm::to_str(-1.0 * ref_cog)+"; it is "
+           "assumed that each atom is the closest "
+           "periodic image to the center of geometry.\n");
   for (i = 0; i < ref_pos.size(); i++) {
     ref_pos[i] -= ref_cog;
   }
@@ -94,7 +96,7 @@ int colvar::orientation::init(std::string const &conf)
 colvar::orientation::orientation()
   : cvc()
 {
-  function_type = "orientation";
+  set_function_type("orientation");
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_quaternion);
 }
@@ -163,10 +165,10 @@ colvarvalue colvar::orientation::dist2_rgrad(colvarvalue const &x1,
 colvar::orientation_angle::orientation_angle(std::string const &conf)
   : orientation()
 {
-  function_type = "orientation_angle";
+  set_function_type("orientationAngle");
   init_as_angle();
   enable(f_cvc_explicit_gradient);
-  init(conf);
+  orientation_angle::init(conf);
 }
 
 
@@ -219,11 +221,11 @@ simple_scalar_dist_functions(orientation_angle)
 colvar::orientation_proj::orientation_proj(std::string const &conf)
   : orientation()
 {
-  function_type = "orientation_proj";
+  set_function_type("orientationProj");
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
   init_scalar_boundaries(0.0, 1.0);
-  init(conf);
+  orientation_proj::init(conf);
 }
 
 
@@ -267,11 +269,11 @@ simple_scalar_dist_functions(orientation_proj)
 colvar::tilt::tilt(std::string const &conf)
   : orientation()
 {
-  function_type = "tilt";
-  enable(f_cvc_explicit_gradient);
+  set_function_type("tilt");
   x.type(colvarvalue::type_scalar);
+  enable(f_cvc_explicit_gradient);
   init_scalar_boundaries(-1.0, 1.0);
-  init(conf);
+  tilt::init(conf);
 }
 
 
@@ -331,12 +333,11 @@ simple_scalar_dist_functions(tilt)
 colvar::spin_angle::spin_angle(std::string const &conf)
   : orientation()
 {
-  function_type = "spin_angle";
-  period = 360.0;
+  set_function_type("spinAngle");
+  init_as_periodic_angle();
   enable(f_cvc_periodic);
   enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
-  init(conf);
+  spin_angle::init(conf);
 }
 
 
@@ -359,7 +360,7 @@ int colvar::spin_angle::init(std::string const &conf)
 colvar::spin_angle::spin_angle()
   : orientation()
 {
-  function_type = "spin_angle";
+  set_function_type("spinAngle");
   period = 360.0;
   enable(f_cvc_periodic);
   enable(f_cvc_explicit_gradient);
@@ -447,23 +448,19 @@ void colvar::spin_angle::wrap(colvarvalue &x_unwrapped) const
 colvar::euler_phi::euler_phi(std::string const &conf)
   : orientation()
 {
-  function_type = "euler_phi";
-  period = 360.0;
-  enable(f_cvc_periodic);
+  set_function_type("eulerPhi");
+  init_as_periodic_angle();
   enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
-  init(conf);
+  euler_phi::init(conf);
 }
 
 
 colvar::euler_phi::euler_phi()
   : orientation()
 {
-  function_type = "euler_phi";
-  period = 360.0;
-  enable(f_cvc_periodic);
+  set_function_type("eulerPhi");
+  init_as_periodic_angle();
   enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -566,23 +563,19 @@ void colvar::euler_phi::wrap(colvarvalue &x_unwrapped) const
 colvar::euler_psi::euler_psi(std::string const &conf)
   : orientation()
 {
-  function_type = "euler_psi";
-  period = 360.0;
-  enable(f_cvc_periodic);
+  set_function_type("eulerPsi");
+  init_as_periodic_angle();
   enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
-  init(conf);
+  euler_psi::init(conf);
 }
 
 
 colvar::euler_psi::euler_psi()
   : orientation()
 {
-  function_type = "euler_psi";
-  period = 360.0;
-  enable(f_cvc_periodic);
+  set_function_type("eulerPsi");
+  init_as_periodic_angle();
   enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -685,19 +678,19 @@ void colvar::euler_psi::wrap(colvarvalue &x_unwrapped) const
 colvar::euler_theta::euler_theta(std::string const &conf)
   : orientation()
 {
-  function_type = "euler_theta";
+  set_function_type("eulerTheta");
+  init_as_angle();
   enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
-  init(conf);
+  euler_theta::init(conf);
 }
 
 
 colvar::euler_theta::euler_theta()
   : orientation()
 {
-  function_type = "euler_theta";
+  set_function_type("eulerTheta");
+  init_as_angle();
   enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
 }
 
 

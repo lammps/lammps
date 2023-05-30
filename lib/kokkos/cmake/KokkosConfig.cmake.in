@@ -60,3 +60,5 @@ ELSEIF(@Kokkos_ENABLE_CUDA@ AND NOT "separable_compilation" IN_LIST Kokkos_FIND_
     # be mindful of the environment, pollution is bad
     UNSET(IS_NVCC)
 ENDIF()
+
+set(Kokkos_COMPILE_LANGUAGE @KOKKOS_COMPILE_LANGUAGE@)

@@ -1,5 +1,5 @@
 # Numerical difference calculation
-# of error in forces and virial stress
+# of error in forces, virial stress, and Born matrix
 
 # adjustable parameters
 
@@ -8,8 +8,10 @@ variable    nthermo index 10    # thermo output interval
 variable    ndump index 500     # dump output interval
 variable    nlat index 3        # size of box
 variable    fdelta index 1.0e-4 # displacement size
-variable    vdelta index 1.0e-6 # strain size 
+variable    vdelta index 1.0e-6 # strain size for numdiff/virial
+variable    bdelta index 1.0e-8 # strain size for numdiff Born matrix
 variable    temp index 10.0     # temperature
+variable    nugget equal 1.0e-6 # regularization for relerr
 
 units  	    metal
 atom_style  atomic
@@ -23,8 +25,8 @@ mass 		1 39.903
 
 velocity     all create ${temp} 2357 mom yes dist gaussian
 
-pair_style   lj/cubic
-pair_coeff   * * 0.0102701 3.42
+pair_style      lj/cut 5.0
+pair_coeff      1 1 0.0102701 3.42
 
 neighbor     0.0 bin
 neigh_modify every 1 delay 0 check no
@@ -42,7 +44,7 @@ variable     ferrsq atom v_ferrx^2+v_ferry^2+v_ferrz^2
 compute	     faverrsq all reduce ave v_ferrsq
 variable     fsq atom fx^2+fy^2+fz^2
 compute      favsq all reduce ave v_fsq
-variable     frelerr equal sqrt(c_faverrsq/c_favsq)
+variable     frelerr equal sqrt(c_faverrsq/(c_favsq+${nugget}))
 dump errors  all custom ${ndump} force_error.dump v_ferrx v_ferry v_ferrz
 
 # define numerical virial stress tensor calculation
@@ -67,8 +69,59 @@ variable 	vsq equal "c_myvirial[1]^2 + &
 		           c_myvirial[4]^2 + &
                            c_myvirial[5]^2 + &
                            c_myvirial[6]^2"
-variable     	vrelerr equal sqrt(v_verrsq/v_vsq)
+variable     	vrelerr equal sqrt(v_verrsq/(v_vsq+${nugget}))
 
-thermo_style 	custom step temp pe etotal press v_frelerr v_vrelerr
+# define numerical Born matrix calculation
+
+compute         bornnum all born/matrix numdiff ${bdelta} myvirial
+compute         born all born/matrix
+variable        berr vector c_bornnum-c_born
+variable 	berrsq equal "v_berr[1]^2 + &
+ 		    	  v_berr[2]^2 + &
+ 		    	  v_berr[3]^2 + &
+ 		    	  v_berr[4]^2 + &
+ 		    	  v_berr[5]^2 + &
+ 		    	  v_berr[6]^2 + &
+ 		    	  v_berr[7]^2 + &
+ 		    	  v_berr[8]^2 + &
+ 		    	  v_berr[9]^2 + &
+ 		    	  v_berr[10]^2 + &
+ 		    	  v_berr[11]^2 + &
+ 		    	  v_berr[12]^2 + &
+ 		    	  v_berr[13]^2 + &
+ 		    	  v_berr[14]^2 + &
+ 		    	  v_berr[15]^2 + &
+ 		    	  v_berr[16]^2 + &
+ 		    	  v_berr[17]^2 + &
+ 		    	  v_berr[18]^2 + &
+ 		    	  v_berr[19]^2 + &
+ 		    	  v_berr[20]^2 + &
+ 		    	  v_berr[21]^2"
+
+variable 	bsq equal "c_born[1]^2 + &
+ 		    	  c_born[2]^2 + &
+ 		    	  c_born[3]^2 + &
+ 		    	  c_born[4]^2 + &
+ 		    	  c_born[5]^2 + &
+ 		    	  c_born[6]^2 + &
+ 		    	  c_born[7]^2 + &
+ 		    	  c_born[8]^2 + &
+ 		    	  c_born[9]^2 + &
+ 		    	  c_born[10]^2 + &
+ 		    	  c_born[11]^2 + &
+ 		    	  c_born[12]^2 + &
+ 		    	  c_born[13]^2 + &
+ 		    	  c_born[14]^2 + &
+ 		    	  c_born[15]^2 + &
+ 		    	  c_born[16]^2 + &
+ 		    	  c_born[17]^2 + &
+ 		    	  c_born[18]^2 + &
+ 		    	  c_born[19]^2 + &
+ 		    	  c_born[20]^2 + &
+ 		    	  c_born[21]^2"
+
+variable     	brelerr equal sqrt(v_berrsq/(v_bsq+${nugget}))
+
+thermo_style 	custom step temp pe etotal press v_frelerr v_vrelerr v_brelerr
 thermo 		${nthermo}
 run 		${nsteps}

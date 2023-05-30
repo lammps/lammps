@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -43,12 +43,6 @@ PairLJCharmmCoulLongIntel::PairLJCharmmCoulLongIntel(LAMMPS *lmp) :
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
   cut_respa = nullptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
-PairLJCharmmCoulLongIntel::~PairLJCharmmCoulLongIntel()
-{
 }
 
 /* ---------------------------------------------------------------------- */
@@ -330,7 +324,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 
           const int j = tj[jj] & NEIGHMASK;
           const int sbindex = tj[jj] >> SBBITS & 3;
-          const int jtype = tjtype[jj];
+          const int jtype = IP_PRE_dword_index(tjtype[jj]);
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
 
@@ -347,7 +341,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 
             const flt_t r = (flt_t)1.0 / sqrt(r2inv);
             const flt_t grij = g_ewald * r;
-            const flt_t expm2 = exp(-grij * grij);
+            const flt_t expm2 = std::exp(-grij * grij);
             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
             const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
             const flt_t prefactor = qqrd2e * qtmp * q[j] / r;

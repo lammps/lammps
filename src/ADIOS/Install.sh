@@ -31,17 +31,17 @@ done
 if (test $1 = 1) then
 
   CONFIGSCRIPT=none
-  if ( test `which adios2-config 2>> /dev/null` ) then
+  if ( type adios2-config > /dev/null 2>&1 ) then
     CONFIGSCRIPT=adios2-config
   elif ( ! test -z "$ADIOS2_DIR" ) then
-    if ( test `which $ADIOS2_DIR/bin/adios2-config` ) then
+    if ( type $ADIOS2_DIR/bin/adios2-config > /dev/null 2>&1 ) then
       CONFIGSCRIPT=$ADIOS2_DIR/bin/adios2-config
     else
       echo "ERROR: ADIOS2_DIR environment variable is set but" \
            "\$ADIOS2_DIR/bin/adios2-config does not exist"
     fi
   elif ( ! test -z "$ADIOS_DIR" ) then
-    if ( test `which $ADIOS_DIR/bin/adios2-config` ) then
+    if ( type $ADIOS_DIR/bin/adios2-config > /dev/null 2>&1 ) then
       CONFIGSCRIPT=$ADIOS_DIR/bin/adios2-config
     else
       echo "ERROR: ADIOS_DIR environment variable is set but" \
@@ -69,7 +69,7 @@ adios_SYSLIB=${ADIOS2_LIB}
     fi
 
     if (test -e ../Makefile.package.settings) then
-      sed -i -e '/^include.*ADIOS.*$/d' ../Makefile.package.settings
+      sed -i -e '/^[ \t]*include.*ADIOS.*$/d' ../Makefile.package.settings
       # multiline form needed for BSD sed on Macs
       sed -i -e '4 i \
 include ../ADIOS/Makefile.lammps
@@ -85,7 +85,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*ADIOS.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*ADIOS.*$/d' ../Makefile.package.settings
   fi
 
   rm -f Makefile.lammps

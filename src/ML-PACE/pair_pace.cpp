@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,10 +41,10 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include <cstring>
 #include <exception>
 
-#include "ace_c_basis.h"
-#include "ace_evaluator.h"
-#include "ace_recursive.h"
-#include "ace_version.h"
+#include "ace-evaluator/ace_c_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
+#include "ace-evaluator/ace_recursive.h"
+#include "ace-evaluator/ace_version.h"
 
 namespace LAMMPS_NS {
 struct ACEImpl {
@@ -91,6 +91,8 @@ PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
   recursive = false;
 
   scale = nullptr;
+
+  chunksize = 4096;
 }
 
 /* ----------------------------------------------------------------------
@@ -121,15 +123,12 @@ void PairPACE::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  // downwards modified by YL
-
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
 
   // number of atoms in cell
   int nlocal = atom->nlocal;
-
   int newton_pair = force->newton_pair;
 
   // inum: length of the neighborlists list
@@ -144,18 +143,8 @@ void PairPACE::compute(int eflag, int vflag)
   // the pointer to the list of neighbors of "i"
   firstneigh = list->firstneigh;
 
-  if (inum != nlocal) error->all(FLERR, "inum: {} nlocal: {} are different", inum, nlocal);
-
-  // Aidan Thompson told RD (26 July 2019) that practically always holds:
-  // inum = nlocal
-  // i = ilist(ii) < inum
-  // j = jlist(jj) < nall
-  // neighborlist contains neighbor atoms plus skin atoms,
-  //       skin atoms can be removed by setting skin to zero but here
-  //       they are disregarded anyway
-
   //determine the maximum number of neighbours
-  int max_jnum = -1;
+  int max_jnum = 0;
   int nei = 0;
   for (ii = 0; ii < list->inum; ii++) {
     i = ilist[ii];
@@ -188,7 +177,7 @@ void PairPACE::compute(int eflag, int vflag)
 
     try {
       aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
-    } catch (exception &e) {
+    } catch (std::exception &e) {
       error->one(FLERR, e.what());
     }
 
@@ -213,15 +202,15 @@ void PairPACE::compute(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      if (vflag)
+      if (vflag_either)
         ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
                      -delz);
     }
 
     // tally energy contribution
-    if (eflag) {
+    if (eflag_either) {
       // evdwl = energy of atom I
-      evdwl = scale[itype][itype]*aceimpl->ace->e_atom;
+      evdwl = scale[itype][itype] * aceimpl->ace->e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
   }
@@ -250,20 +239,27 @@ void PairPACE::allocate()
 
 void PairPACE::settings(int narg, char **arg)
 {
-  if (narg > 1) error->all(FLERR, "Illegal pair_style command.");
+  if (narg > 3) utils::missing_cmd_args(FLERR, "pair_style pace", error);
 
   // ACE potentials are parameterized in metal units
   if (strcmp("metal", update->unit_style) != 0)
     error->all(FLERR, "ACE potentials require 'metal' units");
 
   recursive = true;    // default evaluator style: RECURSIVE
-  if (narg > 0) {
-    if (strcmp(arg[0], "recursive") == 0)
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "recursive") == 0) {
       recursive = true;
-    else if (strcmp(arg[0], "product") == 0) {
+      iarg += 1;
+    } else if (strcmp(arg[iarg], "product") == 0) {
       recursive = false;
+      iarg += 1;
+    } else if (strcmp(arg[iarg], "chunksize") == 0) {
+      chunksize = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
     } else
-      error->all(FLERR, "Illegal pair_style command");
+      error->all(FLERR, "Unknown pair_style pace keyword: {}", arg[iarg]);
   }
 
   if (comm->me == 0) {
@@ -287,7 +283,6 @@ void PairPACE::coeff(int narg, char **arg)
   map_element2type(narg - 3, arg + 3);
 
   auto potential_file_name = utils::get_potential_file_path(arg[2]);
-  char **elemtypes = &arg[3];
 
   //load potential file
   delete aceimpl->basis_set;
@@ -305,7 +300,7 @@ void PairPACE::coeff(int narg, char **arg)
     }
   }
 
-  // read args that map atom types to pACE elements
+  // read args that map atom types to PACE elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
   // map[0] is not used
 
@@ -316,27 +311,34 @@ void PairPACE::coeff(int narg, char **arg)
 
   const int n = atom->ntypes;
   for (int i = 1; i <= n; i++) {
-    char *elemname = elemtypes[i - 1];
-    int atomic_number = AtomicNumberByName_pace(elemname);
-    if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
-
-    SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
-    if (mu != -1) {
-      if (comm->me == 0)
-        utils::logmesg(lmp, "Mapping LAMMPS atom type #{}({}) -> ACE species type #{}\n", i,
-                       elemname, mu);
-      map[i] = mu;
-      // set up LAMMPS atom type to ACE species  mapping for ace evaluator
-      aceimpl->ace->element_type_mapping(i) = mu;
+    char *elemname = arg[2 + i];
+    if (strcmp(elemname, "NULL") == 0) {
+      // species_type=-1 value will not reach ACE Evaluator::compute_atom,
+      // but if it will ,then error will be thrown there
+      aceimpl->ace->element_type_mapping(i) = -1;
+      map[i] = -1;
+      if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
     } else {
-      error->all(FLERR, "Element {} is not supported by ACE-potential from file {}", elemname,
-                 potential_file_name);
+      int atomic_number = AtomicNumberByName_pace(elemname);
+      if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
+      SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
+      if (mu != -1) {
+        if (comm->me == 0)
+          utils::logmesg(lmp, "Mapping LAMMPS atom type #{}({}) -> ACE species type #{}\n", i,
+                         elemname, mu);
+        map[i] = mu;
+        // set up LAMMPS atom type to ACE species  mapping for ace evaluator
+        aceimpl->ace->element_type_mapping(i) = mu;
+      } else {
+        error->all(FLERR, "Element {} is not supported by ACE-potential from file {}", elemname,
+                   potential_file_name);
+      }
     }
   }
 
   // initialize scale factor
   for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) { scale[i][j] = 1.0; }
+    for (int j = i; j <= n; j++) scale[i][j] = 1.0;
   }
 
   aceimpl->ace->set_basis(*aceimpl->basis_set, 1);
@@ -348,8 +350,8 @@ void PairPACE::coeff(int narg, char **arg)
 
 void PairPACE::init_style()
 {
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pACE requires atom IDs");
-  if (force->newton_pair == 0) error->all(FLERR, "Pair style pACE requires newton pair on");
+  if (atom->tag_enable == 0) error->all(FLERR, "Pair style pace requires atom IDs");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style pace requires newton pair on");
 
   // request a full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL);

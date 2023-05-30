@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,7 +22,7 @@ PairStyle(reax/c/omp,PairReaxFFOMP);
 #define LMP_PAIR_REAXFF_OMP_H
 
 #include "pair_reaxff.h"
-#include "thr_omp.h"            // IWYU pragma: export
+#include "thr_omp.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -113,13 +113,3 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Too many ghost atoms
-
-Number of ghost atoms has increased too much during simulation and has exceeded
-the size of reaxff arrays.  Increase safe_zone and min_cap in pair_style reaxff
-command
-
-*/

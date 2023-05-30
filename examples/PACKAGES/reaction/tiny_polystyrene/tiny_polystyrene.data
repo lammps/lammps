@@ -15,6 +15,108 @@ LAMMPS data file via write_data, version 20 Nov 2019, timestep = 25000
 1.7426663385337786e+00 1.8257333661465619e+01 ylo yhi
 1.7426663385337786e+00 1.8257333661465619e+01 zlo zhi
 
+Atom Type Labels
+
+1 cp
+2 hc
+3 c=1
+4 c=
+5 c1
+6 c2
+7 c3
+
+Bond Type Labels
+
+1  cp-hc
+2  cp-cp
+3  cp-c1
+4  hc-c=1
+5  c=1-c=
+6  hc-c=
+7  cp-c3
+8  hc-c3
+9  c3-c2
+10 hc-c2
+11 cp-c=1
+12 hc-c1
+13 c1-c2
+
+Angle Type Labels
+
+1  cp-cp-hc
+2  cp-cp-cp
+3  cp-cp-c1
+4  cp-c1-hc
+5  cp-c1-c2
+6  hc-c=1-c=
+7  hc-c=-c=1
+8  hc-c=-hc
+9  cp-cp-c3
+10 cp-c3-hc
+11 cp-c3-c2
+12 hc-c3-c2
+13 c3-c2-c1
+14 hc-c2-c3
+15 hc-c2-hc
+16 c1-c2-c1
+17 cp-cp-c=1
+18 cp-c=1-hc
+19 cp-c=1-c=
+20 hc-c2-c1
+21 hc-c1-c2
+22 c2-c1-c2
+
+Dihedral Type Labels
+
+1  hc-cp-cp-c1
+2  cp-cp-cp-hc
+3  cp-cp-cp-c1
+4  cp-cp-cp-cp
+5  hc-cp-cp-hc
+6  cp-cp-c=1-hc
+7  cp-cp-c=1-c=
+8  cp-c=1-c=-hc
+9  hc-c=1-c=-hc
+10 hc-cp-cp-c3
+11 cp-cp-cp-c3
+12 cp-cp-c1-hc
+13 cp-cp-c1-c2
+14 cp-c1-c2-hc
+15 hc-c1-c2-hc
+16 c2-c1-c2-hc
+17 cp-c1-c2-c1
+18 hc-c1-c2-c1
+19 c2-c1-c2-c1
+20 hc-cp-cp-c=1
+21 cp-cp-cp-c=1
+22 cp-cp-c3-hc
+23 cp-cp-c3-c2
+24 cp-c3-c2-hc
+25 cp-c3-c2-c1
+26 hc-c3-c2-hc
+27 hc-c3-c2-c1
+28 c3-c2-c1-cp
+29 c3-c2-c1-hc
+30 c3-c2-c1-c2
+31 hc-c2-c1-cp
+32 hc-c2-c1-hc
+33 hc-c2-c1-c2
+34 c1-c2-c1-cp
+35 c1-c2-c1-hc
+36 c1-c2-c1-c2
+
+Improper Type Labels
+
+1 cp-cp-cp-hc
+2 cp-cp-cp-c1
+3 cp-c=1-hc-c=
+4 hc-c=-hc-c=1
+5 cp-cp-cp-c3
+6 hc-c2-hc-c1
+7 cp-c1-hc-c2
+8 cp-cp-cp-c=1
+9 cp-c3-hc-c2
+
 Masses
 
 1 12.0112

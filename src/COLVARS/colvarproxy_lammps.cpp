@@ -27,35 +27,6 @@
 
 #define HASH_FAIL  -1
 
-////////////////////////////////////////////////////////////////////////
-// local helper functions
-
-// safely move filename to filename.extension
-static int my_backup_file(const char *filename, const char *extension)
-{
-  struct stat sbuf;
-  if (stat(filename, &sbuf) == 0) {
-    if (!extension) extension = ".BAK";
-    char *backup = new char[strlen(filename)+strlen(extension)+1];
-    strcpy(backup, filename);
-    strcat(backup, extension);
-#if defined(_WIN32) && !defined(__CYGWIN__)
-    remove(backup);
-#endif
-    if (rename(filename,backup)) {
-      char *sys_err_msg = strerror(errno);
-      if (!sys_err_msg)  sys_err_msg = (char *) "(unknown error)";
-      fprintf(stderr,"Error renaming file %s to %s: %s\n",
-              filename, backup, sys_err_msg);
-      delete [] backup;
-      return COLVARS_ERROR;
-    }
-    delete [] backup;
-  }
-  return COLVARS_OK;
-}
-
-////////////////////////////////////////////////////////////////////////
 
 colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
                                        const char *inp_name,
@@ -72,12 +43,9 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 
   first_timestep=true;
   previous_step=-1;
-  t_target=temp;
   do_exit=false;
 
-  // User-scripted forces are not available in LAMMPS
-  force_script_defined = false;
-  have_scripts = false;
+  engine_ready_ = false;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
@@ -120,7 +88,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 }
 
 
-void colvarproxy_lammps::init(const char *conf_file)
+void colvarproxy_lammps::init()
 {
   version_int = get_version_from_string(COLVARPROXY_VERSION);
 
@@ -130,30 +98,28 @@ void colvarproxy_lammps::init(const char *conf_file)
   cvm::log("Using LAMMPS interface, version "+
            cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
+  colvars->cite_feature("LAMMPS engine");
+  colvars->cite_feature("Colvars-LAMMPS interface");
+
   my_angstrom  = _lmp->force->angstrom;
   // Front-end unit is the same as back-end
-  angstrom_value = my_angstrom;
+  angstrom_value_ = my_angstrom;
 
   // my_kcal_mol  = _lmp->force->qe2f / 23.060549;
   // force->qe2f is 1eV expressed in LAMMPS' energy unit (1 if unit is eV, 23 if kcal/mol)
-  my_boltzmann = _lmp->force->boltz;
+  boltzmann_ = _lmp->force->boltz;
   my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
-
-  // TODO move one or more of these to setup() if needed
-  colvars->read_config_file(conf_file);
-  colvars->setup_input();
-  colvars->setup_output();
 
   if (_lmp->update->ntimestep != 0) {
     cvm::log("Setting initial step number from LAMMPS: "+
              cvm::to_str(_lmp->update->ntimestep)+"\n");
-    colvars->it = colvars->it_restart =
+    colvarmodule::it = colvarmodule::it_restart =
       static_cast<cvm::step_number>(_lmp->update->ntimestep);
   }
 
   if (cvm::debug()) {
     cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_refcount = "+cvm::to_str(atoms_refcount)+"\n");
     cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
     cvm::log(cvm::line_marker);
     cvm::log("Info: done initializing the colvars proxy object.\n");
@@ -179,17 +145,17 @@ int colvarproxy_lammps::read_state_file(char const *state_filename)
 colvarproxy_lammps::~colvarproxy_lammps()
 {
   delete _random;
-  if (colvars != nullptr) {
-    delete colvars;
-    colvars = nullptr;
-  }
 }
 
 // re-initialize data where needed
 int colvarproxy_lammps::setup()
 {
+  int error_code = colvarproxy::setup();
   my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
-  return colvars->setup();
+  error_code |= colvars->update_engine_parameters();
+  error_code |= colvars->setup_input();
+  error_code |= colvars->setup_output();
+  return error_code;
 }
 
 // trigger colvars computation
@@ -208,7 +174,7 @@ double colvarproxy_lammps::compute()
   } else {
     // Use the time step number from LAMMPS Update object
     if (_lmp->update->ntimestep - previous_step == 1) {
-      colvars->it++;
+      colvarmodule::it++;
       b_simulation_continuing = false;
     } else {
       // Cases covered by this condition:
@@ -243,7 +209,7 @@ double colvarproxy_lammps::compute()
 
   if (cvm::debug()) {
     cvm::log(std::string(cvm::line_marker)+
-             "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
+             "colvarproxy_lammps, step no. "+cvm::to_str(colvarmodule::it)+"\n"+
              "Updating internal data.\n");
   }
 
@@ -256,17 +222,19 @@ double colvarproxy_lammps::compute()
 
   if (cvm::debug()) {
     cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_refcount = "+cvm::to_str(atoms_refcount)+"\n");
     cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
     cvm::log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
   }
 
-  // call the collective variable module
-  colvars->calc();
+  // Call the collective variable module
+  if (colvars->calc() != COLVARS_OK) {
+    cvm::error("Error in the collective variables module.\n", COLVARS_ERROR);
+  }
 
   if (cvm::debug()) {
     cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    cvm::log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
+    cvm::log("atoms_refcount = "+cvm::to_str(atoms_refcount)+"\n");
     cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
     cvm::log("atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces)+"\n");
   }
@@ -303,7 +271,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
   double ytmp = pos2.y - pos1.y;
   double ztmp = pos2.z - pos1.z;
   _lmp->domain->minimum_image(xtmp,ytmp,ztmp);
-  return cvm::rvector(xtmp, ytmp, ztmp);
+  return {xtmp, ytmp, ztmp};
 }
 
 
@@ -336,17 +304,6 @@ int colvarproxy_lammps::set_unit_system(std::string const &units_in, bool /*chec
     return COLVARS_ERROR;
   }
   return COLVARS_OK;
-}
-
-
-int colvarproxy_lammps::backup_file(char const *filename)
-{
-  if (std::string(filename).rfind(std::string(".colvars.state"))
-      != std::string::npos) {
-    return my_backup_file(filename, ".old");
-  } else {
-    return my_backup_file(filename, ".BAK");
-  }
 }
 
 
@@ -414,8 +371,8 @@ int colvarproxy_lammps::check_atom_id(int atom_number)
   // TODO add upper boundary check?
   if ((aid < 0)) {
     cvm::error("Error: invalid atom number specified, "+
-               cvm::to_str(atom_number)+"\n", INPUT_ERROR);
-    return INPUT_ERROR;
+               cvm::to_str(atom_number)+"\n", COLVARS_INPUT_ERROR);
+    return COLVARS_INPUT_ERROR;
   }
 
   return aid;
@@ -429,7 +386,7 @@ int colvarproxy_lammps::init_atom(int atom_number)
   for (size_t i = 0; i < atoms_ids.size(); i++) {
     if (atoms_ids[i] == aid) {
       // this atom id was already recorded
-      atoms_ncopies[i] += 1;
+      atoms_refcount[i] += 1;
       return i;
     }
   }

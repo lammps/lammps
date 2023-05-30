@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,12 +15,8 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "update.h"
-
-#include <string.h>
 
 using namespace LAMMPS_NS;
 
@@ -29,12 +25,10 @@ using namespace LAMMPS_NS;
 ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
     Compute(_lmp, narg, arg), nbond(nullptr)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute nbond/atom command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute nbond/atom", error);
 
   peratom_flag = 1;
   size_peratom_cols = 0;
-  peatomflag = 1;
-  timeflag = 1;
   comm_reverse = 1;
 
   nmax = 0;
@@ -51,11 +45,6 @@ ComputeNBondAtom::~ComputeNBondAtom()
 
 void ComputeNBondAtom::compute_peratom()
 {
-
-  invoked_peratom = update->ntimestep;
-  if (update->eflag_atom != invoked_peratom)
-    error->all(FLERR, "Per-atom nbond was not tallied on needed timestep");
-
   // grow local nbond array if necessary
   // needs to be atom->nmax in length
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,38 +44,3 @@ class FixMDIEngine : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.
-
-E: Potential energy ID for fix mdi does not exist
-
-Self-explanatory.
-
-E: Cannot use MDI command without atom IDs
-
-Self-explanatory.
-
-E: MDI command requires consecutive atom IDs
-
-Self-explanatory.
-
-E: Unable to connect to driver
-
-Self-explanatory.
-
-E: Unable to ... driver
-
-Self-explanatory.
-
-E: Unknown command from driver
-
-The driver sent a command that is not supported by the LAMMPS
-interface.  In some cases this might be because a nonsensical
-command was sent (i.e. "SCF").  In other cases, the LAMMPS
-interface might benefit from being expanded.
-
-*/

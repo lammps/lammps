@@ -19,10 +19,13 @@ KOKKOS_CFG_DEPENDS(DEVICES NONE)
 KOKKOS_DEPRECATED_LIST(DEVICES ENABLE)
 
 
-KOKKOS_DEVICE_OPTION(PTHREAD       OFF HOST "Whether to build Pthread backend")
-IF (KOKKOS_ENABLE_PTHREAD)
-  #patch the naming here
+KOKKOS_DEVICE_OPTION(THREADS OFF HOST "Whether to build C++ threads backend")
+IF(Kokkos_ENABLE_PTHREAD)  # for backward compatibility
+  SET(Kokkos_ENABLE_THREADS ON CACHE BOOL "Whether to build C++ threads backend" FORCE)
   SET(KOKKOS_ENABLE_THREADS ON)
+  LIST(APPEND KOKKOS_ENABLED_DEVICES THREADS)
+  SET(KOKKOS_HAS_HOST ON)
+  MESSAGE(DEPRECATION "The Kokkos_ENABLE_PTHREAD option is deprecated. Use Kokkos_ENABLE_THREADS instead!")
 ENDIF()
 
 # detect clang++ / cl / clang-cl clashes
@@ -83,6 +86,8 @@ IF(KOKKOS_ENABLE_OPENMP)
   ENDIF()
 ENDIF()
 
+KOKKOS_DEVICE_OPTION(OPENACC OFF DEVICE "Whether to build the OpenACC backend")
+
 KOKKOS_DEVICE_OPTION(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
 IF (KOKKOS_ENABLE_OPENMPTARGET)
   SET(ClangOpenMPFlag -fopenmp=libomp)
@@ -119,9 +124,6 @@ KOKKOS_DEVICE_OPTION(CUDA ${CUDA_DEFAULT} DEVICE "Whether to build CUDA backend"
 
 IF (KOKKOS_ENABLE_CUDA)
   GLOBAL_SET(KOKKOS_DONT_ALLOW_EXTENSIONS "CUDA enabled")
-  IF(WIN32 AND NOT KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
-    GLOBAL_APPEND(KOKKOS_COMPILE_OPTIONS -x cu)
-  ENDIF()
 ## Cuda has extra setup requirements, turn on Kokkos_Setup_Cuda.hpp in macros
   LIST(APPEND DEVICE_SETUP_LIST Cuda)
 ENDIF()

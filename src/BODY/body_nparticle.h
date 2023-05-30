@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -53,27 +53,3 @@ class BodyNparticle : public Body {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid body nparticle command
-
-Arguments in atom-style command are not correct.
-
-E: Incorrect # of integer values in Bodies section of data file
-
-See doc page for body style.
-
-E: Incorrect integer value in Bodies section of data file
-
-See doc page for body style.
-
-E: Incorrect # of floating-point values in Bodies section of data file
-
-See doc page for body style.
-
-E: Insufficient Jacobi rotations for body nparticle
-
-Eigensolve for rigid body was not sufficiently accurate.
-
-*/

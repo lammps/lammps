@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -422,9 +422,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->edpd_temp, false);
     ASSERT_ARRAY_ALLOCATED(atom->edpd_flux, false);
     ASSERT_ARRAY_ALLOCATED(atom->edpd_cv, false);
-    ASSERT_ARRAY_ALLOCATED(atom->length, false);
-    ASSERT_ARRAY_ALLOCATED(atom->buckling, false);
-    ASSERT_ARRAY_ALLOCATED(atom->bond_nt, false);
     ASSERT_ARRAY_ALLOCATED(atom->contact_radius, false);
     ASSERT_ARRAY_ALLOCATED(atom->smd_data_9, false);
     ASSERT_ARRAY_ALLOCATED(atom->smd_stress, false);
@@ -560,7 +557,6 @@ TEST_F(AtomStyleTest, atomic)
 
     auto x   = lmp->atom->x;
     auto v   = lmp->atom->v;
-    auto tag = lmp->atom->tag;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -648,7 +644,6 @@ TEST_F(AtomStyleTest, atomic)
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
     x   = lmp->atom->x;
-    tag = lmp->atom->tag;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][2], 0.1, EPSILON);
@@ -1149,7 +1144,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     auto type      = lmp->atom->type;
     auto ellipsoid = lmp->atom->ellipsoid;
     auto rmass     = lmp->atom->rmass;
-    auto avec      = (AtomVecEllipsoid *)lmp->atom->avec;
+    auto avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
     auto bonus     = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -1260,7 +1255,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     type      = lmp->atom->type;
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    avec      = (AtomVecEllipsoid *)lmp->atom->avec;
+    avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -1325,7 +1320,7 @@ TEST_F(AtomStyleTest, ellipsoid)
 
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    avec      = (AtomVecEllipsoid *)lmp->atom->avec;
+    avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -1478,7 +1473,7 @@ TEST_F(AtomStyleTest, line)
     auto type  = lmp->atom->type;
     auto line  = lmp->atom->line;
     auto rmass = lmp->atom->rmass;
-    auto avec  = (AtomVecLine *)lmp->atom->avec;
+    auto avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
     auto bonus = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -1571,7 +1566,7 @@ TEST_F(AtomStyleTest, line)
     type  = lmp->atom->type;
     line  = lmp->atom->line;
     rmass = lmp->atom->rmass;
-    avec  = (AtomVecLine *)lmp->atom->avec;
+    avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
     bonus = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -1616,7 +1611,7 @@ TEST_F(AtomStyleTest, line)
 
     line  = lmp->atom->line;
     rmass = lmp->atom->rmass;
-    avec  = (AtomVecLine *)lmp->atom->avec;
+    avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
     bonus = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -1762,7 +1757,7 @@ TEST_F(AtomStyleTest, tri)
     auto tri    = lmp->atom->tri;
     auto rmass  = lmp->atom->rmass;
     auto radius = lmp->atom->radius;
-    auto avec   = (AtomVecTri *)lmp->atom->avec;
+    auto avec   = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
     auto bonus  = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -1916,7 +1911,7 @@ TEST_F(AtomStyleTest, tri)
     tri    = lmp->atom->tri;
     rmass  = lmp->atom->rmass;
     radius = lmp->atom->radius;
-    avec   = (AtomVecTri *)lmp->atom->avec;
+    avec   = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
     bonus  = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -2025,7 +2020,7 @@ TEST_F(AtomStyleTest, tri)
 
     tri   = lmp->atom->tri;
     rmass = lmp->atom->rmass;
-    avec  = (AtomVecTri *)lmp->atom->avec;
+    avec  = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
     bonus = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -2083,7 +2078,7 @@ TEST_F(AtomStyleTest, body_nparticle)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto avec = (AtomVecBody *)lmp->atom->avec;
+    auto avec = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_NE(avec->bptr, nullptr);
     ASSERT_THAT(std::string(avec->bptr->style), Eq("nparticle"));
@@ -2346,7 +2341,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     rmass  = lmp->atom->rmass;
     radius = lmp->atom->radius;
     angmom = lmp->atom->angmom;
-    avec   = (AtomVecBody *)lmp->atom->avec;
+    avec   = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     bonus  = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -2486,7 +2481,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     command("replicate 1 1 2");
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
-    avec = (AtomVecBody *)lmp->atom->avec;
+    avec = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     ASSERT_THAT(std::string(avec->bptr->style), Eq("nparticle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
@@ -2601,7 +2596,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     body   = lmp->atom->body;
     rmass  = lmp->atom->rmass;
     radius = lmp->atom->radius;
-    avec   = (AtomVecBody *)lmp->atom->avec;
+    avec   = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     bonus  = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -3050,7 +3045,7 @@ TEST_F(AtomStyleTest, template_charge)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("template"));
@@ -3081,7 +3076,7 @@ TEST_F(AtomStyleTest, template_charge)
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
     ASSERT_NE(lmp->atom->avec, nullptr);
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("template"));
@@ -4191,7 +4186,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
@@ -4278,7 +4273,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
@@ -4308,7 +4303,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     auto ellipsoid = lmp->atom->ellipsoid;
     auto rmass     = lmp->atom->rmass;
 
-    auto avec  = (AtomVecEllipsoid *)hybrid->styles[1];
+    auto avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     auto bonus = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -4410,7 +4405,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     command("replicate 1 1 2 bbox");
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
@@ -4431,7 +4426,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     type      = lmp->atom->type;
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    avec      = (AtomVecEllipsoid *)hybrid->styles[1];
+    avec      = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -4496,8 +4491,8 @@ TEST_F(AtomStyleTest, full_ellipsoid)
 
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    hybrid    = (AtomVecHybrid *)lmp->atom->avec;
-    avec      = (AtomVecEllipsoid *)hybrid->styles[1];
+    hybrid    = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
+    avec      = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -4841,7 +4836,7 @@ TEST_F(AtomStyleTest, oxdna)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 3);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
@@ -4889,16 +4884,26 @@ TEST_F(AtomStyleTest, oxdna)
     command("set atom 8 shape 1.173984503142341 1.173984503142341 1.173984503142341");
     command("set atom 9 shape 1.173984503142341 1.173984503142341 1.173984503142341");
     command("set atom 10 shape 1.173984503142341 1.173984503142341 1.173984503142341");
-    command("set atom 1 quat 0.120438343611269 -0.970540441176996 0.208676441957758 16.990727782866998");
-    command("set atom 2 quat 0.122039415796829 -0.068232256412985 0.990177125658213 40.001729435287870");
-    command("set atom 3 quat 0.052760168698289 0.030943512185297 0.998127679033382 69.627682451632380");
-    command("set atom 4 quat -0.037622918613871 0.030623545471522 0.998822664169035 97.038820280300570");
-    command("set atom 5 quat 0.055056042946138 0.077631917807377 0.995460756369964 137.7813218321917");
-    command("set atom 6 quat 0.931128471673637 -0.355724722922553 -0.080372201291206 166.2836226291888");
-    command("set atom 7 quat 0.753526078198930 -0.648440397941919 0.108275111595674 200.6802564250672");
-    command("set atom 8 quat 0.553942138074214 -0.829580511279186 0.070315595507185 192.0355407659524");
-    command("set atom 9 quat -0.373540155765431 0.913070802138105 -0.163613759548524 171.0789308260751");
-    command("set atom 10 quat 0.027515673832457 0.998248649922676 -0.052369080773879 161.2621224558284");
+    command("set atom 1 quat 0.120438343611269 -0.970540441176996 0.208676441957758 "
+            "16.990727782866998");
+    command("set atom 2 quat 0.122039415796829 -0.068232256412985 0.990177125658213 "
+            "40.001729435287870");
+    command(
+        "set atom 3 quat 0.052760168698289 0.030943512185297 0.998127679033382 69.627682451632380");
+    command("set atom 4 quat -0.037622918613871 0.030623545471522 0.998822664169035 "
+            "97.038820280300570");
+    command(
+        "set atom 5 quat 0.055056042946138 0.077631917807377 0.995460756369964 137.7813218321917");
+    command("set atom 6 quat 0.931128471673637 -0.355724722922553 -0.080372201291206 "
+            "166.2836226291888");
+    command(
+        "set atom 7 quat 0.753526078198930 -0.648440397941919 0.108275111595674 200.6802564250672");
+    command(
+        "set atom 8 quat 0.553942138074214 -0.829580511279186 0.070315595507185 192.0355407659524");
+    command("set atom 9 quat -0.373540155765431 0.913070802138105 -0.163613759548524 "
+            "171.0789308260751");
+    command("set atom 10 quat 0.027515673832457 0.998248649922676 -0.052369080773879 "
+            "161.2621224558284");
     command("bond_style oxdna2/fene");
     command("bond_coeff * 2.0 0.25 0.7564");
     command("special_bonds lj 0 1 1");
@@ -4910,14 +4915,24 @@ TEST_F(AtomStyleTest, oxdna)
     command("create_bonds single/bond 1 7 8");
     command("create_bonds single/bond 1 8 9");
     command("create_bonds single/bond 1 9 10");
-    command("pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh");
+    command("pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk "
+            "oxdna2/coaxstk oxdna2/dh");
     command("pair_coeff * * oxdna2/excv 2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32");
-    command("pair_coeff * * oxdna2/stk seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65");
-    command("pair_coeff * * oxdna2/hbond seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
-    command("pair_coeff 1 4 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
-    command("pair_coeff 2 3 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
-    command("pair_coeff * * oxdna2/xstk 47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68");
-    command("pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793");
+    command("pair_coeff * * oxdna2/stk seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 "
+            "0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65");
+    command(
+        "pair_coeff * * oxdna2/hbond seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 "
+        "0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command(
+        "pair_coeff 1 4 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 "
+        "0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command(
+        "pair_coeff 2 3 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 "
+        "0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff * * oxdna2/xstk 47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 "
+            "1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68");
+    command("pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 "
+            "0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793");
     command("pair_coeff * * oxdna2/dh 0.1 0.2 0.815");
     END_HIDE_OUTPUT();
 
@@ -4974,19 +4989,29 @@ TEST_F(AtomStyleTest, oxdna)
     command("bond_style oxdna2/fene");
     command("bond_coeff * 2.0 0.25 0.7564");
     command("special_bonds lj 0 1 1");
-    command("pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh");
+    command("pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk "
+            "oxdna2/coaxstk oxdna2/dh");
     command("pair_coeff * * oxdna2/excv 2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32");
-    command("pair_coeff * * oxdna2/stk seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65");
-    command("pair_coeff * * oxdna2/hbond seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
-    command("pair_coeff 1 4 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
-    command("pair_coeff 2 3 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
-    command("pair_coeff * * oxdna2/xstk 47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68");
-    command("pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793");
+    command("pair_coeff * * oxdna2/stk seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 "
+            "0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65");
+    command(
+        "pair_coeff * * oxdna2/hbond seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 "
+        "0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command(
+        "pair_coeff 1 4 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 "
+        "0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command(
+        "pair_coeff 2 3 oxdna2/hbond seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 "
+        "0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45");
+    command("pair_coeff * * oxdna2/xstk 47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 "
+            "1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68");
+    command("pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 "
+            "0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793");
     command("pair_coeff * * oxdna2/dh 0.1 0.2 0.815");
 
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
 
     ASSERT_EQ(hybrid->nstyles, 3);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
@@ -5030,7 +5055,7 @@ TEST_F(AtomStyleTest, oxdna)
     auto ellipsoid = lmp->atom->ellipsoid;
     auto rmass     = lmp->atom->rmass;
 
-    auto avec  = (AtomVecEllipsoid *)hybrid->styles[1];
+    auto avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     auto bonus = avec->bonus;
 
     EXPECT_NEAR(x[GETIDX(1)][0], -0.33741452300167507, EPSILON);
@@ -5159,7 +5184,7 @@ TEST_F(AtomStyleTest, oxdna)
     EXPECT_NEAR(bonus[9].shape[1], 0.5869922515711705, EPSILON);
     EXPECT_NEAR(bonus[9].shape[2], 0.5869922515711705, EPSILON);
 
-    EXPECT_NEAR(bonus[0].quat[0], 0.9890278201757743, EPSILON); 
+    EXPECT_NEAR(bonus[0].quat[0], 0.9890278201757743, EPSILON);
     EXPECT_NEAR(bonus[0].quat[1], 0.01779228232037064, EPSILON);
     EXPECT_NEAR(bonus[0].quat[2], -0.14337734159225404, EPSILON);
     EXPECT_NEAR(bonus[0].quat[3], 0.030827642240801516, EPSILON);
@@ -5246,7 +5271,6 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(id5p[GETIDX(10)], -1);
 
     END_HIDE_OUTPUT();
-
 }
 
 } // namespace LAMMPS_NS

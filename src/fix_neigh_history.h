@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -95,40 +95,11 @@ class FixNeighHistory : public Fix {
 
   // Shift by HISTBITS and check the first bit
   inline int histmask(int j) const { return j >> HISTBITS & 1; }
+
+  enum { DEFAULT, NPARTNER, PERPARTNER };
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-UNDOCUMENTED
-
-E: Neighbor history requires atoms have IDs
-
-UNDOCUMENTED
-
-E: Neighbor history overflow, boost neigh_modify one
-
-UNDOCUMENTED
-
-E: Unsupported comm mode in neighbor history
-
-UNDOCUMENTED
-
-U: Pair style granular with history requires atoms have IDs
-
-Atoms in the simulation do not have IDs, so history effects
-cannot be tracked by the granular pair potential.
-
-U: Shear history overflow, boost neigh_modify one
-
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the max number of neighbors allowed for one atom.
-You may also want to boost the page size.
-
-*/

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,15 +24,12 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
-
-#include <cstring>
-
 
 using namespace LAMMPS_NS;
 
@@ -69,12 +66,9 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
-
-  fixcmd += fmt::format(" {} STORE peratom 0 1", group->names[igroup]);
-  fix = dynamic_cast<FixStore *>(modify->add_fix(fixcmd));
+  id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+  fix = dynamic_cast<FixStoreAtom *>(
+    modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 0", id_fix, group->names[igroup])));
 
   // set fix store values = 0 for now
   // fill them in via setup() once Comm::borders() has been called
@@ -109,8 +103,8 @@ ComputeTempCS::~ComputeTempCS()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] vector;
+  delete[] id_fix;
+  delete[] vector;
   memory->destroy(vint);
 }
 
@@ -129,7 +123,7 @@ void ComputeTempCS::setup()
   if (firstflag) {
     firstflag = 0;
 
-    // insure # of core atoms = # of shell atoms
+    // ensure # of core atoms = # of shell atoms
 
     int ncores = group->count(cgroup);
     nshells = group->count(sgroup);
@@ -139,7 +133,7 @@ void ComputeTempCS::setup()
     // for each C/S pair:
     // set partner IDs of both atoms if this atom stores bond between them
     // will set partner IDs for ghost atoms if needed by another proc
-    // nall loop insures all ghost atom partner IDs are set before reverse comm
+    // nall loop ensures all ghost atom partner IDs are set before reverse comm
 
     int *num_bond = atom->num_bond;
     tagint **bond_atom = atom->bond_atom;

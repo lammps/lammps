@@ -65,6 +65,7 @@ struct show_extra_iteration_pattern_erroneously_given_to_execution_policy<
 struct IterationPatternTrait : TraitSpecificationBase<IterationPatternTrait> {
   struct base_traits {
     using iteration_pattern = void;  // TODO set default iteration pattern
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class IterPattern, class AnalyzeNextTrait>
   struct mixin_matching_trait : AnalyzeNextTrait {

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,41 +42,3 @@ class FixBrownianAsphere : public FixBrownianBase {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix brownian/asphere command.
-
-Wrong number/type of input arguments.
-
-E: Compute brownian/asphere requires atom style sphere
-
-Self-explanatory.
-
-E: Compute brownian/asphere requires atom style ellipsoid
-
-Self-explanatory.
-
-E: Compute brownian/asphere dipole requires atom attribute mu
-
-Self-explanatory.
-
-E: Fix brownian/asphere translational viscous drag coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere rotational viscous drag coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere translational diffusion coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere rotational diffusion coefficient must be > 0.
-
-Self-explanatory.
-
-E: Fix brownian/asphere seed must be > 0.
-
-*/

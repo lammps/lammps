@@ -338,9 +338,8 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
 
 template <class Scheduler>
 class TaskQueueSpecializationConstrained<
-    Scheduler,
-    typename std::enable_if<std::is_same<typename Scheduler::execution_space,
-                                         Kokkos::Cuda>::value>::type> {
+    Scheduler, std::enable_if_t<std::is_same<
+                   typename Scheduler::execution_space, Kokkos::Cuda>::value>> {
  public:
   using scheduler_type  = Scheduler;
   using execution_space = Kokkos::Cuda;
@@ -780,12 +779,12 @@ namespace Kokkos {
 // template<typename iType1, typename iType2>
 // KOKKOS_INLINE_FUNCTION
 // Impl::TeamThreadRangeBoundariesStruct
-//  < typename std::common_type<iType1,iType2>::type
+//  < std::common_type_t<iType1,iType2>
 //  , Impl::TaskExec< Kokkos::Cuda > >
 // TeamThreadRange( const Impl::TaskExec< Kokkos::Cuda > & thread
 //               , const iType1 & begin, const iType2 & end )
 //{
-//  using iType = typename std::common_type< iType1, iType2 >::type;
+//  using iType = std::common_type_t< iType1, iType2 >;
 //  return Impl::TeamThreadRangeBoundariesStruct< iType, Impl::TaskExec<
 //  Kokkos::Cuda > >(
 //           thread, iType(begin), iType(end) );

@@ -47,6 +47,10 @@ do
       ;;
     --with-pthread)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Pthread"
+      echo "warning: The --with-pthread option is deprecated. Use --with-threads instead!"
+      ;;
+    --with-threads)
+      KOKKOS_DEVICES="${KOKKOS_DEVICES},Threads"
       ;;
     --with-serial)
       KOKKOS_DEVICES="${KOKKOS_DEVICES},Serial"
@@ -128,7 +132,7 @@ do
       echo ""
       echo "--with-cuda[=/Path/To/Cuda]:          Enable Cuda and set path to Cuda Toolkit."
       echo "--with-openmp:                        Enable OpenMP backend."
-      echo "--with-pthread:                       Enable Pthreads backend."
+      echo "--with-threads:                       Enable Threads backend."
       echo "--with-serial:                        Enable Serial backend."
       echo "--with-devices:                       Explicitly add a set of backends."
       echo ""
@@ -154,9 +158,18 @@ do
       echo "                 HSW             = Intel Haswell CPUs"
       echo "                 BDW             = Intel Broadwell Xeon E-class CPUs"
       echo "                 SKX             = Intel Sky Lake Xeon E-class HPC CPUs (AVX512)"
+      echo "                 ICX             = Intel Ice Lake CPUs (AVX512)"
       echo "               [Intel Xeon Phi]"
       echo "                 KNC             = Intel Knights Corner Xeon Phi"
       echo "                 KNL             = Intel Knights Landing Xeon Phi"
+      echo "               [Intel: GPU]"
+      echo "                 INTEL_GEN       = SPIR64-based devices, e.g. Intel GPUs, using JIT"
+      echo "                 INTEL_DG1       = Intel Iris XeMAX GPU"
+      echo "                 INTEL_GEN9      = Intel GPU Gen9"
+      echo "                 INTEL_GEN11     = Intel GPU Gen11"
+      echo "                 INTEL_GEN12LP   = Intel GPU Gen12LP"
+      echo "                 INTEL_XEHP      = Intel GPU Xe-HP"
+      echo "                 INTEL_PVC       = Intel GPU Ponte Vecchio"
       echo "               [NVIDIA]"
       echo "                 Kepler30        = NVIDIA Kepler generation CC 3.0"
       echo "                 Kepler32        = NVIDIA Kepler generation CC 3.2"

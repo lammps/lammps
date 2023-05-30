@@ -106,8 +106,8 @@ uint32_t MurmurHash3_x86_32(const void* key, int len, uint32_t seed) {
   uint32_t k1 = 0;
 
   switch (len & 3) {
-    case 3: k1 ^= tail[2] << 16;
-    case 2: k1 ^= tail[1] << 8;
+    case 3: k1 ^= tail[2] << 16; KOKKOS_IMPL_FALLTHROUGH
+    case 2: k1 ^= tail[1] << 8; KOKKOS_IMPL_FALLTHROUGH
     case 1:
       k1 ^= tail[0];
       k1 *= c1;

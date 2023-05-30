@@ -74,7 +74,7 @@ will use the new directory.  All processors execute this command.
 
 The *mkdir* command creates directories similar to the Unix ``mkdir -p``
 command.  That is, it will attempt to create the entire path of
-sub-directories if they do not exist yet.
+subdirectories if they do not exist yet.
 
 The *mv* command renames a file and/or moves it to a new directory.
 It cannot rename files across filesystem boundaries or between drives.
@@ -105,7 +105,7 @@ would be the same as invoking
 
 .. code-block:: bash
 
-   % my_setup file1 10 file2
+   my_setup file1 10 file2
 
 from a command-line prompt.  The executable program "my_setup" is run
 with 3 arguments: file1 10 file2.

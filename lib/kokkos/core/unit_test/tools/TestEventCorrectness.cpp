@@ -46,4 +46,3 @@
 #include "Kokkos_Core.hpp"
 
 #include <tools/TestEventCorrectness.hpp>
-#include "../UnitTestMainInit.cpp"

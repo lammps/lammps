@@ -16,7 +16,8 @@ angle_coeff: ! |
   3  50.0
   4 100.0
 equilibrium: 4 3.141592653589793 3.141592653589793 3.141592653589793 3.141592653589793
-extract: ! ""
+extract: ! |
+  k 1
 natoms: 29
 init_energy: 1347.8670856939623
 init_stress: ! |2-

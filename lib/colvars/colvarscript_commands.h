@@ -134,11 +134,19 @@ CVSCRIPT(cv_config,
          char const *conf_str =
            script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
          std::string const conf(conf_str);
-         if (cvm::main()->read_config_string(conf) == COLVARS_OK) {
-           return COLVARS_OK;
+         script->proxy()->add_config("config", conf);
+         if (script->proxy()->engine_ready()) {
+           // Engine allows immediate initialization
+           if ((script->proxy()->parse_module_config() |
+                script->proxy()->setup()) == COLVARS_OK) {
+             return COLVARS_OK;
+           } else {
+             script->add_error_msg("Error parsing configuration string");
+             return COLVARSCRIPT_ERROR;
+           }
          }
-         script->add_error_msg("Error parsing configuration string");
-         return COLVARSCRIPT_ERROR;
+         // Engine not ready, config will be read during proxy->setup()
+         return COLVARS_OK;
          )
 
 CVSCRIPT(cv_configfile,
@@ -146,13 +154,20 @@ CVSCRIPT(cv_configfile,
          1, 1,
          "conf_file : string - Path to configuration file",
          char const *conf_file_name =
-           script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
-         if (script->module()->read_config_file(conf_file_name) == COLVARS_OK) {
-           return COLVARS_OK;
-         } else {
-           script->add_error_msg("Error parsing configuration file");
-           return COLVARSCRIPT_ERROR;
+         script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
+         script->proxy()->add_config("configfile", std::string(conf_file_name));
+         if (script->proxy()->engine_ready()) {
+           // Engine allows immediate initialization
+           if ((script->proxy()->parse_module_config() |
+                script->proxy()->setup()) == COLVARS_OK) {
+             return COLVARS_OK;
+           } else {
+             script->add_error_msg("Error parsing configuration file");
+             return COLVARSCRIPT_ERROR;
+           }
          }
+         // Engine not ready, config will be read during proxy->setup()
+         return COLVARS_OK;
          )
 
 CVSCRIPT(cv_delete,
@@ -160,6 +175,14 @@ CVSCRIPT(cv_delete,
          0, 0,
          "",
          return script->proxy()->request_deletion();
+         )
+
+CVSCRIPT(cv_featurereport,
+         "Return a summary of Colvars features used so far and their citations\n"
+         "report : string - Feature report and citations",
+         0, 0,
+         "",
+         return script->set_result_str(script->module()->feature_report());
          )
 
 CVSCRIPT(cv_frame,
@@ -226,9 +249,21 @@ CVSCRIPT(cv_getatomappliedforcesrms,
          return COLVARS_OK;
          )
 
+CVSCRIPT(cv_resetatomappliedforces,
+         "Reset forces applied by Colvars to atoms",
+         0, 0,
+         "",
+            size_t i;
+            std::vector<cvm::rvector> *f = script->proxy()->modify_atom_applied_forces();
+            for (i = 0; i < f->size(); i++) {
+              (*f)[i].reset();
+            }
+            return COLVARS_OK;
+         )
+
 CVSCRIPT(cv_getatomids,
          "Get the list of indices of atoms used in Colvars\n"
-         "indices : array of ints - Atomic indices",
+         "indices : array of ints - Atom indices",
          0, 0,
          "",
          script->set_result_int_vec(*(script->proxy()->get_atom_ids()));
@@ -289,6 +324,51 @@ CVSCRIPT(cv_getenergy,
          return COLVARS_OK;
          )
 
+CVSCRIPT(cv_getnumactiveatomgroups,
+         "Get the number of atom groups that currently have positive ref counts\n"
+         "count : integer - Total number of atom groups",
+         0, 0,
+         "",
+         script->set_result_int(static_cast<int>(script->proxy()->get_num_active_atom_groups()));
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(cv_getnumactiveatoms,
+         "Get the number of atoms that currently have positive ref counts\n"
+         "count : integer - Total number of atoms",
+         0, 0,
+         "",
+         script->set_result_int(static_cast<int>(script->proxy()->get_num_active_atoms()));
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(cv_getnumatoms,
+         "Get the number of requested atoms, including those not in use now\n"
+         "count : integer - Total number of atoms",
+         0, 0,
+         "",
+         script->set_result_int(static_cast<int>(script->proxy()->get_atom_ids()->size()));
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(cv_getstepabsolute,
+         "Get the current step number of the simulation (including restarts)\n"
+         "step : int - Absolute step number",
+         0, 0,
+         "",
+         script->set_result_int(cvm::step_absolute());
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(cv_getsteprelative,
+         "Get the current step number from the start of this job\n"
+         "step : int - Relative step number",
+         0, 0,
+         "",
+         script->set_result_int(cvm::step_relative());
+         return COLVARS_OK;
+         )
+
 CVSCRIPT(cv_help,
          "Get the help string of the Colvars scripting interface\n"
          "help : string - Help string",
@@ -315,6 +395,15 @@ CVSCRIPT(cv_help,
            script->set_result_str(script->get_cmdline_help_summary(colvarscript::use_module));
            return COLVARS_OK;
          }
+         )
+
+CVSCRIPT(cv_languageversion,
+         "Get the C++ language version number\n"
+         "version : string - C++ language version",
+         0, 0,
+         "",
+         script->set_result_int(__cplusplus);
+         return COLVARS_OK;
          )
 
 CVSCRIPT(cv_list,
@@ -452,6 +541,7 @@ CVSCRIPT(cv_reset,
          "Delete all internal configuration",
          0, 0,
          "",
+         cvm::log("Resetting the Collective Variables module.");
          return script->module()->reset();
          )
 
@@ -485,6 +575,20 @@ CVSCRIPT(cv_savetostring,
          0, 0,
          "",
          return script->module()->write_restart_string(script->modify_str_result());
+         )
+
+CVSCRIPT(cv_targettemperature,
+         "Get/set target temperature, overriding what the MD engine provides\n"
+         "T : float - Current target temperature in K",
+         0, 1,
+         "T : float - New target temperature in K",
+         char const *Targ =
+           script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
+         if (Targ == NULL) {
+           return script->set_result_real(script->proxy()->target_temperature());
+         } else {
+           return script->proxy()->set_target_temperature(strtod(Targ, NULL));
+         }
          )
 
 CVSCRIPT(cv_units,
@@ -524,7 +628,7 @@ CVSCRIPT(cv_update,
          )
 
 CVSCRIPT(cv_version,
-         "Get the Colvars Module version number\n"
+         "Get the Colvars Module version string\n"
          "version : string - Colvars version",
          0, 0,
          "",

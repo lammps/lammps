@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,18 +30,15 @@ AtomVecCharge::AtomVecCharge(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "q";
-  fields_copy = (char *) "q";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "q";
-  fields_border_vel = (char *) "q";
-  fields_exchange = (char *) "q";
-  fields_restart = (char *) "q";
-  fields_create = (char *) "q";
-  fields_data_atom = (char *) "id type q x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"q"};
+  fields_copy = {"q"};
+  fields_border = {"q"};
+  fields_border_vel = {"q"};
+  fields_exchange = {"q"};
+  fields_restart = {"q"};
+  fields_create = {"q"};
+  fields_data_atom = {"id", "type", "q", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }

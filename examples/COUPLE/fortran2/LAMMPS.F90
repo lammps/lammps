@@ -1,7 +1,7 @@
 !! -----------------------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-!   www.cs.sandia.gov/~sjplimp/lammps.html
-!   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+!   https://www.lammps.org/ Sandia National Laboratories
+!   LAMMPS Development team: developers@lammps.org
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 !   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,6 +15,15 @@
 !   Contributing author:  Karl D. Hammond <hammondkd@missouri.edu>
 !                         University of Tennessee, Knoxville (USA), 2012
 !   Updated October 2020 by the author (now at the University of Missouri).
+!--------------------------------------------------------------------------
+
+!! NOTE -------------------------------------------------------------------
+!  This interface is obsolete and may be removed in a future release of
+!  LAMMPS. The interface in fortran/lammps.f90 replaces this one. That API
+!  is maintained by the LAMMPS developers and has documentation written for
+!  it; it is based loosely on this one, but binds all procedures to a lammps
+!  derived type. That interface was written in large
+!  part by the same author, but is also supported by other developers.
 !--------------------------------------------------------------------------
 
 !! LAMMPS, a Fortran 2003 module containing an interface between Fortran
@@ -1105,7 +1114,7 @@ contains !! Wrapper functions local to this module {{{1
       C_xy = xy
       C_xz = xz
       C_yz = yz
-      call lammps_actual_reset_box (ptr, C_boxlo, C_boxhi, C_xy, C_xz, C_yz)
+      call lammps_actual_reset_box (ptr, C_boxlo, C_boxhi, C_xy, C_yz, C_xz)
    end subroutine lammps_reset_box
 
 ! lammps_gather_atoms {{{2
@@ -1292,7 +1301,7 @@ contains !! Wrapper functions local to this module {{{1
       Cname = string2Cstring (name)
       Ccount = size(data) / natoms
       if ( Ccount /= 1 .and. Ccount /= 3 ) &
-         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+         call lammps_error_all (ptr, FLERR, 'lammps_scatter_atoms requires&
             & count to be either 1 or 3')
       Fdata = data
       Cdata = C_loc (Fdata(1))
@@ -1355,7 +1364,7 @@ contains !! Wrapper functions local to this module {{{1
       Cname = string2Cstring (name)
       Ccount = size(data) / ndata
       if ( Ccount /= 1 .and. Ccount /= 3 ) &
-         call lammps_error_all (ptr, FLERR, 'lammps_gather_atoms requires&
+         call lammps_error_all (ptr, FLERR, 'lammps_scatter_atoms requires&
             & count to be either 1 or 3')
       Fdata = data
       Cdata = C_loc (Fdata(1))

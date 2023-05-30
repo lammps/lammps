@@ -80,6 +80,9 @@ ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape
                     m[6]*m[1]*m2[7]-(numtyp)2.0*m2[8]*m[3]*m[1])*den;
 }
 
+#ifdef INTEL_OCL
+__attribute__((intel_reqd_sub_group_size(16)))
+#endif
 __kernel void k_gayberne(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict q,
                          const __global numtyp4 *restrict shape,
@@ -90,7 +93,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
                          const __global numtyp *restrict lshape,
                          const __global int *dev_nbor,
                          const int stride,
-                         __global acctyp4 *restrict ans,
+                         __global acctyp3 *restrict ans,
                          const int astride,
                          __global acctyp *restrict engv,
                          __global int *restrict err_flag,
@@ -108,7 +111,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
   sp_lj[2]=gum[5];
   sp_lj[3]=gum[6];
 
-  acctyp4 f, tor;
+  acctyp3 f, tor;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
   acctyp energy, virial[6];
@@ -138,6 +141,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_nbor+nbor+n_stride);
       int j=dev_nbor[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;

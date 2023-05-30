@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -60,7 +60,6 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   beginstep = endstep = 0;
   restrict_output = 0;
   setupflag = 0;
-  post_integrate = 0;
   multireplica = 0;
 
   eflag_global = vflag_global = -1;
@@ -347,8 +346,10 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
     estyle += "/";
     if (sflag == 1)
       estyle += lmp->suffix;
-    else
+    else if (sflag == 2)
       estyle += lmp->suffix2;
+    else if ((sflag == 3) && lmp->non_pair_suffix())
+      estyle += lmp->non_pair_suffix();
   }
   integrate_style = utils::strdup(estyle);
 }
@@ -360,9 +361,9 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
 void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2*lmp->pair_only_flag;
+      std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
       if (integrate_map->find(estyle) != integrate_map->end()) {
         IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
@@ -400,6 +401,9 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
   delete[] minimize_style;
   delete minimize;
 
+  // temporarily assign the style name without suffix (for error messages during creation)
+  minimize_style = arg[0];
+
   int sflag;
   new_minimize(arg[0], narg - 1, &arg[1], trysuffix, sflag);
 
@@ -408,8 +412,10 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
     estyle += "/";
     if (sflag == 1)
       estyle += lmp->suffix;
-    else
+    else if (sflag == 2)
       estyle += lmp->suffix2;
+    else if ((sflag == 3) && lmp->non_pair_suffix())
+      estyle += lmp->non_pair_suffix();
   }
   minimize_style = utils::strdup(estyle);
 }
@@ -421,9 +427,9 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
 void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2*lmp->pair_only_flag;
+      std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
       if (minimize_map->find(estyle) != minimize_map->end()) {
         MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);
@@ -458,9 +464,18 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
 
 void Update::reset_timestep(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR, "Illegal reset_timestep command");
-  bigint newstep = utils::bnumeric(FLERR, arg[0], false, lmp);
-  reset_timestep(newstep, true);
+  if (narg < 1) utils::missing_cmd_args(FLERR, "reset_timestep", error);
+
+  reset_timestep(utils::bnumeric(FLERR, arg[0], false, lmp), true);
+
+  if (narg > 1) {
+    if (strcmp(arg[1], "time") == 0) {
+      if (narg < 3) utils::missing_cmd_args(FLERR, "reset_timestep time", error);
+      atimestep = ntimestep;
+      atime = utils::numeric(FLERR, arg[2], false, lmp);
+    } else
+      error->all(FLERR, "Unknown reset_timestep option {}", arg[1]);
+  }
 }
 
 /* ----------------------------------------------------------------------

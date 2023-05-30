@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -117,7 +117,7 @@ void ComputeFragmentAtom::compute_peratom()
     vector_atom = fragmentID;
   }
 
-  // if group is dynamic, insure ghost atom masks are current
+  // if group is dynamic, ensure ghost atom masks are current
 
   if (group->dynamic[igroup]) {
     commflag = 0;
@@ -148,11 +148,7 @@ void ComputeFragmentAtom::compute_peratom()
 
   commflag = 1;
 
-  int iteration = 0;
-
   while (true) {
-    iteration++;
-
     comm->forward_comm(this);
     done = 1;
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -49,8 +49,8 @@ class PairE3B : public Pair {
   int pairmax, pairPerAtom;    // size of pair list
   int **pairO, ***pairH;       // pair lists
   double ***exps, ****del3, ***fpair3, *sumExp;
-  int maxID;        //size of global sumExp array
-  int natoms;       //to make sure number of atoms is constant
+  int maxID;     //size of global sumExp array
+  int natoms;    //to make sure number of atoms is constant
 
   virtual void allocate();
   void allocateE3B();

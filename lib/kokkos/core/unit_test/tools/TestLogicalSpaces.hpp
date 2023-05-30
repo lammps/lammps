@@ -173,6 +173,7 @@ void test_allowed_access() {
       "access_allowed",
       Kokkos::RangePolicy<typename Space::execution_space>(0, data_size),
       functor);
+  Kokkos::fence();
 }
 
 using semantically_independent_logical_space =
@@ -188,11 +189,14 @@ TEST(defaultdevicetype, chained_logical_spaces) { test_chained_spaces(); }
 TEST(defaultdevicetype, access_allowed) {
   test_allowed_access<fake_memory_space>();
 }
+// FIXME_SYCL
+#if !(defined(KOKKOS_COMPILER_INTEL) && defined(KOKKOS_ENABLE_SYCL))
 TEST(defaultdevicetype_DeathTest, access_forbidden) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   ASSERT_DEATH(
       { test_allowed_access<semantically_independent_logical_space>(); },
       "Kokkos::View ERROR: attempt to access inaccessible memory space");
 }
+#endif
 
 }  // namespace Test

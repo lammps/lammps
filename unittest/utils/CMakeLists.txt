@@ -19,6 +19,12 @@ add_executable(test_platform test_platform.cpp)
 target_link_libraries(test_platform PRIVATE lammps GTest::GMockMain)
 add_test(NAME Platform COMMAND test_platform)
 
+if(PKG_LEPTON)
+  add_executable(test_lepton test_lepton.cpp)
+  target_link_libraries(test_lepton PRIVATE lepton lammps GTest::GMockMain)
+  add_test(NAME Lepton COMMAND test_lepton)
+endif()
+
 set_tests_properties(Utils Platform PROPERTIES
   ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 

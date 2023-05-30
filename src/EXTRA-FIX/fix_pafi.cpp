@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,11 +40,11 @@
 using namespace LAMMPS_NS;
 
 static const char cite_fix_pafi_package[] =
-  "citation for fix pafi:\n\n"
+  "citation for fix pafi: doi:10.1103/PhysRevLett.120.135503\n\n"
   "@article{SwinburneMarinica2018,\n"
   "author={T. D. Swinburne and M. C. Marinica},\n"
-  "title={Unsupervised calculation of free energy barriers in large "
-  "crystalline systems},\n"
+  "title={Unsupervised Calculation of Free Energy Barriers in Large\n"
+  "   Crystalline Systems},\n"
   "journal={Physical Review Letters},\n"
   "volume={120},\n"
   "number={13},\n"
@@ -178,8 +178,8 @@ void FixPAFI::init()
 
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step; // nve
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step; // nve
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
     else ilevel_respa = nlevels_respa-1;
   }
@@ -192,9 +192,9 @@ void FixPAFI::setup(int vflag)
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
-      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel);
+      (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel);
       post_force_respa(vflag,ilevel,0);
-      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel);
+      (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel);
     }
 }
 

@@ -136,7 +136,7 @@ where bx,by,bz are the 3 values specified for the *basis* keyword.
 
 ----------
 
-This sub-section discusses the arguments that determine how the
+This subsection discusses the arguments that determine how the
 idealized unit cell is transformed into a lattice of points within the
 simulation box.
 

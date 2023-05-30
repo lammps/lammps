@@ -60,6 +60,7 @@ namespace Impl {
 struct GraphKernelTrait : TraitSpecificationBase<GraphKernelTrait> {
   struct base_traits {
     using is_graph_kernel = std::false_type;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class, class AnalyzeNextTrait>
   struct mixin_matching_trait : AnalyzeNextTrait {

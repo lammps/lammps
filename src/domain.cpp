@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -82,7 +82,6 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   minzlo = minzhi = 0.0;
 
   triclinic = 0;
-  tiltsmall = 1;
 
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
@@ -104,10 +103,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);
-  delete [] args;
-
-  nregion = maxregion = 0;
-  regions = nullptr;
+  delete[] args;
 
   copymode = 0;
 
@@ -128,10 +124,9 @@ Domain::~Domain()
 {
   if (copymode) return;
 
+  for (auto &reg : regions) delete reg;
+  regions.clear();
   delete lattice;
-  for (int i = 0; i < nregion; i++) delete regions[i];
-  memory->sfree(regions);
-
   delete region_map;
 }
 
@@ -186,7 +181,7 @@ void Domain::init()
   for (const auto &fix : fixes)
     if (utils::strmatch(fix->style,"^deform")) {
       deform_flag = 1;
-      if ((dynamic_cast<FixDeform *>( fix))->remapflag == Domain::V_REMAP) {
+      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
         deform_groupbit = fix->groupbit;
       }
@@ -194,7 +189,7 @@ void Domain::init()
 
   // region inits
 
-  for (int i = 0; i < nregion; i++) regions[i]->init();
+  for (auto &reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -213,19 +208,16 @@ void Domain::set_initial_box(int expandflag)
   if (boxlo[0] >= boxhi[0] || boxlo[1] >= boxhi[1] || boxlo[2] >= boxhi[2])
     error->one(FLERR,"Box bounds are invalid or missing");
 
-  if (domain->dimension == 2 && (xz != 0.0 || yz != 0.0))
+  if (dimension == 2 && (xz != 0.0 || yz != 0.0))
     error->all(FLERR,"Cannot skew triclinic box in z for 2d simulation");
 
-  // error check or warning on triclinic tilt factors
+  // check on triclinic tilt factors
 
   if (triclinic) {
-    if ((fabs(xy/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
-        (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
-        (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5 && yperiodic)) {
-      if (tiltsmall)
-        error->all(FLERR,"Triclinic box skew is too large");
-      else if (comm->me == 0)
-        error->warning(FLERR,"Triclinic box skew is large");
+    if ((fabs(xy/(boxhi[1]-boxlo[1])) > 0.5 && yperiodic) ||
+        ((fabs(xz)+fabs(yz))/(boxhi[2]-boxlo[2]) > 0.5 && zperiodic)) {
+      if (comm->me == 0)
+        error->warning(FLERR,"Triclinic box skew is large. LAMMPS will run inefficiently.");
     }
   }
 
@@ -337,7 +329,7 @@ void Domain::set_lamda_box()
    assumes global box is defined and proc assignment has been made
    uses comm->xyz_split or comm->mysplit
      to define subbox boundaries in consistent manner
-   insure subhi[max] = boxhi
+   ensure subhi[max] = boxhi
 ------------------------------------------------------------------------- */
 
 void Domain::set_local_box()
@@ -982,28 +974,32 @@ void Domain::subbox_too_small_check(double thresh)
    changed "if" to "while" to enable distance to
      far-away ghost atom returned by atom->map() to be wrapped back into box
      could be problem for looking up atom IDs when cutoff > boxsize
-   this should not be used if atom has moved infinitely far outside box
-     b/c while could iterate forever
-     e.g. fix shake prediction of new position with highly overlapped atoms
-     use minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
-void Domain::minimum_image(double &dx, double &dy, double &dz)
+static constexpr double MAXIMGCOUNT = 16;
+
+void Domain::minimum_image(double &dx, double &dy, double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
+      if (fabs(dx) > (MAXIMGCOUNT * xprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
     }
     if (yperiodic) {
+      if (fabs(dy) > (MAXIMGCOUNT * yprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) dy += yprd;
         else dy -= yprd;
       }
     }
     if (zperiodic) {
+      if (fabs(dz) > (MAXIMGCOUNT * zprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) dz += zprd;
         else dz -= zprd;
@@ -1012,6 +1008,8 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
   } else {
     if (zperiodic) {
+      if (fabs(dz) > (MAXIMGCOUNT * zprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
@@ -1025,6 +1023,8 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (yperiodic) {
+      if (fabs(dy) > (MAXIMGCOUNT * yprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
@@ -1036,142 +1036,11 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (xperiodic) {
+      if (fabs(dx) > (MAXIMGCOUNT * xprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   minimum image convention in periodic dimensions
-   use 1/2 of box size as test
-   for triclinic, also add/subtract tilt factors in other dims as needed
-   changed "if" to "while" to enable distance to
-     far-away ghost atom returned by atom->map() to be wrapped back into box
-     could be problem for looking up atom IDs when cutoff > boxsize
-   this should not be used if atom has moved infinitely far outside box
-     b/c while could iterate forever
-     e.g. fix shake prediction of new position with highly overlapped atoms
-     use minimum_image_once() instead
-------------------------------------------------------------------------- */
-
-void Domain::minimum_image(double *delta)
-{
-  if (triclinic == 0) {
-    if (xperiodic) {
-      while (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-    if (yperiodic) {
-      while (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) delta[1] += yprd;
-        else delta[1] -= yprd;
-      }
-    }
-    if (zperiodic) {
-      while (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) delta[2] += zprd;
-        else delta[2] -= zprd;
-      }
-    }
-
-  } else {
-    if (zperiodic) {
-      while (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) {
-          delta[2] += zprd;
-          delta[1] += yz;
-          delta[0] += xz;
-        } else {
-          delta[2] -= zprd;
-          delta[1] -= yz;
-          delta[0] -= xz;
-        }
-      }
-    }
-    if (yperiodic) {
-      while (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) {
-          delta[1] += yprd;
-          delta[0] += xy;
-        } else {
-          delta[1] -= yprd;
-          delta[0] -= xy;
-        }
-      }
-    }
-    if (xperiodic) {
-      while (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   minimum image convention in periodic dimensions
-   use 1/2 of box size as test
-   for triclinic, also add/subtract tilt factors in other dims as needed
-   only shift by one box length in each direction
-   this should not be used if multiple box shifts are required
-------------------------------------------------------------------------- */
-
-void Domain::minimum_image_once(double *delta)
-{
-  if (triclinic == 0) {
-    if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-    if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) delta[1] += yprd;
-        else delta[1] -= yprd;
-      }
-    }
-    if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) delta[2] += zprd;
-        else delta[2] -= zprd;
-      }
-    }
-
-  } else {
-    if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) {
-          delta[2] += zprd;
-          delta[1] += yz;
-          delta[0] += xz;
-        } else {
-          delta[2] -= zprd;
-          delta[1] -= yz;
-          delta[0] -= xz;
-        }
-      }
-    }
-    if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) {
-          delta[1] += yprd;
-          delta[0] += xy;
-        } else {
-          delta[1] -= yprd;
-          delta[0] -= xy;
-        }
-      }
-    }
-    if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
       }
     }
   }
@@ -1748,7 +1617,7 @@ void Domain::set_lattice(int narg, char **arg)
 
 void Domain::add_region(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal region command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "region", error);
 
   if (strcmp(arg[1],"delete") == 0) {
     delete_region(arg[0]);
@@ -1758,88 +1627,61 @@ void Domain::add_region(int narg, char **arg)
   if (strcmp(arg[1],"none") == 0)
     error->all(FLERR,"Unrecognized region style 'none'");
 
-  if (find_region(arg[0]) >= 0) error->all(FLERR,"Reuse of region ID");
-
-  // extend Region list if necessary
-
-  if (nregion == maxregion) {
-    maxregion += DELTAREGION;
-    regions = (Region **)
-      memory->srealloc(regions,maxregion*sizeof(Region *),"domain:regions");
-  }
+  if (get_region_by_id(arg[0])) error->all(FLERR,"Reuse of region ID {}", arg[0]);
 
   // create the Region
+  Region *newregion = nullptr;
 
   if (lmp->suffix_enable) {
-    if (lmp->suffix) {
-      std::string estyle = std::string(arg[1]) + "/" + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      std::string estyle = std::string(arg[1]) + "/" + lmp->non_pair_suffix();
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator &region_creator = (*region_map)[estyle];
-        regions[nregion] = region_creator(lmp, narg, arg);
-        regions[nregion]->init();
-        nregion++;
-        return;
+        newregion = region_creator(lmp, narg, arg);
       }
     }
 
-    if (lmp->suffix2) {
+    if (!newregion && lmp->suffix2) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->suffix2;
       if (region_map->find(estyle) != region_map->end()) {
         RegionCreator &region_creator = (*region_map)[estyle];
-        regions[nregion] = region_creator(lmp, narg, arg);
-        regions[nregion]->init();
-        nregion++;
-        return;
+        newregion = region_creator(lmp, narg, arg);
       }
     }
   }
 
-  if (region_map->find(arg[1]) != region_map->end()) {
+  if (!newregion && (region_map->find(arg[1]) != region_map->end())) {
     RegionCreator &region_creator = (*region_map)[arg[1]];
-    regions[nregion] = region_creator(lmp, narg, arg);
-  } else error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
+    newregion = region_creator(lmp, narg, arg);
+  }
+
+  if (!newregion)
+    error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable
 
-  regions[nregion]->init();
-  nregion++;
+  newregion->init();
+  regions.insert(newregion);
 }
 
 /* ----------------------------------------------------------------------
    delete a region
 ------------------------------------------------------------------------- */
 
-void Domain::delete_region(int iregion)
+void Domain::delete_region(Region *reg)
 {
-  if ((iregion < 0) || (iregion >= nregion)) return;
+  if (!reg) return;
 
-  // delete and move other Regions down in list one slot
-
-  delete regions[iregion];
-  for (int i = iregion+1; i < nregion; ++i)
-    regions[i-1] = regions[i];
-  nregion--;
+  regions.erase(reg);
+  delete reg;
 }
 
 void Domain::delete_region(const std::string &id)
 {
-  int iregion = find_region(id);
-  if (iregion == -1) error->all(FLERR,"Delete region ID does not exist");
-
-  delete_region(iregion);
-}
-
-/* ----------------------------------------------------------------------
-   return region index if name matches existing region ID
-   return -1 if no such region
-------------------------------------------------------------------------- */
-
-int Domain::find_region(const std::string &name) const
-{
-  for (int iregion = 0; iregion < nregion; iregion++)
-    if (name == regions[iregion]->id) return iregion;
-  return -1;
+  auto reg = get_region_by_id(id);
+  if (!reg) error->all(FLERR,"Delete region {} does not exist", id);
+  delete_region(reg);
 }
 
 /* ----------------------------------------------------------------------
@@ -1849,8 +1691,8 @@ int Domain::find_region(const std::string &name) const
 
 Region *Domain::get_region_by_id(const std::string &name) const
 {
-  for (int iregion = 0; iregion < nregion; iregion++)
-    if (name == regions[iregion]->id) return regions[iregion];
+  for (auto &reg : regions)
+    if (name == reg->id) return reg;
   return nullptr;
 }
 
@@ -1864,10 +1706,19 @@ const std::vector<Region *> Domain::get_region_by_style(const std::string &name)
   std::vector<Region *> matches;
   if (name.empty()) return matches;
 
-  for (int iregion = 0; iregion < nregion; iregion++)
-    if (name == regions[iregion]->style) matches.push_back(regions[iregion]);
+  for (auto &reg : regions)
+    if (name == reg->style)  matches.push_back(reg);
 
   return matches;
+}
+
+/* ----------------------------------------------------------------------
+   return list of regions as vector
+------------------------------------------------------------------------- */
+
+const std::vector<Region *> Domain::get_region_list()
+{
+  return std::vector<Region *>(regions.begin(), regions.end());
 }
 
 /* ----------------------------------------------------------------------
@@ -1878,7 +1729,7 @@ const std::vector<Region *> Domain::get_region_by_style(const std::string &name)
 
 void Domain::set_boundary(int narg, char **arg, int flag)
 {
-  if (narg != 3) error->all(FLERR,"Illegal boundary command");
+  if (narg != 3) error->all(FLERR,"Illegal boundary command: expected 3 arguments but found {}", narg);
 
   char c;
   for (int idim = 0; idim < 3; idim++)
@@ -1892,8 +1743,8 @@ void Domain::set_boundary(int narg, char **arg, int flag)
       else if (c == 's') boundary[idim][iside] = 2;
       else if (c == 'm') boundary[idim][iside] = 3;
       else {
-        if (flag == 0) error->all(FLERR,"Illegal boundary command");
-        if (flag == 1) error->all(FLERR,"Illegal change_box command");
+        if (flag == 0) error->all(FLERR,"Unknown boundary keyword: {}", c);
+        if (flag == 1) error->all(FLERR,"Unknown change_box keyword: {}", c);
       }
     }
 
@@ -1948,26 +1799,6 @@ void Domain::set_boundary(int narg, char **arg, int flag)
     MPI_Allreduce(&pflag,&flag_all, 1, MPI_INT, MPI_SUM, world);
     if ((flag_all > 0) && (comm->me == 0))
       error->warning(FLERR,"Resetting image flags for non-periodic dimensions");
-  }
-}
-
-/* ----------------------------------------------------------------------
-   set domain attributes
-------------------------------------------------------------------------- */
-
-void Domain::set_box(int narg, char **arg)
-{
-  if (narg < 1) error->all(FLERR,"Illegal box command");
-
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"tilt") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal box command");
-      if (strcmp(arg[iarg+1],"small") == 0) tiltsmall = 1;
-      else if (strcmp(arg[iarg+1],"large") == 0) tiltsmall = 0;
-      else error->all(FLERR,"Illegal box command");
-      iarg += 2;
-    } else error->all(FLERR,"Illegal box command");
   }
 }
 

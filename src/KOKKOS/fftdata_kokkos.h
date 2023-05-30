@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,20 +23,7 @@
 #ifndef LMP_FFT_DATA_KOKKOS_H
 #define LMP_FFT_DATA_KOKKOS_H
 
-// User-settable FFT precision
-
-// FFT_PRECISION = 1 is single-precision complex (4-byte real, 4-byte imag)
-// FFT_PRECISION = 2 is double-precision complex (8-byte real, 8-byte imag)
-
-#ifdef FFT_SINGLE
-#define FFT_PRECISION 1
-#define MPI_FFT_SCALAR MPI_FLOAT
-typedef float FFT_SCALAR;
-#else
-#define FFT_PRECISION 2
-#define MPI_FFT_SCALAR MPI_DOUBLE
-typedef double FFT_SCALAR;
-#endif
+#include "lmpfftsettings.h"
 
 // -------------------------------------------------------------------------
 
@@ -49,8 +36,8 @@ typedef double FFT_SCALAR;
 #endif
 
 
-// with KOKKOS in CUDA mode we can only have
-// CUFFT or KISSFFT, thus undefine all other
+// with KOKKOS in CUDA or HIP mode we can only have
+// CUFFT/HIPFFT or KISSFFT, thus undefine all other
 // FFTs here, since they may be valid in fft3d.cpp
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -66,9 +53,25 @@ typedef double FFT_SCALAR;
 # if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
 #  define FFT_KISSFFT
 # endif
+#elif defined(KOKKOS_ENABLE_HIP)
+# if defined(FFT_FFTW)
+#  undef FFT_FFTW
+# endif
+# if defined(FFT_FFTW3)
+#  undef FFT_FFTW3
+# endif
+# if defined(FFT_MKL)
+#  undef FFT_MKL
+# endif
+# if !defined(FFT_HIPFFT) && !defined(FFT_KISSFFT)
+#  define FFT_KISSFFT
+# endif
 #else
 # if defined(FFT_CUFFT)
 #  error "Must enable CUDA with KOKKOS to use -DFFT_CUFFT"
+# endif
+# if defined(FFT_HIPFFT)
+#  error "Must enable HIP with KOKKOS to use -DFFT_HIPFFT"
 # endif
 // if user set FFTW, it means FFTW3
 # ifdef FFT_FFTW
@@ -109,6 +112,17 @@ typedef double FFT_SCALAR;
     #define cufftExec cufftExecZ2Z
     #define CUFFT_TYPE CUFFT_Z2Z
     typedef cufftDoubleComplex FFT_DATA;
+  #endif
+#elif defined(FFT_HIPFFT)
+  #include "hipfft.h"
+  #if defined(FFT_SINGLE)
+    #define hipfftExec hipfftExecC2C
+    #define HIPFFT_TYPE HIPFFT_C2C
+    typedef hipfftComplex FFT_DATA;
+  #else
+    #define hipfftExec hipfftExecZ2Z
+    #define HIPFFT_TYPE HIPFFT_Z2Z
+    typedef hipfftDoubleComplex FFT_DATA;
   #endif
 #else
   #if defined(FFT_SINGLE)

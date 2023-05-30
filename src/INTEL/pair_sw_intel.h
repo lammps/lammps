@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,7 +32,7 @@ namespace LAMMPS_NS {
 class PairSWIntel : public PairSW {
  public:
   PairSWIntel(class LAMMPS *);
-  ~PairSWIntel() override;
+
   void compute(int, int) override;
   void init_style() override;
 
@@ -102,19 +101,3 @@ class PairSWIntel : public PairSW {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: The 'package intel' command is required for /intel styles
-
-Self-explanatory.
-
-E: The 'ghost no' option cannot be used with sw/intel.
-
-Self-explanatory.
-
-E: Intel compiler versions before 15 Update 1 not supported for sw/intel.
-
-Self-explanatory.
-
-*/

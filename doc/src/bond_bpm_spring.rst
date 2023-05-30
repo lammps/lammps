@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/spring keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth*
+* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break/no*
 
   .. parsed-literal::
 
@@ -30,6 +30,9 @@ Syntax
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
 
+       *break/no*
+          indicates that bonds should not break during a run
+
 Examples
 """"""""
 
@@ -45,7 +48,9 @@ Examples
 Description
 """""""""""
 
-The *bpm/spring* bond style computes forces and torques based on
+.. versionadded:: 4May2022
+
+The *bpm/spring* bond style computes forces based on
 deviations from the initial reference state of the two atoms.  The
 reference state is stored by each bond when it is first computed in
 the setup of a run. Data is then preserved across run commands and is
@@ -54,7 +59,8 @@ the system will not reset the reference state of a bond.
 
 This bond style only applies central-body forces which conserve the
 translational and rotational degrees of freedom of a bonded set of
-particles. The force has a magnitude of
+particles based on a model described by Clemmer and Robbins
+:ref:`(Clemmer) <fragment-Clemmer>`. The force has a magnitude of
 
 .. math::
 
@@ -103,15 +109,20 @@ the *overlay/pair* keyword. These settings require specific
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
 
-If the *store/local* keyword is used, this fix will track bonds that
+.. versionadded:: 28Mar2023
+
+If the *break/no* keyword is used, then LAMMPS assumes bonds should not break
+during a simulation run. This will prevent some unnecessary calculation.
+However, if a bond does break, it will trigger an error.
+
+If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
 and transferred to an internal fix labeled *fix_ID*. This allows the
-local data to be accessed by other LAMMPS commands.
-Following any optional keyword/value arguments, a list of one or more
-attributes is specified.  These include the IDs of the two atoms in
-the bond. The other attributes for the two atoms include the timestep
-during which the bond broke and the current/initial center of mass
-position of the two atoms.
+local data to be accessed by other LAMMPS commands. Following this optional
+keyword, a list of one or more attributes is specified.  These include the
+IDs of the two atoms in the bond. The other attributes for the two atoms
+include the timestep during which the bond broke and the current/initial
+center of mass position of the two atoms.
 
 Data is continuously accumulated over intervals of *N*
 timesteps. At the end of each interval, all of the saved accumulated
@@ -141,34 +152,36 @@ Restart and other info
 
 This bond style writes the reference state of each bond to
 :doc:`binary restart files <restart>`. Loading a restart
-file will properly resume bonds.
+file will properly restore bonds. However, the reference state is NOT
+written to data files. Therefore reading a data file will not
+restore bonds and will cause their reference states to be redefined.
 
-The single() function of these pair styles returns 0.0 for the energy
-of a pairwise interaction, since energy is not conserved in these
-dissipative potentials.
-
-The accumulated data is not written to restart files and should be
-output before a restart file is written to avoid missing data.
-
-The internal fix calculates a local vector or local array depending on the
-number of input values.  The length of the vector or number of rows in
-the array is the number of recorded, lost interactions.  If a single
-input is specified, a local vector is produced.  If two or more inputs
-are specified, a local array is produced where the number of columns =
-the number of inputs.  The vector or array can be accessed by any
-command that uses local values from a compute as input.  See the
-:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
-output options.
+If the *store/local* option is used, an internal fix will calculate
+a local vector or local array depending on the number of input values.
+The length of the vector or number of rows in the array is the number
+of recorded, broken bonds.  If a single input is specified, a local
+vector is produced. If two or more inputs are specified, a local array
+is produced where the number of columns = the number of inputs.  The
+vector or array can be accessed by any command that uses local values
+from a compute as input. See the :doc:`Howto output <Howto_output>` page
+for an overview of LAMMPS output options.
 
 The vector or array will be floating point values that correspond to
 the specified attribute.
 
+The single() function of this bond style returns 0.0 for the energy
+of a bonded interaction, since energy is not conserved in these
+dissipative potentials.  The single() function also calculates an
+extra bond quantity, the initial distance :math:`r_0`. This
+extra quantity can be accessed by the
+:doc:`compute bond/local <compute_bond_local>` command as *b1*\ .
+
 Restrictions
 """"""""""""
 
-This bond style can only be used if LAMMPS was built with the BPM
-package. See the :doc:`Build package <Build_package>` doc page for
-more info.
+This bond style is part of the BPM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 By default if pair interactions are to be disabled, this bond style
 requires setting
@@ -196,6 +209,10 @@ Default
 The option defaults are *smooth* = *yes*
 
 ----------
+
+.. _fragment-Clemmer:
+
+**(Clemmer)** Clemmer and Robbins, Phys. Rev. Lett. (2022).
 
 .. _Groot4:
 

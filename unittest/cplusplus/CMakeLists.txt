@@ -8,6 +8,10 @@ add_executable(test_input_class test_input_class.cpp)
 target_link_libraries(test_input_class PRIVATE lammps GTest::GTestMain)
 add_test(NAME InputClass COMMAND test_input_class)
 
+add_executable(test_advanced_utils test_advanced_utils.cpp)
+target_link_libraries(test_advanced_utils PRIVATE lammps GTest::GMock)
+add_test(NAME AdvancedUtils COMMAND test_advanced_utils)
+
 add_executable(test_error_class test_error_class.cpp)
 target_link_libraries(test_error_class PRIVATE lammps GTest::GMock)
 add_test(NAME ErrorClass COMMAND test_error_class)

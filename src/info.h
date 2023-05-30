@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -77,36 +77,3 @@ class Info : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Ignoring unknown or incorrect info command flag
-
-Self-explanatory.  An unknown argument was given to the info command.
-Compare your input with the documentation.
-
-E: Unknown name for info package category
-
-Self-explanatory.
-
-E: Unknown name for info newton category
-
-Self-explanatory.
-
-E: Unknown name for info pair category
-
-Self-explanatory.
-
-E: Unknown category for info is_active()
-
-Self-explanatory.
-
-E: Unknown category for info is_available()
-
-Self-explanatory.
-
-E: Unknown category for info is_defined()
-
-Self-explanatory.
-
-*/

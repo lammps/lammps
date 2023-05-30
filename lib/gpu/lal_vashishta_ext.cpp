@@ -89,7 +89,7 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
                         lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw,
                         c0, costheta, bigb, big2b, bigc);
 
-    VashishtaMF.device->gpu_barrier();
+    VashishtaMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -80,7 +80,6 @@ class PairMorseKokkos : public PairMorse {
   DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
 
   int newton_pair;
   double special_lj[4];
@@ -111,20 +110,3 @@ class PairMorseKokkos : public PairMorse {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with morse/kk
-
-That style is not supported by Kokkos.
-
-*/

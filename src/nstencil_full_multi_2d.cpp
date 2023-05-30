@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,7 +49,6 @@ void NStencilFullMulti2d::create()
   int n = ncollections;
   double cutsq;
 
-
   for (icollection = 0; icollection < n; icollection++) {
     for (jcollection = 0; jcollection < n; jcollection++) {
       if (flag_skip_multi[icollection][jcollection]) {
@@ -72,8 +70,8 @@ void NStencilFullMulti2d::create()
 
       for (j = -sy; j <= sy; j++)
         for (i = -sx; i <= sx; i++)
-          if (bin_distance_multi(i,j,0,bin_collection) < cutsq)
-                stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
+          if (bin_distance_multi(i, j, 0, bin_collection) < cutsq)
+            stencil_multi[icollection][jcollection][ns++] = j * mbinx + i;
 
       nstencil_multi[icollection][jcollection] = ns;
     }

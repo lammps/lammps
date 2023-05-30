@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -370,7 +370,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
           #pragma vector aligned
           #endif
           for (int u = 0; u < ncount; u++) {
-            const int j = tj[u];
+            const int j = IP_PRE_dword_index(tj[u]);
             tx[u] = x[j].x;
             ty[u] = x[j].y;
             tz[u] = x[j].z;

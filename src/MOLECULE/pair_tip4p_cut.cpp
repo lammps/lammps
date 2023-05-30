@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -431,9 +431,17 @@ void PairTIP4PCut::init_style()
 
   // set alpha parameter
 
-  double theta = force->angle->equilibrium_angle(typeA);
-  double blen = force->bond->equilibrium_distance(typeB);
+  const double theta = force->angle->equilibrium_angle(typeA);
+  const double blen = force->bond->equilibrium_distance(typeB);
   alpha = qdist / (cos(0.5*theta) * blen);
+
+  const double mincut = cut_coul + qdist + blen + neighbor->skin;
+  if (comm->get_comm_cutoff() < mincut) {
+    if (comm->me == 0)
+      error->warning(FLERR, "Increasing communication cutoff to {:.8} for TIP4P pair style",
+                     mincut);
+    comm->cutghostuser = mincut;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -553,4 +561,18 @@ double PairTIP4PCut::memory_usage()
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)2 * nmax * sizeof(double);
   return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairTIP4PCut::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"qdist") == 0) return (void *) &qdist;
+  if (strcmp(str,"typeO") == 0) return (void *) &typeO;
+  if (strcmp(str,"typeH") == 0) return (void *) &typeH;
+  if (strcmp(str,"typeA") == 0) return (void *) &typeA;
+  if (strcmp(str,"typeB") == 0) return (void *) &typeB;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  return nullptr;
 }

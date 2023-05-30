@@ -47,7 +47,7 @@
 
 #if defined(KOKKOS_ENABLE_THREADS)
 namespace Kokkos {
-class Threads;  ///< Execution space with pthreads back-end.
+class Threads;  ///< Execution space with C++11 threads back-end.
 }  // namespace Kokkos
 #endif
 #endif

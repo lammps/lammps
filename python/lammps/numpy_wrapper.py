@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 #   https://www.lammps.org/ Sandia National Laboratories
-#   Steve Plimpton, sjplimp@sandia.gov
+#   LAMMPS Development team: developers@lammps.org
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 #   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -165,13 +165,20 @@ class numpy_wrapper:
     """
     value = self.lmp.extract_compute(cid, cstyle, ctype)
 
-    if cstyle in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
+    if cstyle == LMP_STYLE_GLOBAL:
       if ctype == LMP_TYPE_VECTOR:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_VECTOR)
         return self.darray(value, nrows)
       elif ctype == LMP_TYPE_ARRAY:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
         ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
+        return self.darray(value, nrows, ncols)
+    elif cstyle == LMP_STYLE_LOCAL:
+      nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
+      ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
+      if ncols == 0:
+        return self.darray(value, nrows)
+      else:
         return self.darray(value, nrows, ncols)
     elif cstyle == LMP_STYLE_ATOM:
       if ctype == LMP_TYPE_VECTOR:
@@ -267,6 +274,60 @@ class numpy_wrapper:
     import numpy as np
     nbonds, value = self.lmp.gather_bonds()
     return np.ctypeslib.as_array(value).reshape(nbonds,3)
+
+    # -------------------------------------------------------------------------
+
+  def gather_angles(self):
+    """ Retrieve global list of angles as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: TBD
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nangles,4)
+    """
+    import numpy as np
+    nangles, value = self.lmp.gather_angles()
+    return np.ctypeslib.as_array(value).reshape(nangles,4)
+
+    # -------------------------------------------------------------------------
+
+  def gather_dihedrals(self):
+    """ Retrieve global list of dihedrals as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: TBD
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(ndihedrals,5)
+    """
+    import numpy as np
+    ndihedrals, value = self.lmp.gather_dihedrals()
+    return np.ctypeslib.as_array(value).reshape(ndihedrals,5)
+
+    # -------------------------------------------------------------------------
+
+  def gather_impropers(self):
+    """ Retrieve global list of impropers as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: TBD
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nimpropers,5)
+    """
+    import numpy as np
+    nimpropers, value = self.lmp.gather_impropers()
+    return np.ctypeslib.as_array(value).reshape(nimpropers,5)
 
     # -------------------------------------------------------------------------
 

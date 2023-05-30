@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -52,9 +52,8 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
   if (universe->procs_per_world[0] % universe->procs_per_world[1])
     error->universe_all(FLERR,"Verlet/split requires Rspace partition "
                         "size be multiple of Kspace partition size");
-  if (comm->style != 0)
-    error->universe_all(FLERR,"Verlet/split can only currently be used with "
-                        "comm_style brick");
+  if (comm->style != Comm::BRICK)
+    error->universe_all(FLERR,"Verlet/split can only currently be used with comm_style brick");
 
   // master = 1 for Rspace procs, 0 for Kspace procs
 
@@ -217,11 +216,10 @@ VerletSplit::~VerletSplit()
 
 void VerletSplit::init()
 {
-  if (comm->style != 0)
-    error->universe_all(FLERR,"Verlet/split can only currently be used with "
-                        "comm_style brick");
+  if (comm->style != Comm::BRICK)
+    error->universe_all(FLERR,"Verlet/split can only currently be used with comm_style brick");
   if (!force->kspace && comm->me == 0)
-    error->warning(FLERR,"No Kspace calculation with verlet/split");
+    error->warning(FLERR,"A KSpace style must be defined with verlet/split");
 
   if (force->kspace_match("/tip4p",0)) tip4p_flag = 1;
   else tip4p_flag = 0;
@@ -300,7 +298,7 @@ void VerletSplit::run(int n)
   int n_pre_neighbor = modify->n_pre_neighbor;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force;
+  int n_post_force = modify->n_post_force_any;
   int n_end_of_step = modify->n_end_of_step;
 
   if (atom->sortfreq > 0) sortflag = 1;
@@ -460,7 +458,7 @@ void VerletSplit::rk_setup()
   // setup qdisp, xsize, xdisp based on qsize
   // only needed by Kspace proc
   // set Kspace nlocal to sum of Rspace nlocals
-  // insure Kspace atom arrays are large enough
+  // ensure Kspace atom arrays are large enough
 
   if (!master) {
     qsize[0] = qdisp[0] = xsize[0] = xdisp[0] = 0;

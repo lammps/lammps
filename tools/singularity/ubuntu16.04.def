@@ -14,7 +14,7 @@ From: ubuntu:16.04
         libfftw3-dev libjpeg-dev libpng12-dev libblas-dev liblapack-dev \
         python-dev libeigen3-dev libgsl-dev libopenblas-dev libreadline-dev \
         virtualenv python3-dev python3-pip python3-pkg-resources \
-        python3-setuptools python3-virtualenv \
+        python3-setuptools python3-virtualenv python3-venv \
         enchant
 
         # create missing readline pkgconfig file

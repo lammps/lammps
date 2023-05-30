@@ -115,8 +115,7 @@ struct has_condition<DefaultType, Condition, S, Pack...> {
  public:
   enum : bool { value = self_value || next::value };
 
-  using type =
-      typename std::conditional<self_value, S, typename next::type>::type;
+  using type = std::conditional_t<self_value, S, typename next::type>;
 };
 
 template <class... Args>
@@ -156,10 +155,9 @@ struct if_c {
 
   using type = FalseType;
 
-  using value_type = typename std::remove_const<
-      typename std::remove_reference<type>::type>::type;
+  using value_type = std::remove_const_t<std::remove_reference_t<type>>;
 
-  using const_value_type = typename std::add_const<value_type>::type;
+  using const_value_type = std::add_const_t<value_type>;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;
@@ -191,10 +189,9 @@ struct if_c<true, TrueType, FalseType> {
 
   using type = TrueType;
 
-  using value_type = typename std::remove_const<
-      typename std::remove_reference<type>::type>::type;
+  using value_type = std::remove_const_t<std::remove_reference_t<type>>;
 
-  using const_value_type = typename std::add_const<value_type>::type;
+  using const_value_type = std::add_const_t<value_type>;
 
   static KOKKOS_INLINE_FUNCTION const_value_type& select(const_value_type& v) {
     return v;
@@ -260,31 +257,6 @@ constexpr unsigned integral_power_of_two(const size_t N) {
   return is_integral_power_of_two(N) ? integral_power_of_two_assume_valid(N)
                                      : ~0u;
 }
-
-//----------------------------------------------------------------------------
-
-template <size_t N>
-struct is_power_of_two {
-  enum type { value = (N > 0) && !(N & (N - 1)) };
-};
-
-template <size_t N, bool OK = is_power_of_two<N>::value>
-struct power_of_two;
-
-template <size_t N>
-struct power_of_two<N, true> {
-  enum type { value = 1 + power_of_two<(N >> 1), true>::value };
-};
-
-template <>
-struct power_of_two<2, true> {
-  enum type { value = 1 };
-};
-
-template <>
-struct power_of_two<1, true> {
-  enum type { value = 0 };
-};
 
 /** \brief  If power of two then return power,
  *          otherwise return ~0u.

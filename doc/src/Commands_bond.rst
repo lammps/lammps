@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 .. _bond:
 
@@ -41,8 +42,11 @@ OPT.
    * :doc:`gaussian <bond_gaussian>`
    * :doc:`gromos (o) <bond_gromos>`
    * :doc:`harmonic (iko) <bond_harmonic>`
+   * :doc:`harmonic/restrain <bond_harmonic_restrain>`
    * :doc:`harmonic/shift (o) <bond_harmonic_shift>`
    * :doc:`harmonic/shift/cut (o) <bond_harmonic_shift_cut>`
+   * :doc:`lepton (o) <bond_lepton>`
+   * :doc:`mesocnt <bond_mesocnt>`
    * :doc:`mm3 <bond_mm3>`
    * :doc:`morse (o) <bond_morse>`
    * :doc:`nonlinear (o) <bond_nonlinear>`
@@ -74,6 +78,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <angle_amoeba>`
    * :doc:`charmm (iko) <angle_charmm>`
    * :doc:`class2 (ko) <angle_class2>`
    * :doc:`class2/p6 <angle_class2>`
@@ -88,11 +93,13 @@ OPT.
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
-   * :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
+   * :doc:`gaussian <angle_gaussian>`
    * :doc:`harmonic (iko) <angle_harmonic>`
+   * :doc:`lepton (o) <angle_lepton>`
+   * :doc:`mesocnt <angle_mesocnt>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
-   * :doc:`sdk (o) <angle_sdk>`
+   * :doc:`spica (o) <angle_spica>`
    * :doc:`table (o) <angle_table>`
 
 .. _dihedral:
@@ -123,6 +130,7 @@ OPT.
    * :doc:`fourier (io) <dihedral_fourier>`
    * :doc:`harmonic (iko) <dihedral_harmonic>`
    * :doc:`helix (o) <dihedral_helix>`
+   * :doc:`lepton (o) <dihedral_lepton>`
    * :doc:`multi/harmonic (o) <dihedral_multi_harmonic>`
    * :doc:`nharmonic (o) <dihedral_nharmonic>`
    * :doc:`opls (iko) <dihedral_opls>`
@@ -152,6 +160,7 @@ OPT.
    *
    *
    *
+   * :doc:`amoeba <improper_amoeba>`
    * :doc:`class2 (ko) <improper_class2>`
    * :doc:`cossq (o) <improper_cossq>`
    * :doc:`cvff (io) <improper_cvff>`

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,6 +23,7 @@ namespace LAMMPS_NS {
 class Reader : protected Pointers {
  public:
   Reader(class LAMMPS *);
+  ~Reader() override;
 
   virtual void settings(int, char **);
 
@@ -36,26 +37,11 @@ class Reader : protected Pointers {
   virtual void close_file();
 
  protected:
-  FILE *fp;          // pointer to opened file or pipe
-  bool compressed;   // flag for dump file compression
-  bool binary;       // flag for (native) binary files
+  FILE *fp;           // pointer to opened file or pipe
+  bool compressed;    // flag for dump file compression
+  bool binary;        // flag for (native) binary files
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open gzipped file
-
-LAMMPS was compiled without support for reading and writing gzipped
-files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct. If the file is a compressed file, also check that the gzip
-executable can be found and run.
-
-*/

@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -387,9 +387,7 @@ void MolfileInterface::forget_plugin()
   _dso = nullptr;
 
   delete[] _name;
-    _name = new char[5];
-  strcpy(_name,"none");
-
+  _name = utils::strdup("none");
   _caps = M_NONE;
 }
 
@@ -564,10 +562,10 @@ int MolfileInterface::timestep(float *coords, float *vels,
 // functions to read properties from molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)              \
-  if (propid == PROP) { VAL = a.ENTRY; }
+  if (propid == (PROP)) { (VAL) = a.ENTRY; }
 
 #define PROPSTRCPY(PROP,ENTRY,VAL)              \
-  if (propid == PROP) { strcpy(VAL,a.ENTRY); }
+  if (propid == (PROP)) { strcpy(VAL,a.ENTRY); }
 
 // single precision floating point props
 static float read_float_property(molfile_atom_t &a, const int propid)
@@ -645,10 +643,10 @@ static const char *read_string_property(molfile_atom_t &a,
 // functions to store properties into molfile structure
 
 #define PROPUPDATE(PROP,ENTRY,VAL)                                  \
-  if ((propid & PROP) == PROP) { a.ENTRY = VAL; plist |= PROP; }
+  if ((propid & (PROP)) == (PROP)) { a.ENTRY = VAL; plist |= (PROP); }
 
 #define PROPSTRCPY(PROP,ENTRY,VAL)                                      \
-  if ((propid & PROP) == PROP) { strcpy(a.ENTRY,VAL); plist |= PROP; }
+  if ((propid & (PROP)) == (PROP)) { strcpy(a.ENTRY,VAL); plist |= (PROP); }
 
 // floating point props
 static int write_atom_property(molfile_atom_t &a,

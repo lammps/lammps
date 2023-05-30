@@ -28,6 +28,14 @@ CVSCRIPT(colvar_addforce,
          return COLVARS_OK;
          )
 
+CVSCRIPT(colvar_communicateforces,
+         "Communicate bias forces from this colvar to atoms",
+         0, 0,
+         "",
+         this_colvar->communicate_forces();
+         return COLVARS_OK;
+         )
+
 CVSCRIPT(colvar_cvcflags,
          "Enable or disable individual components by setting their active flags",
          1, 1,
@@ -70,6 +78,14 @@ CVSCRIPT(colvar_getappliedforce,
          0, 0,
          "",
          script->set_result_colvarvalue(this_colvar->applied_force());
+         return COLVARS_OK;
+         )
+
+CVSCRIPT(colvar_resetbiasforce,
+         "Return the total of the forces applied to this colvar",
+         0, 0,
+         "",
+         this_colvar->reset_bias_force();
          return COLVARS_OK;
          )
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -51,39 +51,3 @@ class ComputeTempSphere : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute temp/sphere requires atom style sphere
-
-Self-explanatory.
-
-E: Could not find compute ID for temperature bias
-
-Self-explanatory.
-
-E: Bias compute does not calculate temperature
-
-The specified compute must compute temperature.
-
-E: Bias compute does not calculate a velocity bias
-
-The specified compute must compute a bias for temperature.
-
-E: Bias compute group does not match compute group
-
-The specified compute must operate on the same group as the parent
-compute.
-
-E: Temperature compute degrees of freedom < 0
-
-This should not happen if you are calculating the temperature
-on a valid set of atoms.
-
-*/

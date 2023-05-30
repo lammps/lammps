@@ -49,7 +49,6 @@
 #include <Kokkos_Pair.hpp>
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_ExecPolicy.hpp>
-#include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_HostBarrier.hpp>
 
@@ -113,10 +112,10 @@ class HostThreadTeamData {
   int64_t* m_team_scratch;  // == pool[ 0 + m_team_base ]->m_scratch
   int m_pool_rank;
   int m_pool_size;
-  int m_team_reduce;
-  int m_team_shared;
-  int m_thread_local;
-  int m_scratch_size;
+  size_t m_team_reduce;
+  size_t m_team_shared;
+  size_t m_thread_local;
+  size_t m_scratch_size;
   int m_team_base;
   int m_team_rank;
   int m_team_size;
@@ -184,7 +183,11 @@ class HostThreadTeamData {
 
   //----------------------------------------
 
-  constexpr HostThreadTeamData() noexcept
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC bug in NVHPC regarding constexpr
+                               // constructors used in device code
+  constexpr
+#endif
+      HostThreadTeamData() noexcept
       : m_work_range(-1, -1),
         m_work_end(0),
         m_scratch(nullptr),
@@ -205,7 +208,8 @@ class HostThreadTeamData {
         m_work_chunk(0),
         m_steal_rank(0),
         m_pool_rendezvous_step(0),
-        m_team_rendezvous_step(0) {}
+        m_team_rendezvous_step(0) {
+  }
 
   //----------------------------------------
   // Organize array of members into a pool.
@@ -247,33 +251,31 @@ class HostThreadTeamData {
 
   //----------------------------------------
 
- private:
-  enum : int { mask_to_16 = 0x0f };  // align to 16 bytes
-  enum : int { shift_to_8 = 3 };     // size to 8 bytes
-
  public:
-  static constexpr int align_to_int64(int n) {
+  static constexpr size_t align_to_int64(size_t n) {
+    constexpr size_t mask_to_16 = 0x0f;  // align to 16 bytes
+    constexpr size_t shift_to_8 = 3;     // size to 8 bytes
     return ((n + mask_to_16) & ~mask_to_16) >> shift_to_8;
   }
 
-  constexpr int pool_reduce_bytes() const {
+  constexpr size_t pool_reduce_bytes() const {
     return m_scratch_size ? sizeof(int64_t) * (m_team_reduce - m_pool_reduce)
                           : 0;
   }
 
-  constexpr int team_reduce_bytes() const {
+  constexpr size_t team_reduce_bytes() const {
     return sizeof(int64_t) * (m_team_shared - m_team_reduce);
   }
 
-  constexpr int team_shared_bytes() const {
+  constexpr size_t team_shared_bytes() const {
     return sizeof(int64_t) * (m_thread_local - m_team_shared);
   }
 
-  constexpr int thread_local_bytes() const {
+  constexpr size_t thread_local_bytes() const {
     return sizeof(int64_t) * (m_scratch_size - m_thread_local);
   }
 
-  constexpr int scratch_bytes() const {
+  constexpr size_t scratch_bytes() const {
     return sizeof(int64_t) * m_scratch_size;
   }
 
@@ -310,8 +312,9 @@ class HostThreadTeamData {
   //   thread_local_size = number bytes for thread local memory
   // Return:
   //   total number of bytes that must be allocated
-  static size_t scratch_size(int pool_reduce_size, int team_reduce_size,
-                             int team_shared_size, int thread_local_size) {
+  static size_t scratch_size(size_t pool_reduce_size, size_t team_reduce_size,
+                             size_t team_shared_size,
+                             size_t thread_local_size) {
     pool_reduce_size  = align_to_int64(pool_reduce_size);
     team_reduce_size  = align_to_int64(team_reduce_size);
     team_shared_size  = align_to_int64(team_shared_size);
@@ -336,7 +339,7 @@ class HostThreadTeamData {
   //   total number of bytes that must be allocated
   void scratch_assign(void* const alloc_ptr, size_t const alloc_size,
                       int pool_reduce_size, int team_reduce_size,
-                      int team_shared_size, int /* thread_local_size */) {
+                      size_t team_shared_size, size_t /* thread_local_size */) {
     pool_reduce_size = align_to_int64(pool_reduce_size);
     team_reduce_size = align_to_int64(team_reduce_size);
     team_shared_size = align_to_int64(team_shared_size);
@@ -483,27 +486,18 @@ class HostThreadTeamMember {
   // Team collectives
   //--------------------------------------------------------------------------
 
-  KOKKOS_INLINE_FUNCTION void team_barrier() const noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (m_data.team_rendezvous()) {
-      m_data.team_rendezvous_release();
-    };
+  KOKKOS_INLINE_FUNCTION void team_barrier() const noexcept {
+    KOKKOS_IF_ON_HOST(
+        (if (m_data.team_rendezvous()) { m_data.team_rendezvous_release(); }))
   }
-#else
-  {
-  }
-#endif
 
   //--------------------------------------------------------------------------
 
   template <typename T>
   KOKKOS_INLINE_FUNCTION void team_broadcast(T& value,
                                              const int source_team_rank) const
-      noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (1 < m_data.m_team_size) {
+      noexcept {
+    KOKKOS_IF_ON_HOST((if (1 < m_data.m_team_size) {
       T volatile* const shared_value = (T*)m_data.team_reduce();
 
       // Don't overwrite shared memory until all threads arrive
@@ -521,54 +515,43 @@ class HostThreadTeamMember {
       } else {
         value = *shared_value;
       }
-    }
+    }))
+
+    KOKKOS_IF_ON_DEVICE(((void)value; (void)source_team_rank; Kokkos::abort(
+                             "HostThreadTeamMember team_broadcast\n");))
   }
-#else
-  {
-    (void)value;
-    (void)source_team_rank;
-    Kokkos::abort("HostThreadTeamMember team_broadcast\n");
-  }
-#endif
 
   //--------------------------------------------------------------------------
 
   template <class Closure, typename T>
   KOKKOS_INLINE_FUNCTION void team_broadcast(Closure const& f, T& value,
                                              const int source_team_rank) const
-      noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    T volatile* const shared_value = (T*)m_data.team_reduce();
+      noexcept {
+    KOKKOS_IF_ON_HOST((
+        T volatile* const shared_value = (T*)m_data.team_reduce();
 
-    // Don't overwrite shared memory until all threads arrive
+        // Don't overwrite shared memory until all threads arrive
 
-    if (m_data.team_rendezvous(source_team_rank)) {
-      // All threads have entered 'team_rendezvous'
-      // only this thread returned from 'team_rendezvous'
-      // with a return value of 'true'
+        if (m_data.team_rendezvous(source_team_rank)) {
+          // All threads have entered 'team_rendezvous'
+          // only this thread returned from 'team_rendezvous'
+          // with a return value of 'true'
 
-      f(value);
+          f(value);
 
-      if (1 < m_data.m_team_size) {
-        *shared_value = value;
-      }
+          if (1 < m_data.m_team_size) {
+            *shared_value = value;
+          }
 
-      m_data.team_rendezvous_release();
-      // This thread released all other threads from 'team_rendezvous'
-      // with a return value of 'false'
-    } else {
-      value = *shared_value;
-    }
+          m_data.team_rendezvous_release();
+          // This thread released all other threads from 'team_rendezvous'
+          // with a return value of 'false'
+        } else { value = *shared_value; }))
+
+    KOKKOS_IF_ON_DEVICE(
+        ((void)f; (void)value; (void)source_team_rank;
+         Kokkos::abort("HostThreadTeamMember team_broadcast\n");))
   }
-#else
-  {
-    (void)f;
-    (void)value;
-    (void)source_team_rank;
-    Kokkos::abort("HostThreadTeamMember team_broadcast\n");
-  }
-#endif
 
   //--------------------------------------------------------------------------
   // team_reduce( Sum(result) );
@@ -576,181 +559,122 @@ class HostThreadTeamMember {
   // team_reduce( Max(result) );
 
   template <typename ReducerType>
-  KOKKOS_INLINE_FUNCTION
-      typename std::enable_if<is_reducer<ReducerType>::value>::type
-      team_reduce(ReducerType const& reducer) const noexcept {
+  KOKKOS_INLINE_FUNCTION std::enable_if_t<is_reducer<ReducerType>::value>
+  team_reduce(ReducerType const& reducer) const noexcept {
     team_reduce(reducer, reducer.reference());
   }
 
   template <typename ReducerType>
-  KOKKOS_INLINE_FUNCTION
-      typename std::enable_if<is_reducer<ReducerType>::value>::type
-      team_reduce(ReducerType const& reducer,
-                  typename ReducerType::value_type contribution) const noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (1 < m_data.m_team_size) {
-      using value_type = typename ReducerType::value_type;
+  KOKKOS_INLINE_FUNCTION std::enable_if_t<is_reducer<ReducerType>::value>
+  team_reduce(ReducerType const& reducer,
+              typename ReducerType::value_type contribution) const noexcept {
+    KOKKOS_IF_ON_HOST((
+        if (1 < m_data.m_team_size) {
+          using value_type = typename ReducerType::value_type;
 
-      if (0 != m_data.m_team_rank) {
-        // Non-root copies to their local buffer:
-        /*reducer.copy( (value_type*) m_data.team_reduce_local()
-                    , reducer.data() );*/
-        *((value_type*)m_data.team_reduce_local()) = contribution;
-      }
+          if (0 != m_data.m_team_rank) {
+            // Non-root copies to their local buffer:
+            /*reducer.copy( (value_type*) m_data.team_reduce_local()
+                        , reducer.data() );*/
+            *((value_type*)m_data.team_reduce_local()) = contribution;
+          }
 
-      // Root does not overwrite shared memory until all threads arrive
-      // and copy to their local buffer.
+          // Root does not overwrite shared memory until all threads arrive
+          // and copy to their local buffer.
 
-      if (m_data.team_rendezvous()) {
-        // All threads have entered 'team_rendezvous'
-        // only this thread returned from 'team_rendezvous'
-        // with a return value of 'true'
-        //
-        // This thread sums contributed values
-        for (int i = 1; i < m_data.m_team_size; ++i) {
-          value_type* const src =
-              (value_type*)m_data.team_member(i)->team_reduce_local();
+          if (m_data.team_rendezvous()) {
+            // All threads have entered 'team_rendezvous'
+            // only this thread returned from 'team_rendezvous'
+            // with a return value of 'true'
+            //
+            // This thread sums contributed values
+            for (int i = 1; i < m_data.m_team_size; ++i) {
+              value_type* const src =
+                  (value_type*)m_data.team_member(i)->team_reduce_local();
 
-          reducer.join(contribution, *src);
-        }
+              reducer.join(contribution, *src);
+            }
 
-        // Copy result to root member's buffer:
-        // reducer.copy( (value_type*) m_data.team_reduce() , reducer.data() );
-        *((value_type*)m_data.team_reduce()) = contribution;
-        reducer.reference()                  = contribution;
-        m_data.team_rendezvous_release();
-        // This thread released all other threads from 'team_rendezvous'
-        // with a return value of 'false'
-      } else {
-        // Copy from root member's buffer:
-        reducer.reference() = *((value_type*)m_data.team_reduce());
-      }
-    } else {
-      reducer.reference() = contribution;
-    }
+            // Copy result to root member's buffer:
+            // reducer.copy( (value_type*) m_data.team_reduce() , reducer.data()
+            // );
+            *((value_type*)m_data.team_reduce()) = contribution;
+            reducer.reference()                  = contribution;
+            m_data.team_rendezvous_release();
+            // This thread released all other threads from 'team_rendezvous'
+            // with a return value of 'false'
+          } else {
+            // Copy from root member's buffer:
+            reducer.reference() = *((value_type*)m_data.team_reduce());
+          }
+        } else { reducer.reference() = contribution; }))
+
+    KOKKOS_IF_ON_DEVICE(((void)reducer; (void)contribution;
+                         Kokkos::abort("HostThreadTeamMember team_reduce\n");))
   }
-#else
-  {
-    (void)reducer;
-    (void)contribution;
-    Kokkos::abort("HostThreadTeamMember team_reduce\n");
-  }
-#endif
 
   //--------------------------------------------------------------------------
 
-  /*template< typename ValueType , class JoinOp >
-  KOKKOS_INLINE_FUNCTION
-  ValueType
-  team_reduce( ValueType const & value
-             , JoinOp    const & join ) const noexcept
-#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
-    {
-      if ( 0 != m_data.m_team_rank ) {
-        // Non-root copies to their local buffer:
-        *((ValueType*) m_data.team_reduce_local()) = value ;
-      }
-
-      // Root does not overwrite shared memory until all threads arrive
-      // and copy to their local buffer.
-
-      if ( m_data.team_rendezvous() ) {
-        const Impl::Reducer< ValueType , JoinOp > reducer( join );
-
-        // All threads have entered 'team_rendezvous'
-        // only this thread returned from 'team_rendezvous'
-        // with a return value of 'true'
-        //
-        // This thread sums contributed values
-
-        ValueType * const dst = (ValueType*) m_data.team_reduce_local();
-
-        *dst = value ;
-
-        for ( int i = 1 ; i < m_data.m_team_size ; ++i ) {
-          ValueType * const src =
-            (ValueType*) m_data.team_member(i)->team_reduce_local();
-
-          reducer.join( dst , src );
-        }
-
-        m_data.team_rendezvous_release();
-        // This thread released all other threads from 'team_rendezvous'
-        // with a return value of 'false'
-      }
-
-      return *((ValueType*) m_data.team_reduce());
-    }
-#else
-    { Kokkos::abort("HostThreadTeamMember team_reduce\n"); return ValueType(); }
-#endif*/
-
   template <typename T>
   KOKKOS_INLINE_FUNCTION T team_scan(T const& value,
-                                     T* const global = nullptr) const noexcept
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  {
-    if (0 != m_data.m_team_rank) {
-      // Non-root copies to their local buffer:
-      ((T*)m_data.team_reduce_local())[1] = value;
-    }
-
-    // Root does not overwrite shared memory until all threads arrive
-    // and copy to their local buffer.
-
-    if (m_data.team_rendezvous()) {
-      // All threads have entered 'team_rendezvous'
-      // only this thread returned from 'team_rendezvous'
-      // with a return value of 'true'
-      //
-      // This thread scans contributed values
-
-      {
-        T* prev = (T*)m_data.team_reduce_local();
-
-        prev[0] = 0;
-        prev[1] = value;
-
-        for (int i = 1; i < m_data.m_team_size; ++i) {
-          T* const ptr = (T*)m_data.team_member(i)->team_reduce_local();
-
-          ptr[0] = prev[0] + prev[1];
-
-          prev = ptr;
-        }
-      }
-
-      // If adding to global value then atomic_fetch_add to that value
-      // and sum previous value to every entry of the scan.
-      if (global) {
-        T* prev = (T*)m_data.team_reduce_local();
-
-        {
-          T* ptr = (T*)m_data.team_member(m_data.m_team_size - 1)
-                       ->team_reduce_local();
-          prev[0] = Kokkos::atomic_fetch_add(global, ptr[0] + ptr[1]);
+                                     T* const global = nullptr) const noexcept {
+    KOKKOS_IF_ON_HOST((
+        if (0 != m_data.m_team_rank) {
+          // Non-root copies to their local buffer:
+          ((T*)m_data.team_reduce_local())[1] = value;
         }
 
-        for (int i = 1; i < m_data.m_team_size; ++i) {
-          T* ptr = (T*)m_data.team_member(i)->team_reduce_local();
-          ptr[0] += prev[0];
+        // Root does not overwrite shared memory until all threads arrive
+        // and copy to their local buffer.
+
+        if (m_data.team_rendezvous()) {
+          // All threads have entered 'team_rendezvous'
+          // only this thread returned from 'team_rendezvous'
+          // with a return value of 'true'
+          //
+          // This thread scans contributed values
+
+          {
+            T* prev = (T*)m_data.team_reduce_local();
+
+            prev[0] = 0;
+            prev[1] = value;
+
+            for (int i = 1; i < m_data.m_team_size; ++i) {
+              T* const ptr = (T*)m_data.team_member(i)->team_reduce_local();
+
+              ptr[0] = prev[0] + prev[1];
+
+              prev = ptr;
+            }
+          }
+
+          // If adding to global value then atomic_fetch_add to that value
+          // and sum previous value to every entry of the scan.
+          if (global) {
+            T* prev = (T*)m_data.team_reduce_local();
+
+            {
+              T* ptr = (T*)m_data.team_member(m_data.m_team_size - 1)
+                           ->team_reduce_local();
+              prev[0] = Kokkos::atomic_fetch_add(global, ptr[0] + ptr[1]);
+            }
+
+            for (int i = 1; i < m_data.m_team_size; ++i) {
+              T* ptr = (T*)m_data.team_member(i)->team_reduce_local();
+              ptr[0] += prev[0];
+            }
+          }
+
+          m_data.team_rendezvous_release();
         }
-      }
 
-      m_data.team_rendezvous_release();
-    }
+        return ((T*)m_data.team_reduce_local())[0];))
 
-    return ((T*)m_data.team_reduce_local())[0];
+    KOKKOS_IF_ON_DEVICE(((void)value; (void)global;
+                         Kokkos::abort("HostThreadTeamMember team_scan\n");
+                         return T();))
   }
-#else
-  {
-    (void)value;
-    (void)global;
-    Kokkos::abort("HostThreadTeamMember team_scan\n");
-    return T();
-  }
-#endif
 };
 
 }  // namespace Impl
@@ -765,61 +689,59 @@ template <typename iType, typename Member>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<iType, Member>
 TeamThreadRange(
     Member const& member, iType count,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
   return Impl::TeamThreadRangeBoundariesStruct<iType, Member>(member, 0, count);
 }
 
 template <typename iType1, typename iType2, typename Member>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<
-    typename std::common_type<iType1, iType2>::type, Member>
+    std::common_type_t<iType1, iType2>, Member>
 TeamThreadRange(
     Member const& member, iType1 begin, iType2 end,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
   return Impl::TeamThreadRangeBoundariesStruct<
-      typename std::common_type<iType1, iType2>::type, Member>(member, begin,
-                                                               end);
+      std::common_type_t<iType1, iType2>, Member>(member, begin, end);
 }
 
 template <typename iType, typename Member>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<iType, Member>
 TeamVectorRange(
     Member const& member, iType count,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
   return Impl::TeamThreadRangeBoundariesStruct<iType, Member>(member, 0, count);
 }
 
 template <typename iType1, typename iType2, typename Member>
 KOKKOS_INLINE_FUNCTION Impl::TeamThreadRangeBoundariesStruct<
-    typename std::common_type<iType1, iType2>::type, Member>
+    std::common_type_t<iType1, iType2>, Member>
 TeamVectorRange(
     Member const& member, iType1 begin, iType2 end,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
   return Impl::TeamThreadRangeBoundariesStruct<
-      typename std::common_type<iType1, iType2>::type, Member>(member, begin,
-                                                               end);
+      std::common_type_t<iType1, iType2>, Member>(member, begin, end);
 }
 
 template <typename iType, typename Member>
 KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<iType, Member>
 ThreadVectorRange(
     Member const& member, iType count,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Member>(member, count);
 }
 
 template <typename iType1, typename iType2, typename Member>
 KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<
-    typename std::common_type<iType1, iType2>::type, Member>
+    std::common_type_t<iType1, iType2>, Member>
 ThreadVectorRange(
     Member const& member, iType1 arg_begin, iType2 arg_end,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
-  using iType = typename std::common_type<iType1, iType2>::type;
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
+  using iType = std::common_type_t<iType1, iType2>;
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Member>(
       member, iType(arg_begin), iType(arg_end));
 }
@@ -835,8 +757,8 @@ template <typename iType, class Closure, class Member>
 KOKKOS_INLINE_FUNCTION void parallel_for(
     Impl::TeamThreadRangeBoundariesStruct<iType, Member> const& loop_boundaries,
     Closure const& closure,
-    typename std::enable_if<Impl::is_host_thread_team_member<Member>::value>::
-        type const** = nullptr) {
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value> const** =
+        nullptr) {
   for (iType i = loop_boundaries.start; i < loop_boundaries.end;
        i += loop_boundaries.increment) {
     closure(i);
@@ -848,8 +770,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     Impl::ThreadVectorRangeBoundariesStruct<iType, Member> const&
         loop_boundaries,
     Closure const& closure,
-    typename std::enable_if<Impl::is_host_thread_team_member<Member>::value>::
-        type const** = nullptr) {
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value> const** =
+        nullptr) {
 #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
 #endif
@@ -862,12 +784,12 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
 //----------------------------------------------------------------------------
 
 template <typename iType, class Closure, class Reducer, class Member>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Kokkos::is_reducer<Reducer>::value &&
-    Impl::is_host_thread_team_member<Member>::value>::type
-parallel_reduce(
-    Impl::TeamThreadRangeBoundariesStruct<iType, Member> const& loop_boundaries,
-    Closure const& closure, Reducer const& reducer) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Kokkos::is_reducer<Reducer>::value &&
+                     Impl::is_host_thread_team_member<Member>::value>
+    parallel_reduce(Impl::TeamThreadRangeBoundariesStruct<iType, Member> const&
+                        loop_boundaries,
+                    Closure const& closure, Reducer const& reducer) {
   typename Reducer::value_type value;
   reducer.init(value);
 
@@ -880,12 +802,12 @@ parallel_reduce(
 }
 
 template <typename iType, typename Closure, typename ValueType, typename Member>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    !Kokkos::is_reducer<ValueType>::value &&
-    Impl::is_host_thread_team_member<Member>::value>::type
-parallel_reduce(
-    Impl::TeamThreadRangeBoundariesStruct<iType, Member> const& loop_boundaries,
-    Closure const& closure, ValueType& result) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<!Kokkos::is_reducer<ValueType>::value &&
+                     Impl::is_host_thread_team_member<Member>::value>
+    parallel_reduce(Impl::TeamThreadRangeBoundariesStruct<iType, Member> const&
+                        loop_boundaries,
+                    Closure const& closure, ValueType& result) {
   ValueType val;
   Sum<ValueType> reducer(val);
   reducer.init(val);
@@ -934,12 +856,12 @@ Impl::TeamThreadRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >
  *  performed and put into result.
  */
 template <typename iType, class Lambda, typename ValueType, typename Member>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    !Kokkos::is_reducer<ValueType>::value &&
-    Impl::is_host_thread_team_member<Member>::value>::type
-parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
-                    loop_boundaries,
-                const Lambda& lambda, ValueType& result) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<!Kokkos::is_reducer<ValueType>::value &&
+                     Impl::is_host_thread_team_member<Member>::value>
+    parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<
+                        iType, Member>& loop_boundaries,
+                    const Lambda& lambda, ValueType& result) {
   result = ValueType();
   for (iType i = loop_boundaries.start; i < loop_boundaries.end;
        i += loop_boundaries.increment) {
@@ -948,12 +870,12 @@ parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
 }
 
 template <typename iType, class Lambda, typename ReducerType, typename Member>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Kokkos::is_reducer<ReducerType>::value &&
-    Impl::is_host_thread_team_member<Member>::value>::type
-parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
-                    loop_boundaries,
-                const Lambda& lambda, const ReducerType& reducer) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Kokkos::is_reducer<ReducerType>::value &&
+                     Impl::is_host_thread_team_member<Member>::value>
+    parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<
+                        iType, Member>& loop_boundaries,
+                    const Lambda& lambda, const ReducerType& reducer) {
   reducer.init(reducer.reference());
   for (iType i = loop_boundaries.start; i < loop_boundaries.end;
        i += loop_boundaries.increment) {
@@ -964,11 +886,11 @@ parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
 //----------------------------------------------------------------------------
 
 template <typename iType, class Closure, class Member>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Impl::is_host_thread_team_member<Member>::value>::type
-parallel_scan(
-    Impl::TeamThreadRangeBoundariesStruct<iType, Member> const& loop_boundaries,
-    Closure const& closure) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value>
+    parallel_scan(Impl::TeamThreadRangeBoundariesStruct<iType, Member> const&
+                      loop_boundaries,
+                  Closure const& closure) {
   // Extract ValueType from the closure
 
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
@@ -992,11 +914,11 @@ parallel_scan(
 }
 
 template <typename iType, class ClosureType, class Member>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Impl::is_host_thread_team_member<Member>::value>::type
-parallel_scan(Impl::ThreadVectorRangeBoundariesStruct<iType, Member> const&
-                  loop_boundaries,
-              ClosureType const& closure) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value>
+    parallel_scan(Impl::ThreadVectorRangeBoundariesStruct<iType, Member> const&
+                      loop_boundaries,
+                  ClosureType const& closure) {
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
       Impl::FunctorPatternInterface::SCAN, void, ClosureType>::value_type;
 
@@ -1012,12 +934,12 @@ parallel_scan(Impl::ThreadVectorRangeBoundariesStruct<iType, Member> const&
 }
 
 template <typename iType, class Lambda, typename ReducerType, typename Member>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Kokkos::is_reducer<ReducerType>::value &&
-    Impl::is_host_thread_team_member<Member>::value>::type
-parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
-                  loop_boundaries,
-              const Lambda& lambda, const ReducerType& reducer) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Kokkos::is_reducer<ReducerType>::value &&
+                     Impl::is_host_thread_team_member<Member>::value>
+    parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
+                      loop_boundaries,
+                  const Lambda& lambda, const ReducerType& reducer) {
   typename ReducerType::value_type scan_val;
   reducer.init(scan_val);
 
@@ -1035,48 +957,49 @@ parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
 template <class Member>
 KOKKOS_INLINE_FUNCTION Impl::ThreadSingleStruct<Member> PerTeam(
     Member const& member,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
   return Impl::ThreadSingleStruct<Member>(member);
 }
 
 template <class Member>
 KOKKOS_INLINE_FUNCTION Impl::VectorSingleStruct<Member> PerThread(
     Member const& member,
-    typename std::enable_if<
-        Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+    std::enable_if_t<Impl::is_thread_team_member<Member>::value> const** =
+        nullptr) {
   return Impl::VectorSingleStruct<Member>(member);
 }
 
 template <class Member, class FunctorType>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Impl::is_host_thread_team_member<Member>::value>::type
-single(const Impl::ThreadSingleStruct<Member>& single,
-       const FunctorType& functor) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value>
+    single(const Impl::ThreadSingleStruct<Member>& single,
+           const FunctorType& functor) {
   // 'single' does not perform a barrier.
   if (single.team_member.team_rank() == 0) functor();
 }
 
 template <class Member, class FunctorType, typename ValueType>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Impl::is_host_thread_team_member<Member>::value>::type
-single(const Impl::ThreadSingleStruct<Member>& single,
-       const FunctorType& functor, ValueType& val) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value>
+    single(const Impl::ThreadSingleStruct<Member>& single,
+           const FunctorType& functor, ValueType& val) {
   single.team_member.team_broadcast(functor, val, 0);
 }
 
 template <class Member, class FunctorType>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Impl::is_host_thread_team_member<Member>::value>::type
-single(const Impl::VectorSingleStruct<Member>&, const FunctorType& functor) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value>
+    single(const Impl::VectorSingleStruct<Member>&,
+           const FunctorType& functor) {
   functor();
 }
 
 template <class Member, class FunctorType, typename ValueType>
-KOKKOS_INLINE_FUNCTION typename std::enable_if<
-    Impl::is_host_thread_team_member<Member>::value>::type
-single(const Impl::VectorSingleStruct<Member>&, const FunctorType& functor,
-       ValueType& val) {
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<Impl::is_host_thread_team_member<Member>::value>
+    single(const Impl::VectorSingleStruct<Member>&, const FunctorType& functor,
+           ValueType& val) {
   functor(val);
 }
 

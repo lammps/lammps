@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -190,22 +190,29 @@ void ComputeFEP::init()
     Perturb *pert = &perturb[m];
 
     pert->ivar = input->variable->find(pert->var);
-    if (pert->ivar < 0) error->all(FLERR, "Variable name for compute fep does not exist");
+    if (pert->ivar < 0)
+      error->all(FLERR, "Variable name {} for compute fep does not exist", pert->var);
     if (!input->variable->equalstyle(pert->ivar))
-      error->all(FLERR, "Variable for compute fep is of invalid style");
+      error->all(FLERR, "Variable {} for compute fep is of invalid style", pert->var);
 
     if (force->pair == nullptr) error->all(FLERR, "compute fep pair requires pair interactions");
 
     if (pert->which == PAIR) {
       pairflag = 1;
+      Pair *pair = nullptr;
+      if (lmp->suffix_enable) {
+        if (lmp->suffix)
+          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix), 1);
+        if ((pair == nullptr) && lmp->suffix2)
+          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix2), 1);
+      }
 
-      Pair *pair = force->pair_match(pert->pstyle, 1);
-      if (pair == nullptr)
-        error->all(FLERR,
-                   "compute fep pair style "
-                   "does not exist");
+      if (pair == nullptr) pair = force->pair_match(pert->pstyle, 1);
+      if (pair == nullptr) error->all(FLERR, "Compute fep pair style {} not found", pert->pstyle);
+
       void *ptr = pair->extract(pert->pparam, pert->pdim);
-      if (ptr == nullptr) error->all(FLERR, "compute fep pair style param not supported");
+      if (ptr == nullptr)
+        error->all(FLERR, "Compute fep pair style {} param {} not supported", pert->pstyle, pert->pparam);
 
       pert->array = (double **) ptr;
 
@@ -213,7 +220,7 @@ void ComputeFEP::init()
 
       if ((strcmp(force->pair_style, "hybrid") == 0 ||
            strcmp(force->pair_style, "hybrid/overlay") == 0)) {
-        auto pair = dynamic_cast<PairHybrid *>( force->pair);
+        auto pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
             if (!pair->check_ijtype(i, j, pert->pstyle))

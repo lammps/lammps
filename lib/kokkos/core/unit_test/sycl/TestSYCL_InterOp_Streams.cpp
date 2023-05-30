@@ -50,8 +50,7 @@ namespace Test {
 TEST(sycl, raw_sycl_queues) {
   sycl::default_selector device_selector;
   sycl::queue queue(device_selector);
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
+  Kokkos::initialize();
   int* p            = sycl::malloc_device<int>(100, queue);
   using MemorySpace = typename TEST_EXECSPACE::memory_space;
 

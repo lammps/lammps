@@ -102,7 +102,7 @@ void sycl_queue_scratch_test(
     Kokkos::View<int64_t, Kokkos::Experimental::SYCLDeviceUSMSpace> counter) {
   constexpr int K = 4;
   Kokkos::Experimental::SYCL default_space;
-  sycl::context default_context = default_space.sycl_context();
+  sycl::context default_context = default_space.sycl_queue().get_context();
 
   sycl::default_selector device_selector;
   sycl::queue queue(default_context, device_selector);

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,10 +38,10 @@ class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
 
   void compute(int, int) override;
 
-  void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
-                            int, int) override;
-  void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int,
-                              int, int) override;
+  void particle_map(double, double, double, double, int **, int, int, int, int, int, int, int,
+                    int) override;
+  void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int, int,
+                      int) override;
   void make_rho_c() override;    // XXX: not (yet) multi-threaded
   void make_rho_g() override;
   void make_rho_a() override;
@@ -68,11 +68,3 @@ class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Kspace style pppm/tip4p/omp requires newton on
-
-Self-explanatory.
-
-*/

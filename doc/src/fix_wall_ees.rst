@@ -88,7 +88,7 @@ examples/ directory.
 The prefactor :math:`\epsilon` can be thought of as an
 effective Hamaker constant with energy units for the strength of the
 ellipsoid-wall interaction.  More specifically, the :math:`\epsilon`
-pre-factor is
+prefactor is
 
 .. math::
 
@@ -104,7 +104,7 @@ respectively, in units of 1/volume.
 
 .. note::
 
-   You must insure that r is always bigger than :math:`\sigma_n` for
+   You must ensure that r is always bigger than :math:`\sigma_n` for
    all particles in the group, or LAMMPS will generate an error.  This
    means you cannot start your simulation with particles touching the wall
    position *coord* (:math:`r = \sigma_n`) or with particles penetrating

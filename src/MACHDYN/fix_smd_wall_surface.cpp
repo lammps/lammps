@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS development team: developers@lammps.org
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -112,7 +112,7 @@ void FixSMDWallSurface::setup(int /*vflag*/) {
 
         // set bounds for my proc
         // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-        // insures all data atoms will be owned even with round-off
+        // ensures all data atoms will be owned even with round-off
 
         int triclinic = domain->triclinic;
 
@@ -260,8 +260,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
       double r1 = (center - vert[0]).norm();
       double r2 = (center - vert[1]).norm();
       double r3 = (center - vert[2]).norm();
-      double r = MAX(r1, r2);
-      r = MAX(r, r3);
+      double r = MAX(MAX(r1, r2), r3);
 
       /*
        * if atom/molecule is in my subbox, create it

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,8 +27,8 @@
 #include "neighbor.h"
 #include "tokenizer.h"
 #include "update.h"
-#include "utils.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -300,7 +300,7 @@ void PairTracker::settings(int narg, char **arg)
   fix_store_local = dynamic_cast<FixStoreLocal *>(modify->get_fix_by_id(id_fix_store_local));
   if (!fix_store_local)
     fix_store_local = dynamic_cast<FixStoreLocal *>(modify->add_fix(
-        fmt::format("{} all STORE_LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues)));
+        fmt::format("{} all STORE/LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues)));
 }
 
 /* ----------------------------------------------------------------------
@@ -514,7 +514,7 @@ double PairTracker::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, d
    only needed if any history entries i-j are not just negative of j-i entries
 ------------------------------------------------------------------------- */
 
-void PairTracker::transfer_history(double *source, double *target)
+void PairTracker::transfer_history(double *source, double *target, int /*itype*/, int /*jtype*/)
 {
   for (int i = 0; i < size_history; i++) target[i] = source[i];
 }

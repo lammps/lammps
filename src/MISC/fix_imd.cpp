@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -159,8 +159,6 @@ static void rebuild_table_tagint(taginthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -190,8 +188,6 @@ void taginthash_init(taginthash_t *tptr, tagint buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(taginthash_node_t **) calloc(tptr->size, sizeof(taginthash_node_t *));
-
-  return;
 }
 
 /*
@@ -579,7 +575,6 @@ FixIMD::~FixIMD()
   imdsock_destroy(localsock);
   clientsock=nullptr;
   localsock=nullptr;
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -595,9 +590,7 @@ int FixIMD::setmask()
 void FixIMD::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
-
-  return;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -757,8 +750,7 @@ void FixIMD::setup(int)
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
-  return;
-}
+  }
 
 /* worker threads for asynchronous i/o */
 #if defined(LAMMPS_ASYNC_IMD)
@@ -1139,15 +1131,13 @@ void FixIMD::post_force(int /*vflag*/)
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
-  return;
-}
+  }
 
 /* ---------------------------------------------------------------------- */
 void FixIMD::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process IMD on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1208,11 +1198,13 @@ void * imdsock_create() {
 
 int imdsock_bind(void * v, int port) {
   auto s = (imdsocket *) v;
-  memset(&(s->addr), 0, sizeof(s->addr));
-  s->addr.sin_family = PF_INET;
-  s->addr.sin_port = htons(port);
+  auto *addr = &(s->addr);
+  s->addrlen = sizeof(s->addr);
+  memset(addr, 0, s->addrlen);
+  addr->sin_family = PF_INET;
+  addr->sin_port = htons(port);
 
-  return bind(s->sd, (struct sockaddr *) &s->addr, sizeof(s->addr));
+  return bind(s->sd, (struct sockaddr *) addr, s->addrlen);
 }
 
 int imdsock_listen(void * v) {
@@ -1223,7 +1215,7 @@ int imdsock_listen(void * v) {
 void *imdsock_accept(void * v) {
   int rc;
   imdsocket *new_s = nullptr, *s = (imdsocket *) v;
-#if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64)
+#if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64) || defined(__sun)
   unsigned int len;
 #define _SOCKLEN_TYPE unsigned int
 #elif defined(SOCKLEN_T)
@@ -1237,7 +1229,7 @@ void *imdsock_accept(void * v) {
   int len;
 #endif
 
-  len = sizeof(s->addr);
+  len = s->addrlen;
   rc = accept(s->sd, (struct sockaddr *) &s->addr, ( _SOCKLEN_TYPE * ) &len);
   if (rc >= 0) {
     new_s = (imdsocket *) malloc(sizeof(imdsocket));

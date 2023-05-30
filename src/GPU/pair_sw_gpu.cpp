@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -114,6 +114,8 @@ void PairSWGPU::compute(int eflag, int vflag)
                    success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,9 +221,11 @@ void PairSWGPU::init_style()
 
   if (gpu_mode == GPU_FORCE)
     neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
-  if (comm->cutghostuser < (2.0 * cutmax + neighbor->skin)) {
+  if (comm->get_comm_cutoff() < (2.0 * cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0 * cutmax + neighbor->skin;
-    if (comm->me == 0) error->warning(FLERR, "Increasing communication cutoff for GPU style");
+    if (comm->me == 0)
+      error->warning(FLERR, "Increasing communication cutoff to {:.8} for GPU pair style",
+                     comm->cutghostuser);
   }
 }
 

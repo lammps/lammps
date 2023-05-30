@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +26,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDebye::PairCoulDebye(LAMMPS *lmp) : PairCoulCut(lmp) {}
+PairCoulDebye::PairCoulDebye(LAMMPS *lmp) : PairCoulCut(lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -176,4 +179,30 @@ double PairCoulDebye::single(int i, int j, int /*itype*/, int /*jtype*/,
 
   phicoul = force->qqrd2e * atom->q[i]*atom->q[j] * rinv * screening;
   return factor_coul*phicoul;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairCoulDebye::born_matrix(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
+                            double factor_coul, double /*factor_lj*/, double &dupair,
+                            double &du2pair)
+{
+  double r, rinv, r2inv, r3inv, screening;
+  double du_coul, du2_coul;
+
+  double *q = atom->q;
+  double qqrd2e = force->qqrd2e;
+
+  r = sqrt(rsq);
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r3inv = r2inv * rinv;
+  screening = exp(-kappa*r);
+
+  // Reminder: qqrd2e converts  q^2/r to energy w/ dielectric constant
+  du_coul = -qqrd2e * q[i] * q[j] * r2inv * (1 + kappa * r) *  screening;
+  du2_coul = qqrd2e * q[i] * q[j] * r3inv * (2 + 2 * kappa * r + kappa * kappa * rsq) * screening;
+
+  dupair = factor_coul * du_coul;
+  du2pair = factor_coul * du2_coul;
 }

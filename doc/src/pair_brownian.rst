@@ -36,7 +36,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius = 1)
+   pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 # (assuming radius = 1)
    pair_coeff 1 1 2.05 2.8
    pair_coeff * *
 

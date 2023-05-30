@@ -60,7 +60,6 @@ namespace Impl {
 
 struct HIPLockArrays {
   std::int32_t* atomic;
-  std::int32_t* scratch;
   std::int32_t n;
 };
 

@@ -9,7 +9,7 @@ import sys,os,subprocess
 import glob
 
 sys.path.append('..')
-from install_helpers import checkmd5sum
+from install_helpers import fullpath, geturl, checkmd5sum, getfallback
 
 # help message
 
@@ -27,19 +27,20 @@ specify -m and optionally -e, order does not matter
 
 Examples:
 
-make lib-poems args="-m serial" # build POEMS lib with same settings as in the serial Makefile in src
-make lib-colvars args="-m mpi"  # build COLVARS lib with same settings as in the mpi Makefile in src
-make lib-meam args="-m ifort"   # build MEAM lib with custom Makefile.ifort (using Intel Fortran)
+make lib-mdi args="-m mpi" # build MDI lib with same settings as in the mpi Makefile in src
 """
 
 # settings
 
-version = "1.3.2"
+version = "1.4.16"
 url = "https://github.com/MolSSI-MDI/MDI_Library/archive/v%s.tar.gz" % version
 
 # known checksums for different MDI versions. used to validate the download.
 checksums = { \
-              '1.3.2' : '836f5da400d8cff0f0e4435640f9454f', \
+              '1.4.11' : '3791fe5081405c14aac07d4687f1cc58', \
+              '1.4.12' : '7a222353ae8e03961d5365e6cd48baee', \
+              '1.4.14' : '7a059bb12535360fdcb7de8402f9a0fc', \
+              '1.4.16' : '407db44e2d79447ab5c1233af1965f65', \
               }
 
 # print error message or help
@@ -51,49 +52,6 @@ def error(str=None):
 
   # expand to full path name
 # process leading '~' or relative path
-
-def fullpath(path):
-  return os.path.abspath(os.path.expanduser(path))
-
-def which(program):
-  def is_exe(fpath):
-    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-  fpath, fname = os.path.split(program)
-  if fpath:
-    if is_exe(program):
-      return program
-  else:
-    for path in os.environ["PATH"].split(os.pathsep):
-      path = path.strip('"')
-      exe_file = os.path.join(path, program)
-      if is_exe(exe_file):
-        return exe_file
-
-  return None
-
-def geturl(url,fname):
-  success = False
-
-  if which('curl') != None:
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling curl failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success and which('wget') != None:
-    cmd = 'wget -O "%s" %s' % (fname,url)
-    try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-      success = True
-    except subprocess.CalledProcessError as e:
-      print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
-
-  if not success:
-    error("Failed to download source code with 'curl' or 'wget'")
-  return
 
 # parse args
 
@@ -124,17 +82,24 @@ lib = os.path.basename(cwd)
 
 # download and unpack MDI_Library tarball
 
-homepath = "."
+homepath = fullpath('.')
 homedir = "%s/MDI_Library" % homepath
 
 print("Downloading MDI_Library ...")
-mditar = "%s/v%s.tar.gz" % (homepath,version)
-geturl(url, mditar)
+mditar = "%s/v%s.tar.gz" % (homepath, version)
+fallback = getfallback('mdi', url)
+try:
+  geturl(url, mditar)
+except:
+  geturl(fallback, mditar)
 
 # verify downloaded archive integrity via md5 checksum, if known.
 if version in checksums:
   if not checkmd5sum(checksums[version], mditar):
-    sys.exit("Checksum for MDI library does not match")
+    print("Checksum did not match. Trying fallback URL", fallback)
+    geturl(fallback, mditar)
+    if not checkmd5sum(checksums[version], mditar):
+      sys.exit("Checksum for MDI library does not match")
 
 print("Unpacking MDI_Library tarball ...")
 if os.path.exists("%s/v%s" % (homepath,version)):
@@ -177,7 +142,7 @@ try:
 except:
   n_cpus = 1
 
-print("Building lib%s.so ..." % lib)
+print("Building lib%s.a ..." % lib)
 cmd = "make -f Makefile.auto clean; make -f Makefile.auto -j%d" % n_cpus
 txt = subprocess.check_output(cmd,shell=True,stderr=subprocess.STDOUT)
 print(txt.decode('UTF-8'))
@@ -200,11 +165,10 @@ makefile_lammps = open(str(dir_path) + "/Makefile.lammps", "a")
 makefile_lammps.write(str(rpath_option) + "\n")
 makefile_lammps.close()
 
-
-shared_files = glob.glob( os.path.join( homepath, "liblink", "lib%s.so*" % lib) )
+shared_files = glob.glob( os.path.join( homepath, "liblink", "lib%s.a" % lib) )
 if len(shared_files) > 0:
   print("Build was successful")
 else:
-  error("Build of lib/%s/lib%s.so was NOT successful" % (lib,lib))
+  error("Build of lib/%s/lib%s.a was NOT successful" % (lib,lib))
 if has_extramake and not os.path.exists("Makefile.lammps"):
   print("lib/%s/Makefile.lammps was NOT created" % lib)

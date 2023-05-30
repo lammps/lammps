@@ -6,7 +6,7 @@ compute pe/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID pe/atom keyword ...
 
@@ -34,20 +34,20 @@ you want the potential energy of the entire system.
 The per-atom energy is calculated by the various pair, bond, etc
 potentials defined for the simulation.  If no extra keywords are
 listed, then the potential energy is the sum of pair, bond, angle,
-dihedral,improper, kspace (long-range), and fix energy.  I.e. it is as
-if all the keywords were listed.  If any extra keywords are listed,
+dihedral, improper, :math:`k`-space (long-range), and fix energy (i.e., it is as
+though all the keywords were listed).  If any extra keywords are listed,
 then only those components are summed to compute the potential energy.
 
 Note that the energy of each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
 
-For an energy contribution produced by a small set of atoms (e.g. 4
+For an energy contribution produced by a small set of atoms (e.g., 4
 atoms in a dihedral or 3 atoms in a Tersoff 3-body interaction), that
-energy is assigned in equal portions to each atom in the set.
-E.g. 1/4 of the dihedral energy to each of the 4 atoms.
+energy is assigned in equal portions to each atom in the set (e.g., 1/4 of the
+dihedral energy to each of the four atoms).
 
 The :doc:`dihedral_style charmm <dihedral_charmm>` style calculates
-pairwise interactions between 1-4 atoms.  The energy contribution of
+pairwise interactions between 1--4 atoms.  The energy contribution of
 these terms is included in the pair energy, not the dihedral energy.
 
 The KSpace contribution is calculated using the method in
@@ -81,8 +81,9 @@ in the last 2 columns of thermo output:
 .. note::
 
    The per-atom energy does not include any Lennard-Jones tail
-   corrections to the energy added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the
-   global system energy.
+   corrections to the energy added by the
+   :doc:`pair_modify tail yes <pair_modify>` command, since those are
+   contributions to the global system energy.
 
 Output info
 """""""""""

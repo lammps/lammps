@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,7 +50,6 @@ class NeighborKokkos : public Neighbor {
 
   DAT::tdual_int_1d k_ex1_type,k_ex2_type;
   DAT::tdual_int_2d k_ex_type;
-  DAT::tdual_int_1d k_ex1_group,k_ex2_group;
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
@@ -95,16 +94,3 @@ class NeighborKokkos : public Neighbor {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: KOKKOS package only supports 'bin' neighbor lists
-
-Self-explanatory.
-
-E: Too many local+ghost atoms for neighbor list
-
-The number of nlocal + nghost atoms on a processor
-is limited by the size of a 32-bit integer with 2 bits
-removed for masking 1-2, 1-3, 1-4 neighbors.
-
-*/

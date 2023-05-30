@@ -11,7 +11,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,23 +38,14 @@
 #include "universe.h"
 #include "update.h"
 
-#include "colvarproxy_lammps.h"
-#include "colvarmodule.h"
-
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <vector>
 
-static const char colvars_pub[] =
-  "fix colvars command:\n\n"
-  "@Article{fiorin13,\n"
-  " author =  {G.~Fiorin and M.{\\,}L.~Klein and J.~H{\\'e}nin},\n"
-  " title =   {Using collective variables to drive molecular"
-  " dynamics simulations},\n"
-  " journal = {Mol.~Phys.},\n"
-  " year =    2013,\n"
-  " note =    {doi: 10.1080/00268976.2013.813594}\n"
-  "}\n\n";
+#include "colvarproxy_lammps.h"
+#include "colvarmodule.h"
+
 
 /* struct for packed data communication of coordinates and forces. */
 struct LAMMPS_NS::commdata {
@@ -144,8 +135,6 @@ static void rebuild_table_int(inthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -175,8 +164,6 @@ void inthash_init(inthash_t *tptr, int buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(inthash_node_t **) calloc(tptr->size, sizeof(inthash_node_t *));
-
-  return;
 }
 
 /*
@@ -337,7 +324,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   if (!out_name) out_name = utils::strdup("out");
 
   /* initialize various state variables. */
-  tstat_id = -1;
+  tstat_fix = nullptr;
   energy = 0.0;
   nlevels_respa = 0;
   init_flag = 0;
@@ -349,8 +336,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   /* storage required to communicate a single coordinate or force. */
   size_one = sizeof(struct commdata);
-
-  if (lmp->citeme) lmp->citeme->add(colvars_pub);
 }
 
 /*********************************
@@ -447,17 +432,20 @@ void FixColvars::one_time_init()
     double t_target = 0.0;
     if (tmp_name) {
       if (strcmp(tmp_name,"NULL") == 0) {
-        tstat_id = -1;
+        tstat_fix = nullptr;
       } else {
-        tstat_id = modify->find_fix(tmp_name);
-        if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
-        double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
+        tstat_fix = modify->get_fix_by_id(tmp_name);
+        if (!tstat_fix) error->one(FLERR, "Could not find thermostat fix ID {}", tmp_name);
+        double *tt = (double*) tstat_fix->extract("t_target", tmp);
         if (tt) t_target = *tt;
+        else error->one(FLERR, "Fix ID {} is not a thermostat fix", tmp_name);
       }
     }
 
     proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target,root2root);
-    proxy->init(conf_file);
+    proxy->init();
+    proxy->add_config("configfile", conf_file);
+    proxy->parse_module_config();
 
     num_coords = (proxy->modify_atom_positions()->size());
   }
@@ -690,17 +678,17 @@ void FixColvars::post_force(int /*vflag*/)
     if (proxy->want_exit())
       error->one(FLERR,"Run aborted on request from colvars module.\n");
 
-    if (tstat_id < 0) {
-      proxy->set_temperature(0.0);
+    if (!tstat_fix) {
+      proxy->set_target_temperature(0.0);
     } else {
       int tmp;
       // get thermostat target temperature from corresponding fix,
       // if the fix supports extraction.
-      double *tt = (double *) modify->fix[tstat_id]->extract("t_target",tmp);
+      double *tt = (double *) tstat_fix->extract("t_target", tmp);
       if (tt)
-        proxy->set_temperature(*tt);
+        proxy->set_target_temperature(*tt);
       else
-        proxy->set_temperature(0.0);
+        proxy->set_target_temperature(0.0);
     }
   }
 
@@ -858,7 +846,6 @@ void FixColvars::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   /* only process colvar forces on the outmost RESPA level. */
   if (ilevel == nlevels_respa-1) post_force(vflag);
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -950,7 +937,7 @@ void FixColvars::end_of_step()
 void FixColvars::write_restart(FILE *fp)
 {
   if (me == 0) {
-    std::string rest_text("");
+    std::string rest_text;
     proxy->serialize_status(rest_text);
     // TODO call write_output_files()
     const char *cvm_state = rest_text.c_str();
@@ -978,6 +965,9 @@ void FixColvars::post_run()
 {
   if (me == 0) {
     proxy->post_run();
+    if (lmp->citeme) {
+      lmp->citeme->add(proxy->colvars->feature_report(1));
+    }
   }
 }
 

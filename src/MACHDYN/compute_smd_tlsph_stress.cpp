@@ -13,7 +13,7 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS development team: developers@lammps.org
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 /*
  * deviator of a tensor
  */
-static Matrix3d Deviator(Matrix3d M) {
+static Matrix3d Deviator(const Matrix3d& M) {
         Matrix3d eye;
         eye.setIdentity();
         eye *= M.trace() / 3.0;

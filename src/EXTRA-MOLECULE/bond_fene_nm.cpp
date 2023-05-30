@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,7 +28,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp), nn(nullptr), mm(nullptr) {}
+BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp), nn(nullptr), mm(nullptr)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,7 +92,7 @@ void BondFENENM::compute(int eflag, int vflag)
 
     fbond = -k[type] / rlogarg;
     // force from n-m term
-    if (rsq < sigma[type]*sigma[type]) {
+    if (rsq < sigma[type] * sigma[type]) {
       r = sqrt(rsq);
       fbond += epsilon[type] * (nn[type] * mm[type] / (nn[type] - mm[type])) *
           (pow(sigma[type] / r, nn[type]) - pow(sigma[type] / r, mm[type])) / rsq;
@@ -99,7 +102,7 @@ void BondFENENM::compute(int eflag, int vflag)
 
     if (eflag) {
       ebond = -0.5 * k[type] * r0sq * log(rlogarg);
-      if (rsq < sigma[type]*sigma[type])
+      if (rsq < sigma[type] * sigma[type])
         ebond += (epsilon[type] / (nn[type] - mm[type])) *
             (mm[type] * pow(sigma[type] / r, nn[type]) - nn[type] * pow(sigma[type] / r, mm[type]));
     }
@@ -257,7 +260,7 @@ double BondFENENM::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   double eng = -0.5 * k[type] * r0sq * log(rlogarg);
   fforce = -k[type] / rlogarg;
 
-  if (rsq < sigma[type]*sigma[type]) {
+  if (rsq < sigma[type] * sigma[type]) {
     r = sqrt(rsq);
     fforce += epsilon[type] * (nn[type] * mm[type] / (nn[type] - mm[type])) *
         (pow(sigma[type] / r, nn[type]) - pow(sigma[type] / r, mm[type])) / rsq;
@@ -270,10 +273,31 @@ double BondFENENM::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
 
 /* ---------------------------------------------------------------------- */
 
+void BondFENENM::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double r0sq = r0[type] * r0[type];
+  double rlogarg = 1.0 - rsq / r0sq;
+
+  // Contribution from the attractive term
+  du = k[type] * r / rlogarg;
+  du2 = k[type] * (1.0 + rsq / r0sq) / (rlogarg * rlogarg);
+
+  // Contribution from the repulsive Lennard-Jones term
+  if (rsq < sigma[type] * sigma[type]) {
+    double prefactor = epsilon[type] * nn[type] * mm[type] / (nn[type] - mm[type]);
+    du += prefactor * (pow(sigma[type] / r, mm[type]) - pow(sigma[type] / r, nn[type])) / r;
+    du2 += prefactor * ((nn[type] + 1.0) * pow(sigma[type] / r, nn[type]) -
+                    (mm[type] + 1.0) * pow(sigma[type] / r, mm[type])) / rsq;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void *BondFENENM::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str, "kappa") == 0) return (void *) k;
+  if (strcmp(str, "k") == 0) return (void *) k;
   if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

@@ -1,16 +1,43 @@
 .. index:: min_style
 
-min_style command
-=================
+min_style cg command
+====================
+
+min_style hftn command
+======================
+
+min_style sd command
+====================
+
+min_style quickmin command
+==========================
+
+min_style fire command
+======================
+
+:doc:`min_style spin <min_spin>` command
+========================================
+
+:doc:`min_style spin/cg <min_spin>` command
+===========================================
+
+:doc:`min_style spin/lbfgs <min_spin>` command
+==============================================
 
 Syntax
 """"""
 
-.. code-block:: LAMMPS
+.. parsed-literal::
 
    min_style style
 
-* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *fire/old* or *spin* or *spin/cg* or *spin/lbfgs*
+* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *spin* or *spin/cg* or *spin/lbfgs*
+
+  .. parsed-literal::
+
+       *spin* is discussed briefly here and fully on :doc:`min_style spin <min_spin>` doc page
+       *spin/cg* is discussed briefly here and fully on :doc:`min_style spin <min_spin>` doc page
+       *spin/lbfgs* is discussed briefly here and fully on :doc:`min_style spin <min_spin>` doc page
 
 Examples
 """"""""
@@ -18,8 +45,8 @@ Examples
 .. code-block:: LAMMPS
 
    min_style cg
-   min_style spin
    min_style fire
+   min_style spin
 
 Description
 """""""""""
@@ -61,23 +88,12 @@ by this style, at the beginning of a minimization.
 Style *fire* is a damped dynamics method described in :ref:`(Bitzek)
 <Bitzek>`, which is similar to *quickmin* but adds a variable timestep
 and alters the projection operation to maintain components of the
-velocity non-parallel to the current force vector.  The velocity of
-each atom is initialized to 0.0 by this style, at the beginning of a
-minimization. This style correspond to an optimized version described
+velocity non-parallel to the current force vector.  The velocity of each
+atom is initialized to 0.0 by this style, at the beginning of a
+minimization.  This style correspond to an optimized version described
 in :ref:`(Guenole) <Guenole>` that include different time integration
-schemes and defaults parameters. The default parameters can be
-modified with the command :doc:`min_modify <min_modify>`.
-
-Style *fire/old* is the original implementation of *fire* in Lammps,
-conserved for backward compatibility. The main differences regarding
-the current version *fire* are: time integration by Explicit Euler
-only, different sequence in maintaining velocity components non-parallel
-to the current force vector and hard-coded minimization parameters.
-A complete description of the differences between *fire/old* and *fire*
-can be found in :ref:`(Guenole) <Guenole>` (where the current *fire*
-in LAMMPS is called *fire2.0*). By using an appropriate set of
-parameters, *fire* can behave similar to *fire/old*, as described
-in the :doc:`min_modify <min_modify>` command.
+schemes and default parameters.  The default parameters can be modified
+with the command :doc:`min_modify <min_modify>`.
 
 Style *spin* is a damped spin dynamics with an adaptive timestep.
 
@@ -91,13 +107,12 @@ to minimize spin configurations.
 See the :doc:`min/spin <min_spin>` page for more information about
 the *spin*, *spin/cg* and *spin/lbfgs* styles.
 
-Either the *quickmin*, *fire* and *fire/old* styles are useful in the
-context of nudged elastic band (NEB) calculations via the :doc:`neb
-<neb>` command.
+Either the *quickmin* or the *fire* styles are useful in the context of
+nudged elastic band (NEB) calculations via the :doc:`neb <neb>` command.
 
-Either the *spin*, *spin/cg* and *spin/lbfgs* styles are useful in
-the context of magnetic geodesic nudged elastic band (GNEB)
-calculations via the :doc:`neb/spin <neb_spin>` command.
+Either the *spin*, *spin/cg*, or *spin/lbfgs* styles are useful in the
+context of magnetic geodesic nudged elastic band (GNEB) calculations via
+the :doc:`neb/spin <neb_spin>` command.
 
 .. note::
 
@@ -110,7 +125,7 @@ calculations via the :doc:`neb/spin <neb_spin>` command.
 
 .. note::
 
-   The *quickmin*, *fire*, *fire/old*, *hftn*, and *cg/kk* styles do not yet
+   The *quickmin*, *fire*, *hftn*, and *cg/kk* styles do not yet
    support the use of the :doc:`fix box/relax <fix_box_relax>` command
    or minimizations involving the electron radius in :doc:`eFF
    <pair_eff>` models.
@@ -124,7 +139,9 @@ calculations via the :doc:`neb/spin <neb_spin>` command.
 Restrictions
 """"""""""""
 
-none
+The *spin*, *spin/cg*, and *spin/lbfgps* styles are part of the SPIN
+package.  They are only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

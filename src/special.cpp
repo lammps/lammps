@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,7 +35,7 @@ Special::Special(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  onetwo = onethree = onefour = nullptr;
+  onetwo = onethree = onefour = onefive = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -45,12 +45,13 @@ Special::~Special()
   memory->destroy(onetwo);
   memory->destroy(onethree);
   memory->destroy(onefour);
+  memory->destroy(onefive);
 }
 
 /* ----------------------------------------------------------------------
-   create 1-2, 1-3, 1-4 lists of topology neighbors
-   store in onetwo, onethree, onefour for each atom
-   store 3 counters in nspecial[i]
+   create 1-2, 1-3, 1-4 lists of topology neighbors, 1-5 list is optional
+   store in onetwo, onethree, onefour, onefive for each atom
+   store first 3 counters in nspecial[i], and 4th in nspecial15[i]
 ------------------------------------------------------------------------- */
 
 void Special::build()
@@ -69,15 +70,24 @@ void Special::build()
     utils::logmesg(lmp,mesg);
   }
 
+  // set onefive_flag if special_bonds command set it
+
+  onefive_flag = force->special_onefive;
+
   // initialize nspecial counters to 0
 
   int **nspecial = atom->nspecial;
+  int *nspecial15 = atom->nspecial15;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
     nspecial[i][0] = 0;
     nspecial[i][1] = 0;
     nspecial[i][2] = 0;
+  }
+
+  if (onefive_flag) {
+    for (int i = 0; i < nlocal; i++) nspecial15[i] = 0;
   }
 
   // setup atomIDs and procowner vectors in rendezvous decomposition
@@ -96,8 +106,10 @@ void Special::build()
     utils::logmesg(lmp,"{:>6} = max # of 1-2 neighbors\n",maxall);
 
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
+  // onefive_flag must also be off, else 1-4 is needed to create 1-5
 
-  if (force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
+  if (!onefive_flag &&
+      force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
     combine();
@@ -119,8 +131,10 @@ void Special::build()
     utils::logmesg(lmp,"{:>6} = max # of 1-3 neighbors\n",maxall);
 
   // done if special_bond weights for 1-4 are set to 1.0
+  // onefive_flag must also be off, else 1-4 is needed to create 1-5
 
-  if (force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
+  if (!onefive_flag &&
+      force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
     if (force->special_angle) angle_trim();
     combine();
@@ -141,7 +155,17 @@ void Special::build()
   if (me == 0)
     utils::logmesg(lmp,"{:>6} = max # of 1-4 neighbors\n",maxall);
 
-  // finish processing the onetwo, onethree, onefour lists
+  // optionally store 1-5 neighbors
+  // tally nspecial15[i] = # of 1-5 neighbors of atom i
+  // create onefive[i] = list of 1-5 neighbors for atom i
+
+  if (onefive_flag) {
+    onefive_build();
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-5 neighbors\n",maxall));
+  }
+
+  // finish processing the onetwo, onethree, onefour, onefive lists
 
   dedup();
   if (force->special_angle) angle_trim();
@@ -150,7 +174,6 @@ void Special::build()
   fix_alteration();
   memory->destroy(procowner);
   memory->destroy(atomIDs);
-
   timer_output(time1);
 }
 
@@ -446,7 +469,7 @@ void Special::onefour_build()
   // setup input buf to rendezvous comm
   // datums = pairs of onethree and onetwo partners where onethree is unknown
   //          these pairs are onefour neighbors
-  //          datum = onetwo ID, onetwo ID
+  //          datum = onethree ID, onetwo ID
   // owning proc for each datum = onethree ID % nprocs
 
   nsend = 0;
@@ -518,7 +541,112 @@ void Special::onefour_build()
 }
 
 /* ----------------------------------------------------------------------
+   optional onefive build
+   uses rendezvous comm
+------------------------------------------------------------------------- */
+
+void Special::onefive_build()
+{
+  int i,j,k,m,proc;
+
+  int **nspecial = atom->nspecial;
+  int *nspecial15 = atom->nspecial15;
+  int nlocal = atom->nlocal;
+
+  // nsend = # of my datums to send
+
+  int nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < nspecial[i][2]; j++) {
+      m = atom->map(onefour[i][j]);
+      if (m < 0 || m >= nlocal) nsend += nspecial[i][0];
+    }
+  }
+
+  int *proclist;
+  memory->create(proclist,nsend,"special:proclist");
+  PairRvous *inbuf = (PairRvous *)
+    memory->smalloc((bigint) nsend*sizeof(PairRvous),"special:inbuf");
+
+  // setup input buf to rendezvous comm
+  // datums = pairs of onefour and onetwo partners where onefour is unknown
+  //          these pairs are onefive neighbors
+  //          datum = onefour ID, onetwo ID
+  // owning proc for each datum = onefour ID % nprocs
+
+  nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < nspecial[i][2]; j++) {
+      m = atom->map(onefour[i][j]);
+      if (m >= 0 && m < nlocal) continue;
+      proc = onefour[i][j] % nprocs;
+      for (k = 0; k < nspecial[i][0]; k++) {
+        proclist[nsend] = proc;
+        inbuf[nsend].atomID = onefour[i][j];
+        inbuf[nsend].partnerID = onetwo[i][k];
+        nsend++;
+      }
+    }
+  }
+
+  // perform rendezvous operation
+
+  char *buf;
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
+                                 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
+                                 (void *) this);
+  PairRvous *outbuf = (PairRvous *) buf;
+
+  memory->destroy(proclist);
+  memory->sfree(inbuf);
+
+  // set nspecial15 and onefive for all owned atoms
+  // based on owned info plus rendezvous output info
+  // output datums = pairs of atoms that are 1-5 neighbors
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < nspecial[i][2]; j++) {
+      m = atom->map(onefour[i][j]);
+      if (m >= 0 && m < nlocal) nspecial15[m] += nspecial[i][0];
+    }
+  }
+
+  for (m = 0; m < nreturn; m++) {
+    i = atom->map(outbuf[m].atomID);
+    nspecial15[i]++;
+  }
+
+  int max = 0;
+  for (i = 0; i < nlocal; i++)
+    max = MAX(max,nspecial15[i]);
+
+  MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+  memory->create(onefive,nlocal,maxall,"special:onefive");
+
+  for (i = 0; i < nlocal; i++) nspecial15[i] = 0;
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < nspecial[i][2]; j++) {
+      m = atom->map(onefour[i][j]);
+      if (m < 0 || m >= nlocal) continue;
+      for (k = 0; k < nspecial[i][0]; k++) {
+        onefive[m][nspecial15[m]++] = onetwo[i][k];
+      }
+    }
+  }
+
+  for (m = 0; m < nreturn; m++) {
+    i = atom->map(outbuf[m].atomID);
+    onefive[i][nspecial15[i]++] = outbuf[m].partnerID;
+  }
+
+  memory->sfree(outbuf);
+}
+
+/* ----------------------------------------------------------------------
    remove duplicates within each of onetwo, onethree, onefour individually
+   also dedup onefive if enabled
 ------------------------------------------------------------------------- */
 
 void Special::dedup()
@@ -532,14 +660,17 @@ void Special::dedup()
 
   // use map to cull duplicates
   // exclude original atom explicitly
-  // adjust onetwo, onethree, onefour values to reflect removed duplicates
+  // adjust onetwo, onethree, onefour, onefive values to remove duplicates
   // must unset map for each atom
 
   int **nspecial = atom->nspecial;
+  int *nspecial15 = atom->nspecial15;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int unique;
+
+  // dedup onetwo
 
   for (i = 0; i < nlocal; i++) {
     unique = 0;
@@ -556,6 +687,8 @@ void Special::dedup()
     for (j = 0; j < unique; j++) atom->map_one(onetwo[i][j],-1);
   }
 
+  // dedup onethree
+
   for (i = 0; i < nlocal; i++) {
     unique = 0;
     atom->map_one(tag[i],0);
@@ -570,6 +703,8 @@ void Special::dedup()
     atom->map_one(tag[i],-1);
     for (j = 0; j < unique; j++) atom->map_one(onethree[i][j],-1);
   }
+
+  // dedup onefour
 
   for (i = 0; i < nlocal; i++) {
     unique = 0;
@@ -586,6 +721,25 @@ void Special::dedup()
     for (j = 0; j < unique; j++) atom->map_one(onefour[i][j],-1);
   }
 
+  // dedup onefive
+
+  if (onefive_flag) {
+    for (i = 0; i < nlocal; i++) {
+      unique = 0;
+      atom->map_one(tag[i],0);
+      for (j = 0; j < nspecial15[i]; j++) {
+        m = onefive[i][j];
+        if (atom->map(m) < 0) {
+          onefive[i][unique++] = m;
+          atom->map_one(m,0);
+        }
+      }
+      nspecial15[i] = unique;
+      atom->map_one(tag[i],-1);
+      for (j = 0; j < unique; j++) atom->map_one(onefive[i][j],-1);
+    }
+  }
+
   // re-create map
 
   atom->map_init(0);
@@ -597,6 +751,7 @@ void Special::dedup()
    concatenate onetwo, onethree, onefour into master atom->special list
    remove duplicates between 3 lists, leave dup in first list it appears in
    convert nspecial[0], nspecial[1], nspecial[2] into cumulative counters
+   if 1-5 is enabled, reset nspecial15/special15 to remove dups with 1-2,1-3,1-4
 ------------------------------------------------------------------------- */
 
 void Special::combine()
@@ -608,6 +763,7 @@ void Special::combine()
   MPI_Comm_rank(world,&me);
 
   int **nspecial = atom->nspecial;
+  int *nspecial15 = atom->nspecial15;
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
@@ -620,12 +776,14 @@ void Special::combine()
   atom->map_clear();
 
   // unique = # of unique nspecial neighbors of one atom
+  // unique15 = ditto for 1-5 interactions
   // cull duplicates using map to check for them
   // exclude original atom explicitly
   // must unset map for each atom
 
-  int unique;
+  int unique,unique15;
   int maxspecial = 0;
+  int maxspecial15 = 0;
 
   for (i = 0; i < nlocal; i++) {
     unique = 0;
@@ -655,15 +813,30 @@ void Special::combine()
 
     maxspecial = MAX(maxspecial,unique);
 
+    if (onefive_flag) {
+      unique15 = 0;
+      for (j = 0; j < nspecial15[i]; j++) {
+        m = onefive[i][j];
+        if (atom->map(m) < 0) {
+          unique15++;
+          atom->map_one(m,0);
+        }
+      }
+      maxspecial15 = MAX(maxspecial15,unique15);
+    }
+
     atom->map_one(tag[i],-1);
     for (j = 0; j < nspecial[i][0]; j++) atom->map_one(onetwo[i][j],-1);
     for (j = 0; j < nspecial[i][1]; j++) atom->map_one(onethree[i][j],-1);
     for (j = 0; j < nspecial[i][2]; j++) atom->map_one(onefour[i][j],-1);
+    if (onefive_flag)
+      for (j = 0; j < nspecial15[i]; j++) atom->map_one(onefive[i][j],-1);
   }
 
-  // if atom->maxspecial has been updated before, make certain
-  // we do not reset it to a smaller value. Since atom->maxspecial
-  // is initialized to 1, this ensures that it is larger than zero.
+  // if atom->maxspecial has been updated before,
+  //   make certain it is not reset to a smaller value
+  // since atom->maxspecial is initialized to 1,
+  //   this ensures that it stays larger than zero
 
   maxspecial = MAX(atom->maxspecial,maxspecial);
 
@@ -684,10 +857,10 @@ void Special::combine()
     utils::logmesg(lmp,"{:>6} = max # of special neighbors\n",atom->maxspecial);
 
   if (lmp->kokkos) {
-    auto  atomKK = dynamic_cast<AtomKokkos*>( atom);
+    auto  atomKK = dynamic_cast<AtomKokkos*>(atom);
     atomKK->modified(Host,SPECIAL_MASK);
     atomKK->sync(Device,SPECIAL_MASK);
-    auto  memoryKK = dynamic_cast<MemoryKokkos*>( memory);
+    auto  memoryKK = dynamic_cast<MemoryKokkos*>(memory);
     memoryKK->grow_kokkos(atomKK->k_special,atom->special,
                         atom->nmax,atom->maxspecial,"atom:special");
     atomKK->modified(Device,SPECIAL_MASK);
@@ -698,11 +871,22 @@ void Special::combine()
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   }
 
-  tagint **special = atom->special;
+  // if 1-5 is enabled, similarly compute global maxspecial15 and reallocate
+
+  if (onefive_flag) {
+    maxspecial15 = MAX(atom->maxspecial15,maxspecial15);
+    MPI_Allreduce(&maxspecial15,&atom->maxspecial15,1,MPI_INT,MPI_MAX,world);
+    memory->destroy(atom->special15);
+    memory->create(atom->special15,atom->nmax,atom->maxspecial15,"atom:special15");
+  }
 
   // ----------------------------------------------------
   // fill special array with 1-2, 1-3, 1-4 neighs for each atom
+  // optionally fill special15 array with 1-5 neighs
   // ----------------------------------------------------
+
+  tagint **special = atom->special;
+  tagint **special15 = atom->special15;
 
   // again use map to cull duplicates
   // exclude original atom explicitly
@@ -740,8 +924,22 @@ void Special::combine()
     }
     nspecial[i][2] = unique;
 
+    if (onefive_flag) {
+      unique15 = 0;
+      for (j = 0; j < nspecial15[i]; j++) {
+        m = onefive[i][j];
+        if (atom->map(m) < 0) {
+          special15[i][unique15++] = m;
+          atom->map_one(m,0);
+        }
+      }
+      nspecial15[i] = unique15;
+    }
+
     atom->map_one(tag[i],-1);
     for (j = 0; j < nspecial[i][2]; j++) atom->map_one(special[i][j],-1);
+    if (onefive_flag)
+      for (j = 0; j < nspecial15[i]; j++) atom->map_one(special15[i][j],-1);
   }
 
   // re-create map

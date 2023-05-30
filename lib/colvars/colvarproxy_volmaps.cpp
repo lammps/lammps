@@ -33,7 +33,7 @@ int colvarproxy_volmaps::reset()
     clear_volmap(i);
   }
   volmaps_ids.clear();
-  volmaps_ncopies.clear();
+  volmaps_refcount.clear();
   volmaps_values.clear();
   volmaps_new_colvar_forces.clear();
   return COLVARS_OK;
@@ -43,7 +43,7 @@ int colvarproxy_volmaps::reset()
 int colvarproxy_volmaps::add_volmap_slot(int volmap_id)
 {
   volmaps_ids.push_back(volmap_id);
-  volmaps_ncopies.push_back(1);
+  volmaps_refcount.push_back(1);
   volmaps_values.push_back(0.0);
   volmaps_new_colvar_forces.push_back(0.0);
   return (volmaps_ids.size() - 1);
@@ -64,13 +64,13 @@ int colvarproxy_volmaps::check_volmap_by_name(const char * /* volmap_name */)
 }
 
 
-int colvarproxy_volmaps::init_volmap_by_name(char const *volmap_name)
+int colvarproxy_volmaps::init_volmap_by_name(char const * /* volmap_name */)
 {
   return -1;
 }
 
 
-int colvarproxy_volmaps::init_volmap_by_id(int volmap_id)
+int colvarproxy_volmaps::init_volmap_by_id(int /* volmap_id */)
 {
   return -1;
 }
@@ -92,11 +92,11 @@ void colvarproxy_volmaps::clear_volmap(int index)
 {
   if (((size_t) index) >= volmaps_ids.size()) {
     cvm::error("Error: trying to unrequest a volumetric map that was not "
-               "previously requested.\n", INPUT_ERROR);
+               "previously requested.\n", COLVARS_INPUT_ERROR);
   }
 
-  if (volmaps_ncopies[index] > 0) {
-    volmaps_ncopies[index] -= 1;
+  if (volmaps_refcount[index] > 0) {
+    volmaps_refcount[index] -= 1;
   }
 }
 

@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,8 +17,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin3dTri::NStencilHalfBin3dTri(LAMMPS *lmp) :
-  NStencil(lmp) {}
+NStencilHalfBin3dTri::NStencilHalfBin3dTri(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
@@ -27,13 +25,13 @@ NStencilHalfBin3dTri::NStencilHalfBin3dTri(LAMMPS *lmp) :
 
 void NStencilHalfBin3dTri::create()
 {
-  int i,j,k;
+  int i, j, k;
 
   nstencil = 0;
 
   for (k = 0; k <= sz; k++)
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)
-        if (bin_distance(i,j,k) < cutneighmaxsq)
-          stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+        if (bin_distance(i, j, k) < cutneighmaxsq)
+          stencil[nstencil++] = k * mbiny * mbinx + j * mbinx + i;
 }

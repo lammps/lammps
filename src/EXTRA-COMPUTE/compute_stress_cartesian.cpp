@@ -232,11 +232,23 @@ void ComputeStressCartesian::compute_array()
 {
   double **x = atom->x;
   double **v = atom->v;
+  double *mass = atom->mass;
   tagint *tag = atom->tag;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
   double *boxlo = domain->boxlo;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
+
+  int inum = list->inum;
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
 
   // Zero arrays
   for (int bin = 0; bin < nbins1 * nbins2; bin++) {
@@ -250,7 +262,7 @@ void ComputeStressCartesian::compute_array()
   }
 
   // calculate number density and kinetic contribution to pressure
-  for (int i = 0; i < atom->nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     int bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
     int bin2 = 0;
     if (dims == 2) bin2 = (int) ((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
@@ -278,31 +290,31 @@ void ComputeStressCartesian::compute_array()
 
     int j = bin1 + bin2 * nbins1;
     tdens[j] += 1;
-    tpkxx[j] += atom->mass[atom->type[i]] * v[i][0] * v[i][0];
-    tpkyy[j] += atom->mass[atom->type[i]] * v[i][1] * v[i][1];
-    tpkzz[j] += atom->mass[atom->type[i]] * v[i][2] * v[i][2];
+    tpkxx[j] += mass[type[i]] * v[i][0] * v[i][0];
+    tpkyy[j] += mass[type[i]] * v[i][1] * v[i][1];
+    tpkzz[j] += mass[type[i]] * v[i][2] * v[i][2];
   }
 
   // loop over neighbors of my atoms
-  for (int ii = 0; ii < list->inum; ii++) {
-    int i = list->ilist[ii];
+  for (int ii = 0; ii < inum; ii++) {
+    int i = ilist[ii];
 
     // skip if I or J are not in group
-    if (!(atom->mask[i] & groupbit)) continue;
+    if (!(mask[i] & groupbit)) continue;
 
     double xi1 = x[i][dir1] - boxlo[dir1];
     double xi2 = x[i][dir2] - boxlo[dir2];
 
-    for (int jj = 0; jj < list->numneigh[i]; jj++) {
-      int j = list->firstneigh[i][jj];
-      double factor_lj = force->special_lj[sbmask(j)];
-      double factor_coul = force->special_coul[sbmask(j)];
+    for (int jj = 0; jj < numneigh[i]; jj++) {
+      int j = firstneigh[i][jj];
+      double factor_lj = special_lj[sbmask(j)];
+      double factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
-      if (!(atom->mask[j] & groupbit)) continue;
+      if (!(mask[j] & groupbit)) continue;
 
       // for newton = 0 and J = ghost atom, need to ensure I,J pair is only output by one proc
       // use same tag[i],tag[j] logic as in Neighbor::neigh_half_nsq()
-      if (force->newton_pair == 0 && j >= atom->nlocal) {
+      if (newton_pair == 0 && j >= nlocal) {
         if (tag[i] > tag[j]) {
           if ((tag[i] + tag[j]) % 2 == 0) continue;
         } else if (tag[i] < tag[j]) {
@@ -323,8 +335,8 @@ void ComputeStressCartesian::compute_array()
       double rsq = delx * delx + dely * dely + delz * delz;
 
       // Check if inside cut-off
-      int itype = atom->type[i];
-      int jtype = atom->type[j];
+      int itype = type[i];
+      int jtype = type[j];
       if (rsq >= force->pair->cutsq[itype][jtype]) continue;
 
       double fpair;
@@ -338,14 +350,14 @@ void ComputeStressCartesian::compute_array()
     // i == atom1, j == atom2
     int i = neighbor->bondlist[i_bond][0];
     int j = neighbor->bondlist[i_bond][1];
-    int type  = neighbor->bondlist[i_bond][2];
+    int btype  = neighbor->bondlist[i_bond][2];
 
     // Skip if one of both atoms is not in group
-    if (!(atom->mask[i] & groupbit)) continue;
-    if (!(atom->mask[j] & groupbit)) continue;
+    if (!(mask[i] & groupbit)) continue;
+    if (!(mask[j] & groupbit)) continue;
 
     // if newton_bond is off and atom2 is a ghost atom, only compute this on one processor
-    if (!force->newton_bond && j >= atom->nlocal) {
+    if (!force->newton_bond && j >= nlocal) {
       if (tag[i] > tag[j]) {
         if ((tag[i] + tag[j]) % 2 == 0) continue;
       } else if (tag[i] < tag[j]) {
@@ -361,7 +373,7 @@ void ComputeStressCartesian::compute_array()
     double yi = x[i][dir2] - boxlo[dir2];
 
     double fbond;
-    force->bond->single(type, rsq, i, j, fbond);
+    force->bond->single(btype, rsq, i, j, fbond);
     compute_pressure(fbond, xi, yi, dx, dy, dz);
   }
 

@@ -71,7 +71,7 @@ class FixElectrodeConp : public Fix {
 
  protected:
   enum class Algo { MATRIX_INV, MATRIX_CG, CG };
-  enum class VarStyle { CONST, EQUAL };
+  enum class VarStyle { CONST, EQUAL, UNSET };
   virtual void update_psi();
   virtual void pre_update(){};
   virtual void recompute_potential(std::vector<double>, std::vector<double>){};
@@ -80,6 +80,7 @@ class FixElectrodeConp : public Fix {
   virtual void compute_macro_matrices();
   std::vector<double> ele_ele_interaction(const std::vector<double> &);
   std::vector<double> group_psi;
+  std::vector<double> group_psi_const;    // needed to undo qtotal psi updates
   std::vector<int> group_bits;
   std::vector<int> groups;
   int num_of_groups;
@@ -101,6 +102,10 @@ class FixElectrodeConp : public Fix {
   std::string fixname;    // used by electrode/ffield to set up internal efield
   bool intelflag;
   inline virtual void intel_pack_buffers() {}
+  double qtotal;
+  std::string qtotal_var_name;
+  int qtotal_var_id;
+  VarStyle qtotal_var_style;
 
  private:
   std::string output_file_inv, output_file_mat, output_file_vec;
@@ -143,6 +148,9 @@ class FixElectrodeConp : public Fix {
   std::vector<double> gather_ngroup(std::vector<double>);
   std::vector<double> gather_elevec_local(ElectrodeVector *);
   void set_charges(std::vector<double>);
+  // qtotal
+  double macro_capacitance_sum;
+  void update_psi_qtotal();
 
   // fix-specific electrode ID storage system:
 

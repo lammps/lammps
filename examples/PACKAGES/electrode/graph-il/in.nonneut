@@ -1,0 +1,31 @@
+# electrodes, overall non-neutral 
+# for graphene-ionic liquid supercapacitor
+
+boundary p p f # slab calculation
+include settings.mod # styles, groups, computes and fixes
+kspace_modify slab 3.0
+
+# make an extra anion
+variable qmodify index 1
+variable vdiff index 1
+# these values can be changed, e.g. ${LAMMPS_EXECUTABLE} -i in.nonneut -var qmodify 0.9 -var vdiff -2
+# fix electrode/* needs equal style variables:
+variable qmodify_equal equal v_qmodify
+variable vdiff_equal equal v_vdiff
+
+create_atoms 4 single 16.1 17.2 0
+set atom 3777 charge $(-v_qmodify)
+
+fix c top electrode/conp v_vdiff_equal 1.979 couple bot 0 etypes on qtotal v_qmodify_equal
+# to test electrode/thermo:
+# variable vbot equal 0
+# fix c top electrode/thermo v_vdiff_equal 1.979 couple bot v_vbot etypes on qtotal v_qmodify_equal temp 310 100 12309 # symm on
+
+variable dv equal f_c[1]-f_c[2]
+
+variable qelec equal c_qbot+c_qtop
+compute qall all reduce sum v_q # total system charge
+
+thermo 50
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop f_c[1] f_c[2] v_dv v_qelec c_qall
+run 500

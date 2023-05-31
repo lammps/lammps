@@ -2130,15 +2130,15 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
   // initialize custom per-atom properties to zero if present
 
   for (int i = 0; i < nivector; ++i)
-    if (ivname[i] != nullptr) ivector[i][ilocal] = 0;
+    if (ivname[i]) ivector[i][ilocal] = 0;
   for (int i = 0; i < ndvector; ++i)
-    if (dvname[i] != nullptr) dvector[i][ilocal] = 0.0;
+    if (dvname[i]) dvector[i][ilocal] = 0.0;
   for (int i = 0; i < niarray; ++i)
-    if (ianame[i] != nullptr)
+    if (ianame[i])
       for (int j = 0; j < icols[i]; ++j)
         iarray[i][ilocal][j] = 0;
   for (int i = 0; i < ndarray; ++i)
-    if (daname[i] != nullptr)
+    if (daname[i])
       for (int j = 0; j < dcols[i]; ++j)
         darray[i][ilocal][j] = 0.0;
 

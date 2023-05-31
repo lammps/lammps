@@ -999,16 +999,14 @@ types, using label maps created by the :doc:`labelmap <labelmap>` or
 :doc:`read_data <read_data>` commands.  The first argument is the label
 map kind (atom, bond, angle, dihedral, or improper) and the second
 argument is the label.  The function returns the corresponding numeric
-type or -1 in case the specified label for the given kind of type does
-not exist.
+type or triggers an error if the queried label does not exist.
 
 .. versionadded:: TBD
 
 The is_typelabel(kind,label) function has the same arguments as
 label2type(), but returns 1 if the type label has been assigned,
 otherwise it returns 0.  This function can be used to check if a
-particular type label already exists in the simulation.  It is
-equivalent to `(label2type(kind,label)!=-1)`.
+particular type label already exists in the simulation.
 
 ----------
 

@@ -58,7 +58,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   virial_global_flag = virial_peratom_flag = 1;
 
   qe2f = force->qe2f;
-  xstr = ystr = zstr = nullptr;
+  xstyle = ystyle = zstyle = estyle = pstyle = NONE;
 
   if (utils::strmatch(arg[3], "^v_")) {
     xstr = utils::strdup(arg[3] + 2);
@@ -112,6 +112,9 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Unknown keyword for fix {} command: {}", style, arg[iarg]);
     }
   }
+
+  if (estr && pstr)
+    error->all(FLERR, "Must not use energy and potential keywords at the same time with fix efield");
 
   force_flag = 0;
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
@@ -174,6 +177,7 @@ void FixEfield::init()
     else
       error->all(FLERR, "Variable {} for x-field in fix {} is invalid style", xstr, style);
   }
+
   if (ystr) {
     yvar = input->variable->find(ystr);
     if (yvar < 0) error->all(FLERR, "Variable {} for y-field in fix {} does not exist", ystr, style);
@@ -184,6 +188,7 @@ void FixEfield::init()
     else
       error->all(FLERR, "Variable {} for y-field in fix {} is invalid style", ystr, style);
   }
+
   if (zstr) {
     zvar = input->variable->find(zstr);
     if (zvar < 0) error->all(FLERR, "Variable {} for z-field in fix {} does not exist", zstr, style);
@@ -194,6 +199,7 @@ void FixEfield::init()
     else
       error->all(FLERR, "Variable {} for z-field in fix {} is invalid style", zstr, style);
   }
+
   if (estr) {
     evar = input->variable->find(estr);
     if (evar < 0) error->all(FLERR, "Variable {} for energy in fix {} does not exist", estr, style);
@@ -201,8 +207,8 @@ void FixEfield::init()
       estyle = ATOM;
     else
       error->all(FLERR, "Variable {} for energy in fix {} must be atom-style", estr, style);
-  } else
-    estyle = NONE;
+  }
+
   if (pstr) {
     pvar = input->variable->find(pstr);
     if (pvar < 0) error->all(FLERR, "Variable {} for potential in fix {} does not exist", pstr, style);
@@ -210,11 +216,7 @@ void FixEfield::init()
       pstyle = ATOM;
     else
       error->all(FLERR, "Variable {} for potential in fix {} must be atom-style", pstr, style);
-    if (estyle != NONE)
-      error->warning(FLERR, "fix {} will ignore variable {} for energy "
-          "because atom-style potential has been specified", estr, style);
-  } else
-    pstyle = NONE;
+  }
 
   // set index and check validity of region
 

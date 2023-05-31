@@ -28,7 +28,7 @@ Syntax
        *energy* value = v_name
          v_name = variable with name that calculates the potential energy of each atom in the added E-field
        *potential* value = v_name
-         v_name = variable with name that calculates the electric potential of each atom in the added E-field (overrides *energy*)
+         v_name = variable with name that calculates the electric potential of each atom in the added E-field
 
 Examples
 """"""""
@@ -136,6 +136,8 @@ due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx\^2.  If you don't do this correctly, the
 minimization will not converge properly.
 
+.. versionadded:: TBD
+
 The *potential* keyword can be used as an alternative to the *energy* keyword
 to specify the name of an atom-style variable, which is used to compute the
 added electric potential to each atom as a function of its position.  The
@@ -144,14 +146,16 @@ in `units real`, the potential should be in volts). As with the *energy*
 keyword, the variable name is specified as "v_name". The energy added by this
 fix is then calculated as the electric potential multiplied by charge.
 
-The *potential* keyword is mainly intended for correct charge equilibration
-in simulations with :doc:`fix qeq/reaxff<fix_qeq_reaxff>`, since with variable
-charges the electric potential can be known beforehand but the energy cannot.
-A small additional benefit is that the *energy* keyword requires an additional
-conversion to energy units which the *potential* keyword avoids. Thus, when the
-*potential* keyword is specified, the *energy* keyword is ignored (the simulation
-will proceed but with a warning issued). As with *energy*, the *potential*
-keyword is not allowed if the added field is a constant vector.
+The *potential* keyword is mainly intended for correct charge
+equilibration in simulations with :doc:`fix qeq/reaxff<fix_qeq_reaxff>`,
+since with variable charges the electric potential can be known
+beforehand but the energy cannot.  A small additional benefit is that
+the *energy* keyword requires an additional conversion to energy units
+which the *potential* keyword avoids.  Thus, when the *potential*
+keyword is specified, the *energy* keyword must not be used.  As with
+*energy*, the *potential* keyword is not allowed if the added field is a
+constant vector.  The *potential* keyword is not supported by *fix
+efield/tip4p*.
 
 ----------
 

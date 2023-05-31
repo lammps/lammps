@@ -224,7 +224,7 @@ void Variable::set(int narg, char **arg)
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
-    } else error->all(FLERR,"Illegal variable loop command: too much arguments");
+    } else error->all(FLERR,"Illegal variable loop command: too many arguments");
     num[nvar] = nlast;
     which[nvar] = nfirst-1;
     data[nvar] = new char*[1];

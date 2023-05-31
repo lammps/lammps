@@ -532,7 +532,7 @@ variables.
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                 |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)                                                                                                                                                             |
+| Special functions  | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)                                                                                                                                   |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Feature functions  | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                               |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -996,13 +996,19 @@ via the link in this paragraph.
 
 The label2type(kind,label) function converts type labels into numeric
 types, using label maps created by the :doc:`labelmap <labelmap>` or
-:doc:`read_data <read_data>` commands.  The first argument is the
-label map kind (atom, bond, angle, dihedral, or improper) and the
-second argument is the label.  The function returns the corresponding
-numeric type.  The is_typelabel(kind,label) function has the same
-arguments, but returns 1 if the type label has been assigned, otherwise
-it returns 0.  This function can be used to check if a particular type
-label already exists in the simulation.
+:doc:`read_data <read_data>` commands.  The first argument is the label
+map kind (atom, bond, angle, dihedral, or improper) and the second
+argument is the label.  The function returns the corresponding numeric
+type or -1 in case the specified label for the given kind of type does
+not exist.
+
+.. versionadded:: TBD
+
+The is_typelabel(kind,label) function has the same arguments as
+label2type(), but returns 1 if the type label has been assigned,
+otherwise it returns 0.  This function can be used to check if a
+particular type label already exists in the simulation.  It is
+equivalent to `(label2type(kind,label)!=-1)`.
 
 ----------
 

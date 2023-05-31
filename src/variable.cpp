@@ -4064,7 +4064,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   if (strcmp(word,"label2type") == 0 || strcmp(word,"is_typelabel") == 0) {
     if (!atom->labelmapflag)
-      print_var_error(FLERR,"Cannot use label2type() or is_typelabel() function without a labelmap",ivar);
+      print_var_error(FLERR,fmt::format("Cannot use {}() function without a labelmap",word),ivar);
 
     std::string contents_copy(contents);
     auto pos = contents_copy.find_first_of(',');
@@ -4093,12 +4093,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else if (kind == "improper") {
       value = atom->lmap->find(typestr,Atom::IMPROPER);
     } else {
-      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() or is_typelabel() in variable",kind),ivar);
+      print_var_error(FLERR, fmt::format("Invalid kind {} in {}() in variable", kind, word),ivar);
     }
 
     if (strcmp(word,"label2type") == 0) {
-      if (value == -1) print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
-                                       kind, typestr), ivar);
+      if (value == -1)
+        print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
+                                           kind, typestr), ivar);
     } else value = (value == -1) ? 0.0 : 1.0;
 
     // save value in tree or on argstack

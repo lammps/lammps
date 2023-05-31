@@ -186,15 +186,11 @@ void ComputeLocalCompositionAtom::compute_peratom()
 
   for (ii = 0; ii < inum; ii++) {
 
-    for (int i = 0; i < ntypes; i++) {
-      lcomp[i] = 0;
-    }
+    for (int i = 0; i < ntypes; i++) lcomp[i] = 0;
 
     i = ilist[ii];
 
     if (mask[i] & groupbit) {
-
-      typeone_i = type[i];
 
       xtmp = x[i][0];
       ytmp = x[i][1];

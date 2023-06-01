@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -471,7 +471,6 @@ inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double fac
   dnhatdn[0][2] = -n[0]*n[2]*cfactor;
   dnhatdn[1][2] = -n[1]*n[2]*cfactor;
   dnhatdn[2][2] = (n[0]*n[0]+n[1]*n[1])*cfactor;
-    
 }
 inline double normalize_factor(double *n)
 {

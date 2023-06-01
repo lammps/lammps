@@ -40,7 +40,7 @@ using namespace InterLayer;
 #define DELTA 4
 #define PGDELTA 1
 
-static const char cite_ilp_water[] = 
+static const char cite_ilp_water[] =
     "ilp/water/2dm potential doi/10.1021/acs.jpcc.2c08464\n"
     "@Article{Feng2023\n"
     " author = {Z. Feng, Y. Yao, J. Liu, B. Wu, Z. Liu, and W. Ouyang},\n"

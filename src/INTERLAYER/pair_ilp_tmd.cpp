@@ -488,11 +488,11 @@ void PairILPTMD::calc_normal()
           jH2 = atom->map(tag[i] - 2);
           iH1 = map[type[jH1]];
           iH2 = map[type[jH2]];
-          if (strcmp(elements[iH1], "Ow") == 0 ) { 
+          if (strcmp(elements[iH1], "Ow") == 0 ) {
             vect[0][0] = x[jH1][0] - xtp;
             vect[0][1] = x[jH1][1] - ytp;
             vect[0][2] = x[jH1][2] - ztp;
-          } else if (strcmp(elements[iH2], "Ow") == 0 ) { 
+          } else if (strcmp(elements[iH2], "Ow") == 0 ) {
             vect[0][0] = x[jH2][0] - xtp;
             vect[0][1] = x[jH2][1] - ytp;
             vect[0][2] = x[jH2][2] - ztp;
@@ -518,7 +518,7 @@ void PairILPTMD::calc_normal()
         // Calculte dNave/dri, defined as dpvdri
         for (id = 0; id < 3; id++) {
           for (ip = 0; ip < 3; ip++) {
-            if (ip == id) { dpvdri[id][ip] = -1.0;} 
+            if (ip == id) { dpvdri[id][ip] = -1.0;}
             else {dpvdri[id][ip] = 0.0;}
           }
         }
@@ -682,12 +682,12 @@ void PairILPTMD::calc_normal()
           normal[i][2] = Nave[2] / nn;
 
           // derivatives of non-normalized normal vector, dNave:3xcontx3 array
-          // dNave[id][m][ip]: the derivatve of the id component of Nave 
+          // dNave[id][m][ip]: the derivatve of the id component of Nave
           // respect to the ip component of atom m
           for (id = 0; id < 3; id++) {
             for (ip = 0; ip < 3; ip++) {
               for (m = 0; m < cont; m++) {
-                if (ip == id) { dNave[id][m][ip] = 0.5;} 
+                if (ip == id) { dNave[id][m][ip] = 0.5;}
                 else {dNave[id][m][ip] = 0.0;}
               }
             }

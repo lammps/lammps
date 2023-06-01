@@ -18,7 +18,7 @@ Syntax
 * style = *stress/mop* or *stress/mop/profile*
 * dir = *x* or *y* or *z* is the direction normal to the plane
 * args = argument specific to the compute style
-* keywords = *kin* or *conf* or *total* (one of more can be specified)
+* keywords = *kin* or *conf* or *total* or *pair* or *bond* or *angle* (one or more can be specified)
 
 .. parsed-literal::
 
@@ -64,9 +64,11 @@ atoms have crossed the plane if their positions at times :math:`t-\Delta t`
 and :math:`t` are one on either side of the plane, and uses the velocity at
 time :math:`t-\Delta t/2` given by the velocity Verlet algorithm.
 
-Between one and three keywords can be used to indicate which
-contributions to the stress must be computed: kinetic stress (kin),
-configurational stress (conf), and/or total stress (total).
+Between one and six keywords can be used to indicate which
+contributions to the stress must be computed: total stress (total),  kinetic stress (kin),
+configurational stress (conf), stress due to bond stretching (bond),
+stress due to angle bending (angle) and/or due to pairwise non-bonded interactions (pair).
+The last three keywords are currently available only for the stress/mop command and not the stress/mop/profile. 
 
 NOTE 1: The configurational stress is computed considering all pairs of atoms where at least one atom belongs to group group-ID.
 

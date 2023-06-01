@@ -344,8 +344,6 @@ FixPIMDLangevin::~FixPIMDLangevin()
   delete[] id_pe;
   delete[] id_press;
   delete random;
-  delete c_pe;
-  delete c_press;
   delete[] mass;
   delete[] _omega_k;
   delete[] Lan_c;

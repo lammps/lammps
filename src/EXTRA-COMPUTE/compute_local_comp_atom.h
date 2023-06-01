@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(local_composition/atom,ComputeLocalCompositionAtom);
+ComputeStyle(local/comp/atom,ComputeLocalCompAtom);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_LOCAL_COMPOSITION_ATOM_H
-#define LMP_COMPUTE_LOCAL_COMPOSITION_ATOM_H
+#ifndef LMP_COMPUTE_LOCAL_COMP_ATOM_H
+#define LMP_COMPUTE_LOCAL_COMP_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeLocalCompositionAtom : public Compute {
+class ComputeLocalCompAtom : public Compute {
  public:
-  ComputeLocalCompositionAtom(class LAMMPS *, int, char **);
-  ~ComputeLocalCompositionAtom() override;
+  ComputeLocalCompAtom(class LAMMPS *, int, char **);
+  ~ComputeLocalCompAtom() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;
@@ -37,9 +37,6 @@ class ComputeLocalCompositionAtom : public Compute {
   int nmax;
   double cutoff;            // global cutoff distance
   double cutsq;             // cutoff**2
-  double volume;            // local volume
-  double nelements;         // number of elements
-  int *map;                 // map types to [0,nelements)
   class NeighList *list;    // neighbor list
 
   double **result;          // peratom array of local compositions

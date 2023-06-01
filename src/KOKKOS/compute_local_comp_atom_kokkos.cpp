@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
+   Contributing author: Stan Moore (SNL), Megan McCarthy (SNL)
 ------------------------------------------------------------------------- */
 
-#include "compute_local_composition_kokkos.h"
+#include "compute_local_comp_atom_kokkos.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -39,8 +39,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeLocalCompositionKokkos<DeviceType>::ComputeLocalCompositionKokkos(LAMMPS *lmp, int narg, char **arg) :
-  ComputeLocalComposition(lmp, narg, arg)
+ComputeLocalCompAtomKokkos<DeviceType>::ComputeLocalCompAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
+  ComputeLocalCompAtom(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -52,7 +52,7 @@ ComputeLocalCompositionKokkos<DeviceType>::ComputeLocalCompositionKokkos(LAMMPS 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeLocalCompositionKokkos<DeviceType>::~ComputeLocalCompositionKokkos()
+ComputeLocalCompAtomKokkos<DeviceType>::~ComputeLocalCompAtomKokkos()
 {
   if (copymode) return;
 
@@ -62,9 +62,9 @@ ComputeLocalCompositionKokkos<DeviceType>::~ComputeLocalCompositionKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputeLocalCompositionKokkos<DeviceType>::init()
+void ComputeLocalCompAtomKokkos<DeviceType>::init()
 {
-  ComputeLocalComposition::init();
+  ComputeLocalCompAtom::init();
 
   // adjust neighbor list request for KOKKOS
 
@@ -77,7 +77,7 @@ void ComputeLocalCompositionKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputeLocalCompositionKokkos<DeviceType>::compute_peratom()
+void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
@@ -86,16 +86,10 @@ void ComputeLocalCompositionKokkos<DeviceType>::compute_peratom()
   if (atom->nmax > nmax) {
     memoryKK->destroy_kokkos(k_result,result);
     nmax = atom->nmax;
-    memoryKK->create_kokkos(k_result,result,nmax,2,"local_composition/atom:result");
+    memoryKK->create_kokkos(k_result,result,nmax,2,"local/comp/atom:result");
     d_result = k_result.view<DeviceType>();
     array_atom = result;
   }
-
-  // // need velocities of ghost atoms
-
-  // atomKK->sync(Host,V_MASK);
-  // comm->forward_comm(this);
-  // atomKK->modified(Host,V_MASK);
 
   // invoke full neighbor list (will copy or build if necessary)
 
@@ -119,8 +113,8 @@ void ComputeLocalCompositionKokkos<DeviceType>::compute_peratom()
   Kokkos::deep_copy(d_result,0.0);
 
   copymode = 1;
-  typename Kokkos::RangePolicy<DeviceType, TagComputeLocalComposition> policy(0,inum);
-  Kokkos::parallel_for("ComputeLocalComposition",policy,*this);
+  typename Kokkos::RangePolicy<DeviceType, TagComputeLocalComp> policy(0,inum);
+  Kokkos::parallel_for("ComputeLocalComp",policy,*this);
   copymode = 0;
 
   k_result.modify<DeviceType>();
@@ -129,13 +123,11 @@ void ComputeLocalCompositionKokkos<DeviceType>::compute_peratom()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void ComputeLocalCompositionKokkos<DeviceType>::operator()(TagComputeLocalComposition, const int &ii) const
+void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalComp, const int &ii) const
 {
   double typeone_i, typeone_j;
 
-  // TODO continue to implement map (nelements instead of ntypes)
-
-  double lcomp[ntypes];
+  int lcomp[ntypes];
 
   // get per-atom local compositions
 
@@ -156,13 +148,13 @@ void ComputeLocalCompositionKokkos<DeviceType>::operator()(TagComputeLocalCompos
 
       int count = 1;
 
-      typeone_i = type[i];
+      itype = type[i];
 
       for (int jj = 0; jj < jnum; jj++) {
         int j = d_neighbors(i,jj);
         j &= NEIGHMASK;
 
-        typeone_j = type[j];
+        jtype = type[j];
 
         const F_FLOAT delx = x(j,0) - xtmp;
         const F_FLOAT dely = x(j,1) - ytmp;
@@ -170,7 +162,7 @@ void ComputeLocalCompositionKokkos<DeviceType>::operator()(TagComputeLocalCompos
         const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
         if (rsq < cutsq) {
           count++;
-          lcomp[typeone_j]++;
+          lcomp[jtype]++;
         }
       }
       for (int n = 0 n < 4; n++) {
@@ -181,8 +173,8 @@ void ComputeLocalCompositionKokkos<DeviceType>::operator()(TagComputeLocalCompos
 }
 
 namespace LAMMPS_NS {
-template class ComputeLocalCompositionKokkos<LMPDeviceType>;
+template class ComputeLocalCompAtomKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class ComputeLocalCompositionKokkos<LMPHostType>;
+template class ComputeLocalCompAtomKokkos<LMPHostType>;
 #endif
 }

@@ -3611,6 +3611,7 @@ Tk
 Tkin
 tloop
 tlsph
+tm
 tmax
 Tmax
 tmd
@@ -3736,6 +3737,7 @@ Umin
 un
 unary
 uncomment
+uncommented
 uncompress
 uncompute
 underprediction

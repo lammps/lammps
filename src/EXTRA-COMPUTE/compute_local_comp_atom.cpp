@@ -15,7 +15,7 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "compute_local_composition_atom.h"
+#include "compute_local_comp_atom.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -37,40 +37,24 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeLocalCompositionAtom::ComputeLocalCompositionAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputeLocalCompAtom::ComputeLocalCompAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), result(nullptr)
 {
-  if (narg < 3 || narg > 5) error->all(FLERR, "Illegal compute local_composition/atom command");
-
-  // get nelements and ntypes
+  if (narg < 3 || narg > 5) error->all(FLERR, "Illegal compute local/comp/atom command");
 
   int ntypes = atom->ntypes;
-
-  // memory->create(map, ntypes + 1, "compute_sna_grid:map");
-  // nelements = utils::inumeric(FLERR, 0, false, lmp); // !!!!!!!! what is 2nd arg in inumeric?
-  // for (int i = 0; i < ntypes; i++) {
-  //   int jelem = utils::inumeric(FLERR, i, false, lmp);
-  //   if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute {} command", style);
-  //   map[i + 1] = jelem;
-  //   printf("mapp[x] %d jelem %d \n", map[i + 1], jelem);
-  // }
-
-  // printf("ntypes %d \n", ntypes);
-  // printf("elements %d \n", nelements);
-
-  // process optional args
 
   cutoff = 0.0;
 
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "cutoff") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute local_composition/atom command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute local/comp/atom command");
       cutoff = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (cutoff <= 0.0) error->all(FLERR, "Illegal compute local_composition/atom command");
+      if (cutoff <= 0.0) error->all(FLERR, "Illegal compute local/comp/atom command");
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal compute local_composition/atom command");
+      error->all(FLERR, "Illegal compute local/comp/atom command");
   }
 
   peratom_flag = 1;
@@ -82,21 +66,20 @@ ComputeLocalCompositionAtom::ComputeLocalCompositionAtom(LAMMPS *lmp, int narg, 
 
 /* ---------------------------------------------------------------------- */
 
-ComputeLocalCompositionAtom::~ComputeLocalCompositionAtom()
+ComputeLocalCompAtom::~ComputeLocalCompAtom()
 {
   if (copymode) return;
 
   memory->destroy(result);
-  // memory->destroy(map);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeLocalCompositionAtom::init()
+void ComputeLocalCompAtom::init()
 {
   if (!force->pair && cutoff == 0.0)
     error->all(FLERR,
-               "Compute local_composition/atom requires a cutoff be specified "
+               "Compute local/comp/atom requires a cutoff be specified "
                "or a pair style be defined");
 
   double skin = neighbor->skin;
@@ -109,7 +92,7 @@ void ComputeLocalCompositionAtom::init()
 
     if (cutoff > cutghost)
       error->all(FLERR,
-                 "Compute local_composition/atom cutoff exceeds ghost atom range - "
+                 "Compute local/comp/atom cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
   }
 
@@ -120,10 +103,6 @@ void ComputeLocalCompositionAtom::init()
   }
 
   cutsq = cutoff * cutoff;
-  if (domain->dimension == 3)
-    volume = 4.0 / 3.0 * MY_PI * cutsq * cutoff;
-  else
-    volume = MY_PI * cutsq;
 
   // need an occasional full neighbor list
 
@@ -133,19 +112,19 @@ void ComputeLocalCompositionAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeLocalCompositionAtom::init_list(int /*id*/, NeighList *ptr)
+void ComputeLocalCompAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeLocalCompositionAtom::compute_peratom()
+void ComputeLocalCompAtom::compute_peratom()
 {
   int i, j, ii, jj, inum, jnum;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  int count;
+  int count, itype, jtype;
 
   invoked_peratom = update->ntimestep;
 
@@ -154,7 +133,7 @@ void ComputeLocalCompositionAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(result);
     nmax = atom->nmax;
-    memory->create(result, nmax, size_peratom_cols, "local_composition/atom:result");
+    memory->create(result, nmax, size_peratom_cols, "local/comp/atom:result");
     array_atom = result;
   }
 
@@ -176,11 +155,9 @@ void ComputeLocalCompositionAtom::compute_peratom()
 
   int typeone_i, typeone_j;
 
-  // TODO continue to implement map (nelements instead of ntypes)
-  
   int ntypes = atom->ntypes;
   
-  double lcomp[ntypes];
+  int lcomp[ntypes];
 
   // get per-atom local compositions
 
@@ -202,14 +179,14 @@ void ComputeLocalCompositionAtom::compute_peratom()
 
       count = 1;
 
-      typeone_i = type[i];
-      lcomp[typeone_i - 1]++;
+      itype = type[i];
+      lcomp[itype-1]++;
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
 
-        typeone_j = type[j];
+        jtype = type[j];
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
@@ -217,7 +194,7 @@ void ComputeLocalCompositionAtom::compute_peratom()
         rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
           count++;
-          lcomp[typeone_j-1]++;
+          lcomp[jtype-1]++;
         }
       }
 
@@ -225,10 +202,12 @@ void ComputeLocalCompositionAtom::compute_peratom()
 
       result[i][0] = count;
 
-      // local composition fractions per element
-      for (int n = 0; n < ntypes; n++) {
-        result[i][n + 1] = lcomp[n] / count;
-      }
+      // local comp fractions per element
+
+      double lfac = 1.0 / count;
+      for (int n = 0;  n < ntypes; n++)
+        result[i][n+1] = lcomp[n] * lfac;
+      
     }
   }
 }
@@ -237,7 +216,7 @@ void ComputeLocalCompositionAtom::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputeLocalCompositionAtom::memory_usage()
+double ComputeLocalCompAtom::memory_usage()
 {
   double bytes = (double) 2 * nmax * sizeof(double);
   return bytes;

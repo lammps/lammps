@@ -1,20 +1,17 @@
-.. index:: compute ave/sphere/atom
-.. index:: compute local_composition/atom/kk
+.. index:: compute local/comp/atom
 
-compute local_composition/atom command
-================================
-
-Accelerator Variants: *local_composition/atom/kk*
+compute local/comp/atom command
+======================================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID local_composition/atom keyword values ...
+   compute ID group-ID local/comp/atom keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* local_composition/atom = style name of this compute command
+* local/comp/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
 
   .. parsed-literal::
@@ -27,9 +24,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all local_composition/atom
+   compute 1 all local/comp/atom
 
-   compute 1 all local_composition/atom cutoff 9.0
+   compute 1 all local/comp/atom cutoff 9.0
    comm_modify cutoff 9.0
 
 
@@ -38,12 +35,11 @@ Description
 
 .. versionadded:: 24May2023
 
-Define a computation that calculates the local composition of atom types for a 
-central atom based on its neighbors inside a spherical cutoff.  For a simulation with
-:math:`N` atom types and an atom with :math:`M` neighbors within the cutoff, the 
-fraction of each atom type is counted and divided by the total number of atoms in the 
-sphere, including the central atom (:math:`M+1`).  The sum of all fractions will 
-always add to one.
+Define a computation that calculates a local composition vector for each
+atom. For a central atom with :math:`M` neighbors within the neighbor cutoff sphere,
+composition is defined as the number of atoms of a given type
+(including the central atom) divided by (:math:`M+1`).  For a given central atom,
+the sum of all compositions equals one.
 
 .. note::
 
@@ -89,16 +85,13 @@ too frequently.
 
 ----------
 
-
-.. include:: accel_styles.rst
-
-
-----------
-
 Output info
 """""""""""
 
-This compute calculates a per-atom array with :math:`1 + N` columns, where :math:`N` is the number of atom types. The first column is a count of the number of atoms used to calcuate composition (including the central atom), and each subsequent column indicates the fraction of that atom type detected within the cutoff range. 
+This compute calculates a per-atom array with :math:`1 + N` columns, where :math:`N`
+is the number of atom types. The first column is a count of the number of atoms
+used to calculate composition (including the central atom), and each subsequent
+column indicates the fraction of that atom type within the cutoff sphere. 
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>`

@@ -13,45 +13,42 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(local_composition/atom/kk,ComputeLocalCompositionAtomKokkos<LMPDeviceType>);
-ComputeStyle(local_composition/atom/kk/device,ComputeLocalCompositionAtomKokkos<LMPDeviceType>);
-ComputeStyle(local_composition/atom/kk/host,ComputeLocalCompositionAtomKokkos<LMPHostType>);
+ComputeStyle(local/comp/atom/kk,ComputeLocalCompAtomKokkos<LMPDeviceType>);
+ComputeStyle(local/comp/atom/kk/device,ComputeLocalCompAtomKokkos<LMPDeviceType>);
+ComputeStyle(local/comp/atom/kk/host,ComputeLocalCompAtomKokkos<LMPHostType>);
 // clang-format on
 
 #else
 
-#ifndef LMP_COMPUTE_LOCAL_COMPOSITION_ATOM_KOKKOS_H
-#define LMP_COMPUTE_LOCAL_COMPOSITION_ATOM_KOKKOS_H
+#ifndef LMP_COMPUTE_LOCAL_COMP_ATOM_KOKKOS_H
+#define LMP_COMPUTE_LOCAL_COMP_ATOM_KOKKOS_H
 
-#include "compute_local_composition_atom.h"
+#include "compute_local_comp_atom.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
 // clang-format off
-struct TagComputeLocalCompositionAtom {};
+struct TagComputeLocalCompAtom {};
 // clang-format on
 
-template <class DeviceType> class ComputeLocalCompositionAtomKokkos : public ComputeLocalCompositionAtom {
+template <class DeviceType> class ComputeLocalCompAtomKokkos : public ComputeLocalCompAtom {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
-  ComputeLocalCompositionAtomKokkos(class LAMMPS *, int, char **);
-  ~ComputeLocalCompositionAtomKokkos() override;
+  ComputeLocalCompAtomKokkos(class LAMMPS *, int, char **);
+  ~ComputeLocalCompAtomKokkos() override;
   void init() override;
   void compute_peratom() override;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputeLocalCompositionAtom, const int &) const;
+  void operator()(TagComputeLocalCompAtom, const int &) const;
 
  private:
-  double adof, mvv2e, mv2d, boltz;
 
   typename AT::t_x_array x;
   typename AT::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d mass;
   typename ArrayTypes<DeviceType>::t_int_1d type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 

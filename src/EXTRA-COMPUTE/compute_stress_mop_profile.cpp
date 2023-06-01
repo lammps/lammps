@@ -178,23 +178,23 @@ void ComputeStressMopProfile::init()
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop/profile");
 
-  // Warnings
+  // Errors
 
   if (me==0) {
 
     //Compute stress/mop/profile only accounts for pair interactions.
-    // issue a warning if any intramolecular potential or Kspace is defined.
+    // issue an error if any intramolecular potential or Kspace is defined.
 
     if (force->bond!=nullptr)
-      error->warning(FLERR,"compute stress/mop/profile does not account for bond potentials");
+      error->all(FLERR,"compute stress/mop/profile does not account for bond potentials");
     if (force->angle!=nullptr)
-      error->warning(FLERR,"compute stress/mop/profile does not account for angle potentials");
+      error->all(FLERR,"compute stress/mop/profile does not account for angle potentials");
     if (force->dihedral!=nullptr)
-      error->warning(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
+      error->all(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
     if (force->improper!=nullptr)
-      error->warning(FLERR,"compute stress/mop/profile does not account for improper potentials");
+      error->all(FLERR,"compute stress/mop/profile does not account for improper potentials");
     if (force->kspace!=nullptr)
-      error->warning(FLERR,"compute stress/mop/profile does not account for kspace contributions");
+      error->all(FLERR,"compute stress/mop/profile does not account for kspace contributions");
   }
 
   // need an occasional half neighbor list

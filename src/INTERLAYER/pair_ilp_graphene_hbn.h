@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,19 +35,11 @@ class PairILPGrapheneHBN : public Pair {
   double init_one(int, int) override;
   void init_style() override;
   void calc_FvdW(int, int);
-  virtual void calc_FRep(int, int);
-  virtual void ILP_neigh();
-  virtual void calc_normal();
-  void read_file(char *);
-  void allocate();
-
   double single(int, int, int, int, double, double, double, double &) override;
 
   static constexpr int NPARAMS_PER_LINE = 13;
 
-  // for telling class variants apart in shared code
-  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL, 
-         ILP_WATER_2DM, SAIP_METAL_TMD, ILP_PHOSPHORUS };
+  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL };    // for telling class variants apart in shared code
 
  protected:
   int me;
@@ -59,7 +51,6 @@ class PairILPGrapheneHBN : public Pair {
   int *ILP_numneigh;       // # of pair neighbors for each atom
   int **ILP_firstneigh;    // ptr to 1st neighbor of each atom
   int tap_flag;            // flag to turn on/off taper function
-  double ncf;                 // for ilp/phosphorus, coefficients for calcualting the normals 
 
   struct Param {
     double z0, alpha, epsilon, C, delta, d, sR, reff, C6, S;
@@ -85,28 +76,15 @@ class PairILPGrapheneHBN : public Pair {
   double ***dpvet1;
   double ***dpvet2;
   double ***dNave;
+
+  virtual void ILP_neigh();
+  virtual void calc_normal();
+  virtual void calc_FRep(int, int);
+  void read_file(char *);
+  void allocate();
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-*/

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,7 +22,6 @@
 
 #include "atom.h"
 #include "citeme.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "interlayer_taper.h"
@@ -30,7 +29,6 @@
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "neighbor.h"
 
 #include <cmath>
 #include <cstring>
@@ -42,15 +40,16 @@ using namespace InterLayer;
 #define DELTA 4
 #define PGDELTA 1
 
-static const char cite_ilp_water[] = "ilp/water/2dm potential doi/10.1021/acs.jpcc.2c08464\n"
-                                   "@Article{Feng2023\n"
-                                   " author = {Z. Feng, Y. Yao, J. Liu, B. Wu, Z. Liu, and W. Ouyang},\n"
-                                   " title = {Registry-Dependent Potential for Interfaces of Water with Graphene},\n"
-                                   " journal = {J. Phys. Chem. C},\n"
-                                   " volume =  127,\n"
-                                   " pages =   {8704-8713}\n"
-                                   " year =    2023,\n"
-                                   "}\n\n";
+static const char cite_ilp_water[] = 
+    "ilp/water/2dm potential doi/10.1021/acs.jpcc.2c08464\n"
+    "@Article{Feng2023\n"
+    " author = {Z. Feng, Y. Yao, J. Liu, B. Wu, Z. Liu, and W. Ouyang},\n"
+    " title = {Registry-Dependent Potential for Interfaces of Water with Graphene},\n"
+    " journal = {J. Phys. Chem. C},\n"
+    " volume =  127,\n"
+    " pages =   {8704-8713}\n"
+    " year =    2023,\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 

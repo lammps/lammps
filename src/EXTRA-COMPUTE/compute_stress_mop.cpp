@@ -205,26 +205,25 @@ void ComputeStressMop::init()
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop");
 
-  // Warnings
+  // Errors
 
   if (me==0) {
 
-    //Compute stress/mop only accounts for pair interactions.
-    // issue a warning if any intramolecular potential or Kspace is defined.
+    // issue an error for unimplemented intramolecular potentials or Kspace.
 
     if (force->bond!=nullptr) bondflag = 1;
     if (force->angle!=nullptr)
       if (force->angle->born_matrix_enable == 0) {
-        error->warning(FLERR,"compute stress/mop does not account for angle potentials");
+        error->all(FLERR,"compute stress/mop does not account for angle potentials");
       } else {
          angleflag = 1;
       }
     if (force->dihedral!=nullptr)
-      error->warning(FLERR,"compute stress/mop does not account for dihedral potentials");
+      error->all(FLERR,"compute stress/mop does not account for dihedral potentials");
     if (force->improper!=nullptr)
-      error->warning(FLERR,"compute stress/mop does not account for improper potentials");
+      error->all(FLERR,"compute stress/mop does not account for improper potentials");
     if (force->kspace!=nullptr)
-      error->warning(FLERR,"compute stress/mop does not account for kspace contributions");
+      error->all(FLERR,"compute stress/mop does not account for kspace contributions");
   }
 
   // need an occasional half neighbor list

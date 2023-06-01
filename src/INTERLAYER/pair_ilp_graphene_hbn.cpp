@@ -59,6 +59,7 @@ static const char cite_ilp[] =
 static std::map<int, std::string> variant_map = {
     {PairILPGrapheneHBN::ILP_GrhBN, "ilp/graphene/hbn"},
     {PairILPGrapheneHBN::ILP_TMD, "ilp/tmd"},
+    {PairILPGrapheneHBN::ILP_WATER_2DM, "ilp/water/2dm"},
     {PairILPGrapheneHBN::SAIP_METAL, "saip/metal"}};
 
 /* ---------------------------------------------------------------------- */

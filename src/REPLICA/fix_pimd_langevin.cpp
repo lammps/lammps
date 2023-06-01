@@ -205,6 +205,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         error->universe_all(FLERR, "Unknown barostat parameter for fix pimd/langevin");
     } else if (strcmp(arg[i], "iso") == 0) {
       pstyle = ISO;
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
       Pext = utils::numeric(FLERR, arg[i + 1], false, lmp);
       p_target[0] = p_target[1] = p_target[2] = Pext;
       pdim = 3;

@@ -48,9 +48,9 @@ always add to one.
 .. note::
 
    This compute uses the number of atom types, not chemical species, assigned in 
-   :doc:`pair_coeff <pair_style>` command.  If an interatomic potential has two 
+   :doc:`pair_coeff <pair_coeff>` command.  If an interatomic potential has two 
    species (i.e., Cu and Ni) assigned to four different atom types in 
-   :doc:`pair_coeff <pair_coeff>` (i.e., 'Cu Cu Ni Ni'), the local composition will 
+   :doc:`pair_coeff <pair_coeff>` (i.e., 'Cu Cu Ni Ni'), the compute will 
    output four fractional values.  In those cases, the user may desire an extra 
    calculation step to consolidate per-type fractions into per-species fractions.  
    This calculation can be conducted within LAMMPS using another compute such as 

@@ -35,11 +35,14 @@ class ComputeLocalCompositionAtom : public Compute {
 
  protected:
   int nmax;
-  double cutoff, cutsq, volume, nelements;
-  int *map;    // map types to [0,nelements), taken from example in compute_snap
-  class NeighList *list;
+  double cutoff;            // global cutoff distance
+  double cutsq;             // cutoff**2
+  double volume;            // local volume
+  double nelements;         // number of elements
+  int *map;                 // map types to [0,nelements)
+  class NeighList *list;    // neighbor list
 
-  double **result;
+  double **result;          // peratom array of local compositions
 };
 
 }    // namespace LAMMPS_NS

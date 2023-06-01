@@ -38,7 +38,7 @@
 using namespace LAMMPS_NS;
 
 enum{X,Y,Z};
-enum{TOTAL,CONF,KIN};
+enum{TOTAL,CONF,KIN,PAIR,BOND,ANGLE};
 
 #define BIG 1000000000
 
@@ -113,6 +113,21 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"total") == 0) {
       for (i=0; i<3; i++) {
         which[nvalues] = TOTAL;
+        nvalues++;
+      }
+    } else if (strcmp(arg[iarg],"pair") == 0) {
+      for (i=0; i<3; i++) {
+        which[nvalues] = PAIR;
+        nvalues++;
+      }
+    } else if (strcmp(arg[iarg],"bond") == 0) {
+      for (i=0; i<3; i++) {
+        which[nvalues] = BOND;
+        nvalues++;
+      }
+    } else if (strcmp(arg[iarg],"angle") == 0) {
+      for (i=0; i<3; i++) {
+        which[nvalues] = ANGLE;
         nvalues++;
       }
     } else error->all(FLERR, "Illegal compute stress/mop command"); //break;
@@ -329,7 +344,7 @@ void ComputeStressMop::compute_pairs()
 
   m = 0;
   while (m<nvalues) {
-    if (which[m] == CONF || which[m] == TOTAL) {
+    if (which[m] == CONF || which[m] == TOTAL || which[m] == PAIR) {
 
       //Compute configurational contribution to pressure
       for (ii = 0; ii < inum; ii++) {
@@ -577,7 +592,7 @@ void ComputeStressMop::compute_bonds()
   // loop over the keywords and if necessary add the bond contribution
   int m {0};
   while (m<nvalues) {
-    if (which[m] == CONF || which[m] == TOTAL) {
+    if (which[m] == CONF || which[m] == TOTAL || which[m] == BOND) {
       bond_local[m] = local_contribution[0];
       bond_local[m+1] = local_contribution[1];
       bond_local[m+2] = local_contribution[2];
@@ -748,7 +763,7 @@ void ComputeStressMop::compute_angles()
   // loop over the keywords and if necessary add the angle contribution
   int m {0};
   while (m<nvalues) {
-    if (which[m] == CONF || which[m] == TOTAL) {
+    if (which[m] == CONF || which[m] == TOTAL || which[m] == ANGLE) {
       angle_local[m] = local_contribution[0];
       angle_local[m+1] = local_contribution[1];
       angle_local[m+2] = local_contribution[2];

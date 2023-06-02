@@ -40,8 +40,6 @@ using namespace LAMMPS_NS;
 enum{X,Y,Z};
 enum{TOTAL,CONF,KIN,PAIR,BOND,ANGLE};
 
-#define BIG 1000000000
-
 /* ---------------------------------------------------------------------- */
 
 ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :

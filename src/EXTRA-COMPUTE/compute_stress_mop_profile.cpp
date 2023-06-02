@@ -102,7 +102,7 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
       }
     } else if (strcmp(arg[iarg],"bond") == 0) {
       for (i=0; i<3; i++) {
-        which[nvalues] = PAIR;
+        which[nvalues] = BOND;
         nvalues++;
       }
     } else error->all(FLERR, "Illegal compute stress/mop/profile command"); //break;

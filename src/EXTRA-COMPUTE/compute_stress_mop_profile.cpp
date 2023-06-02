@@ -129,6 +129,7 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   values_local = values_global = array = nullptr;
   bond_local = nullptr;
   bond_global = nullptr;
+  local_contribution = nullptr;
 
   // bin setup
 
@@ -157,6 +158,7 @@ ComputeStressMopProfile::~ComputeStressMopProfile()
   memory->destroy(values_global);
   memory->destroy(bond_local);
   memory->destroy(bond_global);
+  memory->destroy(local_contribution);
   memory->destroy(array);
 }
 
@@ -514,13 +516,15 @@ void ComputeStressMopProfile::compute_bonds()
   double dx[3] {0};
   double x_bond_1[3] {0};
   double x_bond_2[3] {0};
-  double local_contribution[nbins][3] {0};
 
   // initialization
   for (int m {0}; m < nbins; m++) {
     for (int i {0}; i < nvalues; i++) {
       bond_local[m][i] = 0.0;
     }
+    local_contribution[m][0] = 0.0;
+    local_contribution[m][1] = 0.0;
+    local_contribution[m][2] = 0.0;
   }
 
   // loop over all bonded atoms in the current proc
@@ -647,6 +651,7 @@ void ComputeStressMopProfile::setup_bins()
   memory->create(values_global,nbins,nvalues,"stress/mop/profile:values_global");
   memory->create(bond_local,nbins,nvalues,"stress/mop/profile:bond_local");
   memory->create(bond_global,nbins,nvalues,"stress/mop/profile:bond_global");
+  memory->create(local_contribution,nbins,3,"stress/mop/profile:local_contribution");
 
   // set bin coordinates
   for (i = 0; i < nbins; i++) {

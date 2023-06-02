@@ -83,10 +83,11 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
 
   // grow result array if necessary
 
+  int size_peratom_cols = 1 + atom->ntypes;
   if (atom->nmax > nmax) {
     memoryKK->destroy_kokkos(k_result,result);
     nmax = atom->nmax;
-    memoryKK->create_kokkos(k_result,result,nmax,2,"local/comp/atom:result");
+    memoryKK->create_kokkos(k_result,result,nmax,size_peratom_cols,"local/comp/atom:result");
     d_result = k_result.view<DeviceType>();
     array_atom = result;
   }
@@ -107,13 +108,12 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
   atomKK->sync(execution_space,X_MASK|V_MASK|RMASS_MASK|TYPE_MASK|MASK_MASK);
   x = atomKK->k_x.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  ntypes = atomKK->k_ntypes.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
 
   Kokkos::deep_copy(d_result,0.0);
 
   copymode = 1;
-  typename Kokkos::RangePolicy<DeviceType, TagComputeLocalComp> policy(0,inum);
+  typename Kokkos::RangePolicy<DeviceType, TagComputeLocalCompAtom> policy(0,inum);
   Kokkos::parallel_for("ComputeLocalComp",policy,*this);
   copymode = 0;
 
@@ -123,15 +123,17 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalComp, const int &ii) const
+void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalCompAtom, const int &ii) const
 {
   double typeone_i, typeone_j;
 
+  int ntypes = atom->ntypes;
   int lcomp[ntypes];
 
   // get per-atom local compositions
 
-  for (ii = 0; ii < inum; ii++) {
+  int inum = list->inum;
+  for (int ii = 0; ii < inum; ii++) {
 
     for (int i = 0; i < ntypes; i++) lcomp[i] = 0;
 
@@ -148,13 +150,14 @@ void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalComp, con
 
       int count = 1;
 
-      itype = type[i];
+      int itype = type[i];
+      lcomp[itype-1]++;
 
       for (int jj = 0; jj < jnum; jj++) {
         int j = d_neighbors(i,jj);
         j &= NEIGHMASK;
 
-        jtype = type[j];
+        int jtype = type[j];
 
         const F_FLOAT delx = x(j,0) - xtmp;
         const F_FLOAT dely = x(j,1) - ytmp;
@@ -162,12 +165,20 @@ void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalComp, con
         const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
         if (rsq < cutsq) {
           count++;
-          lcomp[jtype]++;
+          lcomp[jtype-1]++;
         }
       }
-      for (int n = 0 n < 4; n++) {
-        d_result(i,n+1) = lcomp[n] / density;
-      }
+
+      // total count of atoms found in sampled radius range
+
+      d_result(i,0) = count;
+
+      // local comp fractions per element
+
+      double lfac = 1.0 / count;
+      for (int n = 0; n < ntypes; n++)
+        d_result(i,n+1) = lcomp[n] * lfac;
+      
     }
   }
 }

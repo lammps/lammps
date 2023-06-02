@@ -48,7 +48,6 @@ template <class DeviceType> class ComputeLocalCompAtomKokkos : public ComputeLoc
  private:
 
   typename AT::t_x_array x;
-  typename AT::t_v_array v;
   typename ArrayTypes<DeviceType>::t_int_1d type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 

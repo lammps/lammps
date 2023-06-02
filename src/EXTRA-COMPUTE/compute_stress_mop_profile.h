@@ -52,6 +52,7 @@ class ComputeStressMopProfile : public Compute {
   double **coord, **coordp;
   double **values_local, **values_global;
   double **bond_local, **bond_global;
+  double **local_contribution;
 
   double dt, nktv2p, ftm2v;
   double area;

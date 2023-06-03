@@ -169,7 +169,7 @@ TEST_F(ComputeGlobalTest, Geometry)
         command("compute mom1 all momentum");
         command("compute mom2 allwater momentum");
         command("compute mop1 all stress/mop x 0.0 total");
-        command("compute mop2 all stress/mop/profile z lower 0.5 kin conf");
+        command("compute mop2 all stress/mop/profile z lower 0.5 kin pair");
         thermo_style += " c_mu1 c_mu2 c_mop1[*] c_mop2[1][1]";
     }
 

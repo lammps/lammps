@@ -1,7 +1,7 @@
 .. index:: pair_style aip/water/2dm
 .. index:: pair_style aip/water/2dm/opt
 
-pair_style ilp/tmd command
+pair_style aip/water/2dm command
 ===================================
 
 Accelerator Variant: *aip/water/2dm/opt*

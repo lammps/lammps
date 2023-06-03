@@ -12,13 +12,13 @@ group 		gr    molecule 1
 group 		water molecule 2
 ######################## Potential defition ##############################
 # Interlayer potential
-pair_style  hybrid/overlay  ilp/water/2dm/opt 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
+pair_style  hybrid/overlay  aip/water/2dm/opt 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
 ####################################################################
 pair_coeff  1 1   none
-pair_coeff  2 2   lj/cut/tip4p/long    8.0313e-3  3.1589  # O-O
+pair_coeff  2 2   lj/cut/tip4p/long    8.0313e-3  3.1589          # O-O
 pair_coeff  2 3   lj/cut/tip4p/long    0.0 0.0  		  # O-H
-pair_coeff  3 3   lj/cut/tip4p/long    0.0 0.0  	      # H-H
-pair_coeff  * *   ilp/water/2dm/opt        COH.ILP C Ow Hw    # C-water    
+pair_coeff  3 3   lj/cut/tip4p/long    0.0 0.0  	          # H-H
+pair_coeff  * *   aip/water/2dm/opt    COH.aip.water.2dm C Ow Hw  # C-H2O    
 # bond and angle
 bond_style  	  harmonic
 bond_coeff  	  1 	0.0  0.9572
@@ -32,7 +32,7 @@ neigh_modify every 1 delay 5 check yes page 1000000 one 100000
 ####################################################################
 # Calculate pair energy
 compute   	1 all pair lj/cut/tip4p/long
-compute   	2 all pair ilp/water/2dm/opt
+compute   	2 all pair aip/water/2dm/opt
 compute		wt water temp
 variable  	TIP4P  equal  c_1
 variable  	EILP   equal  c_2     # total interlayer energy
@@ -42,10 +42,10 @@ thermo_style    custom step etotal pe ke v_TIP4P v_EILP  v_temp_wt
 thermo          100
 thermo_modify   lost error
 
-fix				subf gr setforce 0.0 0.0 0.0
-fix 			1 	water shake 0.0001 20 100 b 1 a 1
+fix		subf gr setforce 0.0 0.0 0.0
+fix 		1    water shake 0.0001 20 100 b 1 a 1
 
-timestep  		1e-3  
-velocity  	  	water create 300.0 12345 dist gaussian mom yes rot yes
-fix				2 water nve
-run			    1000
+timestep	1e-3  
+velocity  	water create 300.0 12345 dist gaussian mom yes rot yes
+fix		2 water nve
+run		1000

@@ -169,33 +169,33 @@ void PairILPGrapheneHBNOpt::compute(int eflag, int vflag)
         }
       }
     }
-  } else if (variant == ILP_WATER_2DM) {
+  } else if (variant == AIP_WATER_2DM) {
     if (eflag_global || eflag_atom) {
       if (vflag_either) {
         if (tap_flag) {
-          eval<6, 1, 1, 1, ILP_WATER_2DM>();
+          eval<6, 1, 1, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 1, 1, 0, ILP_WATER_2DM>();
+          eval<6, 1, 1, 0, AIP_WATER_2DM>();
         }
       } else {
         if (tap_flag) {
-          eval<6, 1, 0, 1, ILP_WATER_2DM>();
+          eval<6, 1, 0, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 1, 0, 0, ILP_WATER_2DM>();
+          eval<6, 1, 0, 0, AIP_WATER_2DM>();
         }
       }
     } else {
       if (vflag_either) {
         if (tap_flag) {
-          eval<6, 0, 1, 1, ILP_WATER_2DM>();
+          eval<6, 0, 1, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 0, 1, 0, ILP_WATER_2DM>();
+          eval<6, 0, 1, 0, AIP_WATER_2DM>();
         }
       } else {
         if (tap_flag) {
-          eval<6, 0, 0, 1, ILP_WATER_2DM>();
+          eval<6, 0, 0, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 0, 0, 0, ILP_WATER_2DM>();
+          eval<6, 0, 0, 0, AIP_WATER_2DM>();
         }
       }
     }
@@ -286,7 +286,7 @@ void PairILPGrapheneHBNOpt::eval()
       rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq != 0 && rsq < cutILPsq[itype_map][jtype]) {
-        if ((VARIANT == ILP_TMD || VARIANT == ILP_WATER_2DM) && special_type[itype] == TMD_METAL && itype != type[j]) continue;
+        if ((VARIANT == ILP_TMD || VARIANT == AIP_WATER_2DM) && special_type[itype] == TMD_METAL && itype != type[j]) continue;
         if (ILP_nneigh >= MAX_NNEIGH) {
           error->one(FLERR, "There are too many neighbors for calculating normals");
         }
@@ -519,8 +519,8 @@ void PairILPGrapheneHBNOpt::calc_normal(int i, int itype, int *ILP_neigh, int nn
     vet[jj][2] = x[j][2] - x[i][2];
   }
 
-  //specialize for ILP_WATER_2DM for hydrogen has special normal vector rule
-  if (variant == ILP_WATER_2DM && special_type[itype] == WATER) {
+  //specialize for AIP_WATER_2DM for hydrogen has special normal vector rule
+  if (variant == AIP_WATER_2DM && special_type[itype] == WATER) {
     if (nneigh == 1){
       n[0] = vet[0][0];
       n[1] = vet[0][1];

@@ -1,17 +1,17 @@
-.. index:: pair_style ilp/water/2dm
-.. index:: pair_style ilp/water/2dm/opt
+.. index:: pair_style aip/water/2dm
+.. index:: pair_style aip/water/2dm/opt
 
 pair_style ilp/tmd command
 ===================================
 
-Accelerator Variant: *ilp/water/2dm/opt*
+Accelerator Variant: *aip/water/2dm/opt*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style [hybrid/overlay ...] ilp/tmd cutoff tap_flag
+   pair_style [hybrid/overlay ...] aip/water/2dm cutoff tap_flag
 
 * cutoff = global cutoff (distance units)
 * tap_flag = 0/1 to turn off/on the taper function
@@ -21,22 +21,22 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style  hybrid/overlay ilp/water/2dm 16.0 1
-   pair_coeff  * * ilp/water/2dm  COH.ILP C Ow Hw
+   pair_style  hybrid/overlay aip/water/2dm 16.0 1
+   pair_coeff  * * aip/water/2dm  COH.aip.water.2dm C Ow Hw
 
-   pair_style  hybrid/overlay ilp/water/2dm 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
+   pair_style  hybrid/overlay aip/water/2dm 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
    pair_coeff  2 2   lj/cut/tip4p/long    8.0313e-3  3.1589  # O-O
    pair_coeff  2 3   lj/cut/tip4p/long    0.0        0.0     # O-H
    pair_coeff  3 3   lj/cut/tip4p/long    0.0        0.0     # H-H
-   pair_coeff  * *   ilp/water/2dm        COH.ILP    C Ow Hw
+   pair_coeff  * *   aip/water/2dm        COH.aip.water.2dm    C Ow Hw
 
 Description
 """""""""""
 
 .. versionadded:: xxxx2023
 
-The *ilp/water/2dm* style computes the registry-dependent interlayer
-potential (ILP) potential for interfaces of water with two-dimensinal (2D)
+The *aip/water/2dm* style computes the anisotropic interfacial
+potential (AIP) potential for interfaces of water with two-dimensinal (2D)
 materials as described in :ref:`(Feng) <Feng>`.
 
 .. math::
@@ -69,7 +69,7 @@ calculating the normals.
    oxygen-hydrogen bonds and the normal vector of the central oxygen atom
    is defined as their average.
 
-The parameter file (e.g. COH.ILP), is intended for use with *metal*
+The parameter file (e.g. COH.aip.water.2dm), is intended for use with *metal*
 :doc:`units <units>`, with energies in meV. Two additional parameters,
 *S*, and *rcut* are included in the parameter file. *S* is designed to
 facilitate scaling of energies. *rcut* is designed to build the neighbor
@@ -77,7 +77,7 @@ list for calculating the normals for each atom pair.
 
 .. note::
 
-   The parameters presented in the parameter file (e.g. COH.ILP),
+   The parameters presented in the parameter file (e.g. COH.aip.water.2dm),
    are fitted with taper function by setting the cutoff equal to 16.0
    Angstrom.  Using different cutoff or taper function should be careful.
    These parameters provide a good description in both short- and long-range
@@ -100,7 +100,7 @@ headings) the following commands could be included in an input script:
 
 .. code-block:: LAMMPS
 
-   compute 0 all pair ilp/water/2dm
+   compute 0 all pair aip/water/2dm
    variable Evdw  equal c_0[1]
    variable Erep  equal c_0[2]
    thermo_style custom step temp epair v_Erep v_Evdw
@@ -132,10 +132,10 @@ if LAMMPS was built with that package.  See the :doc:`Build package
 This pair style requires the newton setting to be *on* for pair
 interactions.
 
-The COH.ILP potential file provided with LAMMPS (see the potentials
+The COH.aip.water.2dm potential file provided with LAMMPS (see the potentials
 directory) are parameterized for *metal* units.  You can use this
 potential with any LAMMPS units, but you would need to create your
-COH.ILP potential file with coefficients listed in the appropriate
+COH.aip.water.2dm potential file with coefficients listed in the appropriate
 units, if your simulation does not use *metal* units.
 
 Related commands

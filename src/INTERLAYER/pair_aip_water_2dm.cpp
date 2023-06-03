@@ -18,7 +18,7 @@
    [Feng and Ouyang et al, J. Phys. Chem. C 127, 8704-8713 (2023).]
 ------------------------------------------------------------------------- */
 
-#include "pair_ilp_water_2dm.h"
+#include "pair_aip_water_2dm.h"
 
 #include "atom.h"
 #include "citeme.h"
@@ -40,7 +40,7 @@ using namespace InterLayer;
 #define DELTA 4
 #define PGDELTA 1
 
-static const char cite_ilp_water[] =
+static const char cite_aip_water[] =
     "ilp/water/2dm potential doi/10.1021/acs.jpcc.2c08464\n"
     "@Article{Feng2023\n"
     " author = {Z. Feng, Y. Yao, J. Liu, B. Wu, Z. Liu, and W. Ouyang},\n"
@@ -53,26 +53,26 @@ static const char cite_ilp_water[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairILPWATER2DM::PairILPWATER2DM(LAMMPS *lmp) : PairILPGrapheneHBN(lmp), PairILPTMD(lmp)
+PairAIPWATER2DM::PairAIPWATER2DM(LAMMPS *lmp) : PairILPGrapheneHBN(lmp), PairILPTMD(lmp)
 {
-  variant = ILP_WATER_2DM;
+  variant = AIP_WATER_2DM;
   single_enable = 0;
 
   // for TMD, each atom have six neighbors
   Nnei = 6;
 
-  if (lmp->citeme) lmp->citeme->add(cite_ilp_water);
+  if (lmp->citeme) lmp->citeme->add(cite_aip_water);
 }
 
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
 
-void PairILPWATER2DM::settings(int narg, char **arg)
+void PairAIPWATER2DM::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
   if (!utils::strmatch(force->pair_style, "^hybrid/overlay"))
-    error->all(FLERR, "Pair style ilp/water/2dm must be used as sub-style with hybrid/overlay");
+    error->all(FLERR, "Pair style aip/water/2dm must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
   if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);

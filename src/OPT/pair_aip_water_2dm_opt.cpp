@@ -11,7 +11,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This is an optimized version of ilp/water/2dm based on the contribution of:
+   This is an optimized version of aip/water/2dm based on the contribution of:
      author: Wengen Ouyang (Wuhan University)
      e-mail: w.g.ouyang at gmail dot com
 
@@ -30,7 +30,7 @@
    Potential is described by:
      [Feng and Ouyang et al, J. Phys. Chem. C 127, 8704-8713 (2023).]
 */
-#include "pair_ilp_water_2dm_opt.h"
+#include "pair_aip_water_2dm_opt.h"
 
 #include "atom.h"
 #include "citeme.h"
@@ -49,15 +49,15 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-PairILPWATER2DMOpt::PairILPWATER2DMOpt(LAMMPS *lmp) :
-  PairILPGrapheneHBN(lmp), PairILPTMD(lmp), PairILPWATER2DM(lmp), PairILPGrapheneHBNOpt(lmp)
+PairAIPWATER2DMOpt::PairAIPWATER2DMOpt(LAMMPS *lmp) :
+  PairILPGrapheneHBN(lmp), PairILPTMD(lmp), PairAIPWATER2DM(lmp), PairILPGrapheneHBNOpt(lmp)
 {
 }
 
-void PairILPWATER2DMOpt::coeff(int narg, char **args)
+void PairAIPWATER2DMOpt::coeff(int narg, char **args)
 {
   PairILPTMD::coeff(narg, args);
-  memory->create(special_type, atom->ntypes + 1, "PairILPWATER2DMOpt:check_sublayer");
+  memory->create(special_type, atom->ntypes + 1, "PairAIPWATER2DMOpt:check_sublayer");
   for (int i = 1; i <= atom->ntypes; i++) {
     int itype = map[i];
     if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||

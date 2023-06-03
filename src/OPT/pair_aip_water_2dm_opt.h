@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(ilp/water/2dm/opt,PairILPWATER2DMOpt);
+PairStyle(aip/water/2dm/opt,PairAIPWATER2DMOpt);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_ILP_WATER_2DM_OPT_H
-#define LMP_PAIR_ILP_WATER_2DM_OPT_H
+#ifndef LMP_PAIR_AIP_WATER_2DM_OPT_H
+#define LMP_PAIR_AIP_WATER_2DM_OPT_H
 
 #include "pair_ilp_graphene_hbn_opt.h"
-#include "pair_ilp_water_2dm.h"
+#include "pair_aip_water_2dm.h"
 
 namespace LAMMPS_NS {
 
-class PairILPWATER2DMOpt : public PairILPWATER2DM, public PairILPGrapheneHBNOpt {
+class PairAIPWATER2DMOpt : public PairAIPWATER2DM, public PairILPGrapheneHBNOpt {
  public:
-  PairILPWATER2DMOpt(class LAMMPS *);
+  PairAIPWATER2DMOpt(class LAMMPS *);
   void coeff(int narg, char **args) override;
 
  protected:

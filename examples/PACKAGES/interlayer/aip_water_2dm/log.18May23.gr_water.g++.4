@@ -1,4 +1,4 @@
-LAMMPS (23 Jun 2022)
+LAMMPS (23 Jun 2022 - Update 4)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 # Initialization
@@ -29,8 +29,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-3 neighbors
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
-  special bonds CPU = 0.003 seconds
-  read_data CPU = 0.018 seconds
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.017 seconds
 mass            1 12.0107   # carbon   	mass (g/mole)
 mass            2 15.9994   # oxygen    mass (g/mole)
 mass            3 1.008     # hydrogen 	mass (g/mole)
@@ -41,14 +41,14 @@ group 		water molecule 2
 144 atoms in group water
 ######################## Potential defition ##############################
 # Interlayer potential
-pair_style  hybrid/overlay  ilp/water/2dm 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
+pair_style  hybrid/overlay  aip/water/2dm 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
 ####################################################################
 pair_coeff  1 1   none
-pair_coeff  2 2   lj/cut/tip4p/long    8.0313e-3  3.1589  # O-O
+pair_coeff  2 2   lj/cut/tip4p/long    8.0313e-3  3.1589          # O-O
 pair_coeff  2 3   lj/cut/tip4p/long    0.0 0.0  		  # O-H
-pair_coeff  3 3   lj/cut/tip4p/long    0.0 0.0  	      # H-H
-pair_coeff  * *   ilp/water/2dm        COH.ILP C Ow Hw    # C-water
-Reading ilp/water/2dm potential file COH.ILP with DATE: 2023-05-17
+pair_coeff  3 3   lj/cut/tip4p/long    0.0 0.0  	          # H-H
+pair_coeff  * *   aip/water/2dm        COH.aip.water.2dm C Ow Hw  # C-H2O
+Reading aip/water/2dm potential file COH.aip.water.2dm with DATE: 2022-12-02
 # bond and angle
 bond_style  	  harmonic
 bond_coeff  	  1 	0.0  0.9572
@@ -62,7 +62,7 @@ neigh_modify every 1 delay 5 check yes page 1000000 one 100000
 ####################################################################
 # Calculate pair energy
 compute   	1 all pair lj/cut/tip4p/long
-compute   	2 all pair ilp/water/2dm
+compute   	2 all pair aip/water/2dm
 compute		wt water temp
 variable  	TIP4P  equal  c_1
 variable  	EILP   equal  c_2     # total interlayer energy
@@ -72,18 +72,18 @@ thermo_style    custom step etotal pe ke v_TIP4P v_EILP  v_temp_wt
 thermo          100
 thermo_modify   lost error
 
-fix				subf gr setforce 0.0 0.0 0.0
-fix 			1 	water shake 0.0001 20 100 b 1 a 1
+fix		subf gr setforce 0.0 0.0 0.0
+fix 		1    water shake 0.0001 20 100 b 1 a 1
        0 = # of size 2 clusters
        0 = # of size 3 clusters
        0 = # of size 4 clusters
       48 = # of frozen angles
-  find clusters CPU = 0.001 seconds
+  find clusters CPU = 0.000 seconds
 
-timestep  		1e-3
-velocity  	  	water create 300.0 12345 dist gaussian mom yes rot yes
-fix				2 water nve
-run			    1000
+timestep	1e-3
+velocity  	water create 300.0 12345 dist gaussian mom yes rot yes
+fix		2 water nve
+run		1000
 
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
@@ -91,22 +91,24 @@ Your simulation uses code contributions which should be cited:
 
 - ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848
 @Article{Ouyang2018
- author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},
+ author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},
  title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},
  journal = {Nano Letters},
  volume =  18,
- pages =   {6009}
+ pages =   6009,
  year =    2018,
 }
 
-- ilp/tmd potential doi/10.1021/acs.jctc.1c00782
+- ilp/tmd potential doi:10.1021/acs.jctc.1c00782
 @Article{Ouyang2021
- author = {W. Ouyang, R. Sofer, X. Gao, J. Hermann, A. Tkatchenko, L. Kronik, M. Urbakh, and O. Hod},
- title = {Anisotropic Interlayer Force Field for Transition Metal Dichalcogenides: The Case of Molybdenum Disulfide},
- journal = {J. Chem. Theory Comput.},
- volume =  17,
- pages =   {7237–7245}
- year =    2021,
+  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and
+    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},
+  title = {Anisotropic Interlayer Force Field for Transition
+    Metal Dichalcogenides: The Case of Molybdenum Disulfide},
+  journal = {J.~Chem.\ Theory Comput.},
+ volume   = 17,
+ pages    = {7237--7245}
+ year     = 2021,
 }
 
 - ilp/water/2dm potential doi/10.1021/acs.jpcc.2c08464
@@ -132,6 +134,8 @@ PPPM initialization ...
   using single precision MKL FFT
   3d grid and FFT values/proc = 30685 12480
 WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:239)
+WARNING: Communication cutoff 0 is shorter than a bond length based estimate of 3.4358. This may lead to errors. (../comm.cpp:727)
+WARNING: Increasing communication cutoff to 11.6118 for TIP4P pair style (../pair_lj_cut_tip4p_long.cpp:484)
 Neighbor list info ...
   update every 1 steps, delay 5 steps, check yes
   max neighbors/atom: 100000, page size: 1000000
@@ -139,7 +143,7 @@ Neighbor list info ...
   ghost atom cutoff = 18
   binsize = 9, bins = 6 5 23
   3 neighbor lists, perpetual/occasional/extra = 3 0 0
-  (1) pair ilp/water/2dm, perpetual
+  (1) pair aip/water/2dm, perpetual
       attributes: full, newton on, ghost
       pair build: full/bin/ghost
       stencil: full/ghost/bin/3d
@@ -154,10 +158,11 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
+WARNING: Communication cutoff adjusted to 18 (../comm.cpp:736)
 SHAKE stats (type/ave/delta/count) on step 0
 Bond:   1   0.957201  2.19705e-06       96
 Angle:  1   104.52    0.000203056       48
-Per MPI rank memory allocation (min/avg/max) = 25.84 | 25.88 | 25.92 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 25.22 | 25.25 | 25.29 Mbytes
    Step         TotEng         PotEng         KinEng        v_TIP4P         v_EILP       v_temp_wt   
          0  -16.131263     -19.815178      3.6839141      189.37246     -1.903543       300          
 SHAKE stats (type/ave/delta/count) on step 100
@@ -200,22 +205,22 @@ SHAKE stats (type/ave/delta/count) on step 1000
 Bond:   1   0.9572    1.00568e-06       96
 Angle:  1   104.52    0.000111707       48
       1000  -17.498474     -20.331607      2.833133       188.87466     -1.8121689      230.71654    
-Loop time of 9.42273 on 4 procs for 1000 steps with 936 atoms
+Loop time of 9.05361 on 4 procs for 1000 steps with 936 atoms
 
-Performance: 9.169 ns/day, 2.617 hours/ns, 106.126 timesteps/s
-97.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 9.543 ns/day, 2.515 hours/ns, 110.453 timesteps/s
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.2328     | 4.3228     | 7.5931     | 103.1 | 45.88
-Bond    | 0.00084131 | 0.00088983 | 0.00095229 |   0.0 |  0.01
-Kspace  | 1.3979     | 4.6476     | 6.7252     |  98.8 | 49.32
-Neigh   | 0.34367    | 0.34371    | 0.34376    |   0.0 |  3.65
-Comm    | 0.042806   | 0.062908   | 0.075887   |   5.4 |  0.67
-Output  | 0.00037677 | 0.00041431 | 0.0004619  |   0.0 |  0.00
-Modify  | 0.028432   | 0.031138   | 0.034528   |   1.3 |  0.33
-Other   |            | 0.01321    |            |       |  0.14
+Pair    | 2.462      | 4.2266     | 7.1075     |  89.3 | 46.68
+Bond    | 0.00018424 | 0.00019878 | 0.00022125 |   0.0 |  0.00
+Kspace  | 1.4698     | 4.338      | 6.1001     |  87.8 | 47.91
+Neigh   | 0.39462    | 0.39489    | 0.39518    |   0.0 |  4.36
+Comm    | 0.043753   | 0.055826   | 0.062746   |   3.1 |  0.62
+Output  | 0.00048755 | 0.00053971 | 0.00062785 |   0.0 |  0.01
+Modify  | 0.027255   | 0.028664   | 0.030278   |   0.7 |  0.32
+Other   |            | 0.008904   |            |       |  0.10
 
 Nlocal:            234 ave         302 max         198 min
 Histogram: 2 0 0 1 0 0 0 0 0 1

@@ -609,7 +609,7 @@ void ComputeStressMopProfile::compute_bonds()
     }
     m += 3;
   }
-} 
+}
 
 /* ----------------------------------------------------------------------
    setup 1d bins and their extent and coordinates

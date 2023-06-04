@@ -232,9 +232,11 @@ void ComputeStressMop::init()
          angleflag = 1;
       }
     if (force->dihedral!=nullptr)
-      error->all(FLERR,"compute stress/mop does not account for dihedral potentials");
+      if ((strcmp(force->dihedral_style, "zero") != 0) && (strcmp(force->dihedral_style, "none") != 0))
+        error->all(FLERR,"compute stress/mop does not account for dihedral potentials");
     if (force->improper!=nullptr)
-      error->all(FLERR,"compute stress/mop does not account for improper potentials");
+      if ((strcmp(force->improper_style, "zero") != 0) && (strcmp(force->improper_style, "none") != 0))
+        error->all(FLERR,"compute stress/mop does not account for improper potentials");
     if (force->kspace!=nullptr)
       error->all(FLERR,"compute stress/mop does not account for kspace contributions");
   }

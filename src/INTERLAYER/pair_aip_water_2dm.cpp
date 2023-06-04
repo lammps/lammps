@@ -41,7 +41,7 @@ using namespace InterLayer;
 #define PGDELTA 1
 
 static const char cite_aip_water[] =
-    "ilp/water/2dm potential doi/10.1021/acs.jpcc.2c08464\n"
+    "aip/water/2dm potential doi/10.1021/acs.jpcc.2c08464\n"
     "@Article{Feng2023\n"
     " author = {Z. Feng, Y. Yao, J. Liu, B. Wu, Z. Liu, and W. Ouyang},\n"
     " title = {Registry-Dependent Potential for Interfaces of Water with Graphene},\n"

@@ -83,7 +83,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
     if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir])
       error->all(FLERR, "Plane for compute stress/mop is out of bounds");
   }
-     
+
   if (pos < (domain->boxlo[dir]+domain->prd_half[dir])) {
     pos1 = pos + domain->prd[dir];
   } else {
@@ -285,7 +285,7 @@ void ComputeStressMop::compute_vector()
 
   // sum angle contribution over all procs
   MPI_Allreduce(angle_local,angle_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
-   
+
   for (int m=0; m<nvalues; m++) {
     vector[m] = values_global[m] + bond_global[m] + angle_global[m];
   }

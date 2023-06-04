@@ -68,7 +68,7 @@ Between one and six keywords can be used to indicate which
 contributions to the stress must be computed: total stress (total),  kinetic stress (kin),
 configurational stress (conf), stress due to bond stretching (bond),
 stress due to angle bending (angle) and/or due to pairwise non-bonded interactions (pair).
-The angle keyword is currently available only for the stress/mop command and not the stress/mop/profile. 
+The angle keyword is currently available only for the stress/mop command and not the stress/mop/profile.
 
 NOTE 1: The configurational stress is computed considering all pairs of atoms where at least one atom belongs to group group-ID.
 
@@ -119,12 +119,12 @@ size does not change in time, and axis-aligned planes.
 
 The method only works with two-body pair interactions, because it
 requires the class method pair->single() to be implemented. In
-particular, compute *stress/mop/profile* does not work with more than 
+particular, compute *stress/mop/profile* does not work with more than
 two-body pair interactions, long range (kspace) interactions and angle/dihedral/improper
-intramolecular interactions. Similarly, compute *stress/mop* does not work with more than 
+intramolecular interactions. Similarly, compute *stress/mop* does not work with more than
 two-body pair interactions, long range (kspace) interactions and dihedral/improper
 intramolecular interactions but works with all bond interactions with the class method
-single() implemented and all angle interactions with the class method born_matrix() 
+single() implemented and all angle interactions with the class method born_matrix()
 implemented.
 
 Related commands

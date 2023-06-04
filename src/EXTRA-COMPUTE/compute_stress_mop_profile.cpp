@@ -207,9 +207,11 @@ void ComputeStressMopProfile::init()
     if (force->bond!=nullptr) bondflag = 1;
 
     if (force->angle!=nullptr)
-      error->all(FLERR,"compute stress/mop/profile does not account for angle potentials");
+      if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
+        error->all(FLERR,"compute stress/mop/profile does not account for angle potentials");
     if (force->dihedral!=nullptr)
-      error->all(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
+      if ((strcmp(force->dihedral_style, "zero") != 0) && (strcmp(force->dihedral_style, "none") != 0))
+        error->all(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
     if (force->improper!=nullptr)
       error->all(FLERR,"compute stress/mop/profile does not account for improper potentials");
     if (force->kspace!=nullptr)

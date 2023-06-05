@@ -216,7 +216,7 @@ void ComputeStressMopProfile::init()
       if ((strcmp(force->improper_style, "zero") != 0) && (strcmp(force->improper_style, "none") != 0))
         error->all(FLERR,"compute stress/mop/profile does not account for improper potentials");
     if (force->kspace!=nullptr)
-      error->all(FLERR,"compute stress/mop/profile does not account for kspace contributions");
+      error->warning(FLERR,"compute stress/mop/profile does not account for kspace contributions");
   }
 
   // need an occasional half neighbor list

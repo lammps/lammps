@@ -227,7 +227,8 @@ void ComputeStressMop::init()
     if (force->bond!=nullptr) bondflag = 1;
     if (force->angle!=nullptr)
       if (force->angle->born_matrix_enable == 0) {
-        error->all(FLERR,"compute stress/mop does not account for angle potentials");
+        if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
+          error->all(FLERR,"compute stress/mop does not account for angle potentials");
       } else {
          angleflag = 1;
       }
@@ -238,7 +239,7 @@ void ComputeStressMop::init()
       if ((strcmp(force->improper_style, "zero") != 0) && (strcmp(force->improper_style, "none") != 0))
         error->all(FLERR,"compute stress/mop does not account for improper potentials");
     if (force->kspace!=nullptr)
-      error->all(FLERR,"compute stress/mop does not account for kspace contributions");
+      error->warning(FLERR,"compute stress/mop does not account for kspace contributions");
   }
 
   // need an occasional half neighbor list

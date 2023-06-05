@@ -5,12 +5,15 @@ if( "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" )
   message( FATAL_ERROR "FATAL: In-source builds are not allowed. You should create a separate directory for build files and delete CMakeCache.txt." )
 endif()
 
+if (COMMAND TRIBITS_PACKAGE_DECL)
+  TRIBITS_PACKAGE_DECL(Kokkos)
+endif()
+
 # We want to determine if options are given with the wrong case
 # In order to detect which arguments are given to compare against
 # the list of valid arguments, at the beginning here we need to
 # form a list of all the given variables. If it begins with any
 # case of KoKkOS, we add it to the list.
-
 
 GET_CMAKE_PROPERTY(_variableNames VARIABLES)
 SET(KOKKOS_GIVEN_VARIABLES)
@@ -123,6 +126,8 @@ IF(NOT KOKKOS_HAS_TRILINOS)
           FORCE)
     ENDIF()
   ENDIF()
+ELSE()
+  SET(KOKKOS_COMPILE_LANGUAGE CXX)
 ENDIF()
 
 IF (NOT CMAKE_SIZEOF_VOID_P)
@@ -139,7 +144,7 @@ ENDIF()
 
 set(Kokkos_VERSION_MAJOR 4)
 set(Kokkos_VERSION_MINOR 0)
-set(Kokkos_VERSION_PATCH 0)
+set(Kokkos_VERSION_PATCH 1)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
 # mathematical expressions below are not stricly necessary but they eliminate
@@ -288,7 +293,9 @@ IF (KOKKOS_HAS_TRILINOS)
     $<$<COMPILE_LANGUAGE:CXX>:${KOKKOS_ALL_COMPILE_OPTIONS}>)
 ENDIF()
 
-KOKKOS_PACKAGE_DECL()
+if (NOT COMMAND TRIBITS_PACKAGE_DECL)
+  KOKKOS_PACKAGE_DECL()
+endif()
 
 
 #------------------------------------------------------------------------------

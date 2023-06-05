@@ -486,3 +486,32 @@ TEST(simd, device) {
   Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::IndexType<int>>(0, 1),
                        simd_device_functor());
 }
+
+TEST(simd, test_size) {
+#if defined(KOKKOS_ARCH_AVX512XEON)
+  constexpr auto width = 8;
+  using Abi = Kokkos::Experimental::simd_abi::avx512_fixed_size<width>;
+  static_assert(width ==
+                Kokkos::Experimental::simd<std::uint32_t, Abi>::size());
+
+#elif defined(KOKKOS_ARCH_AVX2)
+  constexpr auto width = 4;
+  using Abi            = Kokkos::Experimental::simd_abi::avx2_fixed_size<width>;
+
+#elif defined(__ARM_NEON)
+  constexpr auto width = 2;
+  using Abi            = Kokkos::Experimental::simd_abi::neon_fixed_size<width>;
+
+#else
+  constexpr auto width = 1;
+  using Abi            = Kokkos::Experimental::simd_abi::scalar;
+  static_assert(width ==
+                Kokkos::Experimental::simd<std::uint32_t, Abi>::size());
+#endif
+
+  static_assert(width == Kokkos::Experimental::simd<double, Abi>::size());
+  static_assert(width == Kokkos::Experimental::simd<std::int64_t, Abi>::size());
+  static_assert(width ==
+                Kokkos::Experimental::simd<std::uint64_t, Abi>::size());
+  static_assert(width == Kokkos::Experimental::simd<std::int32_t, Abi>::size());
+}

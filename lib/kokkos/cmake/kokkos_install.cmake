@@ -38,7 +38,7 @@ ELSE()
 
   WRITE_BASIC_PACKAGE_VERSION_FILE("${CMAKE_CURRENT_BINARY_DIR}/KokkosConfigVersion.cmake"
       VERSION "${Kokkos_VERSION}"
-      COMPATIBILITY SameMajorVersion)
+      COMPATIBILITY AnyNewerVersion)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosConfigVersion.cmake
       DESTINATION "${${PROJECT_NAME}_INSTALL_LIB_DIR}/cmake/${PACKAGE_NAME}")

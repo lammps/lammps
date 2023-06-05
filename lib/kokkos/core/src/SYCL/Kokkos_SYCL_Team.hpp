@@ -337,10 +337,11 @@ class SYCLTeamMember {
   // Private for the driver
 
   KOKKOS_INLINE_FUNCTION
-  SYCLTeamMember(sycl::local_ptr<void> shared, const int shared_begin,
-                 const int shared_size,
+  SYCLTeamMember(sycl::local_ptr<void> shared, const std::size_t shared_begin,
+                 const std::size_t shared_size,
                  sycl::device_ptr<void> scratch_level_1_ptr,
-                 const int scratch_level_1_size, const sycl::nd_item<2> item)
+                 const std::size_t scratch_level_1_size,
+                 const sycl::nd_item<2> item)
       : m_team_reduce(shared),
         m_team_shared(static_cast<sycl::local_ptr<char>>(shared) + shared_begin,
                       shared_size, scratch_level_1_ptr, scratch_level_1_size),

@@ -12,7 +12,7 @@ endif
 
 KOKKOS_VERSION_MAJOR = 4
 KOKKOS_VERSION_MINOR = 0
-KOKKOS_VERSION_PATCH = 0
+KOKKOS_VERSION_PATCH = 1
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -1061,7 +1061,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA_ARCH), 1)
     KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_86
   endif
   ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ADA89), 1)
-    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMPERE")
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ADA89")
     KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_89
   endif
@@ -1108,6 +1107,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI1030")
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI")
     KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx1030
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NAVI1100), 1)
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI1100")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI")
+    KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx1100
   endif
 
 

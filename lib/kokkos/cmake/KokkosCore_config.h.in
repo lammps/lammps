@@ -117,3 +117,4 @@
 #cmakedefine KOKKOS_ARCH_VEGA90A
 #cmakedefine KOKKOS_ARCH_NAVI
 #cmakedefine KOKKOS_ARCH_NAVI1030
+#cmakedefine KOKKOS_ARCH_NAVI1100

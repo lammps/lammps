@@ -629,6 +629,12 @@ They must be specified in uppercase.
    *  - VEGA90A
       - GPU
       - AMD GPU MI200 GFX90A
+   *  - NAVI1030
+      - GPU
+      - AMD GPU V620/W6800
+   *  - NAVI1100
+      - GPU
+      - AMD GPU RX7900XTX
    *  - INTEL_GEN
       - GPU
       - SPIR64-based devices, e.g. Intel GPUs, using JIT
@@ -651,7 +657,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 4.0.0 of the Kokkos library.
+This list was last updated for version 4.0.1 of the Kokkos library.
 
 .. tabs::
 

@@ -14,7 +14,8 @@ input_file: in.metal
 pair_style: kim ex_model_Ar_P_LJ
 pair_coeff: ! |
   * * Ar Ar
-extract: ! ""
+extract: ! |
+ scale 0
 natoms: 32
 init_vdwl: 9544.77366960673
 init_coul: 0

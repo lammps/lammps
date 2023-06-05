@@ -36,11 +36,9 @@ int Compute::instance_total = 0;
 /* ---------------------------------------------------------------------- */
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
-  Pointers(lmp),
-  id(nullptr), style(nullptr),
-  vector(nullptr), array(nullptr), vector_atom(nullptr),
-  array_atom(nullptr), vector_local(nullptr), array_local(nullptr), extlist(nullptr),
-  tlist(nullptr), vbiasall(nullptr)
+  Pointers(lmp), id(nullptr), style(nullptr), vector(nullptr), array(nullptr),
+  vector_atom(nullptr), array_atom(nullptr), vector_local(nullptr), array_local(nullptr),
+  extlist(nullptr), tlist(nullptr), vbiasall(nullptr)
 {
   instance_me = instance_total++;
 
@@ -69,6 +67,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   pressatomflag = peatomflag = 0;
   create_attribute = 0;
   tempbias = 0;
+  scalar = 0.0;
 
   timeflag = 0;
   comm_forward = comm_reverse = 0;
@@ -105,8 +104,8 @@ Compute::~Compute()
 {
   if (copymode) return;
 
-  delete [] id;
-  delete [] style;
+  delete[] id;
+  delete[] style;
   memory->destroy(tlist);
 }
 

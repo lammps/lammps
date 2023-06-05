@@ -100,8 +100,8 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
 
-  void *extract(const char *str, int &dim);
-  void *extract_peratom(const char *str, int &ncol);
+  void *extract(const char *str, int &dim) override;
+  void *extract_peratom(const char *str, int &ncol) override;
 
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;

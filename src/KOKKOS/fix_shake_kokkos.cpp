@@ -53,7 +53,7 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixShake(lmp, narg, arg)
 {
   kokkosable = 1;
-  forward_comm_device = exchange_comm_device = 1;
+  forward_comm_device = exchange_comm_device = sort_device = 1;
   maxexchange = 9;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -221,6 +221,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
   }
 
   k_shake_flag.sync<DeviceType>();
@@ -248,6 +249,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
   }
 
   atomKK->k_sametag.sync<DeviceType>();
@@ -357,6 +359,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
   }
 
   if (d_rmass.data())
@@ -1482,6 +1485,28 @@ void FixShakeKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
   k_shake_flag.modify_host();
   k_shake_atom.modify_host();
   k_shake_type.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_shake_flag.sync_device();
+  k_shake_atom.sync_device();
+  k_shake_type.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_shake_flag.d_view);
+  Sorter.sort(LMPDeviceType(), k_shake_atom.d_view);
+  Sorter.sort(LMPDeviceType(), k_shake_type.d_view);
+
+  k_shake_flag.modify_device();
+  k_shake_atom.modify_device();
+  k_shake_type.modify_device();
 }
 
 /* ----------------------------------------------------------------------

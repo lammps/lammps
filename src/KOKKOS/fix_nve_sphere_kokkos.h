@@ -37,11 +37,14 @@ class FixNVESphereKokkos : public FixNVESphere {
     void init() override;
     void initial_integrate(int) override;
     void final_integrate() override;
+    void fused_integrate(int) override;
 
     KOKKOS_INLINE_FUNCTION
     void initial_integrate_item(const int i) const;
     KOKKOS_INLINE_FUNCTION
     void final_integrate_item(const int i) const;
+    KOKKOS_INLINE_FUNCTION
+    void fused_integrate_item(int) const;
 
   private:
     typename ArrayTypes<DeviceType>::t_x_array x;
@@ -74,6 +77,17 @@ struct FixNVESphereKokkosFinalIntegrateFunctor {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     c.final_integrate_item(i);
+  }
+};
+
+template <class DeviceType>
+struct FixNVESphereKokkosFusedIntegrateFunctor {
+  typedef DeviceType device_type;
+  FixNVESphereKokkos<DeviceType> c;
+  FixNVESphereKokkosFusedIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const {
+    c.fused_integrate_item(i);
   }
 };
 

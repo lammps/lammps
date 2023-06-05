@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -22,12 +21,14 @@
 ----------------------------------------------------------------------- */
 
 #include "granular_model.h"
-#include "gran_sub_mod.h"
+
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "gran_sub_mod.h"
 #include "math_extra.h"
-#include "style_gran_sub_mod.h"  // IWYU pragma: keep
+
+#include "style_gran_sub_mod.h"    // IWYU pragma: keep
 
 #include <cmath>
 
@@ -69,22 +70,22 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
   nclass = 0;
 
 #define GRAN_SUB_MOD_CLASS
-#define GranSubModStyle(key,Class,type) nclass++;
-#include "style_gran_sub_mod.h"  // IWYU pragma: keep
+#define GranSubModStyle(key, Class, type) nclass++;
+#include "style_gran_sub_mod.h"    // IWYU pragma: keep
 #undef GranSubModStyle
 #undef GRAN_SUB_MOD_CLASS
 
   gran_sub_mod_class = new GranSubModCreator[nclass];
-  gran_sub_mod_names = new char*[nclass];
+  gran_sub_mod_names = new char *[nclass];
   gran_sub_mod_types = new int[nclass];
   nclass = 0;
 
 #define GRAN_SUB_MOD_CLASS
-#define GranSubModStyle(key,Class,type) \
-  gran_sub_mod_class[nclass] = &gran_sub_mod_creator<Class>;   \
-  gran_sub_mod_names[nclass] = (char *) #key; \
+#define GranSubModStyle(key, Class, type)                    \
+  gran_sub_mod_class[nclass] = &gran_sub_mod_creator<Class>; \
+  gran_sub_mod_names[nclass] = (char *) #key;                \
   gran_sub_mod_types[nclass++] = type;
-#include "style_gran_sub_mod.h"  // IWYU pragma: keep
+#include "style_gran_sub_mod.h"    // IWYU pragma: keep
 #undef GranSubModStyle
 #undef GRAN_SUB_MOD_CLASS
 }
@@ -93,20 +94,19 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 
 GranularModel::~GranularModel()
 {
-  delete [] transfer_history_factor;
-  delete [] gran_sub_mod_class;
-  delete [] gran_sub_mod_names;
-  delete [] gran_sub_mod_types;
+  delete[] transfer_history_factor;
+  delete[] gran_sub_mod_class;
+  delete[] gran_sub_mod_names;
+  delete[] gran_sub_mod_types;
 
-  for (int i = 0; i < NSUBMODELS; i ++) delete sub_models[i];
+  for (int i = 0; i < NSUBMODELS; i++) delete sub_models[i];
 }
 
 /* ---------------------------------------------------------------------- */
 
 int GranularModel::add_sub_model(char **arg, int iarg, int narg, SubModelType model_type)
 {
-  if (iarg >= narg)
-    error->all(FLERR, "Must specify granular sub model name");
+  if (iarg >= narg) error->all(FLERR, "Must specify granular sub model name");
 
   std::string model_name = std::string(arg[iarg++]);
 
@@ -118,14 +118,18 @@ int GranularModel::add_sub_model(char **arg, int iarg, int narg, SubModelType mo
 
   for (int i = 0; i < num_coeffs; i++) {
     // A few parameters (e.g. kt for tangential mindlin) allow null
-    if (strcmp(arg[iarg + i], "NULL") == 0) sub_models[model_type]->coeffs[i] = -1;
-    else sub_models[model_type]->coeffs[i] = utils::numeric(FLERR,arg[iarg + i],false,lmp);
+    if (strcmp(arg[iarg + i], "NULL") == 0)
+      sub_models[model_type]->coeffs[i] = -1;
+    else
+      sub_models[model_type]->coeffs[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
   }
 
   sub_models[model_type]->coeffs_to_local();
 
   return iarg + num_coeffs;
 }
+
+// clang-format off
 
 /* ---------------------------------------------------------------------- */
 
@@ -249,13 +253,13 @@ void GranularModel::init()
     if (sub_models[i]->beyond_contact)
       beyond_contact = 1;
     size_history += sub_models[i]->size_history;
-    if (!sub_models[i]->allow_cohesion && normal_model->cohesive_flag)
+    if (!sub_models[i]->allow_cohesion && normal_model->get_cohesive_flag())
       error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}",
                  sub_models[i]->name, normal_model->name);
     if (sub_models[i]->contact_radius_flag) contact_radius_flag = 1;
   }
 
-  if (limit_damping && normal_model->cohesive_flag)
+  if (limit_damping && normal_model->get_cohesive_flag())
     error->all(FLERR,"Cannot limit damping with a cohesive normal model, {}", normal_model->name);
 
   if (nondefault_history_transfer) {

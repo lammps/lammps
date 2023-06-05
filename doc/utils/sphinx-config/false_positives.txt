@@ -1562,6 +1562,7 @@ invertibility
 ionicities
 ionizable
 ionocovalent
+iOS
 iostreams
 iparam
 ipi
@@ -3735,6 +3736,7 @@ Umin
 un
 unary
 uncomment
+uncompress
 uncompute
 underprediction
 undump

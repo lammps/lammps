@@ -451,7 +451,7 @@ void FixPIMDLangevin::init()
 
   nmpimd_init();
 
-  Langevin_init();
+  langevin_init();
 
   c_pe = modify->get_compute_by_id(id_pe);
   c_press = modify->get_compute_by_id(id_press);
@@ -888,7 +888,7 @@ void FixPIMDLangevin::press_o_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::Langevin_init()
+void FixPIMDLangevin::langevin_init()
 {
   double beta = 1.0 / kBT;
   _omega_np = np / beta / hbar;

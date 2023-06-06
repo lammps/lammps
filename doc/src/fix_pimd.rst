@@ -445,7 +445,7 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Bussi)** G. Bussi, T. Zykova-Timan, M. Parrinello, J Chem Phys, 130, 074101 (2009).
 
-.. _Ceriotti2:
+.. _Ceriotti3:
 
 **(Ceriotti)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
 

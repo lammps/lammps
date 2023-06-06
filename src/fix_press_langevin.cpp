@@ -65,15 +65,18 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   pre_exchange_flag = 0;
   flipflag = 1;
 
-  // Alpha friction coefficient
-  p_fric = 1e-4;
+  // Piston mass
+  p_mass = 1e-3;
+
   // Target temperature
   t_start = t_stop = t_target = 0.0;
 
   for (int i = 0; i < 6; i++) {
-    // Pressure and pistons mass Q
+    // Pressure and pistons period tau_p
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
+
+    p_fric[i] = 0.;
 
     // Pistons coordinates derivative V
     p_deriv[i] = 0.0;
@@ -210,16 +213,13 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix press/langevin command");
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"friction") == 0) {
-      if (iarg+3 > narg)
+    } else if (strcmp(arg[iarg],"mass") == 0) {
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix press/langevin command");
-      p_fric = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      seed = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (p_fric <= 0.0)
+      p_mass = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (p_mass <= 0.0)
         error->all(FLERR,"Illegal fix press/langevin command");
-      if (seed <= 0.0)
-        error->all(FLERR,"Illegal fix press/langevin command");
-      iarg += 3;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix press/langevin command");
@@ -228,11 +228,14 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix press/langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg], "temp") == 0) {
-      if (iarg+3 > narg)
+      if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/langevin command");
       t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      iarg += 3;
+      seed = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (seed <= 0.0)
+        error->all(FLERR,"Illegal fix press/langevin command");
+      iarg += 4;
     }
 
     else error->all(FLERR,"Illegal fix press/langevin command");
@@ -240,7 +243,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   if (allremap == 0) restart_pbc = 1;
 
-  random = new RanMars(lmp, seed + comm->me);
+  random = new RanMars(lmp, seed);
 
   // error checks
 
@@ -356,9 +359,13 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(fmt::format("{} all pressure NULL virial",id_press, id_temp));
   pflag = 1;
 
+  // p_fric is alpha coeff from GJF
+  // with alpha = Q/p_period
+  // similar to fix_langevin formalism
   for (int i = 0; i < 6; i++) {
-    gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
-    gjfb[i] = 1./(1.0 + update->dt / 2.0 / p_period[i]);
+    p_fric[i] = p_mass/p_period[i];
+    gjfa[i] = (1.0 - p_fric[i] * update->dt / 2.0 / p_mass) / (1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
+    gjfb[i] = 1./(1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
   }
 
   nrigid = 0;
@@ -469,8 +476,8 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
     if (p_flag[i]) {
       // See equation 13
       displacement = dt*p_deriv[i]*gjfb[i];
-      displacement += 0.5*dt*dt*f_piston[i]*gjfb[i]/p_period[i];
-      displacement += 0.5*dt*fran[i]*gjfb[i]/p_period[i];
+      displacement += 0.5*dt*dt*f_piston[i]*gjfb[i]/p_mass;
+      displacement += 0.5*dt*fran[i]*gjfb[i]/p_mass;
       dl = domain->boxhi[i] - domain->boxlo[i];
       if (i < 3) dilation[i] = (dl + displacement)/dl;
       else dilation[i] = displacement;
@@ -528,8 +535,8 @@ void FixPressLangevin::end_of_step()
   for (int i = 0; i < 6; i++) {
     if (p_flag[i]) {
       p_deriv[i] *= gjfa[i];
-      p_deriv[i] += 0.5*dt*(gjfa[i]*f_old_piston[i]+f_piston[i])/p_period[i];
-      p_deriv[i] += fran[i]*gjfb[i]/p_period[i];
+      p_deriv[i] += 0.5*dt*(gjfa[i]*f_old_piston[i]+f_piston[i])/p_mass;
+      p_deriv[i] += fran[i]*gjfb[i]/p_mass;
     }
   }
 
@@ -588,35 +595,36 @@ void FixPressLangevin::couple_kinetic(double t_target)
 
 void FixPressLangevin::couple_beta(double t_target)
 {
-  double gamma;
+  double gamma[6];
   int me = comm->me;
 
-  gamma = sqrt(2.0*force->boltz*update->dt*p_fric*t_target);
+  for (int i=0; i<6; i++)
+    gamma[i] = sqrt(2.0*force->boltz*update->dt*p_fric[i]*t_target);
 
   fran[0] = fran[1] = fran[2] = 0.0;
   fran[3] = fran[4] = fran[5] = 0.0;
   if (me == 0) {
     if (pstyle == ISO)
-      fran[0] = fran[1] = fran[2] = gamma*random->gaussian();
+      fran[0] = fran[1] = fran[2] = gamma[0]*random->gaussian();
     else if (pcouple == XYZ) {
-      fran[0] = fran[1] = fran[2] = gamma*random->gaussian();
+      fran[0] = fran[1] = fran[2] = gamma[0]*random->gaussian();
     } else if (pcouple == XY) {
-      fran[0] = fran[1] = gamma*random->gaussian();
-      fran[2] = gamma*random->gaussian();
+      fran[0] = fran[1] = gamma[0]*random->gaussian();
+      fran[2] = gamma[2]*random->gaussian();
     } else if (pcouple == YZ) {
-      fran[1] = fran[2] = gamma*random->gaussian();
-      fran[0] = gamma*random->gaussian();
+      fran[1] = fran[2] = gamma[1]*random->gaussian();
+      fran[0] = gamma[0]*random->gaussian();
     } else if (pcouple == XZ) {
-      fran[0] = fran[2] = gamma*random->gaussian();
-      fran[1] = gamma*random->gaussian();
+      fran[0] = fran[2] = gamma[0]*random->gaussian();
+      fran[1] = gamma[1]*random->gaussian();
     } else {
-      fran[0] = gamma*random->gaussian();
-      fran[1] = gamma*random->gaussian();
-      fran[2] = gamma*random->gaussian();
+      fran[0] = gamma[0]*random->gaussian();
+      fran[1] = gamma[1]*random->gaussian();
+      fran[2] = gamma[2]*random->gaussian();
     }
-    fran[3] = gamma*random->gaussian();
-    fran[4] = gamma*random->gaussian();
-    fran[5] = gamma*random->gaussian();
+    fran[3] = gamma[3]*random->gaussian();
+    fran[4] = gamma[4]*random->gaussian();
+    fran[5] = gamma[5]*random->gaussian();
   }
   MPI_Bcast(&fran, 6, MPI_DOUBLE, 0, world);
 }
@@ -797,7 +805,7 @@ int FixPressLangevin::modify_param(int narg, char **arg)
 void FixPressLangevin::reset_dt()
 {
   for (int i=0; i<6; i++) {
-    gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
-    gjfb[i] = sqrt(1.0 + update->dt / 2.0 / p_period[i]);
+    gjfa[i] = (1.0 - p_fric[i] * update->dt / 2.0 / p_mass) / (1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
+    gjfb[i] = sqrt(1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
     }
 }

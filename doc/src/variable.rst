@@ -11,12 +11,19 @@ Syntax
    variable name style args ...
 
 * name = name of variable to define
-* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *timer* or *internal* or *equal* or *vector* or *atom*
+* style = *delete* or *atomfile* or *file* or *format* or *getenv* or *index* or *internal* or *loop* or *python* or *string* or *timer* or *uloop* or *universe* or *world* or *equal* or *vector* or *atom*
 
   .. parsed-literal::
 
        *delete* = no args
+       *atomfile* arg = filename
+       *file* arg = filename
+       *format* args = vname fstr
+         vname = name of equal-style variable to evaluate
+         fstr = C-style format string
+       *getenv* arg = one string
        *index* args = one or more strings
+       *internal* arg = numeric value
        *loop* args = N
          N = integer size of loop, loop from 1 to N inclusive
        *loop* args = N pad
@@ -27,24 +34,18 @@ Syntax
        *loop* args = N1 N2 pad
          N1,N2 = loop from N1 to N2 inclusive
          pad = all values will be same length, e.g. 050, 051, ..., 100
-       *world* args = one string for each partition of processors
-       *universe* args = one or more strings
+       *python* arg = function
+       *string* arg = one string
+       *timer* arg = no arguments
        *uloop* args = N
          N = integer size of loop
        *uloop* args = N pad
          N = integer size of loop
          pad = all values will be same length, e.g. 001, 002, ..., 100
-       *string* arg = one string
-       *format* args = vname fstr
-         vname = name of equal-style variable to evaluate
-         fstr = C-style format string
-       *getenv* arg = one string
-       *file* arg = filename
-       *atomfile* arg = filename
-       *python* arg = function
-       *timer* arg = no arguments
-       *internal* arg = numeric value
-       *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
+       *universe* args = one or more strings
+       *world* args = one string for each partition of processors
+
+       *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, built-in functions, atom values and vectors, compute/fix/variable references
          numbers = 0.0, 100, -5.4, 2.8e-4, etc
          constants = PI, version, on, off, true, false, yes, no
          thermo keywords = vol, ke, press, etc from :doc:`thermo_style <thermo_style>`
@@ -66,13 +67,14 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
-         feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)
+         feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
          fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
          variable references = v_name, v_name[i]
+         vector initialization = [1,3,7,10] (for *vector* variables only)
 
 Examples
 """"""""
@@ -95,6 +97,7 @@ Examples
    variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
    variable x uloop 15 pad
    variable str format x %.6g
+   variable myvec vector [1,3,7,10]
    variable x delete
 
 .. code-block:: LAMMPS
@@ -252,9 +255,10 @@ commands before the variable would become exhausted.  For example,
 
 ----------
 
-This section describes how all the various variable styles are defined
-and what they store.  Except for the *equal* and *vector* and *atom*
-styles, which are explained in the next section.
+The next sections describe in how all the various variable styles are
+defined and what they store.  The styles are listed alphabetically,
+except for the *equal* and *vector* and *atom* styles, which are
+explained together after all the others.
 
 Many of the styles store one or more strings.  Note that a single
 string can contain spaces (multiple words), if it is enclosed in
@@ -262,111 +266,7 @@ quotes in the variable command.  When the variable is substituted for
 in another input script command, its returned string will then be
 interpreted as multiple arguments in the expanded command.
 
-For the *index* style, one or more strings are specified.  Initially,
-the first string is assigned to the variable.  Each time a
-:doc:`next <next>` command is used with the variable name, the next
-string is assigned.  All processors assign the same string to the
-variable.
-
-Index-style variables with a single string value can also be set by
-using the :doc:`command-line switch -var <Run_options>`.
-
-The *loop* style is identical to the *index* style except that the
-strings are the integers from 1 to N inclusive, if only one argument N
-is specified.  This allows generation of a long list of runs
-(e.g. 1000) without having to list N strings in the input script.
-Initially, the string "1" is assigned to the variable.  Each time a
-:doc:`next <next>` command is used with the variable name, the next
-string ("2", "3", etc) is assigned.  All processors assign the same
-string to the variable.  The *loop* style can also be specified with
-two arguments N1 and N2.  In this case the loop runs from N1 to N2
-inclusive, and the string N1 is initially assigned to the variable.
-N1 <= N2 and N2 >= 0 is required.
-
-For the *world* style, one or more strings are specified.  There must
-be one string for each processor partition or "world".  LAMMPS can be
-run with multiple partitions via the :doc:`-partition command-line
-switch <Run_options>`.  This variable command assigns one string to
-each world.  All processors in the world are assigned the same string.
-The next command cannot be used with equal-style variables, since
-there is only one value per world.  This style of variable is useful
-when you wish to run different simulations on different partitions, or
-when performing a parallel tempering simulation (see the :doc:`temper
-<temper>` command), to assign different temperatures to different
-partitions.
-
-For the *universe* style, one or more strings are specified.  There
-must be at least as many strings as there are processor partitions or
-"worlds".  LAMMPS can be run with multiple partitions via the
-:doc:`-partition command-line switch <Run_options>`.  This variable
-command initially assigns one string to each world.  When a
-:doc:`next <next>` command is encountered using this variable, the first
-processor partition to encounter it, is assigned the next available
-string.  This continues until all the variable strings are consumed.
-Thus, this command can be used to run 50 simulations on 8 processor
-partitions.  The simulations will be run one after the other on
-whatever partition becomes available, until they are all finished.
-Universe-style variables are incremented using the files
-"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
-see in your directory during such a LAMMPS run.
-
-The *uloop* style is identical to the *universe* style except that the
-strings are the integers from 1 to N.  This allows generation of long
-list of runs (e.g. 1000) without having to list N strings in the input
-script.
-
-For the *string* style, a single string is assigned to the variable.
-Two differences between this style and using the *index* style exist:
-a variable with *string* style can be redefined, e.g. by another command later
-in the input script, or if the script is read again in a loop. The other
-difference is that *string* performs variable substitution even if the
-string parameter is quoted.
-
-For the *format* style, an equal-style or compatible variable is
-specified along with a C-style format string, e.g. "%f" or "%.10g",
-which must be appropriate for formatting a double-precision
-floating-point value and may not have extra characters.  The default
-format is "%.15g".  This variable style allows an equal-style variable
-to be formatted precisely when it is evaluated.
-
-Note that if you simply wish to print a variable value with desired
-precision to the screen or logfile via the :doc:`print <print>` or
-:doc:`fix print <fix_print>` commands, you can also do this by
-specifying an "immediate" variable with a trailing colon and format
-string, as part of the string argument of those commands.  This is
-explained on the :doc:`Commands parse <Commands_parse>` doc page.
-
-For the *getenv* style, a single string is assigned to the variable
-which should be the name of an environment variable.  When the
-variable is evaluated, it returns the value of the environment
-variable, or an empty string if it not defined.  This style of
-variable can be used to adapt the behavior of LAMMPS input scripts via
-environment variable settings, or to retrieve information that has
-been previously stored with the :doc:`shell putenv <shell>` command.
-Note that because environment variable settings are stored by the
-operating systems, they persist even if the corresponding *getenv*
-style variable is deleted, and also are set for sub-shells executed
-by the :doc:`shell <shell>` command.
-
-For the *file* style, a filename is provided which contains a list of
-strings to assign to the variable, one per line.  The strings can be
-numeric values if desired.  See the discussion of the next() function
-below for equal-style variables, which will convert the string of a
-file-style variable into a numeric value in a formula.
-
-When a file-style variable is defined, the file is opened and the
-string on the first line is read and stored with the variable.  This
-means the variable can then be evaluated as many times as desired and
-will return that string.  There are two ways to cause the next string
-from the file to be read: use the :doc:`next <next>` command or the
-next() function in an equal- or atom-style variable, as discussed
-below.
-
-The rules for formatting the file are as follows.  A comment character
-"#" can be used anywhere on a line; text starting with the comment
-character is stripped.  Blank lines are skipped.  The first "word" of
-a non-blank line, delimited by white-space, is the "string" assigned
-to the variable.
+----------
 
 For the *atomfile* style, a filename is provided which contains one or
 more sets of values, to assign on a per-atom basis to the variable.
@@ -406,6 +306,97 @@ will be assigned to that atom.  IDs can be listed in any order.
    atoms is first set to 0.0.  Thus values for atoms whose ID does not
    appear in the set, will remain 0.0.
 
+----------
+
+For the *file* style, a filename is provided which contains a list of
+strings to assign to the variable, one per line.  The strings can be
+numeric values if desired.  See the discussion of the next() function
+below for equal-style variables, which will convert the string of a
+file-style variable into a numeric value in a formula.
+
+When a file-style variable is defined, the file is opened and the
+string on the first line is read and stored with the variable.  This
+means the variable can then be evaluated as many times as desired and
+will return that string.  There are two ways to cause the next string
+from the file to be read: use the :doc:`next <next>` command or the
+next() function in an equal- or atom-style variable, as discussed
+below.
+
+The rules for formatting the file are as follows.  A comment character
+"#" can be used anywhere on a line; text starting with the comment
+character is stripped.  Blank lines are skipped.  The first "word" of
+a non-blank line, delimited by white-space, is the "string" assigned
+to the variable.
+
+----------
+
+For the *format* style, an equal-style or compatible variable is
+specified along with a C-style format string, e.g. "%f" or "%.10g",
+which must be appropriate for formatting a double-precision
+floating-point value and may not have extra characters.  The default
+format is "%.15g".  This variable style allows an equal-style variable
+to be formatted precisely when it is evaluated.
+
+Note that if you simply wish to print a variable value with desired
+precision to the screen or logfile via the :doc:`print <print>` or
+:doc:`fix print <fix_print>` commands, you can also do this by
+specifying an "immediate" variable with a trailing colon and format
+string, as part of the string argument of those commands.  This is
+explained on the :doc:`Commands parse <Commands_parse>` doc page.
+
+----------
+
+For the *getenv* style, a single string is assigned to the variable
+which should be the name of an environment variable.  When the
+variable is evaluated, it returns the value of the environment
+variable, or an empty string if it not defined.  This style of
+variable can be used to adapt the behavior of LAMMPS input scripts via
+environment variable settings, or to retrieve information that has
+been previously stored with the :doc:`shell putenv <shell>` command.
+Note that because environment variable settings are stored by the
+operating systems, they persist even if the corresponding *getenv*
+style variable is deleted, and also are set for sub-shells executed
+by the :doc:`shell <shell>` command.
+
+----------
+
+For the *index* style, one or more strings are specified.  Initially,
+the first string is assigned to the variable.  Each time a
+:doc:`next <next>` command is used with the variable name, the next
+string is assigned.  All processors assign the same string to the
+variable.
+
+Index-style variables with a single string value can also be set by
+using the :doc:`command-line switch -var <Run_options>`.
+
+----------
+
+For the *internal* style a numeric value is provided.  This value will
+be assigned to the variable until a LAMMPS command sets it to a new
+value.  There are currently only two LAMMPS commands that require
+*internal* variables as inputs, because they reset them:
+:doc:`create_atoms <create_atoms>` and :doc:`fix controller
+<fix_controller>`.  As mentioned above, an internal-style variable can
+be used in place of an equal-style variable anywhere else in an input
+script, e.g. as an argument to another command that allows for
+equal-style variables.
+
+----------
+
+The *loop* style is identical to the *index* style except that the
+strings are the integers from 1 to N inclusive, if only one argument N
+is specified.  This allows generation of a long list of runs
+(e.g. 1000) without having to list N strings in the input script.
+Initially, the string "1" is assigned to the variable.  Each time a
+:doc:`next <next>` command is used with the variable name, the next
+string ("2", "3", etc) is assigned.  All processors assign the same
+string to the variable.  The *loop* style can also be specified with
+two arguments N1 and N2.  In this case the loop runs from N1 to N2
+inclusive, and the string N1 is initially assigned to the variable.
+N1 <= N2 and N2 >= 0 is required.
+
+----------
+
 For the *python* style a Python function name is provided.  This needs
 to match a function name specified in a :doc:`python <python>` command
 which returns a value to this variable as defined by its *return*
@@ -433,25 +424,52 @@ python-style variable can be used in place of an equal-style variable
 anywhere in an input script, e.g. as an argument to another command
 that allows for equal-style variables.
 
-For the *timer* style no additional argument is specified.  The value of
-the variable is set by querying the current elapsed wall time of the
-simulation.  This is done at the point in time when the variable is
-defined in the input script.  If a second timer-style variable is also
-defined, then a simple formula can be used to calculate the elapsed time
-between the two timers, as in the example at the top of this manual
-entry.  As mentioned above, timer-style variables can be redefined
-elsewhere in the input script, so the same pair of variables can be used
-in a loop or to time a series of operations.
+----------
 
-For the *internal* style a numeric value is provided.  This value will
-be assigned to the variable until a LAMMPS command sets it to a new
-value.  There are currently only two LAMMPS commands that require
-*internal* variables as inputs, because they reset them:
-:doc:`create_atoms <create_atoms>` and :doc:`fix controller
-<fix_controller>`.  As mentioned above, an internal-style variable can
-be used in place of an equal-style variable anywhere else in an input
-script, e.g. as an argument to another command that allows for
-equal-style variables.
+For the *string* style, a single string is assigned to the variable.
+Two differences between this style and using the *index* style exist:
+a variable with *string* style can be redefined, e.g. by another command later
+in the input script, or if the script is read again in a loop. The other
+difference is that *string* performs variable substitution even if the
+string parameter is quoted.
+
+----------
+
+The *uloop* style is identical to the *universe* style except that the
+strings are the integers from 1 to N.  This allows generation of long
+list of runs (e.g. 1000) without having to list N strings in the input
+script.
+
+----------
+
+For the *universe* style, one or more strings are specified.  There
+must be at least as many strings as there are processor partitions or
+"worlds".  LAMMPS can be run with multiple partitions via the
+:doc:`-partition command-line switch <Run_options>`.  This variable
+command initially assigns one string to each world.  When a
+:doc:`next <next>` command is encountered using this variable, the first
+processor partition to encounter it, is assigned the next available
+string.  This continues until all the variable strings are consumed.
+Thus, this command can be used to run 50 simulations on 8 processor
+partitions.  The simulations will be run one after the other on
+whatever partition becomes available, until they are all finished.
+Universe-style variables are incremented using the files
+"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
+see in your directory during such a LAMMPS run.
+
+----------
+
+For the *world* style, one or more strings are specified.  There must
+be one string for each processor partition or "world".  LAMMPS can be
+run with multiple partitions via the :doc:`-partition command-line
+switch <Run_options>`.  This variable command assigns one string to
+each world.  All processors in the world are assigned the same string.
+The next command cannot be used with equal-style variables, since
+there is only one value per world.  This style of variable is useful
+when you wish to run different simulations on different partitions, or
+when performing a parallel tempering simulation (see the :doc:`temper
+<temper>` command), to assign different temperatures to different
+partitions.
 
 ----------
 
@@ -495,36 +513,39 @@ is a valid (though strange) variable formula:
 
 Specifically, a formula can contain numbers, constants, thermo
 keywords, math operators, math functions, group functions, region
-functions, atom values, atom vectors, compute references, fix
-references, and references to other variables.
+functions, special functions, feature functions, atom values, atom
+vectors, compute references, fix references, and references to other
+variables.
 
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Number             | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                                              |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Constant           | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                                                |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Thermo keywords    | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                                       |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math operators     | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y,      x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                                                 |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x),      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x),      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),      logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),      vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z) |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Group functions    | count(ID), mass(ID), charge(ID), xcm(ID,dim),      vcm(ID,dim), fcm(ID,dim), bound(ID,dir),      gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim),      inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                             |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                    |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x),  label2type(kind,label)                                                                                                                                                                                                                                 |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                            |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                                   |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                                  |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                                  |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                         |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Number             | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                       |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Constant           | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                         |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Thermo keywords    | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math operators     | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                               |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)   |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Group functions    | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                     |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                 |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Special functions  | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)                                                                                                                                   |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Feature functions  | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                               |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                  |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                            |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                           |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                           |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                  |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Most of the formula elements produce a scalar value.  Some produce a
 global or per-atom vector of values.  Global vectors can be produced
@@ -574,9 +595,9 @@ will not work, since the *version* has been introduced more recently):
    if $(version<20140513) then "communicate vel yes" else "comm_modify vel yes"
 
 The thermo keywords allowed in a formula are those defined by the
-:doc:`thermo_style custom <thermo_style>` command.  Thermo keywords that
-require a :doc:`compute <compute>` to calculate their values such as
-"temp" or "press", use computes stored and invoked by the
+:doc:`thermo_style custom <thermo_style>` command.  Thermo keywords
+that require a :doc:`compute <compute>` to calculate their values such
+as "temp" or "press", use computes stored and invoked by the
 :doc:`thermo_style <thermo_style>` command.  This means that you can
 only use those keywords in a variable if the style you are using with
 the thermo_style command (and the thermo keywords associated with that
@@ -714,10 +735,12 @@ new timestep.  X,y,z > 0 and y < z are required.  The generated
 timesteps are on a base-z logarithmic scale, starting with x, and the
 y value is how many of the z-1 possible timesteps within one
 logarithmic interval are generated.  I.e. the timesteps follow the
-sequence x,2x,3x,...y\*x,x\*z,2x\*z,3x\*z,...y\*x\*z,x\*z\^2,2x\*z\^2,etc.  For
+sequence
+x,2x,3x,...y\*x,x\*z,2x\*z,3x\*z,...y\*x\*z,x\*z\^2,2x\*z\^2,etc.  For
 any current timestep, the next timestep in the sequence is returned.
-Thus if logfreq(100,4,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, it will generate this sequence of
-output timesteps:
+Thus if logfreq(100,4,10) is used in a variable by the
+:doc:`dump_modify every <dump_modify>` command, it will generate this
+sequence of output timesteps:
 
 .. parsed-literal::
 
@@ -726,9 +749,10 @@ output timesteps:
 The logfreq2(x,y,z) function is similar to logfreq, except a single
 logarithmic interval is divided into y equally-spaced timesteps and
 all of them are output.  Y < z is not required.  Thus, if
-logfreq2(100,18,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, then the interval between 100 and
-1000 is divided as 900/18 = 50 steps, and it will generate the
-sequence of output timesteps:
+logfreq2(100,18,10) is used in a variable by the :doc:`dump_modify
+every <dump_modify>` command, then the interval between 100 and 1000
+is divided as 900/18 = 50 steps, and it will generate the sequence of
+output timesteps:
 
 .. parsed-literal::
 
@@ -970,53 +994,94 @@ types, bond types and so on. For the full list of available keywords
 *name* and their meaning, see the documentation for extract_setting()
 via the link in this paragraph.
 
-The label2type() function converts type labels into numeric types, using label
-maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
-commands.  The first argument is the label map kind (atom, bond, angle,
-dihedral, or improper) and the second argument is the label.  The function
-returns the corresponding numeric type.
+The label2type(kind,label) function converts type labels into numeric
+types, using label maps created by the :doc:`labelmap <labelmap>` or
+:doc:`read_data <read_data>` commands.  The first argument is the label
+map kind (atom, bond, angle, dihedral, or improper) and the second
+argument is the label.  The function returns the corresponding numeric
+type or triggers an error if the queried label does not exist.
+
+.. versionadded:: TBD
+
+The is_typelabel(kind,label) function has the same arguments as
+label2type(), but returns 1 if the type label has been assigned,
+otherwise it returns 0.  This function can be used to check if a
+particular type label already exists in the simulation.
 
 ----------
 
 Feature Functions
 -----------------
 
-Feature functions allow to probe the running LAMMPS executable for
-whether specific features are either active, defined, or available.  The
-functions take two arguments, a *category* and a corresponding
-*argument*\ . The arguments are strings and thus cannot be formulas
+Feature functions allow probing of the running LAMMPS executable for
+whether specific features are available, active, or defined.  All 3 of
+the functions take two arguments, a *category* and a category-specific
+second argument.  Both are strings and thus cannot be formulas
 themselves; only $-style immediate variable expansion is possible.
-Return value is either 1.0 or 0.0 depending on whether the function
-evaluates to true or false, respectively.
+The return value of the functions is either 1.0 or 0.0 depending on
+whether the function evaluates to true or false, respectively.
 
-The *is_active(category,feature)* function allows to query for active
-settings which are grouped by categories. Currently supported categories
-and arguments are:
+The *is_available(category,name)* function queries whether a specific
+feature is available in the LAMMPS executable that is being run, i.e
+whether it was included or enabled at compile time.
 
-* *package*\ : argument = *gpu* or *intel* or *kokkos* or *omp*
-* *newton*\ : argument = *pair* or *bond* or *any*
-* *pair*\ : argument = *single* or *respa* or *manybody* or *tail* or *shift*
-* *comm_style*\ : argument = *brick* or *tiled*
-* *min_style*\ : argument = any of the compiled in minimizer styles
-* *run_style*\ : argument = any of the compiled in run styles
-* *atom_style*\ : argument = any of the compiled in atom style)
-* *pair_style*\ : argument = any of the compiled in pair styles
-* *bond_style*\ : argument = any of the compiled in bond styles
-* *angle_style*\ : argument = any of the compiled in angle styles
-* *dihedral_style*\ : argument = any of the compiled in dihedral styles
-* *improper_style*\ : argument = any of the compiled in improper styles
-* *kspace_style*\ : argument = any of the compiled in kspace styles
+This supports the following categories: *command*, *compute*, *fix*,
+*pair_style* and *feature*\ .  For all the categories except *feature*
+the *name* is a style name, e.g. *nve* for the *fix* category.  Note
+that many LAMMPS input script commands such as *create_atoms* are
+actually instances of a command style which LAMMPS defines, as opposed
+to built-in commands.  For all of these styles except *command*,
+appending of active suffixes is also tried before reporting failure.
 
-Most of the settings are self-explanatory, the *single* argument in the
-*pair* category allows to check whether a pair style supports a
-Pair::single() function as needed by compute group/group and others
-features or LAMMPS, *respa* allows to check whether the inner/middle/outer
-mode of r-RESPA is supported. In the various style categories,
-the checking is also done using suffix flags, if available and enabled.
+The *feature* category checks the availability of the following
+compile-time enabled features: GZIP support, PNG support, JPEG
+support, FFMPEG support, and C++ exceptions for error
+handling. Corresponding names are *gzip*, *png*, *jpeg*, *ffmpeg* and
+*exceptions*\ .
 
-Example 1: disable use of suffix for pppm when using GPU package
-(i.e. run it on the CPU concurrently to running the pair style on the
-GPU), but do use the suffix otherwise (e.g. with OPENMP).
+Example: Only dump in a given format if the compiled binary supports it.
+
+.. code-block:: LAMMPS
+
+   if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
+   if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
+
+The *is_active(category,feature)* function queries whether a specific
+feature is currently active within LAMMPS.  The features are grouped
+by categories.  Supported categories and features are:
+
+* *package*\ : features = *gpu* or *intel* or *kokkos* or *omp*
+* *newton*\ : features = *pair* or *bond* or *any*
+* *pair*\ : features = *single* or *respa* or *manybody* or *tail* or *shift*
+* *comm_style*\ : features = *brick* or *tiled*
+* *min_style*\ : features = a minimizer style name
+* *run_style*\ : features = a run style name
+* *atom_style*\ : features = an atom style name
+* *pair_style*\ : features = a pair style name
+* *bond_style*\ : features = a bond style name
+* *angle_style*\ : features = an angle style name
+* *dihedral_style*\ : features = a dihedral style name
+* *improper_style*\ : features = an improper style name
+* *kspace_style*\ : features = a kspace style name
+
+Most of the settings are self-explanatory.  For the *package*
+category, a package may have been included in the LAMMPS build, but
+not have enabled by any input script command, and hence be inactive.
+The *single* feature in the *pair* category checks whether the
+currently defined pair style supports a Pair::single() function as
+needed by compute group/group and others features or LAMMPS.
+Similarly, the *respa* feature checks whether the inner/middle/outer
+mode of r-RESPA is supported by the current pair style.
+
+For the categories with *style* in their name, only a single instance
+of the style is ever active at any time in a LAMMPS simulation.  Thus
+the check is whether the currently active style matches the specified
+name.  This check is also done using suffix flags, if available and
+enabled.
+
+Example 1: Disable use of suffix for PPPM when using GPU package
+(i.e. run it on the CPU concurrently while running the pair style on
+the GPU), but do use the suffix otherwise (e.g. with OPENMP).
 
 .. code-block:: LAMMPS
 
@@ -1024,39 +1089,23 @@ GPU), but do use the suffix otherwise (e.g. with OPENMP).
    if $(is_active(package,gpu)) then "suffix off"
    kspace_style pppm
 
-Example 2: use r-RESPA with inner/outer cutoff, if supported by pair
-style, otherwise fall back to using pair and reducing the outer time
-step
+Example 2: Use r-RESPA with inner/outer cutoff, if supported by the
+current pair style, otherwise fall back to using r-RESPA with simply
+the pair keyword and reducing the outer time step.
 
 .. code-block:: LAMMPS
 
    timestep $(2.0*(1.0+2.0*is_active(pair,respa)))
-   if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
+   if $(is_active(pair,respa)) then "run_style respa 4 3 2 2 improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2 improper 1 pair 2 kspace 3"
 
-The *is_available(category,name)* function allows to query whether
-a specific optional feature is available, i.e. compiled in.
-This currently works for the following categories: *command*,
-*compute*, *fix*, *pair_style* and *feature*\ . For all categories
-except *command* and *feature* also appending active suffixes is
-tried before reporting failure.
-
-The *feature* category is used to check the availability of compiled in
-features such as GZIP support, PNG support, JPEG support, FFMPEG support,
-and C++ exceptions for error handling. Corresponding values for name are
-*gzip*, *png*, *jpeg*, *ffmpeg* and *exceptions*\ .
-
-This enables writing input scripts which only dump using a given format if
-the compiled binary supports it.
-
-.. code-block:: LAMMPS
-
-   if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
-
-   if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
-
-The *is_defined(categoy,id)* function allows to query categories like
-*compute*, *dump*, *fix*, *group*, *region*, and *variable* whether an
-entry with the provided name or id is defined.
+The *is_defined(category,id)* function checks whether an instance of a
+style or variable with a specific ID or name is currently defined
+within LAMMPS.  The supported categories are *compute*, *dump*,
+*fix*, *group*, *region*, and *variable*.  Each of these styles (as
+well as the variable command) can be specified multiple times within
+LAMMPS, each with a unique *id*.  This function checks whether the
+specified *id* exists.  For category *variable", the *id* is the
+variable name.
 
 ----------
 
@@ -1268,6 +1317,35 @@ Vectors" discussion above.
 
 ----------
 
+Vector Initialization
+---------------------
+
+.. versionadded:: TBD
+
+*Vector*-style variables only can be initialized with a special
+syntax, instead of using a formula.  The syntax is a bracketed,
+comma-separated syntax like the following:
+
+.. code-block:: LAMMPS
+
+   variable myvec vector [1,3.5,7,10.2]
+
+The 3rd argument formula is replaced by the vector values in brackets,
+separated by commas.  This example creates a 4-length vector with
+specific numeric values, each of which can be specified as an integer
+or floating point value.  Note that while whitespace can be added
+before or after individual values, no other mathematical operations
+can be specified.  E.g. "3*10" or "3*v_abc" are not valid vector
+elements, nor is "10*[1,2,3,4]" valid for the entire vector.
+
+Unlike vector variables specified with formulas, this vector variable
+is static; its length and values never changes.  Its values can be
+used in other commands (including vector-style variables specified
+with formulas) via the usual syntax for accessing individual vector
+elements or the entire vector.
+
+----------
+
 Immediate Evaluation of Variables
 """""""""""""""""""""""""""""""""
 
@@ -1285,18 +1363,19 @@ with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v\_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained on the :doc:`Commands parse <Commands_parse>` doc page, you can also use un-named
-"immediate" variables for this purpose.  For example, a string like
-this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
-the string between the parenthesis as an equal-style variable formula.
+into the command.  As explained on the :doc:`Commands parse
+<Commands_parse>` doc page, you can also use un-named "immediate"
+variables for this purpose.  For example, a string like this
+$((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates the
+string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v\_" is an optional or required
-kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
-:doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
-a variable periodically during a run.  It can also be used in a
-variable formula if you wish to reference a second variable.  The
-second variable will be evaluated whenever the first variable is
-evaluated.
+kind of argument for some commands (e.g. the :doc:`fix ave/chunk
+<fix_ave_chunk>` or :doc:`dump custom <dump>` or :doc:`thermo_style
+<thermo_style>` commands) if you wish it to evaluate a variable
+periodically during a run.  It can also be used in a variable formula
+if you wish to reference a second variable.  The second variable will
+be evaluated whenever the first variable is evaluated.
 
 As an example, suppose you use this command in your input script to
 define the variable "v" as
@@ -1309,8 +1388,9 @@ before a run where the simulation box size changes.  You might think
 this will assign the initial volume to the variable "v".  That is not
 the case.  Rather it assigns a formula which evaluates the volume
 (using the thermo_style keyword "vol") to the variable "v".  If you
-use the variable "v" in some other command like :doc:`fix ave/time <fix_ave_time>` then the current volume of the box will be
-evaluated continuously during the run.
+use the variable "v" in some other command like :doc:`fix ave/time
+<fix_ave_time>` then the current volume of the box will be evaluated
+continuously during the run.
 
 If you want to store the initial volume of the system, you can do it
 this way:
@@ -1347,132 +1427,75 @@ will occur when the formula for "vratio" is evaluated later.
 Variable Accuracy
 """""""""""""""""
 
-Obviously, LAMMPS attempts to evaluate variables containing formulas
-(\ *equal* and *atom* style variables) accurately whenever the
-evaluation is performed.  Depending on what is included in the
-formula, this may require invoking a :doc:`compute <compute>`, either
-directly or indirectly via a thermo keyword, or accessing a value
-previously calculated by a compute, or accessing a value calculated
-and stored by a :doc:`fix <fix>`.  If the compute is one that calculates
-the pressure or energy of the system, then these quantities need to be
-tallied during the evaluation of the interatomic potentials (pair,
-bond, etc) on timesteps that the variable will need the values.
+Obviously, LAMMPS attempts to evaluate variables which contain
+formulas (\ *equal* and *vector* and *atom* style variables)
+accurately whenever the evaluation is performed.  Depending on what is
+included in the formula, this may require invoking a :doc:`compute
+<compute>`, either directly or indirectly via a thermo keyword, or
+accessing a value previously calculated by a compute, or accessing a
+value calculated and stored by a :doc:`fix <fix>`.  If the compute is
+one that calculates the energy or pressure of the system, then the
+corresponding energy or virial quantities need to be tallied during
+the evaluation of the interatomic potentials (pair, bond, etc) on any
+timestep that the variable needs the tallies.  An input script can
+also request variables be evaluated before or after or in between
+runs, e.g. by including them in a :doc:`print <print>` command.
 
-LAMMPS keeps track of all of this during a :doc:`run <run>` or :doc:`energy minimization <minimize>`.  An error will be generated if you
-attempt to evaluate a variable on timesteps when it cannot produce
-accurate values.  For example, if a :doc:`thermo_style custom <thermo_style>` command prints a variable which accesses
-values stored by a :doc:`fix ave/time <fix_ave_time>` command and the
-timesteps on which thermo output is generated are not multiples of the
-averaging frequency used in the fix command, then an error will occur.
+LAMMPS keeps track of all of this as it performs a doc:`run <run>` or
+:doc:`minimize <minimize>` simulation, as well as in between
+simulations.  An error will be generated if you attempt to evaluate a
+variable when LAMMPS knows it cannot produce accurate values.  For
+example, if a :doc:`thermo_style custom <thermo_style>` command prints
+a variable which accesses values stored by a :doc:`fix ave/time
+<fix_ave_time>` command and the timesteps on which thermo output is
+generated are not multiples of the averaging frequency used in the fix
+command, then an error will occur.
 
-An input script can also request variables be evaluated before or
-after or in between runs, e.g. by including them in a
-:doc:`print <print>` command.  In this case, if a compute is needed to
-evaluate a variable (either directly or indirectly), LAMMPS will not
-invoke the compute, but it will use a value previously calculated by
-the compute, and can do this only if it was invoked on the current
-timestep.  Fixes will always provide a quantity needed by a variable,
-but the quantity may or may not be current.  This leads to one of
-three kinds of behavior:
+However, there are two special cases to be aware when a variable
+requires invocation of a compute (directly or indirectly).  The first
+is if the variable is evaluated before the first doc:`run <run>` or
+:doc:`minimize <minimize>` command in the input script.  In this case,
+LAMMPS will generate an error.  This is because many computes require
+initializations which have not yet taken place.  One example is the
+calculation of degrees of freedom for temperature computes.  Another
+example are the computes mentioned above which require tallying of
+energy or virial quantities; these values are not tallied until the
+first simulation begins.
 
-(1) The variable may be evaluated accurately.  If it contains
-references to a compute or fix, and these values were calculated on
-the last timestep of a preceding run, then they will be accessed and
-used by the variable and the result will be accurate.
+The second special case is when a variable that depends on a compute
+is evaluated in between doc:`run <run>` or :doc:`minimize <minimize>`
+commands.  It is possible for other input script commands issued
+following the previous run, but before the variable is evaluated, to
+change the system.  For example, the doc:`delete_atoms <delete_atoms>`
+command could be used to remove atoms.  Since the compute will not
+re-initialize itself until the next simulation or it may depend on
+energy/virial computations performed before the system was changed, it
+will potentially generate an incorrect answer when evaluated.  Note
+that LAMMPS will not generate an error in this case; the evaluated
+variable may simply be incorrect.
 
-(2) LAMMPS may not be able to evaluate the variable and will generate
-an error message stating so.  For example, if the variable requires a
-quantity from a :doc:`compute <compute>` that has not been invoked on
-the current timestep, LAMMPS will generate an error.  This means, for
-example, that such a variable cannot be evaluated before the first run
-has occurred.  Likewise, in between runs, a variable containing a
-compute cannot be evaluated unless the compute was invoked on the last
-timestep of the preceding run, e.g. by thermodynamic output.
-
-One way to get around this problem is to perform a 0-timestep run
-before using the variable.  For example, these commands
-
-.. code-block:: LAMMPS
-
-   variable t equal temp
-   print "Initial temperature = $t"
-   run 1000
-
-will generate an error if the run is the first run specified in the
-input script, because generating a value for the "t" variable requires
-a compute for calculating the temperature to be invoked.
-
-However, this sequence of commands would be fine:
+The way to get around both of these special cases is to perform a
+0-timestep run before evaluating the variable.  For example, these
+commands
 
 .. code-block:: LAMMPS
 
-   run 0
-   variable t equal temp
-   print "Initial temperature = $t"
+   # delete_atoms random fraction 0.5 yes all NULL 49839
+   # run 0
+   variable t equal temp    # this thermo keyword invokes a temperature compute
+   print "Temperature of system = $t"
    run 1000
 
-The 0-timestep run initializes and invokes various computes, including
-the one for temperature, so that the value it stores is current and
-can be accessed by the variable "t" after the run has completed.  Note
-that a 0-timestep run does not alter the state of the system, so it
-does not change the input state for the 1000-timestep run that
-follows.  Also note that the 0-timestep run must actually use and
-invoke the compute in question (e.g. via :doc:`thermo <thermo_style>` or
-:doc:`dump <dump>` output) in order for it to enable the compute to be
-used in a variable after the run.  Thus if you are trying to print a
-variable that uses a compute you have defined, you can ensure it is
-invoked on the last timestep of the preceding run by including it in
-thermodynamic output.
+will generate an error if the "run 1000" command is the first
+simulation in the input script.  If there were a previous run, these
+commands will print the correct temperature of the system.  But if the
+:doc:`delete_atoms <delete_atoms>` command is uncommented, the printed
+temperature will be incorrect, because information stored by
+temperature compute is no longer valid.
 
-Unlike computes, :doc:`fixes <fix>` will never generate an error if
-their values are accessed by a variable in between runs.  They always
-return some value to the variable.  However, the value may not be what
-you expect if the fix has not yet calculated the quantity of interest
-or it is not current.  For example, the :doc:`fix indent <fix_indent>`
-command stores the force on the indenter.  But this is not computed
-until a run is performed.  Thus if a variable attempts to print this
-value before the first run, zeroes will be output.  Again, performing
-a 0-timestep run before printing the variable has the desired effect.
-
-(3) The variable may be evaluated incorrectly and LAMMPS may have no
-way to detect this has occurred.  Consider the following sequence of
-commands:
-
-.. code-block:: LAMMPS
-
-   pair_coeff 1 1 1.0 1.0
-   run 1000
-   pair_coeff 1 1 1.5 1.0
-   variable e equal pe
-   print "Final potential energy = $e"
-
-The first run is performed using one setting for the pairwise
-potential defined by the :doc:`pair_style <pair_style>` and
-:doc:`pair_coeff <pair_coeff>` commands.  The potential energy is
-evaluated on the final timestep and stored by the :doc:`compute pe
-<compute_pe>` compute (this is done by the :doc:`thermo_style
-<thermo_style>` command).  Then a pair coefficient is changed,
-altering the potential energy of the system.  When the potential
-energy is printed via the "e" variable, LAMMPS will use the potential
-energy value stored by the :doc:`compute pe <compute_pe>` compute,
-thinking it is current.  There are many other commands which could
-alter the state of the system between runs, causing a variable to
-evaluate incorrectly.
-
-The solution to this issue is the same as for case (2) above, namely
-perform a 0-timestep run before the variable is evaluated to ensure
-the system is up-to-date.  For example, this sequence of commands
-would print a potential energy that reflected the changed pairwise
-coefficient:
-
-.. code-block:: LAMMPS
-
-   pair_coeff 1 1 1.0 1.0
-   run 1000
-   pair_coeff 1 1 1.5 1.0
-   run 0
-   variable e equal pe
-   print "Final potential energy = $e"
+Both these issues are resolved, if the "run 0" command is uncommented.
+This is because the "run 0" simulation will initialize (or
+re-initialize) the temperature compute correctly.
 
 ----------
 
@@ -1482,11 +1505,12 @@ Restrictions
 Indexing any formula element by global atom ID, such as an atom value,
 requires the :doc:`atom style <atom_style>` to use a global mapping in
 order to look up the vector indices.  By default, only atom styles
-with molecular information create global maps.  The :doc:`atom_modify map <atom_modify>` command can override the default, e.g. for
+with molecular information create global maps.  The :doc:`atom_modify
+map <atom_modify>` command can override the default, e.g. for
 atomic-style atom styles.
 
-All *universe*\ - and *uloop*\ -style variables defined in an input script
-must have the same number of values.
+All *universe*\ - and *uloop*\ -style variables defined in an input
+script must have the same number of values.
 
 Related commands
 """"""""""""""""

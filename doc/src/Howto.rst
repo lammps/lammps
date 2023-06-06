@@ -23,7 +23,6 @@ General howto
    Howto_library
    Howto_couple
    Howto_mdi
-   Howto_bpm
    Howto_broken_bonds
 
 Settings howto
@@ -83,6 +82,7 @@ Packages howto
    Howto_spherical
    Howto_granular
    Howto_body
+   Howto_bpm
    Howto_polarizable
    Howto_coreshell
    Howto_drude

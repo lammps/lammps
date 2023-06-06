@@ -650,13 +650,13 @@ For *heat* *area*, the heat
 
 .. math::
 
-   Q = k_{s} a \Delta T
+   Q = k_{s} A \Delta T
 
 
 
 where :math:`\Delta T` is the difference in the two particles' temperature,
 :math:`k_{s}` is a non-negative numeric value for the conductivity, and
-:math:`a` is the area of the contact and depends on the normal force model.
+:math:`A` is the area of the contact and depends on the normal force model.
 
 Note that the option *none* must either be used in all or none of of the
 *pair_coeff* calls. See :doc:`fix heat/flow <fix_heat_flow>` and

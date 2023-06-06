@@ -10,12 +10,11 @@
 #ifndef COLVARPROXY_H
 #define COLVARPROXY_H
 
-#include <fstream>
-#include <list>
-
 #include "colvarmodule.h"
 #include "colvartypes.h"
 #include "colvarvalue.h"
+#include "colvarproxy_io.h"
+#include "colvarproxy_system.h"
 #include "colvarproxy_tcl.h"
 #include "colvarproxy_volmaps.h"
 
@@ -36,165 +35,6 @@
 
 // forward declarations
 class colvarscript;
-
-
-/// Methods for accessing the simulation system (PBCs, integrator, etc)
-class colvarproxy_system {
-
-public:
-
-  /// Constructor
-  colvarproxy_system();
-
-  /// Destructor
-  virtual ~colvarproxy_system();
-
-  /// \brief Name of the unit system used internally by Colvars (by default, that of the back-end).
-  /// Supported depending on the back-end: real (A, kcal/mol), metal (A, eV), electron (Bohr, Hartree), gromacs (nm, kJ/mol)
-  /// Note: calls to back-end PBC functions assume back-end length unit
-  /// We use different unit from back-end in VMD bc using PBC functions from colvarproxy base class
-  /// Colvars internal units are user specified, because the module exchanges info in unknown
-  /// composite dimensions with user input, while it only exchanges quantities of known
-  /// dimension with the back-end (length and forces)
-  std::string units;
-
-  /// \brief Request to set the units used internally by Colvars
-  virtual int set_unit_system(std::string const &units, bool check_only);
-
-  /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
-  /// * defaults to 0. in the base class; derived proxy classes must set it
-  /// * in VMD proxy, can only be changed when no variables are defined
-  /// as user-defined values in composite units must be compatible with that system
-  cvm::real angstrom_value;
-
-  /// \brief Value of 1 Angstrom in the backend's unit for atomic coordinates
-  virtual cvm::real backend_angstrom_value();
-
-  /// \brief Value of 1 kcal/mol in the internal Colvars unit for energy
-  cvm::real kcal_mol_value;
-
-  /// \brief Convert a length from Angstrom to internal
-  inline cvm::real angstrom_to_internal(cvm::real l) const
-  {
-    return l * angstrom_value;
-  }
-
-  /// \brief Convert a length from internal to Angstrom
-  inline cvm::real internal_to_angstrom(cvm::real l) const
-  {
-    return l / angstrom_value;
-  }
-
-  // /// \brief Convert a length from back-end unit to internal
-  // inline cvm::real back_end_to_internal_unit(cvm::real l) {
-  //   if (angstrom_value == 0.) {
-  //     return l / backend_angstrom_value();
-  //   }
-  //   return l * angstrom_value / backend_angstrom_value();
-  // }
-
-  /// \brief Boltzmann constant in internal Colvars units
-  virtual cvm::real boltzmann();
-
-  /// \brief Target temperature of the simulation (K units)
-  virtual cvm::real temperature();
-
-  /// \brief Time step of the simulation (fs)
-  virtual cvm::real dt();
-
-  /// \brief Pseudo-random number with Gaussian distribution
-  virtual cvm::real rand_gaussian(void);
-
-  /// Pass restraint energy value for current timestep to MD engine
-  virtual void add_energy(cvm::real energy);
-
-  /// \brief Get the PBC-aware distance vector between two positions
-  virtual cvm::rvector position_distance(cvm::atom_pos const &pos1,
-                                         cvm::atom_pos const &pos2) const;
-
-  /// Recompute PBC reciprocal lattice (assumes XYZ periodicity)
-  void update_pbc_lattice();
-
-  /// Set the lattice vectors to zero
-  void reset_pbc_lattice();
-
-  /// \brief Tell the proxy whether total forces are needed (they may not
-  /// always be available)
-  virtual void request_total_force(bool yesno);
-
-  /// Are total forces being used?
-  virtual bool total_forces_enabled() const;
-
-  /// Are total forces from the current step available?
-  virtual bool total_forces_same_step() const;
-
-  /// Get the molecule ID when called in VMD; raise error otherwise
-  /// \param molid Set this argument equal to the current VMD molid
-  virtual int get_molid(int &molid);
-
-  /// Get value of alchemical lambda parameter from back-end (if available)
-  virtual int get_alch_lambda(cvm::real* lambda);
-
-  /// Set value of alchemical lambda parameter to be sent to back-end at end of timestep
-  void set_alch_lambda(cvm::real lambda);
-
-  /// Send cached value of alchemical lambda parameter to back-end (if available)
-  virtual int send_alch_lambda();
-
-  /// Get energy derivative with respect to lambda (if available)
-  virtual int get_dE_dlambda(cvm::real* dE_dlambda);
-
-  /// Apply a scalar force on dE_dlambda (back-end distributes it onto atoms)
-  virtual int apply_force_dE_dlambda(cvm::real* force);
-
-  /// Get energy second derivative with respect to lambda (if available)
-  virtual int get_d2E_dlambda2(cvm::real* d2E_dlambda2);
-
-  /// Force to be applied onto alch. lambda, propagated from biasing forces on dE_dlambda
-  cvm::real indirect_lambda_biasing_force;
-
-  /// Get weight factor from accelMD
-  virtual cvm::real get_accelMD_factor() const {
-    cvm::error("Error: accessing the reweighting factor of accelerated MD  "
-               "is not yet implemented in the MD engine.\n",
-               COLVARS_NOT_IMPLEMENTED);
-    return 1.0;
-  }
-  virtual bool accelMD_enabled() const {
-    return false;
-  }
-
-protected:
-  /// Next value of lambda to be sent to back-end
-  cvm::real cached_alch_lambda;
-
-  /// Whether lambda has been set and needs to be updated in backend
-  bool cached_alch_lambda_changed;
-
-  /// Whether the total forces have been requested
-  bool total_force_requested;
-
-  /// \brief Type of boundary conditions
-  ///
-  /// Orthogonal and triclinic cells are made available to objects.
-  /// For any other conditions (mixed periodicity, triclinic cells in LAMMPS)
-  /// minimum-image distances are computed by the host engine regardless.
-  enum Boundaries_type {
-    boundaries_non_periodic,
-    boundaries_pbc_ortho,
-    boundaries_pbc_triclinic,
-    boundaries_unsupported
-  };
-
-  /// Type of boundary conditions
-  Boundaries_type boundaries_type;
-
-  /// Bravais lattice vectors
-  cvm::rvector unit_cell_x, unit_cell_y, unit_cell_z;
-
-  /// Reciprocal lattice vectors
-  cvm::rvector reciprocal_cell_x, reciprocal_cell_y, reciprocal_cell_z;
-};
 
 
 /// \brief Container of atomic data for processing by Colvars
@@ -229,7 +69,7 @@ public:
                             std::string const     &segment_id);
 
   /// \brief Used by the atom class destructor: rather than deleting the array slot
-  /// (costly) set the corresponding atoms_ncopies to zero
+  /// (costly) set the corresponding atoms_refcount to zero
   virtual void clear_atom(int index);
 
   /// \brief Select atom IDs from a file (usually PDB) \param filename name of
@@ -260,37 +100,51 @@ public:
   /// Clear atomic data
   int reset();
 
-  /// Get the numeric ID of the given atom (for the program)
+  /// Get the numeric ID of the given atom
+  /// \param index Internal index in the Colvars arrays
   inline int get_atom_id(int index) const
   {
     return atoms_ids[index];
   }
 
   /// Get the mass of the given atom
+  /// \param index Internal index in the Colvars arrays
   inline cvm::real get_atom_mass(int index) const
   {
     return atoms_masses[index];
   }
 
+  /// Increase the reference count of the given atom
+  /// \param index Internal index in the Colvars arrays
+  inline void increase_refcount(int index)
+  {
+    atoms_refcount[index] += 1;
+  }
+
   /// Get the charge of the given atom
+  /// \param index Internal index in the Colvars arrays
   inline cvm::real get_atom_charge(int index) const
   {
     return atoms_charges[index];
   }
 
   /// Read the current position of the given atom
+  /// \param index Internal index in the Colvars arrays
   inline cvm::rvector get_atom_position(int index) const
   {
     return atoms_positions[index];
   }
 
   /// Read the current total force of the given atom
+  /// \param index Internal index in the Colvars arrays
   inline cvm::rvector get_atom_total_force(int index) const
   {
     return atoms_total_forces[index];
   }
 
   /// Request that this force is applied to the given atom
+  /// \param index Internal index in the Colvars arrays
+  /// \param new_force Force to add
   inline void apply_atom_force(int index, cvm::rvector const &new_force)
   {
     atoms_new_colvar_forces[index] += new_force;
@@ -309,6 +163,9 @@ public:
   {
     return &atoms_ids;
   }
+
+  /// Return number of atoms with positive reference count
+  size_t get_num_active_atoms() const;
 
   inline std::vector<cvm::real> const *get_atom_masses() const
   {
@@ -406,7 +263,7 @@ protected:
   /// within the host program
   std::vector<int>          atoms_ids;
   /// \brief Keep track of how many times each atom is used by a separate colvar object
-  std::vector<size_t>       atoms_ncopies;
+  std::vector<size_t>       atoms_refcount;
   /// \brief Masses of the atoms (allow redefinition during a run, as done e.g. in LAMMPS)
   std::vector<cvm::real>    atoms_masses;
   /// \brief Charges of the atoms (allow redefinition during a run, as done e.g. in LAMMPS)
@@ -510,6 +367,9 @@ public:
     return &atom_groups_ids;
   }
 
+  /// Return number of atom groups with positive reference count
+  size_t get_num_active_atom_groups() const;
+
   inline std::vector<cvm::real> *modify_atom_group_masses()
   {
     // TODO updated_masses
@@ -561,7 +421,7 @@ protected:
   /// within the host program
   std::vector<int>          atom_groups_ids;
   /// \brief Keep track of how many times each group is used by a separate cvc
-  std::vector<size_t>       atom_groups_ncopies;
+  std::vector<size_t>       atom_groups_refcount;
   /// \brief Total masses of the atom groups
   std::vector<cvm::real>    atom_groups_masses;
   /// \brief Total charges of the atom groups (allow redefinition during a run, as done e.g. in LAMMPS)
@@ -583,6 +443,12 @@ protected:
   int add_atom_group_slot(int atom_group_id);
 };
 
+
+#if defined(_OPENMP)
+#include <omp.h>
+#else
+struct omp_lock_t;
+#endif
 
 /// \brief Methods for SMP parallelization
 class colvarproxy_smp {
@@ -629,7 +495,7 @@ public:
 protected:
 
   /// Lock state for OpenMP
-  void *omp_lock_state;
+  omp_lock_t *omp_lock_state;
 };
 
 
@@ -698,108 +564,6 @@ public:
 };
 
 
-/// Methods for data input/output
-class colvarproxy_io {
-
-public:
-
-  /// Constructor
-  colvarproxy_io();
-
-  /// Destructor
-  virtual ~colvarproxy_io();
-
-  /// \brief Save the current frame number in the argument given
-  // Returns error code
-  virtual int get_frame(long int &);
-
-  /// \brief Set the current frame number (as well as colvarmodule::it)
-  // Returns error code
-  virtual int set_frame(long int);
-
-  /// \brief Rename the given file, before overwriting it
-  virtual int backup_file(char const *filename);
-
-  /// \brief Rename the given file, before overwriting it
-  inline int backup_file(std::string const &filename)
-  {
-    return backup_file(filename.c_str());
-  }
-
-  /// Remove the given file (on Windows only, rename to filename.old)
-  virtual int remove_file(char const *filename);
-
-  /// Remove the given file (on Windows only, rename to filename.old)
-  inline int remove_file(std::string const &filename)
-  {
-    return remove_file(filename.c_str());
-  }
-
-  /// Rename the given file
-  virtual int rename_file(char const *filename, char const *newfilename);
-
-  /// Rename the given file
-  inline int rename_file(std::string const &filename,
-                         std::string const &newfilename)
-  {
-    return rename_file(filename.c_str(), newfilename.c_str());
-  }
-
-  /// Prefix of the input state file to be read next
-  inline std::string & input_prefix()
-  {
-    return input_prefix_str;
-  }
-
-  /// Default prefix to be used for all output files (final configuration)
-  inline std::string & output_prefix()
-  {
-    return output_prefix_str;
-  }
-
-  /// Prefix of the restart (checkpoint) file to be written next
-  inline std::string & restart_output_prefix()
-  {
-    return restart_output_prefix_str;
-  }
-
-  /// Default restart frequency (as set by the simulation engine)
-  inline int default_restart_frequency() const
-  {
-    return restart_frequency_engine;
-  }
-
-  /// Buffer from which the input state information may be read
-  inline char const * & input_buffer()
-  {
-    return input_buffer_;
-  }
-
-protected:
-
-  /// Prefix of the input state file to be read next
-  std::string input_prefix_str;
-
-  /// Default prefix to be used for all output files (final configuration)
-  std::string output_prefix_str;
-
-  /// Prefix of the restart (checkpoint) file to be written next
-  std::string restart_output_prefix_str;
-
-  /// How often the simulation engine will write its own restart
-  int restart_frequency_engine;
-
-  /// \brief Currently opened output files: by default, these are ofstream objects.
-  /// Allows redefinition to implement different output mechanisms
-  std::list<std::ostream *> output_files;
-  /// \brief Identifiers for output_stream objects: by default, these are the names of the files
-  std::list<std::string>    output_stream_names;
-
-  /// Buffer from which the input state information may be read
-  char const *input_buffer_;
-};
-
-
 
 /// \brief Interface between the collective variables module and
 /// the simulation or analysis program (NAMD, VMD, LAMMPS...).
@@ -827,6 +591,8 @@ public:
   /// Destructor
   virtual ~colvarproxy();
 
+  virtual bool io_available() /* override */;
+
   /// Request deallocation of the module (currently only implemented by VMD)
   virtual int request_deletion();
 
@@ -839,21 +605,30 @@ public:
   /// \brief Reset proxy state, e.g. requested atoms
   virtual int reset();
 
-  /// Close any open files to prevent data loss
-  int close_files();
+  /// (Re)initialize the module
+  virtual int parse_module_config();
 
-  /// (Re)initialize required member data after construction
+  /// (Re)initialize required member data (called after the module)
   virtual int setup();
 
-  /// \brief Update data required by the colvars module (e.g. cache atom positions)
+  /// Whether the engine allows to fully initialize Colvars immediately
+  inline bool engine_ready() const
+  {
+    return engine_ready_;
+  }
+
+  /// Enqueue new configuration text, to be parsed as soon as possible
+  void add_config(std::string const &cmd, std::string const &conf);
+
+  /// Update data required by Colvars module (e.g. read atom positions)
   ///
   /// TODO Break up colvarproxy_namd and colvarproxy_lammps function into these
   virtual int update_input();
 
-  /// \brief Update data based from the results of a module update (e.g. send forces)
+  /// Update data based on the results of a Colvars call (e.g. send forces)
   virtual int update_output();
 
-  /// Carry out operations needed before next step is run
+  /// Carry out operations needed before next simulation step is run
   int end_of_step();
 
   /// Print a message to the main log
@@ -903,25 +678,10 @@ public:
     return version_int;
   }
 
-  /// \brief Returns a reference to the given output channel;
-  /// if this is not open already, then open it
-  virtual std::ostream *output_stream(std::string const &output_name,
-                                      std::ios_base::openmode mode =
-                                      std::ios_base::out);
-
-  /// Returns a reference to output_name if it exists, NULL otherwise
-  virtual std::ostream *get_output_stream(std::string const &output_name);
-
-  /// \brief Flushes the given output channel
-  virtual int flush_output_stream(std::ostream *os);
-
-  /// \brief Flushes all output channels
-  virtual int flush_output_streams();
-
-  /// \brief Closes the given output channel
-  virtual int close_output_stream(std::string const &output_name);
-
 protected:
+
+  /// Whether the engine allows to fully initialize Colvars immediately
+  bool engine_ready_;
 
   /// Collected error messages
   std::string error_output;
@@ -943,8 +703,10 @@ protected:
   /// Track which features have been acknowledged during the last run
   size_t features_hash;
 
-  /// Raise when the output stream functions are used on threads other than 0
-  void smp_stream_error();
+private:
+
+  /// Queue of config strings or files to be fed to the module
+  void *config_queue_;
 
 };
 

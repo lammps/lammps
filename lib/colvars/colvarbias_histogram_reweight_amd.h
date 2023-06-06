@@ -51,21 +51,21 @@ public:
 
   /// @brief output the PMF by the exponential average estimator
   /// @param[in] p_output_prefix the prefix of the output file
-  /// @param[in] append append the output to a .hist file if true
+  /// @param[in] keep_open Allow writing the history of the PMF
   virtual int write_exponential_reweighted_pmf(
-    const std::string& p_output_prefix, bool append = false);
+    const std::string& p_output_prefix, bool keep_open = false);
 
   /// @brief output the PMF by the cumulant expansion estimator
   /// @param[in] p_output_prefix the prefix of the output file
-  /// @param[in] append append the output to a .hist file if true
+  /// @param[in] keep_open Allow writing the history of the expansion
   virtual int write_cumulant_expansion_pmf(
-    const std::string& p_output_prefix, bool append = false);
+    const std::string& p_output_prefix, bool keep_open = false);
 
   /// @brief output the biased sampling
   /// @param[in] p_output_prefix the prefix of the output file
-  /// @param[in] append append the output to a .hist file if true
+  /// @param[in] keep_open Allow writing the history of the samples
   virtual int write_count(
-    const std::string& p_output_prefix, bool append = false);
+    const std::string& p_output_prefix, bool keep_open = false);
 protected:
   /// Current accelMD factor is the from previous frame
   std::vector<int> previous_bin;

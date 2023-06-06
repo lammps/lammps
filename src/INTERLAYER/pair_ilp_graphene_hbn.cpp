@@ -11,11 +11,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Wengen Ouyang (Tel Aviv University)
+   Contributing author: Wengen Ouyang (Wuhan University)
    e-mail: w.g.ouyang at gmail dot com
 
    This is a full version of the potential described in
-   [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
+   [Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020)]
    The definition of normals are the same as that in
    [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
 ------------------------------------------------------------------------- */

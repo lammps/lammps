@@ -257,7 +257,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
   extvector = 1;
-  kBT = force->boltz * temp;
+  kt = force->boltz * temp;
   if (pstat_flag) baro_init();
 
   // some initilizations
@@ -800,10 +800,10 @@ void FixPIMDLangevin::baro_init()
 {
   vw[0] = vw[1] = vw[2] = vw[3] = vw[4] = vw[5] = 0.0;
   if (pstyle == ISO) {
-    W = 3 * (atom->natoms) * tau_p * tau_p * np * kBT;
+    W = 3 * (atom->natoms) * tau_p * tau_p * np * kt;
   }    // consistent with the definition in i-Pi
   else if (pstyle == ANISO) {
-    W = atom->natoms * tau_p * tau_p * np * kBT;
+    W = atom->natoms * tau_p * tau_p * np * kt;
   }
   Vcoeff = 1.0;
   std::string out = fmt::format("\nInitializing PIMD {:s} barostat...\n", Barostats[barostat]);
@@ -890,7 +890,7 @@ void FixPIMDLangevin::press_o_step()
 
 void FixPIMDLangevin::langevin_init()
 {
-  double beta = 1.0 / kBT;
+  double beta = 1.0 / kt;
   _omega_np = np / beta / hbar;
   double _omega_np_dt_half = _omega_np * update->dt * 0.5;
 
@@ -1394,11 +1394,11 @@ void FixPIMDLangevin::compute_totenthalpy()
   if (barostat == BZP) {
     if (pstyle == ISO) {
       totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * volume / force->nktv2p -
-          Vcoeff * kBT * log(volume);
+          Vcoeff * kt * log(volume);
     } else if (pstyle == ANISO) {
       totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np +
           0.5 * W * vw[1] * vw[1] * inverse_np + 0.5 * W * vw[2] * vw[2] * inverse_np +
-          p_hydro * volume / force->nktv2p - Vcoeff * kBT * log(volume);
+          p_hydro * volume / force->nktv2p - Vcoeff * kt * log(volume);
     }
   } else if (barostat == MTTK)
     totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * (volume - vol0);
@@ -1477,7 +1477,7 @@ double FixPIMDLangevin::compute_vector(int n)
         if (n == 11) return 1.5 * W * vw[0] * vw[0];
       }
       if (n == 12) { return np * Pext * volume / force->nktv2p; }
-      if (n == 13) { return -Vcoeff * np * kBT * log(volume); }
+      if (n == 13) { return -Vcoeff * np * kt * log(volume); }
       if (n == 14) return totenthalpy;
     } else if (pstyle == ANISO) {
       if (n == 10) return vw[0];
@@ -1487,7 +1487,7 @@ double FixPIMDLangevin::compute_vector(int n)
       if (n == 14) { return np * Pext * volume / force->nktv2p; }
       if (n == 15) {
         volume = domain->xprd * domain->yprd * domain->zprd;
-        return -Vcoeff * np * kBT * log(volume);
+        return -Vcoeff * np * kt * log(volume);
       }
       if (n == 16) return totenthalpy;
     }

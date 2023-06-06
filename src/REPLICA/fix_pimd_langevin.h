@@ -51,7 +51,7 @@ class FixPIMDLangevin : public Fix {
   double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
   double other_planck;
   double other_mvv2e;
-  double kBT;              // k_B * temp
+  double kt;              // k_B * temp
   double beta, beta_np;    // beta = 1./kBT beta_np = 1./kBT/np
   int thermostat;          // NHC or PILE_L
   int barostat;            // BZP

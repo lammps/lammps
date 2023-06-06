@@ -336,9 +336,6 @@ void PairILPTMD::ILP_neigh()
           }
         }    // end of idenfying the first neighbor
       } else if (n > Nnei) {
-        fprintf(screen, "Molecule ID = %d\n", imol);
-        fprintf(screen, "Atom Type = %d\n", type[i]);
-        fprintf(screen, "Neinum = %d\n", n);
         error->one(FLERR,
                    "There are too many neighbors for TMD atoms, please check your configuration");
       }
@@ -497,9 +494,6 @@ void PairILPTMD::calc_normal()
             vect[0][1] = x[jH2][1] - ytp;
             vect[0][2] = x[jH2][2] - ztp;
           } else {
-            fprintf(screen, "jH1 jH2 = %d %d\n", jH1,jH2);
-            fprintf(screen, "Atom Type = %d %d\n", type[jH1],type[jH2]);
-            fprintf(screen, "For atom i = %d %d\n", tag[i],type[i]);
             error->one(FLERR, "The order of atoms in water molecule should be O H H !");
           }
         }
@@ -662,9 +656,6 @@ void PairILPTMD::calc_normal()
 
             cont = 2;
           } else {
-            fprintf(screen, "jH1 jH2 = %d %d\n", jH1,jH2);
-            fprintf(screen, "Atom Type = %d %d\n", type[jH1],type[jH2]);
-            fprintf(screen, "ID and type of atom i = %d %d\n", tag[i],type[i]);
             error->one(FLERR, "The order of atoms in water molecule should be O H H !");
           }
         }
@@ -728,11 +719,6 @@ void PairILPTMD::calc_normal()
               dnormdri[i][id][ip] = dpvdri[id][ip] / nn - Nave[id] * dni[ip] / nn2;
             }
           }
-          // printf("%4d:\t%e %e %e\n\t%e %e %e\n\t%e %e %e\n",
-          //        i, dnormdri[i][0][0], dnormdri[i][0][1], dnormdri[i][0][2],
-          //        dnormdri[i][1][0],dnormdri[i][1][1],dnormdri[i][1][2],
-          //        dnormdri[i][2][0],dnormdri[i][2][1],dnormdri[i][2][2]);
-          // exit(0);
         }
         else if (cont >= 3) {
           error->one(FLERR,

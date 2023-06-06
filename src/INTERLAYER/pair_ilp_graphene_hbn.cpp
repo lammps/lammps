@@ -16,8 +16,6 @@
 
    This is a full version of the potential described in
    [Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020)]
-   The definition of normals are the same as that in
-   [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
 ------------------------------------------------------------------------- */
 
 #include "pair_ilp_graphene_hbn.h"

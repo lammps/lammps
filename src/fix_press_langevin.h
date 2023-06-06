@@ -44,9 +44,9 @@ class FixPressLangevin : public Fix {
   int pstyle, pcouple, allremap;
   int p_flag[6];    // 1 if control P on this dim, 0 if not
   double t_start, t_stop, t_target;
-  double p_fric;
-  double p_start[6], p_stop[6], p_current[6];
-  double p_period[6], p_target[6];
+  double p_mass;
+  double p_start[6], p_stop[6], p_period[6];
+  double p_fric[6], p_target[6], p_current[6];
   double p_deriv[6], dilation[6];
   double f_piston[6], f_old_piston[6];
   double gjfa[6], gjfb[6], fran[6];

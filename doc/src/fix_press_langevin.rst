@@ -22,12 +22,13 @@ Syntax
          Pdamp = pressure damping parameter
        *x* or *y* or *z* or *xy* or *xz* or *yz* values = Pstart Pstop Pdamp
          Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
-         Pdamp = stress damping parameter
+         Pdamp = pressure damping parameter
        *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
-       *friction* value = Alpha friction value to apply to the barostat
-       *temp* values = Tstart, Tstop
+       *mass* value = Mass of the barostat fictious particle
+       *temp* values = Tstart, Tstop, seed
        Tstart, Tstop = target temperature used for the barostat at start/end of run
+       seed = seed of the random number generator
        *dilate* value = *all* or *partial*
 
 Examples
@@ -35,8 +36,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all press/langevin iso 0.0 0.0 1000.0 temp 300 300
-   fix 2 all press/langevin aniso 0.0 0.0 1000.0 temp 100 300 dilate partial
+   fix 1 all press/langevin iso 0.0 0.0 1000.0 temp 300 300 487374
+   fix 2 all press/langevin aniso 0.0 0.0 1000.0 temp 100 300 238 dilate partial
 
 Description
 """""""""""
@@ -114,9 +115,28 @@ will change.  A box dimension will not change if that component is not
 specified, although you have the option to change that dimension via the
 :doc:`fix deform <fix_deform>` command.
 
-For all barostat keywords, the *Pdamp* parameter determines the "mass" of the
-pseudo particle acting as a barostat. The relation is such that :math:`P_{damp}
-= \frac{1}{Q}` where Q is the mass.
+For all barostat keywords, the *Pdamp* parameter determines the "friction
+parameter" :math:`\alpha` of the pseudo particle acting as a barostat. The
+relation is such that :math:`\alpha = \frac{Q}{P_{damp}}` where Q is the mass.
+
+.. note::
+
+   As for Berendsen barostat, a Langevin barostat will not work well for
+   arbitrary values of *Pdamp*\ .  If *Pdamp* is too small, the pressure and
+   volume can fluctuate wildly; if it is too large, the pressure will take a
+   very long time to equilibrate.  A good choice for many models is a *Pdamp*
+   of around 1000 timesteps.  However, note that *Pdamp* is specified in time
+   units, and that timesteps are NOT the same as time units for most
+   :doc:`units <units>` settings.
+
+----------
+
+The *temp* keyword sets the temperature to use in the equation of motion of the
+barostat. This value is used to compute the value of the force :math:`f_P` in
+the equation of motion. It is important to note that this value is not the
+instantaneous temperature but a target temperature that ramps from *Tstart* to
+*Tstop*. Also the required argument *seed* also sets the seed for the random
+number generator used in the generation of the random forces.
 
 ----------
 
@@ -192,12 +212,20 @@ error.
 
 ----------
 
-The *friction* keyword sets the friction parameter :math:`\alpha` in the
+The *mass* keyword sets the mass parameter :math:`Q` in the
 equations of movement of the barostat. All the barostat use the same value.
+
+.. note::
+
+   The same recommandation with regard to the bulk modulus of a berendsen
+   barostat applies to a Langevin barostat mass. It is however important to
+   note that not only the absolute value used for the mass is important, but
+   also its ratio with Pdamp values which defines the friction coeffiction
+   value.
 
 ----------
 
-This fix computes pressure each timestep.  To do
+This fix computes pressure each timestep. To do
 this, the fix creates its own computes of style "pressure",
 as if this command had been issued:
 
@@ -212,13 +240,14 @@ See the :doc:`compute pressure <compute_pressure>` command for details.  Note
 that the IDs of the new compute is the fix-ID + underscore + "press" and the
 group for the new computes is the same as the fix group.
 
-Note that this is NOT the compute used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_press*.
-This means you can change the attributes of this fix's pressure via the
-:doc:`compute_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo_temp* or
-*thermo_press* will have no effect on this fix.
+Note that this is NOT the compute used by thermodynamic output (see the
+:doc:`thermo_style <thermo_style>` command) with ID = *thermo_press*. This
+means you can change the attributes of this fix's pressure via the
+:doc:`compute_modify <compute_modify>` command or print this temperature or
+pressure during thermodynamic output via the :doc:`thermo_style custom
+<thermo_style>` command using the appropriate compute-ID. It also means that
+changing attributes of *thermo_temp* or *thermo_press* will have no effect on
+this fix.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -256,8 +285,8 @@ Related commands
 Default
 """""""
 
-The keyword defaults are dilate = all, friction = 0.0001 in units of
-pressure for whatever :doc:`units <units>` are defined.
+The keyword defaults are dilate = all and mass = 0.001 in units of mass for
+whatever :doc:`units <units>` defined.
 
 ----------
 

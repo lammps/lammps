@@ -11,31 +11,30 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This is an optimized version of ilp/graphene/hbn based on the contribution of:
-     author: Wengen Ouyang (Wuhan University)
-     e-mail: w.g.ouyang at gmail dot com
+   This is an optimized version of ilp/graphene/hbn based on the contirubtion of:
+   author: Wengen Ouyang (Wuhan University, China)
+   e-mail: w.g.ouyang at gmail dot com
 
    Optimizations are done by:
-     author1: Ping Gao (National Supercomputing Center in Wuxi, China)
-     e-mail: qdgaoping at gmail dot com
+   author1: Ping Gao (National Supercomputing Center in Wuxi, China) implements the base ILP potential.
+   e-mail: qdgaoping at gmail dot com
 
-     author2: Xiaohui Duan (National Supercomputing Center in Wuxi, China)
-     e-mail: sunrise_duan at 126 dot com
+   author2: Xiaohui Duan (Shandong University, China) adjusts the framework to adopt SAIP, TMD, WATER2DM, etc.
+   e-mail: sunrise_duan at 126 dot com
 
    Optimizations are described in:
-     Gao, Ping and Duan, Xiaohui, et al.:
-       LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous Many-Core Processors
-     DOI: 10.1145/3458817.3476137
+   Gao, Ping and Duan, Xiaohui, et al:
+   LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous Many-Core Processors
+   DOI: 10.1145/3458817.3476137
 
    Potential is described by:
-     [Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020)]
+   [Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020)]
 */
 
 #include "pair_ilp_graphene_hbn_opt.h"
 
 #include "atom.h"
 #include "citeme.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "interlayer_taper.h"
@@ -181,33 +180,33 @@ void PairILPGrapheneHBNOpt::compute(int eflag, int vflag)
         }
       }
     }
-  } else if (variant == ILP_WATER_2DM) {
+  } else if (variant == AIP_WATER_2DM) {
     if (eflag_global || eflag_atom) {
       if (vflag_either) {
         if (tap_flag) {
-          eval<6, 1, 1, 1, ILP_WATER_2DM>();
+          eval<6, 1, 1, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 1, 1, 0, ILP_WATER_2DM>();
+          eval<6, 1, 1, 0, AIP_WATER_2DM>();
         }
       } else {
         if (tap_flag) {
-          eval<6, 1, 0, 1, ILP_WATER_2DM>();
+          eval<6, 1, 0, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 1, 0, 0, ILP_WATER_2DM>();
+          eval<6, 1, 0, 0, AIP_WATER_2DM>();
         }
       }
     } else {
       if (vflag_either) {
         if (tap_flag) {
-          eval<6, 0, 1, 1, ILP_WATER_2DM>();
+          eval<6, 0, 1, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 0, 1, 0, ILP_WATER_2DM>();
+          eval<6, 0, 1, 0, AIP_WATER_2DM>();
         }
       } else {
         if (tap_flag) {
-          eval<6, 0, 0, 1, ILP_WATER_2DM>();
+          eval<6, 0, 0, 1, AIP_WATER_2DM>();
         } else {
-          eval<6, 0, 0, 0, ILP_WATER_2DM>();
+          eval<6, 0, 0, 0, AIP_WATER_2DM>();
         }
       }
     }
@@ -298,7 +297,7 @@ void PairILPGrapheneHBNOpt::eval()
       rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq != 0 && rsq < cutILPsq[itype_map][jtype]) {
-        if ((VARIANT == ILP_TMD || VARIANT == ILP_WATER_2DM) && special_type[itype] == TMD_METAL && itype != type[j]) continue;
+        if ((VARIANT == ILP_TMD || VARIANT == AIP_WATER_2DM) && special_type[itype] == TMD_METAL && itype != type[j]) continue;
         if (ILP_nneigh >= MAX_NNEIGH) {
           error->one(FLERR, "There are too many neighbors for calculating normals");
         }
@@ -483,7 +482,6 @@ inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double fac
   dnhatdn[0][2] = -n[0]*n[2]*cfactor;
   dnhatdn[1][2] = -n[1]*n[2]*cfactor;
   dnhatdn[2][2] = (n[0]*n[0]+n[1]*n[1])*cfactor;
-
 }
 inline double normalize_factor(double *n)
 {
@@ -532,8 +530,8 @@ void PairILPGrapheneHBNOpt::calc_atom_normal(int i, int itype, int *ILP_neigh, i
     vet[jj][2] = x[j][2] - x[i][2];
   }
 
-  //specialize for ILP_WATER_2DM for hydrogen has special normal vector rule
-  if (variant == ILP_WATER_2DM && special_type[itype] == WATER) {
+  //specialize for AIP_WATER_2DM for hydrogen has special normal vector rule
+  if (variant == AIP_WATER_2DM && special_type[itype] == WATER) {
     if (nneigh == 1){
       n[0] = vet[0][0];
       n[1] = vet[0][1];

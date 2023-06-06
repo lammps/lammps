@@ -36,4 +36,3 @@ class PairAIPWATER2DMOpt : public PairAIPWATER2DM, public PairILPGrapheneHBNOpt 
 }    // namespace LAMMPS_NS
 #endif
 #endif
-

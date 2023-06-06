@@ -155,7 +155,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         pstat_flag = 1;
       } else
         error->universe_all(FLERR,
-                            "Unknown ensemble parameter for fix pimd/langevin. Only nve and nvt "
+                            "Unknown ensemble parameter for fix pimd/langevin. Only nve, nvt, nph, and npt "
                             "ensembles are supported!");
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);

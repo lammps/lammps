@@ -35,8 +35,8 @@ Description
 
 .. versionadded:: xxxx2023
 
-The *aip/water/2dm* style computes the anisotropic interfacial
-potential (AIP) potential for interfaces of water with two-dimensinal (2D)
+The *aip/water/2dm* style computes the anisotropic interfacial potential
+(AIP) potential for interfaces of water with two-dimensional (2D)
 materials as described in :ref:`(Feng) <Feng>`.
 
 .. math::
@@ -56,41 +56,45 @@ materials as described in :ref:`(Feng) <Feng>`.
 
 Where :math:`\mathrm{Tap}(r_{ij})` is the taper function which provides
 a continuous cutoff (up to third derivative) for interatomic separations
-larger than :math:`r_c` :doc:`pair_style ilp_graphene_hbn <pair_ilp_graphene_hbn>`.
+larger than :math:`r_c` :doc:`pair_style ilp_graphene_hbn
+<pair_ilp_graphene_hbn>`.
 
 It is important to include all the pairs to build the neighbor list for
 calculating the normals.
 
 .. note::
 
-   Since each water molecule contains one oxygen atom and two hydrogen atoms,
-   a new definition is proposed (see In :ref:`(Feng) <Feng>`),the atomic
-   normal vectors of hydrogen atoms are assumed to lie along the corresponding
-   oxygen-hydrogen bonds and the normal vector of the central oxygen atom
-   is defined as their average.
+   Since each water molecule contains one oxygen atom and two hydrogen
+   atoms, a new definition is proposed (see In :ref:`(Feng) <Feng>`),the
+   atomic normal vectors of hydrogen atoms are assumed to lie along the
+   corresponding oxygen-hydrogen bonds and the normal vector of the
+   central oxygen atom is defined as their average.
 
-The parameter file (e.g. COH.aip.water.2dm), is intended for use with *metal*
-:doc:`units <units>`, with energies in meV. Two additional parameters,
-*S*, and *rcut* are included in the parameter file. *S* is designed to
-facilitate scaling of energies. *rcut* is designed to build the neighbor
-list for calculating the normals for each atom pair.
+The provided parameter file, ``COH.aip.water.2dm``, is intended for use
+with *metal* :doc:`units <units>`, with energies in meV.  Two additional
+parameters, *S*, and *rcut* are included in the parameter file. *S* is
+designed to facilitate scaling of energies; *rcut* is designed to build
+the neighbor list for calculating the normals for each atom pair.
 
 .. note::
 
-   The parameters presented in the parameter file (e.g. COH.aip.water.2dm),
-   are fitted with taper function by setting the cutoff equal to 16.0
-   Angstrom.  Using different cutoff or taper function should be careful.
-   These parameters provide a good description in both short- and long-range
-   interaction regimes. This feature is essential for simulations in high pressure
-   regime (i.e., the interlayer distance is smaller than the equilibrium
-   distance).
+   The parameters presented in the provided parameter file,
+   ``COH.aip.water.2dm``, are fitted with the taper function enabled by
+   setting the cutoff equal to 16.0 Angstrom.  Using a different cutoff
+   or taper function setting should be carefully checked as they can
+   lead to significant errors.  These parameters provide a good
+   description in both short- and long-range interaction regimes.  This
+   feature is essential for simulations in high pressure regime (i.e.,
+   the interlayer distance is smaller than the equilibrium distance).
 
-This potential must be used in combination with hybrid/overlay.
-Other interactions can be set to zero using pair_style *none*\ .
+This potential must be used in combination with hybrid/overlay.  Other
+interactions can be set to zero using :doc:`pair_coeff settings
+<pair_coeff>` with the pair style set to *none*\ .
 
 This pair style tallies a breakdown of the total interlayer potential
-energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 2.
-The 2 values correspond to the following sub-categories:
+energy into sub-categories, which can be accessed via the :doc:`compute
+pair <compute_pair>` command as a vector of values of length 2.  The 2
+values correspond to the following sub-categories:
 
 1. *E_vdW* = vdW (attractive) energy
 2. *E_Rep* = Repulsive energy
@@ -132,11 +136,11 @@ if LAMMPS was built with that package.  See the :doc:`Build package
 This pair style requires the newton setting to be *on* for pair
 interactions.
 
-The COH.aip.water.2dm potential file provided with LAMMPS (see the potentials
-directory) are parameterized for *metal* units.  You can use this
-potential with any LAMMPS units, but you would need to create your
-COH.aip.water.2dm potential file with coefficients listed in the appropriate
-units, if your simulation does not use *metal* units.
+The ``COH.aip.water.2dm`` potential file provided with LAMMPS is
+parameterized for *metal* units.  You can use this pair style with any
+LAMMPS units, but you would need to create your own potential file with
+parameters in the appropriate units, if your simulation does not use
+*metal* units.
 
 Related commands
 """"""""""""""""
@@ -158,8 +162,8 @@ Default
 
 tap_flag = 1
 
-
 ----------
 
 .. _Feng:
+
 **(Feng)** Z. Feng and W. Ouyang et al., J. Phys. Chem. C. 127, 8704-8713 (2023).

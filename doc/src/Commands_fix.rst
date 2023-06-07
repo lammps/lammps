@@ -171,6 +171,7 @@ OPT.
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
+   * :doc:`pimd/langevin <fix_pimd>`
    * :doc:`pimd/nvt <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`

@@ -1,0 +1,26 @@
+variable ibead uloop 32 pad
+
+units lj
+atom_style atomic
+atom_modify map yes
+boundary p p p
+pair_style lj/cut 2.8015
+read_data data.lj${ibead}
+
+pair_coeff    * * 1.0 1.0
+pair_modify shift yes
+
+mass 1 1.0
+
+timestep 0.00044905847
+
+fix 1 all pimd/langevin ensemble nvt integrator obabo temp 1.00888 lj 0.00965188 3.4 39.948 4.135667403e-3 1.03646168908e-4 thermostat PILE_L ${ibead}
+
+thermo_style custom step temp f_1[*] vol press
+thermo 100
+thermo_modify norm no format line "%d %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f"
+
+dump dcd all custom 1 ${ibead}.xyz id type x y z vx vy vz ix iy iz fx fy fz
+dump_modify dcd sort id format line "%d %d %.16f %.16f %.16f %.16f %.16f %.16f %d %d %d %.16f %.16f %.16f"
+
+run 1000

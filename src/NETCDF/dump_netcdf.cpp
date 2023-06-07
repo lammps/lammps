@@ -320,7 +320,7 @@ void DumpNetCDF::openfile()
 
       // perframe variables
       if (thermo) {
-        auto keywords = output->thermo->get_keywords();
+        const auto &keywords = output->thermo->get_keywords();
         int nfield = keywords.size();
         for (int i = 0; i < nfield; i++) {
           NCERRX( nc_inq_varid(ncid, keywords[i].c_str(), &thermovar[i]), keywords[i].c_str() );
@@ -433,8 +433,8 @@ void DumpNetCDF::openfile()
 
       // perframe variables
       if (thermo) {
-        auto fields = output->thermo->get_fields();
-        auto keywords = output->thermo->get_keywords();
+        const auto &fields = output->thermo->get_fields();
+        const auto &keywords = output->thermo->get_keywords();
         int nfield = fields.size();
         for (int i = 0; i < nfield; i++) {
           if (fields[i].type == multitype::DOUBLE) {
@@ -600,8 +600,8 @@ void DumpNetCDF::write()
   start[1] = 0;
 
   if (thermo) {
-    auto keywords = output->thermo->get_keywords();
-    auto fields = output->thermo->get_fields();
+    const auto &keywords = output->thermo->get_keywords();
+    const auto &fields = output->thermo->get_fields();
     int nfield = fields.size();
     for (int i = 0; i < nfield; i++) {
       if (filewriter) {

@@ -64,10 +64,10 @@ void DumpYAML::write_header(bigint ndump)
     if (update->ntimestep == th->get_timestep()) {
 
       thermo_data += "thermo:\n  - keywords: [ ";
-      for (auto key : th->get_keywords()) thermo_data += fmt::format("{}, ", key);
+      for (const auto &key : th->get_keywords()) thermo_data += fmt::format("{}, ", key);
       thermo_data += "]\n  - data: [ ";
 
-      for (auto val : th->get_fields()) {
+      for (const auto &val : th->get_fields()) {
         if (val.type == multitype::DOUBLE)
           thermo_data += fmt::format("{}, ", val.data.d);
         else if (val.type == multitype::INT)
@@ -90,7 +90,7 @@ void DumpYAML::write_header(bigint ndump)
 
     fmt::print(fp, "natoms: {}\n", ndump);
     fputs("boundary: [ ", fp);
-    for (const auto bflag : boundary) {
+    for (const auto &bflag : boundary) {
       if (bflag == ' ') continue;
       fmt::print(fp, "{}, ", bflag);
     }

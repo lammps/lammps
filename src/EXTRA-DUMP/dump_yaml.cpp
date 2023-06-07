@@ -62,18 +62,21 @@ void DumpYAML::write_header(bigint ndump)
     Thermo *th = output->thermo;
     // output thermo data only on timesteps where it was computed
     if (update->ntimestep == th->get_timestep()) {
+      int nfield = th->get_nfield();
+      const auto &keywords = th->get_keywords();
+      const auto &fields = th->get_fields();
 
       thermo_data += "thermo:\n  - keywords: [ ";
-      for (const auto &key : th->get_keywords()) thermo_data += fmt::format("{}, ", key);
+      for (int i = 0; i < nfield; ++i) thermo_data += fmt::format("{}, ", keywords[i]);
       thermo_data += "]\n  - data: [ ";
 
-      for (const auto &val : th->get_fields()) {
-        if (val.type == multitype::DOUBLE)
-          thermo_data += fmt::format("{}, ", val.data.d);
-        else if (val.type == multitype::INT)
-          thermo_data += fmt::format("{}, ", val.data.i);
-        else if (val.type == multitype::BIGINT)
-          thermo_data += fmt::format("{}, ", val.data.b);
+      for (int i = 0; i < nfield; ++i) {
+        if (fields[i].type == multitype::DOUBLE)
+          thermo_data += fmt::format("{}, ", fields[i].data.d);
+        else if (fields[i].type == multitype::INT)
+          thermo_data += fmt::format("{}, ", fields[i].data.i);
+        else if (fields[i].type == multitype::BIGINT)
+          thermo_data += fmt::format("{}, ", fields[i].data.b);
         else
           thermo_data += ", ";
       }

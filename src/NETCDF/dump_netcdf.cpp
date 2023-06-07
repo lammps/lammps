@@ -195,6 +195,7 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
   type_nc_real = NC_FLOAT;
 
   thermo = false;
+  thermo_warn = true;
   thermovar = nullptr;
 
   framei = 0;
@@ -223,7 +224,7 @@ void DumpNetCDF::openfile()
 
   if (thermo && !singlefile_opened) {
     delete[] thermovar;
-    thermovar = new int[output->thermo->get_keywords().size()];
+    thermovar = new int[output->thermo->get_nfield()];
   }
 
   // now the computes and fixes have been initialized, so we can query
@@ -320,8 +321,10 @@ void DumpNetCDF::openfile()
 
       // perframe variables
       if (thermo) {
-        const auto &keywords = output->thermo->get_keywords();
-        int nfield = keywords.size();
+        Thermo *th = output->thermo;
+        const auto &keywords = th->get_keywords();
+        const int nfield = th->get_nfield();
+
         for (int i = 0; i < nfield; i++) {
           NCERRX( nc_inq_varid(ncid, keywords[i].c_str(), &thermovar[i]), keywords[i].c_str() );
         }
@@ -433,9 +436,11 @@ void DumpNetCDF::openfile()
 
       // perframe variables
       if (thermo) {
-        const auto &fields = output->thermo->get_fields();
-        const auto &keywords = output->thermo->get_keywords();
-        int nfield = fields.size();
+        Thermo *th = output->thermo;
+        const auto &fields = th->get_fields();
+        const auto &keywords = th->get_keywords();
+        const int nfield = th->get_nfield();
+
         for (int i = 0; i < nfield; i++) {
           if (fields[i].type == multitype::DOUBLE) {
             NCERRX( nc_def_var(ncid, keywords[i].c_str(), type_nc_real, 1, dims, &thermovar[i]), keywords[i].c_str() );
@@ -600,9 +605,23 @@ void DumpNetCDF::write()
   start[1] = 0;
 
   if (thermo) {
-    const auto &keywords = output->thermo->get_keywords();
-    const auto &fields = output->thermo->get_fields();
-    int nfield = fields.size();
+    Thermo *th = output->thermo;
+
+    // will output current thermo data only on timesteps where it was computed.
+    // warn (once) about using cached copy from old timestep.
+
+    if (thermo_warn && (update->ntimestep != th->get_timestep())) {
+      thermo_warn = false;
+      if (comm->me == 0) {
+        error->warning(FLERR, "Dump {} output on incompatible timestep with thermo output: {} vs {} \n"
+                       "         Dump netcdf always stores thermo data from last thermo output",
+                       id, th->get_timestep(), update->ntimestep);
+      }
+    }
+
+    const auto &keywords = th->get_keywords();
+    const auto &fields = th->get_fields();
+    int nfield = th->get_nfield();
     for (int i = 0; i < nfield; i++) {
       if (filewriter) {
         if (fields[i].type == multitype::DOUBLE) {

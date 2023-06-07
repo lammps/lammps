@@ -758,7 +758,8 @@ file alongside per-atom data.  The values included in the dump file are
 cached values from the last thermo output and include the exact same the
 values as specified by the :doc:`thermo_style <thermo_style>` command.
 Because these are cached values, they are only up-to-date when dump
-output is on a timestep that also has thermo output.
+output is on a timestep that also has thermo output. Dump style *yaml*
+will skip thermo output on incompatible steps.
 
 ----------
 

@@ -399,8 +399,8 @@ void ComputeStressCartesian::compute_array()
 
   // populate array to output.
   for (int bin = 0; bin < nbins1 * nbins2; bin++) {
-    array[bin][0] = (bin % nbins1 + 0.5) * bin_width1;
-    if (dims == 2) array[bin][1] = ((int) (bin / nbins1) + 0.5) * bin_width2;
+    array[bin][0] = (bin % nbins1 + 0.5) * bin_width1 + boxlo[dir1];
+    if (dims == 2) array[bin][1] = ((int) (bin / nbins1) + 0.5) * bin_width2 + boxlo[dir2];
     array[bin][0 + dims] = dens[bin];
     array[bin][1 + dims] = pkxx[bin];
     array[bin][2 + dims] = pkyy[bin];

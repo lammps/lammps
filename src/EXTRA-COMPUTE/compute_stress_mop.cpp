@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -14,6 +13,7 @@
 
 /*------------------------------------------------------------------------
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
+  Support for bonds and angles added by : Evangelos Voyiatzis (NovaMechanics)
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop.h"
@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "bond.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -37,50 +38,49 @@
 
 using namespace LAMMPS_NS;
 
-enum{X,Y,Z};
-enum{TOTAL,CONF,KIN,PAIR,BOND,ANGLE};
+enum { X, Y, Z };
+enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE };
 
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 6) error->all(FLERR,"Illegal compute stress/mop command");
-
-  MPI_Comm_rank(world,&me);
+  if (narg < 6) utils::missing_cmd_args(FLERR, "compute stress/mop", error);
 
   bondflag = 0;
   angleflag = 0;
 
   // set compute mode and direction of plane(s) for pressure calculation
 
-  if (strcmp(arg[3],"x")==0) {
+  if (strcmp(arg[3],"x") == 0) {
     dir = X;
-  } else if (strcmp(arg[3],"y")==0) {
+  } else if (strcmp(arg[3],"y") == 0) {
     dir = Y;
-  } else if (strcmp(arg[3],"z")==0) {
+  } else if (strcmp(arg[3],"z") == 0) {
     dir = Z;
   } else error->all(FLERR,"Illegal compute stress/mop command");
 
   // Position of the plane
 
-  if (strcmp(arg[4],"lower")==0) {
+  if (strcmp(arg[4],"lower") == 0) {
     pos = domain->boxlo[dir];
-  } else if (strcmp(arg[4],"upper")==0) {
+  } else if (strcmp(arg[4],"upper") == 0) {
     pos = domain->boxhi[dir];
-  } else if (strcmp(arg[4],"center")==0) {
+  } else if (strcmp(arg[4],"center") == 0) {
     pos = 0.5*(domain->boxlo[dir]+domain->boxhi[dir]);
   } else pos = utils::numeric(FLERR,arg[4],false,lmp);
 
   // plane inside the box
-  if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir]) {
-    error->warning(FLERR,"The specified initial plane lies outside of the simulation box");
-    double dx[3] {0};
+  if ((pos > domain->boxhi[dir]) || (pos < domain->boxlo[dir])) {
+    error->warning(FLERR, "The specified initial plane lies outside of the simulation box");
+    double dx[3] = {0.0, 0.0, 0.0};
     dx[dir] = pos - 0.5*(domain->boxhi[dir] + domain->boxlo[dir]);
     domain->minimum_image(dx[0], dx[1], dx[2]);
     pos = 0.5*(domain->boxhi[dir] + domain->boxlo[dir]) + dx[dir];
 
-    if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir])
+    if ((pos > domain->boxhi[dir]) || (pos < domain->boxlo[dir]))
       error->all(FLERR, "Plane for compute stress/mop is out of bounds");
   }
 
@@ -133,15 +133,15 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
-  // Error check
+  // Error checks
   // 3D only
 
-  if (domain->dimension < 3)
-    error->all(FLERR, "Compute stress/mop incompatible with simulation dimension");
+  if (domain->dimension != 3)
+    error->all(FLERR, "Compute stress/mop requires a 3d system");
 
   // orthogonal simulation box
   if (domain->triclinic != 0)
-    error->all(FLERR, "Compute stress/mop incompatible with triclinic simulation box");
+    error->all(FLERR, "Compute stress/mop is incompatible with triclinic simulation box");
 
   // Initialize some variables
 
@@ -154,12 +154,12 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces a global vector
 
   memory->create(vector,nvalues,"stress/mop:vector");
-  memory->create(values_local,nvalues,"stress/mop/spatial:values_local");
-  memory->create(values_global,nvalues,"stress/mop/spatial:values_global");
-  memory->create(bond_local,nvalues,"stress/mop/spatial:bond_local");
-  memory->create(bond_global,nvalues,"stress/mop/spatial:bond_global");
-  memory->create(angle_local,nvalues,"stress/mop/spatial:angle_local");
-  memory->create(angle_global,nvalues,"stress/mop/spatial:angle_global");
+  memory->create(values_local,nvalues,"stress/mop:values_local");
+  memory->create(values_global,nvalues,"stress/mop:values_global");
+  memory->create(bond_local,nvalues,"stress/mop:bond_local");
+  memory->create(bond_global,nvalues,"stress/mop:bond_global");
+  memory->create(angle_local,nvalues,"stress/mop:angle_local");
+  memory->create(angle_global,nvalues,"stress/mop:angle_global");
   size_vector = nvalues;
 
   vector_flag = 1;
@@ -171,8 +171,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeStressMop::~ComputeStressMop()
 {
-
-  delete [] which;
+  delete[] which;
 
   memory->destroy(values_local);
   memory->destroy(values_global);
@@ -209,36 +208,39 @@ void ComputeStressMop::init()
 
   // Compute stress/mop requires fixed simulation box
   if (domain->box_change_size || domain->box_change_shape || domain->deform_flag)
-    error->all(FLERR, "Compute stress/mop requires a fixed simulation box");
+    error->all(FLERR, "Compute stress/mop requires a fixed size simulation box");
 
   // This compute requires a pair style with pair_single method implemented
 
-  if (force->pair == nullptr)
+  if (!force->pair)
     error->all(FLERR,"No pair style is defined for compute stress/mop");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop");
 
   // Errors
 
-  if (me==0) {
+  if (comm->me == 0) {
 
     // issue an error for unimplemented intramolecular potentials or Kspace.
 
-    if (force->bond!=nullptr) bondflag = 1;
-    if (force->angle!=nullptr)
+    if (force->bond) bondflag = 1;
+    if (force->angle) {
       if (force->angle->born_matrix_enable == 0) {
         if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
           error->all(FLERR,"compute stress/mop does not account for angle potentials");
       } else {
          angleflag = 1;
       }
-    if (force->dihedral!=nullptr)
+    }
+    if (force->dihedral) {
       if ((strcmp(force->dihedral_style, "zero") != 0) && (strcmp(force->dihedral_style, "none") != 0))
         error->all(FLERR,"compute stress/mop does not account for dihedral potentials");
-    if (force->improper!=nullptr)
+    }
+    if (force->improper) {
       if ((strcmp(force->improper_style, "zero") != 0) && (strcmp(force->improper_style, "none") != 0))
         error->all(FLERR,"compute stress/mop does not account for improper potentials");
-    if (force->kspace!=nullptr)
+    }
+    if (force->kspace)
       error->warning(FLERR,"compute stress/mop does not account for kspace contributions");
   }
 
@@ -266,8 +268,7 @@ void ComputeStressMop::compute_vector()
   compute_pairs();
 
   // sum pressure contributions over all procs
-  MPI_Allreduce(values_local,values_global,nvalues,
-                MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(values_local,values_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
 
   if (bondflag) {
     //Compute bond contribution on separate procs
@@ -292,7 +293,6 @@ void ComputeStressMop::compute_vector()
   for (int m=0; m<nvalues; m++) {
     vector[m] = values_global[m] + bond_global[m] + angle_global[m];
   }
-
 }
 
 
@@ -344,8 +344,8 @@ void ComputeStressMop::compute_pairs()
   double xj[3];
 
   m = 0;
-  while (m<nvalues) {
-    if (which[m] == CONF || which[m] == TOTAL || which[m] == PAIR) {
+  while (m < nvalues) {
+    if ((which[m] == CONF) || (which[m] == TOTAL) || (which[m] == PAIR)) {
 
       //Compute configurational contribution to pressure
       for (ii = 0; ii < inum; ii++) {
@@ -380,47 +380,34 @@ void ComputeStressMop::compute_pairs()
           if (newton_pair || j < nlocal) {
 
             //check if ij pair is across plane, add contribution to pressure
-            if (((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
-
+            if (((xi[dir] > pos) && (xj[dir] < pos)) || ((xi[dir] > pos1) && (xj[dir] < pos1))) {
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
-
               values_local[m] += fpair*(xi[0]-xj[0])/area*nktv2p;
               values_local[m+1] += fpair*(xi[1]-xj[1])/area*nktv2p;
               values_local[m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
-            }
-            else if (((xi[dir]<pos) && (xj[dir]>pos)) || ((xi[dir]<pos1) && (xj[dir]>pos1))) {
-
+            } else if (((xi[dir] < pos) && (xj[dir] > pos)) || ((xi[dir] < pos1) && (xj[dir] > pos1))) {
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
-
               values_local[m] -= fpair*(xi[0]-xj[0])/area*nktv2p;
               values_local[m+1] -= fpair*(xi[1]-xj[1])/area*nktv2p;
               values_local[m+2] -= fpair*(xi[2]-xj[2])/area*nktv2p;
             }
-
           } else {
-
-            if (((xi[dir]>pos) && (xj[dir]<pos)) || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
-
+            if (((xi[dir] > pos) && (xj[dir] < pos)) || ((xi[dir] > pos1) && (xj[dir] < pos1))) {
               pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
-
               values_local[m] += fpair*(xi[0]-xj[0])/area*nktv2p;
               values_local[m+1] += fpair*(xi[1]-xj[1])/area*nktv2p;
               values_local[m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
             }
-
           }
-
         }
-
       }
-
     }
 
 
     // Compute kinetic contribution to pressure
     // counts local particles transfers across the plane
 
-    if (which[m] == KIN || which[m] == TOTAL) {
+    if ((which[m] == KIN) || (which[m] == TOTAL)) {
       double sgn;
 
       for (int i = 0; i < nlocal; i++) {
@@ -447,13 +434,13 @@ void ComputeStressMop::compute_pairs()
 
           //coordinates at t-dt (based on Velocity-Verlet alg.)
           if (rmass) {
-            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/rmass[i]*dt*dt*ftm2v;
-            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/rmass[i]*dt*dt*ftm2v;
-            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/rmass[i]*dt*dt*ftm2v;
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2.0/rmass[i]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2.0/rmass[i]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2.0/rmass[i]*dt*dt*ftm2v;
           } else {
-            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
-            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
-            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
+            xj[0] = xi[0]-vi[0]*dt+fi[0]/2.0/mass[itype]*dt*dt*ftm2v;
+            xj[1] = xi[1]-vi[1]*dt+fi[1]/2.0/mass[itype]*dt*dt*ftm2v;
+            xj[2] = xi[2]-vi[2]*dt+fi[2]/2.0/mass[itype]*dt*dt*ftm2v;
           }
 
           // because LAMMPS does not put atoms back in the box
@@ -463,21 +450,21 @@ void ComputeStressMop::compute_pairs()
           double pos_temp = pos+copysign(1.0,domain->prd_half[dir]-pos)*domain->prd[dir];
           if (fabs(xi[dir]-pos)<fabs(xi[dir]-pos_temp)) pos_temp = pos;
 
-          if (((xi[dir]-pos_temp)*(xj[dir]-pos_temp)<0)) {
+          if (((xi[dir]-pos_temp)*(xj[dir]-pos_temp)) < 0) {
 
-            //sgn = copysign(1.0,vi[dir]-vcm[dir]);
+            // sgn = copysign(1.0,vi[dir]-vcm[dir]);
             sgn = copysign(1.0,vi[dir]);
 
-            //approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
+            // approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
             double vcross[3];
             if (rmass) {
-              vcross[0] = vi[0]-fi[0]/rmass[i]/2*ftm2v*dt;
-              vcross[1] = vi[1]-fi[1]/rmass[i]/2*ftm2v*dt;
-              vcross[2] = vi[2]-fi[2]/rmass[i]/2*ftm2v*dt;
+              vcross[0] = vi[0]-fi[0]/rmass[i]/2.0*ftm2v*dt;
+              vcross[1] = vi[1]-fi[1]/rmass[i]/2.0*ftm2v*dt;
+              vcross[2] = vi[2]-fi[2]/rmass[i]/2.0*ftm2v*dt;
             } else {
-              vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
-              vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
-              vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+              vcross[0] = vi[0]-fi[0]/mass[itype]/2.0*ftm2v*dt;
+              vcross[1] = vi[1]-fi[1]/mass[itype]/2.0*ftm2v*dt;
+              vcross[2] = vi[2]-fi[2]/mass[itype]/2.0*ftm2v*dt;
             }
 
             values_local[m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
@@ -487,13 +474,13 @@ void ComputeStressMop::compute_pairs()
         }
       }
     }
-    m+=3;
+    m += 3;
   }
 }
 
 /*------------------------------------------------------------------------
  *   compute bond contribution to pressure of local proc
- *     -------------------------------------------------------------------------*/
+ *-------------------------------------------------------------------------*/
 
 void ComputeStressMop::compute_bonds()
 {
@@ -518,13 +505,13 @@ void ComputeStressMop::compute_bonds()
 
   Bond *bond = force->bond;
 
-  double dx[3] {0};
-  double x_bond_1[3] {0};
-  double x_bond_2[3] {0};
-  double local_contribution[3] {0};
+  double dx[3] = {0.0, 0.0, 0.0};
+  double x_bond_1[3] = {0.0, 0.0, 0.0};
+  double x_bond_2[3] = {0.0, 0.0, 0.0};
+  double local_contribution[3] = {0.0, 0.0, 0.0};
 
   // initialization
-  for (int i {0}; i < nvalues; i++) bond_local[i] = 0.0;
+  for (int i = 0; i < nvalues; i++) bond_local[i] = 0.0;
 
   // loop over all bonded atoms in the current proc
   for (atom1 = 0; atom1 < nlocal; atom1++) {
@@ -591,7 +578,7 @@ void ComputeStressMop::compute_bonds()
   }
 
   // loop over the keywords and if necessary add the bond contribution
-  int m {0};
+  int m = 0;
   while (m<nvalues) {
     if (which[m] == CONF || which[m] == TOTAL || which[m] == BOND) {
       bond_local[m] = local_contribution[0];
@@ -633,17 +620,17 @@ void ComputeStressMop::compute_angles()
   Angle *angle = force->angle;
 
   double duang, du2ang;
-  double dx[3] {0};
-  double dx_left[3] {0};
-  double dx_right[3] {0};
-  double x_angle_left[3] {0};
-  double x_angle_middle[3] {0};
-  double x_angle_right[3] {0};
-  double dcos_theta[3] {0};
-  double local_contribution[3] {0};
+  double dx[3] = {0.0, 0.0, 0.0};
+  double dx_left[3] = {0.0, 0.0, 0.0};
+  double dx_right[3] = {0.0, 0.0, 0.0};
+  double x_angle_left[3] = {0.0, 0.0, 0.0};
+  double x_angle_middle[3] = {0.0, 0.0, 0.0};
+  double x_angle_right[3] = {0.0, 0.0, 0.0};
+  double dcos_theta[3] = {0.0, 0.0, 0.0};
+  double local_contribution[3] = {0.0, 0.0, 0.0};
 
   // initialization
-  for (int i {0}; i < nvalues; i++) angle_local[i] = 0.0;
+  for (int i = 0; i < nvalues; i++) angle_local[i] = 0.0;
 
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
@@ -762,8 +749,8 @@ void ComputeStressMop::compute_angles()
     }
   }
   // loop over the keywords and if necessary add the angle contribution
-  int m {0};
-  while (m<nvalues) {
+  int m = 0;
+  while (m < nvalues) {
     if (which[m] == CONF || which[m] == TOTAL || which[m] == ANGLE) {
       angle_local[m] = local_contribution[0];
       angle_local[m+1] = local_contribution[1];

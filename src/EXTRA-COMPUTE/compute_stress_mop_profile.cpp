@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -14,6 +13,7 @@
 
 /*------------------------------------------------------------------------
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
+  Support for bonds added by : Evangelos Voyiatzis (NovaMechanics)
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop_profile.h"
@@ -21,43 +21,43 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "bond.h"
-#include "update.h"
+#include "comm.h"
 #include "domain.h"
-#include "molecule.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "neigh_list.h"
 #include "error.h"
+#include "force.h"
 #include "memory.h"
+#include "molecule.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-enum{X,Y,Z};
-enum{LOWER,CENTER,UPPER,COORD};
-enum{TOTAL,CONF,KIN,PAIR,BOND};
+enum { X, Y, Z };
+enum { LOWER, CENTER, UPPER, COORD };
+enum { TOTAL, CONF, KIN, PAIR, BOND };
 
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 7) error->all(FLERR,"Illegal compute stress/mop/profile command");
-
-  MPI_Comm_rank(world,&me);
+  if (narg < 7) utils::missing_cmd_args(FLERR, "compute stress/mop/profile", error);
 
   bondflag = 0;
 
   // set compute mode and direction of plane(s) for pressure calculation
 
-  if (strcmp(arg[3],"x")==0) {
+  if (strcmp(arg[3],"x") == 0) {
     dir = X;
-  } else if (strcmp(arg[3],"y")==0) {
+  } else if (strcmp(arg[3],"y") == 0) {
     dir = Y;
-  } else if (strcmp(arg[3],"z")==0) {
+  } else if (strcmp(arg[3],"z") == 0) {
     dir = Z;
   } else error->all(FLERR,"Illegal compute stress/mop/profile command");
 
@@ -67,8 +67,7 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   else if (strcmp(arg[4],"center") == 0) originflag = CENTER;
   else if (strcmp(arg[4],"upper") == 0) originflag = UPPER;
   else originflag = COORD;
-  if (originflag == COORD)
-    origin = utils::numeric(FLERR,arg[4],false,lmp);
+  if (originflag == COORD) origin = utils::numeric(FLERR,arg[4],false,lmp);
   delta = utils::numeric(FLERR,arg[5],false,lmp);
   invdelta = 1.0/delta;
 
@@ -149,8 +148,7 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
 
 ComputeStressMopProfile::~ComputeStressMopProfile()
 {
-
-  delete [] which;
+  delete[] which;
 
   memory->destroy(coord);
   memory->destroy(coordp);
@@ -166,7 +164,6 @@ ComputeStressMopProfile::~ComputeStressMopProfile()
 
 void ComputeStressMopProfile::init()
 {
-
   // conversion constants
 
   nktv2p = force->nktv2p;
@@ -192,30 +189,30 @@ void ComputeStressMopProfile::init()
 
   //This compute requires a pair style with pair_single method implemented
 
-  if (force->pair == nullptr)
+  if (!force->pair)
     error->all(FLERR,"No pair style is defined for compute stress/mop/profile");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop/profile");
 
   // Errors
 
-  if (me==0) {
+  if (comm->me == 0) {
 
     //Compute stress/mop/profile only accounts for pair interactions.
     // issue an error if any intramolecular potential or Kspace is defined.
 
-    if (force->bond!=nullptr) bondflag = 1;
+    if (force->bond) bondflag = 1;
 
-    if (force->angle!=nullptr)
+    if (force->angle)
       if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
         error->all(FLERR,"compute stress/mop/profile does not account for angle potentials");
-    if (force->dihedral!=nullptr)
+    if (force->dihedral)
       if ((strcmp(force->dihedral_style, "zero") != 0) && (strcmp(force->dihedral_style, "none") != 0))
         error->all(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
-    if (force->improper!=nullptr)
+    if (force->improper)
       if ((strcmp(force->improper_style, "zero") != 0) && (strcmp(force->improper_style, "none") != 0))
         error->all(FLERR,"compute stress/mop/profile does not account for improper potentials");
-    if (force->kspace!=nullptr)
+    if (force->kspace)
       error->warning(FLERR,"compute stress/mop/profile does not account for kspace contributions");
   }
 
@@ -244,8 +241,7 @@ void ComputeStressMopProfile::compute_array()
   compute_pairs();
 
   // sum pressure contributions over all procs
-  MPI_Allreduce(&values_local[0][0],&values_global[0][0],nbins*nvalues,
-                MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&values_local[0][0],&values_global[0][0],nbins*nvalues,MPI_DOUBLE,MPI_SUM,world);
 
   if (bondflag) {
     //Compute bond contribution on separate procs
@@ -259,16 +255,14 @@ void ComputeStressMopProfile::compute_array()
   }
 
   // sum bond contribution over all procs
-  MPI_Allreduce(&bond_local[0][0],&bond_global[0][0],nbins*nvalues,
-                MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&bond_local[0][0],&bond_global[0][0],nbins*nvalues,MPI_DOUBLE,MPI_SUM,world);
 
-  int ibin,m,mo;
-  for (ibin=0; ibin<nbins; ibin++) {
+  for (int ibin=0; ibin<nbins; ibin++) {
     array[ibin][0] = coord[ibin][0];
-    mo=1;
 
-    m = 0;
-    while (m<nvalues) {
+    int mo = 1;
+    int m = 0;
+    while (m < nvalues) {
       array[ibin][m+mo] = values_global[ibin][m] + bond_global[ibin][m];
       m++;
     }
@@ -326,8 +320,8 @@ void ComputeStressMopProfile::compute_pairs()
   double xj[3];
 
   m = 0;
-  while (m<nvalues) {
-    if (which[m] == CONF || which[m] == TOTAL || which[m] == PAIR) {
+  while (m < nvalues) {
+    if ((which[m] == CONF) || (which[m] == TOTAL) || (which[m] == PAIR)) {
 
       // Compute configurational contribution to pressure
 
@@ -414,7 +408,7 @@ void ComputeStressMopProfile::compute_pairs()
     // compute kinetic contribution to pressure
     // counts local particles transfers across the plane
 
-    if (which[m] == KIN || which[m] == TOTAL) {
+    if ((which[m] == KIN) || (which[m] == TOTAL)) {
 
       double sgn;
 
@@ -452,7 +446,7 @@ void ComputeStressMopProfile::compute_pairs()
             xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
           }
 
-          for (ibin=0;ibin<nbins;ibin++) {
+          for (ibin = 0; ibin < nbins; ibin++) {
             pos = coord[ibin][0];
             pos1 = coordp[ibin][0];
 
@@ -516,13 +510,13 @@ void ComputeStressMopProfile::compute_bonds()
 
   Bond *bond = force->bond;
 
-  double dx[3] {0};
-  double x_bond_1[3] {0};
-  double x_bond_2[3] {0};
+  double dx[3] = {0.0, 0.0, 0.0};
+  double x_bond_1[3] = {0.0, 0.0, 0.0};
+  double x_bond_2[3] = {0.0, 0.0, 0.0};
 
   // initialization
-  for (int m {0}; m < nbins; m++) {
-    for (int i {0}; i < nvalues; i++) {
+  for (int m = 0; m < nbins; m++) {
+    for (int i = 0; i < nvalues; i++) {
       bond_local[m][i] = 0.0;
     }
     local_contribution[m][0] = 0.0;
@@ -557,7 +551,7 @@ void ComputeStressMopProfile::compute_bonds()
       if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
       if (btype <= 0) continue;
 
-      for (int ibin {0}; ibin<nbins; ibin++) {
+      for (int ibin = 0; ibin<nbins; ibin++) {
         double pos = coord[ibin][0];
 
         // minimum image of atom1 with respect to the plane of interest
@@ -599,10 +593,10 @@ void ComputeStressMopProfile::compute_bonds()
   }
 
   // loop over the keywords and if necessary add the bond contribution
-  int m {0};
-  while (m<nvalues) {
-    if (which[m] == CONF || which[m] == TOTAL || which[m] == BOND) { // Axel
-      for (int ibin {0}; ibin < nbins; ibin++) {
+  int m = 0;
+  while (m < nvalues) {
+    if ((which[m] == CONF) || (which[m] == TOTAL) || (which[m] == BOND)) {
+      for (int ibin = 0; ibin < nbins; ibin++) {
         bond_local[ibin][m] = local_contribution[ibin][0];
         bond_local[ibin][m+1] = local_contribution[ibin][1];
         bond_local[ibin][m+2] = local_contribution[ibin][2];

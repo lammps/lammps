@@ -41,7 +41,7 @@ class ComputeStressMop : public Compute {
   void compute_bonds();
   void compute_angles();
 
-  int me, nvalues, dir;
+  int nvalues, dir;
   int *which;
 
   int bondflag, angleflag;

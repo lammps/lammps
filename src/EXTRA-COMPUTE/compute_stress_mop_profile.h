@@ -41,7 +41,7 @@ class ComputeStressMopProfile : public Compute {
   void compute_bonds();
   void setup_bins();
 
-  int me, nvalues, dir;
+  int nvalues, dir;
   int *which;
 
   int bondflag;

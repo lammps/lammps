@@ -68,6 +68,9 @@ Syntax
              Ntpc = max number of co-processor threads per co-processor core (default = 4)
            *tptask* value = Ntptask
              Ntptask = max number of co-processor threads per MPI task (default = 240)
+           *pppm_table* value = *yes* or *no*
+             *yes* = Precompute pppm values in table (doesn't change accuracy)
+             *no* = Compute pppm values on the fly
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
@@ -708,14 +711,14 @@ in your input script or via the "-pk gpu" :doc:`command-line switch <Run_options
 
 For the INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
-tptask = 240.  The default ghost option is determined by the pair
-style being used.  This value is output to the screen in the offload
-report at the end of each run.  Note that all of these settings,
-except "omp" and "mode", are ignored if LAMMPS was not built with Xeon
-Phi co-processor support.  These settings are made automatically if the
-"-sf intel" :doc:`command-line switch <Run_options>` is used.  If it is
-not used, you must invoke the package intel command in your input
-script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
+tptask = 240, pppm_table = yes.  The default ghost option is determined
+by the pair style being used.  This value is output to the screen in
+the offload report at the end of each run.  Note that all of these
+settings, except "omp" and "mode", are ignored if LAMMPS was not built
+with Xeon Phi co-processor support.  These settings are made
+automatically if the "-sf intel" :doc:`command-line switch <Run_options>`
+is used.  If it is not used, you must invoke the package intel command
+in your input script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
 
 For the KOKKOS package, the option defaults for GPUs are neigh = full,
 neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default

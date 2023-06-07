@@ -95,6 +95,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _allow_separate_buffers = 1;
   _offload_ghost = -1;
   _lrt = 0;
+  _p3m_table = 1;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -135,11 +136,14 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
       _lrt = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    }
+    } else if (strcmp(arg[iarg], "pppm_table") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      _p3m_table = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
 
     // undocumented options
 
-    else if (strcmp(arg[iarg],"offload_affinity_balanced") == 0) {
+    } else if (strcmp(arg[iarg],"offload_affinity_balanced") == 0) {
       _offload_affinity_balanced = 1;
       iarg++;
     } else if (strcmp(arg[iarg],"buffers") == 0) {

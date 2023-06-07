@@ -103,7 +103,7 @@ class FixIntel : public Fix {
   inline int pppm_table()
   {
     if (force->kspace_match("^pppm/.*intel$", 0))
-      return INTEL_P3M_TABLE;
+      return _p3m_table;
     else
       return 0;
   }
@@ -194,7 +194,7 @@ class FixIntel : public Fix {
  protected:
   int _overflow_flag[5];
   _alignvar(int _off_overflow_flag[5], 64);
-  int _allow_separate_buffers, _offload_ghost, _lrt;
+  int _allow_separate_buffers, _offload_ghost, _lrt, _p3m_table;
 
   IntelBuffers<float, float>::vec3_acc_t *_force_array_s;
   IntelBuffers<float, double>::vec3_acc_t *_force_array_m;

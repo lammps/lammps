@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: xxxx2023
+.. versionadded:: TBD
 
 The *aip/water/2dm* style computes the anisotropic interfacial potential
 (AIP) potential for interfaces of water with two-dimensional (2D)

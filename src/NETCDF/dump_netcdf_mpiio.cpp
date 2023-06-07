@@ -221,7 +221,7 @@ void DumpNetCDFMPIIO::openfile()
 
   if (thermo && !singlefile_opened) {
     delete[] thermovar;
-    thermovar = new int[output->thermo->get_nfield()];
+    thermovar = new int[*output->thermo->get_nfield()];
   }
 
   // now the computes and fixes have been initialized, so we can query
@@ -321,7 +321,7 @@ void DumpNetCDFMPIIO::openfile()
     if (thermo) {
       Thermo *th = output->thermo;
       const auto &keywords = th->get_keywords();
-      const int nfield = th->get_nfield();
+      const int nfield = *th->get_nfield();
 
       for (int i = 0; i < nfield; i++) {
         NCERRX( ncmpi_inq_varid(ncid, keywords[i].c_str(), &thermovar[i]), keywords[i].c_str() );
@@ -429,7 +429,7 @@ void DumpNetCDFMPIIO::openfile()
       Thermo *th = output->thermo;
       const auto &fields = th->get_fields();
       const auto &keywords = th->get_keywords();
-      const int nfield = th->get_nfield();
+      const int nfield = *th->get_nfield();
 
       for (int i = 0; i < nfield; i++) {
         if (fields[i].type == multitype::DOUBLE) {
@@ -603,18 +603,18 @@ void DumpNetCDFMPIIO::write()
     // will output current thermo data only on timesteps where it was computed.
     // warn (once) about using cached copy from old timestep.
 
-    if (thermo_warn && (update->ntimestep != th->get_timestep())) {
+    if (thermo_warn && (update->ntimestep != *th->get_timestep())) {
       thermo_warn = false;
       if (comm->me == 0) {
         error->warning(FLERR, "Dump {} output on incompatible timestep with thermo output: {} vs {} \n"
                        "         Dump netcdf/mpiio always stores thermo data from last thermo output",
-                       id, th->get_timestep(), update->ntimestep);
+                       id, *th->get_timestep(), update->ntimestep);
       }
     }
 
     const auto &keywords = th->get_keywords();
     const auto &fields = th->get_fields();
-    int nfield = th->get_nfield();
+    int nfield = *th->get_nfield();
     for (int i = 0; i < nfield; i++) {
       if (filewriter) {
         if (fields[i].type == multitype::DOUBLE) {

@@ -61,8 +61,8 @@ void DumpYAML::write_header(bigint ndump)
   if (thermo) {
     Thermo *th = output->thermo;
     // output thermo data only on timesteps where it was computed
-    if (update->ntimestep == th->get_timestep()) {
-      int nfield = th->get_nfield();
+    if (update->ntimestep == *th->get_timestep()) {
+      int nfield = *th->get_nfield();
       const auto &keywords = th->get_keywords();
       const auto &fields = th->get_fields();
 

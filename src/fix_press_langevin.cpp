@@ -87,6 +87,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
     // Random value for each piston
     fran[i] = 0.0;
+    f_piston[i] = 0.0;
   }
 
   // process keywords
@@ -356,7 +357,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id) + "_press");
-  modify->add_compute(fmt::format("{} all pressure NULL virial",id_press, id_temp));
+  modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
   pflag = 1;
 
   // p_fric is alpha coeff from GJF

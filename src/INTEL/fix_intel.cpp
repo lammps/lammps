@@ -275,10 +275,8 @@ int FixIntel::setmask()
   int mask = 0;
   mask |= PRE_REVERSE;
   mask |= MIN_PRE_REVERSE;
-  #ifdef _LMP_INTEL_OFFLOAD
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
-  #endif
   mask |= POST_RUN;
   return mask;
 }
@@ -597,6 +595,19 @@ void FixIntel::pre_reverse(int /*eflag*/, int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
+void FixIntel::post_force(int vflag)
+{
+  // Redundant call to sync Intel data structs with native for methods that
+  // call force compute but do not call prereverse
+  _sync_main_arrays(1);
+
+  #ifdef LMP_INTEL_OFFLOAD
+  if (_sync_mode == 2) sync_coprocessor();
+  #endif
+}
+
+/* ---------------------------------------------------------------------- */
+
 template <class acc_t>
 void FixIntel::reduce_results(acc_t * _noalias const f_scalar)
 {
@@ -880,13 +891,6 @@ double FixIntel::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 #ifdef _LMP_INTEL_OFFLOAD
-
-/* ---------------------------------------------------------------------- */
-
-void FixIntel::post_force(int vflag)
-{
-  if (_sync_mode == 2) sync_coprocessor();
-}
 
 /* ---------------------------------------------------------------------- */
 

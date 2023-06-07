@@ -55,6 +55,7 @@ class FixIntel : public Fix {
   void pre_reverse(int eflag = 0, int vflag = 0) override;
   inline void min_pre_reverse(int eflag = 0, int vflag = 0) override { pre_reverse(eflag, vflag); }
 
+  void post_force(int vflag) override;
   void post_run() override { _print_pkg_info = 1; }
 
   // Get all forces, calculation results from coprocesser
@@ -132,7 +133,6 @@ class FixIntel : public Fix {
   inline void get_buffern(const int offload, int &nlocal, int &nall, int &minlocal);
 
 #ifdef _LMP_INTEL_OFFLOAD
-  void post_force(int vflag);
   inline int coprocessor_number() { return _cop; }
   inline int full_host_list() { return _full_host_list; }
   void set_offload_affinity();

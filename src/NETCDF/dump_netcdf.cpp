@@ -223,7 +223,7 @@ void DumpNetCDF::openfile()
 
   if (thermo && !singlefile_opened) {
     delete[] thermovar;
-    thermovar = new int[output->thermo->nfield];
+    thermovar = new int[output->thermo->get_keywords().size()];
   }
 
   // now the computes and fixes have been initialized, so we can query
@@ -320,9 +320,10 @@ void DumpNetCDF::openfile()
 
       // perframe variables
       if (thermo) {
-        Thermo *th = output->thermo;
-        for (int i = 0; i < th->nfield; i++) {
-          NCERRX( nc_inq_varid(ncid, th->keyword[i].c_str(), &thermovar[i]), th->keyword[i].c_str() );
+        auto keywords = output->thermo->get_keywords();
+        int nfield = keywords.size();
+        for (int i = 0; i < nfield; i++) {
+          NCERRX( nc_inq_varid(ncid, keywords[i].c_str(), &thermovar[i]), keywords[i].c_str() );
         }
       }
 
@@ -432,22 +433,16 @@ void DumpNetCDF::openfile()
 
       // perframe variables
       if (thermo) {
-        Thermo *th = output->thermo;
-        for (int i = 0; i < th->nfield; i++) {
-          if (th->vtype[i] == Thermo::FLOAT) {
-            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), type_nc_real, 1, dims,
-                               &thermovar[i]), th->keyword[i].c_str() );
-          } else if (th->vtype[i] == Thermo::INT) {
-            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), NC_INT, 1, dims,
-                               &thermovar[i]), th->keyword[i].c_str() );
-          } else if (th->vtype[i] == Thermo::BIGINT) {
-#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), NC_INT64, 1, dims,
-                               &thermovar[i]), th->keyword[i].c_str() );
-#else
-            NCERRX( nc_def_var(ncid, th->keyword[i].c_str(), NC_LONG, 1, dims,
-                               &thermovar[i]), th->keyword[i].c_str() );
-#endif
+        auto fields = output->thermo->get_fields();
+        auto keywords = output->thermo->get_keywords();
+        int nfield = fields.size();
+        for (int i = 0; i < nfield; i++) {
+          if (fields[i].type == multitype::DOUBLE) {
+            NCERRX( nc_def_var(ncid, keywords[i].c_str(), type_nc_real, 1, dims, &thermovar[i]), keywords[i].c_str() );
+          } else if (fields[i].type == multitype::INT) {
+            NCERRX( nc_def_var(ncid, keywords[i].c_str(), NC_INT, 1, dims, &thermovar[i]), keywords[i].c_str() );
+          } else if (fields[i].type == multitype::BIGINT) {
+            NCERRX( nc_def_var(ncid, keywords[i].c_str(), NC_INT64, 1, dims, &thermovar[i]), keywords[i].c_str() );
           }
         }
       }
@@ -605,20 +600,17 @@ void DumpNetCDF::write()
   start[1] = 0;
 
   if (thermo) {
-    Thermo *th = output->thermo;
-    for (int i = 0; i < th->nfield; i++) {
-      th->call_vfunc(i);
+    auto keywords = output->thermo->get_keywords();
+    auto fields = output->thermo->get_fields();
+    int nfield = fields.size();
+    for (int i = 0; i < nfield; i++) {
       if (filewriter) {
-        if (th->vtype[i] == Thermo::FLOAT) {
-          NCERRX( nc_put_var1_double(ncid, thermovar[i], start,
-                                     &th->dvalue),
-                  th->keyword[i].c_str() );
-        } else if (th->vtype[i] == Thermo::INT) {
-          NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &th->ivalue),
-                  th->keyword[i].c_str() );
-        } else if (th->vtype[i] == Thermo::BIGINT) {
-          NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &th->bivalue),
-                  th->keyword[i].c_str() );
+        if (fields[i].type == multitype::DOUBLE) {
+          NCERRX( nc_put_var1_double(ncid, thermovar[i], start, &fields[i].data.d), keywords[i].c_str() );
+        } else if (fields[i].type == multitype::INT) {
+          NCERRX( nc_put_var1_int(ncid, thermovar[i], start, &fields[i].data.i), keywords[i].c_str() );
+        } else if (fields[i].type == multitype::BIGINT) {
+          NCERRX( nc_put_var1_bigint(ncid, thermovar[i], start, &fields[i].data.b), keywords[i].c_str() );
         }
       }
     }

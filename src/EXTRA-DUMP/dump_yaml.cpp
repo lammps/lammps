@@ -60,21 +60,26 @@ void DumpYAML::write_header(bigint ndump)
   std::string thermo_data;
   if (thermo) {
     Thermo *th = output->thermo;
-    thermo_data += "thermo:\n  - keywords: [ ";
-    for (int i = 0; i < th->nfield; ++i) thermo_data += fmt::format("{}, ", th->keyword[i]);
-    thermo_data += "]\n  - data: [ ";
+    // output thermo data only on timesteps where it was computed
+    if (update->ntimestep == th->get_timestep()) {
 
-    for (int i = 0; i < th->nfield; ++i) {
-      th->call_vfunc(i);
-      if (th->vtype[i] == Thermo::FLOAT)
-        thermo_data += fmt::format("{}, ", th->dvalue);
-      else if (th->vtype[i] == Thermo::INT)
-        thermo_data += fmt::format("{}, ", th->ivalue);
-      else if (th->vtype[i] == Thermo::BIGINT)
-        thermo_data += fmt::format("{}, ", th->bivalue);
+      thermo_data += "thermo:\n  - keywords: [ ";
+      for (auto key : th->get_keywords()) thermo_data += fmt::format("{}, ", key);
+      thermo_data += "]\n  - data: [ ";
+
+      for (auto val : th->get_fields()) {
+        if (val.type == multitype::DOUBLE)
+          thermo_data += fmt::format("{}, ", val.data.d);
+        else if (val.type == multitype::INT)
+          thermo_data += fmt::format("{}, ", val.data.i);
+        else if (val.type == multitype::BIGINT)
+          thermo_data += fmt::format("{}, ", val.data.b);
+        else
+          thermo_data += ", ";
+      }
+      thermo_data += "]\n";
+      MPI_Barrier(world);
     }
-    thermo_data += "]\n";
-    MPI_Barrier(world);
   }
 
   if (comm->me == 0) {

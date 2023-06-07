@@ -361,7 +361,7 @@ void Thermo::compute(int flag)
   int i;
 
   firststep = flag;
-  bigint ntimestep = update->ntimestep;
+  ntimestep = update->ntimestep;
 
   // check for lost atoms
   // turn off normflag if natoms = 0 to avoid divide by 0
@@ -405,18 +405,23 @@ void Thermo::compute(int flag)
   }
 
   // add each thermo value to line with its specific format
+  field_data.clear();
+  field_data.resize(nfield);
 
   for (ifield = 0; ifield < nfield; ifield++) {
     (this->*vfunc[ifield])();
     if (vtype[ifield] == FLOAT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), dvalue);
       line += fmtbuf;
+      field_data[ifield] = dvalue;
     } else if (vtype[ifield] == INT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), ivalue);
       line += fmtbuf;
+      field_data[ifield] = ivalue;
     } else if (vtype[ifield] == BIGINT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), bivalue);
       line += fmtbuf;
+      field_data[ifield] = bivalue;
     }
   }
 
@@ -431,16 +436,6 @@ void Thermo::compute(int flag)
   // e.g. via variables in print command
 
   firststep = 1;
-}
-
-/* ----------------------------------------------------------------------
-   call function to compute property
-------------------------------------------------------------------------- */
-
-void Thermo::call_vfunc(int ifield_in)
-{
-  ifield = ifield_in;
-  (this->*vfunc[ifield])();
 }
 
 /* ----------------------------------------------------------------------

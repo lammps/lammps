@@ -59,22 +59,20 @@ a continuous cutoff (up to third derivative) for interatomic separations
 larger than :math:`r_c` :doc:`pair_style ilp_graphene_hbn
 <pair_ilp_graphene_hbn>`.
 
-It is important to include all the pairs to build the neighbor list for
-calculating the normals.
-
 .. note::
 
-   Since each water molecule contains one oxygen atom and two hydrogen
-   atoms, a new definition is proposed (see In :ref:`(Feng) <Feng>`),the
-   atomic normal vectors of hydrogen atoms are assumed to lie along the
-   corresponding oxygen-hydrogen bonds and the normal vector of the
-   central oxygen atom is defined as their average.
+   This pair style uses the atomic normal vector definition from
+   :ref:`(Feng) <Feng>`), where the atomic normal vectors of the
+   hydrogen atoms are assumed to lie along the corresponding
+   oxygen-hydrogen bonds and the normal vector of the central oxygen
+   atom is defined as their average.
 
 The provided parameter file, ``COH.aip.water.2dm``, is intended for use
 with *metal* :doc:`units <units>`, with energies in meV.  Two additional
 parameters, *S*, and *rcut* are included in the parameter file. *S* is
-designed to facilitate scaling of energies; *rcut* is designed to build
-the neighbor list for calculating the normals for each atom pair.
+designed to facilitate scaling of energies; *rcut* is the cutoff for an
+internal, short distance neighbor list that is generated for speeding up
+the calculation of the normals for all atom pairs.
 
 .. note::
 
@@ -83,9 +81,9 @@ the neighbor list for calculating the normals for each atom pair.
    setting the cutoff equal to 16.0 Angstrom.  Using a different cutoff
    or taper function setting should be carefully checked as they can
    lead to significant errors.  These parameters provide a good
-   description in both short- and long-range interaction regimes.  This
-   feature is essential for simulations in high pressure regime (i.e.,
-   the interlayer distance is smaller than the equilibrium distance).
+   description in both short- and long-range interaction regimes. This
+   is essential for simulations in high pressure regime (i.e., the
+   interlayer distance is smaller than the equilibrium distance).
 
 This potential must be used in combination with hybrid/overlay.  Other
 interactions can be set to zero using :doc:`pair_coeff settings

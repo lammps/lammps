@@ -24,14 +24,17 @@ Syntax
             *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
 
-       *overlay/pair* value = none
+       *overlay/pair* value = *yes* or *no*
           bonded particles will still interact with pair forces
 
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
 
-       *break/no*
-          indicates that bonds should not break during a run
+       *normalize* value = *yes* or *no*
+          normalizes bond forces by the reference length
+
+       *break* value = *yes* or *no*
+          indicates whether bonds break during a run
 
 Examples
 """"""""
@@ -66,7 +69,7 @@ particles based on a model described by Clemmer and Robbins
 
    F = k (r - r_0) w
 
-where :math:`k_r` is a stiffness, :math:`r` is the current distance
+where :math:`k` is a stiffness, :math:`r` is the current distance
 and :math:`r_0` is the initial distance between the two particles, and
 :math:`w` is an optional smoothing factor discussed below. Bonds will
 break at a strain of :math:`\epsilon_c`.  This is done by setting by
@@ -102,16 +105,19 @@ the data file or restart files read by the :doc:`read_data
 * :math:`\epsilon_c`    (unit less)
 * :math:`\gamma`        (force/velocity units)
 
+However, the *normalize* option will normalize the elastic bond force by
+:math:`r_0` such that :math:`k` is unit less.
+
 By default, pair forces are not calculated between bonded particles.
 Pair forces can alternatively be overlaid on top of bond forces using
-the *overlay/pair* keyword. These settings require specific
+the *overlay/pair* option. These settings require specific
 :doc:`special_bonds <special_bonds>` settings described in the
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
 
 .. versionadded:: 28Mar2023
 
-If the *break/no* keyword is used, then LAMMPS assumes bonds should not break
+If the *break* option is used, then LAMMPS assumes bonds should not break
 during a simulation run. This will prevent some unnecessary calculation.
 However, if a bond does break, it will trigger an error.
 
@@ -206,7 +212,7 @@ Related commands
 Default
 """""""
 
-The option defaults are *smooth* = *yes*
+The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *no*, and *break* = *yes*
 
 ----------
 

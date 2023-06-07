@@ -66,7 +66,9 @@ The value *eng* is the interaction energy for the pair of atoms.
 The value *force* is the force acting between the pair of atoms, which
 is positive for a repulsive force and negative for an attractive
 force.  The values *fx*, *fy*, and *fz* are the :math:`(x,y,z)` components of
-*force* on atom I.
+*force* on atom I. For pair styles that apply non-central forces,
+such as :doc:`granular pair styles <pair_gran>`, these values only include
+the :math:`(x,y,z)` components of the normal force component.
 
 A pair style may define additional pairwise quantities which can be
 accessed as *p1* to *pN*, where :math:`N` is defined by the pair style.

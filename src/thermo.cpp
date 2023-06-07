@@ -201,12 +201,22 @@ void Thermo::init()
   ValueTokenizer *format_line = nullptr;
   if (format_line_user.size()) format_line = new ValueTokenizer(format_line_user);
 
+  field_data.clear();
+  field_data.resize(nfield);
   std::string format_this, format_line_user_def;
   for (int i = 0; i < nfield; i++) {
 
     format[i].clear();
     format_this.clear();
     format_line_user_def.clear();
+
+    if (vtype[i] == FLOAT) {
+      field_data[i] = (double) 0.0;
+    } else if (vtype[i] == INT) {
+      field_data[i] = (int) 0;
+    } else if (vtype[i] == BIGINT) {
+      field_data[i] = (bigint) 0;
+    }
 
     if ((lineflag == MULTILINE) && ((i % 3) == 0)) format[i] += "\n";
     if ((lineflag == YAMLLINE) && (i == 0)) format[i] += "  - [";

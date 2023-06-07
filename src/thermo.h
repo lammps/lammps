@@ -43,6 +43,7 @@ class Thermo : protected Pointers {
   int evaluate_keyword(const std::string &, double *);
 
   // for accessing cached thermo data
+  int get_nfield() const { return nfield; }
   bigint get_timestep() const { return ntimestep; }
   const std::vector<multitype> &get_fields() const { return field_data; }
   const std::vector<std::string> &get_keywords() const { return keyword; }

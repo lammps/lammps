@@ -765,6 +765,13 @@ of the last thermo output data and the corresponding keyword strings.
 The how to handle the return value depends on the value of the *what*
 argument string.
 
+.. note::
+
+   The *type* property points to a static location that is reassigned
+   with every call, so the returned pointer should be recast,
+   dereferenced, and assigned immediately. Otherwise, its value may be
+   changed with the next invocation of the function.
+
 .. list-table::
    :header-rows: 1
    :widths: auto
@@ -787,7 +794,7 @@ argument string.
      - yes
    * - type
      - data type of thermo output column; see :cpp:enum:`_LMP_DATATYPE_CONST`
-     - const int (**not** a pointer)
+     - pointer to static int
      - yes
    * - data
      - actual field data for column
@@ -808,6 +815,7 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
   Thermo *th = lmp->output->thermo;
   if (!th) return nullptr;
   const int nfield = *th->get_nfield();
+  static int datatype;
 
   BEGIN_CAPTURE
   {
@@ -826,11 +834,14 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
       if ((index < 0) || (index >= nfield)) return nullptr;
       const auto &field = th->get_fields()[index];
       if (field.type == multitype::INT) {
-        val = (void *) LAMMPS_INT;
+        datatype = LAMMPS_INT;
+        val = (void *) &datatype;
       } else if (field.type == multitype::BIGINT) {
-        val = (void *) LAMMPS_INT64;
+        datatype = LAMMPS_INT64;
+        val = (void *) &datatype;
       } else if (field.type == multitype::DOUBLE) {
-        val = (void *) LAMMPS_DOUBLE;
+        datatype = LAMMPS_DOUBLE;
+        val = (void *) &datatype;
       }
 
     } else if (strcmp(what, "data") == 0) {

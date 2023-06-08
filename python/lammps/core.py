@@ -775,11 +775,10 @@ class lammps(object):
         ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("keyword".encode()), i)
       kw = cast(ptr, c_char_p).value.decode()
 
-      # temporarily switch return type since this stores an int in a pointer
-      self.lib.lammps_last_thermo.restype = c_int
       with ExceptionCheck(self):
-        typ = self.lib.lammps_last_thermo(self.lmp, c_char_p("type".encode()), i)
-      self.lib.lammps_last_thermo.restype = c_void_p
+        ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("type".encode()), i)
+      typ = cast(ptr, POINTER(c_int)).contents.value
+
       with ExceptionCheck(self):
         ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("data".encode()), i)
 

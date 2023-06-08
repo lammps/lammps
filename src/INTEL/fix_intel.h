@@ -116,7 +116,7 @@ class FixIntel : public Fix {
   int _precision_mode, _nthreads, _nbor_pack_width, _three_body_neighbor;
   int _pair_intel_count, _pair_hybrid_flag, _print_pkg_info;
   // These should be removed in subsequent update w/ simpler hybrid arch
-  int _pair_hybrid_zero, _hybrid_nonpair, _zero_master;
+  int _pair_hybrid_zero, _hybrid_nonpair, _zero_master, _torque_flag;
 
  public:
   inline int *get_overflow_flag() { return _overflow_flag; }

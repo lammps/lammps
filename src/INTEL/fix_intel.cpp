@@ -61,6 +61,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _hybrid_nonpair = 0;
   _print_pkg_info = 1;
   _nthreads = comm->nthreads;
+  _torque_flag = 0;
 
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = -1.0;
@@ -301,13 +302,28 @@ void FixIntel::init()
   }
   #endif
 
+  _torque_flag = 0;
+  if (force->pair_match("gayberne/intel$", 0)) _torque_flag = 1;
+
   const int nstyles = _pair_intel_count;
   if (force->pair_match("^hybrid", 0) != nullptr) {
     _pair_hybrid_flag = 1;
+
+    // Check if need to handle torque
+    auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (utils::strmatch(hybrid->keywords[i],"/intel$") &&
+          utils::strmatch(hybrid->keywords[i],"gayberne"))
+        _torque_flag = 1;
+
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,"INTEL package requires fdotr virial with newton on.");
   } else
     _pair_hybrid_flag = 0;
+
+  if (_torque_flag && nstyles > 1)
+    error->all(FLERR,"gayberne/intel style cannot yet be used with other "
+               "intel pair styles.");
 
   if (nstyles > 1 && _pair_hybrid_flag) _pair_hybrid_flag = 2;
   else if (force->newton_pair == 0) _pair_hybrid_flag = 0;
@@ -335,14 +351,17 @@ void FixIntel::init()
   int off_mode = 0;
   if (_offload_balance != 0.0) off_mode = 1;
   if (_precision_mode == PREC_MODE_SINGLE) {
+    _single_buffers->set_torque_flag(_torque_flag);
     _single_buffers->zero_ev();
     _single_buffers->grow_ncache(off_mode, comm->nthreads);
     _single_buffers->free_list_ptrs();
   } else if (_precision_mode == PREC_MODE_MIXED) {
+    _mixed_buffers->set_torque_flag(_torque_flag);
     _mixed_buffers->zero_ev();
     _mixed_buffers->grow_ncache(off_mode, comm->nthreads);
     _mixed_buffers->free_list_ptrs();
   } else {
+    _double_buffers->set_torque_flag(_torque_flag);
     _double_buffers->zero_ev();
     _double_buffers->grow_ncache(off_mode, comm->nthreads);
     _double_buffers->free_list_ptrs();
@@ -620,7 +639,7 @@ void FixIntel::reduce_results(acc_t * _noalias const f_scalar)
     o_range = atom->nlocal + atom->nghost;
   else
     o_range = atom->nlocal;
-  IP_PRE_get_stride(f_stride, o_range, (sizeof(acc_t)*4), lmp->atom->torque);
+  IP_PRE_get_stride(f_stride, o_range, (sizeof(acc_t)*4), _torque_flag);
 
   o_range *= 4;
   const int f_stride4 = f_stride * 4;
@@ -719,7 +738,7 @@ void FixIntel::add_results(const ft * _noalias const f_in,
         add_oresults(f_in, ev_global, eatom, vatom, 0, _offload_nlocal);
         const acc_t * _noalias const enull = 0;
         int offset = _offload_nlocal;
-        if (atom->torque) offset *= 2;
+        if (_torque_flag) offset *= 2;
         add_oresults(f_in + offset, enull, eatom, vatom,
                      _offload_min_ghost, _offload_nghost);
       } else
@@ -730,7 +749,7 @@ void FixIntel::add_results(const ft * _noalias const f_in,
                      _host_min_local, _host_used_local);
         const acc_t * _noalias const enull = 0;
         int offset = _host_used_local;
-        if (atom->torque) offset *= 2;
+        if (_torque_flag) offset *= 2;
         add_oresults(f_in + offset, enull, eatom,
                      vatom, _host_min_ghost, _host_used_ghost);
       } else {
@@ -779,7 +798,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
                             const int eatom, const int /*vatom*/,
                             const int out_offset, const int nall) {
   lmp_ft * _noalias const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
-  if (atom->torque) {
+  if (_torque_flag) {
     if (f_in[1].w)
     {
       if (f_in[1].w == 1)
@@ -803,7 +822,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
     #endif
     int ifrom, ito;
     IP_PRE_omp_range_align(ifrom, ito, tid, nall, packthreads, sizeof(acc_t));
-    if (atom->torque) {
+    if (_torque_flag) {
       int ii = ifrom * 2;
       lmp_ft * _noalias const tor = (lmp_ft *) lmp->atom->torque[0] +
         out_offset;
@@ -927,7 +946,7 @@ void FixIntel::add_off_results(const ft * _noalias const f_in,
       _offload_nlocal;
   }
 
-  if (atom->torque)
+  if (_torque_flag)
     if (f_in[1].w < 0.0)
       error->all(FLERR,"Bad matrix inversion in mldivide3");
   add_results(f_in, ev_global, _off_results_eatom, _off_results_vatom, 1);

@@ -783,15 +783,15 @@ argument string.
      - no
    * - keyword
      - column keyword for thermo output
-     - const char pointer
+     - pointer to 0-terminated const char array
      - yes
    * - type
      - data type of thermo output column; see :cpp:enum:`_LMP_DATATYPE_CONST`
-     - const int
+     - const int (**not** a pointer)
      - yes
    * - data
      - actual field data for column
-     - pointer to either int, int64_t or double
+     - pointer to int, int64_t or double
      - yes
 
 \endverbatim

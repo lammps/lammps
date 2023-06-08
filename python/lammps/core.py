@@ -272,6 +272,9 @@ class lammps(object):
     self.lib.lammps_get_thermo.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_get_thermo.restype = c_double
 
+    self.lib.lammps_last_thermo.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_last_thermo.restype = c_void_p
+
     self.lib.lammps_encode_image_flags.restype = self.c_imageint
 
     self.lib.lammps_config_has_package.argtypes = [c_char_p]
@@ -741,6 +744,57 @@ class lammps(object):
 
     with ExceptionCheck(self):
       return self.lib.lammps_get_thermo(self.lmp,name)
+
+  # -------------------------------------------------------------------------
+
+  def last_thermo(self):
+    """Get a dictionary of the last thermodynamic output
+
+    This is a wrapper around the :cpp:func:`lammps_last_thermo`
+    function of the C-library interface.  It collects the cached thermo
+    data from the last timestep into a dictionary.  The return value
+    is None, if there has not been any thermo output yet.
+
+    :return: value of thermo keyword
+    :rtype: dict or None
+    """
+
+    rv = dict()
+    with ExceptionCheck(self):
+      ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("step".encode()), 0)
+    mystep = cast(ptr, POINTER(self.c_bigint)).contents.value
+    if mystep < 0:
+      return None
+
+    with ExceptionCheck(self):
+      ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("num".encode()), 0)
+    nfield = cast(ptr, POINTER(c_int)).contents.value
+
+    for i in range(nfield):
+      with ExceptionCheck(self):
+        ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("keyword".encode()), i)
+      kw = cast(ptr, c_char_p).value.decode()
+
+      # temporarily switch return type since this stores an int in a pointer
+      self.lib.lammps_last_thermo.restype = c_int
+      with ExceptionCheck(self):
+        typ = self.lib.lammps_last_thermo(self.lmp, c_char_p("type".encode()), i)
+      self.lib.lammps_last_thermo.restype = c_void_p
+      with ExceptionCheck(self):
+        ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("data".encode()), i)
+
+      if typ == LAMMPS_DOUBLE:
+        val = cast(ptr, POINTER(c_double)).contents.value
+      elif typ == LAMMPS_INT:
+        val = cast(ptr, POINTER(c_int)).contents.value
+      elif typ == LAMMPS_INT64:
+        val = cast(ptr, POINTER(c_int64)).contents.value
+      else:
+        # we should not get here
+        raise TypeError("Unknown LAMMPS data type " + str(typ))
+      rv[kw] = val
+
+    return rv
 
   # -------------------------------------------------------------------------
 

@@ -11,7 +11,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This is an optimized version of ilp/tmd based on the contribution of:
+   This is an optimized version of aip/water/2dm based on the contribution of:
      author: Wengen Ouyang (Wuhan University)
      e-mail: w.g.ouyang at gmail dot com
 
@@ -28,37 +28,36 @@
      DOI: 10.1145/3458817.3476137
 
    Potential is described by:
-     [Ouyang et al, J. Chem. Theory Comput. 17, 7237 (2021).]
+     [Feng and Ouyang et al, J. Phys. Chem. C 127, 8704-8713 (2023).]
 */
-#include "pair_ilp_tmd_opt.h"
+#include "pair_aip_water_2dm_opt.h"
 
 #include "atom.h"
-#include "comm.h"
-#include "interlayer_taper.h"
 #include "memory.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace InterLayer;
 
-PairILPTMDOpt::PairILPTMDOpt(LAMMPS *lmp) :
-    PairILPGrapheneHBN(lmp), PairILPTMD(lmp), PairILPGrapheneHBNOpt(lmp)
+PairAIPWATER2DMOpt::PairAIPWATER2DMOpt(LAMMPS *lmp) :
+  PairILPGrapheneHBN(lmp), PairILPTMD(lmp), PairAIPWATER2DM(lmp), PairILPGrapheneHBNOpt(lmp)
 {
 }
 
-void PairILPTMDOpt::coeff(int narg, char **args)
+void PairAIPWATER2DMOpt::coeff(int narg, char **args)
 {
   PairILPTMD::coeff(narg, args);
-  memory->create(special_type, atom->ntypes + 1, "PairILPTMDOpt:check_sublayer");
+  memory->create(special_type, atom->ntypes + 1, "PairAIPWATER2DMOpt:check_sublayer");
   for (int i = 1; i <= atom->ntypes; i++) {
     int itype = map[i];
     if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||
         strcmp(elements[itype], "S") == 0 || strcmp(elements[itype], "Se") == 0 ||
         strcmp(elements[itype], "Te") == 0) {
-      special_type[i] = true;
+      special_type[i] = TMD_METAL;
+    } else if (strcmp(elements[itype], "Hw") == 0 || strcmp(elements[itype], "Ow") == 0) {
+      special_type[i] = WATER;
     } else {
-      special_type[i] = false;
+      special_type[i] = NOT_SPECIAL;
     }
   }
 }

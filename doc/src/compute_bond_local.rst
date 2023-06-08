@@ -76,7 +76,10 @@ The value *force* is the magnitude of the force acting between the
 pair of atoms in the bond.
 
 The values *fx*, *fy*, and *fz* are the xyz components of
-*force* between the pair of atoms in the bond.
+*force* between the pair of atoms in the bond. For bond styles that apply
+non-central forces, such as :doc:`bond_style bpm/rotational
+<bond_bpm_rotational>`, these values only include the :math:`(x,y,z)`
+components of the normal force component.
 
 The remaining properties are all computed for motion of the two atoms
 relative to the center of mass (COM) velocity of the 2 atoms in the

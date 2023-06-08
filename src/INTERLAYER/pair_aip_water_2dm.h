@@ -11,40 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef PAIR_CLASS
 // clang-format off
-BondStyle(bpm/spring,BondBPMSpring);
+PairStyle(aip/water/2dm,PairAIPWATER2DM);
 // clang-format on
 #else
 
-#ifndef LMP_BOND_BPM_SPRING_H
-#define LMP_BOND_BPM_SPRING_H
+#ifndef LMP_PAIR_AIP_WATER_2DM_H
+#define LMP_PAIR_AIP_WATER_2DM_H
 
-#include "bond_bpm.h"
+#include "pair_ilp_tmd.h"
 
 namespace LAMMPS_NS {
 
-class BondBPMSpring : public BondBPM {
+class PairAIPWATER2DM : virtual public PairILPTMD {
  public:
-  BondBPMSpring(class LAMMPS *);
-  ~BondBPMSpring() override;
-  void compute(int, int) override;
-  void coeff(int, char **) override;
-  void init_style() override;
-  void settings(int, char **) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  void write_restart_settings(FILE *) override;
-  void read_restart_settings(FILE *) override;
-  double single(int, double, int, int, double &) override;
+  PairAIPWATER2DM(class LAMMPS *);
 
  protected:
-  double *k, *ecrit, *gamma;
-  int smooth_flag, normalize_flag;
+  void settings(int, char **) override;
 
-  void allocate();
-  void store_data();
-  double store_bond(int, int, int);
 };
 
 }    // namespace LAMMPS_NS

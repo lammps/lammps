@@ -247,6 +247,8 @@ void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function is a version of :cpp:func:`lammps_open`, that uses an
 integer for the MPI communicator as the MPI Fortran interface does.  It
 is used in the :f:func:`lammps` constructor of the LAMMPS Fortran
@@ -256,8 +258,6 @@ communicator with ``MPI_Comm_f2c()`` and then calls
 
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
-
-.. versionadded:: 18Sep2020
 
 *See also*
    :cpp:func:`lammps_open_fortran`, :cpp:func:`lammps_open_no_mpi`
@@ -304,12 +304,12 @@ void lammps_close(void *handle)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 The MPI standard requires that any MPI application must call
 ``MPI_Init()`` exactly once before performing any other MPI function
 calls.  This function checks, whether MPI is already initialized and
 calls ``MPI_Init()`` in case it is not.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -333,6 +333,8 @@ void lammps_mpi_init()
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 The MPI standard requires that any MPI application calls
 ``MPI_Finalize()`` before exiting.  Even if a calling program does not
 do any MPI calls, MPI is still initialized internally to avoid errors
@@ -340,8 +342,6 @@ accessing any MPI functions.  This function should then be called right
 before exiting the program to wait until all (parallel) tasks are
 completed and then MPI is cleanly shut down.  After calling this
 function no more MPI calls may be made.
-
-.. versionadded:: 18Sep2020
 
 *See also*
    :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_python_finalize`
@@ -366,14 +366,14 @@ void lammps_mpi_finalize()
  *
 \verbatim embed:rst
 
+.. versionadded:: 2Jul2021
+
 The Kokkos library may only be initialized once during the execution of
 a process.  This is done automatically the first time Kokkos
 functionality is used.  This requires that the Kokkos environment
 must be explicitly shut down after any LAMMPS instance using it is
 closed (to release associated resources).
 After calling this function no Kokkos functionality may be used.
-
-.. versionadded:: 2Jul2021
 
 *See also*
    :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_python_finalize`
@@ -389,6 +389,8 @@ void lammps_kokkos_finalize()
 /** Clear the embedded Python environment
  *
 \verbatim embed:rst
+
+.. versionadded:: 20Sep2021
 
 This function resets and clears an embedded Python environment
 by calling the `Py_Finalize() function
@@ -409,8 +411,6 @@ after calling Py_Finalize().
 This function can be called to explicitly clear the Python
 environment in case it is safe to do so.
 
-.. versionadded:: 20Sep2021
-
 *See also*
    :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`
 \endverbatim */
@@ -427,6 +427,8 @@ void lammps_python_finalize()
  *
 \verbatim embed:rst
 
+.. versionadded:: 3Nov2022
+
 This function is a wrapper around functions in the ``Error`` to print an
 error message and then stop LAMMPS.
 
@@ -434,8 +436,6 @@ The *error_type* parameter selects which function to call.  It is a sum
 of constants from :cpp:enum:`_LMP_ERROR_CONST`.  If the value does not
 match any valid combination of constants a warning is printed and the
 function returns.
-
-.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -979,6 +979,8 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function will retrieve memory usage information for the current
 LAMMPS instance or process.  The *meminfo* buffer will be filled with
 3 different numbers (if supported by the operating system).  The first
@@ -990,8 +992,6 @@ as returned by a memory allocation reporting in the system library.  The
 third number is the maximum amount of RAM (not swap) used by the process
 so far. If any of the two latter parameters is not supported by the operating
 system it will be set to zero.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -1012,6 +1012,8 @@ void lammps_memory_usage(void *handle, double *meminfo)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This will take the LAMMPS "world" communicator and convert it to an
 integer using ``MPI_Comm_c2f()``, so it is equivalent to the
 corresponding MPI communicator in Fortran. This way it can be safely
@@ -1019,8 +1021,6 @@ passed around between different programming languages.  To convert it
 to the C language representation use ``MPI_Comm_f2c()``.
 
 If LAMMPS was compiled with MPI_STUBS, this function returns -1.
-
-.. versionadded:: 18Sep2020
 
 *See also*
    :cpp:func:`lammps_open_fortran`
@@ -1284,12 +1284,12 @@ int lammps_extract_setting(void *handle, const char *keyword)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function returns an integer that encodes the data type of the global
 property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
 values. Callers of :cpp:func:`lammps_extract_global` can use this information
 to then decide how to cast the ``void *`` pointer and access the data.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -1773,12 +1773,12 @@ void *lammps_extract_global(void *handle, const char *name)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function returns an integer that encodes the data type of the per-atom
 property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
 values. Callers of :cpp:func:`lammps_extract_atom` can use this information
 to then decide how to cast the ``void *`` pointer and access the data.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -2308,12 +2308,12 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
  *
 \verbatim embed:rst
 
+.. versionadded:: 3Nov2022
+
 This function returns an integer that encodes the data type of the variable
 with the specified name. See :cpp:enum:`_LMP_VAR_CONST` for valid values.
 Callers of :cpp:func:`lammps_extract_variable` can use this information to
 decide how to cast the ``void *`` pointer and access the data.
-
-.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -3166,6 +3166,8 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int type,
  *
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This function copies the list of all bonds into a buffer provided by
 the calling code. The buffer will be filled with bond type, bond atom 1,
 bond atom 2 for each bond. Thus the buffer has to be allocated to the
@@ -3179,8 +3181,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** bonds
 in the system.
-
-.. versionadded:: 28Jul2021
 
 Below is a brief C code demonstrating accessing this collected bond information.
 
@@ -3277,6 +3277,8 @@ void lammps_gather_bonds(void *handle, void *data)
  *
 \verbatim embed:rst
 
+.. versionadded:: 8Feb2023
+
 This function copies the list of all angles into a buffer provided by
 the calling code. The buffer will be filled with angle type, angle atom 1,
 angle atom 2, angle atom 3 for each angle. Thus the buffer has to be allocated to the
@@ -3290,8 +3292,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** angles
 in the system.
-
-.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected angle information.
 
@@ -3388,6 +3388,8 @@ void lammps_gather_angles(void *handle, void *data)
  *
 \verbatim embed:rst
 
+.. versionadded:: 8Feb2023
+
 This function copies the list of all dihedrals into a buffer provided by
 the calling code. The buffer will be filled with dihedral type, dihedral atom 1,
 dihedral atom 2, dihedral atom 3, dihedral atom 4 for each dihedral.
@@ -3402,8 +3404,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** dihedrals
 in the system.
-
-.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected dihedral information.
 
@@ -3500,6 +3500,8 @@ void lammps_gather_dihedrals(void *handle, void *data)
  *
 \verbatim embed:rst
 
+.. versionadded:: 8Feb2023
+
 This function copies the list of all impropers into a buffer provided by
 the calling code. The buffer will be filled with improper type, improper atom 1,
 improper atom 2, improper atom 3, improper atom 4 for each improper.
@@ -3514,8 +3516,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** impropers
 in the system.
-
-.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected improper information.
 
@@ -5310,6 +5310,8 @@ int lammps_version(void *handle)
  *
 \verbatim embed:rst
 
+.. versionadded:: 9Oct2020
+
 The :cpp:func:`lammps_get_os_info` function can be used to retrieve
 detailed information about the hosting operating system and
 compiler/runtime.
@@ -5317,8 +5319,6 @@ compiler/runtime.
 A suitable buffer for a C-style string has to be provided and its length.
 The assembled text will be truncated to not overflow this buffer. The
 string is typically a few hundred bytes long.
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5548,6 +5548,8 @@ int lammps_config_accelerator(const char *package,
  *
 \verbatim embed:rst
 
+.. versionadded:: 14May2021
+
 The :cpp:func:`lammps_has_gpu_device` function checks at runtime if
 an accelerator device is present that can be used with the
 :doc:`GPU package <Speed_gpu>`. If at least one suitable device is
@@ -5556,8 +5558,6 @@ present the function will return 1, otherwise 0.
 More detailed information about the available device or devices can
 be obtained by calling the
 :cpp:func:`lammps_get_gpu_device_info` function.
-
-.. versionadded:: 14May2021
 
 \endverbatim
  *
@@ -5572,6 +5572,8 @@ int lammps_has_gpu_device()
  *
 \verbatim embed:rst
 
+.. versionadded:: 14May2021
+
 The :cpp:func:`lammps_get_gpu_device_info` function can be used to retrieve
 detailed information about any accelerator devices that are viable for use
 with the :doc:`GPU package <Speed_gpu>`.  It will produce a string that is
@@ -5582,8 +5584,6 @@ package is enabled.
 A suitable buffer for a C-style string has to be provided and its length.
 The assembled text will be truncated to not overflow this buffer.  This
 string can be several kilobytes long, if multiple devices are present.
-
-.. versionadded:: 14May2021
 
 \endverbatim
  *
@@ -5681,11 +5681,12 @@ int lammps_style_name(void *handle, const char *category, int idx,
 /** Check if a specific ID exists in the current LAMMPS instance
  *
 \verbatim embed:rst
+
+.. versionadded:: 9Oct2020
+
 This function checks if the current LAMMPS instance a *category* ID of
 the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
 *fix*\ , *group*\ , *molecule*\ , *region*\ , and *variable*\ .
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5720,12 +5721,13 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
 /** Count the number of IDs of a category.
  *
 \verbatim embed:rst
+
+.. versionadded:: 9Oct2020
+
 This function counts how many IDs in the provided *category*
 are defined in the current LAMMPS instance.
 Please see :cpp:func:`lammps_has_id` for a list of valid
 categories.
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5758,14 +5760,15 @@ int lammps_id_count(void *handle, const char *category) {
 /** Look up the name of an ID by index in the list of IDs of a given category.
  *
 \verbatim embed:rst
+
+.. versionadded:: 9Oct2020
+
 This function copies the name of the *category* ID with the index
 *idx* into the provided C-style string buffer.  The length of the buffer
 must be provided as *buf_size* argument.  If the name of the style
 exceeds the length of the buffer, it will be truncated accordingly.
 If the index is out of range, the function returns 0 and *buffer* is
 set to an empty string, otherwise 1.
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5829,9 +5832,10 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
 /** Count the number of loaded plugins
  *
 \verbatim embed:rst
-This function counts how many plugins are currently loaded.
 
 .. versionadded:: 10Mar2021
+
+This function counts how many plugins are currently loaded.
 
 \endverbatim
  *
@@ -5851,14 +5855,15 @@ int lammps_plugin_count()
 /** Look up the info of a loaded plugin by its index in the list of plugins
  *
 \verbatim embed:rst
+
+.. versionadded:: 10Mar2021
+
 This function copies the name of the *style* plugin with the index
 *idx* into the provided C-style string buffer.  The length of the buffer
 must be provided as *buf_size* argument.  If the name of the style
 exceeds the length of the buffer, it will be truncated accordingly.
 If the index is out of range, the function returns 0 and *buffer* is
 set to an empty string, otherwise 1.
-
-.. versionadded:: 10Mar2021
 
 \endverbatim
  *
@@ -6018,9 +6023,11 @@ void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalF
 
 \verbatim embed:rst
 
-Fix :doc:`external <fix_external>` allows programs that are running LAMMPS through
-its library interface to add or modify certain LAMMPS properties on specific
-timesteps, similar to the way other fixes do.
+.. versionadded:: 28Jul2021
+
+Fix :doc:`external <fix_external>` allows programs that are running
+LAMMPS through its library interface to add or modify certain LAMMPS
+properties on specific timesteps, similar to the way other fixes do.
 
 This function provides access to the per-atom force storage in a fix
 external instance with the given fix-ID to be added to the individual
@@ -6033,12 +6040,12 @@ data structures can change as well as the order of atom as they migrate
 between MPI processes because of the domain decomposition
 parallelization, this function should be always called immediately
 before the forces are going to be set to get an up-to-date pointer.
-You can use, for example, :cpp:func:`lammps_extract_setting` to obtain the
-number of local atoms `nlocal` and then assume the dimensions of the returned
-force array as ``double force[nlocal][3]``.
+You can use, for example, :cpp:func:`lammps_extract_setting` to obtain
+the number of local atoms `nlocal` and then assume the dimensions of
+the returned force array as ``double force[nlocal][3]``.
 
-This is an alternative to the callback mechanism in fix external set up by
-:cpp:func:`lammps_set_fix_external_callback`. The main difference is
+This is an alternative to the callback mechanism in fix external set up
+by :cpp:func:`lammps_set_fix_external_callback`. The main difference is
 that this mechanism can be used when forces are be pre-computed and the
 control alternates between LAMMPS and the external code, while the
 callback mechanism can call the external code to compute the force when
@@ -6047,8 +6054,6 @@ the fix is triggered and needs them.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6080,6 +6085,8 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to also set the contribution
 to the global energy from the external code.  The value of the *eng*
@@ -6095,8 +6102,6 @@ variables.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6126,6 +6131,8 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
 and :cpp:func:`lammps_fix_external_get_force` to set the contribution to
 the global virial from the external code.
@@ -6143,8 +6150,6 @@ be added by fix external.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6174,6 +6179,8 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
 to set the per-atom energy contribution due to the fix from the external code
 as part of the callback function.  For this to work, the handle to the
@@ -6191,8 +6198,6 @@ callback function.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6222,6 +6227,8 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
 to set the per-atom virial contribution due to the fix from the external code
 as part of the callback function.  For this to work, the handle to the
@@ -6242,8 +6249,6 @@ dimensions of the per-atom virial array is ``double virial[nlocal][6]``.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6273,6 +6278,8 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to set the length of a global vector of
 properties that will be stored with the fix via
@@ -6286,8 +6293,6 @@ processes and with the same length parameter.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6317,6 +6322,8 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to set the values of a global vector of
 properties that will be stored with the fix.  And can be accessed from
@@ -6339,8 +6346,6 @@ is assumed to be extensive.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6513,11 +6518,12 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 /** Return API version of embedded Python interpreter
 
 \verbatim embed:rst
+
+.. versionadded:: 3Nov2022
+
 This function is used by the ML-IAP python code (mliappy) to verify
 the API version of the embedded python interpreter of the PYTHON
 package.  It returns -1 if the PYTHON package is not enabled.
-
-.. versionadded:: 3Nov2022
 
 \endverbatim
  *

@@ -401,11 +401,9 @@ to.
 
 The *overlap* keyword only applies to the *random* style.  It prevents
 newly created particles from being created closer than the specified
-*Doverlap* distance from any other particle.  When the particles being
-created are molecules, the radius of the molecule (from its geometric
-center) is added to *Doverlap*.  If particles have finite size (see
-:doc:`atom_style sphere <atom_style>` for example) *Doverlap* should
-be specified large enough to include the particle size in the
+*Doverlap* distance from any other particle.  If particles have finite
+size (see :doc:`atom_style sphere <atom_style>` for example) *Doverlap*
+should be specified large enough to include the particle size in the
 non-overlapping criterion.
 
 .. note::

@@ -207,6 +207,21 @@ class GranSubModNormalEPALinear : public GranSubModNormal {
 
 /* ---------------------------------------------------------------------- */
 
+class GranSubModNormalEEPA : public GranSubModNormal {
+ public:
+  GranSubModNormalEEPA(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  double calculate_forces();
+  double calculate_contact_radius();
+  void set_fncrit() override;
+  bool adhesive;
+
+ protected:
+  double E, poiss, lambda_p, f0, kadh, mexp;
+  double delta_p;
+  double minv, lp_minv;
+};
+
 /*class GranSubModNormalEPA : public GranSubModNormal {
  public:
   GranSubModNormalEPA(class GranularModel *, class LAMMPS *);

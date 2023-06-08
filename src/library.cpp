@@ -723,10 +723,12 @@ double lammps_get_natoms(void *handle)
  *
 \verbatim embed:rst
 
-This function returns the current value of a :doc:`thermo keyword
-<thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
-give access to the storage of the desired data but returns its value as
-a ``double``, so it can also return information that is computed on-the-fly.
+This function returns the current value of a :doc:`thermo keyword <thermo_style>`.
+Unlike :cpp:func:`lammps_extract_global` it does not give access to the
+storage of the desired data but returns its value as a ``double``, so it
+can also return information that is computed on-the-fly.
+Use :cpp:func:`lammps_last_thermo` to get access to the cached data from
+the last thermo output.
 
 \endverbatim
  *
@@ -754,49 +756,50 @@ double lammps_get_thermo(void *handle, const char *keyword)
  *
 \verbatim embed:rst
 
-This function provides access to cached data from the last thermo
-output.  This differs from :cpp:func:`lammps_get_thermo` in that it does
-not trigger an evaluation.  It provides direct access to a a read-only
-location of the last thermo output data and the corresponding keyword
-strings. The output depends on the value of the *what* argument string.
+This function provides access to cached data from the last thermo output.
+This differs from :cpp:func:`lammps_get_thermo` in that it does not trigger
+an evaluation.  Instead it provides direct access to a read-only location
+of the last thermo output data and the corresponding keyword strings.
+The how to handle the return value depends on the value of the *what*
+argument string.
 
 .. list-table::
    :header-rows: 1
    :widths: auto
 
-   * - Value of *what
+   * - Value of *what*
      - Description of return value
      - Data type
      - Uses index
    * - step
-     - timestep when the last thermo output was generated or -1 when no data available
-     - pointer to bigint cast to void pointer
+     - timestep when the last thermo output was generated or -1
+     - pointer to bigint
      - no
    * - num
      - number of fields in thermo output
-     - pointer to int cast to void pointer
+     - pointer to int
      - no
    * - keyword
      - column keyword for thermo output
-     - const char pointer cast to void pointer
+     - const char pointer
      - yes
    * - type
-     - data type of thermo output column. LAMMPS_INT, LAMMPS_DOUBLE, or LAMMPS_INT64
-     - const int cast to void pointer
+     - data type of thermo output column; see :cpp:enum:`_LMP_DATATYPE_CONST`
+     - const int
      - yes
    * - data
      - actual field data for column
-     - pointer to either int, int64_t or double cast to void pointer
+     - pointer to either int, int64_t or double
      - yes
 
 \endverbatim
  *
  * \param  handle   pointer to a previously created LAMMPS instance
  * \param  what     string with the kind of data requested
- * \param  idx      integer with index into data arrays, ignored for scalar data
+ * \param  index    integer with index into data arrays, ignored for scalar data
  * \return          pointer to location of requested data cast to void or NULL */
 
-void *lammps_last_thermo(void *handle, const char *what, int idx)
+void *lammps_last_thermo(void *handle, const char *what, int index)
 {
   auto lmp = (LAMMPS *) handle;
   void *val = nullptr;
@@ -813,13 +816,13 @@ void *lammps_last_thermo(void *handle, const char *what, int idx)
       val = (void *) th->get_nfield();
 
     } else if (strcmp(what, "keyword") == 0) {
-      if ((idx < 0) || (idx >= nfield)) return nullptr;
+      if ((index < 0) || (index >= nfield)) return nullptr;
       const auto &keywords = th->get_keywords();
-      val = (void *) keywords[idx].c_str();
+      val = (void *) keywords[index].c_str();
 
     } else if (strcmp(what, "type") == 0) {
-      if ((idx < 0) || (idx >= nfield)) return nullptr;
-      const auto &field = th->get_fields()[idx];
+      if ((index < 0) || (index >= nfield)) return nullptr;
+      const auto &field = th->get_fields()[index];
       if (field.type == multitype::INT) {
         val = (void *) LAMMPS_INT;
       } else if (field.type == multitype::BIGINT) {
@@ -829,8 +832,8 @@ void *lammps_last_thermo(void *handle, const char *what, int idx)
       }
 
     } else if (strcmp(what, "data") == 0) {
-      if ((idx < 0) || (idx >= nfield)) return nullptr;
-      const auto &field = th->get_fields()[idx];
+      if ((index < 0) || (index >= nfield)) return nullptr;
+      const auto &field = th->get_fields()[index];
       if (field.type == multitype::INT) {
         val = (void *) &field.data.i;
       } else if (field.type == multitype::BIGINT) {

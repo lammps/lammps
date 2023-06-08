@@ -788,7 +788,7 @@ strings. The output depends on the value of the *what* argument string.
      - actual field data for column
      - pointer to either int, int64_t or double cast to void pointer
      - yes
-     
+
 \endverbatim
  *
  * \param  handle   pointer to a previously created LAMMPS instance

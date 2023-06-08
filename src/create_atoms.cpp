@@ -308,6 +308,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     onemol->compute_center();
     ranmol = new RanMars(lmp, molseed + comm->me);
+    memory->create(xmol, onemol->natoms, 3, "create_atoms:xmol");
   }
 
   if (style == MESH) {
@@ -634,6 +635,7 @@ void CreateAtoms::command(int narg, char **arg)
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;
+  if (mode == MOLECULE) memory->destroy(xmol);
 
   // for MOLECULE mode:
   // create special bond lists for molecular systems,
@@ -697,7 +699,8 @@ void CreateAtoms::add_single()
     if (mode == ATOM) {
       atom->avec->create_atom(ntype, xone);
     } else {
-      add_molecule(xone);
+      get_xmol(xone);
+      add_molecule();
     }
   }
 }
@@ -708,15 +711,17 @@ void CreateAtoms::add_single()
 
 void CreateAtoms::add_random()
 {
+  int incr;
   double xlo, ylo, zlo, xhi, yhi, zhi, zmid;
   double delx, dely, delz, distsq, odistsq;
   double lamda[3], *coord;
-  double *boxlo, *boxhi;
+  double *boxlo, *boxhi, *xmolbuf;
 
   if (overlapflag) {
     double odist = overlap;
-    if (mode == MOLECULE) odist += onemol->molradius;
     odistsq = odist * odist;
+    if (mode == MOLECULE)
+      memory->create(xmolbuf, onemol->natoms*3, "create_atoms:xmolbuf");
   }
 
   // random number generator, same for all procs
@@ -799,25 +804,54 @@ void CreateAtoms::add_random()
       // check for overlap of new atom/mol with all other atoms
       //   including prior insertions
       // minimum_image() needed to account for distances across PBC
-      // new molecule only checks its center pt against others
-      //   odistsq is expanded for mode=MOLECULE to account for molecule size
 
       if (overlapflag) {
         double **x = atom->x;
         int nlocal = atom->nlocal;
 
         int reject = 0;
-        for (int i = 0; i < nlocal; i++) {
-          delx = xone[0] - x[i][0];
-          dely = xone[1] - x[i][1];
-          delz = xone[2] - x[i][2];
-          domain->minimum_image(delx, dely, delz);
-          distsq = delx * delx + dely * dely + delz * delz;
-          if (distsq < odistsq) {
-            reject = 1;
-            break;
+        if (mode == ATOM) {
+          for (int i = 0; i < nlocal; i++) {
+            delx = xone[0] - x[i][0];
+            dely = xone[1] - x[i][1];
+            delz = xone[2] - x[i][2];
+            domain->minimum_image(delx, dely, delz);
+            distsq = delx * delx + dely * dely + delz * delz;
+            if (distsq < odistsq) {
+              reject = 1;
+              break;
+            }
+          }
+        } else {
+          int incr;
+          if (comm->me == 0) {
+            get_xmol(xone);
+            incr = 0;
+            for (int i = 0; i < onemol->natoms; i++)
+              for (int j = 0; j < 3; j++)
+                xmolbuf[incr++] = xmol[i][j];
+          }
+          MPI_Bcast(xmolbuf, onemol->natoms*3, MPI_DOUBLE, 0, world);
+          incr = 0;
+          for (int i = 0; i < onemol->natoms; i++)
+            for (int j = 0; j < 3; j++)
+              xmol[i][j] = xmolbuf[incr++];
+
+          for (int i = 0; i < nlocal; i++) {
+            for (int j = 0; j < onemol->natoms; j++) {
+              delx = xmol[j][0] - x[i][0];
+              dely = xmol[j][1] - x[i][1];
+              delz = xmol[j][2] - x[i][2];
+              domain->minimum_image(delx, dely, delz);
+              distsq = delx * delx + dely * dely + delz * delz;
+              if (distsq < odistsq) {
+                reject = 1;
+                break;
+              }
+            }
           }
         }
+
         int reject_any;
         MPI_Allreduce(&reject, &reject_any, 1, MPI_INT, MPI_MAX, world);
         if (reject_any) continue;
@@ -844,7 +878,11 @@ void CreateAtoms::add_random()
       if (mode == ATOM) {
         atom->avec->create_atom(ntype, xone);
       } else {
-        add_molecule(xone);
+
+        // atomic coordinates calculated above for overlap check
+
+        if (!overlapflag) get_xmol(xone);
+        add_molecule();
       }
     }
   }
@@ -857,6 +895,7 @@ void CreateAtoms::add_random()
   // clean-up
 
   delete random;
+  if (overlapflag && mode == MOLECULE) memory->destroy(xmolbuf);
 }
 
 /* ----------------------------------------------------------------------
@@ -1346,7 +1385,8 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
             } else {
-              add_molecule(x);
+              get_xmol(x);
+              add_molecule();
             }
           } else if (action == COUNT) {
             if (nlatt == MAXSMALLINT) nlatt_overflow = 1;
@@ -1354,7 +1394,8 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m], x);
             } else {
-              add_molecule(x);
+              get_xmol(x);
+              add_molecule();
             }
           }
 
@@ -1369,7 +1410,7 @@ void CreateAtoms::loop_lattice(int action)
    add a molecule with its center at center
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::add_molecule(double *center)
+void CreateAtoms::get_xmol(double *center)
 {
   double r[3], rotmat[3][3];
 
@@ -1392,10 +1433,6 @@ void CreateAtoms::add_molecule(double *center)
 
   MathExtra::quat_to_mat(quatone, rotmat);
 
-  // create atoms in molecule with atom ID = 0 and mol ID = 0
-  // IDs are reset in caller after all molecules created by all procs
-  // pass add_molecule_atom an offset of 0 since don't know
-  //   max tag of atoms in previous molecules at this point
   // onemol->quat_external is used by atom->add_moleclue_atom()
 
   onemol->quat_external = quatone;
@@ -1405,9 +1442,25 @@ void CreateAtoms::add_molecule(double *center)
   for (int m = 0; m < natoms; m++) {
     MathExtra::matvec(rotmat, onemol->dx[m], xnew);
     MathExtra::add3(xnew, center, xnew);
-    atom->avec->create_atom(ntype + onemol->type[m], xnew);
-    n = atom->nlocal - 1;
-    atom->add_molecule_atom(onemol, m, n, 0);
+    for (int i = 0; i < 3; i++)
+      xmol[m][i] = xnew[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   add a molecule with atom coordinates from xmol
+------------------------------------------------------------------------- */
+
+void CreateAtoms::add_molecule()
+{
+  // create atoms in molecule with atom ID = 0 and mol ID = 0
+  // IDs are reset in caller after all molecules created by all procs
+  // pass add_molecule_atom an offset of 0 since don't know
+  //   max tag of atoms in previous molecules at this point
+
+  for (int m = 0; m < onemol->natoms; m++) {
+    atom->avec->create_atom(ntype + onemol->type[m], xmol[m]);
+    atom->add_molecule_atom(onemol, m, atom->nlocal - 1, 0);
   }
 }
 

@@ -1068,6 +1068,8 @@ void Thermo::parse_fields(const std::string &str)
       }
     }
   }
+  field_data.clear();
+  field_data.resize(nfield);
 }
 
 /* ----------------------------------------------------------------------

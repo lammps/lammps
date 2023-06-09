@@ -276,7 +276,8 @@ union ubuf {
 \endverbatim
   */
 struct multitype {
-  enum { NONE, DOUBLE, INT, BIGINT };
+  // same values as LAMMPS_INT, LAMMPS_DOUBLE, and LAMMPS_INT64 in library.h
+  enum { NONE = -1, INT = 0, DOUBLE = 2, BIGINT = 4 };
 
   int type;
   union {

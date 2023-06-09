@@ -794,7 +794,7 @@ argument string.
      - yes
    * - type
      - data type of thermo output column; see :cpp:enum:`_LMP_DATATYPE_CONST`
-     - pointer to static int
+     - pointer to int
      - yes
    * - data
      - actual field data for column
@@ -815,7 +815,6 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
   Thermo *th = lmp->output->thermo;
   if (!th) return nullptr;
   const int nfield = *th->get_nfield();
-  static int datatype;
 
   BEGIN_CAPTURE
   {
@@ -833,17 +832,7 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
     } else if (strcmp(what, "type") == 0) {
       if ((index < 0) || (index >= nfield)) return nullptr;
       const auto &field = th->get_fields()[index];
-      if (field.type == multitype::INT) {
-        datatype = LAMMPS_INT;
-        val = (void *) &datatype;
-      } else if (field.type == multitype::BIGINT) {
-        datatype = LAMMPS_INT64;
-        val = (void *) &datatype;
-      } else if (field.type == multitype::DOUBLE) {
-        datatype = LAMMPS_DOUBLE;
-        val = (void *) &datatype;
-      }
-
+      val = (void *) &field.type;
     } else if (strcmp(what, "data") == 0) {
       if ((index < 0) || (index >= nfield)) return nullptr;
       const auto &field = th->get_fields()[index];

@@ -133,6 +133,7 @@ struct _liblammpsplugin {
 
   double (*get_natoms)(void *);
   double (*get_thermo)(void *, const char *);
+  void *(*last_thermo)(void *, const char *, int);
 
   void (*extract_box)(void *, double *, double *,
                       double *, double *, double *, int *, int *);

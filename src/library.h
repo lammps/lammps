@@ -148,6 +148,7 @@ void lammps_commands_string(void *handle, const char *str);
 
 double lammps_get_natoms(void *handle);
 double lammps_get_thermo(void *handle, const char *keyword);
+void *lammps_last_thermo(void *handle, const char *what, int index);
 
 void lammps_extract_box(void *handle, double *boxlo, double *boxhi, double *xy, double *yz,
                         double *xz, int *pflags, int *boxflag);

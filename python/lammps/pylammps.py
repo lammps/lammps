@@ -378,55 +378,6 @@ class variable_set:
         return self.__str__()
 
 # -------------------------------------------------------------------------
-
-def get_thermo_data(output):
-    """ traverse output of runs and extract thermo data columns """
-    if isinstance(output, str):
-        lines = output.splitlines()
-    else:
-        lines = output
-
-    runs = []
-    columns = []
-    in_run = False
-    current_run = {}
-
-    for line in lines:
-        if line.startswith("Per MPI rank memory allocation"):
-            in_run = True
-        elif in_run and len(columns) == 0:
-            # first line after memory usage are column names
-            columns = line.split()
-
-            current_run = {}
-
-            for col in columns:
-                current_run[col] = []
-
-        elif line.startswith("Loop time of "):
-            in_run = False
-            columns = []
-            thermo_data = variable_set('ThermoData', current_run)
-            r = {'thermo' : thermo_data }
-            runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
-        elif in_run and len(columns) > 0:
-            items = line.split()
-            # Convert thermo output and store it.
-            # It must have the same number of columns and
-            # all of them must be convertible to floats.
-            # Otherwise we ignore the line
-            if len(items) == len(columns):
-                try:
-                    values = [float(x) for x in items]
-                    for i, col in enumerate(columns):
-                        current_run[col].append(values[i])
-                except ValueError:
-                  # cannot convert. must be a non-thermo output. ignore.
-                  pass
-
-    return runs
-
-# -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 
 class PyLammps(object):
@@ -573,6 +524,13 @@ class PyLammps(object):
     if self.enable_cmd_history:
       self._cmd_history.append(cmd)
 
+  def _append_run_thermo(self, thermo):
+    for k, v in thermo.items():
+      if k in self._current_run:
+        self._current_run[k].append(v)
+      else:
+        self._current_run[k] = [v]
+
   def run(self, *args, **kwargs):
     """
     Execute LAMMPS run command with given arguments
@@ -581,8 +539,25 @@ class PyLammps(object):
     :py:attr:`PyLammps.runs`. The latest run can be retrieved by
     :py:attr:`PyLammps.last_run`.
     """
+    self._current_run = {}
+    self._last_thermo_step = -1
+    def end_of_step_callback(lmp):
+      if self.lmp.last_thermo_step == self._last_thermo_step: return
+      thermo = self.lmp.last_thermo()
+      self._append_run_thermo(thermo)
+      self._last_thermo_step = thermo['Step']
+
+    import __main__
+    __main__._PyLammps_end_of_step_callback = end_of_step_callback
+
+    self.fix("__pylammps_internal_run_callback", "all", "python/invoke", "1", "end_of_step", "_PyLammps_end_of_step_callback")
     output = self.__getattr__('run')(*args, **kwargs)
-    self.runs += get_thermo_data(output)
+    self.unfix("__pylammps_internal_run_callback")
+    self._append_run_thermo(self.lmp.last_thermo())
+
+    thermo_data = variable_set('ThermoData', self._current_run)
+    r = {'thermo' : thermo_data }
+    self.runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
     return output
 
   @property

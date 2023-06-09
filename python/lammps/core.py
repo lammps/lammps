@@ -746,6 +746,11 @@ class lammps(object):
       return self.lib.lammps_get_thermo(self.lmp,name)
 
   # -------------------------------------------------------------------------
+  @property
+  def last_thermo_step(self):
+    with ExceptionCheck(self):
+      ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("step".encode()), 0)
+    return cast(ptr, POINTER(self.c_bigint)).contents.value
 
   def last_thermo(self):
     """Get a dictionary of the last thermodynamic output
@@ -760,9 +765,7 @@ class lammps(object):
     """
 
     rv = dict()
-    with ExceptionCheck(self):
-      ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("step".encode()), 0)
-    mystep = cast(ptr, POINTER(self.c_bigint)).contents.value
+    mystep = self.last_thermo_step
     if mystep < 0:
       return None
 

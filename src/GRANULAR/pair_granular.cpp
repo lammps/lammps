@@ -767,10 +767,11 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->history = history;
 
   model->calculate_forces();
-  double *forces = model->forces;
 
   // apply forces & torques
-  fforce = MathExtra::len3(forces);
+  // Calculate normal component, normalized by r
+  fforce = MathExtra::dot3(model->forces, model->dx);
+  fforce *= model->rinv * model->rinv;
 
   // set single_extra quantities
   svector[0] = model->fs[0];

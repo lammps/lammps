@@ -434,6 +434,9 @@ class PyLammps(object):
     self._enable_cmd_history = False
     self.runs = []
 
+    if not self.lmp.has_package("PYTHON"):
+      print("WARNING: run thermo data not captured since PYTHON LAMMPS package is not enabled")
+
   def __enter__(self):
     return self
 
@@ -535,9 +538,13 @@ class PyLammps(object):
     """
     Execute LAMMPS run command with given arguments
 
-    All thermo output during the run is captured and saved as new entry in
+    Thermo data of the run is recorded and saved as new entry in
     :py:attr:`PyLammps.runs`. The latest run can be retrieved by
     :py:attr:`PyLammps.last_run`.
+
+    Note, for recording of all thermo steps during a run, the PYTHON package
+    needs to be enabled in LAMMPS. Otherwise, it will only capture the final
+    timestep.
     """
     self._current_run = {}
     self._last_thermo_step = -1
@@ -549,10 +556,15 @@ class PyLammps(object):
 
     import __main__
     __main__._PyLammps_end_of_step_callback = end_of_step_callback
+    capture_thermo = self.lmp.has_package("PYTHON")
 
-    self.fix("__pylammps_internal_run_callback", "all", "python/invoke", "1", "end_of_step", "_PyLammps_end_of_step_callback")
+    if capture_thermo:
+        self.fix("__pylammps_internal_run_callback", "all", "python/invoke", "1", "end_of_step", "_PyLammps_end_of_step_callback")
+
     output = self.__getattr__('run')(*args, **kwargs)
-    self.unfix("__pylammps_internal_run_callback")
+
+    if capture_thermo:
+        self.unfix("__pylammps_internal_run_callback")
     self._append_run_thermo(self.lmp.last_thermo())
 
     thermo_data = variable_set('ThermoData', self._current_run)

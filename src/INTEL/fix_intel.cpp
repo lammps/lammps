@@ -411,7 +411,7 @@ bool FixIntel::pair_hybrid_check()
 void FixIntel::pair_init_check(const bool cdmessage)
 {
   #ifdef INTEL_VMASK
-  atom->sortfreq = 1;
+  if (atom->sortfreq) atom->sortfreq = 1;
   #endif
 
   _nbor_pack_width = 1;

@@ -42,8 +42,6 @@ ComputeLocalCompAtom::ComputeLocalCompAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 3 || narg > 5) error->all(FLERR, "Illegal compute local/comp/atom command");
 
-  int ntypes = atom->ntypes;
-
   cutoff = 0.0;
 
   int iarg = 3;
@@ -59,6 +57,7 @@ ComputeLocalCompAtom::ComputeLocalCompAtom(LAMMPS *lmp, int narg, char **arg) :
 
   peratom_flag = 1;
 
+  ntypes = atom->ntypes;
   size_peratom_cols = 1 + ntypes;
 
   nmax = 0;
@@ -71,6 +70,7 @@ ComputeLocalCompAtom::~ComputeLocalCompAtom()
   if (copymode) return;
 
   memory->destroy(result);
+  memory->destroy(lcomp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,6 +108,7 @@ void ComputeLocalCompAtom::init()
 
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (cutflag) req->set_cutoff(cutoff);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,6 +126,9 @@ void ComputeLocalCompAtom::compute_peratom()
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
   int count, itype, jtype;
+  // int lcomp[ntypes];
+
+  memory->create(lcomp, ntypes, "local/comp/atom:lcomp");
 
   invoked_peratom = update->ntimestep;
 
@@ -153,19 +157,13 @@ void ComputeLocalCompAtom::compute_peratom()
   int *type = atom->type;
   int *mask = atom->mask;
 
-  int typeone_i, typeone_j;
-
-  int ntypes = atom->ntypes;
-  
-  int lcomp[ntypes];
-
   // get per-atom local compositions
 
   for (ii = 0; ii < inum; ii++) {
 
-    for (int i = 0; i < ntypes; i++) lcomp[i] = 0;
-
     i = ilist[ii];
+
+    for (int m = 0; m < ntypes; m++) lcomp[m] = 0.0;
 
     if (mask[i] & groupbit) {
 

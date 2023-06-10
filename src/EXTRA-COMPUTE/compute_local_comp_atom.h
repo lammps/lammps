@@ -34,10 +34,12 @@ class ComputeLocalCompAtom : public Compute {
   double memory_usage() override;
 
  protected:
-  int nmax;
+  int nmax, ntypes;
   double cutoff;            // global cutoff distance
   double cutsq;             // cutoff**2
   class NeighList *list;    // neighbor list
+
+  int *lcomp;               // peratom array to track local compositions
 
   double **result;          // peratom array of local compositions
 };

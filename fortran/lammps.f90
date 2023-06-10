@@ -44,11 +44,12 @@ MODULE LIBLAMMPS
   ! Data type constants for extracting data from global, atom, compute, and fix
   !
   ! Must be kept in sync with the equivalent declarations in
-  ! src/library.h, python/lammps/constants.py, tools/swig/lammps.i,
+  ! src/library.h, src/lmptype.h, python/lammps/constants.py, tools/swig/lammps.i,
   ! and examples/COUPLE/plugin/liblammpsplugin.h
   !
   ! These are NOT part of the API (the part the user sees)
   INTEGER(c_int), PARAMETER :: &
+    LAMMPS_NONE = -1, &       ! no data type assigned (yet)
     LAMMPS_INT = 0, &         ! 32-bit integer (or array)
     LAMMPS_INT_2D = 1, &      ! two-dimensional 32-bit integer array
     LAMMPS_DOUBLE = 2, &      ! 64-bit double (or array)

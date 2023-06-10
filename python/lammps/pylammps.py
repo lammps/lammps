@@ -13,7 +13,7 @@
 
 ################################################################################
 # Alternative Python Wrapper
-# Written by Richard Berger <richard.berger@temple.edu>
+# Written by Richard Berger <richard.berger@outlook.com>
 ################################################################################
 
 # for python2/3 compatibility

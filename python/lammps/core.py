@@ -748,6 +748,11 @@ class lammps(object):
   # -------------------------------------------------------------------------
   @property
   def last_thermo_step(self):
+    """ Get the last timestep where thermodynamic data was computed
+
+    :return: the timestep or a negative number if there has not been any thermo output yet
+    :rtype: int
+    """
     with ExceptionCheck(self):
       ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("step".encode()), 0)
     return cast(ptr, POINTER(self.c_bigint)).contents.value
@@ -760,7 +765,7 @@ class lammps(object):
     data from the last timestep into a dictionary.  The return value
     is None, if there has not been any thermo output yet.
 
-    :return: value of thermo keyword
+    :return: a dictionary containing the last computed thermo output values
     :rtype: dict or None
     """
 

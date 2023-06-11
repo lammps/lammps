@@ -1340,6 +1340,13 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"units") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"atom_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"pair_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"bond_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"angle_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"dihedral_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"improper_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"kspace_style") == 0) return LAMMPS_STRING;
   if (strcmp(name,"boltz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"hplanck") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"mvv2e") == 0) return LAMMPS_DOUBLE;
@@ -1586,6 +1593,34 @@ report the "native" data type.  The following tables are provided:
      - int
      - 1
      - **deprecated**. Use :cpp:func:`lammps_extract_setting` instead.
+   * - atom_style
+     - char \*
+     - 1
+     - string with the current atom style.
+   * - pair_style
+     - char \*
+     - 1
+     - string with the current pair style.
+   * - bond_style
+     - char \*
+     - 1
+     - string with the current bond style.
+   * - angle_style
+     - char \*
+     - 1
+     - string with the current angle style.
+   * - dihedral_style
+     - char \*
+     - 1
+     - string with the current dihedral style.
+   * - improper_style
+     - char \*
+     - 1
+     - string with the current improper style.
+   * - kspace_style
+     - char \*
+     - 1
+     - string with the current KSpace style.
 
 .. _extract_unit_settings:
 
@@ -1692,6 +1727,13 @@ void *lammps_extract_global(void *handle, const char *name)
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
+  if (strcmp(name,"atom_style") == 0) return (void *) lmp->atom->atom_style;
+  if (strcmp(name,"pair_style") == 0) return (void *) lmp->force->pair_style;
+  if (strcmp(name,"bond_style") == 0) return (void *) lmp->force->bond_style;
+  if (strcmp(name,"angle_style") == 0) return (void *) lmp->force->angle_style;
+  if (strcmp(name,"dihedral_style") == 0) return (void *) lmp->force->dihedral_style;
+  if (strcmp(name,"improper_style") == 0) return (void *) lmp->force->improper_style;
+  if (strcmp(name,"kspace_style") == 0) return (void *) lmp->force->kspace_style;
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
   // update->atime can be referenced as a pointer

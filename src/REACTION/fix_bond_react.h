@@ -156,6 +156,8 @@ class FixBondReact : public Fix {
   int lcl_inst;              // reaction instance
   tagint **glove;            // 1st colmn: pre-reacted template, 2nd colmn: global IDs
   // for all mega_gloves: first row is the ID of bond/react
+  // 'cuff' leaves room for additional values carried around
+  int cuff;                       // default = 1, w/ rescale_charges_flag = 2
   tagint **my_mega_glove;         // local + ghostly reaction instances
   tagint **local_mega_glove;      // consolidation of local reaction instances
   tagint **ghostly_mega_glove;    // consolidation of nonlocal reaction instances

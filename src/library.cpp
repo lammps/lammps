@@ -836,11 +836,11 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
     } else if (strcmp(what, "data") == 0) {
       if ((index < 0) || (index >= nfield)) return nullptr;
       const auto &field = th->get_fields()[index];
-      if (field.type == multitype::INT) {
+      if (field.type == multitype::LAMMPS_INT) {
         val = (void *) &field.data.i;
-      } else if (field.type == multitype::BIGINT) {
+      } else if (field.type == multitype::LAMMPS_INT64) {
         val = (void *) &field.data.b;
-      } else if (field.type == multitype::DOUBLE) {
+      } else if (field.type == multitype::LAMMPS_DOUBLE) {
         val = (void *) &field.data.d;
       }
 

@@ -41,10 +41,11 @@
 /** Data type constants for extracting data from atoms, computes and fixes
  *
  * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
- * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, ``src/lmptype.h``, and
  *``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_DATATYPE_CONST {
+  LAMMPS_NONE = -1,     /*!< no data type assigned (yet) */
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
   LAMMPS_INT_2D = 1,    /*!< two-dimensional 32-bit integer array */
   LAMMPS_DOUBLE = 2,    /*!< 64-bit double (array) */

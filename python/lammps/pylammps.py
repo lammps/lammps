@@ -28,6 +28,7 @@ import tempfile
 from collections import namedtuple
 
 from .core import lammps
+from .constants import *                # lgtm [py/polluting-import]
 
 # -------------------------------------------------------------------------
 
@@ -65,22 +66,43 @@ class OutputCapture(object):
 # -------------------------------------------------------------------------
 
 class Variable(object):
-  def __init__(self, pylammps_instance, name, style, definition):
+  def __init__(self, pylammps_instance, name):
     self._pylmp = pylammps_instance
     self.name = name
-    self.style = style
-    self.definition = definition.split()
+
+  @property
+  def style(self):
+    vartype = self._pylmp.lmp.lib.lammps_extract_variable_datatype(self._pylmp.lmp.lmp, self.name.encode())
+    if vartype == LMP_VAR_EQUAL:
+      return "equal"
+    elif vartype == LMP_VAR_ATOM:
+      return "atom"
+    elif vartype == LMP_VAR_VECTOR:
+      return "vector"
+    elif vartype == LMP_VAR_STRING:
+      return "string"
+    return None
 
   @property
   def value(self):
-    if self.style == 'atom':
-      return list(self._pylmp.lmp.extract_variable(self.name, "all", 1))
+    return self._pylmp.lmp.extract_variable(self.name)
+
+  @value.setter
+  def value(self, newvalue):
+    style = self.style
+    if style == "equal" or style == "string":
+      self._pylmp.variable("{} {} {}".format(self.name, style, newvalue))
     else:
-      value = self._pylmp.lmp_print('"${%s}"' % self.name).strip()
-      try:
-        return float(value)
-      except ValueError:
-        return value
+      raise Exception("Setter not implemented for {} style variables.".format(style))
+
+  def __str__(self):
+    value = self.value
+    if isinstance(value, str):
+      value = "\"{}\"".format(value)
+    return "Variable(name=\"{}\", value={})".format(self.name, value)
+
+  def __repr__(self):
+    return self.__str__()
 
 # -------------------------------------------------------------------------
 
@@ -676,11 +698,9 @@ class PyLammps(object):
     :getter: Returns a dictionary of all variables that are defined in this LAMMPS instance
     :type: dict
     """
-    output = self.lmp_info("variables")
-    output = output[output.index("Variable information:")+1:]
     variables = {}
-    for v in self._parse_element_list(output):
-      variables[v['name']] = Variable(self, v['name'], v['style'], v['def'])
+    for name in self.lmp.available_ids("variable"):
+      variables[name] = Variable(self, name)
     return variables
 
   def eval(self, expr):

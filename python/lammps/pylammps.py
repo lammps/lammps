@@ -707,66 +707,55 @@ class PyLammps(object):
 
   def _parse_info_system(self, output):
     system = {}
+    system['dimensions'] = self.lmp.extract_setting("dimension")
+    system['xlo'] = self.lmp.extract_global("boxxlo")
+    system['ylo'] = self.lmp.extract_global("boxylo")
+    system['zlo'] = self.lmp.extract_global("boxzlo")
+    system['xhi'] = self.lmp.extract_global("boxxhi")
+    system['yhi'] = self.lmp.extract_global("boxyhi")
+    system['zhi'] = self.lmp.extract_global("boxzhi")
+    xprd = system["xhi"] - system["xlo"]
+    yprd = system["yhi"] - system["ylo"]
+    zprd = system["zhi"] - system["zlo"]
+    if self.lmp.extract_setting("triclinic") == 1:
+      system['triclinic_box'] = (xprd, yprd, zprd)
+    else:
+      system['orthogonal_box'] = (xprd, yprd, zprd)
+    system['nangles'] = self.lmp.extract_global("nbonds")
+    system['nangletypes'] = self.lmp.extract_setting("nbondtypes")
+    system['angle_style'] = self.lmp.extract_global("angle_style")
+    system['nbonds'] = self.lmp.extract_global("nbonds")
+    system['nbondtypes'] = self.lmp.extract_setting("nbondtypes")
+    system['bond_style'] = self.lmp.extract_global("bond_style")
+    system['ndihedrals'] = self.lmp.extract_global("ndihedrals")
+    system['ndihedraltypes'] = self.lmp.extract_setting("ndihedraltypes")
+    system['dihedral_style'] = self.lmp.extract_global("dihedral_style")
+    system['nimpropers'] = self.lmp.extract_global("nimpropers")
+    system['nimpropertypes'] = self.lmp.extract_setting("nimpropertypes")
+    system['improper_style'] = self.lmp.extract_global("improper_style")
+    system['kspace_style'] = self.lmp.extract_global("kspace_style")
+    system['natoms'] = self.lmp.extract_global("natoms")
+    system['ntypes'] = self.lmp.extract_global("ntypes")
+    system['pair_style'] = self.lmp.extract_global("pair_style")
+    system['atom_style'] = self.lmp.extract_global("atom_style")
+    system['units'] = self.lmp.extract_global("units")
 
     for line in output:
-      if line.startswith("Units"):
-        system['units'] = self._get_pair(line)[1]
-      elif line.startswith("Atom style"):
-        system['atom_style'] = self._get_pair(line)[1]
-      elif line.startswith("Atom map"):
+      if line.startswith("Atom map"):
         system['atom_map'] = self._get_pair(line)[1]
       elif line.startswith("Atoms"):
         parts = self._split_values(line)
-        system['natoms'] = int(self._get_pair(parts[0])[1])
-        system['ntypes'] = int(self._get_pair(parts[1])[1])
-        system['style'] = self._get_pair(parts[2])[1]
-      elif line.startswith("Kspace style"):
-        system['kspace_style'] = self._get_pair(line)[1]
-      elif line.startswith("Dimensions"):
-        system['dimensions'] = int(self._get_pair(line)[1])
-      elif line.startswith("Orthogonal box"):
-        system['orthogonal_box'] = [float(x) for x in self._get_pair(line)[1].split('x')]
       elif line.startswith("Boundaries"):
         system['boundaries'] = self._get_pair(line)[1]
-      elif line.startswith("xlo"):
-        keys, values = [self._split_values(x) for x in self._get_pair(line)]
-        for key, value in zip(keys, values):
-          system[key] = float(value)
-      elif line.startswith("ylo"):
-        keys, values = [self._split_values(x) for x in self._get_pair(line)]
-        for key, value in zip(keys, values):
-          system[key] = float(value)
-      elif line.startswith("zlo"):
-        keys, values = [self._split_values(x) for x in self._get_pair(line)]
-        for key, value in zip(keys, values):
-          system[key] = float(value)
       elif line.startswith("Molecule type"):
         system['molecule_type'] = self._get_pair(line)[1]
-      elif line.startswith("Bonds"):
-        parts = self._split_values(line)
-        system['nbonds'] = int(self._get_pair(parts[0])[1])
-        system['nbondtypes'] = int(self._get_pair(parts[1])[1])
-        system['bond_style'] = self._get_pair(parts[2])[1]
-      elif line.startswith("Angles"):
-        parts = self._split_values(line)
-        system['nangles'] = int(self._get_pair(parts[0])[1])
-        system['nangletypes'] = int(self._get_pair(parts[1])[1])
-        system['angle_style'] = self._get_pair(parts[2])[1]
-      elif line.startswith("Dihedrals"):
-        parts = self._split_values(line)
-        system['ndihedrals'] = int(self._get_pair(parts[0])[1])
-        system['ndihedraltypes'] = int(self._get_pair(parts[1])[1])
-        system['dihedral_style'] = self._get_pair(parts[2])[1]
-      elif line.startswith("Impropers"):
-        parts = self._split_values(line)
-        system['nimpropers'] = int(self._get_pair(parts[0])[1])
-        system['nimpropertypes'] = int(self._get_pair(parts[1])[1])
-        system['improper_style'] = self._get_pair(parts[2])[1]
 
     return system
 
   def _parse_info_communication(self, output):
     comm = {}
+    comm['nprocs'] = self.lmp.extract_setting("world_size")
+    comm['nthreads'] = self.lmp.extract_setting("nthreads")
 
     for line in output:
       if line.startswith("MPI library"):
@@ -779,10 +768,6 @@ class PyLammps(object):
         comm['proc_grid'] = [int(x) for x in self._get_pair(line)[1].split('x')]
       elif line.startswith("Communicate velocities for ghost atoms"):
         comm['ghost_velocity'] = (self._get_pair(line)[1] == "yes")
-      elif line.startswith("Nprocs"):
-        parts = self._split_values(line)
-        comm['nprocs'] = int(self._get_pair(parts[0])[1])
-        comm['nthreads'] = int(self._get_pair(parts[1])[1])
     return comm
 
   def _parse_element_list(self, output):

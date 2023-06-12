@@ -686,9 +686,7 @@ class PyLammps(object):
     :getter: Returns a list of atom groups that are currently active in this LAMMPS instance
     :type: list
     """
-    output = self.lmp_info("groups")
-    output = output[output.index("Group information:")+1:]
-    return self._parse_groups(output)
+    return self.lmp.available_ids("group")
 
   @property
   def variables(self):
@@ -801,16 +799,6 @@ class PyLammps(object):
         element[key] = value
       elements.append(element)
     return elements
-
-  def _parse_groups(self, output):
-    groups = []
-    group_pattern = re.compile(r"(?P<name>.+) \((?P<type>.+)\)")
-
-    for line in output:
-      m = group_pattern.match(line.split(':')[1].strip())
-      group = {'name': m.group('name'), 'type': m.group('type')}
-      groups.append(group)
-    return groups
 
   def lmp_print(self, s):
     """ needed for Python2 compatibility, since print is a reserved keyword """

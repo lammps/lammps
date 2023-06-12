@@ -1,7 +1,7 @@
-LAMMPS (24 Oct 2018)
+LAMMPS (28 Mar 2023 - Development)
 dimension       3
 units           micro
-atom_style      meso
+atom_style      sph
 
 variable        a equal 0.1             # lattice spacing         micrometers
 variable        L equal $a*10
@@ -38,13 +38,15 @@ Lattice spacing in x,y,z = 0.1 0.1 0.1
 
 create_atoms    1 box
 Created 8000 atoms
-  Time spent = 0.00285411 secs
+  using lattice units in orthogonal box = (-1 -1 -1) to (1 1 1)
+  create_atoms CPU = 0.002 seconds
 
 mass            * ${mass}
 mass            * 0.001
-set             group all meso/rho ${rho_0}
-set             group all meso/rho 1
-  8000 settings made for meso/rho
+set             group all sph/rho ${rho_0}
+set             group all sph/rho 1
+Setting atom values ...
+  8000 settings made for sph/rho
 
 pair_style      sdpd/taitwater/isothermal $T ${mu} 76787    # temperature viscosity random_seed
 pair_style      sdpd/taitwater/isothermal 300 ${mu} 76787    
@@ -71,7 +73,7 @@ variable        vz_sq_check equal c_v_sq[3]*0.001/${kB}/$T
 variable        vz_sq_check equal c_v_sq[3]*0.001/1.3806504e-08/$T
 variable        vz_sq_check equal c_v_sq[3]*0.001/1.3806504e-08/300
 
-fix             1 all meso
+fix             1 all sph
 
 neighbor        ${skin} bin
 neighbor        0.04 bin
@@ -82,8 +84,9 @@ thermo          10
 thermo_style    custom step time v_vx_sq_check v_vy_sq_check v_vz_sq_check
 
 run             200
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 0.44
   ghost atom cutoff = 0.44
@@ -92,55 +95,55 @@ Neighbor list info ...
   (1) pair sdpd/taitwater/isothermal, perpetual
       attributes: half, newton on
       pair build: half/bin/atomonly/newton
-      stencil: half/bin/3d/newton
+      stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 13.54 | 13.54 | 13.54 Mbytes
-Step Time v_vx_sq_check v_vy_sq_check v_vz_sq_check 
-       0            0            0            0            0 
-      10        0.005   0.70973271   0.71495693   0.71910087 
-      20         0.01   0.90418096   0.88845437   0.89659567 
-      30        0.015    0.9590736   0.97880338    0.9619016 
-      40         0.02   0.98533774   0.96057682   0.95600448 
-      50        0.025   0.96433662   0.96650071   0.95509683 
-      60         0.03   0.96598029   0.96373656   0.96734888 
-      70        0.035   0.95433045   0.98004764   0.96255924 
-      80         0.04   0.97872906   0.95987289   0.96623598 
-      90        0.045   0.99913888   0.99255731   0.95616142 
-     100         0.05   0.98872675   0.97141018   0.95338841 
-     110        0.055   0.97794592   0.97389258   0.98473719 
-     120         0.06   0.98389266   0.96716284   0.95504862 
-     130        0.065   0.98572886   0.96680923   0.95599065 
-     140         0.07   0.97602684   0.97580081    0.9886878 
-     150        0.075   0.99172003   0.95027467   0.96028033 
-     160         0.08   0.96793247   0.94590928   0.95644301 
-     170        0.085   0.94167619   0.98048861   0.93439426 
-     180         0.09   0.97277934   0.97383622   0.96900866 
-     190        0.095   0.96647288    1.0027643   0.96230782 
-     200          0.1   0.94864291   0.95902585   0.96398175 
-Loop time of 60.1095 on 1 procs for 200 steps with 8000 atoms
+Per MPI rank memory allocation (min/avg/max) = 14.29 | 14.29 | 14.29 Mbytes
+   Step          Time      v_vx_sq_check  v_vy_sq_check  v_vz_sq_check 
+         0   0              0              0              0            
+        10   0.005          0.70973271     0.71495693     0.71910087   
+        20   0.01           0.90418096     0.88845437     0.89659567   
+        30   0.015          0.9590736      0.97880338     0.9619016    
+        40   0.02           0.98533774     0.96057682     0.95600448   
+        50   0.025          0.96433662     0.96650071     0.95509683   
+        60   0.03           0.96598029     0.96373656     0.96734888   
+        70   0.035          0.95433045     0.98004764     0.96255924   
+        80   0.04           0.97872906     0.95987289     0.96623598   
+        90   0.045          0.99913888     0.99255731     0.95616142   
+       100   0.05           0.98872675     0.97141018     0.95338841   
+       110   0.055          0.97794592     0.97389258     0.98473719   
+       120   0.06           0.98389266     0.96716284     0.95504862   
+       130   0.065          0.98572886     0.96680923     0.95599065   
+       140   0.07           0.97602684     0.97580081     0.9886878    
+       150   0.075          0.99172003     0.95027467     0.96028033   
+       160   0.08           0.96793247     0.94590928     0.95644301   
+       170   0.085          0.94167619     0.98048861     0.93439426   
+       180   0.09           0.97277934     0.97383622     0.96900866   
+       190   0.095          0.96647288     1.0027643      0.96230782   
+       200   0.1            0.94864291     0.95902585     0.96398175   
+Loop time of 55.7542 on 1 procs for 200 steps with 8000 atoms
 
-Performance: 143737.595 ns/day, 0.000 hours/ns, 3.327 timesteps/s
-99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 154965.922 ns/day, 0.000 hours/ns, 3.587 timesteps/s, 28.697 katom-step/s
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 59.92      | 59.92      | 59.92      |   0.0 | 99.68
+Pair    | 55.642     | 55.642     | 55.642     |   0.0 | 99.80
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.11154    | 0.11154    | 0.11154    |   0.0 |  0.19
-Output  | 0.0063498  | 0.0063498  | 0.0063498  |   0.0 |  0.01
-Modify  | 0.043546   | 0.043546   | 0.043546   |   0.0 |  0.07
-Other   |            | 0.02811    |            |       |  0.05
+Comm    | 0.060977   | 0.060977   | 0.060977   |   0.0 |  0.11
+Output  | 0.0066393  | 0.0066393  | 0.0066393  |   0.0 |  0.01
+Modify  | 0.028354   | 0.028354   | 0.028354   |   0.0 |  0.05
+Other   |            | 0.01623    |            |       |  0.03
 
-Nlocal:    8000 ave 8000 max 8000 min
+Nlocal:           8000 ave        8000 max        8000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    16389 ave 16389 max 16389 min
+Nghost:          16389 ave       16389 max       16389 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.456e+06 ave 1.456e+06 max 1.456e+06 min
+Neighs:      1.456e+06 ave   1.456e+06 max   1.456e+06 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 1456000
 Ave neighs/atom = 182
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:01:00
+Total wall time: 0:00:56

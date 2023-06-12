@@ -95,7 +95,7 @@ typedef int64_t bigint;
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX
 #define MAXBIGINT INT64_MAX
-#define MAXDOUBLEINT 9007199254740992   // 2^53
+#define MAXDOUBLEINT 9007199254740992    // 2^53
 
 #define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_IMAGEINT MPI_INT
@@ -133,7 +133,7 @@ typedef int64_t bigint;
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT64_MAX
 #define MAXBIGINT INT64_MAX
-#define MAXDOUBLEINT 9007199254740992   // 2^53
+#define MAXDOUBLEINT 9007199254740992    // 2^53
 
 #define MPI_LMP_TAGINT MPI_LL
 #define MPI_LMP_IMAGEINT MPI_LL
@@ -232,6 +232,84 @@ union ubuf {
   ubuf(const int64_t &arg) : i(arg) {}
   ubuf(const int &arg) : i(arg) {}
 };
+
+/** Data structure for dynamic typing of int, bigint, and double
+ *
+ * Using this union allows to store any of the supported data types
+ * in the same container and allows to "see" its current type.
+\verbatim embed:rst
+
+**Usage:**
+
+.. code-block:: c++
+   :caption: To store data in multitype array:
+
+   multitype m[5];
+   int    foo = 1;
+   double bar = 2.5;
+   bigint baz = 1<<40 - 1;
+   m[0] = foo;
+   m[1] = bar;
+   m[2] = -1;
+   m[3] = 2.0;
+   m[4] = baz;
+
+.. code-block:: c++
+   :caption: To format data from multitype array into a space separated string:
+
+   std::string str;
+   for (int i = 0; i < 5; ++i) {
+       switch (m[i].type) {
+           case multitype::DOUBLE:
+               str += std::to_string(m[i].data.d) + ' ';
+               break;
+           case multitype::INT:
+               str += std::to_string(m[i].data.i) + ' ';
+               break;
+           case multitype::BIGINT:
+               str += std::to_string(m[i].data.b) + ' ';
+               break;
+           default:
+               break;
+       }
+   }
+\endverbatim
+  */
+struct multitype {
+  enum { NONE, DOUBLE, INT, BIGINT };
+
+  int type;
+  union {
+    double d;
+    int i;
+    int64_t b;
+  } data;
+
+  multitype() : type(NONE) { data.d = 0.0; }
+  multitype(const multitype &) = default;
+  multitype(multitype &&) = default;
+  ~multitype() = default;
+
+  multitype &operator=(const double &_d)
+  {
+    type = DOUBLE;
+    data.d = _d;
+    return *this;
+  }
+  multitype &operator=(const int &_i)
+  {
+    type = INT;
+    data.i = _i;
+    return *this;
+  }
+  multitype &operator=(const int64_t &_b)
+  {
+    type = BIGINT;
+    data.b = _b;
+    return *this;
+  }
+};
+
 }    // namespace LAMMPS_NS
 
 // preprocessor macros for compiler specific settings

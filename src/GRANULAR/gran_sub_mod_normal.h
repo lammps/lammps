@@ -29,6 +29,7 @@ GranSubModStyle(jkr,GranSubModNormalJKR,NORMAL);
 
 namespace LAMMPS_NS {
 namespace Granular_NS {
+
   class GranSubModNormal : public GranSubMod {
    public:
     GranSubModNormal(class GranularModel *, class LAMMPS *);
@@ -92,6 +93,8 @@ namespace Granular_NS {
     GranSubModNormalHertzMaterial(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
     void mix_coeffs(double *, double *) override;
+   private:
+    int mixed_coefficients;
   };
 
   /* ---------------------------------------------------------------------- */
@@ -107,6 +110,7 @@ namespace Granular_NS {
    protected:
     double k, cohesion;
     double F_pulloff, Fne;
+    int mixed_coefficients;
   };
 
   /* ---------------------------------------------------------------------- */
@@ -125,6 +129,7 @@ namespace Granular_NS {
    protected:
     double k, cohesion;
     double Emix, F_pulloff, Fne;
+    int mixed_coefficients;
   };
 
 }    // namespace Granular_NS

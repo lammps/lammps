@@ -41,7 +41,7 @@ class BondBPMRotational : public BondBPM {
  protected:
   double *Kr, *Ks, *Kt, *Kb, *gnorm, *gslide, *groll, *gtwist;
   double *Fcr, *Fcs, *Tct, *Tcb;
-  int smooth_flag;
+  int smooth_flag, normalize_flag;
 
   double elastic_forces(int, int, int, double, double, double, double *, double *, double *,
                         double *, double *, double *);

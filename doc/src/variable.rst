@@ -1481,7 +1481,7 @@ commands
 .. code-block:: LAMMPS
 
    # delete_atoms random fraction 0.5 yes all NULL 49839
-   # run 0
+   # run 0 post no
    variable t equal temp    # this thermo keyword invokes a temperature compute
    print "Temperature of system = $t"
    run 1000

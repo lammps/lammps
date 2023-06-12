@@ -980,9 +980,9 @@ void CommKokkos::borders()
   } else {
     atomKK->sync(Host,ALL_MASK);
     k_sendlist.sync<LMPHostType>();
-    CommBrick::borders();
     k_sendlist.modify<LMPHostType>();
-    atomKK->modified(Host,ALL_MASK);
+    atomKK->modified(Host,ALL_MASK); // needed here for atom map
+    CommBrick::borders();
   }
 
   if (comm->nprocs == 1 && !ghost_velocity && !forward_comm_classic)

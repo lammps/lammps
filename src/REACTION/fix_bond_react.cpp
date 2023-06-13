@@ -393,11 +393,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         else if (strcmp(arg[iarg+1],"yes") == 0) {
           if (!atom->q_flag) error->all(FLERR,"Illegal fix bond/react command: "
                                       "cannot use 'rescale_charges' without atomic charges enabled");
-          rescale_charges_flag[rxn] = 1;
+          rescale_charges_flag[rxn] = 1; // overloaded below to also indicate number of atoms to update
           rescale_charges_anyflag = 1;
           cuff = 2; // index shift for extra values carried around by mega_gloves
-        }
-        else error->one(FLERR,"Bond/react: Illegal option for 'rescale_charges' keyword");
+        } else error->one(FLERR,"Bond/react: Illegal option for 'rescale_charges' keyword");
         iarg += 2;
       } else if (strcmp(arg[iarg],"molecule") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
@@ -450,8 +449,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
   memory->create(create_atoms,max_natoms,nreacts,"bond/react:create_atoms");
   memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
+  memory->create(mol_total_charge,nreacts,"bond/react:mol_total_charge");
 
   for (int j = 0; j < nreacts; j++) {
+    mol_total_charge[j] = 0.0;
     for (int i = 0; i < max_natoms; i++) {
       edge[i][j] = 0;
       custom_charges[i][j] = 1; // update all partial charges by default
@@ -489,6 +490,21 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     jatomtype[i] = onemol->type[jbonding[i]-1];
     find_landlocked_atoms(i);
     if (custom_charges_fragid[i] >= 0) CustomCharges(custom_charges_fragid[i],i);
+  }
+
+  // charge rescaling values must be calculated after calling CustomCharges
+  for (int myrxn = 0; myrxn < nreacts; myrxn++) {
+    if (rescale_charges_flag[myrxn]) {
+      rescale_charges_flag[myrxn] = 0; // will now store number of updated atoms
+      twomol = atom->molecules[reacted_mol[myrxn]];
+      for (int j = 0; j < twomol->natoms; j++) {
+        int jj = equivalences[j][1][myrxn]-1;
+        if (twomol->qflag && custom_charges[jj][myrxn] == 1) {
+          mol_total_charge[myrxn] += twomol->q[j];
+          rescale_charges_flag[myrxn]++;
+        }
+      }
+    }
   }
 
   // get the names of per-atom variables needed by 'rxn' functions of custom constraint
@@ -613,6 +629,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(delete_atoms);
   memory->destroy(create_atoms);
   memory->destroy(chiral_atoms);
+  memory->destroy(mol_total_charge);
   if (vvec != nullptr) memory->destroy(vvec);
 
   memory->destroy(rxn_name);
@@ -3129,37 +3146,18 @@ void FixBondReact::update_everything()
       }
     }
 
-    // get charge rescale delta
-    double charge_rescale_addend = 0;
-    if (rescale_charges_flag[rxnID] == 1) {
-      double sim_total_charge = 0;
-      double mol_total_charge = 0;
-      int n_custom_charge = 0;
-      for (int i = 0; i < update_num_mega; i++) {
-        rxnID = update_mega_glove[0][i];
-        twomol = atom->molecules[reacted_mol[rxnID]];
-        for (int j = 0; j < twomol->natoms; j++) {
-          int jj = equivalences[j][1][rxnID]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
-              atom->map(update_mega_glove[jj+1][i]) < nlocal) {
-            if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
-              double *q = atom->q;
-              sim_total_charge += q[atom->map(update_mega_glove[jj+1][i])];
-              mol_total_charge += twomol->q[j];
-              n_custom_charge++;
-            }
-          }
-        }
-        printf("check1 %g %g\n",sim_total_charge,sim_total_charges[i]);
-      }
-      charge_rescale_addend = (sim_total_charge-mol_total_charge)/n_custom_charge;
-    }
-
     // update charges and types of landlocked atoms
     // also keep track of 'stabilization' groups here
+    int n_custom_charge;
+    double charge_rescale_addend;
     for (int i = 0; i < update_num_mega; i++) {
+      charge_rescale_addend = 0;
       rxnID = update_mega_glove[0][i];
       twomol = atom->molecules[reacted_mol[rxnID]];
+      if (rescale_charges_flag[rxnID]) {
+        n_custom_charge = rescale_charges_flag[rxnID];
+        charge_rescale_addend = (sim_total_charges[i]-mol_total_charge[rxnID])/n_custom_charge;
+      }
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
         int ilocal = atom->map(update_mega_glove[jj+1][i]);

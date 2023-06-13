@@ -71,8 +71,9 @@ class FixBondReact : public Fix {
   int **store_rxn_count;
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
-  int *rescale_charges_flag;
-  int rescale_charges_anyflag;
+  int *rescale_charges_flag;   // if nonzero, indicates number of atoms whose charges are updated
+  int rescale_charges_anyflag; // indicates if any reactions do charge rescaling
+  double *mol_total_charge;    // sum of charges of post-reaction atoms whose charges are updated
   int *create_atoms_flag;
   int *modify_create_fragid;
   double *overlapsq;

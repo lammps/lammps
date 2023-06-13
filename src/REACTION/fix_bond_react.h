@@ -72,6 +72,7 @@ class FixBondReact : public Fix {
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
   int *rescale_charges_flag;
+  int rescale_charges_anyflag;
   int *create_atoms_flag;
   int *modify_create_fragid;
   double *overlapsq;
@@ -193,6 +194,7 @@ class FixBondReact : public Fix {
   int check_constraints();
   void get_IDcoords(int, int, double *);
   double get_temperature(tagint **, int, int);
+  double get_totalcharge();
   void customvarnames();    // get per-atom variables names used by custom constraint
   void get_customvars();    // evaluate local values for variables names used by custom constraint
   double custom_constraint(const std::string &);    // evaulate expression for custom constraint

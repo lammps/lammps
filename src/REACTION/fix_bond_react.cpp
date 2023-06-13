@@ -251,8 +251,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(ghostly_rxn_count,nreacts,"bond/react:ghostly_rxn_count");
   memory->create(reaction_count_total,nreacts,"bond/react:reaction_count_total");
 
+  rescale_charges_anyflag = 0;
   for (int i = 0; i < nreacts; i++) {
-    fraction[i] = 1;
+    fraction[i] = 1.0;
     seed[i] = 12345;
     max_rxn[i] = INT_MAX;
     for (int j = 0; j < 3; j++)
@@ -262,7 +263,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     rescale_charges_flag[i] = 0;
     create_atoms_flag[i] = 0;
     modify_create_fragid[i] = -1;
-    overlapsq[i] = 0;
+    overlapsq[i] = 0.0;
     molecule_keyword[i] = OFF;
     nconstraints[i] = 0;
     // set default limit duration to 60 timesteps
@@ -390,7 +391,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'rescale_charges' has too few arguments");
         if (strcmp(arg[iarg+1],"no") == 0) rescale_charges_flag[rxn] = 0; //default
         else if (strcmp(arg[iarg+1],"yes") == 0) {
+          if (!atom->q_flag) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "cannot use 'rescale_charges' without atomic charges enabled");
           rescale_charges_flag[rxn] = 1;
+          rescale_charges_anyflag = 1;
           cuff = 2; // index shift for extra values carried around by mega_gloves
         }
         else error->one(FLERR,"Bond/react: Illegal option for 'rescale_charges' keyword");
@@ -1290,7 +1294,7 @@ void FixBondReact::superimpose_algorithm()
 
   for (int i = 0; i < max_natoms+cuff; i++)
     for (int j = 0; j < allnattempt; j++)
-      my_mega_glove[i][j] = 0;
+      my_mega_glove[i][j] = 0.0;
 
   attempted_rxn = 1;
 
@@ -1341,6 +1345,7 @@ void FixBondReact::superimpose_algorithm()
           } else {
             status = ACCEPT;
             my_mega_glove[0][my_num_mega] = (double) rxnID;
+            if (rescale_charges_flag[rxnID]) my_mega_glove[1][my_num_mega] = get_totalcharge();
             for (int i = 0; i < onemol->natoms; i++) {
               my_mega_glove[i+cuff][my_num_mega] = (double) glove[i][1];
             }
@@ -1389,6 +1394,7 @@ void FixBondReact::superimpose_algorithm()
               random[rxnID]->uniform() >= fraction[rxnID]) status = REJECT;
           else {
             my_mega_glove[0][my_num_mega] = (double) rxnID;
+            if (rescale_charges_flag[rxnID]) my_mega_glove[1][my_num_mega] = get_totalcharge();
             for (int i = 0; i < onemol->natoms; i++) {
               my_mega_glove[i+cuff][my_num_mega] = (double) glove[i][1];
             }
@@ -1414,8 +1420,8 @@ void FixBondReact::superimpose_algorithm()
 
   for (int i = 0; i < max_natoms+cuff; i++) {
     for (int j = 0; j < my_num_mega; j++) {
-      local_mega_glove[i][j] = 0;
-      ghostly_mega_glove[i][j] = 0;
+      local_mega_glove[i][j] = 0.0;
+      ghostly_mega_glove[i][j] = 0.0;
     }
   }
 
@@ -2188,6 +2194,24 @@ double FixBondReact::get_temperature(tagint **myglove, int row_offset, int col)
   double tfactor = force->mvv2e / (dof * force->boltz);
   t *= tfactor;
   return t;
+}
+
+/* ----------------------------------------------------------------------
+compute sum of partial charges in rxn site, for updated atoms
+note: currently uses global rxnID and onemol variables
+------------------------------------------------------------------------- */
+
+double FixBondReact::get_totalcharge()
+{
+  int j,jj,ilocal;
+  double *q = atom->q;
+  double sim_total_charge = 0.0;
+  for (j = 0; j < onemol->natoms; j++) {
+    jj = equivalences[j][1][rxnID]-1;
+    if (custom_charges[jj][rxnID] == 1)
+      sim_total_charge += q[atom->map(glove[jj][1])];
+  }
+  return sim_total_charge;
 }
 
 /* ----------------------------------------------------------------------
@@ -3008,8 +3032,12 @@ void FixBondReact::update_everything()
 
   int update_num_mega;
   tagint **update_mega_glove;
-  // for now, keeping rxnID in update_mega_glove, but not rest of cuff
-  memory->create(update_mega_glove,max_natoms+1,MAX(local_num_mega,global_megasize),"bond/react:update_mega_glove");
+  // for now, keeping rxnID in update_mega_glove, but not rest of cuff in update_mega_glove
+  int maxmega = MAX(local_num_mega,global_megasize);
+  memory->create(update_mega_glove,max_natoms+1,maxmega,"bond/react:update_mega_glove");
+
+  double *sim_total_charges;
+  if (rescale_charges_anyflag) memory->create(sim_total_charges,maxmega,"bond/react:sim_total_charges");
 
   for (int pass = 0; pass < 2; pass++) {
     update_num_mega = 0;
@@ -3038,6 +3066,7 @@ void FixBondReact::update_everything()
           }
         }
 
+        if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = local_mega_glove[1][i];
         update_num_mega++;
       }
     } else if (pass == 1) {
@@ -3065,6 +3094,7 @@ void FixBondReact::update_everything()
           }
         }
 
+        if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = global_mega_glove[1][i];
         update_num_mega++;
       }
     }
@@ -3112,8 +3142,6 @@ void FixBondReact::update_everything()
           int jj = equivalences[j][1][rxnID]-1;
           if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
               atom->map(update_mega_glove[jj+1][i]) < nlocal) {
-            if (landlocked_atoms[j][rxnID] == 1)
-              type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
             if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
               double *q = atom->q;
               sim_total_charge += q[atom->map(update_mega_glove[jj+1][i])];
@@ -3122,6 +3150,7 @@ void FixBondReact::update_everything()
             }
           }
         }
+        printf("check1 %g %g\n",sim_total_charge,sim_total_charges[i]);
       }
       charge_rescale_addend = (sim_total_charge-mol_total_charge)/n_custom_charge;
     }
@@ -3564,6 +3593,7 @@ void FixBondReact::update_everything()
   }
 
   memory->destroy(update_mega_glove);
+  if (rescale_charges_anyflag) memory->destroy(sim_total_charges);
 
   // delete atoms. taken from fix_evaporate. but don't think it needs to be in pre_exchange
   // loop in reverse order to avoid copying marked atoms
@@ -3708,6 +3738,7 @@ int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
     fitroot = comm->me;
 
     // get 'temperatere' averaged over site, used for created atoms' vels
+    // note: row_offset for my_update_mega_glove is unity, not 'cuff'
     t = get_temperature(my_update_mega_glove,1,iupdate);
 
     double **xfrozen; // coordinates for the "frozen" target molecule

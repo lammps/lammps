@@ -1394,7 +1394,7 @@ void FixDeform::set_iso()
 void FixDeform::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
-    int size = 6 * sizeof(Set);
+    int size = 7 * sizeof(Set);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(set,sizeof(Set),7,fp);
   }

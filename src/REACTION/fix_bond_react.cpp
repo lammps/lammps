@@ -391,8 +391,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'rescale_charges' has too few arguments");
         if (strcmp(arg[iarg+1],"no") == 0) rescale_charges_flag[rxn] = 0; //default
         else if (strcmp(arg[iarg+1],"yes") == 0) {
-          if (!atom->q_flag) error->all(FLERR,"Illegal fix bond/react command: "
-                                      "cannot use 'rescale_charges' without atomic charges enabled");
+          if (!atom->q_flag) error->all(FLERR,"Illegal fix bond/react command: cannot use "
+                                      "'rescale_charges' without atomic charges enabled");
+          twomol = atom->molecules[reacted_mol[rxn]];
+          if (!twomol->qflag) error->all(FLERR,"Illegal fix bond/react command: cannot use "
+                                      "'rescale_charges' without Charges section in post-reaction template");
           rescale_charges_flag[rxn] = 1; // overloaded below to also indicate number of atoms to update
           rescale_charges_anyflag = 1;
           cuff = 2; // index shift for extra values carried around by mega_gloves
@@ -497,13 +500,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (rescale_charges_flag[myrxn]) {
       rescale_charges_flag[myrxn] = 0; // will now store number of updated atoms
       twomol = atom->molecules[reacted_mol[myrxn]];
-      if (twomol->qflag) {
-        for (int j = 0; j < twomol->natoms; j++) {
-          int jj = equivalences[j][1][myrxn]-1;
-          if (custom_charges[jj][myrxn] == 1 && delete_atoms[jj][myrxn] == 0) {
-            mol_total_charge[myrxn] += twomol->q[j];
-            rescale_charges_flag[myrxn]++;
-          }
+      for (int j = 0; j < twomol->natoms; j++) {
+        int jj = equivalences[j][1][myrxn]-1;
+        if (custom_charges[jj][myrxn] == 1 && delete_atoms[jj][myrxn] == 0) {
+          mol_total_charge[myrxn] += twomol->q[j];
+          rescale_charges_flag[myrxn]++;
         }
       }
     }

@@ -77,7 +77,7 @@ buffer, and they will be communicated together to minimize
 communication overhead.  The communication buffers are defined vectors
 containing ``double`` values.  To correctly store integers that may be
 64-bit (bigint, tagint, imageint) in the buffer, you need to use the
-`ubuf union <Communication buffer coding with ubuf>`_ construct.
+:ref:`ubuf union <communication_buffer_coding_with_ubuf>` construct.
 
 The *Fix*, *Compute*, and *Dump* classes can also invoke the same kind
 of forward and reverse communication operations using the same *Comm*

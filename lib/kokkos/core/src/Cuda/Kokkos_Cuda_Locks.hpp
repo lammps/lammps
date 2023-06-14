@@ -67,7 +67,7 @@ struct CudaLockArrays {
 
 /// \brief This global variable in Host space is the central definition
 ///        of these arrays.
-extern Kokkos::Impl::CudaLockArrays g_host_cuda_lock_arrays;
+extern CudaLockArrays g_host_cuda_lock_arrays;
 
 /// \brief After this call, the g_host_cuda_lock_arrays variable has
 ///        valid, initialized arrays.
@@ -105,12 +105,12 @@ namespace Impl {
 /// instances in other translation units, we must update this CUDA global
 /// variable based on the Host global variable prior to running any kernels
 /// that will use it.
-/// That is the purpose of the KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE macro.
+/// That is the purpose of the ensure_cuda_lock_arrays_on_device function.
 __device__
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
     __constant__ extern
 #endif
-    Kokkos::Impl::CudaLockArrays g_device_cuda_lock_arrays;
+    CudaLockArrays g_device_cuda_lock_arrays;
 
 #define CUDA_SPACE_ATOMIC_MASK 0x1FFFF
 
@@ -123,9 +123,7 @@ __device__ inline bool lock_address_cuda_space(void* ptr) {
   size_t offset = size_t(ptr);
   offset        = offset >> 2;
   offset        = offset & CUDA_SPACE_ATOMIC_MASK;
-  return (
-      0 ==
-      atomicCAS(&Kokkos::Impl::g_device_cuda_lock_arrays.atomic[offset], 0, 1));
+  return (0 == atomicCAS(&g_device_cuda_lock_arrays.atomic[offset], 0, 1));
 }
 
 /// \brief Release lock for the address
@@ -138,7 +136,7 @@ __device__ inline void unlock_address_cuda_space(void* ptr) {
   size_t offset = size_t(ptr);
   offset        = offset >> 2;
   offset        = offset & CUDA_SPACE_ATOMIC_MASK;
-  atomicExch(&Kokkos::Impl::g_device_cuda_lock_arrays.atomic[offset], 0);
+  atomicExch(&g_device_cuda_lock_arrays.atomic[offset], 0);
 }
 
 }  // namespace Impl
@@ -151,44 +149,48 @@ namespace {
 static int lock_array_copied = 0;
 inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
 }  // namespace
-}  // namespace Impl
-}  // namespace Kokkos
 
-/* Dan Ibanez: it is critical that this code be a macro, so that it will
-   capture the right address for Kokkos::Impl::g_device_cuda_lock_arrays!
-   putting this in an inline function will NOT do the right thing! */
-#define KOKKOS_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE()                      \
-  {                                                                   \
-    if (::Kokkos::Impl::lock_array_copied == 0) {                     \
-      KOKKOS_IMPL_CUDA_SAFE_CALL(                                     \
-          cudaMemcpyToSymbol(Kokkos::Impl::g_device_cuda_lock_arrays, \
-                             &Kokkos::Impl::g_host_cuda_lock_arrays,  \
-                             sizeof(Kokkos::Impl::CudaLockArrays)));  \
-    }                                                                 \
-    lock_array_copied = 1;                                            \
+#ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
+inline
+#else
+inline static
+#endif
+    void
+    copy_cuda_lock_arrays_to_device() {
+  if (lock_array_copied == 0) {
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemcpyToSymbol(g_device_cuda_lock_arrays,
+                                                  &g_host_cuda_lock_arrays,
+                                                  sizeof(CudaLockArrays)));
   }
+  lock_array_copied = 1;
+}
 
 #ifndef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
-#define KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE()
+inline void ensure_cuda_lock_arrays_on_device() {}
 #else
-#define KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE() \
-  KOKKOS_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE()
+inline static void ensure_cuda_lock_arrays_on_device() {
+  copy_cuda_lock_arrays_to_device();
+}
 #endif
 
 #else
 
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
-#define KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE()
+inline void ensure_cuda_lock_arrays_on_device() {}
 #else
 // Still Need COPY_CUDA_LOCK_ARRAYS for team scratch etc.
-#define KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE() \
-  KOKKOS_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE()         \
-  DESUL_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE()
+inline static void ensure_cuda_lock_arrays_on_device() {
+  copy_cuda_lock_arrays_to_device();
+  desul::ensure_cuda_lock_arrays_on_device();
+}
 #endif
 
 #endif /* defined( KOKKOS_ENABLE_IMPL_DESUL_ATOMICS ) */
+
+}  // namespace Impl
+}  // namespace Kokkos
 
 #endif /* defined( KOKKOS_ENABLE_CUDA ) */
 

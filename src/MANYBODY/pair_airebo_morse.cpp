@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,7 +17,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {
+PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp)
+{
   variant = AIREBO_M;
 }
 
@@ -28,7 +28,7 @@ PairAIREBOMorse::PairAIREBOMorse(LAMMPS *lmp) : PairAIREBO(lmp) {
 
 void PairAIREBOMorse::settings(int narg, char **arg)
 {
-  PairAIREBO::settings(narg,arg);
+  PairAIREBO::settings(narg, arg);
 
   morseflag = 1;
 }

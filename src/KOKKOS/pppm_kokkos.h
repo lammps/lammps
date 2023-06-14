@@ -124,8 +124,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   ~PPPMKokkos() override;
   void init() override;
   void setup() override;
-  void reset_grid() override;
-  void settings(int, char **) override;
   void compute(int, int) override;
   int timing_1d(int, double &) override;
   int timing_3d(int, double &) override;
@@ -324,7 +322,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   Few<double,6> h, h_inv;
 
   KOKKOS_INLINE_FUNCTION
-  void x2lamdaT(double* v, double* lamda) const
+  void x2lamdaT_kokkos(double* v, double* lamda) const
   {
     double lamda_tmp[3];
 
@@ -393,23 +391,15 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   //int **part2grid;             // storage for particle -> grid mapping
   typename AT::t_int_1d_3 d_part2grid;
 
-  //double *boxlo;
   double boxlo[3];
 
-  void set_grid_global() override;
   void set_grid_local() override;
-  void adjust_gewald();
-  double newton_raphson_f() override;
-  double derivf();
-  double final_accuracy();
 
   void allocate() override;
   void allocate_peratom() override;
   void deallocate() override;
   void deallocate_peratom() override;
-  int factorable(int);
-  double compute_df_kspace() override;
-  double estimate_ik_error(double, double, bigint);
+  double estimate_ik_error(double, double, bigint) override;
   void compute_gf_denom() override;
   void compute_gf_ik() override;
 
@@ -417,7 +407,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void make_rho() override;
   void brick2fft() override;
 
-  void poisson() override;
   void poisson_ik() override;
 
   void fieldforce() override;
@@ -425,7 +414,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   void poisson_peratom() override;
   void fieldforce_peratom() override;
-  void procs2grid2d(int,int,int,int *, int*);
 
   KOKKOS_INLINE_FUNCTION
   void compute_rho1d(const int i, const FFT_SCALAR &, const FFT_SCALAR &,

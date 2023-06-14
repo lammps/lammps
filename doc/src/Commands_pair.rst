@@ -37,6 +37,7 @@ OPT.
    *
    * :doc:`adp (ko) <pair_adp>`
    * :doc:`agni (o) <pair_agni>`
+   * :doc:`aip/water/2dm (t) <pair_aip_water_2dm>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/morse (io) <pair_airebo>`
    * :doc:`amoeba (g) <pair_amoeba>`
@@ -55,6 +56,7 @@ OPT.
    * :doc:`born/coul/msm (o) <pair_born>`
    * :doc:`born/coul/wolf (go) <pair_born>`
    * :doc:`born/coul/wolf/cs (g) <pair_cs>`
+   * :doc:`born/gauss <pair_born_gauss>`
    * :doc:`bpm/spring <pair_bpm_spring>`
    * :doc:`brownian (o) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
@@ -136,6 +138,7 @@ OPT.
    * :doc:`lennard/mdf <pair_mdf>`
    * :doc:`lepton (o) <pair_lepton>`
    * :doc:`lepton/coul (o) <pair_lepton>`
+   * :doc:`lepton/sphere (o) <pair_lepton>`
    * :doc:`line/lj <pair_line_lj>`
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
@@ -170,12 +173,14 @@ OPT.
    * :doc:`lj/cut/dipole/long (g) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
+   * :doc:`lj/cut/sphere (o) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (o) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long (got) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (gk) <pair_lj_expand>`
+   * :doc:`lj/expand/sphere (o) <pair_lj_expand_sphere>`
    * :doc:`lj/gromacs (gko) <pair_gromacs>`
    * :doc:`lj/gromacs/coul/gromacs (ko) <pair_gromacs>`
    * :doc:`lj/long/coul/long (iot) <pair_lj_long>`

@@ -113,6 +113,7 @@ class FixShake : public Fix {
   double dtf_inner, dtf_innerhalf;    // timesteps for rRESPA trial move
 
   int *list;             // list of clusters to SHAKE
+  int **closest_list;    // list of closest atom indices in SHAKE clusters
   int nlist, maxlist;    // size and max-size of list
 
   // stat quantities
@@ -140,8 +141,8 @@ class FixShake : public Fix {
   void shake3(int);
   void shake4(int);
   void shake3angle(int);
-  void bond_force(tagint, tagint, double);
-  void stats();
+  void bond_force(int, int, double);
+  virtual void stats();
   int bondtype_findset(int, tagint, tagint, int);
   int angletype_findset(int, tagint, tagint, int);
 

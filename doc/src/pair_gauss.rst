@@ -103,12 +103,13 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 For atom type pairs I,J and I != J, the A, B, H, sigma_h, r_mh
 parameters, and the cutoff distance for these pair styles can be mixed:
-A (energy units)
-sqrt(1/B) (distance units, see below)
-H (energy units)
-sigma_h (distance units)
-r_mh (distance units)
-cutoff (distance units):ul
+
+* A (energy units)
+* :math:`\sqrt{\frac{1}{B}}` (distance units, see below)
+* H (energy units)
+* :math:`r_{mh}` (distance units)
+* :math:`\sigma_h` (distance units)
+* cutoff (distance units)
 
 The default mix value is *geometric*\ .
 Only *arithmetic* and *geometric* mix values are supported.
@@ -137,16 +138,19 @@ interaction.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for these pair styles.
 
-These pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
+These pair styles write their information to :doc:`binary restart files
+<restart>`, so pair_style and pair_coeff commands do not need to be
+specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*, *middle*, *outer* keywords.
 
-The *gauss* pair style tallies an "occupancy" count of how many Gaussian-well
-sites have an atom within the distance at which the force is a maximum
-= sqrt(0.5/b).  This quantity can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 1.
+The *gauss* pair style tallies an "occupancy" count of how many
+Gaussian-well sites have an atom within the distance at which the force
+is a maximum = sqrt(0.5/b).  This quantity can be accessed via the
+:doc:`compute pair <compute_pair>` command as a vector of values of
+length 1.
 
 To print this quantity to the log file (with a descriptive column
 heading) the following commands could be included in an input script:
@@ -166,14 +170,10 @@ The *gauss* and *gauss/cut* styles are part of the EXTRA-PAIR package.
 They are only enabled if LAMMPS is build with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
-The *gauss* style does not apply :doc:`special_bonds <special_bonds>`
-factors. When using this pair style on a system that has bonds, the
-special_bonds factors, if using the default setting of 0.0, may need to
-be adjusted to some very small number (e.g. 1.0e-100), so that those
-special pairs are not completely excluded from the neighbor lists, but
-won't contribute forces or energies from styles (e.g. when used in
-combination with a :doc:`hybrid pair style <pair_hybrid>`) that do
-apply those factors.
+.. versionchanged:: 28Mar2023
+
+Prior to this version, the *gauss* pair style did not apply
+:doc:`special_bonds <special_bonds>` factors.
 
 Related commands
 """"""""""""""""

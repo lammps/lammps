@@ -13,17 +13,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_piston.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "random_mars.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "update.h"
-#include "error.h"
-#include "random_mars.h"
-#include "force.h"
-#include "comm.h"
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -10,7 +10,7 @@ Syntax
 
    bond_style style args
 
-* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
+* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/restrain* *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
 
 * args = none for any style except *hybrid*
 
@@ -32,13 +32,13 @@ Set the formula(s) LAMMPS uses to compute bond interactions between
 pairs of atoms.  In LAMMPS, a bond differs from a pairwise
 interaction, which are set via the :doc:`pair_style <pair_style>`
 command.  Bonds are defined between specified pairs of atoms and
-remain in force for the duration of the simulation (unless the bond
-breaks which is possible in some bond potentials).  The list of bonded
-atoms is read in by a :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` command from a data or restart file.
-By contrast, pair potentials are typically defined between all pairs
-of atoms within a cutoff distance and the set of active interactions
-changes over time.
+remain in force for the duration of the simulation (unless new bonds
+are created or existing bonds break, which is possible in some fixes
+and bond potentials).  The list of bonded atoms is read in by a
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+command from a data or restart file.  By contrast, pair potentials are
+typically defined between all pairs of atoms within a cutoff distance
+and the set of active interactions changes over time.
 
 Hybrid models where bonds are computed using different bond potentials
 can be setup using the *hybrid* bond style.
@@ -93,6 +93,7 @@ accelerated styles exist.
 * :doc:`gaussian <bond_gaussian>` - multicentered Gaussian-based bond potential
 * :doc:`gromos <bond_gromos>` - GROMOS force field bond
 * :doc:`harmonic <bond_harmonic>` - harmonic bond
+* :doc:`harmonic/restrain <bond_harmonic_restrain>` - harmonic bond to restrain to original bond distance
 * :doc:`harmonic/shift <bond_harmonic_shift>` - shifted harmonic bond
 * :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` - shifted harmonic bond with a cutoff
 * :doc:`lepton <bond_lepton>` - bond potential from evaluating a string

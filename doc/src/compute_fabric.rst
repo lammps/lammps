@@ -146,13 +146,13 @@ m to :math:`M` (inclusive).  A middle asterisk means all types from m to n
 Output info
 """""""""""
 
-This compute calculates a local vector of doubles and a scalar. The vector
-stores the unique components of the first requested tensor in the order
-:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`
-followed by the same components for all subsequent tensors.
+This compute calculates a global vector of doubles and a global scalar. The
+vector stores the unique components of the first requested tensor in the
+order :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
+:math:`yz` followed by the same components for all subsequent tensors.
 The length of the vector is therefore six times the number of requested
-tensors. The scalar output is the number of pairwise interactions included in
-the calculation of the fabric tensor.
+tensors. The scalar output is the number of pairwise interactions included
+in the calculation of the fabric tensor.
 
 Restrictions
 """"""""""""

@@ -88,7 +88,7 @@ commands)
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
 * coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO, oxDNA / oxRNA, SPICA
 * mesoscopic potentials: granular, Peridynamics, SPH, mesoscopic tubular potential (MESONT)
-* semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q), density functional tight-binding (LATTE)
+* semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q)
 * electron force field (eFF, AWPMD)
 * bond potentials: harmonic, FENE, Morse, nonlinear, Class II (COMPASS), quartic (breakable), tabulated, scripted
 * angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, Class II (COMPASS), tabulated, scripted
@@ -195,7 +195,7 @@ Multi-replica models
 * :doc:`parallel replica dynamics <prd>`
 * :doc:`temperature accelerated dynamics <tad>`
 * :doc:`parallel tempering <temper>`
-* path-integral MD: `first variant <fix_pimd>`, `second variant <fix_ipi>`
+* path-integral MD: :doc:`first variant <fix_pimd>`, :doc:`second variant <fix_ipi>`
 * multi-walker collective variables with :doc:`Colvars <fix_colvars>` and :doc:`Plumed <fix_plumed>`
 
 .. _prepost:

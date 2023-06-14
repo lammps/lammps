@@ -152,7 +152,7 @@ reached your minimization criteria. This could happen when the system
 comes to be stuck in a local basin of the phase space.  *vdfmax* is the
 maximum number of consecutive iterations with P(t) < 0.
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 The *abcfire* keyword allows to activate the ABC-FIRE variant of the
 *fire* minimization algorithm. ABC-FIRE introduces an additional factor

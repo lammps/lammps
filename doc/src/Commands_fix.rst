@@ -29,6 +29,7 @@ OPT.
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
    * :doc:`addtorque <fix_addtorque>`
+   * :doc:`alchemy <fix_alchemy>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
    * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
@@ -69,6 +70,7 @@ OPT.
    * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
+   * :doc:`efield/tip4p <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electrode/conp (i) <fix_electrode>`
    * :doc:`electrode/conq (i) <fix_electrode>`
@@ -92,6 +94,7 @@ OPT.
    * :doc:`grem <fix_grem>`
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
+   * :doc:`heat/flow <fix_heat_flow>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
@@ -101,13 +104,13 @@ OPT.
    * :doc:`langevin/drude <fix_langevin_drude>`
    * :doc:`langevin/eff <fix_langevin_eff>`
    * :doc:`langevin/spin <fix_langevin_spin>`
-   * :doc:`latte <fix_latte>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
    * :doc:`mdi/qm <fix_mdi_qm>`
+   * :doc:`mdi/qmmm <fix_mdi_qmmm>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
@@ -168,7 +171,8 @@ OPT.
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
-   * :doc:`pimd <fix_pimd>`
+   * :doc:`pimd/langevin <fix_pimd>`
+   * :doc:`pimd/nvt <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
@@ -257,12 +261,13 @@ OPT.
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`
    * :doc:`wall/ees <fix_wall_ees>`
-   * :doc:`wall/gran <fix_wall_gran>`
+   * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
    * :doc:`wall/harmonic <fix_wall>`
    * :doc:`wall/lj1043 <fix_wall>`
    * :doc:`wall/lj126 <fix_wall>`
    * :doc:`wall/lj93 (k) <fix_wall>`
+   * :doc:`wall/lepton <fix_wall>`
    * :doc:`wall/morse <fix_wall>`
    * :doc:`wall/piston <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
@@ -270,4 +275,5 @@ OPT.
    * :doc:`wall/region <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
+   * :doc:`wall/table <fix_wall>`
    * :doc:`widom <fix_widom>`

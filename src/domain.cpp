@@ -974,10 +974,6 @@ void Domain::subbox_too_small_check(double thresh)
    changed "if" to "while" to enable distance to
      far-away ghost atom returned by atom->map() to be wrapped back into box
      could be problem for looking up atom IDs when cutoff > boxsize
-   this should not be used if atom has moved infinitely far outside box
-     b/c while could iterate forever
-     e.g. fix shake prediction of new position with highly overlapped atoms
-       uses minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
 static constexpr double MAXIMGCOUNT = 16;
@@ -1045,70 +1041,6 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
       while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   minimum image convention in periodic dimensions
-   use 1/2 of box size as test
-   for triclinic, also add/subtract tilt factors in other dims as needed
-   only shift by one box length in each direction
-   this should not be used if multiple box shifts are required
-------------------------------------------------------------------------- */
-
-void Domain::minimum_image_once(double *delta) const
-{
-  if (triclinic == 0) {
-    if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-    if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) delta[1] += yprd;
-        else delta[1] -= yprd;
-      }
-    }
-    if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) delta[2] += zprd;
-        else delta[2] -= zprd;
-      }
-    }
-
-  } else {
-    if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) {
-          delta[2] += zprd;
-          delta[1] += yz;
-          delta[0] += xz;
-        } else {
-          delta[2] -= zprd;
-          delta[1] -= yz;
-          delta[0] -= xz;
-        }
-      }
-    }
-    if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) {
-          delta[1] += yprd;
-          delta[0] += xy;
-        } else {
-          delta[1] -= yprd;
-          delta[0] -= xy;
-        }
-      }
-    }
-    if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
       }
     }
   }
@@ -1498,6 +1430,29 @@ void Domain::remap_near(double *xnew, double *xold)
   }
 
   if (triclinic) lamda2x(coordnew,xnew);
+}
+
+/* ----------------------------------------------------------------------
+   remap the point to specific image flags
+   x overwritten with result, reset image flag
+   for triclinic, use h[] to add in tilt factors in other dims as needed
+------------------------------------------------------------------------- */
+
+void Domain::unmap_inv(double *x, imageint image)
+{
+  int xbox = (image & IMGMASK) - IMGMAX;
+  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image >> IMG2BITS) - IMGMAX;
+
+  if (triclinic == 0) {
+    x[0] -= xbox*xprd;
+    x[1] -= ybox*yprd;
+    x[2] -= zbox*zprd;
+  } else {
+    x[0] -= h[0]*xbox + h[5]*ybox + h[4]*zbox;
+    x[1] -= h[1]*ybox + h[3]*zbox;
+    x[2] -= h[2]*zbox;
+  }
 }
 
 /* ----------------------------------------------------------------------

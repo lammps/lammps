@@ -38,6 +38,20 @@ been folded into the :doc:`reset_atoms <reset_atoms>` command.  If
 present, LAMMPS will replace the commands accordingly and print a
 warning.
 
+LATTE package
+-------------
+
+.. deprecated:: TBD
+
+The LATTE package with the fix latte command was removed from LAMMPS.
+This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`
+and :doc:`fix mdi/qmmm <fix_mdi_qmmm>` from the :ref:`MDI package
+<PKG-MDI>`.  These fixes are compatible with several quantum software
+packages, including LATTE.  See the ``examples/QUANTUM`` dir and the
+:doc:`MDI coupling HOWTO <Howto_mdi>` page.  MDI supports running LAMMPS
+with LATTE as a plugin library (similar to the way fix latte worked), as
+well as on a different set of MPI processors.
+
 MEAM package
 ------------
 
@@ -53,7 +67,7 @@ coexist with the Fortran version.
 Minimize style fire/old
 -----------------------
 
-.. deprecated:: TBD
+.. deprecated:: 8Feb2023
 
 Minimize style *fire/old* has been removed. Its functionality can be
 reproduced with *fire* with specific options. Please see the
@@ -62,7 +76,7 @@ reproduced with *fire* with specific options. Please see the
 Pair style mesont/tpm, compute style mesont, atom style mesont
 --------------------------------------------------------------
 
-.. deprecated:: TBD
+.. deprecated:: 8Feb2023
 
 Pair style *mesont/tpm*, compute style *mesont*, and atom style
 *mesont* have been removed from the :ref:`MESONT package <PKG-MESONT>`.

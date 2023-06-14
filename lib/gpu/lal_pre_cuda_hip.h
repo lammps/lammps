@@ -57,6 +57,7 @@
 #define MAX_SHARED_TYPES 11
 #define MAX_BIO_SHARED_TYPES 128
 #define PPPM_MAX_SPLINE 8
+#define NBOR_PREFETCH 0
 
 // -------------------------------------------------------------------------
 //                              KERNEL MACROS

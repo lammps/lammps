@@ -181,6 +181,7 @@ accelerated styles exist.
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom
 * :doc:`addtorque <fix_addtorque>` - add a torque to a group of atoms
+* :doc:`alchemy <fix_alchemy>` - perform an "alchemical transformation" between two partitions
 * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>` - torsion/torsion terms in AMOEBA force field
 * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>` - 6-body terms in AMOEBA force field
 * :doc:`append/atoms <fix_append_atoms>` - append atoms to a running simulation
@@ -221,6 +222,7 @@ accelerated styles exist.
 * :doc:`dt/reset <fix_dt_reset>` - reset the timestep based on velocity, forces
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
+* :doc:`efield/tip4p <fix_efield>` - impose electric field on system with TIP4P molecules
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
 * :doc:`electrode/conp <fix_electrode>` - impose electric potential
 * :doc:`electrode/conq <fix_electrode>` - impose total electric charge
@@ -244,6 +246,7 @@ accelerated styles exist.
 * :doc:`grem <fix_grem>` - implements the generalized replica exchange method
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
+* :doc:`heat/flow <fix_heat_flow>` - plain time integration of heat flow with per-atom temperature updates
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
@@ -253,13 +256,13 @@ accelerated styles exist.
 * :doc:`langevin/drude <fix_langevin_drude>` - Langevin temperature control of Drude oscillators
 * :doc:`langevin/eff <fix_langevin_eff>` - Langevin temperature control for the electron force field model
 * :doc:`langevin/spin <fix_langevin_spin>` - Langevin temperature control for a spin or spin-lattice system
-* :doc:`latte <fix_latte>` - wrapper on LATTE density-functional tight-binding code
 * :doc:`lb/fluid <fix_lb_fluid>` - lattice-Boltzmann fluid on a uniform mesh
 * :doc:`lb/momentum <fix_lb_momentum>` - :doc:`fix momentum <fix_momentum>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lb/viscous <fix_lb_viscous>` - :doc:`fix viscous <fix_viscous>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
-* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as driver for a quantum code via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as a client for a quantum code via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qmmm <fix_mdi_qmmm>` - LAMMPS operates as client for QM/MM simulation with a quantum code via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
@@ -320,7 +323,8 @@ accelerated styles exist.
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
 * :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
-* :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
+* :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
+* :doc:`pimd/nvt <fix_pimd>` - Feynman path-integral molecular dynamics with Nose-Hoover thermostat
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies
@@ -415,6 +419,7 @@ accelerated styles exist.
 * :doc:`wall/lj1043 <fix_wall>` - Lennard-Jones 10--4--3 wall
 * :doc:`wall/lj126 <fix_wall>` - Lennard-Jones 12--6 wall
 * :doc:`wall/lj93 <fix_wall>` - Lennard-Jones 9--3 wall
+* :doc:`wall/lepton <fix_wall>` - Custom Lepton expression wall
 * :doc:`wall/morse <fix_wall>` - Morse potential wall
 * :doc:`wall/piston <fix_wall_piston>` - moving reflective piston wall
 * :doc:`wall/reflect <fix_wall_reflect>` - reflecting wall(s)
@@ -422,6 +427,7 @@ accelerated styles exist.
 * :doc:`wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`wall/region/ees <fix_wall_ees>` - use region surface as wall for ellipsoidal particles
 * :doc:`wall/srd <fix_wall_srd>` - slip/no-slip wall for SRD particles
+* :doc:`wall/table <fix_wall>` - Tabulated potential wall wall
 * :doc:`widom <fix_widom>` - Widom insertions of atoms or molecules
 
 Restrictions

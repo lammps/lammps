@@ -36,6 +36,10 @@ using namespace MathConst;
 ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp)
 {
   writedata = 1;
+
+  // the second atom in the quadruplet is the atom of symmetry
+
+  symmatoms[1] = 1;
 }
 
 /* ---------------------------------------------------------------------- */

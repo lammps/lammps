@@ -37,6 +37,9 @@ Examples
    pair_coeff 1 1 dmt 1000.0 50.0 0.3 0.0 tangential mindlin NULL 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
    pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin NULL 0.5 0.1 rolling sds 500.0 200.0 0.1 twisting marshall
 
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat area 0.1
+
 Description
 """""""""""
 
@@ -223,16 +226,19 @@ for all models except *jkr*, for which it is given implicitly according
 to :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`.  For *damping viscoelastic*,
 :math:`\eta_{n0}` is in units of 1/(\ *time*\ \*\ *distance*\ ).
 
-The *tsuji* model is based on the work of :ref:`(Tsuji et al) <Tsuji1992>`. Here, the damping coefficient specified as part of
-the normal model is interpreted as a restitution coefficient
-:math:`e`. The damping constant :math:`\eta_n` is given by:
+The *tsuji* model is based on the work of :ref:`(Tsuji et al) <Tsuji1992>`.
+Here, the damping coefficient specified as part of the normal model is interpreted
+as a restitution coefficient :math:`e`. The damping constant :math:`\eta_n` is
+given by:
 
 .. math::
 
    \eta_n = \alpha (m_{eff}k_n)^{1/2}
 
-For normal contact models based on material parameters, :math:`k_n = 4/3Ea`.  The parameter :math:`\alpha` is related to the restitution
-coefficient *e* according to:
+For normal contact models based on material parameters, :math:`k_n = 4/3Ea`. This
+damping model is not compatible with cohesive normal models such as *JKR* or *DMT*.
+The parameter :math:`\alpha` is related to the restitution coefficient *e*
+according to:
 
 .. math::
 
@@ -631,6 +637,34 @@ attractive force. This keyword cannot be used with the JKR or DMT models.
 
 ----------
 
+The optional *heat* keyword enables heat conduction. The options currently
+supported are:
+
+1. *none*
+2. *area* : :math:`k_{s}`
+
+If the *heat* keyword is not specified, the model defaults to *none*.
+
+For *heat* *area*, the heat
+:math:`Q` conducted between two particles is given by
+
+.. math::
+
+   Q = k_{s} A \Delta T
+
+
+
+where :math:`\Delta T` is the difference in the two particles' temperature,
+:math:`k_{s}` is a non-negative numeric value for the conductivity, and
+:math:`A` is the area of the contact and depends on the normal force model.
+
+Note that the option *none* must either be used in all or none of of the
+*pair_coeff* calls. See :doc:`fix heat/flow <fix_heat_flow>` and
+:doc:`fix property/atom <fix_property_atom>` for more information on this
+option.
+
+----------
+
 The *granular* pair style can reproduce the behavior of the
 *pair gran/\** styles with the appropriate settings (some very
 minor differences can be expected due to corrections in
@@ -641,7 +675,7 @@ is equivalent to *pair gran/hooke 1000.0 NULL 50.0 50.0 0.4 1*\ .
 The second example is equivalent to
 *pair gran/hooke/history 1000.0 500.0 50.0 50.0 0.4 1*\ .
 The third example is equivalent to
-*pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1*\ .
+*pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1 limit_damping*\ .
 
 ----------
 
@@ -702,7 +736,7 @@ or
 
 .. math::
 
-   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}
+   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
 specified in an input script that reads a restart file.
@@ -733,22 +767,30 @@ These extra quantities can be accessed by the :doc:`compute pair/local <compute_
 Restrictions
 """"""""""""
 
-All the granular pair styles are part of the GRANULAR package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This pair style is part of the GRANULAR package.  It is
+only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
-These pair styles require that atoms store torque and angular velocity
-(omega) as defined by the :doc:`atom_style <atom_style>`.  They also
-require a per-particle radius is stored.  The *sphere* atom style does
-all of this.
+This pair style requires that atoms store per-particle radius,
+torque, and angular velocity (omega) as defined by the
+:doc:`atom_style sphere <atom_style>`.
 
-This pair style requires you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
-atoms.
+This pair style requires you to use the :doc:`comm_modify vel yes <comm_modify>`
+command so that velocities are stored by ghost atoms.
 
-These pair styles will not restart exactly when using the
-:doc:`read_restart <read_restart>` command, though they should provide
-statistically similar results.  This is because the forces they
-compute depend on atom velocities.  See the
-:doc:`read_restart <read_restart>` command for more details.
+This pair style will not restart exactly when using the
+:doc:`read_restart <read_restart>` command, though it should provide
+statistically similar results.  This is because the forces it
+computes depend on atom velocities and the atom velocities have
+been propagated half a timestep between the force computation and
+when the restart is written, due to using Velocity Verlet time
+integration. See the :doc:`read_restart <read_restart>` command
+for more details.
+
+Accumulated values for individual contacts are saved to restart
+files but are not saved to data files. Therefore, forces may
+differ significantly when a system is reloaded using the
+:doc:`read_data <read_data>` command.
 
 Related commands
 """"""""""""""""

@@ -327,15 +327,14 @@ void Input::file(const char *filename)
   // call to file() will close filename and decrement nfile
 
   if (me == 0) {
-    if (nfile == maxfile)
-      error->one(FLERR,"Too many nested levels of input scripts");
+    if (nfile == maxfile) error->one(FLERR,"Too many nested levels of input scripts");
 
-    infile = fopen(filename,"r");
-    if (infile == nullptr)
-      error->one(FLERR,"Cannot open input script {}: {}",
-                                   filename, utils::getsyserror());
-
-    infiles[nfile++] = infile;
+    if (filename) {
+      infile = fopen(filename,"r");
+      if (infile == nullptr)
+        error->one(FLERR,"Cannot open input script {}: {}", filename, utils::getsyserror());
+      infiles[nfile++] = infile;
+    }
   }
 
   // process contents of file
@@ -343,9 +342,11 @@ void Input::file(const char *filename)
   file();
 
   if (me == 0) {
-    fclose(infile);
-    nfile--;
-    infile = infiles[nfile-1];
+    if (filename) {
+      fclose(infile);
+      nfile--;
+      infile = infiles[nfile-1];
+    }
   }
 }
 
@@ -606,7 +607,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         paren_count = 0;
         i = 0;
 
-        while (var[i] != '\0' && !(var[i] == ')' && paren_count == 0)) {
+        while (var[i] != '\0' && (var[i] != ')' || paren_count != 0)) {
           switch (var[i]) {
           case '(': paren_count++; break;
           case ')': paren_count--; break;

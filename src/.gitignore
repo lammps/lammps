@@ -39,6 +39,8 @@
 /mdi_engine.h
 /fix_mdi_qm.cpp
 /fix_mdi_qm.h
+/fix_mdi_qmmm.cpp
+/fix_mdi_qmmm.h
 /mdi_command.cpp
 /mdi_command.h
 /mdi_plugin.cpp
@@ -56,12 +58,16 @@
 
 /pair_lepton.cpp
 /pair_lepton.h
+/pair_lepton_coul.cpp
+/pair_lepton_coul.h
 /bond_lepton.cpp
 /bond_lepton.h
 /angle_lepton.cpp
 /angle_lepton.h
 /dihedral_lepton.cpp
 /dihedral_lepton.h
+/fix_wall_lepton.cpp
+/fix_wall_lepton.h
 /lepton_utils.cpp
 /lepton_utils.h
 
@@ -460,8 +466,6 @@
 /atom_vec_full.h
 /atom_vec_full_hars.cpp
 /atom_vec_full_hars.h
-/atom_vec_granular.cpp
-/atom_vec_granular.h
 /atom_vec_molecular.cpp
 /atom_vec_molecular.h
 /atom_vec_oxdna.cpp
@@ -490,6 +494,8 @@
 /bond_gromos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
+/bond_harmonic_restrain.cpp
+/bond_harmonic_restrain.h
 /bond_harmonic_shift.cpp
 /bond_harmonic_shift.h
 /bond_harmonic_shift_cut.cpp
@@ -532,6 +538,10 @@
 /compute_damage_atom.h
 /compute_dilatation_atom.cpp
 /compute_dilatation_atom.h
+/compute_dipole_tip4p.cpp
+/compute_dipole_tip4p.h
+/compute_dipole_tip4p_chunk.cpp
+/compute_dipole_tip4p_chunk.h
 /compute_dpd.cpp
 /compute_dpd.h
 /compute_dpd_atom.cpp
@@ -750,6 +760,8 @@
 /fix_damping_cundall.h
 /fix_dpd_energy.cpp
 /fix_dpd_energy.h
+/fix_efield_tip4p.cpp
+/fix_efield_tip4p.h
 /fix_electron_stopping.cpp
 /fix_electron_stopping.h
 /fix_electron_stopping_fit.cpp
@@ -802,8 +814,6 @@
 /fix_lambdah_calc.h
 /fix_langevin_eff.cpp
 /fix_langevin_eff.h
-/fix_latte.cpp
-/fix_latte.h
 /latboltz_const.h
 /fix_lb_fluid.cpp
 /fix_lb_fluid.h
@@ -984,6 +994,8 @@
 /fix_wall_reflect_stochastic.h
 /fix_wall_gran.cpp
 /fix_wall_gran.h
+/fix_wall_gran_old.cpp
+/fix_wall_gran_old.h
 /fix_wall_gran_region.cpp
 /fix_wall_gran_region.h
 /fix_wall_piston.cpp
@@ -1046,6 +1058,10 @@
 /pair_adp.h
 /pair_agni.cpp
 /pair_agni.h
+/pair_aip_water_2dm.cpp
+/pair_aip_water_2dm.h
+/pair_aip_water_2dm_opt.cpp
+/pair_aip_water_2dm_opt.h
 /pair_airebo.cpp
 /pair_airebo.h
 /pair_airebo_morse.cpp
@@ -1239,6 +1255,8 @@
 /pair_lj_cut_dipole_long.h
 /pair_lj_cut_*hars_*.cpp
 /pair_lj_cut_*hars_*.h
+/pair_lj_cut_sphere.cpp
+/pair_lj_cut_sphere.h
 /pair_lj_cut_soft.cpp
 /pair_lj_cut_soft.h
 /pair_lj_cut_tip4p_long.cpp
@@ -1253,6 +1271,8 @@
 /pair_lj_long_tip4p_long.h
 /pair_lj_cut_tgpu.cpp
 /pair_lj_cut_tgpu.h
+/pair_lj_expand_sphere.cpp
+/pair_lj_expand_sphere.h
 /pair_lj_spica.cpp
 /pair_lj_spica.h
 /pair_lj_spica_coul_long.cpp
@@ -1465,6 +1485,8 @@
 /zstd_file_writer.cpp
 /zstd_file_writer.h
 
+/compute_pressure_alchemy.cpp
+/compute_pressure_alchemy.h
 /atom_vec_smd.cpp
 /atom_vec_smd.h
 /compute_saed.cpp
@@ -1533,6 +1555,12 @@
 /fix_mol_swap.h
 /fix_pimd.cpp
 /fix_pimd.h
+/fix_pimd_langevin.cpp
+/fix_pimd_langevin.h
+/fix_alchemy.cpp
+/fix_alchemy.h
+/fix_pimd_nvt.cpp
+/fix_pimd_nvt.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp
@@ -1559,6 +1587,8 @@
 /fix_srp.h
 /fix_srp_react.cpp
 /fix_srp_react.h
+/fix_heat_flow.cpp
+/fix_heat_flow.h
 /fix_tfmc.cpp
 /fix_tfmc.h
 /fix_ttm.cpp
@@ -1567,6 +1597,22 @@
 /fix_ttm_grid.h
 /fix_ttm_mod.cpp
 /fix_ttm_mod.h
+/granular_model.cpp
+/granular_model.h
+/gran_sub_mod_normal.cpp
+/gran_sub_mod_normal.h
+/gran_sub_mod_damping.cpp
+/gran_sub_mod_damping.h
+/gran_sub_mod_tangential.cpp
+/gran_sub_mod_tangential.h
+/gran_sub_mod_twisting.cpp
+/gran_sub_mod_twisting.h
+/gran_sub_mod_rolling.cpp
+/gran_sub_mod_rolling.h
+/gran_sub_mod_heat.cpp
+/gran_sub_mod_heat.h
+/gran_sub_mod.cpp
+/gran_sub_mod.h
 /pair_born_coul_long_cs.cpp
 /pair_born_coul_long_cs.h
 /pair_born_coul_dsf_cs.cpp
@@ -1579,6 +1625,8 @@
 /pair_coul_long_cs.h
 /pair_coul_wolf_cs.cpp
 /pair_coul_wolf_cs.h
+/pair_born_gauss.cpp
+/pair_born_gauss.h
 /pair_extep.cpp
 /pair_extep.h
 /pair_lj_cut_thole_long.cpp

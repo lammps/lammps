@@ -1,0 +1,70 @@
+# QMMM for SiO2 zeolite with one methane molecule
+
+units		metal
+atom_style	full
+
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.zeolite
+
+# MM atoms are Si,O
+# QM atoms are C,H
+
+group           mm type 1 2
+group           qm type 3 4
+
+# pair style must define stand-alone short-range Coulombics
+# must specify mixing explicitly b/c hybrid/overlay
+# MM Si,O = types 1,2
+# QM C,H = types 3,4
+# MM Si,O atoms do not LJ interact with each other (just via Buckingham)
+# QM C,H atoms do not LJ interact with each other
+# MM Si,O and QM C,H do LJ interact with each other
+
+pair_style      hybrid/overlay buck 6.5 lj/cut 6.5 coul/cut 6.5
+
+pair_coeff      1 1 buck 3150.462646 0.35032282 626.7519553
+pair_coeff      2 2 buck 659.595398 0.38609055 26.836679
+pair_coeff      1 2 buck 27029.419922 0.19385082 148.099091
+
+pair_coeff      1 3 lj/cut 0.09087 3.613
+pair_coeff      1 4 lj/cut 0.0344258 3.238
+pair_coeff      2 3 lj/cut 0.1419429 3.1
+pair_coeff      2 4 lj/cut 0.035857762359063315 1.932779
+
+pair_coeff      3 3 lj/cut 0.0 3.4
+pair_coeff      4 4 lj/cut 0.0 2.65
+pair_coeff      * * coul/cut
+
+bond_style      harmonic
+bond_coeff      1 29.40 1.09
+
+angle_style     harmonic
+angle_coeff     1 0.172325 109.5
+
+# remove bonds/angles in QM methane molecule
+
+delete_bonds    qm multi remove special
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+velocity        all create 300.0 458732
+
+# QMMM dynamics with small timestep
+# dynamic or frozen zeolite
+
+#fix		1 all nve
+fix		1 qm nve
+
+fix             2 qm mdi/qmmm potential elements Si O C H
+fix_modify      2 energy yes
+
+timestep        0.0001
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
+                f_2 pe etotal press
+thermo          1
+
+run		2

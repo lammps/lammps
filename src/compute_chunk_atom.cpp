@@ -21,7 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "group.h"
 #include "input.h"
 #include "lattice.h"
@@ -571,8 +571,8 @@ void ComputeChunkAtom::init()
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
     id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-    fixstore = dynamic_cast<FixStorePeratom *>(
-        modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1", id_fix, group->names[igroup])));
+    fixstore = dynamic_cast<FixStoreAtom *>(
+        modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix, group->names[igroup])));
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {
@@ -691,9 +691,10 @@ void ComputeChunkAtom::compute_ichunk()
   if (invoked_ichunk == update->ntimestep) return;
 
   // if old IDs persist via storage in fixstore, then just retrieve them
-  // yes if idsflag = ONCE, and already done once
+  // restore = yes if idsflag = ONCE, and already done once
   //   or if idsflag = NFREQ and lock is in place and are on later timestep
   // else proceed to recalculate per-atom chunk assignments
+  // if restoring, update invoked_ichunk only for NFREQ case
 
   const int nlocal = atom->nlocal;
   int restore = 0;
@@ -701,7 +702,7 @@ void ComputeChunkAtom::compute_ichunk()
   if (idsflag == NFREQ && lockfix && update->ntimestep > lockstart) restore = 1;
 
   if (restore) {
-    invoked_ichunk = update->ntimestep;
+    if (idsflag == NFREQ) invoked_ichunk = update->ntimestep;
     double *vstore = fixstore->vstore;
     for (i = 0; i < nlocal; i++) ichunk[i] = static_cast<int>(vstore[i]);
     return;

@@ -1,12 +1,12 @@
-Download an executable for Mac
-------------------------------
+Download an executable for macOS
+--------------------------------
 
-LAMMPS can be downloaded, built, and configured for OS X on a Mac with
-`Homebrew <homebrew_>`_.  (Alternatively, see the installation
-instructions for :doc:`downloading an executable via Conda
-<Install_conda>`.)  The following LAMMPS packages are unavailable at
-this time because of additional requirements not yet met: GPU, KOKKOS,
-LATTE, MSCG, MPIIO, POEMS, VORONOI.
+LAMMPS can be downloaded, built, and configured for macOS with `Homebrew
+<homebrew_>`_.  (Alternatively, see the installation instructions for
+:doc:`downloading an executable via Conda <Install_conda>`.)  The
+following LAMMPS packages are unavailable at this time because of
+additional requirements not yet met: GPU, KOKKOS, MSCG, MPIIO, POEMS,
+VORONOI.
 
 After installing Homebrew, you can install LAMMPS on your system with
 the following commands:
@@ -15,8 +15,9 @@ the following commands:
 
    brew install lammps
 
-This will install the executables "lammps_serial" and "lammps_mpi", as well as
-the LAMMPS "doc", "potentials", "tools", "bench", and "examples" directories.
+This will install the executables "lammps_serial" and "lammps_mpi", as
+well as the LAMMPS "doc", "potentials", "tools", "bench", and "examples"
+directories.
 
 Once LAMMPS is installed, you can test the installation with the
 Lennard-Jones benchmark file:

@@ -2523,9 +2523,17 @@ int FixRigid::pack_exchange(int i, double *buf)
   buf[2] = displace[i][0];
   buf[3] = displace[i][1];
   buf[4] = displace[i][2];
-  if (!extended) return 5;
+
+  // must also pack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
 
   int m = 5;
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      buf[m++] = vatom[i][k];
+
+  if (!extended) return m;
+
   buf[m++] = eflags[i];
   for (int j = 0; j < orientflag; j++)
     buf[m++] = orient[i][j];
@@ -2534,13 +2542,6 @@ int FixRigid::pack_exchange(int i, double *buf)
     buf[m++] = dorient[i][1];
     buf[m++] = dorient[i][2];
   }
-
-  // must also pack vatom if per-atom virial calculated on this timestep
-  // since vatom is calculated before and after atom migration
-
-  if (vflag_atom)
-    for (int k = 0; k < 6; k++)
-      buf[m++] = vatom[i][k];
 
   return m;
 }
@@ -2556,9 +2557,17 @@ int FixRigid::unpack_exchange(int nlocal, double *buf)
   displace[nlocal][0] = buf[2];
   displace[nlocal][1] = buf[3];
   displace[nlocal][2] = buf[4];
-  if (!extended) return 5;
+
+  // must also unpack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
 
   int m = 5;
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[nlocal][k] = buf[m++];
+
+  if (!extended) return m;
+
   eflags[nlocal] = static_cast<int> (buf[m++]);
   for (int j = 0; j < orientflag; j++)
     orient[nlocal][j] = buf[m++];
@@ -2567,13 +2576,6 @@ int FixRigid::unpack_exchange(int nlocal, double *buf)
     dorient[nlocal][1] = buf[m++];
     dorient[nlocal][2] = buf[m++];
   }
-
-  // must also unpack vatom if per-atom virial calculated on this timestep
-  // since vatom is calculated before and after atom migration
-
-  if (vflag_atom)
-    for (int k = 0; k < 6; k++)
-      vatom[nlocal][k] = buf[m++];
 
   return m;
 }

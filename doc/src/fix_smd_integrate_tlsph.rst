@@ -34,7 +34,7 @@ Description
 The fix performs explicit time integration for particles which
 interact according with the Total-Lagrangian SPH pair style.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth Mach
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth Mach
 Dynamics in LAMMPS.
 
 The *limit_velocity* keyword will control the velocity, scaling the

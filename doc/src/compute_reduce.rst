@@ -23,7 +23,7 @@ Syntax
        *reduce/region* arg = region-ID
          region-ID = ID of region to use for choosing atoms
 
-* mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq* or *sumabs* or *aveabs*
+* mode = *sum* or *min* or *minabs* or *max* or *maxabs* or *ave* or *sumsq* or *avesq* or *sumabs* or *aveabs*
 * one or more inputs can be listed
 * input = *x* or *y* or *z* or *vx* or *vy* or *vz* or *fx* or *fy* or *fz* or c_ID or c_ID[N] or f_ID or f_ID[N] or v_name
 
@@ -71,12 +71,13 @@ vectors.
 The reduction operation is specified by the *mode* setting.  The *sum*
 option adds the values in the vector into a global total.  The *min*
 or *max* options find the minimum or maximum value across all vector
-values.  The *ave* setting adds the vector values into a global total,
-then divides by the number of values in the vector.  The *sumsq*
-option sums the square of the values in the vector into a global
-total.  The *avesq* setting does the same as *sumsq*, then divides the
-sum of squares by the number of values.  The last two options can be
-useful for calculating the variance of some quantity (e.g., variance =
+values.  The *minabs* or *maxabs* options find the minimum or maximum
+value across all absolute vector values.  The *ave* setting adds the
+vector values into a global total, then divides by the number of values
+in the vector.  The *sumsq* option sums the square of the values in the
+vector into a global total.  The *avesq* setting does the same as *sumsq*,
+then divides the sum of squares by the number of values.  The last two options
+can be useful for calculating the variance of some quantity (e.g., variance =
 sumsq :math:`-` ave\ :math:`^2`).  The *sumabs* option sums the absolute
 values in the vector into a global total.  The *aveabs* setting does the same
 as *sumabs*, then divides the sum of absolute values by the number of

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,8 +19,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti3dTri::NStencilHalfMulti3dTri(LAMMPS *lmp) :
-  NStencil(lmp) {}
+NStencilHalfMulti3dTri::NStencilHalfMulti3dTri(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -37,11 +35,11 @@ void NStencilHalfMulti3dTri::set_stencil_properties()
 
   for (i = 0; i < n; i++) {
     for (j = 0; j < n; j++) {
-      if(cutcollectionsq[i][i] > cutcollectionsq[j][j]) continue;
+      if (cutcollectionsq[i][i] > cutcollectionsq[j][j]) continue;
 
       flag_skip_multi[i][j] = false;
 
-      if(cutcollectionsq[i][i] == cutcollectionsq[j][j]){
+      if (cutcollectionsq[i][i] == cutcollectionsq[j][j]) {
         flag_half_multi[i][j] = true;
         bin_collection_multi[i][j] = i;
       } else {
@@ -62,7 +60,6 @@ void NStencilHalfMulti3dTri::create()
   int n = ncollections;
   double cutsq;
 
-
   for (icollection = 0; icollection < n; icollection++) {
     for (jcollection = 0; jcollection < n; jcollection++) {
       if (flag_skip_multi[icollection][jcollection]) {
@@ -81,25 +78,21 @@ void NStencilHalfMulti3dTri::create()
       mbinz = stencil_mbinz_multi[icollection][jcollection];
 
       bin_collection = bin_collection_multi[icollection][jcollection];
-
       cutsq = cutcollectionsq[icollection][jcollection];
 
       if (flag_half_multi[icollection][jcollection]) {
         for (k = 0; k <= sz; k++)
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
-              if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
-                    stencil_multi[icollection][jcollection][ns++] =
-                        k*mbiny*mbinx + j*mbinx + i;
+              if (bin_distance_multi(i, j, k, bin_collection) < cutsq)
+                stencil_multi[icollection][jcollection][ns++] = k * mbiny * mbinx + j * mbinx + i;
       } else {
         for (k = -sz; k <= sz; k++)
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
-                  if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
-                    stencil_multi[icollection][jcollection][ns++] =
-                        k*mbiny*mbinx + j*mbinx + i;
+              if (bin_distance_multi(i, j, k, bin_collection) < cutsq)
+                stencil_multi[icollection][jcollection][ns++] = k * mbiny * mbinx + j * mbinx + i;
       }
-
       nstencil_multi[icollection][jcollection] = ns;
     }
   }

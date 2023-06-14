@@ -48,7 +48,7 @@ class FixAdapt : public Fix {
   int anypair, anybond, anyangle;
   int nlevels_respa;
   char *id_fix_diam, *id_fix_chg;
-  class FixStorePeratom *fix_diam, *fix_chg;
+  class FixStoreAtom *fix_diam, *fix_chg;
   double previous_diam_scale, previous_chg_scale;
   int discflag;
 

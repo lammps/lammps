@@ -16,7 +16,7 @@ The MDI Library is required in order to use this package, and can be
 built using the Install.py file in lib/mdi as explained in
 lib/mdi/README.  For example:
 
-python Install.py -m
+python Install.py -m mpi
 
 When using CMake to build LAMMPS the CMake configuration can use
 either a preinstalled MDI library or download and compile a

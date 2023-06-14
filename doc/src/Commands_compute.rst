@@ -46,12 +46,15 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
    * :doc:`coord/atom (k) <compute_coord_atom>`
+   * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`
    * :doc:`dihedral <compute_dihedral>`
    * :doc:`dihedral/local <compute_dihedral_local>`
    * :doc:`dilatation/atom <compute_dilatation_atom>`
    * :doc:`dipole <compute_dipole>`
    * :doc:`dipole/chunk <compute_dipole_chunk>`
+   * :doc:`dipole/tip4p <compute_dipole>`
+   * :doc:`dipole/tip4p/chunk <compute_dipole_chunk>`
    * :doc:`displace/atom <compute_displace_atom>`
    * :doc:`dpd <compute_dpd>`
    * :doc:`dpd/atom <compute_dpd_atom>`
@@ -61,7 +64,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`entropy/atom <compute_entropy_atom>`
    * :doc:`erotate/asphere <compute_erotate_asphere>`
    * :doc:`erotate/rigid <compute_erotate_rigid>`
-   * :doc:`erotate/sphere <compute_erotate_sphere>`
+   * :doc:`erotate/sphere (k) <compute_erotate_sphere>`
    * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>`
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
@@ -104,6 +107,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pe/tally <compute_tally>`
    * :doc:`plasticity/atom <compute_plasticity_atom>`
    * :doc:`pressure <compute_pressure>`
+   * :doc:`pressure/alchemy <compute_pressure_alchemy>`
    * :doc:`pressure/uef <compute_pressure_uef>`
    * :doc:`property/atom <compute_property_atom>`
    * :doc:`property/chunk <compute_property_chunk>`

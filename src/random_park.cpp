@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,14 +14,16 @@
 // Park/Miller RNG
 
 #include "random_park.h"
-#include <cmath>
+
 #include "error.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
 #define IA 16807
 #define IM 2147483647
-#define AM (1.0/IM)
+#define AM (1.0 / IM)
 #define IQ 127773
 #define IR 2836
 
@@ -30,8 +31,7 @@ using namespace LAMMPS_NS;
 
 RanPark::RanPark(LAMMPS *lmp, int seed_init) : Pointers(lmp)
 {
-  if (seed_init <= 0)
-    error->one(FLERR,"Invalid seed for Park random # generator");
+  if (seed_init <= 0) error->one(FLERR, "Invalid seed for Park random # generator");
   seed = seed_init;
   save = 0;
 }
@@ -42,10 +42,10 @@ RanPark::RanPark(LAMMPS *lmp, int seed_init) : Pointers(lmp)
 
 double RanPark::uniform()
 {
-  int k = seed/IQ;
-  seed = IA*(seed-k*IQ) - IR*k;
+  int k = seed / IQ;
+  seed = IA * (seed - k * IQ) - IR * k;
   if (seed < 0) seed += IM;
-  double ans = AM*seed;
+  double ans = AM * seed;
   return ans;
 }
 
@@ -55,17 +55,17 @@ double RanPark::uniform()
 
 double RanPark::gaussian()
 {
-  double first,v1,v2,rsq,fac;
+  double first, v1, v2, rsq, fac;
 
   if (!save) {
     do {
-      v1 = 2.0*uniform()-1.0;
-      v2 = 2.0*uniform()-1.0;
-      rsq = v1*v1 + v2*v2;
+      v1 = 2.0 * uniform() - 1.0;
+      v2 = 2.0 * uniform() - 1.0;
+      rsq = v1 * v1 + v2 * v2;
     } while ((rsq >= 1.0) || (rsq == 0.0));
-    fac = sqrt(-2.0*log(rsq)/rsq);
-    second = v1*fac;
-    first = v2*fac;
+    fac = sqrt(-2.0 * log(rsq) / rsq);
+    second = v1 * fac;
+    first = v2 * fac;
     save = 1;
   } else {
     first = second;
@@ -78,8 +78,7 @@ double RanPark::gaussian()
 
 void RanPark::reset(int seed_init)
 {
-  if (seed_init <= 0)
-    error->all(FLERR,"Invalid seed for Park random # generator");
+  if (seed_init <= 0) error->all(FLERR, "Invalid seed for Park random # generator");
   seed = seed_init;
   save = 0;
 }

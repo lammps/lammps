@@ -54,7 +54,7 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
-#define MAXELEMENT 103    // used elsewhere in MDI package
+#define MAXELEMENT 118
 
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine
@@ -81,14 +81,32 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "elements") == 0) {
+      const char *symbols[] = {
+        "H" , "He", "Li", "Be", "B" , "C" , "N" , "O" , "F" , "Ne",
+        "Na", "Mg", "Al", "Si", "P" , "S" , "Cl", "Ar", "K" , "Ca",
+        "Sc", "Ti", "V" , "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+        "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y" , "Zr",
+        "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
+        "Sb", "Te", "I" , "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
+        "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
+        "Lu", "Hf", "Ta", "W" , "Re", "Os", "Ir", "Pt", "Au", "Hg",
+        "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
+        "Pa", "U" , "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
+        "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
+        "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og",
+      };
+
       int ntypes = atom->ntypes;
       delete[] elements;
       elements = new int[ntypes + 1];
       if (iarg + ntypes + 1 > narg) error->all(FLERR, "Illegal mdi engine command");
       for (int i = 1; i <= ntypes; i++) {
-        elements[i] = utils::inumeric(FLERR, arg[iarg + i], false, lmp);
-        if (elements[i] < 0 || elements[i] > MAXELEMENT)
-          error->all(FLERR, "Illegal mdi engine command");
+        int anum;
+        for (anum = 0; anum < MAXELEMENT; anum++)
+          if (strcmp(arg[iarg + i],symbols[anum]) == 0) break;
+        if (anum == MAXELEMENT)
+          error->all(FLERR,"Invalid chemical element in mdi engine command");
+        elements[i] = anum + 1;
       }
       iarg += ntypes + 1;
     } else
@@ -412,6 +430,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     if (!actionflag && strcmp(node_engine, "@DEFAULT") == 0) evaluate();
     send_pe();
 
+  } else if (strcmp(command, "<KE_ELEC") == 0) {
+    send_ke_elec();
+
   } else if (strcmp(command, "<STRESS") == 0) {
     if (!actionflag && strcmp(node_engine, "@DEFAULT") == 0) evaluate();
     send_stress();
@@ -522,6 +543,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", "<MASSES");
   MDI_Register_command("@DEFAULT", "<NATOMS");
   MDI_Register_command("@DEFAULT", "<PE");
+  MDI_Register_command("@DEFAULT", "<KE_ELEC");
   MDI_Register_command("@DEFAULT", "<STRESS");
   MDI_Register_command("@DEFAULT", "<TYPES");
   MDI_Register_command("@DEFAULT", "<VELOCITIES");
@@ -600,6 +622,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@FORCES", "<FORCES");
   MDI_Register_command("@FORCES", "<KE");
   MDI_Register_command("@FORCES", "<PE");
+  MDI_Register_command("@FORCES", "<KE_ELEC");
   MDI_Register_command("@FORCES", "<STRESS");
   MDI_Register_command("@FORCES", "<VELOCITIES");
   MDI_Register_command("@FORCES", ">FORCES");
@@ -621,6 +644,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@ENDSTEP", "<FORCES");
   MDI_Register_command("@ENDSTEP", "<KE");
   MDI_Register_command("@ENDSTEP", "<PE");
+  MDI_Register_command("@ENDSTEP", "<KE_ELEC");
   MDI_Register_command("@ENDSTEP", "<STRESS");
   MDI_Register_command("@ENDSTEP", "@");
   MDI_Register_command("@ENDSTEP", "@DEFAULT");
@@ -1233,7 +1257,7 @@ void MDIEngine::receive_elements()
   MPI_Bcast(sys_types, sys_natoms, MPI_INT, 0, world);
 
   // convert from element atomic numbers to LAMMPS atom types
-  // use maping provided by mdi engine command
+  // use mapping provided by mdi engine command
 
   int ntypes = atom->ntypes;
   int itype;
@@ -1505,6 +1529,21 @@ void MDIEngine::send_pe()
 
   int ierr = MDI_Send(&potential_energy, 1, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <PE data");
+}
+
+/* ----------------------------------------------------------------------
+   <KE_ELEC command
+   send kinetic energy of the electrons
+   zero for LAMMPS, because it does not model electrons explicitly
+   for compatibiity with QM engines which support this command
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_ke_elec()
+{
+  double ke_elec = 0.0;
+
+  int ierr = MDI_Send(&ke_elec, 1, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <KE_ELEC data");
 }
 
 /* ----------------------------------------------------------------------

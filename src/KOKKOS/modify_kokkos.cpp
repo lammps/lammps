@@ -393,6 +393,24 @@ void ModifyKokkos::final_integrate()
 }
 
 /* ----------------------------------------------------------------------
+   fused initial and final integrate call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::fused_integrate(int vflag)
+{
+  for (int i = 0; i < n_final_integrate; i++) {
+    atomKK->sync(fix[list_final_integrate[i]]->execution_space,
+                 fix[list_final_integrate[i]]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_final_integrate[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_final_integrate[i]]->fused_integrate(vflag);
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_final_integrate[i]]->execution_space,
+                     fix[list_final_integrate[i]]->datamask_modify);
+  }
+}
+
+/* ----------------------------------------------------------------------
    end-of-timestep call, only for relevant fixes
    only call fix->end_of_step() on timesteps that are multiples of nevery
 ------------------------------------------------------------------------- */
@@ -880,4 +898,23 @@ int ModifyKokkos::min_reset_ref()
                      fix[list_min_energy[i]]->datamask_modify);
   }
   return itmpall;
+}
+
+/* ----------------------------------------------------------------------
+   check if initial and final integrate can be fused
+------------------------------------------------------------------------- */
+
+int ModifyKokkos::check_fuse_integrate()
+{
+  int fuse_integrate_flag = 1;
+
+  for (int i = 0; i < n_initial_integrate; i++)
+    if (!fix[list_initial_integrate[i]]->fuse_integrate_flag)
+      fuse_integrate_flag = 0;
+
+  for (int i = 0; i < n_final_integrate; i++)
+    if (!fix[list_final_integrate[i]]->fuse_integrate_flag)
+      fuse_integrate_flag = 0;
+
+  return fuse_integrate_flag;
 }

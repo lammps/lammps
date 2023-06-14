@@ -290,6 +290,20 @@ void FixGPU::init()
 
 void FixGPU::setup(int vflag)
 {
+  // See if we should overlap topology list builds on CPU with work on GPU
+  int overlap_topo = 0;
+  if ((atom->molecular != Atom::ATOMIC)) {
+    PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid",0));
+    if (ph) {
+      for (int isub=0; isub < ph->nstyles; ++isub) {
+        if (force->pair_match("gpu",0,isub)) overlap_topo = 1;
+      }
+    } else {
+      if (force->pair_match("gpu",0)) overlap_topo = 1;
+    }
+  }
+  if (overlap_topo) neighbor->set_overlap_topo(1);
+
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (neighbor->exclude_setting() != 0)
       error->all(FLERR, "Cannot use neigh_modify exclude with GPU neighbor builds");

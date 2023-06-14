@@ -95,7 +95,8 @@ class UCL_Program {
 
   /// Load a program from a string and compile with flags
   inline int load_string(const void *program, const char *flags="",
-                         std::string *log=nullptr, FILE* foutput=nullptr) {
+                         std::string *log=nullptr, FILE* foutput=nullptr,
+                         const int compile_test=0) {
     cl_int error_flag;
     const char *prog=(const char *)program;
     _program=clCreateProgramWithSource(_context,1,&prog,nullptr,&error_flag);
@@ -130,6 +131,8 @@ class UCL_Program {
                 << std::endl << std::endl;
     }
     #endif
+
+    if (build_status != CL_SUCCESS && compile_test) return UCL_COMPILE_ERROR;
 
     if (build_status != CL_SUCCESS || log!=NULL) {
       size_t ms;

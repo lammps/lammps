@@ -16,6 +16,9 @@ dihedral_style class2
 
 improper_style class2
 
+special_bonds lj/coul 0 0 1
+pair_modify tail yes mix sixthpower
+
 variable T equal 530
 
 read_data trimer.data &

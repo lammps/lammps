@@ -43,7 +43,6 @@ This is the list of packages that may require additional steps.
    * :ref:`INTEL <intel>`
    * :ref:`KIM <kim>`
    * :ref:`KOKKOS <kokkos>`
-   * :ref:`LATTE <latte>`
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
@@ -181,6 +180,9 @@ way no local OpenCL development headers or library needs to be present and only
 OpenCL compatible drivers need to be installed to use OpenCL.  If this is not
 desired, you can set :code:`USE_STATIC_OPENCL_LOADER` to :code:`no`.
 
+The GPU library has some multi-thread support using OpenMP.  If LAMMPS is built
+with ``-D BUILD_OMP=on`` this will also be enabled.
+
 If you are compiling with HIP, note that before running CMake you will have to
 set appropriate environment variables. Some variables such as
 :code:`HCC_AMDGPU_TARGET` (for ROCm <= 4.0) or :code:`CUDA_PATH` are necessary for :code:`hipcc`
@@ -274,9 +276,12 @@ To enable GPU binning via CUDA performance primitives set the Makefile variable
 most modern GPUs.
 
 To support the CUDA multiprocessor server you can set the define
-``-DCUDA_PROXY``.  Please note that in this case you must **not** use
+``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not** use
 the CUDA performance primitives and thus set the variable ``CUDPP_OPT``
 to empty.
+
+The GPU library has some multi-thread support using OpenMP.  You need to add
+the compiler flag that enables OpenMP to the ``CUDR_OPTS`` Makefile variable.
 
 If the library build is successful, 3 files should be created:
 ``lib/gpu/libgpu.a``\ , ``lib/gpu/nvc_get_devices``\ , and
@@ -606,6 +611,12 @@ They must be specified in uppercase.
    *  - AMPERE86
       - GPU
       - NVIDIA Ampere generation CC 8.6 GPU
+   *  - ADA89
+      - GPU
+      - NVIDIA Ada Lovelace generation CC 8.9 GPU
+   *  - HOPPER90
+      - GPU
+      - NVIDIA Hopper generation CC 9.0 GPU
    *  - VEGA900
       - GPU
       - AMD GPU MI25 GFX900
@@ -640,7 +651,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 3.7.0 of the Kokkos library.
+This list was last updated for version 3.7.1 of the Kokkos library.
 
 .. tabs::
 
@@ -672,20 +683,11 @@ This list was last updated for version 3.7.0 of the Kokkos library.
          -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
          -D Kokkos_ENABLE_CUDA=yes
          -D Kokkos_ENABLE_OPENMP=yes
-         -D CMAKE_CXX_COMPILER=wrapper # wrapper = full path to Cuda nvcc wrapper
 
       This will also enable executing FFTs on the GPU, either via the
       internal KISSFFT library, or - by preference - with the cuFFT
       library bundled with the CUDA toolkit, depending on whether CMake
-      can identify its location.  The *wrapper* value for
-      ``CMAKE_CXX_COMPILER`` variable is the path to the CUDA nvcc
-      compiler wrapper provided in the Kokkos library:
-      ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should include the
-      full path name to the wrapper, e.g.
-
-      .. code-block:: bash
-
-         -D CMAKE_CXX_COMPILER=${HOME}/lammps/lib/kokkos/bin/nvcc_wrapper
+      can identify its location.
 
       For AMD or NVIDIA GPUs using HIP, set these variables:
 
@@ -817,63 +819,6 @@ problems that would otherwise not fit into the RAM on the GPU.
 Please note, that the LAMMPS KOKKOS package must **always** be compiled
 with the *enable_lambda* option when using GPUs.  The CMake configuration
 will thus always enable it.
-
-----------
-
-.. _latte:
-
-LATTE package
--------------------------
-
-To build with this package, you must download and build the LATTE
-library.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D DOWNLOAD_LATTE=value      # download LATTE for build, value = no (default) or yes
-         -D LATTE_LIBRARY=path        # LATTE library file (only needed if a custom location)
-         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
-                                      #   value = no (default) or yes
-
-      If ``DOWNLOAD_LATTE`` is set, the LATTE library will be downloaded
-      and built inside the CMake build directory.  If the LATTE library
-      is already on your system (in a location CMake cannot find it),
-      ``LATTE_LIBRARY`` is the filename (plus path) of the LATTE library
-      file, not the directory the library file is in.
-
-      The LATTE library requires LAPACK (and BLAS) and CMake can identify
-      their locations and pass that info to the LATTE build script. But
-      on some systems this triggers a (current) limitation of CMake and
-      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
-      those cases to use the bundled linear algebra library and work around
-      the limitation.
-
-   .. tab:: Traditional make
-
-      You can download and build the LATTE library manually if you
-      prefer; follow the instructions in ``lib/latte/README``\ .  You
-      can also do it in one step from the ``lammps/src`` dir, using a
-      command like these, which simply invokes the
-      ``lib/latte/Install.py`` script with the specified args:
-
-      .. code-block:: bash
-
-         make lib-latte                        # print help message
-         make lib-latte args="-b"              # download and build in lib/latte/LATTE-master
-         make lib-latte args="-p $HOME/latte"  # use existing LATTE installation in $HOME/latte
-         make lib-latte args="-b -m gfortran"  # download and build in lib/latte and
-                                               #   copy Makefile.lammps.gfortran to Makefile.lammps
-
-      Note that 3 symbolic (soft) links, ``includelink`` and ``liblink``
-      and ``filelink.o``, are created in ``lib/latte`` to point to
-      required folders and files in the LATTE home directory.  When
-      LAMMPS itself is built it will use these links.  You should also
-      check that the ``Makefile.lammps`` file you create is appropriate
-      for the compiler you use on your system to build LATTE.
 
 ----------
 
@@ -1129,7 +1074,7 @@ VORONOI package
 -----------------------------
 
 To build with this package, you must download and build the
-`Voro++ library <https://math.lbl.gov/voro++>`_ or install a
+`Voro++ library <https://math.lbl.gov/voro++/>`_ or install a
 binary package provided by your operating system.
 
 .. tabs::
@@ -1359,7 +1304,7 @@ module included in the LAMMPS source distribution.
       auto-generated consistent with those used in the core LAMMPS makefiles.
 
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 8Feb2023
 
       Please note that Colvars uses the Lepton library, which is now
       included with the LEPTON package; if you use anything other than
@@ -1401,9 +1346,9 @@ This package depends on the KSPACE package.
       KSPACE package so the latter one *must* be enabled.
 
       The ELECTRODE package also requires LAPACK (and BLAS) and CMake
-      can identify their locations and pass that info to the LATTE build
-      script.  But on some systems this may cause problems when linking
-      or the dependency is not desired.  Try enabling
+      can identify their locations and pass that info to the ELECTRODE
+      build script.  But on some systems this may cause problems when
+      linking or the dependency is not desired.  Try enabling
       ``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
       algebra library and work around the limitation.
 
@@ -1958,10 +1903,10 @@ OPENMP package
    Apple offers the `Xcode package and IDE
    <https://developer.apple.com/xcode/>`_ for compiling software on
    macOS, so you have likely installed it to compile LAMMPS.  Their
-   compiler is based on `Clang <https://clang.llvm.org/>`, but while it
+   compiler is based on `Clang <https://clang.llvm.org/>`_, but while it
    is capable of processing OpenMP directives, the necessary header
    files and OpenMP runtime library are missing.  The `R developers
-   <https://www.r-project.org/>` have figured out a way to build those
+   <https://www.r-project.org/>`_ have figured out a way to build those
    in a compatible fashion. One can download them from
    `https://mac.r-project.org/openmp/
    <https://mac.r-project.org/openmp/>`_.  Simply adding those files as

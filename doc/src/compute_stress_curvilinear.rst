@@ -115,8 +115,8 @@ package <Build_package>` doc page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`compute stress/atom <compute_stress_atom>`, :doc:`compute pressure <compute_pressure>`, :doc:`compute
-stress/mop/profile <compute_stress_mop>`, :doc:`compute stress/cartesian <compute_stress_cartesian>`
+:doc:`compute stress/atom <compute_stress_atom>`, :doc:`compute pressure <compute_pressure>`,
+:doc:`compute stress/mop/profile <compute_stress_mop>`, :doc:`compute stress/cartesian <compute_stress_cartesian>`
 
 Default
 """""""

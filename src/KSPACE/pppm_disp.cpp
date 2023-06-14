@@ -110,6 +110,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
 {
   triclinic_support = 0;
   pppmflag = dispersionflag = 1;
+  triclinic = domain->triclinic;
 
   nfactors = 3;
   factors = new int[nfactors];

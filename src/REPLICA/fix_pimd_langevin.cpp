@@ -67,13 +67,12 @@ static std::map<int, std::string> Ensembles{{NVE, "NVE"}, {NVT, "NVT"}, {NPH, "N
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), mass(nullptr), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
     tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
-    bufsortedall(nullptr), outsorted(nullptr), buftransall(nullptr), bufsendall(nullptr),
-    bufrecvall(nullptr), tagsendall(nullptr), tagrecvall(nullptr), counts(nullptr),
+    bufsortedall(nullptr), outsorted(nullptr), buftransall(nullptr), tagsendall(nullptr),
+    tagrecvall(nullptr), bufsendall(nullptr), bufrecvall(nullptr), counts(nullptr),
     displacements(nullptr), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr),
     M_fp2f(nullptr), modeindex(nullptr), tau_k(nullptr), c1_k(nullptr), c2_k(nullptr),
-    _omega_k(nullptr), Lan_s(nullptr), Lan_c(nullptr), , random(nullptr), xc(nullptr),
-    xcall(nullptr), x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr),
-    c_press(nullptr)
+    _omega_k(nullptr), Lan_s(nullptr), Lan_c(nullptr), random(nullptr), xc(nullptr), xcall(nullptr),
+    x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr), c_press(nullptr)
 {
   restart_global = 1;
   time_integrate = 1;
@@ -126,10 +125,9 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[i + 1], "baoab") == 0)
         integrator = BAOAB;
       else
-        error->universe_all(
-            FLERR,
-            "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab "
-            "integrators are supported!");
+        error->universe_all(FLERR,
+                            "Unknown integrator parameter for fix pimd/langevin. Only obabo and "
+                            "baoab integrators are supported!");
     } else if (strcmp(arg[i], "ensemble") == 0) {
       if (strcmp(arg[i + 1], "nve") == 0) {
         ensemble = NVE;
@@ -273,7 +271,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
   fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
   fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
-  if (pstat_flag) { p_hydro = (p_target[0] + p_target[1] + p_target[2]) / pdim; }
+  if (pstat_flag) p_hydro = (p_target[0] + p_target[1] + p_target[2]) / pdim;
 
   // initialize Marsaglia RNG with processor-unique seed
 

@@ -497,11 +497,13 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (rescale_charges_flag[myrxn]) {
       rescale_charges_flag[myrxn] = 0; // will now store number of updated atoms
       twomol = atom->molecules[reacted_mol[myrxn]];
-      for (int j = 0; j < twomol->natoms; j++) {
-        int jj = equivalences[j][1][myrxn]-1;
-        if (twomol->qflag && custom_charges[jj][myrxn] == 1) {
-          mol_total_charge[myrxn] += twomol->q[j];
-          rescale_charges_flag[myrxn]++;
+      if (twomol->qflag) {
+        for (int j = 0; j < twomol->natoms; j++) {
+          int jj = equivalences[j][1][myrxn]-1;
+          if (custom_charges[jj][myrxn] == 1 && delete_atoms[jj][myrxn] == 0) {
+            mol_total_charge[myrxn] += twomol->q[j];
+            rescale_charges_flag[myrxn]++;
+          }
         }
       }
     }

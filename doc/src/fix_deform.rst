@@ -20,7 +20,7 @@ Syntax
 
   .. parsed-literal::
 
-     parameter = *x* or *y* or *z* or *xy* or *xz* or *yz*
+     parameter = *x* or *y* or *z* or *xy* or *xz* or *yz* or *iso*
        *x*, *y*, *z* args = style value(s)
          style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable*
            *final* values = lo hi
@@ -71,6 +71,12 @@ Syntax
            *variable* values = v_name1 v_name2
              v_name1 = variable with name1 for tilt change as function of time
              v_name2 = variable with name2 for change rate as function of time
+       *iso* = style value
+         style = *volume* or *pressure*
+           *volume* value = none = isotropically adjust system to preserve volume of system
+           *pressure* values = target gain
+             target = target mean pressure (pressure units)
+             gain = proportional gain constant (1/(time * pressure) or 1/time units)
 
 * zero or more keyword/value pairs may be appended
 * keyword = *remap* or *flip* or *units* or *couple* or *vol/balance/p* or *max/rate* or *normalize/pressure*
@@ -88,12 +94,10 @@ Syntax
          box = distances are defined in simulation box units
        *couple* value = *none* or *xyz* or *xy* or *yz* or *xz*
          couple pressure values of various dimensions
-       *vol/balance/p* = *yes* or *no*
+       *vol/balance/p* value = *yes* or *no*
          Modifies the behavior of the *volume* option to try and balance pressures
        *max/rate* value = *rate*
          rate = maximum strain rate for pressure control
-       *normalize/pressure* value = *yes* or *no*
-         determine whether pressure deviation is normalized by target pressure
 
 Examples
 """"""""
@@ -107,6 +111,7 @@ Examples
    fix 1 all deform 1 x pressure 2.0 0.1 normalize/pressure yes max/rate 0.001
    fix 1 all deform 1 x trate 0.1 y volume z volume vol/balance/p yes
    fix 1 all deform 1 x trate 0.1 y pressure/mean 0.0 1.0 z pressure/mean 0.0 1.0
+   fix 1 all deform 1 x trate 0.1 y trate -0.1 overlay/pressure/mean 1.0 0.1
 
 Description
 """""""""""
@@ -318,8 +323,8 @@ mid point.
 
 The *pressure* style adjusts a dimensions's box length to control that
 component of the pressure tensor. This option attempts to maintain a
-specified target value using a linear controller where the box length L
-evolves according to the equation
+specified target value using a linear controller where the box length
+:math:`L` evolves according to the equation
 
 .. parsed-literal::
 
@@ -343,7 +348,7 @@ option.
 
 The *pressure/mean* style is changes a dimension in order to maintain
 a constant mean pressure defined as the trace of the pressure tensor.
-This option is therefore very similar to the *presssure* style with
+This option is therefore very similar to the *pressure* style with
 identical arguments except the current and target pressures refer to the
 mean trace of the pressure tensor. The same options also apply except
 for the :ref:`couple <deform_couple>` option.
@@ -512,6 +517,25 @@ of the applied strain using the :ref:`max/rate <deform_max_rate>` option.
 
 ----------
 
+The *iso* parameter provides an additonal control over the x, y,
+and z box lengths. This parameter can only be used in combination with
+the *x*, *y*, or *z* comamnds: *vel*, *erate*, *trate*, *pressure*, or
+*wiggle*. Note that this parameter will change the overall strain rate in
+the *x*, *y*, or *z* dimensions. This is the meaning of its styles and values.
+
+The *volume* style isotropically scales box lengths to maintain a constant
+box volume in response to deformation from other parameters.
+
+The *pressure* style controls the box volume to maintain the mean pressure
+of the system. This is accomplished by isotropically scaling all box
+lengths :math:`L` by an additional factor of :math:`k (P_t - P_m)` where
+:math:`k` is the proportional gain constant, :math:`P_t` is the target
+pressure, and :math:`P_m` is the current mean pressure (the trace of the
+pressure tensor). This style allows one to control the deviatoric strain
+tensor while maintaining a fixed mean pressure.
+
+----------
+
 All of the tilt styles change the xy, xz, yz tilt factors during a
 simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes
 are normally bounded by half the distance of the parallel box length.
@@ -652,8 +676,12 @@ described below, which will cap the divergence.
 .. _deform_max_rate:
 
 The *max/rate* keyword sets an upper threshold, *rate*, that limits the
-maximum magnitude of the strain rate applied in any dimension. This keyword
-only applies to the *pressure* and *pressure/mean* options.
+maximum magnitude of the instantaneous strain rate applied in any dimension.
+This keyword only applies to the *pressure* and *pressure/mean* options. If
+a pressure-controlled rate is used for both *iso* and either *x*, *y*, or
+*z*, then this threshold will apply separately to each individual controller
+such that the cumulative strain rate on a box dimension may be up to twice
+the value of *rate*.
 
 .. _deform_couple:
 

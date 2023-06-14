@@ -72,6 +72,7 @@ class FixDeform : public Fix {
     double vol_initial, vol_start;
     double ptarget, pgain;
     double prior_pressure, prior_rate;
+    double cumulative_strain;
     int saved;
     int fixed, dynamic1, dynamic2;
     char *hstr, *hratestr, *pstr;
@@ -85,6 +86,7 @@ class FixDeform : public Fix {
   void set_strain();
   void set_pressure();
   void set_volume();
+  void set_iso();
   void couple();
 };
 

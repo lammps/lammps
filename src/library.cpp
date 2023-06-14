@@ -794,7 +794,7 @@ argument string.
      - yes
    * - type
      - data type of thermo output column; see :cpp:enum:`_LMP_DATATYPE_CONST`
-     - pointer to static int
+     - pointer to int
      - yes
    * - data
      - actual field data for column
@@ -815,7 +815,6 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
   Thermo *th = lmp->output->thermo;
   if (!th) return nullptr;
   const int nfield = *th->get_nfield();
-  static int datatype;
 
   BEGIN_CAPTURE
   {
@@ -833,25 +832,15 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
     } else if (strcmp(what, "type") == 0) {
       if ((index < 0) || (index >= nfield)) return nullptr;
       const auto &field = th->get_fields()[index];
-      if (field.type == multitype::INT) {
-        datatype = LAMMPS_INT;
-        val = (void *) &datatype;
-      } else if (field.type == multitype::BIGINT) {
-        datatype = LAMMPS_INT64;
-        val = (void *) &datatype;
-      } else if (field.type == multitype::DOUBLE) {
-        datatype = LAMMPS_DOUBLE;
-        val = (void *) &datatype;
-      }
-
+      val = (void *) &field.type;
     } else if (strcmp(what, "data") == 0) {
       if ((index < 0) || (index >= nfield)) return nullptr;
       const auto &field = th->get_fields()[index];
-      if (field.type == multitype::INT) {
+      if (field.type == multitype::LAMMPS_INT) {
         val = (void *) &field.data.i;
-      } else if (field.type == multitype::BIGINT) {
+      } else if (field.type == multitype::LAMMPS_INT64) {
         val = (void *) &field.data.b;
-      } else if (field.type == multitype::DOUBLE) {
+      } else if (field.type == multitype::LAMMPS_DOUBLE) {
         val = (void *) &field.data.d;
       }
 
@@ -1351,6 +1340,13 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"units") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"atom_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"pair_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"bond_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"angle_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"dihedral_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"improper_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"kspace_style") == 0) return LAMMPS_STRING;
   if (strcmp(name,"boltz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"hplanck") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"mvv2e") == 0) return LAMMPS_DOUBLE;
@@ -1597,6 +1593,34 @@ report the "native" data type.  The following tables are provided:
      - int
      - 1
      - **deprecated**. Use :cpp:func:`lammps_extract_setting` instead.
+   * - atom_style
+     - char \*
+     - 1
+     - string with the current atom style.
+   * - pair_style
+     - char \*
+     - 1
+     - string with the current pair style.
+   * - bond_style
+     - char \*
+     - 1
+     - string with the current bond style.
+   * - angle_style
+     - char \*
+     - 1
+     - string with the current angle style.
+   * - dihedral_style
+     - char \*
+     - 1
+     - string with the current dihedral style.
+   * - improper_style
+     - char \*
+     - 1
+     - string with the current improper style.
+   * - kspace_style
+     - char \*
+     - 1
+     - string with the current KSpace style.
 
 .. _extract_unit_settings:
 
@@ -1703,6 +1727,13 @@ void *lammps_extract_global(void *handle, const char *name)
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
+  if (strcmp(name,"atom_style") == 0) return (void *) lmp->atom->atom_style;
+  if (strcmp(name,"pair_style") == 0) return (void *) lmp->force->pair_style;
+  if (strcmp(name,"bond_style") == 0) return (void *) lmp->force->bond_style;
+  if (strcmp(name,"angle_style") == 0) return (void *) lmp->force->angle_style;
+  if (strcmp(name,"dihedral_style") == 0) return (void *) lmp->force->dihedral_style;
+  if (strcmp(name,"improper_style") == 0) return (void *) lmp->force->improper_style;
+  if (strcmp(name,"kspace_style") == 0) return (void *) lmp->force->kspace_style;
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
   // update->atime can be referenced as a pointer

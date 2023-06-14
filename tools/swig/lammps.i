@@ -28,9 +28,10 @@
  *
  * Must be kept in sync with the equivalent constants in ``src/library.h``,
  * ``python/lammps/constants.py``, ``examples/COUPLE/plugin/liblammpsplugin.h``,
- * and ``fortran/lammps.f90`` */
+ * ``src/lmptype.h``, and ``fortran/lammps.f90`` */
 
 enum _LMP_DATATYPE_CONST {
+  LAMMPS_NONE      =-1,     /*!< no data type assigned (yet) */
   LAMMPS_INT       = 0,     /*!< 32-bit integer (array) */
   LAMMPS_INT_2D    = 1,     /*!< two-dimensional 32-bit integer array */
   LAMMPS_DOUBLE    = 2,     /*!< 64-bit double (array) */

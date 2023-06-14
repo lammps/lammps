@@ -55,6 +55,7 @@ class FixIntel : public Fix {
   void pre_reverse(int eflag = 0, int vflag = 0) override;
   inline void min_pre_reverse(int eflag = 0, int vflag = 0) override { pre_reverse(eflag, vflag); }
 
+  void post_force(int vflag) override;
   void post_run() override { _print_pkg_info = 1; }
 
   // Get all forces, calculation results from coprocesser
@@ -102,7 +103,7 @@ class FixIntel : public Fix {
   inline int pppm_table()
   {
     if (force->kspace_match("^pppm/.*intel$", 0))
-      return INTEL_P3M_TABLE;
+      return _p3m_table;
     else
       return 0;
   }
@@ -115,7 +116,7 @@ class FixIntel : public Fix {
   int _precision_mode, _nthreads, _nbor_pack_width, _three_body_neighbor;
   int _pair_intel_count, _pair_hybrid_flag, _print_pkg_info;
   // These should be removed in subsequent update w/ simpler hybrid arch
-  int _pair_hybrid_zero, _hybrid_nonpair, _zero_master;
+  int _pair_hybrid_zero, _hybrid_nonpair, _zero_master, _torque_flag;
 
  public:
   inline int *get_overflow_flag() { return _overflow_flag; }
@@ -132,7 +133,6 @@ class FixIntel : public Fix {
   inline void get_buffern(const int offload, int &nlocal, int &nall, int &minlocal);
 
 #ifdef _LMP_INTEL_OFFLOAD
-  void post_force(int vflag);
   inline int coprocessor_number() { return _cop; }
   inline int full_host_list() { return _full_host_list; }
   void set_offload_affinity();
@@ -194,7 +194,7 @@ class FixIntel : public Fix {
  protected:
   int _overflow_flag[5];
   _alignvar(int _off_overflow_flag[5], 64);
-  int _allow_separate_buffers, _offload_ghost, _lrt;
+  int _allow_separate_buffers, _offload_ghost, _lrt, _p3m_table;
 
   IntelBuffers<float, float>::vec3_acc_t *_force_array_s;
   IntelBuffers<float, double>::vec3_acc_t *_force_array_m;

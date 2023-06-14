@@ -28,6 +28,7 @@ template <class flt_t, class acc_t>
 IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
     lmp(lmp_in), _x(nullptr), _q(nullptr), _quat(nullptr), _f(nullptr), _off_threads(0),
     _n_list_ptrs(1), _max_list_ptrs(4), _buf_size(0), _buf_local_size(0) {
+  _torque_flag = 0;
   _neigh_list_ptrs = new IntelNeighListPtrs[_max_list_ptrs];
   _neigh_list_ptrs[0].cnumneigh = nullptr;
   _list_alloc_atoms = 0;
@@ -695,7 +696,7 @@ double IntelBuffers<flt_t, acc_t>::memory_usage(const int nthreads)
 {
   double tmem = sizeof(atom_t);
   if (lmp->atom->q) tmem += sizeof(flt_t);
-  if (lmp->atom->torque) tmem += sizeof(quat_t);
+  if (_torque_flag) tmem += sizeof(quat_t);
   #ifdef _LMP_INTEL_OFFLOAD
   if (_separate_buffers) tmem *= 2;
   #endif

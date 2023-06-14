@@ -47,7 +47,7 @@ enum{NOCOUPLE=0,XYZ,XY,YZ,XZ};
 /* ---------------------------------------------------------------------- */
 
 FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-irregular(nullptr), set(nullptr)
+irregular(nullptr), set(nullptr), id_temp(nullptr), id_press(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix deform command");
 
@@ -538,6 +538,16 @@ irregular(nullptr), set(nullptr)
     modify->add_compute(fmt::format("{} all pressure {}",id_press, id_temp));
     pflag = 1;
   }
+
+  // initialize all rates to 0.0 in constructor instead of init so values persist
+  // across run statements and ghosts have correct velocities until the destructor
+  h_rate = domain->h_rate;
+  h_ratelo = domain->h_ratelo;
+
+  for (int i = 0; i < 3; i++)
+    h_rate[i] = h_ratelo[i] = 0.0;
+  for (int i = 3; i < 6; i++)
+    h_rate[i] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -774,15 +784,10 @@ void FixDeform::init()
   }
 
   // set domain->h_rate values for use by domain and other fixes/computes
-  // initialize all rates to 0.0
   // cannot set here for TRATE,VOLUME,WIGGLE,VARIABLE,PRESSURE since not constant
   // if iso style is used, these will also not be constant
 
-  h_rate = domain->h_rate;
-  h_ratelo = domain->h_ratelo;
-
   for (int i = 0; i < 3; i++) {
-    h_rate[i] = h_ratelo[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA ||
         set[i].style == SCALE || set[i].style == VEL ||
         set[i].style == ERATE) {
@@ -797,7 +802,6 @@ void FixDeform::init()
   }
 
   for (int i = 3; i < 6; i++) {
-    h_rate[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA ||
         set[i].style == VEL || set[i].style == ERATE) {
       if (delt != 0.0)
@@ -1394,8 +1398,10 @@ void FixDeform::set_iso()
 void FixDeform::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
-    int size = 7 * sizeof(Set);
+    int size = 9 * sizeof(double) + 7 * sizeof(Set);
     fwrite(&size,sizeof(int),1,fp);
+    fwrite(h_rate,sizeof(double),6,fp);
+    fwrite(h_ratelo,sizeof(double),3,fp);
     fwrite(set,sizeof(Set),7,fp);
   }
 }
@@ -1406,9 +1412,16 @@ void FixDeform::write_restart(FILE *fp)
 
 void FixDeform::restart(char *buf)
 {
+  int n = 0;
+  auto list = (double *) buf;
+  for (int i = 0; i < 6; i++)
+    h_rate[i] = list[n++];
+  for (int i = 0; i < 3; i++)
+    h_ratelo[i] = list[n++];
+
   int samestyle = 1;
-  Set *set_restart = (Set *) buf;
-  for (int i=0; i<7; ++i) {
+  Set *set_restart = (Set *) &buf[n * sizeof(double)];
+  for (int i = 0; i < 7; ++i) {
     // restore data from initial state
     set[i].lo_initial = set_restart[i].lo_initial;
     set[i].hi_initial = set_restart[i].hi_initial;

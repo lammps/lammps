@@ -56,10 +56,11 @@ enum { BAOAB, OBABO };
 enum { ISO, ANISO, TRICLINIC };
 enum { PILE_L };
 enum { MTTK, BZP };
-
-static std::map<int, std::string> Barostats{{MTTK, "MTTK"}, {BZP, "BZP"}};
 enum { NVE, NVT, NPH, NPT };
 enum { SINGLE_PROC, MULTI_PROC };
+
+static std::map<int, std::string> Barostats{{MTTK, "MTTK"}, {BZP, "BZP"}};
+static std::map<int, std::string> Ensembles{{NVE, "NVE"}, {NVT, "NVT"}, {NPH, "NPH"}, {NPT, "NPT"}};
 
 /* ---------------------------------------------------------------------- */
 
@@ -235,13 +236,20 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  if (pstat_flag && !pdim)
+    error->universe_all(
+        FLERR, fmt::format("Must use pressure coupling with {} ensemble", Ensembles[ensemble]));
+  if (!pstat_flag && pdim)
+    error->universe_all(
+        FLERR, fmt::format("Must not use pressure coupling with {} ensemble", Ensembles[ensemble]));
+
   /* Initiation */
 
   global_freq = 1;
   vector_flag = 1;
-  if (!pstat_flag)
+  if (!pstat_flag) {
     size_vector = 10;
-  else if (pstat_flag) {
+  } else if (pstat_flag) {
     if (pstyle == ISO) {
       size_vector = 15;
     } else if (pstyle == ANISO) {
@@ -250,7 +258,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   }
   extvector = 1;
   kt = force->boltz * temp;
-  if (pstat_flag) baro_init();
+  if (pstat_flag) FixPIMDLangevin::baro_init();
 
   // some initilizations
 

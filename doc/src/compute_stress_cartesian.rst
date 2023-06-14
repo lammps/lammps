@@ -41,6 +41,10 @@ split into a kinetic contribution :math:`P^k` and a virial contribution
 This compute obeys momentum balance through fluid interfaces. They use the
 Irving--Kirkwood contour, which is the straight line between particle pairs.
 
+.. versionadded:: TBD
+
+   Added support for bond styles
+
 This compute only supports pair and bond (no angle, dihedral, improper,
 or kspace) forces. By default, if no extra keywords are specified, all
 supported contributions to the stress are included (ke, pair, bond). If any

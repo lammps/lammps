@@ -1,0 +1,97 @@
+LAMMPS (28 Mar 2023)
+Processor partition = 0
+  using 1 OpenMP thread(s) per MPI task
+variable ibead uloop 32 pad
+
+units lj
+atom_style atomic
+atom_modify map yes
+boundary p p p
+pair_style lj/cut 2.8015
+read_data data.lj${ibead}
+read_data data.lj01
+Reading data file ...
+  orthogonal box = (-3.4945131 -3.4945131 -3.4945131) to (3.4945131 3.4945131 3.4945131)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  200 atoms
+  read_data CPU = 0.001 seconds
+
+pair_coeff    * * 1.0 1.0
+pair_modify shift yes
+
+mass 1 1.0
+
+timestep 0.00044905847
+
+fix 1 all pimd/langevin ensemble nvt integrator obabo temp 1.00888 lj 0.00965188 3.4 39.948 4.135667403e-3 1.03646168908e-4 thermostat PILE_L ${ibead}
+fix 1 all pimd/langevin ensemble nvt integrator obabo temp 1.00888 lj 0.00965188 3.4 39.948 4.135667403e-3 1.03646168908e-4 thermostat PILE_L 01
+
+thermo_style custom step temp f_1[*] vol press
+thermo 100
+thermo_modify norm no
+
+#dump dcd all custom 1 ${ibead}.lammpstrj id type x y z vx vy vz ix iy iz fx fy fz
+#dump_modify dcd sort id format line "%d %d %.16f %.16f %.16f %.16f %.16f %.16f %d %d %d %.16f %.16f %.16f"
+
+run 1000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+
+Initializing PI Langevin equation thermostat...
+Bead ID    |    omega    |    tau    |    c1    |    c2
+    0     0.00000000e+00 1.00000000e+00 9.99775496e-01 2.11886210e-02
+    1     1.31777963e+02 3.79426112e-03 9.42540858e-01 3.34090903e-01
+PILE_L thermostat successfully initialized!
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.1015
+  ghost atom cutoff = 3.1015
+  binsize = 1.55075, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.117 | 3.117 | 3.117 Mbytes
+   Step          Temp          f_1[1]         f_1[2]         f_1[3]         f_1[4]         f_1[5]         f_1[6]         f_1[7]         f_1[8]         f_1[9]        f_1[10]         Volume         Press     
+         0   0              0              0             -875.67022      841866.06     -843041.14      253.30998      382.47517     -1646.2945     -1.9663356     -0.82731217     341.38937     -1.3810467    
+       100   14.815998      4422.5753      0             -534.91485      5336.9805     -409.03828      7790.9787      306.80845     -0.79877176     13.250868      8.3263811      341.38937      12.561531    
+       200   13.762526      4108.114       0             -535.07896      4177.1707      63.548813     -8225.489       308.68383      0.1240984      12.723365      8.0800159      341.38937      12.1757      
+       300   12.566448      3751.0847      0             -493.13907      3999.3337     -31.433066      8675.7059      309.21599     -0.061382631    14.105486      8.6052841      341.38937      12.245009    
+       400   11.843976      3535.4267      0             -515.14836      3784.077      -23.971605     -81.467506      309.02093     -0.046811856    13.638064      8.2470184      341.38937      11.61585     
+       500   11.100239      3313.4214      0             -521.49831      3555.6926     -56.076799      648.94757      309.45936     -0.10950702     12.805213      7.7261445      341.38937      10.991018    
+       600   9.9616183      2973.5431      0             -462.72888      3219.061       41.992567      3171.6576      309.48724      0.082003271    13.759365      8.0375919      341.38937      11.071546    
+       700   9.3388468      2787.6458      0             -501.33865      2901.4483      81.033913      2000.5159      309.02619      0.15824338     12.744135      7.4580508      341.38937      10.129991    
+       800   8.9069211      2658.716       0             -523.1858       2864.6773     -29.435005      2329.1521      308.67617     -0.057480808    11.604242      6.8135454      341.38937      9.3513467    
+       900   8.5046965      2538.6519      0             -543.75602      2597.5491      50.752591      601.47078      308.62547      0.099109884    10.497389      6.2142574      341.38937      8.6389792    
+      1000   8.0725601      2409.6592      0             -571.72872      2533.47       -23.431499     -1267.4683      308.58765     -0.045757135    9.421094       5.5928021      341.38937      7.8375753    
+Loop time of 0.201181 on 1 procs for 1000 steps with 200 atoms
+
+Performance: 192854.150 tau/day, 4970.640 timesteps/s, 994.128 katom-step/s
+98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.11949    | 0.11949    | 0.11949    |   0.0 | 59.39
+Neigh   | 0.011868   | 0.011868   | 0.011868   |   0.0 |  5.90
+Comm    | 0.0041169  | 0.0041169  | 0.0041169  |   0.0 |  2.05
+Output  | 0.00011916 | 0.00011916 | 0.00011916 |   0.0 |  0.06
+Modify  | 0.064249   | 0.064249   | 0.064249   |   0.0 | 31.94
+Other   |            | 0.00134    |            |       |  0.67
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1117 ave        1117 max        1117 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           7492 ave        7492 max        7492 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7492
+Ave neighs/atom = 37.46
+Neighbor list builds = 55
+Dangerous builds = 0
+Total wall time: 0:00:00

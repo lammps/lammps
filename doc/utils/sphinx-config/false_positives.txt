@@ -55,6 +55,7 @@ Ai
 Aidan
 aij
 aimd
+aip
 airebo
 Aj
 ajaramil
@@ -528,6 +529,7 @@ collisional
 Columic
 colvars
 Colvars
+COH
 COLVARS
 comID
 Commun
@@ -1090,6 +1092,7 @@ Fellinger
 femtosecond
 femtoseconds
 fene
+Feng
 Fennell
 fep
 FEP
@@ -1621,6 +1624,7 @@ Izumi
 Izvekov
 izz
 Izz
+Jacobian
 Jacobsen
 Jadhao
 Jadhav
@@ -2027,6 +2031,7 @@ Marchetti
 Marchi
 Mariella
 Marinica
+Markland
 Marrink
 Marroquin
 Marsaglia
@@ -3595,6 +3600,7 @@ THz
 Tigran
 Tij
 Tildesley
+Timan
 timeI
 timespan
 timestamp
@@ -3736,6 +3742,7 @@ Umin
 un
 unary
 uncomment
+uncommented
 uncompress
 uncompute
 underprediction
@@ -4090,4 +4097,5 @@ zu
 zx
 zy
 Zybin
+Zykova
 zz

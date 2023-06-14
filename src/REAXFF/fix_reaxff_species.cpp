@@ -48,15 +48,16 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_reaxff_species_delete[] =
-  "fix reaxff/species, 'delete' keyword: https://doi.org/10.1016/j.carbon.2022.11.002\n\n"
-  "@Article{Gissinger23,\n"
-  " author = {J. R. Gissinger, S. R. Zavada, J. G. Smith, J. Kemppainen, I. Gallegos, G. M. Odegard, E. J. Siochi, K. E. Wise},\n"
-  " title = {Predicting char yield of high-temperature resins},\n"
-  " journal = {Carbon},\n"
-  " year =    2023,\n"
-  " volume =  202,\n"
-  " pages =   {336-347}\n"
-  "}\n\n";
+    "fix reaxff/species, 'delete' keyword: https://doi.org/10.1016/j.carbon.2022.11.002\n\n"
+    "@Article{Gissinger23,\n"
+    " author = {J. R. Gissinger, S. R. Zavada, J. G. Smith, J. Kemppainen, I. Gallegos, G. M. "
+    "Odegard, E. J. Siochi, K. E. Wise},\n"
+    " title = {Predicting char yield of high-temperature resins},\n"
+    " journal = {Carbon},\n"
+    " year =    2023,\n"
+    " volume =  202,\n"
+    " pages =   {336-347}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -148,13 +149,11 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   setupflag = 0;
 
   // set default bond order cutoff
-  int itype, jtype;
-  double bo_cut;
-  bg_cut = 0.30;
+  double bo_cut = 0.30;
   int np1 = ntypes + 1;
   memory->create(BOCut, np1, np1, "reaxff/species:BOCut");
   for (int i = 1; i < np1; i++)
-    for (int j = 1; j < np1; j++) BOCut[i][j] = bg_cut;
+    for (int j = 1; j < np1; j++) BOCut[i][j] = bo_cut;
 
   // optional args
   eletype = nullptr;
@@ -172,16 +171,19 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     // set BO cutoff
     if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species cutoff", error);
-      itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      jtype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+      int ilo, ihi, jlo, jhi;
+      utils::bounds(FLERR, arg[iarg + 1], 1, atom->ntypes, ilo, ihi, error);
+      utils::bounds(FLERR, arg[iarg + 2], 1, atom->ntypes, jlo, jhi, error);
       bo_cut = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-      if ((itype <= 0) || (jtype <= 0) || (itype > ntypes) || (jtype > ntypes))
-        error->all(FLERR, "Fix reaxff/species cutoff atom type(s) out of range");
       if ((bo_cut > 1.0) || (bo_cut < 0.0))
         error->all(FLERR, "Fix reaxff/species invalid cutoff value: {}", bo_cut);
 
-      BOCut[itype][jtype] = bo_cut;
-      BOCut[jtype][itype] = bo_cut;
+      for (int i = ilo; i <= ihi; ++i) {
+        for (int j = MAX(jlo, i); j <= jhi; ++j) {
+          BOCut[i][j] = bo_cut;
+          BOCut[j][i] = bo_cut;
+        }
+      }
       iarg += 4;
 
       // modify element type names
@@ -240,17 +242,21 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Unknown fix reaxff/species delete option: {}", arg[iarg]);
       // rate limit when deleting molecules
     } else if (strcmp(arg[iarg], "delete_rate_limit") == 0) {
-      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
+      if (iarg + 3 > narg)
+        utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
       delete_Nlimit_varid = -1;
-      if (strncmp(arg[iarg+1],"v_",2) == 0) {
-        delete_Nlimit_varname = &arg[iarg+1][2];
+      if (strncmp(arg[iarg + 1], "v_", 2) == 0) {
+        delete_Nlimit_varname = &arg[iarg + 1][2];
         delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
         if (delete_Nlimit_varid < 0)
-          error->all(FLERR,"Fix reaxff/species: Variable name {} does not exist",delete_Nlimit_varname);
+          error->all(FLERR, "Fix reaxff/species: Variable name {} does not exist",
+                     delete_Nlimit_varname);
         if (!input->variable->equalstyle(delete_Nlimit_varid))
-          error->all(FLERR,"Fix reaxff/species: Variable {} is not equal-style",delete_Nlimit_varname);
-      } else delete_Nlimit = utils::numeric(FLERR, arg[iarg+1], false, lmp);
-      delete_Nsteps = utils::numeric(FLERR, arg[iarg+2], false, lmp);
+          error->all(FLERR, "Fix reaxff/species: Variable {} is not equal-style",
+                     delete_Nlimit_varname);
+      } else
+        delete_Nlimit = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      delete_Nsteps = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
@@ -292,10 +298,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
 
   if (delete_Nsteps > 0) {
     if (lmp->citeme) lmp->citeme->add(cite_reaxff_species_delete);
-    memory->create(delete_Tcount,delete_Nsteps,"reaxff/species:delete_Tcount");
+    memory->create(delete_Tcount, delete_Nsteps, "reaxff/species:delete_Tcount");
 
-    for (int i = 0; i < delete_Nsteps; i++)
-      delete_Tcount[i] = -1;
+    for (int i = 0; i < delete_Nsteps; i++) delete_Tcount[i] = -1;
     delete_Tcount[0] = 0;
   }
 
@@ -393,9 +398,11 @@ void FixReaxFFSpecies::init()
   if (delete_Nsteps > 0) {
     delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
     if (delete_Nlimit_varid < 0)
-      error->all(FLERR,"Fix reaxff/species: Variable name {} does not exist",delete_Nlimit_varname);
+      error->all(FLERR, "Fix reaxff/species: Variable name {} does not exist",
+                 delete_Nlimit_varname);
     if (!input->variable->equalstyle(delete_Nlimit_varid))
-      error->all(FLERR,"Fix reaxff/species: Variable {} is not equal-style",delete_Nlimit_varname);
+      error->all(FLERR, "Fix reaxff/species: Variable {} is not equal-style",
+                 delete_Nlimit_varname);
   }
 }
 
@@ -427,8 +434,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   if (ntimestep != nvalid) {
     // push back delete_Tcount on every step
     if (delete_Nsteps > 0)
-      for (int i = delete_Nsteps-1; i > 0; i--)
-        delete_Tcount[i] = delete_Tcount[i-1];
+      for (int i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
     return;
   }
 
@@ -732,31 +738,31 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
   int i, j, itemp;
   bigint ntimestep = update->ntimestep;
 
-  fprintf(fp, "# Timestep     No_Moles     No_Specs     ");
+  fprintf(fp, "#  Timestep    No_Moles    No_Specs");
 
   Nmoltype = 0;
 
   for (i = 0; i < Nspec; i++) nd[i] = CheckExistence(i, ntypes);
 
   for (i = 0; i < Nmoltype; i++) {
+    std::string molname;
     for (j = 0; j < ntypes; j++) {
       itemp = MolType[ntypes * i + j];
       if (itemp != 0) {
         if (eletype)
-          fprintf(fp, "%s", eletype[j]);
+          molname += eletype[j];
         else
-          fprintf(fp, "%c", ele[j]);
-        if (itemp != 1) fprintf(fp, "%d", itemp);
+          molname += ele[j];
+        if (itemp != 1) molname += std::to_string(itemp);
       }
     }
-    fputs("\t", fp);
+    fmt::print(fp, " {:>11}", molname);
   }
   fputs("\n", fp);
 
-  fmt::print(fp, "{} {:11} {:11}\t", ntimestep, Nmole, Nspec);
-
-  for (i = 0; i < Nmoltype; i++) fprintf(fp, " %d\t", NMol[i]);
-  fprintf(fp, "\n");
+  fmt::print(fp, "{:>11} {:>11} {:>11}", ntimestep, Nmole, Nspec);
+  for (i = 0; i < Nmoltype; i++) fmt::print(fp, " {:>11}", NMol[i]);
+  fputs("\n", fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -884,8 +890,8 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   int ndeletions;
   int headroom = -1;
   if (delete_Nsteps > 0) {
-    if (delete_Tcount[delete_Nsteps-1] == -1) return;
-    ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps-1];
+    if (delete_Tcount[delete_Nsteps - 1] == -1) return;
+    ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps - 1];
     if (delete_Nlimit_varid > -1)
       delete_Nlimit = input->variable->compute_equal(delete_Nlimit_varid);
     headroom = MAX(0, delete_Nlimit - ndeletions);
@@ -925,13 +931,11 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   std::random_device rnd;
   std::minstd_rand park_rng(rnd());
   int *molrange;
-  memory->create(molrange,Nmole,"reaxff/species:molrange");
-  for (m = 0; m < Nmole; m++)
-    molrange[m] = m + 1;
+  memory->create(molrange, Nmole, "reaxff/species:molrange");
+  for (m = 0; m < Nmole; m++) molrange[m] = m + 1;
   if (delete_Nsteps > 0) {
     // shuffle index when using rate_limit, in case order is biased
-    if (comm->me == 0)
-      std::shuffle(&molrange[0],&molrange[Nmole], park_rng);
+    if (comm->me == 0) std::shuffle(&molrange[0], &molrange[Nmole], park_rng);
     MPI_Bcast(&molrange[0], Nmole, MPI_INT, 0, world);
   }
 
@@ -1060,11 +1064,9 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     }
   }
 
-
   // push back delete_Tcount on every step
   if (delete_Nsteps > 0) {
-    for (i = delete_Nsteps-1; i > 0; i--)
-      delete_Tcount[i] = delete_Tcount[i-1];
+    for (i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
     delete_Tcount[0] += this_delete_Tcount;
   }
 

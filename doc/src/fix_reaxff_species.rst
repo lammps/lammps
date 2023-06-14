@@ -25,7 +25,7 @@ Syntax
   .. parsed-literal::
 
        *cutoff* value = I J Cutoff
-         I, J = atom types
+         I, J = atom types (see asterisk form below)
          Cutoff = Bond-order cutoff value for this pair of atom types
        *element* value = Element1, Element2, ...
        *position* value = posfreq filepos
@@ -49,7 +49,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all reaxff/species 10 10 100 species.out
-   fix 1 all reaxff/species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2 0.55
+   fix 1 all reaxff/species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2*3 0.55
    fix 1 all reaxff/species 1 100 100 species.out element Au O H position 1000 AuOH.pos
    fix 1 all reaxff/species 1 100 100 species.out delete species.del masslimit 0 50
 
@@ -88,13 +88,24 @@ If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text version,
 but will also take longer to write.
 
+.. versionadded:: TBD
+
+   Support for wildcards added
+
 Optional keyword *cutoff* can be assigned to change the minimum
 bond-order values used in identifying chemical bonds between pairs of
 atoms.  Bond-order cutoffs should be carefully chosen, as bond-order
-cutoffs that are too small may include too many bonds (which will
-result in an error), while cutoffs that are too large will result in
-fragmented molecules.  The default cutoff of 0.3 usually gives good
-results.
+cutoffs that are too small may include too many bonds (which will result
+in an error), while cutoffs that are too large will result in fragmented
+molecules.  The default cutoff of 0.3 usually gives good results.  A
+wildcard asterisk can be used in place of or in conjunction with the I,J
+arguments to set the bond-order cutoff for multiple pairs of atom types.
+This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If :math:`N` is
+the number of atom types, then an asterisk with no numeric values means
+all types from 1 to :math:`N`.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from n to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
 
 The optional keyword *element* can be used to specify the chemical
 symbol printed for each LAMMPS atom type. The number of symbols must

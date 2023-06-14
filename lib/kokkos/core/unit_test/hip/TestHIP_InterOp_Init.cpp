@@ -59,9 +59,11 @@ __global__ void offset(int* p) {
 // Test whether allocations survive Kokkos initialize/finalize if done via Raw
 // HIP.
 TEST(hip, raw_hip_interop) {
+  // Make sure that we use the same device for all allocations
+  Kokkos::initialize();
+
   int* p;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(&p, sizeof(int) * 100));
-  Kokkos::initialize();
 
   Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v(p, 100);
   Kokkos::deep_copy(v, 5);

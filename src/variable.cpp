@@ -224,7 +224,7 @@ void Variable::set(int narg, char **arg)
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
-    } else error->all(FLERR,"Illegal variable loop command: too much arguments");
+    } else error->all(FLERR,"Illegal variable loop command: too many arguments");
     num[nvar] = nlast;
     which[nvar] = nfirst-1;
     data[nvar] = new char*[1];
@@ -1052,7 +1052,7 @@ char *Variable::retrieve(const char *name)
     if (vecs[ivar].dynamic || vecs[ivar].currentstep != update->ntimestep) {
       eval_in_progress[ivar] = 0;
       double *result;
-      int nvec = compute_vector(ivar,&result);
+      compute_vector(ivar,&result);
       delete[] data[ivar][1];
       std::vector <double> vectmp(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
       std::string str = fmt::format("[{}]", fmt::join(vectmp,","));
@@ -4040,8 +4040,8 @@ Region *Variable::region_function(char *id, int ivar)
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
      sum(x),min(x),max(x),ave(x),trap(x),slope(x),
-     gmask(x),rmask(x),grmask(x,y),next(x),
-     is_file(x),is_ox(x),extract_setting(x),label2type(x,y)
+     gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_ox(x),
+     extract_setting(x),label2type(x,y),is_typelabel(x,y)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree, Tree **treestack,
@@ -4056,20 +4056,28 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       strcmp(word,"ave") != 0 && strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 &&
       strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 && strcmp(word,"grmask") != 0 &&
       strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 && strcmp(word,"is_os") != 0 &&
-      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
+      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0 &&
+      strcmp(word,"is_typelabel") != 0)
     return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
 
-  if (strcmp(word,"label2type") == 0) {
+  if (strcmp(word,"label2type") == 0 || strcmp(word,"is_typelabel") == 0) {
     if (!atom->labelmapflag)
-      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+      print_var_error(FLERR,fmt::format("Cannot use {}() function without a labelmap",word),ivar);
 
     std::string contents_copy(contents);
     auto pos = contents_copy.find_first_of(',');
-    if (pos == std::string::npos)
-      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
-                                         contents_copy), ivar);
+    if (pos == std::string::npos) {
+      if (strcmp(word,"label2type") == 0) {
+        print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                           contents_copy), ivar);
+      } else {
+        print_var_error(FLERR, fmt::format("Invalid is_typelabel({}) function in variable formula",
+                                           contents_copy), ivar);
+      }
+    }
+
     std::string typestr = contents_copy.substr(pos+1);
     std::string kind = contents_copy.substr(0, pos);
 
@@ -4085,12 +4093,14 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else if (kind == "improper") {
       value = atom->lmap->find(typestr,Atom::IMPROPER);
     } else {
-      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() in variable",kind),ivar);
+      print_var_error(FLERR, fmt::format("Invalid kind {} in {}() in variable", kind, word),ivar);
     }
 
-    if (value == -1)
-      print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
-                                         kind, typestr), ivar);
+    if (strcmp(word,"label2type") == 0) {
+      if (value == -1)
+        print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
+                                           kind, typestr), ivar);
+    } else value = (value == -1) ? 0.0 : 1.0;
 
     // save value in tree or on argstack
 

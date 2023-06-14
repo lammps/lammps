@@ -736,7 +736,7 @@ or
 
 .. math::
 
-   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}
+   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
 specified in an input script that reads a restart file.

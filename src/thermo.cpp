@@ -111,6 +111,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
+  ntimestep = -1;
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords, including wildcard expansion
@@ -201,12 +202,22 @@ void Thermo::init()
   ValueTokenizer *format_line = nullptr;
   if (format_line_user.size()) format_line = new ValueTokenizer(format_line_user);
 
+  field_data.clear();
+  field_data.resize(nfield);
   std::string format_this, format_line_user_def;
   for (int i = 0; i < nfield; i++) {
 
     format[i].clear();
     format_this.clear();
     format_line_user_def.clear();
+
+    if (vtype[i] == FLOAT) {
+      field_data[i] = (double) 0.0;
+    } else if (vtype[i] == INT) {
+      field_data[i] = (int) 0;
+    } else if (vtype[i] == BIGINT) {
+      field_data[i] = (bigint) 0;
+    }
 
     if ((lineflag == MULTILINE) && ((i % 3) == 0)) format[i] += "\n";
     if ((lineflag == YAMLLINE) && (i == 0)) format[i] += "  - [";
@@ -361,7 +372,7 @@ void Thermo::compute(int flag)
   int i;
 
   firststep = flag;
-  bigint ntimestep = update->ntimestep;
+  ntimestep = update->ntimestep;
 
   // check for lost atoms
   // turn off normflag if natoms = 0 to avoid divide by 0
@@ -405,18 +416,23 @@ void Thermo::compute(int flag)
   }
 
   // add each thermo value to line with its specific format
+  field_data.clear();
+  field_data.resize(nfield);
 
   for (ifield = 0; ifield < nfield; ifield++) {
     (this->*vfunc[ifield])();
     if (vtype[ifield] == FLOAT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), dvalue);
       line += fmtbuf;
+      field_data[ifield] = dvalue;
     } else if (vtype[ifield] == INT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), ivalue);
       line += fmtbuf;
+      field_data[ifield] = ivalue;
     } else if (vtype[ifield] == BIGINT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), bivalue);
       line += fmtbuf;
+      field_data[ifield] = bivalue;
     }
   }
 
@@ -431,16 +447,6 @@ void Thermo::compute(int flag)
   // e.g. via variables in print command
 
   firststep = 1;
-}
-
-/* ----------------------------------------------------------------------
-   call function to compute property
-------------------------------------------------------------------------- */
-
-void Thermo::call_vfunc(int ifield_in)
-{
-  ifield = ifield_in;
-  (this->*vfunc[ifield])();
 }
 
 /* ----------------------------------------------------------------------
@@ -1062,6 +1068,8 @@ void Thermo::parse_fields(const std::string &str)
       }
     }
   }
+  field_data.clear();
+  field_data.resize(nfield);
 }
 
 /* ----------------------------------------------------------------------

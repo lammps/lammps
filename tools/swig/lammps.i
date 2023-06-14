@@ -28,9 +28,10 @@
  *
  * Must be kept in sync with the equivalent constants in ``src/library.h``,
  * ``python/lammps/constants.py``, ``examples/COUPLE/plugin/liblammpsplugin.h``,
- * and ``fortran/lammps.f90`` */
+ * ``src/lmptype.h``, and ``fortran/lammps.f90`` */
 
 enum _LMP_DATATYPE_CONST {
+  LAMMPS_NONE      =-1,     /*!< no data type assigned (yet) */
   LAMMPS_INT       = 0,     /*!< 32-bit integer (array) */
   LAMMPS_INT_2D    = 1,     /*!< two-dimensional 32-bit integer array */
   LAMMPS_DOUBLE    = 2,     /*!< 64-bit double (array) */
@@ -113,6 +114,7 @@ extern void   lammps_commands_string(void *handle, const char *str);
 
 extern double lammps_get_natoms(void *handle);
 extern double lammps_get_thermo(void *handle, const char *keyword);
+extern void  *lammps_last_thermo(void *handle, const char *what, int index);
 extern void   lammps_extract_box(void *handle, double *boxlo, double *boxhi,
                           double *xy, double *yz, double *xz,
                           int *pflags, int *boxflag);
@@ -295,6 +297,7 @@ extern void   lammps_commands_string(void *handle, const char *str);
 
 extern double lammps_get_natoms(void *handle);
 extern double lammps_get_thermo(void *handle, const char *keyword);
+extern void  *lammps_last_thermo(void *handle, const char *what, int index);
 extern void   lammps_extract_box(void *handle, double *boxlo, double *boxhi,
                           double *xy, double *yz, double *xz,
                           int *pflags, int *boxflag);

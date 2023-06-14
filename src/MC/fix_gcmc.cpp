@@ -2328,8 +2328,7 @@ double FixGCMC::energy_full()
       }
       if (overlaptest) break;
     }
-    MPI_Allreduce(&overlaptest, &overlaptestall, 1,
-                  MPI_INT, MPI_MAX, world);
+    MPI_Allreduce(&overlaptest, &overlaptestall, 1, MPI_INT, MPI_MAX, world);
     if (overlaptestall) return MAXENERGYSIGNAL;
   }
 

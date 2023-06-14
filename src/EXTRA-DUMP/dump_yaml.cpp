@@ -71,11 +71,11 @@ void DumpYAML::write_header(bigint ndump)
       thermo_data += "]\n  - data: [ ";
 
       for (int i = 0; i < nfield; ++i) {
-        if (fields[i].type == multitype::DOUBLE)
+        if (fields[i].type == multitype::LAMMPS_DOUBLE)
           thermo_data += fmt::format("{}, ", fields[i].data.d);
-        else if (fields[i].type == multitype::INT)
+        else if (fields[i].type == multitype::LAMMPS_INT)
           thermo_data += fmt::format("{}, ", fields[i].data.i);
-        else if (fields[i].type == multitype::BIGINT)
+        else if (fields[i].type == multitype::LAMMPS_INT64)
           thermo_data += fmt::format("{}, ", fields[i].data.b);
         else
           thermo_data += ", ";

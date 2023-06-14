@@ -188,7 +188,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
              *this,ev);
     else
       Kokkos::parallel_for(
-            policyInstance<TagPairEAMKernelAB<0>>(inum),
+            policyInstance<TagPairEAMKernelAB<0>>::get(inum),
             *this);
   }
 
@@ -241,31 +241,31 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (neighflag == HALF) {
       if (newton_pair) {
         Kokkos::parallel_for(
-              policyInstance<TagPairEAMKernelC<HALF,1,0>>(inum),
+              policyInstance<TagPairEAMKernelC<HALF,1,0>>::get(inum),
               *this);
       } else {
         Kokkos::parallel_for(
-              policyInstance<TagPairEAMKernelC<HALF,0,0>>(inum),
+              policyInstance<TagPairEAMKernelC<HALF,0,0>>::get(inum),
               *this);
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
         Kokkos::parallel_for(
-              policyInstance<TagPairEAMKernelC<HALFTHREAD,1,0>>(inum),
+              policyInstance<TagPairEAMKernelC<HALFTHREAD,1,0>>::get(inum),
               *this);
       } else {
         Kokkos::parallel_for(
-              policyInstance<TagPairEAMKernelC<HALFTHREAD,0,0>>(inum),
+              policyInstance<TagPairEAMKernelC<HALFTHREAD,0,0>>::get(inum),
               *this);
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
         Kokkos::parallel_for(
-              policyInstance<TagPairEAMKernelC<FULL,1,0>>(inum),
+              policyInstance<TagPairEAMKernelC<FULL,1,0>>::get(inum),
               *this);
       } else {
         Kokkos::parallel_for(
-              policyInstance<TagPairEAMKernelC<FULL,0,0>>(inum),
+              policyInstance<TagPairEAMKernelC<FULL,0,0>>::get(inum),
               *this);
       }
     }
@@ -1159,27 +1159,32 @@ void PairEAMKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-template<class tag>
-auto PairEAMKokkos<DeviceType>::policyInstance(int inum) {
-  #ifdef KOKKOS_ENABLE_HIP
-    if (execution_space != Host) {
+template<typename DeviceType>
+template<class TAG>
+struct PairEAMKokkos<DeviceType>::policyInstance {
+  KOKKOS_INLINE_FUNCTION
+  static auto get(int inum) {
+    auto policy = Kokkos::RangePolicy<DeviceType, TAG>(0,inum);
+    return policy;
+  }
+};
+
+#ifdef KOKKOS_ENABLE_HIP
+template<>
+template<class TAG>
+struct PairEAMKokkos<Kokkos::Experimental::HIP>::policyInstance {
+  KOKKOS_INLINE_FUNCTION
+  static auto get(int inum) {
     static_assert(t_ffloat_2d_n7::static_extent(2) == 7,
                   "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");
 
-    auto policy = Kokkos::TeamPolicy<DeviceType,tag>((inum+1023)/1024, 1024)
+    auto policy = Kokkos::TeamPolicy<Kokkos::Experimental::HIP,TAG>((inum+1023)/1024, 1024)
                            .set_scratch_size(0,
-                                Kokkos::PerTeam(MAX_CACHE_ROWS*t_ffloat_2d_n7::static_extent(2)*sizeof(double)));
+                                Kokkos::PerTeam(MAX_CACHE_ROWS*7*sizeof(double)));
     return policy;
-    } else {
-      auto policy = Kokkos::RangePolicy<DeviceType, tag>(0,inum);
-      return policy;
-    }
-  #else
-    auto policy = Kokkos::RangePolicy<DeviceType, tag>(0,inum);
-    return policy;
-  #endif
-}
+  }
+};
+#endif
 
 /* ---------------------------------------------------------------------- */
 

@@ -183,8 +183,8 @@ class PairEAMAlloyKokkos : public PairEAM, public KokkosBase {
   void array2spline() override;
   void read_file(char *) override;
 
-  template<class tag>
-  auto policyInstance(int inum);
+  template<class TAG>
+  struct policyInstance;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;

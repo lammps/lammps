@@ -64,31 +64,23 @@ enum { SINGLE_PROC, MULTI_PROC };
 /* ---------------------------------------------------------------------- */
 
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr)
+    Fix(lmp, narg, arg), mass(nullptr), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
+    tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
+    bufsortedall(nullptr), outsorted(nullptr), buftransall(nullptr), bufsendall(nullptr),
+    bufrecvall(nullptr), tagsendall(nullptr), tagrecvall(nullptr), counts(nullptr),
+    displacements(nullptr), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr),
+    M_fp2f(nullptr), modeindex(nullptr), tau_k(nullptr), c1_k(nullptr), c2_k(nullptr),
+    _omega_k(nullptr), Lan_s(nullptr), Lan_c(nullptr), , random(nullptr), xc(nullptr),
+    xcall(nullptr), x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr),
+    c_press(nullptr)
 {
   restart_global = 1;
   time_integrate = 1;
-  tagsend = tagrecv = nullptr;
-  bufsend = bufrecv = nullptr;
-  bufsendall = bufrecvall = nullptr;
-  bufsorted = bufsortedall = nullptr;
-  outsorted = buftransall = nullptr;
 
   ntotal = 0;
   maxlocal = maxunwrap = maxxc = 0;
-  bufbeads = nullptr;
-  x_unwrap = xc = nullptr;
-  xcall = nullptr;
-  counts = nullptr;
 
   sizeplan = 0;
-  plansend = planrecv = nullptr;
-
-  M_x2xp = M_xp2x = M_f2fp = M_fp2f = nullptr;
-  lam = nullptr;
-  modeindex = nullptr;
-
-  mass = nullptr;
 
   method = NMPIMD;
   ensemble = NVT;
@@ -97,6 +89,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   barostat = BZP;
   fmass = 1.0;
   np = universe->nworlds;
+  inverse_np = 1.0 / np;
   sp = 1.0;
   temp = 298.15;
   Lan_temp = 298.15;
@@ -155,8 +148,8 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         pstat_flag = 1;
       } else
         error->universe_all(FLERR,
-                            "Unknown ensemble parameter for fix pimd/langevin. Only nve, nvt, nph, and npt "
-                            "ensembles are supported!");
+                            "Unknown ensemble parameter for fix pimd/langevin. Only nve, nvt, nph, "
+                            "and npt ensembles are supported!");
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (fmass < 0.0 || fmass > np)
@@ -170,10 +163,9 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[i + 1], "normal") == 0)
         fmmode = NORMAL;
       else
-        error->universe_all(
-            FLERR,
-            "Unknown fictitious mass mode for fix pimd/langevin. Only physical mass and "
-            "normal mode mass are supported!");
+        error->universe_all(FLERR,
+                            "Unknown fictitious mass mode for fix pimd/langevin. Only physical "
+                            "mass and normal mode mass are supported!");
     } else if (strcmp(arg[i], "scale") == 0) {
       pilescale = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (pilescale < 0.0)
@@ -409,7 +401,6 @@ void FixPIMDLangevin::init()
   // prepare the constants
 
   masstotal = group->mass(igroup);
-  inverse_np = 1.0 / np;
 
   double planck;
   if (strcmp(update->unit_style, "lj") == 0) {

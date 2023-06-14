@@ -59,7 +59,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   ~PairEAMKokkos() override;
   void compute(int, int) override;
   void init_style() override;
-  
+
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;

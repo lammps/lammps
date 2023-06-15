@@ -172,6 +172,23 @@ struct test_vector_insert {
       run_test(a);
       check_test(a, size);
     }
+    { test_vector_insert_into_empty(size); }
+  }
+
+  void test_vector_insert_into_empty(const size_t size) {
+    using Vector = Kokkos::vector<Scalar, Device>;
+    {
+      Vector a;
+      Vector b(size);
+      a.insert(a.begin(), b.begin(), b.end());
+      ASSERT_EQ(a.size(), size);
+    }
+
+    {
+      Vector c;
+      c.insert(c.begin(), size, Scalar{});
+      ASSERT_EQ(c.size(), size);
+    }
   }
 };
 
@@ -279,6 +296,19 @@ TEST(TEST_CATEGORY, vector_combination) {
 
 TEST(TEST_CATEGORY, vector_insert) {
   Impl::test_vector_insert<int, TEST_EXECSPACE>(3057);
+}
+
+// The particular scenario below triggered a bug where empty modified_flags
+// would cause resize in push_back to be executed on the device overwriting the
+// values that were stored on the host previously.
+TEST(TEST_CATEGORY, vector_push_back_default_exec) {
+  Kokkos::vector<int, TEST_EXECSPACE> V;
+  V.clear();
+  V.push_back(4);
+  ASSERT_EQ(V[0], 4);
+  V.push_back(3);
+  ASSERT_EQ(V[1], 3);
+  ASSERT_EQ(V[0], 4);
 }
 
 }  // namespace Test

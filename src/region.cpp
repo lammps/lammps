@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -66,27 +66,27 @@ void Region::init()
 {
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (xvar < 0) error->all(FLERR, "Variable {} for region does not exist", xstr);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR, "Variable for region is invalid style");
+      error->all(FLERR, "Variable {} for region is invalid style", xstr);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (yvar < 0) error->all(FLERR, "Variable {} for region does not exist", ystr);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR, "Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", ystr);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (zvar < 0) error->all(FLERR, "Variable {} for region does not exist", zstr);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR, "Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", zstr);
   }
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) error->all(FLERR, "Variable name for region does not exist");
+    if (tvar < 0) error->all(FLERR, "Variable {} for region does not exist", tstr);
     if (!input->variable->equalstyle(tvar))
-      error->all(FLERR, "Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", tstr);
   }
   vel_timestep = -1;
 }
@@ -104,8 +104,8 @@ int Region::dynamic_check()
 
 /* ----------------------------------------------------------------------
    called before looping over atoms with match() or surface()
-   this insures any variables used by region are invoked once per timestep
-     also insures variables are invoked by all procs even those w/out atoms
+   this ensures any variables used by region are invoked once per timestep
+     also ensures variables are invoked by all procs even those w/out atoms
      necessary if equal-style variable invokes global operation
    with MPI_Allreduce, e.g. xcm() or count()
 ------------------------------------------------------------------------- */
@@ -302,7 +302,7 @@ void Region::rotate(double &x, double &y, double &z, double angle)
 
 void Region::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR, "Illegal region command");
+  if (narg < 0) utils::missing_cmd_args(FLERR, "region", error);
 
   // option defaults
 
@@ -316,46 +316,46 @@ void Region::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "units") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal region command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region units", error);
       if (strcmp(arg[iarg + 1], "box") == 0)
         scaleflag = 0;
       else if (strcmp(arg[iarg + 1], "lattice") == 0)
         scaleflag = 1;
       else
-        error->all(FLERR, "Illegal region command");
+        error->all(FLERR, "Illegal region units: {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "side") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal region command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region side", error);
       if (strcmp(arg[iarg + 1], "in") == 0)
         interior = 1;
       else if (strcmp(arg[iarg + 1], "out") == 0)
         interior = 0;
       else
-        error->all(FLERR, "Illegal region command");
+        error->all(FLERR, "Illegal region side: {}", arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "move") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal region command");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "region move", error);
       if (strcmp(arg[iarg + 1], "NULL") != 0) {
         if (strstr(arg[iarg + 1], "v_") != arg[iarg + 1])
-          error->all(FLERR, "Illegal region command");
+          error->all(FLERR, "Illegal region move x displacement variable: {}", arg[iarg + 1]);
         xstr = utils::strdup(&arg[iarg + 1][2]);
       }
       if (strcmp(arg[iarg + 2], "NULL") != 0) {
         if (strstr(arg[iarg + 2], "v_") != arg[iarg + 2])
-          error->all(FLERR, "Illegal region command");
+          error->all(FLERR, "Illegal region move y displacement variable: {}", arg[iarg + 2]);
         ystr = utils::strdup(&arg[iarg + 2][2]);
       }
       if (strcmp(arg[iarg + 3], "NULL") != 0) {
         if (strstr(arg[iarg + 3], "v_") != arg[iarg + 3])
-          error->all(FLERR, "Illegal region command");
+          error->all(FLERR, "Illegal region move z displacement variable: {}", arg[iarg + 3]);
         zstr = utils::strdup(&arg[iarg + 3][2]);
       }
       moveflag = 1;
       iarg += 4;
 
     } else if (strcmp(arg[iarg], "rotate") == 0) {
-      if (iarg + 8 > narg) error->all(FLERR, "Illegal region command");
+      if (iarg + 8 > narg) utils::missing_cmd_args(FLERR, "region rotate", error);
       if (strstr(arg[iarg + 1], "v_") != arg[iarg + 1]) error->all(FLERR, "Illegal region command");
       tstr = utils::strdup(&arg[iarg + 1][2]);
       point[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
@@ -368,15 +368,15 @@ void Region::options(int narg, char **arg)
       iarg += 8;
 
     } else if (strcmp(arg[iarg], "open") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal region command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region open", error);
       int iface = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (iface < 1 || iface > 6) error->all(FLERR, "Illegal region command");
+      if (iface < 1 || iface > 6) error->all(FLERR, "Illegal region open face index: {}", iface);
       // additional checks on valid face index are done by region classes
       open_faces[iface - 1] = 1;
       openflag = 1;
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal region command");
+      error->all(FLERR, "Illegal region command argument: {}", arg[iarg]);
   }
 
   // error check

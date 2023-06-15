@@ -45,7 +45,6 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -249,11 +248,11 @@ void test_view_mapping() {
     ASSERT_EQ(layout.dimension[0], 2u);
     ASSERT_EQ(layout.dimension[1], 3u);
     ASSERT_EQ(layout.dimension[2], 4u);
-    ASSERT_EQ(layout.dimension[3], 1u);
-    ASSERT_EQ(layout.dimension[4], 1u);
-    ASSERT_EQ(layout.dimension[5], 1u);
-    ASSERT_EQ(layout.dimension[6], 1u);
-    ASSERT_EQ(layout.dimension[7], 1u);
+    ASSERT_EQ(layout.dimension[3], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[4], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[5], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[6], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[7], KOKKOS_INVALID_INDEX);
 
     ASSERT_EQ(stride3.m_dim.rank, 3u);
     ASSERT_EQ(stride3.m_dim.N0, 2u);
@@ -447,8 +446,8 @@ void test_view_mapping() {
     Kokkos::Impl::ViewDimension<N0, N1, N2, N3> dim;
 
     SubviewExtents tmp(dim, N0 / 2, Kokkos::ALL,
-                       std::pair<int, int>(N2 / 4, 10 + N2 / 4),
-                       Kokkos::pair<int, int>(N3 / 4, 20 + N3 / 4));
+                       std::pair<size_t, size_t>(N2 / 4, 10 + N2 / 4),
+                       Kokkos::pair<size_t, size_t>(N3 / 4, 20 + N3 / 4));
 
     ASSERT_EQ(tmp.domain_offset(0), N0 / 2);
     ASSERT_EQ(tmp.domain_offset(1), 0u);
@@ -632,8 +631,7 @@ void test_view_mapping() {
 
     using a_const_int_r1 = ViewDataAnalysis<const int[], void>;
 
-    static_assert(
-        std::is_same<typename a_const_int_r1::specialize, void>::value, "");
+    static_assert(std::is_void<typename a_const_int_r1::specialize>::value, "");
     static_assert(std::is_same<typename a_const_int_r1::dimension,
                                Kokkos::Impl::ViewDimension<0> >::value,
                   "");
@@ -664,8 +662,7 @@ void test_view_mapping() {
 
     using a_const_int_r3 = ViewDataAnalysis<const int* * [4], void>;
 
-    static_assert(
-        std::is_same<typename a_const_int_r3::specialize, void>::value, "");
+    static_assert(std::is_void<typename a_const_int_r3::specialize>::value, "");
 
     static_assert(std::is_same<typename a_const_int_r3::dimension,
                                Kokkos::Impl::ViewDimension<0, 0, 4> >::value,

@@ -50,6 +50,10 @@
 
 #ifndef KOKKOS_UNORDERED_MAP_HPP
 #define KOKKOS_UNORDERED_MAP_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_UNORDEREDMAP
+#endif
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Functional.hpp>
@@ -62,7 +66,6 @@
 #include <iostream>
 
 #include <cstdint>
-#include <stdexcept>
 
 namespace Kokkos {
 
@@ -200,10 +203,9 @@ class UnorderedMapInsertResult {
 ///   <tt>Key</tt>.  The default will do a bitwise equality comparison.
 ///
 template <typename Key, typename Value,
-          typename Device = Kokkos::DefaultExecutionSpace,
-          typename Hasher = pod_hash<typename std::remove_const<Key>::type>,
-          typename EqualTo =
-              pod_equal_to<typename std::remove_const<Key>::type>>
+          typename Device  = Kokkos::DefaultExecutionSpace,
+          typename Hasher  = pod_hash<std::remove_const_t<Key>>,
+          typename EqualTo = pod_equal_to<std::remove_const_t<Key>>>
 class UnorderedMap {
  private:
   using host_mirror_space =
@@ -215,13 +217,13 @@ class UnorderedMap {
 
   // key_types
   using declared_key_type = Key;
-  using key_type          = typename std::remove_const<declared_key_type>::type;
-  using const_key_type    = typename std::add_const<key_type>::type;
+  using key_type          = std::remove_const_t<declared_key_type>;
+  using const_key_type    = std::add_const_t<key_type>;
 
   // value_types
   using declared_value_type = Value;
-  using value_type = typename std::remove_const<declared_value_type>::type;
-  using const_value_type = typename std::add_const<value_type>::type;
+  using value_type          = std::remove_const_t<declared_value_type>;
+  using const_value_type    = std::add_const_t<value_type>;
 
   using device_type     = Device;
   using execution_space = typename Device::execution_space;
@@ -241,7 +243,7 @@ class UnorderedMap {
   using const_map_type = UnorderedMap<const_key_type, const_value_type,
                                       device_type, hasher_type, equal_to_type>;
 
-  static const bool is_set = std::is_same<void, value_type>::value;
+  static const bool is_set = std::is_void<value_type>::value;
   static const bool has_const_key =
       std::is_same<const_key_type, declared_key_type>::value;
   static const bool has_const_value =
@@ -318,7 +320,7 @@ class UnorderedMap {
 #endif
         m_scalars("UnorderedMap scalars") {
     if (!is_insertable_map) {
-      throw std::runtime_error(
+      Kokkos::Impl::throw_runtime_exception(
           "Cannot construct a non-insertable (i.e. const key_type) "
           "unordered_map");
     }
@@ -742,10 +744,10 @@ class UnorderedMap {
   template <typename SKey, typename SValue>
   UnorderedMap(
       UnorderedMap<SKey, SValue, Device, Hasher, EqualTo> const &src,
-      typename std::enable_if<
+      std::enable_if_t<
           Impl::UnorderedMapCanAssign<declared_key_type, declared_value_type,
                                       SKey, SValue>::value,
-          int>::type = 0)
+          int> = 0)
       : m_bounded_insert(src.m_bounded_insert),
         m_hasher(src.m_hasher),
         m_equal_to(src.m_equal_to),
@@ -758,10 +760,10 @@ class UnorderedMap {
         m_scalars(src.m_scalars) {}
 
   template <typename SKey, typename SValue>
-  typename std::enable_if<
+  std::enable_if_t<
       Impl::UnorderedMapCanAssign<declared_key_type, declared_value_type, SKey,
                                   SValue>::value,
-      declared_map_type &>::type
+      declared_map_type &>
   operator=(UnorderedMap<SKey, SValue, Device, Hasher, EqualTo> const &src) {
     m_bounded_insert    = src.m_bounded_insert;
     m_hasher            = src.m_hasher;
@@ -777,10 +779,8 @@ class UnorderedMap {
   }
 
   template <typename SKey, typename SValue, typename SDevice>
-  typename std::enable_if<
-      std::is_same<typename std::remove_const<SKey>::type, key_type>::value &&
-      std::is_same<typename std::remove_const<SValue>::type,
-                   value_type>::value>::type
+  std::enable_if_t<std::is_same<std::remove_const_t<SKey>, key_type>::value &&
+                   std::is_same<std::remove_const_t<SValue>, value_type>::value>
   create_copy_view(
       UnorderedMap<SKey, SValue, SDevice, Hasher, EqualTo> const &src) {
     if (m_hash_lists.data() != src.m_hash_lists.data()) {
@@ -915,4 +915,8 @@ inline void deep_copy(
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_UNORDEREDMAP
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_UNORDEREDMAP
+#endif
 #endif  // KOKKOS_UNORDERED_MAP_HPP

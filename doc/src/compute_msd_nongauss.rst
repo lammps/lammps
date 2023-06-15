@@ -6,7 +6,7 @@ compute msd/nongauss command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID msd/nongauss keyword values ...
 
@@ -35,21 +35,21 @@ Define a computation that calculates the mean-squared displacement
 including all effects due to atoms passing through periodic boundaries.
 
 A vector of three quantities is calculated by this compute.  The first
-element of the vector is the total squared dx,dy,dz displacements
-drsquared = (dx\*dx + dy\*dy + dz\*dz) of atoms, and the second is the
-fourth power of these displacements drfourth = (dx\*dx + dy\*dy +
-dz\*dz)\*(dx\*dx + dy\*dy + dz\*dz), summed and averaged over atoms in the
-group.  The third component is the nonGaussian diffusion parameter NGP =
-3\*drfourth/(5\*drsquared\*drsquared), i.e.
+element of the vector is the total squared displacement,
+:math:`dr^2 = dx^2 + dy^2 + dz^2`, of the atoms, and the second is the
+fourth power of these displacements, :math:`dr^4 = (dx^2 + dy^2 + dz^2)^2`,
+summed and averaged over atoms in the group.  The third component is the
+non-Gaussian diffusion parameter NGP,
 
 .. math::
 
- NGP(t) = 3<(r(t)-r(0))^4>/(5<(r(t)-r(0))^2>^2) - 1
+   \text{NGP}(t) = \frac{3\left\langle(r(t)-r(0))^4\right\rangle}
+                        {5\left\langle(r(t)-r(0))^2\right\rangle^2} - 1.
 
 The NGP is a commonly used quantity in studies of dynamical
-heterogeneity.  Its minimum theoretical value (-0.4) occurs when all
-atoms have the same displacement magnitude.  NGP=0 for Brownian
-diffusion, while NGP > 0 when some mobile atoms move faster than
+heterogeneity.  Its minimum theoretical value :math:`(-0.4)` occurs when all
+atoms have the same displacement magnitude.  :math:`\text{NGP}=0` for Brownian
+diffusion, while :math:`\text{NGP} > 0` when some mobile atoms move faster than
 others.
 
 If the *com* option is set to *yes* then the effect of any drift in
@@ -63,13 +63,13 @@ Output info
 """""""""""
 
 This compute calculates a global vector of length 3, which can be
-accessed by indices 1-3 by any command that uses global vector values
+accessed by indices 1--3 by any command that uses global vector values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The first vector value will be in
-distance\^2 :doc:`units <units>`, the second is in distance\^4 units, and
-the third is dimensionless.
+distance\ :math:`^2` :doc:`units <units>`, the second is in
+distance\ :math:`^4` units, and the third is dimensionless.
 
 Restrictions
 """"""""""""

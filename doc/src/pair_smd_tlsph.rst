@@ -48,7 +48,7 @@ and a material model to compute shear stresses (the off-diagonal
 components of the stress tensor). Damage and failure models can also
 be added.
 
-Please see the `SMD user guide <PDF/SMD_LAMMPS_userguide.pdf>`_ for a
+Please see the `SMD user guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ for a
 complete listing of the possible keywords and material models.
 
 ----------

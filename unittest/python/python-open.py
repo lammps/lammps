@@ -45,10 +45,20 @@ class PythonOpen(unittest.TestCase):
 
     def testWithArgs(self):
         """Create LAMMPS instance with a few arguments"""
-        lmp=lammps(name=self.machine,
-                   cmdargs=['-nocite','-sf','opt','-log','none'])
+        lmp=lammps(name=self.machine,cmdargs=['-nocite','-sf','opt','-log','none'])
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
+
+    def testError(self):
+        """Print warning message through LAMMPS Error class"""
+        lmp=lammps(name=self.machine,cmdargs=['-nocite','-log','none','-screen','tmp.error.output'])
+        lmp.error(0,'test_warning')
+        lmp.close()
+        with open('tmp.error.output','r') as f:
+            output = f.read()
+        self.assertTrue('LAMMPS' in output)
+        self.assertTrue('Total wall time' in output)
+        self.assertTrue('WARNING: test_warning' in output)
 
     def testContextManager(self):
         """Automatically clean up LAMMPS instance"""

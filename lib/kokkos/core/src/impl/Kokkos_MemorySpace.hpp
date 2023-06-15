@@ -78,6 +78,20 @@ SharedAllocationHeader *checked_allocation_with_header(MemorySpace const &space,
   return nullptr;  // unreachable
 }
 
+template <class ExecutionSpace, class MemorySpace>
+SharedAllocationHeader *checked_allocation_with_header(
+    ExecutionSpace const &exec_space, MemorySpace const &space,
+    std::string const &label, size_t alloc_size) {
+  try {
+    return reinterpret_cast<SharedAllocationHeader *>(space.allocate(
+        exec_space, label.c_str(), alloc_size + sizeof(SharedAllocationHeader),
+        alloc_size));
+  } catch (Kokkos::Experimental::RawMemoryAllocationFailure const &failure) {
+    safe_throw_allocation_with_header_failure(space.name(), label, failure);
+  }
+  return nullptr;  // unreachable
+}
+
 }  // end namespace Impl
 }  // end namespace Kokkos
 

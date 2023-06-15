@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -39,7 +39,7 @@ class PairILPGrapheneHBN : public Pair {
 
   static constexpr int NPARAMS_PER_LINE = 13;
 
-  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL };    // for telling class variants apart in shared code
+  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL, AIP_WATER_2DM };    // for telling class variants apart in shared code
 
  protected:
   int me;

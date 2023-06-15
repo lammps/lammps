@@ -74,6 +74,7 @@ enum struct DeviceType {
   HPX,
   Threads,
   SYCL,
+  OpenACC,
   Unknown
 };
 
@@ -98,6 +99,7 @@ inline DeviceType devicetype_from_uint32t(const uint32_t in) {
     case 5: return DeviceType::HPX;
     case 6: return DeviceType::Threads;
     case 7: return DeviceType::SYCL;
+    case 8: return DeviceType::OpenACC;
     default: return DeviceType::Unknown;  // TODO: error out?
   }
 }
@@ -118,11 +120,14 @@ template <typename ExecutionSpace>
 constexpr uint32_t device_id_root() {
   constexpr auto device_id =
       static_cast<uint32_t>(DeviceTypeTraits<ExecutionSpace>::id);
-  return (device_id << num_instance_bits);
+  return (device_id << (num_instance_bits + num_device_bits));
 }
 template <typename ExecutionSpace>
 inline uint32_t device_id(ExecutionSpace const& space) noexcept {
-  return device_id_root<ExecutionSpace>() + space.impl_instance_id();
+  return device_id_root<ExecutionSpace>() +
+         (DeviceTypeTraits<ExecutionSpace>::device_id(space)
+          << num_instance_bits) +
+         space.impl_instance_id();
 }
 }  // namespace Experimental
 }  // namespace Tools

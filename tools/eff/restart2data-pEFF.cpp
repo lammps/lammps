@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -731,7 +731,7 @@ int atom(double *buf, Data &data)
 
   // read atom quantities from buf
   // if hybrid, loop over all sub-styles in order listed
-  // if hybrid, loop index k will match style setting to insure correct order
+  // if hybrid, loop index k will match style setting to ensure correct order
 
   int nloop = 1;
   if (data.style_hybrid) nloop = data.style_hybrid;

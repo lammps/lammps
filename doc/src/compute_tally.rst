@@ -26,7 +26,7 @@ compute stress/tally command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style group2-ID
 
@@ -57,8 +57,8 @@ accumulated directly during the non-bonded force computation. The
 computes *force/tally*, *pe/tally*, *stress/tally*, and
 *heat/flux/tally* are primarily provided as example how to program
 additional, more sophisticated computes using the tally callback
-mechanism. Compute *pe/mol/tally* is one such style, that can
-- through using this mechanism - separately tally intermolecular
+mechanism. Compute *pe/mol/tally* is one such style, that can---through using
+this mechanism---separately tally intermolecular
 and intramolecular energies. Something that would otherwise be
 impossible without integrating this as a core functionality into
 the base classes of LAMMPS.
@@ -92,7 +92,7 @@ Although, the *heat/flux/virial/tally* compute
 does not include the convective term,
 it can be used to obtain the total heat flux over control surfaces,
 when there are no particles crossing over,
-such as is often in solid-solid and solid-liquid interfaces.
+such as is often in solid--solid and solid--liquid interfaces.
 This would be identical to the method of planes method.
 Note that the *heat/flux/virial/tally* compute is distinctly different
 from the *heat/flux* and *heat/flux/tally* computes,
@@ -152,7 +152,7 @@ Output info
   atom scalar (the contributions of the single atom to the global
   scalar).
 
-- Compute *pe/mol/tally* calculates a global 4-element vector containing
+- Compute *pe/mol/tally* calculates a global four-element vector containing
   (in this order): *evdwl* and *ecoul* for intramolecular pairs and
   *evdwl* and *ecoul* for intermolecular pairs. Since molecules are
   identified by their molecule IDs, the partitioning does not have to be
@@ -165,19 +165,19 @@ Output info
 
 - Compute *stress/tally* calculates a global scalar
   (average of the diagonal elements of the stress tensor) and a per atom
-  vector (the 6 elements of stress tensor contributions from the
+  vector (the six elements of stress tensor contributions from the
   individual atom).
 
 - As in :doc:`compute heat/flux <compute_heat_flux>`,
   compute *heat/flux/tally* calculates a global vector of length 6,
-  where the first 3 components are the :math:`x`, :math:`y`, :math:`z`
+  where the first three components are the :math:`x`, :math:`y`, :math:`z`
   components of the full heat flow vector,
-  and the next 3 components are the corresponding components
-  of just the convective portion of the flow, i.e. the
-  first term in the equation for :math:`\mathbf{Q}`.
+  and the next three components are the corresponding components
+  of just the convective portion of the flow (i.e., the
+  first term in the equation for :math:`\mathbf{Q}`).
 
 - Compute *heat/flux/virial/tally* calculates a global scalar (heat flow)
-  and a per atom 3-element vector
+  and a per atom three-element vector
   (contribution to the force acting over atoms in the first group
   from individual atoms in both groups).
 
@@ -187,16 +187,22 @@ Both the scalar and vector values calculated by this compute are
 Restrictions
 """"""""""""
 
-This compute is part of the TALLY package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This compute is part of the TALLY package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Not all pair styles can be evaluated in a pairwise mode as required by
-this compute.  For example, 3-body and other many-body potentials,
-such as :doc:`Tersoff <pair_tersoff>` and
-:doc:`Stillinger-Weber <pair_sw>` cannot be used.  :doc:`EAM <pair_eam>`
-potentials only include the pair potential portion of the EAM
-interaction when used by this compute, not the embedding term.  Also
-bonded or Kspace interactions do not contribute to this compute.
+this compute.  For example, 3-body and other many-body potentials, such
+as :doc:`Tersoff <pair_tersoff>` and :doc:`Stillinger-Weber <pair_sw>`
+cannot be used.  :doc:`EAM <pair_eam>` potentials only include the pair
+potential portion of the EAM interaction when used by this compute, not
+the embedding term.  Also bonded or Kspace interactions do not
+contribute to this compute.
+
+These computes are not compatible with accelerated pair styles from the
+GPU, INTEL, KOKKOS, or OPENMP packages. They will either create an error
+or print a warning when required data was not tallied in the required way
+and thus the data acquisition functions from these computes not called.
 
 When used with dynamic groups, a :doc:`run 0 <run>` command needs to
 be inserted in order to initialize the dynamic groups before accessing

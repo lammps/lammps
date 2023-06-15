@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,13 +40,14 @@ using namespace LAMMPS_NS;
 #define EPSILON 1.0e-10
 
 static const char cite_pair_tdpd[] =
-  "pair tdpd command:\n\n"
+  "pair tdpd command: doi:10.1063/1.4923254\n\n"
   "@Article{ZLi2015_JCP,\n"
-  " author = {Li, Z. and Yazdani, A. and Tartakovsky, A. and Karniadakis, G.E.},\n"
-  " title = {Transport dissipative particle dynamics model for mesoscopic advection-diffusion-reaction problems},\n"
+  " author = {Li, Z. and Yazdani, A. and Tartakovsky, A. and Karniadakis, G. E.},\n"
+  " title = {Transport Dissipative Particle Dynamics Model for Mesoscopic Advection-Diffusion-Reaction Problems},\n"
   " journal = {The Journal of Chemical Physics},\n"
   " year = {2015},\n"
   " volume = {143},\n"
+  " number = {1},\n"
   " pages = {014101}\n"
   "}\n\n";
 

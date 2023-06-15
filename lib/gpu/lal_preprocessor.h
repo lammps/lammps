@@ -93,6 +93,13 @@
 //     Definition:   Maximum order for splines in PPPM
 //     Restrictions: PPPM_BLOCK_1D>=PPPM_MAX_SPLINE*PPPM_MAX_SPLINE
 //
+//  NBOR_PREFETCH
+//     Definition:   Control use of prefetch for neighbor indices
+//                   0 = No prefetch
+//                   1 = Prefetch using standard API
+//                   2 = Prefetch using Intel intrinsics
+//     Restrictions: NBOR_PREFETCH forced to 0 when LAL_DISABLE_PREFETCH
+//                   is defined in library build
 //*************************************************************************/
 
 // -------------------------------------------------------------------------
@@ -101,6 +108,8 @@
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_pre_cuda_hip.h"
+#define ucl_prefetch(p)
+#define ucl_pow pow
 #endif
 
 // -------------------------------------------------------------------------
@@ -166,10 +175,12 @@
 #define ucl_cbrt cbrt
 #define ucl_ceil ceil
 #define ucl_abs fabs
+#define ucl_erfc erfc
 
-#if defined(FAST_MATH) && !defined(_DOUBLE_DOUBLE)
+#if defined(FAST_MATH) && (FAST_MATH > 0) && !defined(_DOUBLE_DOUBLE)
 
 #define ucl_exp native_exp
+#define ucl_pow pow
 #define ucl_powr native_powr
 #define ucl_rsqrt native_rsqrt
 #define ucl_sqrt native_sqrt
@@ -178,6 +189,7 @@
 #else
 
 #define ucl_exp exp
+#define ucl_pow pow
 #define ucl_powr powr
 #define ucl_rsqrt rsqrt
 #define ucl_sqrt sqrt
@@ -282,6 +294,55 @@
 #endif
 
 // -------------------------------------------------------------------------
+//                      OPENCL KERNEL MACROS - PREFETCH
+// -------------------------------------------------------------------------
+
+#if (NBOR_PREFETCH == 0)
+#define ucl_prefetch(p)
+#endif
+
+#if (NBOR_PREFETCH == 1)
+inline void ucl_prefetch(const __global int *p) {
+  prefetch(p, 1);
+}
+#endif
+
+#if (NBOR_PREFETCH == 2)
+// Load message caching control
+enum LSC_LDCC {
+  LSC_LDCC_DEFAULT,
+  LSC_LDCC_L1UC_L3UC,   //1 Override to L1 uncached and L3 uncached
+  LSC_LDCC_L1UC_L3C,    //1 Override to L1 uncached and L3 cached
+  LSC_LDCC_L1C_L3UC,    //1 Override to L1 cached and L3 uncached
+  LSC_LDCC_L1C_L3C,     //1 Override to L1 cached and L3 cached
+  LSC_LDCC_L1S_L3UC,    //1 Override to L1 streaming load and L3 uncached
+  LSC_LDCC_L1S_L3C,     //1 Override to L1 streaming load and L3 cached
+  LSC_LDCC_L1IAR_L3C,   //1 Override to L1 invalidate-after-read, and L3 cached
+};
+
+void __builtin_IB_lsc_prefetch_global_uint(const __global uint *base,
+                                           int elemOff,
+                                           enum LSC_LDCC cacheOpt); //D32V1
+
+inline void ucl_prefetch(const __global int *p) {
+  __builtin_IB_lsc_prefetch_global_uint((const __global uint *)p, 0,
+                                        LSC_LDCC_L1C_L3UC);
+}
+#endif
+
+struct _lgpu_float3 {
+  float x; float y; float z;
+};
+struct _lgpu_double3 {
+  double x; double y; double z;
+};
+#ifdef _SINGLE_SINGLE
+#define acctyp3 struct _lgpu_float3
+#else
+#define acctyp3 struct _lgpu_double3
+#endif
+
+// -------------------------------------------------------------------------
 //                            END OPENCL DEFINITIONS
 // -------------------------------------------------------------------------
 
@@ -297,6 +358,9 @@
 #define numtyp4 double4
 #define acctyp double
 #define acctyp2 double2
+#ifndef acctyp3
+#define acctyp3 double3
+#endif
 #define acctyp4 double4
 #endif
 
@@ -306,6 +370,9 @@
 #define numtyp4 float4
 #define acctyp double
 #define acctyp2 double2
+#ifndef acctyp3
+#define acctyp3 double3
+#endif
 #define acctyp4 double4
 #endif
 
@@ -315,6 +382,9 @@
 #define numtyp4 float4
 #define acctyp float
 #define acctyp2 float2
+#ifndef acctyp3
+#define acctyp3 float3
+#endif
 #define acctyp4 float4
 #endif
 
@@ -329,6 +399,10 @@
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
 ucl_inline int sbmask(int j) { return j >> SBBITS & 3; };
+
+#define SBBITS15 29
+#define NEIGHMASK15 0x1FFFFFFF
+ucl_inline int sbmask15(int j) { return j >> SBBITS15 & 7; };
 
 // default to 32-bit smallint and other ints, 64-bit bigint:
 // same as defined in src/lmptype.h

@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #define DEBUG_PRINT 0
 
 #include <iostream>
@@ -234,7 +238,6 @@ unsigned thread_mapping(const char* const label, const bool allow_async,
 
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 
 /*--------------------------------------------------------------------------*/
 /* Third Party Libraries */
@@ -272,9 +275,9 @@ enum { MAX_CORE = 1024 };
 
 std::pair<unsigned, unsigned> s_core_topology(0, 0);
 unsigned s_core_capacity(0);
-hwloc_topology_t s_hwloc_topology(0);
-hwloc_bitmap_t s_hwloc_location(0);
-hwloc_bitmap_t s_process_binding(0);
+hwloc_topology_t s_hwloc_topology(nullptr);
+hwloc_bitmap_t s_hwloc_location(nullptr);
+hwloc_bitmap_t s_process_binding(nullptr);
 hwloc_bitmap_t s_core[MAX_CORE];
 bool s_can_bind_threads(true);
 
@@ -286,13 +289,13 @@ struct Sentinel {
 bool sentinel() {
   static Sentinel self;
 
-  if (0 == s_hwloc_topology) {
+  if (nullptr == s_hwloc_topology) {
     std::cerr << "Kokkos::hwloc ERROR : Called after return from main()"
               << std::endl;
     std::cerr.flush();
   }
 
-  return 0 != s_hwloc_topology;
+  return nullptr != s_hwloc_topology;
 }
 
 Sentinel::~Sentinel() {
@@ -303,9 +306,9 @@ Sentinel::~Sentinel() {
   s_core_topology.first  = 0;
   s_core_topology.second = 0;
   s_core_capacity        = 0;
-  s_hwloc_topology       = 0;
-  s_hwloc_location       = 0;
-  s_process_binding      = 0;
+  s_hwloc_topology       = nullptr;
+  s_hwloc_location       = nullptr;
+  s_process_binding      = nullptr;
 }
 
 Sentinel::Sentinel() {
@@ -317,11 +320,11 @@ Sentinel::Sentinel() {
 
   s_core_topology   = std::pair<unsigned, unsigned>(0, 0);
   s_core_capacity   = 0;
-  s_hwloc_topology  = 0;
-  s_hwloc_location  = 0;
-  s_process_binding = 0;
+  s_hwloc_topology  = nullptr;
+  s_hwloc_location  = nullptr;
+  s_process_binding = nullptr;
 
-  for (unsigned i = 0; i < MAX_CORE; ++i) s_core[i] = 0;
+  for (unsigned i = 0; i < MAX_CORE; ++i) s_core[i] = nullptr;
 
   hwloc_topology_init(&s_hwloc_topology);
   hwloc_topology_load(s_hwloc_topology);

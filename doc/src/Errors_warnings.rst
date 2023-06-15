@@ -68,14 +68,6 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    length, multiplying by the number of bonds in the interaction (e.g. 3
    for a dihedral) and adding a small amount of stretch.
 
-*Bond/react: Atom affected by reaction too close to template edge*
-   This means an atom which changes type or connectivity during the
-   reaction is too close to an 'edge' atom defined in the superimpose
-   file. This could cause incorrect assignment of bonds, angle, etc.
-   Generally, this means you must include more atoms in your templates,
-   such that there are at least two atoms between each atom involved in
-   the reaction and an edge atom.
-
 *Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero*
    Self-explanatory.
 
@@ -117,9 +109,9 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Communication cutoff is shorter than a bond length based estimate. This may lead to errors.*
    Since LAMMPS stores topology data with individual atoms, all atoms
    comprising a bond, angle, dihedral or improper must be present on any
-   sub-domain that "owns" the atom with the information, either as a
+   subdomain that "owns" the atom with the information, either as a
    local or a ghost atom. The communication cutoff is what determines up
-   to what distance from a sub-domain boundary ghost atoms are created.
+   to what distance from a subdomain boundary ghost atoms are created.
    The communication cutoff is by default the largest non-bonded cutoff
    plus the neighbor skin distance, but for short or non-bonded cutoffs
    and/or long bonds, this may not be sufficient. This warning indicates
@@ -206,11 +198,19 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Fix SRD walls overlap but fix srd overlap not set*
    You likely want to set this in your input script.
 
-* Fix bond/create is used multiple times or with fix bond/break - may not work as expected*
+*Fix bond/create is used multiple times or with fix bond/break - may not work as expected*
    When using fix bond/create multiple times or in combination with
    fix bond/break, the individual fix instances do not share information
    about changes they made at the same time step and thus it may result
    in unexpected behavior.
+
+*Fix bond/react: Atom affected by reaction too close to template edge*
+   This means an atom which changes type or connectivity during the
+   reaction is too close to an 'edge' atom defined in the superimpose
+   file. This could cause incorrect assignment of bonds, angle, etc.
+   Generally, this means you must include more atoms in your templates,
+   such that there are at least two atoms between each atom involved in
+   the reaction and an edge atom.
 
 *Fix bond/swap will ignore defined angles*
    See the page for fix bond/swap for more info on this
@@ -351,7 +351,7 @@ This will most likely cause errors in kinetic fluctuations.
    Self-explanatory.
 
 *Kspace_modify slab param < 2.0 may cause unphysical behavior*
-   The kspace_modify slab parameter should be larger to insure periodic
+   The kspace_modify slab parameter should be larger to ensure periodic
    grids padded with empty space do not overlap.
 
 *Less insertions than requested*
@@ -398,7 +398,7 @@ This will most likely cause errors in kinetic fluctuations.
    Lost atoms are checked for each time thermo output is done.  See the
    thermo_modify lost command for options.  Lost atoms usually indicate
    bad dynamics, e.g. atoms have been blown far out of the simulation
-   box, or moved further than one processor's sub-domain away before
+   box, or moved further than one processor's subdomain away before
    reneighboring.
 
 *MSM mesh too small, increasing to 2 points in each direction*
@@ -470,6 +470,12 @@ This will most likely cause errors in kinetic fluctuations.
 *More than one compute sna/atom*
    Self-explanatory.
 
+*More than one compute sna/grid*
+   Self-explanatory.
+
+*More than one compute sna/grid/local*
+   Self-explanatory.
+
 *More than one compute snad/atom*
    Self-explanatory.
 
@@ -485,7 +491,7 @@ This will most likely cause errors in kinetic fluctuations.
 *Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies*
    This is because excluding specific pair interactions also excludes
    them from long-range interactions which may not be the desired effect.
-   The special_bonds command handles this consistently by insuring
+   The special_bonds command handles this consistently by ensuring
    excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
    consistently by both the short-range pair style and the long-range
    solver.  This is not done for exclusions of charged atom pairs via the
@@ -539,7 +545,7 @@ This will most likely cause errors in kinetic fluctuations.
    If there are other fixes that act immediately after the initial stage
    of time integration within a timestep (i.e. after atoms move), then
    the command that sets up the dynamic group should appear after those
-   fixes.  This will insure that dynamic group assignments are made
+   fixes.  This will ensure that dynamic group assignments are made
    after all atoms have moved.
 
 *One or more respa levels compute no forces*
@@ -576,13 +582,13 @@ This will most likely cause errors in kinetic fluctuations.
    needed.  The requested volume fraction may be too high, or other atoms
    may be in the insertion region.
 
-*Proc sub-domain size < neighbor skin, could lead to lost atoms*
+*Proc subdomain size < neighbor skin, could lead to lost atoms*
    The decomposition of the physical domain (likely due to load
-   balancing) has led to a processor's sub-domain being smaller than the
+   balancing) has led to a processor's subdomain being smaller than the
    neighbor skin in one or more dimensions.  Since reneighboring is
    triggered by atoms moving the skin distance, this may lead to lost
    atoms, if an atom moves all the way across a neighboring processor's
-   sub-domain before reneighboring is triggered.
+   subdomain before reneighboring is triggered.
 
 *Reducing PPPM order b/c stencil extends beyond nearest neighbor processor*
    This may lead to a larger grid than desired.  See the kspace_modify overlap
@@ -804,4 +810,3 @@ This will most likely cause errors in kinetic fluctuations.
 
 *Using pair tail corrections with pair_modify compute no*
    The tail corrections will thus not be computed.
-

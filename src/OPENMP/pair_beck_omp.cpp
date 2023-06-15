@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -13,24 +12,24 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "pair_beck_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "math_special.h"
-
-
+#include "neigh_list.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairBeckOMP::PairBeckOMP(LAMMPS *lmp) :
-  PairBeck(lmp), ThrOMP(lmp, THR_PAIR)
+PairBeckOMP::PairBeckOMP(LAMMPS *lmp) : PairBeck(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -40,14 +39,14 @@ PairBeckOMP::PairBeckOMP(LAMMPS *lmp) :
 
 void PairBeckOMP::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag, vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -59,41 +58,47 @@ void PairBeckOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
-        else eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          eval<1, 1, 1>(ifrom, ito, thr);
+        else
+          eval<1, 1, 0>(ifrom, ito, thr);
       } else {
-        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
-        else eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          eval<1, 0, 1>(ifrom, ito, thr);
+        else
+          eval<1, 0, 0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
-      else eval<0,0,0>(ifrom, ito, thr);
+      if (force->newton_pair)
+        eval<0, 0, 1>(ifrom, ito, thr);
+      else
+        eval<0, 0, 0>(ifrom, ito, thr);
     }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
-  } // end of omp parallel region
+  }    // end of omp parallel region
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairBeckOMP::eval(int iifrom, int iito, ThrData * const thr)
+void PairBeckOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r5,force_beck,factor_lj;
-  double r,rinv;
-  double aaij,alphaij,betaij;
-  double term1,term1inv,term2,term3,term4,term5,term6;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double rsq, r5, force_beck, factor_lj;
+  double r, rinv;
+  double aaij, alphaij, betaij;
+  double term1, term1inv, term2, term3, term4, term5, term6;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
 
-  const auto * _noalias const x = (dbl3_t *) atom->x[0];
-  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
+  const auto *_noalias const x = (dbl3_t *) atom->x[0];
+  auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
-  double fxtmp,fytmp,fztmp;
+  double fxtmp, fytmp, fztmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -110,7 +115,7 @@ void PairBeckOMP::eval(int iifrom, int iito, ThrData * const thr)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    fxtmp=fytmp=fztmp=0.0;
+    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -120,45 +125,45 @@ void PairBeckOMP::eval(int iifrom, int iito, ThrData * const thr)
       delx = xtmp - x[j].x;
       dely = ytmp - x[j].y;
       delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
-        r5 = rsq*rsq*r;
+        r5 = rsq * rsq * r;
         aaij = aa[itype][jtype];
         alphaij = alpha[itype][jtype];
         betaij = beta[itype][jtype];
-        term1 = aaij*aaij + rsq;
-        term2 = powint(term1,-5);
-        term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
-        term4 = alphaij + r5*betaij;
-        term5 = alphaij + 6.0*r5*betaij;
-        rinv  = 1.0/r;
-        force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
-        force_beck -= BB[itype][jtype]*r*term2*term3;
+        term1 = aaij * aaij + rsq;
+        term2 = powint(term1, -5);
+        term3 = 21.672 + 30.0 * aaij * aaij + 6.0 * rsq;
+        term4 = alphaij + r5 * betaij;
+        term5 = alphaij + 6.0 * r5 * betaij;
+        rinv = 1.0 / r;
+        force_beck = AA[itype][jtype] * exp(-1.0 * r * term4) * term5;
+        force_beck -= BB[itype][jtype] * r * term2 * term3;
 
-        fpair = factor_lj*force_beck*rinv;
+        fpair = factor_lj * force_beck * rinv;
 
-        f[i].x += delx*fpair;
-        f[i].y += dely*fpair;
-        f[i].z += delz*fpair;
+        f[i].x += delx * fpair;
+        f[i].y += dely * fpair;
+        f[i].z += delz * fpair;
         if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx*fpair;
-          f[j].y -= dely*fpair;
-          f[j].z -= delz*fpair;
+          f[j].x -= delx * fpair;
+          f[j].y -= dely * fpair;
+          f[j].z -= delz * fpair;
         }
 
         if (EFLAG) {
-          term6 = powint(term1,-3);
-          term1inv = 1.0/term1;
-          evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
-          evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
+          term6 = powint(term1, -3);
+          term1inv = 1.0 / term1;
+          evdwl = AA[itype][jtype] * exp(-1.0 * r * term4);
+          evdwl -= BB[itype][jtype] * term6 * (1.0 + (2.709 + 3.0 * aaij * aaij) * term1inv);
           evdwl *= factor_lj;
         }
 
-        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-                                 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG)
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

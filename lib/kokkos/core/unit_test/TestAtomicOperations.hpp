@@ -705,7 +705,6 @@ bool DivAtomicTest(T i0, T i1) {
   bool passed = true;
 
   using Kokkos::abs;
-  using std::abs;
   if (abs((resSerial - res) * 1.) > 1e-5) {
     passed = false;
 

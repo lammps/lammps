@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,6 +25,7 @@ FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
 
 #include "fix_langevin.h"
 #include "kokkos_type.h"
+#include "kokkos_base.h"
 #include "Kokkos_Random.hpp"
 #include "comm_kokkos.h"
 
@@ -42,13 +43,6 @@ namespace LAMMPS_NS {
       fy += rhs.fy;
       fz += rhs.fz;
       return *this;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile s_FSUM &rhs) volatile {
-      fx += rhs.fx;
-      fy += rhs.fy;
-      fz += rhs.fz;
     }
   };
   typedef s_FSUM FSUM;
@@ -68,7 +62,7 @@ namespace LAMMPS_NS {
   template<class DeviceType> struct FixLangevinKokkosTallyEnergyFunctor;
 
   template<class DeviceType>
-  class FixLangevinKokkos : public FixLangevin {
+  class FixLangevinKokkos : public FixLangevin, public KokkosBase {
    public:
     FixLangevinKokkos(class LAMMPS *, int, char **);
     ~FixLangevinKokkos() override;
@@ -76,10 +70,12 @@ namespace LAMMPS_NS {
     void cleanup_copy();
     void init() override;
     void initial_integrate(int) override;
+    void fused_integrate(int) override;
     void post_force(int) override;
     void reset_dt() override;
     void grow_arrays(int) override;
     void copy_arrays(int i, int j, int delflag) override;
+    void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
     double compute_scalar() override;
     void end_of_step() override;
 
@@ -191,19 +187,18 @@ namespace LAMMPS_NS {
       }
 
       KOKKOS_INLINE_FUNCTION
-      static void init(volatile value_type &update) {
+      static void init(value_type &update) {
         update.fx = 0.0;
         update.fy = 0.0;
         update.fz = 0.0;
       }
       KOKKOS_INLINE_FUNCTION
-      static void join(volatile value_type &update,
-                       const volatile value_type &source) {
+      static void join(value_type &update,
+                       const value_type &source) {
         update.fx += source.fx;
         update.fy += source.fy;
         update.fz += source.fz;
       }
-
     };
 
   template <class DeviceType>
@@ -233,12 +228,12 @@ namespace LAMMPS_NS {
         energy += c.compute_energy_item(i);
       }
       KOKKOS_INLINE_FUNCTION
-      static void init(volatile value_type &update) {
+      static void init(value_type &update) {
         update = 0.0;
       }
       KOKKOS_INLINE_FUNCTION
-      static void join(volatile value_type &update,
-                       const volatile value_type &source) {
+      static void join(value_type &update,
+                       const value_type &source) {
         update += source;
       }
     };

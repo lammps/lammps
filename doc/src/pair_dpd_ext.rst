@@ -1,21 +1,22 @@
 .. index:: pair_style dpd/ext
 .. index:: pair_style dpd/ext/kk
+.. index:: pair_style dpd/ext/omp
 .. index:: pair_style dpd/ext/tstat
 .. index:: pair_style dpd/ext/tstat/kk
+.. index:: pair_style dpd/ext/tstat/omp
 
 pair_style dpd/ext command
 ==========================
 
-Accelerator Variants: dpd/ext/kk
+Accelerator Variants: dpd/ext/kk dpd/ext/omp
 
 pair_style dpd/ext/tstat command
 ================================
 
-Accelerator Variants: dpd/ext/tstat/kk
+Accelerator Variants: dpd/ext/tstat/kk dpd/ext/tstat/omp
 
 Syntax
 """"""
-
 
 .. code-block:: LAMMPS
 
@@ -30,16 +31,15 @@ Syntax
 Examples
 """"""""
 
-
 .. code-block:: LAMMPS
 
    pair_style dpd/ext 1.0 2.5 34387
    pair_coeff 1 1 25.0 4.5 4.5 0.5 0.5 1.2
    pair_coeff 1 2 40.0 4.5 4.5 0.5 0.5 1.2
 
-   pair_style dpd/ext/tstat 1.0 1.0 2.5 34387
-   pair_coeff 1 1 4.5 4.5 0.5 0.5 1.2
-   pair_coeff 1 2 4.5 4.5 0.5 0.5 1.2
+   pair_style hybrid/overlay lj/cut 2.5 dpd/ext/tstat 1.0 1.0 2.5 34387
+   pair_coeff * * lj/cut 1.0 1.0
+   pair_coeff * * 4.5 4.5 0.5 0.5 1.2
 
 Description
 """""""""""
@@ -80,8 +80,8 @@ the corresponding cutoff, :math:`w_{\alpha} ( r ) = ( 1 - r / \bar{r}_c
 )^{s_{\alpha}}`, :math:`\alpha \equiv ( \parallel, \perp )`, are weight
 functions with coefficients :math:`s_\alpha` that vary between 0 and 1,
 :math:`\bar{r}_c` is the corresponding cutoff, :math:`\mathbf{I}` is the
-unit matrix, :math:`\sigma_{\alpha} = \sqrt{2 k T \gamma_{\alpha}}`,
-where :math:`k` is the Boltzmann constant and :math:`T` is the
+unit matrix, :math:`\sigma_{\alpha} = \sqrt{2 k_B T \gamma_{\alpha}}`,
+where :math:`k_B` is the Boltzmann constant and :math:`T` is the
 temperature in the pair\_style command.
 
 For the style *dpd/ext/tstat*, the force on atom I due to atom J is
@@ -113,33 +113,52 @@ each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above:
 
 * A (force units)
-* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`\gamma_{\parallel}` (force/velocity units)
-* :math:`s_{\perp}` (unitless)
+* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`s_{\parallel}` (unitless)
+* :math:`s_{\perp}` (unitless)
 * :math:`r_c` (distance units)
 
 The last coefficient is optional. If not specified, the global DPD
 cutoff is used. Note that :math:`\sigma`'s are set equal to
-:math:`\sqrt{2 k T \gamma}`, where :math:`T` is the temperature set by
+:math:`\sqrt{2 k_B T \gamma}`, where :math:`T` is the temperature set by
 the :doc:`pair_style <pair_style>` command so it does not need to be
 specified.
 
 For the style *dpd/ext/tstat*, the coefficients defined for each pair of
-atoms types via the :doc:`pair_coeff <pair_coeff>` command is the same,
-except that A is not included.
+atoms types via the :doc:`pair_coeff <pair_coeff>` command are:
+
+* :math:`\gamma_{\parallel}` (force/velocity units)
+* :math:`\gamma_{\perp}` (force/velocity units)
+* :math:`s_{\parallel}` (unitless)
+* :math:`s_{\perp}` (unitless)
+* :math:`r_c` (distance units)
+
+The last coefficient is optional.
 
 .. note::
 
    If you are modeling DPD polymer chains, you may want to use the
    :doc:`pair_style srp <pair_srp>` command in conjunction with these pair
-   styles. It is a soft segmental repulsive potential (SRP) that can
+   styles.  It is a soft segmental repulsive potential (SRP) that can
    prevent DPD polymer chains from crossing each other.
 
 .. note::
 
-   The virial calculation for pressure when using this pair style includes
-   all the components of force listed above, including the random force.
+   The virial calculation for pressure when using these pair styles
+   includes all the components of force listed above, including the
+   random force.  Since the random force depends on random numbers,
+   everything that changes the order of atoms in the neighbor list
+   (e.g. different number of MPI ranks or a different neighbor list
+   skin distance) will also change the sequence in which the random
+   numbers are applied and thus the individual forces and therefore
+   also the virial/pressure.
+
+.. note::
+
+   For more consistent time integration and force computation you may
+   consider using :doc:`fix mvv/dpd <fix_mvv_dpd>` instead of :doc:`fix
+   nve <fix_nve>`.
 
 ----------
 
@@ -205,7 +224,7 @@ Related commands
 
 :doc:`pair_style dpd <pair_dpd>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`,
-:doc:`pair_style srp <pair_srp>`
+:doc:`pair_style srp <pair_srp>`, :doc:`fix mvv/dpd <fix_mvv_dpd>`.
 
 **Default:** none
 

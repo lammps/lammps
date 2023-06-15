@@ -6,7 +6,7 @@ compute dpd/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID dpd/atom
 
@@ -23,29 +23,28 @@ Examples
 Description
 """""""""""
 
-Define a computation that accesses the per-particle internal
-conductive energy (:math:`u^{cond}`), internal mechanical
-energy (:math:`u^{mech}`), internal chemical energy (:math:`u^{chem}`)
-and internal temperatures (:math:`\theta`) for each particle in a group.
+Define a computation that accesses the per-particle internal conductive energy
+(:math:`u^\text{cond}`), internal mechanical energy (:math:`u^\text{mech}`),
+internal chemical energy (:math:`u^\text{chem}`) and internal temperatures
+(:math:`\theta`) for each particle in a group.
 See the :doc:`compute dpd <compute_dpd>` command if you want the total
 internal conductive energy, the total internal mechanical energy, the
-total chemical energy and
-average internal temperature of the entire system or group of dpd
-particles.
+total chemical energy and average internal temperature of the entire system or
+group of dpd particles.
 
 Output info
 """""""""""
 
-This compute calculates a per-particle array with 4 columns (:math:`u^{cond}`,
-:math:`u^{mech}`, :math:`u^{chem}`, :math:`\theta`), which can be accessed
-by indices 1-4 by any
+This compute calculates a per-particle array with four columns
+(:math:`u^\text{cond}`, :math:`u^\text{mech}`, :math:`u^\text{chem}`,
+:math:`\theta`), which can be accessed by indices 1--4 by any
 command that uses per-particle values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The per-particle array values will be in energy (:math:`u^{cond}`,
-:math:`u^{mech}`, :math:`u^{chem}`)
-and temperature (:math:`theta`) :doc:`units <units>`.
+The per-particle array values will be in energy (:math:`u^\text{cond}`,
+:math:`u^\text{mech}`, :math:`u^\text{chem}`)
+and temperature (:math:`\theta`) :doc:`units <units>`.
 
 Restrictions
 """"""""""""

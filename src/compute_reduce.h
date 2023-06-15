@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class ComputeReduce : public Compute {
  public:
-  enum { SUM, SUMSQ, SUMABS, MINN, MAXX, AVE, AVESQ, AVEABS };
+  enum { SUM, SUMSQ, SUMABS, MINN, MAXX, AVE, AVESQ, AVEABS, MINABS, MAXABS };
   enum { PERATOM, LOCAL };
 
   ComputeReduce(class LAMMPS *, int, char **);
@@ -37,30 +37,39 @@ class ComputeReduce : public Compute {
   double memory_usage() override;
 
  protected:
-  int me;
   int mode, nvalues;
-  int *which, *argindex, *flavor, *value2index;
-  char **ids;
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    int flavor;
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
   double *onevec;
   int *replace, *indices, *owner;
+  MPI_Op scalar_reduction_operation;
+
   int index;
   char *idregion;
   class Region *region;
   int maxatom;
   double *varatom;
 
-  struct Pair {
+  struct valpair {
     double value;
     int proc;
   };
-  Pair pairme, pairall;
+  valpair pairme, pairall;
 
   virtual double compute_one(int, int);
   virtual bigint count(int);
   void combine(double &, double, int);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

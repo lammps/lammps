@@ -6,7 +6,7 @@ compute basal/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID basal/atom
 
@@ -47,12 +47,12 @@ in examples/PACKAGES/basal.
 Output info
 """""""""""
 
-This compute calculates a per-atom array with 3 columns, which can be
-accessed by indices 1-3 by any command that uses per-atom values from
+This compute calculates a per-atom array with three columns, which can be
+accessed by indices 1--3 by any command that uses per-atom values from
 a compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
-The per-atom vector values are unitless since the 3 columns represent
+The per-atom vector values are unitless since the three columns represent
 components of a unit vector.
 
 Restrictions

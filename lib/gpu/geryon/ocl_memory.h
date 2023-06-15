@@ -118,22 +118,26 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
 template <class mat_type, class copy_type>
 inline int _host_view(mat_type &mat, copy_type &cm, const size_t o,
                       const size_t n) {
-  cl_int error_flag;
-  cl_buffer_region subbuffer;
-  subbuffer.origin = o;
-  subbuffer.size = n;
-  mat.cbegin()=clCreateSubBuffer(cm.cbegin(), 0,
-                                 CL_BUFFER_CREATE_TYPE_REGION, &subbuffer,
-                                 &error_flag);
-
-  CL_CHECK_ERR(error_flag);
+  // When viewing outside host allocation with discrete main memory on accelerator,
+  // no cl_buffer object is created to avoid unnecessary creation of device allocs
+  if (cm.shared_mem_device()) {
+    cl_int error_flag;
+    cl_buffer_region subbuffer;
+    subbuffer.origin = o;
+    subbuffer.size = n;
+    mat.cbegin()=clCreateSubBuffer(cm.cbegin(), 0,
+                                   CL_BUFFER_CREATE_TYPE_REGION, &subbuffer,
+                                   &error_flag);
+    CL_CHECK_ERR(error_flag);
+  } else
+    mat.cbegin()=(cl_mem)0;
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;
 }
 
 template <class mat_type>
 inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
-                       const enum UCL_MEMOPT kind, const enum UCL_MEMOPT kind2){
+                       const enum UCL_MEMOPT kind, const enum UCL_MEMOPT /*kind2*/){
   cl_mem_flags buffer_perm;
   cl_map_flags map_perm;
   if (kind==UCL_READ_ONLY) {
@@ -170,10 +174,13 @@ inline int _host_alloc(mat_type &mat, UCL_Device &dev, const size_t n,
 
 template <class mat_type>
 inline int _host_view(mat_type &mat, UCL_Device &dev, const size_t n) {
-  cl_int error_flag;
-  mat.cbegin()=clCreateBuffer(dev.context(), CL_MEM_USE_HOST_PTR,
-                              n,*mat.host_ptr(),&error_flag);
-  CL_CHECK_ERR(error_flag);
+  if (mat.shared_mem_device()) {
+    cl_int error_flag;
+    mat.cbegin()=clCreateBuffer(dev.context(), CL_MEM_USE_HOST_PTR,
+                                n,*mat.host_ptr(),&error_flag);
+    CL_CHECK_ERR(error_flag);
+  } else
+    mat.cbegin()=(cl_mem)0;
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;
 }
@@ -181,7 +188,10 @@ inline int _host_view(mat_type &mat, UCL_Device &dev, const size_t n) {
 template <class mat_type>
 inline void _host_free(mat_type &mat) {
   if (mat.cols()>0) {
-    CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
+    // When viewing outside host allocation with discrete main memory on accelerator,
+    // no cl_buffer object is created to avoid unnecessary creation of device allocs
+    if (mat.cbegin()!=(cl_mem)(0))
+      CL_DESTRUCT_CALL(clReleaseMemObject(mat.cbegin()));
     CL_DESTRUCT_CALL(clReleaseCommandQueue(mat.cq()));
   }
 }
@@ -573,7 +583,7 @@ template <> struct _ucl_memcpy<1,0> {
   template <class p1, class p2>
   static inline void mc(p1 &dst, const p2 &src, const size_t n,
                         cl_command_queue &cq, const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+                        const size_t /*dst_offset*/, const size_t src_offset) {
     if (src.cbegin()==dst.cbegin()) {
       #ifdef UCL_DBG_MEM_TRACE
       std::cerr << "UCL_COPY 1S\n";
@@ -631,7 +641,7 @@ template <> struct _ucl_memcpy<0,1> {
   template <class p1, class p2>
   static inline void mc(p1 &dst, const p2 &src, const size_t n,
                         cl_command_queue &cq, const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+                        const size_t dst_offset, const size_t /*src_offset*/) {
     if (src.cbegin()==dst.cbegin()) {
       if (block) ucl_sync(cq);
       #ifdef UCL_DBG_MEM_TRACE

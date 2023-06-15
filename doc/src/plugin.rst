@@ -59,6 +59,8 @@ The *clear* command will unload all currently loaded plugins.
 .. admonition:: Automatic loading of plugins
    :class: note
 
+   .. versionadded:: 4May2022
+
    When the environment variable ``LAMMPS_PLUGIN_PATH`` is set, then
    LAMMPS will search the directory (or directories) listed in this path
    for files with names that end in ``plugin.so``

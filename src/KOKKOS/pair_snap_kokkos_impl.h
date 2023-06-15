@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -139,7 +139,7 @@ template<class DeviceType, typename real_type, int vector_length>
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in, int vflag_in)
 {
   if (host_flag) {
-    atomKK->sync(Host,X_MASK|TYPE_MASK);
+    atomKK->sync(Host,X_MASK|F_MASK|TYPE_MASK);
     PairSNAP::compute(eflag_in,vflag_in);
     atomKK->modified(Host,F_MASK);
     return;

@@ -12,7 +12,7 @@ Required hardware/software
 """"""""""""""""""""""""""
 
 To enable multi-threading, your compiler must support the OpenMP interface.
-You should have one or more multi-core CPUs, as multiple threads can only be
+You should have one or more multicore CPUs, as multiple threads can only be
 launched by each MPI task on the local node (using shared memory).
 
 Building LAMMPS with the OPENMP package
@@ -33,8 +33,8 @@ These examples assume one or more 16-core nodes.
    mpirun -np 4 lmp_omp -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
    mpirun -np 32 -ppn 4 lmp_omp -sf omp -pk omp 4 -in in.script   # 8 nodes, 4 MPI tasks/node, 4 threads/task
 
-The mpirun or mpiexec command sets the total number of MPI tasks used
-by LAMMPS (one or multiple per compute node) and the number of MPI
+The ``mpirun`` or ``mpiexec`` command sets the total number of MPI tasks
+used by LAMMPS (one or multiple per compute node) and the number of MPI
 tasks used per node.  E.g. the mpirun command in MPICH does this via
 its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.
 
@@ -58,8 +58,8 @@ OMP_NUM_THREADS environment variable.
 Or run with the OPENMP package by editing an input script
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The discussion above for the mpirun/mpiexec command, MPI tasks/node,
-and threads/MPI task is the same.
+The discussion above for the ``mpirun`` or ``mpiexec`` command, MPI
+tasks/node, and threads/MPI task is the same.
 
 Use the :doc:`suffix omp <suffix>` command, or you can explicitly add an
 "omp" suffix to individual styles in your input script, e.g.
@@ -93,11 +93,11 @@ With multiple threads/task, the optimal choice of number of MPI
 tasks/node and OpenMP threads/task can vary a lot and should always be
 tested via benchmark runs for a specific simulation running on a
 specific machine, paying attention to guidelines discussed in the next
-sub-section.
+subsection.
 
 A description of the multi-threading strategy used in the OPENMP
 package and some performance examples are
-`presented here <http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1>`_.
+`presented here <https://drive.google.com/file/d/1d1gLK6Ru6aPYB50Ld2tO10Li8zgPVNB8/view?usp=sharing>`_.
 
 Guidelines for best performance
 """""""""""""""""""""""""""""""
@@ -157,7 +157,7 @@ Additional performance tips are as follows:
   affinity setting that restricts each MPI task to a single CPU core.
   Using multi-threading in this mode will force all threads to share the
   one core and thus is likely to be counterproductive.  Instead, binding
-  MPI tasks to a (multi-core) socket, should solve this issue.
+  MPI tasks to a (multicore) socket, should solve this issue.
 
 Restrictions
 """"""""""""

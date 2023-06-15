@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Macros.hpp>
 
 #include <HIP/Kokkos_HIP_Locks.hpp>
@@ -56,8 +60,7 @@ namespace Kokkos {
 
 #ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
 namespace Impl {
-__device__ __constant__ HIPLockArrays g_device_hip_lock_arrays = {nullptr,
-                                                                  nullptr, 0};
+__device__ __constant__ HIPLockArrays g_device_hip_lock_arrays = {nullptr, 0};
 }
 #endif
 

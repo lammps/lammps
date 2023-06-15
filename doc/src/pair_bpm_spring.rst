@@ -22,6 +22,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 Style *bpm/spring* computes pairwise forces with the formula
 
 .. math::
@@ -59,7 +61,7 @@ include this pair interaction and overlay the pair force over the bond
 force or to exclude this pair interaction such that the two particles
 only interact via the bond force. See discussion of the *overlay/pair*
 option for BPM bond styles and the :doc:`special_bonds <special_bonds>`
-command in the `:doc: how to <Howto_BPM>` page on BPMs for more details.
+command in the :doc:`how to <Howto_bpm>` page on BPMs for more details.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -101,7 +103,11 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+
+This pair style is part of the BPM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
 
 Related commands
 """"""""""""""""

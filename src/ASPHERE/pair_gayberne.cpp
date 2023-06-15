@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -34,13 +34,14 @@
 using namespace LAMMPS_NS;
 
 static const char cite_pair_gayberne[] =
-  "pair gayberne command:\n\n"
+  "pair gayberne command: doi:10.1063/1.3058435\n\n"
   "@Article{Brown09,\n"
-  " author =  {W. M. Brown, M. K. Petersen, S. J. Plimpton, and G. S. Grest},\n"
-  " title =   {Liquid crystal nanodroplets in solution},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " author =  {W. M. Brown and M. K. Petersen and S. J. Plimpton and G. S. Grest},\n"
+  " title =   {Liquid Crystal Nanodroplets in Solution},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2009,\n"
   " volume =  130,\n"
+  " number =  4,\n"
   " pages =   {044901}\n"
   "}\n\n";
 
@@ -345,7 +346,7 @@ void PairGayBerne::coeff(int narg, char **arg)
 
 void PairGayBerne::init_style()
 {
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
 
   neighbor->add_request(this,NeighConst::REQ_DEFAULT);

@@ -50,6 +50,10 @@
 
 #ifndef KOKKOS_SCATTER_VIEW_HPP
 #define KOKKOS_SCATTER_VIEW_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_SCATTERVIEW
+#endif
 
 #include <Kokkos_Core.hpp>
 #include <utility>
@@ -300,11 +304,6 @@ struct ScatterValue<ValueType, Kokkos::Experimental::ScatterSum, DeviceType,
     Kokkos::atomic_add(&dest, src);
   }
 
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile ValueType& dest, const volatile ValueType& src) const {
-    Kokkos::atomic_add(&dest, src);
-  }
-
   KOKKOS_FORCEINLINE_FUNCTION void update(ValueType const& rhs) {
     this->join(value, rhs);
   }
@@ -369,25 +368,8 @@ struct ScatterValue<ValueType, Kokkos::Experimental::ScatterProd, DeviceType,
     Kokkos::atomic_div(&value, rhs);
   }
 
-  KOKKOS_FORCEINLINE_FUNCTION
-  void atomic_prod(ValueType& dest, const ValueType& src) const {
-    bool success = false;
-    while (!success) {
-      ValueType dest_old = dest;
-      ValueType dest_new = dest_old * src;
-      dest_new =
-          Kokkos::atomic_compare_exchange<ValueType>(&dest, dest_old, dest_new);
-      success = ((dest_new - dest_old) / dest_old <= 1e-15);
-    }
-  }
-
   KOKKOS_INLINE_FUNCTION
   void join(ValueType& dest, const ValueType& src) const {
-    atomic_prod(&dest, src);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile ValueType& dest, const volatile ValueType& src) const {
     atomic_prod(&dest, src);
   }
 
@@ -440,26 +422,9 @@ struct ScatterValue<ValueType, Kokkos::Experimental::ScatterMin, DeviceType,
   KOKKOS_FORCEINLINE_FUNCTION ScatterValue(ScatterValue&& other)
       : value(other.value) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION
-  void atomic_min(ValueType& dest, const ValueType& src) const {
-    bool success = false;
-    while (!success) {
-      ValueType dest_old = dest;
-      ValueType dest_new = (dest_old > src) ? src : dest_old;
-      dest_new =
-          Kokkos::atomic_compare_exchange<ValueType>(&dest, dest_old, dest_new);
-      success = ((dest_new - dest_old) / dest_old <= 1e-15);
-    }
-  }
-
   KOKKOS_INLINE_FUNCTION
   void join(ValueType& dest, const ValueType& src) const {
-    atomic_min(dest, src);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile ValueType& dest, const volatile ValueType& src) const {
-    atomic_min(dest, src);
+    atomic_min(&dest, src);
   }
 
   KOKKOS_FORCEINLINE_FUNCTION void update(ValueType const& rhs) {
@@ -511,26 +476,9 @@ struct ScatterValue<ValueType, Kokkos::Experimental::ScatterMax, DeviceType,
   KOKKOS_FORCEINLINE_FUNCTION ScatterValue(ScatterValue&& other)
       : value(other.value) {}
 
-  KOKKOS_FORCEINLINE_FUNCTION
-  void atomic_max(ValueType& dest, const ValueType& src) const {
-    bool success = false;
-    while (!success) {
-      ValueType dest_old = dest;
-      ValueType dest_new = (dest_old < src) ? src : dest_old;
-      dest_new =
-          Kokkos::atomic_compare_exchange<ValueType>(&dest, dest_old, dest_new);
-      success = ((dest_new - dest_old) / dest_old <= 1e-15);
-    }
-  }
-
   KOKKOS_INLINE_FUNCTION
   void join(ValueType& dest, const ValueType& src) const {
-    atomic_max(dest, src);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile ValueType& dest, const volatile ValueType& src) const {
-    atomic_max(dest, src);
+    atomic_max(&dest, src);
   }
 
   KOKKOS_FORCEINLINE_FUNCTION void update(ValueType const& rhs) {
@@ -872,6 +820,19 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
     ::Kokkos::resize(internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
   }
 
+  template <class... ViewCtorArgs>
+  void resize(const ::Kokkos::Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+              const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::resize(arg_prop, internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
+  }
+
   template <class I>
   std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> resize(
       const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -883,6 +844,19 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
       const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
       const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     ::Kokkos::resize(arg_prop, internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
+  }
+
+  template <class... ViewCtorArgs>
+  void realloc(const Kokkos::Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+               const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::realloc(arg_prop, internal_view, n0, n1, n2, n3, n4, n5, n6, n7);
   }
 
   void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -945,11 +919,10 @@ class ScatterAccess<DataType, Op, DeviceType, Layout, ScatterNonDuplicated,
   }
 
   template <typename Arg>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<view_type::original_view_type::rank == 1 &&
-                                  std::is_integral<Arg>::value,
-                              value_type>::type
-      operator[](Arg arg) const {
+  KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
+      view_type::original_view_type::rank == 1 && std::is_integral<Arg>::value,
+      value_type>
+  operator[](Arg arg) const {
     return view.at(arg);
   }
 
@@ -1144,6 +1117,19 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
                      n6);
   }
 
+  template <class... ViewCtorArgs>
+  void resize(const ::Kokkos::Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+              const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+              const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::resize(arg_prop, internal_view, unique_token.size(), n0, n1, n2,
+                     n3, n4, n5, n6);
+  }
+
   template <class I>
   std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> resize(
       const I& arg_prop, const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -1155,6 +1141,19 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
       const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
     ::Kokkos::resize(arg_prop, internal_view, unique_token.size(), n0, n1, n2,
                      n3, n4, n5, n6);
+  }
+
+  template <class... ViewCtorArgs>
+  void realloc(const ::Kokkos::Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+               const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+               const size_t n6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
+    ::Kokkos::realloc(arg_prop, internal_view, unique_token.size(), n0, n1, n2,
+                      n3, n4, n5, n6);
   }
 
   void realloc(const size_t n0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -1479,11 +1478,10 @@ class ScatterAccess<DataType, Op, DeviceType, Layout, ScatterDuplicated,
   }
 
   template <typename Arg>
-  KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<view_type::original_view_type::rank == 1 &&
-                                  std::is_integral<Arg>::value,
-                              value_type>::type
-      operator[](Arg arg) const {
+  KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
+      view_type::original_view_type::rank == 1 && std::is_integral<Arg>::value,
+      value_type>
+  operator[](Arg arg) const {
     return view.at(thread_id, arg);
   }
 
@@ -1518,16 +1516,16 @@ ScatterView<
     RT, typename ViewTraits<RT, RP...>::array_layout,
     typename ViewTraits<RT, RP...>::device_type, Op,
     std::conditional_t<
-        std::is_same<Duplication, void>::value,
+        std::is_void<Duplication>::value,
         typename Kokkos::Impl::Experimental::DefaultDuplication<
             typename ViewTraits<RT, RP...>::execution_space>::type,
         Duplication>,
     std::conditional_t<
-        std::is_same<Contribution, void>::value,
+        std::is_void<Contribution>::value,
         typename Kokkos::Impl::Experimental::DefaultContribution<
             typename ViewTraits<RT, RP...>::execution_space,
             typename std::conditional_t<
-                std::is_same<Duplication, void>::value,
+                std::is_void<Duplication>::value,
                 typename Kokkos::Impl::Experimental::DefaultDuplication<
                     typename ViewTraits<RT, RP...>::execution_space>::type,
                 Duplication>>::type,
@@ -1589,6 +1587,15 @@ void contribute(
 namespace Kokkos {
 
 template <typename DT, typename LY, typename ES, typename OP, typename CT,
+          typename DP, typename... IS, class... ViewCtorArgs>
+void realloc(
+    const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+    Kokkos::Experimental::ScatterView<DT, LY, ES, OP, CT, DP>& scatter_view,
+    IS... is) {
+  scatter_view.realloc(arg_prop, is...);
+}
+
+template <typename DT, typename LY, typename ES, typename OP, typename CT,
           typename DP, typename... IS>
 void realloc(
     Kokkos::Experimental::ScatterView<DT, LY, ES, OP, CT, DP>& scatter_view,
@@ -1613,6 +1620,15 @@ void resize(
   scatter_view.resize(is...);
 }
 
+template <class... ViewCtorArgs, typename DT, typename LY, typename ES,
+          typename OP, typename CT, typename DP, typename... IS>
+void resize(
+    const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
+    Kokkos::Experimental::ScatterView<DT, LY, ES, OP, CT, DP>& scatter_view,
+    IS... is) {
+  scatter_view.resize(arg_prop, is...);
+}
+
 template <typename I, typename DT, typename LY, typename ES, typename OP,
           typename CT, typename DP, typename... IS>
 std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> resize(
@@ -1624,4 +1640,8 @@ std::enable_if_t<Kokkos::Impl::is_view_ctor_property<I>::value> resize(
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_SCATTERVIEW
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_SCATTERVIEW
+#endif
 #endif

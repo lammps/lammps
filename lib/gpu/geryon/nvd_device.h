@@ -95,6 +95,10 @@ class UCL_Device {
   /// Return the number of devices that support CUDA
   inline int num_devices() { return _properties.size(); }
 
+  /// Specify whether profiling (device timers) will be used for the device (yes=true)
+  /** No-op for CUDA and HIP **/
+  inline void configure_profiling(const bool profiling_on) {}
+
   /// Set the CUDA device to the specified device number
   /** A context and default command queue will be created for the device
     * Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
@@ -305,9 +309,9 @@ class UCL_Device {
 
   /// For compatability with OCL API
   inline int auto_set_platform(const enum UCL_DEVICE_TYPE type=UCL_GPU,
-			       const std::string vendor="",
-			       const int ndevices=-1,
-			       const int first_device=-1)
+                               const std::string vendor="",
+                               const int ndevices=-1,
+                               const int first_device=-1)
     { return set_platform(0); }
 
  private:
@@ -316,6 +320,9 @@ class UCL_Device {
   std::vector<CUstream> _cq;
   CUdevice _cu_device;
   CUcontext _context;
+#if GERYON_NVD_PRIMARY_CONTEXT
+  CUcontext _old_context;
+#endif
 };
 
 // Grabs the properties for all devices
@@ -391,8 +398,14 @@ int UCL_Device::set_platform(const int pid) {
 int UCL_Device::set(int num) {
   clear();
   _device=_properties[num].device_id;
+#if GERYON_NVD_PRIMARY_CONTEXT
+  CU_SAFE_CALL_NS(cuCtxGetCurrent(&_old_context));
+  CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));
+  CUresult err=cuDevicePrimaryCtxRetain(&_context,_cu_device);
+#else
   CU_SAFE_CALL_NS(cuDeviceGet(&_cu_device,_device));
   CUresult err=cuCtxCreate(&_context,0,_cu_device);
+#endif
   if (err!=CUDA_SUCCESS) {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << num
@@ -401,13 +414,23 @@ int UCL_Device::set(int num) {
     #endif
     return UCL_ERROR;
   }
+#if GERYON_NVD_PRIMARY_CONTEXT
+  if (_context != _old_context) {
+    CU_SAFE_CALL_NS(cuCtxSetCurrent(_context));
+  }
+#endif
   return UCL_SUCCESS;
 }
 
 void UCL_Device::clear() {
   if (_device>-1) {
     for (int i=1; i<num_queues(); i++) pop_command_queue();
+#if GERYON_NVD_PRIMARY_CONTEXT
+    CU_SAFE_CALL_NS(cuCtxSetCurrent(_old_context));
+    CU_SAFE_CALL_NS(cuDevicePrimaryCtxRelease(_cu_device));
+#else
     cuCtxDestroy(_context);
+#endif
   }
   _device=-1;
 }

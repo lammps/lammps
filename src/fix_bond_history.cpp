@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -82,11 +82,13 @@ int FixBondHistory::setmask()
 void FixBondHistory::post_constructor()
 {
   // Store saved bond quantities for each atom using fix property atom
+  // Don't copy history to data files because this fix is typically
+  // not yet instantiated - history is only preserved across restarts
 
   id_fix = utils::strdup(id + std::string("_FIX_PROP_ATOM"));
   id_array = utils::strdup(std::string("d2_") + id);
-  modify->add_fix(fmt::format("{} {} property/atom {} {}", id_fix, group->names[igroup], id_array,
-                              nbond * ndata));
+  modify->add_fix(fmt::format("{} {} property/atom {} {} writedata no", id_fix,
+                              group->names[igroup], id_array, nbond * ndata));
   int tmp1, tmp2;
   index = atom->find_custom(&id_array[3], tmp1, tmp2);
 }
@@ -261,6 +263,9 @@ void FixBondHistory::write_restart(FILE *fp)
   int n = 0;
   double list[1];
   list[n++] = stored_flag;
+
+  // Update stored values if needed
+  pre_exchange();
 
   if (comm->me == 0) {
     int size = n * sizeof(double);

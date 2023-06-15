@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,37 +20,27 @@ ComputeStyle(property/chunk,ComputePropertyChunk);
 #ifndef LMP_COMPUTE_CHUNK_MOLECULE_H
 #define LMP_COMPUTE_CHUNK_MOLECULE_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
 
-class ComputePropertyChunk : public Compute {
+class ComputePropertyChunk : public ComputeChunk {
  public:
   ComputePropertyChunk(class LAMMPS *, int, char **);
   ~ComputePropertyChunk() override;
-  void init() override;
+
   void compute_vector() override;
   void compute_array() override;
-
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
 
   double memory_usage() override;
 
  private:
-  int nchunk, maxchunk;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
   int *ichunk;
-
   int nvalues, countflag;
   double *buf;
   int *count_one, *count_all;
 
-  void allocate();
+  void allocate() override;
 
   typedef void (ComputePropertyChunk::*FnPtrPack)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
@@ -61,8 +51,6 @@ class ComputePropertyChunk : public Compute {
   void pack_coord2(int);
   void pack_coord3(int);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

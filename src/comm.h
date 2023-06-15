@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,13 +20,18 @@ namespace LAMMPS_NS {
 
 class Comm : protected Pointers {
  public:
-  int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
+  enum { BRICK, TILED };
+  int style;    // BRICK = 6-way stencil communication
+                // TILED = irregular tiling communication
+
+  enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
-  enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
-  int mode;    // 0 = single cutoff, 1 = multi-collection cutoff, 2 = multiold-type cutoff
   enum { SINGLE, MULTI, MULTIOLD };
+  int mode;    // SINGLE = single cutoff
+               // MULTI = multi-collection cutoff
+               // MULTIOLD = multiold-type cutoff
 
   int me, nprocs;               // proc info
   int ghost_velocity;           // 1 if ghost atoms have velocity, 0 if not
@@ -46,11 +51,11 @@ class Comm : protected Pointers {
 
   // public settings specific to layout = UNIFORM, NONUNIFORM
 
-  int procgrid[3];                     // procs assigned in each dim of 3d grid
-  int user_procgrid[3];                // user request for procs in each dim
-  int myloc[3];                        // which proc I am in each dim
+  int procgrid[3];                     // proc count assigned to each dim of 3d grid
+  int user_procgrid[3];                // user request for proc counts in each dim
+  int myloc[3];                        // which proc I am in each dim, 0 to N-1
   int procneigh[3][2];                 // my 6 neighboring procs, 0/1 = left/right
-  double *xsplit, *ysplit, *zsplit;    // fractional (0-1) sub-domain sizes
+  double *xsplit, *ysplit, *zsplit;    // fractional (0-1) sub-domain sizes, includes 0/1
   int ***grid2proc;                    // which proc owns i,j,k loc in 3d grid
 
   // public settings specific to layout = TILED
@@ -95,20 +100,13 @@ class Comm : protected Pointers {
   virtual void reverse_comm(class Dump *) = 0;
 
   // forward comm of an array
-  // exchange of info on neigh stencil
-  // set processor mapping options
 
   virtual void forward_comm_array(int, double **) = 0;
-  virtual int exchange_variable(int, double *, double *&) = 0;
 
   // map a point to a processor, based on current decomposition
 
   virtual void coord2proc_setup() {}
   virtual int coord2proc(double *, int &, int &, int &);
-
-  // partition a global regular grid by proc sub-domains
-
-  void partition_grid(int, int, int, double, int &, int &, int &, int &, int &, int &);
 
   // memory usage
 

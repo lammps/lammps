@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,7 +40,6 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_special.h"
@@ -1874,8 +1873,7 @@ void PairBOP::read_table(char *filename)
       reader = new PotentialFileReader(lmp, filename, "BOP");
       bop_types = reader->next_int();
       if (bop_types <= 0)
-        error->one(FLERR,fmt::format("BOP potential file with {} "
-                                     "elements",bop_types));
+        error->one(FLERR,fmt::format("BOP potential file with {} elements",bop_types));
 
       bop_elements = new char*[bop_types];
       bop_masses = new double[bop_types];

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,7 +38,9 @@
 #include "text_file_reader.h"
 #include "variable.h"
 
+#include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_2PI;
@@ -299,7 +301,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
 
-    onemol->check_attributes(0);
+    onemol->check_attributes();
 
     // use geometric center of molecule for insertion
     // molecule random number generator, different for each proc
@@ -370,9 +372,9 @@ void CreateAtoms::command(int narg, char **arg)
   //   should create exactly 1 atom when 2 images are both "on" the boundary
   //   either image may be slightly inside/outside true box due to round-off
   //   if I am lo proc, decrement lower bound by EPSILON
-  //     this will insure lo image is created
+  //     this will ensure lo image is created
   //   if I am hi proc, decrement upper bound by 2.0*EPSILON
-  //     this will insure hi image is not created
+  //     this will ensure hi image is not created
   //   thus insertion box is EPSILON smaller than true box
   //     and is shifted away from true boundary
   //     which is where atoms are likely to be generated
@@ -439,10 +441,12 @@ void CreateAtoms::command(int narg, char **arg)
   MPI_Barrier(world);
   double time1 = platform::walltime();
 
+  // clear global->local map for owned and ghost atoms
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c creating atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -976,7 +980,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   area = 0.5 * MathExtra::len3(temp);
   int nparticles = ceil(mesh_density * area);
   // estimate radius from number of particles and area
-  double rad = sqrt(area/MY_PI/nparticles);
+  double rad = sqrt(area / MY_PI / nparticles);
 
   for (int i = 0; i < nparticles; i++) {
     // Define point in unit square

@@ -26,7 +26,7 @@ Description
 Define a computation that outputs the effective shear modulus for
 particles interacting via the updated Lagrangian SPH pair style.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
 Output info

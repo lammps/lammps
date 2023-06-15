@@ -6,7 +6,7 @@ compute ke/atom/eff command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID ke/atom/eff
 

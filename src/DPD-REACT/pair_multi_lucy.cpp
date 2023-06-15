@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,13 +44,14 @@ enum{NONE,RLINEAR,RSQ};
 #define MAXLINE 1024
 
 static const char cite_pair_multi_lucy[] =
-  "pair_style multi/lucy command:\n\n"
+  "pair_style multi/lucy command: doi:10.1063/1.4942520\n\n"
   "@Article{Moore16,\n"
-  " author = {J.D. Moore, B.C. Barnes, S. Izvekov, M. Lisal, M.S. Sellers, D.E. Taylor and J. K. Brennan},\n"
-  " title = {A coarse-grain force field for RDX:  Density dependent and energy conserving},\n"
-  " journal = {J. Chem. Phys.},\n"
+  " author = {J. D. Moore and B. C. Barnes and S. Izvekov and M. Lisal and M. S. Sellers and D. E. Taylor and J. K. Brennan},\n"
+  " title = {A Coarse-Grain Force Field for {RDX}:  Density Dependent and Energy Conserving},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2016,\n"
   " volume =  144\n"
+  " number =  10,\n"
   " pages =   {104501}\n"
   "}\n\n";
 
@@ -286,7 +287,7 @@ void PairMultiLucy::coeff(int narg, char **arg)
   else tb->cut = tb->rfile[tb->ninput-1];
 
   // error check on table parameters
-  // insure cutoff is within table
+  // ensure cutoff is within table
 
   if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
   double rlo;

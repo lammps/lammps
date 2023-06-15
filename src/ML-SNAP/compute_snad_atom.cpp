@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -34,20 +34,22 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snad(nullptr),
   radelem(nullptr), wjelem(nullptr), sinnerelem(nullptr), dinnerelem(nullptr)
 {
+
+  // begin code common to all SNAP computes
+
   double rfac0, rmin0;
   int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
 
   int ntypes = atom->ntypes;
-  int nargmin = 6+2*ntypes;
+  int nargmin = 6 + 2 * ntypes;
 
-  if (narg < nargmin) error->all(FLERR,"Illegal compute snad/atom command");
+  if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);
 
   // default values
 
   rmin0 = 0.0;
   switchflag = 1;
   bzeroflag = 1;
-  bnormflag = 0;
   quadraticflag = 0;
   chemflag = 0;
   bnormflag = 0;
@@ -57,28 +59,32 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // process required arguments
 
-  memory->create(radelem,ntypes+1,"snad/atom:radelem"); // offset by 1 to match up with types
-  memory->create(wjelem,ntypes+1,"snad/atom:wjelem");
-  rcutfac = atof(arg[3]);
-  rfac0 = atof(arg[4]);
-  twojmax = atoi(arg[5]);
+  memory->create(radelem, ntypes + 1, "sna/atom:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem, ntypes + 1, "sna/atom:wjelem");
+
+  rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
+  rfac0 = utils::numeric(FLERR, arg[4], false, lmp);
+  twojmax = utils::inumeric(FLERR, arg[5], false, lmp);
+
   for (int i = 0; i < ntypes; i++)
-    radelem[i+1] = atof(arg[6+i]);
+    radelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + i], false, lmp);
   for (int i = 0; i < ntypes; i++)
-    wjelem[i+1] = atof(arg[6+ntypes+i]);
+    wjelem[i + 1] =
+        utils::numeric(FLERR, arg[6 + ntypes + i], false, lmp);
 
   // construct cutsq
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq,ntypes+1,ntypes+1,"snad/atom:cutsq");
+  memory->create(cutsq, ntypes + 1, ntypes + 1, "sna/atom:cutsq");
   for (int i = 1; i <= ntypes; i++) {
-    cut = 2.0*radelem[i]*rcutfac;
+    cut = 2.0 * radelem[i] * rcutfac;
     if (cut > cutmax) cutmax = cut;
-    cutsq[i][i] = cut*cut;
-    for (int j = i+1; j <= ntypes; j++) {
-      cut = (radelem[i]+radelem[j])*rcutfac;
-      cutsq[i][j] = cutsq[j][i] = cut*cut;
+    cutsq[i][i] = cut * cut;
+    for (int j = i + 1; j <= ntypes; j++) {
+      cut = (radelem[i] + radelem[j]) * rcutfac;
+      cutsq[i][j] = cutsq[j][i] = cut * cut;
     }
   }
 
@@ -92,93 +98,89 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = nargmin;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"rmin0") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      rmin0 = atof(arg[iarg+1]);
+    if (strcmp(arg[iarg], "rmin0") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      rmin0 = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"bzeroflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      bzeroflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "switchflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      switchflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"switchflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      switchflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "bzeroflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bzeroflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      quadraticflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "quadraticflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      quadraticflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"chem") == 0) {
-      if (iarg+2+ntypes > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
+    } else if (strcmp(arg[iarg], "chem") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       chemflag = 1;
-      memory->create(map,ntypes+1,"compute_snad_atom:map");
-      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      memory->create(map, ntypes + 1, "compute_sna_grid:map");
+      nelements = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       for (int i = 0; i < ntypes; i++) {
-        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
-        if (jelem < 0 || jelem >= nelements)
-          error->all(FLERR,"Illegal compute snad/atom command");
-        map[i+1] = jelem;
+        int jelem = utils::inumeric(FLERR, arg[iarg + 2 + i], false, lmp);
+        if (jelem < 0 || jelem >= nelements) error->all(FLERR, "Illegal compute {} command", style);
+        map[i + 1] = jelem;
       }
-      iarg += 2+ntypes;
-    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2 + ntypes;
+    } else if (strcmp(arg[iarg], "bnormflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      bnormflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      wselfallflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "wselfallflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      wselfallflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"switchinnerflag") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      switchinnerflag = atoi(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "switchinnerflag") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
+      switchinnerflag = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"sinner") == 0) {
+    } else if (strcmp(arg[iarg], "sinner") == 0) {
       iarg++;
-      if (iarg+ntypes > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      memory->create(sinnerelem,ntypes+1,"snad/atom:sinnerelem");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
+      memory->create(sinnerelem, ntypes + 1, "snap:sinnerelem");
       for (int i = 0; i < ntypes; i++)
-        sinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        sinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
       sinnerflag = 1;
       iarg += ntypes;
-    } else if (strcmp(arg[iarg],"dinner") == 0) {
+    } else if (strcmp(arg[iarg], "dinner") == 0) {
       iarg++;
-      if (iarg+ntypes > narg)
-        error->all(FLERR,"Illegal compute snad/atom command");
-      memory->create(dinnerelem,ntypes+1,"snad/atom:dinnerelem");
+      if (iarg + ntypes > narg) error->all(FLERR, "Illegal compute {} command", style);
+      memory->create(dinnerelem, ntypes + 1, "snap:dinnerelem");
       for (int i = 0; i < ntypes; i++)
-        dinnerelem[i+1] = utils::numeric(FLERR,arg[iarg+i],false,lmp);
+        dinnerelem[i + 1] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
       dinnerflag = 1;
       iarg += ntypes;
-    } else error->all(FLERR,"Illegal compute snad/atom command");
+    } else
+      error->all(FLERR, "Illegal compute {} command", style);
   }
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
-    error->all(FLERR,"Illegal compute snad/atom command: switchinnerflag = 1, missing sinner/dinner keyword");
+    error->all(
+        FLERR,
+        "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
+        style);
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
-    error->all(FLERR,"Illegal compute snad/atom command: switchinnerflag = 0, unexpected sinner/dinner keyword");
+    error->all(
+        FLERR,
+        "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
+        style);
 
-
-  snaptr = new SNA(lmp, rfac0, twojmax,
-                   rmin0, switchflag, bzeroflag,
-                   chemflag, bnormflag, wselfallflag,
-                   nelements, switchinnerflag);
+  snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
+                   wselfallflag, nelements, switchinnerflag);
 
   ncoeff = snaptr->ncoeff;
-  nperdim = ncoeff;
-  if (quadraticflag) nperdim += (ncoeff*(ncoeff+1))/2;
-  yoffset = nperdim;
-  zoffset = 2*nperdim;
-  size_peratom_cols = 3*nperdim*atom->ntypes;
+  nvalues = ncoeff;
+  if (quadraticflag) nvalues += (ncoeff * (ncoeff + 1)) / 2;
+
+  // end code common to all SNAP computes
+
+  yoffset = nvalues;
+  zoffset = 2*nvalues;
+  size_peratom_cols = 3*nvalues*atom->ntypes;
   comm_reverse = size_peratom_cols;
   peratom_flag = 1;
 
@@ -289,9 +291,9 @@ void ComputeSNADAtom::compute_peratom()
       // const int typeoffset = threencoeff*(atom->type[i]-1);
       // const int quadraticoffset = threencoeff*atom->ntypes +
       //   threencoeffq*(atom->type[i]-1);
-      const int typeoffset = 3*nperdim*(atom->type[i]-1);
+      const int typeoffset = 3*nvalues*(atom->type[i]-1);
 
-      // insure rij, inside, and typej  are of size jnum
+      // ensure rij, inside, and typej  are of size jnum
 
       snaptr->grow_rij(jnum);
 

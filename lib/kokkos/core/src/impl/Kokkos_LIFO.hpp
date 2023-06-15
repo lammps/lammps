@@ -77,7 +77,7 @@ struct LockBasedLIFOCommon {
   static constexpr uintptr_t LockTag = ~uintptr_t(0);
   static constexpr uintptr_t EndTag  = ~uintptr_t(1);
 
-  OwningRawPtr<node_type> m_head = (node_type*)EndTag;
+  OwningRawPtr<node_type> m_head = reinterpret_cast<node_type*>(EndTag);
 
   KOKKOS_INLINE_FUNCTION
   bool _try_push_node(node_type& node) {
@@ -89,7 +89,7 @@ struct LockBasedLIFOCommon {
     auto* old_head = m_head;
 
     // retry until someone locks the queue or we successfully compare exchange
-    while (old_head != (node_type*)LockTag) {
+    while (old_head != reinterpret_cast<node_type*>(LockTag)) {
       // TODO @tasking @memory_order DSH this should have a memory order and not
       // a memory fence
 
@@ -132,7 +132,8 @@ struct LockBasedLIFOCommon {
   bool _is_empty() const noexcept {
     // TODO @tasking @memory_order DSH make this an atomic load with memory
     // order
-    return (volatile node_type*)this->m_head == (node_type*)EndTag;
+    return (volatile node_type*)this->m_head ==
+           reinterpret_cast<node_type*>(EndTag);
   }
 };
 

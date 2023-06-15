@@ -49,7 +49,6 @@
 #include <sstream>
 #include <Kokkos_Parallel.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Exec.hpp>
-#include <impl/Kokkos_FunctorAdapter.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -84,7 +83,7 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
 
 #pragma omp target teams distribute parallel for map(to : a_functor)
     for (auto i = begin; i < end; ++i) {
-      if constexpr (std::is_same<TagType, void>::value) {
+      if constexpr (std::is_void<TagType>::value) {
         a_functor(i);
       } else {
         a_functor(TagType(), i);
@@ -127,8 +126,10 @@ template <class FunctorType, class PolicyType, class ReducerType,
 struct ParallelReduceSpecialize {
   inline static void execute(const FunctorType& /*f*/, const PolicyType& /*p*/,
                              PointerType /*result_ptr*/) {
-    constexpr int FunctorHasJoin = ReduceFunctorHasJoin<FunctorType>::value;
-    constexpr int UseReducerType = is_reducer_type<ReducerType>::value;
+    constexpr int FunctorHasJoin =
+        Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
+                              FunctorType>::has_join_member_function;
+    constexpr int UseReducerType = is_reducer<ReducerType>::value;
 
     std::stringstream error_message;
     error_message << "Error: Invalid Specialization " << FunctorHasJoin << ' '
@@ -145,17 +146,11 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
   using PolicyType = Kokkos::RangePolicy<PolicyArgs...>;
   using TagType    = typename PolicyType::work_tag;
   using ReducerTypeFwd =
-      typename std::conditional<std::is_same<InvalidType, ReducerType>::value,
-                                FunctorType, ReducerType>::type;
-  using WorkTagFwd =
-      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, TagType,
-                         void>;
-
-  using ValueTraits =
-      Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
-  using ValueInit     = Kokkos::Impl::FunctorValueInit<FunctorType, TagType>;
-  using ValueJoin     = Kokkos::Impl::FunctorValueJoin<FunctorType, TagType>;
-  using ReferenceType = typename ValueTraits::reference_type;
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                                         PolicyType, ReducerTypeFwd>;
+  using ReferenceType = typename Analysis::reference_type;
 
   using ParReduceCommon = ParallelReduceCommon<PointerType>;
 
@@ -188,7 +183,7 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
                                                      : f) reduction(custom \
                                                                     : result)
     for (auto i = begin; i < end; ++i) {
-      if constexpr (std::is_same<TagType, void>::value) {
+      if constexpr (std::is_void<TagType>::value) {
         f(i, result);
       } else {
         f(TagType(), i, result);
@@ -226,7 +221,7 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
          map(to:f) reduction(+: result)
         for (auto i = begin; i < end; ++i)
 
-          if constexpr (std::is_same<TagType, void>::value) {
+          if constexpr (std::is_void<TagType>::value) {
             f(i, result);
           } else {
             f(TagType(), i, result);
@@ -238,7 +233,7 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
                                                                     : result)
         for (auto i = begin; i < end; ++i)
 
-          if constexpr (std::is_same<TagType, void>::value) {
+          if constexpr (std::is_void<TagType>::value) {
             f(i, result);
           } else {
             f(TagType(), i, result);
@@ -260,7 +255,7 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
       }
 #pragma omp target teams distribute parallel for map(to:f) reduction(+:result[:NumReductions])
       for (auto i = begin; i < end; ++i) {
-        if constexpr (std::is_same<TagType, void>::value) {
+        if constexpr (std::is_void<TagType>::value) {
           f(i, result);
         } else {
           f(TagType(), i, result);
@@ -277,7 +272,10 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
     const auto begin = p.begin();
     const auto end   = p.end();
 
-    constexpr int HasInit = ReduceFunctorHasInit<FunctorType>::value;
+    using FunctorAnalysis =
+        Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
+                              FunctorType>;
+    constexpr int HasInit = FunctorAnalysis::has_init_member_function;
 
     // Initialize the result pointer.
 
@@ -290,31 +288,30 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
     const int max_teams =
         OpenMPTargetExec::MAX_ACTIVE_THREADS / max_team_threads;
     // Number of elements in the reduction
-    const auto value_count =
-        FunctorValueTraits<FunctorType, TagType>::value_count(f);
+    const auto value_count = FunctorAnalysis::value_count(f);
 
     // Allocate scratch per active thread. Achieved by setting the first
     // parameter of `resize_scratch=1`.
-    OpenMPTargetExec::resize_scratch(1, 0, value_count * sizeof(ValueType));
+    OpenMPTargetExec::resize_scratch(1, 0, value_count * sizeof(ValueType),
+                                     std::numeric_limits<int64_t>::max());
     ValueType* scratch_ptr =
         static_cast<ValueType*>(OpenMPTargetExec::get_scratch_ptr());
 
 #pragma omp target map(to : f) is_device_ptr(scratch_ptr)
     {
+      typename FunctorAnalysis::Reducer final_reducer(&f);
       // Enter this loop if the functor has an `init`
       if constexpr (HasInit) {
         // The `init` routine needs to be called on the device since it might
         // need device members.
-        ValueInit::init(f, scratch_ptr);
-        if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
-          FunctorFinal<FunctorType, TagType>::final(f, scratch_ptr);
+        final_reducer.init(scratch_ptr);
+        final_reducer.final(scratch_ptr);
       } else {
         for (int i = 0; i < value_count; ++i) {
           static_cast<ValueType*>(scratch_ptr)[i] = ValueType();
         }
 
-        if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
-          FunctorFinal<FunctorType, TagType>::final(f, scratch_ptr);
+        final_reducer.final(scratch_ptr);
       }
     }
 
@@ -337,6 +334,7 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
     map(to                                                                   \
         : f) is_device_ptr(scratch_ptr)
     {
+      typename FunctorAnalysis::Reducer final_reducer(&f);
 #pragma omp parallel
       {
         const int team_num    = omp_get_team_num();
@@ -347,13 +345,13 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
             (team_num == num_teams - 1) ? end : (team_begin + chunk_size);
         ValueType* team_scratch =
             scratch_ptr + team_num * max_team_threads * value_count;
-        ReferenceType result = ValueInit::init(
-            f, &team_scratch[omp_get_thread_num() * value_count]);
+        ReferenceType result = final_reducer.init(
+            &team_scratch[omp_get_thread_num() * value_count]);
 
         // Accumulate partial results in thread specific storage.
 #pragma omp for simd
         for (auto i = team_begin; i < team_end; ++i) {
-          if constexpr (std::is_same<TagType, void>::value) {
+          if constexpr (std::is_void<TagType>::value) {
             f(i, result);
           } else {
             f(TagType(), i, result);
@@ -368,8 +366,8 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
           for (int i = 0; i < team_size - tree_neighbor_offset;
                i += 2 * tree_neighbor_offset) {
             const int neighbor = i + tree_neighbor_offset;
-            ValueJoin::join(f, &team_scratch[i * value_count],
-                            &team_scratch[neighbor * value_count]);
+            final_reducer.join(&team_scratch[i * value_count],
+                               &team_scratch[neighbor * value_count]);
           }
           tree_neighbor_offset *= 2;
         } while (tree_neighbor_offset < team_size);
@@ -383,18 +381,18 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
     is_device_ptr(scratch_ptr)
       for (int i = 0; i < max_teams - tree_neighbor_offset;
            i += 2 * tree_neighbor_offset) {
+        typename FunctorAnalysis::Reducer final_reducer(&f);
         ValueType* team_scratch = scratch_ptr;
         const int team_offset   = max_team_threads * value_count;
-        ValueJoin::join(
-            f, &team_scratch[i * team_offset],
+        final_reducer.join(
+            &team_scratch[i * team_offset],
             &team_scratch[(i + tree_neighbor_offset) * team_offset]);
 
         // If `final` is provided by the functor.
-        if constexpr (ReduceFunctorHasFinal<FunctorType>::value) {
-          // Do the final only once at the end.
-          if (tree_neighbor_offset * 2 >= max_teams &&
-              omp_get_team_num() == 0 && omp_get_thread_num() == 0)
-            FunctorFinal<FunctorType, TagType>::final(f, scratch_ptr);
+        // Do the final only once at the end.
+        if (tree_neighbor_offset * 2 >= max_teams && omp_get_team_num() == 0 &&
+            omp_get_thread_num() == 0) {
+          final_reducer.final(scratch_ptr);
         }
       }
       tree_neighbor_offset *= 2;
@@ -422,25 +420,23 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
   using WorkRange = typename Policy::WorkRange;
 
   using ReducerTypeFwd =
-      typename std::conditional<std::is_same<InvalidType, ReducerType>::value,
-                                FunctorType, ReducerType>::type;
-  using WorkTagFwd =
-      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
-                         void>;
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                                         Policy, ReducerTypeFwd>;
 
-  using ValueTraits =
-      Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
-  using pointer_type   = typename ValueTraits::pointer_type;
-  using reference_type = typename ValueTraits::reference_type;
-
-  static constexpr int HasJoin    = ReduceFunctorHasJoin<FunctorType>::value;
-  static constexpr int UseReducer = is_reducer_type<ReducerType>::value;
+  static constexpr int HasJoin =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, Policy,
+                            FunctorType>::has_join_member_function;
+  static constexpr int UseReducer = is_reducer<ReducerType>::value;
   static constexpr int IsArray    = std::is_pointer<reference_type>::value;
 
   using ParReduceSpecialize =
       ParallelReduceSpecialize<FunctorType, Policy, ReducerType, pointer_type,
-                               typename ValueTraits::value_type>;
+                               typename Analysis::value_type>;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -489,12 +485,11 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
   }
 
   template <class ViewType>
-  ParallelReduce(
-      const FunctorType& arg_functor, Policy& arg_policy,
-      const ViewType& arg_result_view,
-      typename std::enable_if<Kokkos::is_view<ViewType>::value &&
-                                  !Kokkos::is_reducer_type<ReducerType>::value,
-                              void*>::type = nullptr)
+  ParallelReduce(const FunctorType& arg_functor, Policy& arg_policy,
+                 const ViewType& arg_result_view,
+                 std::enable_if_t<Kokkos::is_view<ViewType>::value &&
+                                      !Kokkos::is_reducer<ReducerType>::value,
+                                  void*> = nullptr)
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_reducer(InvalidType()),
@@ -537,28 +532,26 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
   using Member    = typename Policy::member_type;
   using idx_type  = typename Policy::index_type;
 
-  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, WorkTag>;
-  using ValueInit   = Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag>;
-  using ValueJoin   = Kokkos::Impl::FunctorValueJoin<FunctorType, WorkTag>;
-  using ValueOps    = Kokkos::Impl::FunctorValueOps<FunctorType, WorkTag>;
+  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
+                                         Policy, FunctorType>;
 
-  using value_type     = typename ValueTraits::value_type;
-  using pointer_type   = typename ValueTraits::pointer_type;
-  using reference_type = typename ValueTraits::reference_type;
+  using value_type     = typename Analysis::value_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
 
   const FunctorType m_functor;
   const Policy m_policy;
 
   template <class TagType>
-  typename std::enable_if<std::is_same<TagType, void>::value>::type
-  call_with_tag(const FunctorType& f, const idx_type& idx, value_type& val,
-                const bool& is_final) const {
+  std::enable_if_t<std::is_void<TagType>::value> call_with_tag(
+      const FunctorType& f, const idx_type& idx, value_type& val,
+      const bool& is_final) const {
     f(idx, val, is_final);
   }
   template <class TagType>
-  typename std::enable_if<!std::is_same<TagType, void>::value>::type
-  call_with_tag(const FunctorType& f, const idx_type& idx, value_type& val,
-                const bool& is_final) const {
+  std::enable_if_t<!std::is_void<TagType>::value> call_with_tag(
+      const FunctorType& f, const idx_type& idx, value_type& val,
+      const bool& is_final) const {
     f(WorkTag(), idx, val, is_final);
   }
 
@@ -582,6 +575,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
                                         : a_functor) num_teams(nteams) \
     thread_limit(team_size)
     for (idx_type team_id = 0; team_id < n_chunks; ++team_id) {
+      typename Analysis::Reducer final_reducer(&a_functor);
 #pragma omp parallel num_threads(team_size)
       {
         const idx_type local_offset = team_id * chunk_size;
@@ -590,16 +584,16 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
         for (idx_type i = 0; i < chunk_size; ++i) {
           const idx_type idx = local_offset + i;
           value_type val;
-          ValueInit::init(a_functor, &val);
+          final_reducer.init(&val);
           if (idx < N) call_with_tag<WorkTag>(a_functor, idx, val, false);
           element_values(team_id, i) = val;
         }
 #pragma omp barrier
         if (omp_get_thread_num() == 0) {
           value_type sum;
-          ValueInit::init(a_functor, &sum);
+          final_reducer.init(&sum);
           for (idx_type i = 0; i < chunk_size; ++i) {
-            ValueJoin::join(a_functor, &sum, &element_values(team_id, i));
+            final_reducer.join(&sum, &element_values(team_id, i));
             element_values(team_id, i) = sum;
           }
           chunk_values(team_id) = sum;
@@ -608,9 +602,9 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
         if (omp_get_thread_num() == 0) {
           if (Kokkos::atomic_fetch_add(&count(), 1) == n_chunks - 1) {
             value_type sum;
-            ValueInit::init(a_functor, &sum);
+            final_reducer.init(&sum);
             for (idx_type i = 0; i < n_chunks; ++i) {
-              ValueJoin::join(a_functor, &sum, &chunk_values(i));
+              final_reducer.join(&sum, &chunk_values(i));
               chunk_values(i) = sum;
             }
           }
@@ -622,6 +616,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
                                         : a_functor) num_teams(nteams) \
     thread_limit(team_size)
     for (idx_type team_id = 0; team_id < n_chunks; ++team_id) {
+      typename Analysis::Reducer final_reducer(&a_functor);
 #pragma omp parallel num_threads(team_size)
       {
         const idx_type local_offset = team_id * chunk_size;
@@ -629,7 +624,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
         if (team_id > 0)
           offset_value = chunk_values(team_id - 1);
         else
-          ValueInit::init(a_functor, &offset_value);
+          final_reducer.init(&offset_value);
 
 #pragma omp for
         for (idx_type i = 0; i < chunk_size; ++i) {
@@ -637,7 +632,18 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
           value_type local_offset_value;
           if (i > 0) {
             local_offset_value = element_values(team_id, i - 1);
-            ValueJoin::join(a_functor, &local_offset_value, &offset_value);
+            // FIXME_OPENMPTARGET We seem to access memory illegaly on AMD GPUs
+#ifdef KOKKOS_ARCH_VEGA
+            if constexpr (Analysis::has_join_member_function) {
+              if constexpr (std::is_void_v<WorkTag>)
+                a_functor.join(local_offset_value, offset_value);
+              else
+                a_functor.join(WorkTag{}, local_offset_value, offset_value);
+            } else
+              local_offset_value += offset_value;
+#else
+            final_reducer.join(&local_offset_value, &offset_value);
+#endif
           } else
             local_offset_value = offset_value;
           if (idx < N)
@@ -708,7 +714,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
 
       base_t::impl_execute(element_values, chunk_values, count);
 
-      const int size = base_t::ValueTraits::value_size(base_t::m_functor);
+      const int size = base_t::Analysis::value_size(base_t::m_functor);
       DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace>(
           &m_returnvalue, chunk_values.data() + (n_chunks - 1), size);
     } else {
@@ -742,7 +748,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
   const FunctorType m_functor;
   const Policy m_policy;
-  const int m_shmem_size;
+  const size_t m_shmem_size;
 
  public:
   void execute() const {
@@ -766,7 +772,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
     const size_t shmem_size_L0 = m_policy.scratch_size(0, team_size);
     const size_t shmem_size_L1 = m_policy.scratch_size(1, team_size);
-    OpenMPTargetExec::resize_scratch(team_size, shmem_size_L0, shmem_size_L1);
+    OpenMPTargetExec::resize_scratch(team_size, shmem_size_L0, shmem_size_L1,
+                                     league_size);
 
     void* scratch_ptr = OpenMPTargetExec::get_scratch_ptr();
     FunctorType a_functor(m_functor);
@@ -780,6 +787,9 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     // nteams should not exceed the maximum in-flight teams possible.
     const auto nteams =
         league_size < max_active_teams ? league_size : max_active_teams;
+
+    // If the league size is <=0, do not launch the kernel.
+    if (nteams <= 0) return;
 
 // Performing our own scheduling of teams to avoid separation of code between
 // teams-distribute and parallel. Gave a 2x performance boost in test cases with
@@ -803,7 +813,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
           typename Policy::member_type team(
               league_id, league_size, team_size, vector_length, scratch_ptr,
               blockIdx, shmem_size_L0, shmem_size_L1);
-          if constexpr (std::is_same<TagType, void>::value)
+          if constexpr (std::is_void<TagType>::value)
             m_functor(team);
           else
             m_functor(TagType(), team);
@@ -829,17 +839,12 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
   using PolicyType = TeamPolicyInternal<PolicyArgs...>;
   using TagType    = typename PolicyType::work_tag;
   using ReducerTypeFwd =
-      typename std::conditional<std::is_same<InvalidType, ReducerType>::value,
-                                FunctorType, ReducerType>::type;
-  using WorkTagFwd =
-      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, TagType,
-                         void>;
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                                         PolicyType, ReducerTypeFwd>;
 
-  using ValueTraits =
-      Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
-  using ValueInit     = Kokkos::Impl::FunctorValueInit<FunctorType, TagType>;
-  using ValueJoin     = Kokkos::Impl::FunctorValueJoin<FunctorType, TagType>;
-  using ReferenceType = typename ValueTraits::reference_type;
+  using ReferenceType = typename Analysis::reference_type;
 
   using ParReduceCommon = ParallelReduceCommon<PointerType>;
 
@@ -857,7 +862,7 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
     const size_t shmem_size_L0 = p.scratch_size(0, team_size);
     const size_t shmem_size_L1 = p.scratch_size(1, team_size);
     OpenMPTargetExec::resize_scratch(PolicyType::member_type::TEAM_REDUCE_SIZE,
-                                     shmem_size_L0, shmem_size_L1);
+                                     shmem_size_L0, shmem_size_L1, league_size);
     void* scratch_ptr = OpenMPTargetExec::get_scratch_ptr();
 
     ValueType result = ValueType();
@@ -866,6 +871,9 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
     int max_active_teams = OpenMPTargetExec::MAX_ACTIVE_THREADS / team_size;
     const auto nteams =
         league_size < max_active_teams ? league_size : max_active_teams;
+
+    // If the league size is <=0, do not launch the kernel.
+    if (nteams <= 0) return;
 
 #pragma omp declare reduction(                                         \
     custom:ValueType                                                   \
@@ -888,7 +896,7 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
           typename PolicyType::member_type team(
               league_id, league_size, team_size, vector_length, scratch_ptr,
               blockIdx, shmem_size_L0, shmem_size_L1);
-          if constexpr (std::is_same<TagType, void>::value)
+          if constexpr (std::is_void<TagType>::value)
             f(team, result);
           else
             f(TagType(), team, result);
@@ -917,13 +925,16 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
     const size_t shmem_size_L0 = p.scratch_size(0, team_size);
     const size_t shmem_size_L1 = p.scratch_size(1, team_size);
     OpenMPTargetExec::resize_scratch(PolicyType::member_type::TEAM_REDUCE_SIZE,
-                                     shmem_size_L0, shmem_size_L1);
+                                     shmem_size_L0, shmem_size_L1, league_size);
     void* scratch_ptr = OpenMPTargetExec::get_scratch_ptr();
 
     // Maximum active teams possible.
     int max_active_teams = OpenMPTargetExec::MAX_ACTIVE_THREADS / team_size;
     const auto nteams =
         league_size < max_active_teams ? league_size : max_active_teams;
+
+    // If the league size is <=0, do not launch the kernel.
+    if (nteams <= 0) return;
 
     // Case where the number of reduction items is 1.
     if constexpr (NumReductions == 1) {
@@ -946,7 +957,7 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
               typename PolicyType::member_type team(
                   league_id, league_size, team_size, vector_length, scratch_ptr,
                   blockIdx, shmem_size_L0, shmem_size_L1);
-              if constexpr (std::is_same<TagType, void>::value)
+              if constexpr (std::is_void<TagType>::value)
                 f(team, result);
               else
                 f(TagType(), team, result);
@@ -973,7 +984,7 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
               typename PolicyType::member_type team(
                   league_id, league_size, team_size, vector_length, scratch_ptr,
                   blockIdx, shmem_size_L0, shmem_size_L1);
-              if constexpr (std::is_same<TagType, void>::value)
+              if constexpr (std::is_void<TagType>::value)
                 f(team, result);
               else
                 f(TagType(), team, result);
@@ -1004,7 +1015,7 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
             typename PolicyType::member_type team(
                 league_id, league_size, team_size, vector_length, scratch_ptr,
                 blockIdx, shmem_size_L0, shmem_size_L1);
-            if constexpr (std::is_same<TagType, void>::value)
+            if constexpr (std::is_void<TagType>::value)
               f(team, result);
             else
               f(TagType(), team, result);
@@ -1023,7 +1034,10 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
   // RangePolicy. Need a new implementation.
   static void execute_init_join(const FunctorType& f, const PolicyType& p,
                                 PointerType ptr, const bool ptr_on_device) {
-    constexpr int HasInit = ReduceFunctorHasInit<FunctorType>::value;
+    using FunctorAnalysis =
+        Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
+                              FunctorType>;
+    constexpr int HasInit = FunctorAnalysis::has_init_member_function;
 
     const int league_size   = p.league_size();
     const int team_size     = p.team_size();
@@ -1047,11 +1061,11 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
     const auto nteams = league_size;
 
     // Number of elements in the reduction
-    const auto value_count =
-        FunctorValueTraits<FunctorType, TagType>::value_count(f);
+    const auto value_count = FunctorAnalysis::value_count(f);
 
     // Allocate scratch per active thread.
-    OpenMPTargetExec::resize_scratch(1, 0, value_count * sizeof(ValueType));
+    OpenMPTargetExec::resize_scratch(1, 0, value_count * sizeof(ValueType),
+                                     league_size);
     void* scratch_ptr = OpenMPTargetExec::get_scratch_ptr();
 
     // Enter this loop if the functor has an `init`
@@ -1060,10 +1074,9 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
       // device members.
 #pragma omp target map(to : f) is_device_ptr(scratch_ptr)
       {
-        ValueInit::init(f, scratch_ptr);
-
-        if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
-          FunctorFinal<FunctorType, TagType>::final(f, scratch_ptr);
+        typename FunctorAnalysis::Reducer final_reducer(&f);
+        final_reducer.init(scratch_ptr);
+        final_reducer.final(scratch_ptr);
       }
     } else {
 #pragma omp target map(to : f) is_device_ptr(scratch_ptr)
@@ -1072,8 +1085,8 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
           static_cast<ValueType*>(scratch_ptr)[i] = ValueType();
         }
 
-        if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
-          FunctorFinal<FunctorType, TagType>::final(f, scratch_ptr);
+        typename FunctorAnalysis::Reducer final_reducer(&f);
+        final_reducer.final(static_cast<ValueType*>(scratch_ptr));
       }
     }
 
@@ -1102,14 +1115,15 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
         const int num_teams     = omp_get_num_teams();
         ValueType* team_scratch = static_cast<ValueType*>(scratch_ptr) +
                                   team_num * team_size * value_count;
-        ReferenceType result = ValueInit::init(f, &team_scratch[0]);
+        typename FunctorAnalysis::Reducer final_reducer(&f);
+        ReferenceType result = final_reducer.init(&team_scratch[0]);
 
         for (int league_id = team_num; league_id < league_size;
              league_id += num_teams) {
           typename PolicyType::member_type team(
               league_id, league_size, team_size, vector_length, scratch_ptr,
               team_num, shmem_size_L0, shmem_size_L1);
-          if constexpr (std::is_same<TagType, void>::value) {
+          if constexpr (std::is_void<TagType>::value) {
             f(team, result);
           } else {
             f(TagType(), team, result);
@@ -1127,16 +1141,16 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
            i += 2 * tree_neighbor_offset) {
         ValueType* team_scratch = static_cast<ValueType*>(scratch_ptr);
         const int team_offset   = team_size * value_count;
-        ValueJoin::join(
-            f, &team_scratch[i * team_offset],
+        typename FunctorAnalysis::Reducer final_reducer(&f);
+        final_reducer.join(
+            &team_scratch[i * team_offset],
             &team_scratch[(i + tree_neighbor_offset) * team_offset]);
 
         // If `final` is provided by the functor.
-        if constexpr (ReduceFunctorHasFinal<FunctorType>::value) {
-          // Do the final only once at the end.
-          if (tree_neighbor_offset * 2 >= nteams && omp_get_team_num() == 0 &&
-              omp_get_thread_num() == 0)
-            FunctorFinal<FunctorType, TagType>::final(f, scratch_ptr);
+        // Do the final only once at the end.
+        if (tree_neighbor_offset * 2 >= nteams && omp_get_team_num() == 0 &&
+            omp_get_thread_num() == 0) {
+          final_reducer.final(scratch_ptr);
         }
       }
       tree_neighbor_offset *= 2;
@@ -1165,37 +1179,36 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   using WorkTag = typename Policy::work_tag;
   using Member  = typename Policy::member_type;
   using ReducerTypeFwd =
-      typename std::conditional<std::is_same<InvalidType, ReducerType>::value,
-                                FunctorType, ReducerType>::type;
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
   using WorkTagFwd =
       std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
                          void>;
+  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                                         Policy, ReducerTypeFwd>;
 
-  using ValueTraits =
-      Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
-  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
-  using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
-
-  using pointer_type   = typename ValueTraits::pointer_type;
-  using reference_type = typename ValueTraits::reference_type;
-  using value_type     = typename ValueTraits::value_type;
+  using pointer_type   = typename Analysis::pointer_type;
+  using reference_type = typename Analysis::reference_type;
+  using value_type     = typename Analysis::value_type;
 
   bool m_result_ptr_on_device;
   const int m_result_ptr_num_elems;
 
-  static constexpr int HasJoin    = ReduceFunctorHasJoin<FunctorType>::value;
-  static constexpr int UseReducer = is_reducer_type<ReducerType>::value;
+  static constexpr int HasJoin =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, Policy,
+                            FunctorType>::has_join_member_function;
+  static constexpr int UseReducer = is_reducer<ReducerType>::value;
   static constexpr int IsArray    = std::is_pointer<reference_type>::value;
 
   using ParReduceSpecialize =
       ParallelReduceSpecialize<FunctorType, Policy, ReducerType, pointer_type,
-                               typename ValueTraits::value_type>;
+                               typename Analysis::value_type>;
 
   const FunctorType m_functor;
   const Policy m_policy;
   const ReducerType m_reducer;
   const pointer_type m_result_ptr;
-  const int m_shmem_size;
+  const size_t m_shmem_size;
 
  public:
   void execute() const {
@@ -1231,12 +1244,11 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   }
 
   template <class ViewType>
-  ParallelReduce(
-      const FunctorType& arg_functor, const Policy& arg_policy,
-      const ViewType& arg_result,
-      typename std::enable_if<Kokkos::is_view<ViewType>::value &&
-                                  !Kokkos::is_reducer_type<ReducerType>::value,
-                              void*>::type = nullptr)
+  ParallelReduce(const FunctorType& arg_functor, const Policy& arg_policy,
+                 const ViewType& arg_result,
+                 std::enable_if_t<Kokkos::is_view<ViewType>::value &&
+                                      !Kokkos::is_reducer<ReducerType>::value,
+                                  void*> = nullptr)
       : m_result_ptr_on_device(
             MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
                               typename ViewType::memory_space>::accessible),

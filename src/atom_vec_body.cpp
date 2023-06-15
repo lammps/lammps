@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,6 +21,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "my_pool_chunk.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -118,7 +120,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 #undef BODY_CLASS
 
   } else
-    error->all(FLERR, utils::check_packages_for_style("body", arg[0], lmp).c_str());
+    error->all(FLERR, utils::check_packages_for_style("body", arg[0], lmp));
 
   bptr->avec = this;
   icp = bptr->icp;

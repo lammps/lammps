@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -51,6 +51,9 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
   suffix_flag = Suffix::NONE;
   born_matrix_enable = 0;
   partial_flag = 0;
+
+  single_extra = 0;
+  svector = nullptr;
 
   maxeatom = maxvatom = 0;
   eatom = nullptr;
@@ -248,6 +251,90 @@ void Bond::ev_tally(int i, int j, int nlocal, int newton_bond, double ebond, dou
 }
 
 /* ----------------------------------------------------------------------
+   tally energy and virial into global or per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+------------------------------------------------------------------------- */
+
+void Bond::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, double ebond, double fx,
+                        double fy, double fz, double delx, double dely, double delz)
+{
+  double ebondhalf, v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) {
+        energy += ebond;
+      } else {
+        ebondhalf = 0.5 * ebond;
+        if (i < nlocal) energy += ebondhalf;
+        if (j < nlocal) energy += ebondhalf;
+      }
+    }
+    if (eflag_atom) {
+      ebondhalf = 0.5 * ebond;
+      if (newton_bond || i < nlocal) eatom[i] += ebondhalf;
+      if (newton_bond || j < nlocal) eatom[j] += ebondhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx * fx;
+    v[1] = dely * fy;
+    v[2] = delz * fz;
+    v[3] = delx * fy;
+    v[4] = delx * fz;
+    v[5] = dely * fz;
+
+    if (vflag_global) {
+      if (newton_bond) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+        vatom[i][0] += 0.5 * v[0];
+        vatom[i][1] += 0.5 * v[1];
+        vatom[i][2] += 0.5 * v[2];
+        vatom[i][3] += 0.5 * v[3];
+        vatom[i][4] += 0.5 * v[4];
+        vatom[i][5] += 0.5 * v[5];
+      }
+      if (newton_bond || j < nlocal) {
+        vatom[j][0] += 0.5 * v[0];
+        vatom[j][1] += 0.5 * v[1];
+        vatom[j][2] += 0.5 * v[2];
+        vatom[j][3] += 0.5 * v[3];
+        vatom[j][4] += 0.5 * v[4];
+        vatom[j][5] += 0.5 * v[5];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    write a table of bond potential energy/force vs distance to a file
 ------------------------------------------------------------------------- */
 
@@ -262,17 +349,20 @@ void Bond::write_file(int narg, char **arg)
   if (narg == 8) {
     itype = utils::inumeric(FLERR, arg[6], false, lmp);
     jtype = utils::inumeric(FLERR, arg[7], false, lmp);
-    if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
-      error->all(FLERR, "Invalid atom types in bond_write command");
+    if ((itype < 1) || (itype > atom->ntypes))
+      error->all(FLERR, "Invalid atom type {} in bond_write command", itype);
+    if ((jtype < 1) || (jtype > atom->ntypes))
+      error->all(FLERR, "Invalid atom type {} in bond_write command", jtype);
   }
 
   int btype = utils::inumeric(FLERR, arg[0], false, lmp);
   int n = utils::inumeric(FLERR, arg[1], false, lmp);
   double inner = utils::numeric(FLERR, arg[2], false, lmp);
   double outer = utils::numeric(FLERR, arg[3], false, lmp);
-  if (inner <= 0.0 || inner >= outer)
-    error->all(FLERR, "Invalid rlo/rhi values in bond_write command");
+  if ((inner <= 0.0) || (inner >= outer))
+    error->all(FLERR, "Invalid rlo={} / rhi={} values in bond_write command.", inner, outer);
 
+  if (n < 2) error->all(FLERR, "Must have at least 2 table values");
   double r0 = equilibrium_distance(btype);
 
   // open file in append mode if exists
@@ -310,7 +400,7 @@ void Bond::write_file(int narg, char **arg)
   }
 
   // initialize potentials before evaluating bond potential
-  // insures all bond coeffs are set and force constants
+  // ensures all bond coeffs are set and force constants
   // also initialize neighbor so that neighbor requests are processed
   // NOTE: might be safest to just do lmp->init()
 
@@ -331,7 +421,7 @@ void Bond::write_file(int narg, char **arg)
     for (int i = 0; i < n; i++) {
       r = inner + dr * static_cast<double>(i);
       e = single(btype, r * r, itype, jtype, f);
-      fprintf(fp, "%d %.15g %.15g %.15g\n", i + 1, r, e, f * r);
+      fprintf(fp, "%8d %- 22.15g %- 22.15g %- 22.15g\n", i + 1, r, e, f * r);
     }
     fclose(fp);
   }

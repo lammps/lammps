@@ -2,7 +2,7 @@
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -229,6 +229,16 @@ class IntelBuffers {
         _x[i].z = lmp->atom->x[i][2];
       }
     }
+  }
+
+  inline void thr_pack_q(const int ifrom, const int ito) {
+    if (lmp->atom->q != nullptr)
+      #if defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma ivdep
+      #endif
+      for (int i = ifrom; i < ito; i++)
+        _q[i] = lmp->atom->q[i];
   }
 
   #ifndef _LMP_INTEL_OFFLOAD

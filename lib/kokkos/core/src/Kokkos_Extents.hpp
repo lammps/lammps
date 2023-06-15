@@ -41,6 +41,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_KOKKOS_EXTENTS_HPP
 #define KOKKOS_KOKKOS_EXTENTS_HPP
 
@@ -98,9 +107,8 @@ struct _parse_impl {
 // We have to treat the case of int**[x] specially, since it *doesn't* go
 // backwards
 template <class T, ptrdiff_t... ExtentSpec>
-struct _parse_impl<
-    T*, Kokkos::Experimental::Extents<ExtentSpec...>,
-    typename std::enable_if<_all_remaining_extents_dynamic<T>::value>::type>
+struct _parse_impl<T*, Kokkos::Experimental::Extents<ExtentSpec...>,
+                   std::enable_if_t<_all_remaining_extents_dynamic<T>::value>>
     : _parse_impl<T, Kokkos::Experimental::Extents<
                          Kokkos::Experimental::dynamic_extent, ExtentSpec...>> {
 };
@@ -109,7 +117,7 @@ struct _parse_impl<
 template <class T, ptrdiff_t... ExtentSpec>
 struct _parse_impl<
     T*, Kokkos::Experimental::Extents<ExtentSpec...>,
-    typename std::enable_if<!_all_remaining_extents_dynamic<T>::value>::type> {
+    std::enable_if_t<!_all_remaining_extents_dynamic<T>::value>> {
   using _next = Kokkos::Experimental::AppendExtent<
       typename _parse_impl<T, Kokkos::Experimental::Extents<ExtentSpec...>,
                            void>::type,

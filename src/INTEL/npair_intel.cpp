@@ -723,7 +723,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             if (ct + obound > list_size) {
               if (i < ito - 1) {
                 *overflow = 1;
-                ct = (ifrom + tid * 2) * maxnbors;
+                ct = (bigint)(ifrom + tid * 2) * (bigint)maxnbors;
               }
             }
           }
@@ -737,7 +737,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           if (ct + obound > list_size) {
             if (i < ito - 1) {
               *overflow = 1;
-              ct = (ifrom + tid * 2) * maxnbors;
+              ct = (bigint)(ifrom + tid * 2) * (bigint)maxnbors;
             }
           }
         }

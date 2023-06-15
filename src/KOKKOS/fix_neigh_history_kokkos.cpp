@@ -32,7 +32,7 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   FixNeighHistory(lmp, narg, arg)
 {
   kokkosable = 1;
-  exchange_comm_device = 1;
+  exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -326,6 +326,28 @@ void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*
 }
 
 /* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNeighHistoryKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_npartner.sync_device();
+  k_partner.sync_device();
+  k_valuepartner.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_npartner.d_view);
+  Sorter.sort(LMPDeviceType(), k_partner.d_view);
+  Sorter.sort(LMPDeviceType(), k_valuepartner.d_view);
+
+  k_npartner.modify_device();
+  k_partner.modify_device();
+  k_valuepartner.modify_device();
+}
+
+/* ----------------------------------------------------------------------
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
@@ -389,7 +411,7 @@ template<class DeviceType>
 int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space)
+   ExecutionSpace /*space*/)
 {
   k_npartner.template sync<DeviceType>();
   k_partner.template sync<DeviceType>();
@@ -438,7 +460,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
     for (int p = 0; p < n; p++) {
       d_partner(index,p) = (tagint) d_ubuf(d_buf(m++)).i;
       for (int v = 0; v < dnum; v++) {
-	d_valuepartner(index,dnum*p+v) = d_buf(m++);
+        d_valuepartner(index,dnum*p+v) = d_buf(m++);
       }
     }
   }
@@ -449,7 +471,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
-  ExecutionSpace space)
+  ExecutionSpace /*space*/)
 {
   d_buf = typename AT::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),

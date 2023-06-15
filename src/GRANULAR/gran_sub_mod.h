@@ -23,7 +23,7 @@ namespace Granular_NS {
 class GranSubMod : protected Pointers {
  public:
   GranSubMod(class GranularModel *, class LAMMPS *);
-  virtual ~GranSubMod();
+  ~GranSubMod() override;
 
   int num_coeffs;
   double *coeffs;

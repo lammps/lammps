@@ -58,7 +58,7 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
 {
   kokkosable = 1;
   comm_forward = comm_reverse = 2; // fused
-  forward_comm_device = exchange_comm_device = 1;
+  forward_comm_device = exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -1338,6 +1338,25 @@ void FixQEqReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
   k_t_hist.template modify<LMPHostType>();
 }
 
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_s_hist.sync_device();
+  k_t_hist.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_s_hist.d_view);
+  Sorter.sort(LMPDeviceType(), k_t_hist.d_view);
+
+  k_s_hist.modify_device();
+  k_t_hist.modify_device();
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1362,7 +1381,7 @@ template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space)
+   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
   k_copylist.sync<DeviceType>();
@@ -1408,7 +1427,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
 template <class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
-  ExecutionSpace space)
+  ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
   k_indices.sync<DeviceType>();

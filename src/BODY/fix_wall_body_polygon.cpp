@@ -44,7 +44,7 @@ enum {FAR=0,XLO,XHI,YLO,YHI};
 
 //#define _POLYGON_DEBUG
 #define DELTA 10000
-#define EPSILON 1e-2
+#define EPSILON 1e-2    // dimensionless threshold (dot products, end point checks, contact checks)
 #define BIG 1.0e20
 #define MAX_CONTACTS 4  // maximum number of contacts for 2D models
 #define EFF_CONTACTS 2  // effective contacts for 2D models

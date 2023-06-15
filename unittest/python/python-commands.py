@@ -533,6 +533,33 @@ create_atoms 1 single &
             result = self.lmp.get_thermo(key)
             self.assertEqual(value, result, key)
 
+
+    def test_last_thermo(self):
+        self.lmp.command("units lj")
+        self.lmp.command("atom_style atomic")
+        self.lmp.command("atom_modify map array")
+        self.lmp.command("boundary f f f")
+        self.lmp.command("region box block 0 2 0 2 0 2")
+        self.lmp.command("create_box 1 box")
+        self.lmp.command("mass * 1")
+
+        x = [
+          0.5, 0.5, 0.5,
+          1.5, 1.5, 1.5
+        ]
+        types = [1, 1]
+        self.lmp.create_atoms(2, id=None, type=types, x=x)
+
+        self.assertEqual(self.lmp.last_thermo(), None)
+        self.lmp.command("run 2 post no")
+        ref = { "Step" : 2,
+                "Temp" : 0.0,
+                "E_pair" : 0.0,
+                "E_mol" : 0.0,
+                "TotEng" : 0.0,
+                "Press" : 0.0}
+        self.assertDictEqual(self.lmp.last_thermo(), ref)
+
     def test_extract_global(self):
         self.lmp.command("region box block -1 1 -2 2 -3 3")
         self.lmp.command("create_box 1 box")

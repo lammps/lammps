@@ -32,7 +32,7 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
   FixWallGranOld(lmp, narg, arg)
 {
   kokkosable = 1;
-  exchange_comm_device = 1;
+  exchange_comm_device = sort_device = 1;
   maxexchange = size_history;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -313,6 +313,22 @@ void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
   }
 }
 
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallGranKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_history_one.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_history_one.d_view);
+
+  k_history_one.modify_device();
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -360,7 +376,7 @@ template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space)
+   ExecutionSpace /*space*/)
 {
   k_history_one.template sync<DeviceType>();
 
@@ -403,7 +419,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, con
 template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
-  ExecutionSpace space)
+  ExecutionSpace /*space*/)
 {
   d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),

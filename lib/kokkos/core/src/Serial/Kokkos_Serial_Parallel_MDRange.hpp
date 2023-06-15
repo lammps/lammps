@@ -63,11 +63,10 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
   const FunctorType m_functor;
   const MDRangePolicy m_mdr_policy;
-  const Policy m_policy;
 
   void exec() const {
-    const typename Policy::member_type e = m_policy.end();
-    for (typename Policy::member_type i = m_policy.begin(); i < e; ++i) {
+    const typename Policy::member_type e = m_mdr_policy.m_num_tiles;
+    for (typename Policy::member_type i = 0; i < e; ++i) {
       iterate_type(m_mdr_policy, m_functor)(i);
     }
   }
@@ -85,9 +84,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
   inline ParallelFor(const FunctorType& arg_functor,
                      const MDRangePolicy& arg_policy)
-      : m_functor(arg_functor),
-        m_mdr_policy(arg_policy),
-        m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)) {}
+      : m_functor(arg_functor), m_mdr_policy(arg_policy) {}
 };
 
 template <class FunctorType, class ReducerType, class... Traits>
@@ -120,13 +117,12 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
   const FunctorType m_functor;
   const MDRangePolicy m_mdr_policy;
-  const Policy m_policy;
   const ReducerType m_reducer;
   const pointer_type m_result_ptr;
 
   inline void exec(reference_type update) const {
-    const typename Policy::member_type e = m_policy.end();
-    for (typename Policy::member_type i = m_policy.begin(); i < e; ++i) {
+    const typename Policy::member_type e = m_mdr_policy.m_num_tiles;
+    for (typename Policy::member_type i = 0; i < e; ++i) {
       iterate_type(m_mdr_policy, m_functor, update)(i);
     }
   }
@@ -148,7 +144,8 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     const size_t team_shared_size  = 0;  // Never shrinks
     const size_t thread_local_size = 0;  // Never shrinks
 
-    auto* internal_instance = m_policy.space().impl_internal_space_instance();
+    auto* internal_instance =
+        m_mdr_policy.space().impl_internal_space_instance();
     // Need to lock resize_thread_team_data
     std::lock_guard<std::mutex> lock(
         internal_instance->m_thread_team_data_mutex);
@@ -181,7 +178,6 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                                   void*> = nullptr)
       : m_functor(arg_functor),
         m_mdr_policy(arg_policy),
-        m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)),
         m_reducer(InvalidType()),
         m_result_ptr(arg_result_view.data()) {
     static_assert(Kokkos::is_view<HostViewType>::value,
@@ -197,7 +193,6 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                         MDRangePolicy arg_policy, const ReducerType& reducer)
       : m_functor(arg_functor),
         m_mdr_policy(arg_policy),
-        m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)),
         m_reducer(reducer),
         m_result_ptr(reducer.view().data()) {
     /*static_assert( std::is_same< typename ViewType::memory_space

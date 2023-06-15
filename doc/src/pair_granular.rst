@@ -650,13 +650,13 @@ For *heat* *area*, the heat
 
 .. math::
 
-   Q = k_{s} a \Delta T
+   Q = k_{s} A \Delta T
 
 
 
 where :math:`\Delta T` is the difference in the two particles' temperature,
 :math:`k_{s}` is a non-negative numeric value for the conductivity, and
-:math:`a` is the area of the contact and depends on the normal force model.
+:math:`A` is the area of the contact and depends on the normal force model.
 
 Note that the option *none* must either be used in all or none of of the
 *pair_coeff* calls. See :doc:`fix heat/flow <fix_heat_flow>` and
@@ -736,7 +736,7 @@ or
 
 .. math::
 
-   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}
+   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
 specified in an input script that reads a restart file.

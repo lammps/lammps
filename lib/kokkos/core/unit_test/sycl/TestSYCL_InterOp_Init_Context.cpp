@@ -51,6 +51,7 @@ namespace Test {
 
 // Test whether external allocations can be accessed by the default queue.
 TEST(sycl, raw_sycl_interop_context_1) {
+  // Make sure all queues use the same context
   Kokkos::Experimental::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 

@@ -285,6 +285,16 @@ one or more nodes, each with two GPUs:
    settings. Experimenting with its options can provide a speed-up for
    specific calculations. For example:
 
+.. note::
+
+   The default binsize for :doc:`atom sorting <atom_modify>` on GPUs
+   is equal to the default CPU neighbor binsize (i.e. 2x smaller than the
+   default GPU neighbor binsize). When running simple pair-wise
+   potentials like Lennard Jones on GPUs, using a 2x larger binsize for
+   atom sorting (equal to the default GPU neighbor binsize) and a more
+   frequent sorting than default (e.g. sorting every 100 time steps
+   instead of 1000) may improve performance.
+
 .. code-block:: bash
 
    mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff

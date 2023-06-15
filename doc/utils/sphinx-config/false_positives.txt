@@ -55,6 +55,7 @@ Ai
 Aidan
 aij
 aimd
+aip
 airebo
 Aj
 ajaramil
@@ -355,6 +356,7 @@ bpls
 bpm
 BPM
 br
+Braems
 Branduardi
 Branicio
 brennan
@@ -527,6 +529,7 @@ collisional
 Columic
 colvars
 Colvars
+COH
 COLVARS
 comID
 Commun
@@ -549,6 +552,7 @@ conformational
 Connor
 conp
 conq
+const
 ConstMatrix
 Contrib
 cooperativity
@@ -589,6 +593,7 @@ createAtoms
 CreateIDs
 crespi
 Crespi
+Creuze
 Critchley
 crossterm
 Crowson
@@ -1088,6 +1093,7 @@ Fellinger
 femtosecond
 femtoseconds
 fene
+Feng
 Fennell
 fep
 FEP
@@ -1346,6 +1352,7 @@ Haak
 Hafskjold
 halfstepback
 halgren
+Hallil
 Halperin
 Halver
 Hamaker
@@ -1559,6 +1566,7 @@ invertibility
 ionicities
 ionizable
 ionocovalent
+iOS
 iostreams
 iparam
 ipi
@@ -1617,6 +1625,7 @@ Izumi
 Izvekov
 izz
 Izz
+Jacobian
 Jacobsen
 Jadhao
 Jadhav
@@ -2023,6 +2032,7 @@ Marchetti
 Marchi
 Mariella
 Marinica
+Markland
 Marrink
 Marroquin
 Marsaglia
@@ -3591,6 +3601,7 @@ THz
 Tigran
 Tij
 Tildesley
+Timan
 timeI
 timespan
 timestamp
@@ -3732,6 +3743,8 @@ Umin
 un
 unary
 uncomment
+uncommented
+uncompress
 uncompute
 underprediction
 undump
@@ -4085,4 +4098,5 @@ zu
 zx
 zy
 Zybin
+Zykova
 zz

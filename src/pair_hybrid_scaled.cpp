@@ -516,7 +516,7 @@ void PairHybridScaled::coeff(int narg, char **arg)
     if (strcmp(arg[2], "none") == 0)
       none = 1;
     else
-      error->all(FLERR, "Pair coeff for hybrid has invalid style");
+      error->all(FLERR, "Pair coeff for hybrid has invalid style: {}", arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args

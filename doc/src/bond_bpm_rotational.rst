@@ -24,14 +24,17 @@ Syntax
             *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
 
-       *overlay/pair* value = none
+       *overlay/pair* value = *yes* or *no*
           bonded particles will still interact with pair forces
 
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
 
-       *break/no*
-          indicates that bonds should not break during a run
+       *normalize* value = *yes* or *no*
+          normalizes normal and shear forces by the reference length
+
+       *break* value = *yes* or *no*
+          indicates whether bonds break during a run
 
 Examples
 """"""""
@@ -136,16 +139,19 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\gamma_r`      (force*distance/velocity units)
 * :math:`\gamma_t`      (force*distance/velocity units)
 
+However, the *normalize* option will normalize the radial and shear forces
+by :math:`r_0` such that :math:`k_r` and :math:`k_s` are unit less.
+
 By default, pair forces are not calculated between bonded particles.
 Pair forces can alternatively be overlaid on top of bond forces using
-the *overlay/pair* keyword. These settings require specific
+the *overlay/pair* option. These settings require specific
 :doc:`special_bonds <special_bonds>` settings described in the
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
 
 .. versionadded:: 28Mar2023
 
-If the *break/no* keyword is used, then LAMMPS assumes bonds should not break
+If the *break* option is used, then LAMMPS assumes bonds should not break
 during a simulation run. This will prevent some unnecessary calculation.
 However, if a bond does break, it will trigger an error.
 
@@ -251,7 +257,7 @@ Related commands
 Default
 """""""
 
-The option defaults are *smooth* = *yes*
+The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *no*, and *break* = *yes*
 
 ----------
 

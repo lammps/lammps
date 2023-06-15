@@ -62,7 +62,7 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_stress_cartesian);
 
-  if (narg < 7) error->all(FLERR, "Illegal compute stress/cartesian command: illegal number of arguments.");
+  if (narg < 7) utils::missing_cmd_args(FLERR, "compute stress/cartesian", error);
 
   // no triclinic boxes
   if (domain->triclinic) error->all(FLERR, "Compute stress/cartesian requires an orthogonal box");
@@ -158,10 +158,14 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
     compute_bond = false;
     int iarg = 7;
     while (iarg < narg) {
-      if (strcmp(arg[iarg], "ke") == 0)        compute_ke = true;
-      else if (strcmp(arg[iarg], "pair") == 0) compute_pair = true;
-      else if (strcmp(arg[iarg], "bond") == 0) compute_bond = true;
-      else error->all(FLERR, "Illegal compute stress/atom command");
+      if (strcmp(arg[iarg], "ke") == 0)
+        compute_ke = true;
+      else if (strcmp(arg[iarg], "pair") == 0)
+        compute_pair = true;
+      else if (strcmp(arg[iarg], "bond") == 0)
+        compute_bond = true;
+      else
+        error->all(FLERR, "Unknown compute stress/cartesian keyword: {}", arg[iarg]);
       iarg++;
     }
   }
@@ -371,7 +375,7 @@ void ComputeStressCartesian::compute_array()
       // i == atom1, j == atom2
       int i = neighbor->bondlist[i_bond][0];
       int j = neighbor->bondlist[i_bond][1];
-      int btype  = neighbor->bondlist[i_bond][2];
+      int btype = neighbor->bondlist[i_bond][2];
 
       // Skip if one of both atoms is not in group
       if (!(mask[i] & groupbit)) continue;
@@ -389,7 +393,7 @@ void ComputeStressCartesian::compute_array()
       double dx = x[j][0] - x[i][0];
       double dy = x[j][1] - x[i][1];
       double dz = x[j][2] - x[i][2];
-      double rsq = dx*dx + dy*dy + dz*dz;
+      double rsq = dx * dx + dy * dy + dz * dz;
       double xi = x[i][dir1] - boxlo[dir1];
       double yi = x[i][dir2] - boxlo[dir2];
 

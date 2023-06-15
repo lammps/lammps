@@ -433,7 +433,7 @@ with 16 threads, for a total of 128.
 Note that the default settings for *tpc* and *tptask* are fine for
 most problems, regardless of how many MPI tasks you assign to a Phi.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 The *pppm_table* keyword with the argument yes allows to use a
 pre-computed table to efficiently spread the charge to the PPPM grid.

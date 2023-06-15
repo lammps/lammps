@@ -620,7 +620,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    output, depending on the data requested through *what*.  Note that *index*
    uses 1-based indexing to access thermo output columns.
 
-   .. versionadded:: TBD
+   .. versionadded:: 15Jun2023
 
    Note that this function actually does not return a value, but rather
    associates the pointer on the left side of the assignment to point to

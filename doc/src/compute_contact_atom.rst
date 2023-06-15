@@ -50,9 +50,6 @@ overview of LAMMPS output options.
 The per-atom vector values will be a number :math:`\ge 0.0`, as explained
 above.
 
-The optional *group2-ID* argument allows to specify from which group atoms
-contribute to the coordination number. Default setting is group 'all.'
-
 Restrictions
 """"""""""""
 

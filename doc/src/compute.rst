@@ -254,6 +254,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`property/chunk <compute_property_chunk>` - extract various per-chunk attributes
 * :doc:`property/local <compute_property_local>` - convert local attributes to localvectors/arrays
 * :doc:`ptm/atom <compute_ptm_atom>` - determines the local lattice structure based on the Polyhedral Template Matching method
+* :doc:`rattlers <compute_rattlers>` - identify undercoordinated rattler atoms
 * :doc:`rdf <compute_rdf>` - radial distribution function g(r) histogram of group of atoms
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk

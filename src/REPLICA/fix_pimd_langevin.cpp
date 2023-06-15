@@ -56,39 +56,31 @@ enum { BAOAB, OBABO };
 enum { ISO, ANISO, TRICLINIC };
 enum { PILE_L };
 enum { MTTK, BZP };
-
-static std::map<int, std::string> Barostats{{MTTK, "MTTK"}, {BZP, "BZP"}};
 enum { NVE, NVT, NPH, NPT };
 enum { SINGLE_PROC, MULTI_PROC };
+
+static std::map<int, std::string> Barostats{{MTTK, "MTTK"}, {BZP, "BZP"}};
+static std::map<int, std::string> Ensembles{{NVE, "NVE"}, {NVT, "NVT"}, {NPH, "NPH"}, {NPT, "NPT"}};
 
 /* ---------------------------------------------------------------------- */
 
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr)
+    Fix(lmp, narg, arg), mass(nullptr), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
+    tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
+    bufsortedall(nullptr), outsorted(nullptr), buftransall(nullptr), tagsendall(nullptr),
+    tagrecvall(nullptr), bufsendall(nullptr), bufrecvall(nullptr), counts(nullptr),
+    displacements(nullptr), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr),
+    M_fp2f(nullptr), modeindex(nullptr), tau_k(nullptr), c1_k(nullptr), c2_k(nullptr),
+    _omega_k(nullptr), Lan_s(nullptr), Lan_c(nullptr), random(nullptr), xc(nullptr), xcall(nullptr),
+    x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr), c_press(nullptr)
 {
   restart_global = 1;
   time_integrate = 1;
-  tagsend = tagrecv = nullptr;
-  bufsend = bufrecv = nullptr;
-  bufsendall = bufrecvall = nullptr;
-  bufsorted = bufsortedall = nullptr;
-  outsorted = buftransall = nullptr;
 
   ntotal = 0;
   maxlocal = maxunwrap = maxxc = 0;
-  bufbeads = nullptr;
-  x_unwrap = xc = nullptr;
-  xcall = nullptr;
-  counts = nullptr;
 
   sizeplan = 0;
-  plansend = planrecv = nullptr;
-
-  M_x2xp = M_xp2x = M_f2fp = M_fp2f = nullptr;
-  lam = nullptr;
-  modeindex = nullptr;
-
-  mass = nullptr;
 
   method = NMPIMD;
   ensemble = NVT;
@@ -97,6 +89,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   barostat = BZP;
   fmass = 1.0;
   np = universe->nworlds;
+  inverse_np = 1.0 / np;
   sp = 1.0;
   temp = 298.15;
   Lan_temp = 298.15;
@@ -132,10 +125,9 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[i + 1], "baoab") == 0)
         integrator = BAOAB;
       else
-        error->universe_all(
-            FLERR,
-            "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab "
-            "integrators are supported!");
+        error->universe_all(FLERR,
+                            "Unknown integrator parameter for fix pimd/langevin. Only obabo and "
+                            "baoab integrators are supported!");
     } else if (strcmp(arg[i], "ensemble") == 0) {
       if (strcmp(arg[i + 1], "nve") == 0) {
         ensemble = NVE;
@@ -155,8 +147,8 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         pstat_flag = 1;
       } else
         error->universe_all(FLERR,
-                            "Unknown ensemble parameter for fix pimd/langevin. Only nve, nvt, nph, and npt "
-                            "ensembles are supported!");
+                            "Unknown ensemble parameter for fix pimd/langevin. Only nve, nvt, nph, "
+                            "and npt ensembles are supported!");
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (fmass < 0.0 || fmass > np)
@@ -170,10 +162,9 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[i + 1], "normal") == 0)
         fmmode = NORMAL;
       else
-        error->universe_all(
-            FLERR,
-            "Unknown fictitious mass mode for fix pimd/langevin. Only physical mass and "
-            "normal mode mass are supported!");
+        error->universe_all(FLERR,
+                            "Unknown fictitious mass mode for fix pimd/langevin. Only physical "
+                            "mass and normal mode mass are supported!");
     } else if (strcmp(arg[i], "scale") == 0) {
       pilescale = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (pilescale < 0.0)
@@ -243,13 +234,20 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  if (pstat_flag && !pdim)
+    error->universe_all(
+        FLERR, fmt::format("Must use pressure coupling with {} ensemble", Ensembles[ensemble]));
+  if (!pstat_flag && pdim)
+    error->universe_all(
+        FLERR, fmt::format("Must not use pressure coupling with {} ensemble", Ensembles[ensemble]));
+
   /* Initiation */
 
   global_freq = 1;
   vector_flag = 1;
-  if (!pstat_flag)
+  if (!pstat_flag) {
     size_vector = 10;
-  else if (pstat_flag) {
+  } else if (pstat_flag) {
     if (pstyle == ISO) {
       size_vector = 15;
     } else if (pstyle == ANISO) {
@@ -258,7 +256,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   }
   extvector = 1;
   kt = force->boltz * temp;
-  if (pstat_flag) baro_init();
+  if (pstat_flag) FixPIMDLangevin::baro_init();
 
   // some initilizations
 
@@ -273,7 +271,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
   fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
   fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
-  if (pstat_flag) { p_hydro = (p_target[0] + p_target[1] + p_target[2]) / pdim; }
+  if (pstat_flag) p_hydro = (p_target[0] + p_target[1] + p_target[2]) / pdim;
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -409,7 +407,6 @@ void FixPIMDLangevin::init()
   // prepare the constants
 
   masstotal = group->mass(igroup);
-  inverse_np = 1.0 / np;
 
   double planck;
   if (strcmp(update->unit_style, "lj") == 0) {

@@ -26,6 +26,7 @@ Examples
 """"""""
 
 .. code-block:: LAMMPS
+
    compute 1 all stress/cartesian x 0.1 NULL 0
    compute 1 all stress/cartesian y 0.1 z 0.1
    compute 1 all stress/cartesian x 0.1 NULL 0 ke pair

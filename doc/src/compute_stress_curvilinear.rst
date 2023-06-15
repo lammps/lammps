@@ -36,6 +36,7 @@ Examples
 """"""""
 
 .. code-block:: LAMMPS
+
    compute 1 all stress/cylinder -10.0 10.0 15.0 0.25
    compute 1 all stress/cylinder -10.0 10.0 15.0 0.25 ke no
    compute 1 all stress/spherical 0 0 0 0.1 10
@@ -59,7 +60,7 @@ The compute *stress/cylinder* computes the stress profile along the
 radial direction in cylindrical coordinates, as described in
 :ref:`(Addington)<Addington1>`. The compute *stress/spherical*
 computes the stress profile along the radial direction in spherical
-coordinates, as described in :ref:`(Ikeshoji)<Ikeshoji2>`.
+coordinates, as described in :ref:`(Ikeshoji)<Ikeshoji4>`.
 
 
 Output info
@@ -125,7 +126,7 @@ The keyword default for ke in style *stress/cylinder* is yes.
 
 ----------
 
-.. _Ikeshoji2:
+.. _Ikeshoji4:
 
 **(Ikeshoji)** Ikeshoji, Hafskjold, Furuholt, Mol Sim, 29, 101-109, (2003).
 

@@ -41,7 +41,7 @@ class FixPIMDLangevin : public Fix {
   double compute_vector(int) override;
 
  protected:
-  /* System setting variables */
+  // System setting variables
   int method;                              // PIMD or NMPIMD or CMD
   int fmmode;                              // physical or normal
   int np;                                  // number of beads
@@ -51,7 +51,7 @@ class FixPIMDLangevin : public Fix {
   double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
   double other_planck;
   double other_mvv2e;
-  double kt;              // k_B * temp
+  double kt;               // k_B * temp
   double beta, beta_np;    // beta = 1./kBT beta_np = 1./kBT/np
   int thermostat;          // NHC or PILE_L
   int barostat;            // BZP
@@ -62,15 +62,16 @@ class FixPIMDLangevin : public Fix {
   double masstotal;
 
   double fixedpoint[3];    // location of dilation fixed-point
-  /* ring-polymer model */
+
+  // ring-polymer model
 
   double omega_np, fbond, spring_energy, sp;
 
-  /* fictitious mass */
+  // fictitious mass
 
   double fmass, *mass;
 
-  /* inter-partition communication */
+  // inter-partition communication
 
   MPI_Comm rootworld;
   int me, nprocs, ireplica, nreplica, nprocs_universe;
@@ -117,7 +118,8 @@ class FixPIMDLangevin : public Fix {
   int tstat_flag;    // tstat_flat = 1 if thermostat if used
   void langevin_init();
   void b_step();    // integrate for dt/2 according to B part (v <- v + f * dt/2)
-  void a_step();    // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
+  void
+  a_step();    // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
   void qc_step();    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
   void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
 

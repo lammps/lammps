@@ -306,16 +306,17 @@ void FixIntel::init()
   if (force->pair_match("gayberne/intel$", 0)) _torque_flag = 1;
 
   const int nstyles = _pair_intel_count;
-  if (force->pair_match("^hybrid", 0) != nullptr) {
+  if (force->pair_match("^hybrid", 0)) {
     _pair_hybrid_flag = 1;
 
     // Check if need to handle torque
     auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (utils::strmatch(hybrid->keywords[i],"/intel$") &&
-          utils::strmatch(hybrid->keywords[i],"gayberne"))
-        _torque_flag = 1;
-
+    if (hybrid) {
+      for (int i = 0; i < hybrid->nstyles; i++)
+        if (utils::strmatch(hybrid->keywords[i],"/intel$") &&
+            utils::strmatch(hybrid->keywords[i],"gayberne"))
+          _torque_flag = 1;
+    }
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,"INTEL package requires fdotr virial with newton on.");
   } else

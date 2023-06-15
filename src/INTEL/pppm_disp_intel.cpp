@@ -124,8 +124,7 @@ void PPPMDispIntel::init()
 
   _use_lrt = fix->lrt();
   if (_use_lrt)
-    error->all(FLERR,
-               "LRT mode is currently not supported for pppm/disp/intel");
+    error->all(FLERR, "LRT mode is currently not supported for pppm/disp/intel");
 
 
   // For vectorization, we need some padding in the end
@@ -142,19 +141,15 @@ void PPPMDispIntel::init()
   if (_use_table) {
     rho_points = 5000;
     memory->destroy(rho_lookup);
-    memory->create(rho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
-                   "pppmdispintel:rho_lookup");
+    memory->create(rho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,"pppmdispintel:rho_lookup");
     memory->destroy(rho6_lookup);
-    memory->create(rho6_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
-                   "pppmdispintel:rho6_lookup");
+    memory->create(rho6_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,"pppmdispintel:rho6_lookup");
 
     if (differentiation_flag == 1) {
       memory->destroy(drho_lookup);
-      memory->create(drho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
-                     "pppmdispintel:drho_lookup");
+      memory->create(drho_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,"pppmdispintel:drho_lookup");
       memory->destroy(drho6_lookup);
-      memory->create(drho6_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,
-                     "pppmdispintel:drho6_lookup");
+      memory->create(drho6_lookup, rho_points, INTEL_P3M_ALIGNED_MAXORDER,"pppmdispintel:drho6_lookup");
     }
     precompute_rho();
   }

@@ -110,6 +110,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
 {
   triclinic_support = 0;
   pppmflag = dispersionflag = 1;
+  triclinic = domain->triclinic;
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -242,12 +243,12 @@ void PPPMDisp::settings(int narg, char **arg)
 
 PPPMDisp::~PPPMDisp()
 {
-  delete [] factors;
-  delete [] B;
+  delete[] factors;
+  delete[] B;
   B = nullptr;
-  delete [] cii;
+  delete[] cii;
   cii = nullptr;
-  delete [] csumi;
+  delete[] csumi;
   csumi = nullptr;
   PPPMDisp::deallocate();
   PPPMDisp::deallocate_peratom();
@@ -267,6 +268,9 @@ void PPPMDisp::init()
   // error check
 
   triclinic_check();
+
+  if (triclinic != domain->triclinic)
+    error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
@@ -1277,7 +1281,7 @@ void PPPMDisp::init_coeffs()
   int n = atom->ntypes;
   int converged;
 
-  delete [] B;
+  delete[] B;
   B = nullptr;
 
   // no mixing rule or arithmetic
@@ -3352,10 +3356,10 @@ void PPPMDisp::calc_csum()
   int ntypes = atom->ntypes;
   int i,j,k;
 
-  delete [] cii;
+  delete[] cii;
   cii = new double[ntypes+1];
   for (i = 0; i<=ntypes; i++) cii[i] = 0.0;
-  delete [] csumi;
+  delete[] csumi;
   csumi = new double[ntypes+1];
   for (i = 0; i<=ntypes; i++) csumi[i] = 0.0;
   int *neach = new int[ntypes+1];
@@ -3447,8 +3451,8 @@ void PPPMDisp::calc_csum()
     }
   }
 
-  delete [] neach;
-  delete [] neach_all;
+  delete[] neach;
+  delete[] neach_all;
 }
 
 /* ----------------------------------------------------------------------
@@ -6538,9 +6542,9 @@ void PPPMDisp::fieldforce_none_ik()
     }
   }
 
-  delete [] ekx;
-  delete [] eky;
-  delete [] ekz;
+  delete[] ekx;
+  delete[] eky;
+  delete[] ekz;
 }
 
 /* ----------------------------------------------------------------------
@@ -6660,9 +6664,9 @@ void PPPMDisp::fieldforce_none_ad()
     }
   }
 
-  delete [] ekx;
-  delete [] eky;
-  delete [] ekz;
+  delete[] ekx;
+  delete[] eky;
+  delete[] ekz;
 }
 
 /* ----------------------------------------------------------------------
@@ -6756,13 +6760,13 @@ void PPPMDisp::fieldforce_none_peratom()
     }
   }
 
-  delete [] u_pa;
-  delete [] v0;
-  delete [] v1;
-  delete [] v2;
-  delete [] v3;
-  delete [] v4;
-  delete [] v5;
+  delete[] u_pa;
+  delete[] v0;
+  delete[] v1;
+  delete[] v2;
+  delete[] v3;
+  delete[] v4;
+  delete[] v5;
 }
 
 /* ----------------------------------------------------------------------

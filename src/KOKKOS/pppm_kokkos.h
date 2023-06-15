@@ -430,7 +430,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   // triclinic
 
-  int triclinic;               // domain settings, orthog or triclinic
   void setup_triclinic();
   void compute_gf_ik_triclinic();
   void poisson_ik_triclinic();

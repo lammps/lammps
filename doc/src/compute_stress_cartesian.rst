@@ -42,7 +42,7 @@ split into a kinetic contribution :math:`P^k` and a virial contribution
 This compute obeys momentum balance through fluid interfaces. They use the
 Irving--Kirkwood contour, which is the straight line between particle pairs.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
    Added support for bond styles
 

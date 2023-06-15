@@ -66,7 +66,7 @@ that atoms have crossed the plane if their positions at times
 and uses the velocity at time :math:`t-\Delta t/2` given by the velocity
 Verlet algorithm.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
    contributions from bond and angle potentials
 

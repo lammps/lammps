@@ -756,7 +756,7 @@ double lammps_get_thermo(void *handle, const char *keyword)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 This function provides access to cached data from the last thermo output.
 This differs from :cpp:func:`lammps_get_thermo` in that it does not trigger

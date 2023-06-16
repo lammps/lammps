@@ -21,7 +21,7 @@ Syntax
          cutoff = *type* or *radius* or *custom*
            *type* args = none, cutoffs determined by atom types
            *radius* args = none, cutoffs determined based on atom diameters (atom style sphere)
-           *custom* args = *rmax*, cutoff set by a constant numeric value *rmax*
+           *custom* args = *rmax*, cutoff set by a constant numeric value *rmax* (distance units)
        *integrated* args = none
 
 * reference/style = *fixed* or *update* or *offset*
@@ -94,7 +94,7 @@ as input.
 
 For the *integrated* style, the three columns are the nonaffine
 displacements in the x, y, and z directions. For the *d2min* style,
-the three columns are the calculated :math:`D^2_\mathrm{min}`, the
+the three columns are the calculated :math:`\sqrt{D^2_\mathrm{min}}`, the
 volumetric strain, and the deviatoric strain.
 
 Restrictions

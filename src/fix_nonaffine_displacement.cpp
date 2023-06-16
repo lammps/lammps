@@ -105,7 +105,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   } else if (strcmp(arg[iarg], "offset") == 0) {
     reference_style = OFFSET;
     offset_timestep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-    if (offset_timestep < 0)
+    if ((offset_timestep <= 0) || (offset_timestep > nevery))
       error->all(FLERR, "Illegal offset timestep {} in fix nonaffine/displacement", arg[iarg + 1]);
   } else error->all(FLERR,"Illegal reference style {} in fix nonaffine/displacement", arg[iarg]);
 
@@ -237,6 +237,14 @@ void FixNonaffineDisplacement::setup(int vflag)
 
 void FixNonaffineDisplacement::post_force(int /*vflag*/)
 {
+  if (reference_saved && !update->setupflag) {
+    if (nad_style == INTEGRATED) {
+      integrate_velocity();
+    } else {
+      if ((update->ntimestep % nevery) == 0) calculate_D2Min();
+    }
+  }
+
   if (reference_style == FIXED)
     if (update->ntimestep == reference_timestep)
       save_reference_state();
@@ -246,18 +254,8 @@ void FixNonaffineDisplacement::post_force(int /*vflag*/)
       save_reference_state();
 
   if (reference_style == OFFSET)
-    if (((update->ntimestep - offset_timestep) % nevery) == 0)
+    if (((update->ntimestep + offset_timestep) % nevery) == 0)
       save_reference_state();
-
-  if (update->setupflag) return;
-
-  if (reference_style == FIXED && (update->ntimestep < reference_timestep)) return;
-
-  if (nad_style == INTEGRATED) {
-    integrate_velocity();
-  } else {
-    if ((update->ntimestep % nevery) == 0) calculate_D2Min();
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -309,17 +307,18 @@ void FixNonaffineDisplacement::save_reference_state()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   double **nad = atom->darray[nad_index];
 
   if (nad_style == D2MIN) {
     for (int m = 0; m < 3; m++) {
-      for (int i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nall; i++) {
         if (mask[i] & groupbit)  nad[i][m] = x[i][m];
       }
     }
   } else {
     for (int m = 0; m < 3; m++) {
-      for (int i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nall; i++) {
         if (mask[i] & groupbit)  nad[i][m] = 0.0;
       }
     }
@@ -370,6 +369,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  int dim = domain->dimension;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -450,7 +450,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
   }
 
   comm_flag = 0;
-  if (newton_pair) comm->reverse_comm(this);
+  if (newton_pair) comm->reverse_comm(this, 18);
 
   // Calculate contributions to strain tensor
   double denom;
@@ -463,7 +463,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
       }
     }
 
-    if (domain->dimension == 3) {
+    if (dim == 3) {
       invert3(Y_tmp, Y_inv);
     } else {
       denom = Y_tmp[0][0] * Y_tmp[1][1] - Y_tmp[0][1] * Y_tmp[1][0];
@@ -562,12 +562,12 @@ void FixNonaffineDisplacement::calculate_D2Min()
         F_tmp[j][k] = F[i][j][k];
 
     transpose_times3(F_tmp, F_tmp, E);
-    for (j = 0; j < 3; j++) E[j][j] -= 1.0;
+    for (j = 0; j < dim; j++) E[j][j] -= 1.0;
 
-    evol = (E[0][0] + E[1][1] + E[2][2]) / domain->dimension;
+    evol = (E[0][0] + E[1][1] + E[2][2]) / dim;
 
     // Calculate deviatoric strain
-    for (j = 0; j < 3; j++) E[j][j] -= evol;
+    for (j = 0; j < dim; j++) E[j][j] -= evol;
     j2 = 0.0;
     for (j = 0; j < 3; j++)
       for (k = 0; k < 3; k++)

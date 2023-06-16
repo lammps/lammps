@@ -100,9 +100,9 @@ class PairSNAPKokkos : public PairSNAP {
 #elif defined(KOKKOS_ENABLE_SYCL)
   static constexpr int team_size_compute_neigh = 4;
   static constexpr int tile_size_compute_ck = 4;
-  static constexpr int tile_size_pre_ui = 4;
-  static constexpr int team_size_compute_ui = 4;
-  static constexpr int tile_size_transform_ui = 4;
+  static constexpr int tile_size_pre_ui = 8;
+  static constexpr int team_size_compute_ui = 8;
+  static constexpr int tile_size_transform_ui = 8;
   static constexpr int tile_size_compute_zi = 4;
   static constexpr int tile_size_compute_bi = 4;
   static constexpr int tile_size_transform_bi = 4;

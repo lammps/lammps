@@ -1,18 +1,14 @@
-.. index:: fix gravity
-.. index:: fix gravity/omp
-.. index:: fix gravity/kk
+.. index:: fix nonaffine/displacement
 
-fix gravity command
+fix nonaffine/displacement command
 ===================
-
-Accelerator Variants: *gravity/omp*, *gravity/kk*
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group gravity magnitude style args
+   fix ID group nonaffine/displacement style args reference/style args
 
 * ID, group are documented in :doc:`fix <fix>` command
 * gravity = style name of this fix command

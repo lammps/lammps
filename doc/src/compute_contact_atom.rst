@@ -69,6 +69,3 @@ Default
 """""""
 
 *group2-ID* = all
-
-
-none

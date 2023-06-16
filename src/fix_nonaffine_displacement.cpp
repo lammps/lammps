@@ -12,6 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Joel Clemmer (SNL), Ishan Srivastava (LBNL)
+------------------------------------------------------------------------- */
+
 #include "fix_nonaffine_displacement.h"
 
 #include "atom.h"
@@ -63,31 +67,30 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nonaffine/displacement command");
 
-  int iarg = 3;
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (nevery <= 0) error->all(FLERR,"Illegal nevery value {} in fix nonaffine/displacement", nevery);
+
+  int iarg = 4;
   if (strcmp(arg[iarg], "integrated") == 0) {
     nad_style = INTEGRATED;
     nevery = 1;
     iarg += 1;
   } else if (strcmp(arg[iarg], "d2min") == 0) {
-    if (iarg + 2 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
-
+    if (iarg + 1 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
     nad_style = D2MIN;
-    nevery = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-    if (nevery <= 0) error->all(FLERR,"Illegal nevery value {} in fix nonaffine/displacement", nevery);
-
-    if (strcmp(arg[iarg + 2], "type") == 0) {
+    if (strcmp(arg[iarg + 1], "type") == 0) {
       cut_style = TYPE;
-    } else if (strcmp(arg[iarg + 2], "radius") == 0) {
+    } else if (strcmp(arg[iarg + 1], "radius") == 0) {
       cut_style = RADIUS;
-    } else if (strcmp(arg[iarg + 2], "custom") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+    } else if (strcmp(arg[iarg + 1], "custom") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
       cut_style = CUSTOM;
-      cutoff_custom = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      cutoff_custom = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       cutsq_custom = cutoff_custom * cutoff_custom;
       if (cutoff_custom <= 0)
-        error->all(FLERR, "Illegal custom cutoff length {}", arg[iarg + 3]);
+        error->all(FLERR, "Illegal custom cutoff length {}", arg[iarg + 2]);
       iarg += 1;
-    } else error->all(FLERR,"Illegal cutoff style {} in fix nonaffine/displacement", arg[iarg + 2]);
+    } else error->all(FLERR,"Illegal cutoff style {} in fix nonaffine/displacement", arg[iarg + 1]);
     iarg += 3;
   }
 

@@ -8,129 +8,114 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group nonaffine/displacement style args reference/style args
+   fix ID group nonaffine/displacement style args reference/style nstep
 
 * ID, group are documented in :doc:`fix <fix>` command
-* gravity = style name of this fix command
-* magnitude = size of acceleration (force/mass units)
-* magnitude can be a variable (see below)
-* style = *chute* or *spherical* or *gradient* or *vector*
+* nonaffine/displacement = style name of this fix command
+* nevery = calculate nonaffine displacement every this many timesteps
+* style = *d2min* or *integrated*
 
   .. parsed-literal::
 
-       *chute* args = angle
-         angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
-         angle can be a variable (see below)
-       *spherical* args = phi theta
-         phi = azimuthal angle from +x axis (in degrees)
-         theta = angle from +z or +y axis in 3d/2d (in degrees)
-         phi or theta can be a variable (see below)
-       *vector* args = x y z
-         x y z = vector direction to apply the acceleration
-         x or y or z can be a variable (see below)
+       *d2min* args = cutoff args
+         cutoff = *type* or *radius* or *custom*
+           *type* args = none, cutoffs determined by atom types
+           *radius* args = none, cutoffs determined based on atom diameters (atom style sphere)
+           *custom* args = *rmax*, cutoff set by a constant numeric value *rmax*
+       *integrated* args = none
+
+* reference/style = *fixed* or *update* or *offset*
+
+  .. parsed-literal::
+
+       *fixed* = use a fixed reference frame at *nstep*
+       *update* = update the reference frame every *nstep* timesteps
+       *offset* = update the reference frame *nstep* timesteps before calculating the non/affine displacement
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all gravity 1.0 chute 24.0
-   fix 1 all gravity v_increase chute 24.0
-   fix 1 all gravity 1.0 spherical 0.0 -180.0
-   fix 1 all gravity 10.0 spherical v_phi v_theta
-   fix 1 all gravity 100.0 vector 1 1 0
+   fix 1 all nonaffine/displacement 100 integrated update 100
+   fix 1 all nonaffine/displacement 1000 d2min type fixed 0
+   fix 1 all nonaffine/displacement 1000 d2min custom 2.0 offset 100
 
 Description
 """""""""""
 
-Impose an additional acceleration on each particle in the group.  This
-fix is typically used with granular systems to include a "gravity"
-term acting on the macroscopic particles.  More generally, it can
-represent any kind of driving field, e.g. a pressure gradient inducing
-a Poiseuille flow in a fluid.  Note that this fix operates differently
-than the :doc:`fix addforce <fix_addforce>` command.  The addforce fix
-adds the same force to each atom, independent of its mass.  This
-command imparts the same acceleration to each atom (force/mass).
+This fix computes different metrics of the nonaffine displacement of
+particles. The first metric, *d2min* calculates the :math:`D^2_\mathrm{min}`
+nonaffine displacement by Falk and Langer in :ref:`(Falk) <d2min-Falk>`.
+For each atom, the fix computes the two tensors
 
-The *magnitude* of the acceleration is specified in force/mass units.
-For granular systems (LJ units) this is typically 1.0.  See the
-:doc:`units <units>` command for details.
+.. math::
 
-Style *chute* is typically used for simulations of chute flow where
-the specified *angle* is the chute angle, with flow occurring in the +x
-direction.  For 3d systems, the tilt is away from the z axis; for 2d
-systems, the tilt is away from the y axis.
+   X = \sum_{\mathrm{neighbors}} \vec{r} \left(\vec{r}_{0} \right)^T
 
-Style *spherical* allows an arbitrary 3d direction to be specified for
-the acceleration vector.  *Phi* and *theta* are defined in the usual
-spherical coordinates.  Thus for acceleration acting in the -z
-direction, *theta* would be 180.0 (or -180.0).  *Theta* = 90.0 and
-*phi* = -90.0 would mean acceleration acts in the -y direction.  For
-2d systems, *phi* is ignored and *theta* is an angle in the xy plane
-where *theta* = 0.0 is the y-axis.
+and
 
-Style *vector* imposes an acceleration in the vector direction given
-by (x,y,z).  Only the direction of the vector is important; it's
-length is ignored.  For 2d systems, the *z* component is ignored.
+.. math::
 
-Any of the quantities *magnitude*, *angle*, *phi*, *theta*, *x*, *y*,
-*z* which define the gravitational magnitude and direction, can be
-specified as an equal-style :doc:`variable <variable>`.  If the value is
-a variable, it should be specified as v_name, where name is the
-variable name.  In this case, the variable will be evaluated each
-timestep, and its value used to determine the quantity.  You should
-insure that the variable calculates a result in the appropriate units,
-e.g. force/mass or degrees.
+   Y = \sum_{\mathrm{neighbors}} \vec{r}_0 \left(\vec{r}_{0} \right)^T
 
-Equal-style variables can specify formulas with various mathematical
-functions, and include :doc:`thermo_style <thermo_style>` command
-keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify a time-dependent gravitational
-field.
+where the neighbors include all other atoms within the distance criterion
+set by the cutoff option, discussed below, :math:`\vec{r}` is the current
+displacement between particles, and :math:`\vec{r}_0` is the reference
+displacement. A deformation gradient tensor is then calculated as
+:math:`F = X Y^{-1}` from which
 
-----------
+.. math::
 
-.. include:: accel_styles.rst
+    D^2_\mathrm{min} = \sum_{\mathrm{neighbors}} \left| \vec{r} - F \vec{r}_0 \right|^2
+
+and a strain tensor is calculated :math:`E = F F^{T} - I` where :math:`I`
+is the identity tensor.
+
+The *integrated* style simply integrates the velocity of particles
+every timestep to calculate a displacement. This style only works if
+used in conjunction with another fix that deforms the box and displaces
+atom positions such as :doc:`the remap x option of fix deform <fix_deform>`,
+:doc:`fix press/berendsen <fix_press_berendsen>`, or :doc:`fix nh <fix_nh>`.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+The reference state is saved to :doc:`binary restart files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by
-this fix to add the gravitational potential energy of the system to
-the global potential energy of the system as part of
-:doc:`thermodynamic output <thermo_style>`.  The default setting for
-this fix is :doc:`fix_modify energy no <fix_modify>`.
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this
+fix.
 
-The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows to set at which level of the :doc:`r-RESPA
-<run_style>` integrator the fix is adding its forces. Default is the
-outermost level.
+This fix computes a peratom array with 3 columns, which can be accessed
+by indices 1-3 using any command that uses per-atom values from a fix
+as input.
 
-This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  This scalar is the
-gravitational potential energy of the particles in the defined field,
-namely mass \* (g dot x) for each particles, where x and mass are the
-particles position and mass, and g is the gravitational field.  The
-scalar value calculated by this fix is "extensive".
-
-No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during
-:doc:`energy minimization <minimize>`.
+For the *integrated* style, the three columns are the nonaffine
+displacements in the x, y, and z directions. For the *d2min* style,
+the three columns are the calculated :math:`D^2_\mathrm{min}`, the
+volumetric strain, and the deviatoric strain.
 
 Restrictions
 """"""""""""
- none
+
+This compute is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`atom_style sphere <atom_style>`, :doc:`fix addforce <fix_addforce>`
+none
 
 Default
 """""""
 
 none
+
+----------
+
+.. _nh-Martyna:
+
+**(Martyna)** Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).

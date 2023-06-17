@@ -65,7 +65,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), Name(nullptr), MolName(nullptr), NMol(nullptr), nd(nullptr),
     MolType(nullptr), molmap(nullptr), mark(nullptr), Mol2Spec(nullptr), clusterID(nullptr),
     x0(nullptr), BOCut(nullptr), fp(nullptr), pos(nullptr), fdel(nullptr), delete_Tcount(nullptr),
-    ele(nullptr), eletype(nullptr), filepos(nullptr), filedel(nullptr)
+    filepos(nullptr), filedel(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix reaxff/species", error);
 
@@ -84,6 +84,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   nvalid = -1;
 
   ntypes = atom->ntypes;
+  eletype.resize(ntypes);
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   nrepeat = utils::inumeric(FLERR, arg[4], false, lmp);
@@ -156,8 +157,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     for (int j = 1; j < np1; j++) BOCut[i][j] = bo_cut;
 
   // optional args
-  eletype = nullptr;
-  ele = filepos = filedel = nullptr;
+  filepos = filedel = nullptr;
   eleflag = posflag = padflag = 0;
   delflag = specieslistflag = masslimitflag = 0;
   delete_Nlimit = delete_Nsteps = 0;
@@ -191,13 +191,8 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + ntypes + 1 > narg)
         utils::missing_cmd_args(FLERR, "fix reaxff/species element", error);
 
-      eletype = (char **) malloc(ntypes * sizeof(char *));
-      int len;
-      for (int i = 0; i < ntypes; i++) {
-        len = strlen(arg[iarg + 1 + i]) + 1;
-        eletype[i] = (char *) malloc(len * sizeof(char));
-        strcpy(eletype[i], arg[iarg + 1 + i]);
-      }
+      for (int i = 0; i < ntypes; i++)
+        eletype[i] = arg[iarg + 1 + i];
       eleflag = 1;
       iarg += ntypes + 1;
 
@@ -285,13 +280,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Unknown fix reaxff/species keyword: {}", arg[iarg]);
   }
 
-  if (!eleflag) {
-    memory->create(ele, ntypes + 1, "reaxff/species:ele");
-    ele[0] = 'C';
-    if (ntypes > 1) ele[1] = 'H';
-    if (ntypes > 2) ele[2] = 'O';
-    if (ntypes > 3) ele[3] = 'N';
-  }
+  if (!eleflag)
+    for (int i = 0; i < ntypes; i++)
+      eletype[i] = reaxff->eletype[i+1];
 
   if (delflag && specieslistflag && masslimitflag)
     error->all(FLERR, "Incompatible combination fix reaxff/species command options");
@@ -312,7 +303,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
 
 FixReaxFFSpecies::~FixReaxFFSpecies()
 {
-  memory->destroy(ele);
   memory->destroy(BOCut);
   memory->destroy(clusterID);
   memory->destroy(x0);
@@ -749,10 +739,7 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
     for (j = 0; j < ntypes; j++) {
       itemp = MolType[ntypes * i + j];
       if (itemp != 0) {
-        if (eletype)
-          molname += eletype[j];
-        else
-          molname += ele[j];
+        molname += eletype[j];
         if (itemp != 1) molname += std::to_string(itemp);
       }
     }
@@ -857,10 +844,7 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
       fprintf(pos, "%d\t%d\t", m, count);
       for (n = 0; n < ntypes; n++) {
         if (Name[n] != 0) {
-          if (eletype)
-            fprintf(pos, "%s", eletype[n]);
-          else
-            fprintf(pos, "%c", ele[n]);
+          fprintf(pos, "%s", eletype[n].c_str());
           if (Name[n] != 1) fprintf(pos, "%d", Name[n]);
         }
       }
@@ -969,10 +953,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     species_str = "";
     for (j = 0; j < ntypes; j++) {
       if (Name[j] != 0) {
-        if (eletype)
-          species_str += eletype[j];
-        else
-          species_str += ele[j];
+        species_str += eletype[j];
         if (Name[j] != 1) species_str += fmt::format("{}", Name[j]);
       }
     }
@@ -1037,10 +1018,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
           for (j = 0; j < ntypes; j++) {
             int itemp = MolName[ntypes * m + j];
             if (itemp != 0) {
-              if (eletype)
-                fprintf(fdel, "%s", eletype[j]);
-              else
-                fprintf(fdel, "%c", ele[j]);
+              fprintf(fdel, "%s", eletype[j].c_str());
               if (itemp != 1) fprintf(fdel, "%d", itemp);
             }
           }

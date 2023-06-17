@@ -63,7 +63,8 @@ class FixReaxFFSpecies : public Fix {
   int delete_Nsteps, *delete_Tcount;
   double massmin, massmax;
   int singlepos_opened, multipos_opened, del_opened;
-  char *ele, **eletype, *filepos, *filedel;
+  char *filepos, *filedel;
+  std::vector<std::string> eletype;
 
   void Output_ReaxFF_Bonds(bigint, FILE *);
   AtomCoord chAnchor(AtomCoord, AtomCoord);

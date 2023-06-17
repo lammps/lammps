@@ -56,17 +56,6 @@ C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
    and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
    need to be installed or the Linux updated.
 
-.. versionchanged:: 8Feb2023
-
-.. note::
-
-   A contributed Fortran interface is available in the
-   ``examples/COUPLE/fortran2`` folder.  However, since the completion
-   of the :f:mod:`LIBLAMMPS` module, this interface is now deprecated,
-   no longer actively maintained and will likely be removed in the
-   future.  Please see the ``README`` file in that folder for more
-   information about it and how to contact its author and maintainer.
-
 ----------
 
 Creating or deleting a LAMMPS object

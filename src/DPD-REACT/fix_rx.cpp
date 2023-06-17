@@ -249,7 +249,7 @@ void FixRX::post_constructor()
 
   // Assign species names to tmpspecies array and determine the number of unique species
 
-  int n,nwords;
+  int n;
   char line[MAXLINE],*ptr;
   int eof = 0;
   char * word;
@@ -270,12 +270,10 @@ void FixRX::post_constructor()
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     // words = ptrs to all words in line
 
-    nwords = 0;
     word = strtok(line," \t\n\r\f");
     while (word != nullptr) {
       word = strtok(nullptr, " \t\n\r\f");
@@ -785,7 +783,7 @@ void FixRX::read_file(char *file)
 
   // Count the number of reactions from kinetics file
 
-  int n,nwords,ispecies;
+  int n,ispecies;
   char line[MAXLINE],*ptr;
   int eof = 0;
 
@@ -805,8 +803,7 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     nreactions++;
   }
@@ -859,12 +856,10 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     // words = ptrs to all words in line
 
-    nwords = 0;
     word = strtok(line," \t\n\r\f");
     while (word != nullptr) {
       tmpStoich = atof(word);

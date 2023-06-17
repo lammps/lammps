@@ -1209,8 +1209,8 @@ FixElectrodeConp::~FixElectrodeConp()
     } catch (std::exception &) {
     }
   }
-  if (!modify->get_fix_by_id(id))             // avoid segfault if derived fixes' ctor throws err
-    atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms
+
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id, Atom::GROW);
 
   delete[] recvcounts;
   delete[] displs;

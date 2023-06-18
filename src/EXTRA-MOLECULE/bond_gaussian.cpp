@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_gaussian.h"
-#include <iostream>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"

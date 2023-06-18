@@ -43,8 +43,7 @@
 
 #define GPU_AWARE_UNKNOWN static int have_gpu_aware = -1;
 
-// TODO HIP: implement HIP-aware MPI support (UCX) detection
-#if defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 GPU_AWARE_UNKNOWN
 #elif defined(KOKKOS_ENABLE_CUDA)
 
@@ -71,7 +70,28 @@ GPU_AWARE_UNKNOWN
 GPU_AWARE_UNKNOWN
 #endif // OPEN_MPI
 
-#endif // KOKKOS_ENABLE_CUDA
+#elif defined(KOKKOS_ENABLE_HIP)
+
+// OpenMPI supports detecting HIP-aware MPI as of version 5.0.0
+#if (OPEN_MPI)
+#if (OMPI_MAJOR_VERSION >= 5)
+#include <mpi-ext.h>
+#if defined(OMPI_HAVE_MPI_EXT_ROCM) && OMPI_HAVE_MPI_EXT_ROCM
+// May have rocm enabled: below we will check dynamically with MPIX_Query_rocm_support()
+static int have_gpu_aware = 1;
+#elif defined(OMPI_HAVE_MPI_EXT_ROCM) && !OMPI_HAVE_MPI_EXT_ROCM
+static int have_gpu_aware = 0;
+#else
+GPU_AWARE_UNKNOWN
+#endif // defined(OMPI_HAVE_MPI_EXT_ROCM)
+#else // old OpenMPI
+GPU_AWARE_UNKNOWN
+#endif // (OMPI_MAJOR_VERSION >=5)
+#else // unknown MPI library
+GPU_AWARE_UNKNOWN
+#endif // OPEN_MPI
+
+#endif // KOKKOS_ENABLE_CUDA & KOKKOS_ENABLE_HIP
 
 #endif // LMP_ENABLE_DEVICE
 
@@ -236,8 +256,20 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   binsize = 0.0;
 #ifdef KOKKOS_ENABLE_CUDA
-  // TODO HIP: implement HIP-aware MPI testing
   gpu_aware_flag = 1;
+#elif defined(KOKKOS_ENABLE_HIP) && defined(OMPI_HAVE_MPI_EXT_ROCM) && OMPI_HAVE_MPI_EXT_ROCM
+  if(have_gpu_aware == 1)
+  {
+    gpu_aware_flag = MPIX_Query_rocm_support();
+    if(gpu_aware_flag && me == 0)
+    {
+      error->warning(FLERR,"ROCm-aware OpenMPI is supported and enabled (debug msg, remove it later)");
+    }
+  }
+  else
+  {
+    gpu_aware_flag = 0;
+  }
 #else
   gpu_aware_flag = 0;
 #endif

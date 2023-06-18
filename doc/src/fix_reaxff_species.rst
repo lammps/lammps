@@ -88,7 +88,7 @@ If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text version,
 but will also take longer to write.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
    Support for wildcards added
 

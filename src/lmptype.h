@@ -276,7 +276,21 @@ union ubuf {
 \endverbatim
   */
 struct multitype {
-  enum { NONE, DOUBLE, INT, BIGINT };
+  /** Data type constants for extracting data from atoms, computes and fixes
+   *
+   * This enum must be kept in sync with the corresponding enum or constants
+   * in ``python/lammps/constants.py``, ``fortran/lammps.f90``, ``tools/swig/lammps.i``,
+   * ``src/library.h``, and ``examples/COUPLE/plugin/liblammpsplugin.h`` */
+  enum _LMP_DATATYPE_CONST {
+    LAMMPS_NONE = -1,     /*!< no data type assigned (yet) */
+    LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
+    LAMMPS_INT_2D = 1,    /*!< two-dimensional 32-bit integer array */
+    LAMMPS_DOUBLE = 2,    /*!< 64-bit double (array) */
+    LAMMPS_DOUBLE_2D = 3, /*!< two-dimensional 64-bit double array */
+    LAMMPS_INT64 = 4,     /*!< 64-bit integer (array) */
+    LAMMPS_INT64_2D = 5,  /*!< two-dimensional 64-bit integer array */
+    LAMMPS_STRING = 6     /*!< C-String */
+  };
 
   int type;
   union {
@@ -285,26 +299,26 @@ struct multitype {
     int64_t b;
   } data;
 
-  multitype() : type(NONE) { data.d = 0.0; }
+  multitype() : type(LAMMPS_NONE) { data.d = 0.0; }
   multitype(const multitype &) = default;
   multitype(multitype &&) = default;
   ~multitype() = default;
 
   multitype &operator=(const double &_d)
   {
-    type = DOUBLE;
+    type = LAMMPS_DOUBLE;
     data.d = _d;
     return *this;
   }
   multitype &operator=(const int &_i)
   {
-    type = INT;
+    type = LAMMPS_INT;
     data.i = _i;
     return *this;
   }
   multitype &operator=(const int64_t &_b)
   {
-    type = BIGINT;
+    type = LAMMPS_INT64;
     data.b = _b;
     return *this;
   }

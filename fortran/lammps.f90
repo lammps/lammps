@@ -44,11 +44,12 @@ MODULE LIBLAMMPS
   ! Data type constants for extracting data from global, atom, compute, and fix
   !
   ! Must be kept in sync with the equivalent declarations in
-  ! src/library.h, python/lammps/constants.py, tools/swig/lammps.i,
+  ! src/library.h, src/lmptype.h, python/lammps/constants.py, tools/swig/lammps.i,
   ! and examples/COUPLE/plugin/liblammpsplugin.h
   !
   ! These are NOT part of the API (the part the user sees)
   INTEGER(c_int), PARAMETER :: &
+    LAMMPS_NONE = -1, &       ! no data type assigned (yet)
     LAMMPS_INT = 0, &         ! 32-bit integer (or array)
     LAMMPS_INT_2D = 1, &      ! two-dimensional 32-bit integer array
     LAMMPS_DOUBLE = 2, &      ! 64-bit double (or array)
@@ -1126,11 +1127,13 @@ CONTAINS
   FUNCTION lmp_last_thermo(self,what,index) RESULT(thermo_data)
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: what
-    INTEGER(c_int) :: index
+    INTEGER :: index
+    INTEGER(c_int) :: idx
     TYPE(lammps_data) :: thermo_data, type_data
     INTEGER(c_int) :: datatype
     TYPE(c_ptr) :: Cname, Cptr
 
+    idx = index - 1
     ! set data type for known cases
     SELECT CASE (what)
     CASE ('step')
@@ -1147,7 +1150,7 @@ CONTAINS
         datatype = LAMMPS_STRING
     CASE ('data')
         Cname = f2c_string('type')
-        Cptr = lammps_last_thermo(self%handle,Cname,index-1)
+        Cptr = lammps_last_thermo(self%handle,Cname,idx)
         type_data%lammps_instance => self
         type_data%datatype = DATA_INT
         CALL C_F_POINTER(Cptr, type_data%i32)
@@ -1158,7 +1161,7 @@ CONTAINS
     END SELECT
 
     Cname = f2c_string(what)
-    Cptr = lammps_last_thermo(self%handle,Cname,index-1)
+    Cptr = lammps_last_thermo(self%handle,Cname,idx)
     CALL lammps_free(Cname)
 
     thermo_data%lammps_instance => self

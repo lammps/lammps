@@ -432,11 +432,11 @@ void DumpNetCDFMPIIO::openfile()
       const int nfield = *th->get_nfield();
 
       for (int i = 0; i < nfield; i++) {
-        if (fields[i].type == multitype::DOUBLE) {
+        if (fields[i].type == multitype::LAMMPS_DOUBLE) {
           NCERRX( ncmpi_def_var(ncid, keywords[i].c_str(), type_nc_real, 1, dims, &thermovar[i]), keywords[i].c_str() );
-        } else if (fields[i].type == multitype::INT) {
+        } else if (fields[i].type == multitype::LAMMPS_INT) {
           NCERRX( ncmpi_def_var(ncid, keywords[i].c_str(), NC_INT, 1, dims, &thermovar[i]), keywords[i].c_str() );
-        } else if (fields[i].type == multitype::BIGINT) {
+        } else if (fields[i].type == multitype::LAMMPS_INT64) {
           NCERRX( ncmpi_def_var(ncid, keywords[i].c_str(), NC_INT64, 1, dims, &thermovar[i]), keywords[i].c_str() );
         }
       }
@@ -617,11 +617,11 @@ void DumpNetCDFMPIIO::write()
     int nfield = *th->get_nfield();
     for (int i = 0; i < nfield; i++) {
       if (filewriter) {
-        if (fields[i].type == multitype::DOUBLE) {
+        if (fields[i].type == multitype::LAMMPS_DOUBLE) {
           NCERRX( ncmpi_put_var1_double(ncid, thermovar[i], start, &fields[i].data.d), keywords[i].c_str() );
-        } else if (fields[i].type == multitype::INT) {
+        } else if (fields[i].type == multitype::LAMMPS_INT) {
           NCERRX( ncmpi_put_var1_int(ncid, thermovar[i], start, &fields[i].data.i), keywords[i].c_str() );
-        } else if (fields[i].type == multitype::BIGINT) {
+        } else if (fields[i].type == multitype::LAMMPS_INT64) {
           NCERRX( ncmpi_put_var1_bigint(ncid, thermovar[i], start, &fields[i].data.b), keywords[i].c_str() );
         }
       }

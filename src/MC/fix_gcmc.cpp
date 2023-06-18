@@ -2328,8 +2328,7 @@ double FixGCMC::energy_full()
       }
       if (overlaptest) break;
     }
-    MPI_Allreduce(&overlaptest, &overlaptestall, 1,
-                  MPI_INT, MPI_MAX, world);
+    MPI_Allreduce(&overlaptest, &overlaptestall, 1, MPI_INT, MPI_MAX, world);
     if (overlaptestall) return MAXENERGYSIGNAL;
   }
 
@@ -2352,12 +2351,6 @@ double FixGCMC::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
-  // unlike Verlet, not performing a reverse_comm() or forces here
-  // b/c GCMC does not care about forces
-  // don't think it will mess up energy due to any post_force() fixes
-  // but Modify::pre_reverse() is needed for INTEL
-
-  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_post_force_any) modify->post_force(vflag);
 
   // NOTE: all fixes with energy_global_flag set and which

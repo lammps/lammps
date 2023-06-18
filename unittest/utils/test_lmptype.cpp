@@ -54,18 +54,18 @@ TEST(Types, multitype)
     m[4] = -1023;
     m[5] = -2.225;
 
-    EXPECT_EQ(m[0].type, multitype::BIGINT);
-    EXPECT_EQ(m[1].type, multitype::INT);
-    EXPECT_EQ(m[2].type, multitype::DOUBLE);
+    EXPECT_EQ(m[0].type, multitype::LAMMPS_INT64);
+    EXPECT_EQ(m[1].type, multitype::LAMMPS_INT);
+    EXPECT_EQ(m[2].type, multitype::LAMMPS_DOUBLE);
 
 #if defined(LAMMPS_SMALLSMALL)
-    EXPECT_EQ(m[3].type, multitype::INT);
+    EXPECT_EQ(m[3].type, multitype::LAMMPS_INT);
 #else
-    EXPECT_EQ(m[3].type, multitype::BIGINT);
+    EXPECT_EQ(m[3].type, multitype::LAMMPS_INT64);
 #endif
-    EXPECT_EQ(m[4].type, multitype::INT);
-    EXPECT_EQ(m[5].type, multitype::DOUBLE);
-    EXPECT_EQ(m[6].type, multitype::NONE);
+    EXPECT_EQ(m[4].type, multitype::LAMMPS_INT);
+    EXPECT_EQ(m[5].type, multitype::LAMMPS_DOUBLE);
+    EXPECT_EQ(m[6].type, multitype::LAMMPS_NONE);
 
     EXPECT_EQ(m[0].data.b, b1);
     EXPECT_EQ(m[1].data.i, i1);

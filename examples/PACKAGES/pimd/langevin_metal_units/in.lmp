@@ -20,9 +20,9 @@ fix 1 all pimd/langevin ensemble npt integrator obabo thermostat PILE_L 1234 tau
 
 thermo_style custom step temp f_1[*] vol press
 thermo 100
-thermo_modify norm no format line "%d %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f %.16f"
+thermo_modify norm no
 
-dump dcd all custom 100 ${ibead}.xyz id type xu yu zu vx vy vz ix iy iz fx fy fz
-dump_modify dcd sort id format line "%d %d %.16f %.16f %.16f %.16f %.16f %.16f %d %d %d %.16f %.16f %.16f"
+# dump dcd all custom 100 ${ibead}.dcd id type xu yu zu vx vy vz ix iy iz fx fy fz
+# dump_modify dcd sort id format line "%d %d %.16f %.16f %.16f %.16f %.16f %.16f %d %d %d %.16f %.16f %.16f"
 
 run 1000

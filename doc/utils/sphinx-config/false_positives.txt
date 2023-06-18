@@ -552,6 +552,7 @@ conformational
 Connor
 conp
 conq
+const
 ConstMatrix
 Contrib
 cooperativity

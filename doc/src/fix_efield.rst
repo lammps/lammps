@@ -136,7 +136,7 @@ due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx\^2.  If you don't do this correctly, the
 minimization will not converge properly.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 The *potential* keyword can be used as an alternative to the *energy* keyword
 to specify the name of an atom-style variable, which is used to compute the

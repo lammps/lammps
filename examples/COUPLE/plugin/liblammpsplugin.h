@@ -37,12 +37,13 @@
 #endif
 
 /* The following enums must be kept in sync with the equivalent enums
- * or constants in python/lammps/constants.py, fortran/lammps.f90,
- * tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
+ * or constants in src/library.h, src/lmptype.h, python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 /* Data type constants for extracting data from atoms, computes and fixes */
 
 enum _LMP_DATATYPE_CONST {
+  LAMMPS_NONE = -1,     /*!< no data type assigned (yet) */
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
   LAMMPS_INT_2D = 1,    /*!< two-dimensional 32-bit integer array */
   LAMMPS_DOUBLE = 2,    /*!< 64-bit double (array) */

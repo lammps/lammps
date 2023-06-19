@@ -49,7 +49,7 @@ class ComputeStressMopProfile : public Compute {
   int originflag;
   double origin, delta, offset, invdelta;
   int nbins;
-  double **coord, **coordp;
+  double *coord, *coordp;
   double **values_local, **values_global;
   double **bond_local, **bond_global;
   double **local_contribution;

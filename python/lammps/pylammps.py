@@ -761,8 +761,6 @@ class PyLammps(object):
     for line in output:
       if line.startswith("Atom map"):
         system['atom_map'] = self._get_pair(line)[1]
-      elif line.startswith("Atoms"):
-        parts = self._split_values(line)
       elif line.startswith("Boundaries"):
         system['boundaries'] = self._get_pair(line)[1]
       elif line.startswith("Molecule type"):

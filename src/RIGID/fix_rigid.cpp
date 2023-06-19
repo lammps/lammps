@@ -610,7 +610,7 @@ FixRigid::~FixRigid()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   delete random;
   delete[] inpfile;

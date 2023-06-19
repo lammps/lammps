@@ -258,7 +258,7 @@ void ComputeStressMopProfile::compute_array()
   MPI_Allreduce(&bond_local[0][0],&bond_global[0][0],nbins*nvalues,MPI_DOUBLE,MPI_SUM,world);
 
   for (int ibin=0; ibin<nbins; ibin++) {
-    array[ibin][0] = coord[ibin][0];
+    array[ibin][0] = coord[ibin];
 
     int mo = 1;
     int m = 0;
@@ -358,8 +358,8 @@ void ComputeStressMopProfile::compute_pairs()
           if (newton_pair || j < nlocal) {
 
             for (ibin=0;ibin<nbins;ibin++) {
-              pos = coord[ibin][0];
-              pos1 = coordp[ibin][0];
+              pos = coord[ibin];
+              pos1 = coordp[ibin];
 
               //check if ij pair is across plane, add contribution to pressure
 
@@ -385,8 +385,8 @@ void ComputeStressMopProfile::compute_pairs()
           } else {
 
             for (ibin=0;ibin<nbins;ibin++) {
-              pos = coord[ibin][0];
-              pos1 = coordp[ibin][0];
+              pos = coord[ibin];
+              pos1 = coordp[ibin];
 
               //check if ij pair is across plane, add contribution to pressure
 
@@ -447,8 +447,8 @@ void ComputeStressMopProfile::compute_pairs()
           }
 
           for (ibin = 0; ibin < nbins; ibin++) {
-            pos = coord[ibin][0];
-            pos1 = coordp[ibin][0];
+            pos = coord[ibin];
+            pos1 = coordp[ibin];
 
             if (((xi[dir]-pos)*(xj[dir]-pos)*(xi[dir]-pos1)*(xj[dir]-pos1)<0)) {
 
@@ -552,7 +552,7 @@ void ComputeStressMopProfile::compute_bonds()
       if (btype <= 0) continue;
 
       for (int ibin = 0; ibin<nbins; ibin++) {
-        double pos = coord[ibin][0];
+        double pos = coord[ibin];
 
         // minimum image of atom1 with respect to the plane of interest
         dx[0] = x[atom1][0];
@@ -642,8 +642,8 @@ void ComputeStressMopProfile::setup_bins()
   nbins = static_cast<int> ((hi-lo) * invdelta + 1.5);
 
   //allocate bin arrays
-  memory->create(coord,nbins,1,"stress/mop/profile:coord");
-  memory->create(coordp,nbins,1,"stress/mop/profile:coordp");
+  memory->create(coord,nbins,"stress/mop/profile:coord");
+  memory->create(coordp,nbins,"stress/mop/profile:coordp");
   memory->create(values_local,nbins,nvalues,"stress/mop/profile:values_local");
   memory->create(values_global,nbins,nvalues,"stress/mop/profile:values_global");
   memory->create(bond_local,nbins,nvalues,"stress/mop/profile:bond_local");
@@ -652,11 +652,11 @@ void ComputeStressMopProfile::setup_bins()
 
   // set bin coordinates
   for (i = 0; i < nbins; i++) {
-    coord[i][0] = offset + i*delta;
-    if (coord[i][0] < (domain->boxlo[dir]+domain->prd_half[dir])) {
-      coordp[i][0] = coord[i][0] + domain->prd[dir];
+    coord[i] = offset + i*delta;
+    if (coord[i] < (domain->boxlo[dir]+domain->prd_half[dir])) {
+      coordp[i] = coord[i] + domain->prd[dir];
     } else {
-      coordp[i][0] = coord[i][0] - domain->prd[dir];
+      coordp[i] = coord[i] - domain->prd[dir];
     }
   }
 }

@@ -132,6 +132,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   num_ver = utils::date2num(version);
   restart_ver = -1;
 
+  // append git descriptor info to update string when compiling development or maintenance version
+
+  std::string update_string = UPDATE_STRING;
+  if (has_git_info() && (update_string == " - Development") || (update_string == " - Maintenance"))
+    update_string += fmt::format(" - {}", git_descriptor());
+
   external_comm = 0;
   mdicomm = nullptr;
 
@@ -524,7 +530,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (infile == nullptr)
         error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
       if (!helpflag)
-        utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
+        utils::logmesg(this,fmt::format("LAMMPS ({}{})\n", version, update_string));
 
      // warn against using I/O redirection in parallel runs
       if ((inflag == 0) && (universe->nprocs > 1))

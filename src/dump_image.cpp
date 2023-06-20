@@ -201,7 +201,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
       if (iflag == ArgInfo::COMPUTE) id_grid_compute = utils::strdup(id);
       else if (iflag == ArgInfo::FIX) id_grid_fix = utils::strdup(id);
-      delete [] id;
+      delete[] id;
       grid_igrid = igrid;
       grid_idata = idata;
       grid_index = index;
@@ -461,18 +461,18 @@ DumpImage::~DumpImage()
 {
   delete image;
 
-  delete [] diamtype;
-  delete [] diamelement;
-  delete [] colortype;
-  delete [] colorelement;
-  delete [] bdiamtype;
-  delete [] bcolortype;
+  delete[] diamtype;
+  delete[] diamelement;
+  delete[] colortype;
+  delete[] colorelement;
+  delete[] bdiamtype;
+  delete[] bcolortype;
   memory->destroy(chooseghost);
   memory->destroy(bufcopy);
   memory->destroy(gbuf);
 
-  delete [] id_grid_compute;
-  delete [] id_grid_fix;
+  delete[] id_grid_compute;
+  delete[] id_grid_fix;
 }
 
 /* ---------------------------------------------------------------------- */

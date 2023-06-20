@@ -309,6 +309,8 @@ void DumpCustomMPIIO::init_style()
 
 void DumpCustomMPIIO::write_header(bigint ndump)
 {
+  if (!header_choice) error->all(FLERR, "Must not use 'run pre no' after creating a new dump");
+
   (this->*header_choice)(ndump);
 }
 

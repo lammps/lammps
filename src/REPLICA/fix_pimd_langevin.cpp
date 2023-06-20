@@ -906,7 +906,10 @@ void FixPIMDLangevin::langevin_init()
       Lan_c[i] = cos(_omega_np_dt_half);
       Lan_s[i] = sin(_omega_np_dt_half);
     }
+  } else {
+    error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
   }
+
   if (tau > 0)
     gamma = 1.0 / tau;
   else

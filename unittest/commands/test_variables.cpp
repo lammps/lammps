@@ -140,16 +140,18 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten1   universe  1 2 3 4");
     command("variable ten2   uloop     4");
     command("variable ten3   uloop     4 pad");
+    command("variable ten4   vector    [0,1,2,3,5,7,11]");
+    command("variable ten5   vector    [0.5,1.25]");
     command("variable dummy  index     0");
     command("variable file   equal     is_file(MYFILE)");
     command("variable iswin  equal     is_os(^Windows)");
     command("variable islin  equal     is_os(^Linux)");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 20);
+    ASSERT_EQ(variable->nvar, 22);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 19);
+    ASSERT_EQ(variable->nvar, 21);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
@@ -160,6 +162,8 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
     variable->internal_set(variable->find("ten"), 2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
+    EXPECT_THAT(variable->retrieve("ten4"), StrEq("[0,1,2,3,5,7,11]"));
+    EXPECT_THAT(variable->retrieve("ten5"), StrEq("[0.5,1.25]"));
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
     FILE *fp = fopen("MYFILE", "w");
     fputs(" ", fp);
@@ -217,7 +221,7 @@ TEST_F(VariableTest, CreateDelete)
     TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
     TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
-                 command("variable ten4   uloop     2"););
+                 command("variable ten6   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08x\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
@@ -321,6 +325,9 @@ TEST_F(VariableTest, Expressions)
     command("variable err1   equal     v_one/v_ten7");
     command("variable err2   equal     v_one%v_ten7");
     command("variable err3   equal     v_ten7^-v_one");
+    command("variable vec1   vector    \"[-2, 0, 1,2 ,3, 5 ,	7\n]\"");
+    command("variable vec2   vector    v_vec1*0.5");
+    command("variable vec3   equal     v_vec2[3]");
     variable->set("dummy  index     1 2");
     END_HIDE_OUTPUT();
 
@@ -347,6 +354,9 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten10"), 100);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten11"), 1);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten12"), 3);
+    EXPECT_THAT(variable->retrieve("vec1"), StrEq("[-2,0,1,2,3,5,7]"));
+    EXPECT_THAT(variable->retrieve("vec2"), StrEq("[-1,0,0.5,1,1.5,2.5,3.5]"));
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_vec3"), 0.5);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
@@ -402,7 +412,7 @@ TEST_F(VariableTest, Functions)
                  command("print \"$(extract_setting()\""););
     TEST_FAILURE(".*ERROR on proc 0: Invalid immediate variable.*",
                  command("print \"$(extract_setting()\""););
-    TEST_FAILURE(".*ERROR: Invalid extract_setting.. function syntax in variable formula.*",
+    TEST_FAILURE(".*ERROR: Invalid extract_setting.. function in variable formula.*",
                  command("print \"$(extract_setting(one,two))\""););
     TEST_FAILURE(
         ".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
@@ -580,7 +590,7 @@ TEST_F(VariableTest, NextCommand)
                  command("next five four"););
 }
 
-TEST_F(VariableTest, Label2TypeAtomic)
+TEST_F(VariableTest, LabelMapAtomic)
 {
     BEGIN_HIDE_OUTPUT();
     command("region box block 0 2 0 2 0 2");
@@ -598,14 +608,20 @@ TEST_F(VariableTest, Label2TypeAtomic)
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,N1)"), 2.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,O1)"), 3.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,H1)"), 4.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,N1)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,N2)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,O)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,H1)"), 1.0);
 
-    TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in variable formula.*",
+    TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in label2type.. in variable.*",
                  command("print \"${t1}\""););
-    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in variable formula.*",
-                 variable->compute_equal("label2type(bond,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid kind xxx in label2type.. in variable.*",
+                 variable->compute_equal("label2type(xxx,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid kind xxx in is_typelabel.. in variable.*",
+                 variable->compute_equal("is_typelabel(xxx,H1)"););
 }
 
-TEST_F(VariableTest, Label2TypeMolecular)
+TEST_F(VariableTest, LabelMapMolecular)
 {
     if (!info->has_style("atom", "full")) GTEST_SKIP();
 
@@ -627,6 +643,14 @@ TEST_F(VariableTest, Label2TypeMolecular)
     command("variable a2 equal \"\"\"label2type(angle,N2'-C1\"-N2')\"\"\"");
     command("variable d1 equal label2type(dihedral,C1-N2-C1-N2)");
     command("variable i1 equal label2type(improper,C1-N2-C1-N2)");
+
+    command("variable l1 equal is_typelabel(atom,C2)+is_typelabel(bond,C2-N1)"
+            "+is_typelabel(bond,[X1][Y1])+is_typelabel(angle,C1-C2-N1)"
+            "+is_typelabel(dihedral,N2-C1-C1-N2)+is_typelabel(improper,N2-C1-C1-N2)");
+    command("variable l2 equal is_typelabel(atom,C1)+is_typelabel(bond,C1-N2)"
+            "+is_typelabel(bond,[C1][C1])+is_typelabel(angle,C1-N2-C1)"
+            "+is_typelabel(dihedral,C1-N2-C1-N2)+is_typelabel(improper,C1-N2-C1-N2)");
+
     END_HIDE_OUTPUT();
 
     ASSERT_THAT(variable->retrieve("t1"), StrEq("1"));
@@ -637,6 +661,30 @@ TEST_F(VariableTest, Label2TypeMolecular)
     ASSERT_THAT(variable->retrieve("a2"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("d1"), StrEq("1"));
     ASSERT_THAT(variable->retrieve("i1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("l1"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("l2"), StrEq("6"));
+
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,N2')"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,\"N2'\")"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,C1-N2)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,C2-N1)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,[C1][C1])"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,[X1][Y1])"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(angle,C1-C2-N1)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(angle,C1-N2-C1)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(dihedral,C1-N2-C1-N2)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(dihedral,N2-C1-C1-N2)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(improper,C1-N2-C1-N2)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(improper,N2-C1-C1-N2)"), 0.0);
+
+    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(bond,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid angle type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(angle,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid dihedral type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(dihedral,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid improper type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(improper,H1)"););
 }
 
 TEST_F(VariableTest, Format)

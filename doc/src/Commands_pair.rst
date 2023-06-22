@@ -37,6 +37,7 @@ OPT.
    *
    * :doc:`adp (ko) <pair_adp>`
    * :doc:`agni (o) <pair_agni>`
+   * :doc:`aip/water/2dm (t) <pair_aip_water_2dm>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/morse (io) <pair_airebo>`
    * :doc:`amoeba (g) <pair_amoeba>`

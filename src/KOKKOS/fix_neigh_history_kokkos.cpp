@@ -32,7 +32,7 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   FixNeighHistory(lmp, narg, arg)
 {
   kokkosable = 1;
-  exchange_comm_device = 1;
+  exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -323,6 +323,28 @@ void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*
   k_npartner.modify_host();
   k_partner.modify_host();
   k_valuepartner.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNeighHistoryKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_npartner.sync_device();
+  k_partner.sync_device();
+  k_valuepartner.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_npartner.d_view);
+  Sorter.sort(LMPDeviceType(), k_partner.d_view);
+  Sorter.sort(LMPDeviceType(), k_valuepartner.d_view);
+
+  k_npartner.modify_device();
+  k_partner.modify_device();
+  k_valuepartner.modify_device();
 }
 
 /* ----------------------------------------------------------------------

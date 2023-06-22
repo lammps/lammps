@@ -443,7 +443,9 @@ void FixColvars::one_time_init()
     }
 
     proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target,root2root);
-    proxy->init(conf_file);
+    proxy->init();
+    proxy->add_config("configfile", conf_file);
+    proxy->parse_module_config();
 
     num_coords = (proxy->modify_atom_positions()->size());
   }
@@ -677,16 +679,16 @@ void FixColvars::post_force(int /*vflag*/)
       error->one(FLERR,"Run aborted on request from colvars module.\n");
 
     if (!tstat_fix) {
-      proxy->set_temperature(0.0);
+      proxy->set_target_temperature(0.0);
     } else {
       int tmp;
       // get thermostat target temperature from corresponding fix,
       // if the fix supports extraction.
       double *tt = (double *) tstat_fix->extract("t_target", tmp);
       if (tt)
-        proxy->set_temperature(*tt);
+        proxy->set_target_temperature(*tt);
       else
-        proxy->set_temperature(0.0);
+        proxy->set_target_temperature(0.0);
     }
   }
 

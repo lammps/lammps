@@ -1551,14 +1551,16 @@ struct TestScratchAlignment {
     double x, y, z;
   };
   TestScratchAlignment() {
-    test(true);
-    test(false);
+    test_view(true);
+    test_view(false);
+    test_minimal();
+    test_raw();
   }
   using ScratchView =
       Kokkos::View<TestScalar *, typename ExecSpace::scratch_memory_space>;
   using ScratchViewInt =
       Kokkos::View<int *, typename ExecSpace::scratch_memory_space>;
-  void test(bool allocate_small) {
+  void test_view(bool allocate_small) {
     int shmem_size = ScratchView::shmem_size(11);
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
     int team_size =
@@ -1580,12 +1582,68 @@ struct TestScratchAlignment {
         });
     Kokkos::fence();
   }
+
+  void test_minimal() {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+    Kokkos::TeamPolicy<ExecSpace> policy(1, 1);
+    size_t scratch_size = sizeof(int);
+    Kokkos::View<int, ExecSpace> flag("Flag");
+
+    Kokkos::parallel_for(
+        policy.set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
+        KOKKOS_LAMBDA(const member_type &team) {
+          int *scratch_ptr = (int *)team.team_shmem().get_shmem(scratch_size);
+          if (scratch_ptr == nullptr) flag() = 1;
+        });
+    Kokkos::fence();
+    int minimal_scratch_allocation_failed = 0;
+    Kokkos::deep_copy(minimal_scratch_allocation_failed, flag);
+    ASSERT_TRUE(minimal_scratch_allocation_failed == 0);
+  }
+
+  void test_raw() {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+    Kokkos::TeamPolicy<ExecSpace> policy(1, 1);
+    Kokkos::View<int, ExecSpace> flag("Flag");
+
+    Kokkos::parallel_for(
+        policy.set_scratch_size(0, Kokkos::PerTeam(1024)),
+        KOKKOS_LAMBDA(const member_type &team) {
+          int *scratch_ptr1 = (int *)team.team_shmem().get_shmem(24);
+          int *scratch_ptr2 = (int *)team.team_shmem().get_shmem(32);
+          int *scratch_ptr3 = (int *)team.team_shmem().get_shmem(12);
+
+          if ((int(scratch_ptr2 - scratch_ptr1) != 6) ||
+              (int(scratch_ptr3 - scratch_ptr2) != 8))
+            flag() = 1;
+
+          if (((scratch_ptr3 - static_cast<int *>(nullptr)) + 3) % 2 == 1)
+            scratch_ptr1 = (int *)team.team_shmem().get_shmem_aligned(24, 4);
+          else {
+            scratch_ptr1 = (int *)team.team_shmem().get_shmem_aligned(12, 4);
+          }
+          scratch_ptr2 = (int *)team.team_shmem().get_shmem_aligned(32, 8);
+          scratch_ptr3 = (int *)team.team_shmem().get_shmem_aligned(8, 4);
+
+          if ((int(scratch_ptr2 - scratch_ptr1) != 7) &&
+              (int(scratch_ptr2 - scratch_ptr1) != 4))
+            flag() = 1;
+          if (int(scratch_ptr3 - scratch_ptr2) != 8) flag() = 1;
+          if ((int(size_t(scratch_ptr1) % 4) != 0) ||
+              (int(size_t(scratch_ptr2) % 8) != 0) ||
+              (int(size_t(scratch_ptr3) % 4) != 0))
+            flag() = 1;
+        });
+    Kokkos::fence();
+    int raw_get_shmem_alignment_failed = 0;
+    Kokkos::deep_copy(raw_get_shmem_alignment_failed, flag);
+    ASSERT_TRUE(raw_get_shmem_alignment_failed == 0);
+  }
 };
 
 }  // namespace
 
 namespace {
-
 template <class ExecSpace>
 struct TestTeamPolicyHandleByValue {
   using scalar     = double;

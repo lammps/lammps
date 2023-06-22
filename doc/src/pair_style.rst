@@ -114,6 +114,7 @@ accelerated styles exist.
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
+* :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`amoeba <pair_amoeba>` -

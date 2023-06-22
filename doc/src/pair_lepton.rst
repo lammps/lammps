@@ -61,9 +61,11 @@ Description
 
 .. versionadded:: 8Feb2023
 
-.. versionchanged:: TBD
+   added pair styles *lepton* and *lepton/coul*
 
-   added pair style lepton/sphere
+.. versionchanged:: 15Jun2023
+
+   added pair style *lepton/sphere*
 
 Pair styles *lepton*, *lepton/coul*, *lepton/sphere* compute pairwise
 interactions between particles which depend on the distance and have a
@@ -76,7 +78,7 @@ instead reference the radii of the two atoms of the pair with "radi" and
 :doc:`data files <read_data>` or the :doc:`set command <set>`.
 
 Note that further constants in the expressions can be defined in the
-same string as additional expressions separated by semi-colons as shown
+same string as additional expressions separated by semicolons as shown
 in the examples above.
 
 The expression `"200.0*(r-1.5)^2"` represents a harmonic potential

@@ -84,6 +84,7 @@ class PairKIM : public Pair {
   void init_style() override;
   void init_list(int id, NeighList *ptr) override;
   double init_one(int, int) override;
+  void *extract(const char *, int &) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
@@ -99,6 +100,10 @@ class PairKIM : public Pair {
   // initialized in constructor
   int settings_call_count;
   int init_style_call_count;
+
+  // scale factor for fix adapt, and whether or not it's been modified
+  double scale;
+  bool scale_extracted;
 
   // values set in settings()
   char *kim_modelname;

@@ -25,7 +25,7 @@ INSTALL (
 # These will get ignored for standalone CMake and a true interface library made
 KOKKOS_ADD_INTERFACE_LIBRARY(
   kokkosalgorithms
-  HEADERS ${ALGO_HEADERS}
+  NOINSTALLHEADERS ${ALGO_HEADERS}
   SOURCES ${ALGO_SOURCES}
 )
 KOKKOS_LIB_INCLUDE_DIRECTORIES(kokkosalgorithms

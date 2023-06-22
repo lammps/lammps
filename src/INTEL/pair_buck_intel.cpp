@@ -255,7 +255,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
           const flt_t delz = ztmp - x[j].z;
           const int jtype = IP_PRE_dword_index(x[j].w);
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
-          const flt_t r = sqrt(rsq);
+          const flt_t r = std::sqrt(rsq);
           const flt_t r2inv = (flt_t)1.0 / rsq;
 
           #ifdef INTEL_VMASK

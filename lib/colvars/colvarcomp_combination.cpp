@@ -141,13 +141,15 @@ void colvar::linearCombination::apply_force(colvarvalue const &force) {
 colvar::customColvar::customColvar(std::string const &conf): linearCombination(conf) {
     use_custom_function = false;
     // code swipe from colvar::init_custom_function
-#ifdef LEPTON
     std::string expr_in, expr;
+    size_t pos = 0; // current position in config string
+#ifdef LEPTON
     std::vector<Lepton::ParsedExpression> pexprs;
     Lepton::ParsedExpression pexpr;
     double *ref;
-    size_t pos = 0; // current position in config string
+#endif
     if (key_lookup(conf, "customFunction", &expr_in, &pos)) {
+#ifdef LEPTON
         use_custom_function = true;
         cvm::log("This colvar uses a custom function.\n");
         do {
@@ -208,11 +210,15 @@ colvar::customColvar::customColvar(std::string const &conf): linearCombination(c
         } else {
             x.type(colvarvalue::type_scalar);
         }
-    } else {
-        cvm::log(std::string{"Warning: no customFunction specified.\n"});
-        cvm::log(std::string{"Warning: use linear combination instead.\n"});
-    }
+#else
+        cvm::error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
+                   "Please refer to the Compilation Notes section of the Colvars manual for more information.\n",
+                    COLVARS_INPUT_ERROR);
 #endif
+    } else {
+        cvm::log("Warning: no customFunction specified.\n");
+        cvm::log("Warning: use linear combination instead.\n");
+    }
 }
 
 colvar::customColvar::~customColvar() {
@@ -227,96 +233,111 @@ colvar::customColvar::~customColvar() {
 }
 
 void colvar::customColvar::calc_value() {
-#ifdef LEPTON
-    for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
-        cv[i_cv]->calc_value();
-    }
-    x.reset();
-    size_t l = 0;
-    for (size_t i = 0; i < x.size(); ++i) {
-        for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
-            const colvarvalue& current_cv_value = cv[i_cv]->value();
-            for (size_t j_elem = 0; j_elem < current_cv_value.size(); ++j_elem) {
-                if (current_cv_value.type() == colvarvalue::type_scalar) {
-                    *(value_eval_var_refs[l++]) = cv[i_cv]->sup_coeff * (cvm::pow(current_cv_value.real_value, cv[i_cv]->sup_np));
-                } else {
-                    *(value_eval_var_refs[l++]) = cv[i_cv]->sup_coeff * current_cv_value[j_elem];
-                }
-            }
-        }
-        x[i] = value_evaluators[i]->evaluate();
-    }
-#endif
     if (!use_custom_function) {
         colvar::linearCombination::calc_value();
+    } else {
+#ifdef LEPTON
+        for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
+            cv[i_cv]->calc_value();
+        }
+        x.reset();
+        size_t l = 0;
+        for (size_t i = 0; i < x.size(); ++i) {
+            for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
+                const colvarvalue& current_cv_value = cv[i_cv]->value();
+                for (size_t j_elem = 0; j_elem < current_cv_value.size(); ++j_elem) {
+                    if (current_cv_value.type() == colvarvalue::type_scalar) {
+                        *(value_eval_var_refs[l++]) = cv[i_cv]->sup_coeff * (cvm::pow(current_cv_value.real_value, cv[i_cv]->sup_np));
+                    } else {
+                        *(value_eval_var_refs[l++]) = cv[i_cv]->sup_coeff * current_cv_value[j_elem];
+                    }
+                }
+            }
+            x[i] = value_evaluators[i]->evaluate();
+        }
+#else
+        cvm::error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
+                   "Please refer to the Compilation Notes section of the Colvars manual for more information.\n",
+                    COLVARS_INPUT_ERROR);
+#endif
     }
 }
 
 void colvar::customColvar::calc_gradients() {
+    if (!use_custom_function) {
+        colvar::linearCombination::calc_gradients();
+    } else {
 #ifdef LEPTON
-    size_t r = 0; // index in the vector of variable references
-    size_t e = 0; // index of the gradient evaluator
-    for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) { // for each CV
-        cv[i_cv]->calc_gradients();
-        if (cv[i_cv]->is_enabled(f_cvc_explicit_gradient)) {
-            const colvarvalue& current_cv_value = cv[i_cv]->value();
-            const cvm::real factor_polynomial = getPolynomialFactorOfCVGradient(i_cv);
-            for (size_t j_elem = 0; j_elem < current_cv_value.size(); ++j_elem) { // for each element in this CV
-                for (size_t c = 0; c < x.size(); ++c) { // for each custom function expression
-                    for (size_t k = 0; k < cv.size(); ++k) { // this is required since we need to feed all CV values to this expression
-                        const cvm::real factor_polynomial_k = getPolynomialFactorOfCVGradient(k);
-                        for (size_t l = 0; l < cv[k]->value().size(); ++l) {
-                            *(grad_eval_var_refs[r++]) = factor_polynomial_k * cv[k]->value()[l];
+        size_t r = 0; // index in the vector of variable references
+        size_t e = 0; // index of the gradient evaluator
+        for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) { // for each CV
+            cv[i_cv]->calc_gradients();
+            if (cv[i_cv]->is_enabled(f_cvc_explicit_gradient)) {
+                const colvarvalue& current_cv_value = cv[i_cv]->value();
+                const cvm::real factor_polynomial = getPolynomialFactorOfCVGradient(i_cv);
+                for (size_t j_elem = 0; j_elem < current_cv_value.size(); ++j_elem) { // for each element in this CV
+                    for (size_t c = 0; c < x.size(); ++c) { // for each custom function expression
+                        for (size_t k = 0; k < cv.size(); ++k) { // this is required since we need to feed all CV values to this expression
+                            const cvm::real factor_polynomial_k = getPolynomialFactorOfCVGradient(k);
+                            for (size_t l = 0; l < cv[k]->value().size(); ++l) {
+                                *(grad_eval_var_refs[r++]) = factor_polynomial_k * cv[k]->value()[l];
+                            }
                         }
-                    }
-                    const double expr_grad = gradient_evaluators[e++]->evaluate();
-                    for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
-                        for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
-                            (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = expr_grad * factor_polynomial * (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad;
+                        const double expr_grad = gradient_evaluators[e++]->evaluate();
+                        for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
+                            for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
+                                (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = expr_grad * factor_polynomial * (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad;
+                            }
                         }
                     }
                 }
             }
         }
-    }
+#else
+        cvm::error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
+                   "Please refer to the Compilation Notes section of the Colvars manual for more information.\n",
+                    COLVARS_INPUT_ERROR);
 #endif
-    if (!use_custom_function) {
-        colvar::linearCombination::calc_gradients();
     }
 }
 
 void colvar::customColvar::apply_force(colvarvalue const &force) {
-#ifdef LEPTON
-    size_t r = 0; // index in the vector of variable references
-    size_t e = 0; // index of the gradient evaluator
-    for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
-        // If this CV us explicit gradients, then atomic gradients is already calculated
-        // We can apply the force to atom groups directly
-        if (cv[i_cv]->is_enabled(f_cvc_explicit_gradient)) {
-            for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
-                (cv[i_cv]->atom_groups)[k_ag]->apply_colvar_force(force.real_value);
-            }
-        } else {
-            const colvarvalue& current_cv_value = cv[i_cv]->value();
-            colvarvalue cv_force(current_cv_value.type());
-            const cvm::real factor_polynomial = getPolynomialFactorOfCVGradient(i_cv);
-            for (size_t j_elem = 0; j_elem < current_cv_value.size(); ++j_elem) {
-                for (size_t c = 0; c < x.size(); ++c) {
-                    for (size_t k = 0; k < cv.size(); ++k) {
-                        const cvm::real factor_polynomial_k = getPolynomialFactorOfCVGradient(k);
-                        for (size_t l = 0; l < cv[k]->value().size(); ++l) {
-                            *(grad_eval_var_refs[r++]) = factor_polynomial_k * cv[k]->value()[l];
-                        }
-                    }
-                    cv_force[j_elem] += factor_polynomial * gradient_evaluators[e++]->evaluate() * force.real_value;
-                }
-            }
-            cv[i_cv]->apply_force(cv_force);
-        }
-    }
-#endif
     if (!use_custom_function) {
         colvar::linearCombination::apply_force(force);
+    } else {
+#ifdef LEPTON
+        size_t r = 0; // index in the vector of variable references
+        size_t e = 0; // index of the gradient evaluator
+        for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
+            // If this CV us explicit gradients, then atomic gradients is already calculated
+            // We can apply the force to atom groups directly
+            if (cv[i_cv]->is_enabled(f_cvc_explicit_gradient)) {
+                for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
+                    (cv[i_cv]->atom_groups)[k_ag]->apply_colvar_force(force.real_value);
+                }
+            } else {
+                const colvarvalue& current_cv_value = cv[i_cv]->value();
+                colvarvalue cv_force(current_cv_value.type());
+                const cvm::real factor_polynomial = getPolynomialFactorOfCVGradient(i_cv);
+                for (size_t j_elem = 0; j_elem < current_cv_value.size(); ++j_elem) {
+                    for (size_t c = 0; c < x.size(); ++c) {
+                        for (size_t k = 0; k < cv.size(); ++k) {
+                            const cvm::real factor_polynomial_k = getPolynomialFactorOfCVGradient(k);
+                            for (size_t l = 0; l < cv[k]->value().size(); ++l) {
+                                *(grad_eval_var_refs[r++]) = factor_polynomial_k * cv[k]->value()[l];
+                            }
+                        }
+                        cv_force[j_elem] += factor_polynomial * gradient_evaluators[e++]->evaluate() * force.real_value;
+                    }
+                }
+                cv[i_cv]->apply_force(cv_force);
+            }
+        }
+#else
+        cvm::error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
+                   "Please refer to the Compilation Notes section of the Colvars manual for more information.\n",
+                    COLVARS_INPUT_ERROR);
+#endif
     }
 }
 

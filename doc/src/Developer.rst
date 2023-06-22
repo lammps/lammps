@@ -13,6 +13,7 @@ of time and requests from the LAMMPS user community.
    Developer_org
    Developer_code_design
    Developer_parallel
+   Developer_atom
    Developer_comm_ops
    Developer_flow
    Developer_write

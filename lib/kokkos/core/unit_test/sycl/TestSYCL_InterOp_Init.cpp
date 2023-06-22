@@ -52,8 +52,8 @@ namespace Test {
 // Test whether allocations survive Kokkos initialize/finalize if done via Raw
 // SYCL.
 TEST(sycl, raw_sycl_interop) {
+  // Make sure all queues use the same context
   Kokkos::initialize();
-
   Kokkos::Experimental::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 

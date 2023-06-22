@@ -191,15 +191,15 @@ void ImproperCvffIntel::eval(const int vflag,
       // 1st and 2nd angle
 
       const flt_t b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
-      const flt_t rb1 = (flt_t)1.0 / sqrt(b1mag2);
+      const flt_t rb1 = (flt_t)1.0 / std::sqrt(b1mag2);
       const flt_t sb1 = (flt_t)1.0 / b1mag2;
 
       const flt_t b2mag2 = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-      const flt_t rb2 = (flt_t)1.0 / sqrt(b2mag2);
+      const flt_t rb2 = (flt_t)1.0 / std::sqrt(b2mag2);
       const flt_t sb2 = (flt_t)1.0 / b2mag2;
 
       const flt_t b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
-      const flt_t rb3 = (flt_t)1.0 / sqrt(b3mag2);
+      const flt_t rb3 = (flt_t)1.0 / std::sqrt(b3mag2);
       const flt_t sb3 = (flt_t)1.0 / b3mag2;
 
       const flt_t c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * rb1 * rb3;
@@ -215,11 +215,11 @@ void ImproperCvffIntel::eval(const int vflag,
       // cos and sin of 2 angles and final c
 
       const flt_t sd1 = (flt_t)1.0 - c1mag * c1mag;
-      flt_t sc1 = (flt_t)1.0/sqrt(sd1);
+      flt_t sc1 = (flt_t)1.0/std::sqrt(sd1);
       if (sd1 < SMALL2) sc1 = INVSMALL;
 
       const flt_t sd2 = (flt_t)1.0 - c2mag * c2mag;
-      flt_t sc2 = (flt_t)1.0/sqrt(sd2);
+      flt_t sc2 = (flt_t)1.0/std::sqrt(sd2);
       if (sc2 < SMALL2) sc2 = INVSMALL;
 
       const flt_t s1 = sc1 * sc1;

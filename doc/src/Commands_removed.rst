@@ -41,7 +41,7 @@ warning.
 LATTE package
 -------------
 
-.. deprecated:: TBD
+.. deprecated:: 15Jun2023
 
 The LATTE package with the fix latte command was removed from LAMMPS.
 This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`

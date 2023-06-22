@@ -7,6 +7,10 @@ add_executable(test_mempool test_mempool.cpp)
 target_link_libraries(test_mempool PRIVATE lammps GTest::GMockMain)
 add_test(NAME MemPool COMMAND test_mempool)
 
+add_executable(test_lmptype test_lmptype.cpp)
+target_link_libraries(test_lmptype PRIVATE lammps GTest::GMockMain)
+add_test(NAME LmpType COMMAND test_lmptype)
+
 add_executable(test_argutils test_argutils.cpp)
 target_link_libraries(test_argutils PRIVATE lammps GTest::GMockMain)
 add_test(NAME ArgUtils COMMAND test_argutils)

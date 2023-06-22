@@ -1,8 +1,8 @@
-Sphinx >= 5.0.0, <7.0.0
+Sphinx >= 5.3.0, <7.1.0
 sphinxcontrib-spelling
 sphinxcontrib-jquery
 git+https://github.com/akohlmey/sphinx-fortran@parallel-read
-sphinx_tabs
+git+https://github.com/executablebooks/sphinx-tabs@v3.4.1
 breathe
 Pygments
 six

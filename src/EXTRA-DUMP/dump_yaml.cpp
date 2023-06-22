@@ -60,21 +60,29 @@ void DumpYAML::write_header(bigint ndump)
   std::string thermo_data;
   if (thermo) {
     Thermo *th = output->thermo;
-    thermo_data += "thermo:\n  - keywords: [ ";
-    for (int i = 0; i < th->nfield; ++i) thermo_data += fmt::format("{}, ", th->keyword[i]);
-    thermo_data += "]\n  - data: [ ";
+    // output thermo data only on timesteps where it was computed
+    if (update->ntimestep == *th->get_timestep()) {
+      int nfield = *th->get_nfield();
+      const auto &keywords = th->get_keywords();
+      const auto &fields = th->get_fields();
 
-    for (int i = 0; i < th->nfield; ++i) {
-      th->call_vfunc(i);
-      if (th->vtype[i] == Thermo::FLOAT)
-        thermo_data += fmt::format("{}, ", th->dvalue);
-      else if (th->vtype[i] == Thermo::INT)
-        thermo_data += fmt::format("{}, ", th->ivalue);
-      else if (th->vtype[i] == Thermo::BIGINT)
-        thermo_data += fmt::format("{}, ", th->bivalue);
+      thermo_data += "thermo:\n  - keywords: [ ";
+      for (int i = 0; i < nfield; ++i) thermo_data += fmt::format("{}, ", keywords[i]);
+      thermo_data += "]\n  - data: [ ";
+
+      for (int i = 0; i < nfield; ++i) {
+        if (fields[i].type == multitype::LAMMPS_DOUBLE)
+          thermo_data += fmt::format("{}, ", fields[i].data.d);
+        else if (fields[i].type == multitype::LAMMPS_INT)
+          thermo_data += fmt::format("{}, ", fields[i].data.i);
+        else if (fields[i].type == multitype::LAMMPS_INT64)
+          thermo_data += fmt::format("{}, ", fields[i].data.b);
+        else
+          thermo_data += ", ";
+      }
+      thermo_data += "]\n";
+      MPI_Barrier(world);
     }
-    thermo_data += "]\n";
-    MPI_Barrier(world);
   }
 
   if (comm->me == 0) {
@@ -85,7 +93,7 @@ void DumpYAML::write_header(bigint ndump)
 
     fmt::print(fp, "natoms: {}\n", ndump);
     fputs("boundary: [ ", fp);
-    for (const auto bflag : boundary) {
+    for (const auto &bflag : boundary) {
       if (bflag == ' ') continue;
       fmt::print(fp, "{}, ", bflag);
     }

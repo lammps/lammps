@@ -37,6 +37,7 @@ BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
 {
   partial_flag = 1;
   smooth_flag = 1;
+  normalize_flag = 0;
 
   single_extra = 1;
   svector = new double[1];
@@ -190,7 +191,10 @@ void BondBPMSpring::compute(int eflag, int vflag)
     }
 
     rinv = 1.0 / r;
-    fbond = k[type] * (r0 - r);
+    if (normalize_flag)
+      fbond = -k[type] * e;
+    else
+      fbond = k[type] * (r0 - r);
 
     delvx = v[i1][0] - v[i2][0];
     delvy = v[i1][1] - v[i2][1];
@@ -302,6 +306,10 @@ void BondBPMSpring::settings(int narg, char **arg)
       if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for smooth");
       smooth_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
+    } else if (strcmp(arg[iarg], "normalize") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for normalize");
+      normalize_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      i += 1;
     } else {
       error->all(FLERR, "Illegal bond bpm command, invalid argument {}", arg[iarg]);
     }
@@ -376,7 +384,11 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
 
   double r = sqrt(rsq);
   double rinv = 1.0 / r;
-  fforce = k[type] * (r0 - r);
+
+  if (normalize_flag)
+    fforce = k[type] * (r0 - r) / r0;
+  else
+    fforce = k[type] * (r0 - r);
 
   double **x = atom->x;
   double **v = atom->v;

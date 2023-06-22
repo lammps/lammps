@@ -729,13 +729,8 @@ void CommKokkos::exchange_device()
   double lo,hi;
   MPI_Request request;
 
-  // clear global->local map for owned and ghost atoms
-  // b/c atoms migrate to new procs in exchange() and
-  //   new ghosts are created in borders()
-  // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -985,9 +980,9 @@ void CommKokkos::borders()
   } else {
     atomKK->sync(Host,ALL_MASK);
     k_sendlist.sync<LMPHostType>();
-    CommBrick::borders();
     k_sendlist.modify<LMPHostType>();
-    atomKK->modified(Host,ALL_MASK);
+    atomKK->modified(Host,ALL_MASK); // needed here for atom map
+    CommBrick::borders();
   }
 
   if (comm->nprocs == 1 && !ghost_velocity && !forward_comm_classic)
@@ -1275,10 +1270,8 @@ void CommKokkos::borders_device() {
 
   // reset global->local map
 
-  if (map_style != Atom::MAP_NONE) {
-    atomKK->sync(Host,TAG_MASK);
+  if (map_style != Atom::MAP_NONE)
     atom->map_set();
-  }
 }
 
 /* ----------------------------------------------------------------------

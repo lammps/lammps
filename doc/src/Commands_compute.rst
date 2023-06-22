@@ -46,6 +46,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
    * :doc:`coord/atom (k) <compute_coord_atom>`
+   * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`
    * :doc:`dihedral <compute_dihedral>`
    * :doc:`dihedral/local <compute_dihedral_local>`
@@ -152,11 +153,11 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`sph/t/atom <compute_sph_t_atom>`
    * :doc:`spin <compute_spin>`
    * :doc:`stress/atom <compute_stress_atom>`
-   * :doc:`stress/cartesian <compute_stress_profile>`
-   * :doc:`stress/cylinder <compute_stress_profile>`
+   * :doc:`stress/cartesian <compute_stress_cartesian>`
+   * :doc:`stress/cylinder <compute_stress_curvilinear>`
    * :doc:`stress/mop <compute_stress_mop>`
    * :doc:`stress/mop/profile <compute_stress_mop>`
-   * :doc:`stress/spherical <compute_stress_profile>`
+   * :doc:`stress/spherical <compute_stress_curvilinear>`
    * :doc:`stress/tally <compute_tally>`
    * :doc:`tdpd/cc/atom <compute_tdpd_cc_atom>`
    * :doc:`temp (k) <compute_temp>`

@@ -280,10 +280,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Unknown fix reaxff/species keyword: {}", arg[iarg]);
   }
 
-  if (!eleflag)
-    for (int i = 0; i < ntypes; i++)
-      eletype[i] = reaxff->eletype[i+1];
-
   if (delflag && specieslistflag && masslimitflag)
     error->all(FLERR, "Incompatible combination fix reaxff/species command options");
 
@@ -349,6 +345,12 @@ void FixReaxFFSpecies::setup(int /*vflag*/)
 {
   ntotal = static_cast<int>(atom->natoms);
   if (Name == nullptr) memory->create(Name, ntypes, "reaxff/species:Name");
+
+  if (!eleflag)
+    for (int i = 0; i < ntypes; i++) {
+      eletype[i] = reaxff->eletype[i+1];
+      eleflag = 1;
+    }
 
   post_integrate();
 }

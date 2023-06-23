@@ -1114,7 +1114,8 @@ void FixDeform::set_strain()
       set[i].hi_target = set[i].hi_start + 0.5 * del;
       h_rate[i] = input->variable->compute_equal(set[i].hratevar);
       h_ratelo[i] = -0.5 * h_rate[i];
-    } else if (set[i].style != VOLUME) {
+    } else if (set[i].style == FINAL || set[i].style == DELTA || set[i].style == SCALE ||
+               set[i].style == VEL || set[i].style == ERATE) {
       set[i].lo_target = set[i].lo_start + delta * (set[i].lo_stop - set[i].lo_start);
       set[i].hi_target = set[i].hi_start + delta * (set[i].hi_stop - set[i].hi_start);
     }
@@ -1215,6 +1216,7 @@ void FixDeform::set_pressure()
     if (max_h_rate != 0)
       if (fabs(set[i].ptarget) > max_h_rate)
         h_rate[i] = max_h_rate * h_rate[i] / fabs(h_rate[i]);
+    h_ratelo[i] = -0.5 * h_rate[i];
 
     double offset = 0.5 * (domain->boxhi[i] - domain->boxlo[i]) * (1.0 + update->dt * h_rate[i]);
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - offset;
@@ -1324,6 +1326,7 @@ void FixDeform::set_volume()
     }
 
     h_rate[i] = (2.0 * shift / (domain->boxhi[i] - domain->boxlo[i]) - 1.0) / update->dt;
+    h_ratelo[i] = -0.5 * h_rate[i];
 
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
     set[i].hi_target = 0.5 * (set[i].lo_start + set[i].hi_start) + shift;
@@ -1355,6 +1358,7 @@ void FixDeform::set_iso()
       // Recalculate h_rate
       h_rate[i] = (set[i].hi_target - set[i].lo_target) / (domain->boxhi[i] - domain->boxlo[i]) - 1.0;
       h_rate[i] /= update->dt;
+      h_ratelo[i] = -0.5 * h_rate[i];
     }
 
   } else if (set[6].style == PRESSURE) {
@@ -1387,6 +1391,7 @@ void FixDeform::set_iso()
       // Recalculate h_rate
       h_rate[i] = (set[i].hi_target - set[i].lo_target) / (domain->boxhi[i] - domain->boxlo[i]) - 1.0;
       h_rate[i] /= update->dt;
+      h_ratelo[i] = -0.5 * h_rate[i];
     }
   }
 }

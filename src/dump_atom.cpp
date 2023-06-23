@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -31,7 +32,6 @@ using namespace LAMMPS_NS;
 DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr)
 {
-  // clang-format off
   if (narg != 5) error->all(FLERR,"Illegal dump atom command");
 
   scale_flag = 1;

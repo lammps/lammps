@@ -154,7 +154,7 @@ void FixRHEO::post_constructor()
 
   if (rhosum_flag) {
     compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(
-      "rheo_rho_sum all RHEO/RHO/SUM"));
+      "rheo_rhosum all RHEO/RHO/SUM"));
     compute_rhosum->fix_rheo = this;
   }
 

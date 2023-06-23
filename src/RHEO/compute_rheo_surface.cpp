@@ -126,7 +126,7 @@ void ComputeRHEOSurface::compute_peratom()
 {
   int i, j, ii, jj, inum, jnum, a, b, itype, jtype, fluidi, fluidj;
   double xtmp, ytmp, ztmp, rsq, Voli, Volj, rhoi, rhoj, wp;
-  double *dWij, *dWji, dx[3];
+  double dWij[3], dWji[3], dx[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   int nlocal = atom->nlocal;
@@ -214,7 +214,7 @@ void ComputeRHEOSurface::compute_peratom()
         Voli = mass[itype] / rhoi;
         Volj = mass[jtype] / rhoj;
 
-        wp = compute_kernel->calc_dw_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq),dWij, dWji);
+        wp = compute_kernel->calc_dw_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq), dWij, dWji);
 
         for (a = 0; a < dim; a++){
           divr[i] -= dWij[a] * dx[a] * Volj;

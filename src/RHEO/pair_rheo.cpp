@@ -207,6 +207,7 @@ void PairRHEO::compute(int eflag, int vflag)
         if (interface_flag) {
           if (fluidi && (!fluidj)) {
             compute_interface->correct_v(vi, vj, i, j);
+            //compute_interface->correct_v(vj, vi, j, i);
             rhoj = compute_interface->correct_rho(j, i);
             Pj = fix_pressure->calc_pressure(rhoj);
 
@@ -215,6 +216,7 @@ void PairRHEO::compute(int eflag, int vflag)
 
           } else if ((!fluidi) && fluidj) {
             compute_interface->correct_v(vj, vi, j, i);
+            //compute_interface->correct_v(vi, vj, i, j);
             rhoi = compute_interface->correct_rho(i, j);
             Pi = fix_pressure->calc_pressure(rhoi);
 

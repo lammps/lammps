@@ -69,7 +69,7 @@ class Grid3d : protected Pointers {
   int stencil_grid_lo,stencil_grid_hi;    // grid cells accessed beyond owned cell
   double shift_grid;   // location of grid point within grid cell
                        // only affects which proc owns grid cell
-  double shift_atom_lo,shift_atom_hi;;   // max shift applied to atoms
+  double shift_atom_lo,shift_atom_hi;   // max shift applied to atoms
                        // when mapped to grid cell by caller
                        // can be different in lo/hi directions
                        // only affects extent of ghost cells

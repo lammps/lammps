@@ -958,7 +958,7 @@ void Special::combine()
 
 void Special::angle_trim()
 {
-  int i,j,k,m;;
+  int i,j,k,m;
 
   int *num_angle = atom->num_angle;
   int *num_dihedral = atom->num_dihedral;

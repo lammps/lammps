@@ -4651,7 +4651,7 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
       for (j = nylo_i; j <= nyhi_i; j++)
         for (i = nxlo_i; i <= nxhi_i; i++) {
           vz_brick[k][j][i] = wk2[n++];
-          u_pa[k][j][i] = -wk2[n++];;
+          u_pa[k][j][i] = -wk2[n++];
         }
   }
 

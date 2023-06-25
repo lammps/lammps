@@ -204,7 +204,7 @@ PairSMTBQ::~PairSMTBQ()
   memory->destroy(potcov);
 
   memory->destroy(nvsm);
-  memory->destroy(vsm);;
+  memory->destroy(vsm);
   memory->destroy(flag_QEq);
 
   memory->destroy(nQEqall);

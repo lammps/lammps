@@ -1910,7 +1910,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
   iffirst = facfirst[ibody];
   rradi = rounded_radius[ibody];
   double rradsq = rradi*rradi;
-  anglesum1 = anglesum2 = 0;;
+  anglesum1 = anglesum2 = 0;
   for (i = 0; i < MAX_FACE_SIZE; i++) {
     npi1 = static_cast<int>(face[iffirst+face_index][i]);
     if (npi1 < 0) break;

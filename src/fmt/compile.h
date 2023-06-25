@@ -196,7 +196,8 @@ template <typename Char> struct code_unit {
 
   template <typename OutputIt, typename... Args>
   constexpr OutputIt format(OutputIt out, const Args&...) const {
-    return write<Char>(out, value);
+    *out++ = value;
+    return out;
   }
 };
 
@@ -220,7 +221,12 @@ template <typename Char, typename T, int N> struct field {
 
   template <typename OutputIt, typename... Args>
   constexpr OutputIt format(OutputIt out, const Args&... args) const {
-    return write<Char>(out, get_arg_checked<T, N>(args...));
+    const T& arg = get_arg_checked<T, N>(args...);
+    if constexpr (std::is_convertible_v<T, basic_string_view<Char>>) {
+      auto s = basic_string_view<Char>(arg);
+      return copy_str<Char>(s.begin(), s.end(), out);
+    }
+    return write<Char>(out, arg);
   }
 };
 
@@ -331,14 +337,14 @@ template <typename T, typename Char> struct parse_specs_result {
   int next_arg_id;
 };
 
-constexpr int manual_indexing_id = -1;
+enum { manual_indexing_id = -1 };
 
 template <typename T, typename Char>
 constexpr parse_specs_result<T, Char> parse_specs(basic_string_view<Char> str,
                                                   size_t pos, int next_arg_id) {
   str.remove_prefix(pos);
-  auto ctx = compile_parse_context<Char>(str, max_value<int>(), nullptr, {},
-                                         next_arg_id);
+  auto ctx =
+      compile_parse_context<Char>(str, max_value<int>(), nullptr, next_arg_id);
   auto f = formatter<T, Char>();
   auto end = f.parse(ctx);
   return {f, pos + fmt::detail::to_unsigned(end - str.data()),
@@ -348,21 +354,17 @@ constexpr parse_specs_result<T, Char> parse_specs(basic_string_view<Char> str,
 template <typename Char> struct arg_id_handler {
   arg_ref<Char> arg_id;
 
-  constexpr int operator()() {
+  constexpr int on_auto() {
     FMT_ASSERT(false, "handler cannot be used with automatic indexing");
     return 0;
   }
-  constexpr int operator()(int id) {
+  constexpr int on_index(int id) {
     arg_id = arg_ref<Char>(id);
     return 0;
   }
-  constexpr int operator()(basic_string_view<Char> id) {
+  constexpr int on_name(basic_string_view<Char> id) {
     arg_id = arg_ref<Char>(id);
     return 0;
-  }
-
-  constexpr void on_error(const char* message) {
-    FMT_THROW(format_error(message));
   }
 };
 
@@ -452,20 +454,18 @@ constexpr auto compile_format_string(S format_str) {
       } else if constexpr (arg_id_result.arg_id.kind == arg_id_kind::name) {
         constexpr auto arg_index =
             get_arg_index_by_name(arg_id_result.arg_id.val.name, Args{});
-        if constexpr (arg_index != invalid_arg_index) {
+        if constexpr (arg_index >= 0) {
           constexpr auto next_id =
               ID != manual_indexing_id ? ID + 1 : manual_indexing_id;
           return parse_replacement_field_then_tail<
               decltype(get_type<arg_index, Args>::value), Args, arg_id_end_pos,
               arg_index, next_id>(format_str);
-        } else {
-          if constexpr (c == '}') {
-            return parse_tail<Args, arg_id_end_pos + 1, ID>(
-                runtime_named_field<char_type>{arg_id_result.arg_id.val.name},
-                format_str);
-          } else if constexpr (c == ':') {
-            return unknown_format();  // no type info for specs parsing
-          }
+        } else if constexpr (c == '}') {
+          return parse_tail<Args, arg_id_end_pos + 1, ID>(
+              runtime_named_field<char_type>{arg_id_result.arg_id.val.name},
+              format_str);
+        } else if constexpr (c == ':') {
+          return unknown_format();  // no type info for specs parsing
         }
       }
     }
@@ -501,7 +501,7 @@ constexpr auto compile(S format_str) {
 #endif  // defined(__cpp_if_constexpr) && defined(__cpp_return_type_deduction)
 }  // namespace detail
 
-FMT_MODULE_EXPORT_BEGIN
+FMT_BEGIN_EXPORT
 
 #if defined(__cpp_if_constexpr) && defined(__cpp_return_type_deduction)
 
@@ -605,7 +605,7 @@ template <detail_exported::fixed_string Str> constexpr auto operator""_cf() {
 }  // namespace literals
 #endif
 
-FMT_MODULE_EXPORT_END
+FMT_END_EXPORT
 FMT_END_NAMESPACE
 
 #endif  // FMT_COMPILE_H_

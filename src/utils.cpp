@@ -290,8 +290,9 @@ int utils::read_lines_from_file(FILE *fp, int nlines, int nmax, char *buffer, in
   }
 
   int n = strlen(buffer);
+  if (nlines != mylines) n = 0;
   MPI_Bcast(&n, 1, MPI_INT, 0, comm);
-  if ((n == 0) || (nlines != mylines)) return 1;
+  if (n == 0) return 1;
   MPI_Bcast(buffer, n + 1, MPI_CHAR, 0, comm);
   return 0;
 }

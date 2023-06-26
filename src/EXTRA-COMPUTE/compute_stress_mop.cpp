@@ -432,16 +432,14 @@ void ComputeStressMop::compute_pairs()
           fi[1] = atom->f[i][1];
           fi[2] = atom->f[i][2];
 
-          //coordinates at t-dt (based on Velocity-Verlet alg.)
-          if (rmass) {
-            xj[0] = xi[0]-vi[0]*dt+fi[0]/2.0/rmass[i]*dt*dt*ftm2v;
-            xj[1] = xi[1]-vi[1]*dt+fi[1]/2.0/rmass[i]*dt*dt*ftm2v;
-            xj[2] = xi[2]-vi[2]*dt+fi[2]/2.0/rmass[i]*dt*dt*ftm2v;
-          } else {
-            xj[0] = xi[0]-vi[0]*dt+fi[0]/2.0/mass[itype]*dt*dt*ftm2v;
-            xj[1] = xi[1]-vi[1]*dt+fi[1]/2.0/mass[itype]*dt*dt*ftm2v;
-            xj[2] = xi[2]-vi[2]*dt+fi[2]/2.0/mass[itype]*dt*dt*ftm2v;
-          }
+          const double imass = (rmass) ? rmass[i] : mass[itype];
+          const double iterm = 0.5/imass*dt*ftm2v;
+
+          // coordinates at t-dt (based on Velocity-Verlet alg.)
+
+          xj[0] = xi[0]-vi[0]*dt+fi[0]*iterm*dt;
+          xj[1] = xi[1]-vi[1]*dt+fi[1]*iterm*dt;
+          xj[2] = xi[2]-vi[2]*dt+fi[2]*iterm*dt;
 
           // because LAMMPS does not put atoms back in the box
           // at each timestep, must check atoms going through the
@@ -453,23 +451,18 @@ void ComputeStressMop::compute_pairs()
           if (((xi[dir]-pos_temp)*(xj[dir]-pos_temp)) < 0) {
 
             // sgn = copysign(1.0,vi[dir]-vcm[dir]);
+
             sgn = copysign(1.0,vi[dir]);
 
             // approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
             double vcross[3];
-            if (rmass) {
-              vcross[0] = vi[0]-fi[0]/rmass[i]/2.0*ftm2v*dt;
-              vcross[1] = vi[1]-fi[1]/rmass[i]/2.0*ftm2v*dt;
-              vcross[2] = vi[2]-fi[2]/rmass[i]/2.0*ftm2v*dt;
-            } else {
-              vcross[0] = vi[0]-fi[0]/mass[itype]/2.0*ftm2v*dt;
-              vcross[1] = vi[1]-fi[1]/mass[itype]/2.0*ftm2v*dt;
-              vcross[2] = vi[2]-fi[2]/mass[itype]/2.0*ftm2v*dt;
-            }
+            vcross[0] = vi[0]-fi[0]*iterm;
+            vcross[1] = vi[1]-fi[1]*iterm;
+            vcross[2] = vi[2]-fi[2]*iterm;
 
-            values_local[m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
-            values_local[m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
-            values_local[m+2] += mass[itype]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
+            values_local[m] += imass*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
+            values_local[m+1] += imass*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
+            values_local[m+2] += imass*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
           }
         }
       }

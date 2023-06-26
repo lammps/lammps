@@ -435,16 +435,14 @@ void ComputeStressMopProfile::compute_pairs()
           fi[1] = atom->f[i][1];
           fi[2] = atom->f[i][2];
 
-          //coordinates at t-dt (based on Velocity-Verlet alg.)
-          if (rmass) {
-            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/rmass[i]*dt*dt*ftm2v;
-            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/rmass[i]*dt*dt*ftm2v;
-            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/rmass[i]*dt*dt*ftm2v;
-          } else {
-            xj[0] = xi[0]-vi[0]*dt+fi[0]/2/mass[itype]*dt*dt*ftm2v;
-            xj[1] = xi[1]-vi[1]*dt+fi[1]/2/mass[itype]*dt*dt*ftm2v;
-            xj[2] = xi[2]-vi[2]*dt+fi[2]/2/mass[itype]*dt*dt*ftm2v;
-          }
+          const double imass = (rmass) ? rmass[i] : mass[itype];
+          const double iterm = 0.5/imass*dt*ftm2v;
+
+          // coordinates at t-dt (based on Velocity-Verlet alg.)
+
+          xj[0] = xi[0]-vi[0]*dt+fi[0]*iterm*dt;
+          xj[1] = xi[1]-vi[1]*dt+fi[1]*iterm*dt;
+          xj[2] = xi[2]-vi[2]*dt+fi[2]*iterm*dt;
 
           for (ibin = 0; ibin < nbins; ibin++) {
             pos = coord[ibin][0];
@@ -454,26 +452,16 @@ void ComputeStressMopProfile::compute_pairs()
 
               sgn = copysign(1.0,vi[dir]);
 
-              //approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
-              if (rmass) {
-                double vcross[3];
-                vcross[0] = vi[0]-fi[0]/rmass[i]/2*ftm2v*dt;
-                vcross[1] = vi[1]-fi[1]/rmass[i]/2*ftm2v*dt;
-                vcross[2] = vi[2]-fi[2]/rmass[i]/2*ftm2v*dt;
+              // approximate crossing velocity by v(t-dt/2) (based on Velocity-Verlet alg.)
 
-                values_local[ibin][m] += rmass[i]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
-                values_local[ibin][m+1] += rmass[i]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
-                values_local[ibin][m+2] += rmass[i]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
-              } else {
-                double vcross[3];
-                vcross[0] = vi[0]-fi[0]/mass[itype]/2*ftm2v*dt;
-                vcross[1] = vi[1]-fi[1]/mass[itype]/2*ftm2v*dt;
-                vcross[2] = vi[2]-fi[2]/mass[itype]/2*ftm2v*dt;
+              double vcross[3];
+              vcross[0] = vi[0]-fi[0]*iterm;
+              vcross[1] = vi[1]-fi[1]*iterm;
+              vcross[2] = vi[2]-fi[2]*iterm;
 
-                values_local[ibin][m] += mass[itype]*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
-                values_local[ibin][m+1] += mass[itype]*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
-                values_local[ibin][m+2] += mass[itype]*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
-              }
+              values_local[ibin][m] += imass*vcross[0]*sgn/dt/area*nktv2p/ftm2v;
+              values_local[ibin][m+1] += imass*vcross[1]*sgn/dt/area*nktv2p/ftm2v;
+              values_local[ibin][m+2] += imass*vcross[2]*sgn/dt/area*nktv2p/ftm2v;
             }
           }
         }

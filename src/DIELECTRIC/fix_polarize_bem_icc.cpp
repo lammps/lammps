@@ -455,6 +455,7 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean, double
   double *ed = atom->ed;
   double *em = atom->em;
   double *q = atom->q;
+  double *q_scaled = atom->q_scaled;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -466,6 +467,7 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean, double
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
       if (set_charge) q[i] = qvalue;
+      q_scaled[i] = q[i] / epsilon[i];
     }
   }
 }

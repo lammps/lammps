@@ -60,7 +60,7 @@ void CreateBonds::command(int narg, char **arg)
     style = MANY;
     if (narg != 6) error->all(FLERR, "No optional keywords allowed with create_bonds many");
     igroup = group->find(arg[1]);
-    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds first group ID {}",arg[1]);
+    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds first group ID {}", arg[1]);
     group1bit = group->bitmask[igroup];
     igroup = group->find(arg[2]);
     if (igroup == -1) error->all(FLERR, "Cannot find create_bonds second group ID {}", arg[2]);
@@ -197,6 +197,10 @@ void CreateBonds::many()
   if (rmax > neighbor->cutneighmin && comm->me == 0)
     error->warning(FLERR, "Create_bonds max distance > minimum neighbor cutoff");
 
+  if ((domain->xperiodic && (rmax > domain->xprd)) ||
+      (domain->yperiodic && (rmax > domain->yprd)) || (domain->zperiodic && (rmax > domain->zprd)))
+    error->all(FLERR, "Bond creation cutoff is larger than periodic domain");
+
   // require special_bonds 1-2 weights = 0.0 and KSpace = nullptr
   // so that already bonded atom pairs do not appear in neighbor list
   // otherwise with newton_bond = 1,
@@ -205,7 +209,7 @@ void CreateBonds::many()
 
   if (force->special_lj[1] != 0.0 || force->special_coul[1] != 0.0)
     error->all(FLERR, "Create_bonds command requires special_bonds 1-2 weights be 0.0");
-  if (force->kspace) error->all(FLERR, "Create_bonds command requires no kspace_style be defined");
+  if (force->kspace) error->all(FLERR, "Create_bonds command is incompatible with Kspace styles");
 
   // setup domain, communication and neighboring
   // acquire ghosts and build standard neighbor lists

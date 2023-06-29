@@ -839,8 +839,7 @@ int Neighbor::init_pair()
   if (style == Neighbor::BIN) {
     for (i = 0; i < nrequest; i++)
       if (requests[i]->occasional && requests[i]->ghost)
-        error->all(FLERR,"Cannot request an occasional binned neighbor list "
-                   "with ghost info");
+        error->all(FLERR,"Cannot request an occasional binned neighbor list with ghost info");
   }
 
   // morph requests in various ways
@@ -2672,8 +2671,7 @@ void Neighbor::modify_params(int narg, char **arg)
                  strcmp(arg[iarg+1],"molecule/intra") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude molecule", error);
         if (atom->molecule_flag == 0)
-          error->all(FLERR,"Neigh_modify exclude molecule "
-                     "requires atom attribute molecule");
+          error->all(FLERR,"Neigh_modify exclude molecule requires atom attribute molecule");
         if (nex_mol == maxex_mol) {
           maxex_mol += EXDELTA;
           memory->grow(ex_mol_group,maxex_mol,"neigh:ex_mol_group");

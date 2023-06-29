@@ -38,7 +38,6 @@
 using namespace LAMMPS_NS;
 
 enum { X, Y, Z };
-enum { LOWER, CENTER, UPPER, COORD };
 enum { TOTAL, CONF, KIN, PAIR, BOND };
 
 // clang-format off
@@ -63,11 +62,15 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
 
   // bin parameters
 
-  if (strcmp(arg[4],"lower") == 0) originflag = LOWER;
-  else if (strcmp(arg[4],"center") == 0) originflag = CENTER;
-  else if (strcmp(arg[4],"upper") == 0) originflag = UPPER;
-  else originflag = COORD;
-  if (originflag == COORD) origin = utils::numeric(FLERR,arg[4],false,lmp);
+  if (strcmp(arg[4],"lower") == 0) {
+    origin = domain->boxlo[dir];
+  } else if (strcmp(arg[4],"center") == 0) {
+    origin = 0.5 * (domain->boxlo[dir] + domain->boxhi[dir]);
+  } else if (strcmp(arg[4],"upper") == 0) {
+    origin = domain->boxhi[dir];
+  } else {
+    origin = utils::numeric(FLERR,arg[4],false,lmp);
+  }
   delta = utils::numeric(FLERR,arg[5],false,lmp);
   invdelta = 1.0/delta;
 
@@ -620,23 +623,14 @@ void ComputeStressMopProfile::setup_bins()
   boxlo = domain->boxlo;
   boxhi = domain->boxhi;
 
-  if (originflag == LOWER) origin = boxlo[dir];
-  else if (originflag == UPPER) origin = boxhi[dir];
-  else if (originflag == CENTER)
-    origin = 0.5 * (boxlo[dir] + boxhi[dir]);
+  if ((origin > domain->boxhi[dir]) || (origin < domain->boxlo[dir]))
+    error->all(FLERR,"Origin of bins for compute stress/mop/profile is out of bounds" );
 
-  if (origin < boxlo[dir]) {
-    error->all(FLERR,"Origin of bins for compute stress/mop/profile is out of bounds" );
-  } else {
-    n = static_cast<int> ((origin - boxlo[dir]) * invdelta);
-    lo = origin - n*delta;
-  }
-  if (origin < boxhi[dir]) {
-    n = static_cast<int> ((boxhi[dir] - origin) * invdelta);
-    hi = origin + n*delta;
-  } else {
-    error->all(FLERR,"Origin of bins for compute stress/mop/profile is out of bounds" );
-  }
+  n = static_cast<int> ((origin - boxlo[dir]) * invdelta);
+  lo = origin - n*delta;
+
+  n = static_cast<int> ((boxhi[dir] - origin) * invdelta);
+  hi = origin + n*delta;
 
   offset = lo;
   nbins = static_cast<int> ((hi-lo) * invdelta + 1.5);

@@ -23,5 +23,6 @@
 #define TEST_CATEGORY_NUMBER 6
 #define TEST_CATEGORY_DEATH hip_DeathTest
 #define TEST_EXECSPACE Kokkos::HIP
+#define TEST_CATEGORY_FIXTURE(name) hip_##name
 
 #endif

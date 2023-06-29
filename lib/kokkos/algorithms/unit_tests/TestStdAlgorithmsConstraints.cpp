@@ -42,8 +42,8 @@ TEST(std_algorithms, is_admissible_to_std_algorithms) {
   using strided_view_1d_t = Kokkos::View<value_type*, Kokkos::LayoutStride>;
   Kokkos::LayoutStride layout1d{extent0, 2};
   strided_view_1d_t strided_view_1d{"std-algo-test-1d-strided-view", layout1d};
-  EXPECT_EQ(layout1d.dimension[0], 13u);
-  EXPECT_EQ(layout1d.stride[0], 2u);
+  ASSERT_EQ(layout1d.dimension[0], 13u);
+  ASSERT_EQ(layout1d.stride[0], 2u);
   // they are admissible
   KE::Impl::static_assert_is_admissible_to_kokkos_std_algorithms(
       static_view_1d);

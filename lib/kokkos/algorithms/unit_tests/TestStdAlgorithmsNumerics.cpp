@@ -151,8 +151,8 @@ void run_and_check_transform_reduce_default(ViewType1 first_view,
   const auto r2 = KE::transform_reduce(
       "MYLABEL", ExecutionSpace(), KE::cbegin(first_view),
       KE::cbegin(first_view), KE::cbegin(second_view), init_value);
-  EXPECT_EQ(r1, init_value);
-  EXPECT_EQ(r2, init_value);
+  ASSERT_EQ(r1, init_value);
+  ASSERT_EQ(r2, init_value);
 
   // non-trivial cases
   const auto r3 = KE::transform_reduce(ExecutionSpace(), KE::cbegin(first_view),
@@ -168,10 +168,10 @@ void run_and_check_transform_reduce_default(ViewType1 first_view,
   const auto r6 = KE::transform_reduce("MYLABEL", ExecutionSpace(), first_view,
                                        second_view, init_value);
 
-  EXPECT_EQ(r3, result_value);
-  EXPECT_EQ(r4, result_value);
-  EXPECT_EQ(r5, result_value);
-  EXPECT_EQ(r6, result_value);
+  ASSERT_EQ(r3, result_value);
+  ASSERT_EQ(r4, result_value);
+  ASSERT_EQ(r5, result_value);
+  ASSERT_EQ(r6, result_value);
 }
 
 TEST_F(std_algorithms_numerics_test,
@@ -254,8 +254,8 @@ void run_and_check_transform_reduce_overloadA(ViewType1 first_view,
                            KE::cbegin(first_view), KE::cbegin(second_view),
                            init_value, std::forward<Args>(args)...);
 
-  EXPECT_EQ(r1, init_value);
-  EXPECT_EQ(r2, init_value);
+  ASSERT_EQ(r1, init_value);
+  ASSERT_EQ(r2, init_value);
 
   // non trivial cases
   const auto r3 = KE::transform_reduce(
@@ -273,10 +273,10 @@ void run_and_check_transform_reduce_overloadA(ViewType1 first_view,
       KE::transform_reduce("MYLABEL", ExecutionSpace(), first_view, second_view,
                            init_value, std::forward<Args>(args)...);
 
-  EXPECT_EQ(r3, result_value);
-  EXPECT_EQ(r4, result_value);
-  EXPECT_EQ(r5, result_value);
-  EXPECT_EQ(r6, result_value);
+  ASSERT_EQ(r3, result_value);
+  ASSERT_EQ(r4, result_value);
+  ASSERT_EQ(r5, result_value);
+  ASSERT_EQ(r6, result_value);
 }
 
 TEST_F(std_algorithms_numerics_test,
@@ -373,8 +373,8 @@ void run_and_check_transform_reduce_overloadB(ViewType view,
                                        KE::cbegin(view), KE::cbegin(view),
                                        init_value, std::forward<Args>(args)...);
 
-  EXPECT_EQ(r1, init_value);
-  EXPECT_EQ(r2, init_value);
+  ASSERT_EQ(r1, init_value);
+  ASSERT_EQ(r2, init_value);
 
   // non trivial
   const auto r3 =
@@ -390,10 +390,10 @@ void run_and_check_transform_reduce_overloadB(ViewType view,
   const auto r6 = KE::transform_reduce("MYLABEL", ExecutionSpace(), view,
                                        init_value, std::forward<Args>(args)...);
 
-  EXPECT_EQ(r3, result_value);
-  EXPECT_EQ(r4, result_value);
-  EXPECT_EQ(r5, result_value);
-  EXPECT_EQ(r6, result_value);
+  ASSERT_EQ(r3, result_value);
+  ASSERT_EQ(r4, result_value);
+  ASSERT_EQ(r5, result_value);
+  ASSERT_EQ(r6, result_value);
 }
 
 TEST_F(std_algorithms_numerics_test,
@@ -447,8 +447,8 @@ void run_and_check_reduce_overloadA(ViewType view, ValueType non_trivial_result,
       KE::reduce(ExecutionSpace(), KE::cbegin(view), KE::cbegin(view));
   const auto r2 = KE::reduce("MYLABEL", ExecutionSpace(), KE::cbegin(view),
                              KE::cbegin(view));
-  EXPECT_EQ(r1, trivial_result);
-  EXPECT_EQ(r2, trivial_result);
+  ASSERT_EQ(r1, trivial_result);
+  ASSERT_EQ(r2, trivial_result);
 
   // non trivial cases
   const auto r3 =
@@ -458,10 +458,10 @@ void run_and_check_reduce_overloadA(ViewType view, ValueType non_trivial_result,
   const auto r5 = KE::reduce(ExecutionSpace(), view);
   const auto r6 = KE::reduce("MYLABEL", ExecutionSpace(), view);
 
-  EXPECT_EQ(r3, non_trivial_result);
-  EXPECT_EQ(r4, non_trivial_result);
-  EXPECT_EQ(r5, non_trivial_result);
-  EXPECT_EQ(r6, non_trivial_result);
+  ASSERT_EQ(r3, non_trivial_result);
+  ASSERT_EQ(r4, non_trivial_result);
+  ASSERT_EQ(r5, non_trivial_result);
+  ASSERT_EQ(r6, non_trivial_result);
 }
 
 TEST_F(std_algorithms_numerics_test,
@@ -503,8 +503,8 @@ void run_and_check_reduce_overloadB(ViewType view, ValueType result_value,
                              KE::cbegin(view), init_value);
   const auto r2 = KE::reduce("MYLABEL", ExecutionSpace(), KE::cbegin(view),
                              KE::cbegin(view), init_value);
-  EXPECT_EQ(r1, init_value);
-  EXPECT_EQ(r2, init_value);
+  ASSERT_EQ(r1, init_value);
+  ASSERT_EQ(r2, init_value);
 
   // non trivial cases
   const auto r3 = KE::reduce(ExecutionSpace(), KE::cbegin(view), KE::cend(view),
@@ -514,10 +514,10 @@ void run_and_check_reduce_overloadB(ViewType view, ValueType result_value,
   const auto r5 = KE::reduce(ExecutionSpace(), view, init_value);
   const auto r6 = KE::reduce("MYLABEL", ExecutionSpace(), view, init_value);
 
-  EXPECT_EQ(r3, result_value);
-  EXPECT_EQ(r4, result_value);
-  EXPECT_EQ(r5, result_value);
-  EXPECT_EQ(r6, result_value);
+  ASSERT_EQ(r3, result_value);
+  ASSERT_EQ(r4, result_value);
+  ASSERT_EQ(r5, result_value);
+  ASSERT_EQ(r6, result_value);
 }
 
 TEST_F(std_algorithms_numerics_test,
@@ -553,8 +553,8 @@ void run_and_check_reduce_overloadC(ViewType view, ValueType result_value,
                              KE::cbegin(view), init_value, joiner);
   const auto r2 = KE::reduce("MYLABEL", ExecutionSpace(), KE::cbegin(view),
                              KE::cbegin(view), init_value, joiner);
-  EXPECT_EQ(r1, init_value);
-  EXPECT_EQ(r2, init_value);
+  ASSERT_EQ(r1, init_value);
+  ASSERT_EQ(r2, init_value);
 
   // non trivial cases
   const auto r3 = KE::reduce(ExecutionSpace(), KE::cbegin(view), KE::cend(view),
@@ -565,10 +565,10 @@ void run_and_check_reduce_overloadC(ViewType view, ValueType result_value,
   const auto r6 =
       KE::reduce("MYLABEL", ExecutionSpace(), view, init_value, joiner);
 
-  EXPECT_EQ(r3, result_value);
-  EXPECT_EQ(r4, result_value);
-  EXPECT_EQ(r5, result_value);
-  EXPECT_EQ(r6, result_value);
+  ASSERT_EQ(r3, result_value);
+  ASSERT_EQ(r4, result_value);
+  ASSERT_EQ(r5, result_value);
+  ASSERT_EQ(r6, result_value);
 }
 
 TEST_F(std_algorithms_numerics_test,

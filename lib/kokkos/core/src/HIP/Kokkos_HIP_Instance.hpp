@@ -22,6 +22,7 @@
 #include <HIP/Kokkos_HIP_Space.hpp>
 #include <HIP/Kokkos_HIP_Error.hpp>
 
+#include <atomic>
 #include <mutex>
 
 namespace Kokkos {
@@ -104,7 +105,8 @@ class HIPInternal {
   mutable int64_t m_team_scratch_current_size[10] = {};
   mutable void *m_team_scratch_ptr[10]            = {};
   mutable std::atomic_int m_team_scratch_pool[10] = {};
-  std::int32_t *m_scratch_locks;
+  int32_t *m_scratch_locks                        = nullptr;
+  size_t m_num_scratch_locks                      = 0;
 
   bool was_finalized = false;
 
@@ -177,11 +179,13 @@ std::vector<HIP> partition_space(const HIP &, Args...) {
 }
 
 template <class T>
-std::vector<HIP> partition_space(const HIP &, std::vector<T> &weights) {
+std::vector<HIP> partition_space(const HIP &, std::vector<T> const &weights) {
   static_assert(
       std::is_arithmetic<T>::value,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
+  // We only care about the number of instances to create and ignore weights
+  // otherwise.
   std::vector<HIP> instances(weights.size());
   Impl::create_HIP_instances(instances);
   return instances;

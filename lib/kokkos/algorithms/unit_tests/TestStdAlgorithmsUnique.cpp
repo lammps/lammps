@@ -157,7 +157,7 @@ void verify_data(const std::string& name, ResultIt my_result_it,
   //
   const auto std_diff = (std::size_t)(std_r - KE::begin(data_v_h));
   const auto my_diff  = (std::size_t)(my_result_it - KE::begin(view_test));
-  EXPECT_EQ(my_diff, std_diff);
+  ASSERT_EQ(my_diff, std_diff);
 
   //
   // check the data in the view
@@ -170,14 +170,14 @@ void verify_data(const std::string& name, ResultIt my_result_it,
     // 		<< " my  = " << view_test_h(i) << " "
     // 		<< " std = " << data_v_h(i)
     // 		<< '\n';
-    EXPECT_EQ(view_test_h(i), data_v_h(i));
+    ASSERT_EQ(view_test_h(i), data_v_h(i));
   }
 
   if (name == "medium-b") {
     using value_type = typename ViewType1::value_type;
-    EXPECT_EQ(my_diff, (std::size_t)2);
-    EXPECT_EQ(view_test_h(0), (value_type)22);
-    EXPECT_EQ(view_test_h(1), (value_type)44);
+    ASSERT_EQ(my_diff, (std::size_t)2);
+    ASSERT_EQ(view_test_h(0), (value_type)22);
+    ASSERT_EQ(view_test_h(1), (value_type)44);
   }
 }
 

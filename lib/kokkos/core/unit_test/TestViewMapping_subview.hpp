@@ -100,8 +100,7 @@ struct TestViewMappingSubview {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int, long& error_count) const {
-    auto Ad = Kokkos::subview<Kokkos::MemoryUnmanaged>(
-        Aa, Kokkos::pair<int, int>(1, AN - 1));
+    auto Ad = Kokkos::subview(Aa, Kokkos::pair<int, int>(1, AN - 1));
 
     for (int i = 1; i < AN - 1; ++i)
       if (&Aa[i] != &Ab[i - 1]) ++error_count;

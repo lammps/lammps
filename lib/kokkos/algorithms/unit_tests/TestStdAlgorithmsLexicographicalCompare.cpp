@@ -44,16 +44,16 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
         std::lexicographical_compare(h_first_1, h_last_1, h_first_2, h_last_2);
 
     // pass iterators
-    EXPECT_EQ(std_result, KE::lexicographical_compare(exespace(), first_1,
+    ASSERT_EQ(std_result, KE::lexicographical_compare(exespace(), first_1,
                                                       last_1, first_2, last_2));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), first_1, last_1,
                                           first_2, last_2));
 
     // pass views
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare(exespace(), view_1, view_2));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), view_1, view_2));
   }
 
@@ -67,17 +67,17 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
         h_first_1, h_last_1, h_first_2, h_last_2, custom_comparator);
 
     // pass iterators
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare(exespace(), first_1, last_1, first_2,
                                           last_2, custom_comparator));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), first_1, last_1,
                                           first_2, last_2, custom_comparator));
 
     // pass views
-    EXPECT_EQ(std_result, KE::lexicographical_compare(
+    ASSERT_EQ(std_result, KE::lexicographical_compare(
                               exespace(), view_1, view_2, custom_comparator));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), view_1, view_2,
                                           custom_comparator));
   }
@@ -86,7 +86,7 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
     // empty vs non-empty
     auto std_result =
         std::lexicographical_compare(h_first_1, h_first_1, h_first_2, h_last_2);
-    EXPECT_EQ(std_result, KE::lexicographical_compare(
+    ASSERT_EQ(std_result, KE::lexicographical_compare(
                               exespace(), first_1, first_1, first_2, last_2));
   }
 
@@ -95,7 +95,7 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
     if (view_1.extent(0) > 1) {
       auto std_result = std::lexicographical_compare(h_first_1, h_last_1 - 1,
                                                      h_first_2, h_last_2);
-      EXPECT_EQ(std_result,
+      ASSERT_EQ(std_result,
                 KE::lexicographical_compare(exespace(), first_1, last_1 - 1,
                                             first_2, last_2));
     }
@@ -140,12 +140,6 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_lexicographical_compare_test, test) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
 // FIXME: should this disable only custom comparator tests?
 #if !defined KOKKOS_ENABLE_OPENMPTARGET
   run_all_scenarios<DynamicTag, double>();

@@ -19,7 +19,8 @@
 
 #include <omp.h>
 #include <Kokkos_Parallel.hpp>
-#include <OpenMPTarget/Kokkos_OpenMPTarget_Exec.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel_Common.hpp>
 
 // WORKAROUND OPENMPTARGET: sometimes tile sizes don't make it correctly,
 // this was tracked down to a bug in clang with regards of mapping structs
@@ -410,68 +411,48 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 namespace Kokkos {
 namespace Impl {
 
-template <class FunctorType, class ReducerType, class... Traits>
-class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
+template <class CombinedFunctorReducerType, class... Traits>
+class ParallelReduce<CombinedFunctorReducerType,
+                     Kokkos::MDRangePolicy<Traits...>,
                      Kokkos::Experimental::OpenMPTarget> {
  private:
-  using Policy = Kokkos::MDRangePolicy<Traits...>;
+  using Policy      = Kokkos::MDRangePolicy<Traits...>;
+  using FunctorType = typename CombinedFunctorReducerType::functor_type;
+  using ReducerType = typename CombinedFunctorReducerType::reducer_type;
 
   using WorkTag = typename Policy::work_tag;
   using Member  = typename Policy::member_type;
   using Index   = typename Policy::index_type;
 
-  using ReducerConditional =
-      std::conditional<std::is_same<InvalidType, ReducerType>::value,
-                       FunctorType, ReducerType>;
-  using ReducerTypeFwd = typename ReducerConditional::type;
-  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
-                                         Policy, ReducerTypeFwd>;
+  using pointer_type   = typename ReducerType::pointer_type;
+  using reference_type = typename ReducerType::reference_type;
 
-  using pointer_type   = typename Analysis::pointer_type;
-  using reference_type = typename Analysis::reference_type;
-
-  static constexpr bool UseReducer = is_reducer<ReducerType>::value;
+  static constexpr bool UseReducer =
+      !std::is_same_v<FunctorType, typename ReducerType::functor_type>;
 
   const pointer_type m_result_ptr;
-  const FunctorType m_functor;
+  const CombinedFunctorReducerType m_functor_reducer;
   const Policy m_policy;
-  const ReducerType m_reducer;
 
-  using ParReduceCommon = ParallelReduceCommon<pointer_type>;
+  using ParReduceCopy = ParallelReduceCopy<pointer_type>;
 
   bool m_result_ptr_on_device;
 
  public:
   inline void execute() const {
-    execute_tile<Policy::rank, typename Analysis::value_type>(
-        m_functor, m_policy, m_result_ptr);
+    execute_tile<Policy::rank, typename ReducerType::value_type>(
+        m_functor_reducer.get_functor(), m_policy, m_result_ptr);
   }
 
   template <class ViewType>
-  inline ParallelReduce(
-      const FunctorType& arg_functor, Policy arg_policy,
-      const ViewType& arg_result_view,
-      std::enable_if_t<Kokkos::is_view<ViewType>::value &&
-                           !Kokkos::is_reducer<ReducerType>::value,
-                       void*> = NULL)
+  inline ParallelReduce(const CombinedFunctorReducerType& arg_functor_reducer,
+                        Policy arg_policy, const ViewType& arg_result_view)
       : m_result_ptr(arg_result_view.data()),
-        m_functor(arg_functor),
+        m_functor_reducer(arg_functor_reducer),
         m_policy(arg_policy),
-        m_reducer(InvalidType()),
         m_result_ptr_on_device(
             MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
                               typename ViewType::memory_space>::accessible) {}
-
-  inline ParallelReduce(const FunctorType& arg_functor, Policy arg_policy,
-                        const ReducerType& reducer)
-      : m_result_ptr(reducer.view().data()),
-        m_functor(arg_functor),
-        m_policy(arg_policy),
-        m_reducer(reducer),
-        m_result_ptr_on_device(
-            MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
-                              typename ReducerType::result_view_type::
-                                  memory_space>::accessible) {}
 
   template <int Rank, class ValueType>
   inline std::enable_if_t<Rank == 2> execute_tile(const FunctorType& functor,
@@ -518,8 +499,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -539,10 +520,13 @@ reduction(+:result)
     // FIXME_OPENMPTARGET: Unable to separate directives and their companion
     // loops which leads to code duplication for different reduction types.
     if constexpr (UseReducer) {
-#pragma omp declare reduction(                                         \
-    custom:ValueType                                                   \
-    : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
-    initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+#pragma omp declare reduction(                                                 \
+    custom:ValueType                                                           \
+    : OpenMPTargetReducerWrapper <typename ReducerType::functor_type>::join(   \
+        omp_out, omp_in))                                                      \
+    initializer(                                                               \
+        OpenMPTargetReducerWrapper <typename ReducerType::functor_type>::init( \
+            omp_priv))
 
 #pragma omp target teams distribute parallel for collapse(3) map(to         \
                                                                  : functor) \
@@ -573,8 +557,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -636,8 +620,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -707,8 +691,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -784,8 +768,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <typename Policy, typename Functor>

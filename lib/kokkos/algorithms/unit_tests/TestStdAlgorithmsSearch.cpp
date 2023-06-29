@@ -259,7 +259,7 @@ void run_single_scenario(const InfoType& scenario_info, std::size_t seq_ext,
                             KE::cbegin(s_view), KE::cend(s_view), args...);
     const auto mydiff = myrit - KE::cbegin(view);
     const auto stddiff = stdrit - KE::cbegin(view_h);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   {
@@ -268,21 +268,21 @@ void run_single_scenario(const InfoType& scenario_info, std::size_t seq_ext,
                    KE::cbegin(s_view), KE::cend(s_view), args...);
     const auto mydiff  = myrit - KE::cbegin(view);
     const auto stddiff = stdrit - KE::cbegin(view_h);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit         = KE::search(exespace(), view, s_view, args...);
     const auto mydiff  = myrit - KE::begin(view);
     const auto stddiff = stdrit - KE::cbegin(view_h);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit         = KE::search("label", exespace(), view, s_view, args...);
     const auto mydiff  = myrit - KE::begin(view);
     const auto stddiff = stdrit - KE::cbegin(view_h);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   Kokkos::fence();
@@ -325,12 +325,6 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_non_mod_seq_ops, search) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<StridedThreeTag, int>();
 }

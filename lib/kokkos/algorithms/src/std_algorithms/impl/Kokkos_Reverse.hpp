@@ -39,16 +39,7 @@ struct StdReverseFunctor {
 
   KOKKOS_FUNCTION
   void operator()(index_type i) const {
-    // the swap below is doing the same thing, but
-    // for Intel 18.0.5 does not work.
-    // But putting the impl directly here, it works.
-#ifdef KOKKOS_COMPILER_INTEL
-    typename InputIterator::value_type tmp = std::move(m_first[i]);
-    m_first[i]                             = std::move(m_last[-i - 1]);
-    m_last[-i - 1]                         = std::move(tmp);
-#else
     ::Kokkos::Experimental::swap(m_first[i], m_last[-i - 1]);
-#endif
   }
 
   StdReverseFunctor(InputIterator first, InputIterator last)

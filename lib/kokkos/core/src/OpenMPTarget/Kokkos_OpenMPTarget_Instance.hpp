@@ -37,7 +37,7 @@ class OpenMPTargetInternal {
              openmp_fence_is_static is_static = openmp_fence_is_static::no);
 
   /** \brief  Return the maximum amount of concurrency.  */
-  int concurrency();
+  int concurrency() const;
 
   //! Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose) const;

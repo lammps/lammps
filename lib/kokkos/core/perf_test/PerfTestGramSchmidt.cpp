@@ -15,11 +15,11 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
-#include <gtest/gtest.h>
-#include <PerfTest_Category.hpp>
+#include <benchmark/benchmark.h>
+#include "PerfTest_Category.hpp"
 
 #include <cmath>
-#include <PerfTestBlasKernels.hpp>
+#include "PerfTestBlasKernels.hpp"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -137,87 +137,61 @@ struct ModifiedGramSchmidt {
 
   //--------------------------------------------------------------------------
 
-  static double test(const size_type length, const size_type count,
-                     const size_t iter = 1) {
+  static double test(const size_type length, const size_type count) {
     multivector_type Q_("Q", length, count);
     multivector_type R_("R", count, count);
 
     typename multivector_type::HostMirror A = Kokkos::create_mirror(Q_);
 
     // Create and fill A on the host
-
     for (size_type j = 0; j < count; ++j) {
       for (size_type i = 0; i < length; ++i) {
         A(i, j) = (i + 1) * (j + 1);
       }
     }
 
-    double dt_min = 0;
+    Kokkos::deep_copy(Q_, A);
 
-    for (size_t i = 0; i < iter; ++i) {
-      Kokkos::deep_copy(Q_, A);
+    // A = Q * R
+    const double dt = factorization(Q_, R_);
 
-      // A = Q * R
-
-      const double dt = factorization(Q_, R_);
-
-      if (0 == i)
-        dt_min = dt;
-      else
-        dt_min = dt < dt_min ? dt : dt_min;
-    }
-
-    return dt_min;
+    return dt;
   }
 };
 
-template <class DeviceType>
-void run_test_gramschmidt(int exp_beg, int exp_end, int num_trials,
-                          const char deviceTypeName[]) {
-  std::string label_gramschmidt;
-  label_gramschmidt.append("\"GramSchmidt< double , ");
-  label_gramschmidt.append(deviceTypeName);
-  label_gramschmidt.append(" >\"");
+template <class Scalar>
+static void GramSchmidt(benchmark::State& state) {
+  const int parallel_work_length = state.range(0);
 
-  for (int i = exp_beg; i < exp_end; ++i) {
-    double min_seconds = 0.0;
-    double max_seconds = 0.0;
-    double avg_seconds = 0.0;
+  for (auto _ : state) {
+    const double seconds =
+        ModifiedGramSchmidt<Scalar, Kokkos::DefaultExecutionSpace>::test(
+            parallel_work_length, 32);
 
-    const int parallel_work_length = 1 << i;
-
-    for (int j = 0; j < num_trials; ++j) {
-      const double seconds = ModifiedGramSchmidt<double, DeviceType>::test(
-          parallel_work_length, 32);
-
-      if (0 == j) {
-        min_seconds = seconds;
-        max_seconds = seconds;
-      } else {
-        if (seconds < min_seconds) min_seconds = seconds;
-        if (seconds > max_seconds) max_seconds = seconds;
-      }
-      avg_seconds += seconds;
-    }
-    avg_seconds /= num_trials;
-
-    std::cout << label_gramschmidt << " , " << parallel_work_length << " , "
-              << min_seconds << " , " << (min_seconds / parallel_work_length)
-              << ", " << avg_seconds << std::endl;
+    state.SetIterationTime(seconds);
+    state.counters["Count"] = benchmark::Counter(parallel_work_length);
+    state.counters["Time normalized"] =
+        benchmark::Counter(seconds / parallel_work_length);
   }
 }
 
-TEST(default_exec, gramschmidt) {
-  int exp_beg    = 10;
-  int exp_end    = 20;
-  int num_trials = 5;
-
-  if (command_line_num_args() > 1) exp_beg = std::stoi(command_line_arg(1));
-  if (command_line_num_args() > 2) exp_end = std::stoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
-
-  EXPECT_NO_THROW(run_test_gramschmidt<Kokkos::DefaultExecutionSpace>(
-      exp_beg, exp_end, num_trials, Kokkos::DefaultExecutionSpace::name()));
-}
+// FIXME_SYCL SYCL+Cuda reports "an illegal memory access was encountered"
+#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+BENCHMARK(GramSchmidt<double>)
+    ->ArgName("Count")
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 10, 1 << 18, 2),
+    })
+    ->UseManualTime()
+    ->Iterations(5);
+#else
+BENCHMARK(GramSchmidt<double>)
+    ->ArgName("Count")
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 10, 1 << 19, 2),
+    })
+    ->UseManualTime()
+    ->Iterations(5);
+#endif
 
 }  // namespace Test

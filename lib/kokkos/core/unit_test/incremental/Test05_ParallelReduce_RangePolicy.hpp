@@ -28,8 +28,11 @@ using value_type       = double;
 constexpr double value = 0.5;
 
 struct ReduceFunctor {
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int i, double &UpdateSum) const {
+  // The functor is templated on purpose to check that the value_type deduction
+  // in parallel_reduce even works in this case.
+  template <typename IndexType, typename ValueType>
+  KOKKOS_INLINE_FUNCTION void operator()(const IndexType i,
+                                         ValueType &UpdateSum) const {
     UpdateSum += (i + 1) * value;
   }
 };
@@ -45,6 +48,7 @@ struct NonTrivialReduceFunctor {
   NonTrivialReduceFunctor(NonTrivialReduceFunctor &&)      = default;
   NonTrivialReduceFunctor &operator=(NonTrivialReduceFunctor &&) = default;
   NonTrivialReduceFunctor &operator=(NonTrivialReduceFunctor const &) = default;
+  // Also make sure that it's OK if the destructor is not device-callable.
   ~NonTrivialReduceFunctor() {}
 };
 

@@ -17,9 +17,7 @@
 #include <Kokkos_Core.hpp>
 #include <TestHPX_Category.hpp>
 
-#include <hpx/local/future.hpp>
-
-#ifdef KOKKOS_ENABLE_HPX_ASYNC_DISPATCH
+#include <hpx/local/execution.hpp>
 
 namespace {
 
@@ -59,25 +57,24 @@ TEST(hpx, independent_instances_instance_ids) {
   ASSERT_EQ(hpx_independent1.impl_instance_id(),
             hpx_independent4.impl_instance_id());
 
-  hpx::shared_future<void> f = hpx::make_ready_future<void>();
-  Kokkos::Experimental::HPX hpx_independent_future1(f);
-  Kokkos::Experimental::HPX hpx_independent_future2 = hpx_independent_future1;
-  Kokkos::Experimental::HPX hpx_independent_future3{hpx_independent_future1};
-  Kokkos::Experimental::HPX hpx_independent_future4;
-  hpx_independent_future4 = hpx_independent_future1;
+  Kokkos::Experimental::HPX hpx_independent_sender1(
+      hpx::execution::experimental::unique_any_sender<>{
+          hpx::execution::experimental::just()});
+  Kokkos::Experimental::HPX hpx_independent_sender2 = hpx_independent_sender1;
+  Kokkos::Experimental::HPX hpx_independent_sender3{hpx_independent_sender1};
+  Kokkos::Experimental::HPX hpx_independent_sender4;
+  hpx_independent_sender4 = hpx_independent_sender1;
 
   ASSERT_NE(hpx_default1.impl_instance_id(),
-            hpx_independent1.impl_instance_id());
+            hpx_independent_sender1.impl_instance_id());
   ASSERT_NE(hpx_independent1.impl_instance_id(),
-            hpx_independent_future1.impl_instance_id());
-  ASSERT_EQ(hpx_independent_future1.impl_instance_id(),
-            hpx_independent_future2.impl_instance_id());
-  ASSERT_EQ(hpx_independent_future1.impl_instance_id(),
-            hpx_independent_future3.impl_instance_id());
-  ASSERT_EQ(hpx_independent_future1.impl_instance_id(),
-            hpx_independent_future4.impl_instance_id());
+            hpx_independent_sender1.impl_instance_id());
+  ASSERT_EQ(hpx_independent_sender1.impl_instance_id(),
+            hpx_independent_sender2.impl_instance_id());
+  ASSERT_EQ(hpx_independent_sender1.impl_instance_id(),
+            hpx_independent_sender3.impl_instance_id());
+  ASSERT_EQ(hpx_independent_sender1.impl_instance_id(),
+            hpx_independent_sender4.impl_instance_id());
 }
 
 }  // namespace
-
-#endif

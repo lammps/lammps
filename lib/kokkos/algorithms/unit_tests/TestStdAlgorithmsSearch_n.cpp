@@ -203,26 +203,26 @@ void run_single_scenario(const InfoType& scenario_info, std::size_t count,
     auto myrit = KE::search_n(exespace(), KE::cbegin(view), KE::cend(view),
                               count, value, args...);
     const auto mydiff = myrit - KE::cbegin(view);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit        = KE::search_n("label", exespace(), KE::cbegin(view),
                               KE::cend(view), count, value, args...);
     const auto mydiff = myrit - KE::cbegin(view);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit = KE::search_n("label", exespace(), view, count, value, args...);
     const auto mydiff = myrit - KE::begin(view);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit        = KE::search_n(exespace(), view, count, value, args...);
     const auto mydiff = myrit - KE::begin(view);
-    EXPECT_EQ(mydiff, stddiff);
+    ASSERT_EQ(mydiff, stddiff);
   }
 
   Kokkos::fence();
@@ -297,12 +297,6 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_non_mod_seq_ops, search_n) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<StridedThreeTag, int>();
 }

@@ -177,7 +177,7 @@ void verify_data(ViewType1 data_view,  // contains data
       //           << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
 
       if (std::is_same<gold_view_value_type, int>::value) {
-        EXPECT_EQ(gold_h(i), test_view_h(i));
+        ASSERT_EQ(gold_h(i), test_view_h(i));
       } else {
         const auto error = std::abs(gold_h(i) - test_view_h(i));
         if (error > 1e-10) {
@@ -246,7 +246,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto r = KE::transform_inclusive_scan(exespace(), KE::cbegin(view_from),
                                           KE::cend(view_from),
                                           KE::begin(view_dest), args...);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -255,7 +255,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto r = KE::transform_inclusive_scan(
         "label", exespace(), KE::cbegin(view_from), KE::cend(view_from),
         KE::begin(view_dest), args...);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -263,7 +263,7 @@ void run_single_scenario(const InfoType& scenario_info,
     fill_zero(view_dest);
     auto r =
         KE::transform_inclusive_scan(exespace(), view_from, view_dest, args...);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -271,7 +271,7 @@ void run_single_scenario(const InfoType& scenario_info,
     fill_zero(view_dest);
     auto r = KE::transform_inclusive_scan("label", exespace(), view_from,
                                           view_dest, args...);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -305,6 +305,73 @@ TEST(std_algorithms_numeric_ops_test, transform_inclusive_scan) {
   // run_all_scenarios<StridedThreeTag, int>();
 }
 #endif
+
+template <class ValueType>
+struct MultiplyFunctor {
+  KOKKOS_INLINE_FUNCTION
+  ValueType operator()(const ValueType& a, const ValueType& b) const {
+    return (a * b);
+  }
+};
+
+TEST(std_algorithms_numeric_ops_test, transform_inclusive_scan_functor) {
+  using value_type = KE::Impl::ValueWrapperForNoNeutralElement<int>;
+
+  auto test_lambda = [&](auto& functor) {
+    value_type value1;
+    functor.init(value1);
+    ASSERT_EQ(value1.val, 0);
+    ASSERT_EQ(value1.is_initial, true);
+
+    value_type value2;
+    value2.val        = 1;
+    value2.is_initial = false;
+    functor.join(value1, value2);
+    ASSERT_EQ(value1.val, 1);
+    ASSERT_EQ(value1.is_initial, false);
+
+    functor.init(value1);
+    functor.join(value2, value1);
+    ASSERT_EQ(value2.val, 1);
+    ASSERT_EQ(value2.is_initial, false);
+
+    functor.init(value2);
+    functor.join(value2, value1);
+    ASSERT_EQ(value2.val, 0);
+    ASSERT_EQ(value2.is_initial, true);
+
+    value1.val        = 3;
+    value1.is_initial = false;
+    value2.val        = 2;
+    value2.is_initial = false;
+    functor.join(value2, value1);
+    ASSERT_EQ(value2.val, 6);
+    ASSERT_EQ(value2.is_initial, false);
+  };
+
+  int dummy       = 0;
+  using view_type = Kokkos::View<int*, exespace>;
+  view_type dummy_view("dummy_view", 0);
+  using unary_op_type =
+      KE::Impl::StdNumericScanIdentityReferenceUnaryFunctor<int>;
+  {
+    using functor_type = KE::Impl::TransformInclusiveScanNoInitValueFunctor<
+        exespace, int, int, view_type, view_type, MultiplyFunctor<int>,
+        unary_op_type>;
+    functor_type functor(dummy_view, dummy_view, {}, {});
+
+    test_lambda(functor);
+  }
+
+  {
+    using functor_type = KE::Impl::TransformInclusiveScanWithInitValueFunctor<
+        exespace, int, int, view_type, view_type, MultiplyFunctor<int>,
+        unary_op_type>;
+    functor_type functor(dummy_view, dummy_view, {}, {}, dummy);
+
+    test_lambda(functor);
+  }
+}
 
 }  // namespace TransformIncScan
 }  // namespace stdalgos

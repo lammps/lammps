@@ -18,7 +18,7 @@
 #define KOKKOS_SYCL_UNIQUE_TOKEN_HPP
 
 #include <impl/Kokkos_ConcurrentBitset.hpp>
-#include <Kokkos_SYCL_Space.hpp>
+#include <SYCL/Kokkos_SYCL_Space.hpp>
 #include <Kokkos_UniqueToken.hpp>
 
 namespace Kokkos {
@@ -93,12 +93,8 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
     }
 
     // Make sure that all writes in the previous lock owner are visible to me
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
     desul::atomic_thread_fence(desul::MemoryOrderAcquire(),
                                desul::MemoryScopeDevice());
-#else
-    Kokkos::memory_fence();
-#endif
     return idx;
   }
 
@@ -114,12 +110,8 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
   KOKKOS_INLINE_FUNCTION
   void release(size_type idx) const noexcept {
     // Make sure my writes are visible to the next lock owner
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
     desul::atomic_thread_fence(desul::MemoryOrderRelease(),
                                desul::MemoryScopeDevice());
-#else
-    Kokkos::memory_fence();
-#endif
     (void)Kokkos::atomic_exchange(&m_locks(idx), 0);
   }
 };

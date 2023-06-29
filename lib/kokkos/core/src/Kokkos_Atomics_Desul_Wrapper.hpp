@@ -23,11 +23,9 @@ static_assert(false,
 #define KOKKOS_DESUL_ATOMICS_WRAPPER_HPP_
 #include <Kokkos_Macros.hpp>
 
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 #include <Kokkos_Atomics_Desul_Config.hpp>
 #include <desul/atomics.hpp>
 
-#include <impl/Kokkos_Atomic_Memory_Order.hpp>
 #include <impl/Kokkos_Volatile_Load.hpp>
 
 // clang-format off
@@ -229,54 +227,25 @@ T atomic_compare_exchange(T* const dest, desul::Impl::dont_deduce_this_parameter
 }
 
 namespace Impl {
-
-  template<class MemoryOrder>
-  struct KokkosToDesulMemoryOrder;
-
-  template<>
-  struct KokkosToDesulMemoryOrder<memory_order_seq_cst_t> {
-    using type = desul::MemoryOrderSeqCst;
-  };
-  template<>
-  struct KokkosToDesulMemoryOrder<memory_order_acquire_t> {
-    using type = desul::MemoryOrderAcquire;
-  };
-  template<>
-  struct KokkosToDesulMemoryOrder<memory_order_release_t> {
-    using type = desul::MemoryOrderRelease;
-  };
-  template<>
-  struct KokkosToDesulMemoryOrder<memory_order_acq_rel_t> {
-    using type = desul::MemoryOrderAcqRel;
-  };
-  template<>
-  struct KokkosToDesulMemoryOrder<memory_order_relaxed_t> {
-    using type = desul::MemoryOrderRelaxed;
-  };
   template<class T, class MemOrderSuccess, class MemOrderFailure> KOKKOS_INLINE_FUNCTION
-  bool atomic_compare_exchange_strong(T* const dest, T& expected, const T desired, MemOrderSuccess, MemOrderFailure) {
-    return desul::atomic_compare_exchange_strong(dest, expected, desired,
-                  typename KokkosToDesulMemoryOrder<MemOrderSuccess>::type(),
-                  typename KokkosToDesulMemoryOrder<MemOrderFailure>::type(),
-                  KOKKOS_DESUL_MEM_SCOPE);
-
+  bool atomic_compare_exchange_strong(T* const dest, T& expected, const T desired, MemOrderSuccess succ, MemOrderFailure fail) {
+    return desul::atomic_compare_exchange_strong(dest, expected, desired, succ, fail, KOKKOS_DESUL_MEM_SCOPE);
   }
   template<class T, class MemoryOrder>
   KOKKOS_INLINE_FUNCTION
-  T atomic_load(const T* const src, MemoryOrder) {
-    return desul::atomic_load(src, typename KokkosToDesulMemoryOrder<MemoryOrder>::type(), KOKKOS_DESUL_MEM_SCOPE);
+  T atomic_load(const T* const src, MemoryOrder order) {
+    return desul::atomic_load(src, order, KOKKOS_DESUL_MEM_SCOPE);
   }
   template<class T, class MemoryOrder>
   KOKKOS_INLINE_FUNCTION
-  void atomic_store(T* const src, const T val, MemoryOrder) {
-    return desul::atomic_store(src, val, typename KokkosToDesulMemoryOrder<MemoryOrder>::type(), KOKKOS_DESUL_MEM_SCOPE);
+  void atomic_store(T* const src, const T val, MemoryOrder order) {
+    return desul::atomic_store(src, val, order, KOKKOS_DESUL_MEM_SCOPE);
   }
-}
+}  // namespace Impl
 
-}
+}  // namespace Kokkos
 
 #undef KOKKOS_DESUL_MEM_SCOPE
 
 // clang-format on
-#endif  // KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 #endif

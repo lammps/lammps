@@ -54,7 +54,7 @@ void test_random_access_it_verify(IteratorType it, ValueType gold_value) {
   Kokkos::parallel_for("_std_algo_copy", 1, cf);
   auto v_h =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), checkView);
-  EXPECT_EQ(v_h(), gold_value);
+  ASSERT_EQ(v_h(), gold_value);
 }
 
 TEST_F(random_access_iterator_test, dereference) {
@@ -96,9 +96,9 @@ void test_random_access_it_subscript_op_verify(IteratorType it) {
 
   auto v_h =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), checkView);
-  EXPECT_EQ(v_h(0), (value_t)0);
-  EXPECT_EQ(v_h(1), (value_t)1);
-  EXPECT_EQ(v_h(2), (value_t)2);
+  ASSERT_EQ(v_h(0), (value_t)0);
+  ASSERT_EQ(v_h(1), (value_t)1);
+  ASSERT_EQ(v_h(2), (value_t)2);
 }
 
 TEST_F(random_access_iterator_test, subscript_operator) {
@@ -188,9 +188,9 @@ TEST_F(random_access_iterator_test, operatorsSet4) {
   auto it7 = KE::Impl::RandomAccessIterator<static_view_t>(m_static_view, 3);
   auto it8 = KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view, 3);
   auto it9 = KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view, 3);
-  EXPECT_EQ(it1, it7);
-  EXPECT_EQ(it2, it8);
-  EXPECT_EQ(it3, it9);
+  ASSERT_EQ(it1, it7);
+  ASSERT_EQ(it2, it8);
+  ASSERT_EQ(it3, it9);
   EXPECT_GE(it1, it7);
   EXPECT_GE(it2, it8);
   EXPECT_GE(it3, it9);
@@ -205,16 +205,16 @@ TEST_F(random_access_iterator_test, assignment_operator) {
   EXPECT_NE(it1, it2);
 
   it2 = it1;
-  EXPECT_EQ(it1, it2);
+  ASSERT_EQ(it1, it2);
 }
 
 TEST_F(random_access_iterator_test, distance) {
   auto first = KE::begin(m_dynamic_view);
   auto last  = KE::end(m_dynamic_view);
 
-  EXPECT_EQ(0, KE::distance(first, first));
-  EXPECT_EQ(1, KE::distance(first, first + 1));
-  EXPECT_EQ(m_dynamic_view.extent(0), size_t(KE::distance(first, last)));
+  ASSERT_EQ(0, KE::distance(first, first));
+  ASSERT_EQ(1, KE::distance(first, first + 1));
+  ASSERT_EQ(m_dynamic_view.extent(0), size_t(KE::distance(first, last)));
 }
 
 }  // namespace stdalgos

@@ -138,7 +138,8 @@ class CudaInternal {
   mutable int64_t m_team_scratch_current_size[10];
   mutable void* m_team_scratch_ptr[10];
   mutable std::atomic_int m_team_scratch_pool[10];
-  std::int32_t* m_scratch_locks;
+  int32_t* m_scratch_locks;
+  size_t m_num_scratch_locks;
 
   bool was_initialized = false;
   bool was_finalized   = false;
@@ -234,11 +235,13 @@ std::vector<Cuda> partition_space(const Cuda&, Args...) {
 }
 
 template <class T>
-std::vector<Cuda> partition_space(const Cuda&, std::vector<T>& weights) {
+std::vector<Cuda> partition_space(const Cuda&, std::vector<T> const& weights) {
   static_assert(
       std::is_arithmetic<T>::value,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
+  // We only care about the number of instances to create and ignore weights
+  // otherwise.
   std::vector<Cuda> instances(weights.size());
   Impl::create_Cuda_instances(instances);
   return instances;

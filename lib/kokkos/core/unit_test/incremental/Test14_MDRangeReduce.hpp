@@ -39,6 +39,13 @@ struct MyComplex {
   MyComplex(const MyComplex& src) : _re(src._re), _im(src._im) {}
 
   KOKKOS_INLINE_FUNCTION
+  MyComplex& operator=(const MyComplex& src) {
+    _re = src._re;
+    _im = src._im;
+    return *this;
+  }
+
+  KOKKOS_INLINE_FUNCTION
   void operator+=(const MyComplex& src) {
     _re += src._re;
     _im += src._im;
@@ -93,6 +100,8 @@ struct TestMDRangeReduce {
         },
         d_result);
 
+// FIXME_OPENACC: scalar reduction variable on the device is not yet supported.
+#if !defined(KOKKOS_ENABLE_OPENACC)
     // Parallel reduce on a view.
     Kokkos::parallel_reduce(
         mdPolicy_2D,
@@ -100,16 +109,23 @@ struct TestMDRangeReduce {
           update_value += d_data(i, j);
         },
         d_resultView);
+#endif
 
     // Check correctness.
     ASSERT_EQ(h_result, d_result);
 
+// FIXME_OPENACC: scalar reduction variable on the device is not yet supported.
+#if !defined(KOKKOS_ENABLE_OPENACC)
     // Copy view back to host.
     value_type view_result = 0.0;
     Kokkos::deep_copy(view_result, d_resultView);
     ASSERT_EQ(h_result, view_result);
+#endif
   }
 
+// FIXME_OPENACC: custom reductions are not yet supported in the
+// OpenACC backend.
+#if !defined(KOKKOS_ENABLE_OPENACC)
   // Custom Reduction
   void reduce_custom() {
     Complex_View_1D d_data("complex array", N);
@@ -136,6 +152,7 @@ struct TestMDRangeReduce {
     ASSERT_EQ(result._re, sum * 0.5);
     ASSERT_EQ(result._im, -sum * 0.5);
   }
+#endif
 };
 
 // Reductions tests for MDRange policy and customized reduction.
@@ -144,8 +161,12 @@ TEST(TEST_CATEGORY, incr_14_MDrangeReduce) {
   test.reduce_MDRange();
 // FIXME_OPENMPTARGET: custom reductions are not yet supported in the
 // OpenMPTarget backend.
+// FIXME_OPENACC: custom reductions are not yet supported in the
+// OpenACC backend.
 #if !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if !defined(KOKKOS_ENABLE_OPENACC)
   test.reduce_custom();
+#endif
 #endif
 }
 

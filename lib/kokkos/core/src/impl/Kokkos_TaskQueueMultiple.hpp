@@ -128,14 +128,12 @@ class TaskQueueMultiple : public TaskQueue<ExecSpace, MemorySpace> {
               // task stolen.
               // first increment our ready count, then decrement the ready count
               // on the other queue:
-              Kokkos::Impl::desul_atomic_inc(
-                  &this->m_ready_count, Kokkos::Impl::MemoryOrderSeqCst(),
-                  Kokkos::Impl::MemoryScopeDevice());  // TODO?
-                                                       // memory_order_relaxed
-              Kokkos::Impl::desul_atomic_dec(
-                  &steal_from.m_ready_count, Kokkos::Impl::MemoryOrderSeqCst(),
-                  Kokkos::Impl::MemoryScopeDevice());  // TODO?
-                                                       // memory_order_relaxed
+              desul::atomic_inc(
+                  &this->m_ready_count, desul::MemoryOrderSeqCst(),
+                  desul::MemoryScopeDevice());  // TODO? memory_order_relaxed
+              desul::atomic_dec(
+                  &steal_from.m_ready_count, desul::MemoryOrderSeqCst(),
+                  desul::MemoryScopeDevice());  // TODO? memory_order_relaxed
               return rv;
             }
           }

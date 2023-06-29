@@ -59,7 +59,7 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
 
   template <class FunctorType>
   int team_size_max(const FunctorType&, const ParallelForTag&) const {
-    int pool_size = traits::execution_space::impl_thread_pool_size(1, m_space);
+    int pool_size          = m_space.impl_thread_pool_size(1);
     int max_host_team_size = Impl::HostThreadTeamData::max_team_members;
     return pool_size < max_host_team_size ? pool_size : max_host_team_size;
   }
@@ -68,7 +68,7 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
 
   template <class FunctorType>
   int team_size_max(const FunctorType&, const ParallelReduceTag&) const {
-    int pool_size = traits::execution_space::impl_thread_pool_size(1, m_space);
+    int pool_size          = m_space.impl_thread_pool_size(1);
     int max_host_team_size = Impl::HostThreadTeamData::max_team_members;
     return pool_size < max_host_team_size ? pool_size : max_host_team_size;
   }
@@ -79,12 +79,12 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
   }
   template <class FunctorType>
   int team_size_recommended(const FunctorType&, const ParallelForTag&) const {
-    return traits::execution_space::impl_thread_pool_size(2, m_space);
+    return m_space.impl_thread_pool_size(2);
   }
   template <class FunctorType>
   int team_size_recommended(const FunctorType&,
                             const ParallelReduceTag&) const {
-    return traits::execution_space::impl_thread_pool_size(2, m_space);
+    return m_space.impl_thread_pool_size(2);
   }
   template <class FunctorType, class ReducerType>
   inline int team_size_recommended(const FunctorType& f, const ReducerType&,
@@ -120,10 +120,8 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
   typename traits::execution_space m_space;
 
   inline void init(const int league_size_request, const int team_size_request) {
-    const int pool_size =
-        traits::execution_space::impl_thread_pool_size(0, m_space);
-    const int team_grain =
-        traits::execution_space::impl_thread_pool_size(2, m_space);
+    const int pool_size          = m_space.impl_thread_pool_size(0);
+    const int team_grain         = m_space.impl_thread_pool_size(2);
     const int max_host_team_size = Impl::HostThreadTeamData::max_team_members;
     const int team_max =
         ((pool_size < max_host_team_size) ? pool_size : max_host_team_size);
@@ -192,8 +190,7 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
         m_tune_team(true),
         m_tune_vector(false),
         m_space(space) {
-    init(league_size_request,
-         traits::execution_space::impl_thread_pool_size(2, m_space));
+    init(league_size_request, m_space.impl_thread_pool_size(2));
   }
 
   TeamPolicyInternal(const typename traits::execution_space& space,
@@ -207,8 +204,7 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
         m_tune_team(true),
         m_tune_vector(true),
         m_space(space) {
-    init(league_size_request,
-         traits::execution_space::impl_thread_pool_size(2, m_space));
+    init(league_size_request, m_space.impl_thread_pool_size(2));
   }
 
   TeamPolicyInternal(const typename traits::execution_space& space,
@@ -242,8 +238,7 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
         m_chunk_size(0),
         m_tune_team(true),
         m_tune_vector(false) {
-    init(league_size_request,
-         traits::execution_space::impl_thread_pool_size(2, m_space));
+    init(league_size_request, m_space.impl_thread_pool_size(2));
   }
 
   TeamPolicyInternal(int league_size_request,
@@ -255,8 +250,7 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
         m_chunk_size(0),
         m_tune_team(true),
         m_tune_vector(true) {
-    init(league_size_request,
-         traits::execution_space::impl_thread_pool_size(2, m_space));
+    init(league_size_request, m_space.impl_thread_pool_size(2));
   }
 
   TeamPolicyInternal(int league_size_request, int team_size_request,
@@ -310,9 +304,7 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
  private:
   /** \brief finalize chunk_size if it was set to AUTO*/
   inline void set_auto_chunk_size() {
-    int concurrency =
-        traits::execution_space::impl_thread_pool_size(0, m_space) /
-        m_team_alloc;
+    int concurrency = m_space.impl_thread_pool_size(0) / m_team_alloc;
     if (concurrency == 0) concurrency = 1;
 
     if (m_chunk_size > 0) {

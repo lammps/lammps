@@ -14,8 +14,8 @@
 //
 //@HEADER
 
-#ifndef GIT_VERSION_H
-#define GIT_VERSION_H
+#ifndef KOKKOS_GIT_VERSION_INFO_H
+#define KOKKOS_GIT_VERSION_INFO_H
 
 #include <string>
 

@@ -399,7 +399,8 @@ inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
 
   if constexpr (Kokkos::is_view<ReturnType>::value) {
     Kokkos::Impl::shared_allocation_tracking_disable();
-    Impl::ParallelScanWithTotal<FunctorType, ExecutionPolicy, ReturnType>
+    Impl::ParallelScanWithTotal<FunctorType, ExecutionPolicy,
+                                typename ReturnType::value_type>
         closure(functor, inner_policy, return_value);
     Kokkos::Impl::shared_allocation_tracking_enable();
     closure.execute();

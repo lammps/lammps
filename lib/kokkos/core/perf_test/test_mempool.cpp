@@ -19,8 +19,12 @@
 #include <cstdlib>
 #include <limits>
 
+#include <benchmark/benchmark.h>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Timer.hpp>
+
+#include "Benchmark_Context.hpp"
+#include "PerfTest_Category.hpp"
 
 using ExecSpace   = Kokkos::DefaultExecutionSpace;
 using MemorySpace = Kokkos::DefaultExecutionSpace::memory_space;
@@ -146,53 +150,8 @@ struct TestFunctor {
   }
 };
 
-int main(int argc, char* argv[]) {
-  static const char help_flag[]         = "--help";
-  static const char alloc_size_flag[]   = "--alloc_size=";
-  static const char super_size_flag[]   = "--super_size=";
-  static const char chunk_span_flag[]   = "--chunk_span=";
-  static const char fill_stride_flag[]  = "--fill_stride=";
-  static const char fill_level_flag[]   = "--fill_level=";
-  static const char repeat_outer_flag[] = "--repeat_outer=";
-  static const char repeat_inner_flag[] = "--repeat_inner=";
-
-  long total_alloc_size   = 1000000;
-  int min_superblock_size = 10000;
-  int chunk_span          = 5;
-  int fill_stride         = 1;
-  int fill_level          = 70;
-  int repeat_outer        = 1;
-  int repeat_inner        = 1;
-
-  int ask_help = 0;
-
-  for (int i = 1; i < argc; i++) {
-    const char* const a = argv[i];
-
-    if (!strncmp(a, help_flag, strlen(help_flag))) ask_help = 1;
-
-    if (!strncmp(a, alloc_size_flag, strlen(alloc_size_flag)))
-      total_alloc_size = atol(a + strlen(alloc_size_flag));
-
-    if (!strncmp(a, super_size_flag, strlen(super_size_flag)))
-      min_superblock_size = std::stoi(a + strlen(super_size_flag));
-
-    if (!strncmp(a, fill_stride_flag, strlen(fill_stride_flag)))
-      fill_stride = std::stoi(a + strlen(fill_stride_flag));
-
-    if (!strncmp(a, fill_level_flag, strlen(fill_level_flag)))
-      fill_level = std::stoi(a + strlen(fill_level_flag));
-
-    if (!strncmp(a, chunk_span_flag, strlen(chunk_span_flag)))
-      chunk_span = std::stoi(a + strlen(chunk_span_flag));
-
-    if (!strncmp(a, repeat_outer_flag, strlen(repeat_outer_flag)))
-      repeat_outer = std::stoi(a + strlen(repeat_outer_flag));
-
-    if (!strncmp(a, repeat_inner_flag, strlen(repeat_inner_flag)))
-      repeat_inner = std::stoi(a + strlen(repeat_inner_flag));
-  }
-
+int get_number_alloc(int chunk_span, int min_superblock_size,
+                     long total_alloc_size, int fill_level) {
   int chunk_span_bytes = 0;
   for (int i = 0; i < chunk_span; ++i) {
     auto chunk_bytes = TestFunctor::chunk * (1 + i);
@@ -212,81 +171,85 @@ int main(int argc, char* argv[]) {
   auto bytes_wanted       = (actual_total_bytes * fill_level) / 100;
   auto chunk_spans        = bytes_wanted / chunk_span_bytes;
   auto number_alloc       = int(chunk_spans * chunk_span);
+  return number_alloc;
+}
 
-  if (ask_help) {
-    std::cout << "command line options:"
-              << " " << help_flag << " " << alloc_size_flag << "##"
-              << " " << super_size_flag << "##"
-              << " " << fill_stride_flag << "##"
-              << " " << fill_level_flag << "##"
-              << " " << chunk_span_flag << "##"
-              << " " << repeat_outer_flag << "##"
-              << " " << repeat_inner_flag << "##" << std::endl;
-    return 0;
+template <class T>
+T get_parameter(const char flag[], T default_value) {
+  auto argc  = Test::command_line_num_args();
+  auto value = default_value;
+
+  for (int i = 1; i < argc; i++) {
+    const char* const a = Test::command_line_arg(i);
+
+    if (!strncmp(a, flag, strlen(flag))) value = std::stoi(a + strlen(flag));
   }
 
-  Kokkos::initialize(argc, argv);
+  return value;
+}
 
-  double sum_fill_time  = 0;
-  double sum_cycle_time = 0;
-  double sum_both_time  = 0;
-  double min_fill_time  = std::numeric_limits<double>::max();
-  double min_cycle_time = std::numeric_limits<double>::max();
-  double min_both_time  = std::numeric_limits<double>::max();
-  // one alloc in fill, alloc/dealloc pair in repeat_inner
-  for (int i = 0; i < repeat_outer; ++i) {
+static void Mempool_Fill(benchmark::State& state) {
+  long total_alloc_size =
+      get_parameter("--alloc_size=", static_cast<long>(state.range(0)));
+  int min_superblock_size = get_parameter("--super_size=", state.range(1));
+  int chunk_span          = get_parameter("--chunk_span=", state.range(2));
+  int fill_stride         = get_parameter("--fill_stride=", state.range(3));
+  int fill_level          = get_parameter("--fill_level=", state.range(4));
+  int repeat_inner        = get_parameter("--repeat_inner=", state.range(5));
+  int number_alloc        = get_number_alloc(chunk_span, min_superblock_size,
+                                      total_alloc_size, fill_level);
+
+  for (auto _ : state) {
     TestFunctor functor(total_alloc_size, min_superblock_size, number_alloc,
                         fill_stride, chunk_span, repeat_inner);
-
     Kokkos::Timer timer;
 
     if (!functor.test_fill()) {
       Kokkos::abort("fill ");
     }
 
-    auto t0 = timer.seconds();
+    state.SetIterationTime(timer.seconds());
+    state.counters[KokkosBenchmark::benchmark_fom("fill ops per second")] =
+        benchmark::Counter(number_alloc,
+                           benchmark::Counter::kIsIterationInvariantRate);
+  }
+}
+
+static void Mempool_Alloc_Dealloc(benchmark::State& state) {
+  long total_alloc_size =
+      get_parameter("--alloc_size=", static_cast<long>(state.range(0)));
+  int min_superblock_size = get_parameter("--super_size=", state.range(1));
+  int chunk_span          = get_parameter("--chunk_span=", state.range(2));
+  int fill_stride         = get_parameter("--fill_stride=", state.range(3));
+  int fill_level          = get_parameter("--fill_level=", state.range(4));
+  int repeat_inner        = get_parameter("--repeat_inner=", state.range(5));
+  int number_alloc        = get_number_alloc(chunk_span, min_superblock_size,
+                                      total_alloc_size, fill_level);
+
+  for (auto _ : state) {
+    TestFunctor functor(total_alloc_size, min_superblock_size, number_alloc,
+                        fill_stride, chunk_span, repeat_inner);
+    Kokkos::Timer timer;
 
     if (!functor.test_alloc_dealloc()) {
       Kokkos::abort("alloc/dealloc ");
     }
 
-    auto t1              = timer.seconds();
-    auto this_fill_time  = t0;
-    auto this_cycle_time = t1 - t0;
-    auto this_both_time  = t1;
-    sum_fill_time += this_fill_time;
-    sum_cycle_time += this_cycle_time;
-    sum_both_time += this_both_time;
-    min_fill_time  = std::min(min_fill_time, this_fill_time);
-    min_cycle_time = std::min(min_cycle_time, this_cycle_time);
-    min_both_time  = std::min(min_both_time, this_both_time);
+    state.SetIterationTime(timer.seconds());
+    state.counters[KokkosBenchmark::benchmark_fom("cycle ops per second")] =
+        benchmark::Counter(2 * number_alloc * repeat_inner,
+                           benchmark::Counter::kIsIterationInvariantRate);
   }
-
-  Kokkos::finalize();
-
-  printf(
-      "\"mempool: alloc super stride level span inner outer number\" %ld %d %d "
-      "%d %d %d %d %d\n",
-      total_alloc_size, min_superblock_size, fill_stride, fill_level,
-      chunk_span, repeat_inner, repeat_outer, number_alloc);
-
-  auto avg_fill_time  = sum_fill_time / repeat_outer;
-  auto avg_cycle_time = sum_cycle_time / repeat_outer;
-  auto avg_both_time  = sum_both_time / repeat_outer;
-
-  printf("\"mempool: fill time (min, avg)\" %.8f %.8f\n", min_fill_time,
-         avg_fill_time);
-
-  printf("\"mempool: cycle time (min, avg)\" %.8f %.8f\n", min_cycle_time,
-         avg_cycle_time);
-
-  printf("\"mempool: test time (min, avg)\" %.8f %.8f\n", min_both_time,
-         avg_both_time);
-
-  printf("\"mempool: fill ops per second (max, avg)\" %g %g\n",
-         number_alloc / min_fill_time, number_alloc / avg_fill_time);
-
-  printf("\"mempool: cycle ops per second (max, avg)\" %g %g\n",
-         (2 * number_alloc * repeat_inner) / min_cycle_time,
-         (2 * number_alloc * repeat_inner) / avg_cycle_time);
 }
+
+const std::vector<std::string> ARG_NAMES = {
+    "total_alloc_size", "min_superblock_size", "chunk_span",
+    "fill_stride",      "fill_level",          "repeat_inner"};
+const std::vector<int64_t> ARGS = {1'000'000, 10'000, 5, 1, 70, 1};
+
+BENCHMARK(Mempool_Fill)->ArgNames(ARG_NAMES)->Args(ARGS)->UseManualTime();
+
+BENCHMARK(Mempool_Alloc_Dealloc)
+    ->ArgNames(ARG_NAMES)
+    ->Args(ARGS)
+    ->UseManualTime();

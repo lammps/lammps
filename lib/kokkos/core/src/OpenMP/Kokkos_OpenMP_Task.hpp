@@ -23,7 +23,7 @@
 #include <Kokkos_TaskScheduler_fwd.hpp>
 
 #include <impl/Kokkos_HostThreadTeam.hpp>
-#include <Kokkos_OpenMP.hpp>
+#include <OpenMP/Kokkos_OpenMP.hpp>
 
 #include <type_traits>
 #include <cassert>
@@ -156,7 +156,7 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::OpenMP, QueueType>> {
   }
 
   static uint32_t get_max_team_count(execution_space const& espace) {
-    return static_cast<uint32_t>(OpenMP::impl_thread_pool_size(espace));
+    return static_cast<uint32_t>(espace.impl_thread_pool_size());
   }
 
   // TODO @tasking @optimization DSH specialize this for trivially destructible
@@ -189,7 +189,8 @@ class TaskQueueSpecializationConstrained<
     using task_base_type = typename scheduler_type::task_base;
     using queue_type     = typename scheduler_type::queue_type;
 
-    if (1 == OpenMP::impl_thread_pool_size()) {
+    execution_space exec;
+    if (1 == exec.impl_thread_pool_size()) {
       task_base_type* const end = (task_base_type*)task_base_type::EndTag;
 
       HostThreadTeamData& team_data_single =

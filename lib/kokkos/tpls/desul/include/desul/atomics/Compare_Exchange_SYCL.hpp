@@ -11,6 +11,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 #include <desul/atomics/Adapt_SYCL.hpp>
 #include <desul/atomics/Common.hpp>
+#include <desul/atomics/Lock_Array_SYCL.hpp>
 #include <desul/atomics/Thread_Fence_SYCL.hpp>
 
 // FIXME_SYCL SYCL2020 dictates that <sycl/sycl.hpp> is the header to include
@@ -78,16 +79,62 @@ std::enable_if_t<sizeof(T) == 8, T> device_atomic_exchange(T* const dest,
 template <class T, class MemoryOrder, class MemoryScope>
 std::enable_if_t<(sizeof(T) != 8) && (sizeof(T) != 4), T>
 device_atomic_compare_exchange(
-    T* const /*dest*/, T compare, T /*value*/, MemoryOrder, MemoryScope) {
-  assert(false);  // FIXME_SYCL not implemented
-  return compare;
+    T* const dest, T compare, T value, MemoryOrder, MemoryScope scope) {
+  // This is a way to avoid deadlock in a subgroup
+  T return_val;
+  int done = 0;
+  auto sg = sycl::ext::oneapi::experimental::this_sub_group();
+  using sycl::ext::oneapi::group_ballot;
+  using sycl::ext::oneapi::sub_group_mask;
+  sub_group_mask active = group_ballot(sg, 1);
+  sub_group_mask done_active = group_ballot(sg, 0);
+  while (active != done_active) {
+    if (!done) {
+      if (lock_address_sycl((void*)dest, scope)) {
+        if (std::is_same<MemoryOrder, MemoryOrderSeqCst>::value)
+          atomic_thread_fence(MemoryOrderRelease(), scope);
+        atomic_thread_fence(MemoryOrderAcquire(), scope);
+        return_val = *dest;
+        if (return_val == compare) {
+          *dest = value;
+          device_atomic_thread_fence(MemoryOrderRelease(), scope);
+        }
+        unlock_address_sycl((void*)dest, scope);
+        done = 1;
+      }
+    }
+    done_active = group_ballot(sg, done);
+  }
+  return return_val;
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
 std::enable_if_t<(sizeof(T) != 8) && (sizeof(T) != 4), T> device_atomic_exchange(
-    T* const /*dest*/, T value, MemoryOrder, MemoryScope) {
-  assert(false);  // FIXME_SYCL not implemented
-  return value;
+    T* const dest, T value, MemoryOrder, MemoryScope scope) {
+  // This is a way to avoid deadlock in a subgroup
+  T return_val;
+  int done = 0;
+  auto sg = sycl::ext::oneapi::experimental::this_sub_group();
+  using sycl::ext::oneapi::group_ballot;
+  using sycl::ext::oneapi::sub_group_mask;
+  sub_group_mask active = group_ballot(sg, 1);
+  sub_group_mask done_active = group_ballot(sg, 0);
+  while (active != done_active) {
+    if (!done) {
+      if (lock_address_sycl((void*)dest, scope)) {
+        if (std::is_same<MemoryOrder, MemoryOrderSeqCst>::value)
+          atomic_thread_fence(MemoryOrderRelease(), scope);
+        device_atomic_thread_fence(MemoryOrderAcquire(), scope);
+        return_val = *dest;
+        *dest = value;
+        device_atomic_thread_fence(MemoryOrderRelease(), scope);
+        unlock_address_sycl((void*)dest, scope);
+        done = 1;
+      }
+    }
+    done_active = group_ballot(sg, done);
+  }
+  return return_val;
 }
 
 }  // namespace Impl

@@ -168,9 +168,12 @@ void host_check_binary_op_one_loader(BinaryOp binary_op, std::size_t n,
         loader.host_load(second_args + i, nlanes, second_arg);
     if (!(loaded_first_arg && loaded_second_arg)) continue;
     simd_type expected_result;
-    for (std::size_t lane = 0; lane < nlanes; ++lane) {
-      expected_result[lane] =
-          binary_op.on_host(T(first_arg[lane]), T(second_arg[lane]));
+    // gcc 8.4.0 warns if using nlanes as upper bound about first_arg and/or
+    // second_arg being uninitialized
+    for (std::size_t lane = 0; lane < simd_type::size(); ++lane) {
+      if (lane < nlanes)
+        expected_result[lane] =
+            binary_op.on_host(T(first_arg[lane]), T(second_arg[lane]));
     }
     simd_type const computed_result = binary_op.on_host(first_arg, second_arg);
     host_check_equality(expected_result, computed_result, nlanes);
@@ -277,16 +280,42 @@ class divides {
   }
 };
 
-template <class Abi>
-inline void host_check_math_ops() {
-  std::size_t constexpr n     = 11;
-  double const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
-  double const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+template <typename Abi, typename DataType, size_t n>
+inline void host_check_all_math_ops(const DataType (&first_args)[n],
+                                    const DataType (&second_args)[n]) {
   host_check_binary_op_all_loaders<Abi>(plus(), n, first_args, second_args);
   host_check_binary_op_all_loaders<Abi>(minus(), n, first_args, second_args);
   host_check_binary_op_all_loaders<Abi>(multiplies(), n, first_args,
                                         second_args);
-  host_check_binary_op_all_loaders<Abi>(divides(), n, first_args, second_args);
+
+  // TODO: Place fallback division implementations for all simd integer types
+  if constexpr (std::is_same_v<DataType, double>)
+    host_check_binary_op_all_loaders<Abi>(divides(), n, first_args,
+                                          second_args);
+}
+
+template <typename Abi, typename DataType>
+inline void host_check_abi_size() {
+  using simd_type = Kokkos::Experimental::simd<DataType, Abi>;
+  using mask_type = typename simd_type::mask_type;
+  static_assert(simd_type::size() == mask_type::size());
+}
+
+template <class Abi, typename DataType>
+inline void host_check_math_ops() {
+  constexpr size_t n = 11;
+
+  host_check_abi_size<Abi, DataType>();
+
+  if constexpr (std::is_signed_v<DataType>) {
+    DataType const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+    host_check_all_math_ops<Abi>(first_args, second_args);
+  } else {
+    DataType const first_args[n]  = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
+    host_check_all_math_ops<Abi>(first_args, second_args);
+  }
 }
 
 template <class Abi>
@@ -353,17 +382,41 @@ inline void host_check_condition() {
   EXPECT_TRUE(all_of(a == decltype(a)(16)));
 }
 
-template <class Abi>
-KOKKOS_INLINE_FUNCTION void device_check_math_ops() {
-  std::size_t constexpr n     = 11;
-  double const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
-  double const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+template <typename Abi, typename DataType, size_t n>
+KOKKOS_INLINE_FUNCTION void device_check_all_math_ops(
+    const DataType (&first_args)[n], const DataType (&second_args)[n]) {
   device_check_binary_op_all_loaders<Abi>(plus(), n, first_args, second_args);
   device_check_binary_op_all_loaders<Abi>(minus(), n, first_args, second_args);
   device_check_binary_op_all_loaders<Abi>(multiplies(), n, first_args,
                                           second_args);
-  device_check_binary_op_all_loaders<Abi>(divides(), n, first_args,
-                                          second_args);
+
+  if constexpr (std::is_same_v<DataType, double>)
+    device_check_binary_op_all_loaders<Abi>(divides(), n, first_args,
+                                            second_args);
+}
+
+template <typename Abi, typename DataType>
+KOKKOS_INLINE_FUNCTION void device_check_abi_size() {
+  using simd_type = Kokkos::Experimental::simd<DataType, Abi>;
+  using mask_type = typename simd_type::mask_type;
+  static_assert(simd_type::size() == mask_type::size());
+}
+
+template <class Abi, typename DataType>
+KOKKOS_INLINE_FUNCTION void device_check_math_ops() {
+  constexpr size_t n = 11;
+
+  device_check_abi_size<Abi, DataType>();
+
+  if constexpr (std::is_signed_v<DataType>) {
+    DataType const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+    device_check_all_math_ops<Abi>(first_args, second_args);
+  } else {
+    DataType const first_args[n]  = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
+    device_check_all_math_ops<Abi>(first_args, second_args);
+  }
 }
 
 template <class Abi>
@@ -434,18 +487,34 @@ KOKKOS_INLINE_FUNCTION void device_check_condition() {
   checker.truth(all_of(a == decltype(a)(16)));
 }
 
+template <typename Abi, typename... DataTypes>
+inline void host_check_math_ops_all_types(
+    Kokkos::Experimental::Impl::data_types<DataTypes...>) {
+  (host_check_math_ops<Abi, DataTypes>(), ...);
+}
+
 template <class Abi>
 inline void host_check_abi() {
-  host_check_math_ops<Abi>();
+  using DataTypes = Kokkos::Experimental::Impl::data_type_set;
+
+  host_check_math_ops_all_types<Abi>(DataTypes());
   host_check_mask_ops<Abi>();
   host_check_conversions<Abi>();
   host_check_shifts<Abi>();
   host_check_condition<Abi>();
 }
 
+template <typename Abi, typename... DataTypes>
+KOKKOS_INLINE_FUNCTION void device_check_math_ops_all_types(
+    Kokkos::Experimental::Impl::data_types<DataTypes...>) {
+  (device_check_math_ops<Abi, DataTypes>(), ...);
+}
+
 template <class Abi>
 KOKKOS_INLINE_FUNCTION void device_check_abi() {
-  device_check_math_ops<Abi>();
+  using DataTypes = Kokkos::Experimental::Impl::data_type_set;
+
+  device_check_math_ops_all_types<Abi>(DataTypes());
   device_check_mask_ops<Abi>();
   device_check_conversions<Abi>();
   device_check_shifts<Abi>();
@@ -485,33 +554,4 @@ class simd_device_functor {
 TEST(simd, device) {
   Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::IndexType<int>>(0, 1),
                        simd_device_functor());
-}
-
-TEST(simd, test_size) {
-#if defined(KOKKOS_ARCH_AVX512XEON)
-  constexpr auto width = 8;
-  using Abi = Kokkos::Experimental::simd_abi::avx512_fixed_size<width>;
-  static_assert(width ==
-                Kokkos::Experimental::simd<std::uint32_t, Abi>::size());
-
-#elif defined(KOKKOS_ARCH_AVX2)
-  constexpr auto width = 4;
-  using Abi            = Kokkos::Experimental::simd_abi::avx2_fixed_size<width>;
-
-#elif defined(__ARM_NEON)
-  constexpr auto width = 2;
-  using Abi            = Kokkos::Experimental::simd_abi::neon_fixed_size<width>;
-
-#else
-  constexpr auto width = 1;
-  using Abi            = Kokkos::Experimental::simd_abi::scalar;
-  static_assert(width ==
-                Kokkos::Experimental::simd<std::uint32_t, Abi>::size());
-#endif
-
-  static_assert(width == Kokkos::Experimental::simd<double, Abi>::size());
-  static_assert(width == Kokkos::Experimental::simd<std::int64_t, Abi>::size());
-  static_assert(width ==
-                Kokkos::Experimental::simd<std::uint64_t, Abi>::size());
-  static_assert(width == Kokkos::Experimental::simd<std::int32_t, Abi>::size());
 }

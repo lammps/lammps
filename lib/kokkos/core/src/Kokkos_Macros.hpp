@@ -55,6 +55,7 @@
 
 #ifndef KOKKOS_DONT_INCLUDE_CORE_CONFIG_H
 #include <KokkosCore_config.h>
+#include <impl/Kokkos_NvidiaGpuArchitectures.hpp>
 #endif
 
 //----------------------------------------------------------------------------
@@ -65,18 +66,12 @@
  *  KOKKOS_COMPILER_NVCC
  *  KOKKOS_COMPILER_GNU
  *  KOKKOS_COMPILER_INTEL
+ *  KOKKOS_COMPILER_INTEL_LLVM
  *  KOKKOS_COMPILER_CRAYC
  *  KOKKOS_COMPILER_APPLECC
  *  KOKKOS_COMPILER_CLANG
  *  KOKKOS_COMPILER_NVHPC
  *  KOKKOS_COMPILER_MSVC
- *
- *  Macros for which compiler extension to use for atomics on intrinsic types
- *
- *  KOKKOS_ENABLE_CUDA_ATOMICS
- *  KOKKOS_ENABLE_GNU_ATOMICS
- *  KOKKOS_ENABLE_INTEL_ATOMICS
- *  KOKKOS_ENABLE_OPENMP_ATOMICS
  *
  *  A suite of 'KOKKOS_ENABLE_PRAGMA_...' are defined for internal use.
  *
@@ -129,46 +124,46 @@
 
 #if defined(__INTEL_COMPILER)
 #define KOKKOS_COMPILER_INTEL __INTEL_COMPILER
+
 #elif defined(__INTEL_LLVM_COMPILER)
-#define KOKKOS_COMPILER_INTEL __INTEL_LLVM_COMPILER
-#elif defined(__ICC)
-// Old define
-#define KOKKOS_COMPILER_INTEL __ICC
-#elif defined(__ECC)
-// Very old define
-#define KOKKOS_COMPILER_INTEL __ECC
-#endif
+#define KOKKOS_COMPILER_INTEL_LLVM __INTEL_LLVM_COMPILER
 
+// Cray compiler for device offload code
+#elif defined(__cray__) && defined(__clang__)
+#define KOKKOS_COMPILER_CRAY_LLVM \
+  __cray_major__ * 100 + __cray_minor__ * 10 + __cray_patchlevel__
+
+#elif defined(_CRAYC)
 // CRAY compiler for host code
-#if defined(_CRAYC)
 #define KOKKOS_COMPILER_CRAYC _CRAYC
-#endif
 
-#if defined(__APPLE_CC__)
+#elif defined(__APPLE_CC__)
 #define KOKKOS_COMPILER_APPLECC __APPLE_CC__
-#endif
 
-#if defined(__clang__) && !defined(KOKKOS_COMPILER_INTEL)
+#elif defined(__NVCOMPILER)
+#define KOKKOS_COMPILER_NVHPC                                 \
+  __NVCOMPILER_MAJOR__ * 10000 + __NVCOMPILER_MINOR__ * 100 + \
+      __NVCOMPILER_PATCHLEVEL__
+
+#elif defined(__clang__)
+// Check this after the Clang-based proprietary compilers which will also define
+// __clang__
 #define KOKKOS_COMPILER_CLANG \
   __clang_major__ * 100 + __clang_minor__ * 10 + __clang_patchlevel__
-#endif
 
-#if !defined(__clang__) && !defined(KOKKOS_COMPILER_INTEL) && defined(__GNUC__)
+#elif defined(__GNUC__)
+// Check this here because many compilers (at least Clang variants and Intel
+// classic) define `__GNUC__` for compatibility
 #define KOKKOS_COMPILER_GNU \
   __GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__
 
-#if (530 > KOKKOS_COMPILER_GNU)
-#error "Compiling with GCC version earlier than 5.3.0 is not supported."
-#endif
-#endif
-
-#if defined(__NVCOMPILER)
-#define KOKKOS_COMPILER_NVHPC                              \
-  __NVCOMPILER_MAJOR__ * 100 + __NVCOMPILER_MINOR__ * 10 + \
-      __NVCOMPILER_PATCHLEVEL__
+#if (820 > KOKKOS_COMPILER_GNU)
+#error "Compiling with GCC version earlier than 8.2.0 is not supported."
 #endif
 
-#if defined(_MSC_VER) && !defined(KOKKOS_COMPILER_INTEL)
+#elif defined(_MSC_VER)
+// Check this after Intel and Clang because those define _MSC_VER for
+// compatibility
 #define KOKKOS_COMPILER_MSVC _MSC_VER
 #endif
 
@@ -182,16 +177,13 @@
 //----------------------------------------------------------------------------
 // Intel compiler macros
 
-#if defined(KOKKOS_COMPILER_INTEL)
-// FIXME_SYCL
-#if !defined(KOKKOS_ENABLE_SYCL)
+#if defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#if defined(KOKKOS_COMPILER_INTEL_LLVM) && \
+    KOKKOS_COMPILER_INTEL_LLVM >= 20230100
 #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
 #define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 #define KOKKOS_ENABLE_PRAGMA_VECTOR 1
-#endif
 
-// FIXME_SYCL
-#if !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
 #endif
 
@@ -213,7 +205,7 @@
 #endif
 #endif
 
-#if (1900 > KOKKOS_COMPILER_INTEL)
+#if defined(KOKKOS_COMPILER_INTEL) && (1900 > KOKKOS_COMPILER_INTEL)
 #error "Compiling with Intel version earlier than 19.0.5 is not supported."
 #endif
 
@@ -229,10 +221,6 @@
 #else
 #define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION inline
 #endif
-#endif
-
-#if defined(KOKKOS_ARCH_AVX512MIC)
-#define KOKKOS_ENABLE_RFO_PREFETCH 1
 #endif
 
 #if defined(__MIC__)
@@ -276,10 +264,6 @@
 //#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 //#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
 
-#if defined(KOKKOS_ARCH_AVX512MIC)
-#define KOKKOS_ENABLE_RFO_PREFETCH 1
-#endif
-
 #if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
 #define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
   inline __attribute__((always_inline))
@@ -297,7 +281,7 @@
 
 //----------------------------------------------------------------------------
 
-#if defined(KOKKOS_COMPILER_PGI)
+#if defined(KOKKOS_COMPILER_NVHPC)
 #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
 //#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
@@ -524,6 +508,7 @@ static constexpr bool kokkos_omp_on_host() { return false; }
     KOKKOS_IMPL_STRIP_PARENS(CODE)   \
   }
 #else
+#include <openacc.h>
 // FIXME_OPENACC acc_on_device is a non-constexpr function
 #define KOKKOS_IF_ON_DEVICE(CODE)                     \
   if constexpr (acc_on_device(acc_device_not_host)) { \
@@ -600,8 +585,9 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 
 #define KOKKOS_ATTRIBUTE_NODISCARD [[nodiscard]]
 
-#if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||  \
-     defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_PGI)) && \
+#if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||        \
+     defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM) || \
+     defined(KOKKOS_COMPILER_NVHPC)) &&                                       \
     !defined(_WIN32) && !defined(__ANDROID__)
 #if __has_include(<execinfo.h>)
 #define KOKKOS_IMPL_ENABLE_STACKTRACE

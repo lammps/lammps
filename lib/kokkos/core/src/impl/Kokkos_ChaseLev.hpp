@@ -172,7 +172,8 @@ struct ChaseLevDeque {
         }
 #else
         if (!Impl::atomic_compare_exchange_strong(
-                &m_top, t, t + 1, memory_order_seq_cst, memory_order_relaxed)) {
+                &m_top, t, t + 1, desul::MemoryOrderSeqCst(),
+                desul::MemoryOrderRelaxed())) {
           /* failed race, someone else stole it */
           return_value = nullptr;
         }
@@ -195,7 +196,7 @@ struct ChaseLevDeque {
   KOKKOS_INLINE_FUNCTION
   bool push(node_type& node) {
     auto b  = m_bottom;  // memory order relaxed
-    auto t  = Impl::atomic_load(&m_top, memory_order_acquire);
+    auto t  = Impl::atomic_load(&m_top, desul::MemoryOrderAcquire());
     auto& a = m_array;
     if (b - t > a.size() - 1) {
       /* queue is full, resize */
@@ -204,7 +205,7 @@ struct ChaseLevDeque {
       return false;
     }
     a[b] = &node;  // relaxed
-    Impl::atomic_store(&m_bottom, b + 1, memory_order_release);
+    Impl::atomic_store(&m_bottom, b + 1, desul::MemoryOrderRelease());
     return true;
   }
 
@@ -213,7 +214,7 @@ struct ChaseLevDeque {
     auto t = m_top;  // TODO @tasking @memory_order DSH: atomic load acquire
     Kokkos::memory_fence();  // seq_cst fence, so why does the above need to be
                              // acquire?
-    auto b = Impl::atomic_load(&m_bottom, memory_order_acquire);
+    auto b = Impl::atomic_load(&m_bottom, desul::MemoryOrderAcquire());
     OptionalRef<T> return_value;
     if (t < b) {
       /* Non-empty queue */
@@ -231,8 +232,9 @@ struct ChaseLevDeque {
         return_value = nullptr;
       }
 #else
-      if (!Impl::atomic_compare_exchange_strong(
-              &m_top, t, t + 1, memory_order_seq_cst, memory_order_relaxed)) {
+      if (!Impl::atomic_compare_exchange_strong(&m_top, t, t + 1,
+                                                desul::MemoryOrderSeqCst(),
+                                                desul::MemoryOrderRelaxed())) {
         return_value = nullptr;
       }
 #endif
@@ -247,7 +249,7 @@ struct ChaseLevDeque {
       // essentially using the memory order in this version as a fence, which
       // may be unnecessary
       auto buffer_ptr = (node_type***)&m_array.buffer;
-      auto a = Impl::atomic_load(buffer_ptr, memory_order_acquire); //
+      auto a = Impl::atomic_load(buffer_ptr, desul::MemoryOrderAcquire()); //
    technically consume ordered, but acquire should be fine return_value =
    *static_cast<T*>(a[t % m_array->size]); // relaxed; we'd have to replace the
    m_array->size if we ever allow growth

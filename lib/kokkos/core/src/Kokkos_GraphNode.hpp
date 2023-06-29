@@ -376,14 +376,30 @@ class GraphNodeRef {
     auto policy = Experimental::require((Policy &&) arg_policy,
                                         Kokkos::Impl::KernelInGraphProperty{});
 
+    using passed_reducer_type = typename return_value_adapter::reducer_type;
+
+    using reducer_selector = Kokkos::Impl::if_c<
+        std::is_same<InvalidType, passed_reducer_type>::value, functor_type,
+        passed_reducer_type>;
+    using analysis = Kokkos::Impl::FunctorAnalysis<
+        Kokkos::Impl::FunctorPatternInterface::REDUCE, Policy,
+        typename reducer_selector::type,
+        typename return_value_adapter::value_type>;
+    typename analysis::Reducer final_reducer(
+        reducer_selector::select(functor, return_value));
+    Kokkos::Impl::CombinedFunctorReducer<functor_type,
+                                         typename analysis::Reducer>
+        functor_reducer(functor, final_reducer);
+
     using next_policy_t = decltype(policy);
-    using next_kernel_t = Kokkos::Impl::GraphNodeKernelImpl<
-        ExecutionSpace, next_policy_t, functor_type, Kokkos::ParallelReduceTag,
-        typename return_value_adapter::reducer_type>;
+    using next_kernel_t =
+        Kokkos::Impl::GraphNodeKernelImpl<ExecutionSpace, next_policy_t,
+                                          decltype(functor_reducer),
+                                          Kokkos::ParallelReduceTag>;
 
     return this->_then_kernel(next_kernel_t{
         std::move(arg_name), graph_impl_ptr->get_execution_space(),
-        (Functor &&) functor, (Policy &&) policy,
+        functor_reducer, (Policy &&) policy,
         return_value_adapter::return_value(return_value, functor)});
   }
 

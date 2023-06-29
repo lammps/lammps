@@ -22,9 +22,9 @@
 
 #include <Kokkos_TaskScheduler_fwd.hpp>
 
-#include <impl/Kokkos_TaskQueue.hpp>
-#include <Kokkos_Serial.hpp>
+#include <Serial/Kokkos_Serial.hpp>
 #include <impl/Kokkos_HostThreadTeam.hpp>
+#include <impl/Kokkos_TaskQueue.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

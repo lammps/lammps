@@ -177,7 +177,8 @@ Kokkos::Tools::Impl::InitializationStatus parse_environment_variables(
     args = env_tools_args;
   }
   return {
-      Kokkos::Tools::Impl::InitializationStatus::InitializationResult::success};
+      Kokkos::Tools::Impl::InitializationStatus::InitializationResult::success,
+      ""};
 }
 InitializationStatus initialize_tools_subsystem(
     const Kokkos::Tools::InitArguments& args) {
@@ -192,13 +193,13 @@ InitializationStatus initialize_tools_subsystem(
     if (!Kokkos::Tools::printHelp(final_args)) {
       std::cerr << "Tool has not provided a help message" << std::endl;
     }
-    return {InitializationStatus::InitializationResult::help_request};
+    return {InitializationStatus::InitializationResult::help_request, ""};
   }
   Kokkos::Tools::parseArgs(final_args);
 #else
   (void)args;
 #endif
-  return {InitializationStatus::InitializationResult::success};
+  return {InitializationStatus::InitializationResult::success, ""};
 }
 
 }  // namespace Impl
@@ -644,10 +645,6 @@ void initialize(const std::string& profileLibrary) {
                 << ", RTLD_NOW | RTLD_GLOBAL) failed with " << dlerror()
                 << '\n';
     } else {
-#ifdef KOKKOS_ENABLE_PROFILING_LOAD_PRINT
-      std::cout << "KokkosP: Library Loaded: " << profileLibraryName
-                << std::endl;
-#endif
       lookup_function(firstProfileLibrary, "kokkosp_begin_parallel_scan",
                       Experimental::current_callbacks.begin_parallel_scan);
       lookup_function(firstProfileLibrary, "kokkosp_begin_parallel_for",

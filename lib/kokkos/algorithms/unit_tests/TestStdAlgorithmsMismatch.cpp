@@ -120,10 +120,10 @@ void run_single_scenario(ViewType view1, ViewType view2,
     const auto my_diff12 = my_res1.second - f2;
     const auto my_diff21 = my_res2.first - f1;
     const auto my_diff22 = my_res2.second - f2;
-    EXPECT_EQ(my_diff11, std_diff1);
-    EXPECT_EQ(my_diff12, std_diff2);
-    EXPECT_EQ(my_diff21, std_diff1);
-    EXPECT_EQ(my_diff22, std_diff2);
+    ASSERT_EQ(my_diff11, std_diff1);
+    ASSERT_EQ(my_diff12, std_diff2);
+    ASSERT_EQ(my_diff21, std_diff1);
+    ASSERT_EQ(my_diff22, std_diff2);
   }
 
   {
@@ -134,10 +134,10 @@ void run_single_scenario(ViewType view1, ViewType view2,
     const auto my_diff12 = my_res1.second - KE::begin(view2);
     const auto my_diff21 = my_res2.first - KE::begin(view1);
     const auto my_diff22 = my_res2.second - KE::begin(view2);
-    EXPECT_EQ(my_diff11, std_diff1);
-    EXPECT_EQ(my_diff12, std_diff2);
-    EXPECT_EQ(my_diff21, std_diff1);
-    EXPECT_EQ(my_diff22, std_diff2);
+    ASSERT_EQ(my_diff11, std_diff1);
+    ASSERT_EQ(my_diff12, std_diff2);
+    ASSERT_EQ(my_diff21, std_diff1);
+    ASSERT_EQ(my_diff22, std_diff2);
   }
 }
 
@@ -189,12 +189,6 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_mismatch_test, test) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedThreeTag, int>();
 }

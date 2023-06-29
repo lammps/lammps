@@ -138,7 +138,7 @@ void verify_data(ViewType1 data_view,  // contains data
       // 		<< data_view_dc(i) << " "
       // 		<< data_view_h(i) << " "
       // 		<< test_view_h(i) << std::endl;
-      EXPECT_EQ(data_view_h(i), test_view_h(i));
+      ASSERT_EQ(data_view_h(i), test_view_h(i));
     }
   }
 }

@@ -34,21 +34,21 @@ struct std_algorithms_mod_seq_ops_test : std_algorithms_test {
 TEST_F(std_algorithms_mod_seq_ops_test, copy) {
   auto result = KE::copy(exespace(), KE::begin(m_static_view),
                          KE::end(m_static_view), KE::begin(m_strided_view));
-  EXPECT_EQ(KE::end(m_strided_view), result);
+  ASSERT_EQ(KE::end(m_strided_view), result);
   compare_views(m_static_view, m_strided_view);
 
   auto result2 = KE::copy(exespace(), KE::begin(m_strided_view),
                           KE::end(m_strided_view), KE::begin(m_dynamic_view));
-  EXPECT_EQ(KE::end(m_dynamic_view), result2);
+  ASSERT_EQ(KE::end(m_dynamic_view), result2);
   compare_views(m_dynamic_view, m_strided_view);
 }
 
 TEST_F(std_algorithms_mod_seq_ops_test, copy_view) {
-  EXPECT_EQ(KE::end(m_dynamic_view),
+  ASSERT_EQ(KE::end(m_dynamic_view),
             KE::copy(exespace(), m_static_view, m_dynamic_view));
   compare_views(m_static_view, m_dynamic_view);
 
-  EXPECT_EQ(KE::end(m_strided_view),
+  ASSERT_EQ(KE::end(m_strided_view),
             KE::copy(exespace(), m_dynamic_view, m_strided_view));
   compare_views(m_dynamic_view, m_strided_view);
 }
@@ -70,11 +70,11 @@ TEST_F(std_algorithms_mod_seq_ops_test, copy_n) {
   // pass iterators
   auto first = KE::begin(m_static_view);
   auto dest  = KE::begin(m_dynamic_view);
-  EXPECT_EQ(dest + n, KE::copy_n(exespace(), first, n, dest));
+  ASSERT_EQ(dest + n, KE::copy_n(exespace(), first, n, dest));
   compare_views(expected, m_dynamic_view);
 
   // pass views
-  EXPECT_EQ(KE::begin(m_strided_view) + n,
+  ASSERT_EQ(KE::begin(m_strided_view) + n,
             KE::copy_n(exespace(), m_static_view, n, m_strided_view));
   compare_views(expected, m_strided_view);
 }
@@ -85,12 +85,12 @@ TEST_F(std_algorithms_mod_seq_ops_test, copy_backward) {
   auto dest  = KE::end(m_dynamic_view);
 
   // pass iterators
-  EXPECT_EQ(KE::begin(m_dynamic_view),
+  ASSERT_EQ(KE::begin(m_dynamic_view),
             KE::copy_backward(exespace(), first, last, dest));
   compare_views(m_static_view, m_dynamic_view);
 
   // pass views
-  EXPECT_EQ(KE::begin(m_strided_view),
+  ASSERT_EQ(KE::begin(m_strided_view),
             KE::copy_backward(exespace(), m_static_view, m_strided_view));
   compare_views(m_static_view, m_strided_view);
 }
@@ -112,11 +112,11 @@ TEST_F(std_algorithms_mod_seq_ops_test, reverse_copy) {
   auto last  = KE::end(m_static_view);
   auto dest  = KE::begin(m_dynamic_view);
 
-  EXPECT_EQ(KE::end(m_dynamic_view),
+  ASSERT_EQ(KE::end(m_dynamic_view),
             KE::reverse_copy(exespace(), first, last, dest));
   compare_views(expected, m_dynamic_view);
 
-  EXPECT_EQ(KE::end(m_strided_view),
+  ASSERT_EQ(KE::end(m_strided_view),
             KE::reverse_copy(exespace(), m_static_view, m_strided_view));
   compare_views(expected, m_strided_view);
 }
@@ -151,25 +151,25 @@ TEST_F(std_algorithms_mod_seq_ops_test, fill_n) {
 
   // fill all elements
   // pass iterator
-  EXPECT_EQ(KE::end(m_static_view),
+  ASSERT_EQ(KE::end(m_static_view),
             KE::fill_n(exespace(), KE::begin(m_static_view),
                        m_static_view.extent(0), fill_n_value));
   verify_values(fill_n_value, m_static_view);
 
   // pass view
-  EXPECT_EQ(KE::end(m_strided_view),
+  ASSERT_EQ(KE::end(m_strided_view),
             KE::fill_n(exespace(), m_strided_view, m_strided_view.extent(0),
                        fill_n_value));
   verify_values(fill_n_value, m_strided_view);
 
   // fill zero elements
   // pass view
-  EXPECT_EQ(KE::begin(m_dynamic_view),
+  ASSERT_EQ(KE::begin(m_dynamic_view),
             KE::fill_n(exespace(), m_dynamic_view, 0, fill_n_new_value));
 
   // fill single element
   // pass iterator
-  EXPECT_EQ(
+  ASSERT_EQ(
       KE::begin(m_static_view) + 1,
       KE::fill_n(exespace(), KE::begin(m_static_view), 1, fill_n_new_value));
 
@@ -212,21 +212,21 @@ TEST_F(std_algorithms_mod_seq_ops_test, transform_from_fixture_unary_op) {
   auto r1 = KE::transform(exespace(), KE::begin(m_static_view),
                           KE::end(m_static_view), KE::begin(m_dynamic_view),
                           TransformFunctor());
-  EXPECT_EQ(r1, KE::end(m_dynamic_view));
+  ASSERT_EQ(r1, KE::end(m_dynamic_view));
   compare_views(gold_source, m_static_view);
   verify_values(-1., m_dynamic_view);
 
   // transform dynamic view, store results in strided view
   auto r2 = KE::transform(exespace(), m_dynamic_view, m_strided_view,
                           TransformFunctor());
-  EXPECT_EQ(r2, KE::end(m_strided_view));
+  ASSERT_EQ(r2, KE::end(m_strided_view));
   verify_values(-1., m_dynamic_view);
   verify_values(-1., m_strided_view);
 
   // transform strided view, store results in static view
   auto r3 = KE::transform(exespace(), m_strided_view, m_static_view,
                           TransformFunctor());
-  EXPECT_EQ(r3, KE::end(m_static_view));
+  ASSERT_EQ(r3, KE::end(m_static_view));
   verify_values(-1., m_static_view);
   verify_values(-1., m_strided_view);
 }
@@ -254,7 +254,7 @@ TEST_F(std_algorithms_mod_seq_ops_test, transform_from_fixture_binary_op) {
   auto r1 = KE::transform(exespace(), KE::begin(m_static_view),
                           KE::end(m_static_view), KE::begin(m_dynamic_view),
                           KE::begin(m_strided_view), TransformBinaryFunctor());
-  EXPECT_EQ(r1, KE::end(m_strided_view));
+  ASSERT_EQ(r1, KE::end(m_strided_view));
   compare_views(expected, m_strided_view);
 
   expected(0) = 0;
@@ -269,7 +269,7 @@ TEST_F(std_algorithms_mod_seq_ops_test, transform_from_fixture_binary_op) {
   expected(9) = 18;
   auto r2 = KE::transform("label", exespace(), m_static_view, m_strided_view,
                           m_dynamic_view, TransformBinaryFunctor());
-  EXPECT_EQ(r2, KE::end(m_dynamic_view));
+  ASSERT_EQ(r2, KE::end(m_dynamic_view));
   compare_views(expected, m_dynamic_view);
 }
 
@@ -296,19 +296,19 @@ TEST_F(std_algorithms_mod_seq_ops_test, generate) {
 
 TEST_F(std_algorithms_mod_seq_ops_test, generate_n) {
   // iterator + functor
-  EXPECT_EQ(KE::end(m_static_view),
+  ASSERT_EQ(KE::end(m_static_view),
             KE::generate_n(exespace(), KE::begin(m_static_view),
                            m_static_view.extent(0), GenerateFunctor()));
   verify_values(generated_value, m_static_view);
 
   // view + functor
-  EXPECT_EQ(KE::end(m_dynamic_view),
+  ASSERT_EQ(KE::end(m_dynamic_view),
             KE::generate_n(exespace(), m_dynamic_view, m_dynamic_view.extent(0),
                            GenerateFunctor()));
   verify_values(generated_value, m_dynamic_view);
 
   // view + functor, negative n
-  EXPECT_EQ(KE::begin(m_strided_view),
+  ASSERT_EQ(KE::begin(m_strided_view),
             KE::generate_n(exespace(), m_strided_view, -1, GenerateFunctor()));
 }
 
@@ -352,7 +352,7 @@ void test_swap_ranges(ViewType view) {
   auto last1  = first1 + 4;
   auto first2 = KE::begin(viewB) + 1;
   auto r      = KE::swap_ranges(exespace(), first1, last1, first2);
-  EXPECT_EQ(r, first2 + 4);
+  ASSERT_EQ(r, first2 + 4);
 
   /* check VIEW_A */
   static_view_type checkViewA("tmp");
@@ -360,16 +360,16 @@ void test_swap_ranges(ViewType view) {
   parallel_for(ext, cp_func_a_t(view, checkViewA));
   auto cvA_h =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), checkViewA);
-  EXPECT_EQ(cvA_h(0), 0);
-  EXPECT_EQ(cvA_h(1), 1);
-  EXPECT_EQ(cvA_h(2), 99);
-  EXPECT_EQ(cvA_h(3), 98);
-  EXPECT_EQ(cvA_h(4), 97);
-  EXPECT_EQ(cvA_h(5), 96);
-  EXPECT_EQ(cvA_h(6), 6);
-  EXPECT_EQ(cvA_h(7), 7);
-  EXPECT_EQ(cvA_h(8), 8);
-  EXPECT_EQ(cvA_h(9), 9);
+  ASSERT_EQ(cvA_h(0), 0);
+  ASSERT_EQ(cvA_h(1), 1);
+  ASSERT_EQ(cvA_h(2), 99);
+  ASSERT_EQ(cvA_h(3), 98);
+  ASSERT_EQ(cvA_h(4), 97);
+  ASSERT_EQ(cvA_h(5), 96);
+  ASSERT_EQ(cvA_h(6), 6);
+  ASSERT_EQ(cvA_h(7), 7);
+  ASSERT_EQ(cvA_h(8), 8);
+  ASSERT_EQ(cvA_h(9), 9);
 
   /* check viewB */
   static_view_type checkViewB("tmpB");
@@ -377,16 +377,16 @@ void test_swap_ranges(ViewType view) {
   Kokkos::parallel_for(ext, cp_func_b_t(viewB, checkViewB));
   auto cvB_h =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), checkViewB);
-  EXPECT_EQ(cvB_h(0), 100);
-  EXPECT_EQ(cvB_h(1), 2);
-  EXPECT_EQ(cvB_h(2), 3);
-  EXPECT_EQ(cvB_h(3), 4);
-  EXPECT_EQ(cvB_h(4), 5);
-  EXPECT_EQ(cvB_h(5), 95);
-  EXPECT_EQ(cvB_h(6), 94);
-  EXPECT_EQ(cvB_h(7), 93);
-  EXPECT_EQ(cvB_h(8), 92);
-  EXPECT_EQ(cvB_h(9), 91);
+  ASSERT_EQ(cvB_h(0), 100);
+  ASSERT_EQ(cvB_h(1), 2);
+  ASSERT_EQ(cvB_h(2), 3);
+  ASSERT_EQ(cvB_h(3), 4);
+  ASSERT_EQ(cvB_h(4), 5);
+  ASSERT_EQ(cvB_h(5), 95);
+  ASSERT_EQ(cvB_h(6), 94);
+  ASSERT_EQ(cvB_h(7), 93);
+  ASSERT_EQ(cvB_h(8), 92);
+  ASSERT_EQ(cvB_h(9), 91);
 }
 
 TEST_F(std_algorithms_mod_seq_ops_test, swap_ranges) {

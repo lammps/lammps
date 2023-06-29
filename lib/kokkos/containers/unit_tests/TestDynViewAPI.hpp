@@ -1200,19 +1200,19 @@ class TestDynViewAPI {
 
     View7 vtest1("vtest1", 2, 2, 2, 2, 2, 2, 2);
     dView0 dfromv1(vtest1);
-    ASSERT_EQ(dfromv1.rank(), vtest1.Rank);
+    ASSERT_EQ(dfromv1.rank(), vtest1.rank);
     ASSERT_EQ(dfromv1.extent(0), vtest1.extent(0));
     ASSERT_EQ(dfromv1.extent(1), vtest1.extent(1));
     ASSERT_EQ(dfromv1.use_count(), vtest1.use_count());
 
     dView0 dfromv2(vcast);
-    ASSERT_EQ(dfromv2.rank(), vcast.Rank);
+    ASSERT_EQ(dfromv2.rank(), vcast.rank);
     ASSERT_EQ(dfromv2.extent(0), vcast.extent(0));
     ASSERT_EQ(dfromv2.extent(1), vcast.extent(1));
     ASSERT_EQ(dfromv2.use_count(), vcast.use_count());
 
     dView0 dfromv3 = vcast1;
-    ASSERT_EQ(dfromv3.rank(), vcast1.Rank);
+    ASSERT_EQ(dfromv3.rank(), vcast1.rank);
     ASSERT_EQ(dfromv3.extent(0), vcast1.extent(0));
     ASSERT_EQ(dfromv3.extent(1), vcast1.extent(1));
     ASSERT_EQ(dfromv3.use_count(), vcast1.use_count());

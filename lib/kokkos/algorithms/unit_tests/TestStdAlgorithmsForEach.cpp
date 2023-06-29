@@ -91,23 +91,23 @@ void test_for_each_n(const ViewType view) {
   const auto non_mod_functor = NoOpNonMutableFunctor<value_t>();
 
   // pass const iterators, functor takes const ref
-  EXPECT_EQ(KE::cbegin(view) + n,
+  ASSERT_EQ(KE::cbegin(view) + n,
             KE::for_each_n(exespace(), KE::cbegin(view), n, non_mod_functor));
   verify_values(value_t{0}, view);
 
   // pass view, functor takes const ref
-  EXPECT_EQ(KE::begin(view) + n,
+  ASSERT_EQ(KE::begin(view) + n,
             KE::for_each_n(exespace(), view, n, non_mod_functor));
   verify_values(value_t{0}, view);
 
   // pass iterators, functor takes non-const ref
   const auto mod_functor = IncrementElementWiseFunctor<value_t>();
-  EXPECT_EQ(KE::begin(view) + n,
+  ASSERT_EQ(KE::begin(view) + n,
             KE::for_each_n(exespace(), KE::begin(view), n, mod_functor));
   verify_values(value_t{1}, view);
 
   // pass view, functor takes non-const ref
-  EXPECT_EQ(KE::begin(view) + n,
+  ASSERT_EQ(KE::begin(view) + n,
             KE::for_each_n("label", exespace(), view, n, mod_functor));
   verify_values(value_t{2}, view);
 }

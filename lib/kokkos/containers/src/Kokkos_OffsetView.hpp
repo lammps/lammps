@@ -43,6 +43,9 @@ struct is_offset_view<OffsetView<D, P...>> : public std::true_type {};
 template <class D, class... P>
 struct is_offset_view<const OffsetView<D, P...>> : public std::true_type {};
 
+template <class T>
+inline constexpr bool is_offset_view_v = is_offset_view<T>::value;
+
 #define KOKKOS_INVALID_OFFSET int64_t(0x7FFFFFFFFFFFFFFFLL)
 #define KOKKOS_INVALID_INDEX_RANGE \
   { KOKKOS_INVALID_OFFSET, KOKKOS_INVALID_OFFSET }
@@ -827,7 +830,7 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
                   "Incompatible OffsetView copy construction");
     Mapping::assign(m_map, aview.impl_map(), m_track);
 
-    for (int i = 0; i < aview.Rank; ++i) {
+    for (size_t i = 0; i < View<RT, RP...>::rank(); ++i) {
       m_begins[i] = 0;
     }
   }
@@ -938,10 +941,10 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
           ")"
           "\n";
 
-    // If there are no errors so far, then rank == Rank
+    // If there are no errors so far, then arg_rank == Rank
     // Otherwise, check as much as possible
-    size_t rank = begins.size() < ends.size() ? begins.size() : ends.size();
-    for (size_t i = 0; i != rank; ++i) {
+    size_t arg_rank = begins.size() < ends.size() ? begins.size() : ends.size();
+    for (size_t i = 0; i != arg_rank; ++i) {
       subtraction_failure sf = check_subtraction(at(ends, i), at(begins, i));
       if (sf != subtraction_failure::none) {
         message +=
@@ -1191,34 +1194,9 @@ class OffsetView : public ViewTraits<DataType, Properties...> {
           "execution space");
     }
 
-    //------------------------------------------------------------
-#if defined(KOKKOS_ENABLE_CUDA)
-    // If allocating in CudaUVMSpace must fence before and after
-    // the allocation to protect against possible concurrent access
-    // on the CPU and the GPU.
-    // Fence using the trait's executon space (which will be Kokkos::Cuda)
-    // to avoid incomplete type errors from usng Kokkos::Cuda directly.
-    if (std::is_same<Kokkos::CudaUVMSpace,
-                     typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence(
-          "Kokkos::OffsetView::OffsetView(): fence before UVM allocation");
-    }
-#endif
-    //------------------------------------------------------------
-
     Kokkos::Impl::SharedAllocationRecord<>* record = m_map.allocate_shared(
         prop_copy, arg_layout,
         Kokkos::Impl::ViewCtorProp<P...>::has_execution_space);
-
-    //------------------------------------------------------------
-#if defined(KOKKOS_ENABLE_CUDA)
-    if (std::is_same<Kokkos::CudaUVMSpace,
-                     typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence(
-          "Kokkos::OffsetView::OffsetView(): fence after UVM allocation");
-    }
-#endif
-    //------------------------------------------------------------
 
     // Setup and initialization complete, start tracking
     m_track.assign_allocated_record_to_uninitialized(record);
@@ -1251,8 +1229,7 @@ shift_input(const T arg, const int64_t offset) {
 }
 
 KOKKOS_INLINE_FUNCTION
-Kokkos::Impl::ALL_t shift_input(const Kokkos::Impl::ALL_t arg,
-                                const int64_t /*offset*/) {
+Kokkos::ALL_t shift_input(const Kokkos::ALL_t arg, const int64_t /*offset*/) {
   return arg;
 }
 
@@ -1302,7 +1279,7 @@ KOKKOS_INLINE_FUNCTION
       Kokkos::Impl::ViewMapping<void /* deduce subview type from source view
                                         traits */
                                 ,
-                                ViewTraits<D, P...>, T>::type::Rank;
+                                ViewTraits<D, P...>, T>::type::rank;
 
   auto theSubview = Kokkos::subview(theView, shiftedArg);
 
@@ -1341,7 +1318,7 @@ KOKKOS_INLINE_FUNCTION
       Kokkos::Impl::ViewMapping<void /* deduce subview type from source view
                                         traits */
                                 ,
-                                ViewTraits<D, P...>, T0, T1>::type::Rank;
+                                ViewTraits<D, P...>, T0, T1>::type::rank;
 
   Kokkos::Array<int64_t, rank> subviewBegins;
   size_t counter = 0;
@@ -1382,7 +1359,7 @@ KOKKOS_INLINE_FUNCTION
       Kokkos::Impl::ViewMapping<void /* deduce subview type from source view
                                         traits */
                                 ,
-                                ViewTraits<D, P...>, T0, T1, T2>::type::Rank;
+                                ViewTraits<D, P...>, T0, T1, T2>::type::rank;
 
   Kokkos::Array<int64_t, rank> subviewBegins;
 
@@ -1427,7 +1404,7 @@ KOKKOS_INLINE_FUNCTION
   constexpr size_t rank = Kokkos::Impl::ViewMapping<
       void /* deduce subview type from source view traits */
       ,
-      ViewTraits<D, P...>, T0, T1, T2, T3>::type::Rank;
+      ViewTraits<D, P...>, T0, T1, T2, T3>::type::rank;
   Kokkos::Array<int64_t, rank> subviewBegins;
 
   size_t counter = 0;
@@ -1474,7 +1451,7 @@ KOKKOS_INLINE_FUNCTION
   constexpr size_t rank = Kokkos::Impl::ViewMapping<
       void /* deduce subview type from source view traits */
       ,
-      ViewTraits<D, P...>, T0, T1, T2, T3, T4>::type::Rank;
+      ViewTraits<D, P...>, T0, T1, T2, T3, T4>::type::rank;
   Kokkos::Array<int64_t, rank> subviewBegins;
 
   size_t counter = 0;
@@ -1526,7 +1503,7 @@ KOKKOS_INLINE_FUNCTION
   constexpr size_t rank = Kokkos::Impl::ViewMapping<
       void /* deduce subview type from source view traits */
       ,
-      ViewTraits<D, P...>, T0, T1, T2, T3, T4, T5>::type::Rank;
+      ViewTraits<D, P...>, T0, T1, T2, T3, T4, T5>::type::rank;
 
   Kokkos::Array<int64_t, rank> subviewBegins;
 
@@ -1581,7 +1558,7 @@ KOKKOS_INLINE_FUNCTION
   constexpr size_t rank = Kokkos::Impl::ViewMapping<
       void /* deduce subview type from source view traits */
       ,
-      ViewTraits<D, P...>, T0, T1, T2, T3, T4, T5, T6>::type::Rank;
+      ViewTraits<D, P...>, T0, T1, T2, T3, T4, T5, T6>::type::rank;
 
   Kokkos::Array<int64_t, rank> subviewBegins;
 
@@ -1640,7 +1617,7 @@ KOKKOS_INLINE_FUNCTION
   constexpr size_t rank = Kokkos::Impl::ViewMapping<
       void /* deduce subview type from source view traits */
       ,
-      ViewTraits<D, P...>, T0, T1, T2, T3, T4, T5, T6, T7>::type::Rank;
+      ViewTraits<D, P...>, T0, T1, T2, T3, T4, T5, T6, T7>::type::rank;
 
   Kokkos::Array<int64_t, rank> subviewBegins;
 

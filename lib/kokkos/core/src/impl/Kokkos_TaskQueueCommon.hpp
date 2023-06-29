@@ -129,17 +129,15 @@ class TaskQueueCommonMixin {
   KOKKOS_INLINE_FUNCTION
   void _increment_ready_count() {
     // TODO @tasking @memory_order DSH memory order
-    Kokkos::Impl::desul_atomic_inc(&this->m_ready_count,
-                                   Kokkos::Impl::MemoryOrderSeqCst(),
-                                   Kokkos::Impl::MemoryScopeDevice());
+    desul::atomic_inc(&this->m_ready_count, desul::MemoryOrderSeqCst(),
+                      desul::MemoryScopeDevice());
   }
 
   KOKKOS_INLINE_FUNCTION
   void _decrement_ready_count() {
     // TODO @tasking @memory_order DSH memory order
-    Kokkos::Impl::desul_atomic_dec(&this->m_ready_count,
-                                   Kokkos::Impl::MemoryOrderSeqCst(),
-                                   Kokkos::Impl::MemoryScopeDevice());
+    desul::atomic_dec(&this->m_ready_count, desul::MemoryOrderSeqCst(),
+                      desul::MemoryScopeDevice());
   }
 
  public:

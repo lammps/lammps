@@ -37,1167 +37,1278 @@ namespace Impl {
 // Temporary, for testing new loop macros
 #define KOKKOS_ENABLE_NEW_LOOP_MACROS 1
 
-#define LOOP_1L(type, tile)   \
-  KOKKOS_ENABLE_IVDEP_MDRANGE \
+#define KOKKOS_IMPL_LOOP_1L(type, tile) \
+  KOKKOS_ENABLE_IVDEP_MDRANGE           \
   for (type i0 = 0; i0 < static_cast<type>(tile[0]); ++i0)
 
-#define LOOP_2L(type, tile) \
-  for (type i1 = 0; i1 < static_cast<type>(tile[1]); ++i1) LOOP_1L(type, tile)
+#define KOKKOS_IMPL_LOOP_2L(type, tile)                    \
+  for (type i1 = 0; i1 < static_cast<type>(tile[1]); ++i1) \
+  KOKKOS_IMPL_LOOP_1L(type, tile)
 
-#define LOOP_3L(type, tile) \
-  for (type i2 = 0; i2 < static_cast<type>(tile[2]); ++i2) LOOP_2L(type, tile)
+#define KOKKOS_IMPL_LOOP_3L(type, tile)                    \
+  for (type i2 = 0; i2 < static_cast<type>(tile[2]); ++i2) \
+  KOKKOS_IMPL_LOOP_2L(type, tile)
 
-#define LOOP_4L(type, tile) \
-  for (type i3 = 0; i3 < static_cast<type>(tile[3]); ++i3) LOOP_3L(type, tile)
+#define KOKKOS_IMPL_LOOP_4L(type, tile)                    \
+  for (type i3 = 0; i3 < static_cast<type>(tile[3]); ++i3) \
+  KOKKOS_IMPL_LOOP_3L(type, tile)
 
-#define LOOP_5L(type, tile) \
-  for (type i4 = 0; i4 < static_cast<type>(tile[4]); ++i4) LOOP_4L(type, tile)
+#define KOKKOS_IMPL_LOOP_5L(type, tile)                    \
+  for (type i4 = 0; i4 < static_cast<type>(tile[4]); ++i4) \
+  KOKKOS_IMPL_LOOP_4L(type, tile)
 
-#define LOOP_6L(type, tile) \
-  for (type i5 = 0; i5 < static_cast<type>(tile[5]); ++i5) LOOP_5L(type, tile)
+#define KOKKOS_IMPL_LOOP_6L(type, tile)                    \
+  for (type i5 = 0; i5 < static_cast<type>(tile[5]); ++i5) \
+  KOKKOS_IMPL_LOOP_5L(type, tile)
 
-#define LOOP_7L(type, tile) \
-  for (type i6 = 0; i6 < static_cast<type>(tile[6]); ++i6) LOOP_6L(type, tile)
+#define KOKKOS_IMPL_LOOP_7L(type, tile)                    \
+  for (type i6 = 0; i6 < static_cast<type>(tile[6]); ++i6) \
+  KOKKOS_IMPL_LOOP_6L(type, tile)
 
-#define LOOP_8L(type, tile) \
-  for (type i7 = 0; i7 < static_cast<type>(tile[7]); ++i7) LOOP_7L(type, tile)
+#define KOKKOS_IMPL_LOOP_8L(type, tile)                    \
+  for (type i7 = 0; i7 < static_cast<type>(tile[7]); ++i7) \
+  KOKKOS_IMPL_LOOP_7L(type, tile)
 
-#define LOOP_1R(type, tile)   \
-  KOKKOS_ENABLE_IVDEP_MDRANGE \
+#define KOKKOS_IMPL_LOOP_1R(type, tile) \
+  KOKKOS_ENABLE_IVDEP_MDRANGE           \
   for (type i0 = 0; i0 < static_cast<type>(tile[0]); ++i0)
 
-#define LOOP_2R(type, tile) \
-  LOOP_1R(type, tile)       \
+#define KOKKOS_IMPL_LOOP_2R(type, tile) \
+  KOKKOS_IMPL_LOOP_1R(type, tile)       \
   for (type i1 = 0; i1 < static_cast<type>(tile[1]); ++i1)
 
-#define LOOP_3R(type, tile) \
-  LOOP_2R(type, tile)       \
+#define KOKKOS_IMPL_LOOP_3R(type, tile) \
+  KOKKOS_IMPL_LOOP_2R(type, tile)       \
   for (type i2 = 0; i2 < static_cast<type>(tile[2]); ++i2)
 
-#define LOOP_4R(type, tile) \
-  LOOP_3R(type, tile)       \
+#define KOKKOS_IMPL_LOOP_4R(type, tile) \
+  KOKKOS_IMPL_LOOP_3R(type, tile)       \
   for (type i3 = 0; i3 < static_cast<type>(tile[3]); ++i3)
 
-#define LOOP_5R(type, tile) \
-  LOOP_4R(type, tile)       \
+#define KOKKOS_IMPL_LOOP_5R(type, tile) \
+  KOKKOS_IMPL_LOOP_4R(type, tile)       \
   for (type i4 = 0; i4 < static_cast<type>(tile[4]); ++i4)
 
-#define LOOP_6R(type, tile) \
-  LOOP_5R(type, tile)       \
+#define KOKKOS_IMPL_LOOP_6R(type, tile) \
+  KOKKOS_IMPL_LOOP_5R(type, tile)       \
   for (type i5 = 0; i5 < static_cast<type>(tile[5]); ++i5)
 
-#define LOOP_7R(type, tile) \
-  LOOP_6R(type, tile)       \
+#define KOKKOS_IMPL_LOOP_7R(type, tile) \
+  KOKKOS_IMPL_LOOP_6R(type, tile)       \
   for (type i6 = 0; i6 < static_cast<type>(tile[6]); ++i6)
 
-#define LOOP_8R(type, tile) \
-  LOOP_7R(type, tile)       \
+#define KOKKOS_IMPL_LOOP_8R(type, tile) \
+  KOKKOS_IMPL_LOOP_7R(type, tile)       \
   for (type i7 = 0; i7 < static_cast<type>(tile[7]); ++i7)
 
-#define LOOP_ARGS_1 i0 + m_offset[0]
-#define LOOP_ARGS_2 LOOP_ARGS_1, i1 + m_offset[1]
-#define LOOP_ARGS_3 LOOP_ARGS_2, i2 + m_offset[2]
-#define LOOP_ARGS_4 LOOP_ARGS_3, i3 + m_offset[3]
-#define LOOP_ARGS_5 LOOP_ARGS_4, i4 + m_offset[4]
-#define LOOP_ARGS_6 LOOP_ARGS_5, i5 + m_offset[5]
-#define LOOP_ARGS_7 LOOP_ARGS_6, i6 + m_offset[6]
-#define LOOP_ARGS_8 LOOP_ARGS_7, i7 + m_offset[7]
+#define KOKKOS_IMPL_LOOP_ARGS_1 i0 + m_offset[0]
+#define KOKKOS_IMPL_LOOP_ARGS_2 KOKKOS_IMPL_LOOP_ARGS_1, i1 + m_offset[1]
+#define KOKKOS_IMPL_LOOP_ARGS_3 KOKKOS_IMPL_LOOP_ARGS_2, i2 + m_offset[2]
+#define KOKKOS_IMPL_LOOP_ARGS_4 KOKKOS_IMPL_LOOP_ARGS_3, i3 + m_offset[3]
+#define KOKKOS_IMPL_LOOP_ARGS_5 KOKKOS_IMPL_LOOP_ARGS_4, i4 + m_offset[4]
+#define KOKKOS_IMPL_LOOP_ARGS_6 KOKKOS_IMPL_LOOP_ARGS_5, i5 + m_offset[5]
+#define KOKKOS_IMPL_LOOP_ARGS_7 KOKKOS_IMPL_LOOP_ARGS_6, i6 + m_offset[6]
+#define KOKKOS_IMPL_LOOP_ARGS_8 KOKKOS_IMPL_LOOP_ARGS_7, i7 + m_offset[7]
 
 // New Loop Macros...
 // parallel_for, non-tagged
-#define APPLY(func, ...) func(__VA_ARGS__);
+#define KOKKOS_IMPL_APPLY(func, ...) func(__VA_ARGS__);
 
 // LayoutRight
 // d = 0 to start
-#define LOOP_R_1(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_R_1(func, type, m_offset, extent, d, ...)   \
   KOKKOS_ENABLE_IVDEP_MDRANGE                                        \
   for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) { \
-    APPLY(func, __VA_ARGS__, i0 + m_offset[d])                       \
+    KOKKOS_IMPL_APPLY(func, __VA_ARGS__, i0 + m_offset[d])           \
   }
 
-#define LOOP_R_2(func, type, m_offset, extent, d, ...)               \
-  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) { \
-    LOOP_R_1(func, type, m_offset, extent, d + 1, __VA_ARGS__,       \
-             i1 + m_offset[d])                                       \
+#define KOKKOS_IMPL_LOOP_R_2(func, type, m_offset, extent, d, ...)         \
+  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {       \
+    KOKKOS_IMPL_LOOP_R_1(func, type, m_offset, extent, d + 1, __VA_ARGS__, \
+                         i1 + m_offset[d])                                 \
   }
 
-#define LOOP_R_3(func, type, m_offset, extent, d, ...)               \
-  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) { \
-    LOOP_R_2(func, type, m_offset, extent, d + 1, __VA_ARGS__,       \
-             i2 + m_offset[d])                                       \
+#define KOKKOS_IMPL_LOOP_R_3(func, type, m_offset, extent, d, ...)         \
+  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {       \
+    KOKKOS_IMPL_LOOP_R_2(func, type, m_offset, extent, d + 1, __VA_ARGS__, \
+                         i2 + m_offset[d])                                 \
   }
 
-#define LOOP_R_4(func, type, m_offset, extent, d, ...)               \
-  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) { \
-    LOOP_R_3(func, type, m_offset, extent, d + 1, __VA_ARGS__,       \
-             i3 + m_offset[d])                                       \
+#define KOKKOS_IMPL_LOOP_R_4(func, type, m_offset, extent, d, ...)         \
+  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {       \
+    KOKKOS_IMPL_LOOP_R_3(func, type, m_offset, extent, d + 1, __VA_ARGS__, \
+                         i3 + m_offset[d])                                 \
   }
 
-#define LOOP_R_5(func, type, m_offset, extent, d, ...)               \
-  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) { \
-    LOOP_R_4(func, type, m_offset, extent, d + 1, __VA_ARGS__,       \
-             i4 + m_offset[d])                                       \
+#define KOKKOS_IMPL_LOOP_R_5(func, type, m_offset, extent, d, ...)         \
+  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {       \
+    KOKKOS_IMPL_LOOP_R_4(func, type, m_offset, extent, d + 1, __VA_ARGS__, \
+                         i4 + m_offset[d])                                 \
   }
 
-#define LOOP_R_6(func, type, m_offset, extent, d, ...)               \
-  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) { \
-    LOOP_R_5(func, type, m_offset, extent, d + 1, __VA_ARGS__,       \
-             i5 + m_offset[d])                                       \
+#define KOKKOS_IMPL_LOOP_R_6(func, type, m_offset, extent, d, ...)         \
+  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {       \
+    KOKKOS_IMPL_LOOP_R_5(func, type, m_offset, extent, d + 1, __VA_ARGS__, \
+                         i5 + m_offset[d])                                 \
   }
 
-#define LOOP_R_7(func, type, m_offset, extent, d, ...)               \
-  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) { \
-    LOOP_R_6(func, type, m_offset, extent, d + 1, __VA_ARGS__,       \
-             i6 + m_offset[d])                                       \
+#define KOKKOS_IMPL_LOOP_R_7(func, type, m_offset, extent, d, ...)         \
+  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {       \
+    KOKKOS_IMPL_LOOP_R_6(func, type, m_offset, extent, d + 1, __VA_ARGS__, \
+                         i6 + m_offset[d])                                 \
   }
 
-#define LOOP_R_8(func, type, m_offset, extent, d, ...)               \
-  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) { \
-    LOOP_R_7(func, type, m_offset, extent, d + 1, __VA_ARGS__,       \
-             i7 + m_offset[d])                                       \
+#define KOKKOS_IMPL_LOOP_R_8(func, type, m_offset, extent, d, ...)         \
+  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {       \
+    KOKKOS_IMPL_LOOP_R_7(func, type, m_offset, extent, d + 1, __VA_ARGS__, \
+                         i7 + m_offset[d])                                 \
   }
 
 // LayoutLeft
 // d = rank-1 to start
-#define LOOP_L_1(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_1(func, type, m_offset, extent, d, ...)   \
   KOKKOS_ENABLE_IVDEP_MDRANGE                                        \
   for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) { \
-    APPLY(func, i0 + m_offset[d], __VA_ARGS__)                       \
+    KOKKOS_IMPL_APPLY(func, i0 + m_offset[d], __VA_ARGS__)           \
   }
 
-#define LOOP_L_2(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_2(func, type, m_offset, extent, d, ...)   \
   for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) { \
-    LOOP_L_1(func, type, m_offset, extent, d - 1, i1 + m_offset[d],  \
-             __VA_ARGS__)                                            \
+    KOKKOS_IMPL_LOOP_L_1(func, type, m_offset, extent, d - 1,        \
+                         i1 + m_offset[d], __VA_ARGS__)              \
   }
 
-#define LOOP_L_3(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_3(func, type, m_offset, extent, d, ...)   \
   for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) { \
-    LOOP_L_2(func, type, m_offset, extent, d - 1, i2 + m_offset[d],  \
-             __VA_ARGS__)                                            \
+    KOKKOS_IMPL_LOOP_L_2(func, type, m_offset, extent, d - 1,        \
+                         i2 + m_offset[d], __VA_ARGS__)              \
   }
 
-#define LOOP_L_4(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_4(func, type, m_offset, extent, d, ...)   \
   for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) { \
-    LOOP_L_3(func, type, m_offset, extent, d - 1, i3 + m_offset[d],  \
-             __VA_ARGS__)                                            \
+    KOKKOS_IMPL_LOOP_L_3(func, type, m_offset, extent, d - 1,        \
+                         i3 + m_offset[d], __VA_ARGS__)              \
   }
 
-#define LOOP_L_5(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_5(func, type, m_offset, extent, d, ...)   \
   for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) { \
-    LOOP_L_4(func, type, m_offset, extent, d - 1, i4 + m_offset[d],  \
-             __VA_ARGS__)                                            \
+    KOKKOS_IMPL_LOOP_L_4(func, type, m_offset, extent, d - 1,        \
+                         i4 + m_offset[d], __VA_ARGS__)              \
   }
 
-#define LOOP_L_6(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_6(func, type, m_offset, extent, d, ...)   \
   for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) { \
-    LOOP_L_5(func, type, m_offset, extent, d - 1, i5 + m_offset[d],  \
-             __VA_ARGS__)                                            \
+    KOKKOS_IMPL_LOOP_L_5(func, type, m_offset, extent, d - 1,        \
+                         i5 + m_offset[d], __VA_ARGS__)              \
   }
 
-#define LOOP_L_7(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_7(func, type, m_offset, extent, d, ...)   \
   for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) { \
-    LOOP_L_6(func, type, m_offset, extent, d - 1, i6 + m_offset[d],  \
-             __VA_ARGS__)                                            \
+    KOKKOS_IMPL_LOOP_L_6(func, type, m_offset, extent, d - 1,        \
+                         i6 + m_offset[d], __VA_ARGS__)              \
   }
 
-#define LOOP_L_8(func, type, m_offset, extent, d, ...)               \
+#define KOKKOS_IMPL_LOOP_L_8(func, type, m_offset, extent, d, ...)   \
   for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) { \
-    LOOP_L_7(func, type, m_offset, extent, d - 1, i7 + m_offset[d],  \
-             __VA_ARGS__)                                            \
+    KOKKOS_IMPL_LOOP_L_7(func, type, m_offset, extent, d - 1,        \
+                         i7 + m_offset[d], __VA_ARGS__)              \
   }
 
 // Left vs Right
 // TODO: rank not necessary to pass through, can hardcode the values
-#define LOOP_LAYOUT_1(func, type, is_left, m_offset, extent, rank)   \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                        \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) { \
-    APPLY(func, i0 + m_offset[0])                                    \
+#define KOKKOS_IMPL_LOOP_LAYOUT_1(func, type, is_left, m_offset, extent, rank) \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                                  \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) {           \
+    KOKKOS_IMPL_APPLY(func, i0 + m_offset[0])                                  \
   }
 
-#define LOOP_LAYOUT_2(func, type, is_left, m_offset, extent, rank)            \
-  if (is_left) {                                                              \
-    for (type i1 = (type)0; i1 < static_cast<type>(extent[rank - 1]); ++i1) { \
-      LOOP_L_1(func, type, m_offset, extent, rank - 2,                        \
-               i1 + m_offset[rank - 1])                                       \
-    }                                                                         \
-  } else {                                                                    \
-    for (type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) {        \
-      LOOP_R_1(func, type, m_offset, extent, 1, i1 + m_offset[0])             \
-    }                                                                         \
+#define KOKKOS_IMPL_LOOP_LAYOUT_2(func, type, is_left, m_offset, extent, rank) \
+  if (is_left) {                                                               \
+    for (type i1 = (type)0; i1 < static_cast<type>(extent[rank - 1]); ++i1) {  \
+      KOKKOS_IMPL_LOOP_L_1(func, type, m_offset, extent, rank - 2,             \
+                           i1 + m_offset[rank - 1])                            \
+    }                                                                          \
+  } else {                                                                     \
+    for (type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) {         \
+      KOKKOS_IMPL_LOOP_R_1(func, type, m_offset, extent, 1, i1 + m_offset[0])  \
+    }                                                                          \
   }
 
-#define LOOP_LAYOUT_3(func, type, is_left, m_offset, extent, rank)            \
-  if (is_left) {                                                              \
-    for (type i2 = (type)0; i2 < static_cast<type>(extent[rank - 1]); ++i2) { \
-      LOOP_L_2(func, type, m_offset, extent, rank - 2,                        \
-               i2 + m_offset[rank - 1])                                       \
-    }                                                                         \
-  } else {                                                                    \
-    for (type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) {        \
-      LOOP_R_2(func, type, m_offset, extent, 1, i2 + m_offset[0])             \
-    }                                                                         \
+#define KOKKOS_IMPL_LOOP_LAYOUT_3(func, type, is_left, m_offset, extent, rank) \
+  if (is_left) {                                                               \
+    for (type i2 = (type)0; i2 < static_cast<type>(extent[rank - 1]); ++i2) {  \
+      KOKKOS_IMPL_LOOP_L_2(func, type, m_offset, extent, rank - 2,             \
+                           i2 + m_offset[rank - 1])                            \
+    }                                                                          \
+  } else {                                                                     \
+    for (type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) {         \
+      KOKKOS_IMPL_LOOP_R_2(func, type, m_offset, extent, 1, i2 + m_offset[0])  \
+    }                                                                          \
   }
 
-#define LOOP_LAYOUT_4(func, type, is_left, m_offset, extent, rank)            \
-  if (is_left) {                                                              \
-    for (type i3 = (type)0; i3 < static_cast<type>(extent[rank - 1]); ++i3) { \
-      LOOP_L_3(func, type, m_offset, extent, rank - 2,                        \
-               i3 + m_offset[rank - 1])                                       \
-    }                                                                         \
-  } else {                                                                    \
-    for (type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) {        \
-      LOOP_R_3(func, type, m_offset, extent, 1, i3 + m_offset[0])             \
-    }                                                                         \
+#define KOKKOS_IMPL_LOOP_LAYOUT_4(func, type, is_left, m_offset, extent, rank) \
+  if (is_left) {                                                               \
+    for (type i3 = (type)0; i3 < static_cast<type>(extent[rank - 1]); ++i3) {  \
+      KOKKOS_IMPL_LOOP_L_3(func, type, m_offset, extent, rank - 2,             \
+                           i3 + m_offset[rank - 1])                            \
+    }                                                                          \
+  } else {                                                                     \
+    for (type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) {         \
+      KOKKOS_IMPL_LOOP_R_3(func, type, m_offset, extent, 1, i3 + m_offset[0])  \
+    }                                                                          \
   }
 
-#define LOOP_LAYOUT_5(func, type, is_left, m_offset, extent, rank)            \
-  if (is_left) {                                                              \
-    for (type i4 = (type)0; i4 < static_cast<type>(extent[rank - 1]); ++i4) { \
-      LOOP_L_4(func, type, m_offset, extent, rank - 2,                        \
-               i4 + m_offset[rank - 1])                                       \
-    }                                                                         \
-  } else {                                                                    \
-    for (type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) {        \
-      LOOP_R_4(func, type, m_offset, extent, 1, i4 + m_offset[0])             \
-    }                                                                         \
+#define KOKKOS_IMPL_LOOP_LAYOUT_5(func, type, is_left, m_offset, extent, rank) \
+  if (is_left) {                                                               \
+    for (type i4 = (type)0; i4 < static_cast<type>(extent[rank - 1]); ++i4) {  \
+      KOKKOS_IMPL_LOOP_L_4(func, type, m_offset, extent, rank - 2,             \
+                           i4 + m_offset[rank - 1])                            \
+    }                                                                          \
+  } else {                                                                     \
+    for (type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) {         \
+      KOKKOS_IMPL_LOOP_R_4(func, type, m_offset, extent, 1, i4 + m_offset[0])  \
+    }                                                                          \
   }
 
-#define LOOP_LAYOUT_6(func, type, is_left, m_offset, extent, rank)            \
-  if (is_left) {                                                              \
-    for (type i5 = (type)0; i5 < static_cast<type>(extent[rank - 1]); ++i5) { \
-      LOOP_L_5(func, type, m_offset, extent, rank - 2,                        \
-               i5 + m_offset[rank - 1])                                       \
-    }                                                                         \
-  } else {                                                                    \
-    for (type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) {        \
-      LOOP_R_5(func, type, m_offset, extent, 1, i5 + m_offset[0])             \
-    }                                                                         \
+#define KOKKOS_IMPL_LOOP_LAYOUT_6(func, type, is_left, m_offset, extent, rank) \
+  if (is_left) {                                                               \
+    for (type i5 = (type)0; i5 < static_cast<type>(extent[rank - 1]); ++i5) {  \
+      KOKKOS_IMPL_LOOP_L_5(func, type, m_offset, extent, rank - 2,             \
+                           i5 + m_offset[rank - 1])                            \
+    }                                                                          \
+  } else {                                                                     \
+    for (type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) {         \
+      KOKKOS_IMPL_LOOP_R_5(func, type, m_offset, extent, 1, i5 + m_offset[0])  \
+    }                                                                          \
   }
 
-#define LOOP_LAYOUT_7(func, type, is_left, m_offset, extent, rank)            \
-  if (is_left) {                                                              \
-    for (type i6 = (type)0; i6 < static_cast<type>(extent[rank - 1]); ++i6) { \
-      LOOP_L_6(func, type, m_offset, extent, rank - 2,                        \
-               i6 + m_offset[rank - 1])                                       \
-    }                                                                         \
-  } else {                                                                    \
-    for (type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) {        \
-      LOOP_R_6(func, type, m_offset, extent, 1, i6 + m_offset[0])             \
-    }                                                                         \
+#define KOKKOS_IMPL_LOOP_LAYOUT_7(func, type, is_left, m_offset, extent, rank) \
+  if (is_left) {                                                               \
+    for (type i6 = (type)0; i6 < static_cast<type>(extent[rank - 1]); ++i6) {  \
+      KOKKOS_IMPL_LOOP_L_6(func, type, m_offset, extent, rank - 2,             \
+                           i6 + m_offset[rank - 1])                            \
+    }                                                                          \
+  } else {                                                                     \
+    for (type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) {         \
+      KOKKOS_IMPL_LOOP_R_6(func, type, m_offset, extent, 1, i6 + m_offset[0])  \
+    }                                                                          \
   }
 
-#define LOOP_LAYOUT_8(func, type, is_left, m_offset, extent, rank)            \
-  if (is_left) {                                                              \
-    for (type i7 = (type)0; i7 < static_cast<type>(extent[rank - 1]); ++i7) { \
-      LOOP_L_7(func, type, m_offset, extent, rank - 2,                        \
-               i7 + m_offset[rank - 1])                                       \
-    }                                                                         \
-  } else {                                                                    \
-    for (type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) {        \
-      LOOP_R_7(func, type, m_offset, extent, 1, i7 + m_offset[0])             \
-    }                                                                         \
+#define KOKKOS_IMPL_LOOP_LAYOUT_8(func, type, is_left, m_offset, extent, rank) \
+  if (is_left) {                                                               \
+    for (type i7 = (type)0; i7 < static_cast<type>(extent[rank - 1]); ++i7) {  \
+      KOKKOS_IMPL_LOOP_L_7(func, type, m_offset, extent, rank - 2,             \
+                           i7 + m_offset[rank - 1])                            \
+    }                                                                          \
+  } else {                                                                     \
+    for (type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) {         \
+      KOKKOS_IMPL_LOOP_R_7(func, type, m_offset, extent, 1, i7 + m_offset[0])  \
+    }                                                                          \
   }
 
 // Partial vs Full Tile
-#define TILE_LOOP_1(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_1(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_1(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_1(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_1(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_1(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
-#define TILE_LOOP_2(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_2(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_2(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_2(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_2(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_2(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
-#define TILE_LOOP_3(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_3(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_3(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_3(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_3(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_3(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
-#define TILE_LOOP_4(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_4(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_4(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_4(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_4(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_4(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
-#define TILE_LOOP_5(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_5(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_5(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_5(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_5(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_5(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
-#define TILE_LOOP_6(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_6(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_6(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_6(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_6(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_6(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
-#define TILE_LOOP_7(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_7(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_7(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_7(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_7(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_7(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
-#define TILE_LOOP_8(func, type, is_left, cond, m_offset, extent_full,  \
-                    extent_partial, rank)                              \
-  if (cond) {                                                          \
-    LOOP_LAYOUT_8(func, type, is_left, m_offset, extent_full, rank)    \
-  } else {                                                             \
-    LOOP_LAYOUT_8(func, type, is_left, m_offset, extent_partial, rank) \
+#define KOKKOS_IMPL_TILE_LOOP_8(func, type, is_left, cond, m_offset,         \
+                                extent_full, extent_partial, rank)           \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_8(func, type, is_left, m_offset, extent_full,    \
+                              rank)                                          \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_8(func, type, is_left, m_offset, extent_partial, \
+                              rank)                                          \
   }
 
 // parallel_reduce, non-tagged
 // Reduction version
-#define APPLY_REDUX(val, func, ...) func(__VA_ARGS__, val);
+#define KOKKOS_IMPL_APPLY_REDUX(val, func, ...) func(__VA_ARGS__, val);
 
 // LayoutRight
 // d = 0 to start
-#define LOOP_R_1_REDUX(val, func, type, m_offset, extent, d, ...)    \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                        \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) { \
-    APPLY_REDUX(val, func, __VA_ARGS__, i0 + m_offset[d])            \
+#define KOKKOS_IMPL_LOOP_R_1_REDUX(val, func, type, m_offset, extent, d, ...) \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                                 \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {          \
+    KOKKOS_IMPL_APPLY_REDUX(val, func, __VA_ARGS__, i0 + m_offset[d])         \
   }
 
-#define LOOP_R_2_REDUX(val, func, type, m_offset, extent, d, ...)         \
-  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {      \
-    LOOP_R_1_REDUX(val, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                   i1 + m_offset[d])                                      \
+#define KOKKOS_IMPL_LOOP_R_2_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {          \
+    KOKKOS_IMPL_LOOP_R_1_REDUX(val, func, type, m_offset, extent, d + 1,      \
+                               __VA_ARGS__, i1 + m_offset[d])                 \
   }
 
-#define LOOP_R_3_REDUX(val, func, type, m_offset, extent, d, ...)         \
-  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {      \
-    LOOP_R_2_REDUX(val, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                   i2 + m_offset[d])                                      \
+#define KOKKOS_IMPL_LOOP_R_3_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {          \
+    KOKKOS_IMPL_LOOP_R_2_REDUX(val, func, type, m_offset, extent, d + 1,      \
+                               __VA_ARGS__, i2 + m_offset[d])                 \
   }
 
-#define LOOP_R_4_REDUX(val, func, type, m_offset, extent, d, ...)         \
-  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {      \
-    LOOP_R_3_REDUX(val, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                   i3 + m_offset[d])                                      \
+#define KOKKOS_IMPL_LOOP_R_4_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {          \
+    KOKKOS_IMPL_LOOP_R_3_REDUX(val, func, type, m_offset, extent, d + 1,      \
+                               __VA_ARGS__, i3 + m_offset[d])                 \
   }
 
-#define LOOP_R_5_REDUX(val, func, type, m_offset, extent, d, ...)         \
-  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {      \
-    LOOP_R_4_REDUX(val, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                   i4 + m_offset[d])                                      \
+#define KOKKOS_IMPL_LOOP_R_5_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {          \
+    KOKKOS_IMPL_LOOP_R_4_REDUX(val, func, type, m_offset, extent, d + 1,      \
+                               __VA_ARGS__, i4 + m_offset[d])                 \
   }
 
-#define LOOP_R_6_REDUX(val, func, type, m_offset, extent, d, ...)         \
-  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {      \
-    LOOP_R_5_REDUX(val, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                   i5 + m_offset[d])                                      \
+#define KOKKOS_IMPL_LOOP_R_6_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {          \
+    KOKKOS_IMPL_LOOP_R_5_REDUX(val, func, type, m_offset, extent, d + 1,      \
+                               __VA_ARGS__, i5 + m_offset[d])                 \
   }
 
-#define LOOP_R_7_REDUX(val, func, type, m_offset, extent, d, ...)         \
-  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {      \
-    LOOP_R_6_REDUX(val, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                   i6 + m_offset[d])                                      \
+#define KOKKOS_IMPL_LOOP_R_7_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {          \
+    KOKKOS_IMPL_LOOP_R_6_REDUX(val, func, type, m_offset, extent, d + 1,      \
+                               __VA_ARGS__, i6 + m_offset[d])                 \
   }
 
-#define LOOP_R_8_REDUX(val, func, type, m_offset, extent, d, ...)         \
-  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {      \
-    LOOP_R_7_REDUX(val, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                   i7 + m_offset[d])                                      \
+#define KOKKOS_IMPL_LOOP_R_8_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {          \
+    KOKKOS_IMPL_LOOP_R_7_REDUX(val, func, type, m_offset, extent, d + 1,      \
+                               __VA_ARGS__, i7 + m_offset[d])                 \
   }
 
 // LayoutLeft
 // d = rank-1 to start
-#define LOOP_L_1_REDUX(val, func, type, m_offset, extent, d, ...)    \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                        \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) { \
-    APPLY_REDUX(val, func, i0 + m_offset[d], __VA_ARGS__)            \
+#define KOKKOS_IMPL_LOOP_L_1_REDUX(val, func, type, m_offset, extent, d, ...) \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                                 \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {          \
+    KOKKOS_IMPL_APPLY_REDUX(val, func, i0 + m_offset[d], __VA_ARGS__)         \
   }
 
-#define LOOP_L_2_REDUX(val, func, type, m_offset, extent, d, ...)              \
-  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {           \
-    LOOP_L_1_REDUX(val, func, type, m_offset, extent, d - 1, i1 + m_offset[d], \
-                   __VA_ARGS__)                                                \
+#define KOKKOS_IMPL_LOOP_L_2_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {          \
+    KOKKOS_IMPL_LOOP_L_1_REDUX(val, func, type, m_offset, extent, d - 1,      \
+                               i1 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define LOOP_L_3_REDUX(val, func, type, m_offset, extent, d, ...)              \
-  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {           \
-    LOOP_L_2_REDUX(val, func, type, m_offset, extent, d - 1, i2 + m_offset[d], \
-                   __VA_ARGS__)                                                \
+#define KOKKOS_IMPL_LOOP_L_3_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {          \
+    KOKKOS_IMPL_LOOP_L_2_REDUX(val, func, type, m_offset, extent, d - 1,      \
+                               i2 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define LOOP_L_4_REDUX(val, func, type, m_offset, extent, d, ...)              \
-  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {           \
-    LOOP_L_3_REDUX(val, func, type, m_offset, extent, d - 1, i3 + m_offset[d], \
-                   __VA_ARGS__)                                                \
+#define KOKKOS_IMPL_LOOP_L_4_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {          \
+    KOKKOS_IMPL_LOOP_L_3_REDUX(val, func, type, m_offset, extent, d - 1,      \
+                               i3 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define LOOP_L_5_REDUX(val, func, type, m_offset, extent, d, ...)              \
-  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {           \
-    LOOP_L_4_REDUX(val, func, type, m_offset, extent, d - 1, i4 + m_offset[d], \
-                   __VA_ARGS__)                                                \
+#define KOKKOS_IMPL_LOOP_L_5_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {          \
+    KOKKOS_IMPL_LOOP_L_4_REDUX(val, func, type, m_offset, extent, d - 1,      \
+                               i4 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define LOOP_L_6_REDUX(val, func, type, m_offset, extent, d, ...)              \
-  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {           \
-    LOOP_L_5_REDUX(val, func, type, m_offset, extent, d - 1, i5 + m_offset[d], \
-                   __VA_ARGS__)                                                \
+#define KOKKOS_IMPL_LOOP_L_6_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {          \
+    KOKKOS_IMPL_LOOP_L_5_REDUX(val, func, type, m_offset, extent, d - 1,      \
+                               i5 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define LOOP_L_7_REDUX(val, func, type, m_offset, extent, d, ...)              \
-  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {           \
-    LOOP_L_6_REDUX(val, func, type, m_offset, extent, d - 1, i6 + m_offset[d], \
-                   __VA_ARGS__)                                                \
+#define KOKKOS_IMPL_LOOP_L_7_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {          \
+    KOKKOS_IMPL_LOOP_L_6_REDUX(val, func, type, m_offset, extent, d - 1,      \
+                               i6 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define LOOP_L_8_REDUX(val, func, type, m_offset, extent, d, ...)              \
-  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {           \
-    LOOP_L_7_REDUX(val, func, type, m_offset, extent, d - 1, i7 + m_offset[d], \
-                   __VA_ARGS__)                                                \
+#define KOKKOS_IMPL_LOOP_L_8_REDUX(val, func, type, m_offset, extent, d, ...) \
+  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {          \
+    KOKKOS_IMPL_LOOP_L_7_REDUX(val, func, type, m_offset, extent, d - 1,      \
+                               i7 + m_offset[d], __VA_ARGS__)                 \
   }
 
 // Left vs Right
-#define LOOP_LAYOUT_1_REDUX(val, func, type, is_left, m_offset, extent, rank) \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                                 \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) {          \
-    APPLY_REDUX(val, func, i0 + m_offset[0])                                  \
+#define KOKKOS_IMPL_LOOP_LAYOUT_1_REDUX(val, func, type, is_left, m_offset, \
+                                        extent, rank)                       \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                               \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) {        \
+    KOKKOS_IMPL_APPLY_REDUX(val, func, i0 + m_offset[0])                    \
   }
 
-#define LOOP_LAYOUT_2_REDUX(val, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_LOOP_LAYOUT_2_REDUX(val, func, type, is_left, m_offset,   \
+                                        extent, rank)                         \
   if (is_left) {                                                              \
     for (type i1 = (type)0; i1 < static_cast<type>(extent[rank - 1]); ++i1) { \
-      LOOP_L_1_REDUX(val, func, type, m_offset, extent, rank - 2,             \
-                     i1 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_LOOP_L_1_REDUX(val, func, type, m_offset, extent, rank - 2, \
+                                 i1 + m_offset[rank - 1])                     \
     }                                                                         \
   } else {                                                                    \
     for (type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) {        \
-      LOOP_R_1_REDUX(val, func, type, m_offset, extent, 1, i1 + m_offset[0])  \
+      KOKKOS_IMPL_LOOP_R_1_REDUX(val, func, type, m_offset, extent, 1,        \
+                                 i1 + m_offset[0])                            \
     }                                                                         \
   }
 
-#define LOOP_LAYOUT_3_REDUX(val, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_LOOP_LAYOUT_3_REDUX(val, func, type, is_left, m_offset,   \
+                                        extent, rank)                         \
   if (is_left) {                                                              \
     for (type i2 = (type)0; i2 < static_cast<type>(extent[rank - 1]); ++i2) { \
-      LOOP_L_2_REDUX(val, func, type, m_offset, extent, rank - 2,             \
-                     i2 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_LOOP_L_2_REDUX(val, func, type, m_offset, extent, rank - 2, \
+                                 i2 + m_offset[rank - 1])                     \
     }                                                                         \
   } else {                                                                    \
     for (type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) {        \
-      LOOP_R_2_REDUX(val, func, type, m_offset, extent, 1, i2 + m_offset[0])  \
+      KOKKOS_IMPL_LOOP_R_2_REDUX(val, func, type, m_offset, extent, 1,        \
+                                 i2 + m_offset[0])                            \
     }                                                                         \
   }
 
-#define LOOP_LAYOUT_4_REDUX(val, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_LOOP_LAYOUT_4_REDUX(val, func, type, is_left, m_offset,   \
+                                        extent, rank)                         \
   if (is_left) {                                                              \
     for (type i3 = (type)0; i3 < static_cast<type>(extent[rank - 1]); ++i3) { \
-      LOOP_L_3_REDUX(val, func, type, m_offset, extent, rank - 2,             \
-                     i3 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_LOOP_L_3_REDUX(val, func, type, m_offset, extent, rank - 2, \
+                                 i3 + m_offset[rank - 1])                     \
     }                                                                         \
   } else {                                                                    \
     for (type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) {        \
-      LOOP_R_3_REDUX(val, func, type, m_offset, extent, 1, i3 + m_offset[0])  \
+      KOKKOS_IMPL_LOOP_R_3_REDUX(val, func, type, m_offset, extent, 1,        \
+                                 i3 + m_offset[0])                            \
     }                                                                         \
   }
 
-#define LOOP_LAYOUT_5_REDUX(val, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_LOOP_LAYOUT_5_REDUX(val, func, type, is_left, m_offset,   \
+                                        extent, rank)                         \
   if (is_left) {                                                              \
     for (type i4 = (type)0; i4 < static_cast<type>(extent[rank - 1]); ++i4) { \
-      LOOP_L_4_REDUX(val, func, type, m_offset, extent, rank - 2,             \
-                     i4 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_LOOP_L_4_REDUX(val, func, type, m_offset, extent, rank - 2, \
+                                 i4 + m_offset[rank - 1])                     \
     }                                                                         \
   } else {                                                                    \
     for (type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) {        \
-      LOOP_R_4_REDUX(val, func, type, m_offset, extent, 1, i4 + m_offset[0])  \
+      KOKKOS_IMPL_LOOP_R_4_REDUX(val, func, type, m_offset, extent, 1,        \
+                                 i4 + m_offset[0])                            \
     }                                                                         \
   }
 
-#define LOOP_LAYOUT_6_REDUX(val, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_LOOP_LAYOUT_6_REDUX(val, func, type, is_left, m_offset,   \
+                                        extent, rank)                         \
   if (is_left) {                                                              \
     for (type i5 = (type)0; i5 < static_cast<type>(extent[rank - 1]); ++i5) { \
-      LOOP_L_5_REDUX(val, func, type, m_offset, extent, rank - 2,             \
-                     i5 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_LOOP_L_5_REDUX(val, func, type, m_offset, extent, rank - 2, \
+                                 i5 + m_offset[rank - 1])                     \
     }                                                                         \
   } else {                                                                    \
     for (type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) {        \
-      LOOP_R_5_REDUX(val, func, type, m_offset, extent, 1, i5 + m_offset[0])  \
+      KOKKOS_IMPL_LOOP_R_5_REDUX(val, func, type, m_offset, extent, 1,        \
+                                 i5 + m_offset[0])                            \
     }                                                                         \
   }
 
-#define LOOP_LAYOUT_7_REDUX(val, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_LOOP_LAYOUT_7_REDUX(val, func, type, is_left, m_offset,   \
+                                        extent, rank)                         \
   if (is_left) {                                                              \
     for (type i6 = (type)0; i6 < static_cast<type>(extent[rank - 1]); ++i6) { \
-      LOOP_L_6_REDUX(val, func, type, m_offset, extent, rank - 2,             \
-                     i6 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_LOOP_L_6_REDUX(val, func, type, m_offset, extent, rank - 2, \
+                                 i6 + m_offset[rank - 1])                     \
     }                                                                         \
   } else {                                                                    \
     for (type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) {        \
-      LOOP_R_6_REDUX(val, func, type, m_offset, extent, 1, i6 + m_offset[0])  \
+      KOKKOS_IMPL_LOOP_R_6_REDUX(val, func, type, m_offset, extent, 1,        \
+                                 i6 + m_offset[0])                            \
     }                                                                         \
   }
 
-#define LOOP_LAYOUT_8_REDUX(val, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_LOOP_LAYOUT_8_REDUX(val, func, type, is_left, m_offset,   \
+                                        extent, rank)                         \
   if (is_left) {                                                              \
     for (type i7 = (type)0; i7 < static_cast<type>(extent[rank - 1]); ++i7) { \
-      LOOP_L_7_REDUX(val, func, type, m_offset, extent, rank - 2,             \
-                     i7 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_LOOP_L_7_REDUX(val, func, type, m_offset, extent, rank - 2, \
+                                 i7 + m_offset[rank - 1])                     \
     }                                                                         \
   } else {                                                                    \
     for (type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) {        \
-      LOOP_R_7_REDUX(val, func, type, m_offset, extent, 1, i7 + m_offset[0])  \
+      KOKKOS_IMPL_LOOP_R_7_REDUX(val, func, type, m_offset, extent, 1,        \
+                                 i7 + m_offset[0])                            \
     }                                                                         \
   }
 
 // Partial vs Full Tile
-#define TILE_LOOP_1_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_1_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_1_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_1_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_1_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_1_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 
-#define TILE_LOOP_2_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_2_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_2_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_2_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_2_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_2_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 
-#define TILE_LOOP_3_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_3_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_3_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_3_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_3_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_3_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 
-#define TILE_LOOP_4_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_4_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_4_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_4_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_4_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_4_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 
-#define TILE_LOOP_5_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_5_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_5_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_5_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_5_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_5_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 
-#define TILE_LOOP_6_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_6_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_6_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_6_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_6_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_6_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 
-#define TILE_LOOP_7_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_7_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_7_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_7_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_7_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_7_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 
-#define TILE_LOOP_8_REDUX(val, func, type, is_left, cond, m_offset,            \
-                          extent_full, extent_partial, rank)                   \
-  if (cond) {                                                                  \
-    LOOP_LAYOUT_8_REDUX(val, func, type, is_left, m_offset, extent_full, rank) \
-  } else {                                                                     \
-    LOOP_LAYOUT_8_REDUX(val, func, type, is_left, m_offset, extent_partial,    \
-                        rank)                                                  \
+#define KOKKOS_IMPL_TILE_LOOP_8_REDUX(val, func, type, is_left, cond,        \
+                                      m_offset, extent_full, extent_partial, \
+                                      rank)                                  \
+  if (cond) {                                                                \
+    KOKKOS_IMPL_LOOP_LAYOUT_8_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_full, rank)                       \
+  } else {                                                                   \
+    KOKKOS_IMPL_LOOP_LAYOUT_8_REDUX(val, func, type, is_left, m_offset,      \
+                                    extent_partial, rank)                    \
   }
 // end New Loop Macros
 
 // tagged macros
-#define TAGGED_APPLY(tag, func, ...) func(tag, __VA_ARGS__);
+#define KOKKOS_IMPL_TAGGED_APPLY(tag, func, ...) func(tag, __VA_ARGS__);
 
 // LayoutRight
 // d = 0 to start
-#define TAGGED_LOOP_R_1(tag, func, type, m_offset, extent, d, ...)   \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                        \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) { \
-    TAGGED_APPLY(tag, func, __VA_ARGS__, i0 + m_offset[d])           \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_1(tag, func, type, m_offset, extent, d, ...) \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                                  \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {           \
+    KOKKOS_IMPL_TAGGED_APPLY(tag, func, __VA_ARGS__, i0 + m_offset[d])         \
   }
 
-#define TAGGED_LOOP_R_2(tag, func, type, m_offset, extent, d, ...)         \
-  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {       \
-    TAGGED_LOOP_R_1(tag, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                    i1 + m_offset[d])                                      \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_2(tag, func, type, m_offset, extent, d, ...) \
+  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_R_1(tag, func, type, m_offset, extent, d + 1,      \
+                                __VA_ARGS__, i1 + m_offset[d])                 \
   }
 
-#define TAGGED_LOOP_R_3(tag, func, type, m_offset, extent, d, ...)         \
-  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {       \
-    TAGGED_LOOP_R_2(tag, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                    i2 + m_offset[d])                                      \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_3(tag, func, type, m_offset, extent, d, ...) \
+  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_R_2(tag, func, type, m_offset, extent, d + 1,      \
+                                __VA_ARGS__, i2 + m_offset[d])                 \
   }
 
-#define TAGGED_LOOP_R_4(tag, func, type, m_offset, extent, d, ...)         \
-  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {       \
-    TAGGED_LOOP_R_3(tag, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                    i3 + m_offset[d])                                      \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_4(tag, func, type, m_offset, extent, d, ...) \
+  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_R_3(tag, func, type, m_offset, extent, d + 1,      \
+                                __VA_ARGS__, i3 + m_offset[d])                 \
   }
 
-#define TAGGED_LOOP_R_5(tag, func, type, m_offset, extent, d, ...)         \
-  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {       \
-    TAGGED_LOOP_R_4(tag, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                    i4 + m_offset[d])                                      \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_5(tag, func, type, m_offset, extent, d, ...) \
+  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_R_4(tag, func, type, m_offset, extent, d + 1,      \
+                                __VA_ARGS__, i4 + m_offset[d])                 \
   }
 
-#define TAGGED_LOOP_R_6(tag, func, type, m_offset, extent, d, ...)         \
-  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {       \
-    TAGGED_LOOP_R_5(tag, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                    i5 + m_offset[d])                                      \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_6(tag, func, type, m_offset, extent, d, ...) \
+  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_R_5(tag, func, type, m_offset, extent, d + 1,      \
+                                __VA_ARGS__, i5 + m_offset[d])                 \
   }
 
-#define TAGGED_LOOP_R_7(tag, func, type, m_offset, extent, d, ...)         \
-  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {       \
-    TAGGED_LOOP_R_6(tag, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                    i6 + m_offset[d])                                      \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_7(tag, func, type, m_offset, extent, d, ...) \
+  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_R_6(tag, func, type, m_offset, extent, d + 1,      \
+                                __VA_ARGS__, i6 + m_offset[d])                 \
   }
 
-#define TAGGED_LOOP_R_8(tag, func, type, m_offset, extent, d, ...)         \
-  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {       \
-    TAGGED_LOOP_R_7(tag, func, type, m_offset, extent, d + 1, __VA_ARGS__, \
-                    i7 + m_offset[d])                                      \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_8(tag, func, type, m_offset, extent, d, ...) \
+  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_R_7(tag, func, type, m_offset, extent, d + 1,      \
+                                __VA_ARGS__, i7 + m_offset[d])                 \
   }
 
 // LayoutLeft
 // d = rank-1 to start
-#define TAGGED_LOOP_L_1(tag, func, type, m_offset, extent, d, ...)   \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                        \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) { \
-    TAGGED_APPLY(tag, func, i0 + m_offset[d], __VA_ARGS__)           \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_1(tag, func, type, m_offset, extent, d, ...) \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                                  \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {           \
+    KOKKOS_IMPL_TAGGED_APPLY(tag, func, i0 + m_offset[d], __VA_ARGS__)         \
   }
 
-#define TAGGED_LOOP_L_2(tag, func, type, m_offset, extent, d, ...)   \
-  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) { \
-    TAGGED_LOOP_L_1(tag, func, type, m_offset, extent, d - 1,        \
-                    i1 + m_offset[d], __VA_ARGS__)                   \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_2(tag, func, type, m_offset, extent, d, ...) \
+  for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_L_1(tag, func, type, m_offset, extent, d - 1,      \
+                                i1 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define TAGGED_LOOP_L_3(tag, func, type, m_offset, extent, d, ...)   \
-  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) { \
-    TAGGED_LOOP_L_2(tag, func, type, m_offset, extent, d - 1,        \
-                    i2 + m_offset[d], __VA_ARGS__)                   \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_3(tag, func, type, m_offset, extent, d, ...) \
+  for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_L_2(tag, func, type, m_offset, extent, d - 1,      \
+                                i2 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define TAGGED_LOOP_L_4(tag, func, type, m_offset, extent, d, ...)   \
-  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) { \
-    TAGGED_LOOP_L_3(tag, func, type, m_offset, extent, d - 1,        \
-                    i3 + m_offset[d], __VA_ARGS__)                   \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_4(tag, func, type, m_offset, extent, d, ...) \
+  for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_L_3(tag, func, type, m_offset, extent, d - 1,      \
+                                i3 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define TAGGED_LOOP_L_5(tag, func, type, m_offset, extent, d, ...)   \
-  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) { \
-    TAGGED_LOOP_L_4(tag, func, type, m_offset, extent, d - 1,        \
-                    i4 + m_offset[d], __VA_ARGS__)                   \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_5(tag, func, type, m_offset, extent, d, ...) \
+  for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_L_4(tag, func, type, m_offset, extent, d - 1,      \
+                                i4 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define TAGGED_LOOP_L_6(tag, func, type, m_offset, extent, d, ...)   \
-  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) { \
-    TAGGED_LOOP_L_5(tag, func, type, m_offset, extent, d - 1,        \
-                    i5 + m_offset[d], __VA_ARGS__)                   \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_6(tag, func, type, m_offset, extent, d, ...) \
+  for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_L_5(tag, func, type, m_offset, extent, d - 1,      \
+                                i5 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define TAGGED_LOOP_L_7(tag, func, type, m_offset, extent, d, ...)   \
-  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) { \
-    TAGGED_LOOP_L_6(tag, func, type, m_offset, extent, d - 1,        \
-                    i6 + m_offset[d], __VA_ARGS__)                   \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_7(tag, func, type, m_offset, extent, d, ...) \
+  for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_L_6(tag, func, type, m_offset, extent, d - 1,      \
+                                i6 + m_offset[d], __VA_ARGS__)                 \
   }
 
-#define TAGGED_LOOP_L_8(tag, func, type, m_offset, extent, d, ...)   \
-  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) { \
-    TAGGED_LOOP_L_7(tag, func, type, m_offset, extent, d - 1,        \
-                    i7 + m_offset[d], __VA_ARGS__)                   \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_8(tag, func, type, m_offset, extent, d, ...) \
+  for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {           \
+    KOKKOS_IMPL_TAGGED_LOOP_L_7(tag, func, type, m_offset, extent, d - 1,      \
+                                i7 + m_offset[d], __VA_ARGS__)                 \
   }
 
 // Left vs Right
 // TODO: rank not necessary to pass through, can hardcode the values
-#define TAGGED_LOOP_LAYOUT_1(tag, func, type, is_left, m_offset, extent, rank) \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                                  \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) {           \
-    TAGGED_APPLY(tag, func, i0 + m_offset[0])                                  \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1(tag, func, type, is_left, m_offset, \
+                                         extent, rank)                       \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                                \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) {         \
+    KOKKOS_IMPL_TAGGED_APPLY(tag, func, i0 + m_offset[0])                    \
   }
 
-#define TAGGED_LOOP_LAYOUT_2(tag, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2(tag, func, type, is_left, m_offset,   \
+                                         extent, rank)                         \
   if (is_left) {                                                               \
     for (type i1 = (type)0; i1 < static_cast<type>(extent[rank - 1]); ++i1) {  \
-      TAGGED_LOOP_L_1(tag, func, type, m_offset, extent, rank - 2,             \
-                      i1 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_L_1(tag, func, type, m_offset, extent, rank - 2, \
+                                  i1 + m_offset[rank - 1])                     \
     }                                                                          \
   } else {                                                                     \
     for (type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) {         \
-      TAGGED_LOOP_R_1(tag, func, type, m_offset, extent, 1, i1 + m_offset[0])  \
+      KOKKOS_IMPL_TAGGED_LOOP_R_1(tag, func, type, m_offset, extent, 1,        \
+                                  i1 + m_offset[0])                            \
     }                                                                          \
   }
 
-#define TAGGED_LOOP_LAYOUT_3(tag, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3(tag, func, type, is_left, m_offset,   \
+                                         extent, rank)                         \
   if (is_left) {                                                               \
     for (type i2 = (type)0; i2 < static_cast<type>(extent[rank - 1]); ++i2) {  \
-      TAGGED_LOOP_L_2(tag, func, type, m_offset, extent, rank - 2,             \
-                      i2 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_L_2(tag, func, type, m_offset, extent, rank - 2, \
+                                  i2 + m_offset[rank - 1])                     \
     }                                                                          \
   } else {                                                                     \
     for (type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) {         \
-      TAGGED_LOOP_R_2(tag, func, type, m_offset, extent, 1, i2 + m_offset[0])  \
+      KOKKOS_IMPL_TAGGED_LOOP_R_2(tag, func, type, m_offset, extent, 1,        \
+                                  i2 + m_offset[0])                            \
     }                                                                          \
   }
 
-#define TAGGED_LOOP_LAYOUT_4(tag, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4(tag, func, type, is_left, m_offset,   \
+                                         extent, rank)                         \
   if (is_left) {                                                               \
     for (type i3 = (type)0; i3 < static_cast<type>(extent[rank - 1]); ++i3) {  \
-      TAGGED_LOOP_L_3(tag, func, type, m_offset, extent, rank - 2,             \
-                      i3 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_L_3(tag, func, type, m_offset, extent, rank - 2, \
+                                  i3 + m_offset[rank - 1])                     \
     }                                                                          \
   } else {                                                                     \
     for (type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) {         \
-      TAGGED_LOOP_R_3(tag, func, type, m_offset, extent, 1, i3 + m_offset[0])  \
+      KOKKOS_IMPL_TAGGED_LOOP_R_3(tag, func, type, m_offset, extent, 1,        \
+                                  i3 + m_offset[0])                            \
     }                                                                          \
   }
 
-#define TAGGED_LOOP_LAYOUT_5(tag, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5(tag, func, type, is_left, m_offset,   \
+                                         extent, rank)                         \
   if (is_left) {                                                               \
     for (type i4 = (type)0; i4 < static_cast<type>(extent[rank - 1]); ++i4) {  \
-      TAGGED_LOOP_L_4(tag, func, type, m_offset, extent, rank - 2,             \
-                      i4 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_L_4(tag, func, type, m_offset, extent, rank - 2, \
+                                  i4 + m_offset[rank - 1])                     \
     }                                                                          \
   } else {                                                                     \
     for (type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) {         \
-      TAGGED_LOOP_R_4(tag, func, type, m_offset, extent, 1, i4 + m_offset[0])  \
+      KOKKOS_IMPL_TAGGED_LOOP_R_4(tag, func, type, m_offset, extent, 1,        \
+                                  i4 + m_offset[0])                            \
     }                                                                          \
   }
 
-#define TAGGED_LOOP_LAYOUT_6(tag, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6(tag, func, type, is_left, m_offset,   \
+                                         extent, rank)                         \
   if (is_left) {                                                               \
     for (type i5 = (type)0; i5 < static_cast<type>(extent[rank - 1]); ++i5) {  \
-      TAGGED_LOOP_L_5(tag, func, type, m_offset, extent, rank - 2,             \
-                      i5 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_L_5(tag, func, type, m_offset, extent, rank - 2, \
+                                  i5 + m_offset[rank - 1])                     \
     }                                                                          \
   } else {                                                                     \
     for (type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) {         \
-      TAGGED_LOOP_R_5(tag, func, type, m_offset, extent, 1, i5 + m_offset[0])  \
+      KOKKOS_IMPL_TAGGED_LOOP_R_5(tag, func, type, m_offset, extent, 1,        \
+                                  i5 + m_offset[0])                            \
     }                                                                          \
   }
 
-#define TAGGED_LOOP_LAYOUT_7(tag, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7(tag, func, type, is_left, m_offset,   \
+                                         extent, rank)                         \
   if (is_left) {                                                               \
     for (type i6 = (type)0; i6 < static_cast<type>(extent[rank - 1]); ++i6) {  \
-      TAGGED_LOOP_L_6(tag, func, type, m_offset, extent, rank - 2,             \
-                      i6 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_L_6(tag, func, type, m_offset, extent, rank - 2, \
+                                  i6 + m_offset[rank - 1])                     \
     }                                                                          \
   } else {                                                                     \
     for (type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) {         \
-      TAGGED_LOOP_R_6(tag, func, type, m_offset, extent, 1, i6 + m_offset[0])  \
+      KOKKOS_IMPL_TAGGED_LOOP_R_6(tag, func, type, m_offset, extent, 1,        \
+                                  i6 + m_offset[0])                            \
     }                                                                          \
   }
 
-#define TAGGED_LOOP_LAYOUT_8(tag, func, type, is_left, m_offset, extent, rank) \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8(tag, func, type, is_left, m_offset,   \
+                                         extent, rank)                         \
   if (is_left) {                                                               \
     for (type i7 = (type)0; i7 < static_cast<type>(extent[rank - 1]); ++i7) {  \
-      TAGGED_LOOP_L_7(tag, func, type, m_offset, extent, rank - 2,             \
-                      i7 + m_offset[rank - 1])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_L_7(tag, func, type, m_offset, extent, rank - 2, \
+                                  i7 + m_offset[rank - 1])                     \
     }                                                                          \
   } else {                                                                     \
     for (type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) {         \
-      TAGGED_LOOP_R_7(tag, func, type, m_offset, extent, 1, i7 + m_offset[0])  \
+      KOKKOS_IMPL_TAGGED_LOOP_R_7(tag, func, type, m_offset, extent, 1,        \
+                                  i7 + m_offset[0])                            \
     }                                                                          \
   }
 
 // Partial vs Full Tile
-#define TAGGED_TILE_LOOP_1(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_1(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_1(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_1(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
-#define TAGGED_TILE_LOOP_2(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_2(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_2(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_2(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
-#define TAGGED_TILE_LOOP_3(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_3(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_3(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_3(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
-#define TAGGED_TILE_LOOP_4(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_4(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_4(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_4(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
-#define TAGGED_TILE_LOOP_5(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_5(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_5(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_5(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
-#define TAGGED_TILE_LOOP_6(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_6(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_6(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_6(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
-#define TAGGED_TILE_LOOP_7(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_7(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_7(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_7(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
-#define TAGGED_TILE_LOOP_8(tag, func, type, is_left, cond, m_offset,         \
-                           extent_full, extent_partial, rank)                \
-  if (cond) {                                                                \
-    TAGGED_LOOP_LAYOUT_8(tag, func, type, is_left, m_offset, extent_full,    \
-                         rank)                                               \
-  } else {                                                                   \
-    TAGGED_LOOP_LAYOUT_8(tag, func, type, is_left, m_offset, extent_partial, \
-                         rank)                                               \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_8(tag, func, type, is_left, cond,        \
+                                       m_offset, extent_full, extent_partial, \
+                                       rank)                                  \
+  if (cond) {                                                                 \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8(tag, func, type, is_left, m_offset,      \
+                                     extent_full, rank)                       \
+  } else {                                                                    \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8(tag, func, type, is_left, m_offset,      \
+                                     extent_partial, rank)                    \
   }
 
 // parallel_reduce, tagged
 // Reduction version
-#define TAGGED_APPLY_REDUX(val, tag, func, ...) func(tag, __VA_ARGS__, val);
+#define KOKKOS_IMPL_TAGGED_APPLY_REDUX(val, tag, func, ...) \
+  func(tag, __VA_ARGS__, val);
 
 // LayoutRight
 // d = 0 to start
-#define TAGGED_LOOP_R_1_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                                 \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {          \
-    TAGGED_APPLY_REDUX(val, tag, func, __VA_ARGS__, i0 + m_offset[d])         \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_1_REDUX(val, tag, func, type, m_offset, \
+                                          extent, d, ...)                 \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                             \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {      \
+    KOKKOS_IMPL_TAGGED_APPLY_REDUX(val, tag, func, __VA_ARGS__,           \
+                                   i0 + m_offset[d])                      \
   }
 
-#define TAGGED_LOOP_R_2_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_2_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {          \
-    TAGGED_LOOP_R_1_REDUX(val, tag, func, type, m_offset, extent, d + 1,      \
-                          __VA_ARGS__, i1 + m_offset[d])                      \
+    KOKKOS_IMPL_TAGGED_LOOP_R_1_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d + 1, __VA_ARGS__, i1 + m_offset[d])   \
   }
 
-#define TAGGED_LOOP_R_3_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_3_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {          \
-    TAGGED_LOOP_R_2_REDUX(val, tag, func, type, m_offset, extent, d + 1,      \
-                          __VA_ARGS__, i2 + m_offset[d])                      \
+    KOKKOS_IMPL_TAGGED_LOOP_R_2_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d + 1, __VA_ARGS__, i2 + m_offset[d])   \
   }
 
-#define TAGGED_LOOP_R_4_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_4_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {          \
-    TAGGED_LOOP_R_3_REDUX(val, tag, func, type, m_offset, extent, d + 1,      \
-                          __VA_ARGS__, i3 + m_offset[d])                      \
+    KOKKOS_IMPL_TAGGED_LOOP_R_3_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d + 1, __VA_ARGS__, i3 + m_offset[d])   \
   }
 
-#define TAGGED_LOOP_R_5_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_5_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {          \
-    TAGGED_LOOP_R_4_REDUX(val, tag, func, type, m_offset, extent, d + 1,      \
-                          __VA_ARGS__, i4 + m_offset[d])                      \
+    KOKKOS_IMPL_TAGGED_LOOP_R_4_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d + 1, __VA_ARGS__, i4 + m_offset[d])   \
   }
 
-#define TAGGED_LOOP_R_6_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_6_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {          \
-    TAGGED_LOOP_R_5_REDUX(val, tag, func, type, m_offset, extent, d + 1,      \
-                          __VA_ARGS__, i5 + m_offset[d])                      \
+    KOKKOS_IMPL_TAGGED_LOOP_R_5_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d + 1, __VA_ARGS__, i5 + m_offset[d])   \
   }
 
-#define TAGGED_LOOP_R_7_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_7_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {          \
-    TAGGED_LOOP_R_6_REDUX(val, tag, func, type, m_offset, extent, d + 1,      \
-                          __VA_ARGS__, i6 + m_offset[d])                      \
+    KOKKOS_IMPL_TAGGED_LOOP_R_6_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d + 1, __VA_ARGS__, i6 + m_offset[d])   \
   }
 
-#define TAGGED_LOOP_R_8_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_R_8_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {          \
-    TAGGED_LOOP_R_7_REDUX(val, tag, func, type, m_offset, extent, d + 1,      \
-                          __VA_ARGS__, i7 + m_offset[d])                      \
+    KOKKOS_IMPL_TAGGED_LOOP_R_7_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d + 1, __VA_ARGS__, i7 + m_offset[d])   \
   }
 
 // LayoutLeft
 // d = rank-1 to start
-#define TAGGED_LOOP_L_1_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                                 \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {          \
-    TAGGED_APPLY_REDUX(val, tag, func, i0 + m_offset[d], __VA_ARGS__)         \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_1_REDUX(val, tag, func, type, m_offset, \
+                                          extent, d, ...)                 \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                             \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[d]); ++i0) {      \
+    KOKKOS_IMPL_TAGGED_APPLY_REDUX(val, tag, func, i0 + m_offset[d],      \
+                                   __VA_ARGS__)                           \
   }
 
-#define TAGGED_LOOP_L_2_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_2_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i1 = (type)0; i1 < static_cast<type>(extent[d]); ++i1) {          \
-    TAGGED_LOOP_L_1_REDUX(val, tag, func, type, m_offset, extent, d - 1,      \
-                          i1 + m_offset[d], __VA_ARGS__)                      \
+    KOKKOS_IMPL_TAGGED_LOOP_L_1_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d - 1, i1 + m_offset[d], __VA_ARGS__)   \
   }
 
-#define TAGGED_LOOP_L_3_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_3_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i2 = (type)0; i2 < static_cast<type>(extent[d]); ++i2) {          \
-    TAGGED_LOOP_L_2_REDUX(val, tag, func, type, m_offset, extent, d - 1,      \
-                          i2 + m_offset[d], __VA_ARGS__)                      \
+    KOKKOS_IMPL_TAGGED_LOOP_L_2_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d - 1, i2 + m_offset[d], __VA_ARGS__)   \
   }
 
-#define TAGGED_LOOP_L_4_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_4_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i3 = (type)0; i3 < static_cast<type>(extent[d]); ++i3) {          \
-    TAGGED_LOOP_L_3_REDUX(val, tag, func, type, m_offset, extent, d - 1,      \
-                          i3 + m_offset[d], __VA_ARGS__)                      \
+    KOKKOS_IMPL_TAGGED_LOOP_L_3_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d - 1, i3 + m_offset[d], __VA_ARGS__)   \
   }
 
-#define TAGGED_LOOP_L_5_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_5_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i4 = (type)0; i4 < static_cast<type>(extent[d]); ++i4) {          \
-    TAGGED_LOOP_L_4_REDUX(val, tag, func, type, m_offset, extent, d - 1,      \
-                          i4 + m_offset[d], __VA_ARGS__)                      \
+    KOKKOS_IMPL_TAGGED_LOOP_L_4_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d - 1, i4 + m_offset[d], __VA_ARGS__)   \
   }
 
-#define TAGGED_LOOP_L_6_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_6_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i5 = (type)0; i5 < static_cast<type>(extent[d]); ++i5) {          \
-    TAGGED_LOOP_L_5_REDUX(val, tag, func, type, m_offset, extent, d - 1,      \
-                          i5 + m_offset[d], __VA_ARGS__)                      \
+    KOKKOS_IMPL_TAGGED_LOOP_L_5_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d - 1, i5 + m_offset[d], __VA_ARGS__)   \
   }
 
-#define TAGGED_LOOP_L_7_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_7_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i6 = (type)0; i6 < static_cast<type>(extent[d]); ++i6) {          \
-    TAGGED_LOOP_L_6_REDUX(val, tag, func, type, m_offset, extent, d - 1,      \
-                          i6 + m_offset[d], __VA_ARGS__)                      \
+    KOKKOS_IMPL_TAGGED_LOOP_L_6_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d - 1, i6 + m_offset[d], __VA_ARGS__)   \
   }
 
-#define TAGGED_LOOP_L_8_REDUX(val, tag, func, type, m_offset, extent, d, ...) \
+#define KOKKOS_IMPL_TAGGED_LOOP_L_8_REDUX(val, tag, func, type, m_offset,     \
+                                          extent, d, ...)                     \
   for (type i7 = (type)0; i7 < static_cast<type>(extent[d]); ++i7) {          \
-    TAGGED_LOOP_L_7_REDUX(val, tag, func, type, m_offset, extent, d - 1,      \
-                          i7 + m_offset[d], __VA_ARGS__)                      \
+    KOKKOS_IMPL_TAGGED_LOOP_L_7_REDUX(val, tag, func, type, m_offset, extent, \
+                                      d - 1, i7 + m_offset[d], __VA_ARGS__)   \
   }
 
 // Left vs Right
-#define TAGGED_LOOP_LAYOUT_1_REDUX(val, tag, func, type, is_left, m_offset, \
-                                   extent, rank)                            \
-  KOKKOS_ENABLE_IVDEP_MDRANGE                                               \
-  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) {        \
-    TAGGED_APPLY_REDUX(val, tag, func, i0 + m_offset[0])                    \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
+  KOKKOS_ENABLE_IVDEP_MDRANGE                                                 \
+  for (type i0 = (type)0; i0 < static_cast<type>(extent[0]); ++i0) {          \
+    KOKKOS_IMPL_TAGGED_APPLY_REDUX(val, tag, func, i0 + m_offset[0])          \
   }
 
-#define TAGGED_LOOP_LAYOUT_2_REDUX(val, tag, func, type, is_left, m_offset,   \
-                                   extent, rank)                              \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
   if (is_left) {                                                              \
     for (type i1 = (type)0; i1 < static_cast<type>(extent[rank - 1]); ++i1) { \
-      TAGGED_LOOP_L_1_REDUX(val, tag, func, type, m_offset, extent, rank - 2, \
-                            i1 + m_offset[rank - 1])                          \
+      KOKKOS_IMPL_TAGGED_LOOP_L_1_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, rank - 2,                     \
+                                        i1 + m_offset[rank - 1])              \
     }                                                                         \
   } else {                                                                    \
     for (type i1 = (type)0; i1 < static_cast<type>(extent[0]); ++i1) {        \
-      TAGGED_LOOP_R_1_REDUX(val, tag, func, type, m_offset, extent, 1,        \
-                            i1 + m_offset[0])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_R_1_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, 1, i1 + m_offset[0])          \
     }                                                                         \
   }
 
-#define TAGGED_LOOP_LAYOUT_3_REDUX(val, tag, func, type, is_left, m_offset,   \
-                                   extent, rank)                              \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
   if (is_left) {                                                              \
     for (type i2 = (type)0; i2 < static_cast<type>(extent[rank - 1]); ++i2) { \
-      TAGGED_LOOP_L_2_REDUX(val, tag, func, type, m_offset, extent, rank - 2, \
-                            i2 + m_offset[rank - 1])                          \
+      KOKKOS_IMPL_TAGGED_LOOP_L_2_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, rank - 2,                     \
+                                        i2 + m_offset[rank - 1])              \
     }                                                                         \
   } else {                                                                    \
     for (type i2 = (type)0; i2 < static_cast<type>(extent[0]); ++i2) {        \
-      TAGGED_LOOP_R_2_REDUX(val, tag, func, type, m_offset, extent, 1,        \
-                            i2 + m_offset[0])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_R_2_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, 1, i2 + m_offset[0])          \
     }                                                                         \
   }
 
-#define TAGGED_LOOP_LAYOUT_4_REDUX(val, tag, func, type, is_left, m_offset,   \
-                                   extent, rank)                              \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
   if (is_left) {                                                              \
     for (type i3 = (type)0; i3 < static_cast<type>(extent[rank - 1]); ++i3) { \
-      TAGGED_LOOP_L_3_REDUX(val, tag, func, type, m_offset, extent, rank - 2, \
-                            i3 + m_offset[rank - 1])                          \
+      KOKKOS_IMPL_TAGGED_LOOP_L_3_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, rank - 2,                     \
+                                        i3 + m_offset[rank - 1])              \
     }                                                                         \
   } else {                                                                    \
     for (type i3 = (type)0; i3 < static_cast<type>(extent[0]); ++i3) {        \
-      TAGGED_LOOP_R_3_REDUX(val, tag, func, type, m_offset, extent, 1,        \
-                            i3 + m_offset[0])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_R_3_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, 1, i3 + m_offset[0])          \
     }                                                                         \
   }
 
-#define TAGGED_LOOP_LAYOUT_5_REDUX(val, tag, func, type, is_left, m_offset,   \
-                                   extent, rank)                              \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
   if (is_left) {                                                              \
     for (type i4 = (type)0; i4 < static_cast<type>(extent[rank - 1]); ++i4) { \
-      TAGGED_LOOP_L_4_REDUX(val, tag, func, type, m_offset, extent, rank - 2, \
-                            i4 + m_offset[rank - 1])                          \
+      KOKKOS_IMPL_TAGGED_LOOP_L_4_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, rank - 2,                     \
+                                        i4 + m_offset[rank - 1])              \
     }                                                                         \
   } else {                                                                    \
     for (type i4 = (type)0; i4 < static_cast<type>(extent[0]); ++i4) {        \
-      TAGGED_LOOP_R_4_REDUX(val, tag, func, type, m_offset, extent, 1,        \
-                            i4 + m_offset[0])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_R_4_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, 1, i4 + m_offset[0])          \
     }                                                                         \
   }
 
-#define TAGGED_LOOP_LAYOUT_6_REDUX(val, tag, func, type, is_left, m_offset,   \
-                                   extent, rank)                              \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
   if (is_left) {                                                              \
     for (type i5 = (type)0; i5 < static_cast<type>(extent[rank - 1]); ++i5) { \
-      TAGGED_LOOP_L_5_REDUX(val, tag, func, type, m_offset, extent, rank - 2, \
-                            i5 + m_offset[rank - 1])                          \
+      KOKKOS_IMPL_TAGGED_LOOP_L_5_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, rank - 2,                     \
+                                        i5 + m_offset[rank - 1])              \
     }                                                                         \
   } else {                                                                    \
     for (type i5 = (type)0; i5 < static_cast<type>(extent[0]); ++i5) {        \
-      TAGGED_LOOP_R_5_REDUX(val, tag, func, type, m_offset, extent, 1,        \
-                            i5 + m_offset[0])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_R_5_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, 1, i5 + m_offset[0])          \
     }                                                                         \
   }
 
-#define TAGGED_LOOP_LAYOUT_7_REDUX(val, tag, func, type, is_left, m_offset,   \
-                                   extent, rank)                              \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
   if (is_left) {                                                              \
     for (type i6 = (type)0; i6 < static_cast<type>(extent[rank - 1]); ++i6) { \
-      TAGGED_LOOP_L_6_REDUX(val, tag, func, type, m_offset, extent, rank - 2, \
-                            i6 + m_offset[rank - 1])                          \
+      KOKKOS_IMPL_TAGGED_LOOP_L_6_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, rank - 2,                     \
+                                        i6 + m_offset[rank - 1])              \
     }                                                                         \
   } else {                                                                    \
     for (type i6 = (type)0; i6 < static_cast<type>(extent[0]); ++i6) {        \
-      TAGGED_LOOP_R_6_REDUX(val, tag, func, type, m_offset, extent, 1,        \
-                            i6 + m_offset[0])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_R_6_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, 1, i6 + m_offset[0])          \
     }                                                                         \
   }
 
-#define TAGGED_LOOP_LAYOUT_8_REDUX(val, tag, func, type, is_left, m_offset,   \
-                                   extent, rank)                              \
+#define KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8_REDUX(val, tag, func, type, is_left, \
+                                               m_offset, extent, rank)        \
   if (is_left) {                                                              \
     for (type i7 = (type)0; i7 < static_cast<type>(extent[rank - 1]); ++i7) { \
-      TAGGED_LOOP_L_7_REDUX(val, tag, func, type, m_offset, extent, rank - 2, \
-                            i7 + m_offset[rank - 1])                          \
+      KOKKOS_IMPL_TAGGED_LOOP_L_7_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, rank - 2,                     \
+                                        i7 + m_offset[rank - 1])              \
     }                                                                         \
   } else {                                                                    \
     for (type i7 = (type)0; i7 < static_cast<type>(extent[0]); ++i7) {        \
-      TAGGED_LOOP_R_7_REDUX(val, tag, func, type, m_offset, extent, 1,        \
-                            i7 + m_offset[0])                                 \
+      KOKKOS_IMPL_TAGGED_LOOP_R_7_REDUX(val, tag, func, type, m_offset,       \
+                                        extent, 1, i7 + m_offset[0])          \
     }                                                                         \
   }
 
 // Partial vs Full Tile
-#define TAGGED_TILE_LOOP_1_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_1_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_1_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_1_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
-#define TAGGED_TILE_LOOP_2_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_2_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_2_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_2_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
-#define TAGGED_TILE_LOOP_3_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_3_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_3_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_3_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
-#define TAGGED_TILE_LOOP_4_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_4_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_4_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_4_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
-#define TAGGED_TILE_LOOP_5_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_5_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_5_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_5_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
-#define TAGGED_TILE_LOOP_6_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_6_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_6_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_6_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
-#define TAGGED_TILE_LOOP_7_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_7_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_7_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_7_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
-#define TAGGED_TILE_LOOP_8_REDUX(val, tag, func, type, is_left, cond,         \
-                                 m_offset, extent_full, extent_partial, rank) \
-  if (cond) {                                                                 \
-    TAGGED_LOOP_LAYOUT_8_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_full, rank)                             \
-  } else {                                                                    \
-    TAGGED_LOOP_LAYOUT_8_REDUX(val, tag, func, type, is_left, m_offset,       \
-                               extent_partial, rank)                          \
+#define KOKKOS_IMPL_TAGGED_TILE_LOOP_8_REDUX(val, tag, func, type, is_left, \
+                                             cond, m_offset, extent_full,   \
+                                             extent_partial, rank)          \
+  if (cond) {                                                               \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_full, rank)     \
+  } else {                                                                  \
+    KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8_REDUX(val, tag, func, type, is_left,   \
+                                           m_offset, extent_partial, rank)  \
   }
 
 // end tagged macros
@@ -1212,14 +1323,15 @@ struct Tile_Loop_Type<1, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_1(func, IType, IsLeft, cond, offset, a, b, 1);
+    KOKKOS_IMPL_TILE_LOOP_1(func, IType, IsLeft, cond, offset, a, b, 1);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_1_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 1);
+    KOKKOS_IMPL_TILE_LOOP_1_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 1);
   }
 };
 
@@ -1228,14 +1340,15 @@ struct Tile_Loop_Type<2, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_2(func, IType, IsLeft, cond, offset, a, b, 2);
+    KOKKOS_IMPL_TILE_LOOP_2(func, IType, IsLeft, cond, offset, a, b, 2);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_2_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 2);
+    KOKKOS_IMPL_TILE_LOOP_2_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 2);
   }
 };
 
@@ -1244,14 +1357,15 @@ struct Tile_Loop_Type<3, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_3(func, IType, IsLeft, cond, offset, a, b, 3);
+    KOKKOS_IMPL_TILE_LOOP_3(func, IType, IsLeft, cond, offset, a, b, 3);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_3_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 3);
+    KOKKOS_IMPL_TILE_LOOP_3_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 3);
   }
 };
 
@@ -1260,14 +1374,15 @@ struct Tile_Loop_Type<4, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_4(func, IType, IsLeft, cond, offset, a, b, 4);
+    KOKKOS_IMPL_TILE_LOOP_4(func, IType, IsLeft, cond, offset, a, b, 4);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_4_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 4);
+    KOKKOS_IMPL_TILE_LOOP_4_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 4);
   }
 };
 
@@ -1276,14 +1391,15 @@ struct Tile_Loop_Type<5, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_5(func, IType, IsLeft, cond, offset, a, b, 5);
+    KOKKOS_IMPL_TILE_LOOP_5(func, IType, IsLeft, cond, offset, a, b, 5);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_5_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 5);
+    KOKKOS_IMPL_TILE_LOOP_5_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 5);
   }
 };
 
@@ -1292,14 +1408,15 @@ struct Tile_Loop_Type<6, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_6(func, IType, IsLeft, cond, offset, a, b, 6);
+    KOKKOS_IMPL_TILE_LOOP_6(func, IType, IsLeft, cond, offset, a, b, 6);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_6_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 6);
+    KOKKOS_IMPL_TILE_LOOP_6_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 6);
   }
 };
 
@@ -1308,14 +1425,15 @@ struct Tile_Loop_Type<7, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_7(func, IType, IsLeft, cond, offset, a, b, 7);
+    KOKKOS_IMPL_TILE_LOOP_7(func, IType, IsLeft, cond, offset, a, b, 7);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_7_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 7);
+    KOKKOS_IMPL_TILE_LOOP_7_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 7);
   }
 };
 
@@ -1324,14 +1442,15 @@ struct Tile_Loop_Type<8, IsLeft, IType, void, void> {
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_8(func, IType, IsLeft, cond, offset, a, b, 8);
+    KOKKOS_IMPL_TILE_LOOP_8(func, IType, IsLeft, cond, offset, a, b, 8);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TILE_LOOP_8_REDUX(value, func, IType, IsLeft, cond, offset, a, b, 8);
+    KOKKOS_IMPL_TILE_LOOP_8_REDUX(value, func, IType, IsLeft, cond, offset, a,
+                                  b, 8);
   }
 };
 
@@ -1343,15 +1462,16 @@ struct Tile_Loop_Type<1, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_1(Tagged(), func, IType, IsLeft, cond, offset, a, b, 1);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_1(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 1);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_1_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 1);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_1_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 1);
   }
 };
 
@@ -1361,15 +1481,16 @@ struct Tile_Loop_Type<2, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_2(Tagged(), func, IType, IsLeft, cond, offset, a, b, 2);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_2(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 2);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_2_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 2);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_2_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 2);
   }
 };
 
@@ -1379,15 +1500,16 @@ struct Tile_Loop_Type<3, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_3(Tagged(), func, IType, IsLeft, cond, offset, a, b, 3);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_3(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 3);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_3_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 3);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_3_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 3);
   }
 };
 
@@ -1397,15 +1519,16 @@ struct Tile_Loop_Type<4, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_4(Tagged(), func, IType, IsLeft, cond, offset, a, b, 4);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_4(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 4);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_4_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 4);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_4_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 4);
   }
 };
 
@@ -1415,15 +1538,16 @@ struct Tile_Loop_Type<5, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_5(Tagged(), func, IType, IsLeft, cond, offset, a, b, 5);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_5(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 5);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_5_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 5);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_5_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 5);
   }
 };
 
@@ -1433,15 +1557,16 @@ struct Tile_Loop_Type<6, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_6(Tagged(), func, IType, IsLeft, cond, offset, a, b, 6);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_6(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 6);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_6_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 6);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_6_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 6);
   }
 };
 
@@ -1451,15 +1576,16 @@ struct Tile_Loop_Type<7, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_7(Tagged(), func, IType, IsLeft, cond, offset, a, b, 7);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_7(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 7);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_7_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 7);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_7_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 7);
   }
 };
 
@@ -1469,15 +1595,16 @@ struct Tile_Loop_Type<8, IsLeft, IType, Tagged,
   template <typename Func, typename Offset, typename ExtentA, typename ExtentB>
   static void apply(Func const& func, bool cond, Offset const& offset,
                     ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_8(Tagged(), func, IType, IsLeft, cond, offset, a, b, 8);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_8(Tagged(), func, IType, IsLeft, cond, offset,
+                                   a, b, 8);
   }
 
   template <typename ValType, typename Func, typename Offset, typename ExtentA,
             typename ExtentB>
   static void apply(ValType& value, Func const& func, bool cond,
                     Offset const& offset, ExtentA const& a, ExtentB const& b) {
-    TAGGED_TILE_LOOP_8_REDUX(value, Tagged(), func, IType, IsLeft, cond, offset,
-                             a, b, 8);
+    KOKKOS_IMPL_TAGGED_TILE_LOOP_8_REDUX(value, Tagged(), func, IType, IsLeft,
+                                         cond, offset, a, b, 8);
   }
 };
 // end Structs for calling loops
@@ -1589,19 +1716,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       } else {
         //      #pragma simd
-        LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       } else {
         //      #pragma simd
-        LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
     }  // end Iterate::Right
 
@@ -1633,19 +1760,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       } else {
         //      #pragma simd
-        LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       } else {
         //      #pragma simd
-        LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
     }  // end Iterate::Right
 
@@ -1677,19 +1804,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       } else {
         //      #pragma simd
-        LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       } else {
         //      #pragma simd
-        LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
     }  // end Iterate::Right
 
@@ -1721,19 +1848,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       } else {
         //      #pragma simd
-        LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       } else {
         //      #pragma simd
-        LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
     }  // end Iterate::Right
 
@@ -1765,19 +1892,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       } else {
         //      #pragma simd
-        LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       } else {
         //      #pragma simd
-        LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
     }  // end Iterate::Right
 
@@ -1809,19 +1936,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       } else {
         //      #pragma simd
-        LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       } else {
         //      #pragma simd
-        LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
     }  // end Iterate::Right
 
@@ -1853,19 +1980,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       } else {
         //      #pragma simd
-        LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       } else {
         //      #pragma simd
-        LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
     }  // end Iterate::Right
 
@@ -1966,8 +2093,8 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     const bool full_tile = check_iteration_bounds(m_tiledims, m_offset);
 
     Tile_Loop_Type<RP::rank, (RP::inner_direction == Iterate::Left), index_type,
-                   Tag>::apply(val, m_func, full_tile, m_offset, m_rp.m_tile,
-                               m_tiledims);
+                   Tag>::apply(val, m_func.get_functor(), full_tile, m_offset,
+                               m_rp.m_tile, m_tiledims);
   }
 
 #else
@@ -2004,19 +2131,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       } else {
         //      #pragma simd
-        LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       } else {
         //      #pragma simd
-        LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
     }  // end Iterate::Right
 
@@ -2048,19 +2175,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       } else {
         //      #pragma simd
-        LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       } else {
         //      #pragma simd
-        LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
     }  // end Iterate::Right
 
@@ -2092,19 +2219,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       } else {
         //      #pragma simd
-        LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       } else {
         //      #pragma simd
-        LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
     }  // end Iterate::Right
 
@@ -2136,19 +2263,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       } else {
         //      #pragma simd
-        LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       } else {
         //      #pragma simd
-        LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
     }  // end Iterate::Right
 
@@ -2180,19 +2307,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       } else {
         //      #pragma simd
-        LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       } else {
         //      #pragma simd
-        LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
     }  // end Iterate::Right
 
@@ -2224,19 +2351,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       } else {
         //      #pragma simd
-        LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       } else {
         //      #pragma simd
-        LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
     }  // end Iterate::Right
 
@@ -2268,19 +2395,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       } else {
         //      #pragma simd
-        LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       } else {
         //      #pragma simd
-        LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
     }  // end Iterate::Right
 
@@ -2417,19 +2544,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       } else {
         //      #pragma simd
-        LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2L(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       } else {
         //      #pragma simd
-        LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
+        KOKKOS_IMPL_LOOP_2R(index_type, m_tiledims) { apply(LOOP_ARGS_2); }
       }
     }  // end Iterate::Right
 
@@ -2461,19 +2588,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       } else {
         //      #pragma simd
-        LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3L(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       } else {
         //      #pragma simd
-        LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
+        KOKKOS_IMPL_LOOP_3R(index_type, m_tiledims) { apply(LOOP_ARGS_3); }
       }
     }  // end Iterate::Right
 
@@ -2505,19 +2632,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       } else {
         //      #pragma simd
-        LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4L(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       } else {
         //      #pragma simd
-        LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
+        KOKKOS_IMPL_LOOP_4R(index_type, m_tiledims) { apply(LOOP_ARGS_4); }
       }
     }  // end Iterate::Right
 
@@ -2549,19 +2676,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       } else {
         //      #pragma simd
-        LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5L(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       } else {
         //      #pragma simd
-        LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
+        KOKKOS_IMPL_LOOP_5R(index_type, m_tiledims) { apply(LOOP_ARGS_5); }
       }
     }  // end Iterate::Right
 
@@ -2593,19 +2720,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       } else {
         //      #pragma simd
-        LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6L(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       } else {
         //      #pragma simd
-        LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
+        KOKKOS_IMPL_LOOP_6R(index_type, m_tiledims) { apply(LOOP_ARGS_6); }
       }
     }  // end Iterate::Right
 
@@ -2637,19 +2764,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       } else {
         //      #pragma simd
-        LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7L(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       } else {
         //      #pragma simd
-        LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
+        KOKKOS_IMPL_LOOP_7R(index_type, m_tiledims) { apply(LOOP_ARGS_7); }
       }
     }  // end Iterate::Right
 
@@ -2681,19 +2808,19 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     if (RP::inner_direction == Iterate::Left) {
       if (full_tile) {
         //      #pragma simd
-        LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       } else {
         //      #pragma simd
-        LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8L(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
     }  // end Iterate::Left
     else {
       if (full_tile) {
         //      #pragma simd
-        LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       } else {
         //      #pragma simd
-        LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
+        KOKKOS_IMPL_LOOP_8R(index_type, m_tiledims) { apply(LOOP_ARGS_8); }
       }
     }  // end Iterate::Right
 
@@ -2721,6 +2848,162 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
 // ------------------------------------------------------------------ //
 
 #undef KOKKOS_ENABLE_NEW_LOOP_MACROS
+#undef KOKKOS_IMPL_LOOP_1L
+#undef KOKKOS_IMPL_LOOP_2L
+#undef KOKKOS_IMPL_LOOP_3L
+#undef KOKKOS_IMPL_LOOP_4L
+#undef KOKKOS_IMPL_LOOP_5L
+#undef KOKKOS_IMPL_LOOP_6L
+#undef KOKKOS_IMPL_LOOP_7L
+#undef KOKKOS_IMPL_LOOP_8L
+#undef KOKKOS_IMPL_LOOP_1R
+#undef KOKKOS_IMPL_LOOP_2R
+#undef KOKKOS_IMPL_LOOP_3R
+#undef KOKKOS_IMPL_LOOP_4R
+#undef KOKKOS_IMPL_LOOP_5R
+#undef KOKKOS_IMPL_LOOP_6R
+#undef KOKKOS_IMPL_LOOP_7R
+#undef KOKKOS_IMPL_LOOP_8R
+#undef KOKKOS_IMPL_LOOP_ARGS_1
+#undef KOKKOS_IMPL_LOOP_ARGS_2
+#undef KOKKOS_IMPL_LOOP_ARGS_3
+#undef KOKKOS_IMPL_LOOP_ARGS_4
+#undef KOKKOS_IMPL_LOOP_ARGS_5
+#undef KOKKOS_IMPL_LOOP_ARGS_6
+#undef KOKKOS_IMPL_LOOP_ARGS_7
+#undef KOKKOS_IMPL_LOOP_ARGS_8
+#undef KOKKOS_IMPL_APPLY
+#undef KOKKOS_IMPL_LOOP_R_1
+#undef KOKKOS_IMPL_LOOP_R_2
+#undef KOKKOS_IMPL_LOOP_R_3
+#undef KOKKOS_IMPL_LOOP_R_4
+#undef KOKKOS_IMPL_LOOP_R_5
+#undef KOKKOS_IMPL_LOOP_R_6
+#undef KOKKOS_IMPL_LOOP_R_7
+#undef KOKKOS_IMPL_LOOP_R_8
+#undef KOKKOS_IMPL_LOOP_L_1
+#undef KOKKOS_IMPL_LOOP_L_2
+#undef KOKKOS_IMPL_LOOP_L_3
+#undef KOKKOS_IMPL_LOOP_L_4
+#undef KOKKOS_IMPL_LOOP_L_5
+#undef KOKKOS_IMPL_LOOP_L_6
+#undef KOKKOS_IMPL_LOOP_L_7
+#undef KOKKOS_IMPL_LOOP_L_8
+#undef KOKKOS_IMPL_LOOP_LAYOUT_1
+#undef KOKKOS_IMPL_LOOP_LAYOUT_2
+#undef KOKKOS_IMPL_LOOP_LAYOUT_3
+#undef KOKKOS_IMPL_LOOP_LAYOUT_4
+#undef KOKKOS_IMPL_LOOP_LAYOUT_5
+#undef KOKKOS_IMPL_LOOP_LAYOUT_6
+#undef KOKKOS_IMPL_LOOP_LAYOUT_7
+#undef KOKKOS_IMPL_LOOP_LAYOUT_8
+#undef KOKKOS_IMPL_TILE_LOOP_1
+#undef KOKKOS_IMPL_TILE_LOOP_2
+#undef KOKKOS_IMPL_TILE_LOOP_3
+#undef KOKKOS_IMPL_TILE_LOOP_4
+#undef KOKKOS_IMPL_TILE_LOOP_5
+#undef KOKKOS_IMPL_TILE_LOOP_6
+#undef KOKKOS_IMPL_TILE_LOOP_7
+#undef KOKKOS_IMPL_TILE_LOOP_8
+#undef KOKKOS_IMPL_APPLY_REDUX
+#undef KOKKOS_IMPL_LOOP_R_1_REDUX
+#undef KOKKOS_IMPL_LOOP_R_2_REDUX
+#undef KOKKOS_IMPL_LOOP_R_3_REDUX
+#undef KOKKOS_IMPL_LOOP_R_4_REDUX
+#undef KOKKOS_IMPL_LOOP_R_5_REDUX
+#undef KOKKOS_IMPL_LOOP_R_6_REDUX
+#undef KOKKOS_IMPL_LOOP_R_7_REDUX
+#undef KOKKOS_IMPL_LOOP_R_8_REDUX
+#undef KOKKOS_IMPL_LOOP_L_1_REDUX
+#undef KOKKOS_IMPL_LOOP_L_2_REDUX
+#undef KOKKOS_IMPL_LOOP_L_3_REDUX
+#undef KOKKOS_IMPL_LOOP_L_4_REDUX
+#undef KOKKOS_IMPL_LOOP_L_5_REDUX
+#undef KOKKOS_IMPL_LOOP_L_6_REDUX
+#undef KOKKOS_IMPL_LOOP_L_7_REDUX
+#undef KOKKOS_IMPL_LOOP_L_8_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_1_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_2_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_3_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_4_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_5_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_6_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_7_REDUX
+#undef KOKKOS_IMPL_LOOP_LAYOUT_8_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_1_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_2_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_3_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_4_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_5_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_6_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_7_REDUX
+#undef KOKKOS_IMPL_TILE_LOOP_8_REDUX
+#undef KOKKOS_IMPL_TAGGED_APPLY
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_1
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_2
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_3
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_4
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_5
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_6
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_7
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_8
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_1
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_2
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_3
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_4
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_5
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_6
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_7
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_8
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_1
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_2
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_3
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_4
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_5
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_6
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_7
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_8
+#undef KOKKOS_IMPL_TAGGED_APPLY_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_1_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_2_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_3_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_4_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_5_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_6_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_7_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_R_8_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_1_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_2_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_3_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_4_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_5_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_6_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_7_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_L_8_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_1_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_2_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_3_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_4_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_5_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_6_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_7_REDUX
+#undef KOKKOS_IMPL_TAGGED_LOOP_LAYOUT_8_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_1_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_2_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_3_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_4_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_5_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_6_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_7_REDUX
+#undef KOKKOS_IMPL_TAGGED_TILE_LOOP_8_REDUX
 
 }  // namespace Impl
 }  // namespace Kokkos

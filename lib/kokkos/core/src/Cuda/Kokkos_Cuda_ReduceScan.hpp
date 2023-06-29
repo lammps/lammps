@@ -672,34 +672,35 @@ __device__ bool cuda_single_inter_block_reduce_scan(
 }
 
 // Size in bytes required for inter block reduce or scan
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class ArgTag, class ValueType, class FunctorType>
 inline std::enable_if_t<DoScan, unsigned>
 cuda_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
                                           const unsigned BlockSize) {
   using Analysis =
       Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
-                            RangePolicy<Cuda, ArgTag>, FunctorType>;
+                            RangePolicy<Cuda, ArgTag>, FunctorType, ValueType>;
 
   return (BlockSize + 2) * Analysis::value_size(functor);
 }
 
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class ArgTag, class ValueType, class FunctorType>
 inline std::enable_if_t<!DoScan, unsigned>
 cuda_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
                                           const unsigned BlockSize) {
   using Analysis =
       Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
-                            RangePolicy<Cuda, ArgTag>, FunctorType>;
+                            RangePolicy<Cuda, ArgTag>, FunctorType, ValueType>;
 
   return (BlockSize + 2) * Analysis::value_size(functor);
 }
 
-template <typename WorkTag, typename Policy, typename FunctorType>
+template <typename WorkTag, typename ValueType, typename Policy,
+          typename FunctorType>
 inline void check_reduced_view_shmem_size(const Policy& policy,
                                           const FunctorType& functor) {
   size_t minBlockSize = CudaTraits::WarpSize * 1;
   unsigned reqShmemSize =
-      cuda_single_inter_block_reduce_scan_shmem<false, FunctorType, WorkTag>(
+      cuda_single_inter_block_reduce_scan_shmem<false, WorkTag, ValueType>(
           functor, minBlockSize);
   size_t maxShmemPerBlock =
       policy.space().impl_internal_space_instance()->m_maxShmemPerBlock;

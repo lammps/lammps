@@ -143,7 +143,7 @@ void test_view_memory_access_violations_from_device() {
 }
 
 // FIXME_SYCL
-#if !(defined(KOKKOS_COMPILER_INTEL) && defined(KOKKOS_ENABLE_SYCL))
+#if !(defined(KOKKOS_COMPILER_INTEL_LLVM) && defined(KOKKOS_ENABLE_SYCL))
 TEST(TEST_CATEGORY_DEATH, view_memory_access_violations_from_host) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 

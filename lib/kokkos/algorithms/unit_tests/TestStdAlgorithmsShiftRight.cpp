@@ -101,14 +101,14 @@ void verify_data(ResultIt result_it, ViewType view, ViewHostType data_view_host,
   // make sure results match
   const auto my_diff  = KE::end(view) - result_it;
   const auto std_diff = KE::end(data_view_host) - std_rit;
-  EXPECT_EQ(my_diff, std_diff);
+  ASSERT_EQ(my_diff, std_diff);
 
   // check views match
   auto view_h = create_host_space_copy(view);
   auto it1    = KE::cbegin(view_h);
   auto it2    = KE::cbegin(data_view_host);
   for (std::size_t i = 0; i < (std::size_t)my_diff; ++i) {
-    EXPECT_EQ(it1[i], it2[i]);
+    ASSERT_EQ(it1[i], it2[i]);
     // std::cout << "i= " << i << " "
     // 	      << "mine: " << it1[i] << " "
     // 	      << "std:  " << it2[i]

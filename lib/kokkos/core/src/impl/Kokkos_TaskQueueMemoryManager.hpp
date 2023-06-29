@@ -73,9 +73,9 @@ class TaskQueueMemoryManager : public TaskQueueBase {
     } else {
       void* data = m_pool.allocate(static_cast<size_t>(requested_size));
 
-      Kokkos::Impl::desul_atomic_inc(
-          &m_count_alloc, Kokkos::Impl::MemoryOrderSeqCst(),
-          Kokkos::Impl::MemoryScopeDevice());  // TODO? memory_order_relaxed
+      desul::atomic_inc(
+          &m_count_alloc, desul::MemoryOrderSeqCst(),
+          desul::MemoryScopeDevice());  // TODO? memory_order_relaxed
       // TODO @tasking @minor DSH make this thread safe? (otherwise, it's just
       // an approximation, which is probably fine...)
       if (m_max_alloc < m_count_alloc) m_max_alloc = m_count_alloc;
@@ -171,9 +171,9 @@ class TaskQueueMemoryManager : public TaskQueueBase {
   KOKKOS_INLINE_FUNCTION void deallocate(
       PoolAllocatedObjectBase<CountType>&& obj) {
     m_pool.deallocate((void*)&obj, 1);
-    Kokkos::Impl::desul_atomic_dec(
-        &m_count_alloc, Kokkos::Impl::MemoryOrderSeqCst(),
-        Kokkos::Impl::MemoryScopeDevice());  // TODO? memory_order_relaxed
+    desul::atomic_dec(
+        &m_count_alloc, desul::MemoryOrderSeqCst(),
+        desul::MemoryScopeDevice());  // TODO? memory_order_relaxed
   }
 
   KOKKOS_INLINE_FUNCTION

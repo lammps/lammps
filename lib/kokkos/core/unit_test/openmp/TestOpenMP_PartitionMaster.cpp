@@ -29,7 +29,7 @@ TEST(openmp, partition_master) {
   int errors = 0;
 
   auto master = [&errors, &mtx](int /*partition_id*/, int /*num_partitions*/) {
-    const int pool_size = Kokkos::OpenMP::impl_thread_pool_size();
+    const int pool_size = Kokkos::OpenMP().impl_thread_pool_size();
 
     {
       std::unique_lock<Mutex> lock(mtx);
@@ -46,7 +46,7 @@ TEST(openmp, partition_master) {
       Kokkos::parallel_reduce(
           Kokkos::RangePolicy<Kokkos::OpenMP>(0, 1000),
           [pool_size](const int, int& errs) {
-            if (Kokkos::OpenMP::impl_thread_pool_size() != pool_size) {
+            if (Kokkos::OpenMP().impl_thread_pool_size() != pool_size) {
               ++errs;
             }
           },

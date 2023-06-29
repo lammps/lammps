@@ -1042,7 +1042,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
   // Extract value_type from closure
 
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure>::value_type;
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure,
+      void>::value_type;
 
   if (1 < loop_boundaries.thread.team_size()) {
     // make sure all threads perform all loop iterations
@@ -1107,7 +1108,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
   // Extract value_type from closure
 
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure>::value_type;
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure,
+      void>::value_type;
 
   if (1 < loop_boundaries.thread.team_size()) {
     // make sure all threads perform all loop iterations

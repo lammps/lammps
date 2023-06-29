@@ -34,14 +34,14 @@ void test_find(const ViewType view) {
   constexpr value_t find_value = 13;
 
   // value not found, return last
-  EXPECT_EQ(KE::end(expected),
+  ASSERT_EQ(KE::end(expected),
             std::find(KE::begin(expected), KE::end(expected), find_value));
 
   // pass const iterators, returns const iterator
-  EXPECT_EQ(KE::cend(view),
+  ASSERT_EQ(KE::cend(view),
             KE::find(exespace(), KE::cbegin(view), KE::cend(view), find_value));
   // pass view, returns iterator
-  EXPECT_EQ(KE::end(view), KE::find(exespace(), view, find_value));
+  ASSERT_EQ(KE::end(view), KE::find(exespace(), view, find_value));
 
   fill_views_inc(view, expected);
 
@@ -50,10 +50,10 @@ void test_find(const ViewType view) {
   auto distance = std::distance(KE::begin(expected), std_result);
 
   // pass iterators, returns iterator
-  EXPECT_EQ(KE::begin(view) + distance,
+  ASSERT_EQ(KE::begin(view) + distance,
             KE::find(exespace(), KE::begin(view), KE::end(view), find_value));
   // pass view, returns iterator
-  EXPECT_EQ(KE::begin(view) + distance, KE::find(exespace(), view, find_value));
+  ASSERT_EQ(KE::begin(view) + distance, KE::find(exespace(), view, find_value));
 }
 
 template <class ViewType>
@@ -67,15 +67,15 @@ void test_find_if(const ViewType view) {
   const auto not_equals_zero = NotEqualsZeroFunctor<value_type>();
 
   // value not found, return last
-  EXPECT_EQ(
+  ASSERT_EQ(
       KE::end(expected),
       std::find_if(KE::begin(expected), KE::end(expected), not_equals_zero));
 
   // pass iterators, returns iterator
-  EXPECT_EQ(KE::end(view), KE::find_if(exespace(), KE::begin(view),
+  ASSERT_EQ(KE::end(view), KE::find_if(exespace(), KE::begin(view),
                                        KE::end(view), not_equals_zero));
   // pass view, returns iterator
-  EXPECT_EQ(KE::end(view), KE::find_if(exespace(), view, not_equals_zero));
+  ASSERT_EQ(KE::end(view), KE::find_if(exespace(), view, not_equals_zero));
 
   fill_views_inc(view, expected);
 
@@ -86,11 +86,11 @@ void test_find_if(const ViewType view) {
   auto distance = std::distance(KE::begin(expected), std_result);
 
   // pass const iterators, returns const iterator
-  EXPECT_EQ(
+  ASSERT_EQ(
       KE::cbegin(view) + distance,
       KE::find_if(exespace(), KE::cbegin(view), KE::cend(view), equals_val));
   // pass view, returns iterator
-  EXPECT_EQ(KE::begin(view) + distance,
+  ASSERT_EQ(KE::begin(view) + distance,
             KE::find_if(exespace(), view, equals_val));
 }
 
@@ -105,15 +105,15 @@ void test_find_if_not(const ViewType view) {
   const auto not_equals_zero = NotEqualsZeroFunctor<value_type>();
 
   // first value matches
-  EXPECT_EQ(KE::begin(expected),
+  ASSERT_EQ(KE::begin(expected),
             std::find_if_not(KE::begin(expected), KE::end(expected),
                              not_equals_zero));
 
   // pass iterators, returns iterator
-  EXPECT_EQ(KE::begin(view), KE::find_if_not(exespace(), KE::begin(view),
+  ASSERT_EQ(KE::begin(view), KE::find_if_not(exespace(), KE::begin(view),
                                              KE::end(view), not_equals_zero));
   // pass view, returns iterator
-  EXPECT_EQ(KE::begin(view),
+  ASSERT_EQ(KE::begin(view),
             KE::find_if_not(exespace(), view, not_equals_zero));
 
   fill_views_inc(view, expected);
@@ -124,11 +124,11 @@ void test_find_if_not(const ViewType view) {
   auto distance = std::distance(KE::begin(expected), std_result);
 
   // pass const iterators, returns const iterator
-  EXPECT_EQ(KE::cbegin(view) + distance,
+  ASSERT_EQ(KE::cbegin(view) + distance,
             KE::find_if_not(exespace(), KE::cbegin(view), KE::cend(view),
                             equals_zero));
   // pass view, returns const iterator
-  EXPECT_EQ(KE::begin(view) + distance,
+  ASSERT_EQ(KE::begin(view) + distance,
             KE::find_if_not(exespace(), view, equals_zero));
 }
 
@@ -151,12 +151,6 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_find_test, test) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedTwoTag, int>();
   run_all_scenarios<StridedThreeTag, unsigned>();

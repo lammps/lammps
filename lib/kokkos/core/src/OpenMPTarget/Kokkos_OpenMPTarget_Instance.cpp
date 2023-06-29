@@ -27,10 +27,11 @@
 // constructor. undef'ed at the end
 #define KOKKOS_IMPL_OPENMPTARGET_WORKAROUND
 
-#include <Kokkos_OpenMPTarget.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_UniqueToken.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Instance.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
 
 #include <sstream>
 
@@ -65,18 +66,41 @@ void OpenMPTargetInternal::fence(const std::string& name,
         [&]() {});
   }
 }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-int OpenMPTargetInternal::concurrency() {
-#else
 int OpenMPTargetInternal::concurrency() const {
+  int max_threads = 2048 * 80;
+#if defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+  int max_threads_sm = 2048;
+#if defined(KOKKOS_ARCH_AMPERE86)
+  max_threads = max_threads_sm * 84;
+#elif defined(KOKKOS_ARCH_AMPERE80)
+  max_threads = max_threads_sm * 108;
+#elif defined(KOKKOS_ARCH_VOLTA72)
+  max_threads = max_threads_sm * 84;
+#elif defined(KOKKOS_ARCH_VOLTA70)
+  max_threads = max_threads_sm * 80;
+#elif defined(KOKKOS_ARCH_PASCAL60) || defined(KOKKOS_ARCH_PASCAL61)
+  max_threads = max_threads_sm * 60;
 #endif
-  return 128000;  // FIXME_OPENMPTARGET
+#elif defined(KOKKOS_ARCH_INTEL_GPU)
+#pragma omp target map(max_threads)
+  { max_threads = omp_get_num_procs(); }
+
+  // Multiply the number of processors with the SIMD length.
+  max_threads *= 32;
+#endif
+
+  return max_threads;
 }
 const char* OpenMPTargetInternal::name() { return "OpenMPTarget"; }
 void OpenMPTargetInternal::print_configuration(std::ostream& os,
                                                bool /*verbose*/) const {
   // FIXME_OPENMPTARGET
   os << "Using OpenMPTarget\n";
+#if defined(KOKKOS_IMPL_OPENMPTARGET_HIERARCHICAL_INTEL_GPU)
+  os << "Defined KOKKOS_IMPL_OPENMPTARGET_HIERARCHICAL_INTEL_GPU: Workaround "
+        "for "
+        "hierarchical parallelism for Intel GPUs.";
+#endif
 }
 
 void OpenMPTargetInternal::impl_finalize() {
@@ -93,10 +117,10 @@ void OpenMPTargetInternal::impl_initialize() {
 
   // FIXME_OPENMPTARGET:  Only fix the number of teams for NVIDIA architectures
   // from Pascal and upwards.
-#if defined(KOKKOS_ARCH_PASCAL) || defined(KOKKOS_ARCH_VOLTA) ||    \
-    defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE) || \
-    defined(KOKKOS_ARCH_HOPPER)
-#if defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300)
+  // FIXME_OPENMPTARGTE: Cray compiler did not yet implement omp_set_num_teams.
+#if !defined(KOKKOS_COMPILER_CRAY_LLVM)
+#if defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU) && defined(KOKKOS_COMPILER_CLANG) && \
+    (KOKKOS_COMPILER_CLANG >= 1300)
   omp_set_num_teams(512);
 #endif
 #endif
@@ -131,9 +155,15 @@ uint32_t OpenMPTarget::impl_instance_id() const noexcept {
   return m_space_instance->impl_get_instance_id();
 }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 int OpenMPTarget::concurrency() {
   return Impl::OpenMPTargetInternal::impl_singleton()->concurrency();
 }
+#else
+int OpenMPTarget::concurrency() const {
+  return m_space_instance->concurrency();
+}
+#endif
 
 void OpenMPTarget::fence(const std::string& name) {
   Impl::OpenMPTargetInternal::impl_singleton()->fence(name);

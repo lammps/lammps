@@ -553,6 +553,9 @@ template <class D, class... P>
 struct is_dynamic_view<Kokkos::Experimental::DynamicView<D, P...>>
     : public std::true_type {};
 
+template <class T>
+inline constexpr bool is_dynamic_view_v = is_dynamic_view<T>::value;
+
 }  // namespace Kokkos
 
 namespace Kokkos {

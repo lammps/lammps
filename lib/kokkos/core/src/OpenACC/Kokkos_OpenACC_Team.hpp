@@ -82,7 +82,7 @@ class OpenACCTeamMember {
   // FIXME_OPENACC: team_broadcast() is not implemented.
   template <class ValueType>
   KOKKOS_FUNCTION void team_broadcast(ValueType& value, int thread_id) const {
-    static_assert(Kokkos::Impl::always_false<ValueType>::value,
+    static_assert(!Kokkos::Impl::always_true<ValueType>::value,
                   "Kokkos Error: team_broadcast() is not implemented for the "
                   "OpenACC backend");
     return ValueType();
@@ -99,7 +99,7 @@ class OpenACCTeamMember {
   template <class ValueType, class JoinOp>
   KOKKOS_FUNCTION ValueType team_reduce(const ValueType& value,
                                         const JoinOp& op_in) const {
-    static_assert(Kokkos::Impl::always_false<ValueType>::value,
+    static_assert(!Kokkos::Impl::always_true<ValueType>::value,
                   "Kokkos Error: team_reduce() is not implemented for the "
                   "OpenACC backend");
     return ValueType();
@@ -110,7 +110,7 @@ class OpenACCTeamMember {
   KOKKOS_FUNCTION ArgType team_scan(const ArgType& /*value*/,
                                     ArgType* const /*global_accum*/) const {
     static_assert(
-        Kokkos::Impl::always_false<ArgType>::value,
+        !Kokkos::Impl::always_true<ArgType>::value,
         "Kokkos Error: team_scan() is not implemented for the OpenACC backend");
     return ArgType();
   }
@@ -163,37 +163,37 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
   // implementations.
   template <class FunctorType>
   static int team_size_max(const FunctorType&, const ParallelForTag&) {
-    return DEFAULT_TEAM_SIZE_MAX;
+    return default_team_size_max;
   }
 
   template <class FunctorType>
   static int team_size_max(const FunctorType&, const ParallelReduceTag&) {
-    return DEFAULT_TEAM_SIZE_MAX;
+    return default_team_size_max;
   }
 
   template <class FunctorType, class ReducerType>
   static int team_size_max(const FunctorType&, const ReducerType&,
                            const ParallelReduceTag&) {
-    return DEFAULT_TEAM_SIZE_MAX;
+    return default_team_size_max;
   }
 
   // FIXME_OPENACC: update team_size_recommended() APIs with realistic
   // implementations.
   template <class FunctorType>
   static int team_size_recommended(const FunctorType&, const ParallelForTag&) {
-    return DEFAULT_TEAM_SIZE_REC;
+    return default_team_size;
   }
 
   template <class FunctorType>
   static int team_size_recommended(const FunctorType&,
                                    const ParallelReduceTag&) {
-    return DEFAULT_TEAM_SIZE_REC;
+    return default_team_size;
   }
 
   template <class FunctorType, class ReducerType>
   static int team_size_recommended(const FunctorType&, const ReducerType&,
                                    const ParallelReduceTag&) {
-    return DEFAULT_TEAM_SIZE_REC;
+    return default_team_size;
   }
 
   //----------------------------------------
@@ -208,7 +208,9 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
   std::array<size_t, 2> m_thread_scratch_size;
   bool m_tune_team_size;
   bool m_tune_vector_length;
-  constexpr static const size_t default_team_size =
+  constexpr static int default_team_size_max =
+      OpenACCTeamMember::DEFAULT_TEAM_SIZE_MAX;
+  constexpr static int default_team_size =
       OpenACCTeamMember::DEFAULT_TEAM_SIZE_REC;
   int m_chunk_size;
 
@@ -226,8 +228,8 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
  public:
   bool impl_auto_team_size() const { return m_tune_team_size; }
   bool impl_auto_vector_length() const { return m_tune_vector_length; }
-  void impl_set_team_size(const size_t size) { m_team_size = size; }
-  void impl_set_vector_length(const size_t length) {
+  void impl_set_team_size(const int size) { m_team_size = size; }
+  void impl_set_vector_length(const int length) {
     m_tune_vector_length = length;
   }
   int impl_vector_length() const { return m_vector_length; }
@@ -348,7 +350,7 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
         m_chunk_size(0) {
     init(league_size_request, team_size_request, 1);
   }
-  static size_t vector_length_max() {
+  static int vector_length_max() {
     return 32; /* TODO: this is bad. Need logic that is compiler and backend
                   aware */
   }

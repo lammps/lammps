@@ -1582,7 +1582,7 @@ struct TestScratchAlignment {
     Kokkos::fence();
     int minimal_scratch_allocation_failed = 0;
     Kokkos::deep_copy(minimal_scratch_allocation_failed, flag);
-    ASSERT_TRUE(minimal_scratch_allocation_failed == 0);
+    ASSERT_EQ(minimal_scratch_allocation_failed, 0);
   }
 
   // test alignment of successive allocations
@@ -1615,10 +1615,9 @@ struct TestScratchAlignment {
             flag() = 1;
 
           // Now request aligned memory such that the allocation after
-          // for scratch_ptr2 would be unaligned if it doesn't pad
-          // correct.
-          // Depending on whether scratch_ptr3 is 4 or 8 byte aligned
-          // we need to request different amount of memory.
+          // scratch_ptr2 would be unaligned if it doesn't pad correctly.
+          // Depending on scratch_ptr3 being 4 or 8 byte aligned
+          // we need to request a different amount of memory.
           if ((scratch_ptr3 + 12) % 8 == 4)
             scratch_ptr1 = reinterpret_cast<intptr_t>(
                 team.team_shmem().get_shmem_aligned(24, 4));
@@ -1631,26 +1630,27 @@ struct TestScratchAlignment {
           scratch_ptr3 = reinterpret_cast<intptr_t>(
               team.team_shmem().get_shmem_aligned(8, 4));
 
-          // note the difference between scratch_ptr2 and scratch_ptr1
-          // is 4 bytes larger than what we requested in either of the
-          // two cases.
+          // The difference between scratch_ptr2 and scratch_ptr1 should be 4
+          // bytes larger than what we requested in either case.
           if (((scratch_ptr2 - scratch_ptr1) != 28) &&
               ((scratch_ptr2 - scratch_ptr1) != 16))
             flag() = 1;
-          // check that there wasn't unnneccessary padding happening
-          // i.e. scratch_ptr2 was allocated with a 32 byte request
-          // and since scratch_ptr3 is then already aligned it difference
-          // should match that
+          // Check that there wasn't unneccessary padding happening. Since
+          // scratch_ptr2 was allocated with a 32 byte request and scratch_ptr3
+          // is then already aligned, its difference should match 32 bytes.
           if ((scratch_ptr3 - scratch_ptr2) != 32) flag() = 1;
+
           // check actually alignment of ptrs is as requested
-          if (((scratch_ptr1 % 4) != 0) || ((scratch_ptr2 % 8) != 0) ||
-              ((scratch_ptr3 % 4) != 0))
+          // cast to int here to avoid failure with icpx in mixed integer type
+          // comparison
+          if ((int(scratch_ptr1 % 4) != 0) || (int(scratch_ptr2 % 8) != 0) ||
+              (int(scratch_ptr3 % 4) != 0))
             flag() = 1;
         });
     Kokkos::fence();
     int raw_get_shmem_alignment_failed = 0;
     Kokkos::deep_copy(raw_get_shmem_alignment_failed, flag);
-    ASSERT_TRUE(raw_get_shmem_alignment_failed == 0);
+    ASSERT_EQ(raw_get_shmem_alignment_failed, 0);
   }
 };
 

@@ -31,41 +31,6 @@ namespace Kokkos {
 
 namespace Experimental {
 
-namespace Impl {
-
-/// \brief Initialize lock array for arbitrary size atomics.
-///
-/// Arbitrary atomics are implemented using a hash table of locks
-/// where the hash value is derived from the address of the
-/// object for which an atomic operation is performed.
-/// This function initializes the locks to zero (unset).
-void init_lock_array_hbw_space();
-
-/// \brief Acquire a lock for the address
-///
-/// This function tries to acquire the lock for the hash value derived
-/// from the provided ptr. If the lock is successfully acquired the
-/// function returns true. Otherwise it returns false.
-bool lock_address_hbw_space(void* ptr);
-
-/// \brief Release lock for the address
-///
-/// This function releases the lock for the hash value derived
-/// from the provided ptr. This function should only be called
-/// after previously successfully acquiring a lock with
-/// lock_address.
-void unlock_address_hbw_space(void* ptr);
-
-}  // namespace Impl
-
-}  // namespace Experimental
-
-}  // namespace Kokkos
-
-namespace Kokkos {
-
-namespace Experimental {
-
 /// \class HBWSpace
 /// \brief Memory management for host memory.
 ///

@@ -70,7 +70,7 @@ class HIPRawMemoryAllocationFailure : public RawMemoryAllocationFailure {
 
   void append_additional_error_information(std::ostream& o) const override {
     if (m_error_code != hipSuccess) {
-      o << "  The HIP allocation returned the error code \"\""
+      o << "  The HIP allocation returned the error code \""
         << hipGetErrorName(m_error_code) << "\".";
     }
   }

@@ -16,7 +16,9 @@ SPDX-License-Identifier: (BSD-3-Clause)
 namespace desul {
 namespace Impl {
 
-#if _OPENMP > 201800
+// NVHPC compiler only supports the basic flush construct without the
+// memory-order-clause.
+#if _OPENMP > 201800 && !defined(__NVCOMPILER)
 
 // There is no seq_cst flush in OpenMP, isn't it the same anyway for fence?
 inline void host_atomic_thread_fence(MemoryOrderSeqCst, MemoryScopeCore) {

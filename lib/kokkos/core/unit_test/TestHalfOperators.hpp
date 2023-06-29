@@ -17,8 +17,6 @@
 #ifndef TESTHALFOPERATOR_HPP_
 #define TESTHALFOPERATOR_HPP_
 namespace Test {
-#define FP16_EPSILON 0.0009765625F  // 1/2^10
-#define BF16_EPSILON 0.0078125F     // 1/2^7
 using namespace Kokkos::Experimental;
 using ExecutionSpace = TEST_EXECSPACE;
 using ScalarType     = double;
@@ -26,9 +24,19 @@ using ViewType       = Kokkos::View<ScalarType*, ExecutionSpace>;
 using ViewTypeHost   = Kokkos::View<ScalarType*, Kokkos::HostSpace>;
 KOKKOS_FUNCTION
 const half_t& accept_ref(const half_t& a) { return a; }
+KOKKOS_FUNCTION
+double accept_ref_expected(const half_t& a) {
+  double tmp = static_cast<double>(a);
+  return tmp;
+}
 #if !KOKKOS_BHALF_T_IS_FLOAT
 KOKKOS_FUNCTION
 const bhalf_t& accept_ref(const bhalf_t& a) { return a; }
+KOKKOS_FUNCTION
+double accept_ref_expected(const bhalf_t& a) {
+  double tmp = static_cast<double>(a);
+  return tmp;
+}
 #endif  // !KOKKOS_BHALF_T_IS_FLOAT
 
 enum OP_TESTS {
@@ -886,8 +894,16 @@ struct Functor_TestHalfOperators {
     // actual_lhs(TW)   = h_lhs <=> h_rhs;  // Need C++20?
     // expected_lhs(TW) = d_lhs <=> d_rhs;  // Need C++20?
 
-    actual_lhs(PASS_BY_REF)   = static_cast<double>(accept_ref(h_lhs));
-    expected_lhs(PASS_BY_REF) = d_lhs;
+    actual_lhs(PASS_BY_REF) = static_cast<double>(accept_ref(h_lhs));
+
+    // Use accept_ref and accept_ref_expected to ensure the compiler
+    // does not optimize out the casts half_type -> double -> half_type.
+    // Note that these casts are accompanied by rounding. For the bhalf_t
+    // epsilon, these rounding policies used for casting is enough to cause
+    // the unit tests to fail.
+    // In short, one cannot simply assign static_cast<double>(h_lhs) to
+    // expected_lhs(PASS_BY_REF).
+    expected_lhs(PASS_BY_REF) = accept_ref_expected(h_lhs);
 
     half_tmp = static_cast<float>(h_lhs);
     tmp_ptr  = &(tmp_lhs = half_tmp);
@@ -910,12 +926,7 @@ struct Functor_TestHalfOperators {
 
 template <class half_type>
 void __test_half_operators(half_type h_lhs, half_type h_rhs) {
-  double epsilon = FLT_EPSILON;
-
-  if (std::is_same<half_type, Kokkos::Experimental::half_t>::value)
-    epsilon = FP16_EPSILON;
-  if (std::is_same<half_type, Kokkos::Experimental::bhalf_t>::value)
-    epsilon = BF16_EPSILON;
+  double epsilon = Kokkos::Experimental::epsilon<half_type>::value;
 
   Functor_TestHalfOperators<ViewType, half_type> f_device(h_lhs, h_rhs);
   Functor_TestHalfOperators<ViewTypeHost, half_type> f_host(h_lhs, h_rhs);

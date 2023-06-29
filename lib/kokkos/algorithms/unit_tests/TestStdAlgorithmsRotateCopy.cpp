@@ -139,7 +139,7 @@ void verify_data(ViewTypeFrom view_from, ViewTypeTest view_test,
                    std_gold_h.begin());
 
   for (std::size_t i = 0; i < ext; ++i) {
-    EXPECT_EQ(view_test_h(i), std_gold_h[i]);
+    ASSERT_EQ(view_test_h(i), std_gold_h[i]);
     // std::cout << "i= " << i << " "
     // 	      << "from: " << view_from_h(i) << " "
     // 	      << "mine: " << view_test_h(i) << " "
@@ -177,7 +177,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto rit  = KE::rotate_copy(exespace(), KE::cbegin(view_from), n_it,
                                KE::cend(view_from), KE::begin(view_dest));
     verify_data(view_from, view_dest, rotation_point);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -187,7 +187,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto rit = KE::rotate_copy("label", exespace(), KE::cbegin(view_from), n_it,
                                KE::cend(view_from), KE::begin(view_dest));
     verify_data(view_from, view_dest, rotation_point);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -196,7 +196,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto rit =
         KE::rotate_copy(exespace(), view_from, rotation_point, view_dest);
     verify_data(view_from, view_dest, rotation_point);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -205,7 +205,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto rit = KE::rotate_copy("label", exespace(), view_from, rotation_point,
                                view_dest);
     verify_data(view_from, view_dest, rotation_point);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   Kokkos::fence();

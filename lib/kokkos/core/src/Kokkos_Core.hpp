@@ -53,6 +53,7 @@
 #include <Kokkos_MathematicalFunctions.hpp>
 #include <Kokkos_MathematicalSpecialFunctions.hpp>
 #include <Kokkos_NumericTraits.hpp>
+#include <Kokkos_BitManipulation.hpp>
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
@@ -98,6 +99,9 @@ void declare_configuration_metadata(const std::string& category,
 
 [[nodiscard]] bool is_initialized() noexcept;
 [[nodiscard]] bool is_finalized() noexcept;
+
+[[nodiscard]] int device_id() noexcept;
+[[nodiscard]] int num_threads() noexcept;
 
 bool show_warnings() noexcept;
 bool tune_internals() noexcept;
@@ -270,7 +274,7 @@ std::vector<ExecSpace> partition_space(ExecSpace const& space, Args...) {
 
 template <class ExecSpace, class T>
 std::vector<ExecSpace> partition_space(ExecSpace const& space,
-                                       std::vector<T>& weights) {
+                                       std::vector<T> const& weights) {
   static_assert(is_execution_space<ExecSpace>::value,
                 "Kokkos Error: partition_space expects an Execution Space as "
                 "first argument");

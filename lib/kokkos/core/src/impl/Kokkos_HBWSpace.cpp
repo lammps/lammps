@@ -310,41 +310,4 @@ void SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>::
 }  // namespace Impl
 }  // namespace Kokkos
 
-/*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-namespace Experimental {
-namespace {
-const unsigned HBW_SPACE_ATOMIC_MASK     = 0xFFFF;
-const unsigned HBW_SPACE_ATOMIC_XOR_MASK = 0x5A39;
-static int HBW_SPACE_ATOMIC_LOCKS[HBW_SPACE_ATOMIC_MASK + 1];
-}  // namespace
-
-namespace Impl {
-void init_lock_array_hbw_space() {
-  static int is_initialized = 0;
-  if (!is_initialized)
-    for (int i = 0; i < static_cast<int>(HBW_SPACE_ATOMIC_MASK + 1); i++)
-      HBW_SPACE_ATOMIC_LOCKS[i] = 0;
-}
-
-bool lock_address_hbw_space(void *ptr) {
-  return 0 == atomic_compare_exchange(
-                  &HBW_SPACE_ATOMIC_LOCKS[((size_t(ptr) >> 2) &
-                                           HBW_SPACE_ATOMIC_MASK) ^
-                                          HBW_SPACE_ATOMIC_XOR_MASK],
-                  0, 1);
-}
-
-void unlock_address_hbw_space(void *ptr) {
-  atomic_exchange(
-      &HBW_SPACE_ATOMIC_LOCKS[((size_t(ptr) >> 2) & HBW_SPACE_ATOMIC_MASK) ^
-                              HBW_SPACE_ATOMIC_XOR_MASK],
-      0);
-}
-
-}  // namespace Impl
-}  // namespace Experimental
-}  // namespace Kokkos
 #endif

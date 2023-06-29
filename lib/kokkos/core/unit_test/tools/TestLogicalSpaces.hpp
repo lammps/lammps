@@ -165,7 +165,7 @@ TEST(defaultdevicetype, access_allowed) {
   test_allowed_access<fake_memory_space>();
 }
 // FIXME_SYCL
-#if !(defined(KOKKOS_COMPILER_INTEL) && defined(KOKKOS_ENABLE_SYCL))
+#if !(defined(KOKKOS_COMPILER_INTEL_LLVM) && defined(KOKKOS_ENABLE_SYCL))
 TEST(defaultdevicetype_DeathTest, access_forbidden) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   ASSERT_DEATH(

@@ -347,9 +347,8 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
         if (nullptr != t) {
           // Increment reference count to track subsequent assignment.
           // This likely has to be SeqCst
-          Kokkos::Impl::desul_atomic_inc(&(t->m_ref_count),
-                                         Kokkos::Impl::MemoryOrderSeqCst(),
-                                         Kokkos::Impl::MemoryScopeDevice());
+          desul::atomic_inc(&(t->m_ref_count), desul::MemoryOrderSeqCst(),
+                            desul::MemoryScopeDevice());
           if (q != static_cast<queue_type const*>(t->m_queue)) {
             Kokkos::abort(
                 "Kokkos when_all Futures must be in the same scheduler");
@@ -445,9 +444,9 @@ class BasicTaskScheduler : public Impl::TaskSchedulerBase {
           //}
           // Increment reference count to track subsequent assignment.
           // This increment likely has to be SeqCst
-          Kokkos::Impl::desul_atomic_inc(&(arg_f.m_task->m_ref_count),
-                                         Kokkos::Impl::MemoryOrderSeqCst(),
-                                         Kokkos::Impl::MemoryScopeDevice());
+          desul::atomic_inc(&(arg_f.m_task->m_ref_count),
+                            desul::MemoryOrderSeqCst(),
+                            desul::MemoryScopeDevice());
           dep[i] = arg_f.m_task;
         }
       }

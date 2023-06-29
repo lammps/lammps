@@ -173,7 +173,7 @@ KOKKOS_FUNCTION constexpr to_chars_result to_chars_i(char *first, char *last,
       unsigned_val = Unsigned(~value) + Unsigned(1);
     }
   }
-  unsigned int const len = to_chars_len(unsigned_val);
+  std::ptrdiff_t const len = to_chars_len(unsigned_val);
   if (last - first < len) {
     return {last, errc::value_too_large};
   }

@@ -15,8 +15,9 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
-#include <gtest/gtest.h>
-#include <PerfTest_Category.hpp>
+#include <benchmark/benchmark.h>
+#include "Benchmark_Context.hpp"
+#include "PerfTest_Category.hpp"
 
 namespace Test {
 
@@ -195,78 +196,43 @@ struct HexGrad {
 
   //--------------------------------------------------------------------------
 
-  static double test(const int count, const int iter = 1) {
+  static double test(const int count) {
     elem_coord_type coord("coord", count);
     elem_grad_type grad("grad", count);
 
     // Execute the parallel kernels on the arrays:
-
-    double dt_min = 0;
-
     Kokkos::parallel_for(count, Init(coord));
     execution_space().fence();
 
-    for (int i = 0; i < iter; ++i) {
-      Kokkos::Timer timer;
-      Kokkos::parallel_for(count, HexGrad<execution_space>(coord, grad));
-      execution_space().fence();
-      const double dt = timer.seconds();
-      if (0 == i)
-        dt_min = dt;
-      else
-        dt_min = dt < dt_min ? dt : dt_min;
-    }
-
-    return dt_min;
+    Kokkos::Timer timer;
+    Kokkos::parallel_for(count, HexGrad<execution_space>(coord, grad));
+    execution_space().fence();
+    return timer.seconds();
   }
 };
 
-template <class DeviceType>
-void run_test_hexgrad(int exp_beg, int exp_end, int num_trials,
-                      const char deviceTypeName[]) {
-  std::string label_hexgrad;
-  label_hexgrad.append("\"HexGrad< double , ");
-  label_hexgrad.append(deviceTypeName);
-  label_hexgrad.append(" >\"");
+template <class CoordScalarType>
+static void HexGrad_Benchmark(benchmark::State& state) {
+  const auto parallel_work_length = state.range(0);
 
-  for (int i = exp_beg; i < exp_end; ++i) {
-    double min_seconds = 0.0;
-    double max_seconds = 0.0;
-    double avg_seconds = 0.0;
+  for (auto _ : state) {
+    const auto time =
+        HexGrad<Kokkos::DefaultExecutionSpace, CoordScalarType>::test(
+            parallel_work_length);
 
-    const int parallel_work_length = 1 << i;
-
-    for (int j = 0; j < num_trials; ++j) {
-      const double seconds = HexGrad<DeviceType>::test(parallel_work_length);
-
-      if (0 == j) {
-        min_seconds = seconds;
-        max_seconds = seconds;
-      } else {
-        if (seconds < min_seconds) min_seconds = seconds;
-        if (seconds > max_seconds) max_seconds = seconds;
-      }
-      avg_seconds += seconds;
-    }
-    avg_seconds /= num_trials;
-
-    std::cout << label_hexgrad << " , " << parallel_work_length << " , "
-              << min_seconds << " , " << (min_seconds / parallel_work_length)
-              << avg_seconds << std::endl;
+    state.SetIterationTime(time);
+    state.counters["Count"] = benchmark::Counter(parallel_work_length);
+    state.counters["Time normalized"] =
+        benchmark::Counter(time / parallel_work_length);
   }
 }
 
-TEST(default_exec, hexgrad) {
-  int exp_beg    = 10;
-  int exp_end    = 20;
-  int num_trials = 5;
-
-  if (command_line_num_args() > 1) exp_beg = std::stoi(command_line_arg(1));
-  if (command_line_num_args() > 2) exp_end = std::stoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
-
-  EXPECT_NO_THROW(run_test_hexgrad<Kokkos::DefaultExecutionSpace>(
-      exp_beg, exp_end, num_trials, Kokkos::DefaultExecutionSpace::name()));
-}
+BENCHMARK(HexGrad_Benchmark<double>)
+    ->ArgName("count")
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 10, 1 << 19, 2),
+    })
+    ->UseManualTime()
+    ->Iterations(5);
 
 }  // namespace Test

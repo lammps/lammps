@@ -42,37 +42,6 @@ static_assert(false,
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
-
-namespace Impl {
-
-/// \brief Initialize lock array for arbitrary size atomics.
-///
-/// Arbitrary atomics are implemented using a hash table of locks
-/// where the hash value is derived from the address of the
-/// object for which an atomic operation is performed.
-/// This function initializes the locks to zero (unset).
-void init_lock_array_host_space();
-
-/// \brief Acquire a lock for the address
-///
-/// This function tries to acquire the lock for the hash value derived
-/// from the provided ptr. If the lock is successfully acquired the
-/// function returns true. Otherwise it returns false.
-bool lock_address_host_space(void* ptr);
-
-/// \brief Release lock for the address
-///
-/// This function releases the lock for the hash value derived
-/// from the provided ptr. This function should only be called
-/// after previously successfully acquiring a lock with
-/// lock_address.
-void unlock_address_host_space(void* ptr);
-
-}  // namespace Impl
-
-}  // namespace Kokkos
-
-namespace Kokkos {
 /// \class HostSpace
 /// \brief Memory management for host memory.
 ///
@@ -271,27 +240,6 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
 namespace Kokkos {
 
 namespace Impl {
-
-template <class DT, class... DP>
-struct ZeroMemset<typename HostSpace::execution_space, DT, DP...> {
-  ZeroMemset(const typename HostSpace::execution_space& exec,
-             const View<DT, DP...>& dst,
-             typename View<DT, DP...>::const_value_type&) {
-    // Host spaces, except for HPX, are synchronous and we need to fence for HPX
-    // since we can't properly enqueue a std::memset otherwise.
-    // We can't use exec.fence() directly since we don't have a full definition
-    // of HostSpace here.
-    hostspace_fence(exec);
-    using ValueType = typename View<DT, DP...>::value_type;
-    std::memset(dst.data(), 0, sizeof(ValueType) * dst.size());
-  }
-
-  ZeroMemset(const View<DT, DP...>& dst,
-             typename View<DT, DP...>::const_value_type&) {
-    using ValueType = typename View<DT, DP...>::value_type;
-    std::memset(dst.data(), 0, sizeof(ValueType) * dst.size());
-  }
-};
 
 template <>
 struct DeepCopy<HostSpace, HostSpace, DefaultHostExecutionSpace> {

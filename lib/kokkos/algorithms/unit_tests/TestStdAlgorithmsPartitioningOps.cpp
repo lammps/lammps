@@ -148,12 +148,6 @@ struct std_algorithms_partitioning_test : public std_algorithms_test {
 };
 
 TEST_F(std_algorithms_partitioning_test, is_partitioned_trivial) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   IsNegativeFunctor<value_type> p;
   const auto result1 = KE::is_partitioned(exespace(), KE::cbegin(m_static_view),
                                           KE::cbegin(m_static_view), p);
@@ -169,12 +163,6 @@ TEST_F(std_algorithms_partitioning_test, is_partitioned_trivial) {
 }
 
 TEST_F(std_algorithms_partitioning_test, is_partitioned_accepting_iterators) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   const IsNegativeFunctor<value_type> p;
 
   for (int id = 0; id < FixtureViews::Count; ++id) {
@@ -183,25 +171,19 @@ TEST_F(std_algorithms_partitioning_test, is_partitioned_accepting_iterators) {
         goldSolutionIsPartitioned(static_cast<FixtureViews>(id));
     const auto result1 = KE::is_partitioned(
         exespace(), KE::cbegin(m_static_view), KE::cend(m_static_view), p);
-    EXPECT_EQ(goldBool, result1);
+    ASSERT_EQ(goldBool, result1);
 
     const auto result2 = KE::is_partitioned(
         exespace(), KE::cbegin(m_dynamic_view), KE::cend(m_dynamic_view), p);
-    EXPECT_EQ(goldBool, result2);
+    ASSERT_EQ(goldBool, result2);
 
     const auto result3 = KE::is_partitioned(
         exespace(), KE::cbegin(m_strided_view), KE::cend(m_strided_view), p);
-    EXPECT_EQ(goldBool, result3);
+    ASSERT_EQ(goldBool, result3);
   }
 }
 
 TEST_F(std_algorithms_partitioning_test, is_partitioned_accepting_view) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   const IsNegativeFunctor<value_type> p;
 
   for (int id = 0; id < FixtureViews::Count; ++id) {
@@ -209,23 +191,17 @@ TEST_F(std_algorithms_partitioning_test, is_partitioned_accepting_view) {
     const bool goldBool =
         goldSolutionIsPartitioned(static_cast<FixtureViews>(id));
     const auto result1 = KE::is_partitioned(exespace(), m_static_view, p);
-    EXPECT_EQ(goldBool, result1);
+    ASSERT_EQ(goldBool, result1);
 
     const auto result2 = KE::is_partitioned(exespace(), m_dynamic_view, p);
-    EXPECT_EQ(goldBool, result2);
+    ASSERT_EQ(goldBool, result2);
 
     const auto result3 = KE::is_partitioned(exespace(), m_strided_view, p);
-    EXPECT_EQ(goldBool, result3);
+    ASSERT_EQ(goldBool, result3);
   }
 }
 
 TEST_F(std_algorithms_partitioning_test, partition_point) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   const IsNegativeFunctor<value_type> p;
 
   for (int id = 0; id < FixtureViews::Count; ++id) {
@@ -235,17 +211,17 @@ TEST_F(std_algorithms_partitioning_test, partition_point) {
     auto first1        = KE::cbegin(m_static_view);
     auto last1         = KE::cend(m_static_view);
     const auto result1 = KE::partition_point(exespace(), first1, last1, p);
-    EXPECT_EQ(goldIndex, result1 - first1);
+    ASSERT_EQ(goldIndex, result1 - first1);
 
     auto first2        = KE::cbegin(m_dynamic_view);
     auto last2         = KE::cend(m_dynamic_view);
     const auto result2 = KE::partition_point(exespace(), first2, last2, p);
-    EXPECT_EQ(goldIndex, result2 - first2);
+    ASSERT_EQ(goldIndex, result2 - first2);
 
     auto first3        = KE::cbegin(m_strided_view);
     auto last3         = KE::cend(m_strided_view);
     const auto result3 = KE::partition_point(exespace(), first3, last3, p);
-    EXPECT_EQ(goldIndex, result3 - first3);
+    ASSERT_EQ(goldIndex, result3 - first3);
   }
 }
 

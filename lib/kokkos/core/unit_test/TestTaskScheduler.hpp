@@ -170,9 +170,9 @@ struct TestTaskDependence {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(typename sched_type::member_type& member) {
-    auto& sched = member.scheduler();
-    enum { CHUNK = 8 };
-    const int n = CHUNK < m_count ? CHUNK : m_count;
+    auto& sched                = member.scheduler();
+    static constexpr int CHUNK = 8;
+    const int n                = CHUNK < m_count ? CHUNK : m_count;
 
     if (1 < m_count) {
       const int increment = (m_count + n - 1) / n;

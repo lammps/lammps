@@ -59,9 +59,11 @@ struct StdSearchNFunctor {
       }
     }
 
-    const auto rv =
-        found ? red_value_type{i}
-              : red_value_type{::Kokkos::reduction_identity<IndexType>::min()};
+    // FIXME_NVHPC using a ternary operator causes problems
+    red_value_type rv = {::Kokkos::reduction_identity<IndexType>::min()};
+    if (found) {
+      rv.min_loc_true = i;
+    }
 
     m_reducer.join(red_value, rv);
   }

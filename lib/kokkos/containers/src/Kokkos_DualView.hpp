@@ -86,22 +86,57 @@ inline const Kokkos::Cuda& get_cuda_space(const NonCudaExecSpace&) {
 #endif  // KOKKOS_ENABLE_CUDA
 
 }  // namespace Impl
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 template <class DataType, class Arg1Type = void, class Arg2Type = void,
           class Arg3Type = void>
+class DualView;
+#else
+template <class DataType, class... Properties>
+class DualView;
+#endif
+
+template <class>
+struct is_dual_view : public std::false_type {};
+
+template <class DT, class... DP>
+struct is_dual_view<DualView<DT, DP...>> : public std::true_type {};
+
+template <class DT, class... DP>
+struct is_dual_view<const DualView<DT, DP...>> : public std::true_type {};
+
+template <class T>
+inline constexpr bool is_dual_view_v = is_dual_view<T>::value;
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type>
 class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   template <class, class, class, class>
+#else
+template <class DataType, class... Properties>
+class DualView : public ViewTraits<DataType, Properties...> {
+  template <class, class...>
+#endif
   friend class DualView;
 
  public:
   //! \name Typedefs for device types and various Kokkos::View specializations.
   //@{
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   using traits = ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type>;
+#else
+  using traits      = ViewTraits<DataType, Properties...>;
+#endif
 
   //! The Kokkos Host Device type;
   using host_mirror_space = typename traits::host_mirror_space;
 
   //! The type of a Kokkos::View on the device.
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   using t_dev = View<typename traits::data_type, Arg1Type, Arg2Type, Arg3Type>;
+#else
+  using t_dev       = View<typename traits::data_type, Properties...>;
+#endif
 
   /// \typedef t_host
   /// \brief The type of a Kokkos::View host mirror of \c t_dev.
@@ -109,8 +144,12 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
   //! The type of a const View on the device.
   //! The type of a Kokkos::View on the device.
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   using t_dev_const =
       View<typename traits::const_data_type, Arg1Type, Arg2Type, Arg3Type>;
+#else
+  using t_dev_const = View<typename traits::const_data_type, Properties...>;
+#endif
 
   /// \typedef t_host_const
   /// \brief The type of a const View host mirror of \c t_dev_const.
@@ -239,22 +278,23 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
       : modified_flags(t_modified_flags("DualView::modified_flags")),
         d_view(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7) {
     // without UVM, host View mirrors
-    if (Kokkos::Impl::has_type<Impl::WithoutInitializing_t, P...>::value)
+    if constexpr (Kokkos::Impl::has_type<Impl::WithoutInitializing_t,
+                                         P...>::value)
       h_view = Kokkos::create_mirror_view(Kokkos::WithoutInitializing, d_view);
     else
       h_view = Kokkos::create_mirror_view(d_view);
   }
 
   //! Copy constructor (shallow copy)
-  template <class SS, class LS, class DS, class MS>
-  DualView(const DualView<SS, LS, DS, MS>& src)
+  template <typename DT, typename... DP>
+  DualView(const DualView<DT, DP...>& src)
       : modified_flags(src.modified_flags),
         d_view(src.d_view),
         h_view(src.h_view) {}
 
   //! Subview constructor
-  template <class SD, class S1, class S2, class S3, class Arg0, class... Args>
-  DualView(const DualView<SD, S1, S2, S3>& src, const Arg0& arg0, Args... args)
+  template <class DT, class... DP, class Arg0, class... Args>
+  DualView(const DualView<DT, DP...>& src, const Arg0& arg0, Args... args)
       : modified_flags(src.modified_flags),
         d_view(Kokkos::subview(src.d_view, arg0, args...)),
         h_view(Kokkos::subview(src.h_view, arg0, args...)) {}
@@ -576,8 +616,8 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
         impl_report_host_sync();
       }
     }
-    if (std::is_same<typename t_host::memory_space,
-                     typename t_dev::memory_space>::value) {
+    if constexpr (std::is_same<typename t_host::memory_space,
+                               typename t_dev::memory_space>::value) {
       typename t_dev::execution_space().fence(
           "Kokkos::DualView<>::sync: fence after syncing DualView");
       typename t_host::execution_space().fence(
@@ -1141,23 +1181,24 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 namespace Kokkos {
 namespace Impl {
 
-template <class D, class A1, class A2, class A3, class... Args>
-struct DualViewSubview {
-  using dst_traits = typename Kokkos::Impl::ViewMapping<
-      void, Kokkos::ViewTraits<D, A1, A2, A3>, Args...>::traits_type;
+template <class V>
+struct V2DV;
 
-  using type = Kokkos::DualView<
-      typename dst_traits::data_type, typename dst_traits::array_layout,
-      typename dst_traits::device_type, typename dst_traits::memory_traits>;
+template <class D, class... P>
+struct V2DV<View<D, P...>> {
+  using type = DualView<D, P...>;
 };
-
 } /* namespace Impl */
 
-template <class D, class A1, class A2, class A3, class... Args>
-typename Impl::DualViewSubview<D, A1, A2, A3, Args...>::type subview(
-    const DualView<D, A1, A2, A3>& src, Args... args) {
-  return typename Impl::DualViewSubview<D, A1, A2, A3, Args...>::type(src,
-                                                                      args...);
+template <class DataType, class... Properties, class... Args>
+auto subview(const DualView<DataType, Properties...>& src, Args&&... args) {
+  // leverage Kokkos::View facilities to deduce the properties of the subview
+  using deduce_subview_type =
+      decltype(subview(std::declval<View<DataType, Properties...>>(),
+                       std::forward<Args>(args)...));
+  // map it back to dual view
+  return typename Impl::V2DV<deduce_subview_type>::type(
+      src, std::forward<Args>(args)...);
 }
 
 } /* namespace Kokkos */
@@ -1171,11 +1212,8 @@ namespace Kokkos {
 // Partial specialization of Kokkos::deep_copy() for DualView objects.
 //
 
-template <class DT, class DL, class DD, class DM, class ST, class SL, class SD,
-          class SM>
-void deep_copy(
-    DualView<DT, DL, DD, DM> dst,  // trust me, this must not be a reference
-    const DualView<ST, SL, SD, SM>& src) {
+template <class DT, class... DP, class ST, class... SP>
+void deep_copy(DualView<DT, DP...>& dst, const DualView<ST, SP...>& src) {
   if (src.need_sync_device()) {
     deep_copy(dst.h_view, src.h_view);
     dst.modify_host();
@@ -1185,12 +1223,9 @@ void deep_copy(
   }
 }
 
-template <class ExecutionSpace, class DT, class DL, class DD, class DM,
-          class ST, class SL, class SD, class SM>
-void deep_copy(
-    const ExecutionSpace& exec,
-    DualView<DT, DL, DD, DM> dst,  // trust me, this must not be a reference
-    const DualView<ST, SL, SD, SM>& src) {
+template <class ExecutionSpace, class DT, class... DP, class ST, class... SP>
+void deep_copy(const ExecutionSpace& exec, DualView<DT, DP...>& dst,
+               const DualView<ST, SP...>& src) {
   if (src.need_sync_device()) {
     deep_copy(exec, dst.h_view, src.h_view);
     dst.modify_host();

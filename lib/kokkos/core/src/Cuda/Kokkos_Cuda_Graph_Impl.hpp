@@ -30,7 +30,7 @@
 #include <impl/Kokkos_GraphNodeImpl.hpp>
 #include <Cuda/Kokkos_Cuda_GraphNode_Impl.hpp>
 
-#include <Kokkos_Cuda.hpp>
+#include <Cuda/Kokkos_Cuda.hpp>
 #include <cuda_runtime_api.h>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 

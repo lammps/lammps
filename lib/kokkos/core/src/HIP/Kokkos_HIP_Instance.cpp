@@ -180,10 +180,11 @@ void HIPInternal::initialize(hipStream_t stream, bool manage_stream) {
     Kokkos::Impl::throw_runtime_exception(msg.str());
   }
 
+  m_num_scratch_locks = concurrency();
   KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipMalloc(&m_scratch_locks, sizeof(int32_t) * concurrency()));
+      hipMalloc(&m_scratch_locks, sizeof(int32_t) * m_num_scratch_locks));
   KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipMemset(m_scratch_locks, 0, sizeof(int32_t) * concurrency()));
+      hipMemset(m_scratch_locks, 0, sizeof(int32_t) * m_num_scratch_locks));
 }
 
 //----------------------------------------------------------------------------
@@ -326,7 +327,7 @@ void HIPInternal::finalize() {
 
   if (this == &singleton()) {
     (void)Kokkos::Impl::hip_global_unique_token_locks(true);
-    Impl::finalize_host_hip_lock_arrays();
+    desul::Impl::finalize_lock_arrays();  // FIXME
 
     KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(constantMemHostStaging));
     KOKKOS_IMPL_HIP_SAFE_CALL(hipEventDestroy(constantMemReusable));
@@ -363,7 +364,8 @@ void HIPInternal::finalize() {
   }
 
   KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(m_scratch_locks));
-  m_scratch_locks = nullptr;
+  m_scratch_locks     = nullptr;
+  m_num_scratch_locks = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -397,14 +399,6 @@ Kokkos::HIP::size_type *hip_internal_scratch_flags(const HIP &instance,
 
 namespace Kokkos {
 namespace Impl {
-void hip_device_synchronize(const std::string &name) {
-  Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::HIP>(
-      name,
-      Kokkos::Tools::Experimental::SpecialSynchronizationCases::
-          GlobalDeviceSynchronization,
-      [&]() { KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceSynchronize()); });
-}
-
 void hip_internal_error_throw(hipError_t e, const char *name, const char *file,
                               const int line) {
   std::ostringstream out;

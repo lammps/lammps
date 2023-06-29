@@ -20,7 +20,6 @@
 
 #include <HIP/Kokkos_HIP.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
-#include <HIP/Kokkos_HIP_Locks.hpp>
 
 #include <impl/Kokkos_DeviceManagement.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
@@ -79,7 +78,7 @@ void HIP::impl_initialize(InitializationSettings const& settings) {
       Impl::HIPInternal::m_maxWavesPerCU * Impl::HIPTraits::WarpSize;
 
   // Init the array for used for arbitrarily sized atomics
-  Impl::initialize_host_hip_lock_arrays();
+  desul::Impl::init_lock_arrays();  // FIXME
 
   // Allocate a staging buffer for constant mem in pinned host memory
   // and an event to avoid overwriting driver for previous kernel launches

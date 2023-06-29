@@ -173,7 +173,7 @@ void std_algo_min_max_test_verify(Kokkos::pair<IndexType, ValueType> goldPair,
                                   const ItType result,
                                   TestedViewType testedView) {
   // check that iterator is pointing to right element
-  EXPECT_EQ(result - KE::begin(testedView), goldPair.first);
+  ASSERT_EQ(result - KE::begin(testedView), goldPair.first);
 
   // create a view for the result to copy into it the iterator's value
   using result_view_t = Kokkos::View<int>;
@@ -184,7 +184,7 @@ void std_algo_min_max_test_verify(Kokkos::pair<IndexType, ValueType> goldPair,
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), resultView);
 
   // use the host mirror of the result view to check that the values match
-  EXPECT_EQ(result_v_h(), goldPair.second);
+  ASSERT_EQ(result_v_h(), goldPair.second);
 }
 
 template <class GoldSolutionType, class ItType, class TestedViewType>
@@ -199,39 +199,39 @@ template <class ViewType>
 void test_max_element_trivial_data(ViewType view) {
   /* if we pass empty range, should return last */
   auto result = KE::max_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_EQ(result, KE::cbegin(view));
+  ASSERT_EQ(result, KE::cbegin(view));
 
   /* if we pass empty range, should return last */
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::max_element(exespace(), it0, it1);
-  EXPECT_EQ(result2, it1);
+  ASSERT_EQ(result2, it1);
 }
 
 template <class ViewType>
 void test_min_element_trivial_data(ViewType view) {
   /* if we pass empty range, should return last */
   auto result = KE::min_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_EQ(result, KE::cbegin(view));
+  ASSERT_EQ(result, KE::cbegin(view));
 
   /* if we pass empty range, should return last */
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::min_element(exespace(), it0, it1);
-  EXPECT_EQ(result2, it1);
+  ASSERT_EQ(result2, it1);
 }
 
 template <class ViewType>
 void test_minmax_element_empty_range(ViewType view) {
   auto result =
       KE::minmax_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_EQ(result.first, KE::cbegin(view));
-  EXPECT_EQ(result.second, KE::cbegin(view));
+  ASSERT_EQ(result.first, KE::cbegin(view));
+  ASSERT_EQ(result.second, KE::cbegin(view));
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::minmax_element(exespace(), it0, it1);
-  EXPECT_EQ(result2.first, it1);
-  EXPECT_EQ(result2.second, it1);
+  ASSERT_EQ(result2.first, it1);
+  ASSERT_EQ(result2.second, it1);
 }
 
 template <class ViewType>

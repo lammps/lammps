@@ -18,7 +18,7 @@
 #define KOKKOS_DECLARE_THREADS_HPP
 
 #if defined(KOKKOS_ENABLE_THREADS)
-#include <Kokkos_Threads.hpp>
+#include <Threads/Kokkos_Threads.hpp>
 #include <Threads/Kokkos_Threads_MDRangePolicy.hpp>
 #endif
 

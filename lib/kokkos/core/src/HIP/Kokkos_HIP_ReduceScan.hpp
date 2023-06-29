@@ -477,22 +477,24 @@ __device__ bool hip_single_inter_block_reduce_scan(
 }
 
 // Size in bytes required for inter block reduce or scan
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class ArgTag, class ValueType, class FunctorType>
 inline std::enable_if_t<DoScan, unsigned>
 hip_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
                                          const unsigned BlockSize) {
-  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
-                                         RangePolicy<HIP, ArgTag>, FunctorType>;
+  using Analysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
+                            RangePolicy<HIP, ArgTag>, FunctorType, ValueType>;
 
   return (BlockSize + 2) * Analysis::value_size(functor);
 }
 
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class ArgTag, class ValueType, class FunctorType>
 inline std::enable_if_t<!DoScan, unsigned>
 hip_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
                                          const unsigned BlockSize) {
-  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
-                                         RangePolicy<HIP, ArgTag>, FunctorType>;
+  using Analysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                            RangePolicy<HIP, ArgTag>, FunctorType, ValueType>;
 
   return (BlockSize + 2) * Analysis::value_size(functor);
 }

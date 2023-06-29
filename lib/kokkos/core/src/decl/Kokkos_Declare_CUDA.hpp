@@ -18,7 +18,7 @@
 #define KOKKOS_DECLARE_CUDA_HPP
 
 #if defined(KOKKOS_ENABLE_CUDA)
-#include <Kokkos_Cuda.hpp>
+#include <Cuda/Kokkos_Cuda.hpp>
 #include <Cuda/Kokkos_Cuda_Half_Impl_Type.hpp>
 #include <Cuda/Kokkos_Cuda_Half_Conversion.hpp>
 #include <Cuda/Kokkos_Cuda_Parallel_MDRange.hpp>
@@ -31,6 +31,7 @@
 #include <Cuda/Kokkos_Cuda_Task.hpp>
 #include <Cuda/Kokkos_Cuda_MDRangePolicy.hpp>
 #include <Cuda/Kokkos_Cuda_UniqueToken.hpp>
+#include <Cuda/Kokkos_Cuda_ZeroMemset.hpp>
 #endif
 
 #endif

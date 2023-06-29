@@ -11,6 +11,34 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 #include <desul/atomics/Config.hpp>
 
+// Intercept incompatible relocatable device code mode which leads to ODR violations
+#ifdef DESUL_ATOMICS_ENABLE_CUDA
+#if (defined(__clang__) && defined(__CUDA__) && defined(__CLANG_RDC__)) || \
+    defined(__CUDACC_RDC__)
+#define DESUL_IMPL_CUDA_RDC
+#endif
+
+#if (defined(DESUL_ATOMICS_ENABLE_CUDA_SEPARABLE_COMPILATION) &&  \
+     !defined(DESUL_IMPL_CUDA_RDC)) ||                            \
+    (!defined(DESUL_ATOMICS_ENABLE_CUDA_SEPARABLE_COMPILATION) && \
+     defined(DESUL_IMPL_CUDA_RDC))
+#error Relocatable device code mode incompatible with desul atomics configuration
+#endif
+
+#ifdef DESUL_IMPL_CUDA_RDC
+#undef DESUL_IMPL_CUDA_RDC
+#endif
+#endif
+
+#ifdef DESUL_ATOMICS_ENABLE_HIP
+#if (defined(DESUL_ATOMICS_ENABLE_HIP_SEPARABLE_COMPILATION) &&  \
+     !defined(__CLANG_RDC__)) ||                                 \
+    (!defined(DESUL_ATOMICS_ENABLE_HIP_SEPARABLE_COMPILATION) && \
+     defined(__CLANG_RDC__))
+#error Relocatable device code mode incompatible with desul atomics configuration
+#endif
+#endif
+
 // Macros
 
 #if defined(DESUL_ATOMICS_ENABLE_CUDA) && defined(__CUDACC__)
@@ -39,12 +67,6 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #define DESUL_HAVE_MSVC_ATOMICS
 #endif
 
-#if (defined(DESUL_ATOMICS_ENABLE_CUDA) && defined(__CUDA_ARCH__)) ||         \
-    (defined(DESUL_ATOMICS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)) || \
-    (defined(DESUL_ATOMICS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__))
-#define DESUL_HAVE_GPU_LIKE_PROGRESS
-#endif
-
 #if defined(DESUL_HAVE_CUDA_ATOMICS) || defined(DESUL_HAVE_HIP_ATOMICS)
 #define DESUL_FORCEINLINE_FUNCTION inline __host__ __device__
 #define DESUL_INLINE_FUNCTION inline __host__ __device__
@@ -57,10 +79,6 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #define DESUL_FUNCTION
 #define DESUL_IMPL_HOST_FUNCTION
 #define DESUL_IMPL_DEVICE_FUNCTION
-#endif
-
-#if !defined(DESUL_HAVE_GPU_LIKE_PROGRESS)
-#define DESUL_HAVE_FORWARD_PROGRESS
 #endif
 
 #define DESUL_IMPL_STRIP_PARENS(X) DESUL_IMPL_ESC(DESUL_IMPL_ISH X)

@@ -18,8 +18,8 @@
 import unittest
 import subprocess
 
-PREFIX = "$<TARGET_FILE_DIR:KokkosCore_UnitTest_DeviceAndThreads>"
-EXECUTABLE = "$<TARGET_FILE_NAME:KokkosCore_UnitTest_DeviceAndThreads>"
+PREFIX = "$<TARGET_FILE_DIR:Kokkos_CoreUnitTest_DeviceAndThreads>"
+EXECUTABLE = "$<TARGET_FILE_NAME:Kokkos_CoreUnitTest_DeviceAndThreads>"
 COMMAND = "/".join([PREFIX, EXECUTABLE])
 
 

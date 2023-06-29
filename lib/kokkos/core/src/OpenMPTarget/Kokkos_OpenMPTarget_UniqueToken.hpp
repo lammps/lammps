@@ -20,7 +20,7 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
 
-#include <Kokkos_OpenMPTargetSpace.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTargetSpace.hpp>
 #include <Kokkos_UniqueToken.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
 #include <impl/Kokkos_ConcurrentBitset.hpp>

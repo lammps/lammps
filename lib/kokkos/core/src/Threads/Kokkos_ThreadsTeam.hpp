@@ -982,8 +982,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
         iType, Impl::ThreadsExecTeamMember>& loop_bounds,
     const FunctorType& lambda) {
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void,
-      FunctorType>::value_type;
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
+      void>::value_type;
 
   auto scan_val = value_type{};
 
@@ -1027,8 +1027,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     const FunctorType& lambda) {
   using value_type =
       typename Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
-                                     TeamPolicy<Threads>,
-                                     FunctorType>::value_type;
+                                     TeamPolicy<Threads>, FunctorType,
+                                     void>::value_type;
 
   value_type scan_val = value_type();
 

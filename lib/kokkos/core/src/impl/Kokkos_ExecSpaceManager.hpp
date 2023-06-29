@@ -102,9 +102,7 @@ constexpr bool check_valid_execution_space() {
   static_assert(is_detected_v<initialize_finalize_t, ExecutionSpace>);
   static_assert(is_detected_v<fence_t, ExecutionSpace>);
   static_assert(is_detected_v<concurrency_t, ExecutionSpace>);
-#ifndef KOKKOS_ENABLE_HPX  // FIXME_HPX
   static_assert(sizeof(ExecutionSpace) <= 2 * sizeof(void*));
-#endif
   return true;
 }
 

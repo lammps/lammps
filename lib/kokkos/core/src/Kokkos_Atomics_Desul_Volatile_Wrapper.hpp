@@ -22,7 +22,6 @@ static_assert(false,
 #ifndef KOKKOS_DESUL_ATOMICS_VOLATILE_WRAPPER_HPP_
 #define KOKKOS_DESUL_ATOMICS_VOLATILE_WRAPPER_HPP_
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 #include <Kokkos_Atomics_Desul_Config.hpp>
 #include <desul/atomics.hpp>
 
@@ -195,5 +194,4 @@ T atomic_compare_exchange(volatile T* const dest, const T compare, const T desir
 #undef KOKKOS_DESUL_MEM_SCOPE
 
 // clang-format on
-#endif  // KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 #endif

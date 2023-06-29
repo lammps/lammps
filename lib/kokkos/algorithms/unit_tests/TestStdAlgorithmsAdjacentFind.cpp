@@ -229,7 +229,7 @@ void verify(DiffType my_diff, ViewType view, Args... args) {
       my_std_adjacent_find(KE::cbegin(view_h), KE::cend(view_h), args...);
   const auto std_diff = std_r - KE::cbegin(view_h);
 
-  EXPECT_EQ(my_diff, std_diff);
+  ASSERT_EQ(my_diff, std_diff);
 }
 
 template <class Tag, class ValueType, class InfoType, class... Args>
@@ -287,12 +287,6 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_nonmod_seq_ops, adjacent_find) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if constexpr (std::is_same_v<exespace, Kokkos::Cuda>) {
-    GTEST_SKIP() << "FIXME wrong result";
-  }
-#endif
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedThreeTag, int>();

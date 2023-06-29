@@ -33,6 +33,12 @@ void stacktrace_test_f4();
 
 void my_fancy_handler();
 
+size_t find_first_non_whitespace(const std::string& s, const size_t start_pos) {
+  constexpr size_t num_ws_chars = 3;
+  const char ws_chars[]         = "\n\t ";
+  return s.find_first_not_of(ws_chars, start_pos, num_ws_chars);
+}
+
 void test_stacktrace(bool bTerminate, bool bCustom = true) {
   stacktrace_test_f1(std::cout);
   bool bDynamic = false;
@@ -44,7 +50,7 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
     bDynamic = std::string::npos != foutput.find("stacktrace");
 
     if (bDynamic) {
-      printf("test_f1: %s \n", foutput.c_str());
+      printf("test_f1:\n%s \n", foutput.c_str());
       ASSERT_NE(std::string::npos, foutput.find("stacktrace_test_f1"));
       for (auto x : {"stacktrace_test_f0", "stacktrace_test_f2",
                      "stacktrace_test_f3", "stacktrace_test_f4"}) {
@@ -59,13 +65,13 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 
     if (bDynamic) {
       std::string foutput = sstream.str();
-      printf("demangled test_f1: %s \n", foutput.c_str());
-      ASSERT_TRUE(std::string::npos !=
-                  foutput.find("Test::stacktrace_test_f1"));
+      printf("demangled test_f1:\n%s \n", foutput.c_str());
+      ASSERT_NE(std::string::npos, foutput.find("Test::stacktrace_test_f1"));
       for (auto x : {"stacktrace_test_f0", "stacktrace_test_f2",
                      "stacktrace_test_f3", "stacktrace_test_f4"}) {
         ASSERT_EQ(std::string::npos, foutput.find(x));
       }
+      EXPECT_EQ(0u, find_first_non_whitespace(foutput, 0));
     }
   }
 
@@ -84,7 +90,7 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 
     if (bDynamic) {
       std::string foutput = sstream.str();
-      printf("test_f3: %s \n", foutput.c_str());
+      printf("test_f3:\n%s \n", foutput.c_str());
       for (auto x : {"stacktrace_test_f1", "stacktrace_test_f3"}) {
         ASSERT_NE(std::string::npos, foutput.find(x));
       }
@@ -99,10 +105,11 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 
     if (bDynamic) {
       std::string foutput = sstream.str();
-      printf("demangled test_f3: %s \n", foutput.c_str());
+      printf("demangled test_f3:\n%s \n", foutput.c_str());
       for (auto x : {"stacktrace_test_f1", "stacktrace_test_f3"}) {
         ASSERT_NE(std::string::npos, foutput.find(x));
       }
+      EXPECT_EQ(0u, find_first_non_whitespace(foutput, 0));
     }
 
     // TODO make sure stacktrace_test_f2/4 don't show up

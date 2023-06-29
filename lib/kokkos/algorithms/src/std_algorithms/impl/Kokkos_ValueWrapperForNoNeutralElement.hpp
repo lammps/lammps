@@ -29,12 +29,6 @@ template <class Scalar>
 struct ValueWrapperForNoNeutralElement {
   Scalar val;
   bool is_initial = true;
-
-  KOKKOS_FUNCTION
-  void operator=(const ValueWrapperForNoNeutralElement& rhs) {
-    val        = rhs.val;
-    is_initial = rhs.is_initial;
-  }
 };
 
 }  // namespace Impl

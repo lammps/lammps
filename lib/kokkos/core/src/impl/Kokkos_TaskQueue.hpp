@@ -160,9 +160,8 @@ class TaskQueue : public TaskQueueBase {
                                      task_root_type* const rhs) {
     if (*lhs) decrement(*lhs);
     if (rhs) {
-      Kokkos::Impl::desul_atomic_inc(&rhs->m_ref_count,
-                                     Kokkos::Impl::MemoryOrderSeqCst(),
-                                     Kokkos::Impl::MemoryScopeDevice());
+      desul::atomic_inc(&rhs->m_ref_count, desul::MemoryOrderSeqCst(),
+                        desul::MemoryScopeDevice());
     }
 
     // Force write of *lhs

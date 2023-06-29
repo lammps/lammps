@@ -54,3 +54,5 @@ int Kokkos::Impl::mpi_local_rank_on_node() {
   }
   return -1;
 }
+
+bool Kokkos::Impl::mpi_detected() { return mpi_local_rank_on_node() != -1; }

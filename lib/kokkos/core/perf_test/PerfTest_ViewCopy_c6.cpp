@@ -14,7 +14,7 @@
 //
 //@HEADER
 
-#include <PerfTest_ViewCopy.hpp>
+#include "PerfTest_ViewCopy.hpp"
 
 namespace Test {
 

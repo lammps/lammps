@@ -31,25 +31,6 @@ template <class ValueType>
 struct StdPartitionCopyScalar {
   ValueType true_count_;
   ValueType false_count_;
-
-  // Here we implement the copy assignment operators explicitly for consistency
-  // with how the Scalar structs are implemented inside
-  // Kokkos_Parallel_Reduce.hpp.
-  KOKKOS_FUNCTION
-  void operator=(const StdPartitionCopyScalar& other) {
-    true_count_  = other.true_count_;
-    false_count_ = other.false_count_;
-  }
-
-  // this is needed for
-  // OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp:699:21: error: no viable
-  // overloaded '=' m_returnvalue = 0;
-  //
-  KOKKOS_FUNCTION
-  void operator=(const ValueType value) {
-    true_count_  = value;
-    false_count_ = value;
-  }
 };
 
 template <class IndexType, class FirstFrom, class FirstDestTrue,

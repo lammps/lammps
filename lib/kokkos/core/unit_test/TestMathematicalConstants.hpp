@@ -63,7 +63,7 @@ struct TestMathematicalConstants {
 
   KOKKOS_FUNCTION void use_on_device() const {
 #if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-    defined(KOKKOS_ENABLE_OPENACC)
+    defined(KOKKOS_ENABLE_OPENACC) || defined(KOKKOS_COMPILER_NVHPC)
     take_by_value(Trait::value);
 #else
     (void)take_address_of(Trait::value);

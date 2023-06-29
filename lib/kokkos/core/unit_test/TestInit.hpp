@@ -40,5 +40,3 @@ TEST(TEST_CATEGORY, dispatch) { test_dispatch<TEST_EXECSPACE>(); }
 #endif
 
 }  // namespace Test
-
-#include <TestCompilerMacros.hpp>

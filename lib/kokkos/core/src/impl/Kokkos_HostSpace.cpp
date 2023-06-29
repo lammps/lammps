@@ -26,7 +26,8 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if defined(KOKKOS_COMPILER_INTEL) && !defined(KOKKOS_ENABLE_CUDA)
+#if (defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)) && \
+    !defined(KOKKOS_ENABLE_CUDA)
 
 // Intel specialized allocator does not interoperate with CUDA memory allocation
 
@@ -279,42 +280,6 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::SharedAllocationRecord(
       m_space(arg_space) {
   this->base_t::_fill_host_accessible_header_info(*RecordBase::m_alloc_ptr,
                                                   arg_label);
-}
-
-}  // namespace Impl
-}  // namespace Kokkos
-
-/*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-namespace {
-const unsigned HOST_SPACE_ATOMIC_MASK     = 0xFFFF;
-const unsigned HOST_SPACE_ATOMIC_XOR_MASK = 0x5A39;
-static int HOST_SPACE_ATOMIC_LOCKS[HOST_SPACE_ATOMIC_MASK + 1];
-}  // namespace
-
-namespace Impl {
-void init_lock_array_host_space() {
-  static int is_initialized = 0;
-  if (!is_initialized)
-    for (int i = 0; i < static_cast<int>(HOST_SPACE_ATOMIC_MASK + 1); i++)
-      HOST_SPACE_ATOMIC_LOCKS[i] = 0;
-}
-
-bool lock_address_host_space(void *ptr) {
-  return 0 == atomic_compare_exchange(
-                  &HOST_SPACE_ATOMIC_LOCKS[((size_t(ptr) >> 2) &
-                                            HOST_SPACE_ATOMIC_MASK) ^
-                                           HOST_SPACE_ATOMIC_XOR_MASK],
-                  0, 1);
-}
-
-void unlock_address_host_space(void *ptr) {
-  atomic_exchange(
-      &HOST_SPACE_ATOMIC_LOCKS[((size_t(ptr) >> 2) & HOST_SPACE_ATOMIC_MASK) ^
-                               HOST_SPACE_ATOMIC_XOR_MASK],
-      0);
 }
 
 }  // namespace Impl

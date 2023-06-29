@@ -18,24 +18,7 @@
 #include <cstdlib>
 
 #include <Kokkos_Core.hpp>
-
-namespace Test {
-int command_line_num_args(int n = 0) {
-  static int n_args = 0;
-  if (n > 0) n_args = n;
-  return n_args;
-}
-
-const char* command_line_arg(int k, char** input_args = nullptr) {
-  static char** args;
-  if (input_args != nullptr) args = input_args;
-  if (command_line_num_args() > k)
-    return args[k];
-  else
-    return nullptr;
-}
-
-}  // namespace Test
+#include <PerfTest_Category.hpp>
 
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);

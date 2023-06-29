@@ -14,7 +14,7 @@ else
   CXX = g++
 endif
 
-CXXFLAGS = -O3 
+CXXFLAGS = -O3
 #CXXFLAGS += -DGENERIC_REDUCER
 LINK ?= $(CXX)
 LDFLAGS ?=
@@ -29,40 +29,9 @@ TARGETS =
 
 #
 
-OBJ_PERF = PerfTestMain.o gtest-all.o
-OBJ_PERF += PerfTest_ExecSpacePartitioning.o
-OBJ_PERF += PerfTestGramSchmidt.o
-OBJ_PERF += PerfTestHexGrad.o
-OBJ_PERF += PerfTest_CustomReduction.o
-OBJ_PERF += PerfTest_ViewAllocate.o
-OBJ_PERF += PerfTest_ViewFill_123.o PerfTest_ViewFill_45.o PerfTest_ViewFill_6.o PerfTest_ViewFill_7.o PerfTest_ViewFill_8.o
-OBJ_PERF += PerfTest_ViewResize_123.o PerfTest_ViewResize_45.o PerfTest_ViewResize_6.o PerfTest_ViewResize_7.o PerfTest_ViewResize_8.o
-TARGETS += KokkosCore_PerformanceTest
-TEST_TARGETS += test-performance
-
-#
-
-OBJ_ATOMICS = test_atomic.o 
-TARGETS += KokkosCore_PerformanceTest_Atomics
-TEST_TARGETS += test-atomic
-
-#
-
-OBJ_MEMPOOL = test_mempool.o 
-TARGETS += KokkosCore_PerformanceTest_Mempool
-TEST_TARGETS += test-mempool
-
-#
-
-OBJ_TASKDAG = test_taskdag.o 
+OBJ_TASKDAG = test_taskdag.o
 TARGETS += KokkosCore_PerformanceTest_TaskDAG
 TEST_TARGETS += test-taskdag
-
-#
-
-OBJ_ATOMICS_MINMAX = test_atomic_minmax_simple.o
-TARGETS += KokkosCore_PerformanceTest_Atomics_MinMax
-TEST_TARGETS += test-atomic-minmax
 
 #
 

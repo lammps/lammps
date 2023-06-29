@@ -30,12 +30,6 @@
 #define MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
 #endif
 
-// WORKAROUND icpx changing default FP model when optimization level is >= 1
-// using -fp-model=precise works too
-#if defined(__INTEL_LLVM_COMPILER)
-#define KOKKOS_IMPL_WORKAROUND_INTEL_LLVM_DEFAULT_FLOATING_POINT_MODEL
-#endif
-
 // clang-format off
 template <class>
 struct math_unary_function_return_type;
@@ -292,7 +286,32 @@ struct math_function_name;
   };                                                                  \
   constexpr char math_function_name<MathUnaryFunction_##FUNC>::name[]
 
-#ifndef KOKKOS_MATHEMATICAL_FUNCTIONS_SKIP_1
+#define DEFINE_UNARY_FUNCTION_EVAL_CUSTOM(FUNC, ULP_FACTOR, REF_FUNC) \
+  struct MathUnaryFunction_##FUNC {                                   \
+    template <typename T>                                             \
+    static KOKKOS_FUNCTION auto eval(T x) {                           \
+      static_assert(                                                  \
+          std::is_same<decltype(Kokkos::FUNC((T)0)),                  \
+                       math_unary_function_return_type_t<T>>::value); \
+      return Kokkos::FUNC(x);                                         \
+    }                                                                 \
+    template <typename T>                                             \
+    static auto eval_std(T x) {                                       \
+      static_assert(                                                  \
+          std::is_same<decltype(REF_FUNC),                            \
+                       math_unary_function_return_type_t<T>>::value); \
+      return REF_FUNC;                                                \
+    }                                                                 \
+    static KOKKOS_FUNCTION double ulp_factor() { return ULP_FACTOR; } \
+  };                                                                  \
+  using kk_##FUNC = MathUnaryFunction_##FUNC;                         \
+  template <>                                                         \
+  struct math_function_name<MathUnaryFunction_##FUNC> {               \
+    static constexpr char name[] = #FUNC;                             \
+  };                                                                  \
+  constexpr char math_function_name<MathUnaryFunction_##FUNC>::name[]
+
+#ifndef KOKKOS_MATHEMATICAL_FUNCTIONS_SKIP_3
 // Generally the expected ULP error should come from here:
 // https://www.gnu.org/software/libc/manual/html_node/Errors-in-Math-Functions.html
 // For now 1s largely seem to work ...
@@ -308,7 +327,9 @@ DEFINE_UNARY_FUNCTION_EVAL(log, 2);
 DEFINE_UNARY_FUNCTION_EVAL(log10, 2);
 DEFINE_UNARY_FUNCTION_EVAL(log2, 2);
 DEFINE_UNARY_FUNCTION_EVAL(log1p, 2);
+#endif
 
+#ifndef KOKKOS_MATHEMATICAL_FUNCTIONS_SKIP_1
 DEFINE_UNARY_FUNCTION_EVAL(sqrt, 2);
 DEFINE_UNARY_FUNCTION_EVAL(cbrt, 2);
 
@@ -325,6 +346,10 @@ DEFINE_UNARY_FUNCTION_EVAL(tanh, 2);
 DEFINE_UNARY_FUNCTION_EVAL(asinh, 4);
 DEFINE_UNARY_FUNCTION_EVAL(acosh, 2);
 DEFINE_UNARY_FUNCTION_EVAL(atanh, 2);
+
+// non-standard math functions
+DEFINE_UNARY_FUNCTION_EVAL_CUSTOM(rsqrt, 2,
+                                  decltype(std::sqrt(x))(1) / std::sqrt(x));
 #endif
 
 #ifndef KOKKOS_MATHEMATICAL_FUNCTIONS_SKIP_2
@@ -474,6 +499,13 @@ template <class Space, class... Func, class Arg, std::size_t N>
 void do_test_math_unary_function(const Arg (&x)[N]) {
   (void)std::initializer_list<int>{
       (TestMathUnaryFunction<Space, Func, Arg, N>(x), 0)...};
+
+  // test if potentially device specific math functions also work on host
+  if constexpr (!std::is_same_v<Space, Kokkos::DefaultHostExecutionSpace>)
+    (void)std::initializer_list<int>{
+        (TestMathUnaryFunction<Kokkos::DefaultHostExecutionSpace, Func, Arg, N>(
+             x),
+         0)...};
 }
 
 #define TEST_MATH_FUNCTION(FUNC) \
@@ -699,7 +731,9 @@ TEST(TEST_CATEGORY, mathematical_functions_fma) {
   do_test_math_ternary_function<TEST_EXECSPACE, kk3_fma>(2.l, 3.l, 4.l);
 #endif
 }
+#endif
 
+#ifndef KOKKOS_MATHEMATICAL_FUNCTIONS_SKIP_3
 TEST(TEST_CATEGORY, mathematical_functions_exponential_functions) {
   TEST_MATH_FUNCTION(exp)({-9, -8, -7, -6, -5, 4, 3, 2, 1, 0});
   TEST_MATH_FUNCTION(exp)({-9l, -8l, -7l, -6l, -5l, 4l, 3l, 2l, 1l, 0l});
@@ -791,7 +825,9 @@ TEST(TEST_CATEGORY, mathematical_functions_exponential_functions) {
   TEST_MATH_FUNCTION(log1p)({1234.l, 567.l, 89.l, -.007l});
 #endif
 }
+#endif
 
+#ifndef KOKKOS_MATHEMATICAL_FUNCTIONS_SKIP_1
 TEST(TEST_CATEGORY, mathematical_functions_hyperbolic_functions) {
   TEST_MATH_FUNCTION(sinh)({-3, -2, -1, 0, 1});
   TEST_MATH_FUNCTION(sinh)({-3l, -2l, -1l, 0l, 1l});
@@ -863,6 +899,20 @@ TEST(TEST_CATEGORY, mathematical_functions_hyperbolic_functions) {
   TEST_MATH_FUNCTION(atanh)({-.97, .86, -.53, .42, -.1, 0.});
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
   TEST_MATH_FUNCTION(atanh)({-.97l, .86l, -.53l, .42l, -.1l, 0.l});
+#endif
+}
+
+TEST(TEST_CATEGORY, mathematical_functions_non_standard) {
+  TEST_MATH_FUNCTION(rsqrt)({1, 2, 3, 5, 7, 11});
+  TEST_MATH_FUNCTION(rsqrt)({1l, 2l, 3l, 5l, 7l, 11l});
+  TEST_MATH_FUNCTION(rsqrt)({1ll, 2ll, 3ll, 5ll, 7ll, 11ll});
+  TEST_MATH_FUNCTION(rsqrt)({1u, 2u, 3u, 5u, 7u});
+  TEST_MATH_FUNCTION(rsqrt)({1ul, 2ul, 3ul, 5ul, 7ul});
+  TEST_MATH_FUNCTION(rsqrt)({1ull, 2ull, 3ull, 5ull, 7ull});
+  TEST_MATH_FUNCTION(rsqrt)({10.f, 20.f, 30.f, 40.f});
+  TEST_MATH_FUNCTION(rsqrt)({11.1, 22.2, 33.3, 44.4});
+#ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
+  TEST_MATH_FUNCTION(rsqrt)({10.l, 20.l, 30.l, 40.l});
 #endif
 }
 #endif
@@ -1060,11 +1110,7 @@ struct TestAbsoluteValueFunction {
     // special values
     using Kokkos::isinf;
     using Kokkos::isnan;
-    if (abs(-0.) != 0.
-#ifndef KOKKOS_IMPL_WORKAROUND_INTEL_LLVM_DEFAULT_FLOATING_POINT_MODEL
-        || !isinf(abs(-INFINITY)) || !isnan(abs(-NAN))
-#endif
-    ) {
+    if (abs(-0.) != 0. || !isinf(abs(-INFINITY)) || !isnan(abs(-NAN))) {
       ++e;
       KOKKOS_IMPL_DO_NOT_USE_PRINTF(
           "failed abs(floating_point) special values\n");
@@ -1101,44 +1147,31 @@ struct TestIsNaN {
       ++e;
       KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed isnan(integral)\n");
     }
-    if (isnan(2.f)
-#ifndef KOKKOS_IMPL_WORKAROUND_INTEL_LLVM_DEFAULT_FLOATING_POINT_MODEL
-        || !isnan(quiet_NaN<float>::value) ||
+    if (isnan(2.f) || !isnan(quiet_NaN<float>::value) ||
         !isnan(signaling_NaN<float>::value)
-#endif
 
     ) {
       ++e;
       KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed isnan(float)\n");
     }
     if (isnan(3.)
-#ifndef KOKKOS_IMPL_WORKAROUND_INTEL_LLVM_DEFAULT_FLOATING_POINT_MODEL
 #ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
         || !isnan(quiet_NaN<double>::value) ||
         !isnan(signaling_NaN<double>::value)
-#endif
 #endif
     ) {
       ++e;
       KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed isnan(double)\n");
     }
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
-    if (isnan(4.l)
-#ifndef KOKKOS_IMPL_WORKAROUND_INTEL_LLVM_DEFAULT_FLOATING_POINT_MODEL
-        || !isnan(quiet_NaN<long double>::value) ||
-        !isnan(signaling_NaN<long double>::value)
-#endif
-    ) {
+    if (isnan(4.l) || !isnan(quiet_NaN<long double>::value) ||
+        !isnan(signaling_NaN<long double>::value)) {
       ++e;
       KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed isnan(long double)\n");
     }
 #endif
     // special values
-    if (isnan(INFINITY)
-#ifndef KOKKOS_IMPL_WORKAROUND_INTEL_LLVM_DEFAULT_FLOATING_POINT_MODEL
-        || !isnan(NAN)
-#endif
-    ) {
+    if (isnan(INFINITY) || !isnan(NAN)) {
       ++e;
       KOKKOS_IMPL_DO_NOT_USE_PRINTF(
           "failed isnan(floating_point) special values\n");

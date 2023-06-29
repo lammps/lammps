@@ -39,7 +39,7 @@ class AtomicDataElement {
 
   KOKKOS_INLINE_FUNCTION
   const_value_type operator=(const_value_type& val) const {
-    Kokkos::Impl::atomic_store(ptr, val, Kokkos::Impl::memory_order_relaxed);
+    Kokkos::atomic_store(ptr, val);
     return val;
   }
 
@@ -194,9 +194,7 @@ class AtomicDataElement {
   bool operator>(const_value_type& val) const { return *ptr > val; }
 
   KOKKOS_INLINE_FUNCTION
-  operator value_type() const {
-    return Kokkos::Impl::atomic_load(ptr, Kokkos::Impl::memory_order_relaxed);
-  }
+  operator value_type() const { return Kokkos::atomic_load(ptr); }
 };
 
 template <class ViewTraits>

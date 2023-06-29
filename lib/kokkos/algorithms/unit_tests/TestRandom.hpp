@@ -14,8 +14,8 @@
 //
 //@HEADER
 
-#ifndef KOKKOS_TEST_DUALVIEW_HPP
-#define KOKKOS_TEST_DUALVIEW_HPP
+#ifndef KOKKOS_ALGORITHMS_UNITTESTS_TEST_RANDOM_HPP
+#define KOKKOS_ALGORITHMS_UNITTESTS_TEST_RANDOM_HPP
 
 #include <gtest/gtest.h>
 #include <iostream>
@@ -29,8 +29,7 @@
 #include <chrono>
 
 namespace Test {
-
-namespace Impl {
+namespace AlgoRandomImpl {
 
 // This test runs the random number generators and uses some statistic tests to
 // check the 'goodness' of the random numbers:
@@ -469,42 +468,46 @@ struct TestDynRankView {
     ASSERT_LE(val.max_val, max);
   }
 };
-}  // namespace Impl
 
-template <typename ExecutionSpace>
-void test_random_xorshift64() {
+}  // namespace AlgoRandomImpl
+
+TEST(TEST_CATEGORY, Random_XorShift64) {
+  using ExecutionSpace = TEST_EXECSPACE;
+
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
     defined(KOKKOS_ENABLE_HIP)
   const int num_draws = 132141141;
 #else  // SERIAL, HPX, OPENMP
   const int num_draws = 10240000;
 #endif
-  Impl::test_random<Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(num_draws);
-  Impl::test_random<Kokkos::Random_XorShift64_Pool<
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(
+      num_draws);
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift64_Pool<
       Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
       num_draws);
-  Impl::TestDynRankView<ExecutionSpace,
-                        Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(10000)
+  AlgoRandomImpl::TestDynRankView<
+      ExecutionSpace, Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(10000)
       .run();
 }
 
-template <typename ExecutionSpace>
-void test_random_xorshift1024() {
+TEST(TEST_CATEGORY, Random_XorShift1024_0) {
+  using ExecutionSpace = TEST_EXECSPACE;
+
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
     defined(KOKKOS_ENABLE_HIP)
   const int num_draws = 52428813;
 #else  // SERIAL, HPX, OPENMP
   const int num_draws = 10130144;
 #endif
-  Impl::test_random<Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(
       num_draws);
-  Impl::test_random<Kokkos::Random_XorShift1024_Pool<
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift1024_Pool<
       Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
       num_draws);
-  Impl::TestDynRankView<ExecutionSpace,
-                        Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(10000)
+  AlgoRandomImpl::TestDynRankView<
+      ExecutionSpace, Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(10000)
       .run();
 }
-}  // namespace Test
 
-#endif  // KOKKOS_TEST_UNORDERED_MAP_HPP
+}  // namespace Test
+#endif

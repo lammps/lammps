@@ -38,21 +38,24 @@ int get_device_count() {
 }
 
 int get_device_id() {
-#if defined(KOKKOS_ENABLE_CUDA)
-  int device;
-  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDevice(&device));
-  return device;
-#elif defined(KOKKOS_ENABLE_HIP)
   int device_id;
+#if defined(KOKKOS_ENABLE_CUDA)
+  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDevice(&device_id));
+#elif defined(KOKKOS_ENABLE_HIP)
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDevice(&device_id));
-  return device_id;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  return omp_get_device_num();
+  device_id = omp_get_device_num();
 #elif defined(KOKKOS_ENABLE_OPENACC)
-  return acc_get_device_num(acc_get_device_type());
+  device_id = acc_get_device_num(acc_get_device_type());
+#elif defined(KOKKOS_ENABLE_SYCL)
+  // FIXME_SYCL ?
+  assert(false);
+  return -2;
 #else
-  return -1;
+  device_id = -1;
 #endif
+  assert(device_id == Kokkos::device_id());
+  return device_id;
 }
 
 int get_max_threads() {
@@ -66,7 +69,9 @@ int get_max_threads() {
 }
 
 int get_num_threads() {
-  return Kokkos::DefaultHostExecutionSpace().concurrency();
+  int const num_threads = Kokkos::DefaultHostExecutionSpace().concurrency();
+  assert(num_threads == Kokkos::num_threads());
+  return num_threads;
 }
 
 int get_disable_warnings() { return !Kokkos::show_warnings(); }

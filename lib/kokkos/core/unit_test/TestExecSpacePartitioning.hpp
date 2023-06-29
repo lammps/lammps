@@ -131,9 +131,9 @@ TEST(TEST_CATEGORY, partitioning_by_args) {
 }
 
 TEST(TEST_CATEGORY, partitioning_by_vector) {
-  std::vector<int> weights{1, 1};
-  auto instances =
-      Kokkos::Experimental::partition_space(TEST_EXECSPACE(), weights);
+  // Make sure we can use a temporary as argument for weights
+  auto instances = Kokkos::Experimental::partition_space(
+      TEST_EXECSPACE(), std::vector<int> /*weights*/ {1, 1});
   ASSERT_EQ(int(instances.size()), 2);
   test_partitioning(instances);
 }

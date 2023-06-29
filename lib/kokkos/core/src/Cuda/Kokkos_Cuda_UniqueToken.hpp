@@ -20,7 +20,7 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_CUDA
 
-#include <Kokkos_CudaSpace.hpp>
+#include <Cuda/Kokkos_CudaSpace.hpp>
 #include <Kokkos_UniqueToken.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
 
@@ -104,13 +104,9 @@ class UniqueToken<Cuda, UniqueTokenScope::Global> {
       idx = idx % size();
     }
 #endif
-// Make sure that all writes in the previous lock owner are visible to me
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+    // Make sure that all writes in the previous lock owner are visible to me
     desul::atomic_thread_fence(desul::MemoryOrderAcquire(),
                                desul::MemoryScopeDevice());
-#else
-    Kokkos::memory_fence();
-#endif
     return idx;
   }
 
@@ -125,13 +121,9 @@ class UniqueToken<Cuda, UniqueTokenScope::Global> {
   /// \brief release an acquired value
   KOKKOS_INLINE_FUNCTION
   void release(size_type idx) const noexcept {
-// Make sure my writes are visible to the next lock owner
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+    // Make sure my writes are visible to the next lock owner
     desul::atomic_thread_fence(desul::MemoryOrderRelease(),
                                desul::MemoryScopeDevice());
-#else
-    Kokkos::memory_fence();
-#endif
     (void)Kokkos::atomic_exchange(&m_locks(idx), 0);
   }
 };

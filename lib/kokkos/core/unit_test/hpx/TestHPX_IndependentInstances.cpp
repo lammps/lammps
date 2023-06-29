@@ -20,7 +20,6 @@
 #include <hpx/config.hpp>
 #include <hpx/local/future.hpp>
 
-#ifdef KOKKOS_ENABLE_HPX_ASYNC_DISPATCH
 #ifndef HPX_COMPUTE_DEVICE_CODE
 
 namespace {
@@ -99,7 +98,7 @@ TEST(hpx, independent_instances) {
           Kokkos::Experimental::WorkItemProperty::HintLightWeight),
       FunctorInitConstant(v1, c));
 
-  Kokkos::Experimental::HPX hpx2(hpx1.impl_get_future());
+  Kokkos::Experimental::HPX hpx2(hpx1.get_sender());
   Kokkos::parallel_for(
       "Test::hpx::independent_instances::add",
       Kokkos::Experimental::require(
@@ -107,7 +106,7 @@ TEST(hpx, independent_instances) {
           Kokkos::Experimental::WorkItemProperty::HintLightWeight),
       FunctorAdd(v1, v2, d));
 
-  Kokkos::Experimental::HPX hpx3(hpx1.impl_get_future());
+  Kokkos::Experimental::HPX hpx3(hpx1.get_sender());
   Kokkos::parallel_for(
       "Test::hpx::independent_instances::add_index",
       Kokkos::Experimental::require(
@@ -115,12 +114,8 @@ TEST(hpx, independent_instances) {
           Kokkos::Experimental::WorkItemProperty::HintLightWeight),
       FunctorAddIndex(v1, v3));
 
-  // NOTE: This monstrosity is used to collapse a future<tuple<future<void>,
-  // future<void>>> (return type of when_all) into a future<void> which is
-  // ready whenever the un-collapsed future would've been ready. HPX does not
-  // currently have the functionality to collapse this automatically.
-  Kokkos::Experimental::HPX hpx4(hpx::get<0>(hpx::split_future(
-      hpx::when_all(hpx2.impl_get_future(), hpx3.impl_get_future()))));
+  Kokkos::Experimental::HPX hpx4(hpx::execution::experimental::when_all(
+      hpx2.get_sender(), hpx3.get_sender()));
   Kokkos::parallel_for(
       "Test::hpx::independent_instances::pointwise_sum",
       Kokkos::Experimental::require(
@@ -137,16 +132,10 @@ TEST(hpx, independent_instances) {
 
   hpx4.fence();
 
-  ASSERT_EQ(true, hpx1.impl_get_future().is_ready());
-  ASSERT_EQ(true, hpx2.impl_get_future().is_ready());
-  ASSERT_EQ(true, hpx3.impl_get_future().is_ready());
-  ASSERT_EQ(true, hpx4.impl_get_future().is_ready());
-
   const int expected_sum = n * (2 * c + d) + (n * (n - 1) / 2);
   ASSERT_EQ(expected_sum, sum_v());
 }
 
 }  // namespace
 
-#endif
 #endif

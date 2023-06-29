@@ -110,7 +110,7 @@ verify_values(ValueType expected, const ViewType view) {
                 "Non-matching value types of view and reference value");
   auto view_h = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), view);
   for (std::size_t i = 0; i < view_h.extent(0); i++) {
-    EXPECT_EQ(expected, view_h(i));
+    ASSERT_EQ(expected, view_h(i));
   }
 }
 
@@ -130,7 +130,7 @@ verify_values(ValueType expected, const ViewType view) {
   auto view_h =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), tmpView);
   for (std::size_t i = 0; i < view_h.extent(0); i++) {
-    EXPECT_EQ(expected, view_h(i));
+    ASSERT_EQ(expected, view_h(i));
   }
 }
 
@@ -147,7 +147,7 @@ compare_views(ViewType1 expected, const ViewType2 actual) {
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), actual);
 
   for (std::size_t i = 0; i < expected_h.extent(0); i++) {
-    EXPECT_EQ(expected_h(i), actual_h(i));
+    ASSERT_EQ(expected_h(i), actual_h(i));
   }
 }
 
@@ -171,7 +171,7 @@ compare_views(ViewType1 expected, const ViewType2 actual) {
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), expected);
 
   for (std::size_t i = 0; i < expected_h.extent(0); i++) {
-    EXPECT_EQ(expected_h(i), actual_h(i));
+    ASSERT_EQ(expected_h(i), actual_h(i));
   }
 }
 

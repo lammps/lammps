@@ -214,36 +214,6 @@ struct TestRangeRequire {
 
   //----------------------------------------
 
-  void test_scan() {
-    Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N),
-                         *this);
-
-    Kokkos::parallel_scan(
-        "TestKernelScan",
-        Kokkos::RangePolicy<ExecSpace, ScheduleType, OffsetTag>(0, N), *this);
-
-    int total = 0;
-    Kokkos::parallel_scan(
-        "TestKernelScanWithTotal",
-        Kokkos::RangePolicy<ExecSpace, ScheduleType, OffsetTag>(0, N), *this,
-        total);
-    ASSERT_EQ(size_t((N - 1) * (N) / 2), size_t(total));  // sum( 0 .. N-1 )
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const OffsetTag &, const int i, value_type &update,
-                  bool final) const {
-    update += m_flags(i);
-
-    if (final) {
-      if (update != (i * (i + 1)) / 2) {
-        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-            "TestRangeRequire::test_scan error %d : %d != %d\n", i,
-            (i * (i + 1)) / 2, m_flags(i));
-      }
-    }
-  }
-
   void test_dynamic_policy() {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     auto const N_no_implicit_capture = N;
@@ -416,63 +386,22 @@ TEST(TEST_CATEGORY, range_reduce_require) {
 }
 
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
-TEST(TEST_CATEGORY, range_scan_require) {
+TEST(TEST_CATEGORY, range_dynamic_policy_require) {
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
   using Property = Kokkos::Experimental::WorkItemProperty::HintLightWeight_t;
   {
-    TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>, Property>
-        f(0);
-    f.test_scan();
-  }
-  {
-    TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
-                     Property>
-        f(0);
-    f.test_scan();
-  }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
-    !defined(KOKKOS_ENABLE_SYCL)
-  {
     TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
                      Property>
         f(0);
     f.test_dynamic_policy();
   }
-#endif
-
-  {
-    TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>, Property>
-        f(2);
-    f.test_scan();
-  }
-  {
-    TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
-                     Property>
-        f(3);
-    f.test_scan();
-  }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
-    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
                      Property>
         f(3);
     f.test_dynamic_policy();
   }
-#endif
-
-  {
-    TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>, Property>
-        f(1000);
-    f.test_scan();
-  }
-  {
-    TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
-                     Property>
-        f(1001);
-    f.test_scan();
-  }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
-    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRangeRequire<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic>,
                      Property>
@@ -482,4 +411,5 @@ TEST(TEST_CATEGORY, range_scan_require) {
 #endif
 }
 #endif
+
 }  // namespace Test

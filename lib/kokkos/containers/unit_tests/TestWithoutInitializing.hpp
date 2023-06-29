@@ -24,6 +24,19 @@
 
 #include <../../core/unit_test/tools/include/ToolTestingUtilities.hpp>
 
+/// Some tests are skipped for @c CudaUVM memory space.
+/// @todo To be revised according to the future of @c KOKKOS_ENABLE_CUDA_UVM.
+///@{
+#ifdef KOKKOS_ENABLE_CUDA
+#define GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE                            \
+  if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space, \
+                               Kokkos::CudaUVMSpace>)                 \
+    GTEST_SKIP() << "skipping since CudaUVMSpace requires additional fences";
+#else
+#define GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
+#endif
+///@}
+
 TEST(TEST_CATEGORY, resize_realloc_no_init_dualview) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
@@ -125,11 +138,7 @@ TEST(TEST_CATEGORY, resize_exec_space_dualview) {
 }
 
 TEST(TEST_CATEGORY, realloc_exec_space_dualview) {
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<typename TEST_EXECSPACE::memory_space,
-                   Kokkos::CudaUVMSpace>::value)
-    GTEST_SKIP() << "skipping since CudaUVMSpace requires additional fences";
-#endif
+  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
 
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableFences());
@@ -221,11 +230,8 @@ TEST(TEST_CATEGORY, resize_exec_space_dynrankview) {
 }
 
 TEST(TEST_CATEGORY, realloc_exec_space_dynrankview) {
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<typename TEST_EXECSPACE::memory_space,
-                   Kokkos::CudaUVMSpace>::value)
-    GTEST_SKIP() << "skipping since CudaUVMSpace requires additional fences";
-#endif
+  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
+
 // FIXME_THREADS The Threads backend fences every parallel_for
 #ifdef KOKKOS_ENABLE_THREADS
   if (std::is_same<TEST_EXECSPACE, Kokkos::Threads>::value)
@@ -363,15 +369,19 @@ TEST(TEST_CATEGORY, resize_exec_space_scatterview) {
 }
 
 TEST(TEST_CATEGORY, realloc_exec_space_scatterview) {
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<typename TEST_EXECSPACE::memory_space,
-                   Kokkos::CudaUVMSpace>::value)
-    GTEST_SKIP() << "skipping since CudaUVMSpace requires additional fences";
-#endif
+  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
+
 // FIXME_THREADS The Threads backend fences every parallel_for
 #ifdef KOKKOS_ENABLE_THREADS
   if (std::is_same<typename TEST_EXECSPACE, Kokkos::Threads>::value)
     GTEST_SKIP() << "skipping since the Threads backend isn't asynchronous";
+#endif
+#if defined(KOKKOS_ENABLE_HPX) && \
+    !defined(KOKKOS_ENABLE_IMPL_HPX_ASYNC_DISPATCH)
+  if (std::is_same<Kokkos::DefaultExecutionSpace,
+                   Kokkos::Experimental::HPX>::value)
+    GTEST_SKIP() << "skipping since the HPX backend always fences with async "
+                    "dispatch disabled";
 #endif
 
   using namespace Kokkos::Test::Tools;
@@ -470,11 +480,8 @@ TEST(TEST_CATEGORY, create_mirror_no_init_dynrankview_viewctor) {
 }
 
 TEST(TEST_CATEGORY, create_mirror_view_and_copy_dynrankview) {
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<typename TEST_EXECSPACE::memory_space,
-                   Kokkos::CudaUVMSpace>::value)
-    return;
-#endif
+  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
+
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());
@@ -577,11 +584,8 @@ TEST(TEST_CATEGORY, create_mirror_no_init_offsetview_view_ctor) {
 }
 
 TEST(TEST_CATEGORY, create_mirror_view_and_copy_offsetview) {
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<typename TEST_EXECSPACE::memory_space,
-                   Kokkos::CudaUVMSpace>::value)
-    return;
-#endif
+  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
+
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());
@@ -652,11 +656,8 @@ TEST(TEST_CATEGORY, create_mirror_no_init_dynamicview) {
 }
 
 TEST(TEST_CATEGORY, create_mirror_view_and_copy_dynamicview) {
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same<typename TEST_EXECSPACE::memory_space,
-                   Kokkos::CudaUVMSpace>::value)
-    return;
-#endif
+  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
+
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());

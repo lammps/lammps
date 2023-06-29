@@ -38,62 +38,76 @@ struct OpenACCParallelReduceHelper {
 
 }  // namespace Kokkos::Experimental::Impl
 
-template <class Functor, class ReducerType, class... Traits>
-class Kokkos::Impl::ParallelReduce<Functor, Kokkos::RangePolicy<Traits...>,
-                                   ReducerType, Kokkos::Experimental::OpenACC> {
-  using Policy = RangePolicy<Traits...>;
+template <class CombinedFunctorReducerType, class... Traits>
+class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
+                                   Kokkos::RangePolicy<Traits...>,
+                                   Kokkos::Experimental::OpenACC> {
+  using Policy      = RangePolicy<Traits...>;
+  using FunctorType = typename CombinedFunctorReducerType::functor_type;
+  using ReducerType = typename CombinedFunctorReducerType::reducer_type;
 
-  using ReducerConditional =
-      if_c<std::is_same_v<InvalidType, ReducerType>, Functor, ReducerType>;
-  using ReducerTypeFwd = typename ReducerConditional::type;
-  using Analysis =
-      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, ReducerTypeFwd>;
+  using Pointer   = typename ReducerType::pointer_type;
+  using ValueType = typename ReducerType::value_type;
 
-  using Pointer   = typename Analysis::pointer_type;
-  using ValueType = typename Analysis::value_type;
-
-  Functor m_functor;
+  CombinedFunctorReducerType m_functor_reducer;
   Policy m_policy;
-  ReducerType m_reducer;
   Pointer m_result_ptr;
+  bool m_result_ptr_on_device;
 
  public:
-  ParallelReduce(Functor const& functor, Policy const& policy,
-                 ReducerType const& reducer)
-      : m_functor(functor),
-        m_policy(policy),
-        m_reducer(reducer),
-        m_result_ptr(reducer.view().data()) {}
-
   template <class ViewType>
-  ParallelReduce(
-      const Functor& functor, const Policy& policy, const ViewType& result,
-      std::enable_if_t<Kokkos::is_view<ViewType>::value, void*> = nullptr)
-      : m_functor(functor),
+  ParallelReduce(CombinedFunctorReducerType const& functor_reducer,
+                 Policy const& policy, ViewType const& result)
+      : m_functor_reducer(functor_reducer),
         m_policy(policy),
-        m_reducer(InvalidType()),
-        m_result_ptr(result.data()) {}
+        m_result_ptr(result.data()),
+        m_result_ptr_on_device(
+            MemorySpaceAccess<Kokkos::Experimental::OpenACCSpace,
+                              typename ViewType::memory_space>::accessible) {}
 
   void execute() const {
     auto const begin = m_policy.begin();
     auto const end   = m_policy.end();
 
+    ValueType val;
+    ReducerType const& reducer = m_functor_reducer.get_reducer();
+    reducer.init(&val);
+
     if (end <= begin) {
+      if (m_result_ptr_on_device == false) {
+        *m_result_ptr = val;
+      } else {
+        acc_memcpy_to_device(m_result_ptr, &val, sizeof(ValueType));
+      }
       return;
     }
 
-    ValueType val;
-    typename Analysis::Reducer final_reducer(
-        &ReducerConditional::select(m_functor, m_reducer));
-    final_reducer.init(&val);
+    int const async_arg = m_policy.space().acc_async_queue();
 
     Kokkos::Experimental::Impl::OpenACCParallelReduceHelper(
-        Kokkos::Experimental::Impl::FunctorAdapter<Functor, Policy>(m_functor),
-        std::conditional_t<is_reducer_v<ReducerType>, ReducerType,
-                           Sum<ValueType>>(val),
+        Kokkos::Experimental::Impl::FunctorAdapter<
+            FunctorType, Policy,
+            Kokkos::Experimental::Impl::RoutineClause::seq>(
+            m_functor_reducer.get_functor()),
+        std::conditional_t<
+            std::is_same_v<FunctorType, typename ReducerType::functor_type>,
+            Sum<ValueType>, typename ReducerType::functor_type>(val),
         m_policy);
 
-    *m_result_ptr = val;
+    // OpenACC backend supports only built-in Reducer types; thus
+    // reducer.final() below is a no-op.
+    reducer.final(&val);
+    // acc_wait(async_arg) in the below if-else statements is needed because the
+    // above OpenACC compute kernel can be executed asynchronously and val is a
+    // local host variable.
+    if (m_result_ptr_on_device == false) {
+      acc_wait(async_arg);
+      *m_result_ptr = val;
+    } else {
+      acc_memcpy_to_device_async(m_result_ptr, &val, sizeof(ValueType),
+                                 async_arg);
+      acc_wait(async_arg);
+    }
   }
 };
 

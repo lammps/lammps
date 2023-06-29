@@ -407,7 +407,7 @@ do
   -Woverloaded-virtual)
     ;;
   #strip -Xcompiler because we add it
-  -Xcompiler)
+  -Xcompiler|--compiler-options)
     if [[ $2 != "-o" ]]; then
       if [ $first_xcompiler_arg -eq 1 ]; then
         xcompiler_args="$2"

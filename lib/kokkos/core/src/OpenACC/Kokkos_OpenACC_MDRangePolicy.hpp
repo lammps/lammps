@@ -42,4 +42,19 @@ struct ThreadAndVectorNestLevel<Rank, Kokkos::Experimental::OpenACC,
 }  // namespace Impl
 }  // namespace Kokkos
 
+namespace Kokkos::Experimental::Impl {
+
+struct OpenACCCollapse {};
+struct OpenACCTile {};
+using OpenACCIterateLeft  = std::integral_constant<Iterate, Iterate::Left>;
+using OpenACCIterateRight = std::integral_constant<Iterate, Iterate::Right>;
+template <int N>
+using OpenACCMDRangeBegin = decltype(MDRangePolicy<OpenACC, Rank<N>>::m_lower);
+template <int N>
+using OpenACCMDRangeEnd = decltype(MDRangePolicy<OpenACC, Rank<N>>::m_upper);
+template <int N>
+using OpenACCMDRangeTile = decltype(MDRangePolicy<OpenACC, Rank<N>>::m_tile);
+
+}  // namespace Kokkos::Experimental::Impl
+
 #endif

@@ -18,7 +18,7 @@
 #define KOKKOS_SYCLDEEPCOPY_HPP
 
 #include <Kokkos_Core_fwd.hpp>
-#include <Kokkos_SYCL.hpp>
+#include <SYCL/Kokkos_SYCL.hpp>
 
 #include <vector>
 
@@ -26,26 +26,6 @@
 
 namespace Kokkos {
 namespace Impl {
-
-template <class DT, class... DP>
-struct ZeroMemset<Kokkos::Experimental::SYCL, DT, DP...> {
-  ZeroMemset(const Kokkos::Experimental::SYCL& exec_space,
-             const View<DT, DP...>& dst,
-             typename View<DT, DP...>::const_value_type&) {
-    auto event = exec_space.impl_internal_space_instance()->m_queue->memset(
-        dst.data(), 0,
-        dst.size() * sizeof(typename View<DT, DP...>::value_type));
-    exec_space.impl_internal_space_instance()
-        ->m_queue->ext_oneapi_submit_barrier(std::vector<sycl::event>{event});
-  }
-
-  ZeroMemset(const View<DT, DP...>& dst,
-             typename View<DT, DP...>::const_value_type&) {
-    Experimental::Impl::SYCLInternal::singleton().m_queue->memset(
-        dst.data(), 0,
-        dst.size() * sizeof(typename View<DT, DP...>::value_type));
-  }
-};
 
 void DeepCopySYCL(void* dst, const void* src, size_t n);
 void DeepCopyAsyncSYCL(const Kokkos::Experimental::SYCL& instance, void* dst,

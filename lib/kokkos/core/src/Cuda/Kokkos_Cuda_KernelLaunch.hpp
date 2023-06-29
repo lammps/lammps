@@ -28,7 +28,6 @@
 #include <impl/Kokkos_Error.hpp>
 #include <Cuda/Kokkos_Cuda_abort.hpp>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
-#include <Cuda/Kokkos_Cuda_Locks.hpp>
 #include <Cuda/Kokkos_Cuda_Instance.hpp>
 #include <impl/Kokkos_GraphImpl_fwd.hpp>
 #include <Cuda/Kokkos_Cuda_GraphNodeKernel.hpp>
@@ -664,7 +663,7 @@ struct CudaParallelLaunchImpl<
             shmem, desired_occupancy);
       }
 
-      ensure_cuda_lock_arrays_on_device();
+      desul::ensure_cuda_lock_arrays_on_device();
 
       // Invoke the driver function on the device
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);

@@ -52,14 +52,14 @@ TEST(std_algorithms_mod_ops_test, move) {
 
   // move constr
   MyMovableType b(std::move(a));
-  EXPECT_EQ(b.m_value, 11);
-  EXPECT_EQ(a.m_value, -2);
+  ASSERT_EQ(b.m_value, 11);
+  ASSERT_EQ(a.m_value, -2);
 
   // move assign
   MyMovableType c;
   c = std::move(b);
-  EXPECT_EQ(c.m_value, 11);
-  EXPECT_EQ(b.m_value, -4);
+  ASSERT_EQ(c.m_value, 11);
+  ASSERT_EQ(b.m_value, -4);
 }
 
 template <class ViewType>
@@ -97,8 +97,8 @@ TEST(std_algorithms_mod_ops_test, swap) {
     int a = 1;
     int b = 2;
     KE::swap(a, b);
-    EXPECT_EQ(a, 2);
-    EXPECT_EQ(b, 1);
+    ASSERT_EQ(a, 2);
+    ASSERT_EQ(b, 1);
   }
 
   {
@@ -151,17 +151,17 @@ void test_iter_swap(ViewType view) {
   using value_type = typename ViewType::value_type;
   auto a_dc        = create_deep_copyable_compatible_clone(view);
   auto a_h         = create_mirror_view_and_copy(Kokkos::HostSpace(), a_dc);
-  EXPECT_EQ(view.extent_int(0), 10);
-  EXPECT_EQ(a_h(0), value_type(3));
-  EXPECT_EQ(a_h(1), value_type(1));
-  EXPECT_EQ(a_h(2), value_type(2));
-  EXPECT_EQ(a_h(3), value_type(0));
-  EXPECT_EQ(a_h(4), value_type(6));
-  EXPECT_EQ(a_h(5), value_type(5));
-  EXPECT_EQ(a_h(6), value_type(4));
-  EXPECT_EQ(a_h(7), value_type(7));
-  EXPECT_EQ(a_h(8), value_type(8));
-  EXPECT_EQ(a_h(9), value_type(9));
+  ASSERT_EQ(view.extent_int(0), 10);
+  ASSERT_EQ(a_h(0), value_type(3));
+  ASSERT_EQ(a_h(1), value_type(1));
+  ASSERT_EQ(a_h(2), value_type(2));
+  ASSERT_EQ(a_h(3), value_type(0));
+  ASSERT_EQ(a_h(4), value_type(6));
+  ASSERT_EQ(a_h(5), value_type(5));
+  ASSERT_EQ(a_h(6), value_type(4));
+  ASSERT_EQ(a_h(7), value_type(7));
+  ASSERT_EQ(a_h(8), value_type(8));
+  ASSERT_EQ(a_h(9), value_type(9));
 }
 
 TEST(std_algorithms_mod_ops_test, iter_swap_static_view) {

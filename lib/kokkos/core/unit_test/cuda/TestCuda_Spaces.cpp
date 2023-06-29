@@ -374,7 +374,8 @@ template <typename View>
 View create_view() {
   using execution_space = typename View::execution_space;
   View view("", 10);
-  InitFunctor iota(view);
+  // MSVC+CUDA errors on CTAD here
+  InitFunctor<View> iota(view);
   Kokkos::parallel_for("test_view_subview_const_randomaccess",
                        Kokkos::RangePolicy<execution_space>(0, view.extent(0)),
                        iota);

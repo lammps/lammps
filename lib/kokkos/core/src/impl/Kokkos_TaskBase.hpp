@@ -174,17 +174,15 @@ class TaskBase {
 
     // Assign dependence to m_next.  It will be processed in the subsequent
     // call to schedule.  Error if the dependence is reset.
-    if (lock != Kokkos::Impl::desul_atomic_exchange(
-                    &m_next, dep, Kokkos::Impl::MemoryOrderSeqCst(),
-                    Kokkos::Impl::MemoryScopeDevice())) {
+    if (lock != desul::atomic_exchange(&m_next, dep, desul::MemoryOrderSeqCst(),
+                                       desul::MemoryScopeDevice())) {
       Kokkos::abort("TaskScheduler ERROR: resetting task dependence");
     }
     if (nullptr != dep) {
       // The future may be destroyed upon returning from this call
       // so increment reference count to track this assignment.
-      Kokkos::Impl::desul_atomic_inc(&(dep->m_ref_count),
-                                     Kokkos::Impl::MemoryOrderSeqCst(),
-                                     Kokkos::Impl::MemoryScopeDevice());
+      desul::atomic_inc(&(dep->m_ref_count), desul::MemoryOrderSeqCst(),
+                        desul::MemoryScopeDevice());
     }
   }
 
@@ -208,6 +206,7 @@ class TaskBase {
 // the number of full task types that fit into a cache line.  We'll leave it
 // here for now, though, since we're probably going to be ripping all of the
 // old TaskBase stuff out eventually anyway.
+#ifndef KOKKOS_IMPL_32BIT
 constexpr size_t unpadded_task_base_size = 44 + 2 * sizeof(int16_t);
 // don't forget padding:
 constexpr size_t task_base_misalignment =
@@ -231,7 +230,7 @@ static constexpr
 
 static_assert(sizeof(TaskBase) == expected_task_base_size,
               "Verifying expected sizeof(TaskBase)");
-
+#endif
 // </editor-fold> end Verify the size of TaskBase is as expected }}}2
 //------------------------------------------------------------------------------
 

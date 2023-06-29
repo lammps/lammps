@@ -196,7 +196,13 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
 
   iterator begin() const { return DV::h_view.data(); }
 
+  const_iterator cbegin() const { return DV::h_view.data(); }
+
   iterator end() const {
+    return _size > 0 ? DV::h_view.data() + _size : DV::h_view.data();
+  }
+
+  const_iterator cend() const {
     return _size > 0 ? DV::h_view.data() + _size : DV::h_view.data();
   }
 

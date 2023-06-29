@@ -56,8 +56,8 @@ void TestViewAggregate() {
                 "");
   static_assert(std::is_same<typename a32_type::pointer_type, double *>::value,
                 "");
-  static_assert(a32_type::Rank == 2, "");
-  static_assert(a32_flat_type::Rank == 3, "");
+  static_assert(a32_type::rank == 2, "");
+  static_assert(a32_flat_type::rank == 3, "");
 
   a32_type x("test", 4, 5);
   a32_flat_type y(x);

@@ -24,17 +24,6 @@
 
 namespace Kokkos::Experimental::Impl {
 
-struct OpenACCCollapse {};
-struct OpenACCTile {};
-using OpenACCIterateLeft  = std::integral_constant<Iterate, Iterate::Left>;
-using OpenACCIterateRight = std::integral_constant<Iterate, Iterate::Right>;
-template <int N>
-using OpenACCMDRangeBegin = decltype(MDRangePolicy<OpenACC, Rank<N>>::m_lower);
-template <int N>
-using OpenACCMDRangeEnd = decltype(MDRangePolicy<OpenACC, Rank<N>>::m_upper);
-template <int N>
-using OpenACCMDRangeTile = decltype(MDRangePolicy<OpenACC, Rank<N>>::m_tile);
-
 template <class Functor>
 void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
                                      Functor const& functor,
@@ -651,7 +640,9 @@ template <class Functor, class... Traits>
 class Kokkos::Impl::ParallelFor<Functor, Kokkos::MDRangePolicy<Traits...>,
                                 Kokkos::Experimental::OpenACC> {
   using Policy = MDRangePolicy<Traits...>;
-  Kokkos::Experimental::Impl::FunctorAdapter<Functor, Policy> m_functor;
+  Kokkos::Experimental::Impl::FunctorAdapter<
+      Functor, Policy, Kokkos::Experimental::Impl::RoutineClause::seq>
+      m_functor;
   Policy m_policy;
 
  public:

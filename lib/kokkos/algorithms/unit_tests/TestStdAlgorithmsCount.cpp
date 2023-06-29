@@ -35,13 +35,13 @@ void test_count(const ViewType view) {
     const value_t count_value = 0;
     const auto std_result =
         std::count(KE::cbegin(expected), KE::cend(expected), count_value);
-    EXPECT_EQ(view.extent(0), size_t(std_result));
+    ASSERT_EQ(view.extent(0), size_t(std_result));
 
     // pass const iterators
-    EXPECT_EQ(std_result, KE::count(exespace(), KE::cbegin(view),
+    ASSERT_EQ(std_result, KE::count(exespace(), KE::cbegin(view),
                                     KE::cend(view), count_value));
     // pass view
-    EXPECT_EQ(std_result, KE::count(exespace(), view, count_value));
+    ASSERT_EQ(std_result, KE::count(exespace(), view, count_value));
   }
 
   {
@@ -50,10 +50,10 @@ void test_count(const ViewType view) {
         std::count(KE::cbegin(expected), KE::cend(expected), count_value);
 
     // pass iterators
-    EXPECT_EQ(std_result, KE::count("label", exespace(), KE::begin(view),
+    ASSERT_EQ(std_result, KE::count("label", exespace(), KE::begin(view),
                                     KE::end(view), count_value));
     // pass view
-    EXPECT_EQ(std_result, KE::count("label", exespace(), view, count_value));
+    ASSERT_EQ(std_result, KE::count("label", exespace(), view, count_value));
   }
 }
 
@@ -67,24 +67,24 @@ void test_count_if(const ViewType view) {
 
   // no positive elements (all zeroes)
   const auto predicate = IsPositiveFunctor<value_type>();
-  EXPECT_EQ(0,
+  ASSERT_EQ(0,
             std::count_if(KE::begin(expected), KE::end(expected), predicate));
 
   // pass iterators
-  EXPECT_EQ(
+  ASSERT_EQ(
       0, KE::count_if(exespace(), KE::begin(view), KE::end(view), predicate));
   // pass view
-  EXPECT_EQ(0, KE::count_if(exespace(), view, predicate));
+  ASSERT_EQ(0, KE::count_if(exespace(), view, predicate));
 
   fill_views_inc(view, expected);
 
   const auto std_result =
       std::count_if(KE::begin(expected), KE::end(expected), predicate);
   // pass const iterators
-  EXPECT_EQ(std_result, KE::count_if("label", exespace(), KE::cbegin(view),
+  ASSERT_EQ(std_result, KE::count_if("label", exespace(), KE::cbegin(view),
                                      KE::cend(view), predicate));
   // pass view
-  EXPECT_EQ(std_result, KE::count_if("label", exespace(), view, predicate));
+  ASSERT_EQ(std_result, KE::count_if("label", exespace(), view, predicate));
 }
 
 template <class Tag, class ValueType>

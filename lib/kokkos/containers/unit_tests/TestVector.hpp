@@ -49,61 +49,27 @@ struct test_vector_insert {
 
     it = a.begin();
     it += 17;
-// Looks like some std::vector implementations do not have the restriction
-// right on the overload taking three iterators, and thus the following call
-// will hit that overload and then fail to compile.
-#if defined(KOKKOS_COMPILER_INTEL)
-// And at least GCC 4.8.4 doesn't implement vector insert correct for C++11
-// Return type is void ...
-#if (__GNUC__ < 5)
-    a.insert(it, typename Vector::size_type(n + 5), scalar_type(5));
-    it_return = a.begin() + 17;
-#else
-    it_return = a.insert(it, typename Vector::size_type(n + 5), scalar_type(5));
-#endif
-#else
-#if (__GNUC__ < 5)
-    a.insert(it, n + 5, scalar_type(5));
-    it_return = a.begin() + 17;
-#else
     it_return = a.insert(it, n + 5, scalar_type(5));
-#endif
-#endif
 
     ASSERT_EQ(a.size(), n + 1 + n + 5);
-    ASSERT_EQ(std::distance(it_return, a.begin() + 17), 0u);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 17), 0);
 
     Vector b;
 
-// Looks like some std::vector implementations do not have the restriction
-// right on the overload taking three iterators, and thus the following call
-// will hit that overload and then fail to compile.
-#if defined(KOKKOS_COMPILER_INTEL)
-    b.insert(b.begin(), typename Vector::size_type(7), 9);
-#else
     b.insert(b.begin(), 7, 9);
-#endif
     ASSERT_EQ(b.size(), 7u);
     ASSERT_EQ(b[0], scalar_type(9));
 
     it = a.begin();
     it += 27 + n;
-#if (__GNUC__ < 5)
-    a.insert(it, b.begin(), b.end());
-    it_return = a.begin() + (27 + n);
-#else
     it_return = a.insert(it, b.begin(), b.end());
-#endif
+
     ASSERT_EQ(a.size(), n + 1 + n + 5 + 7);
-    ASSERT_EQ(std::distance(it_return, a.begin() + 27 + n), 0u);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 27 + n), 0);
 
     // Testing insert at end via all three function interfaces
     a.insert(a.end(), 11);
-#if defined(KOKKOS_COMPILER_INTEL)
-    a.insert(a.end(), typename Vector::size_type(2), 12);
-#else
     a.insert(a.end(), 2, 12);
-#endif
     a.insert(a.end(), b.begin(), b.end());
   }
 

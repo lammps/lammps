@@ -52,7 +52,8 @@ void hostspace_parallel_deepcopy_async(const DefaultHostExecutionSpace& exec,
   // synchronously. The deep copy must be correctly sequenced with respect to
   // other kernels submitted to the same instance, so we only use the fallback
   // parallel_for version in this case.
-#if !(defined(KOKKOS_ENABLE_HPX) && defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH))
+#if !(defined(KOKKOS_ENABLE_HPX) && \
+      defined(KOKKOS_ENABLE_IMPL_HPX_ASYNC_DISPATCH))
   constexpr int host_deep_copy_serial_limit = 10 * 8192;
   if ((n < host_deep_copy_serial_limit) ||
       (DefaultHostExecutionSpace().concurrency() == 1)) {

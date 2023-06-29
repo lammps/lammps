@@ -40,7 +40,14 @@ struct extrema {
 
   DEFINE_EXTREMA(float, -FLT_MAX, FLT_MAX);
   DEFINE_EXTREMA(double, -DBL_MAX, DBL_MAX);
+
+// FIXME_NVHPC: with 23.3 using long double in KOKKOS_FUNCTION is hard error
+#if !defined(KOKKOS_ENABLE_CUDA) || !defined(KOKKOS_COMPILER_NVHPC)
   DEFINE_EXTREMA(long double, -LDBL_MAX, LDBL_MAX);
+#else
+  static long double min(long double) { return -LDBL_MAX; }
+  static long double max(long double) { return LDBL_MAX; }
+#endif
 
 #undef DEFINE_EXTREMA
 };
@@ -163,7 +170,8 @@ struct TestNumericTraits {
   }
 
   KOKKOS_FUNCTION void use_on_device() const {
-#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_NVHPC) || \
+    defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_OPENACC)
     take_by_value(trait<T>::value);
 #else
     (void)take_address_of(trait<T>::value);
@@ -481,7 +489,14 @@ CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, denorm_min);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, denorm_min);
+
+// FIXME_OPENMPTARGET - The static_assert causes issues on Intel GPUs with the
+// OpenMPTarget backend.
+#if !(defined(KOKKOS_ENABLE_OPENMPTARGET) && \
+      defined(KOKKOS_COMPILER_INTEL_LLVM))
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, denorm_min);
+#endif
+
 // clang-format off
 static_assert(Kokkos::Experimental::norm_min<float      >::value == std::numeric_limits<      float>::min(), "");
 static_assert(Kokkos::Experimental::norm_min<double     >::value == std::numeric_limits<     double>::min(), "");

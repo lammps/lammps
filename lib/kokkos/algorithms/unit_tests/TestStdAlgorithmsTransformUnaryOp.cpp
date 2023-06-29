@@ -58,7 +58,7 @@ void verify_data(ViewTypeFrom view_from, ViewTypeTest view_test) {
       create_mirror_view_and_copy(Kokkos::HostSpace(), view_from_dc);
 
   for (std::size_t i = 0; i < view_test_h.extent(0); ++i) {
-    EXPECT_EQ(view_test_h(i), view_from_h(i) + value_type(1));
+    ASSERT_EQ(view_test_h(i), view_from_h(i) + value_type(1));
   }
 }
 
@@ -89,7 +89,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto r1 = KE::transform(exespace(), KE::begin(view_from),
                             KE::end(view_from), KE::begin(view_dest), unOp);
     verify_data(view_from, view_dest);
-    EXPECT_EQ(r1, KE::end(view_dest));
+    ASSERT_EQ(r1, KE::end(view_dest));
   }
 
   {
@@ -98,7 +98,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto r1 = KE::transform("label", exespace(), KE::begin(view_from),
                             KE::end(view_from), KE::begin(view_dest), unOp);
     verify_data(view_from, view_dest);
-    EXPECT_EQ(r1, KE::end(view_dest));
+    ASSERT_EQ(r1, KE::end(view_dest));
   }
 
   {
@@ -106,7 +106,7 @@ void run_single_scenario(const InfoType& scenario_info) {
         create_view<ValueType>(Tag{}, view_ext, "transform_uop_dest");
     auto r1 = KE::transform(exespace(), view_from, view_dest, unOp);
     verify_data(view_from, view_dest);
-    EXPECT_EQ(r1, KE::end(view_dest));
+    ASSERT_EQ(r1, KE::end(view_dest));
   }
 
   {
@@ -114,7 +114,7 @@ void run_single_scenario(const InfoType& scenario_info) {
         create_view<ValueType>(Tag{}, view_ext, "transform_uop_dest");
     auto r1 = KE::transform("label", exespace(), view_from, view_dest, unOp);
     verify_data(view_from, view_dest);
-    EXPECT_EQ(r1, KE::end(view_dest));
+    ASSERT_EQ(r1, KE::end(view_dest));
   }
 
   Kokkos::fence();

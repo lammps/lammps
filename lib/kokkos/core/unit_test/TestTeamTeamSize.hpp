@@ -31,10 +31,6 @@ class MyArray {
   void operator+=(const MyArray& src) {
     for (int i = 0; i < N; i++) values[i] += src.values[i];
   }
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const MyArray& src) {
-    for (int i = 0; i < N; i++) values[i] = src.values[i];
-  }
 };
 
 template <class T, int N, class PolicyType, int S>

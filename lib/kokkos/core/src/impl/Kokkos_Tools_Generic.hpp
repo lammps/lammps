@@ -18,6 +18,7 @@
 #define KOKKOS_IMPL_KOKKOS_TOOLS_GENERIC_HPP
 
 #include <impl/Kokkos_Profiling.hpp>
+#include <impl/Kokkos_FunctorAnalysis.hpp>
 
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_ExecPolicy.hpp>
@@ -99,9 +100,12 @@ struct SimpleTeamSizeCalculator {
                                         const Functor& functor,
                                         const Kokkos::ParallelReduceTag&) {
     using exec_space = typename Policy::execution_space;
-    using driver =
-        Kokkos::Impl::ParallelReduce<Functor, Policy, Kokkos::InvalidType,
-                                     exec_space>;
+    using analysis   = Kokkos::Impl::FunctorAnalysis<
+        Kokkos::Impl::FunctorPatternInterface::REDUCE, Policy, Functor, void>;
+    using driver = typename Kokkos::Impl::ParallelReduce<
+        Kokkos::Impl::CombinedFunctorReducer<Functor,
+                                             typename analysis::Reducer>,
+        Policy, exec_space>;
     return driver::max_tile_size_product(policy, functor);
   }
 };
@@ -120,7 +124,13 @@ struct ComplexReducerSizeCalculator {
     using value_type = typename ReducerType::value_type;
     value_type value;
     ReducerType reducer_example = ReducerType(value);
-    return policy.team_size_max(functor, reducer_example, tag);
+
+    using Analysis = Kokkos::Impl::FunctorAnalysis<
+        Kokkos::Impl::FunctorPatternInterface::REDUCE, Policy, ReducerType,
+        value_type>;
+    typename Analysis::Reducer final_reducer(reducer_example);
+
+    return policy.team_size_max(functor, final_reducer, tag);
   }
   template <typename Policy, typename Functor, typename Tag>
   int get_recommended_team_size(const Policy& policy, const Functor& functor,
@@ -128,15 +138,26 @@ struct ComplexReducerSizeCalculator {
     using value_type = typename ReducerType::value_type;
     value_type value;
     ReducerType reducer_example = ReducerType(value);
-    return policy.team_size_recommended(functor, reducer_example, tag);
+
+    using Analysis = Kokkos::Impl::FunctorAnalysis<
+        Kokkos::Impl::FunctorPatternInterface::REDUCE, Policy, ReducerType,
+        value_type>;
+    typename Analysis::Reducer final_reducer(reducer_example);
+
+    return policy.team_size_recommended(functor, final_reducer, tag);
   }
   template <typename Policy, typename Functor>
   int get_mdrange_max_tile_size_product(const Policy& policy,
                                         const Functor& functor,
                                         const Kokkos::ParallelReduceTag&) {
     using exec_space = typename Policy::execution_space;
-    using driver =
-        Kokkos::Impl::ParallelReduce<Functor, Policy, ReducerType, exec_space>;
+    using Analysis   = Kokkos::Impl::FunctorAnalysis<
+        Kokkos::Impl::FunctorPatternInterface::REDUCE, Policy, ReducerType,
+        void>;
+    using driver = typename Kokkos::Impl::ParallelReduce<
+        Kokkos::Impl::CombinedFunctorReducer<Functor,
+                                             typename Analysis::Reducer>,
+        Policy, exec_space>;
     return driver::max_tile_size_product(policy, functor);
   }
 };

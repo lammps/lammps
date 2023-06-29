@@ -1514,7 +1514,7 @@ void fill_random(const ExecutionSpace& exec, ViewType a, RandomPool g,
         "Kokkos::fill_random",
         Kokkos::RangePolicy<ExecutionSpace>(exec, 0, (LDA + 127) / 128),
         Impl::fill_random_functor_begin_end<ViewType, RandomPool, 128,
-                                            ViewType::Rank, IndexType>(
+                                            ViewType::rank, IndexType>(
             a, g, begin, end));
 }
 

@@ -260,10 +260,16 @@ KOKKOS_INLINE_FUNCTION
 
 /************************** bhalf conversions *********************************/
 // Go in this branch if CUDA version is >= 11.0.0 and less than 11.1.0 or if the
-// architecture is not Ampere
+// architecture is older than Ampere
+#if !defined(KOKKOS_ARCH_KEPLER) && !defined(KOKKOS_ARCH_MAXWELL) && \
+    !defined(KOKKOS_ARCH_PASCAL) && !defined(KOKKOS_ARCH_VOLTA) &&   \
+    !defined(KOKKOS_ARCH_TURING75)
+#define KOKKOS_IMPL_NVIDIA_GPU_ARCH_SUPPORT_BHALF
+#endif
+
 #if CUDA_VERSION >= 11000 && \
     (CUDA_VERSION < 11010 || \
-     !(defined(KOKKOS_ARCH_AMPERE) || defined(KOKKOS_ARCH_HOPPER)))
+     !defined(KOKKOS_IMPL_NVIDIA_GPU_ARCH_SUPPORT_BHALF))
 KOKKOS_INLINE_FUNCTION
 bhalf_t cast_to_bhalf(bhalf_t val) { return val; }
 
@@ -390,8 +396,7 @@ KOKKOS_INLINE_FUNCTION
 }
 #endif  // CUDA_VERSION >= 11000 && CUDA_VERSION < 11010
 
-#if CUDA_VERSION >= 11010 && \
-    ((defined(KOKKOS_ARCH_AMPERE) || defined(KOKKOS_ARCH_HOPPER)))
+#if CUDA_VERSION >= 11010 && defined(KOKKOS_IMPL_NVIDIA_GPU_ARCH_SUPPORT_BHALF)
 KOKKOS_INLINE_FUNCTION
 bhalf_t cast_to_bhalf(bhalf_t val) { return val; }
 KOKKOS_INLINE_FUNCTION
@@ -473,6 +478,8 @@ KOKKOS_INLINE_FUNCTION
   return static_cast<T>(cast_from_bhalf<unsigned long long>(val));
 }
 #endif  // CUDA_VERSION >= 11010
+
+#undef KOKKOS_IMPL_NVIDIA_GPU_ARCH_SUPPORT_BHALF
 }  // namespace Experimental
 
 #if (CUDA_VERSION >= 11000)

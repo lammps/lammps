@@ -113,11 +113,17 @@ TYPED_TEST(TestViewAPI, sizes) {
   static_assert(view_t::rank == TestFixture::expected_rank,
                 "TestViewAPI: Error: rank mismatch");
   size_t expected_span = 1;
-  for (int r = 0; r < view_t::rank; r++) expected_span *= this->all_sizes[r];
+  // avoid pointless comparison of unsigned integer with zero warning
+  if constexpr (view_t::rank > 0) {
+    for (size_t r = 0; r < view_t::rank; r++)
+      expected_span *= this->all_sizes[r];
+  }
 
   EXPECT_EQ(expected_span, a.span());
-  for (int r = 0; r < view_t::rank; r++) {
-    EXPECT_EQ(this->all_sizes[r], a.extent(r));
-    EXPECT_EQ(this->all_sizes[r], size_t(a.extent_int(r)));
+  if constexpr (view_t::rank > 0) {
+    for (size_t r = 0; r < view_t::rank; r++) {
+      EXPECT_EQ(this->all_sizes[r], a.extent(r));
+      EXPECT_EQ(this->all_sizes[r], size_t(a.extent_int(r)));
+    }
   }
 }

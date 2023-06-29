@@ -197,7 +197,7 @@ TEST(kokkosp, test_multiple_default_instances) {
       ex1.fence("named_instance_fence_one");
       ex2.fence("named_instance_fence_two");
     });
-    ASSERT_TRUE(found_payloads[0].dev_id == found_payloads[1].dev_id);
+    ASSERT_EQ(found_payloads[0].dev_id, found_payloads[1].dev_id);
   });
 }
 
@@ -394,6 +394,13 @@ TEST(kokkosp, parallel_scan_no_fence) {
   if (std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Threads>::value)
     GTEST_SKIP() << "skipping since the Thread backend always fences";
 #endif
+#if defined(KOKKOS_ENABLE_HPX) && \
+    !defined(KOKKOS_ENABLE_IMPL_HPX_ASYNC_DISPATCH)
+  if (std::is_same<Kokkos::DefaultExecutionSpace,
+                   Kokkos::Experimental::HPX>::value)
+    GTEST_SKIP() << "skipping since the HPX backend always fences with async "
+                    "dispatch disabled";
+#endif
     // FIXME_OPENMPTARGET
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
   if (std::is_same<Kokkos::DefaultExecutionSpace,
@@ -427,6 +434,13 @@ TEST(kokkosp, parallel_scan_no_fence_view) {
 #ifdef KOKKOS_ENABLE_THREADS
   if (std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Threads>::value)
     GTEST_SKIP() << "skipping since the Thread backend always fences";
+#endif
+#if defined(KOKKOS_ENABLE_HPX) && \
+    !defined(KOKKOS_ENABLE_IMPL_HPX_ASYNC_DISPATCH)
+  if (std::is_same<Kokkos::DefaultExecutionSpace,
+                   Kokkos::Experimental::HPX>::value)
+    GTEST_SKIP() << "skipping since the HPX backend always fences with async "
+                    "dispatch disabled";
 #endif
     // FIXME_OPENMPTARGET
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
@@ -716,7 +730,7 @@ TEST(kokkosp, get_events) {
   });
   for (const auto& ptr : event_vector) {
     auto ptr_as_begin = std::dynamic_pointer_cast<BeginParallelForEvent>(ptr);
-    ASSERT_TRUE(ptr_as_begin == nullptr);
+    ASSERT_EQ(ptr_as_begin, nullptr);
   }
 }
 }  // namespace Test

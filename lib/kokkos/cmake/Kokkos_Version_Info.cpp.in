@@ -19,11 +19,12 @@
 namespace Kokkos {
 namespace Impl {
 
-std::string GIT_BRANCH             = "@GIT_BRANCH@";
-std::string GIT_COMMIT_HASH        = "@GIT_COMMIT_HASH@";
-std::string GIT_CLEAN_STATUS       = "@GIT_CLEAN_STATUS@";
-std::string GIT_COMMIT_DESCRIPTION = "@GIT_COMMIT_DESCRIPTION@";
-std::string GIT_COMMIT_DATE        = "@GIT_COMMIT_DATE@";
+std::string GIT_BRANCH       = R"branch(@GIT_BRANCH@)branch";
+std::string GIT_COMMIT_HASH  = "@GIT_COMMIT_HASH@";
+std::string GIT_CLEAN_STATUS = "@GIT_CLEAN_STATUS@";
+std::string GIT_COMMIT_DESCRIPTION =
+    R"message(@GIT_COMMIT_DESCRIPTION@)message";
+std::string GIT_COMMIT_DATE = "@GIT_COMMIT_DATE@";
 
 }  // namespace Impl
 

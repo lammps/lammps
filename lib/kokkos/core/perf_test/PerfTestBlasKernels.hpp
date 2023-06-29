@@ -25,8 +25,8 @@ template <class Type>
 struct Dot {
   using execution_space = typename Type::execution_space;
 
-  static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
-                "Dot static_assert Fail: Rank != 1");
+  static_assert(static_cast<unsigned>(Type::rank) == static_cast<unsigned>(1),
+                "Dot static_assert Fail: rank != 1");
 
   using value_type = double;
 
@@ -56,8 +56,8 @@ template <class Type>
 struct DotSingle {
   using execution_space = typename Type::execution_space;
 
-  static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
-                "DotSingle static_assert Fail: Rank != 1");
+  static_assert(static_cast<unsigned>(Type::rank) == static_cast<unsigned>(1),
+                "DotSingle static_assert Fail: rank != 1");
 
   using value_type = double;
 
@@ -88,13 +88,13 @@ template <class ScalarType, class VectorType>
 struct Scale {
   using execution_space = typename VectorType::execution_space;
 
-  static_assert(static_cast<unsigned>(ScalarType::Rank) ==
+  static_assert(static_cast<unsigned>(ScalarType::rank) ==
                     static_cast<unsigned>(0),
-                "Scale static_assert Fail: ScalarType::Rank != 0");
+                "Scale static_assert Fail: ScalarType::rank != 0");
 
-  static_assert(static_cast<unsigned>(VectorType::Rank) ==
+  static_assert(static_cast<unsigned>(VectorType::rank) ==
                     static_cast<unsigned>(1),
-                "Scale static_assert Fail: VectorType::Rank != 1");
+                "Scale static_assert Fail: VectorType::rank != 1");
 
 #if 1
   typename ScalarType::const_type alpha;
@@ -115,17 +115,17 @@ template <class ScalarType, class ConstVectorType, class VectorType>
 struct AXPBY {
   using execution_space = typename VectorType::execution_space;
 
-  static_assert(static_cast<unsigned>(ScalarType::Rank) ==
+  static_assert(static_cast<unsigned>(ScalarType::rank) ==
                     static_cast<unsigned>(0),
-                "AXPBY static_assert Fail: ScalarType::Rank != 0");
+                "AXPBY static_assert Fail: ScalarType::rank != 0");
 
-  static_assert(static_cast<unsigned>(ConstVectorType::Rank) ==
+  static_assert(static_cast<unsigned>(ConstVectorType::rank) ==
                     static_cast<unsigned>(1),
-                "AXPBY static_assert Fail: ConstVectorType::Rank != 1");
+                "AXPBY static_assert Fail: ConstVectorType::rank != 1");
 
-  static_assert(static_cast<unsigned>(VectorType::Rank) ==
+  static_assert(static_cast<unsigned>(VectorType::rank) ==
                     static_cast<unsigned>(1),
-                "AXPBY static_assert Fail: VectorType::Rank != 1");
+                "AXPBY static_assert Fail: VectorType::rank != 1");
 
 #if 1
   typename ScalarType::const_type alpha, beta;

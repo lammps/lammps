@@ -18,32 +18,15 @@
 #define KOKKOS_CORE_PERFTEST_BENCHMARK_VIEW_COPY_HPP
 
 #include <Kokkos_Core.hpp>
+
 #include <benchmark/benchmark.h>
+
+#include "Benchmark_Context.hpp"
 #include <cmath>
 
 namespace Test {
 
-/**
- * \brief Mark the label as a figure of merit.
- */
-inline std::string benchmark_fom(const std::string& label) {
-  return "FOM: " + label;
-}
-
-inline void report_results(benchmark::State& state, std::size_t num_elems,
-                           double time) {
-  state.SetIterationTime(time);
-
-  // data size in megabytes
-  const auto size = 1.0 * num_elems * sizeof(double) / 1000 / 1000;
-  // data processed in gigabytes
-  const auto data_processed = 2 * size / 1000;
-
-  state.counters["MB"] =
-      benchmark::Counter(size, benchmark::Counter::kDefaults);
-  state.counters[benchmark_fom("GB/s")] = benchmark::Counter(
-      data_processed, benchmark::Counter::kIsIterationInvariantRate);
-}
+static constexpr int DATA_RATIO = 2;
 
 template <class ViewTypeA, class ViewTypeB>
 void deepcopy_view(ViewTypeA& a, ViewTypeB& b, benchmark::State& state) {
@@ -51,7 +34,7 @@ void deepcopy_view(ViewTypeA& a, ViewTypeB& b, benchmark::State& state) {
     Kokkos::fence();
     Kokkos::Timer timer;
     Kokkos::deep_copy(a, b);
-    report_results(state, a.size(), timer.seconds());
+    KokkosBenchmark::report_results(state, a, DATA_RATIO, timer.seconds());
   }
 }
 
@@ -158,8 +141,7 @@ static void ViewDeepCopy_Raw(benchmark::State& state) {
     Kokkos::parallel_for(
         N8, KOKKOS_LAMBDA(const int& i) { a_ptr[i] = b_ptr[i]; });
     Kokkos::fence();
-
-    report_results(state, a.size(), timer.seconds());
+    KokkosBenchmark::report_results(state, a, DATA_RATIO, timer.seconds());
   }
 }
 

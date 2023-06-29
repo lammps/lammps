@@ -29,7 +29,6 @@
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
 #include <Cuda/Kokkos_Cuda_Instance.hpp>
-#include <Cuda/Kokkos_Cuda_Locks.hpp>
 #include <Cuda/Kokkos_Cuda_UniqueToken.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Tools.hpp>
@@ -129,9 +128,17 @@ void cuda_device_synchronize(const std::string &name) {
       name,
       Kokkos::Tools::Experimental::SpecialSynchronizationCases::
           GlobalDeviceSynchronization,
+#if defined(KOKKOS_COMPILER_CLANG)
+      // annotate with __host__ silence a clang warning about using
+      // cudaDeviceSynchronize in device code
+      [] __host__() {  // TODO: correct device ID
+        KOKKOS_IMPL_CUDA_SAFE_CALL(cudaDeviceSynchronize());
+      });
+#else
       []() {  // TODO: correct device ID
         KOKKOS_IMPL_CUDA_SAFE_CALL(cudaDeviceSynchronize());
       });
+#endif
 }
 
 void cuda_stream_synchronize(const cudaStream_t stream, const CudaInternal *ptr,
@@ -401,7 +408,9 @@ Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default
 #endif
 
   // Init the array for used for arbitrarily sized atomics
-  if (this == &singleton()) Impl::initialize_host_cuda_lock_arrays();
+  if (this == &singleton()) {
+    desul::Impl::init_lock_arrays();  // FIXME
+  }
 
   // Allocate a staging buffer for constant mem in pinned host memory
   // and an event to avoid overwriting driver for previous kernel launches
@@ -420,10 +429,11 @@ Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default
     m_team_scratch_ptr[i]          = nullptr;
   }
 
+  m_num_scratch_locks = concurrency();
   KOKKOS_IMPL_CUDA_SAFE_CALL(
-      cudaMalloc(&m_scratch_locks, sizeof(int32_t) * concurrency()));
+      cudaMalloc(&m_scratch_locks, sizeof(int32_t) * m_num_scratch_locks));
   KOKKOS_IMPL_CUDA_SAFE_CALL(
-      cudaMemset(m_scratch_locks, 0, sizeof(int32_t) * concurrency()));
+      cudaMemset(m_scratch_locks, 0, sizeof(int32_t) * m_num_scratch_locks));
 }
 
 //----------------------------------------------------------------------------
@@ -574,7 +584,7 @@ void CudaInternal::finalize() {
   // Only finalize this if we're the singleton
   if (this == &singleton()) {
     (void)Impl::cuda_global_unique_token_locks(true);
-    Impl::finalize_host_cuda_lock_arrays();
+    desul::Impl::finalize_lock_arrays();  // FIXME
 
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFreeHost(constantMemHostStaging));
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaEventDestroy(constantMemReusable));
@@ -618,7 +628,8 @@ void CudaInternal::finalize() {
   }
 
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFree(m_scratch_locks));
-  m_scratch_locks = nullptr;
+  m_scratch_locks     = nullptr;
+  m_num_scratch_locks = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -855,14 +866,6 @@ Cuda::Cuda(cudaStream_t stream, bool manage_stream)
 void Cuda::print_configuration(std::ostream &os, bool /*verbose*/) const {
   os << "Device Execution Space:\n";
   os << "  KOKKOS_ENABLE_CUDA: yes\n";
-
-  os << "Cuda Atomics:\n";
-  os << "  KOKKOS_ENABLE_CUDA_ATOMICS: ";
-#ifdef KOKKOS_ENABLE_CUDA_ATOMICS
-  os << "yes\n";
-#else
-  os << "no\n";
-#endif
 
   os << "Cuda Options:\n";
   os << "  KOKKOS_ENABLE_CUDA_LAMBDA: ";

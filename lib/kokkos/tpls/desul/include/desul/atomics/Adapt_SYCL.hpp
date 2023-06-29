@@ -22,77 +22,54 @@ SPDX-License-Identifier: (BSD-3-Clause)
 namespace desul {
 namespace Impl {
 
-#ifdef __clang__
-namespace sycl_sync_and_atomics = ::sycl::ext::oneapi;
-#else
-namespace sycl_sync_and_atomics = ::sycl;
-#endif
-
-template <bool extended_namespace>
-using sycl_memory_order = std::conditional_t<extended_namespace,
-                                             sycl_sync_and_atomics::memory_order,
-                                             sycl::memory_order>;
-template <bool extended_namespace>
-using sycl_memory_scope = std::conditional_t<extended_namespace,
-                                             sycl_sync_and_atomics::memory_scope,
-                                             sycl::memory_scope>;
-
 //<editor-fold desc="SYCL memory order">
 // The default memory order for sycl::atomic_ref
 // can be seq_cst, acq_rel, or relaxed according to the
 // "SYCL 2020 Specification (revision 6)", see
 // https://registry.khronos.org/SYCL/specs/sycl-2020/html/sycl-2020.html#sec:atomic-references.
 // Thus, we map MemoryOrderAcquire and MemoryOrderRelease to acq_rel.
-template <class MemoryOrder, bool extended_namespace = true>
+template <class MemoryOrder>
 struct SYCLMemoryOrder;
 
-template <bool extended_namespace>
-struct SYCLMemoryOrder<MemoryOrderSeqCst, extended_namespace> {
-  static constexpr sycl_memory_order<extended_namespace> value =
-      sycl_memory_order<extended_namespace>::seq_cst;
+template <>
+struct SYCLMemoryOrder<MemoryOrderSeqCst> {
+  static constexpr sycl::memory_order value = sycl::memory_order::seq_cst;
 };
-template <bool extended_namespace>
-struct SYCLMemoryOrder<MemoryOrderAcquire, extended_namespace> {
-  static constexpr sycl_memory_order<extended_namespace> value =
-      sycl_memory_order<extended_namespace>::acq_rel;
+template <>
+struct SYCLMemoryOrder<MemoryOrderAcquire> {
+  static constexpr sycl::memory_order value = sycl::memory_order::acq_rel;
 };
-template <bool extended_namespace>
-struct SYCLMemoryOrder<MemoryOrderRelease, extended_namespace> {
-  static constexpr sycl_memory_order<extended_namespace> value =
-      sycl_memory_order<extended_namespace>::acq_rel;
+template <>
+struct SYCLMemoryOrder<MemoryOrderRelease> {
+  static constexpr sycl::memory_order value = sycl::memory_order::acq_rel;
 };
-template <bool extended_namespace>
-struct SYCLMemoryOrder<MemoryOrderAcqRel, extended_namespace> {
-  static constexpr sycl_memory_order<extended_namespace> value =
-      sycl_memory_order<extended_namespace>::acq_rel;
+template <>
+struct SYCLMemoryOrder<MemoryOrderAcqRel> {
+  static constexpr sycl::memory_order value = sycl::memory_order::acq_rel;
 };
-template <bool extended_namespace>
-struct SYCLMemoryOrder<MemoryOrderRelaxed, extended_namespace> {
-  static constexpr sycl_memory_order<extended_namespace> value =
-      sycl_memory_order<extended_namespace>::relaxed;
+template <>
+struct SYCLMemoryOrder<MemoryOrderRelaxed> {
+  static constexpr sycl::memory_order value = sycl::memory_order::relaxed;
 };
 //</editor-fold>
 
 //<editor-fold desc="SYCL memory scope">
-template <class MemoryScope, bool extended_namespace = true>
+template <class MemoryScope>
 struct SYCLMemoryScope;
 
-template <bool extended_namespace>
-struct SYCLMemoryScope<MemoryScopeCore, extended_namespace> {
-  static constexpr sycl_memory_scope<extended_namespace> value =
-      sycl_memory_scope<extended_namespace>::work_group;
+template <>
+struct SYCLMemoryScope<MemoryScopeCore> {
+  static constexpr sycl::memory_scope value = sycl::memory_scope::work_group;
 };
 
-template <bool extended_namespace>
-struct SYCLMemoryScope<MemoryScopeDevice, extended_namespace> {
-  static constexpr sycl_memory_scope<extended_namespace> value =
-      sycl_memory_scope<extended_namespace>::device;
+template <>
+struct SYCLMemoryScope<MemoryScopeDevice> {
+  static constexpr sycl::memory_scope value = sycl::memory_scope::device;
 };
 
-template <bool extended_namespace>
-struct SYCLMemoryScope<MemoryScopeSystem, extended_namespace> {
-  static constexpr sycl_memory_scope<extended_namespace> value =
-      sycl_memory_scope<extended_namespace>::system;
+template <>
+struct SYCLMemoryScope<MemoryScopeSystem> {
+  static constexpr sycl::memory_scope value = sycl::memory_scope::system;
 };
 //</editor-fold>
 
@@ -109,6 +86,16 @@ using sycl_atomic_ref = sycl::atomic_ref<T,
                                          SYCLMemoryOrder<MemoryOrder>::value,
                                          SYCLMemoryScope<MemoryScope>::value,
                                          sycl::access::address_space::generic_space>;
+#endif
+
+// FIXME_SYCL Use SYCL_EXT_ONEAPI_DEVICE_GLOBAL when available instead
+#ifdef DESUL_SYCL_DEVICE_GLOBAL_SUPPORTED
+// FIXME_SYCL The compiler forces us to use device_image_scope. Drop this when possible.
+template <class T>
+using sycl_device_global = sycl::ext::oneapi::experimental::device_global<
+    T,
+    decltype(sycl::ext::oneapi::experimental::properties(
+        sycl::ext::oneapi::experimental::device_image_scope))>;
 #endif
 
 }  // namespace Impl

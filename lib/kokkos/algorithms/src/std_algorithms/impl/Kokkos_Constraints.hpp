@@ -29,7 +29,7 @@ struct is_admissible_to_kokkos_std_algorithms : std::false_type {};
 
 template <typename T>
 struct is_admissible_to_kokkos_std_algorithms<
-    T, std::enable_if_t< ::Kokkos::is_view<T>::value && T::rank == 1 &&
+    T, std::enable_if_t< ::Kokkos::is_view<T>::value && T::rank() == 1 &&
                          (std::is_same<typename T::traits::array_layout,
                                        Kokkos::LayoutLeft>::value ||
                           std::is_same<typename T::traits::array_layout,

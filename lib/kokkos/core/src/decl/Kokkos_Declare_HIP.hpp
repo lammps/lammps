@@ -30,6 +30,7 @@
 #include <HIP/Kokkos_HIP_Parallel_Team.hpp>
 #include <HIP/Kokkos_HIP_SharedAllocationRecord.hpp>
 #include <HIP/Kokkos_HIP_UniqueToken.hpp>
+#include <HIP/Kokkos_HIP_ZeroMemset.hpp>
 
 namespace Kokkos {
 namespace Experimental {

@@ -56,7 +56,6 @@ struct InitFunctor {
 //---------------------------------------------------
 //--------------atomic_load/store/assign---------------------
 //---------------------------------------------------
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 template <class T, class DEVICE_TYPE>
 struct LoadStoreFunctor {
   using execution_space = DEVICE_TYPE;
@@ -76,7 +75,6 @@ struct LoadStoreFunctor {
   }
   LoadStoreFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
 };
-#endif
 
 template <class T, class DeviceType>
 bool LoadStoreAtomicTest(T i0, T i1) {
@@ -89,14 +87,10 @@ bool LoadStoreAtomicTest(T i0, T i1) {
   Kokkos::parallel_for(1, f_init);
   execution_space().fence();
 
-#ifdef KOKKOS_ENABLE_DESUL_ATOMICS
   struct LoadStoreFunctor<T, execution_space> f(i0, i1);
 
   f.data = data;
   Kokkos::parallel_for(1, f);
-#else
-  h_data() = i1;
-#endif
 
   Kokkos::deep_copy(h_data, data);
 
@@ -332,10 +326,8 @@ struct WrappingIncFunctor {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(int) const {
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
     desul::atomic_fetch_inc_mod(&data(), (T)i1, desul::MemoryOrderRelaxed(),
                                 desul::MemoryScopeDevice());
-#endif
   }
 
   WrappingIncFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
@@ -480,10 +472,8 @@ struct WrappingDecFunctor {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(int) const {
-#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
     desul::atomic_fetch_dec_mod(&data(), (T)i1, desul::MemoryOrderRelaxed(),
                                 desul::MemoryScopeDevice());
-#endif
   }
 
   WrappingDecFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}

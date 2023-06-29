@@ -90,6 +90,27 @@ KOKKOS_IMPL_HOST_FUNCTION inline uint64_t clock_tic_host() noexcept {
 
   return (uint64_t)cycles;
 
+#elif defined(__ppc__)
+  // see : pages.cs.wisc.edu/~legault/miniproj-736.pdf or
+  // cmssdt.cern.ch/lxr/source/FWCore/Utilities/interface/HRRealTime.h
+
+  uint64_t result = 0;
+  uint32_t upper, lower, tmp;
+
+  __asm__ volatile(
+      "0: \n"
+      "\tmftbu %0     \n"
+      "\tmftb  %1     \n"
+      "\tmftbu %2     \n"
+      "\tcmpw  %2, %0 \n"
+      "\tbne   0b     \n"
+      : "=r"(upper), "=r"(lower), "=r"(tmp));
+  result = upper;
+  result = result << 32;
+  result = result | lower;
+
+  return (result);
+
 #else
 
   return std::chrono::high_resolution_clock::now().time_since_epoch().count();

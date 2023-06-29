@@ -100,7 +100,7 @@ void test_left_stride(Extents... extents) {
   size_t expected_stride = 1;
   size_t all_strides[view_type::rank + 1];
   view.stride(all_strides);
-  for (int i = 0; i < view_type::rank; ++i) {
+  for (size_t i = 0; i < view_type::rank; ++i) {
     ASSERT_EQ(view.stride(i), expected_stride);
     ASSERT_EQ(all_strides[i], expected_stride);
     expected_stride *= view.extent(i);
@@ -115,7 +115,7 @@ void test_right_stride(Extents... extents) {
   size_t expected_stride = 1;
   size_t all_strides[view_type::rank + 1];
   view.stride(all_strides);
-  for (int ri = 0; ri < view_type::rank; ++ri) {
+  for (size_t ri = 0; ri < view_type::rank; ++ri) {
     auto i = view_type::rank - 1 - ri;
     ASSERT_EQ(view.stride(i), expected_stride);
     ASSERT_EQ(all_strides[i], expected_stride);

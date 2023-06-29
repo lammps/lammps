@@ -181,8 +181,8 @@ class HIPTeamMember {
               typename ReducerType::value_type& value) const noexcept {
 #ifdef __HIP_DEVICE_COMPILE__
     typename Kokkos::Impl::FunctorAnalysis<
-        FunctorPatternInterface::REDUCE, TeamPolicy<HIP>, ReducerType>::Reducer
-        wrapped_reducer(&reducer);
+        FunctorPatternInterface::REDUCE, TeamPolicy<HIP>, ReducerType,
+        typename ReducerType::value_type>::Reducer wrapped_reducer(reducer);
     hip_intra_block_shuffle_reduction(value, wrapped_reducer, blockDim.y);
     reducer.reference() = value;
 #else
@@ -219,7 +219,7 @@ class HIPTeamMember {
     Impl::HIPJoinFunctor<Type> hip_join_functor;
     typename Kokkos::Impl::FunctorAnalysis<
         FunctorPatternInterface::REDUCE, TeamPolicy<HIP>,
-        Impl::HIPJoinFunctor<Type>>::Reducer reducer(&hip_join_functor);
+        Impl::HIPJoinFunctor<Type>, Type>::Reducer reducer(hip_join_functor);
     Impl::hip_intra_block_reduce_scan<true>(reducer, base_data + 1);
 
     if (global_accum) {
@@ -368,16 +368,8 @@ struct ThreadVectorRangeBoundariesStruct<iType, HIPTeamMember> {
       : start(static_cast<index_type>(0)), end(count) {}
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(index_type count)
-      : start(static_cast<index_type>(0)), end(count) {}
-
-  KOKKOS_INLINE_FUNCTION
   ThreadVectorRangeBoundariesStruct(const HIPTeamMember, index_type arg_begin,
                                     index_type arg_end)
-      : start(arg_begin), end(arg_end) {}
-
-  KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(index_type arg_begin, index_type arg_end)
       : start(arg_begin), end(arg_end) {}
 };
 
@@ -552,8 +544,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     const FunctorType& lambda) {
   // Extract value_type from lambda
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void,
-      FunctorType>::value_type;
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
+      void>::value_type;
 
   const auto start     = loop_bounds.start;
   const auto end       = loop_bounds.end;
@@ -832,7 +824,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
         loop_boundaries,
     const Closure& closure) {
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure>::value_type;
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure,
+      void>::value_type;
   value_type dummy;
   parallel_scan(loop_boundaries, closure, Kokkos::Sum<value_type>(dummy));
 }

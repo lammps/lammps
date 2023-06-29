@@ -42,12 +42,13 @@ struct StdAdjacentFindFunctor {
     const auto& next_value = m_first[i + 1];
     const bool are_equal   = m_p(my_value, next_value);
 
-    auto rv =
-        are_equal
-            ? red_value_type{i}
-            : red_value_type{::Kokkos::reduction_identity<IndexType>::min()};
+    // FIXME_NVHPC using a ternary operator causes problems
+    red_value_type value = {::Kokkos::reduction_identity<IndexType>::min()};
+    if (are_equal) {
+      value.min_loc_true = i;
+    }
 
-    m_reducer.join(red_value, rv);
+    m_reducer.join(red_value, value);
   }
 
   KOKKOS_FUNCTION

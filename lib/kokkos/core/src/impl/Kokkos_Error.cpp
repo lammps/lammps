@@ -151,7 +151,7 @@ namespace Experimental {
 void CudaRawMemoryAllocationFailure::append_additional_error_information(
     std::ostream &o) const {
   if (m_error_code != cudaSuccess) {
-    o << "  The Cuda allocation returned the error code \"\""
+    o << "  The Cuda allocation returned the error code \""
       << cudaGetErrorName(m_error_code) << "\".";
   }
 }

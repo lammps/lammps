@@ -262,7 +262,7 @@ void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
 #endif
   }
 
-  ASSERT_EQ(Kokkos::HostSpace::execution_space::impl_thread_pool_size(),
+  ASSERT_EQ(Kokkos::HostSpace::execution_space().impl_thread_pool_size(),
             expected_nthreads);
 
 #ifdef KOKKOS_ENABLE_CUDA

@@ -713,7 +713,7 @@ void test_view_mapping() {
                               typename Space::memory_space>::value));
     ASSERT_TRUE((std::is_same<typename T::reference_type, int&>::value));
 
-    ASSERT_EQ(T::Rank, 1);
+    ASSERT_EQ(T::rank, size_t(1));
 
     ASSERT_TRUE((std::is_same<typename C::data_type, const int*>::value));
     ASSERT_TRUE((std::is_same<typename C::const_data_type, const int*>::value));
@@ -734,7 +734,7 @@ void test_view_mapping() {
                               typename Space::memory_space>::value));
     ASSERT_TRUE((std::is_same<typename C::reference_type, const int&>::value));
 
-    ASSERT_EQ(C::Rank, 1);
+    ASSERT_EQ(C::rank, size_t(1));
 
     ASSERT_EQ(vr1.extent(0), size_t(N));
 
@@ -781,7 +781,7 @@ void test_view_mapping() {
     ASSERT_TRUE((std::is_same<typename T::memory_space,
                               typename Space::memory_space>::value));
     ASSERT_TRUE((std::is_same<typename T::reference_type, int&>::value));
-    ASSERT_EQ(T::Rank, 1);
+    ASSERT_EQ(T::rank, size_t(1));
 
     ASSERT_EQ(vr1.extent(0), size_t(N));
 
@@ -1038,10 +1038,7 @@ void test_view_mapping() {
     ASSERT_EQ(a.use_count(), 1);
     ASSERT_EQ(b.use_count(), 0);
 
-// TODO: a.use_count() and x.use_count() are 0 with the asynchronous HPX
-// backend. Why?
-#if !defined(KOKKOS_ENABLE_CUDA_LAMBDA) && \
-    !(defined(KOKKOS_ENABLE_HPX) && defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH))
+#if !defined(KOKKOS_ENABLE_CUDA) || !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
     // Cannot launch host lambda when CUDA lambda is enabled.
 
     using host_exec_space =

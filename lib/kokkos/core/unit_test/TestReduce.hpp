@@ -369,7 +369,10 @@ class TestReduceDynamic {
 
   TestReduceDynamic(const size_type nwork) {
     run_test_dynamic(nwork);
+#ifndef KOKKOS_ENABLE_OPENACC
+    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     run_test_dynamic_minmax(nwork);
+#endif
     run_test_dynamic_final(nwork);
   }
 
@@ -542,6 +545,8 @@ TEST(TEST_CATEGORY, int64_t_reduce_dynamic_view) {
 
 // FIXME_OPENMPTARGET: Not yet implemented.
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
+// FIXME_OPENACC: Not yet implemented.
+#ifndef KOKKOS_ENABLE_OPENACC
 TEST(TEST_CATEGORY, int_combined_reduce) {
   using functor_type = CombinedReduceFunctorSameType<int64_t, TEST_EXECSPACE>;
   constexpr uint64_t nw = 1000;
@@ -618,5 +623,6 @@ TEST(TEST_CATEGORY, int_combined_reduce_mixed) {
     ASSERT_EQ(int64_t(nsum), result3);
   }
 }
+#endif
 #endif
 }  // namespace Test

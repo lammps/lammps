@@ -46,7 +46,6 @@ class ComputeStressMopProfile : public Compute {
 
   int bondflag;
 
-  int originflag;
   double origin, delta, offset, invdelta;
   int nbins;
   double *coord, *coordp;

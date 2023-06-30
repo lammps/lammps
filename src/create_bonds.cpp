@@ -198,7 +198,8 @@ void CreateBonds::many()
     error->warning(FLERR, "Create_bonds max distance > minimum neighbor cutoff");
 
   if ((domain->xperiodic && (rmax > domain->xprd)) ||
-      (domain->yperiodic && (rmax > domain->yprd)) || (domain->zperiodic && (rmax > domain->zprd)))
+      (domain->yperiodic && (rmax > domain->yprd)) ||
+      ((domain->dimension == 3) && domain->zperiodic && (rmax > domain->zprd)))
     error->all(FLERR, "Bond creation cutoff is larger than periodic domain");
 
   // require special_bonds 1-2 weights = 0.0 and KSpace = nullptr

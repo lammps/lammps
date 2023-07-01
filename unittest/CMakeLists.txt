@@ -1,10 +1,9 @@
-########################################
-# CMake build for automated testing
+# -*- CMake -*- build file for automated testing
 # This file is part of LAMMPS
 # Created by Axel Kohlmeyer and Richard Berger
 ########################################
-# download and build googletest framework
 
+# download and build googletest framework
 # cannot compile googletest anymore with the default GCC on RHEL 7.x
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0))
   message(FATAL_ERROR "Need GNU C++ compiler version 6.x or later for unit testing")

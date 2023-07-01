@@ -1,5 +1,4 @@
-##########################################
-# CMake build system for plugin examples.
+# -*- CMake -*- file for building plugins.
 # The is meant to be used as a template for plugins that are
 # distributed independent from the LAMMPS package.
 ##########################################

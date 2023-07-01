@@ -1,3 +1,4 @@
+# -*- CMake -*- file for tests of utily functions and classes in LAMMPS
 
 # we use python 3's subprocess module to run the tools and check the output
 if(CMAKE_VERSION VERSION_LESS 3.12)

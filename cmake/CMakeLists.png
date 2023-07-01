@@ -1,4 +1,4 @@
-# CMakeLists.txt
+# -*- CMake -*- configuration for file for building libpng
 
 # Copyright (C) 2018 Cosmin Truta
 # Copyright (C) 2007,2009-2018 Glenn Randers-Pehrson
@@ -18,7 +18,7 @@
 # For conditions of distribution and use, see the disclaimer
 # and license in png.h
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 cmake_policy(VERSION 3.1)
 # When using CMake 3.4 and later, don't export symbols from executables unless
 # the CMAKE_ENABLE_EXPORTS variable is set.

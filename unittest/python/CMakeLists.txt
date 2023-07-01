@@ -1,7 +1,8 @@
-# Test calling Python from LAMMPS (and importing the LAMMPS module
-# inside those functions). This can do an "anonymous" import of symbols
-# from the executable, so the shared library is not needed. The
-# availability of the PYTHON package is tested for inside the tester.
+# -*- CMake -*- file for tests calling Python from LAMMPS (and importing
+# the LAMMPS module inside those functions). This can do an "anonymous"
+# import of symbols from the executable, so the shared library is not
+# needed. The availability of the PYTHON package is tested for inside
+# the tester.
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
 

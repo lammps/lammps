@@ -1,3 +1,4 @@
+# -*- CMake -*- file for tests of classes computing or modifying forces
 
 find_package(YAML)
 if(NOT YAML_FOUND)

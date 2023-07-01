@@ -20,16 +20,7 @@ function(extract_tags out yaml_file)
   set(${out} "${TAGS}" PARENT_SCOPE)
 endfunction()
 
-if(CMAKE_VERSION VERSION_LESS 3.12)
-  # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-  set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
-  find_package(PythonInterp) # Deprecated since version 3.12
-  if(PYTHONINTERP_FOUND)
-    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-  endif()
-else()
-  find_package(Python COMPONENTS Interpreter)
-endif()
+find_package(Python COMPONENTS Interpreter)
 if(Python_EXECUTABLE)
   add_custom_target(check-tests
     ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_tests.py
@@ -54,10 +45,8 @@ target_link_libraries(style_tests PUBLIC GTest::GMock Yaml::Yaml lammps)
 
 # propagate sanitizer options to test tools
 if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-    target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
-    target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
-  endif()
+  target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
+  target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
 endif()
 
 # unit test for error stats class

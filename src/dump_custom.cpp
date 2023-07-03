@@ -1464,8 +1464,12 @@ int DumpCustom::parse_fields(int narg, char **arg)
       switch (argi.get_type()) {
 
       case ArgInfo::UNKNOWN:
-      case ArgInfo::NONE:
         error->all(FLERR,"Invalid attribute {} in dump {} command",arg[iarg],style);
+        break;
+
+      case ArgInfo::NONE:
+        // ignore because this may be a valid argument for a derived dump style class
+        return iarg;
         break;
 
       // compute value = c_ID

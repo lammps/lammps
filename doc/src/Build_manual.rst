@@ -52,7 +52,7 @@ can be translated to different output format using the `Sphinx
 incorporates programmer documentation extracted from the LAMMPS C++
 sources through the `Doxygen <https://doxygen.nl/>`_ program.  Currently
 the translation to HTML, PDF (via LaTeX), ePUB (for many e-book readers)
-and MOBI (for Amazon Kindle(tm) readers) are supported.  For that to work a
+and MOBI (for Amazon Kindle readers) are supported.  For that to work a
 Python interpreter version 3.8 or later, the ``doxygen`` tools and
 internet access to download additional files and tools are required.
 This download is usually only required once or after the documentation

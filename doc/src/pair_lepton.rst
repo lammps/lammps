@@ -61,9 +61,11 @@ Description
 
 .. versionadded:: 8Feb2023
 
-.. versionchanged:: TBD
+   added pair styles *lepton* and *lepton/coul*
 
-   added pair style lepton/sphere
+.. versionchanged:: 15Jun2023
+
+   added pair style *lepton/sphere*
 
 Pair styles *lepton*, *lepton/coul*, *lepton/sphere* compute pairwise
 interactions between particles which depend on the distance and have a

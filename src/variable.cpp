@@ -224,7 +224,7 @@ void Variable::set(int narg, char **arg)
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
-    } else error->all(FLERR,"Illegal variable loop command: too much arguments");
+    } else error->all(FLERR,"Illegal variable loop command: too many arguments");
     num[nvar] = nlast;
     which[nvar] = nfirst-1;
     data[nvar] = new char*[1];
@@ -1052,7 +1052,7 @@ char *Variable::retrieve(const char *name)
     if (vecs[ivar].dynamic || vecs[ivar].currentstep != update->ntimestep) {
       eval_in_progress[ivar] = 0;
       double *result;
-      int nvec = compute_vector(ivar,&result);
+      compute_vector(ivar,&result);
       delete[] data[ivar][1];
       std::vector <double> vectmp(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
       std::string str = fmt::format("[{}]", fmt::join(vectmp,","));

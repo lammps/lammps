@@ -44,11 +44,12 @@ MODULE LIBLAMMPS
   ! Data type constants for extracting data from global, atom, compute, and fix
   !
   ! Must be kept in sync with the equivalent declarations in
-  ! src/library.h, python/lammps/constants.py, tools/swig/lammps.i,
+  ! src/library.h, src/lmptype.h, python/lammps/constants.py, tools/swig/lammps.i,
   ! and examples/COUPLE/plugin/liblammpsplugin.h
   !
   ! These are NOT part of the API (the part the user sees)
   INTEGER(c_int), PARAMETER :: &
+    LAMMPS_NONE = -1, &       ! no data type assigned (yet)
     LAMMPS_INT = 0, &         ! 32-bit integer (or array)
     LAMMPS_INT_2D = 1, &      ! two-dimensional 32-bit integer array
     LAMMPS_DOUBLE = 2, &      ! 64-bit double (or array)
@@ -87,10 +88,15 @@ MODULE LIBLAMMPS
     INTEGER(c_int) :: scalar, vector, array
   END TYPE lammps_type
 
+  TYPE lammps_dtype
+    INTEGER(c_int) :: i32, i64, r64, str
+  END TYPE lammps_dtype
+
   TYPE lammps
     TYPE(c_ptr) :: handle = c_null_ptr
     TYPE(lammps_style) :: style
     TYPE(lammps_type) :: type
+    TYPE(lammps_dtype) :: dtype
   CONTAINS
     PROCEDURE :: close                  => lmp_close
     PROCEDURE :: error                  => lmp_error
@@ -100,6 +106,7 @@ MODULE LIBLAMMPS
     PROCEDURE :: commands_string        => lmp_commands_string
     PROCEDURE :: get_natoms             => lmp_get_natoms
     PROCEDURE :: get_thermo             => lmp_get_thermo
+    PROCEDURE :: last_thermo            => lmp_last_thermo
     PROCEDURE :: extract_box            => lmp_extract_box
     PROCEDURE :: reset_box              => lmp_reset_box
     PROCEDURE :: memory_usage           => lmp_memory_usage
@@ -243,7 +250,7 @@ MODULE LIBLAMMPS
   END TYPE lammps_data_baseclass
 
   ! Derived type for receiving LAMMPS data (in lieu of the ability to type cast
-  ! pointers). Used for extract_compute, extract_atom
+  ! pointers). Used for extract_compute, extract_atom, last_thermo
   TYPE, EXTENDS(lammps_data_baseclass) :: lammps_data
     INTEGER(c_int), POINTER :: i32 => NULL()
     INTEGER(c_int), DIMENSION(:), POINTER :: i32_vec => NULL()
@@ -438,6 +445,15 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), INTENT(IN), VALUE :: handle
       TYPE(c_ptr), INTENT(IN), VALUE :: name
     END FUNCTION lammps_get_thermo
+
+    FUNCTION lammps_last_thermo(handle,what,index) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr) :: lammps_last_thermo
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle
+      TYPE(c_ptr), INTENT(IN), VALUE :: what
+      INTEGER(c_int), INTENT(IN), VALUE :: index
+    END FUNCTION lammps_last_thermo
 
     SUBROUTINE lammps_extract_box(handle,boxlo,boxhi,xy,yz,xz,pflags, &
         boxflag) BIND(C)
@@ -995,6 +1011,10 @@ CONTAINS
     lmp_open%type%scalar = LMP_TYPE_SCALAR
     lmp_open%type%vector = LMP_TYPE_VECTOR
     lmp_open%type%array = LMP_TYPE_ARRAY
+    lmp_open%dtype%i32 = LAMMPS_INT
+    lmp_open%dtype%i64 = LAMMPS_INT64
+    lmp_open%dtype%r64 = LAMMPS_DOUBLE
+    lmp_open%dtype%str = LAMMPS_STRING
 
     ! Assign constants for bigint and tagint for use elsewhere
     SIZE_TAGINT = lmp_extract_setting(lmp_open, 'tagint')
@@ -1102,6 +1122,67 @@ CONTAINS
     lmp_get_thermo = lammps_get_thermo(self%handle, Cname)
     CALL lammps_free(Cname)
   END FUNCTION lmp_get_thermo
+
+  ! equivalent function to lammps_last_thermo
+  FUNCTION lmp_last_thermo(self,what,index) RESULT(thermo_data)
+    CLASS(lammps), INTENT(IN), TARGET :: self
+    CHARACTER(LEN=*), INTENT(IN) :: what
+    INTEGER :: index
+    INTEGER(c_int) :: idx
+    TYPE(lammps_data) :: thermo_data, type_data
+    INTEGER(c_int) :: datatype
+    TYPE(c_ptr) :: Cname, Cptr
+
+    idx = index - 1
+    ! set data type for known cases
+    SELECT CASE (what)
+    CASE ('step')
+        IF (SIZE_BIGINT == 4_c_int) THEN
+            datatype = LAMMPS_INT
+        ELSE
+            datatype = LAMMPS_INT64
+        END IF
+    CASE ('num')
+        datatype = LAMMPS_INT
+    CASE ('type')
+        datatype = LAMMPS_INT
+    CASE ('keyword')
+        datatype = LAMMPS_STRING
+    CASE ('data')
+        Cname = f2c_string('type')
+        Cptr = lammps_last_thermo(self%handle,Cname,idx)
+        type_data%lammps_instance => self
+        type_data%datatype = DATA_INT
+        CALL C_F_POINTER(Cptr, type_data%i32)
+        datatype = type_data%i32
+        CALL lammps_free(Cname)
+    CASE DEFAULT
+        datatype = -1
+    END SELECT
+
+    Cname = f2c_string(what)
+    Cptr = lammps_last_thermo(self%handle,Cname,idx)
+    CALL lammps_free(Cname)
+
+    thermo_data%lammps_instance => self
+    SELECT CASE (datatype)
+    CASE (LAMMPS_INT)
+        thermo_data%datatype = DATA_INT
+        CALL C_F_POINTER(Cptr, thermo_data%i32)
+    CASE (LAMMPS_INT64)
+        thermo_data%datatype = DATA_INT64
+        CALL C_F_POINTER(Cptr, thermo_data%i64)
+    CASE (LAMMPS_DOUBLE)
+        thermo_data%datatype = DATA_DOUBLE
+        CALL C_F_POINTER(Cptr, thermo_data%r64)
+    CASE (LAMMPS_STRING)
+        thermo_data%datatype = DATA_STRING
+        thermo_data%str = c2f_string(Cptr)
+    CASE DEFAULT
+        CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+          'Unknown pointer type in last_thermo')
+    END SELECT
+  END FUNCTION lmp_last_thermo
 
   ! equivalent subroutine to lammps_extract_box
   SUBROUTINE lmp_extract_box(self, boxlo, boxhi, xy, yz, xz, pflags, boxflag)

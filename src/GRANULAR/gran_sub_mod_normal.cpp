@@ -150,6 +150,7 @@ GranSubModNormalHertzMaterial::GranSubModNormalHertzMaterial(GranularModel *gm, 
   material_properties = 1;
   num_coeffs = 3;
   contact_radius_flag = 1;
+  mixed_coefficients = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -159,10 +160,12 @@ void GranSubModNormalHertzMaterial::coeffs_to_local()
   Emod = coeffs[0];
   damp = coeffs[1];
   poiss = coeffs[2];
-  if (gm->contact_type == PAIR) {
-    k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
-  } else {
-    k = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+  if (!mixed_coefficients) {
+    if (gm->contact_type == PAIR) {
+      k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+    } else {
+      k = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+    }
   }
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal Hertz material normal model");
@@ -175,6 +178,10 @@ void GranSubModNormalHertzMaterial::mix_coeffs(double *icoeffs, double *jcoeffs)
   coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
+
+  k = FOURTHIRDS * coeffs[0];
+  mixed_coefficients = 1;
+
   coeffs_to_local();
 }
 
@@ -188,6 +195,7 @@ GranSubModNormalDMT::GranSubModNormalDMT(GranularModel *gm, LAMMPS *lmp) : GranS
   cohesive_flag = 1;
   num_coeffs = 4;
   contact_radius_flag = 1;
+  mixed_coefficients = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,10 +206,13 @@ void GranSubModNormalDMT::coeffs_to_local()
   damp = coeffs[1];
   poiss = coeffs[2];
   cohesion = coeffs[3];
-  if (gm->contact_type == PAIR) {
-    k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
-  } else {
-    k = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+
+  if (!mixed_coefficients) {
+    if (gm->contact_type == PAIR) {
+      k = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+    } else {
+      k = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+    }
   }
 
   if (Emod < 0.0 || damp < 0.0) error->all(FLERR, "Illegal DMT normal model");
@@ -215,6 +226,10 @@ void GranSubModNormalDMT::mix_coeffs(double *icoeffs, double *jcoeffs)
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs[3] = mix_geom(icoeffs[3], jcoeffs[3]);
+
+  k = FOURTHIRDS * coeffs[0];
+  mixed_coefficients = 1;
+
   coeffs_to_local();
 }
 
@@ -246,6 +261,7 @@ GranSubModNormalJKR::GranSubModNormalJKR(GranularModel *gm, LAMMPS *lmp) : GranS
   beyond_contact = 1;
   num_coeffs = 4;
   contact_radius_flag = 1;
+  mixed_coefficients = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -257,10 +273,12 @@ void GranSubModNormalJKR::coeffs_to_local()
   poiss = coeffs[2];
   cohesion = coeffs[3];
 
-  if (gm->contact_type == PAIR) {
-    Emix = mix_stiffnessE(Emod, Emod, poiss, poiss);
-  } else {
-    Emix = mix_stiffnessE_wall(Emod, poiss);
+  if (!mixed_coefficients) {
+    if (gm->contact_type == PAIR) {
+      Emix = mix_stiffnessE(Emod, Emod, poiss, poiss);
+    } else {
+      Emix = mix_stiffnessE_wall(Emod, poiss);
+    }
   }
 
   k = FOURTHIRDS * Emix;
@@ -276,6 +294,10 @@ void GranSubModNormalJKR::mix_coeffs(double *icoeffs, double *jcoeffs)
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs[3] = mix_geom(icoeffs[3], jcoeffs[3]);
+
+  Emix = coeffs[0];
+  mixed_coefficients = 1;
+
   coeffs_to_local();
 }
 

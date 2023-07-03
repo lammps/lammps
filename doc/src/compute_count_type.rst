@@ -25,7 +25,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 Define a computation that counts the current number of atoms for each
 atom type.  Or the number of bonds (angles, dihedrals, impropers) for

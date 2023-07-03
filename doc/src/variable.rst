@@ -1001,7 +1001,7 @@ map kind (atom, bond, angle, dihedral, or improper) and the second
 argument is the label.  The function returns the corresponding numeric
 type or triggers an error if the queried label does not exist.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 The is_typelabel(kind,label) function has the same arguments as
 label2type(), but returns 1 if the type label has been assigned,
@@ -1320,7 +1320,7 @@ Vectors" discussion above.
 Vector Initialization
 ---------------------
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 *Vector*-style variables only can be initialized with a special
 syntax, instead of using a formula.  The syntax is a bracketed,
@@ -1481,7 +1481,7 @@ commands
 .. code-block:: LAMMPS
 
    # delete_atoms random fraction 0.5 yes all NULL 49839
-   # run 0
+   # run 0 post no
    variable t equal temp    # this thermo keyword invokes a temperature compute
    print "Temperature of system = $t"
    run 1000

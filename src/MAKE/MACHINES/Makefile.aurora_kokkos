@@ -1,4 +1,4 @@
-# spock_kokkos = KOKKOS/HIP, AMD MI100 GPU and AMD EPYC 7662 "Rome" CPU, Cray MPICH, hipcc compiler, hipFFT
+# aurora_kokkos = KOKKOS/SYCL, Intel Data Center Max (Ponte Vecchio) GPU, Intel Sapphire Rapids CPU, mpicxx compiler
 
 SHELL = /bin/sh
 
@@ -6,14 +6,12 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-
-CC =		hipcc
-CCFLAGS =	-g -O3 -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
+CC =		mpicxx
+CCFLAGS =	-g -O3 -DNDEBUG
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		hipcc
+LINK =		mpicxx
 LINKFLAGS =	-g -O3
 LIB = 
 SIZE =		size
@@ -21,8 +19,8 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-KOKKOS_DEVICES = HIP
-KOKKOS_ARCH = Zen2,Vega908
+KOKKOS_DEVICES = SYCL
+KOKKOS_ARCH = PVC,SPR
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -43,9 +41,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I${MPICH_DIR}/include
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
-MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa
+MPI_LIB =
 
 # FFT library
 # see discussion in Section 3.5.2 of manual
@@ -54,12 +52,9 @@ MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-MY_HIP_EXE = $(shell which hipcc)
-MY_HIP_PATH = $(dir ${MY_HIP_EXE})
-
-FFT_INC = -DFFT_HIPFFT
+FFT_INC =
 FFT_PATH =
-FFT_LIB = -L${MY_HIP_PATH}../lib -lhipfft
+FFT_LIB =
 
 # JPEG and/or PNG library
 # see discussion in Section 3.5.4 of manual

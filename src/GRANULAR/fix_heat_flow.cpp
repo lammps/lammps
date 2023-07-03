@@ -89,23 +89,21 @@ void FixHeatFlow::init()
 
 void FixHeatFlow::setup(int /*vflag*/)
 {
-  // Identify whether this is the first instance of fix heat/flow
-  first_flag = 0;
-
-  int i = 0;
-  auto fixlist = modify->get_fix_by_style("heat/flow");
-  for (const auto &ifix : fixlist) {
-    if (strcmp(ifix->id, id) == 0) break;
-    i++;
-  }
-
-  if (i == 0) first_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixHeatFlow::setup_pre_force(int /*vflag*/)
 {
+  // Identify whether this is the first instance of fix heat/flow
+  first_flag = 0;
+  int i = 0;
+  auto fixlist = modify->get_fix_by_style("heat/flow");
+  for (const auto &ifix : fixlist) {
+    if (strcmp(ifix->id, id) == 0) break;
+    i++;
+  }
+  if (i == 0) first_flag = 1;
   pre_force(0);
 }
 

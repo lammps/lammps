@@ -641,22 +641,36 @@ The optional *heat* keyword enables heat conduction. The options currently
 supported are:
 
 1. *none*
-2. *area* : :math:`k_{s}`
+2. *radius* : :math:`k_{s}`
+3. *area* : :math:`h_{s}`
 
 If the *heat* keyword is not specified, the model defaults to *none*.
+
+For *heat* *radius*, the heat
+:math:`Q` conducted between two particles is given by
+
+.. math::
+
+   Q = 2 k_{s} a \Delta T
+
+where :math:`\Delta T` is the difference in the two particles' temperature,
+:math:`k_{s}` is a non-negative numeric value for the conductivity (in units
+of power/(length*temperature)), and :math:`a` is the radius of the contact and 
+depends on the normal force model. This is the model proposed by 
+:ref:`Vargas and McCarthy <VargasMcCarthy2001>`
 
 For *heat* *area*, the heat
 :math:`Q` conducted between two particles is given by
 
 .. math::
 
-   Q = k_{s} A \Delta T
-
+   Q = h_{s} A \Delta T
 
 
 where :math:`\Delta T` is the difference in the two particles' temperature,
-:math:`k_{s}` is a non-negative numeric value for the conductivity, and
-:math:`A` is the area of the contact and depends on the normal force model.
+:math:`h_{s}` is a non-negative numeric value for the heat transfer 
+coefficient (in units of power/(area*temperature)), and :math:`A=\pi a^2` is
+the area of the contact and depends on the normal force model.
 
 Note that the option *none* must either be used in all or none of of the
 *pair_coeff* calls. See :doc:`fix heat/flow <fix_heat_flow>` and
@@ -894,3 +908,10 @@ J. Appl. Mech., ASME 20, 327-344.
 **(Agnolin and Roux 2007)** Agnolin, I. & Roux, J-N. (2007).
 Internal states of model isotropic granular packings.
 I. Assembling process, geometry, and contact networks. Phys. Rev. E, 76, 061302.
+
+.. _VargasMcCarthy2001:
+
+**(Vargas and McCarthy 2001)** Vargas, W.L. and McCarthy, J.J. (2001). 
+Heat conduction in granular materials. 
+AIChE Journal, 47(5), 1052-1059.
+

@@ -18,6 +18,7 @@
 
 #include "compute_stress_mop_profile.h"
 
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "bond.h"

@@ -258,6 +258,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       p_period[0] = p_period[1] = p_period[2] =
         utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
+
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
@@ -481,7 +482,7 @@ FixRigidSmall::~FixRigidSmall()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 

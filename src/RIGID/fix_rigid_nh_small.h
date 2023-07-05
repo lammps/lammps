@@ -36,7 +36,6 @@ class FixRigidNHSmall : public FixRigidSmall {
  protected:
   double boltz, nktv2p, mvv2e;    // boltzman constant, conversion factors
 
-  int dimension;                        // # of dimensions
   int nf_t, nf_r;                       // trans/rot degrees of freedom
   double *w, *wdti1, *wdti2, *wdti4;    // Yoshida-Suzuki coefficients
   double *q_t, *q_r;                    // trans/rot thermostat masses

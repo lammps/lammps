@@ -62,7 +62,6 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[2] == 1 && p_period[2] <= 0.0))
     error->all(FLERR,"Fix rigid/small npt/nph period must be > 0.0");
 
-  dimension = domain->dimension;
 
   if (dimension == 2 && p_flag[2])
     error->all(FLERR,"Invalid fix rigid/small npt/nph command "

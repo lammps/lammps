@@ -13,7 +13,7 @@
 
 /*------------------------------------------------------------------------
   Contributing Authors : Romain Vermorel (LFCR), Laurent Joly (ULyon)
-  Support for bonds added by : Evangelos Voyiatzis (NovaMechanics)
+  Support for bonds and angles added by : Evangelos Voyiatzis (NovaMechanics)
   --------------------------------------------------------------------------*/
 
 #include "compute_stress_mop_profile.h"
@@ -38,7 +38,7 @@
 using namespace LAMMPS_NS;
 
 enum { X, Y, Z };
-enum { TOTAL, CONF, KIN, PAIR, BOND };
+enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE };
 
 // clang-format off
 /* ---------------------------------------------------------------------- */
@@ -107,6 +107,11 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
         which[nvalues] = BOND;
         nvalues++;
       }
+    } else if (strcmp(arg[iarg],"angle") == 0) {
+      for (i=0; i<3; i++) {
+        which[nvalues] = ANGLE;
+        nvalues++;
+      }
     } else error->all(FLERR, "Illegal compute stress/mop/profile command"); //break;
 
     iarg++;
@@ -131,6 +136,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   values_local = values_global = array = nullptr;
   bond_local = nullptr;
   bond_global = nullptr;
+  angle_local = nullptr;
+  angle_global = nullptr;
   local_contribution = nullptr;
 
   // bin setup
@@ -159,6 +166,8 @@ ComputeStressMopProfile::~ComputeStressMopProfile()
   memory->destroy(values_global);
   memory->destroy(bond_local);
   memory->destroy(bond_global);
+  memory->destroy(angle_local);
+  memory->destroy(angle_global);
   memory->destroy(local_contribution);
   memory->destroy(array);
 }
@@ -206,9 +215,14 @@ void ComputeStressMopProfile::init()
 
     if (force->bond) bondflag = 1;
 
-    if (force->angle)
-      if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
-        error->all(FLERR,"compute stress/mop/profile does not account for angle potentials");
+    if (force->angle) {
+      if (force->angle->born_matrix_enable == 0) {
+        if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
+          error->all(FLERR,"compute stress/mop/profile does not account for angle potentials");
+      } else {
+        angleflag = 1;
+      }
+    }
     if (force->dihedral)
       if ((strcmp(force->dihedral_style, "zero") != 0) && (strcmp(force->dihedral_style, "none") != 0))
         error->all(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
@@ -260,13 +274,27 @@ void ComputeStressMopProfile::compute_array()
   // sum bond contribution over all procs
   MPI_Allreduce(&bond_local[0][0],&bond_global[0][0],nbins*nvalues,MPI_DOUBLE,MPI_SUM,world);
 
+  if (angleflag) {
+    //Compute angle contribution on separate procs
+    compute_angles();
+  } else {
+    for (int m = 0; m < nbins; m++) {
+      for (int i = 0; i < nvalues; i++) {
+        angle_local[m][i] = 0.0;
+      }
+    }
+  }
+
+  // sum angle contribution over all procs
+  MPI_Allreduce(&angle_local[0][0],&angle_global[0][0],nbins*nvalues,MPI_DOUBLE,MPI_SUM,world);
+   
   for (int ibin=0; ibin<nbins; ibin++) {
     array[ibin][0] = coord[ibin];
 
     int mo = 1;
     int m = 0;
     while (m < nvalues) {
-      array[ibin][m+mo] = values_global[ibin][m] + bond_global[ibin][m];
+      array[ibin][m+mo] = values_global[ibin][m] + bond_global[ibin][m] + angle_global[ibin][m];
       m++;
     }
   }
@@ -624,6 +652,191 @@ void ComputeStressMopProfile::compute_bonds()
   }
 }
 
+/*------------------------------------------------------------------------
+  compute angle contribution to pressure of local proc
+  -------------------------------------------------------------------------*/
+
+void ComputeStressMopProfile::compute_angles()
+{
+  int na, atom1, atom2, atom3, imol, iatom, atype;
+  tagint tagprev;
+  double r1, r2, cos_theta;
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int *num_angle = atom->num_angle;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
+  int **angle_type = atom->angle_type;
+  int *mask = atom->mask;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+
+  int nlocal = atom->nlocal;
+  int molecular = atom->molecular;
+
+  // loop over all atoms and their angles
+  Angle *angle = force->angle;
+
+  double duang, du2ang;
+  double dx[3] = {0.0, 0.0, 0.0};
+  double dx_left[3] = {0.0, 0.0, 0.0};
+  double dx_right[3] = {0.0, 0.0, 0.0};
+  double x_angle_left[3] = {0.0, 0.0, 0.0};
+  double x_angle_middle[3] = {0.0, 0.0, 0.0};
+  double x_angle_right[3] = {0.0, 0.0, 0.0};
+  double dcos_theta[3] = {0.0, 0.0, 0.0};
+
+  // initialization
+  for (int m = 0; m < nbins; m++) {
+    for (int i = 0; i < nvalues; i++) {
+      angle_local[m][i] = 0.0;
+    }
+    local_contribution[m][0] = 0.0;
+    local_contribution[m][1] = 0.0;
+    local_contribution[m][2] = 0.0;
+  }
+
+
+  for (atom2 = 0; atom2 < nlocal; atom2++) {
+    if (!(mask[atom2] & groupbit)) continue;
+
+    if (molecular == 1)
+      na = num_angle[atom2];
+    else {
+      if (molindex[atom2] < 0) continue;
+      imol = molindex[atom2];
+      iatom = molatom[atom2];
+      na = onemols[imol]->num_angle[iatom];
+    }
+
+    for (int i = 0; i < na; i++) {
+      if (molecular == 1) {
+        if (tag[atom2] != angle_atom2[atom2][i]) continue;
+        atype = angle_type[atom2][i];
+        atom1 = atom->map(angle_atom1[atom2][i]);
+        atom3 = atom->map(angle_atom3[atom2][i]);
+      } else {
+        if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
+        atype = onemols[imol]->angle_type[atom2][i];
+        tagprev = tag[atom2] - iatom - 1;
+        atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i] + tagprev);
+        atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i] + tagprev);
+      }
+
+      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atype <= 0) continue;
+
+      for (int ibin = 0; ibin<nbins; ibin++) {
+        double pos = coord[ibin];
+
+        // minimum image of atom1 with respect to the plane of interest
+        dx[0] = x[atom1][0];
+        dx[1] = x[atom1][1];
+        dx[2] = x[atom1][2];
+        dx[dir] -= pos;
+        domain->minimum_image(dx[0], dx[1], dx[2]);
+        x_angle_left[0] = dx[0];
+        x_angle_left[1] = dx[1];
+        x_angle_left[2] = dx[2];
+        x_angle_left[dir] += pos;
+
+        // minimum image of atom2 with respect to atom1
+        dx_left[0] = x[atom2][0] - x_angle_left[0];
+        dx_left[1] = x[atom2][1] - x_angle_left[1];
+        dx_left[2] = x[atom2][2] - x_angle_left[2];
+        domain->minimum_image(dx_left[0], dx_left[1], dx_left[2]);
+        x_angle_middle[0] = x_angle_left[0] + dx_left[0];
+        x_angle_middle[1] = x_angle_left[1] + dx_left[1];
+        x_angle_middle[2] = x_angle_left[2] + dx_left[2];
+
+        // minimum image of atom3 with respect to atom2
+        dx_right[0] = x[atom3][0] - x_angle_middle[0];
+        dx_right[1] = x[atom3][1] - x_angle_middle[1];
+        dx_right[2] = x[atom3][2] - x_angle_middle[2];
+        domain->minimum_image(dx_right[0], dx_right[1], dx_right[2]);
+        x_angle_right[0] = x_angle_middle[0] + dx_right[0];
+        x_angle_right[1] = x_angle_middle[1] + dx_right[1];
+        x_angle_right[2] = x_angle_middle[2] + dx_right[2];
+
+        // check if any bond vector crosses the plane of interest
+        double tau_right = (x_angle_right[dir] - pos) / (x_angle_right[dir] - x_angle_middle[dir]);
+        double tau_left = (x_angle_middle[dir] - pos) / (x_angle_middle[dir] - x_angle_left[dir]);
+        bool right_cross = ((tau_right >=0) && (tau_right  <= 1));
+        bool left_cross = ((tau_left >=0) && (tau_left <= 1));
+
+        // no bonds crossing the plane
+        if (!right_cross && !left_cross) continue;
+
+        // compute the cos(theta) of the angle
+        r1 = sqrt(dx_left[0]*dx_left[0] + dx_left[1]*dx_left[1] + dx_left[2]*dx_left[2]);
+        r2 = sqrt(dx_right[0]*dx_right[0] + dx_right[1]*dx_right[1] + dx_right[2]*dx_right[2]);
+        cos_theta = -(dx_right[0]*dx_left[0] + dx_right[1]*dx_left[1] + dx_right[2]*dx_left[2])/(r1*r2);
+
+        if (cos_theta >  1.0) cos_theta = 1.0;
+        if (cos_theta < -1.0) cos_theta = -1.0;
+
+        // The method returns derivative with regards to cos(theta)
+        angle->born_matrix(atype, atom1, atom2, atom3, duang, du2ang);
+        // only right bond crossing the plane
+        if (right_cross && !left_cross)
+        {
+          double sgn = copysign(1.0, x_angle_right[dir] - pos);
+          dcos_theta[0] = sgn*(dx_right[0]*cos_theta/r2 + dx_left[0]/r1)/r2;
+          dcos_theta[1] = sgn*(dx_right[1]*cos_theta/r2 + dx_left[1]/r1)/r2;
+          dcos_theta[2] = sgn*(dx_right[2]*cos_theta/r2 + dx_left[2]/r1)/r2;
+        }
+
+        // only left bond crossing the plane
+        if (!right_cross && left_cross)
+        {
+          double sgn = copysign(1.0, x_angle_left[dir] - pos);
+          dcos_theta[0] = -sgn*(dx_left[0]*cos_theta/r1 + dx_right[0]/r2)/r1;
+          dcos_theta[1] = -sgn*(dx_left[1]*cos_theta/r1 + dx_right[1]/r2)/r1;
+          dcos_theta[2] = -sgn*(dx_left[2]*cos_theta/r1 + dx_right[2]/r2)/r1;
+        }
+
+        // both bonds crossing the plane
+        if (right_cross && left_cross)
+        {
+          // due to right bond
+          double sgn = copysign(1.0, x_angle_middle[dir] - pos);
+          dcos_theta[0] = -sgn*(dx_right[0]*cos_theta/r2 + dx_left[0]/r1)/r2;
+          dcos_theta[1] = -sgn*(dx_right[1]*cos_theta/r2 + dx_left[1]/r1)/r2;
+          dcos_theta[2] = -sgn*(dx_right[2]*cos_theta/r2 + dx_left[2]/r1)/r2;
+
+          // due to left bond
+          dcos_theta[0] += sgn*(dx_left[0]*cos_theta/r1 + dx_right[0]/r2)/r1;
+          dcos_theta[1] += sgn*(dx_left[1]*cos_theta/r1 + dx_right[1]/r2)/r1;
+          dcos_theta[2] += sgn*(dx_left[2]*cos_theta/r1 + dx_right[2]/r2)/r1;
+        }
+
+        // final contribution of the given angle term
+        local_contribution[ibin][0] += duang*dcos_theta[0]/area*nktv2p;
+        local_contribution[ibin][1] += duang*dcos_theta[1]/area*nktv2p;
+        local_contribution[ibin][2] += duang*dcos_theta[2]/area*nktv2p;
+      }
+    }
+  }
+
+  // loop over the keywords and if necessary add the angle contribution
+  int m = 0;
+  while (m < nvalues) {
+    if (which[m] == CONF || which[m] == TOTAL || which[m] == ANGLE) {
+      for (int ibin = 0; ibin < nbins; ibin++) {
+        angle_local[ibin][m] = local_contribution[ibin][0];
+        angle_local[ibin][m+1] = local_contribution[ibin][1];
+        angle_local[ibin][m+2] = local_contribution[ibin][2];
+      }
+    }
+    m += 3;
+  }
+}
+
 /* ----------------------------------------------------------------------
    setup 1d bins and their extent and coordinates
    called at init()
@@ -657,6 +870,8 @@ void ComputeStressMopProfile::setup_bins()
   memory->create(values_global,nbins,nvalues,"stress/mop/profile:values_global");
   memory->create(bond_local,nbins,nvalues,"stress/mop/profile:bond_local");
   memory->create(bond_global,nbins,nvalues,"stress/mop/profile:bond_global");
+  memory->create(angle_local,nbins,nvalues,"stress/mop/profile:angle_local");
+  memory->create(angle_global,nbins,nvalues,"stress/mop/profile:angle_global");
   memory->create(local_contribution,nbins,3,"stress/mop/profile:local_contribution");
 
   // set bin coordinates

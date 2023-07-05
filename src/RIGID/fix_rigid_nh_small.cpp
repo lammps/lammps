@@ -57,71 +57,52 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||
-      (p_flag[1] == 1 && p_period[1] <= 0.0) ||
-      (p_flag[2] == 1 && p_period[2] <= 0.0))
-    error->all(FLERR,"Fix rigid/small npt/nph period must be > 0.0");
-
-
   if (dimension == 2 && p_flag[2])
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "for a 2d simulation");
+    error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
   if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "for a 2d simulation");
+    error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
 
   // require periodicity in tensile dimension
 
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a "
-               "non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a "
-               "non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a "
-               "non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
 
   if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
   if (pcouple == XYZ && dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
   if (pcouple == XY &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
   if (pcouple == YZ &&
       (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
        p_period[1] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
   if (pcouple == XZ &&
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
 
   if (p_flag[0]) box_change |= BOX_CHANGE_X;
   if (p_flag[1]) box_change |= BOX_CHANGE_Y;
@@ -131,8 +112,7 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||
       (p_flag[2] && p_period[2] <= 0.0))
-    error->all(FLERR,"Fix rigid/small nvt/npt/nph damping parameters "
-               "must be > 0.0");
+    error->all(FLERR,"Fix {} damping parameters must be > 0.0", style);
 
   // memory allocation and initialization
 
@@ -215,8 +195,7 @@ void FixRigidNHSmall::init()
 
   if (allremap == 0) {
     int idilate = group->find(id_dilate);
-    if (idilate == -1)
-      error->all(FLERR,"Fix rigid npt/nph dilate group ID does not exist");
+    if (idilate == -1) error->all(FLERR,"Fix {} dilate group ID does not exist", style);
     dilate_group_bit = group->bitmask[idilate];
   }
 
@@ -255,7 +234,7 @@ void FixRigidNHSmall::init()
   if (tcomputeflag) {
     icompute = modify->find_compute(id_temp);
     if (icompute < 0)
-      error->all(FLERR,"Temperature ID for fix rigid nvt/npt/nph does not exist");
+      error->all(FLERR,"Temperature ID {} for fix {} does not exist", id_temp, style);
     temperature = modify->compute[icompute];
   }
 
@@ -270,8 +249,8 @@ void FixRigidNHSmall::init()
         int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
-          error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
-                     "same component of stress tensor");
+          error->all(FLERR, "Cannot use fix {} and fix deform on the same stress tensor component",
+                     style);
       }
 
     // set frequency
@@ -293,7 +272,7 @@ void FixRigidNHSmall::init()
 
     icompute = modify->find_compute(id_press);
     if (icompute < 0)
-      error->all(FLERR,"Pressure ID for fix rigid npt/nph does not exist");
+      error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
     pressure = modify->compute[icompute];
 
     // detect if any rigid fixes exist so rigid bodies move on remap
@@ -1315,27 +1294,23 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tcomputeflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temperature ID {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature ID {} does not compute temperature", id_temp);
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning(FLERR,"Temperature for fix modify is not for group all");
 
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      icompute = modify->find_compute(id_press);
-      if (icompute < 0)
-        error->all(FLERR,"Pressure ID for fix modify does not exist");
-      modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+      auto icompute = modify->get_compute_by_id(id_press);
+      if (!icompute) error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
+      icompute->reset_extra_compute_fix(id_temp);
     }
 
     return 2;
@@ -1347,15 +1322,14 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pcomputeflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure ID {}", id_press);
 
     if (pressure->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify pressure ID {} does not compute pressure", id_press);
     return 2;
   }
 

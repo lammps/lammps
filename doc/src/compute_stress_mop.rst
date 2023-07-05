@@ -74,9 +74,7 @@ Between one and six keywords can be used to indicate which contributions
 to the stress must be computed: total stress (total), kinetic stress
 (kin), configurational stress (conf), stress due to bond stretching
 (bond), stress due to angle bending (angle) and/or due to pairwise
-non-bonded interactions (pair).  The angle keyword is currently
-available only for the *stress/mop* command and **not** the
-*stress/mop/profile* command.
+non-bonded interactions (pair).
 
 NOTE 1: The configurational stress is computed considering all pairs of
 atoms where at least one atom belongs to group group-ID.
@@ -136,7 +134,7 @@ requires the class method ``Pair::single()`` to be implemented, which is
 not possible for manybody potentials.  In particular, compute
 *stress/mop/profile* does not work with more than two-body pair
 interactions, long range (kspace) interactions and
-angle/dihedral/improper intramolecular interactions. Similarly, compute
+dihedral/improper intramolecular interactions. Similarly, compute
 *stress/mop* does not work with more than two-body pair interactions,
 long range (kspace) interactions and dihedral/improper intramolecular
 interactions but works with all bond interactions with the class method

@@ -422,6 +422,11 @@ void ComputeStressMop::compute_pairs()
           xi[1] = atom->x[i][1];
           xi[2] = atom->x[i][2];
 
+          // minimum image of xi with respect to the plane
+          xi[dir] -= pos;
+          domain->minimum_image(xi[0], xi[1], xi[2]);
+          xi[dir] += pos;
+           
           //velocities at t
           vi[0] = atom->v[i][0];
           vi[1] = atom->v[i][1];
@@ -447,10 +452,8 @@ void ComputeStressMop::compute_pairs()
           // at each timestep, must check atoms going through the
           // image of the plane that is closest to the box
 
-          double pos_temp = pos+copysign(1.0,domain->prd_half[dir]-pos)*domain->prd[dir];
-          if (fabs(xi[dir]-pos)<fabs(xi[dir]-pos_temp)) pos_temp = pos;
-
-          if (((xi[dir]-pos_temp)*(xj[dir]-pos_temp)) < 0) {
+          double tau = (xi[dir] - pos) / (xi[dir] - xj[dir]);
+          if ((tau <= 1) && (tau >= 0)) {
 
             // sgn = copysign(1.0,vi[dir]-vcm[dir]);
             sgn = copysign(1.0,vi[dir]);

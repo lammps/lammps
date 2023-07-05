@@ -453,7 +453,22 @@ void ComputeStressMopProfile::compute_pairs()
             pos = coord[ibin];
             pos1 = coordp[ibin];
 
-            if (((xi[dir]-pos)*(xj[dir]-pos)*(xi[dir]-pos1)*(xj[dir]-pos1)<0)) {
+            // minimum image of xi with respect to the plane
+            xi[dir] -= pos;
+            domain->minimum_image(xi[0], xi[1], xi[2]);
+            xi[dir] += pos;
+
+            // minimum image of xj with respect to xi
+            xj[0] -= xi[0];
+            xj[1] -= xi[1];
+            xj[2] -= xi[2];
+            domain->minimum_image(xi[0], xi[1], xi[2]);
+            xj[0] += xi[0];
+            xj[1] += xi[1];
+            xj[2] += xi[2];
+
+            double tau = (xi[dir] - pos) / (xi[dir] - xj[dir]);
+            if ((tau <= 1) && (tau >= 0)) {
 
               sgn = copysign(1.0,vi[dir]);
 

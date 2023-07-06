@@ -40,7 +40,7 @@ namespace Granular_NS {
     GranSubModHeatNone(class GranularModel *, class LAMMPS *);
     double calculate_heat() override;
   };
-    
+
   /* ---------------------------------------------------------------------- */
 
   class GranSubModHeatRadius : public GranSubModHeat {

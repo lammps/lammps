@@ -655,8 +655,8 @@ For *heat* *radius*, the heat
 
 where :math:`\Delta T` is the difference in the two particles' temperature,
 :math:`k_{s}` is a non-negative numeric value for the conductivity (in units
-of power/(length*temperature)), and :math:`a` is the radius of the contact and 
-depends on the normal force model. This is the model proposed by 
+of power/(length*temperature)), and :math:`a` is the radius of the contact and
+depends on the normal force model. This is the model proposed by
 :ref:`Vargas and McCarthy <VargasMcCarthy2001>`
 
 For *heat* *area*, the heat
@@ -668,7 +668,7 @@ For *heat* *area*, the heat
 
 
 where :math:`\Delta T` is the difference in the two particles' temperature,
-:math:`h_{s}` is a non-negative numeric value for the heat transfer 
+:math:`h_{s}` is a non-negative numeric value for the heat transfer
 coefficient (in units of power/(area*temperature)), and :math:`A=\pi a^2` is
 the area of the contact and depends on the normal force model.
 
@@ -913,7 +913,7 @@ I. Assembling process, geometry, and contact networks. Phys. Rev. E, 76, 061302.
 
 .. _VargasMcCarthy2001:
 
-**(Vargas and McCarthy 2001)** Vargas, W.L. and McCarthy, J.J. (2001). 
-Heat conduction in granular materials. 
+**(Vargas and McCarthy 2001)** Vargas, W.L. and McCarthy, J.J. (2001).
+Heat conduction in granular materials.
 AIChE Journal, 47(5), 1052-1059.
 

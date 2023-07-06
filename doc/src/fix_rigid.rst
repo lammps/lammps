@@ -692,7 +692,7 @@ bodies, e.g. background particles.
 
 Second, the *infile* keyword should be used to specify the total mass
 and other properties of the rigid bodies with overlaps, so that their
-dyamics will be modeled correctly, as explained above.
+dynamics will be modeled correctly, as explained above.
 
 Third, the *gravity* keyword should be used the with the ID of the
 :doc:`fix gravity <fix_gravity>` command as its argument.  The rigid

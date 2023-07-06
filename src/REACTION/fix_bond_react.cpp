@@ -2223,7 +2223,7 @@ note: currently uses global rxnID and onemol variables
 
 double FixBondReact::get_totalcharge()
 {
-  int j,jj,ilocal;
+  int j,jj;
   double *q = atom->q;
   double sim_total_charge = 0.0;
   for (j = 0; j < onemol->natoms; j++) {

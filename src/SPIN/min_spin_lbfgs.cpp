@@ -378,7 +378,7 @@ void MinSpinLBFGS::calc_search_direction()
       scaling = maximum_rotation(g_cur);
 
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = -g_cur[i] * factor * scaling;;
+      p_s[i] = -g_cur[i] * factor * scaling;
       g_old[i] = g_cur[i]  * factor;
       for (int k = 0; k < num_mem; k++) {
         ds[k][i] = 0.0;

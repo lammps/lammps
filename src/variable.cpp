@@ -3658,7 +3658,6 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
         print_var_error(FLERR,"Invalid math function in variable formula",ivar);
       double value;
       if (update->ntimestep < ivalue1) value = ivalue1;
-      //else if (update->ntimestep <= ivalue3) {
       else {
         value = ivalue1;
         double logsp = ivalue1;

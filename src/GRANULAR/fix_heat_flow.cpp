@@ -33,7 +33,7 @@ enum {NONE, CONSTANT, TYPE};
 FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix heat/flow", error);
 
   cp_style = NONE;
   comm_forward = 1;
@@ -41,24 +41,24 @@ FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) :
 
   int ntypes = atom->ntypes;
   if (strcmp(arg[3],"constant") == 0) {
-    if (narg != 5) error->all(FLERR,"Illegal fix command");
+    if (narg != 5) error->all(FLERR,"Illegal fix heat/flow constant command");
     cp_style = CONSTANT;
     cp = utils::numeric(FLERR,arg[4],false,lmp);
-    if (cp < 0.0) error->all(FLERR,"Illegal fix command");
+    if (cp < 0.0) error->all(FLERR,"Illegal fix heat/flow constant command value");
   } else if (strcmp(arg[3],"type") == 0) {
-    if (narg != 4 + ntypes) error->all(FLERR,"Illegal fix command");
+    if (narg != 4 + ntypes) error->all(FLERR,"Illegal fix heat/flow type command");
     cp_style = TYPE;
-    memory->create(cp_type,ntypes+1,"fix/temp/integrate:cp_type");
+    memory->create(cp_type,ntypes+1,"fix_heat_flow:cp_type");
     for (int i = 1; i <= ntypes; i++) {
       cp_type[i] = utils::numeric(FLERR,arg[3+i],false,lmp);
-      if (cp_type[i] < 0.0) error->all(FLERR,"Illegal fix command");
+      if (cp_type[i] < 0.0) error->all(FLERR,"Illegal fix heat/flow type command value");
     }
   } else {
-    error->all(FLERR,"Illegal fix command");
+    error->all(FLERR,"Unknown fix heat/flow keyword {}", arg[3]);
   }
 
   if (cp_style == NONE)
-    error->all(FLERR, "Must specify specific heat in fix temp/integrate");
+    error->all(FLERR, "Must specify specific heat in fix heat/flow");
   dynamic_group_allow = 1;
 }
 
@@ -80,9 +80,9 @@ void FixHeatFlow::init()
   dt = update->dt;
 
   if (!atom->temperature_flag)
-    error->all(FLERR,"Fix temp/integrate requires atom style with temperature property");
+    error->all(FLERR,"Fix heat/flow requires atom style with temperature property");
   if (!atom->heatflow_flag)
-    error->all(FLERR,"Fix temp/integrate requires atom style with heatflow property");
+    error->all(FLERR,"Fix heat/flow requires atom style with heatflow property");
 }
 
 /* ---------------------------------------------------------------------- */

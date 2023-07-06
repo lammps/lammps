@@ -87,12 +87,6 @@ void FixHeatFlow::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHeatFlow::setup(int /*vflag*/)
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixHeatFlow::setup_pre_force(int /*vflag*/)
 {
   // Identify whether this is the first instance of fix heat/flow

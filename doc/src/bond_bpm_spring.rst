@@ -191,8 +191,8 @@ This bond style is part of the BPM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-By default if pair interactions are to be disabled, this bond style
-requires setting
+By default if pair interactions between bonded atoms are to be disabled,
+this bond style requires setting
 
 .. code-block:: LAMMPS
 

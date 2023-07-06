@@ -657,7 +657,7 @@ where :math:`\Delta T` is the difference in the two particles' temperature,
 :math:`k_{s}` is a non-negative numeric value for the conductivity (in units
 of power/(length*temperature)), and :math:`a` is the radius of the contact and
 depends on the normal force model. This is the model proposed by
-:ref:`Vargas and McCarthy <VargasMcCarthy2001>`
+:ref:`Vargas and McCarthy <VargasMcCarthy2001>`.
 
 For *heat* *area*, the heat
 :math:`Q` conducted between two particles is given by

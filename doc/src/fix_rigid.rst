@@ -696,9 +696,9 @@ dyamics will be modeled correctly, as explained above.
 
 Third, the *gravity* keyword should be used the with the ID of the
 :doc:`fix gravity <fix_gravity>` command as its argument.  The rigid
-fixes will access gravity fix to extract the current direction of the
-gravity vector at each timestep (which can be static or dynamic).  A
-gravity force will then be applied to each rigid body at its
+fixes will access the gravity fix to extract the current direction of
+the gravity vector at each timestep (which can be static or dynamic).
+A gravity force will then be applied to each rigid body at its
 center-of-mass position using its total mass.
 
 ----------

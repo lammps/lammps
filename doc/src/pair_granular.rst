@@ -763,15 +763,17 @@ The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
-calculates 12 extra pairwise quantities.  The first 3 are the
+calculates 13 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
 on particle I.  The fourth is the magnitude of this tangential force.
 The next 3 (5-7) are the components of the rolling torque acting on
 particle I. The next entry (8) is the magnitude of the rolling torque.
 The next entry (9) is the magnitude of the twisting torque acting
 about the vector connecting the two particle centers.
-The last 3 (10-12) are the components of the vector connecting
-the centers of the two particles (x_I - x_J).
+The next 3 (10-12) are the components of the vector connecting
+the centers of the two particles (x_I - x_J). The last quantity (13)
+is the heat flow between the two particles, set to 0 if no heat model
+is active.
 
 These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*, *p2*, ...,
 *p12*\ .

@@ -92,6 +92,7 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 
+	/*
 	if (j >= nlocal) {
 	  jtag = tag[j];
 	  if (itag > jtag) {
@@ -108,17 +109,15 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
 	      if (x[j][0] < xtmp) continue;
 	    }
 
-	    /*
 	    if (x[j][2] < ztmp) continue;
 	    if (x[j][2] == ztmp) {
 	      if (x[j][1] < ytmp) continue;
 	      if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
 	    }
-	    */
 	  }
 	}
-
-	/*
+	*/
+	
         if (x[j][2] < ztmp) continue;
         if (x[j][2] == ztmp) {
           if (x[j][1] < ytmp) continue;
@@ -127,7 +126,6 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
             if (x[j][0] == xtmp && j <= i) continue;
           }
         }
-	*/
 	
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

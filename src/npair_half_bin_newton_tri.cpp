@@ -16,6 +16,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "force.h"
 #include "molecule.h"
 #include "domain.h"
 #include "my_page.h"
@@ -36,10 +37,12 @@ NPairHalfBinNewtonTri::NPairHalfBinNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 void NPairHalfBinNewtonTri::build(NeighList *list)
 {
   int i,j,k,n,itype,jtype,ibin,which,imol,iatom,moltemplate;
-  tagint tagprev;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-
+  
+  double angstrom = force->angstrom;
+  
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -68,6 +71,7 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     n = 0;
     neighptr = ipage->vget();
 
+    itag = tag[i];
     itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -87,6 +91,34 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
+
+	if (j >= nlocal) {
+	  jtag = tag[j];
+	  if (itag > jtag) {
+	    if ((itag+jtag) % 2 == 0) continue;
+	  } else if (itag < jtag) {
+	    if ((itag+jtag) % 2 == 1) continue;
+	  } else {
+
+	    if (fabs(x[j][2]-ztmp) > angstrom) {
+	      if (x[j][2] < ztmp) continue;
+	    } else if (fabs(x[j][1]-ytmp) > angstrom) {
+	      if (x[j][1] < ytmp) continue;
+	    } else {
+	      if (x[j][0] < xtmp) continue;
+	    }
+
+	    /*
+	    if (x[j][2] < ztmp) continue;
+	    if (x[j][2] == ztmp) {
+	      if (x[j][1] < ytmp) continue;
+	      if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+	    }
+	    */
+	  }
+	}
+
+	/*
         if (x[j][2] < ztmp) continue;
         if (x[j][2] == ztmp) {
           if (x[j][1] < ytmp) continue;
@@ -95,7 +127,8 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
             if (x[j][0] == xtmp && j <= i) continue;
           }
         }
-
+	*/
+	
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 

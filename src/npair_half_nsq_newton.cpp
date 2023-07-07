@@ -16,6 +16,7 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "force.h"
 #include "group.h"
 #include "molecule.h"
 #include "domain.h"
@@ -41,6 +42,9 @@ void NPairHalfNsqNewton::build(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
+  double angstrom = force->angstrom;
+  int triclinic = domain->triclinic;
+  
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -96,7 +100,15 @@ void NPairHalfNsqNewton::build(NeighList *list)
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
-        } else {
+        } else if (triclinic) {
+	  if (fabs(x[j][2]-ztmp) > angstrom) {
+	    if (x[j][2] < ztmp) continue;
+	  } else if (fabs(x[j][1]-ytmp) > angstrom) {
+	    if (x[j][1] < ytmp) continue;
+	  } else {
+	    if (x[j][0] < xtmp) continue;
+	  }
+	} else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
             if (x[j][1] < ytmp) continue;

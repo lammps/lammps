@@ -40,9 +40,9 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
   tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-  
-  double delta = 0.01 * force->angstrom;
-  
+
+  const double delta = 0.01 * force->angstrom;
+
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -92,40 +92,24 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 
-	if (j <= i) continue;
-	if (j >= nlocal) {
-	  jtag = tag[j];
-	  if (itag > jtag) {
-	    if ((itag+jtag) % 2 == 0) continue;
-	  } else if (itag < jtag) {
-	    if ((itag+jtag) % 2 == 1) continue;
-	  } else {
-	    if (fabs(x[j][2]-ztmp) > delta) {
-	      if (x[j][2] < ztmp) continue;
-	    } else if (fabs(x[j][1]-ytmp) > delta) {
-	      if (x[j][1] < ytmp) continue;
-	    } else {
-	      if (x[j][0] < xtmp) continue;
-	    }
-	    //if (x[j][2] < ztmp) continue;
-	    //if (x[j][2] == ztmp) {
-	    //  if (x[j][1] < ytmp) continue;
-	    //  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	    // }
-	  }
-	}
-
-	/*
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp) {
-          if (x[j][1] < ytmp) continue;
-          if (x[j][1] == ytmp) {
-            if (x[j][0] < xtmp) continue;
-            if (x[j][0] == xtmp && j <= i) continue;
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          jtag = tag[j];
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (fabs(x[j][2]-ztmp) > delta) {
+              if (x[j][2] < ztmp) continue;
+            } else if (fabs(x[j][1]-ytmp) > delta) {
+              if (x[j][1] < ytmp) continue;
+            } else {
+              if (x[j][0] < xtmp) continue;
+            }
           }
         }
-	*/
-	
+
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
@@ -135,8 +119,6 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
         rsq = delx*delx + dely*dely + delz*delz;
 
         if (rsq <= cutneighsq[itype][jtype]) {
-	  //printf("NEIGH i,j %d %d ijtag %d %d dist %g\n",
-	  //	 i,j,tag[i],tag[j],sqrt(rsq));
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);

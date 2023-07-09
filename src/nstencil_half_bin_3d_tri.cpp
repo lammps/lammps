@@ -29,7 +29,6 @@ void NStencilHalfBin3dTri::create()
 
   nstencil = 0;
 
-  //for (k = 0; k <= sz; k++)
   for (k = -sz; k <= sz; k++)
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)

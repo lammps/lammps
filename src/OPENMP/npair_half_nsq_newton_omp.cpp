@@ -49,8 +49,8 @@ void NPairHalfNsqNewtonOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,n,itype,jtype,itag,jtag,which,imol,iatom;
-  tagint tagprev;
+  int i,j,n,itype,jtype,which,imol,iatom;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 

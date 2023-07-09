@@ -58,8 +58,8 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,jh,n,itag,jtag,which,imol,iatom;
-  tagint tagprev;
+  int i,j,jh,n,which,imol,iatom;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr;

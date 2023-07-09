@@ -13,15 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_nsq_newton.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

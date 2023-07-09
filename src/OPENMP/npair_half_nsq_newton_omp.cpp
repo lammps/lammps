@@ -15,14 +15,16 @@
 #include "omp_compat.h"
 #include "npair_half_nsq_newton_omp.h"
 #include "npair_omp.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -42,6 +44,8 @@ void NPairHalfNsqNewtonOmp::build(NeighList *list)
   const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
   const int molecular = atom->molecular;
   const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -49,8 +53,8 @@ void NPairHalfNsqNewtonOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,n,itype,jtype,itag,jtag,which,imol,iatom;
-  tagint tagprev;
+  int i,j,n,itype,jtype,which,imol,iatom;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
@@ -106,6 +110,14 @@ void NPairHalfNsqNewtonOmp::build(NeighList *list)
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
+        } else if (triclinic) {
+          if (fabs(x[j][2]-ztmp) > delta) {
+            if (x[j][2] < ztmp) continue;
+          } else if (fabs(x[j][1]-ytmp) > delta) {
+            if (x[j][1] < ytmp) continue;
+          } else {
+            if (x[j][0] < xtmp) continue;
+          }
         } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
@@ -127,7 +139,7 @@ void NPairHalfNsqNewtonOmp::build(NeighList *list)
         if (molecular != Atom::ATOMIC) {
           if (!moltemplate)
             which = find_special(special[i],nspecial[i],tag[j]);
-          else if (imol >=0)
+          else if (imol >= 0)
             which = find_special(onemols[imol]->special[iatom],
                                  onemols[imol]->nspecial[iatom],
                                  tag[j]-tagprev);

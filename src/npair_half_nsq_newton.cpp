@@ -42,7 +42,7 @@ void NPairHalfNsqNewton::build(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  double angstrom = force->angstrom;
+  double delta = 0.01 * force->angstrom;
   int triclinic = domain->triclinic;
   
   double **x = atom->x;
@@ -100,16 +100,14 @@ void NPairHalfNsqNewton::build(NeighList *list)
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
-	  /*
-	  } else if (triclinic) {
-	  if (fabs(x[j][2]-ztmp) > angstrom) {
+	} else if (triclinic) {
+	  if (fabs(x[j][2]-ztmp) > delta) {
 	    if (x[j][2] < ztmp) continue;
-	  } else if (fabs(x[j][1]-ytmp) > angstrom) {
+	  } else if (fabs(x[j][1]-ytmp) > delta) {
 	    if (x[j][1] < ytmp) continue;
 	  } else {
 	    if (x[j][0] < xtmp) continue;
 	  }
-	  */
 	} else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {

@@ -729,8 +729,9 @@ int FixReaxFFSpecies::CheckExistence(int id, int nutypes)
 
 void FixReaxFFSpecies::GetUniqueElements()
 {
-  // count unique 'element' labels
-  // map user input to unique list
+  eleflag = 1;
+
+  // get unique 'element' labels
 
   nutypes = 0;
   int skipflag;
@@ -738,15 +739,34 @@ void FixReaxFFSpecies::GetUniqueElements()
     skipflag = 0;
     for (int j = 0; j < nutypes; j++)
       if (eletype[i] == ueletype[j]) {
-        ele2uele[i] = j;
         skipflag = 1;
         break;
       }
     if (skipflag) continue;
-    ele2uele[i] = nutypes;
     ueletype[nutypes++] = eletype[i];
   }
-  eleflag = 1;
+
+  // reorder CHON, if necessary
+
+  int incr = 0;
+  std::vector<std::string> CHON = {"C", "H", "O", "N"};
+  for (auto it = CHON.begin(); it != CHON.end(); ++it)
+    for (int j = incr; j < nutypes; j++) {
+      if (ueletype[j] == *it) {
+        ueletype.erase(ueletype.begin() + j);
+        ueletype.insert(ueletype.begin() + incr++, *it);
+        break;
+      }
+    }
+
+  // map user input to unique list
+
+  for (int i = 0; i < ntypes; i++)
+    for (int j = 0; j < nutypes; j++)
+      if (eletype[i] == ueletype[j]) {
+        ele2uele[i] = j;
+        break;
+      }
 }
 
 /* ---------------------------------------------------------------------- */

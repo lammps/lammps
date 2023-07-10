@@ -376,7 +376,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       index[i] = atom->avec->property_atom(arg[iarg]);
       if (index[i] < 0)
         error->all(FLERR,"Invalid keyword {} for atom style {} in compute property/atom command ",
-                   atom->get_style(), arg[iarg]);
+                   arg[iarg], atom->get_style());
       pack_choice[i] = &ComputePropertyAtom::pack_atom_style;
     }
   }

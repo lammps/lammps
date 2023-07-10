@@ -445,31 +445,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   comm->forward_comm(this);
 
-  // compute the total induced charges of the interface particles
-  // for interface particles: set the charge to be the sum of unscaled (free) charges and induced charges
-
-  double tmp = 0;
-  for (int i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-
-    double q_bound = q_scaled[i] - q[i];
-    tmp += q_bound;
-    q[i] = q_scaled[i];
-  }
-
   if (first) first = 0;
-
-  // ensure sum of all induced charges being zero
-
-  int ncount = group->count(igroup);
-  double sum = 0;
-  MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
-  double qboundave = sum / (double) ncount;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-    q[i] -= qboundave;
-  }
 }
 
 /* ---------------------------------------------------------------------- */

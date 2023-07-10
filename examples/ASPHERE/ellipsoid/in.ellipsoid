@@ -35,8 +35,7 @@ fix             2 all enforce2d
 compute         rot big temp/asphere
 compute         0 all property/atom quatw quati quatj quatk shapex shapey shapez
 
-#dump           1 all custom 10 dump.ellipsoid.equil id type x y z &
-#                 c_0[1] c_0[2] c_0[3] c_0[4] c_0[5] c_0[6] c_0[7]
+#dump           1 all custom 10 dump.ellipsoid.equil id type x y z c_0[*]
 #dump_modify    1 colname c_0[1] quatw colname c_0[2] quati colname c_0[3] quatj colname c_0[4] quatk &
 #                 colname c_0[5] shapex colname c_0[6] shapey colname c_0[7] shapez
 
@@ -110,8 +109,7 @@ thermo_style    custom step temp c_rot f_2[9] etotal v_pebig v_ebig press &
 thermo_modify   temp tbig
 thermo          1000
 
-#dump           1 all custom 1000 dump.ellipsoid id type x y z &
-#                 c_0[1] c_0[2] c_0[3] c_0[4] c_0[5] c_0[6] c_0[7]
+#dump           1 all custom 1000 dump.ellipsoid id type x y z c_0[*]
 #dump_modify    1 colname c_0[1] quatw colname c_0[2] quati colname c_0[3] quatj colname c_0[4] quatk &
 #                 colname c_0[5] shapex colname c_0[6] shapey colname c_0[7] shapez
 

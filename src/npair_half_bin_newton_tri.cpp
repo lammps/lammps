@@ -83,11 +83,12 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     }
 
     // loop over all atoms in bins in stencil
-    // pairs for atoms j "below" i are excluded
-    // below = lower z or (equal z and lower y) or (equal zy and lower x)
-    //         (equal zyx and j <= i)
-    // latter excludes self-self interaction but allows superposed atoms
-
+    // for triclinic, bin stencil is full in all 3 dims
+    // must use itag/jtag to eliminate half the I/J interactions
+    // cannot use I/J coord comparision
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
+    
     ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
@@ -107,25 +108,9 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
 	    } else {
 	      if (x[j][0] < xtmp) continue;
 	    }
-	    //if (x[j][2] < ztmp) continue;
-	    //if (x[j][2] == ztmp) {
-	    //  if (x[j][1] < ytmp) continue;
-	    //  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-	    // }
 	  }
 	}
 
-	/*
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp) {
-          if (x[j][1] < ytmp) continue;
-          if (x[j][1] == ytmp) {
-            if (x[j][0] < xtmp) continue;
-            if (x[j][0] == xtmp && j <= i) continue;
-          }
-        }
-	*/
-	
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
@@ -135,8 +120,6 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
         rsq = delx*delx + dely*dely + delz*delz;
 
         if (rsq <= cutneighsq[itype][jtype]) {
-	  //printf("NEIGH i,j %d %d ijtag %d %d dist %g\n",
-	  //	 i,j,tag[i],tag[j],sqrt(rsq));
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);

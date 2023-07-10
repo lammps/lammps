@@ -89,7 +89,12 @@ void NPairHalfNsqNewton::build(NeighList *list)
     }
 
     // loop over remaining atoms, owned and ghost
+    // use itag/jtap comparision to eliminate half the interactions
     // itag = jtag is possible for long cutoffs that include images of self
+    // for triclinic, must use delta to eliminate half the I/J interactions
+    // cannot use direct I/J coord comparision as for orthog
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     for (j = i+1; j < nall; j++) {
       if (includegroup && !(mask[j] & bitmask)) continue;

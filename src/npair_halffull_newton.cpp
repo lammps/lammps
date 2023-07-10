@@ -70,6 +70,11 @@ void NPairHalffullNewton::build(NeighList *list)
     ztmp = x[i][2];
 
     // loop over full neighbor list
+    // use i < j < nlocal to eliminate half the local/local interactions
+    // for triclinic, must use delta to eliminate half the local/ghost interactions
+    // cannot use direct I/J coord comparision as for orthog
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     jlist = firstneigh_full[i];
     jnum = numneigh_full[i];

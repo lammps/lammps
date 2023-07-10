@@ -109,7 +109,7 @@ charges in BPM models, setting a nonzero coul weight for 1-2 bonds
 ensures all bonded neighbors are still included in the neighbor list
 in case bonds break between neighbor list builds. If bond breakage is
 disabled during a simulation run by setting the *break* keyword to *no*,
-a zero coul weight for 1-2 bonds can be used to exclude bonded neighbors
+a zero coul weight for 1-2 bonds can be used to exclude bonded atoms
 from the neighbor list builds. This can be useful for post-processing,
 or to determine pair interaction properties between distinct bonded particles.
 

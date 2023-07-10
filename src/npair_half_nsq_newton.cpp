@@ -13,15 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_nsq_newton.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -42,9 +43,9 @@ void NPairHalfNsqNewton::build(NeighList *list)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
-  double delta = 0.01 * force->angstrom;
-  int triclinic = domain->triclinic;
-  
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
+
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -92,7 +93,7 @@ void NPairHalfNsqNewton::build(NeighList *list)
     // use itag/jtap comparision to eliminate half the interactions
     // itag = jtag is possible for long cutoffs that include images of self
     // for triclinic, must use delta to eliminate half the I/J interactions
-    // cannot use direct I/J coord comparision as for orthog
+    // cannot use I/J exact coord comparision as for orthog
     //   b/c transforming orthog -> lambda -> orthog for ghost atoms
     //   with an added PBC offset can shift all 3 coords by epsilon
 
@@ -105,15 +106,15 @@ void NPairHalfNsqNewton::build(NeighList *list)
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
-	} else if (triclinic) {
-	  if (fabs(x[j][2]-ztmp) > delta) {
-	    if (x[j][2] < ztmp) continue;
-	  } else if (fabs(x[j][1]-ytmp) > delta) {
-	    if (x[j][1] < ytmp) continue;
-	  } else {
-	    if (x[j][0] < xtmp) continue;
-	  }
-	} else {
+        } else if (triclinic) {
+          if (fabs(x[j][2]-ztmp) > delta) {
+            if (x[j][2] < ztmp) continue;
+          } else if (fabs(x[j][1]-ytmp) > delta) {
+            if (x[j][1] < ytmp) continue;
+          } else {
+            if (x[j][0] < xtmp) continue;
+          }
+        } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
             if (x[j][1] < ytmp) continue;

@@ -40,9 +40,9 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
   tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-  
-  double delta = 0.01 * force->angstrom;
-  
+
+  const double delta = 0.01 * force->angstrom;
+
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -85,7 +85,7 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     // loop over all atoms in bins in stencil
     // for triclinic, bin stencil is full in all 3 dims
     // must use itag/jtag to eliminate half the I/J interactions
-    // cannot use I/J coord comparision
+    // cannot use I/J exact coord comparision
     //   b/c transforming orthog -> lambda -> orthog for ghost atoms
     //   with an added PBC offset can shift all 3 coords by epsilon
     

@@ -10,7 +10,7 @@ ndx2group command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group2ndx file group-ID ...
    ndx2group file group-ID ...

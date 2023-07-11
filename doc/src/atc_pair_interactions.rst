@@ -9,7 +9,7 @@ fix_modify AtC bond_interactions command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> pair_interactions <on|off>
    fix_modify <AtC fixID> bond_interactions <on|off>

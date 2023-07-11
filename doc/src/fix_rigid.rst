@@ -60,7 +60,7 @@ fix rigid/nph/small command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style bodystyle args keyword values ...
 

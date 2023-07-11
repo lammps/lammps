@@ -6,7 +6,7 @@ fix gle command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID id-group gle Ns Tstart Tstop seed Amatrix [noneq Cmatrix] [every stride]
 

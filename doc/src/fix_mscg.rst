@@ -6,7 +6,7 @@ fix mscg command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID mscg N keyword args ...
 

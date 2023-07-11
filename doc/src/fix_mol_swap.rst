@@ -6,7 +6,7 @@ fix mol/swap command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID mol/swap N X itype jtype seed T keyword value ...
 

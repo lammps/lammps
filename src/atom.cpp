@@ -966,10 +966,10 @@ void Atom::bonus_check()
   bigint local_bodies = 0, num_global;
 
   for (int i = 0; i < nlocal; ++i) {
-    if (ellipsoid && (ellipsoid[i] >=0)) ++local_ellipsoids;
-    if (line && (line[i] >=0)) ++local_lines;
-    if (tri && (tri[i] >=0)) ++local_tris;
-    if (body && (body[i] >=0)) ++local_bodies;
+    if (ellipsoid && (ellipsoid[i] >= 0)) ++local_ellipsoids;
+    if (line && (line[i] >= 0)) ++local_lines;
+    if (tri && (tri[i] >= 0)) ++local_tris;
+    if (body && (body[i] >= 0)) ++local_bodies;
   }
 
   MPI_Allreduce(&local_ellipsoids,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);

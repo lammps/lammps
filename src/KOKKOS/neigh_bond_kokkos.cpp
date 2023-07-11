@@ -266,7 +266,7 @@ void NeighBondKokkos<DeviceType>::bond_all()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all && me ==0)
+  if (all && me == 0)
     error->warning(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   k_bondlist.modify<DeviceType>();
@@ -345,7 +345,7 @@ void NeighBondKokkos<DeviceType>::bond_partial()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all && me ==0)
+  if (all && me == 0)
     error->warning(FLERR,"Bond atoms missing at step {}", update->ntimestep);
 
   k_bondlist.modify<DeviceType>();

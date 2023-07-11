@@ -481,11 +481,11 @@ void PairILPTMD::calc_normal()
           jH2 = atom->map(tag[i] - 2);
           iH1 = map[type[jH1]];
           iH2 = map[type[jH2]];
-          if (strcmp(elements[iH1], "Ow") == 0 ) {
+          if (strcmp(elements[iH1], "Ow") == 0) {
             vect[0][0] = x[jH1][0] - xtp;
             vect[0][1] = x[jH1][1] - ytp;
             vect[0][2] = x[jH1][2] - ztp;
-          } else if (strcmp(elements[iH2], "Ow") == 0 ) {
+          } else if (strcmp(elements[iH2], "Ow") == 0) {
             vect[0][0] = x[jH2][0] - xtp;
             vect[0][1] = x[jH2][1] - ytp;
             vect[0][2] = x[jH2][2] - ztp;

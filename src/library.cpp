@@ -2328,7 +2328,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     } else if (lmp->input->variable->vectorstyle(ivar)) {
       double *values = nullptr;
       int nvector = lmp->input->variable->compute_vector(ivar, &values);
-      if ( group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0 ) {
+      if (group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0) {
           int* nvecptr = (int *) malloc(sizeof(int));
           *nvecptr = nvector;
           return (void *) nvecptr;
@@ -2372,7 +2372,7 @@ int lammps_extract_variable_datatype(void *handle, const char *name)
   BEGIN_CAPTURE
   {
     int ivar = lmp->input->variable->find(name);
-    if ( ivar < 0 ) return -1;
+    if (ivar < 0) return -1;
 
     if (lmp->input->variable->equalstyle(ivar))
       return LMP_VAR_EQUAL;
@@ -5199,7 +5199,7 @@ int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int n
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList *list = lmp->neighbor->lists[i];
-      if ( (list->requestor_type == NeighList::PAIR)
+      if ((list->requestor_type == NeighList::PAIR)
            && (pair == list->requestor)
            && (list->id == reqid) ) return i;
     }
@@ -5229,7 +5229,7 @@ int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList *list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::FIX)
+    if ((list->requestor_type == NeighList::FIX)
          && (fix == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5258,7 +5258,7 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList * list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::COMPUTE)
+    if ((list->requestor_type == NeighList::COMPUTE)
          && (compute == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5709,7 +5709,7 @@ int lammps_style_name(void *handle, const char *category, int idx,
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
-  if ((idx >=0) && (idx < (int) styles.size())) {
+  if ((idx >= 0) && (idx < (int) styles.size())) {
     strncpy(buffer, styles[idx].c_str(), buf_size);
     return 1;
   }
@@ -5844,23 +5844,23 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"group") == 0) {
-    if ((idx >=0) && (idx < lmp->group->ngroup)) {
+    if ((idx >= 0) && (idx < lmp->group->ngroup)) {
       strncpy(buffer, lmp->group->names[idx], buf_size);
       return 1;
     }
   } else if (strcmp(category,"molecule") == 0) {
-    if ((idx >=0) && (idx < lmp->atom->nmolecule)) {
+    if ((idx >= 0) && (idx < lmp->atom->nmolecule)) {
       strncpy(buffer, lmp->atom->molecules[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"region") == 0) {
     auto regions = lmp->domain->get_region_list();
-    if ((idx >=0) && (idx < (int) regions.size())) {
+    if ((idx >= 0) && (idx < (int) regions.size())) {
       strncpy(buffer, regions[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >=0) && (idx < lmp->input->variable->nvar)) {
+    if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
       strncpy(buffer, lmp->input->variable->names[idx], buf_size);
       return 1;
     }

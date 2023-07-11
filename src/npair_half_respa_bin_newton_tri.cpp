@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_respa_bin_newton_tri.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -21,6 +21,7 @@
 #include "force.h"
 #include "molecule.h"
 #include "my_page.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

@@ -113,7 +113,7 @@ void NPairHalfSizeNsqNewton::build(NeighList *list)
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
-	} else if (triclinic) {
+        } else if (triclinic) {
           if (fabs(x[j][2]-ztmp) > delta) {
             if (x[j][2] < ztmp) continue;
           } else if (fabs(x[j][1]-ytmp) > delta) {

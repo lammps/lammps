@@ -21,8 +21,8 @@
 #include "force.h"
 #include "molecule.h"
 #include "my_page.h"
-#include "neighbor.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,7 +39,7 @@ NPairHalfMultiNewtonTri::NPairHalfMultiNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfMultiNewtonTri::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,icollection,jcollection,ibin,jbin,which,ns,imol,iatom,moltemplate;
+  int i,j,k,n,itype,jtype,ibin,jbin,icollection,jcollection,which,ns,imol,iatom,moltemplate;
   tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;

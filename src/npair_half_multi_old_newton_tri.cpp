@@ -102,6 +102,7 @@ void NPairHalfMultiOldNewtonTri::build(NeighList *list)
         jtype = type[j];
         if (cutsq[jtype] < distsq[k]) continue;
 
+	if (j <= i) continue;
 	if (j >= nlocal) {
 	  jtag = tag[j];
 	  if (itag > jtag) {

@@ -121,6 +121,7 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
 	      
 	  if (cutcollectionsq[icollection][icollection] ==
 	      cutcollectionsq[jcollection][jcollection]) {
+	    if (j <= i) continue;
 	    if (j >= nlocal) {
 	      jtag = tag[j];
 	      if (itag > jtag) {

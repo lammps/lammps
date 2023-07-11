@@ -350,7 +350,6 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   double *ed = atom->ed;
   double *em = atom->em;
   double *epsilon = atom->epsilon;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int eflag = 1;
   int vflag = 0;

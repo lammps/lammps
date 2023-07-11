@@ -85,7 +85,7 @@ void NPairHalffullNewtonTrim::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      
+
       if (j < nlocal) {
         if (i > j) continue;
       } else if (triclinic) {

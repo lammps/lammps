@@ -88,28 +88,28 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     // cannot use I/J exact coord comparision
     //   b/c transforming orthog -> lambda -> orthog for ghost atoms
     //   with an added PBC offset can shift all 3 coords by epsilon
-    
+
     ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
 
-	if (j <= i) continue;
-	if (j >= nlocal) {
-	  jtag = tag[j];
-	  if (itag > jtag) {
-	    if ((itag+jtag) % 2 == 0) continue;
-	  } else if (itag < jtag) {
-	    if ((itag+jtag) % 2 == 1) continue;
-	  } else {
-	    if (fabs(x[j][2]-ztmp) > delta) {
-	      if (x[j][2] < ztmp) continue;
-	    } else if (fabs(x[j][1]-ytmp) > delta) {
-	      if (x[j][1] < ytmp) continue;
-	    } else {
-	      if (x[j][0] < xtmp) continue;
-	    }
-	  }
-	}
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          jtag = tag[j];
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (fabs(x[j][2]-ztmp) > delta) {
+              if (x[j][2] < ztmp) continue;
+            } else if (fabs(x[j][1]-ytmp) > delta) {
+              if (x[j][1] < ytmp) continue;
+            } else {
+              if (x[j][0] < xtmp) continue;
+            }
+          }
+        }
 
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

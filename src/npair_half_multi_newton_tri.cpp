@@ -91,11 +91,11 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
     ibin = atom2bin[i];
 
     // loop through stencils for all collections
-    
+
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
       // if same collection use own bin
-      
+
       if (icollection == jcollection) jbin = ibin;
       else jbin = coord2bin(x[i], jcollection);
 
@@ -109,60 +109,60 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
       //   cannot use I/J exact coord comparision
       //     b/c transforming orthog -> lambda -> orthog for ghost atoms
       //     with an added PBC offset can shift all 3 coords by epsilon
-      
+
       s = stencil_multi[icollection][jcollection];
       ns = nstencil_multi[icollection][jcollection];
 
       for (k = 0; k < ns; k++) {
-	js = binhead_multi[jcollection][jbin + s[k]];
-	for (j = js; j >= 0; j = bins[j]) {
-	  
-	  // if same size (same collection), exclude half of interactions
-	      
-	  if (cutcollectionsq[icollection][icollection] ==
-	      cutcollectionsq[jcollection][jcollection]) {
-	    if (j >= nlocal) {
-	      jtag = tag[j];
-	      if (itag > jtag) {
-		if ((itag+jtag) % 2 == 0) continue;
-	      } else if (itag < jtag) {
-		if ((itag+jtag) % 2 == 1) continue;
-	      } else {
-		if (fabs(x[j][2]-ztmp) > delta) {
-		  if (x[j][2] < ztmp) continue;
-		} else if (fabs(x[j][1]-ytmp) > delta) {
-		  if (x[j][1] < ytmp) continue;
-		} else {
-		  if (x[j][0] < xtmp) continue;
-		}
-	      }
-	    }
-	  }
+        js = binhead_multi[jcollection][jbin + s[k]];
+        for (j = js; j >= 0; j = bins[j]) {
 
-	  jtype = type[j];
-	  if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          // if same size (same collection), exclude half of interactions
 
-	  delx = xtmp - x[j][0];
-	  dely = ytmp - x[j][1];
-	  delz = ztmp - x[j][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
+          if (cutcollectionsq[icollection][icollection] ==
+              cutcollectionsq[jcollection][jcollection]) {
+            if (j >= nlocal) {
+              jtag = tag[j];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x[j][2]-ztmp) > delta) {
+                  if (x[j][2] < ztmp) continue;
+                } else if (fabs(x[j][1]-ytmp) > delta) {
+                  if (x[j][1] < ytmp) continue;
+                } else {
+                  if (x[j][0] < xtmp) continue;
+                }
+              }
+            }
+          }
 
-	  if (rsq <= cutneighsq[itype][jtype]) {
-	    if (molecular != Atom::ATOMIC) {
-	      if (!moltemplate)
-		which = find_special(special[i],nspecial[i],tag[j]);
-	      else if (imol >= 0)
-		which = find_special(onemols[imol]->special[iatom],
-				     onemols[imol]->nspecial[iatom],
-				     tag[j]-tagprev);
-	      else which = 0;
-	      if (which == 0) neighptr[n++] = j;
-	      else if (domain->minimum_image_check(delx,dely,delz))
-		neighptr[n++] = j;
-	      else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-	    } else neighptr[n++] = j;
-	  }
-	}
+          jtype = type[j];
+          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+
+          if (rsq <= cutneighsq[itype][jtype]) {
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            } else neighptr[n++] = j;
+          }
+        }
       }
     }
 

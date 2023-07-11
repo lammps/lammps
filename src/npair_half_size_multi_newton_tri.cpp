@@ -98,11 +98,11 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
     ibin = atom2bin[i];
 
     // loop through stencils for all collections
-    
+
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
       // if same collection use own bin
-      
+
       if (icollection == jcollection) jbin = ibin;
       else jbin = coord2bin(x[i], jcollection);
 
@@ -119,61 +119,61 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
       ns = nstencil_multi[icollection][jcollection];
 
       for (k = 0; k < ns; k++) {
-	js = binhead_multi[jcollection][jbin + s[k]];
-	for (j = js; j >= 0; j = bins[j]) {
+        js = binhead_multi[jcollection][jbin + s[k]];
+        for (j = js; j >= 0; j = bins[j]) {
 
-	  // if same size (same collection), exclude half of interactions
-	  
+          // if same size (same collection), exclude half of interactions
+
           if (cutcollectionsq[icollection][icollection] ==
-	      cutcollectionsq[jcollection][jcollection]) {
-	    if (j >= nlocal) {
-	      jtag = tag[j];
-	      if (itag > jtag) {
-		if ((itag+jtag) % 2 == 0) continue;
-	      } else if (itag < jtag) {
-		if ((itag+jtag) % 2 == 1) continue;
-	      } else {
-		if (fabs(x[j][2]-ztmp) > delta) {
-		  if (x[j][2] < ztmp) continue;
-		} else if (fabs(x[j][1]-ytmp) > delta) {
-		  if (x[j][1] < ytmp) continue;
-		} else {
-		  if (x[j][0] < xtmp) continue;
-		}
-	      }
-	    }
+              cutcollectionsq[jcollection][jcollection]) {
+            if (j >= nlocal) {
+              jtag = tag[j];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x[j][2]-ztmp) > delta) {
+                  if (x[j][2] < ztmp) continue;
+                } else if (fabs(x[j][1]-ytmp) > delta) {
+                  if (x[j][1] < ytmp) continue;
+                } else {
+                  if (x[j][0] < xtmp) continue;
+                }
+              }
+            }
           }
 
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-	  delx = xtmp - x[j][0];
-	  dely = ytmp - x[j][1];
-	  delz = ztmp - x[j][2];
-	  rsq = delx*delx + dely*dely + delz*delz;
-	  radsum = radi + radius[j];
-	  cutdistsq = (radsum+skin) * (radsum+skin);
-	  
-	  if (rsq <= cutdistsq) {
-	    jh = j;
-	    if (history && rsq < radsum*radsum)
-	      jh = jh ^ mask_history;
-	    
-	    if (molecular != Atom::ATOMIC) {
-	      if (!moltemplate)
-		which = find_special(special[i],nspecial[i],tag[j]);
-	      else if (imol >= 0)
-		which = find_special(onemols[imol]->special[iatom],
-				     onemols[imol]->nspecial[iatom],
-				     tag[j]-tagprev);
-	      else which = 0;
-	      if (which == 0) neighptr[n++] = jh;
-	      else if (domain->minimum_image_check(delx,dely,delz))
-		neighptr[n++] = jh;
-	      else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
-	    } else neighptr[n++] = jh;
-	  }
-	}
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          radsum = radi + radius[j];
+          cutdistsq = (radsum+skin) * (radsum+skin);
+
+          if (rsq <= cutdistsq) {
+            jh = j;
+            if (history && rsq < radsum*radsum)
+              jh = jh ^ mask_history;
+
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = jh;
+              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+            } else neighptr[n++] = jh;
+          }
+        }
       }
     }
 

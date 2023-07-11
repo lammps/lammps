@@ -386,18 +386,7 @@ void FixPolarizeFunctional::update_induced_charges()
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) continue;
     int idx = induced_charge_idx[i];
-    q[i] = -induced_charges[idx] / (4 * MY_PI);
-    q_scaled[i] = q[i] / epsilon[i];
-    tmp += q_scaled[i];
-  }
-
-  double sum = 0;
-  MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
-  double qboundave = sum/(double)num_induced_charges;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (induced_charge_idx[i] < 0) continue;
-    q_scaled[i] -=  qboundave;
+    q_scaled[i] = -induced_charges[idx] / (4 * MY_PI);
   }
 
   // revert to scaled charges to calculate forces

@@ -16,9 +16,10 @@
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "domain.h"
+#include "force.h"
 #include "group.h"
 #include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -38,11 +39,14 @@ NPairHalfRespaNsqNewton::NPairHalfRespaNsqNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfRespaNsqNewton::build(NeighList *list)
 {
-  int i,j,n,itype,jtype,itag,jtag,n_inner,n_middle,bitmask;
+  int i,j,n,itype,jtype,n_inner,n_middle,bitmask;
   int imol,iatom,moltemplate;
-  tagint tagprev;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
+
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -112,6 +116,12 @@ void NPairHalfRespaNsqNewton::build(NeighList *list)
     }
 
     // loop over remaining atoms, owned and ghost
+    // use itag/jtap comparision to eliminate half the interactions
+    // itag = jtag is possible for long cutoffs that include images of self
+    // for triclinic, must use delta to eliminate half the I/J interactions
+    // cannot use I/J exact coord comparision as for orthog
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     for (j = i+1; j < nall; j++) {
       if (includegroup && !(mask[j] & bitmask)) continue;
@@ -122,6 +132,14 @@ void NPairHalfRespaNsqNewton::build(NeighList *list)
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
+	} else if (triclinic) {
+          if (fabs(x[j][2]-ztmp) > delta) {
+            if (x[j][2] < ztmp) continue;
+          } else if (fabs(x[j][1]-ytmp) > delta) {
+            if (x[j][1] < ytmp) continue;
+          } else {
+            if (x[j][0] < xtmp) continue;
+          }
         } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {

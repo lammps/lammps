@@ -15,7 +15,7 @@
 // clang-format off
 NPairStyle(half/respa/nsq/newton,
            NPairHalfRespaNsqNewton,
-           NP_HALF | NP_RESPA | NP_NSQ | NP_NEWTON | NP_ORTHO);
+           NP_HALF | NP_RESPA | NP_NSQ | NP_NEWTON | NP_ORTHO | NP_TRI);
 // clang-format on
 #else
 

@@ -108,23 +108,23 @@ void NPairHalfSizeMultiOldNewtonTri::build(NeighList *list)
         jtype = type[j];
         if (cutsq[jtype] < distsq[k]) continue;
 
-	if (j <= i) continue;
-	if (j >= nlocal) {
-	  jtag = tag[j];
-	  if (itag > jtag) {
-	    if ((itag+jtag) % 2 == 0) continue;
-	  } else if (itag < jtag) {
-	    if ((itag+jtag) % 2 == 1) continue;
-	  } else {
-	    if (fabs(x[j][2]-ztmp) > delta) {
-	      if (x[j][2] < ztmp) continue;
-	    } else if (fabs(x[j][1]-ytmp) > delta) {
-	      if (x[j][1] < ytmp) continue;
-	    } else {
-	      if (x[j][0] < xtmp) continue;
-	    }
-	  }
-	}
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          jtag = tag[j];
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (fabs(x[j][2]-ztmp) > delta) {
+              if (x[j][2] < ztmp) continue;
+            } else if (fabs(x[j][1]-ytmp) > delta) {
+              if (x[j][1] < ytmp) continue;
+            } else {
+              if (x[j][0] < xtmp) continue;
+            }
+          }
+        }
 
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 

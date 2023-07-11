@@ -33,7 +33,7 @@ void NStencilHalfBin3dTri::create()
   //   with an added PBC offset can shift all 3 coords by epsilon
   // thus for an I/J owned/ghost pair, the xyz coords
   //   and bin assignments can be different on I proc vs J proc
-  
+
   nstencil = 0;
 
   for (k = -sz; k <= sz; k++)

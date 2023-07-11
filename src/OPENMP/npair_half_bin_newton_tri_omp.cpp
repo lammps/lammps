@@ -12,17 +12,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "npair_half_bin_newton_tri_omp.h"
 #include "npair_omp.h"
-#include "neigh_list.h"
+#include "omp_compat.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -53,8 +54,6 @@ void NPairHalfBinNewtonTriOmp::build(NeighList *list)
   tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
-
-  // loop over each atom, storing neighbors
 
   double **x = atom->x;
   int *type = atom->type;
@@ -93,10 +92,11 @@ void NPairHalfBinNewtonTriOmp::build(NeighList *list)
     }
 
     // loop over all atoms in bins in stencil
-    // pairs for atoms j "below" i are excluded
-    // below = lower z or (equal z and lower y) or (equal zy and lower x)
-    //         (equal zyx and j <= i)
-    // latter excludes self-self interaction but allows superposed atoms
+    // for triclinic, bin stencil is full in all 3 dims
+    // must use itag/jtag to eliminate half the I/J interactions
+    // cannot use I/J exact coord comparision
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {

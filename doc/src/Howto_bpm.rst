@@ -110,8 +110,14 @@ ensures all bonded neighbors are still included in the neighbor list
 in case bonds break between neighbor list builds. If bond breakage is
 disabled during a simulation run by setting the *break* keyword to *no*,
 a zero coul weight for 1-2 bonds can be used to exclude bonded atoms
-from the neighbor list builds. This can be useful for post-processing,
-or to determine pair interaction properties between distinct bonded particles.
+from the neighbor list builds
+
+   .. code-block:: LAMMPS
+
+      special_bonds lj 0 1 1 coul 0 1 1
+
+This can be useful for post-processing, or to determine pair interaction
+properties between distinct bonded particles.
 
 To monitor the fracture of bonds in the system, all BPM bond styles
 have the ability to record instances of bond breakage to output using

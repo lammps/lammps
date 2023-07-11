@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -53,14 +53,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (style == NONE) {
     if (narg != 2) error->all(FLERR,"Illegal lattice command: expected 2 arguments but found {}", narg);
 
-    // Domain creates a default lattice of style "none"
-    //   before Force class is instantiated, just use atof() in that case
-
-    if (force)
-      xlattice = ylattice = zlattice = utils::numeric(FLERR,arg[1],false,lmp);
-    else
-      xlattice = ylattice = zlattice = atof(arg[1]);
-
+    xlattice = ylattice = zlattice = utils::numeric(FLERR,arg[1],false,lmp);
     if (xlattice <= 0.0) error->all(FLERR, "Invalid lattice none argument: {}", arg[1]);
     return;
   }

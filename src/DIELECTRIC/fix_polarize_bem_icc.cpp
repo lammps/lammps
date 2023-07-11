@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -49,7 +49,8 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using MathConst::MY_PI;
+using MathConst::MY_2PI;
+using MathConst::MY_4PI;
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,7 +68,7 @@ FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *_lmp, int narg, char **arg) : Fix(_
   double tol = utils::numeric(FLERR, arg[4], false, lmp);
   tol_abs = tol_rel = tol;
 
-  itr_max = 20;
+  itr_max = 50;
   omega = 0.7;
   randomized = 0;
   ave_charge = 0;
@@ -104,7 +105,11 @@ int FixPolarizeBEMICC::setmask()
 void FixPolarizeBEMICC::init()
 {
   int ncount = group->count(igroup);
-  if (comm->me == 0) utils::logmesg(lmp, "BEM/ICC solver for {} induced charges\n", ncount);
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "BEM/ICC solver for {} induced charges\n", ncount);
+    utils::logmesg(lmp, " using pair style {}\n", force->pair_style);
+    if (force->kspace) utils::logmesg(lmp, " using kspace style {}\n", force->kspace_style);
+  }
 
   // initialize random induced charges with zero sum
 
@@ -210,13 +215,13 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
 
   epsilon0e2q = 1.0;
   if (strcmp(update->unit_style, "real") == 0)
-    epsilon0e2q = 0.000240263377163643;
+    epsilon0e2q = 0.000240263377163643 * MY_4PI;
   else if (strcmp(update->unit_style, "metal") == 0)
-    epsilon0e2q = 0.00553386738300813;
+    epsilon0e2q = 0.00553386738300813 * MY_4PI;
   else if (strcmp(update->unit_style, "si") == 0)
-    epsilon0e2q = 8.854187812813e-12;
+    epsilon0e2q = 8.854187812813e-12 * MY_4PI;
   else if (strcmp(update->unit_style, "nano") == 0)
-    epsilon0e2q = 0.000345866711328125;
+    epsilon0e2q = 0.000345866711328125 * MY_4PI;
   else if (strcmp(update->unit_style, "lj") != 0)
     error->all(FLERR, "Only unit styles 'lj', 'real', 'metal', 'si' and 'nano' are supported");
 
@@ -241,8 +246,8 @@ void FixPolarizeBEMICC::pre_force(int)
 
 void FixPolarizeBEMICC::compute_induced_charges()
 {
+  double *q_scaled = atom->q_scaled;
   double *q = atom->q;
-  double *q_real = atom->q_unscaled;
   double **norm = atom->mu;
   double *area = atom->area;
   double *ed = atom->ed;
@@ -261,7 +266,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
   //   q_real are read from the data file
   // Note that the electrical fields here are due to the rescaled real charges,
   //   and also multiplied by epsilon[i]
-  // Let's choose that epsilon[i] = em[i] for the interface particles
+  // for the interface particles assume that epsilon[i] = em[i]
+  // NOTE: 13Dec2022 pair and kspace with dielectric suffix operate on q_scaled
 
   force_clear();
   force->pair->compute(eflag, vflag);
@@ -281,17 +287,19 @@ void FixPolarizeBEMICC::compute_induced_charges()
     }
 
     // divide (Ex,Ey,Ez) by epsilon[i] here
-    double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
-        epsilon[i] / (2 * MY_PI);
-    double q_free = q_real[i];
+    double ndotE =
+        epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i] / MY_2PI;
+    double q_free = q[i];
     double q_bound = 0;
     q_bound = (1.0 / em[i] - 1) * q_free - (ed[i] / (2 * em[i])) * ndotE * area[i];
-    q[i] = q_free + q_bound;
+    q_scaled[i] = q_free + q_bound;
   }
+
+  // communicate q_scaled between neighboring procs
 
   comm->forward_comm(this);
 
-  // iterate
+  // iterate until convergence
 
   for (itr = 0; itr < itr_max; itr++) {
 
@@ -304,8 +312,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
 
-      double q_free = q_real[i];
-      double qtmp = q[i] - q_free;
+      double q_free = q[i];
+      double qtmp = q_scaled[i] - q_free;
       double Ex = efield_pair[i][0];
       double Ey = efield_pair[i][1];
       double Ez = efield_pair[i][2];
@@ -319,12 +327,12 @@ void FixPolarizeBEMICC::compute_induced_charges()
       // note the area[i] is included here to ensure correct charge unit
       // for direct use in force/efield compute
 
-      double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
-          (4 * MY_PI) / epsilon[i];
-      double q_bound = q[i] - q_free;
+      double ndotE =
+          epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / MY_4PI / epsilon[i];
+      double q_bound = q_scaled[i] - q_free;
       q_bound = (1 - omega) * q_bound +
           omega * ((1.0 / em[i] - 1) * q_free - (ed[i] / em[i]) * ndotE * area[i]);
-      q[i] = q_free + q_bound;
+      q_scaled[i] = q_free + q_bound;
 
       // Eq. (11) in Tyagi et al., with f from Eq. (6)
       // NOTE: Tyagi et al. defined the normal vector n_i pointing
@@ -336,13 +344,15 @@ void FixPolarizeBEMICC::compute_induced_charges()
       // hence there's no epsilon_1 in the factor f
 
       //double dot = (Ex*norm[i][0] + Ey*norm[i][1] + Ez*norm[i][2]);
-      //double f = (ed[i] / (2 * em[i])) / (2*MY_PI);
+      //double f = (ed[i] / (2 * em[i])) / MY_2PI;
       //q[i] = (1 - omega) * q[i] - omega * epsilon0 * f * dot * area[i];
 
       double delta = fabs(qtmp - q_bound);
       double r = (fabs(qtmp) > 0) ? delta / fabs(qtmp) : 0;
       if (tol < r) tol = r;
     }
+
+    // communicate q_scaled for efield compute in the next iteration
 
     comm->forward_comm(this);
 
@@ -422,7 +432,7 @@ int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pb
                                          int * /*pbc*/)
 {
   int m;
-  for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  for (m = 0; m < n; m++) buf[m] = atom->q_scaled[list[m]];
   return n;
 }
 
@@ -431,7 +441,7 @@ int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pb
 void FixPolarizeBEMICC::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
-  for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  for (m = 0, i = first; m < n; m++, i++) atom->q_scaled[i] = buf[m];
 }
 
 /* ----------------------------------------------------------------------
@@ -444,7 +454,8 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean, double
   double *area = atom->area;
   double *ed = atom->ed;
   double *em = atom->em;
-  double *q_unscaled = atom->q_unscaled;
+  double *q = atom->q;
+  double *q_scaled = atom->q_scaled;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -455,7 +466,8 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean, double
       em[i] = emean;
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
-      if (set_charge) q_unscaled[i] = qvalue;
+      if (set_charge) q[i] = qvalue;
+      q_scaled[i] = q[i] / epsilon[i];
     }
   }
 }

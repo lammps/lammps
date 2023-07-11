@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,8 +24,6 @@
 #include "memory.h"             // IWYU pragma: keep
 #include "min.h"
 #include "molecule.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"           // IWYU pragma: keep
 #include "output.h"
 #include "pair.h"
@@ -141,21 +139,34 @@ void Finish::end(int flag)
             (strcmp(update->unit_style,"real") == 0))) {
         double one_fs = force->femtosecond;
         double t_step = ((double) time_loop) / ((double) update->nsteps);
-        double step_t = 1.0/t_step;
+        double step_t = 1.0 / t_step;
+        double atomstep_s = (double)atom->natoms * step_t;
+        std::string atomstep_u = "atom-step/s";
+        if (atomstep_s > 1000000000.0) {
+          atomstep_u = "Gatom-step/s";
+          atomstep_s /= 1000000000.0;
+        } else if (atomstep_s > 1000000.0) {
+          atomstep_u = "Matom-step/s";
+          atomstep_s /= 1000000.0;
+        } else if (atomstep_s > 1000.0) {
+          atomstep_u = "katom-step/s";
+          atomstep_s /= 1000.0;
+        }
 
         if (strcmp(update->unit_style,"lj") == 0) {
           double tau_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          utils::logmesg(lmp,"Performance: {:.3f} tau/day, {:.3f} timesteps/s\n",tau_day,step_t);
+          utils::logmesg(lmp, "Performance: {:.3f} tau/day, {:.3f} timesteps/s, {:.3f} {}\n",
+                         tau_day, step_t, atomstep_s, atomstep_u);
         } else if (strcmp(update->unit_style,"electron") == 0) {
           double hrs_fs = t_step / update->dt * one_fs / 3600.0;
           double fs_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          utils::logmesg(lmp,"Performance: {:.3f} fs/day, {:.3f} hours/fs, "
-                         "{:.3f} timesteps/s\n",fs_day,hrs_fs,step_t);
+          utils::logmesg(lmp,"Performance: {:.3f} fs/day, {:.3f} hours/fs, {:.3f} timesteps/s, "
+                         "{:.3f} {}\n", fs_day, hrs_fs, step_t, atomstep_s, atomstep_u);
         } else {
           double hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 3600.0;
           double ns_day = 24.0*3600.0 / t_step * update->dt / one_fs/1000000.0;
-          utils::logmesg(lmp,"Performance: {:.3f} ns/day, {:.3f} hours/ns, "
-                         "{:.3f} timesteps/s\n",ns_day,hrs_ns,step_t);
+          utils::logmesg(lmp,"Performance: {:.3f} ns/day, {:.3f} hours/ns, {:.3f} timesteps/s, "
+                         "{:.3f} {}\n", ns_day, hrs_ns, step_t, atomstep_s, atomstep_u);
         }
       }
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,8 +26,8 @@ class MLIAPData : protected Pointers {
   ~MLIAPData() override;
 
   void init();
-  void generate_neighdata(class NeighList *, int = 0, int = 0);
-  void grow_neigharrays();
+  virtual void generate_neighdata(class NeighList *, int = 0, int = 0);
+  virtual void grow_neigharrays();
   double memory_usage();
 
   int size_array_rows, size_array_cols;
@@ -44,6 +44,7 @@ class MLIAPData : protected Pointers {
   int ndescriptors;        // number of descriptors
   int nparams;             // number of model parameters per element
   int nelements;           // number of elements
+  int gradgradflag;        // 1 for graddesc, 0 for gamma, -1 for pair style
 
   // data structures for grad-grad list (gamma)
 
@@ -77,14 +78,13 @@ class MLIAPData : protected Pointers {
   int vflag;                     // indicates if virial is needed
   class PairMLIAP *pairmliap;    // access to pair tally functions
 
- private:
+ protected:
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
 
   int nmax;
   class NeighList *list;    // LAMMPS neighbor list
   int *map;                 // map LAMMPS types to [0,nelements)
-  int gradgradflag;         // 1 for graddesc, 0 for gamma
 };
 
 }    // namespace LAMMPS_NS

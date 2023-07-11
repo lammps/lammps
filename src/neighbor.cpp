@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -95,6 +95,16 @@ static const char cite_neigh_multi[] =
   "          Detection Applied to Investigate the Quasi-Static Limit},\n"
   " journal = {Computational Particle Mechanics},\n"
   " year = {2020}\n"
+  "@article{Monti2022,\n"
+  " author = {Monti, Joseph M. and Clemmer, Joel T. and Srivastava, \n"
+  "           Ishan and Silbert, Leonardo E. and Grest, Gary S. \n"
+  "           and Lechman, Jeremy B.},\n"
+  " title = {Large-scale frictionless jamming with power-law particle \n"
+  "          size distributions},\n"
+  " journal = {Phys. Rev. E},\n"
+  " volume = {106}\n"
+  " issue = {3}\n"
+  " year = {2022}\n"
   "}\n\n";
 
 // template for factory functions:
@@ -119,7 +129,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   style = Neighbor::BIN;
   every = 1;
-  delay = 10;
+  delay = 0;
   dist_check = 1;
   pgsize = 100000;
   oneatom = 2000;
@@ -216,6 +226,10 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
   // Kokkos setting
 
   copymode = 0;
+
+  // GPU setting
+
+  overlap_topo = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,6 +307,7 @@ void Neighbor::init()
 {
   int i,j,n;
 
+  overlap_topo = 0;
   ncalls = ndanger = 0;
   dimension = domain->dimension;
   triclinic = domain->triclinic;
@@ -535,6 +550,7 @@ void Neighbor::init()
       int flag=0;
       for (int isub=0; isub < ph->nstyles; ++isub) {
         if (force->pair_match("amoeba",0,isub)
+            || force->pair_match("hippo",0,isub)
             || force->pair_match("coul/wolf",0,isub)
             || force->pair_match("coul/dsf",0,isub)
             || force->pair_match("coul/exclude",0)
@@ -545,6 +561,7 @@ void Neighbor::init()
         special_flag[1] = special_flag[2] = special_flag[3] = 2;
     } else {
       if (force->pair_match("amoeba",0)
+          || force->pair_match("hippo",0)
           || force->pair_match("coul/wolf",0)
           || force->pair_match("coul/dsf",0)
           || force->pair_match("coul/exclude",0)
@@ -820,10 +837,20 @@ int Neighbor::init_pair()
   //     similar to what vanilla Nbin::coord2atom() does now in atom2bin
 
   if (style == Neighbor::BIN) {
-    for (i = 0; i < nrequest; i++)
+    for (i = 0; i < nrequest; ++i)
       if (requests[i]->occasional && requests[i]->ghost)
-        error->all(FLERR,"Cannot request an occasional binned neighbor list "
-                   "with ghost info");
+        error->all(FLERR, "Cannot request an occasional binned neighbor list with ghost info");
+  }
+
+  // check requests with a custom neighbor list cutoff to make sure the cutoff is within
+  // the communication cutoff.  For perpetual lists, neighbor list skin is added later.
+
+  const double comm_cutoff = comm->get_comm_cutoff();
+  for (i = 0; i < nrequest; ++i) {
+    if (requests[i]->cut) {
+      if (comm_cutoff < (requests[i]->cutoff + (requests[i]->occasional ? 0.0 : skin)))
+        error->all(FLERR, "Custom neighbor list cutoff too large for communication cutoff");
+    }
   }
 
   // morph requests in various ways
@@ -1195,7 +1222,7 @@ void Neighbor::morph_skip()
 
     // these lists are created other ways, no need for skipping
     // halffull list and its full parent may both skip,
-    //   but are checked to insure matching skip info
+    //   but are checked to ensure matching skip info
 
     if (irq->halffull) continue;
     if (irq->copy) continue;
@@ -2431,8 +2458,9 @@ void Neighbor::build(int topoflag)
   }
 
   // build topology lists for bonds/angles/etc
+  // skip if GPU package styles will call it explicitly to overlap with GPU computation.
 
-  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag && !overlap_topo) build_topology();
 }
 
 /* ----------------------------------------------------------------------
@@ -2496,7 +2524,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
   // or this is skip list and parent is occasional list,
-  // insure parent is current
+  // ensure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
     build_one(mylist->listcopy,preflag);
@@ -2654,8 +2682,7 @@ void Neighbor::modify_params(int narg, char **arg)
                  strcmp(arg[iarg+1],"molecule/intra") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "neigh_modify exclude molecule", error);
         if (atom->molecule_flag == 0)
-          error->all(FLERR,"Neigh_modify exclude molecule "
-                     "requires atom attribute molecule");
+          error->all(FLERR,"Neigh_modify exclude molecule requires atom attribute molecule");
         if (nex_mol == maxex_mol) {
           maxex_mol += EXDELTA;
           memory->grow(ex_mol_group,maxex_mol,"neigh:ex_mol_group");
@@ -2813,6 +2840,15 @@ void Neighbor::exclusion_group_group_delete(int group1, int group2)
 int Neighbor::exclude_setting()
 {
   return exclude;
+}
+
+/* ----------------------------------------------------------------------
+   If nonzero, call build_topology from GPU styles instead to overlap comp
+------------------------------------------------------------------------- */
+
+void Neighbor::set_overlap_topo(int s)
+{
+  overlap_topo = s;
 }
 
 /* ----------------------------------------------------------------------

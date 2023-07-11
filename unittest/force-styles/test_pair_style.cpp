@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,6 +25,7 @@
 
 #include "atom.h"
 #include "compute.h"
+#include "domain.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -379,8 +380,9 @@ TEST(PairStyle, plain)
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     // skip comparing per-atom energy with total energy for "kim" and "in.conp"
-    if (std::string("kim") != lmp->force->pair_style &&
-        std::string("in.conp") != test_config.input_file)
+    if ((std::string("kim") != lmp->force->pair_style) &&
+        (std::string("pod") != lmp->force->pair_style) &&
+        (std::string("in.conp") != test_config.input_file))
         EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
@@ -1095,6 +1097,13 @@ TEST(PairStyle, single)
 
     for (auto &pre_command : test_config.pre_commands) {
         command(pre_command);
+    }
+
+    if (lmp->domain->box_exist) {
+        std::cerr << "Cannot test single() with YAML file that creates a box\n";
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
     }
 
     command("atom_style full");

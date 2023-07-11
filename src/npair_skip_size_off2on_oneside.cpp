@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,7 +36,7 @@ NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
 
 void NPairSkipSizeOff2onOneside::build(NeighList *list)
 {
-  int i,j,ii,jj,n,itype,jnum,joriginal,flip,tmp;
+  int i,j,ii,jj,itype,jnum,joriginal,flip,tmp;
   int *surf,*jlist;
 
   int *type = atom->type;
@@ -76,8 +76,6 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
-    n = 0;
-
     // loop over parent non-skip size list
 
     jlist = firstneigh_skip[i];
@@ -108,8 +106,7 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
 
   for (i = 0; i < nlocal; i++) {
     if (numneigh[i] == 0) continue;
-    n = numneigh[i];
-    firstneigh[i] = ipage->get(n);
+    firstneigh[i] = ipage->get(numneigh[i]);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }

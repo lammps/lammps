@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,6 +37,7 @@ static constexpr double SMALLER = 0.00001;
 DihedralOPLS::DihedralOPLS(LAMMPS *_lmp) : Dihedral(_lmp)
 {
   writedata = 1;
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -331,4 +332,102 @@ void DihedralOPLS::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     fprintf(fp, "%d %g %g %g %g\n", i, 2.0 * k1[i], 2.0 * k2[i], 2.0 * k3[i], 2.0 * k4[i]);
+}
+
+/* ----------------------------------------------------------------------*/
+
+void DihedralOPLS::born_matrix(int nd, int i1, int i2, int i3, int i4,
+                             double &du, double &du2)
+{
+  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
+  double sb1, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;
+  double b2mag, b3mag2, b3mag, ctmp, r12c1, c1mag, r12c2;
+  double c2mag, sc1, sc2, s12, c;
+  double cx, cy, cz, cmag, dx, phi, si, sin2;
+
+  double **x = atom->x;
+  int **dihedrallist = neighbor->dihedrallist;
+
+  int type = dihedrallist[nd][4];
+
+  // 1st bond
+  vb1x = x[i1][0] - x[i2][0];
+  vb1y = x[i1][1] - x[i2][1];
+  vb1z = x[i1][2] - x[i2][2];
+
+  // 2nd bond
+  vb2x = x[i3][0] - x[i2][0];
+  vb2y = x[i3][1] - x[i2][1];
+  vb2z = x[i3][2] - x[i2][2];
+
+  vb2xm = -vb2x;
+  vb2ym = -vb2y;
+  vb2zm = -vb2z;
+
+  // 3rd bond
+  vb3x = x[i4][0] - x[i3][0];
+  vb3y = x[i4][1] - x[i3][1];
+  vb3z = x[i4][2] - x[i3][2];
+
+  // c0 calculation
+  sb1 = 1.0 / (vb1x * vb1x + vb1y * vb1y + vb1z * vb1z);
+  sb3 = 1.0 / (vb3x * vb3x + vb3y * vb3y + vb3z * vb3z);
+
+  rb1 = sqrt(sb1);
+  rb3 = sqrt(sb3);
+
+  c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * rb1 * rb3;
+
+  // 1st and 2nd angle
+  b1mag2 = vb1x * vb1x + vb1y * vb1y + vb1z * vb1z;
+  b1mag = sqrt(b1mag2);
+  b2mag2 = vb2x * vb2x + vb2y * vb2y + vb2z * vb2z;
+  b2mag = sqrt(b2mag2);
+  b3mag2 = vb3x * vb3x + vb3y * vb3y + vb3z * vb3z;
+  b3mag = sqrt(b3mag2);
+
+  ctmp = vb1x * vb2x + vb1y * vb2y + vb1z * vb2z;
+  r12c1 = 1.0 / (b1mag * b2mag);
+  c1mag = ctmp * r12c1;
+
+  ctmp = vb2xm * vb3x + vb2ym * vb3y + vb2zm * vb3z;
+  r12c2 = 1.0 / (b2mag * b3mag);
+  c2mag = ctmp * r12c2;
+
+  // cos and sin of 2 angles and final c
+  sin2 = MAX(1.0 - c1mag * c1mag, 0.0);
+  sc1 = sqrt(sin2);
+  if (sc1 < SMALL) sc1 = SMALL;
+  sc1 = 1.0 / sc1;
+
+  sin2 = MAX(1.0 - c2mag * c2mag, 0.0);
+  sc2 = sqrt(sin2);
+  if (sc2 < SMALL) sc2 = SMALL;
+  sc2 = 1.0 / sc2;
+
+  s12 = sc1 * sc2;
+  c = (c0 + c1mag * c2mag) * s12;
+
+  cx = vb1y * vb2z - vb1z * vb2y;
+  cy = vb1z * vb2x - vb1x * vb2z;
+  cz = vb1x * vb2y - vb1y * vb2x;
+  cmag = sqrt(cx * cx + cy * cy + cz * cz);
+  dx = (cx * vb3x + cy * vb3y + cz * vb3z) / cmag / b3mag;
+
+  // error check
+  if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) problem(FLERR, i1, i2, i3, i4);
+
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+
+  phi = acos(c);
+  if (dx < 0.0) phi *= -1.0;
+  si = sin(phi);
+  if (fabs(si) < SMALLER) si = SMALLER;
+
+  du = k1[type] - 2.0 * k2[type] * sin(2.0 * phi) / si + 3.0 * k3[type] * sin(3.0 * phi) / si
+          - 4.0 * k4[type] * sin(4.0 * phi) / si;
+  du2 = (4.0 * k2[type] * si * cos(2.0 * phi) - 2.0 * k2[type] * sin(2.0 * phi)
+          - 9.0 * k3[type] * si * cos(3.0 * phi) + 3.0 * k3[type] * sin(3.0 * phi)
+          + 16.0 * k4[type] * si * cos(4.0 * phi) - 4.0 * k4[type] * sin(4.0 * phi)) / (si * si * si);
 }

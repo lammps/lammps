@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *bond* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *ssao*
+* keyword = *atom* or *adiam* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *ssao*
 
   .. parsed-literal::
 
@@ -34,6 +34,14 @@ Syntax
          color = *atom* or *type* or *none*
          width = number or *atom* or *type* or *none*
            number = numeric value for bond width (distance units)
+       *grid* = per-grid value to use when coloring each grid cell
+         per-grid value = c_ID:gname:dname, c_ID:gname:dname[I], f_ID:gname:dname, f_ID:gname:dname[I]
+           gname = name of grid defined by compute or fix
+           dname = name of data field defined by compute or fix
+           c_ID = per-grid vector calculated by a compute with ID
+           c_ID[I] = Ith column of per-grid array calculated by a compute with ID
+           f_ID = per-grid vector calculated by a fix with ID
+           f_ID[I] = Ith column of per-grid array calculated by a fix with ID
        *line* = color width
          color = *type*
          width = numeric value for line width (distance units)
@@ -69,12 +77,12 @@ Syntax
          yes/no = do or do not draw simulation box lines
          diam = diameter of box lines as fraction of shortest box length
        *axes* values = axes length diam = draw xyz axes
-         axes = *yes* or *no = do or do not draw xyz axes lines next to simulation box
+         axes = *yes* or *no* = do or do not draw xyz axes lines next to simulation box
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
-       *subbox* values = lines diam = draw outline of processor sub-domains
-         lines = *yes* or *no* = do or do not draw sub-domain lines
-         diam = diameter of sub-domain lines as fraction of shortest box length
+       *subbox* values = lines diam = draw outline of processor subdomains
+         lines = *yes* or *no* = do or do not draw subdomain lines
+         diam = diameter of subdomain lines as fraction of shortest box length
        *shiny* value = sfactor = shinyness of spheres and cylinders
          sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
        *ssao* value = shading seed dfactor = SSAO depth shading
@@ -95,7 +103,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *backcolor* or *bcolor* or *bdiam* or *bitrate* or *boxcolor* or *color* or *framerate* or *gmap*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -134,15 +142,16 @@ Syntax
        *bdiam* args = type diam
          type = bond type or range of types (see below)
          diam = diameter of bonds of that type (distance units)
+       *bitrate* arg = rate
+         rate = target bitrate for movie in kbps
        *boxcolor* arg = color
-         color = name of color for simulation box lines and processor sub-domain lines
+         color = name of color for simulation box lines and processor subdomain lines
        *color* args = name R G B
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
-       *bitrate* arg = rate
-         rate = target bitrate for movie in kbps
        *framerate* arg = fps
          fps = frames per second for movie
+       *gmap* args = identical to *amap* args
 
 Examples
 """"""""
@@ -209,13 +218,13 @@ is used.
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics
 .. _ppm_format: https://en.wikipedia.org/wiki/Netpbm
 
-Similarly, the format of the resulting movie is chosen with the
-*movie* dump style. This is handled by the underlying FFmpeg converter
-and thus details have to be looked up in the `FFmpeg documentation
-<https://ffmpeg.org/ffmpeg.html>`_.  Typical examples are: .avi, .mpg,
-.m4v, .mp4, .mkv, .flv, .mov, .gif Additional settings of the movie
-compression like bitrate and framerate can be set using the
-dump_modify command as described below.
+Similarly, the format of the resulting movie is chosen with the *movie*
+dump style. This is handled by the underlying FFmpeg converter and thus
+details have to be looked up in the `FFmpeg documentation
+<https://ffmpeg.org/>`_.  Typical examples are: .avi, .mpg, .m4v, .mp4,
+.mkv, .flv, .mov, .gif Additional settings of the movie compression like
+*bitrate* and *framerate* can be set using the dump_modify command as
+described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
@@ -246,7 +255,7 @@ one image file per snapshot is written.  The "\*" character is replaced
 with the timestep value.  For example, tmp.dump.\*.jpg becomes
 tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
 that the :doc:`dump_modify pad <dump_modify>` command can be used to
-insure all timestep numbers are the same length (e.g., 00010), which
+ensure all timestep numbers are the same length (e.g., 00010), which
 can make it easier to convert a series of images into a movie in the
 correct ordering.
 
@@ -300,13 +309,13 @@ settings, they are interpreted in the following way.
 If "vx", for example, is used as the *color* setting, then the color
 of the atom will depend on the x-component of its velocity.  The
 association of a per-atom value with a specific color is determined by
-a "color map", which can be specified via the dump_modify command, as
-described below.  The basic idea is that the atom-attribute will be
-within a range of values, and every value within the range is mapped
-to a specific color.  Depending on how the color map is defined, that
-mapping can take place via interpolation so that a value of -3.2 is
-halfway between "red" and "blue", or discretely so that the value of
--3.2 is "orange".
+a "color map", which can be specified via the dump_modify amap
+command, as described below.  The basic idea is that the
+atom-attribute will be within a range of values, and every value
+within the range is mapped to a specific color.  Depending on how the
+color map is defined, that mapping can take place via interpolation so
+that a value of -3.2 is halfway between "red" and "blue", or
+discretely so that the value of -3.2 is "orange".
 
 If "vx", for example, is used as the *diameter* setting, then the atom
 will be rendered using the x-component of its velocity as the
@@ -572,13 +581,13 @@ respective box lengths.  The *diam* setting determines their thickness
 as a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
 2d).
 
-The *subbox* keyword determines if and how processor sub-domain
+The *subbox* keyword determines if and how processor subdomain
 boundaries are rendered as thin cylinders in the image.  If *no* is
-set (default), then the sub-domain boundaries are not drawn and the
+set (default), then the subdomain boundaries are not drawn and the
 *diam* setting is ignored.  If *yes* is set, the 12 edges of each
-processor sub-domain are drawn, with a diameter that is a fraction of
+processor subdomain are drawn, with a diameter that is a fraction of
 the shortest box length in x,y,z (for 3d) or x,y (for 2d).  The color
-of the sub-domain boundaries can be set with the "dump_modify
+of the subdomain boundaries can be set with the "dump_modify
 boxcolor" command.
 
 ----------
@@ -612,8 +621,8 @@ MPEG or other movie file you can use:
 
   .. code-block:: bash
 
-     % convert *.jpg foo.gif
-     % convert -loop 1 *.ppm foo.mpg
+     convert *.jpg foo.gif
+     convert -loop 1 *.ppm foo.mpg
 
   Animated GIF files from ImageMagick are not optimized. You can use
   a program like gifsicle to optimize and thus massively shrink them.
@@ -642,7 +651,7 @@ MPEG or other movie file you can use:
      cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
   Front ends for FFmpeg exist for multiple platforms. For more
-  information see the `FFmpeg homepage <https://www.ffmpeg.org/>`_
+  information see the `FFmpeg homepage <https://ffmpeg.org/>`_
 
 ----------
 
@@ -659,8 +668,8 @@ Play the movie:
 
   .. code-block:: bash
 
-     % mplayer foo.mpg
-     % ffplay bar.avi
+     mplayer foo.mpg
+     ffplay bar.avi
 
 * c) Use the `Pizza.py <https://lammps.github.io/pizza>`_
   `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,
@@ -670,7 +679,7 @@ Play the movie:
 
      a = animate("foo*.jpg")
 
-* d) QuickTime and other Windows- or MacOS-based media players can
+* d) QuickTime and other Windows- or macOS-based media players can
   obviously play movie files directly. Similarly for corresponding tools
   bundled with Linux desktop environments.  However, due to licensing
   issues with some file formats, the formats may require installing
@@ -912,8 +921,8 @@ formats.
 
 The *boxcolor* keyword sets the color of the simulation box drawn
 around the atoms in each image as well as the color of processor
-sub-domain boundaries.  See the "dump image box" command for how to
-specify that a box be drawn via the *box* keyword, and the sub-domain
+subdomain boundaries.  See the "dump image box" command for how to
+specify that a box be drawn via the *box* keyword, and the subdomain
 boundaries via the *subbox* keyword.  The color name can be any of the
 140 pre-defined colors (see below) or a color name defined by the
 dump_modify color option.
@@ -945,6 +954,17 @@ To speed a movie up, you can do the inverse.  Using a frame rate
 higher than 24 is not recommended, as it will result in simply
 dropping the rendered images. It is more efficient to dump images less
 frequently.
+
+----------
+
+The *gmap* keyword can be used with the dump image command, with its
+*grid* keyword, to setup a color map.  The color map is used to assign
+a specific RGB (red/green/blue) color value to an individual grid cell
+when it is drawn, based on the grid cell value, which is a numeric
+quantity specified with the *grid* keyword.
+
+The arguments for the *gmap* keyword are identical to those for the
+*amap* keyword (for atom coloring) described above.
 
 ----------
 
@@ -1031,6 +1051,7 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * boxcolor = yellow
 * color = 140 color names are pre-defined as listed below
 * framerate = 24
+* gmap = min max cf 0.0 2 min blue max red
 
 ----------
 

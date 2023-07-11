@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -213,7 +213,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // depends on specified volume fraction
   // volume = volume of insertion region
   // volume_one = volume of inserted particle (with max possible radius)
-  // in 3d, insure dy >= 1, for quasi-2d simulations
+  // in 3d, ensure dy >= 1, for quasi-2d simulations
 
   double volume, volume_one = 1.0;
 
@@ -270,6 +270,7 @@ FixPour::~FixPour()
   delete[] molfrac;
   delete[] idrigid;
   delete[] idshake;
+  delete[] idregion;
   delete[] radius_poly;
   delete[] frac_poly;
   memory->destroy(coords);
@@ -296,7 +297,7 @@ void FixPour::init()
   region = domain->get_region_by_id(idregion);
   if (!region) error->all(FLERR, "Fix pour region {} does not exist", idregion);
 
-  // insure gravity fix (still) exists
+  // ensure gravity fix (still) exists
   // for 3d must point in -z, for 2d must point in -y
   // else insertion cannot work
 
@@ -677,7 +678,7 @@ void FixPour::pre_exchange()
   int ninserted_atoms = nnear - nprevious;
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
-  if (ninserted_mols < nnew && me == 0) error->warning(FLERR, "Less insertions than requested");
+  if (ninserted_mols < nnew && me == 0) error->warning(FLERR, "Fewer insertions than requested");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary

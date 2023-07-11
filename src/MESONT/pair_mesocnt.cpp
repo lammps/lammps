@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -481,7 +481,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
           geometry(r1, r2, p1, p2, nullptr, p, m, param, basis);
 
           if (param[0] > cutoff) continue;
-          if (!(param[2] < 0 && param[3] > 0)) {
+          if (param[2] >= 0 || param[3] <= 0) {
             double salpha = sin(param[1]);
             double sxi1 = salpha * param[2];
             double sxi2 = salpha * param[3];
@@ -503,7 +503,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
             geometry(r1, r2, p2, p1, qe, p, m, param, basis);
 
           if (param[0] > cutoff) continue;
-          if (!(param[2] < 0 && param[3] > 0)) {
+          if (param[2] >= 0 || param[3] <= 0) {
             double hsq = param[0] * param[0];
             double calpha = cos(param[1]);
             double etamin = calpha * param[2];
@@ -1130,7 +1130,7 @@ void PairMesoCNT::bond_neigh_topo()
           try {
             curr_reduced = reduced_map.at(curr_local);
             next_reduced = reduced_map.at(next_local);
-          } catch (const std::out_of_range &e) {
+          } catch (const std::out_of_range &) {
             break;
           }
 
@@ -1371,7 +1371,7 @@ void PairMesoCNT::chain_split(int *redlist, int numred, int *nchain, int **chain
 
   tagint *tag = atom->tag;
   tagint *mol = atom->molecule;
-  tagint *type = atom->type;
+  int *type = atom->type;
   int clen = 0;
   int cid = 0;
 

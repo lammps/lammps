@@ -59,9 +59,21 @@ long cutoff, but other type pairs have a much shorter cutoff. The
 sized particles, where "size" may mean the physical size of the particle
 or its cutoff distance for interacting with other particles. Different
 sets of bins are then used to construct the neighbor lists as as further
-described by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`.
-This imposes some extra setup overhead, but the searches themselves may
-be much faster. By default, each atom type defines a separate collection
+described by Shire, Hanley, and Stratford :ref:`(Shire) <multi-Shire>`
+and Monti et al. :ref:`(Monti) <multi-Monti>`. This imposes some extra
+setup overhead, but the searches themselves may be much faster.
+
+For instance in a dense binary system in d-dimensions with a ratio of the size
+of the largest to smallest collection bin :math:`\lambda`, the computational
+costs of building a default neighbor list grows as :math:`\lambda^{2d}` while
+the costs for *multi* grows as :math:`\lambda^d`, equivalent to the cost
+of force evaluations, as argued in Monti et al. :ref:`(Monti) <multi-Monti>`.
+In other words, the neighboring costs of *multi* are expected to scale the
+same as force calculations, such that its relative cost is independent of
+the particle size ratio. This is not the case for the default style which
+becomes substantially more expensive with increasing size ratios.
+
+By default in *multi*, each atom type defines a separate collection
 of particles. For systems where two or more atom types have the same
 size (either physical size or cutoff distance), the definition of
 collections can be customized, which can result in less overhead and
@@ -75,8 +87,11 @@ An alternate style, *multi/old*, sets the bin size to 1/2 of the shortest
 cutoff distance and multiple sets of bins are defined to search over for
 different atom types. This algorithm used to be the default *multi*
 algorithm in LAMMPS but was found to be significantly slower than the new
-approach. For now we are keeping the old option in case there are use cases
-where multi/old outperforms the new multi style.
+approach. For the dense binary system, computational costs still grew as
+:math:`\lambda^{2d}` at large enough :math:`\lambda`. This is equivalent
+to the default style, albeit with a smaller prefactor. For now we are
+keeping the old option in case there are use cases where multi/old
+outperforms the new multi style.
 
 .. note::
 
@@ -118,6 +133,10 @@ Default
 
 ----------
 
-.. _bytype-Shire:
+.. _multi-Shire:
 
-**(Shire)** Shire, Hanley and Stratford, Comp Part Mech, (2020).
+**(Shire)** Shire, Hanley and Stratford, Comp. Part. Mech., (2020).
+
+.. _multi-Monti:
+
+**(Monti)** Monti, Clemmer, Srivastava, Silbert, Grest, and Lechman, Phys. Rev. E, (2022).

@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *mesont* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
+* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
 
   .. parsed-literal::
 
@@ -109,8 +109,6 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *mdpd*       | density                                             | mDPD particles                       |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
-+--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *oxdna*      | nucleotide polarity                                 | coarse-grained DNA and RNA models    |
@@ -163,15 +161,14 @@ and each stores a per-particle diameter and mass.  If the diameter >
 0.0, the particle is a finite-size sphere.  If the diameter = 0.0, it
 is a point particle.  Note that by use of the *disc* keyword with the
 :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere
-<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix
-npt/sphere <fix_npt_sphere>` commands for the *sphere* style, spheres
-can be effectively treated as 2d discs for a 2d simulation if desired.
-See also the :doc:`set density/disc <set>` command.  The *sphere* and
-*bpm/sphere* styles take an optional 0 or 1 argument.  A value of 0
-means the radius of each sphere is constant for the duration of the
-simulation.  A value of 1 means the radii may vary dynamically during
-the simulation, e.g. due to use of the :doc:`fix adapt <fix_adapt>`
-command.
+<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`,
+:doc:`fix npt/sphere <fix_npt_sphere>` commands for the *sphere* style,
+spheres can be effectively treated as 2d discs for a 2d simulation if
+desired.  See also the :doc:`set density/disc <set>` command.  These
+styles take an optional 0 or 1 argument.  A value of 0 means the
+radius of each sphere is constant for the duration of the simulation.
+A value of 1 means the radii may vary dynamically during the simulation,
+e.g. due to use of the :doc:`fix adapt <fix_adapt>` command.
 
 For the *ellipsoid* style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
@@ -284,7 +281,7 @@ showing the use of the *template* atom style versus *molecular*.
 .. note::
 
    When using the *template* style with a :doc:`molecule template
-   <molecule>` that contains multiple molecules, you should insure the
+   <molecule>` that contains multiple molecules, you should ensure the
    atom types, bond types, angle_types, etc in all the molecules are
    consistent.  E.g. if one molecule represents H2O and another CO2,
    then you probably do not want each molecule file to define 2 atom
@@ -381,8 +378,6 @@ dynamics (tDPD), respectively.
 The *sph* style is part of the SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide
 <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
-
-The *mesont* style is part of the MESONT package.
 
 The *spin* style is part of the SPIN package.
 

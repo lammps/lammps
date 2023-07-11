@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -202,7 +202,7 @@ void PairTable::allocate()
 
 void PairTable::settings(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style table", error);
 
   // new settings
 
@@ -218,7 +218,7 @@ void PairTable::settings(int narg, char **arg)
     error->all(FLERR, "Unknown table style in pair_style command: {}", arg[0]);
 
   tablength = utils::inumeric(FLERR, arg[1], false, lmp);
-  if (tablength < 2) error->all(FLERR, "Illegal number of pair table entries");
+  if (tablength < 2) error->all(FLERR, "Illegal number of pair table entries: {}", tablength);
 
   // optional keywords
   // assert the tabulation is compatible with a specific long-range solver
@@ -236,7 +236,7 @@ void PairTable::settings(int narg, char **arg)
     else if (strcmp(arg[iarg], "tip4p") == 0)
       tip4pflag = 1;
     else
-      error->all(FLERR, "Illegal pair_style command");
+      error->all(FLERR, "Unknown pair_style table keyword: {}", arg[iarg]);
     iarg++;
   }
 
@@ -287,7 +287,7 @@ void PairTable::coeff(int narg, char **arg)
     tb->cut = tb->rfile[tb->ninput - 1];
 
   // error check on table parameters
-  // insure cutoff is within table
+  // ensure cutoff is within table
   // for BITMAP tables, file values can be in non-ascending order
 
   if (tb->ninput <= 1) error->one(FLERR, "Invalid pair table length");
@@ -365,7 +365,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
   char *line = reader.find_section_start(keyword);
 
-  if (!line) { error->one(FLERR, "Did not find keyword in table file"); }
+  if (!line) error->one(FLERR, "Did not find keyword {} in table file", keyword);
 
   // read args on 2nd line of section
   // allocate table arrays for file values
@@ -398,6 +398,9 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
     line = reader.next_line();
+    if (!line)
+      error->one(FLERR, "Data missing when parsing pair table '{}' line {} of {}.", keyword, i + 1,
+                 tb->ninput);
     try {
       ValueTokenizer values(line);
       values.next_int();

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,25 +47,6 @@ struct s_EVM_FLOAT {
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_EVM_FLOAT &rhs) {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    emol += rhs.emol;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
-    vp[0] += rhs.vp[0];
-    vp[1] += rhs.vp[1];
-    vp[2] += rhs.vp[2];
-    vp[3] += rhs.vp[3];
-    vp[4] += rhs.vp[4];
-    vp[5] += rhs.vp[5];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_EVM_FLOAT &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
     emol += rhs.emol;

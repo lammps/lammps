@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,27 +27,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
+AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVec(lmp),
+AtomVecKokkos(lmp), AtomVecDPD(lmp)
 {
-  molecular = Atom::ATOMIC;
-  mass_type = PER_TYPE;
-
-  comm_x_only = comm_f_only = 0;
-  size_forward = 7;
-  size_reverse = 3;
-  size_border = 12;
-  size_velocity = 3;
-  size_data_atom = 6;
-  size_data_vel = 4;
-  xcol_data = 4;
-
-  atom->rho_flag = 1;
-  atom->dpd_flag = 1;
-
-  k_count = DAT::tdual_int_1d("atom::k_count",1);
-  atomKK = (AtomKokkos *) atom;
-  commKK = (CommKokkos *) comm;
-
   no_comm_vel_flag = 1;
 }
 
@@ -134,61 +116,47 @@ void AtomVecDPDKokkos::grow_pointers()
   d_dpdTheta = atomKK->k_dpdTheta.d_view;
   h_dpdTheta = atomKK->k_dpdTheta.h_view;
   uCond = atomKK->uCond;
-  d_uCond = atomKK->k_uCond.d_view;;
+  d_uCond = atomKK->k_uCond.d_view;
   h_uCond = atomKK->k_uCond.h_view;
   uMech = atomKK->uMech;
-  d_uMech = atomKK->k_uMech.d_view;;
+  d_uMech = atomKK->k_uMech.d_view;
   h_uMech = atomKK->k_uMech.h_view;
   uChem = atomKK->uChem;
-  d_uChem = atomKK->k_uChem.d_view;;
+  d_uChem = atomKK->k_uChem.d_view;
   h_uChem = atomKK->k_uChem.h_view;
   uCG = atomKK->uCG;
-  d_uCG = atomKK->k_uCG.d_view;;
+  d_uCG = atomKK->k_uCG.d_view;
   h_uCG = atomKK->k_uCG.h_view;
   uCGnew = atomKK->uCGnew;
-  d_uCGnew = atomKK->k_uCGnew.d_view;;
+  d_uCGnew = atomKK->k_uCGnew.d_view;
   h_uCGnew = atomKK->k_uCGnew.h_view;
   duChem = atomKK->duChem;
-  d_duChem = atomKK->k_duChem.d_view;;
+  d_duChem = atomKK->k_duChem.d_view;
   h_duChem = atomKK->k_duChem.h_view;
 }
 
 /* ----------------------------------------------------------------------
-   copy atom I info to atom J
+   sort atom arrays on device
 ------------------------------------------------------------------------- */
 
-void AtomVecDPDKokkos::copy(int i, int j, int delflag)
+void AtomVecDPDKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
-  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-            MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
-            UCG_MASK | UCGNEW_MASK |
-            UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
+  atomKK->sync(Device, ALL_MASK & ~F_MASK & ~DPDRHO_MASK & ~DUCHEM_MASK & ~DVECTOR_MASK);
 
-  h_tag[j] = h_tag[i];
-  h_type[j] = h_type[i];
-  mask[j] = mask[i];
-  h_image[j] = h_image[i];
-  h_x(j,0) = h_x(i,0);
-  h_x(j,1) = h_x(i,1);
-  h_x(j,2) = h_x(i,2);
-  h_v(j,0) = h_v(i,0);
-  h_v(j,1) = h_v(i,1);
-  h_v(j,2) = h_v(i,2);
-  h_dpdTheta[j] = h_dpdTheta[i];
-  h_uCond[j] = h_uCond[i];
-  h_uMech[j] = h_uMech[i];
-  h_uChem[j] = h_uChem[i];
-  h_uCG[j] = h_uCG[i];
-  h_uCGnew[j] = h_uCGnew[i];
+  Sorter.sort(LMPDeviceType(), d_tag);
+  Sorter.sort(LMPDeviceType(), d_type);
+  Sorter.sort(LMPDeviceType(), d_mask);
+  Sorter.sort(LMPDeviceType(), d_image);
+  Sorter.sort(LMPDeviceType(), d_x);
+  Sorter.sort(LMPDeviceType(), d_v);
+  Sorter.sort(LMPDeviceType(), d_dpdTheta);
+  Sorter.sort(LMPDeviceType(), d_uCond);
+  Sorter.sort(LMPDeviceType(), d_uMech);
+  Sorter.sort(LMPDeviceType(), d_uChem);
+  Sorter.sort(LMPDeviceType(), d_uCG);
+  Sorter.sort(LMPDeviceType(), d_uCGnew);
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j,delflag);
-
-  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-                MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
-                UCG_MASK | UCGNEW_MASK |
-                UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
+  atomKK->modified(Device, ALL_MASK & ~F_MASK & ~DPDRHO_MASK & ~DUCHEM_MASK & ~DVECTOR_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -547,209 +515,6 @@ void AtomVecDPDKokkos::unpack_comm_kokkos(const int &n, const int &first,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecDPDKokkos::pack_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz;
-
-  atomKK->sync(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0);
-      buf[m++] = h_x(j,1);
-      buf[m++] = h_x(j,2);
-      buf[m++] = h_dpdTheta[j];
-      buf[m++] = h_uCond[j];
-      buf[m++] = h_uMech[j];
-      buf[m++] = h_uChem[j];
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-      dz = pbc[2]*domain->zprd;
-    }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0) + dx;
-      buf[m++] = h_x(j,1) + dy;
-      buf[m++] = h_x(j,2) + dz;
-      buf[m++] = h_dpdTheta[j];
-      buf[m++] = h_uCond[j];
-      buf[m++] = h_uMech[j];
-      buf[m++] = h_uChem[j];
-    }
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_comm_vel(int n, int *list, double *buf,
-                                 int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz,dvx,dvy,dvz;
-
-  atomKK->sync(Host,X_MASK|V_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0);
-      buf[m++] = h_x(j,1);
-      buf[m++] = h_x(j,2);
-      buf[m++] = h_v(j,0);
-      buf[m++] = h_v(j,1);
-      buf[m++] = h_v(j,2);
-      buf[m++] = h_dpdTheta[j];
-      buf[m++] = h_uCond[j];
-      buf[m++] = h_uMech[j];
-      buf[m++] = h_uChem[j];
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-      dz = pbc[2]*domain->zprd;
-    }
-    if (!deform_vremap) {
-      for (i = 0; i < n; i++) {
-        j = list[i];
-        buf[m++] = h_x(j,0) + dx;
-        buf[m++] = h_x(j,1) + dy;
-        buf[m++] = h_x(j,2) + dz;
-        buf[m++] = h_v(j,0);
-        buf[m++] = h_v(j,1);
-        buf[m++] = h_v(j,2);
-        buf[m++] = h_dpdTheta[j];
-        buf[m++] = h_uCond[j];
-        buf[m++] = h_uMech[j];
-        buf[m++] = h_uChem[j];
-      }
-    } else {
-      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
-      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
-      dvz = pbc[2]*h_rate[2];
-      for (i = 0; i < n; i++) {
-        j = list[i];
-        buf[m++] = h_x(j,0) + dx;
-        buf[m++] = h_x(j,1) + dy;
-        buf[m++] = h_x(j,2) + dz;
-        if (mask[i] & deform_groupbit) {
-          buf[m++] = h_v(j,0) + dvx;
-          buf[m++] = h_v(j,1) + dvy;
-          buf[m++] = h_v(j,2) + dvz;
-        } else {
-          buf[m++] = h_v(j,0);
-          buf[m++] = h_v(j,1);
-          buf[m++] = h_v(j,2);
-        }
-        buf[m++] = h_dpdTheta(j);
-        buf[m++] = h_uCond(j);
-        buf[m++] = h_uMech(j);
-        buf[m++] = h_uChem(j);
-      }
-    }
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::unpack_comm(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    h_x(i,0) = buf[m++];
-    h_x(i,1) = buf[m++];
-    h_x(i,2) = buf[m++];
-    h_dpdTheta[i] = buf[m++];
-    h_uCond[i] = buf[m++];
-    h_uMech[i] = buf[m++];
-    h_uChem[i] = buf[m++];
-  }
-
-  atomKK->modified(Host,X_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::unpack_comm_vel(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    h_x(i,0) = buf[m++];
-    h_x(i,1) = buf[m++];
-    h_x(i,2) = buf[m++];
-    h_v(i,0) = buf[m++];
-    h_v(i,1) = buf[m++];
-    h_v(i,2) = buf[m++];
-    h_dpdTheta[i] = buf[m++];
-    h_uCond[i] = buf[m++];
-    h_uMech[i] = buf[m++];
-    h_uChem[i] = buf[m++];
-  }
-
-  atomKK->modified(Host,X_MASK|V_MASK|DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_reverse(int n, int first, double *buf)
-{
-  if (n > 0)
-    atomKK->sync(Host,F_MASK);
-
-  int m = 0;
-  const int last = first + n;
-  for (int i = first; i < last; i++) {
-    buf[m++] = h_f(i,0);
-    buf[m++] = h_f(i,1);
-    buf[m++] = h_f(i,2);
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::unpack_reverse(int n, int *list, double *buf)
-{
-  if (n > 0) {
-    atomKK->sync(Host,F_MASK);
-    atomKK->modified(Host,F_MASK);
-  }
-
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    const int j = list[i];
-    h_f(j,0) += buf[m++];
-    h_f(j,1) += buf[m++];
-    h_f(j,2) += buf[m++];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType,int PBC_FLAG>
 struct AtomVecDPDKokkos_PackBorder {
   typedef DeviceType device_type;
@@ -871,206 +636,6 @@ int AtomVecDPDKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, DA
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecDPDKokkos::pack_border(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz;
-
-  atomKK->sync(Host,ALL_MASK);
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0);
-      buf[m++] = h_x(j,1);
-      buf[m++] = h_x(j,2);
-      buf[m++] = ubuf(h_tag(j)).d;
-      buf[m++] = ubuf(h_type(j)).d;
-      buf[m++] = ubuf(h_mask(j)).d;
-      buf[m++] = h_dpdTheta(j);
-      buf[m++] = h_uCond(j);
-      buf[m++] = h_uMech(j);
-      buf[m++] = h_uChem(j);
-      buf[m++] = h_uCG(j);
-      buf[m++] = h_uCGnew(j);
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0];
-      dy = pbc[1];
-      dz = pbc[2];
-    }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0) + dx;
-      buf[m++] = h_x(j,1) + dy;
-      buf[m++] = h_x(j,2) + dz;
-      buf[m++] = ubuf(h_tag(j)).d;
-      buf[m++] = ubuf(h_type(j)).d;
-      buf[m++] = ubuf(h_mask(j)).d;
-      buf[m++] = h_dpdTheta(j);
-      buf[m++] = h_uCond(j);
-      buf[m++] = h_uMech(j);
-      buf[m++] = h_uChem(j);
-      buf[m++] = h_uCG(j);
-      buf[m++] = h_uCGnew(j);
-    }
-  }
-
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_border_vel(int n, int *list, double *buf,
-                                   int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz,dvx,dvy,dvz;
-
-  atomKK->sync(Host,ALL_MASK);
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0);
-      buf[m++] = h_x(j,1);
-      buf[m++] = h_x(j,2);
-      buf[m++] = ubuf(h_tag(j)).d;
-      buf[m++] = ubuf(h_type(j)).d;
-      buf[m++] = ubuf(h_mask(j)).d;
-      buf[m++] = h_v(j,0);
-      buf[m++] = h_v(j,1);
-      buf[m++] = h_v(j,2);
-      buf[m++] = h_dpdTheta(j);
-      buf[m++] = h_uCond(j);
-      buf[m++] = h_uMech(j);
-      buf[m++] = h_uChem(j);
-      buf[m++] = h_uCG(j);
-      buf[m++] = h_uCGnew(j);
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0];
-      dy = pbc[1];
-      dz = pbc[2];
-    }
-    if (!deform_vremap) {
-      for (i = 0; i < n; i++) {
-        j = list[i];
-        buf[m++] = h_x(j,0) + dx;
-        buf[m++] = h_x(j,1) + dy;
-        buf[m++] = h_x(j,2) + dz;
-        buf[m++] = ubuf(h_tag(j)).d;
-        buf[m++] = ubuf(h_type(j)).d;
-        buf[m++] = ubuf(h_mask(j)).d;
-        buf[m++] = h_v(j,0);
-        buf[m++] = h_v(j,1);
-        buf[m++] = h_v(j,2);
-        buf[m++] = h_dpdTheta(j);
-        buf[m++] = h_uCond(j);
-        buf[m++] = h_uMech(j);
-        buf[m++] = h_uChem(j);
-        buf[m++] = h_uCG(j);
-        buf[m++] = h_uCGnew(j);
-      }
-    } else {
-      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
-      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
-      dvz = pbc[2]*h_rate[2];
-      for (i = 0; i < n; i++) {
-        j = list[i];
-        buf[m++] = h_x(j,0) + dx;
-        buf[m++] = h_x(j,1) + dy;
-        buf[m++] = h_x(j,2) + dz;
-        buf[m++] = ubuf(h_tag(j)).d;
-        buf[m++] = ubuf(h_type(j)).d;
-        buf[m++] = ubuf(h_mask(j)).d;
-        if (mask[i] & deform_groupbit) {
-          buf[m++] = h_v(j,0) + dvx;
-          buf[m++] = h_v(j,1) + dvy;
-          buf[m++] = h_v(j,2) + dvz;
-        } else {
-          buf[m++] = h_v(j,0);
-          buf[m++] = h_v(j,1);
-          buf[m++] = h_v(j,2);
-        }
-        buf[m++] = h_dpdTheta(j);
-        buf[m++] = h_uCond(j);
-        buf[m++] = h_uMech(j);
-        buf[m++] = h_uChem(j);
-        buf[m++] = h_uCG(j);
-        buf[m++] = h_uCGnew(j);
-      }
-    }
-  }
-
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_comm_hybrid(int n, int *list, double *buf)
-{
-  int i,j,m;
-
-  atomKK->sync(Host,DPDTHETA_MASK | UCOND_MASK |
-            UMECH_MASK | UCHEM_MASK);
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    buf[m++] = h_dpdTheta[j];
-    buf[m++] = h_uCond[j];
-    buf[m++] = h_uMech[j];
-    buf[m++] = h_uChem[j];
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_border_hybrid(int n, int *list, double *buf)
-{
-  int i,j,m;
-
-  atomKK->sync(Host,DPDTHETA_MASK | UCOND_MASK |
-            UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    buf[m++] = h_dpdTheta[j];
-    buf[m++] = h_uCond[j];
-    buf[m++] = h_uMech[j];
-    buf[m++] = h_uChem[j];
-    buf[m++] = h_uCG[j];
-    buf[m++] = h_uCGnew[j];
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 struct AtomVecDPDKokkos_UnpackBorder {
   typedef DeviceType device_type;
@@ -1152,123 +717,6 @@ void AtomVecDPDKokkos::unpack_border_kokkos(const int &n, const int &first,
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecDPDKokkos::unpack_border(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  while (last > nmax) grow(0);
-
-  for (i = first; i < last; i++) {
-    h_x(i,0) = buf[m++];
-    h_x(i,1) = buf[m++];
-    h_x(i,2) = buf[m++];
-    h_tag(i) =  (tagint)  ubuf(buf[m++]).i;
-    h_type(i) = (int) ubuf(buf[m++]).i;
-    h_mask(i) = (int) ubuf(buf[m++]).i;
-    h_dpdTheta(i) = buf[m++];
-    h_uCond(i) = buf[m++];
-    h_uMech(i) = buf[m++];
-    h_uChem(i) = buf[m++];
-    h_uCG(i) = buf[m++];
-    h_uCGnew(i) = buf[m++];
-  }
-
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->
-        unpack_border(n,first,&buf[m]);
-
-  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
-                DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK|
-                UCG_MASK|UCGNEW_MASK|DVECTOR_MASK);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::unpack_border_vel(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  while (last > nmax) grow(0);
-
-  for (i = first; i < last; i++) {
-    h_x(i,0) = buf[m++];
-    h_x(i,1) = buf[m++];
-    h_x(i,2) = buf[m++];
-    h_tag(i) =  (tagint)  ubuf(buf[m++]).i;
-    h_type(i) = (int) ubuf(buf[m++]).i;
-    h_mask(i) = (int) ubuf(buf[m++]).i;
-    h_v(i,0) = buf[m++];
-    h_v(i,1) = buf[m++];
-    h_v(i,2) = buf[m++];
-    h_dpdTheta(i) = buf[m++];
-    h_uCond(i) = buf[m++];
-    h_uMech(i) = buf[m++];
-    h_uChem(i) = buf[m++];
-    h_uCG(i) = buf[m++];
-    h_uCGnew(i) = buf[m++];
-  }
-
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->
-        unpack_border(n,first,&buf[m]);
-
-  atomKK->modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|
-                DPDTHETA_MASK|UCOND_MASK|UMECH_MASK|UCHEM_MASK|
-                UCG_MASK|UCGNEW_MASK|DVECTOR_MASK);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::unpack_comm_hybrid(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    h_dpdTheta(i) = buf[m++];
-    h_uCond(i) = buf[m++];
-    h_uMech(i) = buf[m++];
-    h_uChem(i) = buf[m++];
-  }
-
-  atomKK->modified(Host,DPDTHETA_MASK | UCOND_MASK |
-                UMECH_MASK | UCHEM_MASK );
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::unpack_border_hybrid(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    h_dpdTheta(i) = buf[m++];
-    h_uCond(i) = buf[m++];
-    h_uMech(i) = buf[m++];
-    h_uChem(i) = buf[m++];
-    h_uCG(i) = buf[m++];
-    h_uCGnew(i) = buf[m++];
-  }
-
-  atomKK->modified(Host,DPDTHETA_MASK | UCOND_MASK |
-                UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 struct AtomVecDPDKokkos_PackExchangeFunctor {
   typedef DeviceType device_type;
@@ -1291,15 +739,14 @@ struct AtomVecDPDKokkos_PackExchangeFunctor {
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d_const _sendlist;
   typename AT::t_int_1d_const _copylist;
-  int _nlocal,_dim;
-  X_FLOAT _lo,_hi;
+  int _size_exchange;
 
   AtomVecDPDKokkos_PackExchangeFunctor(
       const AtomKokkos* atom,
       const typename AT::tdual_xfloat_2d buf,
       typename AT::tdual_int_1d sendlist,
-      typename AT::tdual_int_1d copylist,int nlocal, int dim,
-                X_FLOAT lo, X_FLOAT hi):
+      typename AT::tdual_int_1d copylist):
+                _size_exchange(atom->avecKK->size_exchange),
                 _x(atom->k_x.view<DeviceType>()),
                 _v(atom->k_v.view<DeviceType>()),
                 _tag(atom->k_tag.view<DeviceType>()),
@@ -1325,19 +772,16 @@ struct AtomVecDPDKokkos_PackExchangeFunctor {
                 _uCGw(atom->k_uCG.view<DeviceType>()),
                 _uCGneww(atom->k_uCGnew.view<DeviceType>()),
                 _sendlist(sendlist.template view<DeviceType>()),
-                _copylist(copylist.template view<DeviceType>()),
-                _nlocal(nlocal),_dim(dim),
-                _lo(lo),_hi(hi) {
-    const size_t elements = 17;
-    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
+                _copylist(copylist.template view<DeviceType>()) {
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
 
-    buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
+    buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &mysend) const {
     const int i = _sendlist(mysend);
-    _buf(mysend,0) = 17;
+    _buf(mysend,0) = _size_exchange;
     _buf(mysend,1) = _x(i,0);
     _buf(mysend,2) = _x(i,1);
     _buf(mysend,3) = _x(i,2);
@@ -1379,10 +823,12 @@ struct AtomVecDPDKokkos_PackExchangeFunctor {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecDPDKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d k_sendlist,DAT::tdual_int_1d k_copylist,ExecutionSpace space,int dim,X_FLOAT lo,X_FLOAT hi )
+int AtomVecDPDKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d k_sendlist,DAT::tdual_int_1d k_copylist,ExecutionSpace space)
 {
-  if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/17) {
-    int newsize = nsend*17/k_buf.view<LMPHostType>().extent(1)+1;
+  size_exchange = 17;
+
+  if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/size_exchange) {
+    int newsize = nsend*size_exchange/k_buf.view<LMPHostType>().extent(1)+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
   atomKK->sync(space,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
@@ -1390,48 +836,13 @@ int AtomVecDPDKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d
              UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK |
              DVECTOR_MASK);
   if (space == Host) {
-    AtomVecDPDKokkos_PackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+    AtomVecDPDKokkos_PackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
   } else {
-    AtomVecDPDKokkos_PackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+    AtomVecDPDKokkos_PackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
   }
-  return nsend*17;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_exchange(int i, double *buf)
-{
-  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-            MASK_MASK | IMAGE_MASK| DPDTHETA_MASK | UCOND_MASK |
-            UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK |
-            DVECTOR_MASK);
-
-  int m = 1;
-  buf[m++] = h_x(i,0);
-  buf[m++] = h_x(i,1);
-  buf[m++] = h_x(i,2);
-  buf[m++] = h_v(i,0);
-  buf[m++] = h_v(i,1);
-  buf[m++] = h_v(i,2);
-  buf[m++] = ubuf(h_tag(i)).d;
-  buf[m++] = ubuf(h_type(i)).d;
-  buf[m++] = ubuf(h_mask(i)).d;
-  buf[m++] = ubuf(h_image(i)).d;
-  buf[m++] = h_dpdTheta[i];
-  buf[m++] = h_uCond[i];
-  buf[m++] = h_uMech[i];
-  buf[m++] = h_uChem[i];
-  buf[m++] = h_uCG[i];
-  buf[m++] = h_uCGnew[i];
-
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      m += modify->fix[atom->extra_grow[iextra]]->pack_exchange(i,&buf[m]);
-
-  buf[0] = m;
-  return m;
+  return nsend*size_exchange;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1457,12 +868,14 @@ struct AtomVecDPDKokkos_UnpackExchangeFunctor {
   typename AT::t_int_1d _nlocal;
   int _dim;
   X_FLOAT _lo,_hi;
+  int _size_exchange;
 
   AtomVecDPDKokkos_UnpackExchangeFunctor(
       const AtomKokkos* atom,
       const typename AT::tdual_xfloat_2d buf,
       typename AT::tdual_int_1d nlocal,
       int dim, X_FLOAT lo, X_FLOAT hi):
+                _size_exchange(atom->avecKK->size_exchange),
                 _x(atom->k_x.view<DeviceType>()),
                 _v(atom->k_v.view<DeviceType>()),
                 _tag(atom->k_tag.view<DeviceType>()),
@@ -1471,10 +884,9 @@ struct AtomVecDPDKokkos_UnpackExchangeFunctor {
                 _image(atom->k_image.view<DeviceType>()),
                 _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
                 _lo(lo),_hi(hi) {
-    const size_t elements = 17;
-    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
 
-    buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
+    buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -1503,20 +915,22 @@ struct AtomVecDPDKokkos_UnpackExchangeFunctor {
 };
 
 /* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,ExecutionSpace space) {
-  while (nlocal + nrecv/17 >= nmax) grow(0);
+int AtomVecDPDKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                             int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                             DAT::tdual_int_1d &k_indices)
+{
+  while (nlocal + nrecv/size_exchange >= nmax) grow(0);
 
   if (space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecDPDKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/17,f);
+    Kokkos::parallel_for(nrecv/size_exchange,f);
   } else {
     k_count.h_view(0) = nlocal;
     k_count.modify<LMPHostType>();
     k_count.sync<LMPDeviceType>();
     AtomVecDPDKokkos_UnpackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/17,f);
+    Kokkos::parallel_for(nrecv/size_exchange,f);
     k_count.modify<LMPDeviceType>();
     k_count.sync<LMPHostType>();
   }
@@ -1527,334 +941,6 @@ int AtomVecDPDKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nre
                  DVECTOR_MASK);
 
   return k_count.h_view(0);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::unpack_exchange(double *buf)
-{
-  int nlocal = atom->nlocal;
-  if (nlocal == nmax) grow(0);
-
-  int m = 1;
-  h_x(nlocal,0) = buf[m++];
-  h_x(nlocal,1) = buf[m++];
-  h_x(nlocal,2) = buf[m++];
-  h_v(nlocal,0) = buf[m++];
-  h_v(nlocal,1) = buf[m++];
-  h_v(nlocal,2) = buf[m++];
-  h_tag(nlocal) = (tagint) ubuf(buf[m++]).i;
-  h_type(nlocal) = (int) ubuf(buf[m++]).i;
-  h_mask(nlocal) = (int) ubuf(buf[m++]).i;
-  h_image(nlocal) = (imageint) ubuf(buf[m++]).i;
-  h_dpdTheta[nlocal] = buf[m++];
-  h_uCond[nlocal] = buf[m++];
-  h_uMech[nlocal] = buf[m++];
-  h_uChem[nlocal] = buf[m++];
-  h_uCG[nlocal] = buf[m++];
-  h_uCGnew[nlocal] = buf[m++];
-
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      m += modify->fix[atom->extra_grow[iextra]]->
-        unpack_exchange(nlocal,&buf[m]);
-
-  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-           MASK_MASK | IMAGE_MASK| DPDTHETA_MASK | UCOND_MASK |
-           UMECH_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK |
-           DVECTOR_MASK);
-
-  atom->nlocal++;
-  return m;
-}
-
-/* ----------------------------------------------------------------------
-   size of restart data for all atoms owned by this proc
-   include extra data stored by fixes
-------------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::size_restart()
-{
-  int i;
-
-  int nlocal = atom->nlocal;
-  int n = 15 * nlocal; // 11 + dpdTheta + uCond + uMech + uChem
-
-  if (atom->nextra_restart)
-    for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
-      for (i = 0; i < nlocal; i++)
-        n += modify->fix[atom->extra_restart[iextra]]->size_restart(i);
-
-  return n;
-}
-
-/* ----------------------------------------------------------------------
-   pack atom I's data for restart file including extra quantities
-   xyz must be 1st 3 values, so that read_restart can test on them
-   molecular types may be negative, but write as positive
-------------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_restart(int i, double *buf)
-{
-  atomKK->sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-            MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
-            UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
-
-  int m = 1;
-  buf[m++] = h_x(i,0);
-  buf[m++] = h_x(i,1);
-  buf[m++] = h_x(i,2);
-  buf[m++] = ubuf(h_tag(i)).d;
-  buf[m++] = ubuf(h_type(i)).d;
-  buf[m++] = ubuf(h_mask(i)).d;
-  buf[m++] = ubuf(h_image(i)).d;
-  buf[m++] = h_v(i,0);
-  buf[m++] = h_v(i,1);
-  buf[m++] = h_v(i,2);
-  buf[m++] = h_dpdTheta[i];
-  buf[m++] = h_uCond[i];
-  buf[m++] = h_uMech[i];
-  buf[m++] = h_uChem[i];
-
-  if (atom->nextra_restart)
-    for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
-      m += modify->fix[atom->extra_restart[iextra]]->pack_restart(i,&buf[m]);
-
-  buf[0] = m;
-  return m;
-}
-
-/* ----------------------------------------------------------------------
-   unpack data for one atom from restart file including extra quantities
-------------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::unpack_restart(double *buf)
-{
-  int nlocal = atom->nlocal;
-  if (nlocal == nmax) {
-    grow(0);
-    if (atom->nextra_store)
-      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
-  }
-
-  int m = 1;
-  h_x(nlocal,0) = buf[m++];
-  h_x(nlocal,1) = buf[m++];
-  h_x(nlocal,2) = buf[m++];
-  h_tag(nlocal) = (tagint) ubuf(buf[m++]).i;
-  h_type(nlocal) = (int) ubuf(buf[m++]).i;
-  h_mask(nlocal) = (int) ubuf(buf[m++]).i;
-  h_image(nlocal) = (imageint) ubuf(buf[m++]).i;
-  h_v(nlocal,0) = buf[m++];
-  h_v(nlocal,1) = buf[m++];
-  h_v(nlocal,2) = buf[m++];
-  h_dpdTheta[nlocal] = buf[m++];
-  h_uCond[nlocal] = buf[m++];
-  h_uMech[nlocal] = buf[m++];
-  h_uChem[nlocal] = buf[m++];
-  h_uCG[nlocal] = 0.0;
-  h_uCGnew[nlocal] = 0.0;
-
-  double **extra = atom->extra;
-  if (atom->nextra_store) {
-    int size = static_cast<int> (buf[0]) - m;
-    for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
-  }
-
-  atomKK->modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
-                MASK_MASK | IMAGE_MASK | DPDTHETA_MASK |
-                UCG_MASK | UCGNEW_MASK |
-                UCOND_MASK | UMECH_MASK | UCHEM_MASK | DVECTOR_MASK);
-
-  atom->nlocal++;
-  return m;
-}
-
-/* ----------------------------------------------------------------------
-   create one atom of itype at coord
-   set other values to defaults
-------------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::create_atom(int itype, double *coord)
-{
-  int nlocal = atom->nlocal;
-  if (nlocal == nmax) {
-    //if(nlocal>2) printf("typeA: %i %i\n",type[0],type[1]);
-    atomKK->modified(Host,ALL_MASK);
-    grow(0);
-    //if(nlocal>2) printf("typeB: %i %i\n",type[0],type[1]);
-  }
-  atomKK->modified(Host,ALL_MASK);
-
-  tag[nlocal] = 0;
-  type[nlocal] = itype;
-  h_x(nlocal,0) = coord[0];
-  h_x(nlocal,1) = coord[1];
-  h_x(nlocal,2) = coord[2];
-  h_mask[nlocal] = 1;
-  h_image[nlocal] = ((tagint) IMGMAX << IMG2BITS) |
-    ((tagint) IMGMAX << IMGBITS) | IMGMAX;
-  h_v(nlocal,0) = 0.0;
-  h_v(nlocal,1) = 0.0;
-  h_v(nlocal,2) = 0.0;
-  h_rho[nlocal] = 0.0;
-  h_dpdTheta[nlocal] = 0.0;
-  h_uCond[nlocal] = 0.0;
-  h_uMech[nlocal] = 0.0;
-  h_uChem[nlocal] = 0.0;
-  h_uCG[nlocal] = 0.0;
-  h_uCGnew[nlocal] = 0.0;
-  h_duChem[nlocal] = 0.0;
-
-  //atomKK->modified(Host,TAG_MASK|TYPE_MASK|DPDTHETA_MASK|X_MASK|IMAGE_MASK|
-  //                      MASK_MASK|V_MASK|DPDRHO_MASK|UCOND_MASK|UMECH_MASK|
-  //                      UCHEM_MASK|UCG_MASK|UCGNEW_MASK);
-
-  atom->nlocal++;
-}
-
-/* ----------------------------------------------------------------------
-   unpack one line from Atoms section of data file
-   initialize other atom quantities
-------------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::data_atom(double *coord, imageint imagetmp,
-                                 const std::vector<std::string> &values, std::string &extract)
-{
-  int nlocal = atom->nlocal;
-  if (nlocal == nmax) grow(0);
-
-  h_tag[nlocal] = utils::tnumeric(FLERR,values[0],true,lmp);
-  h_type[nlocal] = utils::inumeric(FLERR,values[1],true,lmp);
-  extract = values[1];
-  if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one(FLERR,"Invalid atom type in Atoms section of data file");
-
-  h_dpdTheta[nlocal] = utils::numeric(FLERR,values[2],true,lmp);
-  if (h_dpdTheta[nlocal] <= 0)
-    error->one(FLERR,"Internal temperature in Atoms section of date file must be > zero");
-
-  h_x(nlocal,0) = coord[0];
-  h_x(nlocal,1) = coord[1];
-  h_x(nlocal,2) = coord[2];
-
-  h_image[nlocal] = imagetmp;
-
-  h_mask[nlocal] = 1;
-  h_v(nlocal,0) = 0.0;
-  h_v(nlocal,1) = 0.0;
-  h_v(nlocal,2) = 0.0;
-
-  h_rho[nlocal] = 0.0;
-  h_uCond[nlocal] = 0.0;
-  h_uMech[nlocal] = 0.0;
-  h_uChem[nlocal] = 0.0;
-  h_uCG[nlocal] = 0.0;
-  h_uCGnew[nlocal] = 0.0;
-
-  atomKK->modified(Host,ALL_MASK);
-
-  atom->nlocal++;
-}
-
-/* ----------------------------------------------------------------------
-   unpack hybrid quantities from one line in Atoms section of data file
-   initialize other atom quantities for this sub-style
-------------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::data_atom_hybrid(int nlocal, const std::vector<std::string> &values,
-                                       int offset)
-{
-  h_dpdTheta(nlocal) = utils::numeric(FLERR,values[offset],true,lmp);
-
-  atomKK->modified(Host,DPDTHETA_MASK);
-
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   pack atom info for data file including 3 image flags
-------------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::pack_data(double **buf)
-{
-  atomKK->sync(Host,TAG_MASK|TYPE_MASK|DPDTHETA_MASK|X_MASK|IMAGE_MASK);
-
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = ubuf(h_tag(i)).d;
-    buf[i][1] = ubuf(h_type(i)).d;
-    buf[i][2] = h_dpdTheta(i);
-    buf[i][3] = h_x(i,0);
-    buf[i][4] = h_x(i,1);
-    buf[i][5] = h_x(i,2);
-    buf[i][6] = (h_image[i] & IMGMASK) - IMGMAX;
-    buf[i][7] = (h_image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    buf[i][8] = (h_image[i] >> IMG2BITS) - IMGMAX;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   pack hybrid atom info for data file
-------------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::pack_data_hybrid(int i, double *buf)
-{
-  atomKK->sync(Host,DPDTHETA_MASK);
-
-  buf[0] = h_dpdTheta(i);
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   write atom info to data file including 3 image flags
-------------------------------------------------------------------------- */
-
-void AtomVecDPDKokkos::write_data(FILE *fp, int n, double **buf)
-{
-  for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT " %d %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
-            (tagint) ubuf(buf[i][0]).i,(int) ubuf(buf[i][1]).i,
-            buf[i][2],buf[i][3],buf[i][4],buf[i][5],
-            (int) ubuf(buf[i][6]).i,(int) ubuf(buf[i][7]).i,
-            (int) ubuf(buf[i][8]).i);
-}
-
-/* ----------------------------------------------------------------------
-   write hybrid atom info to data file
-------------------------------------------------------------------------- */
-
-int AtomVecDPDKokkos::write_data_hybrid(FILE *fp, double *buf)
-{
-  fprintf(fp," %-1.16e",buf[0]);
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory
-------------------------------------------------------------------------- */
-
-double AtomVecDPDKokkos::memory_usage()
-{
-  double bytes = 0;
-
-  if (atom->memcheck("tag")) bytes += memory->usage(tag,nmax);
-  if (atom->memcheck("type")) bytes += memory->usage(type,nmax);
-  if (atom->memcheck("mask")) bytes += memory->usage(mask,nmax);
-  if (atom->memcheck("image")) bytes += memory->usage(image,nmax);
-  if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
-  if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
-  if (atom->memcheck("f")) bytes += memory->usage(f,nmax*commKK->nthreads,3);
-  if (atom->memcheck("rho")) bytes += memory->usage(rho,nmax);
-  if (atom->memcheck("dpdTheta")) bytes += memory->usage(dpdTheta,nmax);
-  if (atom->memcheck("uCond")) bytes += memory->usage(uCond,nmax);
-  if (atom->memcheck("uMech")) bytes += memory->usage(uMech,nmax);
-  if (atom->memcheck("uChem")) bytes += memory->usage(uChem,nmax);
-  if (atom->memcheck("uCG")) bytes += memory->usage(uCG,nmax);
-  if (atom->memcheck("uCGnew")) bytes += memory->usage(uCGnew,nmax);
-  if (atom->memcheck("duChem")) bytes += memory->usage(duChem,nmax);
-
-  return bytes;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2011,4 +1097,3 @@ void AtomVecDPDKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & DVECTOR_MASK) atomKK->k_dvector.modify<LMPHostType>();
   }
 }
-

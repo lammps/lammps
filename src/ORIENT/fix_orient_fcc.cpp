@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -255,7 +255,7 @@ void FixOrientFCC::post_force(int /*vflag*/)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // insure nbr and order data structures are adequate size
+  // ensure nbr and order data structures are adequate size
 
   if (nall > nmax) {
     nmax = nall;

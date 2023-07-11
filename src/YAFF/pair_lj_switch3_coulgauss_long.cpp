@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -165,7 +165,6 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
           // Correction for Gaussian radii
           if (lj2[itype][jtype]==0.0) {
             // This means a point charge is considered, so the correction is zero
-            expn2 = 0.0;
             erfc2 = 0.0;
             forcecoul2 = 0.0;
             prefactor2 = 0.0;
@@ -335,7 +334,7 @@ void PairLJSwitch3CoulGaussLong::init_style()
   if (truncw>0.0) truncwi = 1.0/truncw;
   else truncwi = 0.0;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
@@ -616,7 +615,6 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv*(12.0*lj3[itype][jtype]*r6inv-6.0*lj4[itype][jtype]);
     if (lj2[itype][jtype] == 0.0) {
-      expn2 = 0.0;
       erfc2 = 0.0;
       forcecoul2 = 0.0;
       prefactor2 = 0.0;

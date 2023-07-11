@@ -10,6 +10,7 @@ These pages provide a brief introduction to LAMMPS.
    Manual_version
    Intro_features
    Intro_nonfeatures
+   Intro_portability
    Intro_opensource
    Intro_authors
    Intro_citing

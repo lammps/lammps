@@ -31,7 +31,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
                      const __global numtyp *restrict sp_lj_in,
                      const __global int *dev_nbor,
                      const __global int *dev_packed,
-                     __global acctyp4 *restrict ans,
+                     __global acctyp3 *restrict ans,
                      __global acctyp *restrict engv,
                      const int eflag, const int vflag, const int inum,
                      const int nbor_pitch, const int t_per_atom) {
@@ -47,7 +47,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
   sp_lj[2]=sp_lj_in[2];
   sp_lj[3]=sp_lj_in[3];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -66,6 +66,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
@@ -88,7 +89,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
         numtyp alphaij = beck1[mtype].y;
         numtyp betaij = beck1[mtype].z;
         numtyp term1 = aaij*aaij + rsq;
-        numtyp term2 = pow(term1,(numtyp)-5.0);
+        numtyp term2 = (numtyp)1.0/(term1*term1*term1*term1*term1); // ucl_powr(term1,(numtyp)-5.0);
         numtyp term3 = (numtyp)21.672 + (numtyp)30.0*aaij*aaij + (numtyp)6.0*rsq;
         numtyp term4 = alphaij + r5*betaij;
         numtyp term5 = alphaij + (numtyp)6.0*r5*betaij;
@@ -102,7 +103,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp term6 = pow(term1,(numtyp)-3);
+          numtyp term6 = (numtyp)1.0/(term1*term1*term1); //ucl_powr(term1,(numtyp)-3);
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);
@@ -130,7 +131,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
                           const __global numtyp *restrict sp_lj_in,
                           const __global int *dev_nbor,
                           const __global int *dev_packed,
-                          __global acctyp4 *restrict ans,
+                          __global acctyp3 *restrict ans,
                           __global acctyp *restrict engv,
                           const int eflag, const int vflag, const int inum,
                           const int nbor_pitch, const int t_per_atom) {
@@ -150,7 +151,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
     beck2[tid]=beck2_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -172,6 +173,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
@@ -193,7 +195,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
         numtyp alphaij = beck1[mtype].y;
         numtyp betaij = beck1[mtype].z;
         numtyp term1 = aaij*aaij + rsq;
-        numtyp term2 = pow(term1,(numtyp)-5.0);
+        numtyp term2 = (numtyp)1.0/(term1*term1*term1*term1*term1); //ucl_powr(term1,(numtyp)-5.0);
         numtyp term3 = (numtyp)21.672 + (numtyp)30.0*aaij*aaij + (numtyp)6.0*rsq;
         numtyp term4 = alphaij + r5*betaij;
         numtyp term5 = alphaij + (numtyp)6.0*r5*betaij;
@@ -207,7 +209,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp term6 = pow(term1,(numtyp)-3);
+          numtyp term6 = (numtyp)1.0/(term1*term1*term1); //ucl_powr(term1,(numtyp)-3);
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);

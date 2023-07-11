@@ -134,5 +134,15 @@ TEST(TEST_CATEGORY, team_parallel_dummy_with_reducer_and_scratch_space) {
   }
 }
 
+TEST(TEST_CATEGORY, repeated_team_reduce) {
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>::value)
+    GTEST_SKIP() << "skipping since team_reduce for OpenMPTarget is not "
+                    "properly implemented";
+#endif
+
+  TestRepeatedTeamReduce<TEST_EXECSPACE>();
+}
+
 }  // namespace Test
 #endif

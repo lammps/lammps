@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -407,7 +407,6 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
 
     // Finding the intersection of the reciprical space and Ewald sphere
     int NROW1 = 0;
-    int NROW2 = 0;
     double dinv2 = 0.0;
     double r = 0.0;
     double K[3];
@@ -425,11 +424,9 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
               fprintf(fp,"%g\n",vector_total[NROW1]/norm);
               fflush(fp);
               NROW1++;
-              NROW2++;
             } else {
               fprintf(fp,"%d\n",-1);
               fflush(fp);
-              NROW2++;
             }
           }
         }
@@ -449,17 +446,14 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
               if  ( (r >  (R_Ewald - dR_Ewald) ) && (r < (R_Ewald + dR_Ewald) )) {
                 fprintf(fp,"%g\n",vector_total[NROW1]/norm);
                 fflush(fp);
-                NROW2++;
                 NROW1++;
               } else {
                 fprintf(fp,"%d\n",-1);
                 fflush(fp);
-                NROW2++;
               }
             } else {
               fprintf(fp,"%d\n",-1);
               fflush(fp);
-              NROW2++;
             }
           }
         }

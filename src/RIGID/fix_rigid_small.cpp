@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -259,7 +259,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
-              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
       iarg += 4;
@@ -275,7 +275,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (domain->dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
-              p_flag[2] = 0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -481,7 +481,7 @@ FixRigidSmall::~FixRigidSmall()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -595,7 +595,7 @@ void FixRigidSmall::init()
    be computable if contain overlapping particles setup_bodies_static()
    reads inpfile itself.
      cannot do this until now, b/c requires comm->setup() to have setup stencil
-   invoke pre_neighbor() to insure body xcmimage flags are reset
+   invoke pre_neighbor() to ensure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
      setup_bodies_static() invokes pre_neighbor itself
 ------------------------------------------------------------------------- */

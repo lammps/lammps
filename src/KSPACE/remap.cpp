@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -637,7 +637,7 @@ void remap_3d_destroy_plan(struct remap_plan_3d *plan)
 {
   // free MPI communicator
 
-  if (!((plan->usecollective) && (plan->commringlen == 0)))
+  if (!(plan->usecollective) || (plan->commringlen != 0))
     MPI_Comm_free(&plan->comm);
 
   if (plan->usecollective) {

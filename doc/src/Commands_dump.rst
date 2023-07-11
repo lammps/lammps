@@ -36,7 +36,8 @@ An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
    * :doc:`custom/mpiio <dump>`
    * :doc:`custom/zstd <dump>`
    * :doc:`dcd <dump>`
-   * :doc:`deprecated <dump>`
+   * :doc:`grid <dump>`
+   * :doc:`grid/vtk <dump>`
    * :doc:`h5md <dump_h5md>`
    * :doc:`image <dump_image>`
    * :doc:`local <dump>`

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -662,6 +662,47 @@ TEST(AngleStyle, single)
     int i = 0;
     for (auto &dist : test_config.equilibrium)
         EXPECT_NEAR(dist, angle->equilibrium_angle(++i), 0.00001);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(AngleStyle, extract)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    const char *args[] = {"AngleStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    char **argv = (char **)args;
+    int argc    = sizeof(args) / sizeof(char *);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (auto prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    auto angle = lmp->force->angle;
+    void *ptr  = nullptr;
+    int dim    = 0;
+    for (auto extract : test_config.extract) {
+        ptr = angle->extract(extract.first.c_str(), dim);
+        EXPECT_NE(ptr, nullptr);
+        EXPECT_EQ(dim, extract.second);
+    }
+    ptr = angle->extract("does_not_exist", dim);
+    EXPECT_EQ(ptr, nullptr);
+
+    for (int i = 1; i <= lmp->atom->nangletypes; ++i)
+        EXPECT_GE(angle->equilibrium_angle(i), 0.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);

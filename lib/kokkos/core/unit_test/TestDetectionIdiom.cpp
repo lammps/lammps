@@ -92,5 +92,3 @@ static_assert(std::is_same<difference_type<Woof>, int>::value,
 static_assert(std::is_same<difference_type<Bark>, std::ptrdiff_t>::value,
               "Bark's difference_type should be ptrdiff_t!");
 }  // namespace Example
-
-int main() {}

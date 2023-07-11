@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,6 +29,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -92,14 +93,12 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
     value_t val;
     val.keyword = arg[i];
+    val.which = argi.get_type();
     key2col[arg[i]] = i;
 
-    if ((argi.get_type() == ArgInfo::NONE)
-        || (argi.get_type() == ArgInfo::UNKNOWN)
-        || (argi.get_dim() > 1))
+    if ((val.which == ArgInfo::NONE) || (val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
       error->all(FLERR,"Invalid fix ave/time argument: {}", arg[i]);
 
-    val.which = argi.get_type();
     val.argindex = argi.get_index1();
     val.varlen = 0;
     val.offcol = 0;
@@ -123,12 +122,9 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // for fix inputs, check that fix frequency is acceptable
   // set variable_length if any compute is variable length
 
-  if (nevery <= 0)
-    error->all(FLERR,"Illegal fix ave/time nevery value: {}", nevery);
-  if (nrepeat <= 0)
-    error->all(FLERR,"Illegal fix ave/time nrepeat value: {}", nrepeat);
-  if (nfreq <= 0)
-    error->all(FLERR,"Illegal fix ave/time nfreq value: {}", nfreq);
+  if (nevery <= 0) error->all(FLERR,"Illegal fix ave/time nevery value: {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR,"Illegal fix ave/time nrepeat value: {}", nrepeat);
+  if (nfreq <= 0) error->all(FLERR,"Illegal fix ave/time nfreq value: {}", nfreq);
   if (nfreq % nevery || nrepeat*nevery > nfreq)
     error->all(FLERR,"Inconsistent fix ave/time nevery/nrepeat/nfreq values");
   if (ave != RUNNING && overwrite)
@@ -538,7 +534,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   for (auto &val : values) {
 
     // invoke compute if not previously invoked
-    // insure no out-of-range access to variable-length compute vector
+    // ensure no out-of-range access to variable-length compute vector
 
     if (val.which == ArgInfo::COMPUTE) {
 
@@ -566,7 +562,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
         scalar = val.val.f->compute_vector(val.argindex-1);
 
     // evaluate equal-style or vector-style variable
-    // insure no out-of-range access to vector-style variable
+    // ensure no out-of-range access to vector-style variable
 
     } else if (val.which == ArgInfo::VARIABLE) {
       if (val.argindex == 0)
@@ -634,7 +630,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
     else norm = iwindow;
   }
 
-  // insure any columns with offcol set are effectively set to last value
+  // ensure any columns with offcol set are effectively set to last value
 
   for (i = 0; i < nvalues; i++)
     if (values[i].offcol) vector_total[i] = norm*vector[i];
@@ -763,7 +759,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       }
 
     // evaluate vector-style variable
-    // insure nvec = nrows, else error
+    // ensure nvec = nrows, else error
     // could be different on this timestep than when column_length(1) set nrows
 
     } else if (val.which == ArgInfo::VARIABLE) {
@@ -849,7 +845,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     else norm = iwindow;
   }
 
-  // insure any columns with offcol set are effectively set to last value
+  // ensure any columns with offcol set are effectively set to last value
 
   for (int i = 0; i < nrows; i++)
     for (int j = 0; j < nvalues; j++)

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -88,12 +88,13 @@ void AtomVecPeri::grow_pointers()
 
 void AtomVecPeri::create_atom_post(int ilocal)
 {
+  const auto xinit = atom->x;
   vfrac[ilocal] = 1.0;
   rmass[ilocal] = 1.0;
   s0[ilocal] = DBL_MAX;
-  x0[ilocal][0] = x[ilocal][0];
-  x0[ilocal][1] = x[ilocal][1];
-  x0[ilocal][2] = x[ilocal][2];
+  x0[ilocal][0] = xinit[ilocal][0];
+  x0[ilocal][1] = xinit[ilocal][1];
+  x0[ilocal][2] = xinit[ilocal][2];
 }
 
 /* ----------------------------------------------------------------------
@@ -103,10 +104,11 @@ void AtomVecPeri::create_atom_post(int ilocal)
 
 void AtomVecPeri::data_atom_post(int ilocal)
 {
+  const auto xinit = atom->x;
   s0[ilocal] = DBL_MAX;
-  x0[ilocal][0] = x[ilocal][0];
-  x0[ilocal][1] = x[ilocal][1];
-  x0[ilocal][2] = x[ilocal][2];
+  x0[ilocal][0] = xinit[ilocal][0];
+  x0[ilocal][1] = xinit[ilocal][1];
+  x0[ilocal][2] = xinit[ilocal][2];
 
   if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid mass in Atoms section of data file");
 }

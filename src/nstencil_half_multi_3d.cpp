@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,8 +19,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfMulti3d::NStencilHalfMulti3d(LAMMPS *lmp) :
-  NStencil(lmp) {}
+NStencilHalfMulti3d::NStencilHalfMulti3d(LAMMPS *lmp) : NStencil(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -37,11 +35,11 @@ void NStencilHalfMulti3d::set_stencil_properties()
 
   for (i = 0; i < n; i++) {
     for (j = 0; j < n; j++) {
-      if(cutcollectionsq[i][i] > cutcollectionsq[j][j]) continue;
+      if (cutcollectionsq[i][i] > cutcollectionsq[j][j]) continue;
 
       flag_skip_multi[i][j] = false;
 
-      if(cutcollectionsq[i][i] == cutcollectionsq[j][j]){
+      if (cutcollectionsq[i][i] == cutcollectionsq[j][j]) {
         flag_half_multi[i][j] = true;
         bin_collection_multi[i][j] = i;
       } else {
@@ -61,7 +59,6 @@ void NStencilHalfMulti3d::create()
   int icollection, jcollection, bin_collection, i, j, k, ns;
   int n = ncollections;
   double cutsq;
-
 
   for (icollection = 0; icollection < n; icollection++) {
     for (jcollection = 0; jcollection < n; jcollection++) {
@@ -88,22 +85,18 @@ void NStencilHalfMulti3d::create()
         for (k = 0; k <= sz; k++)
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
-                  if (k > 0 || j > 0 || (j == 0 && i > 0)) {
-                    if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
-                      stencil_multi[icollection][jcollection][ns++] =
-                          k*mbiny*mbinx + j*mbinx + i;
-                  }
+              if (k > 0 || j > 0 || (j == 0 && i > 0)) {
+                if (bin_distance_multi(i, j, k, bin_collection) < cutsq)
+                  stencil_multi[icollection][jcollection][ns++] = k * mbiny * mbinx + j * mbinx + i;
+              }
       } else {
         for (k = -sz; k <= sz; k++)
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
-                  if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
-                    stencil_multi[icollection][jcollection][ns++] =
-                        k*mbiny*mbinx + j*mbinx + i;
+              if (bin_distance_multi(i, j, k, bin_collection) < cutsq)
+                stencil_multi[icollection][jcollection][ns++] = k * mbiny * mbinx + j * mbinx + i;
       }
-
       nstencil_multi[icollection][jcollection] = ns;
     }
   }
 }
-

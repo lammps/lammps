@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -167,7 +167,7 @@ void CreateBox::command(int narg, char **arg)
   }
 
   // problem setup using info from header
-  // deallocate/grow insures any extra settings are used for topology arrays
+  // deallocate/grow ensures any extra settings are used for topology arrays
   // necessary in case no create_atoms is performed
 
   update->ntimestep = 0;

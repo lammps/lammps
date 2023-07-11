@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -61,34 +61,61 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
   if (elti >= 0) {
     scaleii = d_scale(type[i],type[i]);
     d_rho1[i] = 0.0;
-    d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
+    if (msmeamflag) {
+      d_rho2[i] = -1.0 / 3.0 * (d_arho2b[i] * d_arho2b[i]
+                              - d_arho2mb[i] * d_arho2mb[i]);
+    } else{
+      d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
+    }
     d_rho3[i] = 0.0;
     for (int m = 0; m < 3; m++) {
-      d_rho1[i] += d_arho1(i,m) * d_arho1(i,m);
-      d_rho3[i] -= 3.0 / 5.0 * d_arho3b(i,m) * d_arho3b(i,m);
-    }
-    for (int m = 0; m < 6; m++)
-      d_rho2[i] += v2D[m] * d_arho2(i,m) * d_arho2(i,m);
-    for (int m = 0; m < 10; m++)
-      d_rho3[i] += v3D[m] * d_arho3(i,m) * d_arho3(i,m);
-
-    if (d_rho0[i] > 0.0) {
-      if (ialloy == 1) {
-        d_t_ave(i,0) = fdiv_zero_kk(d_t_ave(i,0), d_tsq_ave(i,0));
-        d_t_ave(i,1) = fdiv_zero_kk(d_t_ave(i,1), d_tsq_ave(i,1));
-        d_t_ave(i,2) = fdiv_zero_kk(d_t_ave(i,2), d_tsq_ave(i,2));
-      } else if (ialloy == 2) {
-        d_t_ave(i,0) = t1_meam[elti];
-        d_t_ave(i,1) = t2_meam[elti];
-        d_t_ave(i,2) = t3_meam[elti];
-      } else {
-        d_t_ave(i,0) /= d_rho0[i];
-        d_t_ave(i,1) /= d_rho0[i];
-        d_t_ave(i,2) /= d_rho0[i];
+      if (msmeamflag) {
+        d_rho1[i] = d_rho1[i] + d_arho1(i, m) * d_arho1(i, m)
+                             - d_arho1m(i, m) * d_arho1m(i, m);
+        d_rho3[i] = d_rho3[i] - 3.0 / 5.0 * (d_arho3b(i, m) * d_arho3b(i, m)
+                                          - d_arho3mb(i, m) * d_arho3mb(i, m));
+      } else{
+        d_rho1[i] += d_arho1(i,m) * d_arho1(i,m);
+        d_rho3[i] -= 3.0 / 5.0 * d_arho3b(i,m) * d_arho3b(i,m);
       }
     }
+    for (int m = 0; m < 6; m++){
+      if (msmeamflag) {
+        d_rho2[i] = d_rho2[i] + v2D[m] * (d_arho2(i, m) * d_arho2(i, m)
+                                         - d_arho2m(i, m) * d_arho2m(i, m));
+      } else{
+        d_rho2[i] += v2D[m] * d_arho2(i,m) * d_arho2(i,m);
+      }
+    }
+    for (int m = 0; m < 10; m++)
+      if (msmeamflag) {
+        d_rho3[i] = d_rho3[i] + v3D[m] * (d_arho3(i, m) * d_arho3(i, m)
+                                        - d_arho3m(i, m) * d_arho3m(i, m));
+      } else{
+        d_rho3[i] += v3D[m] * d_arho3(i,m) * d_arho3(i,m);
+      }
 
-    d_gamma[i] = d_t_ave(i,0) * d_rho1[i] + d_t_ave(i,1) * d_rho2[i] + d_t_ave(i,2) * d_rho3[i];
+    if (msmeamflag) {
+      // with msmeam all t weights are already accounted for in rho
+      d_gamma[i] = d_rho1[i] + d_rho2[i] + d_rho3[i];
+    } else{
+      if (d_rho0[i] > 0.0) {
+        if (ialloy == 1) {
+          d_t_ave(i,0) = fdiv_zero_kk(d_t_ave(i,0), d_tsq_ave(i,0));
+          d_t_ave(i,1) = fdiv_zero_kk(d_t_ave(i,1), d_tsq_ave(i,1));
+          d_t_ave(i,2) = fdiv_zero_kk(d_t_ave(i,2), d_tsq_ave(i,2));
+        } else if (ialloy == 2) {
+          d_t_ave(i,0) = t1_meam[elti];
+          d_t_ave(i,1) = t2_meam[elti];
+          d_t_ave(i,2) = t3_meam[elti];
+        } else {
+          d_t_ave(i,0) /= d_rho0[i];
+          d_t_ave(i,1) /= d_rho0[i];
+          d_t_ave(i,2) /= d_rho0[i];
+        }
+      }
+      d_gamma[i] = d_t_ave(i,0) * d_rho1[i] + d_t_ave(i,1) * d_rho2[i] + d_t_ave(i,2) * d_rho3[i];
+    }
 
     if (d_rho0[i] > 0.0)
       d_gamma[i] /= (d_rho0[i] * d_rho0[i]);

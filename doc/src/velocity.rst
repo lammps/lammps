@@ -20,7 +20,7 @@ Syntax
          seed = random # seed (positive integer)
        *set* args = vx vy vz
          vx,vy,vz = velocity value or NULL (velocity units)
-         any of vx,vy,vz van be a variable (see below)
+         any of vx,vy,vz can be a variable (see below)
        *scale* arg = temp
          temp = temperature value (temperature units)
        *ramp* args = vdim vlo vhi dim clo chi
@@ -154,7 +154,8 @@ temperature using a compute that is defined internally as follows:
 
 where group-ID is the same ID used in the velocity command. i.e. the
 group of atoms whose velocity is being altered.  This compute is
-deleted when the velocity command is finished.  See the :doc:`compute temp <compute_temp>` command for details.  If the calculated
+deleted when the velocity command is finished.  See the :doc:`compute
+temp <compute_temp>` command for details.  If the calculated
 temperature should have degrees-of-freedom removed due to fix
 constraints (e.g. SHAKE or rigid-body constraints), then the
 appropriate fix command must be specified before the velocity command
@@ -163,13 +164,13 @@ is issued.
 The *bias* keyword with a *yes* setting is used by *create* and
 *scale*, but only if the *temp* keyword is also used to specify a
 :doc:`compute <compute>` that calculates temperature in a desired way.
-If the temperature compute also calculates a velocity bias, the
-bias is subtracted from atom velocities before the *create* and
-*scale* operations are performed.  After the operations, the bias is
-added back to the atom velocities.  See the :doc:`Howto thermostat <Howto_thermostat>` page for more discussion of
-temperature computes with biases.  Note that the velocity bias is only
-applied to atoms in the temperature compute specified with the *temp*
-keyword.
+If the temperature compute also calculates a velocity bias, the bias
+is subtracted from atom velocities before the *create* and *scale*
+operations are performed.  After the operations, the bias is added
+back to the atom velocities.  See the :doc:`Howto thermostat
+<Howto_thermostat>` page for more discussion of temperature computes
+with biases.  Note that the velocity bias is only applied to atoms in
+the temperature compute specified with the *temp* keyword.
 
 As an example, assume atoms are currently streaming in a flow
 direction (which could be separately initialized with the *ramp*
@@ -218,7 +219,8 @@ coordinate as stored on a particular machine.
 ----------
 
 The *rigid* keyword only has meaning when used with the *zero* style.
-It allows specification of a fix-ID for one of the :doc:`rigid-body fix <fix_rigid>` variants which defines a set of rigid bodies.  The
+It allows specification of a fix-ID for one of the :doc:`rigid-body
+fix <fix_rigid>` variants which defines a set of rigid bodies.  The
 zeroing of linear or angular momentum is then performed for each rigid
 body defined by the fix, as described above.
 
@@ -235,16 +237,18 @@ command must have been previously used to define the lattice spacing.
 Restrictions
 """"""""""""
 
-Assigning a temperature via the *create* style to a system with :doc:`rigid bodies <fix_rigid>` or :doc:`SHAKE constraints <fix_shake>` may not
-have the desired outcome for two reasons.  First, the velocity command
-can be invoked before all of the relevant fixes are created and
-initialized and the number of adjusted degrees of freedom (DOFs) is
-known.  Thus it is not possible to compute the target temperature
-correctly.  Second, the assigned velocities may be partially canceled
-when constraints are first enforced, leading to a different
-temperature than desired.  A workaround for this is to perform a :doc:`run 0 <run>` command, which insures all DOFs are accounted for
-properly, and then rescale the temperature to the desired value before
-performing a simulation.  For example:
+Assigning a temperature via the *create* style to a system with
+:doc:`rigid bodies <fix_rigid>` or :doc:`SHAKE constraints
+<fix_shake>` may not have the desired outcome for two reasons.  First,
+the velocity command can be invoked before all of the relevant fixes
+are created and initialized and the number of adjusted degrees of
+freedom (DOFs) is known.  Thus it is not possible to compute the
+target temperature correctly.  Second, the assigned velocities may be
+partially canceled when constraints are first enforced, leading to a
+different temperature than desired.  A workaround for this is to
+perform a :doc:`run 0 <run>` command, which ensures all DOFs are
+accounted for properly, and then rescale the temperature to the
+desired value before performing a simulation.  For example:
 
 .. code-block:: LAMMPS
 

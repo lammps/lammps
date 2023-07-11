@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,8 +15,6 @@
 #define LMP_BOND_BPM_H
 
 #include "bond.h"
-
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -52,7 +50,7 @@ class BondBPM : public Bond {
   FnPtrPack *pack_choice;    // ptrs to pack functions
   double *output_data;
 
-  int prop_atom_flag, nvalues, overlay_flag;
+  int prop_atom_flag, nvalues, overlay_flag, break_flag;
   int index_x_ref, index_y_ref, index_z_ref;
 
   void pack_id1(int, int, int);

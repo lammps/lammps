@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,7 +42,20 @@ FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
 
   // default values
 
+  psllod_flag = 0;
   if (mtchain_default_flag) mtchain = 1;
+
+  // select SLLOD/p-SLLOD/g-SLLOD variant
+
+  int iarg = 3;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"psllod") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nvt/sllod/eff psllod", error);
+      psllod_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else iarg++;
+  }
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -108,10 +121,11 @@ void FixNVTSllodEff::nh_v_temp()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      temperature->remove_bias(i,v[i]);
+      if (!psllod_flag) temperature->remove_bias(i,v[i]);
       vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
       vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
       vdelu[2] = h_two[2]*v[i][2];
+      if (psllod_flag) temperature->remove_bias(i,v[i]);
       v[i][0] = v[i][0]*factor_eta - dthalf*vdelu[0];
       v[i][1] = v[i][1]*factor_eta - dthalf*vdelu[1];
       v[i][2] = v[i][2]*factor_eta - dthalf*vdelu[2];

@@ -184,7 +184,7 @@ class UCL_Device {
       _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
                                                     &errorv);
     } else {
-      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, 0};
+      cl_queue_properties props[] = {0};
       _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
                                                     &errorv);
     }
@@ -309,15 +309,14 @@ class UCL_Device {
   /// Return the maximum memory pitch in bytes for current device
   inline size_t max_pitch() { return max_pitch(_device); }
   /// Return the maximum memory pitch in bytes
-  inline size_t max_pitch(const int i) { return 0; }
+  inline size_t max_pitch(const int) { return 0; }
 
   /// Returns false if accelerator cannot be shared by multiple processes
   /** If it cannot be determined, true is returned **/
   inline bool sharing_supported() { return sharing_supported(_device); }
   /// Returns false if accelerator cannot be shared by multiple processes
   /** If it cannot be determined, true is returned **/
-  inline bool sharing_supported(const int i)
-    { return true; }
+  inline bool sharing_supported(const int) { return true; }
 
   /// True if the device is a sub-device
   inline bool is_subdevice()
@@ -536,9 +535,9 @@ int UCL_Device::create_context() {
   cl_int errorv;
   cl_context_properties props[3];
   props[0]=CL_CONTEXT_PLATFORM;
-  props[1]=_platform;
+  props[1]=(cl_context_properties)_cl_platform;
   props[2]=0;
-  _context=clCreateContext(0,1,&_cl_device,nullptr,nullptr,&errorv);
+  _context=clCreateContext(props,1,&_cl_device,nullptr,nullptr,&errorv);
   if (errorv!=CL_SUCCESS) {
     #ifndef UCL_NO_EXIT
     std::cerr << "UCL Error: Could not access accelerator number " << _device

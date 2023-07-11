@@ -1,5 +1,5 @@
 # Pizza.py toolkit, https://lammps.github.io/pizza
-# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+# LAMMPS development team: developers@lammps.org
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -657,11 +657,14 @@ class dump:
 
       atoms = snap.atoms
       nvalues = len(atoms[0])
+      keys = dict()
+      for pair in self.names.items():
+        keys[pair[1]] = pair[0]
       for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         line = ""
         for j in range(nvalues):
-          if (j < 2):
+          if keys[j] == 'id' or keys[j] == 'type' or keys[j] == 'mol':
             line += str(int(atoms[i][j])) + " "
           else:
             line += str(atoms[i][j]) + " "

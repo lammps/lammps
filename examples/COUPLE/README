@@ -19,12 +19,12 @@ See these sections of the LAMMPS manual for details:
 Build LAMMPS as a library (doc/html/Build_basics.html)
 Link LAMMPS as a library to another code (doc/html/Build_link.html)
 Coupling LAMMPS to other codes (doc/html/Howto_couple.html)
-Using LAMMPS in client/server mode (doc/html/Howto_client_server.html)
 Library interface to LAMMPS (doc/html/Howto_library.html)
+Detailed documentation of the LAMMPS interfaces (doc/html/Library.html)
 
-The library interface to LAMMPS is in src/library.cpp.  Routines can
-be easily added to this file so an external program can perform the
-LAMMPS tasks desired.
+The core library interface to LAMMPS is in src/library.cpp.  Routines
+can be easily added to this file so an external program can perform
+the LAMMPS tasks desired.
 
 -------------------------------------------------------------------
 
@@ -33,16 +33,8 @@ These are the sub-directories included in this directory:
 simple              simple example of driver code calling LAMMPS as a lib
 multiple            example of driver code calling multiple instances of LAMMPS
 plugin              example for loading LAMMPS at runtime from a shared library
-lammps_quest        MD with quantum forces, coupling to Quest DFT code
 lammps_spparks      grain-growth Monte Carlo with strain via MD,
                     coupling to SPPARKS kinetic MC code
 library             collection of useful inter-code communication routines
-fortran             a simple wrapper on the LAMMPS library API that
-                      can be called from Fortran
-fortran2            a more sophisticated wrapper on the LAMMPS library API that
-                      can be called from Fortran
-fortran_dftb        wrapper written by Nir Goldman (LLNL), as an
-                      extension to fortran2, used for calling LAMMPS
-                      from Fortran DFTB+ tight-binding code
 
 Each sub-directory has its own README with more details.

@@ -6,10 +6,11 @@ else()
 endif()
 option(DOWNLOAD_N2P2 "Download n2p2 library instead of using an already installed one)" ${DOWNLOAD_N2P2_DEFAULT})
 if(DOWNLOAD_N2P2)
-  set(N2P2_URL "https://github.com/CompPhysVienna/n2p2/archive/v2.1.4.tar.gz" CACHE STRING "URL for n2p2 tarball")
-  set(N2P2_MD5 "9595b066636cd6b90b0fef93398297a5" CACHE STRING "MD5 checksum of N2P2 tarball")
+  set(N2P2_URL "https://github.com/CompPhysVienna/n2p2/archive/v2.2.0.tar.gz" CACHE STRING "URL for n2p2 tarball")
+  set(N2P2_MD5 "a2d9ab7f676b3a74a324fc1eda0a911d" CACHE STRING "MD5 checksum of N2P2 tarball")
   mark_as_advanced(N2P2_URL)
   mark_as_advanced(N2P2_MD5)
+  GetFallbackURL(N2P2_URL N2P2_FALLBACK)
 
   # adjust settings from detected compiler to compiler platform in n2p2 library
   # set compiler specific flag to turn on C++11 syntax (required on macOS and CentOS 7)
@@ -72,7 +73,7 @@ if(DOWNLOAD_N2P2)
   # download compile n2p2 library. much patch MPI calls in LAMMPS interface to accommodate MPI-2 (e.g. for cross-compiling)
   include(ExternalProject)
   ExternalProject_Add(n2p2_build
-    URL     ${N2P2_URL}
+    URL     ${N2P2_URL} ${N2P2_FALLBACK}
     URL_MD5 ${N2P2_MD5}
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""

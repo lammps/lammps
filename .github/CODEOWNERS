@@ -13,40 +13,45 @@ lib/kim/*             @ellio167
 lib/mesont/*          @iafoss
 
 # whole packages
+src/ADIOS/*           @pnorbert
 src/AMOEBA/*          @sjplimp
-src/COMPRESS/*        @rbberger
-src/GPU/*             @ndtrung81
-src/KOKKOS/*          @stanmoore1
-src/KIM/*             @ellio167
-src/LATTE/*           @cnegre
-src/MLIAP/*           @athomps
-src/SNAP/*            @athomps
-src/SPIN/*            @julient31
+src/BPM/*             @jtclemm
 src/BROWNIAN/*        @samueljmcameron
 src/CG-DNA/*          @ohenrich
 src/CG-SPICA/*        @yskmiyazaki
 src/COLVARS/*         @giacomofiorin
+src/COMPRESS/*        @rbberger
 src/DIELECTRIC/*      @ndtrung81
 src/ELECTRODE/*       @ludwig-ahrens
 src/FEP/*             @agiliopadua
-src/ML-HDNNP/*        @singraber
+src/GPU/*             @ndtrung81
+src/GRANULAR/*        @jtclemm @dsbolin
 src/INTEL/*           @wmbrownintel
+src/KIM/*             @ellio167
+src/KOKKOS/*          @stanmoore1
+src/LATTE/*           @cnegre
 src/MANIFOLD/*        @Pakketeretet2
-src/MDI/*             @taylor-a-barnes
+src/MDI/*             @taylor-a-barnes @sjplimp
 src/MEAM/*            @martok
 src/MESONT/*          @iafoss
+src/ML-HDNNP/*        @singraber
+src/ML-IAP/*          @athomps
+src/ML-PACE/*         @yury-lysogorskiy
+src/ML-POD/*          @exapde @rohskopf
 src/MOFFF/*           @hheenen
 src/MOLFILE/*         @akohlmey
 src/NETCDF/*          @pastewka
-src/ML-PACE/*         @yury-lysogorskiy
-src/PLUMED/*          @gtribello
-src/PHONON/*          @lingtikong
-src/PTM/*             @pmla
 src/OPENMP/*          @akohlmey
+src/PHONON/*          @lingtikong
+src/PLUGIN/*          @akohlmey
+src/PLUMED/*          @gtribello
+src/PTM/*             @pmla
 src/QMMM/*            @akohlmey
-src/REAXFF/*          @hasanmetin @stanmoore1
 src/REACTION/*        @jrgissing
+src/REAXFF/*          @hasanmetin @stanmoore1
 src/SCAFACOS/*        @rhalver
+src/SNAP/*            @athomps
+src/SPIN/*            @julient31
 src/TALLY/*           @akohlmey
 src/UEF/*             @danicholson
 src/VTK/*             @rbberger
@@ -58,7 +63,11 @@ src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
 src/REPLICA/*_grem.*                @dstelter92
 src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
+src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/MISC/*_tracker.*                @jtclemm
+src/MC/fix_gcmc.*                   @athomps
+src/MC/fix_sgcmc.*                  @athomps
+src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
 
 # core LAMMPS classes
 src/lammps.*              @sjplimp
@@ -120,42 +129,46 @@ src/dump_movie.*          @akohlmey
 src/exceptions.h          @rbberger
 src/fix_nh.*              @athomps
 src/info.*                @akohlmey @rbberger
-src/timer.*               @akohlmey
 src/min*                  @sjplimp @stanmoore1
+src/platform.*            @akohlmey
+src/timer.*               @akohlmey
 src/utils.*               @akohlmey @rbberger
 src/verlet.*              @sjplimp @stanmoore1
 src/math_eigen_impl.h     @jewettaij
 
 # tools
-tools/msi2lmp/*       @akohlmey
+tools/coding_standard/* @akohlmey @rbberger
 tools/emacs/*         @HaoZeke
-tools/singularity/*   @akohlmey @rbberger
-tools/coding_standard/* @rbberger
-tools/valgrind/*      @akohlmey
-tools/swig/*          @akohlmey
+tools/lammps-shell/*  @akohlmey
+tools/msi2lmp/*       @akohlmey
 tools/offline/*       @rbberger
+tools/singularity/*   @akohlmey @rbberger
+tools/swig/*          @akohlmey
+tools/valgrind/*      @akohlmey
 tools/vim/*           @hammondkd
 
 # tests
-unittest/*            @akohlmey @rbberger
+unittest/*            @akohlmey
 
 # cmake
-cmake/*               @junghans @rbberger
-cmake/Modules/Packages/COLVARS.cmake @junghans @rbberger @giacomofiorin
-cmake/Modules/Packages/KIM.cmake @junghans @rbberger @ellio167
+cmake/*               @rbberger
+cmake/Modules/LAMMPSInterfacePlugin.cmake @akohlmey
+cmake/Modules/MPI4WIN.cmake @akohlmey
+cmake/Modules/OpenCLLoader.cmake @akohlmey
+cmake/Modules/Packages/COLVARS.cmake @rbberger @giacomofiorin
+cmake/Modules/Packages/KIM.cmake @rbberger @ellio167
 cmake/presets/*.cmake @akohlmey
 
 # python
 python/*              @rbberger
 
 # fortran
-fortran/*             @akohlmey
+fortran/*             @akohlmey @hammondkd
 
 # docs
-doc/utils/*/*         @rbberger
-doc/Makefile          @rbberger
-doc/README            @rbberger
+doc/*                 @akohlmey
 examples/plugin/*     @akohlmey
+examples/PACKAGES/pace/plugin/*     @akohlmey
 
 # for releases
 src/version.h         @sjplimp

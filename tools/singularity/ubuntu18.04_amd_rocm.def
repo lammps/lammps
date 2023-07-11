@@ -45,7 +45,7 @@ From: ubuntu:18.04
     ###########################################################################
     # Common Software
     ###########################################################################
-    add-apt-repository ppa:openkim/latest
+    add-apt-repository ppa:openkim/latest -y
     apt-get update
     apt-get install --no-install-recommends -y \
         bc \
@@ -136,7 +136,7 @@ From: ubuntu:18.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.8.0
+    export PLUMED_PKG_VERSION=2.8.2
 
     mkdir plumed
     cd plumed

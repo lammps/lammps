@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -146,7 +146,7 @@ void BondOxdnaFene::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, doub
 void BondOxdnaFene::compute(int eflag, int vflag)
 {
   int a, b, in, type;
-  double delf[3], delta[3], deltb[3];    // force, torque increment;;
+  double delf[3], delta[3], deltb[3];    // force, torque increment
   double delr[3], ebond, fbond;
   double rsq, Deltasq, rlogarg;
   double r, rr0, rr0sq;

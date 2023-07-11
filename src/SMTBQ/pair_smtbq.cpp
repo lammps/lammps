@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +25,9 @@
    N. Salles, O. Politano, E. Amzallag and R. Tetot,
    Comput. Mater. Sci., 111 (2016) 181-189
 
-   Contact : lammps@u-bourgogne.fr
+   Contact: Nicolas Salles <nsalles33@gmail.com>
+            Olivier Politano <olivier.politano@u-bourgogne.fr>
+            Robert Tétot <robert.tetot@universite-paris-saclay.fr>
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -202,7 +204,7 @@ PairSMTBQ::~PairSMTBQ()
   memory->destroy(potcov);
 
   memory->destroy(nvsm);
-  memory->destroy(vsm);;
+  memory->destroy(vsm);
   memory->destroy(flag_QEq);
 
   memory->destroy(nQEqall);

@@ -7,6 +7,10 @@ add_executable(test_mempool test_mempool.cpp)
 target_link_libraries(test_mempool PRIVATE lammps GTest::GMockMain)
 add_test(NAME MemPool COMMAND test_mempool)
 
+add_executable(test_lmptype test_lmptype.cpp)
+target_link_libraries(test_lmptype PRIVATE lammps GTest::GMockMain)
+add_test(NAME LmpType COMMAND test_lmptype)
+
 add_executable(test_argutils test_argutils.cpp)
 target_link_libraries(test_argutils PRIVATE lammps GTest::GMockMain)
 add_test(NAME ArgUtils COMMAND test_argutils)
@@ -18,6 +22,12 @@ add_test(NAME Utils COMMAND test_utils)
 add_executable(test_platform test_platform.cpp)
 target_link_libraries(test_platform PRIVATE lammps GTest::GMockMain)
 add_test(NAME Platform COMMAND test_platform)
+
+if(PKG_LEPTON)
+  add_executable(test_lepton test_lepton.cpp)
+  target_link_libraries(test_lepton PRIVATE lepton lammps GTest::GMockMain)
+  add_test(NAME Lepton COMMAND test_lepton)
+endif()
 
 set_tests_properties(Utils Platform PROPERTIES
   ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")

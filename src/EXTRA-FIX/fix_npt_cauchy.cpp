@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -2461,7 +2461,7 @@ void FixNPTCauchy::CauchyStat_init()
 
   if (!init_store)
     init_store = dynamic_cast<FixStoreGlobal *>(
-      modify->add_fix(std::string(id_store) + " all STORE global 1 6"));
+      modify->add_fix(std::string(id_store) + " all STORE/GLOBAL 1 6"));
 
   initRUN = 0;
   initPK = 1;

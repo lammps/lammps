@@ -11,12 +11,21 @@ sys.path.insert(1,PIZZA_DIR)
 
 # dump class uses NumPy, so only load and test dump if NumPy is available
 has_numpy = False
+has_molecule = False
+machine = None
+if 'LAMMPS_MACHINE_NAME' in os.environ:
+    machine=os.environ['LAMMPS_MACHINE_NAME']
+tmplmp = lammps(name=machine,  cmdargs=['-nocite', '-log', 'none', '-echo', 'screen'])
+has_molecule = tmplmp.has_package('MOLECULE')
+tmplmp.close()
+
 try:
     import numpy
     has_numpy = True
     import dump
 except:
     pass
+do_dump_test = has_numpy and has_molecule
 
 import log
 
@@ -116,11 +125,12 @@ class PythonDump(unittest.TestCase):
         if 'LAMMPS_MACHINE_NAME' in os.environ:
             machine=os.environ['LAMMPS_MACHINE_NAME']
         self.lmp = lammps(name=machine,  cmdargs=['-nocite', '-log', 'none', '-echo', 'screen'])
+        self.do_dump_test = self.lmp.has_package('MOLECULE') and has_numpy
 
     def tearDown(self):
         del self.lmp
 
-    @unittest.skipIf(not has_numpy,"Missing the NumPy python module")
+    @unittest.skipIf(not do_dump_test,"Missing the NumPy python module or MOLECULE package")
     def testDumpCustom(self):
         dumpfile = os.path.join(os.path.abspath('.'), 'dump.custom')
         self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])

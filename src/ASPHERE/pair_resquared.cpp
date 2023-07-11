@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -778,7 +778,7 @@ double PairRESquared::resquared_analytic(const int i, const int j, const RE2Vars
 
   // torque on j
 
-  if (!(force->newton_pair || j < atom->nlocal)) return Ua + Ur;
+  if (!force->newton_pair && j >= atom->nlocal) return Ua + Ur;
 
   MathExtra::vecmat(fourw, wj.aTe, fwae);
 

@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,9 +32,9 @@ NPairSkipSizeOff2on::NPairSkipSizeOff2on(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairSkipSizeOff2on::build(NeighList *list)
 {
-  int i,j,ii,jj,n,itype,jnum,joriginal;
-  tagint itag,jtag;
-  int *neighptr,*jlist;
+  int i, j, ii, jj, n, itype, jnum, joriginal;
+  tagint itag, jtag;
+  int *neighptr, *jlist;
 
   tagint *tag = atom->tag;
   int *type = atom->type;
@@ -92,9 +91,7 @@ void NPairSkipSizeOff2on::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
-
   list->inum = inum;
 }

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -118,7 +118,7 @@ void Atom::map_clear()
   if (map_style == MAP_ARRAY) {
     int nall = nlocal + nghost;
     for (int i = 0; i < nall; i++) {
-      sametag[i] = -1;
+      if (sametag) sametag[i] = -1;
       map_array[tag[i]] = -1;
     }
 
@@ -127,7 +127,7 @@ void Atom::map_clear()
     tagint global;
     int nall = nlocal + nghost;
     for (int i = 0; i < nall; i++) {
-      sametag[i] = -1;
+      if (sametag) sametag[i] = -1;
 
       // search for key
       // if don't find it, done

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,14 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hooke.h"
-#include <cmath>
+
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "fix.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "comm.h"
 #include "memory.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -298,7 +300,7 @@ double PairGranHooke::single(int i, int j, int /*itype*/, int /*jtype*/, double 
   mi = rmass[i];
   mj = rmass[j];
   if (fix_rigid) {
-    // NOTE: insure mass_rigid is current for owned+ghost atoms?
+    // NOTE: ensure mass_rigid is current for owned+ghost atoms?
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
     if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }

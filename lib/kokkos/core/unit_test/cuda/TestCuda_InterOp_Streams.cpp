@@ -48,9 +48,11 @@
 namespace Test {
 // Test Interoperability with Cuda Streams
 TEST(cuda, raw_cuda_streams) {
+  // Make sure that we use the same device for all allocations
+  Kokkos::initialize();
+
   cudaStream_t stream;
   cudaStreamCreate(&stream);
-  Kokkos::initialize();
   int* p;
   cudaMalloc(&p, sizeof(int) * 100);
   using MemorySpace = typename TEST_EXECSPACE::memory_space;

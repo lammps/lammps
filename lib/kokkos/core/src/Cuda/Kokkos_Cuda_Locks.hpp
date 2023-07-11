@@ -153,7 +153,7 @@ inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 inline
 #else
-static
+inline static
 #endif
     void
     copy_cuda_lock_arrays_to_device() {

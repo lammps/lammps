@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -2298,7 +2298,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
 
-  if (switch_flag == 0) { sfac_outer = zero; dsfac_outer = zero; }
+  if (switch_flag == 0) { sfac_outer = one; dsfac_outer = zero; }
   else if (switch_flag == 1) {
     if (r <= rmin0) { sfac_outer = one; dsfac_outer = zero; }
     else if (r > rcut) { sfac = zero; dsfac = zero; return; }

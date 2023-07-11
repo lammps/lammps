@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -96,7 +96,10 @@ PairPACEExtrapolation::PairPACEExtrapolation(LAMMPS *lmp) : Pair(lmp)
 
   aceimpl = new ACEALImpl;
   scale = nullptr;
+  flag_compute_extrapolation_grade = 0;
   extrapolation_grade_gamma = nullptr;
+
+  chunksize = 4096;
 }
 
 /* ----------------------------------------------------------------------
@@ -132,15 +135,11 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  tagint *tag = atom->tag;
   int *type = atom->type;
   // number of atoms in cell
   int nlocal = atom->nlocal;
 
   int newton_pair = force->newton_pair;
-
-  // number of atoms including ghost atoms
-  int nall = nlocal + atom->nghost;
 
   // inum: length of the neighborlists list
   inum = list->inum;
@@ -282,7 +281,20 @@ void PairPACEExtrapolation::allocate()
 
 void PairPACEExtrapolation::settings(int narg, char **arg)
 {
-  if (narg > 0) error->all(FLERR, "Pair style pace/extrapolation supports no keywords");
+//  if (narg > 2) error->all(FLERR, "Pair style pace/extrapolation supports no keywords");
+  if (narg > 2) utils::missing_cmd_args(FLERR, "pair_style pace/extrapolation", error);
+  // ACE potentials are parameterized in metal units
+  if (strcmp("metal", update->unit_style) != 0)
+    error->all(FLERR, "ACE potentials require 'metal' units");
+
+  int iarg = 0;
+  while (iarg < narg) {
+      if (strcmp(arg[iarg], "chunksize") == 0) {
+          chunksize = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+          iarg += 2;
+      } else
+          error->all(FLERR, "Unknown pair_style pace keyword: {}", arg[iarg]);
+  }
 
   if (comm->me == 0)
     utils::logmesg(lmp, "ACE/AL version: {}.{}.{}\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
@@ -342,7 +354,6 @@ void PairPACEExtrapolation::coeff(int narg, char **arg)
   aceimpl->rec_ace->element_type_mapping.init(atom->ntypes + 1);
   aceimpl->rec_ace->element_type_mapping.fill(-1);    //-1 means atom not included into potential
 
-  FILE *species_type_file = nullptr;
 
   const int n = atom->ntypes;
   element_names.resize(n);
@@ -382,10 +393,10 @@ void PairPACEExtrapolation::coeff(int narg, char **arg)
   aceimpl->ace->load_active_set(active_set_inv_filename);
   bool is_linear_extrapolation_grade = aceimpl->ace->get_is_linear_extrapolation_grade();
   if (comm->me == 0) {
-        if (is_linear_extrapolation_grade)
-            utils::logmesg(lmp, "LINEAR ASI is loaded\n");
-        else
-            utils::logmesg(lmp, "FULL ASI is loaded\n");
+    if (is_linear_extrapolation_grade)
+      utils::logmesg(lmp, "LINEAR ASI is loaded\n");
+    else
+      utils::logmesg(lmp, "FULL ASI is loaded\n");
   }
 
   // clear setflag since coeff() called once with I,J = * *

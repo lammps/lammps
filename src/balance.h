@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,22 +27,23 @@ namespace LAMMPS_NS {
 class Balance : public Command {
  public:
   class RCB *rcb;
-  class FixStorePeratom *fixstore;    // per-atom weights stored in FixStorePeratom
-  int wtflag;                         // 1 if particle weighting is used
-  int varflag;                        // 1 if weight style var(iable) is used
-  int outflag;                        // 1 for output of balance results to file
+  class FixStoreAtom *fixstore;    // per-atom weights stored in FixStorePeratom
+  int wtflag;                      // 1 if particle weighting is used
+  int varflag;                     // 1 if weight style var(iable) is used
+  int sortflag;                    // 1 if sorting of comm messages is done
+  int outflag;                     // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
   ~Balance() override;
   void command(int, char **) override;
-  void options(int, int, char **);
+  void options(int, int, char **, int);
   void weight_storage(char *);
   void init_imbalance(int);
   void set_weights();
   double imbalance_factor(double &);
   void shift_setup(char *, int, double);
   int shift();
-  int *bisection(int sortflag = 0);
+  int *bisection();
   void dumpout(bigint);
 
   static constexpr int BSTR_SIZE = 3;

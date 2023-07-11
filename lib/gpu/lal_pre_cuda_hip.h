@@ -57,6 +57,7 @@
 #define MAX_SHARED_TYPES 11
 #define MAX_BIO_SHARED_TYPES 128
 #define PPPM_MAX_SPLINE 8
+#define NBOR_PREFETCH 0
 
 // -------------------------------------------------------------------------
 //                              KERNEL MACROS
@@ -182,12 +183,15 @@
 #define ucl_cbrt cbrt
 #define ucl_ceil ceil
 #define ucl_abs fabs
+#define ucl_recip(x) ((numtyp)1.0/(x))
 #define ucl_rsqrt rsqrt
 #define ucl_sqrt sqrt
-#define ucl_recip(x) ((numtyp)1.0/(x))
+#define ucl_erfc erfc
 
 #else
 
+#define ucl_exp expf
+#define ucl_powr powf
 #define ucl_atan atanf
 #define ucl_cbrt cbrtf
 #define ucl_ceil ceilf
@@ -195,8 +199,7 @@
 #define ucl_recip(x) ((numtyp)1.0/(x))
 #define ucl_rsqrt rsqrtf
 #define ucl_sqrt sqrtf
-#define ucl_exp expf
-#define ucl_powr powf
+#define ucl_erfc erfcf
 
 #endif
 

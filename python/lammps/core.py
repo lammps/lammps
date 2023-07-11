@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 #   https://www.lammps.org/ Sandia National Laboratories
-#   Steve Plimpton, sjplimp@sandia.gov
+#   LAMMPS Development team: developers@lammps.org
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 #   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -210,6 +210,15 @@ class lammps(object):
     self.lib.lammps_gather_bonds.argtypes = [c_void_p,c_void_p]
     self.lib.lammps_gather_bonds.restype = None
 
+    self.lib.lammps_gather_angles.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_angles.restype = None
+
+    self.lib.lammps_gather_dihedrals.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_dihedrals.restype = None
+
+    self.lib.lammps_gather_impropers.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_impropers.restype = None
+
     self.lib.lammps_gather.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather.restype = None
 
@@ -263,8 +272,12 @@ class lammps(object):
     self.lib.lammps_get_thermo.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_get_thermo.restype = c_double
 
+    self.lib.lammps_last_thermo.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_last_thermo.restype = c_void_p
+
     self.lib.lammps_encode_image_flags.restype = self.c_imageint
 
+    self.lib.lammps_config_has_package.argtypes = [c_char_p]
     self.lib.lammps_config_package_name.argtypes = [c_int, c_char_p, c_int]
     self.lib.lammps_config_accelerator.argtypes = [c_char_p, c_char_p, c_char_p]
 
@@ -493,9 +506,9 @@ class lammps(object):
   def error(self, error_type, error_text):
     """Forward error to the LAMMPS Error class.
 
-    This is a wrapper around the :cpp:func:`lammps_error` function of the C-library interface.
+    .. versionadded:: 3Nov2022
 
-    .. versionadded:: TBD
+    This is a wrapper around the :cpp:func:`lammps_error` function of the C-library interface.
 
     :param error_type:
     :type error_type:  int
@@ -733,6 +746,64 @@ class lammps(object):
       return self.lib.lammps_get_thermo(self.lmp,name)
 
   # -------------------------------------------------------------------------
+  @property
+  def last_thermo_step(self):
+    """ Get the last timestep where thermodynamic data was computed
+
+    :return: the timestep or a negative number if there has not been any thermo output yet
+    :rtype: int
+    """
+    with ExceptionCheck(self):
+      ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("step".encode()), 0)
+    return cast(ptr, POINTER(self.c_bigint)).contents.value
+
+  def last_thermo(self):
+    """Get a dictionary of the last thermodynamic output
+
+    This is a wrapper around the :cpp:func:`lammps_last_thermo`
+    function of the C-library interface.  It collects the cached thermo
+    data from the last timestep into a dictionary.  The return value
+    is None, if there has not been any thermo output yet.
+
+    :return: a dictionary containing the last computed thermo output values
+    :rtype: dict or None
+    """
+
+    rv = dict()
+    mystep = self.last_thermo_step
+    if mystep < 0:
+      return None
+
+    with ExceptionCheck(self):
+      ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("num".encode()), 0)
+    nfield = cast(ptr, POINTER(c_int)).contents.value
+
+    for i in range(nfield):
+      with ExceptionCheck(self):
+        ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("keyword".encode()), i)
+      kw = cast(ptr, c_char_p).value.decode()
+
+      with ExceptionCheck(self):
+        ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("type".encode()), i)
+      typ = cast(ptr, POINTER(c_int)).contents.value
+
+      with ExceptionCheck(self):
+        ptr = self.lib.lammps_last_thermo(self.lmp, c_char_p("data".encode()), i)
+
+      if typ == LAMMPS_DOUBLE:
+        val = cast(ptr, POINTER(c_double)).contents.value
+      elif typ == LAMMPS_INT:
+        val = cast(ptr, POINTER(c_int)).contents.value
+      elif typ == LAMMPS_INT64:
+        val = cast(ptr, POINTER(c_int64)).contents.value
+      else:
+        # we should not get here
+        raise TypeError("Unknown LAMMPS data type " + str(typ))
+      rv[kw] = val
+
+    return rv
+
+  # -------------------------------------------------------------------------
 
   def extract_setting(self, name):
     """Query LAMMPS about global settings that can be expressed as an integer.
@@ -804,7 +875,8 @@ class lammps(object):
 
     # set length of vector for items that are not a scalar
     vec_dict = { 'boxlo':3, 'boxhi':3, 'sublo':3, 'subhi':3,
-                 'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3 }
+                 'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3,
+                 'special_lj':4, 'special_coul':4 }
     if name in vec_dict:
       veclen = vec_dict[name]
     elif name == 'respa_dt':
@@ -1203,7 +1275,7 @@ class lammps(object):
   # dtype = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def gather_atoms(self,name,dtype,count):
@@ -1257,7 +1329,7 @@ class lammps(object):
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # assume data is of correct type and length, as created by gather_atoms()
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter_atoms(self,name,dtype,count,data):
@@ -1278,14 +1350,14 @@ class lammps(object):
   def gather_bonds(self):
     """Retrieve global list of bonds
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_gather_bonds`
     function of the C-library interface.
 
     This function returns a tuple with the number of bonds and a
     flat list of ctypes integer values with the bond type, bond atom1,
     bond atom2 for each bond.
-
-    .. versionadded:: 28Jul2021
 
     :return: a tuple with the number of bonds and a list of c_int or c_long
     :rtype: (int, 3*nbonds*c_tagint)
@@ -1298,13 +1370,82 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  def gather_angles(self):
+    """Retrieve global list of angles
+
+    .. versionadded:: 8Feb2023
+
+    This is a wrapper around the :cpp:func:`lammps_gather_angles`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of angles and a
+    flat list of ctypes integer values with the angle type, angle atom1,
+    angle atom2, angle atom3 for each angle.
+
+    :return: a tuple with the number of angles and a list of c_int or c_long
+    :rtype: (int, 4*nangles*c_tagint)
+    """
+    nangles = self.extract_global("nangles")
+    with ExceptionCheck(self):
+        data = ((4*nangles)*self.c_tagint)()
+        self.lib.lammps_gather_angles(self.lmp,data)
+        return nangles,data
+
+  # -------------------------------------------------------------------------
+
+  def gather_dihedrals(self):
+    """Retrieve global list of dihedrals
+
+    .. versionadded:: 8Feb2023
+
+    This is a wrapper around the :cpp:func:`lammps_gather_dihedrals`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of dihedrals and a
+    flat list of ctypes integer values with the dihedral type, dihedral atom1,
+    dihedral atom2, dihedral atom3, dihedral atom4 for each dihedral.
+
+    :return: a tuple with the number of dihedrals and a list of c_int or c_long
+    :rtype: (int, 5*ndihedrals*c_tagint)
+    """
+    ndihedrals = self.extract_global("ndihedrals")
+    with ExceptionCheck(self):
+        data = ((5*ndihedrals)*self.c_tagint)()
+        self.lib.lammps_gather_dihedrals(self.lmp,data)
+        return ndihedrals,data
+
+  # -------------------------------------------------------------------------
+
+  def gather_impropers(self):
+    """Retrieve global list of impropers
+
+    .. versionadded:: 8Feb2023
+
+    This is a wrapper around the :cpp:func:`lammps_gather_impropers`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of impropers and a
+    flat list of ctypes integer values with the improper type, improper atom1,
+    improper atom2, improper atom3, improper atom4 for each improper.
+
+    :return: a tuple with the number of impropers and a list of c_int or c_long
+    :rtype: (int, 5*nimpropers*c_tagint)
+    """
+    nimpropers = self.extract_global("nimpropers")
+    with ExceptionCheck(self):
+        data = ((5*nimpropers)*self.c_tagint)()
+        self.lib.lammps_gather_impropers(self.lmp,data)
+        return nimpropers,data
+
+  # -------------------------------------------------------------------------
+
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
   def gather(self,name,dtype,count):
     if name: name = name.encode()
@@ -1353,7 +1494,7 @@ class lammps(object):
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # assume data is of correct type and length, as created by gather_atoms()
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter(self,name,dtype,count,data):
@@ -1413,7 +1554,7 @@ class lammps(object):
   # type = type of each atom (1 to Ntypes) (required)
   # x = coords of each atom as (N,3) array (required)
   # v = velocity of each atom as (N,3) array (optional, can be None)
-  # NOTE: how could we insure are passing correct type to LAMMPS
+  # NOTE: how could we ensure are passing correct type to LAMMPS
   #   e.g. for Python list or NumPy, etc
   #   ditto for gather_atoms() above
 
@@ -1525,12 +1666,12 @@ class lammps(object):
   def is_running(self):
     """ Report whether being called from a function during a run or a minimization
 
+    .. versionadded:: 9Oct2020
+
     Various LAMMPS commands must not be called during an ongoing
     run or minimization.  This property allows to check for that.
     This is a wrapper around the :cpp:func:`lammps_is_running`
     function of the library interface.
-
-    .. versionadded:: 9Oct2020
 
     :return: True when called during a run otherwise false
     :rtype: bool
@@ -1542,12 +1683,13 @@ class lammps(object):
   def force_timeout(self):
     """ Trigger an immediate timeout, i.e. a "soft stop" of a run.
 
+    .. versionadded:: 9Oct2020
+
     This function allows to cleanly stop an ongoing run or minimization
     at the next loop iteration.
     This is a wrapper around the :cpp:func:`lammps_force_timeout`
     function of the library interface.
 
-    .. versionadded:: 9Oct2020
     """
     self.lib.lammps_force_timeout(self.lmp)
 
@@ -1625,6 +1767,23 @@ class lammps(object):
     """
     return self.lib.lammps_config_has_ffmpeg_support() != 0
 
+  # -------------------------------------------------------------------------
+
+  def has_package(self, name):
+    """ Report if the named package has been enabled in the LAMMPS shared library.
+
+    .. versionadded:: 3Nov2022
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_package`
+    function of the library interface.
+
+    :param name: name of the package
+    :type  name: string
+
+    :return: state of package availability
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_package(name.encode()) != 0
   # -------------------------------------------------------------------------
 
   @property
@@ -1757,10 +1916,10 @@ class lammps(object):
   def has_id(self, category, name):
     """Returns whether a given ID name is available in a given category
 
+    .. versionadded:: 9Oct2020
+
     This is a wrapper around the function :cpp:func:`lammps_has_id`
     of the library interface.
-
-    .. versionadded:: 9Oct2020
 
     :param category: name of category
     :type  category: string
@@ -1777,10 +1936,10 @@ class lammps(object):
   def available_ids(self, category):
     """Returns a list of IDs available for a given category
 
+    .. versionadded:: 9Oct2020
+
     This is a wrapper around the functions :cpp:func:`lammps_id_count()`
     and :cpp:func:`lammps_id_name()` of the library interface.
-
-    .. versionadded:: 9Oct2020
 
     :param category: name of category
     :type  category: string
@@ -1804,10 +1963,10 @@ class lammps(object):
   def available_plugins(self, category):
     """Returns a list of plugins available for a given category
 
+    .. versionadded:: 10Mar2021
+
     This is a wrapper around the functions :cpp:func:`lammps_plugin_count()`
     and :cpp:func:`lammps_plugin_name()` of the library interface.
-
-    .. versionadded:: 10Mar2021
 
     :return: list of style/name pairs of loaded plugins
     :rtype:  list
@@ -1873,10 +2032,10 @@ class lammps(object):
   def fix_external_get_force(self, fix_id):
     """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_fix_external_get_force` function
     of the C-library interface.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1892,10 +2051,10 @@ class lammps(object):
   def fix_external_set_energy_global(self, fix_id, eng):
     """Set the global energy contribution for a fix external instance with the given ID.
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_global` function
     of the C-library interface.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1911,10 +2070,10 @@ class lammps(object):
   def fix_external_set_virial_global(self, fix_id, virial):
     """Set the global virial contribution for a fix external instance with the given ID.
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_global` function
     of the C-library interface.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1931,10 +2090,10 @@ class lammps(object):
   def fix_external_set_energy_peratom(self, fix_id, eatom):
     """Set the per-atom energy contribution for a fix external instance with the given ID.
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_peratom` function
     of the C-library interface.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1954,10 +2113,10 @@ class lammps(object):
   def fix_external_set_virial_peratom(self, fix_id, vatom):
     """Set the per-atom virial contribution for a fix external instance with the given ID.
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_peratom` function
     of the C-library interface.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -1986,10 +2145,10 @@ class lammps(object):
   def fix_external_set_vector_length(self, fix_id, length):
     """Set the vector length for a global vector stored with fix external for analysis
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector_length` function
     of the C-library interface.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -2004,10 +2163,10 @@ class lammps(object):
   def fix_external_set_vector(self, fix_id, idx, val):
     """Store a global vector value for a fix external instance with the given ID.
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector` function
     of the C-library interface.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string

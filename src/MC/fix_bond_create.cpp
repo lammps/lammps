@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -583,7 +583,7 @@ void FixBondCreate::post_integrate()
   atom->nbonds += createcount;
 
   // trigger reneighboring if any bonds were formed
-  // this insures neigh lists will immediately reflect the topology changes
+  // this ensures neigh lists will immediately reflect the topology changes
   // done if any bonds created
 
   if (createcount) next_reneighbor = update->ntimestep;
@@ -599,7 +599,7 @@ void FixBondCreate::post_integrate()
   //   even if between owned-ghost or ghost-ghost atoms
   // finalpartner is now set for owned and ghost atoms so loop over nall
   // OK if duplicates in broken list due to ghosts duplicating owned atoms
-  // check J < 0 to insure a broken bond to unknown atom is included
+  // check J < 0 to ensure a broken bond to unknown atom is included
   //   i.e. a bond partner outside of cutoff length
 
   ncreate = 0;
@@ -624,7 +624,7 @@ void FixBondCreate::post_integrate()
 }
 
 /* ----------------------------------------------------------------------
-   insure all atoms 2 hops away from owned atoms are in ghost list
+   ensure all atoms 2 hops away from owned atoms are in ghost list
    this allows dihedral 1-2-3-4 to be properly created
      and special list of 1 to be properly updated
    if I own atom 1, but not 2,3,4, and bond 3-4 is added

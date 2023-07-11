@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,7 +13,6 @@
 
 #include "fix_store_global.h"
 
-#include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
@@ -183,7 +182,7 @@ void FixStoreGlobal::restart(char *buf)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of global or peratom atom-based array
+   memory usage of global data
 ------------------------------------------------------------------------- */
 
 double FixStoreGlobal::memory_usage()

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -340,7 +340,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           const int j = tj[jj] & NEIGHMASK;
           if (!ONETYPE) jtype = tjtype[jj];
           const flt_t rsq = trsq[jj];
-          flt_t p = sqrt(rsq)*frdr + (flt_t)1.0;
+          flt_t p = std::sqrt(rsq)*frdr + (flt_t)1.0;
           int m = static_cast<int> (p);
           m = MIN(m,nr-1);
           p -= m;
@@ -546,7 +546,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           const int j = tj[jj] & NEIGHMASK;
           if (!ONETYPE) jtype = tjtype[jj];
           const flt_t rsq = trsq[jj];
-          const flt_t r = sqrt(rsq);
+          const flt_t r = std::sqrt(rsq);
           flt_t p = r*frdr + (flt_t)1.0;
           int m = static_cast<int> (p);
           m = MIN(m,nr-1);

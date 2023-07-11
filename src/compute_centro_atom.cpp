@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -169,7 +169,7 @@ void ComputeCentroAtom::compute_peratom()
       jlist = firstneigh[i];
       jnum = numneigh[i];
 
-      // insure distsq and nearest arrays are long enough
+      // ensure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
         memory->destroy(distsq);
@@ -338,7 +338,7 @@ void ComputeCentroAtom::select(int k, int n, double *arr)
   arr--;
   l = 1;
   ir = n;
-  for (;;) {
+  while (true) {
     if (ir <= l + 1) {
       if (ir == l + 1 && arr[ir] < arr[l]) { SWAP(arr[l], arr[ir]) }
       return;
@@ -351,7 +351,7 @@ void ComputeCentroAtom::select(int k, int n, double *arr)
       i = l + 1;
       j = ir;
       a = arr[l + 1];
-      for (;;) {
+      while (true) {
         do i++;
         while (arr[i] < a);
         do j--;
@@ -378,7 +378,7 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
   iarr--;
   l = 1;
   ir = n;
-  for (;;) {
+  while (true) {
     if (ir <= l + 1) {
       if (ir == l + 1 && arr[ir] < arr[l]) {
         SWAP(arr[l], arr[ir])
@@ -405,7 +405,7 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
       j = ir;
       a = arr[l + 1];
       ia = iarr[l + 1];
-      for (;;) {
+      while (true) {
         do i++;
         while (arr[i] < a);
         do j--;

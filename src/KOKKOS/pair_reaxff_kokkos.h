@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -525,8 +525,8 @@ struct PairReaxKokkosFindBondFunctor  {
   PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile int &dst,
-             const volatile int &src) const {
+  void join(int &dst,
+             const int &src) const {
     dst = MAX(dst,src);
   }
 

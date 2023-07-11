@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,6 +36,9 @@ class ComputeStressCartesian : public Compute {
  private:
   int nbins1, nbins2, dir1, dir2, dims;
   double bin_width1, bin_width2, invV;
+  bool compute_ke = true;
+  bool compute_pair = true;
+  bool compute_bond = true;
 
   // Number density, kinetic and configurational contribution to the pressure.
   double *dens, *pkxx, *pkyy, *pkzz, *pcxx, *pcyy, *pczz;

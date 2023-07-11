@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -45,9 +45,15 @@ class Dump : protected Pointers {
   void init();
   virtual void write();
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
+  virtual int pack_forward_comm(int, int *, double *, int, int *)
+  {
+    return 0;
+  }
   virtual void unpack_forward_comm(int, int, double *) {}
-  virtual int pack_reverse_comm(int, int, double *) { return 0; }
+  virtual int pack_reverse_comm(int, int, double *)
+  {
+    return 0;
+  }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
   void modify_params(int, char **);
@@ -84,6 +90,7 @@ class Dump : protected Pointers {
   int unit_count;           // # of times the unit information was written
   int delay_flag;           // 1 if delay output until delaystep
   int write_header_flag;    // 1 if write header, 0 if not
+  int has_id;               // 1 if output contains Atom-IDs
 
   bigint delaystep;
 
@@ -91,9 +98,9 @@ class Dump : protected Pointers {
   char *refresh;      // compute ID to invoke refresh() on
   int irefresh;       // index of compute
 
-  int skipflag;       // 1 if skip condition defined
-  char *skipvar;      // name of variable to check for skip condition
-  int skipindex;      // index of skip variable
+  int skipflag;     // 1 if skip condition defined
+  char *skipvar;    // name of variable to check for skip condition
+  int skipindex;    // index of skip variable
 
   char boundstr[9];    // encoding of boundary flags
 
@@ -151,11 +158,17 @@ class Dump : protected Pointers {
 
   virtual void init_style() = 0;
   virtual void openfile();
-  virtual int modify_param(int, char **) { return 0; }
+  virtual int modify_param(int, char **)
+  {
+    return 0;
+  }
   virtual void write_header(bigint) = 0;
   virtual int count();
   virtual void pack(tagint *) = 0;
-  virtual int convert_string(int, double *) { return 0; }
+  virtual int convert_string(int, double *)
+  {
+    return 0;
+  }
   virtual void write_data(int, double *) = 0;
   virtual void write_footer() {}
 

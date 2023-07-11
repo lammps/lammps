@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class MLIAPModelPython : public MLIAPModel {
  public:
-  MLIAPModelPython(LAMMPS *, char * = nullptr);
+  MLIAPModelPython(LAMMPS *, char * = nullptr, bool is_child=false);
   ~MLIAPModelPython() override;
   int get_nparams() override;
   int get_gamma_nnz(class MLIAPData *) override;

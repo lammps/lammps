@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -610,7 +610,7 @@ FixRigid::~FixRigid()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   delete random;
   delete[] inpfile;
@@ -766,7 +766,7 @@ void FixRigid::init()
 }
 
 /* ----------------------------------------------------------------------
-   invoke pre_neighbor() to insure body xcmimage flags are reset
+   invoke pre_neighbor() to ensure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
 ------------------------------------------------------------------------- */
 
@@ -2523,9 +2523,17 @@ int FixRigid::pack_exchange(int i, double *buf)
   buf[2] = displace[i][0];
   buf[3] = displace[i][1];
   buf[4] = displace[i][2];
-  if (!extended) return 5;
+
+  // must also pack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
 
   int m = 5;
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      buf[m++] = vatom[i][k];
+
+  if (!extended) return m;
+
   buf[m++] = eflags[i];
   for (int j = 0; j < orientflag; j++)
     buf[m++] = orient[i][j];
@@ -2534,13 +2542,6 @@ int FixRigid::pack_exchange(int i, double *buf)
     buf[m++] = dorient[i][1];
     buf[m++] = dorient[i][2];
   }
-
-  // must also pack vatom if per-atom virial calculated on this timestep
-  // since vatom is calculated before and after atom migration
-
-  if (vflag_atom)
-    for (int k = 0; k < 6; k++)
-      buf[m++] = vatom[i][k];
 
   return m;
 }
@@ -2556,9 +2557,17 @@ int FixRigid::unpack_exchange(int nlocal, double *buf)
   displace[nlocal][0] = buf[2];
   displace[nlocal][1] = buf[3];
   displace[nlocal][2] = buf[4];
-  if (!extended) return 5;
+
+  // must also unpack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
 
   int m = 5;
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[nlocal][k] = buf[m++];
+
+  if (!extended) return m;
+
   eflags[nlocal] = static_cast<int> (buf[m++]);
   for (int j = 0; j < orientflag; j++)
     orient[nlocal][j] = buf[m++];
@@ -2567,13 +2576,6 @@ int FixRigid::unpack_exchange(int nlocal, double *buf)
     dorient[nlocal][1] = buf[m++];
     dorient[nlocal][2] = buf[m++];
   }
-
-  // must also unpack vatom if per-atom virial calculated on this timestep
-  // since vatom is calculated before and after atom migration
-
-  if (vflag_atom)
-    for (int k = 0; k < 6; k++)
-      vatom[nlocal][k] = buf[m++];
 
   return m;
 }

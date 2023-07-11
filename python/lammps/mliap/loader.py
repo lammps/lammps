@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 #   https://www.lammps.org/ Sandia National Laboratories
-#   Steve Plimpton, sjplimp@sandia.gov
+#   LAMMPS Development team: developers@lammps.org
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 #   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -72,6 +72,24 @@ def activate_mliappy(lmp):
     except Exception as ee:
         raise ImportError("Could not load ML-IAP python coupling module.") from ee
 
+def activate_mliappy_kokkos(lmp):
+    try:
+        library = lmp.lib
+        module_names = ["mliap_model_python_couple_kokkos", "mliap_unified_couple_kokkos"]
+        api_version = library.lammps_python_api_version()
+
+        for module_name in module_names:
+            # Make Machinery
+            loader = DynamicLoader(module_name,library,api_version)
+            spec = importlib.util.spec_from_loader(module_name,loader)
+
+            # Do the import
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module
+            spec.loader.exec_module(module)
+    except Exception as ee:
+        raise ImportError("Could not load ML-IAP python coupling module.") from ee
+
 def load_model(model):
     try:
         import mliap_model_python_couple
@@ -81,6 +99,16 @@ def load_model(model):
                           ) from ie
     mliap_model_python_couple.load_from_python(model)
 
+def load_model_kokkos(model):
+    try:
+        import mliap_model_python_couple_kokkos
+    except ImportError as ie:
+        raise ImportError("ML-IAP python module must be activated before loading\n"
+                          "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
+                          ) from ie
+    mliap_model_python_couple_kokkos.load_from_python(model)
+
+
 def load_unified(model):
     try:
         import mliap_unified_couple
@@ -89,3 +117,13 @@ def load_unified(model):
                           "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
                           ) from ie
     mliap_unified_couple.load_from_python(model)
+
+def load_unified_kokkos(model):
+    try:
+        import mliap_unified_couple_kokkos
+    except ImportError as ie:
+        raise ImportError("ML-IAP python module must be activated before loading\n"
+                          "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
+                          ) from ie
+    mliap_unified_couple_kokkos.load_from_python(model)
+

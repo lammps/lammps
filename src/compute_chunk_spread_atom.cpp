@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -63,8 +63,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
     val.id = argi.get_name();
     val.val.c = nullptr;
 
-    if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE)
-        || (argi.get_dim() > 1))
+    if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
       error->all(FLERR,"Illegal compute chunk/spread/atom argument: {}", arg[iarg]);
 
     values.push_back(val);
@@ -107,7 +106,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (val.which == ArgInfo::FIX) {
       auto ifix = modify->get_fix_by_id(val.id);
-      if (ifix)
+      if (!ifix)
         error->all(FLERR,"Fix ID {} for compute chunk/spread/atom does not exist", val.id);
       if (val.argindex == 0) {
         if (!ifix->vector_flag)
@@ -153,7 +152,7 @@ void ComputeChunkSpreadAtom::init()
 {
   init_chunk();
 
-  // set indices of all computes,fixes,variables
+  // store references of all computes and fixes
 
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {

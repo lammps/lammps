@@ -82,7 +82,7 @@ distance specified.
    every timestep this command is invoked (or every reneighboring
    timestep, whichever is less frequent), which is inefficient.  LAMMPS
    will warn you if this is the case.  If you specify a *Rcut* > force
-   cutoff, you must insure ghost atom information out to *Rcut* + *skin*
+   cutoff, you must ensure ghost atom information out to *Rcut* + *skin*
    is communicated, via the :doc:`comm_modify cutoff <comm_modify>`
    command, else the RDF computation cannot be performed, and LAMMPS will
    give an error message.  The *skin* value is what is specified with the
@@ -202,7 +202,7 @@ change from zero to one at the location of the spike in :math:`g(r)`.
    parallel efficiency and scaling. For systems, where only the type
    of atoms changes (e.g., when using :doc:`fix atom/swap <fix_atom_swap>`),
    you need to explicitly request the dynamic normalization updates
-   via :doc:`compute_modify dynamic yes <compute_modify>`
+   via :doc:`compute_modify dynamic/dof yes <compute_modify>`
 
 Related commands
 """"""""""""""""

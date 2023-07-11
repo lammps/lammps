@@ -129,8 +129,9 @@ non-zero force to atoms during a minimization.
 Restrictions
 """"""""""""
 
-The fix *setforce/spin* only makes sense when LAMMPS was built with the
-SPIN package.
+Fix *setforce/spin* is part of the SPIN package.  It is only
+enabled if LAMMPS was built with that package.  See the :doc:`Build
+package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

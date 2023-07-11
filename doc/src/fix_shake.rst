@@ -63,7 +63,7 @@ however, can *only* be applied during molecular dynamics runs.
 
 .. versionchanged:: 15Sep2022
 
-These fixes may still be used during minimization.  In that case the
+These fixes may now also be used during minimization.  In that case the
 constraints are *approximated* by strong harmonic restraints.
 
 **SHAKE vs RATTLE:**
@@ -133,9 +133,9 @@ constraint lists atom types.  All bonds connected to an atom of the
 specified type will be constrained.  The *m* constraint lists atom
 masses.  All bonds connected to atoms of the specified masses will be
 constrained (within a fudge factor of MASSDELTA specified in
-fix_shake.cpp).  The *a* constraint lists angle types.  If both bonds
-in the angle are constrained then the angle will also be constrained
-if its type is in the list.
+``src/RIGID/fix_shake.cpp``).  The *a* constraint lists angle types.  If
+both bonds in the angle are constrained then the angle will also be
+constrained if its type is in the list.
 
 For all constraints, a particular bond is only constrained if both
 atoms in the bond are in the group specified with the SHAKE fix.
@@ -205,11 +205,11 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
    The *fix rattle* command modifies forces and velocities and thus
    should be defined after all other integration fixes in your input
    script.  If you define other fixes that modify velocities or forces
-   after *fix rattle* operates, then *fix rattle* will not take them into
-   account and the overall time integration will typically not satisfy
-   the RATTLE constraints.  You can check whether the constraints work
-   correctly by setting the value of RATTLE_DEBUG in src/fix_rattle.cpp
-   to 1 and recompiling LAMMPS.
+   after *fix rattle* operates, then *fix rattle* will not take them
+   into account and the overall time integration will typically not
+   satisfy the RATTLE constraints.  You can check whether the
+   constraints work correctly by setting the value of RATTLE_DEBUG in
+   ``src/RIGID/fix_rattle.cpp`` to 1 and recompiling LAMMPS.
 
 ----------
 
@@ -275,8 +275,8 @@ reducing the :doc:`timestep <timestep>`.
 Related commands
 """"""""""""""""
 
-`fix rigid <fix_rigid>`, `fix ehex <fix_ehex>`,
-`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
+:doc:`fix rigid <fix_rigid>`, :doc:`fix ehex <fix_ehex>`,
+:doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 
 
 Default

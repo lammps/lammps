@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,7 +22,6 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "update.h"
 
 #include <cmath>
 
@@ -37,6 +36,10 @@ using namespace MathConst;
 ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp)
 {
   writedata = 1;
+
+  // the second atom in the quadruplet is the atom of symmetry
+
+  symmatoms[1] = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -286,8 +289,9 @@ void ImproperAmoeba::init_style()
   // check if PairAmoeba disabled improper terms
 
   Pair *pair = nullptr;
-  pair = force->pair_match("amoeba",1,0);
-  if (!pair) pair = force->pair_match("hippo",1,0);
+  pair = force->pair_match("^amoeba",0,0);
+  if (!pair) pair = force->pair_match("^hippo",0,0);
+
   if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoeba/hippo");
 
   int tmp;

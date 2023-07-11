@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -1546,7 +1546,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
             atoml = REBO_neighs_j[l];
             atom4 = atoml;
             ltype = map[type[atoml]];
-            if (!(atoml == atomi || atoml == atomk)) {
+            if (atoml != atomi && atoml != atomk) {
               r34[0] = x[atom3][0]-x[atom4][0];
               r34[1] = x[atom3][1]-x[atom4][1];
               r34[2] = x[atom3][2]-x[atom4][2];
@@ -2048,7 +2048,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
             atoml = REBO_neighs_j[l];
             atom4 = atoml;
             ltype = map[type[atoml]];
-            if (!(atoml == atomi || atoml == atomk)) {
+            if (atoml != atomi && atoml != atomk) {
               r34[0] = x[atom3][0]-x[atom4][0];
               r34[1] = x[atom3][1]-x[atom4][1];
               r34[2] = x[atom3][2]-x[atom4][2];
@@ -2496,7 +2496,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
               atoml = REBO_neighs_j[l];
               atom4 = atoml;
               ltype = map[type[atoml]];
-              if (!(atoml == atomi || atoml == atomk)) {
+              if (atoml != atomi && atoml != atomk) {
                 r34[0] = x[atom3][0]-x[atom4][0];
                 r34[1] = x[atom3][1]-x[atom4][1];
                 r34[2] = x[atom3][2]-x[atom4][2];

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,11 +20,11 @@ ComputeStyle(reduce/chunk,ComputeReduceChunk);
 #ifndef LMP_COMPUTE_REDUCE_CHUNK_H
 #define LMP_COMPUTE_REDUCE_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
 
-class ComputeReduceChunk : public Compute {
+class ComputeReduceChunk : public ComputeChunk {
  public:
   ComputeReduceChunk(class LAMMPS *, int, char **);
   ~ComputeReduceChunk() override;
@@ -32,36 +32,32 @@ class ComputeReduceChunk : public Compute {
   void compute_vector() override;
   void compute_array() override;
 
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
-
   double memory_usage() override;
 
  private:
-  int mode, nvalues;
-  int *which, *argindex, *value2index;
-  char *idchunk;
-  char **ids;
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
 
-  int nchunk;
-  int maxchunk, maxatom;
+  int mode, maxatom;
   double initvalue;
   double *vlocal, *vglobal;
   double **alocal, **aglobal;
   double *varatom;
 
-  class ComputeChunkAtom *cchunk;
   int *ichunk;
 
-  void init_chunk();
   void compute_one(int, double *, int);
   void combine(double &, double);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

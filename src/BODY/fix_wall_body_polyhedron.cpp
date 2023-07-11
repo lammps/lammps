@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,7 +42,7 @@ enum {FAR=0,XLO,XHI,YLO,YHI,ZLO,ZHI};
 
 //#define _POLYHEDRON_DEBUG
 #define DELTA 10000
-#define EPSILON 1e-2
+#define EPSILON 1e-3    // dimensionless threshold (dot products, end point checks)
 #define BIG 1.0e20
 #define MAX_CONTACTS 4  // maximum number of contacts for 2D models
 #define EFF_CONTACTS 2  // effective contacts for 2D models

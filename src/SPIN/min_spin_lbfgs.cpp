@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -104,12 +104,12 @@ void MinSpinLBFGS::init()
 
   // warning if line_search combined to gneb
 
-  if ((nreplica >= 1) && (linestyle != 4) && (comm->me == 0))
-    error->warning(FLERR,"Line search incompatible gneb");
+  if ((nreplica >= 1) && (linestyle != SPIN_NONE) && (comm->me == 0))
+    error->warning(FLERR,"Line search incompatible with gneb");
 
   // set back use_line_search to 0 if more than one replica
 
-  if (linestyle == 3 && nreplica == 1) {
+  if (linestyle == SPIN_CUBIC && nreplica == 1) {
     use_line_search = 1;
   }
   else{
@@ -378,7 +378,7 @@ void MinSpinLBFGS::calc_search_direction()
       scaling = maximum_rotation(g_cur);
 
     for (int i = 0; i < 3 * nlocal; i++) {
-      p_s[i] = -g_cur[i] * factor * scaling;;
+      p_s[i] = -g_cur[i] * factor * scaling;
       g_old[i] = g_cur[i]  * factor;
       for (int k = 0; k < num_mem; k++) {
         ds[k][i] = 0.0;

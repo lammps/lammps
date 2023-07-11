@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -92,7 +92,6 @@ void PairBrownian::compute(int eflag, int vflag)
   double prethermostat;
   double xl[3], a_sq, a_sh, a_pu, Fbmag;
   double p1[3], p2[3], p3[3];
-  int overlaps = 0;
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
@@ -186,10 +185,6 @@ void PairBrownian::compute(int eflag, int vflag)
         // scalar resistances a_sq and a_sh
 
         h_sep = r - 2.0 * radi;
-
-        // check for overlaps
-
-        if (h_sep < 0.0) overlaps++;
 
         // if less than minimum gap, use minimum gap instead
 
@@ -336,9 +331,6 @@ void PairBrownian::compute(int eflag, int vflag)
     }
   }
 
-  int print_overlaps = 0;
-  if (print_overlaps && overlaps) printf("Number of overlaps=%d\n", overlaps);
-
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -457,7 +449,7 @@ void PairBrownian::init_style()
 
   neighbor->add_request(this);
 
-  // insure all particles are finite-size
+  // ensure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style
 
   double *radius = atom->radius;

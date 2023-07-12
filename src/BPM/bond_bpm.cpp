@@ -94,10 +94,10 @@ void BondBPM::init_style()
   }
 
   if (overlay_flag) {
-    if (force->special_lj[1] != 1.0)
+    if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
+        force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
       error->all(FLERR,
-                 "With overlay/pair yes, BPM bond styles require special_bonds weight of 1.0 for "
-                 "first neighbors");
+                 "With overlay/pair yes, BPM bond styles require a value of 1.0 for all special_bonds weights");
     if (id_fix_update) {
       modify->delete_fix(id_fix_update);
       delete[] id_fix_update;

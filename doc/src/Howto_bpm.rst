@@ -79,9 +79,9 @@ As bonds can be broken between neighbor list builds, the
 bond styles. There are two possible settings which determine how pair
 interactions work between bonded particles.  First, one can overlay
 pair forces with bond forces such that all bonded particles also
-feel pair interactions. This can be accomplished by using the *overlay/pair*
-keyword present in all bpm bond styles and by using the following special
-bond settings
+feel pair interactions. This can be accomplished by setting the *overlay/pair*
+keyword present in all bpm bond styles to *yes* and requires using the
+following special bond settings
 
    .. code-block:: LAMMPS
 

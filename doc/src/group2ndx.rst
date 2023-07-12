@@ -12,8 +12,8 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   group2ndx file group-ID args
-   ndx2group file group-ID args
+   group2ndx file args
+   ndx2group file args
 
 * file = name of index file to write out or read in
 * args = zero or more group IDs may be appended

@@ -38,9 +38,9 @@ NPairHalfRespaNsqNewton::NPairHalfRespaNsqNewton(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalfRespaNsqNewton::build(NeighList *list)
 {
-  int i,j,n,itype,jtype,itag,jtag,n_inner,n_middle,bitmask;
+  int i,j,n,itype,jtype,n_inner,n_middle,bitmask;
   int imol,iatom,moltemplate;
-  tagint tagprev;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
 

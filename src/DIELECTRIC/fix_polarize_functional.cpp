@@ -55,9 +55,9 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathExtra;
-using namespace MathConst;
-using namespace MathSpecial;
+using MathConst::MY_PI;
+using MathConst::MY_PIS;
+using MathSpecial::square;
 
 //#define _POLARIZE_DEBUG
 
@@ -378,10 +378,7 @@ void FixPolarizeFunctional::update_induced_charges()
   // assign charges to the particles in the group
 
   double *q_scaled = atom->q_scaled;
-  double *q = atom->q;
-  double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
-  double tmp = 0;
 
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) continue;

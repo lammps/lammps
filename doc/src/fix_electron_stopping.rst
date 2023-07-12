@@ -204,7 +204,7 @@ The default is no limitation by region, and minneigh = 1.
 
 .. _CasP:
 
-**(CasP)** CasP webpage: https://www.helmholtz-berlin.de/people/gregor-schiwietz/casp_en.html
+**(CasP)** CasP webpage: http://www.casp-program.org/
 
 .. _PASS:
 

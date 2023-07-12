@@ -146,7 +146,7 @@ void NPairHalfRespaBinNewtonOmp::build(NeighList *list)
         if (molecular != Atom::ATOMIC) {
           if (!moltemplate)
             which = find_special(special[i],nspecial[i],tag[j]);
-          else if (imol >=0)
+          else if (imol >= 0)
             which = find_special(onemols[imol]->special[iatom],
                                  onemols[imol]->nspecial[iatom],
                                  tag[j]-tagprev);
@@ -190,7 +190,7 @@ void NPairHalfRespaBinNewtonOmp::build(NeighList *list)
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >=0)
+            else if (imol >= 0)
               which = find_special(onemols[imol]->special[iatom],
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);

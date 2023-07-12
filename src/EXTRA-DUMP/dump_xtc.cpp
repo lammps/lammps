@@ -740,7 +740,7 @@ static void receiveints(int buf[], const int num_of_ints, int num_of_bits,
   }
   for (i = num_of_ints-1; i > 0; i--) {
     num = 0;
-    for (j = num_of_bytes-1; j >=0; j--) {
+    for (j = num_of_bytes-1; j >= 0; j--) {
       num = (num << 8) | bytes[j];
       p = num / sizes[i];
       bytes[j] = p;

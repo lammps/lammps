@@ -12,7 +12,8 @@ is created, e.g. by the :doc:`create_box <create_box>` or
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands.  Additionally, LAMMPS defines box size parameters lx,ly,lz
 where lx = xhi-xlo, and similarly in the y and z dimensions.  The 6
-parameters, as well as lx,ly,lz, can be output via the :doc:`thermo_style custom <thermo_style>` command.
+parameters, as well as lx,ly,lz, can be output via the
+:doc:`thermo_style custom <thermo_style>` command.
 
 LAMMPS also allows simulations to be performed in triclinic
 (non-orthogonal) simulation boxes shaped as a parallelepiped with

@@ -46,15 +46,24 @@ class LAMMPSLexer(RegexLexer):
     tokens = {
         'root': [
             (r'fix\s+', Keyword, 'fix'),
+            (r'fix_modify\s+', Keyword, 'modify_cmd'),
             (r'compute\s+', Keyword, 'compute'),
+            (r'compute_modify\s+', Keyword, 'modify_cmd'),
             (r'dump\s+', Keyword, 'dump'),
+            (r'dump_modify\s+', Keyword, 'modify_cmd'),
             (r'region\s+', Keyword, 'region'),
             (r'^\s*variable\s+', Keyword, 'variable_cmd'),
             (r'group\s+', Keyword, 'group'),
             (r'change_box\s+', Keyword, 'change_box'),
-            (r'uncompute\s+', Keyword, 'uncompute'),
-            (r'unfix\s+', Keyword, 'unfix'),
-            (r'undump\s+', Keyword, 'undump'),
+            (r'create_box\s+', Keyword, 'create_box'),
+            (r'delete_bonds\s+', Keyword, 'id_cmd'),
+            (r'displace_atoms\s+', Keyword, 'id_cmd'),
+            (r'dynamical_matrix\s+', Keyword, 'id_cmd'),
+            (r'group2ndx\s+', Keyword, 'ndx_cmd'),
+            (r'ndx2group\s+', Keyword, 'ndx_cmd'),
+            (r'uncompute\s+', Keyword, 'id_cmd'),
+            (r'unfix\s+', Keyword, 'id_cmd'),
+            (r'undump\s+', Keyword, 'id_cmd'),
             (r'write_dump\s+', Keyword, 'write_dump'),
             include('keywords'),
             (r'#.*?\n', Comment),
@@ -91,6 +100,10 @@ class LAMMPSLexer(RegexLexer):
             ('\(', Name.Variable, 'expression'),
             ('\)', Name.Variable, '#pop'),
         ],
+        'modify_cmd' : [
+            (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
+            default('#pop')
+        ],
         'fix' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             (r'\s+', Whitespace, 'group_id'),
@@ -122,15 +135,16 @@ class LAMMPSLexer(RegexLexer):
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],
-        'unfix' : [
+        'create_box' : [
+            (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
+            (r'\s+', Whitespace, 'group_id'),
+            default('#pop')
+        ],
+        'id_cmd' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],
-        'undump' : [
-            (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
-            default('#pop')
-        ],
-        'uncompute' : [
+        'ndx_cmd' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],

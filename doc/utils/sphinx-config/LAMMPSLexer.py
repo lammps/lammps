@@ -61,10 +61,18 @@ class LAMMPSLexer(RegexLexer):
             (r'dynamical_matrix\s+', Keyword, 'id_cmd'),
             (r'group2ndx\s+', Keyword, 'ndx_cmd'),
             (r'ndx2group\s+', Keyword, 'ndx_cmd'),
+            (r'jump\s+', Keyword, 'jump_cmd'),
+            (r'label\s+', Keyword, 'jump_cmd'),
+            (r'next\s+', Keyword, 'id_cmd'),
+            (r'kim\s+', Keyword, 'kim_cmd'),
             (r'uncompute\s+', Keyword, 'id_cmd'),
             (r'unfix\s+', Keyword, 'id_cmd'),
             (r'undump\s+', Keyword, 'id_cmd'),
+            (r'velocity\s+', Keyword, 'id_cmd'),
+            (r'write_coeff\s+', Keyword, 'ndx_cmd'),
+            (r'write_data\s+', Keyword, 'ndx_cmd'),
             (r'write_dump\s+', Keyword, 'write_dump'),
+            (r'write_restart\s+', Keyword, 'ndx_cmd'),
             include('keywords'),
             (r'#.*?\n', Comment),
             ('"', String, 'string'),
@@ -80,7 +88,7 @@ class LAMMPSLexer(RegexLexer):
             (r'[\~\.\w_:,@\-\/\\0-9]+', Text),
         ],
         'keywords' : [
-            (words(LAMMPS_COMMANDS, suffix=r'\b', prefix=r'^'), Keyword)
+            (words(LAMMPS_COMMANDS, suffix=r'\b', prefix=r'^\s*'), Keyword)
         ]
         ,
         'variable' : [
@@ -146,6 +154,14 @@ class LAMMPSLexer(RegexLexer):
         ],
         'ndx_cmd' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
+            default('#pop')
+        ],
+        'jump_cmd' : [
+            (r'[\w_\-\.\[\]]+', Literal.String.Char),
+            default('#pop')
+        ],
+        'kim_cmd' : [
+            (r'[\w_\-\.\[\]]+', Literal.String.Single),
             default('#pop')
         ],
         'write_dump' : [

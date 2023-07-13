@@ -6,7 +6,7 @@ fix mdi/qm command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID mdi/qm keyword value(s) keyword value(s) ...
 

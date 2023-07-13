@@ -6,7 +6,7 @@ compute property/grid command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID property/grid Nx Ny Nz input1 input2 ...
 

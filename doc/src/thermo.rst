@@ -6,7 +6,7 @@ thermo command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    thermo N
 

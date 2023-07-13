@@ -6,7 +6,7 @@ fix_modify AtC fields command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> fields <all|none>
    fix_modify <AtC fixID> fields <add|delete> <list_of_fields>

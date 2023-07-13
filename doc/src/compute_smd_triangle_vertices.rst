@@ -6,7 +6,7 @@ compute smd/triangle/vertices command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/triangle/vertices
 

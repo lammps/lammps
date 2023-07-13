@@ -6,7 +6,7 @@ fix evaporate command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID evaporate N M region-ID seed
 

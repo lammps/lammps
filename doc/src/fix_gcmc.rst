@@ -6,7 +6,7 @@ fix gcmc command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID gcmc N X M type seed T mu displace keyword values ...
 

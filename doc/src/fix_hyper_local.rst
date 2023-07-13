@@ -6,7 +6,7 @@ fix hyper/local command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID hyper/local cutbond qfactor Vmax Tequil Dcut alpha Btarget
 

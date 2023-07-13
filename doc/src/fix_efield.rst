@@ -10,7 +10,7 @@ fix efield/tip4p command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style ex ey ez keyword value ...
 

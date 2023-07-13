@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,13 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "gran_sub_mod_heat.h"
-#include "granular_model.h"
+
 #include "error.h"
+#include "granular_model.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
-using namespace MathConst;
+
+using MathConst::MY_PI;
 
 /* ----------------------------------------------------------------------
    Default heat conduction
@@ -41,6 +42,34 @@ double GranSubModHeatNone::calculate_heat()
 }
 
 /* ----------------------------------------------------------------------
+   Radius-based heat conduction
+------------------------------------------------------------------------- */
+
+GranSubModHeatRadius::GranSubModHeatRadius(GranularModel *gm, LAMMPS *lmp) : GranSubModHeat(gm, lmp)
+{
+  num_coeffs = 1;
+  contact_radius_flag = 1;
+  conductivity = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModHeatRadius::coeffs_to_local()
+{
+  conductivity = coeffs[0];
+
+  if (conductivity < 0.0) error->all(FLERR, "Illegal radius heat model");
+}
+
+/* ---------------------------------------------------------------------- */
+
+double GranSubModHeatRadius::calculate_heat()
+{
+  return 2 * conductivity * gm->contact_radius * (gm->Tj - gm->Ti);
+}
+
+
+/* ----------------------------------------------------------------------
    Area-based heat conduction
 ------------------------------------------------------------------------- */
 
@@ -48,20 +77,21 @@ GranSubModHeatArea::GranSubModHeatArea(GranularModel *gm, LAMMPS *lmp) : GranSub
 {
   num_coeffs = 1;
   contact_radius_flag = 1;
+  heat_transfer_coeff = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void GranSubModHeatArea::coeffs_to_local()
 {
-  conductivity = coeffs[0];
+  heat_transfer_coeff = coeffs[0];
 
-  if (conductivity < 0.0) error->all(FLERR, "Illegal area heat model");
+  if (heat_transfer_coeff < 0.0) error->all(FLERR, "Illegal area heat model");
 }
 
 /* ---------------------------------------------------------------------- */
 
 double GranSubModHeatArea::calculate_heat()
 {
-  return conductivity * MY_PI * gm->contact_radius * gm->contact_radius * (gm->Tj - gm->Ti);
+  return heat_transfer_coeff * MY_PI * gm->contact_radius * gm->contact_radius * (gm->Tj - gm->Ti);
 }

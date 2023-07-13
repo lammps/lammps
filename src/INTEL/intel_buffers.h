@@ -57,7 +57,7 @@ class IntelBuffers {
   inline int get_stride(int nall) {
     int stride;
     IP_PRE_get_stride(stride, nall, sizeof(vec3_acc_t),
-                         lmp->atom->torque);
+                      _torque_flag);
     return stride;
   }
 
@@ -75,6 +75,8 @@ class IntelBuffers {
     _binpacked = binpacked;
     _neigh_list_ptrs[0].numneighhalf = atombin;
   }
+
+  inline void set_torque_flag(const int in) { _torque_flag = in; }
 
   inline void grow(const int nall, const int nlocal, const int nthreads,
                    const int offload_end) {
@@ -329,7 +331,7 @@ class IntelBuffers {
   flt_t *_q;
   quat_t *_quat;
   vec3_acc_t * _f;
-  int _off_threads, _off_map_listlocal;
+  int _torque_flag, _off_threads, _off_map_listlocal;
 
   int _list_alloc_atoms;
   int *_list_alloc, *_cnumneigh, *_atombin, *_binpacked;

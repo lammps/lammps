@@ -109,21 +109,21 @@ Pair::Pair(LAMMPS *lmp) :
   maxeatom = maxvatom = maxcvatom = 0;
 
   num_tally_compute = 0;
+  did_tally_flag = 0;
 
   nelements = nparams = maxparam = 0;
 
   nondefault_history_transfer = 0;
   beyond_contact = 0;
 
-  // KOKKOS per-fix data masks
+  // KOKKOS package
 
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  kokkosable = 0;
-  reverse_comm_device = 0;
-  copymode = 0;
+  kokkosable = copymode = 0;
+  reverse_comm_device = fuse_force_clear_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -295,6 +295,9 @@ void Pair::init()
       utils::logmesg(lmp,"Generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
                      mixed_count, num_mixed_pairs, mixing_rule_names[mix_flag]);
   }
+
+  // for monitoring, if Pair::ev_tally() was called.
+  did_tally_flag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1095,6 +1098,7 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
   }
 
   if (num_tally_compute > 0) {
+    did_tally_flag = 1;
     for (int k=0; k < num_tally_compute; ++k) {
       Compute *c = list_tally_compute[k];
       c->pair_tally_callback(i, j, nlocal, newton_pair,

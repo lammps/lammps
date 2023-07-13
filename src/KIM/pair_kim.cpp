@@ -138,6 +138,10 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   kim_init_ok = false;
   kim_particle_codes_ok = false;
 
+  // scale parameter and whether to apply it
+  scale = 1.0;
+  scale_extracted = false;
+
   if (lmp->citeme) lmp->citeme->add(cite_openkim);
 }
 
@@ -194,8 +198,7 @@ PairKIM::~PairKIM()
 void PairKIM::set_contributing()
 {
   int const nall = atom->nlocal + atom->nghost;
-  for (int i = 0; i < nall; ++i)
-    kim_particleContributing[i] = ( (i < atom->nlocal) ? 1 : 0 );
+  for (int i = 0; i < nall; ++i) kim_particleContributing[i] = (i < atom->nlocal) ? 1 : 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,16 +250,25 @@ void PairKIM::compute(int eflag, int vflag)
 
   // compute via KIM model
   int kimerror = KIM_Model_Compute(pkim, pargs);
-  if (kimerror) error->all(FLERR,"KIM Compute returned error {}", kimerror);
+  if (kimerror) error->all(FLERR, "KIM Compute returned error {}", kimerror);
+
+  // scale results for fix adapt if needed
+  if (scale_extracted) {
+    if (eflag_global != 0) eng_vdwl *= scale;
+    for (int i = 0; i < nall; i++) {
+      if (eflag_atom != 0) eatom[i] *= scale;
+      if (vflag_atom != 0) {
+        for (int j = 0; j < 6; j++) vatom[i][j] *= scale;
+      }
+      for (int j = 0; j < 3; j++) atom->f[i][j] *= scale;
+    }
+  }
 
   // compute virial before reverse comm!
-  if (vflag_global)
-    virial_fdotr_compute();
+  if (vflag_global) virial_fdotr_compute();
 
   // if newton is off, perform reverse comm
-  if (!lmps_using_newton) {
-    comm->reverse_comm(this);
-  }
+  if (!lmps_using_newton) comm->reverse_comm(this);
 
   if ((vflag_atom != 0) &&
       KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
@@ -583,7 +595,7 @@ void PairKIM::init_style()
     if (kim_cutoff_values[i] <= neighbor->skin)
       error->all(FLERR,"Illegal neighbor request (force cutoff {:.3} <= skin {:.3})",
                  kim_cutoff_values[i], neighbor->skin);
-    req->set_cutoff(kim_cutoff_values[i] + neighbor->skin);
+    req->set_cutoff(kim_cutoff_values[i]);
   }
   // increment instance_me in case of need to change the neighbor list
   // request settings
@@ -1135,3 +1147,13 @@ void PairKIM::set_kim_model_has_flags()
 KIM_Model *PairKIM::get_kim_model() { return pkim; }
 
 std::string PairKIM::get_atom_type_list() { return atom_type_list; }
+
+void *PairKIM::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"scale") == 0) {
+    scale_extracted = true;
+    return (void *) &scale;
+  }
+  return nullptr;
+}

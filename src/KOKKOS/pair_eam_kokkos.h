@@ -60,6 +60,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   void compute(int, int) override;
   void init_style() override;
 
+
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;
 
@@ -89,6 +90,14 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelAB<EFLAG>, const int&) const;
 
+  template<int EFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelAB<EFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&, EV_FLOAT&) const;
+
+  template<int EFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelAB<EFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&) const;
+
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
@@ -96,6 +105,14 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&, EV_FLOAT&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
@@ -121,7 +138,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
-  int need_dup;
+  int need_dup,inum;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -161,6 +178,9 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
   void file2array() override;
   void array2spline() override;
+
+  template<class TAG>
+  struct policyInstance;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;

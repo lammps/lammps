@@ -51,6 +51,16 @@ void AtomVecHybridKokkos::grow(int n)
   f = atom->f;
 }
 
+/* ----------------------------------------------------------------------
+   sort atom arrays on device
+------------------------------------------------------------------------- */
+
+void AtomVecHybridKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  for (int k = 0; k < nstyles; k++)
+    (dynamic_cast<AtomVecKokkos*>(styles[k]))->sort_kokkos(Sorter);
+}
+
 /* ---------------------------------------------------------------------- */
 
 int AtomVecHybridKokkos::pack_comm_kokkos(const int &/*n*/, const DAT::tdual_int_2d &/*k_sendlist*/,

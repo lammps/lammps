@@ -11,7 +11,7 @@ independently and used to build the wheel without installing it.
 """
 
 from __future__ import print_function
-import sys,os,shutil,glob,subprocess
+import sys, os, shutil, glob, subprocess
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='install.py',
@@ -105,12 +105,12 @@ os.system(sys.executable + ' makewheel.py')
 for wheel in glob.glob('lammps-*.whl'):
   if args.wheeldir:
     shutil.copy(wheel, args.wheeldir)
-
-print('wheel = ', wheel)
+  else:
+    shutil.copy(wheel, olddir)
 
 # remove temporary folders and files
 os.chdir(olddir)
-shutil.rmtree('build-python',True)
+shutil.rmtree('build-python', True)
 
 # stop here if we were asked not to install the wheel we created
 if args.noinstall:

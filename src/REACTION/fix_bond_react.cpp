@@ -131,6 +131,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
   rxnID = 0;
+  cuff = 1;
   maxnconstraints = 0;
   narrhenius = 0;
   status = PROCEED;
@@ -250,8 +251,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(ghostly_rxn_count,nreacts,"bond/react:ghostly_rxn_count");
   memory->create(reaction_count_total,nreacts,"bond/react:reaction_count_total");
 
+  rescale_charges_anyflag = 0;
   for (int i = 0; i < nreacts; i++) {
-    fraction[i] = 1;
+    fraction[i] = 1.0;
     seed[i] = 12345;
     max_rxn[i] = INT_MAX;
     for (int j = 0; j < 3; j++)
@@ -261,7 +263,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     rescale_charges_flag[i] = 0;
     create_atoms_flag[i] = 0;
     modify_create_fragid[i] = -1;
-    overlapsq[i] = 0;
+    overlapsq[i] = 0.0;
     molecule_keyword[i] = OFF;
     nconstraints[i] = 0;
     // set default limit duration to 60 timesteps
@@ -388,8 +390,16 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'rescale_charges' has too few arguments");
         if (strcmp(arg[iarg+1],"no") == 0) rescale_charges_flag[rxn] = 0; //default
-        else if (strcmp(arg[iarg+1],"yes") == 0) rescale_charges_flag[rxn] = 1;
-        else error->one(FLERR,"Bond/react: Illegal option for 'rescale_charges' keyword");
+        else if (strcmp(arg[iarg+1],"yes") == 0) {
+          if (!atom->q_flag) error->all(FLERR,"Illegal fix bond/react command: cannot use "
+                                      "'rescale_charges' without atomic charges enabled");
+          twomol = atom->molecules[reacted_mol[rxn]];
+          if (!twomol->qflag) error->all(FLERR,"Illegal fix bond/react command: cannot use "
+                                      "'rescale_charges' without Charges section in post-reaction template");
+          rescale_charges_flag[rxn] = 1; // overloaded below to also indicate number of atoms to update
+          rescale_charges_anyflag = 1;
+          cuff = 2; // index shift for extra values carried around by mega_gloves
+        } else error->one(FLERR,"Bond/react: Illegal option for 'rescale_charges' keyword");
         iarg += 2;
       } else if (strcmp(arg[iarg],"molecule") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
@@ -402,7 +412,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg],"modify_create") == 0) {
         if (iarg++ > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'modify_create' has too few arguments");
-        while (iarg < narg && strcmp(arg[iarg],"react") != 0 ) {
+        while (iarg < narg && strcmp(arg[iarg],"react") != 0) {
           if (strcmp(arg[iarg],"fit") == 0) {
             if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                           "'modify_create' has too few arguments");
@@ -442,8 +452,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
   memory->create(create_atoms,max_natoms,nreacts,"bond/react:create_atoms");
   memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
+  memory->create(mol_total_charge,nreacts,"bond/react:mol_total_charge");
 
   for (int j = 0; j < nreacts; j++) {
+    mol_total_charge[j] = 0.0;
     for (int i = 0; i < max_natoms; i++) {
       edge[i][j] = 0;
       custom_charges[i][j] = 1; // update all partial charges by default
@@ -481,6 +493,21 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     jatomtype[i] = onemol->type[jbonding[i]-1];
     find_landlocked_atoms(i);
     if (custom_charges_fragid[i] >= 0) CustomCharges(custom_charges_fragid[i],i);
+  }
+
+  // charge rescaling values must be calculated after calling CustomCharges
+  for (int myrxn = 0; myrxn < nreacts; myrxn++) {
+    if (rescale_charges_flag[myrxn]) {
+      rescale_charges_flag[myrxn] = 0; // will now store number of updated atoms
+      twomol = atom->molecules[reacted_mol[myrxn]];
+      for (int j = 0; j < twomol->natoms; j++) {
+        int jj = equivalences[j][1][myrxn]-1;
+        if (custom_charges[jj][myrxn] == 1 && delete_atoms[jj][myrxn] == 0) {
+          mol_total_charge[myrxn] += twomol->q[j];
+          rescale_charges_flag[myrxn]++;
+        }
+      }
+    }
   }
 
   // get the names of per-atom variables needed by 'rxn' functions of custom constraint
@@ -605,6 +632,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(delete_atoms);
   memory->destroy(create_atoms);
   memory->destroy(chiral_atoms);
+  memory->destroy(mol_total_charge);
   if (vvec != nullptr) memory->destroy(vvec);
 
   memory->destroy(rxn_name);
@@ -1282,11 +1310,11 @@ void FixBondReact::superimpose_algorithm()
   memory->create(restore_pt,MAXGUESS,4,"bond/react:restore_pt");
   memory->create(pioneers,max_natoms,"bond/react:pioneers");
   memory->create(restore,max_natoms,MAXGUESS*4,"bond/react:restore");
-  memory->create(my_mega_glove,max_natoms+1,allnattempt,"bond/react:local_mega_glove");
+  memory->create(my_mega_glove,max_natoms+cuff,allnattempt,"bond/react:my_mega_glove");
 
-  for (int i = 0; i < max_natoms+1; i++)
+  for (int i = 0; i < max_natoms+cuff; i++)
     for (int j = 0; j < allnattempt; j++)
-      my_mega_glove[i][j] = 0;
+      my_mega_glove[i][j] = 0.0;
 
   attempted_rxn = 1;
 
@@ -1336,9 +1364,10 @@ void FixBondReact::superimpose_algorithm()
             status = REJECT;
           } else {
             status = ACCEPT;
-            my_mega_glove[0][my_num_mega] = rxnID;
+            my_mega_glove[0][my_num_mega] = (double) rxnID;
+            if (rescale_charges_flag[rxnID]) my_mega_glove[1][my_num_mega] = get_totalcharge();
             for (int i = 0; i < onemol->natoms; i++) {
-              my_mega_glove[i+1][my_num_mega] = glove[i][1];
+              my_mega_glove[i+cuff][my_num_mega] = (double) glove[i][1];
             }
             my_num_mega++;
           }
@@ -1365,7 +1394,7 @@ void FixBondReact::superimpose_algorithm()
         }
 
         for (int i = 0; i < onemol->natoms; i++) {
-          if (glove[i][0] !=0 && pioneer_count[i] < onemol_nxspecial[i][0] && edge[i][rxnID] == 0) {
+          if (glove[i][0] != 0 && pioneer_count[i] < onemol_nxspecial[i][0] && edge[i][rxnID] == 0) {
             pioneers[i] = 1;
           }
         }
@@ -1384,9 +1413,10 @@ void FixBondReact::superimpose_algorithm()
           if (fraction[rxnID] < 1.0 &&
               random[rxnID]->uniform() >= fraction[rxnID]) status = REJECT;
           else {
-            my_mega_glove[0][my_num_mega] = rxnID;
+            my_mega_glove[0][my_num_mega] = (double) rxnID;
+            if (rescale_charges_flag[rxnID]) my_mega_glove[1][my_num_mega] = get_totalcharge();
             for (int i = 0; i < onemol->natoms; i++) {
-              my_mega_glove[i+1][my_num_mega] = glove[i][1];
+              my_mega_glove[i+cuff][my_num_mega] = (double) glove[i][1];
             }
             my_num_mega++;
           }
@@ -1405,13 +1435,13 @@ void FixBondReact::superimpose_algorithm()
 
   global_megasize = 0;
 
-  memory->create(local_mega_glove,max_natoms+1,my_num_mega,"bond/react:local_mega_glove");
-  memory->create(ghostly_mega_glove,max_natoms+1,my_num_mega,"bond/react:ghostly_mega_glove");
+  memory->create(local_mega_glove,max_natoms+cuff,my_num_mega,"bond/react:local_mega_glove");
+  memory->create(ghostly_mega_glove,max_natoms+cuff,my_num_mega,"bond/react:ghostly_mega_glove");
 
-  for (int i = 0; i < max_natoms+1; i++) {
+  for (int i = 0; i < max_natoms+cuff; i++) {
     for (int j = 0; j < my_num_mega; j++) {
-      local_mega_glove[i][j] = 0;
-      ghostly_mega_glove[i][j] = 0;
+      local_mega_glove[i][j] = 0.0;
+      ghostly_mega_glove[i][j] = 0.0;
     }
   }
 
@@ -1807,7 +1837,7 @@ void FixBondReact::inner_crosscheck_loop()
   for (int i=1; i < num_choices; ++i) {
     tagint hold = tag_choices[i];
     int j = i - 1;
-    while ((j >=0) && (tag_choices[j] > hold)) {
+    while ((j >= 0) && (tag_choices[j] > hold)) {
       tag_choices[j+1] = tag_choices[j];
       --j;
     }
@@ -2184,6 +2214,24 @@ double FixBondReact::get_temperature(tagint **myglove, int row_offset, int col)
   double tfactor = force->mvv2e / (dof * force->boltz);
   t *= tfactor;
   return t;
+}
+
+/* ----------------------------------------------------------------------
+compute sum of partial charges in rxn site, for updated atoms
+note: currently uses global rxnID and onemol variables
+------------------------------------------------------------------------- */
+
+double FixBondReact::get_totalcharge()
+{
+  int j,jj;
+  double *q = atom->q;
+  double sim_total_charge = 0.0;
+  for (j = 0; j < onemol->natoms; j++) {
+    jj = equivalences[j][1][rxnID]-1;
+    if (custom_charges[jj][rxnID] == 1)
+      sim_total_charge += q[atom->map(glove[jj][1])];
+  }
+  return sim_total_charge;
 }
 
 /* ----------------------------------------------------------------------
@@ -2673,18 +2721,18 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     dedup_size = global_megasize;
   }
 
-  tagint **dedup_glove;
-  memory->create(dedup_glove,max_natoms+1,dedup_size,"bond/react:dedup_glove");
+  double **dedup_glove;
+  memory->create(dedup_glove,max_natoms+cuff,dedup_size,"bond/react:dedup_glove");
 
   if (dedup_mode == LOCAL) {
     for (int i = 0; i < dedup_size; i++) {
-      for (int j = 0; j < max_natoms+1; j++) {
+      for (int j = 0; j < max_natoms+cuff; j++) {
         dedup_glove[j][i] = my_mega_glove[j][i];
       }
     }
   } else if (dedup_mode == GLOBAL) {
     for (int i = 0; i < dedup_size; i++) {
-      for (int j = 0; j < max_natoms+1; j++) {
+      for (int j = 0; j < max_natoms+cuff; j++) {
         dedup_glove[j][i] = global_mega_glove[j][i];
       }
     }
@@ -2700,16 +2748,16 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   // let's randomly mix up our reaction instances first
   // then we can feel okay about ignoring ones we've already deleted (or accepted)
   // based off std::shuffle
-  int *temp_rxn = new int[max_natoms+1];
+  double *temp_rxn = new double[max_natoms+cuff];
   for (int i = dedup_size-1; i > 0; --i) { //dedup_size
     // choose random entry to swap current one with
     int k = floor(random[0]->uniform()*(i+1));
 
     // swap entries
-    for (int j = 0; j < max_natoms+1; j++)
+    for (int j = 0; j < max_natoms+cuff; j++)
       temp_rxn[j] = dedup_glove[j][i];
 
-    for (int j = 0; j < max_natoms+1; j++) {
+    for (int j = 0; j < max_natoms+cuff; j++) {
       dedup_glove[j][i] = dedup_glove[j][k];
       dedup_glove[j][k] = temp_rxn[j];
     }
@@ -2721,13 +2769,13 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
       int myrxnid1 = dedup_glove[0][i];
       onemol = atom->molecules[unreacted_mol[myrxnid1]];
       for (int j = 0; j < onemol->natoms; j++) {
-        int check1 = dedup_glove[j+1][i];
+        int check1 = dedup_glove[j+cuff][i];
         for (int ii = i + 1; ii < dedup_size; ii++) {
           if (dedup_mask[ii] == 0) {
             int myrxnid2 = dedup_glove[0][ii];
             twomol = atom->molecules[unreacted_mol[myrxnid2]];
             for (int jj = 0; jj < twomol->natoms; jj++) {
-              int check2 = dedup_glove[jj+1][ii];
+              int check2 = dedup_glove[jj+cuff][ii];
               if (check2 == check1) {
                 dedup_mask[ii] = 1;
                 break;
@@ -2745,7 +2793,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     int my_new_megasize = 0;
     for (int i = 0; i < my_num_mega; i++) {
       if (dedup_mask[i] == 0) {
-        for (int j = 0; j < max_natoms+1; j++) {
+        for (int j = 0; j < max_natoms+cuff; j++) {
           my_mega_glove[j][my_new_megasize] = dedup_glove[j][i];
         }
         my_new_megasize++;
@@ -2760,8 +2808,8 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
     int new_global_megasize = 0;
     for (int i = 0; i < global_megasize; i++) {
       if (dedup_mask[i] == 0) {
-        ghostly_rxn_count[dedup_glove[0][i]]++;
-        for (int j = 0; j < max_natoms + 1; j++) {
+        ghostly_rxn_count[(int) dedup_glove[0][i]]++;
+        for (int j = 0; j < max_natoms + cuff; j++) {
           global_mega_glove[j][new_global_megasize] = dedup_glove[j][i];
         }
         new_global_megasize++;
@@ -2830,7 +2878,7 @@ void FixBondReact::glove_ghostcheck()
     local_rxn_count[i] = 0;
 
   for (int i = 0; i < my_num_mega; i++) {
-    rxnID = my_mega_glove[0][i];
+    rxnID = (int) my_mega_glove[0][i];
     onemol = atom->molecules[unreacted_mol[rxnID]];
     int ghostly = 0;
   #if !defined(MPI_STUBS)
@@ -2839,7 +2887,7 @@ void FixBondReact::glove_ghostcheck()
         ghostly = 1;
       } else {
         for (int j = 0; j < onemol->natoms; j++) {
-          int ilocal = atom->map(my_mega_glove[j+1][i]);
+          int ilocal = atom->map((tagint) my_mega_glove[j+cuff][i]);
           if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
             ghostly = 1;
             break;
@@ -2852,15 +2900,13 @@ void FixBondReact::glove_ghostcheck()
   #endif
 
     if (ghostly == 1) {
-      ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
-      for (int j = 0; j < onemol->natoms+1; j++) {
+      for (int j = 0; j < onemol->natoms+cuff; j++) {
         ghostly_mega_glove[j][ghostly_num_mega] = my_mega_glove[j][i];
       }
       ghostly_num_mega++;
     } else {
-      local_mega_glove[0][local_num_mega] = rxnID;
       local_rxn_count[rxnID]++;
-      for (int j = 0; j < onemol->natoms+1; j++) {
+      for (int j = 0; j < onemol->natoms+cuff; j++) {
         local_mega_glove[j][local_num_mega] = my_mega_glove[j][i];
       }
       local_num_mega++;
@@ -2899,23 +2945,23 @@ void FixBondReact::ghost_glovecast()
   }
   MPI_Allgather(&start, 1, MPI_INT, allstarts, 1, MPI_INT, world);
   MPI_Datatype columnunsized, column;
-  int sizes[2]    = {max_natoms+1, global_megasize};
-  int subsizes[2] = {max_natoms+1, 1};
+  int sizes[2]    = {max_natoms+cuff, global_megasize};
+  int subsizes[2] = {max_natoms+cuff, 1};
   int starts[2]   = {0,0};
   MPI_Type_create_subarray (2, sizes, subsizes, starts, MPI_ORDER_C,
-                            MPI_LMP_TAGINT, &columnunsized);
-  MPI_Type_create_resized (columnunsized, 0, sizeof(tagint), &column);
+                            MPI_DOUBLE, &columnunsized);
+  MPI_Type_create_resized (columnunsized, 0, sizeof(double), &column);
   MPI_Type_commit(&column);
 
   memory->destroy(global_mega_glove);
-  memory->create(global_mega_glove,max_natoms+1,global_megasize,"bond/react:global_mega_glove");
+  memory->create(global_mega_glove,max_natoms+cuff,global_megasize,"bond/react:global_mega_glove");
 
-  for (int i = 0; i < max_natoms+1; i++)
+  for (int i = 0; i < max_natoms+cuff; i++)
     for (int j = 0; j < global_megasize; j++)
       global_mega_glove[i][j] = 0;
 
   if (ghostly_num_mega > 0) {
-    for (int i = 0; i < max_natoms+1; i++) {
+    for (int i = 0; i < max_natoms+cuff; i++) {
       for (int j = 0; j < ghostly_num_mega; j++) {
         global_mega_glove[i][j+start] = ghostly_mega_glove[i][j];
       }
@@ -3006,7 +3052,12 @@ void FixBondReact::update_everything()
 
   int update_num_mega;
   tagint **update_mega_glove;
-  memory->create(update_mega_glove,max_natoms+1,MAX(local_num_mega,global_megasize),"bond/react:update_mega_glove");
+  // for now, keeping rxnID in update_mega_glove, but not rest of cuff in update_mega_glove
+  int maxmega = MAX(local_num_mega,global_megasize);
+  memory->create(update_mega_glove,max_natoms+1,maxmega,"bond/react:update_mega_glove");
+
+  double *sim_total_charges;
+  if (rescale_charges_anyflag) memory->create(sim_total_charges,maxmega,"bond/react:sim_total_charges");
 
   for (int pass = 0; pass < 2; pass++) {
     update_num_mega = 0;
@@ -3014,15 +3065,20 @@ void FixBondReact::update_everything()
     for (int i = 0; i < nreacts; i++) iskip[i] = 0;
     if (pass == 0) {
       for (int i = 0; i < local_num_mega; i++) {
-        rxnID = local_mega_glove[0][i];
+        rxnID = (int) local_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
         if (iskip[rxnID]++ < nlocalskips[rxnID]) continue;
+
+        // this will be overwritten if reaction skipped by create_atoms below
+        update_mega_glove[0][update_num_mega] = (tagint) local_mega_glove[0][i];
+        for (int j = 0; j < max_natoms; j++)
+          update_mega_glove[j+1][update_num_mega] = (tagint) local_mega_glove[j+cuff][i];
 
         // atoms inserted here for serial MPI_STUBS build only
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
-          if (insert_atoms(local_mega_glove,i)) {
+          if (insert_atoms(update_mega_glove,update_num_mega)) {
             inserted_atoms_flag = 1;
           } else { // create aborted
             reaction_count_total[rxnID]--;
@@ -3030,15 +3086,19 @@ void FixBondReact::update_everything()
           }
         }
 
-        for (int j = 0; j < max_natoms+1; j++)
-          update_mega_glove[j][update_num_mega] = local_mega_glove[j][i];
+        if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = local_mega_glove[1][i];
         update_num_mega++;
       }
     } else if (pass == 1) {
       for (int i = 0; i < global_megasize; i++) {
-        rxnID = global_mega_glove[0][i];
+        rxnID = (int) global_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
         if (iskip[rxnID]++ < nghostlyskips[rxnID]) continue;
+
+        // this will be overwritten if reaction skipped by create_atoms below
+        update_mega_glove[0][update_num_mega] = (tagint) global_mega_glove[0][i];
+        for (int j = 0; j < max_natoms; j++)
+          update_mega_glove[j+1][update_num_mega] = (tagint) global_mega_glove[j+cuff][i];
 
         // we can insert atoms here, now that reactions are finalized
         // can't do it any earlier, due to skipped reactions (max_rxn)
@@ -3046,7 +3106,7 @@ void FixBondReact::update_everything()
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
-          if (insert_atoms(global_mega_glove,i)) {
+          if (insert_atoms(update_mega_glove,update_num_mega)) {
             inserted_atoms_flag = 1;
           } else { // create aborted
             reaction_count_total[rxnID]--;
@@ -3054,8 +3114,7 @@ void FixBondReact::update_everything()
           }
         }
 
-        for (int j = 0; j < max_natoms+1; j++)
-          update_mega_glove[j][update_num_mega] = global_mega_glove[j][i];
+        if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = global_mega_glove[1][i];
         update_num_mega++;
       }
     }
@@ -3090,38 +3149,18 @@ void FixBondReact::update_everything()
       }
     }
 
-    // get charge rescale delta
-    double charge_rescale_addend = 0;
-    if (rescale_charges_flag[rxnID] == 1) {
-      double sim_total_charge = 0;
-      double mol_total_charge = 0;
-      int n_custom_charge = 0;
-      for (int i = 0; i < update_num_mega; i++) {
-        rxnID = update_mega_glove[0][i];
-        twomol = atom->molecules[reacted_mol[rxnID]];
-        for (int j = 0; j < twomol->natoms; j++) {
-          int jj = equivalences[j][1][rxnID]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
-              atom->map(update_mega_glove[jj+1][i]) < nlocal) {
-            if (landlocked_atoms[j][rxnID] == 1)
-              type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
-            if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
-              double *q = atom->q;
-              sim_total_charge += q[atom->map(update_mega_glove[jj+1][i])];
-              mol_total_charge += twomol->q[j];
-              n_custom_charge++;
-            }
-          }
-        }
-      }
-      charge_rescale_addend = (sim_total_charge-mol_total_charge)/n_custom_charge;
-    }
-
     // update charges and types of landlocked atoms
     // also keep track of 'stabilization' groups here
+    int n_custom_charge;
+    double charge_rescale_addend;
     for (int i = 0; i < update_num_mega; i++) {
+      charge_rescale_addend = 0;
       rxnID = update_mega_glove[0][i];
       twomol = atom->molecules[reacted_mol[rxnID]];
+      if (rescale_charges_flag[rxnID]) {
+        n_custom_charge = rescale_charges_flag[rxnID];
+        charge_rescale_addend = (sim_total_charges[i]-mol_total_charge[rxnID])/n_custom_charge;
+      }
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
         int ilocal = atom->map(update_mega_glove[jj+1][i]);
@@ -3555,6 +3594,7 @@ void FixBondReact::update_everything()
   }
 
   memory->destroy(update_mega_glove);
+  if (rescale_charges_anyflag) memory->destroy(sim_total_charges);
 
   // delete atoms. taken from fix_evaporate. but don't think it needs to be in pre_exchange
   // loop in reverse order to avoid copying marked atoms
@@ -3643,7 +3683,7 @@ void FixBondReact::update_everything()
 insert created atoms
 ------------------------------------------------------------------------- */
 
-int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
+int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
 {
   // inserting atoms based off fix_deposit->pre_exchange
   int flag;
@@ -3692,14 +3732,15 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       n2superpose++;
   }
 
-  int ifit = atom->map(my_mega_glove[ibonding[rxnID]+1][iupdate]); // use this local ID to find fitting proc
+  int ifit = atom->map(my_update_mega_glove[ibonding[rxnID]+1][iupdate]); // use this local ID to find fitting proc
   Superpose3D<double, double **> superposer(n2superpose);
   int fitroot = 0;
   if (ifit >= 0 && ifit < atom->nlocal) {
     fitroot = comm->me;
 
     // get 'temperatere' averaged over site, used for created atoms' vels
-    t = get_temperature(my_mega_glove,1,iupdate);
+    // note: row_offset for my_update_mega_glove is unity, not 'cuff'
+    t = get_temperature(my_update_mega_glove,1,iupdate);
 
     double **xfrozen; // coordinates for the "frozen" target molecule
     double **xmobile; // coordinates for the "mobile" molecule
@@ -3713,12 +3754,12 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
         if (!twomol->fragmentmask[modify_create_fragid[rxnID]][j]) continue;
       int ipre = equivalences[j][1][rxnID]-1; // equiv pre-reaction template index
       if (!create_atoms[j][rxnID] && !delete_atoms[ipre][rxnID]) {
-        if (atom->map(my_mega_glove[ipre+1][iupdate]) < 0) {
+        if (atom->map(my_update_mega_glove[ipre+1][iupdate]) < 0) {
           error->warning(FLERR," eligible atoms skipped for created-atoms fit on rank {}\n",
                          comm->me);
           continue;
         }
-        iatom = atom->map(my_mega_glove[ipre+1][iupdate]);
+        iatom = atom->map(my_update_mega_glove[ipre+1][iupdate]);
         if (iref == -1) iref = iatom;
         iatom = domain->closest_image(iref,iatom);
         for (int k = 0; k < 3; k++) {
@@ -3838,7 +3879,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
         atom->tag[n] = maxtag_all + add_count;
 
         // locally update mega_glove
-        my_mega_glove[preID][iupdate] = atom->tag[n];
+        my_update_mega_glove[preID][iupdate] = atom->tag[n];
 
         if (atom->molecule_flag) {
           if (twomol->moleculeflag) {
@@ -3866,7 +3907,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       }
       // globally update mega_glove and equivalences
       MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
-      MPI_Bcast(&my_mega_glove[preID][iupdate],1,MPI_LMP_TAGINT,root,world);
+      MPI_Bcast(&my_update_mega_glove[preID][iupdate],1,MPI_LMP_TAGINT,root,world);
       equivalences[m][0][rxnID] = m+1;
       equivalences[m][1][rxnID] = preID;
       reverse_equiv[preID-1][0][rxnID] = preID;

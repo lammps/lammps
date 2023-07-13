@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/rotational keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break/no*
+* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break*
 
   .. parsed-literal::
 
@@ -24,14 +24,17 @@ Syntax
             *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
 
-       *overlay/pair* value = none
+       *overlay/pair* value = *yes* or *no*
           bonded particles will still interact with pair forces
 
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
 
-       *break/no*
-          indicates that bonds should not break during a run
+       *normalize* value = *yes* or *no*
+          normalizes normal and shear forces by the reference length
+
+       *break* value = *yes* or *no*
+          indicates whether bonds break during a run
 
 Examples
 """"""""
@@ -77,32 +80,32 @@ respectively.  Details on the calculations of shear displacements and
 angular displacements can be found in :ref:`(Wang) <Wang2009>` and
 :ref:`(Wang and Mora) <Wang2009b>`.
 
-Bonds will break under sufficient stress. A breaking criteria is calculated
+Bonds will break under sufficient stress. A breaking criterion is calculated
 
 .. math::
 
-   B = \mathrm{max}\{0, \frac{f_r}{f_{r,c}} + \frac{|f_s|}{f_{s,c}} +
-       \frac{|\tau_b|}{\tau_{b,c}} + \frac{|\tau_t|}{\tau_{t,c}} \}
+   B = \mathrm{max}\left\{0, \frac{f_r}{f_{r,c}} + \frac{|f_s|}{f_{s,c}} +
+       \frac{|\tau_b|}{\tau_{b,c}} + \frac{|\tau_t|}{\tau_{t,c}} \right\}
 
 where :math:`|f_s|` is the magnitude of the shear force and
 :math:`|\tau_b|` and :math:`|\tau_t|` are the magnitudes of the
-bending and twisting forces, respectively. The corresponding variables
+bending and twisting torques, respectively. The corresponding variables
 :math:`f_{r,c}` :math:`f_{s,c}`, :math:`\tau_{b,c}`, and
 :math:`\tau_{t,c}` are critical limits to each force or torque.  If
 :math:`B` is ever equal to or exceeds one, the bond will break.  This
-is done by setting by setting its type to 0 such that forces and
+is done by setting the bond type to 0 such that forces and
 torques are no longer computed.
 
 After computing the base magnitudes of the forces and torques, they
 can be optionally multiplied by an extra factor :math:`w` to smoothly
 interpolate forces and torques to zero as the bond breaks. This term
-is calculated as :math:`w = (1.0 - B^4)`. This smoothing factor can be
-added or removed using the *smooth* keyword.
+is calculated as :math:`w = (1.0 - B^4)`. This smoothing factor can be added
+or removed by setting the *smooth* keyword to *yes* or *no*, respectively.
 
 Finally, additional damping forces and torques are applied to the two
 particles. A force is applied proportional to the difference in the
 normal velocity of particles using a similar construction as
-dissipative particle dynamics (:ref:`(Groot) <Groot3>`):
+dissipative particle dynamics :ref:`(Groot) <Groot3>`:
 
 .. math::
 
@@ -112,8 +115,8 @@ where :math:`\gamma_n` is the damping strength, :math:`\hat{r}` is the
 radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles. Similarly, tangential forces are applied to
 each atom proportional to the relative differences in sliding
-velocities with a constant prefactor :math:`\gamma_s` (:ref:`(Wang et
-al.) <Wang20152>`) along with their associated torques. The rolling and
+velocities with a constant prefactor :math:`\gamma_s` :ref:`(Wang et
+al.) <Wang20152>` along with their associated torques. The rolling and
 twisting components of the relative angular velocities of the two
 atoms are also damped by applying torques with prefactors of
 :math:`\gamma_r` and :math:`\gamma_t`, respectively.
@@ -136,18 +139,23 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\gamma_r`      (force*distance/velocity units)
 * :math:`\gamma_t`      (force*distance/velocity units)
 
+If the *normalize* keyword is set to *yes*, the radial and shear forces
+will be normalized by :math:`r_0` such that :math:`k_r` and :math:`k_s`
+must be given in force units.
+
 By default, pair forces are not calculated between bonded particles.
-Pair forces can alternatively be overlaid on top of bond forces using
-the *overlay/pair* keyword. These settings require specific
+Pair forces can alternatively be overlaid on top of bond forces by setting
+the *overlay/pair* keyword to *yes*. These settings require specific
 :doc:`special_bonds <special_bonds>` settings described in the
-restrictions.  Further details can be found in the `:doc: how to
-<Howto_BPM>` page on BPMs.
+restrictions.  Further details can be found in the :doc:`how to
+<Howto_bpm>` page on BPMs.
 
 .. versionadded:: 28Mar2023
 
-If the *break/no* keyword is used, then LAMMPS assumes bonds should not break
+If the *break* keyword is set to *no*, LAMMPS assumes bonds should not break
 during a simulation run. This will prevent some unnecessary calculation.
-However, if a bond does break, it will trigger an error.
+However, if a bond reaches a damage criterion greater than one,
+it will trigger an error.
 
 If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
@@ -226,16 +234,15 @@ This bond style is part of the BPM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-By default if pair interactions are to be disabled, this bond style
-requires setting
+By default if pair interactions between bonded atoms are to be disabled,
+this bond style requires setting
 
 .. code-block:: LAMMPS
 
    special_bonds lj 0 1 1 coul 1 1 1
 
-and :doc:`newton <newton>` must be set to bond off.  If the
-*overlay/pair* option is used, this bond style alternatively requires
-setting
+and :doc:`newton <newton>` must be set to bond off.  If the *overlay/pair*
+keyword is set to *yes*, this bond style alternatively requires setting
 
 .. code-block:: LAMMPS
 
@@ -251,7 +258,7 @@ Related commands
 Default
 """""""
 
-The option defaults are *smooth* = *yes*
+The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *no*, and *break* = *yes*
 
 ----------
 

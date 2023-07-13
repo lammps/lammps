@@ -987,4 +987,3 @@ typedef struct {
 } molfile_plugin_t;
 
 #endif
-

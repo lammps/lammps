@@ -40,7 +40,7 @@
 using namespace LAMMPS_NS;
 
 #define DELTA 10000
-#define EPSILON 1e-3
+#define EPSILON 1e-3    // dimensionless threshold (dot products, end point checks, contact checks)
 #define MAX_CONTACTS 4  // maximum number of contacts for 2D models
 #define EFF_CONTACTS 2  // effective contacts for 2D models
 
@@ -624,7 +624,8 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
   fy = dely*fpair/rij;
   fz = delz*fpair/rij;
 
-  if (R <= EPSILON) { // in contact
+  double rmin = MIN(rradi, rradj);
+  if (R <= EPSILON*rmin) { // in contact
 
     // relative translational velocity
 
@@ -1019,6 +1020,7 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
   double xi1[3],xi2[3],u[3],v[3],uij[3];
   double udotv, magv, magucostheta;
   double delx,dely,delz;
+  double rmin = MIN(rounded_radius, x0_rounded_radius);
 
   ifirst = dfirst[ibody];
   iefirst = edfirst[ibody];
@@ -1105,17 +1107,17 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
       // x0 and xmi are on the different sides
       // t is the ratio to detect if x0 is closer to the vertices xi or xj
 
-      if (fabs(xi2[0] - xi1[0]) > EPSILON)
+      if (fabs(xi2[0] - xi1[0]) > EPSILON*rmin)
         t = (hi[0] - xi1[0]) / (xi2[0] - xi1[0]);
-      else if (fabs(xi2[1] - xi1[1]) > EPSILON)
+      else if (fabs(xi2[1] - xi1[1]) > EPSILON*rmin)
         t = (hi[1] - xi1[1]) / (xi2[1] - xi1[1]);
-      else if (fabs(xi2[2] - xi1[2]) > EPSILON)
+      else if (fabs(xi2[2] - xi1[2]) > EPSILON*rmin)
         t = (hi[2] - xi1[2]) / (xi2[2] - xi1[2]);
 
       double contact_dist = rounded_radius + x0_rounded_radius;
       if (t >= 0 && t <= 1) {
         mode = EDGE;
-        if (d < contact_dist + EPSILON)
+        if (d < contact_dist + EPSILON*rmin)
           contact = 1;
 
       } else { // t < 0 || t > 1: closer to either vertices of the edge
@@ -1293,8 +1295,14 @@ double PairBodyRoundedPolygon::contact_separation(const Contact& c1,
   double x3 = c2.xv[0];
   double y3 = c2.xv[1];
 
+  int ibody = c1.ibody;
+  int jbody = c1.ibody;
+  double rradi = rounded_radius[ibody];
+  double rradj = rounded_radius[jbody];
+  double rmin = MIN(rradi, rradj);
+
   double delta_a = 0.0;
-  if (fabs(x2 - x1) > EPSILON) {
+  if (fabs(x2 - x1) > EPSILON*rmin) {
     double A = (y2 - y1) / (x2 - x1);
     delta_a = fabs(y1 - A * x1 - y3 + A * x3) / sqrt(1 + A * A);
   } else {

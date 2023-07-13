@@ -1,4 +1,25 @@
-# Change Log
+# CHANGELOG
+
+## [3.7.02](https://github.com/kokkos/kokkos/tree/3.7.02) (2023-05-17)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.7.01...3.7.02)
+
+### Backends and Archs Enhancements:
+#### CUDA
+- Add Hopper support and update nvcc_wrapper to work with CUDA-12 [\#5693](https://github.com/kokkos/kokkos/pull/5693)
+### General Enhancements:
+- sprintf -> snprintf [\#5787](https://github.com/kokkos/kokkos/pull/5787)
+### Build System:
+- Add error message when not using `hipcc` and when `CMAKE_CXX_STANDARD` is not set [\#5945](https://github.com/kokkos/kokkos/pull/5945)
+### Bug Fixes:
+- Fix Scratch allocation alignment issues [\#5692](https://github.com/kokkos/kokkos/pull/5692)
+- Fix Intel Classic Compiler ICE [\#5710](https://github.com/kokkos/kokkos/pull/5710)
+- Don't install std algorithm headers multiple times [\#5711](https://github.com/kokkos/kokkos/pull/5711)
+- Fix static init order issue in InitalizationSettings [\#5721](https://github.com/kokkos/kokkos/pull/5721)
+- Fix src/dst Properties in deep_copy(DynamicView,View) [\#5732](https://github.com/kokkos/kokkos/pull/5732)
+- Fix build on Fedora Rawhide [\#5782](https://github.com/kokkos/kokkos/pull/5782)
+- Finalize HIP lock arrays [\#5694](https://github.com/kokkos/kokkos/pull/5694)
+- Fix CUDA lock arrays for current Desul [\#5812](https://github.com/kokkos/kokkos/pull/5812)
+- Set the correct device/context in InterOp tests [\#5701](https://github.com/kokkos/kokkos/pull/5701)
 
 ## [3.7.01](https://github.com/kokkos/kokkos/tree/3.7.01) (2022-12-01)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.7.00...3.7.01)

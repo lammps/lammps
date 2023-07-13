@@ -67,6 +67,7 @@ src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/MISC/*_tracker.*                @jtclemm
 src/MC/fix_gcmc.*                   @athomps
 src/MC/fix_sgcmc.*                  @athomps
+src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
 
 # core LAMMPS classes
 src/lammps.*              @sjplimp

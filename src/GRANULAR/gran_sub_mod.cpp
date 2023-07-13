@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,7 +22,6 @@
 
 #include "gran_sub_mod.h"
 #include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
@@ -53,8 +51,8 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
 
 GranSubMod::~GranSubMod()
 {
-  if (allocated) delete [] coeffs;
-  delete [] transfer_history_factor;
+  if (allocated) delete[] coeffs;
+  delete[] transfer_history_factor;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,10 +65,9 @@ void GranSubMod::allocate_coeffs()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubMod::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubMod::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  for (int i = 0; i < num_coeffs; i++)
-    coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
+  for (int i = 0; i < num_coeffs; i++) coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
   coeffs_to_local();
 }
 
@@ -78,8 +75,7 @@ void GranSubMod::mix_coeffs(double* icoeffs, double* jcoeffs)
    mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */
 
-double GranSubMod::mix_stiffnessE(double E1, double E2,
-                                    double poiss1, double poiss2)
+double GranSubMod::mix_stiffnessE(double E1, double E2, double poiss1, double poiss2)
 {
   double factor1 = (1 - poiss1 * poiss1) / E1;
   double factor2 = (1 - poiss2 * poiss2) / E2;
@@ -90,8 +86,7 @@ double GranSubMod::mix_stiffnessE(double E1, double E2,
    mixing of shear modulus (G)
 ------------------------------------------------------------------------ */
 
-double GranSubMod::mix_stiffnessG(double E1, double E2,
-                                    double poiss1, double poiss2)
+double GranSubMod::mix_stiffnessG(double E1, double E2, double poiss1, double poiss2)
 {
   double factor1 = 2 * (2 - poiss1) * (1 + poiss1) / E1;
   double factor2 = 2 * (2 - poiss2) * (1 + poiss2) / E2;

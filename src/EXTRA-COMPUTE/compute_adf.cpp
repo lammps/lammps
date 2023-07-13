@@ -288,7 +288,7 @@ void ComputeADF::init()
     rcutinnerk[0] = 0.0;
     rcutouterj[0] = force->pair->cutforce;
     rcutouterk[0] = force->pair->cutforce;
-    maxouter = force->pair->cutforce;;
+    maxouter = force->pair->cutforce;
   } else {
     for (int m = 0; m < ntriples; m++) {
       maxouter = MAX(rcutouterj[m],maxouter);

@@ -492,7 +492,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
           flt_t r12hat_0, r12hat_1, r12hat_2;
           ME_normalize3(delx_form[jj], dely_form[jj], delz_form[jj], r12hat);
-          flt_t r = sqrt(rsq_form[jj]);
+          flt_t r = std::sqrt(rsq_form[jj]);
 
           // compute distance of closest approach
 

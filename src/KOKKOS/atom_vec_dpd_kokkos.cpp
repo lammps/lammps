@@ -116,23 +116,47 @@ void AtomVecDPDKokkos::grow_pointers()
   d_dpdTheta = atomKK->k_dpdTheta.d_view;
   h_dpdTheta = atomKK->k_dpdTheta.h_view;
   uCond = atomKK->uCond;
-  d_uCond = atomKK->k_uCond.d_view;;
+  d_uCond = atomKK->k_uCond.d_view;
   h_uCond = atomKK->k_uCond.h_view;
   uMech = atomKK->uMech;
-  d_uMech = atomKK->k_uMech.d_view;;
+  d_uMech = atomKK->k_uMech.d_view;
   h_uMech = atomKK->k_uMech.h_view;
   uChem = atomKK->uChem;
-  d_uChem = atomKK->k_uChem.d_view;;
+  d_uChem = atomKK->k_uChem.d_view;
   h_uChem = atomKK->k_uChem.h_view;
   uCG = atomKK->uCG;
-  d_uCG = atomKK->k_uCG.d_view;;
+  d_uCG = atomKK->k_uCG.d_view;
   h_uCG = atomKK->k_uCG.h_view;
   uCGnew = atomKK->uCGnew;
-  d_uCGnew = atomKK->k_uCGnew.d_view;;
+  d_uCGnew = atomKK->k_uCGnew.d_view;
   h_uCGnew = atomKK->k_uCGnew.h_view;
   duChem = atomKK->duChem;
-  d_duChem = atomKK->k_duChem.d_view;;
+  d_duChem = atomKK->k_duChem.d_view;
   h_duChem = atomKK->k_duChem.h_view;
+}
+
+/* ----------------------------------------------------------------------
+   sort atom arrays on device
+------------------------------------------------------------------------- */
+
+void AtomVecDPDKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  atomKK->sync(Device, ALL_MASK & ~F_MASK & ~DPDRHO_MASK & ~DUCHEM_MASK & ~DVECTOR_MASK);
+
+  Sorter.sort(LMPDeviceType(), d_tag);
+  Sorter.sort(LMPDeviceType(), d_type);
+  Sorter.sort(LMPDeviceType(), d_mask);
+  Sorter.sort(LMPDeviceType(), d_image);
+  Sorter.sort(LMPDeviceType(), d_x);
+  Sorter.sort(LMPDeviceType(), d_v);
+  Sorter.sort(LMPDeviceType(), d_dpdTheta);
+  Sorter.sort(LMPDeviceType(), d_uCond);
+  Sorter.sort(LMPDeviceType(), d_uMech);
+  Sorter.sort(LMPDeviceType(), d_uChem);
+  Sorter.sort(LMPDeviceType(), d_uCG);
+  Sorter.sort(LMPDeviceType(), d_uCGnew);
+
+  atomKK->modified(Device, ALL_MASK & ~F_MASK & ~DPDRHO_MASK & ~DUCHEM_MASK & ~DVECTOR_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

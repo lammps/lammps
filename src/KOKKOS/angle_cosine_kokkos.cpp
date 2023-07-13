@@ -150,20 +150,26 @@ void AngleCosineKokkos<DeviceType>::operator()(TagAngleCosineCompute<NEWTON_BOND
   const int i3 = anglelist(n,2);
   const int type = anglelist(n,3);
 
+  const F_FLOAT k = d_k[type];
+
+  const F_FLOAT x20 = x(i2,0);
+  const F_FLOAT x21 = x(i2,1);
+  const F_FLOAT x22 = x(i2,2);
+
   // 1st bond
 
-  const F_FLOAT delx1 = x(i1,0) - x(i2,0);
-  const F_FLOAT dely1 = x(i1,1) - x(i2,1);
-  const F_FLOAT delz1 = x(i1,2) - x(i2,2);
+  const F_FLOAT delx1 = x(i1,0) - x20;
+  const F_FLOAT dely1 = x(i1,1) - x21;
+  const F_FLOAT delz1 = x(i1,2) - x22;
 
   const F_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
   const F_FLOAT r1 = sqrt(rsq1);
 
   // 2nd bond
 
-  const F_FLOAT delx2 = x(i3,0) - x(i2,0);
-  const F_FLOAT dely2 = x(i3,1) - x(i2,1);
-  const F_FLOAT delz2 = x(i3,2) - x(i2,2);
+  const F_FLOAT delx2 = x(i3,0) - x20;
+  const F_FLOAT dely2 = x(i3,1) - x21;
+  const F_FLOAT delz2 = x(i3,2) - x22;
 
   const F_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
   const F_FLOAT r2 = sqrt(rsq2);
@@ -178,9 +184,9 @@ void AngleCosineKokkos<DeviceType>::operator()(TagAngleCosineCompute<NEWTON_BOND
   // force & energy
 
   F_FLOAT eangle = 0.0;
-  if (eflag) eangle = d_k[type]*(1.0+c);
+  if (eflag) eangle = k*(1.0+c);
 
-  const F_FLOAT a = d_k[type];
+  const F_FLOAT a = k;
   const F_FLOAT a11 = a*c / rsq1;
   const F_FLOAT a12 = -a / (r1*r2);
   const F_FLOAT a22 = a*c / rsq2;

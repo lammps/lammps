@@ -386,7 +386,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::select3(int k, int n, int ii) con
 
   l = 0;
   ir = n-1;
-  for (;;) {
+  while (true) {
     if (ir <= l+1) {
       if (ir == l+1 && arr[ir] < arr[l]) {
         SWAP(arr,l,ir);
@@ -421,7 +421,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::select3(int k, int n, int ii) con
       a3[0] = arr3(l+1,0);
       a3[1] = arr3(l+1,1);
       a3[2] = arr3(l+1,2);
-      for (;;) {
+      while (true) {
         do i++; while (arr[i] < a);
         do j--; while (arr[j] > a);
         if (j < i) break;

@@ -180,17 +180,17 @@ file changed):
 
     fix rigid all shake 0.001 10 10000 b 1 a 1
     minimize 0.0 0.0 1000 10000
-    run 0 post no
 
     reset_timestep 0
+    timestep 1.0
     velocity all create 300.0 5463576
-    fix integrate all nvt temp 300 300 1.0
+    fix integrate all nvt temp 300 300 100.0
 
     thermo_style custom step temp press etotal pe
 
     thermo 1000
     run 20000
-    write_data tip3p.data nocoeff
+    write_data tip4p-implicit.data nocoeff
 
 Below is the code for a LAMMPS input file using the explicit method and
 a TIP4P molecule file.  Because of using :doc:`fix rigid/nvt/small
@@ -203,6 +203,7 @@ rigid/nvt/small can identify rigid bodies by their molecule ID:
 
     units real
     atom_style charge
+    atom_modify map array
     region box block -5 5 -5 5 -5 5
     create_box 3 box
 
@@ -219,14 +220,14 @@ rigid/nvt/small can identify rigid bodies by their molecule ID:
     molecule water tip4p.mol
     create_atoms 0 random 33 34564 NULL mol water 25367 overlap 1.33
 
-    timestep 0.1
-    fix integrate all rigid/nvt/small molecule temp 300.0 300.0 1.0
+    timestep 0.5
+    fix integrate all rigid/nvt/small molecule temp 300.0 300.0 100.0
     velocity all create 300.0 5463576
 
     thermo_style custom step temp press etotal density pe ke
     thermo 1000
     run 20000
-    write_data tip4p.data nocoeff
+    write_data tip4p-explicit.data nocoeff
 
 .. _tip4p_molecule:
 .. code-block::

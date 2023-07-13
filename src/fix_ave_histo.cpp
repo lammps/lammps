@@ -590,7 +590,7 @@ void FixAveHisto::end_of_step()
       } else if (kind == PERATOM) {
         if (j == 0) bin_atoms(val.val.f->vector_atom,1);
         else if (val.val.f->array_atom)
-          bin_atoms(val.val.f->array_atom[j-1],val.val.f->size_peratom_cols);
+          bin_atoms(&val.val.f->array_atom[0][j-1],val.val.f->size_peratom_cols);
 
       } else if (kind == LOCAL) {
         if (j == 0) bin_vector(val.val.f->size_local_rows,val.val.f->vector_local,1);

@@ -96,13 +96,13 @@ private:
     int *pairlist=nullptr;
     double *y=nullptr;
 
-    int natom;
-    int nalist;
-    int natom_max;
-    int sze;
-    int sza;
-    int szy;
-    int szp;
+    //int natom;
+    //int nalist;
+    int natom_max = 0;
+    int sze = 0;
+    int sza = 0;
+    int szy = 0;
+    int szp = 0;
   };
 
   struct descriptorstruct {
@@ -112,13 +112,14 @@ private:
     double *b=nullptr;  // least-square vector for all descriptors
     double *c=nullptr;  // coefficents of descriptors
     int *tmpint=nullptr;
-    int szd;
-    int szi;
-    int nd;
+    int szd = 0;
+    int szi = 0;
+    int nd = 0;
     int method;
   };
 
   int save_descriptors = 0;
+  int compute_descriptors = 0;
   datastruct traindata;
   datastruct testdata;
   descriptorstruct desc;
@@ -168,7 +169,12 @@ private:
   int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
-    double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
+    double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);  
+  void estimate_memory_neighborstruct(const datastruct &data, int *pbc, double rcut, int nelements);
+  void allocate_memory_neighborstruct();
+  void estimate_memory_descriptorstruct(const datastruct &data);
+  void allocate_memory_descriptorstruct(int nd);
+  void estimate_memory_fastpod(const datastruct &data);
   void allocate_memory(const datastruct &data);
   void allocate_memory_fastpod(const datastruct &data);
   void linear_descriptors(const datastruct &data, int ci);

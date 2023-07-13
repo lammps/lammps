@@ -6,7 +6,7 @@ fix nve/tri command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve/tri
 

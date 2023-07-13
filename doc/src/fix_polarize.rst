@@ -14,7 +14,7 @@ fix polarize/functional command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style nevery tolerance
 

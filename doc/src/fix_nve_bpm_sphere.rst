@@ -6,7 +6,7 @@ fix nve/bpm/sphere command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve/bpm/sphere
 

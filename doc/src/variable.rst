@@ -6,7 +6,7 @@ variable command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable name style args ...
 

@@ -6,7 +6,7 @@ fix numdiff/virial command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID numdiff/virial Nevery delta
 

@@ -6,7 +6,7 @@ mass command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    mass I value
 

@@ -9,8 +9,8 @@ LAMMPS_COMMANDS = ("angle_coeff", "angle_style", "atom_modify",
                    "delete_atoms", "delete_bonds", "dielectric",
                    "dihedral_coeff", "dihedral_style", "dihedral_write",
                    "dimension", "displace_atoms", "dump_modify",
-                   "dynamical_matrix", "echo", "elif", "else", "fitpod",
-                   "fix_modify", "group2ndx", "hyper", "if",
+                   "dynamical_matrix", "echo", "fitpod",
+                   "fix_modify", "group2ndx", "hyper",
                    "improper_coeff", "improper_style", "include",
                    "info", "jump", "kim", "kspace_modify",
                    "kspace_style", "label", "labelmap", "lattice",
@@ -24,7 +24,7 @@ LAMMPS_COMMANDS = ("angle_coeff", "angle_style", "atom_modify",
                    "read_restart", "replicate", "rerun", "reset_atoms",
                    "reset_timestep", "restart", "run", "run_style",
                    "server", "set", "shell", "special_bonds", "suffix",
-                   "tad", "temper", "temper/grem", "temper/npt", "then",
+                   "tad", "temper", "temper/grem", "temper/npt",
                    "thermo", "thermo_modify", "thermo_style",
                    "third_order", "timer", "timestep", "units",
                    "velocity", "write_coeff", "write_data",
@@ -52,7 +52,7 @@ class LAMMPSLexer(RegexLexer):
             (r'dump\s+', Keyword, 'dump'),
             (r'dump_modify\s+', Keyword, 'modify_cmd'),
             (r'region\s+', Keyword, 'region'),
-            (r'^\s*variable\s+', Keyword, 'variable_cmd'),
+            (r'variable\s+', Keyword, 'variable_cmd'),
             (r'group\s+', Keyword, 'group'),
             (r'change_box\s+', Keyword, 'change_box'),
             (r'create_box\s+', Keyword, 'create_box'),
@@ -73,6 +73,7 @@ class LAMMPSLexer(RegexLexer):
             (r'write_data\s+', Keyword, 'ndx_cmd'),
             (r'write_dump\s+', Keyword, 'write_dump'),
             (r'write_restart\s+', Keyword, 'ndx_cmd'),
+            include('conditionals'),
             include('keywords'),
             (r'#.*?\n', Comment),
             ('"', String, 'string'),
@@ -87,6 +88,10 @@ class LAMMPSLexer(RegexLexer):
             (r'[\+\-\*\^\|\/\!%&=<>]', Operator),
             (r'[\~\.\w_:,@\-\/\\0-9]+', Text),
         ],
+        'conditionals' : [
+            (words(('if','else','elif','then'), suffix=r'\b', prefix=r'\b'), Keyword)
+        ]
+        ,
         'keywords' : [
             (words(LAMMPS_COMMANDS, suffix=r'\b', prefix=r'^\s*'), Keyword)
         ]

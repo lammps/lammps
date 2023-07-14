@@ -992,7 +992,8 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
         numtyp pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-        damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
+        numtyp rdamp = r/damp;
+        damp = pgamma * rdamp*rdamp*rdamp;
         if (damp < (numtyp)50.0) {
           numtyp expdamp = ucl_exp(-damp);
           scale3 = (numtyp)1.0 - expdamp;

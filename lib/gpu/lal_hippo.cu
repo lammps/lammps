@@ -845,7 +845,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp scale = factor_disp * damp*damp;
       scale = scale - (numtyp)1.0;
       numtyp e = -ci * ck * (expa+scale) / r6;
-      numtyp rterm = -ucl_powr(ralpha2,(numtyp)3.0) * expterm / r;
+      numtyp rterm = -ralpha2*ralpha2*ralpha2 * expterm / r;
       numtyp de = (numtyp)-6.0*e/r2 - ci*ck*rterm/r7 - (numtyp)2.0*ci*ck*factor_disp*damp*ddamp/r7;
 
       energy+= e;

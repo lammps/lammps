@@ -3004,7 +3004,7 @@ double PPPM::memory_usage()
 
   if (group_allocate_flag) {
     bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
-    bytes += (double)2 * nfft_both * sizeof(FFT_SCALAR);;
+    bytes += (double)2 * nfft_both * sizeof(FFT_SCALAR);
   }
 
   // two Grid3d bufs

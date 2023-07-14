@@ -6,7 +6,7 @@ fix langevin/spin command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID langevin/spin T Tdamp seed
 

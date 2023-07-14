@@ -1933,7 +1933,7 @@ void DumpVTK::identify_vectors()
     // assume components are grouped together and in correct order
     if (name.count(it->first + 1) && name.count(it->first + 2)) { // more attributes?
       if (it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
-         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0 )
+         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0)
       {
         it->second.erase(it->second.length()-1);
         std::ostringstream oss;

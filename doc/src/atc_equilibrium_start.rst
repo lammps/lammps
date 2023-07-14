@@ -6,7 +6,7 @@ fix_modify AtC equilibrium_start command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> equilibrium_start <on|off>
 

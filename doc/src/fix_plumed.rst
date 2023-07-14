@@ -6,7 +6,7 @@ fix plumed command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID plumed keyword value ...
 

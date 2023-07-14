@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,39 +25,37 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum {NONE, CONSTANT, TYPE};
+enum { NONE, CONSTANT, TYPE };
 
 /* ---------------------------------------------------------------------- */
 
-FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix heat/flow", error);
 
   cp_style = NONE;
   comm_forward = 1;
   comm_reverse = 1;
 
   int ntypes = atom->ntypes;
-  if (strcmp(arg[3],"constant") == 0) {
-    if (narg != 5) error->all(FLERR,"Illegal fix command");
+  if (strcmp(arg[3], "constant") == 0) {
+    if (narg != 5) error->all(FLERR, "Illegal fix heat/flow constant command");
     cp_style = CONSTANT;
-    cp = utils::numeric(FLERR,arg[4],false,lmp);
-    if (cp < 0.0) error->all(FLERR,"Illegal fix command");
-  } else if (strcmp(arg[3],"type") == 0) {
-    if (narg != 4 + ntypes) error->all(FLERR,"Illegal fix command");
+    cp = utils::numeric(FLERR, arg[4], false, lmp);
+    if (cp < 0.0) error->all(FLERR, "Illegal fix heat/flow constant command value");
+  } else if (strcmp(arg[3], "type") == 0) {
+    if (narg != 4 + ntypes) error->all(FLERR, "Illegal fix heat/flow type command");
     cp_style = TYPE;
-    memory->create(cp_type,ntypes+1,"fix/temp/integrate:cp_type");
+    memory->create(cp_type, ntypes + 1, "fix_heat_flow:cp_type");
     for (int i = 1; i <= ntypes; i++) {
-      cp_type[i] = utils::numeric(FLERR,arg[3+i],false,lmp);
-      if (cp_type[i] < 0.0) error->all(FLERR,"Illegal fix command");
+      cp_type[i] = utils::numeric(FLERR, arg[3 + i], false, lmp);
+      if (cp_type[i] < 0.0) error->all(FLERR, "Illegal fix heat/flow type command value");
     }
   } else {
-    error->all(FLERR,"Illegal fix command");
+    error->all(FLERR, "Unknown fix heat/flow keyword {}", arg[3]);
   }
 
-  if (cp_style == NONE)
-    error->all(FLERR, "Must specify specific heat in fix temp/integrate");
+  if (cp_style == NONE) error->all(FLERR, "Must specify specific heat in fix heat/flow");
   dynamic_group_allow = 1;
 }
 
@@ -80,32 +77,24 @@ void FixHeatFlow::init()
   dt = update->dt;
 
   if (!atom->temperature_flag)
-    error->all(FLERR,"Fix temp/integrate requires atom style with temperature property");
+    error->all(FLERR, "Fix heat/flow requires atom style with temperature property");
   if (!atom->heatflow_flag)
-    error->all(FLERR,"Fix temp/integrate requires atom style with heatflow property");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixHeatFlow::setup(int /*vflag*/)
-{
-  // Identify whether this is the first instance of fix heat/flow
-  first_flag = 0;
-
-  int i = 0;
-  auto fixlist = modify->get_fix_by_style("heat/flow");
-  for (const auto &ifix : fixlist) {
-    if (strcmp(ifix->id, id) == 0) break;
-    i++;
-  }
-
-  if (i == 0) first_flag = 1;
+    error->all(FLERR, "Fix heat/flow requires atom style with heatflow property");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixHeatFlow::setup_pre_force(int /*vflag*/)
 {
+  // Identify whether this is the first instance of fix heat/flow
+  first_flag = 0;
+  int i = 0;
+  auto fixlist = modify->get_fix_by_style("heat/flow");
+  for (const auto &ifix : fixlist) {
+    if (strcmp(ifix->id, id) == 0) break;
+    i++;
+  }
+  if (i == 0) first_flag = 1;
   pre_force(0);
 }
 
@@ -138,19 +127,14 @@ void FixHeatFlow::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // add ghost contributions to heatflow if first instance of fix
-  if (first_flag)
-    comm->reverse_comm(this);
+  if (first_flag) comm->reverse_comm(this);
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        temperature[i] += dt * heatflow[i] / (calc_cp(i) * rmass[i]);
-      }
+      if (mask[i] & groupbit) temperature[i] += dt * heatflow[i] / (calc_cp(i) * rmass[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        temperature[i] += dt * heatflow[i] / (calc_cp(i) * mass[type[i]]);
-      }
+      if (mask[i] & groupbit) temperature[i] += dt * heatflow[i] / (calc_cp(i) * mass[type[i]]);
   }
 }
 
@@ -219,9 +203,7 @@ int FixHeatFlow::pack_reverse_comm(int n, int first, double *buf)
   int last = first + n;
   double *heatflow = atom->heatflow;
 
-  for (int i = first; i < last; i++) {
-    buf[m++] = heatflow[i];
-  }
+  for (int i = first; i < last; i++) { buf[m++] = heatflow[i]; }
 
   return m;
 }
@@ -233,6 +215,5 @@ void FixHeatFlow::unpack_reverse_comm(int n, int *list, double *buf)
   int m = 0;
   double *heatflow = atom->heatflow;
 
-  for (int i = 0; i < n; i++)
-    heatflow[list[i]] += buf[m++];
+  for (int i = 0; i < n; i++) heatflow[list[i]] += buf[m++];
 }

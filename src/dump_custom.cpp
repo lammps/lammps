@@ -53,13 +53,14 @@ enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 /* ---------------------------------------------------------------------- */
 
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg), idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr),
-  thresh_value(nullptr), thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr),
-  thresh_first(nullptr), earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr),
-  columns_default(nullptr), choose(nullptr), dchoose(nullptr), clist(nullptr),
-  field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
-  fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
-  custom(nullptr), custom_flag(nullptr), typenames(nullptr), pack_choice(nullptr)
+    Dump(lmp, narg, arg), idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr),
+    thresh_value(nullptr), thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr),
+    thresh_first(nullptr), earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr),
+    columns_default(nullptr), choose(nullptr), dchoose(nullptr), clist(nullptr),
+    field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
+    fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
+    custom(nullptr), custom_flag(nullptr), typenames(nullptr), header_choice(nullptr),
+    pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump {} arguments specified", style);
 
@@ -352,6 +353,8 @@ void DumpCustom::init_style()
 
 void DumpCustom::write_header(bigint ndump)
 {
+  if (!header_choice) error->all(FLERR, "Must not use 'run pre no' after creating a new dump");
+
   if (multiproc) (this->*header_choice)(ndump);
   else if (me == 0) (this->*header_choice)(ndump);
 }
@@ -1461,8 +1464,12 @@ int DumpCustom::parse_fields(int narg, char **arg)
       switch (argi.get_type()) {
 
       case ArgInfo::UNKNOWN:
-      case ArgInfo::NONE:
         error->all(FLERR,"Invalid attribute {} in dump {} command",arg[iarg],style);
+        break;
+
+      case ArgInfo::NONE:
+        // ignore because this may be a valid argument for a derived dump style class
+        return iarg;
         break;
 
       // compute value = c_ID

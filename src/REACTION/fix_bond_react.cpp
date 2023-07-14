@@ -412,7 +412,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg],"modify_create") == 0) {
         if (iarg++ > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'modify_create' has too few arguments");
-        while (iarg < narg && strcmp(arg[iarg],"react") != 0 ) {
+        while (iarg < narg && strcmp(arg[iarg],"react") != 0) {
           if (strcmp(arg[iarg],"fit") == 0) {
             if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                           "'modify_create' has too few arguments");
@@ -1394,7 +1394,7 @@ void FixBondReact::superimpose_algorithm()
         }
 
         for (int i = 0; i < onemol->natoms; i++) {
-          if (glove[i][0] !=0 && pioneer_count[i] < onemol_nxspecial[i][0] && edge[i][rxnID] == 0) {
+          if (glove[i][0] != 0 && pioneer_count[i] < onemol_nxspecial[i][0] && edge[i][rxnID] == 0) {
             pioneers[i] = 1;
           }
         }
@@ -1837,7 +1837,7 @@ void FixBondReact::inner_crosscheck_loop()
   for (int i=1; i < num_choices; ++i) {
     tagint hold = tag_choices[i];
     int j = i - 1;
-    while ((j >=0) && (tag_choices[j] > hold)) {
+    while ((j >= 0) && (tag_choices[j] > hold)) {
       tag_choices[j+1] = tag_choices[j];
       --j;
     }
@@ -2223,7 +2223,7 @@ note: currently uses global rxnID and onemol variables
 
 double FixBondReact::get_totalcharge()
 {
-  int j,jj,ilocal;
+  int j,jj;
   double *q = atom->q;
   double sim_total_charge = 0.0;
   for (j = 0; j < onemol->natoms; j++) {

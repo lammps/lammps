@@ -1559,6 +1559,7 @@ intramolecular
 ints
 inumeric
 inv
+invariance
 invariants
 inversed
 invertible

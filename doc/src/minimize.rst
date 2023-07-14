@@ -9,7 +9,7 @@ minimize/kk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    minimize etol ftol maxiter maxeval
 

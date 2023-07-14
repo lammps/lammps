@@ -130,6 +130,8 @@ int DumpXYZ::modify_param(int narg, char **arg)
 void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
+    if (!fp) error->one(FLERR, "Must not use 'run pre no' after creating a new dump");
+
     auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
     if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
     header += "\n";
@@ -177,9 +179,8 @@ int DumpXYZ::convert_string(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset],format,
-                      typenames[static_cast<int> (mybuf[m+1])],
-                      mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    offset += sprintf(&sbuf[offset], format, typenames[static_cast<int> (mybuf[m+1])],
+                      mybuf[m+2], mybuf[m+3], mybuf[m+4]);
     m += size_one;
   }
 

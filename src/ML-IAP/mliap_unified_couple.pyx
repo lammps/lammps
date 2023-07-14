@@ -281,6 +281,16 @@ cdef class MLIAPDataPy:
             return None
         return np.asarray(<double[:self.npairs, :3]> &self.data.rij[0][0])
 
+    @property
+    def rij_max(self):
+        if self.data.rij is NULL:
+            return None
+        return np.asarray(<double[:self.nneigh_max, :3]> &self.data.rij[0][0])
+
+    @property
+    def nneigh_max(self):
+        return self.data.nneigh_max
+
     @write_only_property
     def graddesc(self, value):
         if self.data.graddesc is NULL:
@@ -357,6 +367,7 @@ cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
     unified_int.descriptor = descriptor
 
     unified.interface = unified_int
+    #print(unified_int)
 
     if unified.ndescriptors is None:
         raise ValueError("no descriptors set")

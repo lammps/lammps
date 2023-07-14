@@ -2726,7 +2726,7 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
-    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0)
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
     else {
@@ -3097,7 +3097,7 @@ double Variable::eval_tree(Tree *tree, int i)
     auto  ivalue1 = static_cast<bigint> (eval_tree(tree->first,i));
     auto  ivalue2 = static_cast<bigint> (eval_tree(tree->second,i));
     auto  ivalue3 = static_cast<bigint> (eval_tree(tree->extra[0],i));
-    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0)
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) arg = ivalue1;
     else {
@@ -3628,7 +3628,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       auto  ivalue1 = static_cast<bigint> (value1);
       auto  ivalue2 = static_cast<bigint> (value2);
       auto  ivalue3 = static_cast<bigint> (values[0]);
-      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0)
         print_var_error(FLERR,"Invalid math function in variable formula",ivar);
       double value;
       if (update->ntimestep < ivalue1) value = ivalue1;
@@ -3658,7 +3658,6 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
         print_var_error(FLERR,"Invalid math function in variable formula",ivar);
       double value;
       if (update->ntimestep < ivalue1) value = ivalue1;
-      //else if (update->ntimestep <= ivalue3) {
       else {
         value = ivalue1;
         double logsp = ivalue1;

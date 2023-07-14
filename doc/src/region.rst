@@ -6,7 +6,7 @@ region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region ID style args keyword arg ...
 

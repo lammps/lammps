@@ -585,7 +585,12 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[6];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
       numtyp alsq2n = (numtyp)0.0;
@@ -802,7 +807,12 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[4], bcn[3];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp aefac = aesq2n;
       for (int m = 1; m <= 3; m++) {
@@ -976,7 +986,12 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[4];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp aefac = aesq2n;
       for (int m = 1; m <= 3; m++) {
@@ -992,7 +1007,8 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
         numtyp pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-        damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
+        numtyp rdamp = r/damp;
+        damp = pgamma * rdamp*rdamp*rdamp;
         if (damp < (numtyp)50.0) {
           numtyp expdamp = ucl_exp(-damp);
           scale3 = (numtyp)1.0 - expdamp;
@@ -1230,7 +1246,12 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[5];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
       numtyp alsq2n = (numtyp)0.0;

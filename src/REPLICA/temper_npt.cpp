@@ -65,9 +65,9 @@ TemperNPT::~TemperNPT()
 void TemperNPT::command(int narg, char **arg)
 {
   if (universe->nworlds == 1)
-    error->all(FLERR,"Must have more than one processor partition to temper");
+    error->universe_all(FLERR,"More than one processor partition required for temper/npt command");
   if (domain->box_exist == 0)
-    error->all(FLERR,"temper/npt command before simulation box is defined");
+    error->universe_all(FLERR,"Temper/npt command before simulation box is defined");
   if (narg != 7 && narg != 8) error->universe_all(FLERR,"Illegal temper/npt command");
 
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
@@ -88,8 +88,8 @@ void TemperNPT::command(int narg, char **arg)
 
   my_set_temp = universe->iworld;
   if (narg == 8) my_set_temp = utils::inumeric(FLERR,arg[7],false,lmp);
-  if ((my_set_temp < 0) || (my_set_temp > 7))
-    error->universe_all(FLERR,"Invalid partition number for temperature index keyword");
+  if ((my_set_temp < 0) || (my_set_temp >= universe->nworlds))
+    error->universe_one(FLERR,"Invalid temperature index value");
 
   // swap frequency must evenly divide total # of timesteps
 
@@ -278,22 +278,23 @@ void TemperNPT::command(int narg, char **arg)
 
     swap = 0;
     if (partner != -1) {
-      if (me_universe > partner) {
+      if (me_universe > partner)
         MPI_Send(&pe,1,MPI_DOUBLE,partner,0,universe->uworld);
-        }
-      else {
+      else
         MPI_Recv(&pe_partner,1,MPI_DOUBLE,partner,0,universe->uworld,MPI_STATUS_IGNORE);
-        }
-      if (me_universe > partner) {
+
+      if (me_universe > partner)
         MPI_Send(&vol,1, MPI_DOUBLE,partner,0,universe->uworld);
-        }
-      else {
+      else
         MPI_Recv(&vol_partner,1,MPI_DOUBLE,partner,0,universe->uworld,MPI_STATUS_IGNORE);
-        }
-    // Acceptance criteria changed for NPT ensemble
+
+    // Acceptance criteria changed versus temper command for NPT ensemble
       if (me_universe < partner) {
         press_units = press_set/nktv2p;
-        delr = (pe_partner - pe)*(1.0/(boltz*set_temp[my_set_temp]) - 1.0/(boltz*set_temp[partner_set_temp])) + press_units*(1.0/(boltz*set_temp[my_set_temp]) - 1.0/(boltz*set_temp[partner_set_temp]))*(vol_partner - vol);
+        delr = (pe_partner - pe)*(1.0/(boltz*set_temp[my_set_temp])
+                                  - 1.0/(boltz*set_temp[partner_set_temp]))
+          + press_units*(1.0/(boltz*set_temp[my_set_temp])
+                         - 1.0/(boltz*set_temp[partner_set_temp]))*(vol_partner - vol);
         boltz_factor = -delr;
         if (boltz_factor >= 0.0) swap = 1;
         else if (ranboltz->uniform() < exp(boltz_factor)) swap = 1;
@@ -303,13 +304,13 @@ void TemperNPT::command(int narg, char **arg)
         MPI_Send(&swap,1,MPI_INT,partner,0,universe->uworld);
       else
         MPI_Recv(&swap,1,MPI_INT,partner,0,universe->uworld,MPI_STATUS_IGNORE);
-#ifdef TEMPER_DEBUG
+
+#if TEMPER_DEBUG
       if (me_universe < partner)
         fprintf(universe->uscreen,"SWAP %d & %d: yes = %d,Ts = %d %d, PEs = %g %g, Bz = %g %g, vol = %g %g\n",
                me_universe,partner,swap,my_set_temp,partner_set_temp,
                pe,pe_partner,boltz_factor,exp(boltz_factor), vol, vol_partner);
 #endif
-
     }
 
     // bcast swap result to other procs in my world

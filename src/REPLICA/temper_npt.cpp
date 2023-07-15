@@ -52,10 +52,10 @@ TemperNPT::~TemperNPT()
   MPI_Comm_free(&roots);
   if (ranswap) delete ranswap;
   delete ranboltz;
-  delete [] set_temp;
-  delete [] temp2world;
-  delete [] world2temp;
-  delete [] world2root;
+  delete[] set_temp;
+  delete[] temp2world;
+  delete[] world2temp;
+  delete[] world2root;
 }
 
 /* ----------------------------------------------------------------------
@@ -68,8 +68,7 @@ void TemperNPT::command(int narg, char **arg)
     error->all(FLERR,"Must have more than one processor partition to temper");
   if (domain->box_exist == 0)
     error->all(FLERR,"temper/npt command before simulation box is defined");
-  if (narg != 7 && narg != 8)
-    error->universe_all(FLERR,"Illegal temper/npt command");
+  if (narg != 7 && narg != 8) error->universe_all(FLERR,"Illegal temper/npt command");
 
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
   nevery = utils::inumeric(FLERR,arg[1],false,lmp);
@@ -80,10 +79,9 @@ void TemperNPT::command(int narg, char **arg)
 
   if (timer->is_timeout()) return;
 
-  for (whichfix = 0; whichfix < modify->nfix; whichfix++)
-    if (strcmp(arg[3],modify->fix[whichfix]->id) == 0) break;
-  if (whichfix == modify->nfix)
-    error->universe_all(FLERR,"Tempering fix ID is not defined");
+  whichfix = modify->get_fix_by_id(arg[3]);
+  if (!whichfix)
+    error->universe_all(FLERR,fmt::format("Tempering fix ID {} is not defined", arg[3]));
 
   seed_swap = utils::inumeric(FLERR,arg[4],false,lmp);
   seed_boltz = utils::inumeric(FLERR,arg[5],false,lmp);
@@ -106,8 +104,8 @@ void TemperNPT::command(int narg, char **arg)
   // change the volume. This currently only applies to fix npt and
   // fix rigid/npt variants
 
-  if ( (!utils::strmatch(modify->fix[whichfix]->style,"^npt")) &&
-       (!utils::strmatch(modify->fix[whichfix]->style,"^rigid/npt")) )
+  if ( (!utils::strmatch(whichfix->style,"^npt")) &&
+       (!utils::strmatch(whichfix->style,"^rigid/npt")) )
     error->universe_all(FLERR,"Tempering temperature and pressure fix is not supported");
 
   // setup for long tempering run
@@ -118,8 +116,7 @@ void TemperNPT::command(int narg, char **arg)
   update->nsteps = nsteps;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
-  if (update->laststep < 0)
-    error->all(FLERR,"Too many timesteps");
+  if (update->laststep < 0) error->all(FLERR,"Too many timesteps");
 
   lmp->init();
 
@@ -135,9 +132,9 @@ void TemperNPT::command(int narg, char **arg)
   // pe_compute = ptr to thermo_pe compute
   // notify compute it will be called at first swap
 
-  int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all(FLERR,"Tempering could not find thermo_pe compute");
-  Compute *pe_compute = modify->compute[id];
+  Compute *pe_compute = modify->get_compute_by_id("thermo_pe");
+  if (!pe_compute) error->all(FLERR,"Tempering could not find thermo_pe compute");
+
   pe_compute->addstep(update->ntimestep + nevery);
 
   // create MPI communicator for root proc from each world
@@ -186,7 +183,7 @@ void TemperNPT::command(int narg, char **arg)
 
   if (narg == 8) {
     double new_temp = set_temp[my_set_temp];
-    modify->fix[whichfix]->reset_target(new_temp);
+    whichfix->reset_target(new_temp);
   }
 
   // setup tempering runs
@@ -327,7 +324,7 @@ void TemperNPT::command(int narg, char **arg)
 
     if (swap) {
       new_temp = set_temp[partner_set_temp];
-      modify->fix[whichfix]->reset_target(new_temp);
+      whichfix->reset_target(new_temp);
     }
 
     // update my_set_temp and temp2world on every proc

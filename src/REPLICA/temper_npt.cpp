@@ -89,7 +89,9 @@ void TemperNPT::command(int narg, char **arg)
   seed_boltz = utils::inumeric(FLERR,arg[5],false,lmp);
 
   my_set_temp = universe->iworld;
-  if (narg == 8) my_set_temp = utils::inumeric(FLERR,arg[6],false,lmp);
+  if (narg == 8) my_set_temp = utils::inumeric(FLERR,arg[7],false,lmp);
+  if ((my_set_temp < 0) || (my_set_temp > 7))
+    error->universe_all(FLERR,"Invalid partition number for temperature index keyword");
 
   // swap frequency must evenly divide total # of timesteps
 

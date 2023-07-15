@@ -1214,8 +1214,9 @@ void FixDeform::set_pressure()
     }
 
     if (max_h_rate != 0)
-      if (fabs(set[i].ptarget) > max_h_rate)
+      if (fabs(h_rate[i]) > max_h_rate)
         h_rate[i] = max_h_rate * h_rate[i] / fabs(h_rate[i]);
+
     h_ratelo[i] = -0.5 * h_rate[i];
 
     double offset = 0.5 * (domain->boxhi[i] - domain->boxlo[i]) * (1.0 + update->dt * h_rate[i]);
@@ -1378,7 +1379,7 @@ void FixDeform::set_iso()
     }
 
     if (max_h_rate != 0)
-      if (fabs(set[6].ptarget) > max_h_rate)
+      if (fabs(v_rate) > max_h_rate)
         v_rate = max_h_rate * v_rate / fabs(v_rate);
 
     set[6].cumulative_strain += update->dt * v_rate;

@@ -63,7 +63,7 @@ static const char cite_nonaffine_d2min[] =
 /* ---------------------------------------------------------------------- */
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), new_fix_id(nullptr), X(nullptr), Y(nullptr), F(nullptr), norm (nullptr)
+  Fix(lmp, narg, arg), new_fix_id(nullptr), X(nullptr), Y(nullptr), F(nullptr), norm(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nonaffine/displacement command");
 
@@ -91,8 +91,8 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
         error->all(FLERR, "Illegal custom cutoff length {}", arg[iarg + 2]);
       iarg += 1;
     } else error->all(FLERR,"Illegal cutoff style {} in fix nonaffine/displacement", arg[iarg + 1]);
-    iarg += 3;
-  }
+    iarg += 2;
+  } else error->all(FLERR,"Illegal nonaffine displacement style {} in fix nonaffine/displacement", arg[iarg]);
 
   if (iarg + 2 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
   if (strcmp(arg[iarg], "fixed") == 0) {
@@ -112,8 +112,9 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
       error->all(FLERR, "Illegal offset timestep {} in fix nonaffine/displacement", arg[iarg + 1]);
   } else error->all(FLERR,"Illegal reference style {} in fix nonaffine/displacement", arg[iarg]);
 
-  if (cut_style == RADIUS && (!atom->radius_flag))
-    error->all(FLERR, "Fix nonaffine/displacement radius style requires atom attribute radius");
+  if (nad_style == D2MIN)
+    if (cut_style == RADIUS && (!atom->radius_flag))
+      error->all(FLERR, "Fix nonaffine/displacement radius style requires atom attribute radius");
 
   peratom_flag = 1;
   peratom_freq = nevery;
@@ -169,7 +170,7 @@ void FixNonaffineDisplacement::post_constructor()
   new_fix_id = utils::strdup(id + std::string("_FIX_PA"));
   modify->add_fix(fmt::format("{} {} property/atom d2_nad 3 ghost {}", new_fix_id, group->names[igroup], ghost_status));
   int tmp1, tmp2;
-  nad_index = atom->find_custom("nad",tmp1,tmp2);
+  nad_index = atom->find_custom("nad", tmp1, tmp2);
 
   if (nad_style == INTEGRATED) {
     double **nad = atom->darray[nad_index];
@@ -189,27 +190,13 @@ void FixNonaffineDisplacement::init()
 {
   dtv = update->dt;
 
-  if (!reference_saved && (reference_style == FIXED) && (update->ntimestep > reference_timestep))
+  if ((!reference_saved) && (reference_style == FIXED) && (update->ntimestep > reference_timestep))
     error->all(FLERR, "Initial timestep exceeds that of the reference state in fix nonaffine/displacement");
 
   if (nad_style == D2MIN) {
-    if (!force->pair && (cut_style == TYPE))
+    if ((!force->pair) && (cut_style == TYPE))
     error->all(FLERR,"Fix nonaffine/displacement D2Min option requires a pair style be defined "
                "or cutoff specified");
-
-    if (cut_style == CUSTOM) {
-      double skin = neighbor->skin;
-      mycutneigh = cutoff_custom + skin;
-
-      double cutghost;            // as computed by Neighbor and Comm
-      if (force->pair)
-        cutghost = MAX(force->pair->cutforce + skin, comm->cutghostuser);
-      else
-        cutghost = comm->cutghostuser;
-
-      if (mycutneigh > cutghost)
-        error->all(FLERR,"Fix nonaffine/displacement D2Min option cutoff exceeds ghost atom range - use comm_modify cutoff command");
-    }
 
     // need an occasional half neighbor list
 
@@ -217,7 +204,21 @@ void FixNonaffineDisplacement::init()
       auto req = neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
     } else {
       auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
-      if (cut_style == CUSTOM) req->set_cutoff(mycutneigh);
+      if (cut_style == CUSTOM) {
+        double skin = neighbor->skin;
+        mycutneigh = cutoff_custom + skin;
+
+        double cutghost;            // as computed by Neighbor and Comm
+        if (force->pair)
+          cutghost = MAX(force->pair->cutforce + skin, comm->cutghostuser);
+        else
+          cutghost = comm->cutghostuser;
+
+        if (mycutneigh > cutghost)
+          error->all(FLERR,"Fix nonaffine/displacement D2Min option cutoff exceeds ghost atom range - use comm_modify cutoff command");
+
+        req->set_cutoff(mycutneigh);
+      }
     }
   }
 }
@@ -240,7 +241,7 @@ void FixNonaffineDisplacement::setup(int vflag)
 
 void FixNonaffineDisplacement::post_force(int /*vflag*/)
 {
-  if (reference_saved && !update->setupflag) {
+  if (reference_saved && (!update->setupflag)) {
     if (nad_style == INTEGRATED) {
       integrate_velocity();
     } else {
@@ -422,7 +423,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
         if (rsq > cutsq_custom) continue;
       } else {
         radsum = radius[i] + radius[j];
-        if (rsq > radsum * radsum) continue;
+        if (rsq > (radsum * radsum)) continue;
       }
 
       r0[0] = x0[i][0] - x0[j][0];

@@ -113,7 +113,7 @@ void ComputeRattlers::compute_peratom()
   int i, j, ii, jj, inum, jnum, itype, jtype, tmp_flag;
   tagint itag, jtag;
   double xtmp, ytmp, ztmp, delx, dely, delz;
-  double r, rinv, rsq, radsum;
+  double rsq, radsum;
 
   if (nmax < atom->nmax) {
     nmax = atom->nmax;
@@ -150,8 +150,6 @@ void ComputeRattlers::compute_peratom()
   int change_flag = 1;
   int ntry = 0;
   while (ntry < max_tries) {
-    // Quit when answer stops evolving
-    if (change_flag == 0) break;
     change_flag = 0;
 
     for (i = 0; i < nmax; i++) ncontacts[i] = 0;
@@ -227,6 +225,7 @@ void ComputeRattlers::compute_peratom()
 
     MPI_Allreduce(&change_flag, &tmp_flag, 1, MPI_INT, MPI_MAX, world);
     change_flag = tmp_flag;
+    if (change_flag == 0) break;
 
     ntry += 1;
   }
@@ -237,7 +236,8 @@ void ComputeRattlers::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRattlers::compute_scalar() {
+double ComputeRattlers::compute_scalar()
+{
   if (invoked_peratom != update->ntimestep)
     compute_peratom();
 

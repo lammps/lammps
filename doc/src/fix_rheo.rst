@@ -20,9 +20,10 @@ Syntax
 
        *shift* values = none, turns on velocity shifting
        *thermal* values = none, turns on thermal evolution
-       *surface/detection* values = *sdstyle* *limit*
+       *surface/detection* values = *sdstyle* *limit* *limit/splash*
          *sdstyle* = *coordination* or *divergence*
          *limit* = threshold for surface particles (unitless)
+         *limit/splash* = threshold for splash particles (unitless)
        *interface/reconstruct* values = none, reconstructs interfaces with solid particles
        *rho/sum* values = none, uses the kernel to compute the density of particles
        *density* values = *rho0* (density)

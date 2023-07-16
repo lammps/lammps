@@ -41,7 +41,7 @@ class ComputeRHEOSurface : public Compute {
 
  private:
   double cut, cutsq, rho0, threshold_divr;
-  int surface_style, nmax_store, threshold_z;
+  int surface_style, nmax_store, threshold_z, threshold_splash, interface_flag;
   double **B, **gradC;
   int threshold_style, comm_stage;
 

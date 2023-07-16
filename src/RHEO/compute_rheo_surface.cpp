@@ -82,6 +82,8 @@ void ComputeRHEOSurface::init()
   threshold_style = fix_rheo->surface_style;
   threshold_divr = fix_rheo->divr_surface;
   threshold_z = fix_rheo->zmin_surface;
+  threshold_splash = fix_rheo->zmin_splash;
+  interface_flag = fix_rheo->interface_flag;
 
   cutsq = cut * cut;
 
@@ -202,13 +204,15 @@ void ComputeRHEOSurface::compute_peratom()
         rhoj = rho[j];
 
         // Add corrections for walls
-        if (fluidi && (!fluidj)) {
-          rhoj = compute_interface->correct_rho(j, i);
-        } else if ((!fluidi) && fluidj) {
-          rhoi = compute_interface->correct_rho(i, j);
-        } else if ((!fluidi) && (!fluidj)) {
-          rhoi = rho0;
-          rhoj = rho0;
+        if (interface_flag) {
+          if (fluidi && (!fluidj)) {
+            rhoj = compute_interface->correct_rho(j, i);
+          } else if ((!fluidi) && fluidj) {
+            rhoi = compute_interface->correct_rho(i, j);
+          } else if ((!fluidi) && (!fluidj)) {
+            rhoi = rho0;
+            rhoj = rho0;
+          }
         }
 
         Voli = mass[itype] / rhoi;
@@ -262,7 +266,7 @@ void ComputeRHEOSurface::compute_peratom()
         if (divr[i] < threshold_divr) {
           status[i] |= STATUS_SURFACE;
           rsurface[i] = 0.0;
-          if (coordination[i] < threshold_z)
+          if (coordination[i] < threshold_splash)
             status[i] |= STATUS_SPLASH;
         }
       }
@@ -272,10 +276,10 @@ void ComputeRHEOSurface::compute_peratom()
       if (mask[i] & groupbit) {
         status[i] |= STATUS_BULK;
         rsurface[i] = cut;
-        if (coordination[i] < threshold_divr) {
+        if (coordination[i] < threshold_z) {
           status[i] |= STATUS_SURFACE;
           rsurface[i] = 0.0;
-          if (coordination[i] < threshold_z)
+          if (coordination[i] < threshold_splash)
             status[i] |= STATUS_SPLASH;
         }
       }

@@ -30,7 +30,7 @@ Syntax
 
        *fixed* = use a fixed reference frame at *nstep*
        *update* = update the reference frame every *nstep* timesteps
-       *offset* = update the reference frame *nstep* timesteps before calculating the non/affine displacement
+       *offset* = update the reference frame *nstep* timesteps before calculating the nonaffine displacement
 
 Examples
 """"""""

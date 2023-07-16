@@ -20,7 +20,7 @@ Syntax
        *radius* = cutoffs determined based on atom diameters (atom style sphere)
 
 * zmin = minimum coordination for a non-rattler particle
-* ntries = maximum number of interations to remove rattlers
+* ntries = maximum number of iterations to remove rattlers
 
 Examples
 """"""""
@@ -35,12 +35,12 @@ Description
 Define a compute that identifies rattlers in a system. Rattlers are
 identified using an interative approach. The coordination number of
 all atoms is first calculated.  The *type* and *radius* settings are
-used to select whether interactions cutoffs are determined by atom
+used to select whether interaction cutoffs are determined by atom
 types or by the sum of atomic radii (atom style sphere), respectively.
 Rattlers are then identified as particles with a coordination number
-less than *zmin* and are removed from consideration. A coordination
-number is then recalaculated, excluding previously identified rattlers,
-to identify new rattlers. This process is looped, up to a maximum
+less than *zmin* and are removed from consideration. Atomic coordination
+numbers are then recalculated, excluding previously identified rattlers,
+to identify a new set of rattlers. This process is iterated, up to a maximum
 of *ntries*, until no new rattlers are identified and the remaining
 atoms form a stable network of contacts.
 

@@ -34,7 +34,7 @@ class AtomVecSpinKokkos : public AtomVecKokkos, public AtomVecSpin {
   AtomVecSpinKokkos(class LAMMPS *);
   void grow(int) override;
   void grow_pointers() override;
-  // input lists to be checked
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
                          int pbc_flag, int *pbc, ExecutionSpace space) override;

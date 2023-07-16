@@ -173,14 +173,8 @@ void SerialInternal::resize_thread_team_data(size_t pool_reduce_bytes,
 }  // namespace Impl
 
 Serial::Serial()
-#ifdef KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
-    : m_space_instance(&Impl::SerialInternal::singleton()) {
-}
-#else
     : m_space_instance(&Impl::SerialInternal::singleton(),
-                       [](Impl::SerialInternal*) {}) {
-}
-#endif
+                       [](Impl::SerialInternal*) {}) {}
 
 void Serial::print_configuration(std::ostream& os, bool /*verbose*/) const {
   os << "Host Serial Execution Space:\n";

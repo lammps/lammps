@@ -116,15 +116,14 @@ Pair::Pair(LAMMPS *lmp) :
   nondefault_history_transfer = 0;
   beyond_contact = 0;
 
-  // KOKKOS per-fix data masks
+  // KOKKOS package
 
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  kokkosable = 0;
-  reverse_comm_device = 0;
-  copymode = 0;
+  kokkosable = copymode = 0;
+  reverse_comm_device = fuse_force_clear_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

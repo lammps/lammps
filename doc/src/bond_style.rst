@@ -32,13 +32,13 @@ Set the formula(s) LAMMPS uses to compute bond interactions between
 pairs of atoms.  In LAMMPS, a bond differs from a pairwise
 interaction, which are set via the :doc:`pair_style <pair_style>`
 command.  Bonds are defined between specified pairs of atoms and
-remain in force for the duration of the simulation (unless the bond
-breaks which is possible in some bond potentials).  The list of bonded
-atoms is read in by a :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` command from a data or restart file.
-By contrast, pair potentials are typically defined between all pairs
-of atoms within a cutoff distance and the set of active interactions
-changes over time.
+remain in force for the duration of the simulation (unless new bonds
+are created or existing bonds break, which is possible in some fixes
+and bond potentials).  The list of bonded atoms is read in by a
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+command from a data or restart file.  By contrast, pair potentials are
+typically defined between all pairs of atoms within a cutoff distance
+and the set of active interactions changes over time.
 
 Hybrid models where bonds are computed using different bond potentials
 can be setup using the *hybrid* bond style.

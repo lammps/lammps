@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define DELTA 10000
-#define EPSILON 1e-3
+#define EPSILON 1e-3     // dimensionless threshold (dot products, end point checks, contact checks)
 #define MAX_FACE_SIZE 4  // maximum number of vertices per face (same as BodyRoundedPolyhedron)
 #define MAX_CONTACTS 32  // for 3D models (including duplicated counts)
 
@@ -1186,7 +1186,13 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
 
   // singularity case, ignore interactions
 
-  if (r < EPSILON) return interact;
+  double rmin = MIN(rounded_radius_i, rounded_radius_j);
+  if (r < EPSILON*rmin) {
+    #ifdef _POLYHEDRON_DEBUG
+    printf("ignore interaction: r = %0.16f\n", r);
+    #endif
+    return interact;
+  }
 
   // include the vertices for interactions
 
@@ -1898,11 +1904,13 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
 
 {
   int i,n,ifirst,iffirst,npi1,npi2;
-  double xi1[3],xi2[3],u[3],v[3],costheta,anglesum1,anglesum2,magu,magv;
+  double xi1[3],xi2[3],u[3],v[3],costheta,anglesum1,anglesum2,magu,magv,rradi;
 
   ifirst = dfirst[ibody];
   iffirst = facfirst[ibody];
-  anglesum1 = anglesum2 = 0;;
+  rradi = rounded_radius[ibody];
+  double rradsq = rradi*rradi;
+  anglesum1 = anglesum2 = 0;
   for (i = 0; i < MAX_FACE_SIZE; i++) {
     npi1 = static_cast<int>(face[iffirst+face_index][i]);
     if (npi1 < 0) break;
@@ -1929,7 +1937,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
 
     // the point is at either vertices
 
-    if (magu * magv < EPSILON) inside1 = 1;
+    if (magu * magv < EPSILON*rradsq) inside1 = 1;
     else {
       costheta = MathExtra::dot3(u,v)/(magu*magv);
       anglesum1 += acos(costheta);
@@ -1940,7 +1948,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
       MathExtra::sub3(xi2,q2,v);
       magu = MathExtra::len3(u);
       magv = MathExtra::len3(v);
-      if (magu * magv < EPSILON) inside2 = 1;
+      if (magu * magv < EPSILON*rradsq) inside2 = 1;
       else {
         costheta = MathExtra::dot3(u,v)/(magu*magv);
         anglesum2 += acos(costheta);
@@ -2338,7 +2346,12 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(Contact* contact_list,
     for (int j = i + 1; j < n; j++) {
       if (contact_list[i].unique == 0) continue;
       double d = contact_separation(contact_list[i], contact_list[j]);
-      if (d < EPSILON) contact_list[j].unique = 0;
+      int ibody = contact_list[i].ibody;
+      int jbody = contact_list[i].jbody;
+      double rradi = rounded_radius[ibody];
+      double rradj = rounded_radius[jbody];
+      double rmin = MIN(rradi, rradj);
+      if (d < EPSILON*rmin) contact_list[j].unique = 0;
     }
   }
 }

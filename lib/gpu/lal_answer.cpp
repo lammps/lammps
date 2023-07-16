@@ -260,10 +260,10 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     ecoul+=ecv;
     if (_ef_atom) {
       if (_ilist==nullptr) {
-        for (int i=0; i<_ev_stride; i++)
-          eatom[i]+=engv[i];
-        for (int i=_ev_stride; i<iend; i++)
-          eatom[i]+=engv[i];
+        for (int i=0, ii=0; i<_ev_stride; i++)
+          eatom[ii++]+=engv[i];
+        for (int i=_ev_stride, ii=0; i<iend; i++)
+          eatom[ii++]+=engv[i];
       } else {
         for (int i=0, ii=0; i<_ev_stride; i++)
           eatom[_ilist[ii++]]+=engv[i];

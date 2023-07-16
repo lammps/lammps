@@ -47,6 +47,7 @@ void FixEfieldTIP4P::init()
   if (atom->tag_enable == 0) error->all(FLERR, "Fix efield/tip4p requires atom IDs");
   if (!atom->q_flag) error->all(FLERR, "Fix efield/tip4p requires atom attribute q");
   if (!force->pair) error->all(FLERR, "A TIP4P pair style must be defined fix efield/tip4p");
+  if (pstr) error->all(FLERR, "Fix efield/tip4p does not support the potential keyword");
 
   int itmp;
   double *p_qdist = (double *) force->pair->extract("qdist", itmp);

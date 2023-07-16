@@ -12,7 +12,7 @@ endif
 
 KOKKOS_VERSION_MAJOR = 3
 KOKKOS_VERSION_MINOR = 7
-KOKKOS_VERSION_PATCH = 01
+KOKKOS_VERSION_PATCH = 02
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -1376,6 +1376,7 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
   ifeq ($(KOKKOS_INTERNAL_USE_SYCL), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_SYCL.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_SYCL.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <setup/Kokkos_Setup_SYCL.hpp>","KokkosCore_Config_SetupBackend.hpp")
   endif
   ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_HIP.hpp>","KokkosCore_Config_FwdBackend.hpp")

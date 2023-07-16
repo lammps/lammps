@@ -171,7 +171,7 @@ Langevin thermostat:
 .. code-block:: LAMMPS
 
     compute dtemp all temp
-    compute_modify dtemp dynamic yes
+    compute_modify dtemp dynamic/dof yes
     fix fT all langevin 1.0 1.0 1.0 123
     fix_modify fT temp dtemp
 

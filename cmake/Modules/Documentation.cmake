@@ -4,14 +4,18 @@
 option(BUILD_DOC "Build LAMMPS HTML documentation" OFF)
 
 if(BUILD_DOC)
-  # Sphinx 3.x requires at least Python 3.5
+  # Current Sphinx versions require at least Python 3.8
   if(CMAKE_VERSION VERSION_LESS 3.12)
-    find_package(PythonInterp 3.5 REQUIRED)
+    find_package(PythonInterp 3.8 REQUIRED)
     set(VIRTUALENV ${PYTHON_EXECUTABLE} -m venv)
   else()
+    # use default (or custom) Python executable, if version is sufficient
+    if(Python_VERSION VERSION_GREATER_EQUAL 3.8)
+      set(Python3_EXECUTABLE ${Python_EXECUTABLE})
+    endif()
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
-    if(Python3_VERSION VERSION_LESS 3.5)
-      message(FATAL_ERROR "Python 3.5 and up is required to build the HTML documentation")
+    if(Python3_VERSION VERSION_LESS 3.8)
+      message(FATAL_ERROR "Python 3.8 and up is required to build the HTML documentation")
     endif()
     set(VIRTUALENV ${Python3_EXECUTABLE} -m venv)
   endif()

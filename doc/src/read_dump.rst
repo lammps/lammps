@@ -132,7 +132,7 @@ files can be written by LAMMPS via the :doc:`dump dcd <dump>` command.
 The *path* value specifies a list of directories which LAMMPS will
 search for the molfile plugins appropriate to the specified *style*\ .
 The syntax of the *path* value is like other search paths: it can
-contain multiple directories separated by a colon (or semi-colon on
+contain multiple directories separated by a colon (or semicolon on
 windows).  The *path* keyword is optional and defaults to ".",
 i.e. the current directory.
 

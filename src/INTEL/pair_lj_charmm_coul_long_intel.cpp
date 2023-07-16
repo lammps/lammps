@@ -339,7 +339,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
             const flt_t EWALD_F = 1.12837917;
             const flt_t INV_EWALD_P = 1.0 / 0.3275911;
 
-            const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+            const flt_t r = (flt_t)1.0 / std::sqrt(r2inv);
             const flt_t grij = g_ewald * r;
             const flt_t expm2 = std::exp(-grij * grij);
             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
@@ -591,10 +591,10 @@ void PairLJCharmmCoulLongIntel::pack_force_const(ForceConst<flt_t> &fc,
     for (int j = 1; j < tp1; j++) {
       if (i <= j) {
         fc.lj[i][j].x = epsilon[i][j] * 4.0;
-        fc.lj[i][j].y = pow(sigma[i][j],6.0);
+        fc.lj[i][j].y = std::pow(sigma[i][j],6.0);
       } else {
         fc.lj[i][j].x = epsilon[j][i] * 4.0;
-        fc.lj[i][j].y = pow(sigma[j][i],6.0);
+        fc.lj[i][j].y = std::pow(sigma[j][i],6.0);
       }
       fc.cutsq[i][j] = cutsq[i][j];
     }

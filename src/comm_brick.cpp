@@ -1456,58 +1456,6 @@ void CommBrick::forward_comm_array(int nsize, double **array)
 }
 
 /* ----------------------------------------------------------------------
-   exchange info provided with all 6 stencil neighbors
-------------------------------------------------------------------------- */
-
-int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
-{
-  int nsend,nrecv,nrecv1,nrecv2;
-  MPI_Request request;
-
-  nrecv = n;
-  if (nrecv > maxrecv) grow_recv(nrecv);
-  memcpy(buf_recv,inbuf,nrecv*sizeof(double));
-
-  // loop over dimensions
-
-  for (int dim = 0; dim < 3; dim++) {
-
-    // no exchange if only one proc in a dimension
-
-    if (procgrid[dim] == 1) continue;
-
-    // send/recv info in both directions using same buf_recv
-    // if 2 procs in dimension, single send/recv
-    // if more than 2 procs in dimension, send/recv to both neighbors
-
-    nsend = nrecv;
-    MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-                 &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
-    nrecv += nrecv1;
-    if (procgrid[dim] > 2) {
-      MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
-      nrecv += nrecv2;
-    } else nrecv2 = 0;
-
-    if (nrecv > maxrecv) grow_recv(nrecv);
-
-    MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,world,&request);
-    MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
-    MPI_Wait(&request,MPI_STATUS_IGNORE);
-
-    if (procgrid[dim] > 2) {
-      MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,world,&request);
-      MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
-      MPI_Wait(&request,MPI_STATUS_IGNORE);
-    }
-  }
-
-  outbuf = buf_recv;
-  return nrecv;
-}
-
-/* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
    flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
    flag = 1, realloc with BUFFACTOR

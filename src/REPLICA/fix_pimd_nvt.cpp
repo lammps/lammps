@@ -219,7 +219,7 @@ void FixPIMDNVT::init()
   const double Boltzmann = force->boltz;
   const double Plank = force->hplanck;
 
-  double hbar = Plank / (2.0 * MY_PI);
+  double hbar = Plank / (2.0 * MY_PI) * sp;
   double beta = 1.0 / (Boltzmann * nhc_temp);
   double _fbond = 1.0 * np / (beta * beta * hbar * hbar);
 

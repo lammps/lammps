@@ -217,6 +217,47 @@ void AtomVecMolecularKokkos::grow_pointers()
   h_improper_atom4 = atomKK->k_improper_atom4.h_view;
 }
 
+/* ----------------------------------------------------------------------
+   sort atom arrays on device
+------------------------------------------------------------------------- */
+
+void AtomVecMolecularKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  atomKK->sync(Device, ALL_MASK & ~F_MASK);
+
+  Sorter.sort(LMPDeviceType(), d_tag);
+  Sorter.sort(LMPDeviceType(), d_type);
+  Sorter.sort(LMPDeviceType(), d_mask);
+  Sorter.sort(LMPDeviceType(), d_image);
+  Sorter.sort(LMPDeviceType(), d_x);
+  Sorter.sort(LMPDeviceType(), d_v);
+  Sorter.sort(LMPDeviceType(), d_molecule);
+  Sorter.sort(LMPDeviceType(), d_num_bond);
+  Sorter.sort(LMPDeviceType(), d_bond_type);
+  Sorter.sort(LMPDeviceType(), d_bond_atom);
+  Sorter.sort(LMPDeviceType(), d_nspecial);
+  Sorter.sort(LMPDeviceType(), d_special);
+  Sorter.sort(LMPDeviceType(), d_num_angle);
+  Sorter.sort(LMPDeviceType(), d_angle_type);
+  Sorter.sort(LMPDeviceType(), d_angle_atom1);
+  Sorter.sort(LMPDeviceType(), d_angle_atom2);
+  Sorter.sort(LMPDeviceType(), d_angle_atom3);
+  Sorter.sort(LMPDeviceType(), d_num_dihedral);
+  Sorter.sort(LMPDeviceType(), d_dihedral_type);
+  Sorter.sort(LMPDeviceType(), d_dihedral_atom1);
+  Sorter.sort(LMPDeviceType(), d_dihedral_atom2);
+  Sorter.sort(LMPDeviceType(), d_dihedral_atom3);
+  Sorter.sort(LMPDeviceType(), d_dihedral_atom4);
+  Sorter.sort(LMPDeviceType(), d_num_improper);
+  Sorter.sort(LMPDeviceType(), d_improper_type);
+  Sorter.sort(LMPDeviceType(), d_improper_atom1);
+  Sorter.sort(LMPDeviceType(), d_improper_atom2);
+  Sorter.sort(LMPDeviceType(), d_improper_atom3);
+  Sorter.sort(LMPDeviceType(), d_improper_atom4);
+
+  atomKK->modified(Device, ALL_MASK & ~F_MASK);
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType,int PBC_FLAG,int TRICLINIC>

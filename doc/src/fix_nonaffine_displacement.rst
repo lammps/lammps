@@ -1,7 +1,7 @@
 .. index:: fix nonaffine/displacement
 
 fix nonaffine/displacement command
-===================
+==================================
 
 Syntax
 """"""
@@ -77,7 +77,7 @@ this occurs will simply be zeroed.
 The *integrated* style simply integrates the velocity of particles
 every timestep to calculate a displacement. This style only works if
 used in conjunction with another fix that deforms the box and displaces
-atom positions such as :doc:`the remap x option of fix deform <fix_deform>`,
+atom positions such as :doc:`fix deform <fix_deform>` with remap x,
 :doc:`fix press/berendsen <fix_press_berendsen>`, or :doc:`fix nh <fix_nh>`.
 
 Both of these methods require defining a reference state. With the *fixed* reference
@@ -126,6 +126,6 @@ none
 
 ----------
 
-.. _nh-Martyna:
+.. _d2min-Falk:
 
-**(Martyna)** Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
+**(Falk)** Falk and Langer PRE, 57, 7192 (1998).

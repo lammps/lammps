@@ -1,7 +1,7 @@
 .. index:: compute rattlers
 
 compute rattlers command
-============================
+========================
 
 Syntax
 """"""

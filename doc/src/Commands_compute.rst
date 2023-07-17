@@ -114,6 +114,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`property/grid <compute_property_grid>`
    * :doc:`property/local <compute_property_local>`
    * :doc:`ptm/atom <compute_ptm_atom>`
+   * :doc:`rattlers <compute_rattlers>`
    * :doc:`rdf <compute_rdf>`
    * :doc:`reduce <compute_reduce>`
    * :doc:`reduce/chunk <compute_reduce_chunk>`

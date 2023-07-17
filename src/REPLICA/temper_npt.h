@@ -42,7 +42,7 @@ class TemperNPT : public Command {
   int nswaps;                           // # of tempering swaps to perform
   int seed_swap;                        // 0 = toggle swaps, n = RNG for swap direction
   int seed_boltz;                       // seed for Boltz factor comparison
-  class Fix *whichfix;                  // index of temperature fix to use
+  class Fix *whichfix;                  // temperature fix to use
 
   int my_set_temp;     // which set temp I am simulating
   double *set_temp;    // static list of replica set temperatures

@@ -39,6 +39,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
@@ -146,6 +147,8 @@ void FitPOD::command(int narg, char **arg)
       memory->destroy(testdata.position);
       memory->destroy(testdata.force);
       memory->destroy(testdata.atomtype);
+      memory->destroy(testdata.we);
+      memory->destroy(testdata.wf);
     }    
   }
   
@@ -158,6 +161,8 @@ void FitPOD::command(int narg, char **arg)
     memory->destroy(traindata.position);
     memory->destroy(traindata.force);
     memory->destroy(traindata.atomtype);
+    memory->destroy(traindata.we);
+    memory->destroy(traindata.wf);
   }
 
   // deallocate descriptors
@@ -248,7 +253,9 @@ int FitPOD::query_pod(std::string pod_file)
 int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
                              std::string &file_extension, std::string &test_path,
                              std::string &training_path, std::string &filenametag,
-                             const std::string &data_file)
+                             const std::string &data_file, std::string &group_weight_type,
+                             std::unordered_map<std::string, double> &we_map,
+                             std::unordered_map<std::string, double> &wf_map)
 {
   int precision = 8;
 
@@ -319,6 +326,65 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     if (keywd == "path_to_training_data_set") training_path = words[1];
     if (keywd == "path_to_test_data_set") test_path = words[1];
     if (keywd == "basename_for_output_files") filenametag = words[1];
+
+    // group weight table
+    if (keywd == "group_weights") group_weight_type = words[1];
+    if (std::strcmp(group_weight_type.c_str(), "table") == 0){
+      printf(">>> Group weight type: %s\n", group_weight_type.c_str());
+      // Read the table as a hash map.
+
+      // Get next line.
+      if (comm->me == 0) {
+        ptr = fgets(line,MAXLINE,fpdata);
+        if (ptr == nullptr) {
+          eof = 1;
+          fclose(fpdata);
+        }
+      }
+      MPI_Bcast(&eof,1,MPI_INT,0,world);
+      if (eof) break;
+      MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+      printf(">>> line: %s\n", line);
+      // Tokenize.
+      //std::vector<std::string> words;
+      try {
+        words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+      } catch (TokenizerException &) {
+        // ignore
+      }
+      int numwords = words.size();
+
+      // Loop over group table entries.
+      while (numwords == 3){
+
+        // Insert in map.
+        double we = atof(words[1].c_str());
+        we_map[words[0]] = atof(words[1].c_str());
+        double wf = atof(words[2].c_str());
+        wf_map[words[0]] = atof(words[2].c_str());
+
+        // Get next line.
+        if (comm->me == 0) {
+          ptr = fgets(line,MAXLINE,fpdata);
+          if (ptr == nullptr) {
+            eof = 1;
+            fclose(fpdata);
+          }
+        }
+        MPI_Bcast(&eof,1,MPI_INT,0,world);
+        if (eof) break;
+        MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+        // Tokenize.
+        //std::vector<std::string> words;
+        try {
+          words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+        } catch (TokenizerException &) {
+          // ignore
+        }
+        numwords = words.size();
+      }
+
+    }
   }
 
   if (comm->me == 0) {
@@ -339,7 +405,6 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     utils::logmesg(lmp, "fitting weight for energy: {}\n", fitting_weights[0]);
     utils::logmesg(lmp, "fitting weight for force: {}\n", fitting_weights[1]);
     utils::logmesg(lmp, "fitting weight for stress: {}\n", fitting_weights[2]);    
-    utils::logmesg(lmp, "fitting weight for energy: {}\n", fitting_weights[0]);
     utils::logmesg(lmp, "save pod descriptors: {}\n", save_descriptors);
     utils::logmesg(lmp, "compute pod descriptors: {}\n", compute_descriptors);
     utils::logmesg(lmp, "**************** End of Data File ****************\n");
@@ -348,7 +413,7 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
   return precision;
 }
 
-void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &datapath,
+void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::string> &group_names, const std::string &datapath,
                              const std::string &extension)
 {
   auto allfiles = platform::list_directory(datapath);
@@ -356,6 +421,12 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &
   for (const auto &fname : allfiles) {
     if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
       files.push_back(datapath + platform::filepathsep + fname);
+      printf(">>> fname: %s %s\n", fname.c_str(), extension.c_str());
+      int start_pos_erase = fname.find(extension) - 1;
+      int ext_size = extension.size() + 1;
+      //std::string substr = fname.erase(start_pos_erase, ext_size);
+      std::string substr = fname.substr(0, start_pos_erase);
+      group_names.push_back(substr);
   }
 }
 
@@ -430,8 +501,8 @@ int FitPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_a
   return num_atom_all;
 }
 
-void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
-    int *atomtype, std::string file, std::vector<std::string> species)
+void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, double *we, double *wf, double *pos, double *forces,
+    int *atomtype, std::string file, std::vector<std::string> species, double we_group, double wf_group)
 {
 
   std::string filename = file;
@@ -548,6 +619,11 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
           }
         }
       }
+
+      // set fitting weights for this config
+
+      we[cfi] = we_group;
+      wf[cfi] = wf_group;
       
       cfi += 1;
 
@@ -579,7 +655,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
 
 void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
 {
-  get_exyz_files(data.data_files, data.data_path, data.file_extension);
+  get_exyz_files(data.data_files, data.group_names, data.data_path, data.file_extension);
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
   data.num_config_sum = data.num_atom.size();
   size_t maxname = 9;
@@ -615,14 +691,26 @@ void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
   memory->create(data.position, 3*n, "fitpod:position");
   memory->create(data.force, 3*n, "fitpod:force");
   memory->create(data.atomtype, n, "fitpod:atomtype");
+  // Group weights have same size as energy.
+  memory->create(data.we, n, "fitpod:we");
+  memory->create(data.wf, n, "fitpod:wf");
 
   int nfiles = data.data_files.size(); // number of files
   int nconfigs = 0;
   int natoms = 0;
   for (int i=0; i<nfiles; i++) {
-    read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs],
+    printf(">>> file group: %s %s\n", data.data_files[i].c_str(), data.group_names[i].c_str());
+    std::string group_name = data.group_names[i];
+    double we_group = data.we_map[group_name];
+    double wf_group = data.wf_map[group_name];
+    printf(">>> w: %f %f\n", we_group, wf_group);
+    if (data.we_map.find("Displaced_A15") != data.we_map.end())
+    {
+        printf(">>> found! %f\n", data.we_map["Displaced_A15"]);
+    }
+    read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs], &data.we[nconfigs], &data.wf[nconfigs],
         &data.position[3*natoms], &data.force[3*natoms], &data.atomtype[natoms],
-        data.data_files[i], species);
+        data.data_files[i], species, we_group, wf_group);
     nconfigs += data.num_config[i];
     natoms += data.num_atom_each_file[i];
   }
@@ -846,7 +934,7 @@ void FitPOD::read_data_files(std::string data_file, std::vector<std::string> spe
   // read data input file to datastruct
 
   data.precision = read_data_file(data.fitting_weights, data.file_format, data.file_extension,
-                      testdata.data_path, data.data_path, data.filenametag, data_file);
+                      testdata.data_path, data.data_path, data.filenametag, data_file, data.group_weight_type, data.we_map, data.wf_map);
 
   data.training_analysis = (int) data.fitting_weights[3];
   data.test_analysis = (int) data.fitting_weights[4];
@@ -1589,8 +1677,10 @@ void FitPOD::least_squares_matrix(const datastruct &data, int ci)
 
   double normconst = 1.0;
   if (data.normalizeenergy==1) normconst = 1.0/natom;
-  double we = data.fitting_weights[0];
-  double wf = data.fitting_weights[1];
+  //double we = data.fitting_weights[0];
+  double we = data.we[ci];
+  //double wf = data.fitting_weights[1];
+  double wf = data.wf[ci];
   double we2 = (we*we)*(normconst*normconst);
   double wf2 = (wf*wf);
 

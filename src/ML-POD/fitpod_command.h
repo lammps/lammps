@@ -35,9 +35,11 @@ private:
     std::string file_format = "extxyz";
     std::string file_extension = "xyz";
     std::string data_path;
-    std::vector<std::string> data_files;
+    std::vector<std::string> data_files; // sorted file names
+    std::vector<std::string> group_names; // sorted group names
     std::vector<std::string> filenames;
     std::string filenametag = "pod";
+    std::string group_weight_type = "global";
 
     std::vector<int> num_atom;
     std::vector<int> num_atom_cumsum;
@@ -55,6 +57,9 @@ private:
     double *position=nullptr;
     double *force=nullptr;
     int *atomtype=nullptr;
+    // Group weights will have same size as energy.
+    double *we=nullptr;
+    double *wf=nullptr;
 
     int training = 1;
     int normalizeenergy = 1;
@@ -65,6 +70,9 @@ private:
     int randomize = 1;
     int precision = 8;    
     double fraction = 1.0;
+
+    std::unordered_map<std::string, double> we_map;
+    std::unordered_map<std::string, double> wf_map;
 
     double fitting_weights[12] = {100.0, 1.0, 0.0, 1, 1, 0, 0, 1, 1, 1, 1, 1e-10};
 
@@ -86,6 +94,8 @@ private:
       data.normalizeenergy = normalizeenergy;
       for (int i = 0; i < 12; i++)
         data.fitting_weights[i] = fitting_weights[i];
+      data.we_map = we_map;
+      data.wf_map = wf_map;
     }
   };
 
@@ -154,12 +164,13 @@ private:
 
   int query_pod(std::string pod_file);
   int read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
-    std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file);
-  void get_exyz_files(std::vector<std::string> &, const std::string &, const std::string &);
+    std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file, std::string &group_weight_type, 
+    std::unordered_map<std::string, double> &we_map, std::unordered_map<std::string, double> &wf_map);
+  void get_exyz_files(std::vector<std::string> &, std::vector<std::string> &, const std::string &, const std::string &);
   int get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file);
   int get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files);
-  void read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
-    int *atomtype, std::string file, std::vector<std::string> species);
+  void read_exyz_file(double *lattice, double *stress, double *energy, double *we, double *wf, double *pos, double *forces,
+    int *atomtype, std::string file, std::vector<std::string> species, double we_group, double wf_group);
   void get_data(datastruct &data, std::vector<std::string> species);
   std::vector<int> linspace(int start_in, int end_in, int num_in);
   std::vector<int> shuffle(int start_in, int end_in, int num_in);

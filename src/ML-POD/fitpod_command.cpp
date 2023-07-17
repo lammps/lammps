@@ -330,9 +330,7 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     // group weight table
     if (keywd == "group_weights") group_weight_type = words[1];
     if (std::strcmp(group_weight_type.c_str(), "table") == 0){
-      printf(">>> Group weight type: %s\n", group_weight_type.c_str());
       // Read the table as a hash map.
-
       // Get next line.
       if (comm->me == 0) {
         ptr = fgets(line,MAXLINE,fpdata);
@@ -344,7 +342,6 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof) break;
       MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
-      printf(">>> line: %s\n", line);
       // Tokenize.
       //std::vector<std::string> words;
       try {
@@ -421,7 +418,6 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::st
   for (const auto &fname : allfiles) {
     if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
       files.push_back(datapath + platform::filepathsep + fname);
-      printf(">>> fname: %s %s\n", fname.c_str(), extension.c_str());
       int start_pos_erase = fname.find(extension) - 1;
       int ext_size = extension.size() + 1;
       //std::string substr = fname.erase(start_pos_erase, ext_size);
@@ -695,19 +691,24 @@ void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
   memory->create(data.we, n, "fitpod:we");
   memory->create(data.wf, n, "fitpod:wf");
 
+  double we_group, wf_group; // group weights
   int nfiles = data.data_files.size(); // number of files
   int nconfigs = 0;
   int natoms = 0;
   for (int i=0; i<nfiles; i++) {
-    printf(">>> file group: %s %s\n", data.data_files[i].c_str(), data.group_names[i].c_str());
     std::string group_name = data.group_names[i];
+    // If weight maps have this group, assign weight based on map.
+    // Else assign weight based on global value.
+    if (data.we_map.find(group_name) != data.we_map.end())
+    {
+      we_group = data.we_map[group_name];
+      wf_group = data.wf_map[group_name];
+    } else {
+      we_group = data.fitting_weights[0];
+      wf_group = data.fitting_weights[1];
+    }
     double we_group = data.we_map[group_name];
     double wf_group = data.wf_map[group_name];
-    printf(">>> w: %f %f\n", we_group, wf_group);
-    if (data.we_map.find("Displaced_A15") != data.we_map.end())
-    {
-        printf(">>> found! %f\n", data.we_map["Displaced_A15"]);
-    }
     read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs], &data.we[nconfigs], &data.wf[nconfigs],
         &data.position[3*natoms], &data.force[3*natoms], &data.atomtype[natoms],
         data.data_files[i], species, we_group, wf_group);

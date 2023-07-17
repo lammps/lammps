@@ -29,7 +29,7 @@
 const char *ocl_prefetch_test =
 "  #if (NBOR_PREFETCH == 1)                                                \n"\
 "  inline void ucl_prefetch(const __global int *p) { prefetch(p, 1); }     \n"\
-"  #else                                                                   \n"\
+"  #elif (NBOR_PREFETCH == 2)                                              \n"\
 "  enum LSC_LDCC {LSC_LDCC_DEFAULT, LSC_LDCC_L1UC_L3UC, LSC_LDCC_L1UC_L3C, \n"\
 "                 LSC_LDCC_L1C_L3UC, LSC_LDCC_L1C_L3C, LSC_LDCC_L1S_L3UC,  \n"\
 "                 LSC_LDCC_L1S_L3C, LSC_LDCC_L1IAR_L3C, };                 \n"\

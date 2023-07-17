@@ -22,6 +22,7 @@ CommandStyle(fitpod,FitPOD);
 #define LMP_FITPOD_COMMAND_H
 
 #include "command.h"
+#include <unordered_map>
 
 namespace LAMMPS_NS {
 

@@ -93,14 +93,12 @@ void ComputeCentroAtom::init()
   if (force->pair == nullptr)
     error->all(FLERR, "Compute centro/atom requires a pair style be defined");
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style, "centro/atom") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning(FLERR, "More than one compute centro/atom");
-
   // need an occasional full neighbor list
 
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+
+  if (modify->get_compute_by_style(style).size() > 1)
+    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

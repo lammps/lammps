@@ -180,11 +180,11 @@ void FixNonaffineDisplacement::post_constructor()
     array_atom = nad;
   }
 
-  if (nad_style == D2MIN) {
+  if (nad_style == D2MIN)
     grow_arrays(atom->nmax);
-    for (int i = 0; i < atom->nlocal; i++)
-      for (int j = 0; j < 3; j++) array_atom[i][j] = 0.0;
-  }
+
+  for (int i = 0; i < atom->nlocal; i++)
+    for (int j = 0; j < 3; j++) array_atom[i][j] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

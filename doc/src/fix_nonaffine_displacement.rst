@@ -81,7 +81,7 @@ atom positions such as :doc:`the remap x option of fix deform <fix_deform>`,
 :doc:`fix press/berendsen <fix_press_berendsen>`, or :doc:`fix nh <fix_nh>`.
 
 Both of these methods require defining a reference state. With the *fixed* reference
-style, the user picks a specific timestep *nstep* from which particle positions are saved.
+style, the user picks a specific timestep *nstep* at which particle positions are saved.
 If peratom data is accessed from this compute prior to this timestep, it will simply be
 zeroed. The *update* reference style implies the reference state will be updated every
 *nstep* timesteps. The *offset* reference only applies to the *d2min* metric and will

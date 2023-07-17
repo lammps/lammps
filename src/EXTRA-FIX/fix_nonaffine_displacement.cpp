@@ -116,6 +116,9 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     if (cut_style == RADIUS && (!atom->radius_flag))
       error->all(FLERR, "Fix nonaffine/displacement radius style requires atom attribute radius");
 
+  if (nad_style == INTEGRATED && reference_style == OFFSET)
+    error->all(FLERR, "Fix nonaffine/displacement cannot use the integrated style with an offset reference state");
+
   peratom_flag = 1;
   peratom_freq = nevery;
   nmax = -1;
@@ -347,11 +350,6 @@ void FixNonaffineDisplacement::save_reference_state()
 
 void FixNonaffineDisplacement::calculate_D2Min()
 {
-  if (!reference_saved) {
-    error->warning(FLERR, "Calculating D2Min without a saved reference state");
-    return;
-  }
-
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
 

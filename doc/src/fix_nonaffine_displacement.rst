@@ -70,13 +70,23 @@ displacement. A deformation gradient tensor is then calculated as
     D^2_\mathrm{min} = \sum_{\mathrm{neighbors}} \left| \vec{r} - F \vec{r}_0 \right|^2
 
 and a strain tensor is calculated :math:`E = F F^{T} - I` where :math:`I`
-is the identity tensor.
+is the identity tensor. This calculation is only performed on timesteps that
+are a multiple of *nevery* (including timestep zero). Data accessed before
+this occurs will simply be zeroed.
 
 The *integrated* style simply integrates the velocity of particles
 every timestep to calculate a displacement. This style only works if
 used in conjunction with another fix that deforms the box and displaces
 atom positions such as :doc:`the remap x option of fix deform <fix_deform>`,
 :doc:`fix press/berendsen <fix_press_berendsen>`, or :doc:`fix nh <fix_nh>`.
+
+Both of these methods require defining a reference state. With the *fixed* reference
+style, the user picks a specific timestep *nstep* from which particle positions are saved.
+If peratom data is accessed from this compute prior to this timestep, it will simply be
+zeroed. The *update* reference style implies the reference state will be updated every
+*nstep* timesteps. The *offset* reference only applies to the *d2min* metric and will
+update the reference state *nstep* timesteps before a multiple of *nevery* timesteps.
+
 
 ----------
 

@@ -17,6 +17,7 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_adapt.h"
+#include "fix_adapt_fep.h"
 #include "math_const.h"
 #include "modify.h"
 
@@ -88,12 +89,18 @@ void AtomVecSphere::init()
 
   // check if optional radvary setting should have been set to 1
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style, "adapt") == 0) {
-      auto fix = dynamic_cast<FixAdapt *>(modify->fix[i]);
-      if (fix->diamflag && radvary == 0)
+  for (auto &ifix : modify->get_fix_by_style("^adapt")) {
+    if (utils::strmatch(ifix->style, "^adapt$")) {
+      auto fix = dynamic_cast<FixAdapt *>(ifix);
+      if (fix && fix->diamflag && radvary == 0)
         error->all(FLERR, "Fix adapt changes particle radii but atom_style sphere is not dynamic");
     }
+    if (utils::strmatch(ifix->style, "^adapt/fep$")) {
+      auto fix = dynamic_cast<FixAdaptFEP *>(ifix);
+      if (fix && fix->diamflag && radvary == 0)
+        error->all(FLERR, "Fix adapt/fep changes particle radii but atom_style sphere is not dynamic");
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

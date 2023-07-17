@@ -1,10 +1,10 @@
 .. index:: minimize
+.. index:: minimize/kk
 
 minimize command
 ================
 
-minimize/kk command
-===================
+Accelerator Variant: minimize/kk
 
 Syntax
 """"""

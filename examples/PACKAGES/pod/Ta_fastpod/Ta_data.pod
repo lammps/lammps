@@ -17,4 +17,17 @@ basename_for_output_files Ta
 # number of digits after the decimal point for pod coefficients
 precision_for_pod_coefficients 12
 
-
+# Optionally declare energy and force weights of each group.
+#group_weights table 
+#Displaced_A15 100.0 1.0  
+#Displaced_BCC 100.0 1.0 
+#Displaced_FCC 100.0 1.0 
+#Elastic_BCC 100.0 1.0 
+#Elastic_FCC 100.0 1.0 
+#GSF_110 100.0 1.0 
+#GSF_112 100.0 1.0 
+#Liquid 100.0 1.0  
+#Surface 100.0 1.0  
+#Volume_A15 100.0 1.0  
+#Volume_BCC 100.0 1.0 
+#Volume_FCC 100.0 1.0 

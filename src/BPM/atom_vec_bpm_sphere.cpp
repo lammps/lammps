@@ -17,7 +17,6 @@
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_adapt.h"
 #include "math_const.h"
 #include "modify.h"
 
@@ -99,14 +98,9 @@ void AtomVecBPMSphere::init()
   // check if optional radvary setting should have been set to 1
 
   for (auto ifix : modify->get_fix_by_style("^adapt")) {
-    if (radvary == 0) {
-      if ((strcmp(ifix->style, "adapt") == 0) && (dynamic_cast<FixAdapt *>(ifix)->diamflag))
-        error->all(FLERR, "Fix adapt changes atom radii but atom_style bpm/sphere is not dynamic");
-      // cannot properly check for fix adapt/fep since its header is optional
-      if ((strcmp(ifix->style, "adapt/fep") == 0) && (comm->me == 0))
-        error->warning(
-            FLERR, "Fix adapt/fep may change atom radii but atom_style bpm/sphere is not dynamic");
-    }
+    if (ifix->diam_flag && (radvary == 0))
+      error->all(FLERR, "Fix {} changes atom radii but atom_style bpm/sphere is not dynamic",
+        ifix->style);
   }
 }
 

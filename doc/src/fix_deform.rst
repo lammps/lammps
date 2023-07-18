@@ -98,6 +98,8 @@ Syntax
          Modifies the behavior of the *volume* option to try and balance pressures
        *max/rate* value = *rate*
          rate = maximum strain rate for pressure control
+       *normalize/pressure* value = *yes* or *no*
+         Modifies pressure controls such that the deviation in pressure is normalized by the target pressure
 
 Examples
 """"""""
@@ -111,7 +113,6 @@ Examples
    fix 1 all deform 1 x pressure 2.0 0.1 normalize/pressure yes max/rate 0.001
    fix 1 all deform 1 x trate 0.1 y volume z volume vol/balance/p yes
    fix 1 all deform 1 x trate 0.1 y pressure/mean 0.0 1.0 z pressure/mean 0.0 1.0
-   fix 1 all deform 1 x trate 0.1 y trate -0.1 overlay/pressure/mean 1.0 0.1
 
 Description
 """""""""""
@@ -346,12 +347,13 @@ applied strain using the :ref:`max/rate <deform_max_rate>` option and couple
 pressures in different dimensions using the :ref:`couple <deform_couple>`
 option.
 
-The *pressure/mean* style is changes a dimension in order to maintain
+The *pressure/mean* style changes a dimension's box length to maintain
 a constant mean pressure defined as the trace of the pressure tensor.
 This option is therefore very similar to the *pressure* style with
 identical arguments except the current and target pressures refer to the
-mean trace of the pressure tensor. The same options also apply except
-for the :ref:`couple <deform_couple>` option.
+mean trace of the pressure tensor. All options for the *pressure* style
+also apply to the *pressure/mean* style except for the
+:ref:`couple <deform_couple>` option.
 
 ----------
 

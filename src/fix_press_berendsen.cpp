@@ -491,7 +491,7 @@ int FixPressBerendsen::modify_param(int narg, char **arg)
     id_press = utils::strdup(arg[1]);
 
     pressure = modify->get_compute_by_id(arg[1]);
-    if (pressure) error->all(FLERR,"Could not find fix_modify pressure compute ID: {}", arg[1]);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure compute ID: {}", arg[1]);
     if (pressure->pressflag == 0)
       error->all(FLERR,"Fix_modify pressure compute {} does not compute pressure", arg[1]);
     return 2;

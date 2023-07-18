@@ -24,6 +24,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "input.h"
 #include "irregular.h"
 #include "kspace.h"
@@ -1522,31 +1523,31 @@ double FixDeform::memory_usage()
 
 int FixDeform::modify_param(int narg, char **arg)
 {
-  if (!pressure_flag) error->all(FLERR,"Cannot modify fix deform without a pressure control");
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify deform", error);
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(arg[1]);
+    if (!temperature)
+      error->all(FLERR,"Could not find fix_modify temperature compute ID: ", arg[1]);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature compute {} does not compute temperature", arg[1]);
     if (temperature->igroup != 0 && comm->me == 0)
-      error->warning(FLERR,"Temperature for deform is not for group all");
+      error->warning(FLERR,"Temperature compute {} for fix {} is not for group all: {}",
+                     arg[1], style, group->names[temperature->igroup]);
 
     // reset id_temp of pressure to new temperature ID
 
-    icompute = modify->find_compute(id_press);
-    if (icompute < 0)
-      error->all(FLERR,"Pressure ID for fix deform does not exist");
-    modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+    auto icompute = modify->get_compute_by_id(id_press);
+    if (!icompute)
+      error->all(FLERR,"Pressure compute ID {} for fix {} does not exist", id_press, style);
+    icompute->reset_extra_compute_fix(id_temp);
 
     return 2;
 
@@ -1556,15 +1557,13 @@ int FixDeform::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
-
+    pressure = modify->get_compute_by_id(arg[1]);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure compute ID: {}", arg[1]);
     if (pressure->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify pressure compute {} does not compute pressure", arg[1]);
     return 2;
   }
 

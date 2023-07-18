@@ -111,6 +111,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
+  autocolname = 0;
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords, including wildcard expansion
@@ -632,6 +633,10 @@ void Thermo::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg + 1], "default") == 0) {
         for (auto &item : keyword_user) item.clear();
         iarg += 2;
+      } else if (strcmp(arg[iarg + 1], "auto") == 0) {
+        autocolname = 1;
+        parse_fields(line);
+        iarg += 2;
       } else {
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
         int icol = -1;
@@ -651,14 +656,6 @@ void Thermo::modify_params(int narg, char **arg)
         keyword_user[icol] = arg[iarg + 2];
         iarg += 3;
       }
-    } else if (strcmp(arg[iarg], "legacy_colname") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify legacy_colname", error);
-      int legacy_colname = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      if (legacy_colname)
-        for (int i = 0; i < nfield; i++)
-          keyword_user[i] = {};
-      iarg += 2;
-
     } else if (strcmp(arg[iarg], "format") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify format", error);
 
@@ -1026,7 +1023,7 @@ void Thermo::parse_fields(const std::string &str)
             error->all(FLERR, "Thermo compute array is accessed out-of-range");
         }
 
-        if (icompute->thermo_modify_colname)
+        if (autocolname && icompute->thermo_modify_colname)
           keyword_user[nfield] = icompute->get_thermo_colname(argindex1[nfield]-1);
 
         if (argindex1[nfield] == 0)
@@ -1055,7 +1052,7 @@ void Thermo::parse_fields(const std::string &str)
             error->all(FLERR, "Thermo fix array is accessed out-of-range");
         }
 
-        if (ifix->thermo_modify_colname)
+        if (autocolname && ifix->thermo_modify_colname)
           keyword_user[nfield] = ifix->get_thermo_colname(argindex1[nfield]-1);
 
         field2index[nfield] = add_fix(argi.get_name());

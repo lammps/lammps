@@ -88,11 +88,12 @@ void AtomVecSphere::init()
 
   // check if optional radvary setting should have been set to 1
 
-  for (auto &ifix : modify->get_fix_by_style("^adapt")) {
-    if (ifix->diam_flag && (radvary == 0))
-      error->all(FLERR, "Fix {} changes atom radii but atom_style sphere is not dynamic",
-        ifix->style);
-  }
+  if (radvary == 0)
+    for (const auto &ifix : modify->get_fix_by_style("^adapt")) {
+      if (ifix->diam_flag)
+        error->all(FLERR, "Fix {} changes atom radii but atom_style sphere is not dynamic",
+                   ifix->style);
+    }
 }
 
 /* ----------------------------------------------------------------------

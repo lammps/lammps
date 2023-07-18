@@ -745,7 +745,14 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   gpu_overhead=0.0;
   gpu_driver_overhead=0.0;
 
-  for (int z=0; z<11; z++) {
+  // TODO: XXX
+  // The following estimation currently fails on Intel GPUs
+  // that do not support double precision with OpenCL error code -5.
+  // Until we have a better solution, we just skip this test in this case.
+  int zloops = 11;
+  if (!gpu->double_precision()) zloops = 0;
+
+  for (int z=0; z < zloops; z++) {
     gpu->sync();
     gpu_barrier();
     over_timer.start();

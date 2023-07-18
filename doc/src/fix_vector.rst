@@ -6,7 +6,7 @@ fix vector command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID vector Nevery value1 value2 ...
 

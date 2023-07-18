@@ -20,7 +20,6 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_adapt.h"
 #include "math_const.h"
 #include "memory.h"
 #include "memory_kokkos.h"

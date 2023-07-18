@@ -262,11 +262,11 @@ class numpy_wrapper:
   def gather_bonds(self):
     """Retrieve global list of bonds as NumPy array
 
+    .. versionadded:: 28Jul2021
+
     This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
-
-    .. versionadded:: 28Jul2021
 
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nbonds,3)
@@ -280,11 +280,11 @@ class numpy_wrapper:
   def gather_angles(self):
     """ Retrieve global list of angles as NumPy array
 
+    .. versionadded:: 8Feb2023
+
     This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
-
-    .. versionadded:: TBD
 
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nangles,4)
@@ -298,11 +298,11 @@ class numpy_wrapper:
   def gather_dihedrals(self):
     """ Retrieve global list of dihedrals as NumPy array
 
+    .. versionadded:: 8Feb2023
+
     This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
-
-    .. versionadded:: TBD
 
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(ndihedrals,5)
@@ -316,11 +316,11 @@ class numpy_wrapper:
   def gather_impropers(self):
     """ Retrieve global list of impropers as NumPy array
 
+    .. versionadded:: 8Feb2023
+
     This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
-
-    .. versionadded:: TBD
 
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nimpropers,5)
@@ -334,12 +334,12 @@ class numpy_wrapper:
   def fix_external_get_force(self, fix_id):
     """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
 
+    .. versionchanged:: 28Jul2021
+
     This function is a wrapper around the
     :py:meth:`lammps.fix_external_get_force() <lammps.lammps.fix_external_get_force()>`
     method.  It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` pointer.
-
-    .. versionchanged:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -356,12 +356,12 @@ class numpy_wrapper:
   def fix_external_set_energy_peratom(self, fix_id, eatom):
     """Set the per-atom energy contribution for a fix external instance with the given ID.
 
+    .. versionadded:: 28Jul2021
+
     This function is an alternative to
     :py:meth:`lammps.fix_external_set_energy_peratom() <lammps.lammps.fix_external_set_energy_peratom()>`
     method.  It behaves the same as the original method, but accepts a NumPy array
     instead of a list as argument.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string
@@ -383,12 +383,12 @@ class numpy_wrapper:
   def fix_external_set_virial_peratom(self, fix_id, vatom):
     """Set the per-atom virial contribution for a fix external instance with the given ID.
 
+    .. versionadded:: 28Jul2021
+
     This function is an alternative to
     :py:meth:`lammps.fix_external_set_virial_peratom() <lammps.lammps.fix_external_set_virial_peratom()>`
     method.  It behaves the same as the original method, but accepts a NumPy array
     instead of a list as argument.
-
-    .. versionadded:: 28Jul2021
 
     :param fix_id:  Fix-ID of a fix external instance
     :type: string

@@ -6,7 +6,7 @@ fix neb command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID neb Kspring keyword value
 

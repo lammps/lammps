@@ -228,11 +228,6 @@
 #define KOKKOS_ENABLE_PRAGMA_SIMD 1
 #endif
 
-// FIXME Workaround for ICE with intel 17,18,19,20,21 in Trilinos
-#if (KOKKOS_COMPILER_INTEL <= 2100)
-#define KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
-#endif
-
 // FIXME_SYCL
 #if !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
@@ -653,7 +648,8 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||  \
      defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_PGI)) && \
     !defined(_WIN32)
-#if (!defined(__linux__) || defined(__GLIBC_MINOR__))
+// disable stacktrace for musl-libc
+#if !defined(__linux__) || defined(__GLIBC_MINOR__)
 #define KOKKOS_IMPL_ENABLE_STACKTRACE
 #endif
 #define KOKKOS_IMPL_ENABLE_CXXABI

@@ -90,6 +90,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 
   ADDSYM(get_natoms);
   ADDSYM(get_thermo);
+  ADDSYM(last_thermo);
 
   ADDSYM(extract_box);
   ADDSYM(reset_box);

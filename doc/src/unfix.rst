@@ -6,7 +6,7 @@ unfix command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    unfix fix-ID
 

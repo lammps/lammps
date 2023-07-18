@@ -6,12 +6,12 @@ neighbor        10.0 bin
 read_data       data.chreg-acid-real
 
 #real units
-variable 	sigma equal 7.2	              # particle diameter 0.72 nm	    	
-variable	temperature equal 298         # temperature 298 K
+variable        sigma equal 7.2               # particle diameter 0.72 nm
+variable        temperature equal 298         # temperature 298 K
 variable        kb index 0.0019872067         # kB in Kcal/mol/K
-variable 	epsilon equal ${kb}*${temperature}
-variable	tunit   equal 	2000          # time unit is 2000 fs    
-variable	timestep equal 0.005*${tunit}
+variable        epsilon equal ${kb}*${temperature}
+variable        tunit   equal   2000          # time unit is 2000 fs
+variable        timestep equal 0.005*${tunit}
 
 variable        cut_long equal 12.5*${sigma}
 variable        nevery equal 100
@@ -27,13 +27,13 @@ velocity        all create ${temperature} 8008 loop geom
 pair_style      lj/cut/coul/long ${cut_lj} ${cut_long}
 pair_coeff      * *  ${epsilon} ${sigma}
 kspace_style    pppm 1.0e-3
-dielectric	78
+dielectric      78
 pair_modify     shift yes
 
 #########  VERLET INTEGRATION WITH LANGEVIN THERMOSTAT  ###########
 fix             fnve all nve
 compute         dtemp all temp
-compute_modify  dtemp dynamic yes
+compute_modify  dtemp dynamic/dof yes
 fix             fT all langevin $(v_temperature) $(v_temperature) $(v_tunit) 123
 fix_modify      fT temp dtemp
 

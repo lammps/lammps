@@ -322,7 +322,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
           const int jtype = tjtype[jj];
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
-          const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+          const flt_t r = (flt_t)1.0 / std::sqrt(r2inv);
 
           #ifdef INTEL_ALLOW_TABLE
           if (!ncoultablebits || rsq <= tabinnersq) {

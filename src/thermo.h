@@ -21,9 +21,6 @@ namespace LAMMPS_NS {
 
 class Thermo : protected Pointers {
   friend class MinCG;              // accesses compute_pe
-  friend class DumpNetCDF;         // accesses thermo properties
-  friend class DumpNetCDFMPIIO;    // accesses thermo properties
-  friend class DumpYAML;           // accesses thermo properties
 
  public:
   char *style;
@@ -45,6 +42,12 @@ class Thermo : protected Pointers {
   void compute(int);
   int evaluate_keyword(const std::string &, double *);
 
+  // for accessing cached thermo data
+  const int *get_nfield() const { return &nfield; }
+  const bigint *get_timestep() const { return &ntimestep; }
+  const std::vector<multitype> &get_fields() const { return field_data; }
+  const std::vector<std::string> &get_keywords() const { return keyword; }
+
  private:
   int nfield, nfield_initial;
   int *vtype;
@@ -52,6 +55,7 @@ class Thermo : protected Pointers {
   std::vector<std::string> keyword, format, format_column_user, keyword_user;
   std::string format_line_user, format_float_user, format_int_user, format_bigint_user;
   std::map<std::string, int> key2col;
+  std::vector<multitype> field_data;
 
   int normvalue;       // use this for normflag unless natoms = 0
   int normuserflag;    // 0 if user has not set, 1 if has
@@ -66,6 +70,7 @@ class Thermo : protected Pointers {
   bigint last_step;
 
   bigint natoms;
+  bigint ntimestep;
 
   // data used by routines that compute single values
   int ivalue;          // integer value to print
@@ -114,7 +119,6 @@ class Thermo : protected Pointers {
   typedef void (Thermo::*FnPtr)();
   void addfield(const char *, FnPtr, int);
   FnPtr *vfunc;    // list of ptrs to functions
-  void call_vfunc(int ifield);
 
   void compute_compute();    // functions that compute a single value
   void compute_fix();        // via calls to  Compute,Fix,Variable classes

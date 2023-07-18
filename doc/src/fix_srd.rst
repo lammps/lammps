@@ -6,7 +6,7 @@ fix srd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
 

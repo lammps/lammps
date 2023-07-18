@@ -30,6 +30,7 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 {
   mass_type = PER_ATOM;
   molecular = Atom::ATOMIC;
+  radvary = 0;
 
   atom->sphere_flag = 1;
   atom->radius_flag = atom->rmass_flag = atom->omega_flag = atom->torque_flag = 1;

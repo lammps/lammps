@@ -32,6 +32,7 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
   mass_type = PER_ATOM;
   molecular = Atom::MOLECULAR;
   bonds_allow = 1;
+  radvary = 0;
 
   atom->molecule_flag = 1;
   atom->sphere_flag = 1;

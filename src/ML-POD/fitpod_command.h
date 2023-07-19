@@ -68,7 +68,7 @@ private:
     int training_calculation = 0;
     int test_calculation = 0;
     int randomize = 1;
-    int precision = 8;    
+    int precision = 8;
     double fraction = 1.0;
 
     std::unordered_map<std::string, double> we_map;
@@ -164,7 +164,7 @@ private:
 
   int query_pod(std::string pod_file);
   int read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
-    std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file, std::string &group_weight_type, 
+    std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file, std::string &group_weight_type,
     std::unordered_map<std::string, double> &we_map, std::unordered_map<std::string, double> &wf_map);
   void get_exyz_files(std::vector<std::string> &, std::vector<std::string> &, const std::string &, const std::string &);
   int get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file);
@@ -180,7 +180,7 @@ private:
   int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
-    double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);  
+    double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
   void estimate_memory_neighborstruct(const datastruct &data, int *pbc, double rcut, int nelements);
   void allocate_memory_neighborstruct();
   void estimate_memory_descriptorstruct(const datastruct &data);

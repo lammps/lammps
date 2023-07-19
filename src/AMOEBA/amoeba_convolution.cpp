@@ -17,11 +17,15 @@
 #include "comm.h"
 #include "domain.h"
 #include "fft3d_wrap.h"
-#include "gridcomm.h"
+#include "grid3d.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
-#include "update.h"
+#include "timer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -76,82 +80,58 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
 
   nfft_global = (bigint) nx * ny * nz;
 
-  // global indices of grid range from 0 to N-1
-  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-  //   global grid that I own without ghost cells
-  // both non-tiled and tiled proc layouts use 0-1 fractional subdomain info
+  allocate_grid();
+}
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
-    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx);
-    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx) - 1;
-    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny);
-    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny) - 1;
-    nzlo_in = static_cast<int> (comm->zsplit[comm->myloc[2]] * nz);
-    nzhi_in = static_cast<int> (comm->zsplit[comm->myloc[2]+1] * nz) - 1;
+/* ----------------------------------------------------------------------
+   free all memory
+------------------------------------------------------------------------- */
 
-  } else {
-    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nx);
-    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nx) - 1;
-    nylo_in = static_cast<int> (comm->mysplit[1][0] * ny);
-    nyhi_in = static_cast<int> (comm->mysplit[1][1] * ny) - 1;
-    nzlo_in = static_cast<int> (comm->mysplit[2][0] * nz);
-    nzhi_in = static_cast<int> (comm->mysplit[2][1] * nz) - 1;
-  }
+AmoebaConvolution::~AmoebaConvolution()
+{
+  deallocate_grid();
+}
 
+/* ----------------------------------------------------------------------
+   subset of FFT grids assigned to each proc may have changed
+   called by load balancer when proc subdomains are adjusted
+------------------------------------------------------------------------- */
+
+void AmoebaConvolution::reset_grid()
+{
+  deallocate_grid();
+  allocate_grid();
+}
+
+/* ----------------------------------------------------------------------
+   allocate all local grid data structs: FFT, Grid3d, Remap
+------------------------------------------------------------------------- */
+
+void AmoebaConvolution::allocate_grid()
+{
+  // maxdist = max distance outside of subbox my owned atom may be
   // nlower,nupper = stencil size for mapping particles to FFT grid
 
+  double maxdist = 0.5*neighbor->skin;
   int nlower = -(order-1)/2;
   int nupper = order/2;
 
-  // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
-  //   global grid that my particles can contribute charge to
-  // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
-  //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0
-  //   convert to triclinic if necessary
-  // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
+  // Grid3d determines my owned + ghost grid cells
+  // ghost cell extent depends on maxdist, nlower, nupper
 
-  double *prd,*boxlo,*sublo,*subhi;
-  int triclinic = domain->triclinic;
+  gc = new Grid3d(lmp,world,nx,ny,nz);
+  gc->set_distance(maxdist);
+  gc->set_stencil_atom(-nlower,nupper);
 
-  if (triclinic == 0) {
-    prd = domain->prd;
-    boxlo = domain->boxlo;
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    prd = domain->prd_lamda;
-    boxlo = domain->boxlo_lamda;
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
-  }
+  gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                 nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
+  int nqty = flag3d ? 1 : 2;
+  int ngc_buf1,ngc_buf2;
 
-  double dist[3] = {0.0,0.0,0.0};
-  double cuthalf = 0.5*neighbor->skin;
-  if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else kspacebbox(cuthalf,&dist[0]);
-
-  int nlo,nhi;
-
-  nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) * nx/xprd);
-  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) * nx/xprd);
-  nxlo_out = nlo + nlower;
-  nxhi_out = nhi + nupper;
-
-  nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) * ny/yprd);
-  nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) * ny/yprd);
-  nylo_out = nlo + nlower;
-  nyhi_out = nhi + nupper;
-
-  nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) * nz/zprd);
-  nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) * nz/zprd);
-  nzlo_out = nlo + nlower;
-  nzhi_out = nhi + nupper;
+  gc->setup_comm(ngc_buf1,ngc_buf2);
+  memory->create(gc_buf1,nqty*ngc_buf1,"amoeba:gc_buf1");
+  memory->create(gc_buf2,nqty*ngc_buf2,"amoeba:gc_buf2");
 
   // x-pencil decomposition of FFT mesh
   // global indices range from 0 to N-1
@@ -182,7 +162,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   nzlo_fft = me_z*nz/npez_fft;
   nzhi_fft = (me_z+1)*nz/npez_fft - 1;
 
-  // grid sizes
+  // FFT grid sizes
   // nbrick_owned = owned grid points in brick decomp
   // nbrick_ghosts = owned + ghost grid points in grid decomp
   // nfft_owned = owned grid points in FFT decomp
@@ -198,27 +178,20 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
 
   ngrid_either = MAX(nbrick_owned,nfft_owned);
 
-  // instantiate FFT, GridComm, and Remap
+  // instantiate FFT and Remap
 
   int tmp;
 
   fft1 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-       1,0,&tmp,0);
-  //       0,0,&tmp,0);
+                   1,0,&tmp,0);
 
   fft2 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   //1,0,&tmp,0);
                    0,0,&tmp,0);
 
-  gc = new GridComm(lmp,world,nx,ny,nz,
-                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-
-  int nqty = flag3d ? 1 : 2;
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
@@ -240,33 +213,27 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
 
   memory->create(grid_fft,ngrid_either,"amoeba:grid_fft");
   memory->create(cfft,2*ngrid_either,"amoeba:cfft");
-
-  int ngc_buf1,ngc_buf2;
-  gc->setup(ngc_buf1,ngc_buf2);
-  memory->create(gc_buf1,nqty*ngc_buf1,"amoeba:gc_buf1");
-  memory->create(gc_buf2,nqty*ngc_buf2,"amoeba:gc_buf2");
-
   memory->create(remap_buf,nqty*nfft_owned,"amoeba:remap_buf");
 }
 
-/* ----------------------------------------------------------------------
-   free all memory
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-AmoebaConvolution::~AmoebaConvolution()
+void AmoebaConvolution::deallocate_grid()
 {
+  delete gc;
+
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+
+  delete fft1;
+  delete fft2;
+  delete remap;
+
   memory->destroy3d_offset(grid_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset_last(cgrid_brick,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(grid_fft);
   memory->destroy(cfft);
-  memory->destroy(gc_buf1);
-  memory->destroy(gc_buf2);
   memory->destroy(remap_buf);
-
-  delete fft1;
-  delete fft2;
-  delete gc;
-  delete remap;
 }
 
 /* ----------------------------------------------------------------------
@@ -324,15 +291,15 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   // reverse comm for 3d brick grid + ghosts
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE Grid3d");
 #endif
 
-  gc->reverse_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
+  gc->reverse_comm(Grid3d::PAIR,amoeba,which,1,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
-  debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST Grid3d");
+  debug_file(GRIDBRICK_IN,"pre.convo.post.grid3d");
 #endif
 
   // copy owned 3d brick grid values to FFT grid
@@ -360,14 +327,22 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
     cfft[n++] = ZEROF;
   }
 
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+  time1 = platform::walltime();
 
   if (SCALE) {
-    double scale = 1.0/nfft_global;
+    FFT_SCALAR scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT1,"PRE Convo / POST FFT");
@@ -387,15 +362,15 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   // reverse comm for 4d brick grid + ghosts
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE Grid3d");
 #endif
 
-  gc->reverse_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->reverse_comm(Grid3d::PAIR,amoeba,which,2,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
-  debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST Grid3d");
+  debug_file(GRIDBRICK_IN,"pre.convo.post.grid3d");
 #endif
   // copy owned 4d brick grid values to FFT grid
 
@@ -416,14 +391,23 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   debug_scalar(FFT,"PRE Convo / POST Remap");
   debug_file(FFT,"pre.convo.post.remap");
 #endif
+
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+  time1 = platform::walltime();
 
   if (SCALE) {
-    double scale = 1.0/nfft_global;
+    FFT_SCALAR scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
+
+  time_fft += time1  - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT1,"PRE Convo / POST FFT");
@@ -457,7 +441,16 @@ void *AmoebaConvolution::post_convolution_3d()
   debug_scalar(CFFT1,"POST Convo / PRE FFT");
   debug_file(CFFT1,"post.convo.pre.fft");
 #endif
+
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+  time1 = platform::walltime();
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT2,"POST Convo / POST FFT");
@@ -476,10 +469,10 @@ void *AmoebaConvolution::post_convolution_3d()
   // forward comm to populate ghost grid values
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
-  debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE grid3d");
+  debug_file(GRIDBRICK_IN,"post.convo.pre.grid3d");
 #endif
-  gc->forward_comm(GridComm::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
+  gc->forward_comm(Grid3d::PAIR,amoeba,which,1,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) grid_brick;
@@ -499,7 +492,17 @@ void *AmoebaConvolution::post_convolution_4d()
   debug_scalar(CFFT1,"POST Convo / PRE FFT");
   debug_file(CFFT1,"post.convo.pre.fft");
 #endif
+
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+
+  time1 = platform::walltime();
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT2,"POST Convo / POST FFT");
@@ -518,36 +521,13 @@ void *AmoebaConvolution::post_convolution_4d()
   // forward comm to populate ghost grid values
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
-  debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE grid3d");
+  debug_file(GRIDBRICK_IN,"post.convo.pre.grid3d");
 #endif
-  gc->forward_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->forward_comm(Grid3d::PAIR,amoeba,which,2,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) cgrid_brick;
-}
-
-/* ----------------------------------------------------------------------
-   convert a sphere in box coords to an ellipsoid in lamda (0-1)
-   coords and return the tight (axis-aligned) bounding box, does not
-   preserve vector magnitude
-   see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
-   http://yiningkarlli.blogspot.com/2013/02/
-     bounding-boxes-for-ellipsoidsfigure.html
-------------------------------------------------------------------------- */
-
-void AmoebaConvolution::kspacebbox(double r, double *b)
-{
-  double *h = domain->h;
-  double lx,ly,lz,xy,xz,yz;
-
-  lx = h[0]; ly = h[1]; lz = h[2];
-  yz = h[3]; xz = h[4]; xy = h[5];
-
-  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy +
-         xy*xy*yz*yz)/(lx*ly*lz);
-  b[1] = r*sqrt(lz*lz + yz*yz)/(ly*lz);
-  b[2] = r/lz;
 }
 
 /* ----------------------------------------------------------------------
@@ -672,9 +652,7 @@ void AmoebaConvolution::debug_file(int array, const char *label)
 
   // open file
 
-  char fname[128];
-  sprintf(fname,"tmp.%s.%s",labels[which],label);
-  if (me == 0) fp = fopen(fname,"w");
+  if (me == 0) fp = fopen(fmt::format("tmp.{}.{}", labels[which], label).c_str(), "w");
 
   // file header
   // ncol = # of columns, including grid cell ID

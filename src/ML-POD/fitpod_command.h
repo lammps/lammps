@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(fitpod,FitPOD);
@@ -76,7 +75,8 @@ private:
 
     double fitting_weights[12] = {100.0, 1.0, 0.0, 1, 1, 0, 0, 1, 1, 1, 1, 1e-10};
 
-    void copydatainfo(datastruct &data) {
+    void copydatainfo(datastruct &data) const
+    {
       data.data_path = data_path;
       data.file_format = file_format;
       data.file_extension = file_extension;
@@ -175,10 +175,12 @@ private:
   std::vector<int> linspace(int start_in, int end_in, int num_in);
   std::vector<int> shuffle(int start_in, int end_in, int num_in);
   std::vector<int> select(int n, double fraction, int randomize);
-  void select_data(datastruct &newdata, datastruct data);
-  void read_data_files(std::string data_file, std::vector<std::string> species);
-  int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-  int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
+  void select_data(datastruct &newdata, const datastruct &data);
+  void read_data_files(const std::string& data_file, const std::vector<std::string>& species);
+  int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3,
+                    double rcut, int *pbc, int nx);
+  int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N,
+                      int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
     double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
   void estimate_memory_neighborstruct(const datastruct &data, int *pbc, double rcut, int nelements);
@@ -201,8 +203,7 @@ private:
   void energyforce_calculation(const datastruct &data, double *coeff);
 };
 
-}  // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

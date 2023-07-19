@@ -1133,7 +1133,7 @@ void PairLubricateUPoly::init_style()
   if (!atom->sphere_flag)
     error->all(FLERR,"Pair lubricate/poly requires atom style sphere");
 
-  // insure all particles are finite-size
+  // ensure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style
 
   double *radius = atom->radius;

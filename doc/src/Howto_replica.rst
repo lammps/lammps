@@ -47,9 +47,9 @@ script which is required when running in multi-replica mode.
 
 Also note that with MPI installed on a machine (e.g. your desktop), you
 can run on more (virtual) processors than you have physical processors.
-Thus the above commands could be run on a single-processor (or
+Thus, the above commands could be run on a single-processor (or
 few-processor) desktop so that you can run a multi-replica simulation on
 more replicas than you have physical processors. This is useful for
 testing and debugging, since with most modern processors and MPI
-libraries the efficiency of a calculation can severely diminish when
+libraries, the efficiency of a calculation can severely diminish when
 oversubscribing processors.

@@ -375,7 +375,8 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
                              const bool eflag_in, const bool vflag_in,
                              const bool eatom, const bool vatom,
                              int &host_start, const double cpu_time,
-                             bool &success, double **host_quat) {
+                             bool &success, const int *ellipsoid,
+                             const EllipsoidBonus *bonus) {
   acc_timers();
   int eflag, vflag;
   if (eflag_in) eflag=2;
@@ -409,7 +410,7 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
     list=ilist;
 
   atom->cast_x_data(host_x,host_type);
-  atom->cast_quat_data(host_quat[0]);
+  atom->cast_quat_data(ellipsoid,bonus);
   hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
   atom->add_quat_data();
@@ -433,7 +434,8 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
                               const bool eatom, const bool vatom,
                               int &host_start, int **ilist, int **jnum,
                               const double cpu_time, bool &success,
-                              double **host_quat) {
+                              const int *ellipsoid,
+                              const EllipsoidBonus *bonus) {
   acc_timers();
   int eflag, vflag;
   if (eflag_in) eflag=2;
@@ -460,11 +462,11 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return nullptr;
-    atom->cast_quat_data(host_quat[0]);
+    atom->cast_quat_data(ellipsoid,bonus);
     hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
-    atom->cast_quat_data(host_quat[0]);
+    atom->cast_quat_data(ellipsoid,bonus);
     hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }

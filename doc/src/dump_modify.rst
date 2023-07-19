@@ -297,6 +297,8 @@ in file tmp.times:
 
 ----------
 
+.. versionadded:: 7Jan2022
+
 The *every/time* keyword can be used with any dump style except the
 *dcd* and *xtc* styles.  It changes the frequency of dump snapshots
 from being based on the current timestep to being determined by
@@ -408,7 +410,7 @@ command is invoked.
 ----------
 
 The *flush* keyword determines whether a flush operation is invoked
-after a dump snapshot is written to the dump file.  A flush insures
+after a dump snapshot is written to the dump file.  A flush ensures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style *xtc*\ .
@@ -751,9 +753,13 @@ run, this option is ignored since the output is already balanced.
 ----------
 
 The *thermo* keyword only applies the dump styles *netcdf* and *yaml*.
-It triggers writing of :doc:`thermo <thermo>` information to the dump file
-alongside per-atom data.  The values included in the dump file are
-identical to the values specified by :doc:`thermo_style <thermo_style>`.
+It triggers writing of :doc:`thermo <thermo>` information to the dump
+file alongside per-atom data.  The values included in the dump file are
+cached values from the last thermo output and include the exact same the
+values as specified by the :doc:`thermo_style <thermo_style>` command.
+Because these are cached values, they are only up-to-date when dump
+output is on a timestep that also has thermo output. Dump style *yaml*
+will skip thermo output on incompatible steps.
 
 ----------
 

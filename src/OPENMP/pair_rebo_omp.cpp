@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,13 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_rebo_omp.h"
+
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairREBOOMP::PairREBOOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp) {
+PairREBOOMP::PairREBOOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp)
+{
   variant = REBO_2;
 }
 
@@ -29,7 +30,7 @@ PairREBOOMP::PairREBOOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp) {
 
 void PairREBOOMP::settings(int narg, char ** /* arg */)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR, "Illegal pair_style command");
 
   cutlj = 0.0;
   ljflag = torflag = 0;
@@ -39,29 +40,30 @@ void PairREBOOMP::settings(int narg, char ** /* arg */)
    initialize spline knot values
 ------------------------------------------------------------------------- */
 
-void PairREBOOMP::spline_init() {
+void PairREBOOMP::spline_init()
+{
   PairAIREBO::spline_init();
 
   PCCf[0][2] = 0.007860700254745;
   PCCf[0][3] = 0.016125364564267;
   PCCf[1][1] = 0.003026697473481;
   PCCf[1][2] = 0.006326248241119;
-  PCCf[2][0] = 0.;
+  PCCf[2][0] = 0.0;
   PCCf[2][1] = 0.003179530830731;
 
   for (int nH = 0; nH < 4; nH++) {
     for (int nC = 0; nC < 4; nC++) {
       double y[4] = {0}, y1[4] = {0}, y2[4] = {0};
       y[0] = PCCf[nC][nH];
-      y[1] = PCCf[nC][nH+1];
-      y[2] = PCCf[nC+1][nH];
-      y[3] = PCCf[nC+1][nH+1];
-      Spbicubic_patch_coeffs(nC, nC+1, nH, nH+1, y, y1, y2, &pCC[nC][nH][0]);
+      y[1] = PCCf[nC][nH + 1];
+      y[2] = PCCf[nC + 1][nH];
+      y[3] = PCCf[nC + 1][nH + 1];
+      Spbicubic_patch_coeffs(nC, nC + 1, nH, nH + 1, y, y1, y2, &pCC[nC][nH][0]);
       y[0] = PCHf[nC][nH];
-      y[1] = PCHf[nC][nH+1];
-      y[2] = PCHf[nC+1][nH];
-      y[3] = PCHf[nC+1][nH+1];
-      Spbicubic_patch_coeffs(nC, nC+1, nH, nH+1, y, y1, y2, &pCH[nC][nH][0]);
+      y[1] = PCHf[nC][nH + 1];
+      y[2] = PCHf[nC + 1][nH];
+      y[3] = PCHf[nC + 1][nH + 1];
+      Spbicubic_patch_coeffs(nC, nC + 1, nH, nH + 1, y, y1, y2, &pCH[nC][nH][0]);
     }
   }
 }

@@ -7,7 +7,7 @@
 # Dielectric constants can be set to be different from the input data file
 
 variable epsilon1 index 20
-variable epsilon2 index 10 
+variable epsilon2 index 10
 
 variable    data index data.confined
 
@@ -53,11 +53,11 @@ kspace_modify   slab 3.0
 neigh_modify    every 1 delay 0 check yes one 5000
 
 #compute         ef all efield/atom
-dump            1 all custom 100 all.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
-dump            2 interface custom 100 interface.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
-dump_modify     1 sort id
+#dump            1 all custom 100 all.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
+#dump            2 interface custom 100 interface.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
+#dump_modify     1 sort id
 
-dump            3 ions custom 100 ions.dump id mol type q x y z fx fy fz #c_ef[1] c_ef[2] c_ef[3]
+#dump            3 ions custom 100 ions.dump id mol type q x y z fx fy fz #c_ef[1] c_ef[2] c_ef[3]
 
 fix             1 ions nve
 
@@ -67,10 +67,10 @@ if "${method} == gmres" then &
   "fix             3 interface polarize/bem/gmres 1 1.0e-4" &
   "fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" &
 elif "${method} == icc"&
-  "fix             3 interface polarize/bem/icc 1 1.0e-4 itr_max 50" &
+  "fix             3 interface polarize/bem/icc 1 1.0e-4" &
   "fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" &
 elif "${method} == dof" &
-  "fix             3 interface polarize/functional 1 0.001" &
+  "fix             3 interface polarize/functional 1 0.0001" &
   "fix_modify      3 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" &
 else &
   "print 'Unsupported polarization solver' "

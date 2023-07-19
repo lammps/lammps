@@ -267,7 +267,7 @@ void FixPressBerendsen::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix press/berendsen with triclinic box");
 
-  // insure no conflict with fix deform
+  // ensure no conflict with fix deform
 
   for (const auto &ifix : modify->get_fix_list())
     if (strcmp(ifix->style, "^deform") == 0) {
@@ -491,7 +491,7 @@ int FixPressBerendsen::modify_param(int narg, char **arg)
     id_press = utils::strdup(arg[1]);
 
     pressure = modify->get_compute_by_id(arg[1]);
-    if (pressure) error->all(FLERR,"Could not find fix_modify pressure compute ID: {}", arg[1]);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure compute ID: {}", arg[1]);
     if (pressure->pressflag == 0)
       error->all(FLERR,"Fix_modify pressure compute {} does not compute pressure", arg[1]);
     return 2;

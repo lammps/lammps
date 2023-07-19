@@ -9,7 +9,7 @@ Accelerator Variants: *langevin/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID langevin Tstart Tstop damp seed keyword values ...
 
@@ -194,7 +194,7 @@ For the *omega* keyword there is also a scale factor of
 :math:`F_f` (damping) term in the equation above and of
 :math:`\sqrt{\frac{10.0}{3.0}}` as a multiplier on the :math:`F_r` term.
 This does not affect the thermostatting behavior of the Langevin
-formalism but insures that the randomized rotational diffusivity of
+formalism but ensures that the randomized rotational diffusivity of
 spherical particles is correct.
 
 For the *angmom* keyword a similar scale factor is needed which is

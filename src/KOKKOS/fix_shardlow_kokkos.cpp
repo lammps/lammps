@@ -596,7 +596,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
     for (int i = 0; i < maxWorkItemCt; ++i) {
       es_genNextParallelState(serial_rand_state, h_rand_state(i));
     }
-    deep_copy(d_rand_state,h_rand_state);
+    Kokkos::deep_copy(d_rand_state,h_rand_state);
 
     maxRNG = maxWorkItemCt;
   }
@@ -606,8 +606,8 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
     for (int j = 0; j < 3; ++j)
       h_counters(i,j) = 0;
   for (int i = 0; i < 32; ++i) h_hist[i] = 0;
-  deep_copy(d_counters, h_counters);
-  deep_copy(d_hist, h_hist);
+  Kokkos::deep_copy(d_counters, h_counters);
+  Kokkos::deep_copy(d_hist, h_hist);
 #endif
 
   //theta_ij_inv = 1.0/k_pairDPD->temperature; // independent of i,j

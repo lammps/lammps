@@ -42,7 +42,9 @@ MLPOD::podstruct::podstruct() :
     elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0},
     quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0},
     besselparams(nullptr), coeff(nullptr), Phi2(nullptr), Phi3(nullptr), Phi4(nullptr),
-    Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
+    Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr),
+    snapelementradius{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5},
+    snapelementweight{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}
 {
   snaptwojmax = 0;
   snapchemflag = 0;
@@ -234,7 +236,7 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
 
   int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
-  std::vector<double> work(ns*ns);
+  std::vector<double> work(lwork);
   DSYEV(&chv, &chu, &ns, A, &ns, b, work.data(), &lwork, &info);
 
   // order eigenvalues and eigenvectors from largest to smallest
@@ -1682,6 +1684,8 @@ void MLPOD::InitSnap()
       sna.rcutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;
     }
 
+  // bzeroflag is currently always 0
+#if 0
   if (bzeroflag) {
     double www = wself*wself*wself;
     for (int j = 0; j <= twojmax; j++)
@@ -1690,6 +1694,7 @@ void MLPOD::InitSnap()
       else
         sna.bzero[j] = www*(j+1);
   }
+#endif
 
   int nelements = ntypes;
   if (!chemflag)
@@ -3256,7 +3261,7 @@ void MLPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2i
 }
 
 void MLPOD::snapTallyForce(double *force, double *dbdr, double *coeff4,
-    int *ai, int *aj, int *ti, int ijnum, int ncoeff, int ntype)
+                           int *ai, int *aj, int *ti, int ijnum, int ncoeff, int /*ntype*/)
 {
   int N2 = ijnum*ncoeff;
   for (int idx=0; idx<N2; idx++) {
@@ -3415,6 +3420,10 @@ double MLPOD::energyforce_calculation(double *force, double *podcoeff, double *e
   return energy;
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 164b25460236e726f2944cd76d46bea4a761e644
 void MLPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, int *aj, int *ti,
                            int *tj, int *elemindex, int nelements, int nbf, int /*natom*/, int N)
 {
@@ -3578,7 +3587,7 @@ void MLPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2
 }
 
 void MLPOD::snapTallyForce(double **force, double *dbdr, double *coeff4,
-        int *ai, int *aj, int *ti, int ijnum, int ncoeff, int ntype)
+                           int *ai, int *aj, int *ti, int ijnum, int ncoeff, int /*ntype*/)
 {
     int N2 = ijnum*ncoeff;
     for (int idx=0; idx<N2; idx++) {

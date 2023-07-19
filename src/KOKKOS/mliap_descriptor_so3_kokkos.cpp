@@ -47,18 +47,11 @@ MLIAPDescriptorSO3Kokkos<DeviceType>::MLIAPDescriptorSO3Kokkos(LAMMPS *lmp, char
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-MLIAPDescriptorSO3Kokkos<DeviceType>::~MLIAPDescriptorSO3Kokkos()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
-template <class DeviceType>
 void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptors(class MLIAPData *data_)
 {
   auto data = static_cast<MLIAPDataKokkos<DeviceType>*>(data_);
   so3ptr_kokkos->spectrum(data->nlistatoms, data->k_numneighs, data->k_jelems, this->k_wjelem, data->k_rij, data->k_ij,
-                          nmax, lmax, rcutfac, alpha, data->nij_total, data->ndescriptors);
+                          nmax, lmax, rcutfac, alpha, data->npairs, data->ndescriptors);
 
   Kokkos::deep_copy(data->k_descriptors.template view<DeviceType>(), so3ptr_kokkos->m_plist_r);
   Kokkos::deep_copy(data->k_descriptors.h_view, so3ptr_kokkos->m_plist_r);
@@ -70,7 +63,7 @@ template <class DeviceType>
 void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_)
 {
   auto data = static_cast<MLIAPDataKokkos<DeviceType>*>(data_);
-  int npairs = data->nij_total;
+  int npairs = data->npairs;
   auto d_numneighs = data->k_numneighs.template view<DeviceType>();
   so3ptr_kokkos->spectrum_dxdr(data->nlistatoms, data->k_numneighs, data->k_jelems, this->k_wjelem, data->k_rij, data->k_ij,
                                nmax, lmax, rcutfac, alpha, npairs, data->ndescriptors);
@@ -186,7 +179,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_force_gradients(class MLIAPDa
   error->all(FLERR,"This has not been tested in cuda/kokkos");
 
   auto data = static_cast<MLIAPDataKokkos<DeviceType>*>(data_);
-  int npairs = data->nij_total;
+  int npairs = data->npairs;
   so3ptr_kokkos->spectrum_dxdr(data->nlistatoms, data->k_numneighs, data->k_jelems, this->k_wjelem, data->k_rij, data->k_ij,
                                nmax, lmax, rcutfac, alpha, npairs, data->ndescriptors);
   auto d_dplist_r = so3ptr_kokkos->k_dplist_r;
@@ -204,7 +197,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_force_gradients(class MLIAPDa
   Kokkos::parallel_for (data->nlistatoms, KOKKOS_LAMBDA (int ii) {
     const int i = d_iatoms(ii);
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     const int jnum = d_numneighs(ii);
     int ij = d_ij(ii);
@@ -239,7 +232,7 @@ template <class DeviceType>
 void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptor_gradients(class MLIAPData *data_)
 {
   auto data = static_cast<MLIAPDataKokkos<DeviceType>*>(data_);
-  bigint npairs = data->nij_total;
+  bigint npairs = data->npairs;
   so3ptr_kokkos->spectrum_dxdr(data->nlistatoms, data->k_numneighs, data->k_jelems, this->k_wjelem, data->k_rij, data->k_ij,
                                nmax, lmax, rcutfac, alpha, npairs, data->ndescriptors);
   auto graddesc = data->k_graddesc.template view<DeviceType>();

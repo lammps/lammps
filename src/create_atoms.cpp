@@ -38,7 +38,9 @@
 #include "text_file_reader.h"
 #include "variable.h"
 
+#include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_2PI;
@@ -370,9 +372,9 @@ void CreateAtoms::command(int narg, char **arg)
   //   should create exactly 1 atom when 2 images are both "on" the boundary
   //   either image may be slightly inside/outside true box due to round-off
   //   if I am lo proc, decrement lower bound by EPSILON
-  //     this will insure lo image is created
+  //     this will ensure lo image is created
   //   if I am hi proc, decrement upper bound by 2.0*EPSILON
-  //     this will insure hi image is not created
+  //     this will ensure hi image is not created
   //   thus insertion box is EPSILON smaller than true box
   //     and is shifted away from true boundary
   //     which is where atoms are likely to be generated
@@ -439,10 +441,12 @@ void CreateAtoms::command(int narg, char **arg)
   MPI_Barrier(world);
   double time1 = platform::walltime();
 
+  // clear global->local map for owned and ghost atoms
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c creating atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 

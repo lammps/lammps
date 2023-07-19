@@ -168,8 +168,8 @@ void CommTiledKokkos::reverse_comm(Fix *fix, int size)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix with variable size data
-   query fix for all pack sizes to insure buf_send is big enough
-   handshake sizes before irregular comm to insure buf_recv is big enough
+   query fix for all pack sizes to ensure buf_send is big enough
+   handshake sizes before irregular comm to ensure buf_recv is big enough
    NOTE: how to setup one big buf recv with correct offsets ??
 ------------------------------------------------------------------------- */
 
@@ -225,14 +225,4 @@ void CommTiledKokkos::reverse_comm(Dump *dump)
 void CommTiledKokkos::forward_comm_array(int nsize, double **array)
 {
   CommTiled::forward_comm_array(nsize,array);
-}
-
-/* ----------------------------------------------------------------------
-   exchange info provided with all 6 stencil neighbors
-   NOTE: this method is currently not used
-------------------------------------------------------------------------- */
-
-int CommTiledKokkos::exchange_variable(int n, double *inbuf, double *&outbuf)
-{
-  return CommTiled::exchange_variable(n,inbuf,outbuf);
 }

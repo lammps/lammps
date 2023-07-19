@@ -1058,7 +1058,7 @@ void FixHyperLocal::build_bond_list(int natom)
   for (i = 0; i < nlocal; i++) numbond[i] = 0;
 
   // trigger neighbor list builds for both lists
-  // insure the I loops in both are from 1 to nlocal
+  // ensure the I loops in both are from 1 to nlocal
 
   neighbor->build_one(listfull);
   neighbor->build_one(listhalf);

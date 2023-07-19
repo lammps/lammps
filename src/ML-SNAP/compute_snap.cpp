@@ -389,7 +389,7 @@ void ComputeSnap::compute_array()
         }
       }
 
-      // insure rij, inside, and typej are of size jnum
+      // ensure rij, inside, and typej are of size jnum
 
       snaptr->grow_rij(jnum);
 

@@ -34,7 +34,7 @@ class FixDtReset : public Fix {
   void end_of_step() override;
   double compute_scalar() override;
 
- private:
+ protected:
   bigint laststep;
   int minbound, maxbound;
   double tmin, tmax, xmax, emax;

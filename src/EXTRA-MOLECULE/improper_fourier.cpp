@@ -35,7 +35,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperFourier::ImproperFourier(LAMMPS *lmp) : Improper(lmp) {}
+ImproperFourier::ImproperFourier(LAMMPS *lmp) : Improper(lmp)
+{
+  // the first and fourth atoms in the quadruplet are the atoms of symmetry
+
+  symmatoms[0] = 1;
+  symmatoms[3] = 2;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -15,10 +15,9 @@
 #include "pair_amoeba.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "neigh_list.h"
 
 #include <cmath>

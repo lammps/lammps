@@ -6,7 +6,7 @@ compute smd/tlsph/defgrad command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/tlsph/defgrad
 
@@ -27,7 +27,7 @@ Define a computation that calculates the deformation gradient.  It is
 only meaningful for particles which interact according to the
 Total-Lagrangian SPH pair style.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
 Output info

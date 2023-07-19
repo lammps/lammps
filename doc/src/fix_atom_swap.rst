@@ -44,55 +44,55 @@ Examples
 Description
 """""""""""
 
-This fix performs Monte Carlo swaps of atoms of one given atom type
-with atoms of the other given atom types. The specified :math:`T` is used in
-the Metropolis criterion dictating swap probabilities.
+This fix performs Monte Carlo swaps of atoms of one given atom type with
+atoms of the other given atom types.  The specified scaling temperature
+*T* is used in the Metropolis criterion dictating swap probabilities.
 
-Perform :math:`X` swaps of atoms of one type with atoms of another type
+Perform *X* swaps of atoms of one type with atoms of another type
 according to a Monte Carlo probability. Swap candidates must be in the
 fix group, must be in the region (if specified), and must be of one of
-the listed types. Swaps are attempted between candidates that are
-chosen randomly with equal probability among the candidate
-atoms. Swaps are not attempted between atoms of the same type since
-nothing would happen.
+the listed types. Swaps are attempted between candidates that are chosen
+randomly with equal probability among the candidate atoms. Swaps are not
+attempted between atoms of the same type since nothing would happen.
 
 All atoms in the simulation domain can be moved using regular time
 integration displacements (e.g., via :doc:`fix nvt <fix_nh>`), resulting
-in a hybrid MC+MD simulation. A smaller-than-usual timestep size may
-be needed when running such a hybrid simulation, especially if the
-swapped atoms are not well equilibrated.
+in a hybrid MC+MD simulation. A smaller-than-usual timestep size may be
+needed when running such a hybrid simulation, especially if the swapped
+atoms are not well equilibrated.
 
 The *types* keyword is required. At least two atom types must be
-specified.
+specified. If not using *semi-grand*, exactly two atom types are
+required.
 
 The *ke* keyword can be set to *no* to turn off kinetic energy
 conservation for swaps. The default is *yes*, which means that swapped
 atoms have their velocities scaled by the ratio of the masses of the
-swapped atom types. This ensures that the kinetic energy of each atom
-is the same after the swap as it was before the swap, even though the
-atom masses have changed.
+swapped atom types. This ensures that the kinetic energy of each atom is
+the same after the swap as it was before the swap, even though the atom
+masses have changed.
 
-The *semi-grand* keyword can be set to *yes* to switch to the
-semi-grand canonical ensemble as discussed in :ref:`(Sadigh)
-<Sadigh>`. This means that the total number of each particle type does
-not need to be conserved. The default is *no*, which means that the
-only kind of swap allowed exchanges an atom of one type with an atom
-of a different given type. In other words, the relative mole fractions
-of the swapped atoms remains constant. Whereas in the semi-grand
-canonical ensemble, the composition of the system can change. Note
-that when using *semi-grand*, atoms in the fix group whose type is not
-listed in the *types* keyword are ineligible for attempted
-conversion. An attempt is made to switch the selected atom (if
-eligible) to one of the other listed types with equal probability.
-Acceptance of each attempt depends upon the Metropolis criterion.
+The *semi-grand* keyword can be set to *yes* to switch to the semi-grand
+canonical ensemble as discussed in :ref:`(Sadigh) <Sadigh>`. This means
+that the total number of each particle type does not need to be
+conserved. The default is *no*, which means that the only kind of swap
+allowed exchanges an atom of one type with an atom of a different given
+type. In other words, the relative mole fractions of the swapped atoms
+remains constant. Whereas in the semi-grand canonical ensemble, the
+composition of the system can change. Note that when using *semi-grand*,
+atoms in the fix group whose type is not listed in the *types* keyword
+are ineligible for attempted conversion. An attempt is made to switch
+the selected atom (if eligible) to one of the other listed types with
+equal probability.  Acceptance of each attempt depends upon the
+Metropolis criterion.
 
 The *mu* keyword allows users to specify chemical potentials. This is
 required and allowed only when using *semi-grand*\ .  All chemical
 potentials are absolute, so there is one for each swap type listed
 following the *types* keyword.  In semi-grand canonical ensemble
-simulations the chemical composition of the system is controlled by
-the difference in these values. So shifting all values by a constant
-amount will have no effect on the simulation.
+simulations the chemical composition of the system is controlled by the
+difference in these values. So shifting all values by a constant amount
+will have no effect on the simulation.
 
 This command may optionally use the *region* keyword to define swap
 volume.  The specified region must have been previously defined with a
@@ -107,16 +107,16 @@ have a non-zero molecule ID, but does not check for this at the time of
 swapping.
 
 If not using *semi-grand* this fix checks to ensure all atoms of the
-given types have the same atomic charge. LAMMPS does not enforce this
-in general, but it is needed for this fix to simplify the swapping
+given types have the same atomic charge. LAMMPS does not enforce this in
+general, but it is needed for this fix to simplify the swapping
 procedure. Successful swaps will swap the atom type and charge of the
 swapped atoms. Conversely, when using *semi-grand*, it is assumed that
-all the atom types involved in switches have the same
-charge. Otherwise, charge would not be conserved. As a consequence, no
-checks on atomic charges are performed, and successful switches update
-the atom type but not the atom charge. While it is possible to use
-*semi-grand* with groups of atoms that have different charges, these
-charges will not be changed when the atom types change.
+all the atom types involved in switches have the same charge. Otherwise,
+charge would not be conserved. As a consequence, no checks on atomic
+charges are performed, and successful switches update the atom type but
+not the atom charge. While it is possible to use *semi-grand* with
+groups of atoms that have different charges, these charges will not be
+changed when the atom types change.
 
 Since this fix computes total potential energies before and after
 proposed swaps, so even complicated potential energy calculations are
@@ -144,18 +144,19 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the fix to :doc:`binary restart files
-<restart>`.  This includes information about the random number
-generator seed, the next timestep for MC exchanges, the number of
-exchange attempts and successes, etc.  See the :doc:`read_restart
-<read_restart>` command for info on how to re-specify a fix in an
-input script that reads a restart file, so that the operation of the
-fix continues in an uninterrupted fashion.
+<restart>`.  This includes information about the random number generator
+seed, the next timestep for MC exchanges, the number of exchange
+attempts and successes, etc.  See the :doc:`read_restart <read_restart>`
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
 
 .. note::
 
    For this to work correctly, the timestep must **not** be changed
-   after reading the restart with :doc:`reset_timestep <reset_timestep>`.
-   The fix will try to detect it and stop with an error.
+   after reading the restart with :doc:`reset_timestep
+   <reset_timestep>`.  The fix will try to detect it and stop with an
+   error.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
@@ -186,12 +187,12 @@ Related commands
 :doc:`fix nvt <fix_nh>`, :doc:`neighbor <neighbor>`,
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
 :doc:`delete_atoms <delete_atoms>`, :doc:`fix gcmc <fix_gcmc>`,
-:doc:`fix mol/swap <fix_mol_swap>`
+:doc:`fix mol/swap <fix_mol_swap>`, :doc:`fix sgcmc <fix_sgcmc>`
 
 Default
 """""""
 
-The option defaults are ke = yes, semi-grand = no, mu = 0.0 for
+The option defaults are *ke* = yes, *semi-grand* = no, *mu* = 0.0 for
 all atom types.
 
 ----------

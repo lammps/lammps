@@ -56,7 +56,9 @@ MLIAPDataKokkos<DeviceType>::~MLIAPDataKokkos() {
   memoryKK->destroy_kokkos(k_ielems,ielems);
   memoryKK->destroy_kokkos(k_numneighs,numneighs);
   memoryKK->destroy_kokkos(k_jatoms,jatoms);
+  memoryKK->destroy_kokkos(k_pair_i,pair_i);
   memoryKK->destroy_kokkos(k_jelems,jelems);
+  memoryKK->destroy_kokkos(k_elems,elems);
   memoryKK->destroy_kokkos(k_ij);
   memoryKK->destroy_kokkos(k_rij,rij);
   memoryKK->destroy_kokkos(k_graddesc,graddesc);
@@ -73,14 +75,23 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
 
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
-    memoryKK->destroy_kokkos(k_gradforce,gradforce);
-    memoryKK->create_kokkos(k_gradforce, gradforce, nmax, size_gradforce, "mliap_data:gradforce");
+    if (gradgradflag > -1){
+      memoryKK->destroy_kokkos(k_gradforce,gradforce);
+      memoryKK->create_kokkos(k_gradforce, gradforce, nmax, size_gradforce, "mliap_data:gradforce");
+    }
+    memoryKK->destroy_kokkos(k_elems,elems);
+    memoryKK->create_kokkos(k_elems, elems, nmax, "mliap_data:elems");  }
+
+  // clear gradforce and elems arrays
+
+  int nall = atom->nlocal + atom->nghost;
+  ntotal = nall;
+  if (gradgradflag > -1){
+    auto d_gradforce = k_gradforce.template view<DeviceType>();
+    Kokkos::deep_copy(d_gradforce, 0.);
   }
-
-  // clear gradforce array
-
-  auto d_gradforce = k_gradforce.template view<DeviceType>();
-  Kokkos::deep_copy(d_gradforce, 0.);
+  auto d_elems = k_elems.template view<DeviceType>();
+  Kokkos::deep_copy(d_elems, 0.);
 
   // grow arrays if necessary
 
@@ -122,6 +133,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   auto d_ij = k_ij.template view<DeviceType>();
   auto d_numneighs = k_numneighs.template view<DeviceType>();
   auto d_jatoms = k_jatoms.template view<DeviceType>();
+  auto d_pair_i= k_pair_i.template view<DeviceType>();
   auto d_jelems= k_jelems.template view<DeviceType>();
   auto d_rij= k_rij.template view<DeviceType>();
 
@@ -162,6 +174,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
       const int jelem = map(jtype);
       if (rsq < d_cutsq(itype,jtype)) {
         d_jatoms(ij) = j;
+        d_pair_i(ij) = i;
         d_jelems(ij) = jelem;
         d_rij(ij, 0) = delx;
         d_rij(ij, 1) = dely;
@@ -172,8 +185,11 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     d_iatoms[ii] = i;
     d_ielems[ii] = ielem;
   });
-
-  modified(execution_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
+  Kokkos::parallel_for(nmax, KOKKOS_LAMBDA (int i)  {
+    const int itype = type(i);
+    d_elems(i) = map(itype);
+  });
+  modified(execution_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
   eflag = eflag_in;
   vflag = vflag_in;
 }
@@ -183,7 +199,8 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
 template<class DeviceType>
 void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
   AtomKokkos *atomKK = (AtomKokkos *) atom;
-
+  f = atom->f;
+  f_device = atomKK->k_f.view<DeviceType>().data();
   // grow neighbor arrays if necessary
 
   if (natomneigh_max < nlistatoms) {
@@ -207,6 +224,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
   auto x = atomKK->k_x.view<DeviceType>();
   auto type = atomKK->k_type.view<DeviceType>();
   auto d_cutsq=k_pairmliap->k_cutsq.template view<DeviceType>();
+  auto h_cutsq=k_pairmliap->k_cutsq.template view<LMPHostType>();
   auto d_numneighs = k_numneighs.template view<DeviceType>();
   Kokkos::parallel_reduce(nlistatoms, KOKKOS_LAMBDA (int ii, int &contrib) {
     const int i = d_ilist[ii];
@@ -229,22 +247,24 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     }
     d_numneighs(ii) = count;
     contrib += count;
-  }, nij_total);
+  }, npairs);
   modified(execution_space, NUMNEIGHS_MASK);
 
-  if (nneigh_max < nij_total) {
+  if (nneigh_max < npairs) {
     memoryKK->destroy_kokkos(k_jatoms,jatoms);
-    memoryKK->create_kokkos(k_jatoms, jatoms, nij_total, "mliap_data:jatoms");
+    memoryKK->create_kokkos(k_jatoms, jatoms, npairs, "mliap_data:jatoms");
+    memoryKK->destroy_kokkos(k_pair_i,pair_i);
+    memoryKK->create_kokkos(k_pair_i, pair_i, npairs, "mliap_data:pair_i");
     memoryKK->destroy_kokkos(k_jelems,jelems);
-    memoryKK->create_kokkos(k_jelems, jelems, nij_total, "mliap_data:jelems");
+    memoryKK->create_kokkos(k_jelems, jelems, npairs, "mliap_data:jelems");
     memoryKK->destroy_kokkos(k_rij,rij);
-    memoryKK->create_kokkos(k_rij, rij, nij_total, 3, "mliap_data:rij");
+    memoryKK->create_kokkos(k_rij, rij, npairs, 3, "mliap_data:rij");
 
     if (gradgradflag == 0){
       memoryKK->destroy_kokkos(k_graddesc,graddesc);
-      memoryKK->create_kokkos(k_graddesc, graddesc, nij_total, ndescriptors,3, "mliap_data:graddesc");
+      memoryKK->create_kokkos(k_graddesc, graddesc, npairs, ndescriptors,3, "mliap_data:graddesc");
     }
-    nneigh_max = nij_total;
+    nneigh_max = npairs;
    }
 }
 
@@ -256,7 +276,9 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
     if (mask & IATOMS_MASK      ) k_iatoms         .modify<LMPDeviceType>();
     if (mask & IELEMS_MASK      ) k_ielems         .modify<LMPDeviceType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .modify<LMPDeviceType>();
+    if (mask & PAIR_I_MASK      ) k_pair_i         .modify<LMPDeviceType>();
     if (mask & JELEMS_MASK      ) k_jelems         .modify<LMPDeviceType>();
+    if (mask & ELEMS_MASK       ) k_elems          .modify<LMPDeviceType>();
     if (mask & IJ_MASK          ) k_ij             .modify<LMPDeviceType>();
     if (mask & BETAS_MASK       ) k_betas          .modify<LMPDeviceType>();
     if (mask & DESCRIPTORS_MASK ) k_descriptors    .modify<LMPDeviceType>();
@@ -274,7 +296,9 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
     if (mask & IATOMS_MASK      ) k_iatoms         .modify<LMPHostType>();
     if (mask & IELEMS_MASK      ) k_ielems         .modify<LMPHostType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .modify<LMPHostType>();
+    if (mask & PAIR_I_MASK      ) k_pair_i         .modify<LMPHostType>();
     if (mask & JELEMS_MASK      ) k_jelems         .modify<LMPHostType>();
+    if (mask & ELEMS_MASK       ) k_elems          .modify<LMPHostType>();
     if (mask & IJ_MASK          ) k_ij             .modify<LMPHostType>();
     if (mask & BETAS_MASK       ) k_betas          .modify<LMPHostType>();
     if (mask & DESCRIPTORS_MASK ) k_descriptors    .modify<LMPHostType>();
@@ -300,7 +324,9 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, 
     if (mask & IATOMS_MASK      ) k_iatoms         .sync<LMPDeviceType>();
     if (mask & IELEMS_MASK      ) k_ielems         .sync<LMPDeviceType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .sync<LMPDeviceType>();
+    if (mask & PAIR_I_MASK      ) k_pair_i         .sync<LMPDeviceType>();
     if (mask & JELEMS_MASK      ) k_jelems         .sync<LMPDeviceType>();
+    if (mask & ELEMS_MASK       ) k_elems          .sync<LMPDeviceType>();
     if (mask & IJ_MASK          ) k_ij             .sync<LMPDeviceType>();
     if (mask & BETAS_MASK       ) k_betas          .sync<LMPDeviceType>();
     if (mask & DESCRIPTORS_MASK ) k_descriptors    .sync<LMPDeviceType>();
@@ -317,7 +343,9 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, 
     if (mask & IATOMS_MASK      ) k_iatoms         .sync<LMPHostType>();
     if (mask & IELEMS_MASK      ) k_ielems         .sync<LMPHostType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .sync<LMPHostType>();
+    if (mask & PAIR_I_MASK      ) k_pair_i         .sync<LMPHostType>();
     if (mask & JELEMS_MASK      ) k_jelems         .sync<LMPHostType>();
+    if (mask & ELEMS_MASK       ) k_elems          .sync<LMPHostType>();
     if (mask & IJ_MASK          ) k_ij             .sync<LMPHostType>();
     if (mask & BETAS_MASK       ) k_betas          .sync<LMPHostType>();
     if (mask & DESCRIPTORS_MASK ) k_descriptors    .sync<LMPHostType>();

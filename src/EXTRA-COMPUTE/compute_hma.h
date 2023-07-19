@@ -43,7 +43,7 @@ class ComputeHMA : public Compute {
   char *id_fix;
   char *id_temp;
   double finaltemp;
-  class FixStorePeratom *fix;
+  class FixStoreAtom *fix;
   double boltz, nktv2p, inv_volume;
   double deltaPcap;
   double virial_compute(int);

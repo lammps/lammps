@@ -6,7 +6,7 @@ fitpod command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fitpod Ta_param.pod Ta_data.pod
 
@@ -23,7 +23,7 @@ Examples
 
 Description
 """""""""""
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 Fit a machine-learning interatomic potential (ML-IAP) based on proper
 orthogonal descriptors (POD).  Two input files are required for this

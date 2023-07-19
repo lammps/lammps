@@ -637,7 +637,7 @@ void remap_3d_destroy_plan(struct remap_plan_3d *plan)
 {
   // free MPI communicator
 
-  if (!((plan->usecollective) && (plan->commringlen == 0)))
+  if (!(plan->usecollective) || (plan->commringlen != 0))
     MPI_Comm_free(&plan->comm);
 
   if (plan->usecollective) {

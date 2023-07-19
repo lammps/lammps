@@ -50,9 +50,11 @@ namespace Test {
 // The difference with the CUDA tests are: raw HIP vs raw CUDA and no launch
 // bound in HIP due to an error when computing the block size.
 TEST(hip, raw_hip_streams) {
+  // Make sure that we use the same device for all allocations
+  Kokkos::initialize();
+
   hipStream_t stream;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamCreate(&stream));
-  Kokkos::initialize();
   int* p;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(&p, sizeof(int) * 100));
   using MemorySpace = typename TEST_EXECSPACE::memory_space;

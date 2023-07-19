@@ -126,6 +126,8 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   surf2tag.clear();
 
   // get the mapping between lattice indices and atom IDs
+
+  atom->map_init();
   readmap();
   delete[] mapfile;
   if (nucell == 1) nasr = MIN(1,nasr);

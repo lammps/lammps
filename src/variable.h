@@ -90,6 +90,7 @@ class Variable : protected Pointers {
 
   struct VecVar {
     int n, nmax;
+    int dynamic;
     bigint currentstep;
     double *values;
   };
@@ -141,10 +142,12 @@ class Variable : protected Pointers {
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   Region *region_function(char *, int);
   int special_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
+  int feature_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
   int parse_args(char *, char **);
+  void parse_vector(int, char *);
   char *find_next_comma(char *);
   void print_var_error(const std::string &, int, const std::string &, int, int global = 1);
   void print_tree(Tree *, int);
@@ -152,7 +155,7 @@ class Variable : protected Pointers {
 
 class VarReader : protected Pointers {
  public:
-  class FixStorePeratom *fixstore;
+  class FixStoreAtom *fixstore;
   char *id_fix;
 
   VarReader(class LAMMPS *, char *, char *, int);

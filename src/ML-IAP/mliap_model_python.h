@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class MLIAPModelPython : public MLIAPModel {
  public:
-  MLIAPModelPython(LAMMPS *, char * = nullptr);
+  MLIAPModelPython(LAMMPS *, char * = nullptr, bool is_child=false);
   ~MLIAPModelPython() override;
   int get_nparams() override;
   int get_gamma_nnz(class MLIAPData *) override;

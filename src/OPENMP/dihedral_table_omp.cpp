@@ -16,20 +16,20 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "dihedral_table_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "force.h"
-
 #include "math_const.h"
 #include "math_extra.h"
-
 #include "suffix.h"
 
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
@@ -90,7 +90,7 @@ static double Phi(double const *x1, //array holding x,y,z coords atom 1
 
   if (dot3(n123, vb34) > 0.0) {
     phi = -phi;   //(Note: Negative dihedral angles are possible only in 3-D.)
-    phi += MY_2PI; //<- This insure phi is always in the range 0 to 2*PI
+    phi += MY_2PI; //<- This ensure phi is always in the range 0 to 2*PI
   }
   return phi;
 } // DihedralTable::Phi()
@@ -380,7 +380,7 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,f1,f3,f4,
-                   vb12[0],vb12[1],vb12[2],vb23[0],vb23[1],vb23[2],vb34[0],
+                   -vb12[0],-vb12[1],-vb12[2],vb23[0],vb23[1],vb23[2],vb34[0],
                    vb34[1],vb34[2],thr);
   }
 }

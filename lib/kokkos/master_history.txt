@@ -29,3 +29,4 @@ tag:  3.5.00     date: 11:19:2021    master: c28a8b03    release: 21b879e4
 tag:  3.6.00     date: 04:14:2022    master: 2834f94a    release: 6ea708ff
 tag:  3.6.01     date: 06:16:2022    master: b52f8c83    release: afe9b404
 tag:  3.7.00     date: 08:25:2022    master: d19aab99    release: 0018e5fb
+tag:  3.7.01     date: 12:01:2022    master: 61d7db55    release: d3bb8cfe

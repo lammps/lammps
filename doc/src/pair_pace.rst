@@ -1,11 +1,12 @@
 .. index:: pair_style pace
 .. index:: pair_style pace/kk
 .. index:: pair_style pace/extrapolation
+.. index:: pair_style pace/extrapolation/kk
 
 pair_style pace command
 =======================
 
-Accelerator Variants: *pace/kk*
+Accelerator Variants: *pace/kk*, *pace/extrapolation/kk*
 
 pair_style pace/extrapolation command
 =====================================
@@ -47,9 +48,9 @@ Description
 
 Pair style *pace* computes interactions using the Atomic Cluster
 Expansion (ACE), which is a general expansion of the atomic energy in
-multi-body basis functions. :ref:`(Drautz) <Drautz20191>`.  The *pace*
+multi-body basis functions. :ref:`(Drautz19) <Drautz20191>`.  The *pace*
 pair style provides an efficient implementation that is described in
-this paper :ref:`(Lysogorskiy) <Lysogorskiy20211>`.
+this paper :ref:`(Lysogorskiy21) <Lysogorskiy20211>`.
 
 In ACE, the total energy is decomposed into a sum over atomic
 energies. The energy of atom *i* is expressed as a linear or non-linear
@@ -90,7 +91,7 @@ Extrapolation grade
 Calculation of extrapolation grade in PACE is implemented in `pair_style
 pace/extrapolation`.  It is based on the MaxVol algorithm similar to
 Moment Tensor Potential (MTP) by Shapeev et al.  and is described in
-:ref:`(Lysogorskiy2) <Lysogorskiy2022>`.  In order to compute
+:ref:`(Lysogorskiy23) <Lysogorskiy2023>`.  In order to compute
 extrapolation grade one needs to provide:
 
 #. ACE potential in B-basis form (`.yaml` format) and
@@ -126,6 +127,9 @@ the structure will be dumped into `extrapolative_structures.dump` file,
 but not more often than every 20 steps.
 
 On all other steps `pair_style pace recursive` will be used.
+
+When using the pair style *pace/extrapolation* with the KOKKOS package on GPUs
+product B-basis evaluator is always used and only *linear* ASI is supported.
 
 ----------
 
@@ -178,12 +182,12 @@ recursive, chunksize = 4096,
 
 .. _Drautz20191:
 
-**(Drautz)** Drautz, Phys Rev B, 99, 014104 (2019).
+**(Drautz19)** Drautz, Phys Rev B, 99, 014104 (2019).
 
 .. _Lysogorskiy20211:
 
-**(Lysogorskiy)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
+**(Lysogorskiy21)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
 
-.. _Lysogorskiy2022:
+.. _Lysogorskiy2023:
 
-**(Lysogorskiy2022)** Lysogorskiy, Bochkarev, Mrovec, Drautz, TBS (2022).
+**(Lysogorskiy23)** Lysogorskiy, Bochkarev, Mrovec, Drautz, Phys Rev Mater, 7, 043801 (2023) / arXiv:2212.08716 (2022).

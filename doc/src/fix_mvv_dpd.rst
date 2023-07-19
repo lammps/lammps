@@ -14,7 +14,7 @@ fix mvv/tdpd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID mvv/dpd lambda
 
@@ -65,33 +65,37 @@ a default value of 0.5 is used, which effectively reproduces the
 standard velocity-Verlet (VV) scheme.  For more details, see
 :ref:`Groot <Groot2>`.
 
-Fix *mvv/dpd* updates the position and velocity of each atom.  It can
-be used with the :doc:`pair_style mdpd <pair_mesodpd>` command or other
+Fix *mvv/dpd* updates the position and velocity of each atom.  It can be
+used with the :doc:`pair_style mdpd <pair_mesodpd>` command or other
 pair styles such as :doc:`pair dpd <pair_dpd>`.
 
-Fix *mvv/edpd* updates the per-atom temperature, in addition to
-position and velocity, and must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.
+Fix *mvv/edpd* updates the per-atom temperature, in addition to position
+and velocity, and must be used with the :doc:`pair_style edpd
+<pair_mesodpd>` command.
 
-Fix *mvv/tdpd* updates the per-atom chemical concentration, in
-addition to position and velocity, and must be used with the
-:doc:`pair_style tdpd <pair_mesodpd>` command.
+Fix *mvv/tdpd* updates the per-atom chemical concentration, in addition
+to position and velocity, and must be used with the :doc:`pair_style
+tdpd <pair_mesodpd>` command.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.  No global or per-atom quantities are stored by
+this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the DPD-MESO package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
+These fixes are part of the DPD-MESO package. They are only enabled if
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

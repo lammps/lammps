@@ -151,7 +151,7 @@ void DumpAtomMPIIO::write()
 
   bigint nheader = ntotal;
 
-  // insure filewriter proc can receive everyone's info
+  // ensure filewriter proc can receive everyone's info
   // limit nmax*size_one to int since used as arg in MPI_Rsend() below
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()
@@ -283,6 +283,8 @@ void DumpAtomMPIIO::init_style()
 
 void DumpAtomMPIIO::write_header(bigint ndump)
 {
+  if (!header_choice) error->all(FLERR, "Must not use 'run pre no' after creating a new dump");
+
   (this->*header_choice)(ndump);
 }
 

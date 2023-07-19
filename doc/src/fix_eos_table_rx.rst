@@ -9,7 +9,7 @@ Accelerator Variants: *eos/table/rx/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID eos/table/rx style file1 N keyword ...
 

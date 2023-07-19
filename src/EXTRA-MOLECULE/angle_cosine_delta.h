@@ -29,6 +29,7 @@ class AngleCosineDelta : public AngleCosineSquared {
   AngleCosineDelta(class LAMMPS *);
   void compute(int, int) override;
   double single(int, int, int, int) override;
+  void born_matrix(int type, int i1, int i2, int i3, double &du, double &du2) override;
 };
 
 }    // namespace LAMMPS_NS

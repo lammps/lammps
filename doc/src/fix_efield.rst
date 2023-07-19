@@ -1,21 +1,25 @@
 .. index:: fix efield
+.. index:: fix efield/tip4p
 
 fix efield command
 ==================
 
+fix efield/tip4p command
+========================
+
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   fix ID group-ID efield ex ey ez keyword value ...
+   fix ID group-ID style ex ey ez keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* efield = style name of this fix command
+* style = *efield* or *efield/tip4p*
 * ex,ey,ez = E-field component values (electric field units)
 * any of ex,ey,ez can be a variable (see below)
 * zero or more keyword/value pairs may be appended to args
-* keyword = *region* or *energy*
+* keyword = *region* or *energy* or *potential*
 
   .. parsed-literal::
 
@@ -23,6 +27,8 @@ Syntax
          region-ID = ID of region atoms must be in to have added force
        *energy* value = v_name
          v_name = variable with name that calculates the potential energy of each atom in the added E-field
+       *potential* value = v_name
+         v_name = variable with name that calculates the electric potential of each atom in the added E-field
 
 Examples
 """"""""
@@ -31,27 +37,36 @@ Examples
 
    fix kick external-field efield 1.0 0.0 0.0
    fix kick external-field efield 0.0 0.0 v_oscillate
+   fix kick external-field efield/tip4p 1.0 0.0 0.0
 
 Description
 """""""""""
 
-Add a force F = qE to each charged atom in the group due to an
+Add a force :math:`\vec{F} = q\vec{E}` to each charged atom in the group due to an
 external electric field being applied to the system.  If the system
 contains point-dipoles, also add a torque on the dipoles due to the
 external electric field.
 
-For charges, any of the 3 quantities defining the E-field components
-can be specified as an equal-style or atom-style
-:doc:`variable <variable>`, namely *ex*, *ey*, *ez*\ .  If the value is a
-variable, it should be specified as v_name, where name is the variable
-name.  In this case, the variable will be evaluated each timestep, and
-its value used to determine the E-field component.
+.. versionadded:: 28Mar2023
+
+When the *efield/tip4p* style is used, the E-field will be applied to
+the position of the virtual charge site M of a TIP4P molecule instead of
+the oxygen position as it is defined by a corresponding :doc:`TIP4P pair
+style <pair_lj_cut_tip4p>`.  The forces on the M site due to the
+external field are projected on the oxygen and hydrogen atoms of the
+TIP4P molecules.
+
+For charges, any of the 3 quantities defining the E-field components can
+be specified as an equal-style or atom-style :doc:`variable <variable>`,
+namely *ex*, *ey*, *ez*\ .  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case, the
+variable will be evaluated each timestep, and its value used to
+determine the E-field component.
 
 For point-dipoles, equal-style variables can be used, but atom-style
 variables are not currently supported, since they imply a spatial
 gradient in the electric field which means additional terms with
-gradients of the field are required for the force and torque on
-dipoles.
+gradients of the field are required for the force and torque on dipoles.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include :doc:`thermo_style <thermo_style>` command
@@ -81,17 +96,26 @@ self-consistent minimization problem (see below).
 The *energy* keyword is not allowed if the added field is a constant
 vector (ex,ey,ez), with all components defined as numeric constants
 and not as variables.  This is because LAMMPS can compute the energy
-for each charged particle directly as E = -x dot qE = -q (x\*ex + y\*ey
-+ z\*ez), so that -Grad(E) = F.  Similarly for point-dipole particles
-the energy can be computed as E = -mu dot E = -(mux\*ex + muy\*ey +
-muz\*ez).
+for each charged particle directly as
+
+.. math::
+
+   U_{efield} = -\vec{x} \cdot q\vec{E} = -q (x\cdot E_x + y\cdot E_y + z\cdot Ez),
+
+so that :math:`-\nabla U_{efield} = \vec{F}`.  Similarly for point-dipole particles
+the energy can be computed as
+
+.. math::
+
+   U_{efield} = -\vec{\mu} \cdot \vec{E} = -\mu_x\cdot E_x + \mu_y\cdot E_y + \mu_z\cdot E_z
 
 The *energy* keyword is optional if the added force is defined with
 one or more variables, and if you are performing dynamics via the
 :doc:`run <run>` command.  If the keyword is not used, LAMMPS will set
 the energy to 0.0, which is typically fine for dynamics.
 
-The *energy* keyword is required if the added force is defined with
+The *energy* keyword (or *potential* keyword, described below)
+is required if the added force is defined with
 one or more variables, and you are performing energy minimization via
 the "minimize" command for charged particles.  It is not required for
 point-dipoles, but a warning is issued since the minimizer in LAMMPS
@@ -101,16 +125,37 @@ minimize the orientation of dipoles in an applied electric field.
 The *energy* keyword specifies the name of an atom-style
 :doc:`variable <variable>` which is used to compute the energy of each
 atom as function of its position.  Like variables used for *ex*,
-*ey*, *ez*, the energy variable is specified as v_name, where name
+*ey*, *ez*, the energy variable is specified as "v_name", where "name"
 is the variable name.
 
 Note that when the *energy* keyword is used during an energy
-minimization, you must insure that the formula defined for the
+minimization, you must ensure that the formula defined for the
 atom-style :doc:`variable <variable>` is consistent with the force
 variable formulas, i.e. that -Grad(E) = F.  For example, if the force
 due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx\^2.  If you don't do this correctly, the
 minimization will not converge properly.
+
+.. versionadded:: 15Jun2023
+
+The *potential* keyword can be used as an alternative to the *energy* keyword
+to specify the name of an atom-style variable, which is used to compute the
+added electric potential to each atom as a function of its position.  The
+variable should have units of electric field multiplied by distance (that is,
+in `units real`, the potential should be in volts). As with the *energy*
+keyword, the variable name is specified as "v_name". The energy added by this
+fix is then calculated as the electric potential multiplied by charge.
+
+The *potential* keyword is mainly intended for correct charge
+equilibration in simulations with :doc:`fix qeq/reaxff<fix_qeq_reaxff>`,
+since with variable charges the electric potential can be known
+beforehand but the energy cannot.  A small additional benefit is that
+the *energy* keyword requires an additional conversion to energy units
+which the *potential* keyword avoids.  Thus, when the *potential*
+keyword is specified, the *energy* keyword must not be used.  As with
+*energy*, the *potential* keyword is not allowed if the added field is a
+constant vector.  The *potential* keyword is not supported by *fix
+efield/tip4p*.
 
 ----------
 
@@ -120,29 +165,28 @@ Restart, fix_modify, output, run start/stop, minimize info
 No information about this fix is written to :doc:`binary restart files
 <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by
-this fix to add the potential energy inferred by the added force due
-to the electric field to the global potential energy of the system as
-part of :doc:`thermodynamic output <thermo_style>`.  The default
-setting for this fix is :doc:`fix_modify energy no <fix_modify>`.
-Note that this energy is a fictitious quantity but is needed so that
-the :doc:`minimize <minimize>` command can include the forces added by
-this fix in a consistent manner.  I.e. there is a decrease in
-potential energy when atoms move in the direction of the added force
-due to the electric field.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
+fix to add the potential energy inferred by the added force due to the
+electric field to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy no <fix_modify>`.  Note that this
+energy is a fictitious quantity but is needed so that the :doc:`minimize
+<minimize>` command can include the forces added by this fix in a
+consistent manner.  I.e. there is a decrease in potential energy when
+atoms move in the direction of the added force due to the electric
+field.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-this fix to add the contribution due to the added forces on atoms to
-both the global pressure and per-atom stress of the system via the
-:doc:`compute pressure <compute_pressure>` and :doc:`compute
-stress/atom <compute_stress_atom>` commands.  The former can be
-accessed by :doc:`thermodynamic output <thermo_style>`.  The default
-setting for this fix is :doc:`fix_modify virial no <fix_modify>`.
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
+fix to add the contribution due to the added forces on atoms to both the
+global pressure and per-atom stress of the system via the :doc:`compute
+pressure <compute_pressure>` and :doc:`compute stress/atom
+<compute_stress_atom>` commands.  The former can be accessed by
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify virial no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows to set at which level of the :doc:`r-RESPA
-<run_style>` integrator the fix adding its forces. Default is the
-outermost level.
+fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
+integrator the fix adding its forces. Default is the outermost level.
 
 This fix computes a global scalar and a global 3-vector of forces,
 which can be accessed by various :doc:`output commands
@@ -169,7 +213,11 @@ the iteration count during the minimization.
 Restrictions
 """"""""""""
 
-None
+Fix style *efield/tip4p* is part of the EXTRA-FIX package. It is only
+enabled if LAMMPS was built with that package.  See the :doc:`Build
+package <Build_package>` page for more info.
+
+Fix style *efield/tip4p* can only be used with tip4p pair styles.
 
 Related commands
 """"""""""""""""

@@ -86,19 +86,20 @@ data file for a complex system of molecules.
 
 .. note::
 
-   If the system has no bonds (angles, dihedrals, impropers) to begin with,
-   or if more bonds per atom are being added than currently exist, then you
-   must ensure that the number of bond types and the maximum number of
-   bonds per atom are set to large enough values, and similarly for
-   angles, dihedrals, and impropers, otherwise an error may occur when too many
-   bonds (angles, dihedrals, impropers) are added to an atom.  If the
-   :doc:`read_data <read_data>` command is used to define the system, these
-   parameters can be set via the "bond types" and "extra bond per atom"
-   fields in the header section of the data file.  If the
-   :doc:`create_box <create_box>` command is used to define the system,
-   these two parameters can be set via its optional *bond/types* and
-   *extra/bond/per/atom* arguments, and similarly for angles, dihedrals, and
-   impropers.  See the doc pages for these two commands for details.
+   If the system has no bonds (angles, dihedrals, impropers) to begin
+   with, or if more bonds per atom are being added than currently exist,
+   then you must ensure that the number of bond types and the maximum
+   number of bonds per atom are set to large enough values, and
+   similarly for angles, dihedrals, impropers, and special neighbors,
+   otherwise an error may occur when too many bonds (angles, dihedrals,
+   impropers) are added to an atom.  If the :doc:`read_data <read_data>`
+   command is used to define the system, these parameters can be set via
+   its optional *extra/bond/types*, *extra/bond/per/atom*, and similar
+   keywords to the command.  If the :doc:`create_box <create_box>`
+   command is used to define the system, these two parameters can be set
+   via its optional *bond/types* and *extra/bond/per/atom* arguments,
+   and similarly for angles, dihedrals, and impropers.  See the
+   corresponding documentation pages for these two commands for details.
 
 ----------
 
@@ -112,7 +113,7 @@ For a bond to be created, an :math:`I,J` pair of atoms must be a distance
 :math:`D` apart such that :math:`r_\text{min} \le D \le r_\text{max}`.
 
 The following settings must have been made in an input script before
-this style is used:
+the *many* style is used:
 
 * special_bonds weight for 1--2 interactions must be 0.0
 * a :doc:`pair_style <pair_style>` must be defined
@@ -121,16 +122,19 @@ this style is used:
   skin :math:`\ge r_\text{max}`
 
 These settings are required so that a neighbor list can be created to
-search for nearby atoms.  Pairs of atoms that are already bonded
-cannot appear in the neighbor list, to avoid creation of duplicate
-bonds.  The neighbor list for all atom type pairs must also extend to
-a distance that encompasses the *rmax* for new bonds to create.
+search for nearby atoms.  Pairs of atoms that are already bonded cannot
+appear in the neighbor list, to avoid creation of duplicate bonds.  The
+neighbor list for all atom type pairs must also extend to a distance
+that encompasses the *rmax* for new bonds to create.  When using
+periodic boundary conditions, the box length in each periodic dimension
+must be larger than *rmax*, so that no bonds are created between the
+system and its own periodic image.
 
 .. note::
 
    If you want to create bonds between pairs of 1--3 or 1--4 atoms in
    the current bond topology, then you need to use :doc:`special_bonds
-   lj 0 1 1 <special_bonds>` to insure those pairs appear in the
+   lj 0 1 1 <special_bonds>` to ensure those pairs appear in the
    neighbor list.  They will not appear with the default special_bonds
    settings, which are zero for 1--2, 1--3, and 1--4 atoms.  1--3 or 1--4
    atoms are those which are two hops or three hops apart in the bond
@@ -218,6 +222,11 @@ Restrictions
 This command cannot be used with molecular systems defined using
 molecule template files via the :doc:`molecule <molecule>` and
 :doc:`atom_style template <atom_style>` commands.
+
+For style *many*, no :doc:`kspace style <kspace_style>` must be
+defined. Also, the *rmax* value must be smaller than any periodic box
+length and the neighbor list cutoff (largest pair cutoff plus neighbor
+skin).
 
 Related commands
 """"""""""""""""

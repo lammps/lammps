@@ -71,9 +71,9 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
   internal = new DumpCustomADIOSInternal();
   try {
 #if defined(MPI_STUBS)
-    internal->ad = new adios2::ADIOS("adios2_config.xml", adios2::DebugON);
+    internal->ad = new adios2::ADIOS("adios2_config.xml");
 #else
-    internal->ad = new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+    internal->ad = new adios2::ADIOS("adios2_config.xml", world);
 #endif
   } catch (std::ios_base::failure &e) {
     error->all(FLERR, "ADIOS initialization failed with error: {}", e.what());
@@ -165,7 +165,7 @@ void DumpCustomADIOS::write()
   internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
   internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
-  // insure filewriter proc can receive everyone's info
+  // ensure filewriter proc can receive everyone's info
   // limit nmax*size_one to int since used as arg in MPI_Rsend() below
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()

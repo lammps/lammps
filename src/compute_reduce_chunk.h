@@ -20,23 +20,17 @@ ComputeStyle(reduce/chunk,ComputeReduceChunk);
 #ifndef LMP_COMPUTE_REDUCE_CHUNK_H
 #define LMP_COMPUTE_REDUCE_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
 
-class ComputeReduceChunk : public Compute {
+class ComputeReduceChunk : public ComputeChunk {
  public:
   ComputeReduceChunk(class LAMMPS *, int, char **);
   ~ComputeReduceChunk() override;
   void init() override;
   void compute_vector() override;
   void compute_array() override;
-
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
 
   double memory_usage() override;
 
@@ -53,19 +47,14 @@ class ComputeReduceChunk : public Compute {
   };
   std::vector<value_t> values;
 
-  char *idchunk;
-
-  int mode, nchunk;
-  int maxchunk, maxatom;
+  int mode, maxatom;
   double initvalue;
   double *vlocal, *vglobal;
   double **alocal, **aglobal;
   double *varatom;
 
-  class ComputeChunkAtom *cchunk;
   int *ichunk;
 
-  void init_chunk();
   void compute_one(int, double *, int);
   void combine(double &, double);
 };

@@ -24,7 +24,7 @@ AtomStyle(hybrid,AtomVecHybrid);
 
 namespace LAMMPS_NS {
 
-class AtomVecHybrid : public AtomVec {
+class AtomVecHybrid : virtual public AtomVec {
  public:
   int nstyles;
   class AtomVec **styles;

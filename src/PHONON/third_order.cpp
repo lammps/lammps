@@ -34,7 +34,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
@@ -413,7 +412,7 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
-  if (screen && me ==0)
+  if (screen && me == 0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }
 

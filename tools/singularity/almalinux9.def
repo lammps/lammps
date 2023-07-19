@@ -9,7 +9,7 @@ From: library/almalinux:9
         dnf -y install vim-enhanced git file make cmake patch which file ninja-build \
                ccache gcc-c++ gcc-gfortran clang libomp-devel gdb valgrind libubsan libasan libtsan \
                eigen3-devel openblas-devel libpng-devel libjpeg-devel platform-python-devel \
-               openmpi-devel mpich-devel fftw-devel gsl-devel hdf5-devel \
+               openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
                netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
                enchant python3-virtualenv doxygen diffutils latexmk readline-devel \
                texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
@@ -44,7 +44,7 @@ From: library/almalinux:9
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.8.1
+        version=2.8.2
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}

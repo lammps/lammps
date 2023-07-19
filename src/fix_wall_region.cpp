@@ -124,7 +124,7 @@ void FixWallRegion::init()
   if (!region) error->all(FLERR, "Region {} for fix wall/region does not exist", idregion);
 
   // error checks for style COLLOID
-  // insure all particles in group are extended particles
+  // ensure all particles in group are extended particles
 
   if (style == COLLOID) {
     if (!atom->sphere_flag) error->all(FLERR, "Fix wall/region colloid requires atom style sphere");
@@ -238,7 +238,7 @@ void FixWallRegion::post_force(int vflag)
 
   v_init(vflag);
 
-  // region->match() insures particle is in region or on surface, else error
+  // region->match() ensures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
   // in COLLOID case, r <= radius is an error
   // initilize ewall after region->prematch(),

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,8 +19,7 @@
 
 using namespace LAMMPS_NS;
 
-void
-MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
+void MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 {
   int i, j;
 
@@ -45,6 +43,14 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->destroy(arho3b);
     memory->destroy(t_ave);
     memory->destroy(tsq_ave);
+    // msmeam params
+    if (msmeamflag) {
+      memory->destroy(arho1m);
+      memory->destroy(arho2m);
+      memory->destroy(arho3m);
+      memory->destroy(arho2mb);
+      memory->destroy(arho3mb);
+    }
 
     nmax = atom_nmax;
 
@@ -65,6 +71,14 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->create(arho3b, nmax, 3, "pair:arho3b");
     memory->create(t_ave, nmax, 3, "pair:t_ave");
     memory->create(tsq_ave, nmax, 3, "pair:tsq_ave");
+    // msmeam params
+    if (msmeamflag) {
+      memory->create(arho1m, nmax, 3, "pair:arho1m");
+      memory->create(arho2m, nmax, 6, "pair:arho2m");
+      memory->create(arho3m, nmax, 10, "pair:arho3m");
+      memory->create(arho2mb, nmax, "pair:arho2mb");
+      memory->create(arho3mb, nmax, 3, "pair:arho3mb");
+    }
   }
 
   if (n_neigh > maxneigh) {
@@ -83,20 +97,27 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     rho0[i] = 0.0;
     arho2b[i] = 0.0;
     arho1[i][0] = arho1[i][1] = arho1[i][2] = 0.0;
-    for (j = 0; j < 6; j++)
+    if (msmeamflag) {
+      arho2mb[i] = 0.0;
+      arho1m[i][0] = arho1m[i][1] = arho1m[i][2] = 0.0;
+    }
+    for (j = 0; j < 6; j++) {
       arho2[i][j] = 0.0;
-    for (j = 0; j < 10; j++)
+      if (msmeamflag) { arho2m[i][j] = 0.0; }
+    }
+    for (j = 0; j < 10; j++) {
       arho3[i][j] = 0.0;
+      if (msmeamflag) { arho3m[i][j] = 0.0; }
+    }
     arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
+    if (msmeamflag) { arho3mb[i][0] = arho3mb[i][1] = arho3mb[i][2] = 0.0; }
     t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
     tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
   }
 }
 
-void
-MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
-                     int numneigh, int* firstneigh,
-                     int numneigh_full, int* firstneigh_full, int fnoffset)
+void MEAM::meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, int numneigh,
+                          int *firstneigh, int numneigh_full, int *firstneigh_full, int fnoffset)
 {
   //     Compute screening function and derivatives
   getscreen(i, &scrfcn[fnoffset], &dscrfcn[fnoffset], &fcpair[fnoffset], x, numneigh, firstneigh,
@@ -108,9 +129,9 @@ MEAM::meam_dens_init(int i, int ntype, int* type, int* fmap, double** x,
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-void
-MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double** x, int numneigh,
-                int* firstneigh, int numneigh_full, int* firstneigh_full, int /*ntype*/, int* type, int* fmap)
+void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, double **x,
+                     int numneigh, int *firstneigh, int numneigh_full, int *firstneigh_full,
+                     int /*ntype*/, int *type, int *fmap)
 {
   int jn, j, kn, k;
   int elti, eltj, eltk;
@@ -122,7 +143,7 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
   double dCikj;
   double rnorm, fc, dfc, drinv;
 
-  drinv = 1.0 / this->delr_meam;
+  drinv = 1.0 / delr_meam;
   elti = fmap[type[i]];
   if (elti < 0) return;
 
@@ -145,16 +166,16 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
     delzij = zjtmp - zitmp;
     rij2 = delxij * delxij + delyij * delyij + delzij * delzij;
 
-    if (rij2 > this->cutforcesq) {
+    if (rij2 > cutforcesq) {
       dscrfcn[jn] = 0.0;
       scrfcn[jn] = 0.0;
       fcpair[jn] = 0.0;
       continue;
     }
 
-    const double rbound = this->ebound_meam[elti][eltj] * rij2;
+    const double rbound = ebound_meam[elti][eltj] * rij2;
     rij = sqrt(rij2);
-    rnorm = (this->cutforce - rij) * drinv;
+    rnorm = (cutforce - rij) * drinv;
     sij = 1.0;
 
     //     if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
@@ -188,8 +209,8 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
       if (a <= 0.0) continue;
 
       cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-      Cmax = this->Cmax_meam[elti][eltj][eltk];
-      Cmin = this->Cmin_meam[elti][eltj][eltk];
+      Cmax = Cmax_meam[elti][eltj][eltk];
+      Cmin = Cmin_meam[elti][eltj][eltk];
       if (cikj >= Cmax) continue;
       //     note that cikj may be slightly negative (within numerical
       //     tolerance) if atoms are colinear, so don't reject that case here
@@ -239,8 +260,8 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
         if (a <= 0.0) continue;
 
         cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-        Cmax = this->Cmax_meam[elti][eltj][eltk];
-        Cmin = this->Cmin_meam[elti][eltj][eltk];
+        Cmax = Cmax_meam[elti][eltj][eltk];
+        Cmin = Cmin_meam[elti][eltj][eltk];
         if (cikj >= Cmax) {
           continue;
           //     Note that cikj may be slightly negative (within numerical
@@ -271,9 +292,8 @@ MEAM::getscreen(int i, double* scrfcn, double* dscrfcn, double* fcpair, double**
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-void
-MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numneigh, int* firstneigh,
-                double* scrfcn, double* fcpair)
+void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int numneigh,
+                     int *firstneigh, double *scrfcn, double *fcpair)
 {
   int jn, j, m, n, p, elti, eltj;
   int nv2, nv3;
@@ -282,6 +302,9 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
   // double G,Gbar,gam,shp[3+1];
   double ro0i, ro0j;
   double rhoa0i, rhoa1i, rhoa2i, rhoa3i, A1i, A2i, A3i;
+  // msmeam params
+  double rhoa1mj, rhoa2mj, rhoa3mj, A1mj, A2mj, A3mj;
+  double rhoa1mi, rhoa2mi, rhoa3mi, A1mi, A2mi, A3mi;
 
   elti = fmap[type[i]];
   xtmp = x[i][0];
@@ -295,47 +318,58 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
       delij[1] = x[j][1] - ytmp;
       delij[2] = x[j][2] - ztmp;
       rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
-      if (rij2 < this->cutforcesq) {
+      if (rij2 < cutforcesq) {
         eltj = fmap[type[j]];
         rij = sqrt(rij2);
-        ai = rij / this->re_meam[elti][elti] - 1.0;
-        aj = rij / this->re_meam[eltj][eltj] - 1.0;
-        ro0i = this->rho0_meam[elti];
-        ro0j = this->rho0_meam[eltj];
-        rhoa0j = ro0j * MathSpecial::fm_exp(-this->beta0_meam[eltj] * aj) * sij;
-        rhoa1j = ro0j * MathSpecial::fm_exp(-this->beta1_meam[eltj] * aj) * sij;
-        rhoa2j = ro0j * MathSpecial::fm_exp(-this->beta2_meam[eltj] * aj) * sij;
-        rhoa3j = ro0j * MathSpecial::fm_exp(-this->beta3_meam[eltj] * aj) * sij;
-        rhoa0i = ro0i * MathSpecial::fm_exp(-this->beta0_meam[elti] * ai) * sij;
-        rhoa1i = ro0i * MathSpecial::fm_exp(-this->beta1_meam[elti] * ai) * sij;
-        rhoa2i = ro0i * MathSpecial::fm_exp(-this->beta2_meam[elti] * ai) * sij;
-        rhoa3i = ro0i * MathSpecial::fm_exp(-this->beta3_meam[elti] * ai) * sij;
-        if (this->ialloy == 1) {
-          rhoa1j = rhoa1j * this->t1_meam[eltj];
-          rhoa2j = rhoa2j * this->t2_meam[eltj];
-          rhoa3j = rhoa3j * this->t3_meam[eltj];
-          rhoa1i = rhoa1i * this->t1_meam[elti];
-          rhoa2i = rhoa2i * this->t2_meam[elti];
-          rhoa3i = rhoa3i * this->t3_meam[elti];
+        ai = rij / re_meam[elti][elti] - 1.0;
+        aj = rij / re_meam[eltj][eltj] - 1.0;
+        ro0i = rho0_meam[elti];
+        ro0j = rho0_meam[eltj];
+        rhoa0j = ro0j * MathSpecial::fm_exp(-beta0_meam[eltj] * aj) * sij;
+        rhoa1j = ro0j * MathSpecial::fm_exp(-beta1_meam[eltj] * aj) * sij;
+        rhoa2j = ro0j * MathSpecial::fm_exp(-beta2_meam[eltj] * aj) * sij;
+        rhoa3j = ro0j * MathSpecial::fm_exp(-beta3_meam[eltj] * aj) * sij;
+        if (msmeamflag) {
+          rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecial::fm_exp(-beta1m_meam[eltj] * aj) * sij;
+          rhoa2mj = ro0j * t2m_meam[eltj] * MathSpecial::fm_exp(-beta2m_meam[eltj] * aj) * sij;
+          rhoa3mj = ro0j * t3m_meam[eltj] * MathSpecial::fm_exp(-beta3m_meam[eltj] * aj) * sij;
+        }
+        rhoa0i = ro0i * MathSpecial::fm_exp(-beta0_meam[elti] * ai) * sij;
+        rhoa1i = ro0i * MathSpecial::fm_exp(-beta1_meam[elti] * ai) * sij;
+        rhoa2i = ro0i * MathSpecial::fm_exp(-beta2_meam[elti] * ai) * sij;
+        rhoa3i = ro0i * MathSpecial::fm_exp(-beta3_meam[elti] * ai) * sij;
+        if (msmeamflag) {
+          rhoa1mi = ro0i * t1m_meam[elti] * MathSpecial::fm_exp(-beta1m_meam[elti] * ai) * sij;
+          rhoa2mi = ro0i * t2m_meam[elti] * MathSpecial::fm_exp(-beta2m_meam[elti] * ai) * sij;
+          rhoa3mi = ro0i * t3m_meam[elti] * MathSpecial::fm_exp(-beta3m_meam[elti] * ai) * sij;
+        }
+        if (ialloy == 1) {
+          rhoa1j = rhoa1j * t1_meam[eltj];
+          rhoa2j = rhoa2j * t2_meam[eltj];
+          rhoa3j = rhoa3j * t3_meam[eltj];
+          rhoa1i = rhoa1i * t1_meam[elti];
+          rhoa2i = rhoa2i * t2_meam[elti];
+          rhoa3i = rhoa3i * t3_meam[elti];
         }
         rho0[i] = rho0[i] + rhoa0j;
         rho0[j] = rho0[j] + rhoa0i;
         // For ialloy = 2, use single-element value (not average)
-        if (this->ialloy != 2) {
-          t_ave[i][0] = t_ave[i][0] + this->t1_meam[eltj] * rhoa0j;
-          t_ave[i][1] = t_ave[i][1] + this->t2_meam[eltj] * rhoa0j;
-          t_ave[i][2] = t_ave[i][2] + this->t3_meam[eltj] * rhoa0j;
-          t_ave[j][0] = t_ave[j][0] + this->t1_meam[elti] * rhoa0i;
-          t_ave[j][1] = t_ave[j][1] + this->t2_meam[elti] * rhoa0i;
-          t_ave[j][2] = t_ave[j][2] + this->t3_meam[elti] * rhoa0i;
+        // For ialloy = 2, use single-element value (not average)
+        if (ialloy != 2) {
+          t_ave[i][0] = t_ave[i][0] + t1_meam[eltj] * rhoa0j;
+          t_ave[i][1] = t_ave[i][1] + t2_meam[eltj] * rhoa0j;
+          t_ave[i][2] = t_ave[i][2] + t3_meam[eltj] * rhoa0j;
+          t_ave[j][0] = t_ave[j][0] + t1_meam[elti] * rhoa0i;
+          t_ave[j][1] = t_ave[j][1] + t2_meam[elti] * rhoa0i;
+          t_ave[j][2] = t_ave[j][2] + t3_meam[elti] * rhoa0i;
         }
-        if (this->ialloy == 1) {
-          tsq_ave[i][0] = tsq_ave[i][0] + this->t1_meam[eltj] * this->t1_meam[eltj] * rhoa0j;
-          tsq_ave[i][1] = tsq_ave[i][1] + this->t2_meam[eltj] * this->t2_meam[eltj] * rhoa0j;
-          tsq_ave[i][2] = tsq_ave[i][2] + this->t3_meam[eltj] * this->t3_meam[eltj] * rhoa0j;
-          tsq_ave[j][0] = tsq_ave[j][0] + this->t1_meam[elti] * this->t1_meam[elti] * rhoa0i;
-          tsq_ave[j][1] = tsq_ave[j][1] + this->t2_meam[elti] * this->t2_meam[elti] * rhoa0i;
-          tsq_ave[j][2] = tsq_ave[j][2] + this->t3_meam[elti] * this->t3_meam[elti] * rhoa0i;
+        if (ialloy == 1) {
+          tsq_ave[i][0] = tsq_ave[i][0] + t1_meam[eltj] * t1_meam[eltj] * rhoa0j;
+          tsq_ave[i][1] = tsq_ave[i][1] + t2_meam[eltj] * t2_meam[eltj] * rhoa0j;
+          tsq_ave[i][2] = tsq_ave[i][2] + t3_meam[eltj] * t3_meam[eltj] * rhoa0j;
+          tsq_ave[j][0] = tsq_ave[j][0] + t1_meam[elti] * t1_meam[elti] * rhoa0i;
+          tsq_ave[j][1] = tsq_ave[j][1] + t2_meam[elti] * t2_meam[elti] * rhoa0i;
+          tsq_ave[j][2] = tsq_ave[j][2] + t3_meam[elti] * t3_meam[elti] * rhoa0i;
         }
         arho2b[i] = arho2b[i] + rhoa2j;
         arho2b[j] = arho2b[j] + rhoa2i;
@@ -348,18 +382,42 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
         A3i = rhoa3i / (rij2 * rij);
         nv2 = 0;
         nv3 = 0;
+        if (msmeamflag) {
+          arho2mb[i] = arho2mb[i] + rhoa2mj;
+          arho2mb[j] = arho2mb[j] + rhoa2mi;
+          A1mj = rhoa1mj / rij;
+          A2mj = rhoa2mj / rij2;
+          A3mj = rhoa3mj / (rij2 * rij);
+          A1mi = rhoa1mi / rij;
+          A2mi = rhoa2mi / rij2;
+          A3mi = rhoa3mi / (rij2 * rij);
+        }
         for (m = 0; m < 3; m++) {
           arho1[i][m] = arho1[i][m] + A1j * delij[m];
           arho1[j][m] = arho1[j][m] - A1i * delij[m];
           arho3b[i][m] = arho3b[i][m] + rhoa3j * delij[m] / rij;
           arho3b[j][m] = arho3b[j][m] - rhoa3i * delij[m] / rij;
+          if (msmeamflag) {
+            arho1m[i][m] = arho1m[i][m] + A1mj * delij[m];
+            arho1m[j][m] = arho1m[j][m] - A1mi * delij[m];
+            arho3mb[i][m] = arho3mb[i][m] + rhoa3mj * delij[m] / rij;
+            arho3mb[j][m] = arho3mb[j][m] - rhoa3mi * delij[m] / rij;
+          }
           for (n = m; n < 3; n++) {
             arho2[i][nv2] = arho2[i][nv2] + A2j * delij[m] * delij[n];
             arho2[j][nv2] = arho2[j][nv2] + A2i * delij[m] * delij[n];
+            if (msmeamflag) {
+              arho2m[i][nv2] = arho2m[i][nv2] + A2mj * delij[m] * delij[n];
+              arho2m[j][nv2] = arho2m[j][nv2] + A2mi * delij[m] * delij[n];
+            }
             nv2 = nv2 + 1;
             for (p = n; p < 3; p++) {
               arho3[i][nv3] = arho3[i][nv3] + A3j * delij[m] * delij[n] * delij[p];
               arho3[j][nv3] = arho3[j][nv3] - A3i * delij[m] * delij[n] * delij[p];
+              if (msmeamflag) {
+                arho3m[i][nv3] = arho3m[i][nv3] + A3mj * delij[m] * delij[n] * delij[p];
+                arho3m[j][nv3] = arho3m[j][nv3] - A3mi * delij[m] * delij[n] * delij[p];
+              }
               nv3 = nv3 + 1;
             }
           }
@@ -368,4 +426,3 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
     }
   }
 }
-

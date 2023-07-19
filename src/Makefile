@@ -55,7 +55,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
-        bpm \
+	bpm \
 	brownian \
 	cg-dna \
 	cg-spica \
@@ -87,7 +87,7 @@ PACKAGE = \
 	kokkos \
 	kspace \
 	latboltz \
-	latte \
+	lepton \
 	machdyn \
 	manifold \
 	manybody \
@@ -153,7 +153,7 @@ PACKMOST = \
 	bocs \
 	body \
 	bpm \
-        brownian \
+	brownian \
 	cg-dna \
 	cg-spica \
 	class2 \
@@ -179,6 +179,7 @@ PACKMOST = \
 	manybody \
 	mc \
 	meam \
+	mesont \
 	misc \
 	ml-snap \
 	mofff \
@@ -211,7 +212,7 @@ PACKLIB = \
 	gpu \
 	kim \
 	kokkos \
-	latte \
+	lepton \
 	mpiio \
 	mscg \
 	poems \
@@ -224,8 +225,8 @@ PACKLIB = \
 	h5md \
 	ml-hdnnp \
 	latboltz \
+	lepton \
 	mdi \
-	mesont \
 	molfile \
 	netcdf \
 	ml-pace \
@@ -240,13 +241,12 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars electrode gpu kokkos mesont ml-pod poems
+PACKINT = atc awpmd colvars electrode gpu kokkos lepton ml-pod poems
 
 PACKEXT = \
 	adios \
 	h5md \
 	kim \
-	latte \
 	machdyn \
 	ml-hdnnp \
 	ml-pace \
@@ -465,7 +465,7 @@ mpi-stubs:
 sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
-	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD)
+	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD) -v $(PWD)/version.h
 
 # Create a tarball of src dir and packages
 
@@ -635,6 +635,8 @@ lib-%:
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi; touch main.cpp
+
+lib-colvars: lib-lepton
 
 # status = list src files that differ from package files
 # installed = list of installed packages

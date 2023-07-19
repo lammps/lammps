@@ -8,10 +8,11 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.12.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "7a222353ae8e03961d5365e6cd48baee" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.16.tar.gz" CACHE STRING "URL for MDI tarball")
+  set(MDI_MD5 "407db44e2d79447ab5c1233af1965f65" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
+  GetFallbackURL(MDI_URL MDI_FALLBACK)
   enable_language(C)
 
   # only ON/OFF are allowed for "mpi" flag when building MDI library
@@ -63,7 +64,7 @@ if(DOWNLOAD_MDI)
   # support cross-compilation and ninja-build
   include(ExternalProject)
   ExternalProject_Add(mdi_build
-    URL     ${MDI_URL}
+    URL     ${MDI_URL} ${MDI_FALLBACK}
     URL_MD5 ${MDI_MD5}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext
     CMAKE_ARGS

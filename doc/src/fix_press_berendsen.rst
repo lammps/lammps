@@ -6,7 +6,7 @@ fix press/berendsen command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID press/berendsen keyword value ...
 
@@ -61,7 +61,7 @@ unchanged and controlling the pressure of a surrounding fluid.
    atoms.  This fix can be used in conjunction with thermostatting fixes
    to control the temperature, such as :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>` or :doc:`fix temp/berendsen <fix_temp_berendsen>`.
 
-See the :doc:`Howto baroostat <Howto_barostat>` page for a
+See the :doc:`Howto barostat <Howto_barostat>` page for a
 discussion of different ways to perform barostatting.
 
 ----------

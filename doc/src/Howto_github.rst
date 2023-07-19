@@ -78,13 +78,13 @@ machine via HTTPS:
 
 .. code-block:: bash
 
-     $ git clone https://github.com/<your user name>/lammps.git <some name>
+     git clone https://github.com/<your user name>/lammps.git <some name>
 
 or, if you have set up your GitHub account for using SSH keys, via SSH:
 
 .. code-block:: bash
 
-     $ git clone git@github.com:<your user name>/lammps.git
+     git clone git@github.com:<your user name>/lammps.git
 
 You can find the proper URL by clicking the "Clone or download"-button:
 
@@ -103,21 +103,21 @@ and use git pull:
 
 .. code-block:: bash
 
-     $ cd mylammps
-     $ git checkout develop
-     $ git pull https://github.com/lammps/lammps develop
+     cd mylammps
+     git checkout develop
+     git pull https://github.com/lammps/lammps develop
 
 You can also add this URL as a remote:
 
 .. code-block:: bash
 
-     $ git remote add upstream https://www.github.com/lammps/lammps
+     git remote add upstream https://www.github.com/lammps/lammps
 
 From then on you can update your upstream branches with:
 
 .. code-block:: bash
 
-     $ git fetch upstream
+     git fetch upstream
 
 and then refer to the upstream repository branches with
 `upstream/develop` or `upstream/release` and so on.
@@ -129,8 +129,8 @@ workflow that updated this tutorial, and hence we will call the branch
 
 .. code-block:: bash
 
-    $ git fetch upstream
-    $ git checkout -b github-tutorial-update upstream/develop
+    git fetch upstream
+    git checkout -b github-tutorial-update upstream/develop
 
 Now that we have changed branches, we can make our changes to our local
 repository. Just remember that if you want to start working on another,
@@ -150,8 +150,8 @@ After everything is done, add the files to the branch and commit them:
 
 .. code-block:: bash
 
-    $ git add doc/src/Howto_github.txt
-    $ git add doc/src/JPG/tutorial*.png
+    git add doc/src/Howto_github.txt
+    git add doc/src/JPG/tutorial*.png
 
 .. warning::
 
@@ -174,13 +174,13 @@ useful message that explains the change.
 
 .. code-block:: bash
 
-     $ git commit -m 'Finally updated the GitHub tutorial'
+   git commit -m 'Finally updated the GitHub tutorial'
 
 After the commit, the changes can be pushed to the same branch on GitHub:
 
 .. code-block:: bash
 
-   $ git push
+   git push
 
 Git will ask you for your user name and password on GitHub if you have
 not configured anything. If your local branch is not present on GitHub yet,
@@ -188,7 +188,7 @@ it will ask you to add it by running
 
 .. code-block:: bash
 
-     $ git push --set-upstream origin github-tutorial-update
+   git push --set-upstream origin github-tutorial-update
 
 If you correctly type your user name and
 password, the feature branch should be added to your fork on GitHub.
@@ -198,13 +198,13 @@ If you want to make really sure you push to the right repository
 
 .. code-block:: bash
 
-   $ git push origin
+   git push origin
 
 or using an explicit URL:
 
 .. code-block:: bash
 
-   $ git push git@github.com:Pakketeretet2/lammps.git
+   git push git@github.com:Pakketeretet2/lammps.git
 
 ----------
 
@@ -315,7 +315,7 @@ add changes. Please watch the comments to the pull requests. The two
 "test" labels are used to trigger extended tests before the code is
 merged. This is sometimes done by LAMMPS developers, if they suspect
 that there may be some subtle side effects from your changes. It is not
-done by default, because those tests are very time consuming.  The
+done by default, because those tests are very time-consuming.  The
 *ready_for_merge* label is usually attached when the LAMMPS developer
 assigned to the pull request considers this request complete and to
 trigger a final full test evaluation.
@@ -412,10 +412,10 @@ we need to pull Axel's change back into our branch, and merge them:
 
 .. code-block:: bash
 
-    $ git add Howto_github.txt
-    $ git add JPG/tutorial_reverse_pull_request*.png
-    $ git commit -m "Updated text and images on reverse pull requests"
-    $ git pull
+    git add Howto_github.txt
+    git add JPG/tutorial_reverse_pull_request*.png
+    git commit -m "Updated text and images on reverse pull requests"
+    git pull
 
 In this case, the merge was painless because git could auto-merge:
 
@@ -428,10 +428,10 @@ commit and push again:
 
 .. code-block:: bash
 
-    $ git add Howto_github.txt
-    $ git add JPG/tutorial_reverse_pull_request6.png
-    $ git commit -m "Merged Axel's suggestions and updated text"
-    $ git push git@github.com:Pakketeretet2/lammps
+    git add Howto_github.txt
+    git add JPG/tutorial_reverse_pull_request6.png
+    git commit -m "Merged Axel's suggestions and updated text"
+    git push git@github.com:Pakketeretet2/lammps
 
 This merge also shows up on the lammps GitHub page:
 
@@ -456,9 +456,9 @@ branch!
 
 .. code-block:: bash
 
-   $ git checkout develop
-   $ git pull https://github.com/lammps/lammps develop
-   $ git branch -d github-tutorial-update
+   git checkout develop
+   git pull https://github.com/lammps/lammps develop
+   git branch -d github-tutorial-update
 
 If you do not pull first, it is not really a problem but git will warn
 you at the next statement that you are deleting a local branch that
@@ -472,19 +472,29 @@ to your remote(s) as well:
 
 .. code-block:: bash
 
-   $ git push origin :github-tutorial-update
+   git push origin :github-tutorial-update
 
 **Recent changes in the workflow**
 
-Some changes to the workflow are not captured in this tutorial.  For
-example, in addition to the *develop* branch, to which all new features
-should be submitted, there is also a *release* and a *stable* branch;
-these have the same content as *develop*, but are only updated after a
-patch release or stable release was made.  Furthermore, the naming of
-the patches now follow the pattern "patch_<Day><Month><Year>" to
-simplify comparisons between releases.  Finally, all patches and
-submissions are subject to automatic testing and code checks to make
-sure they at the very least compile.
+Some recent changes to the workflow are not captured in this tutorial.
+For example, in addition to the *develop* branch, to which all new
+features should be submitted, there is also a *release*, a *stable*, and
+a *maintenance* branch; the *release* branch is updated from the
+*develop* as part of a feature release, and *stable* (together with
+*release*) are updated from *develop* when a stable release is made. In
+between stable releases, selected bug fixes and infrastructure updates
+are back-ported from the *develop* branch to the *maintenance* branch
+and occasionally merged to *stable* as an update release.
 
-A discussion of the LAMMPS developer GitHub workflow can be found in the file
-`doc/github-development-workflow.md <https://github.com/lammps/lammps/blob/develop/doc/github-development-workflow.md>`_
+Furthermore, the naming of the release tags now follow the pattern
+"patch_<Day><Month><Year>" to simplify comparisons between releases.
+For stable releases additional "stable_<Day><Month><Year>" tags are
+applied and update releases are tagged with
+"stable_<Day><Month><Year>_update<Number>", Finally, all releases and
+submissions are subject to automatic testing and code checks to make
+sure they compile with a variety of compilers and popular operating
+systems.  Some unit and regression testing is applied as well.
+
+A detailed discussion of the LAMMPS developer GitHub workflow can be
+found in the file `doc/github-development-workflow.md
+<https://github.com/lammps/lammps/blob/develop/doc/github-development-workflow.md>`_

@@ -72,6 +72,12 @@ class Min : protected Pointers {
     MAXVDOTF
   };
 
+  // integrator styles
+  enum { EULERIMPLICIT, VERLET, LEAPFROG, EULEREXPLICIT };
+
+  // line search styles
+  enum { BACKTRACK, QUADRATIC, FORCEZERO, SPIN_CUBIC, SPIN_NONE };
+
  protected:
   int eflag, vflag;            // flags for energy/virial computation
   int virial_style;            // compute virial explicitly or implicitly
@@ -94,6 +100,7 @@ class Min : protected Pointers {
   int halfstepback_flag;         // half step backward when v.f <= 0.0
   int delaystep_start_flag;      // delay the initial dt_shrink
   int max_vdotf_negatif;         // maximum iteration with v.f > 0.0
+  int abcflag;                   // when 1 use ABC-FIRE variant instead of FIRE, default 0
 
   int nelist_global, nelist_atom;    // # of PE,virial computes to check
   int nvlist_global, nvlist_atom, ncvlist_atom;

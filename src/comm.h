@@ -51,11 +51,11 @@ class Comm : protected Pointers {
 
   // public settings specific to layout = UNIFORM, NONUNIFORM
 
-  int procgrid[3];                     // procs assigned in each dim of 3d grid
-  int user_procgrid[3];                // user request for procs in each dim
-  int myloc[3];                        // which proc I am in each dim
+  int procgrid[3];                     // proc count assigned to each dim of 3d grid
+  int user_procgrid[3];                // user request for proc counts in each dim
+  int myloc[3];                        // which proc I am in each dim, 0 to N-1
   int procneigh[3][2];                 // my 6 neighboring procs, 0/1 = left/right
-  double *xsplit, *ysplit, *zsplit;    // fractional (0-1) sub-domain sizes
+  double *xsplit, *ysplit, *zsplit;    // fractional (0-1) sub-domain sizes, includes 0/1
   int ***grid2proc;                    // which proc owns i,j,k loc in 3d grid
 
   // public settings specific to layout = TILED
@@ -100,20 +100,13 @@ class Comm : protected Pointers {
   virtual void reverse_comm(class Dump *) = 0;
 
   // forward comm of an array
-  // exchange of info on neigh stencil
-  // set processor mapping options
 
   virtual void forward_comm_array(int, double **) = 0;
-  virtual int exchange_variable(int, double *, double *&) = 0;
 
   // map a point to a processor, based on current decomposition
 
   virtual void coord2proc_setup() {}
   virtual int coord2proc(double *, int &, int &, int &);
-
-  // partition a global regular grid by proc sub-domains
-
-  void partition_grid(int, int, int, double, int &, int &, int &, int &, int &, int &);
 
   // memory usage
 

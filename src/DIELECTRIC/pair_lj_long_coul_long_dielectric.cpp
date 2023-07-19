@@ -92,7 +92,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x, *x0 = x[0];
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = avec->epsilon;
   double **norm = avec->mu;
   double *curvature = avec->curvature;
@@ -292,7 +292,8 @@ double PairLJLongCoulLongDielectric::single(int i, int j, int itype, int jtype, 
                                             double factor_coul, double factor_lj, double &fforce)
 {
   double r2inv, r6inv, force_coul, force_lj, ei, ej;
-  double g2 = g_ewald_6 * g_ewald_6, g6 = g2 * g2 * g2, g8 = g6 * g2, *q = atom->q;
+  double g2 = g_ewald_6 * g_ewald_6, g6 = g2 * g2 * g2, g8 = g6 * g2;
+  double *q = atom->q_scaled;
   double *eps = avec->epsilon;
 
   double eng = 0.0;

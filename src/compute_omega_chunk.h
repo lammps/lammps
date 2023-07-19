@@ -20,40 +20,28 @@ ComputeStyle(omega/chunk,ComputeOmegaChunk);
 #ifndef LMP_COMPUTE_OMEGA_CHUNK_H
 #define LMP_COMPUTE_OMEGA_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
 
-class ComputeOmegaChunk : public Compute {
+class ComputeOmegaChunk : public ComputeChunk {
  public:
   ComputeOmegaChunk(class LAMMPS *, int, char **);
   ~ComputeOmegaChunk() override;
-  void init() override;
-  void compute_array() override;
 
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
+  void compute_array() override;
 
   double memory_usage() override;
 
  private:
-  int nchunk, maxchunk;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
-
   double *massproc, *masstotal;
   double **com, **comall;
   double **inertia, **inertiaall;
   double **angmom, **angmomall;
   double **omega;
 
-  void allocate();
+  void allocate() override;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

@@ -6,7 +6,7 @@ fix ipi command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ipi address port [unix] [reset]
 

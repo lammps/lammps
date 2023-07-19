@@ -111,45 +111,51 @@ void FitPOD::command(int narg, char **arg)
     desc.nd = fastpodptr->nd;
   }
 
-  // compute POD coefficients using least-squares method
+  if (compute_descriptors==0) {
+    // compute POD coefficients using least-squares method
 
-  least_squares_fit(traindata);
+    least_squares_fit(traindata);
 
-  // calculate errors for the training data set
+    // calculate errors for the training data set
 
-  if ((traindata.training_analysis) && ((int) traindata.data_path.size() > 1) )
-    error_analysis(traindata, desc.c);
+    if ((traindata.training_analysis) && ((int) traindata.data_path.size() > 1) )
+      error_analysis(traindata, desc.c);
 
-  // calculate energy and force for the training data set
+    // calculate energy and force for the training data set
 
-  if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
-    energyforce_calculation(traindata, desc.c);  
+    if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
+      energyforce_calculation(traindata, desc.c);  
 
-  if (!((testdata.data_path == traindata.data_path) && (testdata.fraction == 1.0) && (traindata.fraction == 1.0)))
-  {  
-    // calculate errors for the test data set
-    
-    if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) ) {
-      error_analysis(testdata, desc.c);
+    if (!((testdata.data_path == traindata.data_path) && (testdata.fraction == 1.0) && (traindata.fraction == 1.0)))
+    {  
+      // calculate errors for the test data set
+
+      if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) ) {
+        error_analysis(testdata, desc.c);
+      }
+
+      // calculate energy and force for the test data set
+
+      if ((testdata.test_analysis) && (testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) )
+        energyforce_calculation(testdata, desc.c);
+
+      // deallocate testing data
+
+      if ((int) testdata.data_path.size() > 1 && (testdata.test_analysis) && (testdata.fraction > 0) ){
+        memory->destroy(testdata.lattice);
+        memory->destroy(testdata.energy);
+        memory->destroy(testdata.stress);
+        memory->destroy(testdata.position);
+        memory->destroy(testdata.force);
+        memory->destroy(testdata.atomtype);
+        memory->destroy(testdata.we);
+        memory->destroy(testdata.wf);
+      }    
     }
-
-    // calculate energy and force for the test data set
-
-    if ((testdata.test_analysis) && (testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) )
-      energyforce_calculation(testdata, desc.c);
-    
-    // deallocate testing data
-
-    if ((int) testdata.data_path.size() > 1 && (testdata.test_analysis) && (testdata.fraction > 0) ){
-      memory->destroy(testdata.lattice);
-      memory->destroy(testdata.energy);
-      memory->destroy(testdata.stress);
-      memory->destroy(testdata.position);
-      memory->destroy(testdata.force);
-      memory->destroy(testdata.atomtype);
-      memory->destroy(testdata.we);
-      memory->destroy(testdata.wf);
-    }    
+  }
+  else if (compute_descriptors>0) {
+    // compute and save POD descriptors
+    descriptors_calculation(traindata);    
   }
   
   // deallocate training data
@@ -568,7 +574,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
         }
       }
 
-      if (compute_descriptors != 1) {
+      if (compute_descriptors == 0) {
         
         // find the word containing "energy"
 
@@ -633,7 +639,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
         if (species[ii] == words[0])
           atomtype[nat] = ii+1;
 
-      if (compute_descriptors == 1) {
+      if (compute_descriptors> 0) {
         for (int k = 0; k < 3; k++) 
           pos[k + 3*nat] = utils::numeric(FLERR,words[1+k],false,lmp);
       }
@@ -1662,6 +1668,57 @@ void FitPOD::cubic_descriptors(const datastruct &data, int ci)
 
   for (int i=dim*natom*(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); i<dim*natom*nd; i++)
     desc.gdd[i] = desc.gdd[i]/(natom*natom);
+}
+
+void FitPOD::descriptors_calculation(const datastruct &data)
+{
+  if (comm->me == 0)
+    utils::logmesg(lmp, "**************** Begin Calculating Descriptors ****************\n");
+
+  // loop over each configuration in the training data set
+
+  double sz[2];
+  for (int ci=0; ci < (int) data.num_atom.size(); ci++) {
+
+    if ((ci % 100)==0) {
+      if (comm->me == 0)
+        utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
+    }
+
+    if ((ci % comm->nprocs) == comm->me) {
+
+      // compute linear POD descriptors
+
+      if (desc.method==0) {
+        linear_descriptors(data, ci);
+
+        // compute quadratic POD descriptors
+
+        quadratic_descriptors(data, ci);
+
+        // compute cubic POD descriptors
+
+        cubic_descriptors(data, ci);
+      }
+      else if (desc.method==1)
+        linear_descriptors_fastpod(data, ci);
+            
+      std::string filename = data.data_path + "/descriptors_config" + std::to_string(ci+1) + ".bin";
+      FILE *fp = fopen(filename.c_str(), "wb");
+      
+      sz[0] = (double) data.num_atom[ci];
+      sz[1] = (double) desc.nd;
+      fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * (2), 1, fp);      
+      fwrite( reinterpret_cast<char*>( desc.gd ), sizeof(double) * (desc.nd), 1, fp);
+      if (compute_descriptors==2) {
+        fwrite( reinterpret_cast<char*>( desc.gdd ), sizeof(double) * (3*data.num_atom[ci]*desc.nd), 1, fp);
+      }
+      fclose(fp);          
+    }
+  }
+  
+  if (comm->me == 0) 
+    utils::logmesg(lmp, "**************** End Calculating Descriptors ****************\n");  
 }
 
 void FitPOD::least_squares_matrix(const datastruct &data, int ci)

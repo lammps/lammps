@@ -17,8 +17,9 @@
 
 #include "pair_pod.h"
 
-#include "mlpod.h"
 #include "fastpod.h"
+#include "mlpod.h"
+#include "tokenizer.h"
 
 #include "atom.h"
 #include "comm.h"

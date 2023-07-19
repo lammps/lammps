@@ -640,7 +640,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
   }
 }
 
-void FitPOD::get_data(datastruct &data, const std::vector<std::string>& species)
+void FitPOD::get_data(datastruct &data, const std::vector<std::string> &species)
 {
   get_exyz_files(data.data_files, data.group_names, data.data_path, data.file_extension);
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);

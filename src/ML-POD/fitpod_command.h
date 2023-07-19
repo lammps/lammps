@@ -171,7 +171,7 @@ private:
   int get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files);
   void read_exyz_file(double *lattice, double *stress, double *energy, double *we, double *wf, double *pos, double *forces,
     int *atomtype, std::string file, std::vector<std::string> species, double we_group, double wf_group);
-  void get_data(datastruct &data, std::vector<std::string> species);
+  void get_data(datastruct &data, const std::vector<std::string> &species);
   std::vector<int> linspace(int start_in, int end_in, int num_in);
   std::vector<int> shuffle(int start_in, int end_in, int num_in);
   std::vector<int> select(int n, double fraction, int randomize);

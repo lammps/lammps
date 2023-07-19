@@ -3420,10 +3420,6 @@ double MLPOD::energyforce_calculation(double *force, double *podcoeff, double *e
   return energy;
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 164b25460236e726f2944cd76d46bea4a761e644
 void MLPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, int *aj, int *ti,
                            int *tj, int *elemindex, int nelements, int nbf, int /*natom*/, int N)
 {

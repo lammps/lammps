@@ -795,9 +795,11 @@ include(Tools)
 include(Documentation)
 
 ###############################################################################
-# Install potential and force field files in data directory
+# Install bench, potential and force field files in data directory
 ###############################################################################
 set(LAMMPS_INSTALL_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps)
+
+install(DIRECTORY ${LAMMPS_DIR}/bench DESTINATION ${LAMMPS_INSTALL_DATADIR})
 install(DIRECTORY ${LAMMPS_POTENTIALS_DIR} DESTINATION ${LAMMPS_INSTALL_DATADIR})
 if(BUILD_TOOLS)
   install(DIRECTORY ${LAMMPS_TOOLS_DIR}/msi2lmp/frc_files DESTINATION ${LAMMPS_INSTALL_DATADIR})

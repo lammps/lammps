@@ -26,7 +26,7 @@ PairMEAMMSKokkos<DeviceType>::PairMEAMMSKokkos(LAMMPS *lmp) : PairMEAMKokkos<Dev
 
 namespace LAMMPS_NS {
 template class PairMEAMMSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairMEAMMSKokkos<LMPHostType>;
 #endif
 }

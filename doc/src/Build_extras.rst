@@ -166,7 +166,7 @@ this toolkit.  Thus the GPU_ARCH setting is merely an optimization, to
 have code for the preferred GPU architecture directly included rather
 than having to wait for the JIT compiler of the CUDA driver to translate
 it.  This behavior can be turned off (e.g. to speed up compilation) by
-setting code:`CUDA_ENABLE_MULTIARCH` to code:`no`.
+setting :code:`CUDA_ENABLE_MULTIARCH` to :code:`no`.
 
 When compiling for CUDA or HIP with CUDA, version 8.0 or later of the
 CUDA toolkit is required and a GPU architecture of Kepler or later,

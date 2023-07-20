@@ -1818,17 +1818,16 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
 void Atom::data_fix_compute_variable(int nprev, int nnew)
 {
-  for (const auto &fix : modify->get_fix_list()) {
-    if (fix->create_attribute)
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->create_attribute)
       for (int i = nprev; i < nnew; i++)
-        fix->set_arrays(i);
+        ifix->set_arrays(i);
   }
 
-  for (int m = 0; m < modify->ncompute; m++) {
-    Compute *compute = modify->compute[m];
-    if (compute->create_attribute)
+  for (const auto &icompute : modify->get_compute_list()) {
+    if (icompute->create_attribute)
       for (int i = nprev; i < nnew; i++)
-        compute->set_arrays(i);
+        icompute->set_arrays(i);
   }
 
   for (int i = nprev; i < nnew; i++)

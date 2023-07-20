@@ -159,6 +159,8 @@ void ComputeCountType::compute_vector()
     nvec = count_dihedrals();
   else if (mode == IMPROPER)
     nvec = count_impropers();
+  else
+    nvec = 0;
 
   // sum across procs as bigint, then convert to double
   // correct for multiple counting if newton_bond off

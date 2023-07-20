@@ -33,7 +33,7 @@ the fitting procedure.
 
 The table below has one-line descriptions of all the keywords that can
 be used in the first input file (i.e. ``Ta_param.pod`` in the example
-above):
+above) for the original POD method :ref:`(Nguyen and Rohskopf) <Nguyen20222>`:
 
 .. list-table::
    :header-rows: 1
@@ -52,7 +52,7 @@ above):
      - INT
      - three integer constants specify boundary conditions
    * - rin
-     - 1.0
+     - 0.5
      - REAL
      - a real number specifies the inner cut-off radius
    * - rcut
@@ -60,11 +60,11 @@ above):
      - REAL
      - a real number specifies the outer cut-off radius
    * - bessel_polynomial_degree
-     - 3
+     - 4
      - INT
      - the maximum degree of Bessel polynomials
    * - inverse_polynomial_degree
-     - 6
+     - 8
      - INT
      - the maximum degree of inverse radial basis functions
    * - onebody
@@ -97,9 +97,94 @@ above):
      - turns on/off quadratic POD potential
 
 All keywords except *species* have default values. If a keyword is not
-set in the input file, its default value is used.  The next table
-describes all keywords that can be used in the second input file
+set in the input file, its default value is used. For the fast POD method :ref:`(Nguyen) <Nguyen20232>`,
+the table below has one-line descriptions of all the keywords that can
+be used in the first input file  (i.e. ``Ta_param.pod``)
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Default
+     - Type
+     - Description
+   * - species
+     - (none)
+     - STRING
+     - Chemical symbols for all elements in the system and have to match XYZ training files.
+   * - pbc
+     - 1 1 1
+     - INT
+     - three integer constants specify boundary conditions
+   * - rin
+     - 0.5
+     - REAL
+     - a real number specifies the inner cut-off radius
+   * - rcut
+     - 5.0
+     - REAL
+     - a real number specifies the outer cut-off radius
+   * - bessel_polynomial_degree
+     - 4
+     - INT
+     - the maximum degree of Bessel polynomials
+   * - inverse_polynomial_degree
+     - 8
+     - INT
+     - the maximum degree of inverse radial basis functions
+   * - onebody
+     - 1
+     - BOOL
+     - turns on/off one-body potential
+   * - twobody_number_radial_basis_functions
+     - 6
+     - INT
+     - number of radial basis functions for two-body potential
+   * - threebody_number_radial_basis_functions
+     - 5
+     - INT
+     - number of radial basis functions for three-body potential
+   * - threebody_angular_degree
+     - 5
+     - INT
+     - angular degree for three-body potential
+   * - fourbody_number_radial_basis_functions
+     - 4
+     - INT
+     - number of radial basis functions for four-body potential
+   * - fourbody_angular_degree
+     - 4
+     - INT
+     - angular degree for four-body potential
+   * - fivebody_number_radial_basis_functions
+     - 0
+     - INT
+     - number of radial basis functions for five-body potential
+   * - fivebody_angular_degree
+     - 0
+     - INT
+     - angular degree for five-body potential
+   * - sixbody_number_radial_basis_functions
+     - 0
+     - INT
+     - number of radial basis functions for six-body potential
+   * - sixbody_angular_degree
+     - 0
+     - INT
+     - angular degree for six-body potential
+   * - sevenbody_number_radial_basis_functions
+     - 0
+     - INT
+     - number of radial basis functions for seven-body potential
+   * - sevenbody_angular_degree
+     - 0
+     - INT
+     - angular degree for seven-body potential
+
+The next table describes all keywords that can be used in the second input file
 (i.e. ``Ta_data.pod`` in the example above):
+
 
 .. list-table::
    :header-rows: 1
@@ -133,6 +218,14 @@ describes all keywords that can be used in the second input file
      - 0
      - BOOL
      - turns on/off randomization of the training set
+   * - fraction_test_data_set
+     - 1.0
+     - REAL
+     - a real number (<= 1.0) specifies the fraction of the test set used to validate POD
+   * - randomize_test_data_set
+     - 0
+     - BOOL
+     - turns on/off randomization of the test set
    * - fitting_weight_energy
      - 100.0
      - REAL
@@ -180,7 +273,7 @@ After training the POD potential, ``Ta_param.pod`` and ``<basename>_coefficients
 are the two files needed to use the POD potential in LAMMPS. See
 :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples
 about training and using POD potentials are found in the directory
-lammps/examples/PACKAGES/pod.
+lammps/examples/PACKAGES/pod and the Github repo https://github.com/cesmix-mit/pod-examples.
 
 Loss Function Group Weights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -284,8 +377,8 @@ Proper Orthogonal Descriptors
 
 Proper orthogonal descriptors are finger prints characterizing the
 radial and angular distribution of a system of atoms. The detailed
-mathematical definition is given in the paper by Nguyen and Rohskopf
-:ref:`(Nguyen) <Nguyen20222>`.
+mathematical definition is given in the paper by 
+:ref:`(Nguyen and Rohskopf) <Nguyen20222>`.
 
 The descriptors for the one-body interaction are used to capture energy
 of isolated elements and defined as follows
@@ -532,6 +625,46 @@ where
 The number of three-body descriptors per atom is thus :math:`N_{\rm 3b} N_{\rm e}^2(N_{\rm e}+1)/2`.
 While the number of three-body PODs is cubic function of the number of elements,
 the computational complexity of the three-body PODs is independent of the number of elements.
+
+Fast Proper Orthogonal Descriptors
+""""""""""""""""""""""""""""""""""
+
+Fast Proper orthogonal descriptors are finger prints characterizing the
+radial and angular distribution of a system of atoms via the atomic density representation. 
+The detailed mathematical definition is given in the paper by Nguyen
+:ref:`(Nguyen) <Nguyen20232>`. The atomic basis functions are computed as 
+the sum over all neighbors of atom :math:`i` of the products of radial basis functions and angular monomials  
+
+.. math::
+
+    B_{imn \ell}  = \sum_{j=1}^{N_i} R_m(r_{ij})  A_{n \ell}(\hat{\mathbf{r}}_{ij}) .
+
+These atomic basis functions are used to define the descriptors as follows. The two-body descriptors are computed as 
+
+.. math::
+
+    D^{(2)}_{im} =  B_{im00} .      
+
+The three-body descriptors are expressed as
+
+.. math::
+
+    D^{(3)}_{imn} =  \sum_{\ell=0}^{L} c_{n \ell} B^2_{imn \ell}   
+
+where :math:`L = (n+1)(n+2)/2-1` and :math:`c_{n\ell}` correspond to the multinomial coefficients of the expansion of :math:`(x+y+z)^n`. 
+The four-body descriptors are
+
+.. math::
+
+    {D}^{(4)}_{imp} =  \sum_{q=0}^{L} \sum_{s=0}^{L} \sum_{t=0}^{L} c_{a q} c_{b s} c_{c t} B_{im a' q'} B_{im b' s'} B_{im c' t'} 
+
+It is possible to extend the method to arbitrary body orders. 
+For instance, the five-body descriptors can be constructed from four distance 
+coordinates :math:`r_{ij}, r_{ik}, r_{il}, r_{im}` and six angle coordinates 
+:math:`w_{ijk}, w_{ijl}, w_{ijm}, w_{ikl}, w_{ikm}, w_{ilm}` in a similar way as the four-body descriptors. 
+In general, the :math:`q`-body descriptors can be constructed from :math:`(q-1)` distance coordinates 
+and :math:`(q-2)(q-1)/2` angle coordinates. Therefore, the method can construct a complete set of descriptors for any body orders.
+
 
 Four-Body SNAP Descriptors
 """"""""""""""""""""""""""
@@ -785,8 +918,8 @@ The keyword defaults are also given in the description of the input files.
 
 .. _Nguyen20222:
 
-**(Nguyen)** Nguyen and Rohskopf, arXiv preprint arXiv:2209.02362 (2022).
+**(Nguyen and Rohskopf)** Nguyen and Rohskopf, Journal of Computational Physics, 480, 112030, (2023). 
 
-.. _Nguyen2023:
+.. _Nguyen20232:
 
-**(Nguyen)** Nguyen, Ngoc-Cuong. "Fast proper orthogonal descriptors for many-body interatomic potentials." Physical Review B 107.14 (2023): 144103.
+**(Nguyen)** Nguyen, Physical Review B, 107(14), 144103, (2023). 

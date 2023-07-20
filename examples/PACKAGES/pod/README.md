@@ -14,7 +14,7 @@ Go to `lammps/examples/PACKAGES/pod/Ta` directory and run
 
     lmp -in in.podfit
 
-See the README in `lammps/examples/PACKAGES/pod/Ta` for instructions on how to run MD with the potential.
+See the README in `lammps/examples/PACKAGES/pod/Ta_lpod` for instructions on how to run MD with the potential.
 
 ### Examples for other materials
 

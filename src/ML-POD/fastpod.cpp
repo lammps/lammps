@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ngoc Cuong Nguyen (MIT)
+   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
 // POD header file

@@ -1135,7 +1135,7 @@ void Thermo::check_temp(const std::string &keyword)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init temperature",
                keyword);
   if (!temperature->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialized by run",keyword);
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
   if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
     temperature->compute_scalar();
     temperature->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1154,7 +1154,7 @@ void Thermo::check_pe(const std::string &keyword)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
                keyword);
   if (!pe->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialized by run",keyword);
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
   if (!(pe->invoked_flag & Compute::INVOKED_SCALAR)) {
     pe->compute_scalar();
     pe->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1170,7 +1170,7 @@ void Thermo::check_press_scalar(const std::string &keyword)
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
   if (!pressure->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialized by run",keyword);
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
   if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
     pressure->compute_scalar();
     pressure->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1186,7 +1186,7 @@ void Thermo::check_press_vector(const std::string &keyword)
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
   if (!pressure->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialized by run",keyword);
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
   if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;

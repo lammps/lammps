@@ -564,7 +564,7 @@ int DumpCustom::count()
   if (ncompute) {
     for (i = 0; i < ncompute; i++) {
       if (!compute[i]->is_initialized())
-        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialized by a run",
+        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
           compute[i]->id);
       if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute[i]->compute_peratom();

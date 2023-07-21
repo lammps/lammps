@@ -93,23 +93,22 @@ void ResetAtomsImage::command(int narg, char **arg)
                                    "c_ifmax_r_i_f[*] c_ifmin_r_i_f[*]");
 
   // trigger computes
-  // need to ensure update->first_update = 1
-  //   to allow this input script command prior to first run/minimize
-  //   this is b/c internal variables are evaulated which invoke computes
-  //   that will trigger an error unless first_update = 1
-  // reset update->first_update when done
+  // need to first initialize compute flags to allow this input script command prior
+  //   to a first run/minimize.   this is b/c internal variables are evaulated which
+  //   invoke computes that will trigger an error unless they are initialized
 
-  int first_update_saved = update->first_update;
-  update->first_update = 1;
-
+  frags->init_flags();
+  chunk->init_flags();
+  flags->init_flags();
+  ifmin->init_flags();
+  ifmax->init_flags();
+  cdist->init_flags();
   frags->compute_peratom();
   chunk->compute_peratom();
   flags->compute_peratom();
   ifmin->compute_array();
   ifmax->compute_array();
   cdist->compute_peratom();
-
-  update->first_update = first_update_saved;
 
   // reset image flags for atoms in group
 

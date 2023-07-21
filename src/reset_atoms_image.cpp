@@ -61,6 +61,22 @@ void ResetAtomsImage::command(int narg, char **arg)
   MPI_Barrier(world);
   double time1 = platform::walltime();
 
+  // create computes and variables
+  // must come before lmp->init so the computes are properly initialized
+
+  auto frags = modify->add_compute("frags_r_i_f all fragment/atom single yes");
+  auto chunk = modify->add_compute("chunk_r_i_f all chunk/atom c_frags_r_i_f compress yes");
+  auto flags = modify->add_compute("flags_r_i_f all property/atom ix iy iz");
+  input->variable->set("ix_r_i_f atom c_flags_r_i_f[1]");
+  input->variable->set("iy_r_i_f atom c_flags_r_i_f[2]");
+  input->variable->set("iz_r_i_f atom c_flags_r_i_f[3]");
+  auto ifmin = modify->add_compute("ifmin_r_i_f all reduce/chunk chunk_r_i_f min "
+                                   "v_ix_r_i_f v_iy_r_i_f v_iz_r_i_f");
+  auto ifmax = modify->add_compute("ifmax_r_i_f all reduce/chunk chunk_r_i_f max "
+                                   "v_ix_r_i_f v_iy_r_i_f v_iz_r_i_f");
+  auto cdist = modify->add_compute("cdist_r_i_f all chunk/spread/atom chunk_r_i_f "
+                                   "c_ifmax_r_i_f[*] c_ifmin_r_i_f[*]");
+
   // initialize system since comm->borders() will be invoked
 
   lmp->init();
@@ -77,30 +93,7 @@ void ResetAtomsImage::command(int narg, char **arg)
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
 
-  // create computes and variables
-
-  auto frags = modify->add_compute("frags_r_i_f all fragment/atom single yes");
-  auto chunk = modify->add_compute("chunk_r_i_f all chunk/atom c_frags_r_i_f compress yes");
-  auto flags = modify->add_compute("flags_r_i_f all property/atom ix iy iz");
-  input->variable->set("ix_r_i_f atom c_flags_r_i_f[1]");
-  input->variable->set("iy_r_i_f atom c_flags_r_i_f[2]");
-  input->variable->set("iz_r_i_f atom c_flags_r_i_f[3]");
-  auto ifmin = modify->add_compute("ifmin_r_i_f all reduce/chunk chunk_r_i_f min "
-                                   "v_ix_r_i_f v_iy_r_i_f v_iz_r_i_f");
-  auto ifmax = modify->add_compute("ifmax_r_i_f all reduce/chunk chunk_r_i_f max "
-                                   "v_ix_r_i_f v_iy_r_i_f v_iz_r_i_f");
-  auto cdist = modify->add_compute("cdist_r_i_f all chunk/spread/atom chunk_r_i_f "
-                                   "c_ifmax_r_i_f[*] c_ifmin_r_i_f[*]");
-
   // trigger computes
-  // need to ensure update->first_update = 1
-  //   to allow this input script command prior to first run/minimize
-  //   this is b/c internal variables are evaulated which invoke computes
-  //   that will trigger an error unless first_update = 1
-  // reset update->first_update when done
-
-  int first_update_saved = update->first_update;
-  update->first_update = 1;
 
   frags->compute_peratom();
   chunk->compute_peratom();
@@ -108,8 +101,6 @@ void ResetAtomsImage::command(int narg, char **arg)
   ifmin->compute_array();
   ifmax->compute_array();
   cdist->compute_peratom();
-
-  update->first_update = first_update_saved;
 
   // reset image flags for atoms in group
 

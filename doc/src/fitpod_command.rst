@@ -843,7 +843,7 @@ Fast POD (FPOD) potentials use basis functions containing explicit radial and an
     B_{imnl} = \sum_j^{N_i} R_m(r_{ij})A_{nl}(\hat{\boldsymbol r}_{ij})
 
 where :math:`R_m(r_{ij})` and :math:`A_{nl}(\hat{\boldsymbol r}_{ij})` are parameterized radial and angular functions. 
-More details on this formalism are described in :ref:`(Nguyen) <Nguyen2023>`.
+More details on this formalism are described in :ref:`(Nguyen) <Nguyen20232>`.
 
 Training
 """"""""

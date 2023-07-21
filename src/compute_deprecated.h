@@ -15,6 +15,7 @@
 // clang-format off
 // list all deprecated and removed compute styles here
 ComputeStyle(DEPRECATED,ComputeDeprecated);
+ComputeStyle(mesont,ComputeDeprecated);
 // clang-format on
 #else
 
@@ -30,8 +31,6 @@ class ComputeDeprecated : public Compute {
   ComputeDeprecated(class LAMMPS *, int, char **);
   void init() override {}
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

@@ -66,6 +66,7 @@
 #cmakedefine KOKKOS_ARCH_ARMV8_THUNDERX
 #cmakedefine KOKKOS_ARCH_ARMV81
 #cmakedefine KOKKOS_ARCH_ARMV8_THUNDERX2
+#cmakedefine KOKKOS_ARCH_A64FX
 #cmakedefine KOKKOS_ARCH_AMD_AVX2
 #cmakedefine KOKKOS_ARCH_AVX
 #cmakedefine KOKKOS_ARCH_AVX2
@@ -101,6 +102,8 @@
 #cmakedefine KOKKOS_ARCH_AMPERE
 #cmakedefine KOKKOS_ARCH_AMPERE80
 #cmakedefine KOKKOS_ARCH_AMPERE86
+#cmakedefine KOKKOS_ARCH_ADA89
+#cmakedefine KOKKOS_ARCH_HOPPER90
 #cmakedefine KOKKOS_ARCH_AMD_ZEN
 #cmakedefine KOKKOS_ARCH_AMD_ZEN2
 #cmakedefine KOKKOS_ARCH_AMD_ZEN3

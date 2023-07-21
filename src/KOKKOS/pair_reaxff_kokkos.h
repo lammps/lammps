@@ -525,8 +525,8 @@ struct PairReaxKokkosFindBondFunctor  {
   PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile int &dst,
-             const volatile int &src) const {
+  void join(int &dst,
+             const int &src) const {
     dst = MAX(dst,src);
   }
 

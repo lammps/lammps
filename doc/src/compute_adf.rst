@@ -75,7 +75,7 @@ neighbor atom in each requested ADF.
 
    If you request any outer cutoff *Router* > force cutoff, or if no
    pair style is defined,  e.g. the :doc:`rerun <rerun>` command is being used to
-   post-process a dump file of snapshots you must insure ghost atom information
+   post-process a dump file of snapshots you must ensure ghost atom information
    out to the largest value of *Router* + *skin* is communicated, via the
    :doc:`comm_modify cutoff <comm_modify>` command, else the ADF computation
    cannot be performed, and LAMMPS will give an error message.  The *skin* value

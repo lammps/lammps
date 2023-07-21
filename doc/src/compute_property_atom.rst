@@ -90,11 +90,6 @@ Syntax
            de = change in thermal energy
            cv = heat capacity
 
-  .. parsed-literal::
-
-           MESONT package per-atom properties:
-           buckling = buckling flag used in mesoscopic simulation of nanotubes
-
 Examples
 """"""""
 

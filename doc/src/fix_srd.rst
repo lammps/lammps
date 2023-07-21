@@ -6,7 +6,7 @@ fix srd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
 
@@ -335,7 +335,7 @@ should be used to turn off big/SRD interactions, e.g. by setting their
 epsilon or cutoff length to 0.0.
 
 The "delete_atoms overlap" command may be useful in setting up an SRD
-simulation to insure there are no initial overlaps between big and SRD
+simulation to ensure there are no initial overlaps between big and SRD
 particles.
 
 ----------

@@ -15,7 +15,7 @@
    e-mail: w.g.ouyang at gmail dot com
 
    This is a full version of the potential described in
-   [Ouyang et al, J. Chem. Theory Comput. 17, 7215-7223 (2021)]
+   [Ouyang et al., J. Chem. Theory Comput. 17, 7215-7223 (2021)]
 ------------------------------------------------------------------------- */
 
 #include "pair_saip_metal.h"
@@ -26,8 +26,6 @@
 #include "force.h"
 #include "interlayer_taper.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 
 #include <cmath>
 #include <cstring>

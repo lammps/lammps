@@ -13,12 +13,16 @@ crosslinked materials. Any number of competing or reversible reaction
 pathways can be specified, and reacting sites can be stabilized. Other
 advanced options currently available include reaction constraints
 (e.g. angle and Arrhenius constraints), deletion of reaction
-byproducts or other small molecules, and chiral-sensitive reactions.
+byproducts or other small molecules, creation of new atoms or
+molecules bonded to existing atoms, and using LAMMPS variables for
+input parameters.
 
 The REACTER methodology is detailed in:
     Gissinger et al., Polymer 128, 211-217 (2017)
     https://doi.org/10.1016/j.polymer.2017.09.038
 
+    Gissinger et al., Macromolecules 53, 22, 9953-9961 (2020).
+    https://doi.org/10.1021/acs.macromol.0c02012
+
 This package was created by Jacob Gissinger
-(jacob.r.gissinger@gmail.com), while at the NASA Langley Research
-Center.
+(jacob.r.gissinger@gmail.com) at the NASA Langley Research Center.

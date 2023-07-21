@@ -252,7 +252,7 @@ void PRD::command(int narg, char **arg)
 
   // store hot state and quenched event for replica 0
   // use share_event() to copy that info to all replicas
-  // this insures all start from same place
+  // this ensures all start from same place
 
   // need this line if quench() does only setup_minimal()
   // update->minimize->setup();
@@ -692,7 +692,7 @@ void PRD::share_event(int ireplica, int flag, int decrement)
   // dump snapshot of quenched coords, only on replica 0
   // must reneighbor and compute forces before dumping
   // since replica 0 possibly has new state from another replica
-  // addstep_compute_all insures eng/virial are calculated if needed
+  // addstep_compute_all ensures eng/virial are calculated if needed
 
   if (output->ndump && universe->iworld == 0) {
     timer->barrier_start();

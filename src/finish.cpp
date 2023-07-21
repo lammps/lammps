@@ -24,8 +24,6 @@
 #include "memory.h"             // IWYU pragma: keep
 #include "min.h"
 #include "molecule.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"           // IWYU pragma: keep
 #include "output.h"
 #include "pair.h"

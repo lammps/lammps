@@ -23,7 +23,7 @@
      e-mail: qdgaoping at gmail dot com
 
    Optimizations are described in:
-     Gao, Ping and Duan, Xiaohui, et al:
+     Gao, Ping and Duan, Xiaohui, et al.:
        LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous Many-Core Processors
      DOI: 10.1145/3458817.3476137
 
@@ -33,17 +33,10 @@
 #include "pair_ilp_tmd_opt.h"
 
 #include "atom.h"
-#include "citeme.h"
 #include "comm.h"
-#include "error.h"
-#include "force.h"
 #include "interlayer_taper.h"
 #include "memory.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

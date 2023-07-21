@@ -109,9 +109,9 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
 *Communication cutoff is shorter than a bond length based estimate. This may lead to errors.*
    Since LAMMPS stores topology data with individual atoms, all atoms
    comprising a bond, angle, dihedral or improper must be present on any
-   sub-domain that "owns" the atom with the information, either as a
+   subdomain that "owns" the atom with the information, either as a
    local or a ghost atom. The communication cutoff is what determines up
-   to what distance from a sub-domain boundary ghost atoms are created.
+   to what distance from a subdomain boundary ghost atoms are created.
    The communication cutoff is by default the largest non-bonded cutoff
    plus the neighbor skin distance, but for short or non-bonded cutoffs
    and/or long bonds, this may not be sufficient. This warning indicates
@@ -351,7 +351,7 @@ This will most likely cause errors in kinetic fluctuations.
    Self-explanatory.
 
 *Kspace_modify slab param < 2.0 may cause unphysical behavior*
-   The kspace_modify slab parameter should be larger to insure periodic
+   The kspace_modify slab parameter should be larger to ensure periodic
    grids padded with empty space do not overlap.
 
 *Less insertions than requested*
@@ -398,7 +398,7 @@ This will most likely cause errors in kinetic fluctuations.
    Lost atoms are checked for each time thermo output is done.  See the
    thermo_modify lost command for options.  Lost atoms usually indicate
    bad dynamics, e.g. atoms have been blown far out of the simulation
-   box, or moved further than one processor's sub-domain away before
+   box, or moved further than one processor's subdomain away before
    reneighboring.
 
 *MSM mesh too small, increasing to 2 points in each direction*
@@ -491,7 +491,7 @@ This will most likely cause errors in kinetic fluctuations.
 *Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies*
    This is because excluding specific pair interactions also excludes
    them from long-range interactions which may not be the desired effect.
-   The special_bonds command handles this consistently by insuring
+   The special_bonds command handles this consistently by ensuring
    excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
    consistently by both the short-range pair style and the long-range
    solver.  This is not done for exclusions of charged atom pairs via the
@@ -545,7 +545,7 @@ This will most likely cause errors in kinetic fluctuations.
    If there are other fixes that act immediately after the initial stage
    of time integration within a timestep (i.e. after atoms move), then
    the command that sets up the dynamic group should appear after those
-   fixes.  This will insure that dynamic group assignments are made
+   fixes.  This will ensure that dynamic group assignments are made
    after all atoms have moved.
 
 *One or more respa levels compute no forces*
@@ -582,13 +582,13 @@ This will most likely cause errors in kinetic fluctuations.
    needed.  The requested volume fraction may be too high, or other atoms
    may be in the insertion region.
 
-*Proc sub-domain size < neighbor skin, could lead to lost atoms*
+*Proc subdomain size < neighbor skin, could lead to lost atoms*
    The decomposition of the physical domain (likely due to load
-   balancing) has led to a processor's sub-domain being smaller than the
+   balancing) has led to a processor's subdomain being smaller than the
    neighbor skin in one or more dimensions.  Since reneighboring is
    triggered by atoms moving the skin distance, this may lead to lost
    atoms, if an atom moves all the way across a neighboring processor's
-   sub-domain before reneighboring is triggered.
+   subdomain before reneighboring is triggered.
 
 *Reducing PPPM order b/c stencil extends beyond nearest neighbor processor*
    This may lead to a larger grid than desired.  See the kspace_modify overlap

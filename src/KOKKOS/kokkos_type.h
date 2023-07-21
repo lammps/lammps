@@ -64,19 +64,7 @@ namespace Kokkos {
       z+=tmp.z;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator += (const lmp_float3& tmp) volatile {
-      x+=tmp.x;
-      y+=tmp.y;
-      z+=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
     void operator = (const lmp_float3& tmp) {
-      x=tmp.x;
-      y=tmp.y;
-      z=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator = (const lmp_float3& tmp) volatile {
       x=tmp.x;
       y=tmp.y;
       z=tmp.z;
@@ -95,19 +83,7 @@ namespace Kokkos {
       z+=tmp.z;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator += (const lmp_double3& tmp) volatile {
-      x+=tmp.x;
-      y+=tmp.y;
-      z+=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
     void operator = (const lmp_double3& tmp) {
-      x=tmp.x;
-      y=tmp.y;
-      z=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator = (const lmp_double3& tmp) volatile {
       x=tmp.x;
       y=tmp.y;
       z=tmp.z;
@@ -140,19 +116,7 @@ struct t_scalar3 {
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  t_scalar3 operator= (const volatile t_scalar3& rhs) {
-    x = rhs.x; y = rhs.y; z = rhs.z;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION
   t_scalar3 operator+= (const t_scalar3& rhs) {
-    x += rhs.x; y += rhs.y; z += rhs.z;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION
-  t_scalar3 operator+= (const volatile t_scalar3& rhs) volatile {
     x += rhs.x; y += rhs.y; z += rhs.z;
     return *this;
   }
@@ -429,14 +393,6 @@ struct s_EV_FLOAT {
     for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_EV_FLOAT &rhs) volatile {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    for (int i = 0; i < 6; ++i)
-      v[i] += rhs.v[i];
-  }
 };
 typedef struct s_EV_FLOAT EV_FLOAT;
 
@@ -457,16 +413,6 @@ struct s_EV_FLOAT_REAX {
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_EV_FLOAT_REAX &rhs) {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    for (int i = 0; i < 6; ++i)
-      v[i] += rhs.v[i];
-    for (int i = 0; i < 9; ++i)
-      ereax[i] += rhs.ereax[i];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_EV_FLOAT_REAX &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
     for (int i = 0; i < 6; ++i)
@@ -501,16 +447,6 @@ struct s_FEV_FLOAT {
     for (int i = 0; i < 3; ++i)
       f[i] += rhs.f[i];
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_FEV_FLOAT &rhs) volatile {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    for (int i = 0; i < 6; ++i)
-      v[i] += rhs.v[i];
-    for (int i = 0; i < 3; ++i)
-      f[i] += rhs.f[i];
-  }
 };
 typedef struct s_FEV_FLOAT FEV_FLOAT;
 
@@ -534,14 +470,66 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
     v[0] += rhs.v[0];
     v[1] += rhs.v[1];
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_FLOAT2 &rhs) volatile {
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-  }
 };
 typedef struct s_FLOAT2 F_FLOAT2;
+
+template <class KeyViewType>
+struct BinOp3DLAMMPS {
+  int max_bins_[3] = {};
+  double mul_[3]   = {};
+  double min_[3]   = {};
+
+  BinOp3DLAMMPS() = default;
+
+  BinOp3DLAMMPS(int max_bins__[], typename KeyViewType::const_value_type min[],
+          typename KeyViewType::const_value_type max[]) {
+    max_bins_[0] = max_bins__[0];
+    max_bins_[1] = max_bins__[1];
+    max_bins_[2] = max_bins__[2];
+    mul_[0]      = static_cast<double>(max_bins__[0]) /
+              (static_cast<double>(max[0]) - static_cast<double>(min[0]));
+    mul_[1] = static_cast<double>(max_bins__[1]) /
+              (static_cast<double>(max[1]) - static_cast<double>(min[1]));
+    mul_[2] = static_cast<double>(max_bins__[2]) /
+              (static_cast<double>(max[2]) - static_cast<double>(min[2]));
+    min_[0] = static_cast<double>(min[0]);
+    min_[1] = static_cast<double>(min[1]);
+    min_[2] = static_cast<double>(min[2]);
+  }
+
+  template <class ViewType>
+  KOKKOS_INLINE_FUNCTION int bin(ViewType& keys, const int& i) const {
+    int ix = static_cast<int> ((keys(i, 0) - min_[0]) * mul_[0]);
+    int iy = static_cast<int> ((keys(i, 1) - min_[1]) * mul_[1]);
+    int iz = static_cast<int> ((keys(i, 2) - min_[2]) * mul_[2]);
+    ix = MAX(ix,0);
+    iy = MAX(iy,0);
+    iz = MAX(iz,0);
+    ix = MIN(ix,max_bins_[0]-1);
+    iy = MIN(iy,max_bins_[1]-1);
+    iz = MIN(iz,max_bins_[2]-1);
+    const int ibin = iz*max_bins_[1]*max_bins_[0] + iy*max_bins_[0] + ix;
+    return ibin;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  int max_bins() const { return max_bins_[0] * max_bins_[1] * max_bins_[2]; }
+
+  template <class ViewType, typename iType1, typename iType2>
+  KOKKOS_INLINE_FUNCTION bool operator()(ViewType& keys, iType1& i1,
+                                         iType2& i2) const {
+    if (keys(i1, 2) > keys(i2, 2))
+      return true;
+    else if (keys(i1, 2) == keys(i2, 2)) {
+      if (keys(i1, 1) > keys(i2, 1))
+        return true;
+      else if (keys(i1, 1) == keys(i2, 1)) {
+        if (keys(i1, 0) > keys(i2, 0)) return true;
+      }
+    }
+    return false;
+  }
+};
 
 #ifndef PREC_POS
 #define PREC_POS PRECISION
@@ -582,13 +570,70 @@ struct dual_hash_type {
   hash_type d_view;
   host_hash_type h_view;
 
+  bool modified_device;
+  bool modified_host;
+
+  dual_hash_type() {
+    modified_device = modified_host = false;
+    d_view = hash_type();
+    h_view = host_hash_type();
+ }
+
+  dual_hash_type(int capacity) {
+    modified_device = modified_host = false;
+    d_view = hash_type(capacity);
+    h_view = host_hash_type(capacity);
+ }
+
   template<class DeviceType>
-  KOKKOS_INLINE_FUNCTION
   std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
 
   template<class DeviceType>
-  KOKKOS_INLINE_FUNCTION
   std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const hash_type&> const_view() const {return d_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const host_hash_type&> const_view() const {return h_view;}
+
+  void modify_device()
+  {
+    modified_device = true;
+    if (modified_device && modified_host)
+      Kokkos::abort("Concurrent modification of host and device hashes");
+  }
+
+  void modify_host()
+  {
+    modified_host = true;
+    if (modified_device && modified_host)
+      Kokkos::abort("Concurrent modification of host and device hashes");
+  }
+
+  void sync_device()
+  {
+    if (modified_host) {
+      Kokkos::deep_copy(d_view,h_view);
+      modified_host = false;
+    }
+  }
+
+  void sync_host()
+  {
+    if (modified_device) {
+      Kokkos::deep_copy(h_view,d_view);
+      modified_device = false;
+    }
+  }
+
+  template<class DeviceType>
+  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),void> sync() {sync_device();}
+
+  template<class DeviceType>
+  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),void> sync() {sync_host();}
 
 };
 
@@ -606,6 +651,13 @@ typedef tdual_int_scalar::t_dev t_int_scalar;
 typedef tdual_int_scalar::t_dev_const t_int_scalar_const;
 typedef tdual_int_scalar::t_dev_um t_int_scalar_um;
 typedef tdual_int_scalar::t_dev_const_um t_int_scalar_const_um;
+
+typedef Kokkos::
+  DualView<LAMMPS_NS::tagint, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_scalar;
+typedef tdual_tagint_scalar::t_dev t_tagint_scalar;
+typedef tdual_tagint_scalar::t_dev_const t_tagint_scalar_const;
+typedef tdual_tagint_scalar::t_dev_um t_tagint_scalar_um;
+typedef tdual_tagint_scalar::t_dev_const_um t_tagint_scalar_const_um;
 
 typedef Kokkos::
   DualView<LMP_FLOAT, LMPDeviceType::array_layout, LMPDeviceType>
@@ -717,6 +769,11 @@ typedef tdual_float_3d::t_dev_um t_float_3d_um;
 typedef tdual_float_3d::t_dev_const_um t_float_3d_const_um;
 typedef tdual_float_3d::t_dev_const_randomread t_float_3d_randomread;
 
+#ifdef LMP_KOKKOS_NO_LEGACY
+typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
+#else
+typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_float_1d_4;
+#endif
 
 //Position Types
 //1d X_FLOAT array n
@@ -819,6 +876,14 @@ typedef tdual_f_array::t_dev_um t_f_array_um;
 typedef tdual_f_array::t_dev_const_um t_f_array_const_um;
 typedef tdual_f_array::t_dev_const_randomread t_f_array_randomread;
 
+//2d F_FLOAT array n*4 (for dipoles and quaterions)
+
+typedef tdual_float_1d_4::t_dev t_mu_array;
+typedef tdual_float_1d_4::t_dev_const t_mu_array_const;
+typedef tdual_float_1d_4::t_dev_um t_mu_array_um;
+typedef tdual_float_1d_4::t_dev_const_um t_mu_array_const_um;
+typedef tdual_float_1d_4::t_dev_const_randomread t_mu_array_randomread;
+
 //2d F_FLOAT array n*6 (for virial)
 
 typedef Kokkos::DualView<F_FLOAT*[6], Kokkos::LayoutRight, LMPDeviceType> tdual_virial_array;
@@ -831,11 +896,7 @@ typedef tdual_virial_array::t_dev_const_randomread t_virial_array_randomread;
 // Spin Types
 
 //3d SP_FLOAT array n*4
-#ifdef LMP_KOKKOS_NO_LEGACY
-typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
-#else
-typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_float_1d_4;
-#endif
+
 typedef tdual_float_1d_4::t_dev t_sp_array;
 typedef tdual_float_1d_4::t_dev_const t_sp_array_const;
 typedef tdual_float_1d_4::t_dev_um t_sp_array_um;
@@ -915,6 +976,12 @@ typedef tdual_int_scalar::t_host t_int_scalar;
 typedef tdual_int_scalar::t_host_const t_int_scalar_const;
 typedef tdual_int_scalar::t_host_um t_int_scalar_um;
 typedef tdual_int_scalar::t_host_const_um t_int_scalar_const_um;
+
+typedef Kokkos::DualView<LAMMPS_NS::tagint, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_scalar;
+typedef tdual_tagint_scalar::t_host t_tagint_scalar;
+typedef tdual_tagint_scalar::t_host_const t_tagint_scalar_const;
+typedef tdual_tagint_scalar::t_host_um t_tagint_scalar_um;
+typedef tdual_tagint_scalar::t_host_const_um t_tagint_scalar_const_um;
 
 typedef Kokkos::DualView<LMP_FLOAT, LMPDeviceType::array_layout, LMPDeviceType> tdual_float_scalar;
 typedef tdual_float_scalar::t_host t_float_scalar;
@@ -1007,6 +1074,12 @@ typedef tdual_float_2d::t_host_const t_float_2d_const;
 typedef tdual_float_2d::t_host_um t_float_2d_um;
 typedef tdual_float_2d::t_host_const_um t_float_2d_const_um;
 typedef tdual_float_2d::t_host_const_randomread t_float_2d_randomread;
+
+#ifdef LMP_KOKKOS_NO_LEGACY
+typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
+#else
+typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_float_1d_4;
+#endif
 
 //Position Types
 //1d X_FLOAT array n
@@ -1101,6 +1174,14 @@ typedef tdual_f_array::t_host_um t_f_array_um;
 typedef tdual_f_array::t_host_const_um t_f_array_const_um;
 typedef tdual_f_array::t_host_const_randomread t_f_array_randomread;
 
+//2d F_FLOAT array n*4 (for dipoles and quaterions)
+
+typedef tdual_float_1d_4::t_host t_mu_array;
+typedef tdual_float_1d_4::t_host_const t_mu_array_const;
+typedef tdual_float_1d_4::t_host_um t_mu_array_um;
+typedef tdual_float_1d_4::t_host_const_um t_mu_array_const_um;
+typedef tdual_float_1d_4::t_host_const_randomread t_mu_array_randomread;
+
 //2d F_FLOAT array n*6 (for virial)
 typedef Kokkos::DualView<F_FLOAT*[6], Kokkos::LayoutRight, LMPDeviceType> tdual_virial_array;
 typedef tdual_virial_array::t_host t_virial_array;
@@ -1112,11 +1193,6 @@ typedef tdual_virial_array::t_host_const_randomread t_virial_array_randomread;
 // Spin types
 
 //2d X_FLOAT array n*4
-#ifdef LMP_KOKKOS_NO_LEGACY
-typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
-#else
-typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_float_1d_4;
-#endif
 typedef tdual_float_1d_4::t_host t_sp_array;
 typedef tdual_float_1d_4::t_host_const t_sp_array_const;
 typedef tdual_float_1d_4::t_host_um t_sp_array_um;
@@ -1234,9 +1310,13 @@ struct alignas(4 * sizeof(int)) reax_int4 {
 #define SNAP_KOKKOS_HOST_VECLEN 1
 
 #ifdef LMP_KOKKOS_GPU
-#define SNAP_KOKKOS_DEVICE_VECLEN 32
+  #if defined(KOKKOS_ENABLE_SYCL)
+    #define SNAP_KOKKOS_DEVICE_VECLEN 16
+  #else
+    #define SNAP_KOKKOS_DEVICE_VECLEN 32
+  #endif
 #else
-#define SNAP_KOKKOS_DEVICE_VECLEN 1
+  #define SNAP_KOKKOS_DEVICE_VECLEN 1
 #endif
 
 

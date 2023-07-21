@@ -576,6 +576,11 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     time_nbor.stop();
     if (_time_device)
       time_nbor.add_to_total();
+
+    // on the host, special[i][j] = the special j neighbor of atom i (nall by maxspecial)
+    // on the device, transpose the matrix (1-d array) for coalesced reads
+    //   dev_special[i][j] = the special i neighbor of atom j
+
     time_transpose.start();
     const int b2x=_block_cell_2d;
     const int b2y=_block_cell_2d;
@@ -679,6 +684,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     if (_cutoff < _cell_size) vadjust*=1.46;
     mn=std::max(mn,static_cast<int>(ceil(_max_neighbor_factor*vadjust*mn)));
     if (mn<33) mn+=3;
+
     resize_max_neighbors<numtyp,acctyp>(mn,success);
     set_nbor_block_size(mn/2);
     if (!success)
@@ -829,6 +835,17 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     nbor_host.sync();
   }
   time_nbor.stop();
+}
+
+void Neighbor::transpose(UCL_D_Vec<tagint> &out, const UCL_D_Vec<tagint> &in,
+    const int columns_in, const int rows_in)
+{
+  const int b2x=_block_cell_2d;
+  const int b2y=_block_cell_2d;
+  const int g2x=static_cast<int>(ceil(static_cast<double>(columns_in)/b2x));
+  const int g2y=static_cast<int>(ceil(static_cast<double>(rows_in)/b2y));
+  _shared->k_transpose.set_size(g2x,g2y,b2x,b2y);
+  _shared->k_transpose.run(&out, &in, &columns_in, &rows_in);
 }
 
 template void Neighbor::build_nbor_list<PRECISION,ACC_PRECISION>

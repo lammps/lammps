@@ -13,7 +13,13 @@
 
 # various symbolic constants to be used
 # in certain calls to select data formats
+
+# these must be kept in sync with the enums in src/library.h, src/lmptype.h,
+# tools/swig/lammps.i, examples/COUPLE/plugin/liblammpsplugin.h,
+# and the constants in fortran/lammps.f90
+
 LAMMPS_AUTODETECT  = None
+LAMMPS_NONE        = -1
 LAMMPS_INT         = 0
 LAMMPS_INT_2D      = 1
 LAMMPS_DOUBLE      = 2
@@ -22,8 +28,6 @@ LAMMPS_INT64       = 4
 LAMMPS_INT64_2D    = 5
 LAMMPS_STRING      = 6
 
-# these must be kept in sync with the enums in src/library.h, tools/swig/lammps.i,
-# examples/COUPLE/plugin/liblammpsplugin.h, and the constants in fortran/lammps.f90
 LMP_STYLE_GLOBAL   = 0
 LMP_STYLE_ATOM     = 1
 LMP_STYLE_LOCAL    = 2

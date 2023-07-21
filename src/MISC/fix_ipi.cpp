@@ -284,17 +284,17 @@ void FixIPI::initial_integrate(int /*vflag*/)
       // while i-PI just asks for status, signal we are ready and wait
       readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
-      if (strcmp(header,"STATUS      ") == 0 )
+      if (strcmp(header,"STATUS      ") == 0)
         writebuffer(ipisock,"READY       ",MSGLEN, error);
       else break;
     }
 
-    if (strcmp(header,"EXIT        ") == 0 )
+    if (strcmp(header,"EXIT        ") == 0)
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
     // when i-PI signals it has positions to evaluate new forces,
     // read positions and cell data
-    if (strcmp(header,"POSDATA     ") == 0 )  {
+    if (strcmp(header,"POSDATA     ") == 0)  {
       readbuffer(ipisock, (char*) cellh, 9*8, error);
       readbuffer(ipisock, (char*) cellih, 9*8, error);
       readbuffer(ipisock, (char*) &nat, 4, error);
@@ -358,7 +358,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
     }
   }
 
-  // insure atoms are in current box & update box via shrink-wrap
+  // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
 
@@ -379,9 +379,9 @@ void FixIPI::initial_integrate(int /*vflag*/)
     //   kspace->setup() is in some cases not enough since, e.g., g_ewald needs
     //   to be reestimated due to changes in box dimensions.
     force->init();
-    // setup_grid() is necessary for pppm since init() is not calling
-    //   setup() nor setup_grid() upon calling init().
-    if (force->kspace->pppmflag) force->kspace->setup_grid();
+    // reset_grid() is necessary for pppm since init() is not calling
+    //   setup() nor reset_grid() upon calling init().
+    if (force->kspace->pppmflag) force->kspace->reset_grid();
     // other kspace styles might need too another setup()?
   } else if (!reset_flag && kspace_flag) {
     // original version
@@ -454,15 +454,15 @@ void FixIPI::final_integrate()
     while (true) {
       readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
-      if (strcmp(header,"STATUS      ") == 0 )
+      if (strcmp(header,"STATUS      ") == 0)
         writebuffer(ipisock,"HAVEDATA    ",MSGLEN, error);
       else break;
     }
 
-    if (strcmp(header,"EXIT        ") == 0 )
+    if (strcmp(header,"EXIT        ") == 0)
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
-    if (strcmp(header,"GETFORCE    ") == 0 )  {
+    if (strcmp(header,"GETFORCE    ") == 0)  {
       writebuffer(ipisock,"FORCEREADY  ",MSGLEN, error);
       writebuffer(ipisock,(char*) &pot,8, error);
       writebuffer(ipisock,(char*) &nat,4, error);

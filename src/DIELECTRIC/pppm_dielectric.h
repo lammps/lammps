@@ -36,11 +36,16 @@ class PPPMDielectric : public PPPM {
 
  protected:
   void slabcorr() override;
-
+  void make_rho() override;
   void fieldforce_ik() override;
   void fieldforce_ad() override;
+  void qsum_qsq(int warning_flag = 1) override;
 
   class AtomVecDielectric *avec;
+  bool use_qscaled;
+
+  void compute_ave_epsilon();
+  double epsilon_ave;
 };
 
 }    // namespace LAMMPS_NS

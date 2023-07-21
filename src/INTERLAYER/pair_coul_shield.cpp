@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
-   Contributing author: Wengen Ouyang (Tel Aviv University)
+   Contributing author: Wengen Ouyang (Wuhan University)
    e-mail: w.g.ouyang at gmail dot com
 
    This is a Coulomb potential described in

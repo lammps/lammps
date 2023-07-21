@@ -304,7 +304,7 @@ namespace MathEigen {
     bool find_maximum = false;
 
     /// @brief Shift all the eigenvalues by "eigenvalue_offset" during the Lanczos
-    ///        iteration (ie. during LambdaLanczos::run()).  The goal is to insure
+    ///        iteration (ie. during LambdaLanczos::run()).  The goal is to ensure
     ///        that the correct eigenvalue is selected (the one with the maximum
     ///        magnitude).
     /// @note  Unless your matrix is positive definite or negative definite, you
@@ -1335,7 +1335,7 @@ PrincipalEigen(ConstMatrix matrix,
   LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
 
   // The Lanczos algorithm selects the eigenvalue with the largest magnitude.
-  // In order to insure that this is the one we want (maxima or minima), we can
+  // In order to ensure that this is the one we want (maxima or minima), we can
   // add a constant to all of the eigenvalues by setting "eigenvalue_offset".
   Scalar eval_upper_bound = 0.0;
   for (int i = 0; i < n; i++) {

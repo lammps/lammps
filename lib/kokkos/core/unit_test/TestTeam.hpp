@@ -1551,14 +1551,16 @@ struct TestScratchAlignment {
     double x, y, z;
   };
   TestScratchAlignment() {
-    test(true);
-    test(false);
+    test_view(true);
+    test_view(false);
+    test_minimal();
+    test_raw();
   }
   using ScratchView =
       Kokkos::View<TestScalar *, typename ExecSpace::scratch_memory_space>;
   using ScratchViewInt =
       Kokkos::View<int *, typename ExecSpace::scratch_memory_space>;
-  void test(bool allocate_small) {
+  void test_view(bool allocate_small) {
     int shmem_size = ScratchView::shmem_size(11);
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
     int team_size =
@@ -1580,12 +1582,68 @@ struct TestScratchAlignment {
         });
     Kokkos::fence();
   }
+
+  void test_minimal() {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+    Kokkos::TeamPolicy<ExecSpace> policy(1, 1);
+    size_t scratch_size = sizeof(int);
+    Kokkos::View<int, ExecSpace> flag("Flag");
+
+    Kokkos::parallel_for(
+        policy.set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
+        KOKKOS_LAMBDA(const member_type &team) {
+          int *scratch_ptr = (int *)team.team_shmem().get_shmem(scratch_size);
+          if (scratch_ptr == nullptr) flag() = 1;
+        });
+    Kokkos::fence();
+    int minimal_scratch_allocation_failed = 0;
+    Kokkos::deep_copy(minimal_scratch_allocation_failed, flag);
+    ASSERT_TRUE(minimal_scratch_allocation_failed == 0);
+  }
+
+  void test_raw() {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+    Kokkos::TeamPolicy<ExecSpace> policy(1, 1);
+    Kokkos::View<int, ExecSpace> flag("Flag");
+
+    Kokkos::parallel_for(
+        policy.set_scratch_size(0, Kokkos::PerTeam(1024)),
+        KOKKOS_LAMBDA(const member_type &team) {
+          int *scratch_ptr1 = (int *)team.team_shmem().get_shmem(24);
+          int *scratch_ptr2 = (int *)team.team_shmem().get_shmem(32);
+          int *scratch_ptr3 = (int *)team.team_shmem().get_shmem(12);
+
+          if ((int(scratch_ptr2 - scratch_ptr1) != 6) ||
+              (int(scratch_ptr3 - scratch_ptr2) != 8))
+            flag() = 1;
+
+          if (((scratch_ptr3 - static_cast<int *>(nullptr)) + 3) % 2 == 1)
+            scratch_ptr1 = (int *)team.team_shmem().get_shmem_aligned(24, 4);
+          else {
+            scratch_ptr1 = (int *)team.team_shmem().get_shmem_aligned(12, 4);
+          }
+          scratch_ptr2 = (int *)team.team_shmem().get_shmem_aligned(32, 8);
+          scratch_ptr3 = (int *)team.team_shmem().get_shmem_aligned(8, 4);
+
+          if ((int(scratch_ptr2 - scratch_ptr1) != 7) &&
+              (int(scratch_ptr2 - scratch_ptr1) != 4))
+            flag() = 1;
+          if (int(scratch_ptr3 - scratch_ptr2) != 8) flag() = 1;
+          if ((int(size_t(scratch_ptr1) % 4) != 0) ||
+              (int(size_t(scratch_ptr2) % 8) != 0) ||
+              (int(size_t(scratch_ptr3) % 4) != 0))
+            flag() = 1;
+        });
+    Kokkos::fence();
+    int raw_get_shmem_alignment_failed = 0;
+    Kokkos::deep_copy(raw_get_shmem_alignment_failed, flag);
+    ASSERT_TRUE(raw_get_shmem_alignment_failed == 0);
+  }
 };
 
 }  // namespace
 
 namespace {
-
 template <class ExecSpace>
 struct TestTeamPolicyHandleByValue {
   using scalar     = double;
@@ -1612,6 +1670,73 @@ struct TestTeamPolicyHandleByValue {
         });
 #endif
   }
+};
+
+}  // namespace
+
+namespace {
+template <typename ExecutionSpace>
+struct TestRepeatedTeamReduce {
+  static constexpr int ncol = 1500;  // nothing special, just some work
+
+  KOKKOS_FUNCTION void operator()(
+      const typename Kokkos::TeamPolicy<ExecutionSpace>::member_type &team)
+      const {
+    // non-divisible by power of two to make triggering problems easier
+    constexpr int nlev = 129;
+    constexpr auto pi  = Kokkos::Experimental::pi_v<double>;
+    double b           = 0.;
+    for (int ri = 0; ri < 10; ++ri) {
+      // The contributions here must be sufficiently complex, simply adding ones
+      // wasn't enough to trigger the bug.
+      const auto g1 = [&](const int k, double &acc) {
+        acc += Kokkos::cos(pi * double(k) / nlev);
+      };
+      const auto g2 = [&](const int k, double &acc) {
+        acc += Kokkos::sin(pi * double(k) / nlev);
+      };
+      double a1, a2;
+      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, nlev), g1, a1);
+      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, nlev), g2, a2);
+      b += a1;
+      b += a2;
+    }
+    const auto h = [&]() {
+      const auto col = team.league_rank();
+      v(col)         = b + col;
+    };
+    Kokkos::single(Kokkos::PerTeam(team), h);
+  }
+
+  KOKKOS_FUNCTION void operator()(const int i, int &bad) const {
+    if (v(i) != v(0) + i) {
+      ++bad;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("Failing at %d!\n", i);
+    }
+  }
+
+  TestRepeatedTeamReduce() : v("v", ncol) { test(); }
+
+  void test() {
+    int team_size_recommended =
+        Kokkos::TeamPolicy<ExecutionSpace>(1, 1).team_size_recommended(
+            *this, Kokkos::ParallelForTag());
+    // Choose a non-recommened (non-power of two for GPUs) team size
+    int team_size = team_size_recommended > 1 ? team_size_recommended - 1 : 1;
+
+    // The failure was non-deterministic so run the test a bunch of times
+    for (int it = 0; it < 100; ++it) {
+      Kokkos::parallel_for(
+          Kokkos::TeamPolicy<ExecutionSpace>(ncol, team_size, 1), *this);
+
+      int bad = 0;
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(0, ncol),
+                              *this, bad);
+      ASSERT_EQ(bad, 0) << " Failing in iteration " << it;
+    }
+  }
+
+  Kokkos::View<double *, ExecutionSpace> v;
 };
 
 }  // namespace

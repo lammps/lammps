@@ -13,7 +13,6 @@
 
 #include "fix_store_global.h"
 
-#include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
@@ -183,7 +182,7 @@ void FixStoreGlobal::restart(char *buf)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of global or peratom atom-based array
+   memory usage of global data
 ------------------------------------------------------------------------- */
 
 double FixStoreGlobal::memory_usage()

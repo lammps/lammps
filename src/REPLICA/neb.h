@@ -35,9 +35,9 @@ class NEB : public Command {
   double ebf, ebr;    // forward and reverse energy barriers
 
  private:
+  int print_mode;         // output verbosity
   int me, me_universe;    // my proc ID in world and universe
   int ireplica, nreplica;
-  bool verbose;
   MPI_Comm uworld;
   MPI_Comm roots;    // MPI comm with 1 root proc from each world
   FILE *fp;

@@ -80,6 +80,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   list_timeflag = nullptr;
 
+  restart_pbc_any = 0;
   nfix_restart_global = 0;
   id_restart_global = style_restart_global = nullptr;
   state_restart_global = nullptr;
@@ -792,6 +793,19 @@ int Modify::min_reset_ref()
 }
 
 /* ----------------------------------------------------------------------
+   reset grids for any Fix or Compute that uses distributed grids
+   called by load balancer when proc sub-domains change
+------------------------------------------------------------------------- */
+
+void Modify::reset_grid()
+{
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->pergrid_flag) fix[i]->reset_grid();
+  for (int i = 0; i < ncompute; i++)
+    if (compute[i]->pergrid_flag) compute[i]->reset_grid();
+}
+
+/* ----------------------------------------------------------------------
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 
@@ -925,8 +939,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   // if yes, pass state info to the Fix so it can reset itself
 
   for (int i = 0; i < nfix_restart_global; i++)
-    if (strcmp(id_restart_global[i], fix[ifix]->id) == 0 &&
-        strcmp(style_restart_global[i], fix[ifix]->style) == 0) {
+    if ((strcmp(id_restart_global[i], fix[ifix]->id) == 0) &&
+        (utils::strip_style_suffix(fix[ifix]->style, lmp) == style_restart_global[i])) {
       fix[ifix]->restart(state_restart_global[i]);
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
@@ -1071,7 +1085,7 @@ int Modify::find_fix(const std::string &id)
 {
   if (id.empty()) return -1;
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (id == fix[ifix]->id) return ifix;
+    if (fix[ifix] && (id == fix[ifix]->id)) return ifix;
   return -1;
 }
 
@@ -1084,7 +1098,7 @@ Fix *Modify::get_fix_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (id == fix[ifix]->id) return fix[ifix];
+    if (fix[ifix] && (id == fix[ifix]->id)) return fix[ifix];
   return nullptr;
 }
 
@@ -1098,9 +1112,9 @@ const std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) cons
   std::vector<Fix *> matches;
   if (style.empty()) return matches;
 
-  for (int ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
-
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (fix[ifix] && utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
+  }
   return matches;
 }
 
@@ -1335,7 +1349,7 @@ int Modify::find_compute(const std::string &id)
 {
   if (id.empty()) return -1;
   for (int icompute = 0; icompute < ncompute; icompute++)
-    if (id == compute[icompute]->id) return icompute;
+    if (compute[icompute] && (id == compute[icompute]->id)) return icompute;
   return -1;
 }
 
@@ -1348,7 +1362,7 @@ Compute *Modify::get_compute_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (int icompute = 0; icompute < ncompute; icompute++)
-    if (id == compute[icompute]->id) return compute[icompute];
+    if (compute[icompute] && (id == compute[icompute]->id)) return compute[icompute];
   return nullptr;
 }
 
@@ -1362,9 +1376,10 @@ const std::vector<Compute *> Modify::get_compute_by_style(const std::string &sty
   std::vector<Compute *> matches;
   if (style.empty()) return matches;
 
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (utils::strmatch(compute[icompute]->style, style)) matches.push_back(compute[icompute]);
-
+  for (int icompute = 0; icompute < ncompute; icompute++) {
+    if (compute[icompute] && utils::strmatch(compute[icompute]->style, style))
+      matches.push_back(compute[icompute]);
+  }
   return matches;
 }
 
@@ -1448,9 +1463,10 @@ void Modify::write_restart(FILE *fp)
         n = strlen(fix[i]->id) + 1;
         fwrite(&n, sizeof(int), 1, fp);
         fwrite(fix[i]->id, sizeof(char), n, fp);
-        n = strlen(fix[i]->style) + 1;
+        auto fix_style = utils::strip_style_suffix(fix[i]->style, lmp);
+        n = fix_style.size() + 1;
         fwrite(&n, sizeof(int), 1, fp);
-        fwrite(fix[i]->style, sizeof(char), n, fp);
+        fwrite(fix_style.c_str(), sizeof(char), n, fp);
       }
       fix[i]->write_restart(fp);
     }

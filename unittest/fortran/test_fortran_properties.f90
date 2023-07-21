@@ -72,10 +72,12 @@ FUNCTION f_lammps_get_last_error_message(errmesg, errlen) BIND(C)
    CALL lmp%get_last_error_message(buffer, status)
    f_lammps_get_last_error_message = status
    ! and copy to C style string
+   errmesg(1:errlen) = c_null_char
    DO i=1, errlen
       errmesg(i) = buffer(i:i)
       IF (buffer(i:i) == c_null_char) EXIT
    END DO
+   errmesg(errlen) = c_null_char
    DEALLOCATE(buffer)
 END FUNCTION f_lammps_get_last_error_message
 

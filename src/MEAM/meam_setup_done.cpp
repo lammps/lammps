@@ -26,15 +26,15 @@ void MEAM::meam_setup_done(double* cutmax)
   int nv2, nv3, m, n, p;
 
   //     Force cutoff
-  this->cutforce = this->rc_meam;
-  this->cutforcesq = this->cutforce * this->cutforce;
+  cutforce = rc_meam;
+  cutforcesq = cutforce * cutforce;
 
   //     Pass cutoff back to calling program
-  *cutmax = this->cutforce;
+  *cutmax = cutforce;
 
   //     Augment t1 term
   for (int i = 0; i < maxelt; i++)
-    this->t1_meam[i] = this->t1_meam[i] + this->augt1 * 3.0 / 5.0 * this->t3_meam[i];
+    t1_meam[i] = t1_meam[i] + augt1 * 3.0 / 5.0 * t3_meam[i];
 
   //     Compute off-diagonal alloy parameters
   alloyparams();
@@ -44,44 +44,44 @@ void MEAM::meam_setup_done(double* cutmax)
   nv3 = 0;
   for (m = 0; m < 3; m++) {
     for (n = m; n < 3; n++) {
-      this->vind2D[m][n] = nv2;
-      this->vind2D[n][m] = nv2;
+      vind2D[m][n] = nv2;
+      vind2D[n][m] = nv2;
       nv2 = nv2 + 1;
       for (p = n; p < 3; p++) {
-        this->vind3D[m][n][p] = nv3;
-        this->vind3D[m][p][n] = nv3;
-        this->vind3D[n][m][p] = nv3;
-        this->vind3D[n][p][m] = nv3;
-        this->vind3D[p][m][n] = nv3;
-        this->vind3D[p][n][m] = nv3;
+        vind3D[m][n][p] = nv3;
+        vind3D[m][p][n] = nv3;
+        vind3D[n][m][p] = nv3;
+        vind3D[n][p][m] = nv3;
+        vind3D[p][m][n] = nv3;
+        vind3D[p][n][m] = nv3;
         nv3 = nv3 + 1;
       }
     }
   }
 
-  this->v2D[0] = 1;
-  this->v2D[1] = 2;
-  this->v2D[2] = 2;
-  this->v2D[3] = 1;
-  this->v2D[4] = 2;
-  this->v2D[5] = 1;
+  v2D[0] = 1;
+  v2D[1] = 2;
+  v2D[2] = 2;
+  v2D[3] = 1;
+  v2D[4] = 2;
+  v2D[5] = 1;
 
-  this->v3D[0] = 1;
-  this->v3D[1] = 3;
-  this->v3D[2] = 3;
-  this->v3D[3] = 3;
-  this->v3D[4] = 6;
-  this->v3D[5] = 3;
-  this->v3D[6] = 1;
-  this->v3D[7] = 3;
-  this->v3D[8] = 3;
-  this->v3D[9] = 1;
+  v3D[0] = 1;
+  v3D[1] = 3;
+  v3D[2] = 3;
+  v3D[3] = 3;
+  v3D[4] = 6;
+  v3D[5] = 3;
+  v3D[6] = 1;
+  v3D[7] = 3;
+  v3D[8] = 3;
+  v3D[9] = 1;
 
   nv2 = 0;
-  for (m = 0; m < this->neltypes; m++) {
-    for (n = m; n < this->neltypes; n++) {
-      this->eltind[m][n] = nv2;
-      this->eltind[n][m] = nv2;
+  for (m = 0; m < neltypes; m++) {
+    for (n = m; n < neltypes; n++) {
+      eltind[m][n] = nv2;
+      eltind[n][m] = nv2;
       nv2 = nv2 + 1;
     }
   }
@@ -90,8 +90,8 @@ void MEAM::meam_setup_done(double* cutmax)
   compute_reference_density();
 
   //     Compute pair potentials and setup arrays for interpolation
-  this->nr = 1000;
-  this->dr = 1.1 * this->rc_meam / this->nr;
+  nr = 1000;
+  dr = 1.1 * rc_meam / nr;
   compute_pair_meam();
 }
 
@@ -104,52 +104,52 @@ void MEAM::alloyparams()
   double eb;
 
   // Loop over pairs
-  for (i = 0; i < this->neltypes; i++) {
-    for (j = 0; j < this->neltypes; j++) {
+  for (i = 0; i < neltypes; i++) {
+    for (j = 0; j < neltypes; j++) {
       // Treat off-diagonal pairs
       // If i>j, set all equal to i<j case (which has already been set,
       // here or in the input file)
       if (i > j) {
-        this->re_meam[i][j] = this->re_meam[j][i];
-        this->Ec_meam[i][j] = this->Ec_meam[j][i];
-        this->alpha_meam[i][j] = this->alpha_meam[j][i];
-        this->lattce_meam[i][j] = this->lattce_meam[j][i];
-        this->nn2_meam[i][j] = this->nn2_meam[j][i];
+        re_meam[i][j] = re_meam[j][i];
+        Ec_meam[i][j] = Ec_meam[j][i];
+        alpha_meam[i][j] = alpha_meam[j][i];
+        lattce_meam[i][j] = lattce_meam[j][i];
+        nn2_meam[i][j] = nn2_meam[j][i];
         // theta for lin,tri,zig references
-        this->stheta_meam[i][j] = this->stheta_meam[j][i];
-        this->ctheta_meam[i][j] = this->ctheta_meam[j][i];
+        stheta_meam[i][j] = stheta_meam[j][i];
+        ctheta_meam[i][j] = ctheta_meam[j][i];
         // If i<j and term is unset, use default values (e.g. mean of i-i and
         // j-j)
       } else if (j > i) {
-        if (iszero(this->Ec_meam[i][j])) {
-          if (this->lattce_meam[i][j] == L12)
-            this->Ec_meam[i][j] =
-              (3 * this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 4.0 - this->delta_meam[i][j];
-          else if (this->lattce_meam[i][j] == C11) {
-            if (this->lattce_meam[i][i] == DIA)
-              this->Ec_meam[i][j] =
-                (2 * this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 3.0 - this->delta_meam[i][j];
+        if (iszero(Ec_meam[i][j])) {
+          if (lattce_meam[i][j] == L12)
+            Ec_meam[i][j] =
+              (3 * Ec_meam[i][i] + Ec_meam[j][j]) / 4.0 - delta_meam[i][j];
+          else if (lattce_meam[i][j] == C11) {
+            if (lattce_meam[i][i] == DIA)
+              Ec_meam[i][j] =
+                (2 * Ec_meam[i][i] + Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
             else
-              this->Ec_meam[i][j] =
-                (this->Ec_meam[i][i] + 2 * this->Ec_meam[j][j]) / 3.0 - this->delta_meam[i][j];
+              Ec_meam[i][j] =
+                (Ec_meam[i][i] + 2 * Ec_meam[j][j]) / 3.0 - delta_meam[i][j];
           } else
-            this->Ec_meam[i][j] = (this->Ec_meam[i][i] + this->Ec_meam[j][j]) / 2.0 - this->delta_meam[i][j];
+            Ec_meam[i][j] = (Ec_meam[i][i] + Ec_meam[j][j]) / 2.0 - delta_meam[i][j];
         }
-        if (iszero(this->alpha_meam[i][j]))
-          this->alpha_meam[i][j] = (this->alpha_meam[i][i] + this->alpha_meam[j][j]) / 2.0;
-        if (iszero(this->re_meam[i][j]))
-          this->re_meam[i][j] = (this->re_meam[i][i] + this->re_meam[j][j]) / 2.0;
+        if (iszero(alpha_meam[i][j]))
+          alpha_meam[i][j] = (alpha_meam[i][i] + alpha_meam[j][j]) / 2.0;
+        if (iszero(re_meam[i][j]))
+          re_meam[i][j] = (re_meam[i][i] + re_meam[j][j]) / 2.0;
       }
     }
   }
 
   // Cmin[i][k][j] is symmetric in i-j, but not k.  For all triplets
   // where i>j, set equal to the i<j element.  Likewise for Cmax.
-  for (i = 1; i < this->neltypes; i++) {
+  for (i = 1; i < neltypes; i++) {
     for (j = 0; j < i; j++) {
-      for (k = 0; k < this->neltypes; k++) {
-        this->Cmin_meam[i][j][k] = this->Cmin_meam[j][i][k];
-        this->Cmax_meam[i][j][k] = this->Cmax_meam[j][i][k];
+      for (k = 0; k < neltypes; k++) {
+        Cmin_meam[i][j][k] = Cmin_meam[j][i][k];
+        Cmax_meam[i][j][k] = Cmax_meam[j][i][k];
       }
     }
   }
@@ -158,11 +158,11 @@ void MEAM::alloyparams()
   // atom k definitely lies outside the screening function ellipse (so
   // there is no need to calculate its effects).  Here, compute it for all
   // triplets [i][j][k] so that ebound[i][j] is the maximized over k
-  for (i = 0; i < this->neltypes; i++) {
-    for (j = 0; j < this->neltypes; j++) {
-      for (k = 0; k < this->neltypes; k++) {
-        eb = (this->Cmax_meam[i][j][k] * this->Cmax_meam[i][j][k]) / (4.0 * (this->Cmax_meam[i][j][k] - 1.0));
-        this->ebound_meam[i][j] = std::max(this->ebound_meam[i][j], eb);
+  for (i = 0; i < neltypes; i++) {
+    for (j = 0; j < neltypes; j++) {
+      for (k = 0; k < neltypes; k++) {
+        eb = (Cmax_meam[i][j][k] * Cmax_meam[i][j][k]) / (4.0 * (Cmax_meam[i][j][k] - 1.0));
+        ebound_meam[i][j] = std::max(ebound_meam[i][j], eb);
       }
     }
   }
@@ -183,88 +183,87 @@ void MEAM::compute_pair_meam()
   double C, s111, s112, s221, S11, S22;
 
   // check for previously allocated arrays and free them
-  if (this->phir != nullptr)
-    memory->destroy(this->phir);
-  if (this->phirar != nullptr)
-    memory->destroy(this->phirar);
-  if (this->phirar1 != nullptr)
-    memory->destroy(this->phirar1);
-  if (this->phirar2 != nullptr)
-    memory->destroy(this->phirar2);
-  if (this->phirar3 != nullptr)
-    memory->destroy(this->phirar3);
-  if (this->phirar4 != nullptr)
-    memory->destroy(this->phirar4);
-  if (this->phirar5 != nullptr)
-    memory->destroy(this->phirar5);
-  if (this->phirar6 != nullptr)
-    memory->destroy(this->phirar6);
+  if (phir != nullptr)
+    memory->destroy(phir);
+  if (phirar != nullptr)
+    memory->destroy(phirar);
+  if (phirar1 != nullptr)
+    memory->destroy(phirar1);
+  if (phirar2 != nullptr)
+    memory->destroy(phirar2);
+  if (phirar3 != nullptr)
+    memory->destroy(phirar3);
+  if (phirar4 != nullptr)
+    memory->destroy(phirar4);
+  if (phirar5 != nullptr)
+    memory->destroy(phirar5);
+  if (phirar6 != nullptr)
+    memory->destroy(phirar6);
 
   // allocate memory for array that defines the potential
-  memory->create(this->phir, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phir");
+  memory->create(phir, (neltypes * (neltypes + 1)) / 2, nr, "pair:phir");
 
   // allocate coeff memory
 
-  memory->create(this->phirar, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar");
-  memory->create(this->phirar1, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar1");
-  memory->create(this->phirar2, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar2");
-  memory->create(this->phirar3, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar3");
-  memory->create(this->phirar4, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar4");
-  memory->create(this->phirar5, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar5");
-  memory->create(this->phirar6, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar6");
+  memory->create(phirar, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar");
+  memory->create(phirar1, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar1");
+  memory->create(phirar2, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar2");
+  memory->create(phirar3, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar3");
+  memory->create(phirar4, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar4");
+  memory->create(phirar5, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar5");
+  memory->create(phirar6, (neltypes * (neltypes + 1)) / 2, nr, "pair:phirar6");
 
   // loop over pairs of element types
   nv2 = 0;
-  for (a = 0; a < this->neltypes; a++) {
-    for (b = a; b < this->neltypes; b++) {
+  for (a = 0; a < neltypes; a++) {
+    for (b = a; b < neltypes; b++) {
       // loop over r values and compute
-      for (j = 0; j < this->nr; j++) {
-        r = j * this->dr;
-
-        this->phir[nv2][j] = phi_meam(r, a, b);
+      for (j = 0; j < nr; j++) {
+        r = j * dr;
+        phir[nv2][j] = phi_meam(r, a, b);
 
         // if using second-nearest neighbor, solve recursive problem
         // (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
-        if (this->nn2_meam[a][b] == 1) {
-          Z1 = get_Zij(this->lattce_meam[a][b]);
-          Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
-                     this->Cmax_meam[a][a][b], this->stheta_meam[a][b], arat, scrn);
+        if (nn2_meam[a][b] == 1) {
+          Z1 = get_Zij(lattce_meam[a][b]);
+          Z2 = get_Zij2(lattce_meam[a][b], Cmin_meam[a][a][b],
+                     Cmax_meam[a][a][b], stheta_meam[a][b], arat, scrn);
 
           //     The B1, B2,  and L12 cases with NN2 have a trick to them; we need to
           //     compute the contributions from second nearest neighbors, like a-a
           //     pairs, but need to include NN2 contributions to those pairs as
           //     well.
-          if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2 ||
-              this->lattce_meam[a][b] == L12 || this->lattce_meam[a][b] == DIA) {
+          if (lattce_meam[a][b] == B1 || lattce_meam[a][b] == B2 ||
+              lattce_meam[a][b] == L12 || lattce_meam[a][b] == DIA) {
             rarat = r * arat;
 
             //               phi_aa
             phiaa = phi_meam(rarat, a, a);
-            Z1 = get_Zij(this->lattce_meam[a][a]);
-            Z2 = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
-                     this->Cmax_meam[a][a][a], this->stheta_meam[a][a], arat, scrn);
+            Z1 = get_Zij(lattce_meam[a][a]);
+            Z2 = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
+                     Cmax_meam[a][a][a], stheta_meam[a][a], arat, scrn);
             phiaa+= phi_meam_series(scrn, Z1, Z2, a, a, rarat, arat);
 
             //               phi_bb
             phibb = phi_meam(rarat, b, b);
-            Z1 = get_Zij(this->lattce_meam[b][b]);
-            Z2 = get_Zij2(this->lattce_meam[b][b], this->Cmin_meam[b][b][b],
-                     this->Cmax_meam[b][b][b], this->stheta_meam[b][b], arat, scrn);
+            Z1 = get_Zij(lattce_meam[b][b]);
+            Z2 = get_Zij2(lattce_meam[b][b], Cmin_meam[b][b][b],
+                     Cmax_meam[b][b][b], stheta_meam[b][b], arat, scrn);
             phibb+= phi_meam_series(scrn, Z1, Z2, b, b, rarat, arat);
 
-            if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2 ||
-                this->lattce_meam[a][b] == DIA) {
+            if (lattce_meam[a][b] == B1 || lattce_meam[a][b] == B2 ||
+                lattce_meam[a][b] == DIA) {
               //     Add contributions to the B1 or B2 potential
-              Z1 = get_Zij(this->lattce_meam[a][b]);
-              Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[a][a][b],
-                       this->Cmax_meam[a][a][b], this->stheta_meam[a][b],  arat, scrn);
-              this->phir[nv2][j] = this->phir[nv2][j] - Z2 * scrn / (2 * Z1) * phiaa;
-              Z2 = get_Zij2(this->lattce_meam[a][b], this->Cmin_meam[b][b][a],
-                       this->Cmax_meam[b][b][a], this->stheta_meam[a][b], arat, scrn2);
+              Z1 = get_Zij(lattce_meam[a][b]);
+              Z2 = get_Zij2(lattce_meam[a][b], Cmin_meam[a][a][b],
+                       Cmax_meam[a][a][b], stheta_meam[a][b],  arat, scrn);
+              phir[nv2][j] = phir[nv2][j] - Z2 * scrn / (2 * Z1) * phiaa;
+              Z2 = get_Zij2(lattce_meam[a][b], Cmin_meam[b][b][a],
+                       Cmax_meam[b][b][a], stheta_meam[a][b], arat, scrn2);
 
-              this->phir[nv2][j] = this->phir[nv2][j] - Z2 * scrn2 / (2 * Z1) * phibb;
+              phir[nv2][j] = phir[nv2][j] - Z2 * scrn2 / (2 * Z1) * phibb;
 
-            } else if (this->lattce_meam[a][b] == L12) {
+            } else if (lattce_meam[a][b] == L12) {
               //     The L12 case has one last trick; we have to be careful to
               //     compute
               //     the correct screening between 2nd-neighbor pairs.  1-1
@@ -279,11 +278,11 @@ void MEAM::compute_pair_meam()
               get_sijk(C, b, b, a, &s221);
               S11 = s111 * s111 * s112 * s112;
               S22 = pow(s221, 4);
-              this->phir[nv2][j] = this->phir[nv2][j] - 0.75 * S11 * phiaa - 0.25 * S22 * phibb;
+              phir[nv2][j] = phir[nv2][j] - 0.75 * S11 * phiaa - 0.25 * S22 * phibb;
             }
 
           } else {
-            this->phir[nv2][j]+= phi_meam_series(scrn, Z1, Z2, a, b, r, arat);
+            phir[nv2][j]+= phi_meam_series(scrn, Z1, Z2, a, b, r, arat);
           }
         }
 
@@ -293,14 +292,14 @@ void MEAM::compute_pair_meam()
         // else if -3 < astar < -1
         //   potential is linear combination with zbl potential
         // endif
-        if (this->zbl_meam[a][b] == 1) {
-          astar = this->alpha_meam[a][b] * (r / this->re_meam[a][b] - 1.0);
+        if (zbl_meam[a][b] == 1) {
+          astar = alpha_meam[a][b] * (r / re_meam[a][b] - 1.0);
           if (astar <= -3.0)
-            this->phir[nv2][j] = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
+            phir[nv2][j] = zbl(r, ielt_meam[a], ielt_meam[b]);
           else if (astar > -3.0 && astar < -1.0) {
             frac = fcut(1 - (astar + 1.0) / (-3.0 + 1.0));
-            phizbl = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
-            this->phir[nv2][j] = frac * this->phir[nv2][j] + (1 - frac) * phizbl;
+            phizbl = zbl(r, ielt_meam[a], ielt_meam[b]);
+            phir[nv2][j] = frac * phir[nv2][j] + (1 - frac) * phizbl;
           }
         }
       }
@@ -333,52 +332,69 @@ double MEAM::phi_meam(double r, int a, int b)
   lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
   double b11s, b22s;
+  // msmeam
+  double t1m1av, t2m1av, t3m1av, t1m2av, t2m2av, t3m2av;
+  double rho1m1, rho2m1, rho3m1;
+  double rho1m2, rho2m2, rho3m2;
 
   double phi_m = 0.0;
-
   // Equation numbers below refer to:
   //   I. Huang et.al., Modelling simul. Mater. Sci. Eng. 3:615
 
   // get number of neighbors in the reference structure
   //   Nref[i][j] = # of i's neighbors of type j
-  Z1 = get_Zij(this->lattce_meam[a][a]);
-  Z2 = get_Zij(this->lattce_meam[b][b]);
-  Z12 = get_Zij(this->lattce_meam[a][b]);
+  Z1 = get_Zij(lattce_meam[a][a]);
+  Z2 = get_Zij(lattce_meam[b][b]);
+  Z12 = get_Zij(lattce_meam[a][b]);
 
-  get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32);
-
+  // this function has extra args for msmeam
+  if (msmeamflag) {
+    get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
+                &rho1m1, &rho2m1, &rho3m1,
+                &rho1m2, &rho2m2, &rho3m2);
+  } else {
+    get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
+                nullptr, nullptr, nullptr,
+                nullptr, nullptr, nullptr);
+  }
   // if densities are too small, numerical problems may result; just return zero
   if (rho01 <= 1e-14 && rho02 <= 1e-14)
     return 0.0;
 
   // calculate average weighting factors for the reference structure
-  if (this->lattce_meam[a][b] == C11) {
-    if (this->ialloy == 2) {
-      t11av = this->t1_meam[a];
-      t12av = this->t1_meam[b];
-      t21av = this->t2_meam[a];
-      t22av = this->t2_meam[b];
-      t31av = this->t3_meam[a];
-      t32av = this->t3_meam[b];
+  if (lattce_meam[a][b] == C11) {
+    if (ialloy == 2) {
+      t11av = t1_meam[a];
+      t12av = t1_meam[b];
+      t21av = t2_meam[a];
+      t22av = t2_meam[b];
+      t31av = t3_meam[a];
+      t32av = t3_meam[b];
     } else {
       scalfac = 1.0 / (rho01 + rho02);
-      t11av = scalfac * (this->t1_meam[a] * rho01 + this->t1_meam[b] * rho02);
+      t11av = scalfac * (t1_meam[a] * rho01 + t1_meam[b] * rho02);
       t12av = t11av;
-      t21av = scalfac * (this->t2_meam[a] * rho01 + this->t2_meam[b] * rho02);
+      t21av = scalfac * (t2_meam[a] * rho01 + t2_meam[b] * rho02);
       t22av = t21av;
-      t31av = scalfac * (this->t3_meam[a] * rho01 + this->t3_meam[b] * rho02);
+      t31av = scalfac * (t3_meam[a] * rho01 + t3_meam[b] * rho02);
       t32av = t31av;
     }
   } else {
     // average weighting factors for the reference structure, eqn. I.8
-    get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, this->t1_meam[a], this->t2_meam[a],
-               this->t3_meam[a], this->t1_meam[b], this->t2_meam[b], this->t3_meam[b], r, a, b,
-               this->lattce_meam[a][b]);
+    get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, t1_meam[a], t2_meam[a],
+               t3_meam[a], t1_meam[b], t2_meam[b], t3_meam[b], r, a, b,
+               lattce_meam[a][b]);
+    // with msmeam call twice with different sets of variables
+    if (msmeamflag) {
+      get_tavref(&t1m1av, &t2m1av, &t3m1av, &t1m2av, &t2m2av, &t3m2av, t1m_meam[a], t2m_meam[a],
+                t3m_meam[a], t1m_meam[b], t2m_meam[b], t3m_meam[b], r, a, b,
+                lattce_meam[a][b]);
+    }
   }
 
   // for c11b structure, calculate background electron densities
-  if (this->lattce_meam[a][b] == C11) {
-    latta = this->lattce_meam[a][a];
+  if (lattce_meam[a][b] == C11) {
+    latta = lattce_meam[a][a];
     if (latta == DIA) {
       rhobar1 = MathSpecial::square((Z12 / 2) * (rho02 + rho01))
                 + t11av * MathSpecial::square(rho12 - rho11)
@@ -402,48 +418,64 @@ double MEAM::phi_meam(double r, int a, int b)
     //     composition-dependent scaling, equation I.7
     //     If using mixing rule for t, apply to reference structure; else
     //     use precomputed values
-    if (this->mix_ref_t == 1) {
-      if (this->ibar_meam[a] <= 0)
+    if (mix_ref_t == 1) {
+      if (ibar_meam[a] <= 0)
         G1 = 1.0;
       else {
-        get_shpfcn(this->lattce_meam[a][a], this->stheta_meam[a][a], this->ctheta_meam[a][a], s1);
+        get_shpfcn(lattce_meam[a][a], stheta_meam[a][a], ctheta_meam[a][a], s1);
         Gam1 = (s1[0] * t11av + s1[1] * t21av + s1[2] * t31av) / (Z1 * Z1);
-        G1 = G_gam(Gam1, this->ibar_meam[a], errorflag);
+        G1 = G_gam(Gam1, ibar_meam[a], errorflag);
       }
-      if (this->ibar_meam[b] <= 0)
+      if (ibar_meam[b] <= 0)
         G2 = 1.0;
       else {
-        get_shpfcn(this->lattce_meam[b][b], this->stheta_meam[b][b], this->ctheta_meam[b][b],  s2);
+        get_shpfcn(lattce_meam[b][b], stheta_meam[b][b], ctheta_meam[b][b],  s2);
         Gam2 = (s2[0] * t12av + s2[1] * t22av + s2[2] * t32av) / (Z2 * Z2);
-        G2 = G_gam(Gam2, this->ibar_meam[b], errorflag);
+        G2 = G_gam(Gam2, ibar_meam[b], errorflag);
       }
-      rho0_1 = this->rho0_meam[a] * Z1 * G1;
-      rho0_2 = this->rho0_meam[b] * Z2 * G2;
+      rho0_1 = rho0_meam[a] * Z1 * G1;
+      rho0_2 = rho0_meam[b] * Z2 * G2;
     }
-    Gam1 = (t11av * rho11 + t21av * rho21 + t31av * rho31);
-    if (rho01 < 1.0e-14)
-      Gam1 = 0.0;
-    else
-      Gam1 = Gam1 / (rho01 * rho01);
 
-    Gam2 = (t12av * rho12 + t22av * rho22 + t32av * rho32);
-    if (rho02 < 1.0e-14)
-      Gam2 = 0.0;
-    else
-      Gam2 = Gam2 / (rho02 * rho02);
+    if (msmeamflag) {
+      // no additional use of t's here; all included in definitions of rho's for msmeam
+      Gam1 = rho11 + rho21 + rho31 - (rho1m1 + rho2m1 + rho3m1);
+      if (rho01 < 1.0e-14)
+        Gam1 = 0.0;
+      else
+        Gam1 = Gam1 / (rho01 * rho01);
+      Gam2 = rho12 + rho22 + rho32 - (rho1m2 + rho2m2 + rho3m2);
+      if (rho02 < 1.0e-14)
+        Gam2 = 0.0;
+      else
+        Gam2 = Gam2 / (rho02 * rho02);
 
-    G1 = G_gam(Gam1, this->ibar_meam[a], errorflag);
-    G2 = G_gam(Gam2, this->ibar_meam[b], errorflag);
-    if (this->mix_ref_t == 1) {
+    } else {
+      Gam1 = (t11av * rho11 + t21av * rho21 + t31av * rho31);
+      if (rho01 < 1.0e-14)
+        Gam1 = 0.0;
+      else
+        Gam1 = Gam1 / (rho01 * rho01);
+
+      Gam2 = (t12av * rho12 + t22av * rho22 + t32av * rho32);
+      if (rho02 < 1.0e-14)
+        Gam2 = 0.0;
+      else
+        Gam2 = Gam2 / (rho02 * rho02);
+    }
+
+    G1 = G_gam(Gam1, ibar_meam[a], errorflag);
+    G2 = G_gam(Gam2, ibar_meam[b], errorflag);
+    if (mix_ref_t == 1) {
       rho_bkgd1 = rho0_1;
       rho_bkgd2 = rho0_2;
     } else {
-      if (this->bkgd_dyn == 1) {
-        rho_bkgd1 = this->rho0_meam[a] * Z1;
-        rho_bkgd2 = this->rho0_meam[b] * Z2;
+      if (bkgd_dyn == 1) {
+        rho_bkgd1 = rho0_meam[a] * Z1;
+        rho_bkgd2 = rho0_meam[b] * Z2;
       } else {
-        rho_bkgd1 = this->rho_ref_meam[a];
-        rho_bkgd2 = this->rho_ref_meam[b];
+        rho_bkgd1 = rho_ref_meam[a];
+        rho_bkgd2 = rho_ref_meam[b];
       }
     }
     rhobar1 = rho01 / rho_bkgd1 * G1;
@@ -452,17 +484,17 @@ double MEAM::phi_meam(double r, int a, int b)
 
   // compute embedding functions, eqn I.5
 
-  F1 = embedding(this->A_meam[a], this->Ec_meam[a][a], rhobar1, dF);
-  F2 = embedding(this->A_meam[b], this->Ec_meam[b][b], rhobar2, dF);
+  F1 = embedding(A_meam[a], Ec_meam[a][a], rhobar1, dF);
+  F2 = embedding(A_meam[b], Ec_meam[b][b], rhobar2, dF);
 
 
   // compute Rose function, I.16
-  Eu = erose(r, this->re_meam[a][b], this->alpha_meam[a][b], this->Ec_meam[a][b], this->repuls_meam[a][b],
-             this->attrac_meam[a][b], this->erose_form);
+  Eu = erose(r, re_meam[a][b], alpha_meam[a][b], Ec_meam[a][b], repuls_meam[a][b],
+             attrac_meam[a][b], erose_form);
 
   // calculate the pair energy
-  if (this->lattce_meam[a][b] == C11) {
-    latta = this->lattce_meam[a][a];
+  if (lattce_meam[a][b] == C11) {
+    latta = lattce_meam[a][a];
     if (latta == DIA) {
       phiaa = phi_meam(r, a, a);
       phi_m = (3 * Eu - F2 - 2 * F1 - 5 * phiaa) / Z12;
@@ -470,44 +502,44 @@ double MEAM::phi_meam(double r, int a, int b)
       phibb = phi_meam(r, b, b);
       phi_m = (3 * Eu - F1 - 2 * F2 - 5 * phibb) / Z12;
     }
-  } else if (this->lattce_meam[a][b] == L12) {
+  } else if (lattce_meam[a][b] == L12) {
     phiaa = phi_meam(r, a, a);
     //       account for second neighbor a-a potential here...
-    Z1nn = get_Zij(this->lattce_meam[a][a]);
-    Z2nn = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
-             this->Cmax_meam[a][a][a], this->stheta_meam[a][b], arat, scrn);
+    Z1nn = get_Zij(lattce_meam[a][a]);
+    Z2nn = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
+             Cmax_meam[a][a][a], stheta_meam[a][b], arat, scrn);
 
 
     phiaa += phi_meam_series(scrn, Z1nn, Z2nn, a, a, r, arat);
     phi_m = Eu / 3.0 - F1 / 4.0 - F2 / 12.0 - phiaa;
 
-  } else if (this->lattce_meam[a][b] == CH4) {
+  } else if (lattce_meam[a][b] == CH4) {
     phi_m = (5 * Eu - F1 - 4*F2)/4;
 
 
-  } else if (this->lattce_meam[a][b] == ZIG) {
+  } else if (lattce_meam[a][b] == ZIG) {
       if (a==b) {
         phi_m = (2 * Eu - F1 - F2) / Z12;
       } else{
-        Z1 = get_Zij(this->lattce_meam[a][b]);
-        Z2 = get_Zij2_b2nn(this->lattce_meam[a][b], this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b], scrn);
+        Z1 = get_Zij(lattce_meam[a][b]);
+        Z2 = get_Zij2_b2nn(lattce_meam[a][b], Cmin_meam[a][a][b], Cmax_meam[a][a][b], scrn);
         b11s = -Z2/Z1*scrn;
-        Z2 = get_Zij2_b2nn(this->lattce_meam[a][b], this->Cmin_meam[b][b][a], this->Cmax_meam[b][b][a], scrn2);
+        Z2 = get_Zij2_b2nn(lattce_meam[a][b], Cmin_meam[b][b][a], Cmax_meam[b][b][a], scrn2);
         b22s = -Z2/Z1*scrn2;
 
-        phiaa = phi_meam(2.0*this->stheta_meam[a][b]*r, a, a);
-        phibb = phi_meam(2.0*this->stheta_meam[a][b]*r, b, b);
+        phiaa = phi_meam(2.0*stheta_meam[a][b]*r, a, a);
+        phibb = phi_meam(2.0*stheta_meam[a][b]*r, b, b);
         phi_m = (2.0*Eu - F1 - F2 + phiaa*b11s + phibb*b22s) / Z12;
       }
 
-  } else if (this->lattce_meam[a][b] == TRI) {
+  } else if (lattce_meam[a][b] == TRI) {
       if (a==b) {
         phi_m = (3.0*Eu - 2.0*F1 - F2) / Z12;
      } else {
-        Z1 = get_Zij(this->lattce_meam[a][b]);
-        Z2 = get_Zij2_b2nn(this->lattce_meam[a][b], this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b], scrn);
+        Z1 = get_Zij(lattce_meam[a][b]);
+        Z2 = get_Zij2_b2nn(lattce_meam[a][b], Cmin_meam[a][a][b], Cmax_meam[a][a][b], scrn);
         b11s = -Z2/Z1*scrn;
-        phiaa = phi_meam(2.0*this->stheta_meam[a][b]*r, a, a);
+        phiaa = phi_meam(2.0*stheta_meam[a][b]*r, a, a);
         phi_m = (3.0*Eu - 2.0*F1 - F2 + phiaa*b11s) / Z12;
       }
 
@@ -558,32 +590,32 @@ void MEAM::compute_reference_density()
   double rho0, rho0_2nn, arat, scrn;
 
   // loop over element types
-  for (a = 0; a < this->neltypes; a++) {
-    Z = get_Zij(this->lattce_meam[a][a]);
-    if (this->ibar_meam[a] <= 0)
+  for (a = 0; a < neltypes; a++) {
+    Z = get_Zij(lattce_meam[a][a]);
+    if (ibar_meam[a] <= 0)
       Gbar = 1.0;
     else {
-      get_shpfcn(this->lattce_meam[a][a], this->stheta_meam[a][a], this->ctheta_meam[a][a], shp);
-      gam = (this->t1_meam[a] * shp[0] + this->t2_meam[a] * shp[1] + this->t3_meam[a] * shp[2]) / (Z * Z);
-      Gbar = G_gam(gam, this->ibar_meam[a], errorflag);
+      get_shpfcn(lattce_meam[a][a], stheta_meam[a][a], ctheta_meam[a][a], shp);
+      gam = (t1_meam[a] * shp[0] + t2_meam[a] * shp[1] + t3_meam[a] * shp[2]) / (Z * Z);
+      Gbar = G_gam(gam, ibar_meam[a], errorflag);
     }
 
     //     The zeroth order density in the reference structure, with
     //     equilibrium spacing, is just the number of first neighbors times
     //     the rho0_meam coefficient...
-    rho0 = this->rho0_meam[a] * Z;
+    rho0 = rho0_meam[a] * Z;
 
     //     ...unless we have unscreened second neighbors, in which case we
     //     add on the contribution from those (accounting for partial
     //     screening)
-    if (this->nn2_meam[a][a] == 1) {
-      Z2 = get_Zij2(this->lattce_meam[a][a], this->Cmin_meam[a][a][a],
-               this->Cmax_meam[a][a][a], this->stheta_meam[a][a], arat, scrn);
-      rho0_2nn = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * (arat - 1));
+    if (nn2_meam[a][a] == 1) {
+      Z2 = get_Zij2(lattce_meam[a][a], Cmin_meam[a][a][a],
+               Cmax_meam[a][a][a], stheta_meam[a][a], arat, scrn);
+      rho0_2nn = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * (arat - 1));
       rho0 = rho0 + Z2 * rho0_2nn * scrn;
     }
 
-    this->rho_ref_meam[a] = rho0 * Gbar;
+    rho_ref_meam[a] = rho0 * Gbar;
   }
 }
 
@@ -596,7 +628,7 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
   double rhoa01, rhoa02, a1, a2, rho01 /*,rho02*/;
 
   //     For ialloy = 2, no averaging is done
-  if (this->ialloy == 2) {
+  if (ialloy == 2) {
     *t11av = t11;
     *t21av = t21;
     *t31av = t31;
@@ -626,10 +658,10 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
       *t32av = t31;
       break;
     default:
-      a1 = r / this->re_meam[a][a] - 1.0;
-      a2 = r / this->re_meam[b][b] - 1.0;
-      rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
-      rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+      a1 = r / re_meam[a][a] - 1.0;
+      a2 = r / re_meam[b][b] - 1.0;
+      rhoa01 = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * a1);
+      rhoa02 = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
       if (latt == L12) {
         rho01 = 8 * rhoa01 + 4 * rhoa02;
         *t11av = (8 * t11 * rhoa01 + 4 * t12 * rhoa02) / rho01;
@@ -648,14 +680,16 @@ void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av
 void MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
 {
   double x;
-  x = (C - this->Cmin_meam[i][j][k]) / (this->Cmax_meam[i][j][k] - this->Cmin_meam[i][j][k]);
+  x = (C - Cmin_meam[i][j][k]) / (Cmax_meam[i][j][k] - Cmin_meam[i][j][k]);
   *sijk = fcut(x);
 }
 
 //------------------------------------------------------------------------------c
 // Calculate density functions, assuming reference configuration
 void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21, double* rho31,
-                       double* rho02, double* rho12, double* rho22, double* rho32)
+                       double* rho02, double* rho12, double* rho22, double* rho32,
+                       double* rho1m1, double* rho2m1, double* rho3m1,
+                       double* rho1m2, double* rho2m2, double* rho3m2)
 {
   double a1, a2;
   double s[3];
@@ -666,20 +700,41 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   double rhoa02, rhoa12, rhoa22, rhoa32;
   double arat, scrn, denom;
   double C, s111, s112, s221, S11, S22;
+  // msmeam
+  double rhoa1m1, rhoa2m1, rhoa3m1, rhoa1m2, rhoa2m2, rhoa3m2;
 
-  a1 = r / this->re_meam[a][a] - 1.0;
-  a2 = r / this->re_meam[b][b] - 1.0;
+  a1 = r / re_meam[a][a] - 1.0;
+  a2 = r / re_meam[b][b] - 1.0;
 
-  rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
-  rhoa11 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
-  rhoa21 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
-  rhoa31 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
-  rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
-  rhoa12 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta1_meam[b] * a2);
-  rhoa22 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
-  rhoa32 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
+  rhoa01 = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * a1);
 
-  lat = this->lattce_meam[a][b];
+  if (msmeamflag) {
+    // the rho variables are multiplied by t here since ialloy not needed in msmeam
+    rhoa11 = rho0_meam[a] * t1_meam[a] * MathSpecial::fm_exp(-beta1_meam[a] * a1);
+    rhoa21 = rho0_meam[a] * t2_meam[a] * MathSpecial::fm_exp(-beta2_meam[a] * a1);
+    rhoa31 = rho0_meam[a] * t3_meam[a] * MathSpecial::fm_exp(-beta3_meam[a] * a1);
+    rhoa02 = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
+    rhoa12 = rho0_meam[b] * t1_meam[b] * MathSpecial::fm_exp(-beta1_meam[b] * a2);
+    rhoa22 = rho0_meam[b] * t2_meam[b] * MathSpecial::fm_exp(-beta2_meam[b] * a2);
+    rhoa32 = rho0_meam[b] * t3_meam[b] * MathSpecial::fm_exp(-beta3_meam[b] * a2);
+    // msmeam specific rho vars
+    rhoa1m1 = rho0_meam[a] * t1m_meam[a] * MathSpecial::fm_exp(-beta1m_meam[a] * a1);
+    rhoa2m1 = rho0_meam[a] * t2m_meam[a] * MathSpecial::fm_exp(-beta2m_meam[a] * a1);
+    rhoa3m1 = rho0_meam[a] * t3m_meam[a] * MathSpecial::fm_exp(-beta3m_meam[a] * a1);
+    rhoa1m2 = rho0_meam[b] * t1m_meam[b] * MathSpecial::fm_exp(-beta1m_meam[b] * a2);
+    rhoa2m2 = rho0_meam[b] * t2m_meam[b] * MathSpecial::fm_exp(-beta2m_meam[b] * a2);
+    rhoa3m2 = rho0_meam[b] * t3m_meam[b] * MathSpecial::fm_exp(-beta3m_meam[b] * a2);
+  } else {
+    rhoa11 = rho0_meam[a] * MathSpecial::fm_exp(-beta1_meam[a] * a1);
+    rhoa21 = rho0_meam[a] * MathSpecial::fm_exp(-beta2_meam[a] * a1);
+    rhoa31 = rho0_meam[a] * MathSpecial::fm_exp(-beta3_meam[a] * a1);
+    rhoa02 = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
+    rhoa12 = rho0_meam[b] * MathSpecial::fm_exp(-beta1_meam[b] * a2);
+    rhoa22 = rho0_meam[b] * MathSpecial::fm_exp(-beta2_meam[b] * a2);
+    rhoa32 = rho0_meam[b] * MathSpecial::fm_exp(-beta3_meam[b] * a2);
+  }
+
+  lat = lattce_meam[a][b];
 
   Zij = get_Zij(lat);
 
@@ -689,7 +744,16 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   *rho12 = 0.0;
   *rho22 = 0.0;
   *rho32 = 0.0;
+  if (msmeamflag) {
+    *rho1m1 = 0.0;
+    *rho2m1 = 0.0;
+    *rho3m1 = 0.0;
+    *rho1m2 = 0.0;
+    *rho2m2 = 0.0;
+    *rho3m2 = 0.0;
+  }
 
+  // keep track of density components separately; combine in the calling subroutine
   switch (lat) {
     case FCC:
       *rho01 = 12.0 * rhoa02;
@@ -710,12 +774,20 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho02 = 4.0 * rhoa01;
       *rho31 = 32.0 / 9.0 * rhoa32 * rhoa32;
       *rho32 = 32.0 / 9.0 * rhoa31 * rhoa31;
+      if (msmeamflag) {
+        *rho3m1 = 32.0 / 9.0 * rhoa3m2 * rhoa3m2;
+        *rho3m2 = 32.0 / 9.0 * rhoa3m1 * rhoa3m1;
+      }
       break;
     case HCP:
       *rho01 = 12 * rhoa02;
       *rho02 = 12 * rhoa01;
       *rho31 = 1.0 / 3.0 * rhoa32 * rhoa32;
       *rho32 = 1.0 / 3.0 * rhoa31 * rhoa31;
+      if (msmeamflag) {
+        *rho3m1 = 1.0 / 3.0 * rhoa3m2 * rhoa3m2;
+        *rho3m2 = 1.0 / 3.0 * rhoa3m1 * rhoa3m1;
+      }
       break;
     case DIM:
       get_shpfcn(DIM, 0, 0, s);
@@ -727,6 +799,14 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho31 = s[2] * rhoa32 * rhoa32;
       *rho32 = s[2] * rhoa31 * rhoa31;
+      if (msmeamflag) {
+        *rho1m1 = s[0] * rhoa1m2 * rhoa1m2;
+        *rho1m2 = s[0] * rhoa1m1 * rhoa1m1;
+        *rho2m1 = s[1] * rhoa2m2 * rhoa2m2;
+        *rho2m2 = s[1] * rhoa2m1 * rhoa2m1;
+        *rho3m1 = s[2] * rhoa3m2 * rhoa3m2;
+        *rho3m2 = s[2] * rhoa3m1 * rhoa3m1;
+      }
       break;
     case C11:
       *rho01 = rhoa01;
@@ -737,17 +817,28 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho22 = rhoa22;
       *rho31 = rhoa31;
       *rho32 = rhoa32;
+      if (msmeamflag) {
+        *rho1m1 = rhoa1m1;
+        *rho1m2 = rhoa1m2;
+        *rho2m1 = rhoa2m1;
+        *rho2m2 = rhoa2m2;
+        *rho3m1 = rhoa3m1;
+        *rho3m2 = rhoa3m2;
+      }
       break;
     case L12:
       *rho01 = 8 * rhoa01 + 4 * rhoa02;
       *rho02 = 12 * rhoa01;
-      if (this->ialloy == 1) {
-        *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b]);
-        denom = 8 * rhoa01 * MathSpecial::square(this->t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(this->t2_meam[b]);
+      if (ialloy ==1){
+        *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * t2_meam[a] - rhoa22 * t2_meam[b]);
+        denom = 8 * rhoa01 * MathSpecial::square(t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(t2_meam[b]);
         if (denom > 0.)
           *rho21 = *rho21 / denom * *rho01;
       } else
         *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
+      if (msmeamflag) {
+        *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
+      }
       break;
     case B2:
       *rho01 = 8.0 * rhoa02;
@@ -771,7 +862,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho01 = rhoa02*Zij;
       *rho02 = rhoa01*Zij;
 
-      get_shpfcn(LIN, this->stheta_meam[a][b], this->ctheta_meam[a][b], s);
+      get_shpfcn(LIN, stheta_meam[a][b], ctheta_meam[a][b], s);
       *rho12 = s[0] * rhoa11 * rhoa11;
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho32 = s[2] * rhoa31 * rhoa31;
@@ -783,7 +874,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho01 = rhoa02*Zij;
       *rho02 = rhoa01*Zij;
 
-      get_shpfcn(ZIG, this->stheta_meam[a][b], this->ctheta_meam[a][b], s);
+      get_shpfcn(ZIG, stheta_meam[a][b], ctheta_meam[a][b], s);
       *rho12 = s[0] * rhoa11 * rhoa11;
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho32 = s[2] * rhoa31 * rhoa31;
@@ -795,7 +886,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho01 = rhoa02;
       *rho02 = rhoa01*Zij;
 
-      get_shpfcn(TRI, this->stheta_meam[a][b], this->ctheta_meam[a][b], s);
+      get_shpfcn(TRI, stheta_meam[a][b], ctheta_meam[a][b], s);
       *rho12 = s[0] * rhoa11 * rhoa11;
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho32 = s[2] * rhoa31 * rhoa31;
@@ -813,17 +904,17 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     //        call error('Lattice not defined in get_densref.')
   }
 
-  if (this->nn2_meam[a][b] == 1) {
+  if (nn2_meam[a][b] == 1) {
 
 
-    Zij2nn = get_Zij2(lat, this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b],
-                      this->stheta_meam[a][b], arat, scrn);
+    Zij2nn = get_Zij2(lat, Cmin_meam[a][a][b], Cmax_meam[a][a][b],
+                      stheta_meam[a][b], arat, scrn);
 
-    a1 = arat * r / this->re_meam[a][a] - 1.0;
-    a2 = arat * r / this->re_meam[b][b] - 1.0;
+    a1 = arat * r / re_meam[a][a] - 1.0;
+    a2 = arat * r / re_meam[b][b] - 1.0;
 
-    rhoa01nn = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
-    rhoa02nn = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+    rhoa01nn = rho0_meam[a] * MathSpecial::fm_exp(-beta0_meam[a] * a1);
+    rhoa02nn = rho0_meam[b] * MathSpecial::fm_exp(-beta0_meam[b] * a2);
 
     if (lat == L12) {
       //     As usual, L12 thinks it's special; we need to be careful computing
@@ -844,8 +935,8 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho01 = *rho01 + Zij2nn * scrn * rhoa01nn;
 
       //     Assume Zij2nn and arat don't depend on order, but scrn might
-      Zij2nn = get_Zij2(lat, this->Cmin_meam[b][b][a], this->Cmax_meam[b][b][a],
-                        this->stheta_meam[a][b], arat, scrn);
+      Zij2nn = get_Zij2(lat, Cmin_meam[b][b][a], Cmax_meam[b][b][a],
+                        stheta_meam[a][b], arat, scrn);
       *rho02 = *rho02 + Zij2nn * scrn * rhoa02nn;
     }
   }
@@ -859,37 +950,38 @@ void MEAM::interpolate_meam(int ind)
 
   // map to coefficient space
 
-  this->nrar = this->nr;
-  drar = this->dr;
-  this->rdrar = 1.0 / drar;
+  nrar = nr;
+  drar = dr;
+  rdrar = 1.0 / drar;
 
   // phir interp
-  for (j = 0; j < this->nrar; j++) {
-    this->phirar[ind][j] = this->phir[ind][j];
+
+  for (j = 0; j < nrar; j++) {
+    phirar[ind][j] = phir[ind][j];
   }
-  this->phirar1[ind][0] = this->phirar[ind][1] - this->phirar[ind][0];
-  this->phirar1[ind][1] = 0.5 * (this->phirar[ind][2] - this->phirar[ind][0]);
-  this->phirar1[ind][this->nrar - 2] =
-    0.5 * (this->phirar[ind][this->nrar - 1] - this->phirar[ind][this->nrar - 3]);
-  this->phirar1[ind][this->nrar - 1] = 0.0;
-  for (j = 2; j < this->nrar - 2; j++) {
-    this->phirar1[ind][j] = ((this->phirar[ind][j - 2] - this->phirar[ind][j + 2]) +
-                             8.0 * (this->phirar[ind][j + 1] - this->phirar[ind][j - 1])) /
+  phirar1[ind][0] = phirar[ind][1] - phirar[ind][0];
+  phirar1[ind][1] = 0.5 * (phirar[ind][2] - phirar[ind][0]);
+  phirar1[ind][nrar - 2] =
+    0.5 * (phirar[ind][nrar - 1] - phirar[ind][nrar - 3]);
+  phirar1[ind][nrar - 1] = 0.0;
+  for (j = 2; j < nrar - 2; j++) {
+    phirar1[ind][j] = ((phirar[ind][j - 2] - phirar[ind][j + 2]) +
+                             8.0 * (phirar[ind][j + 1] - phirar[ind][j - 1])) /
                             12.;
   }
 
-  for (j = 0; j < this->nrar - 1; j++) {
-    this->phirar2[ind][j] = 3.0 * (this->phirar[ind][j + 1] - this->phirar[ind][j]) -
-                            2.0 * this->phirar1[ind][j] - this->phirar1[ind][j + 1];
-    this->phirar3[ind][j] = this->phirar1[ind][j] + this->phirar1[ind][j + 1] -
-                            2.0 * (this->phirar[ind][j + 1] - this->phirar[ind][j]);
+  for (j = 0; j < nrar - 1; j++) {
+    phirar2[ind][j] = 3.0 * (phirar[ind][j + 1] - phirar[ind][j]) -
+                            2.0 * phirar1[ind][j] - phirar1[ind][j + 1];
+    phirar3[ind][j] = phirar1[ind][j] + phirar1[ind][j + 1] -
+                            2.0 * (phirar[ind][j + 1] - phirar[ind][j]);
   }
-  this->phirar2[ind][this->nrar - 1] = 0.0;
-  this->phirar3[ind][this->nrar - 1] = 0.0;
+  phirar2[ind][nrar - 1] = 0.0;
+  phirar3[ind][nrar - 1] = 0.0;
 
-  for (j = 0; j < this->nrar; j++) {
-    this->phirar4[ind][j] = this->phirar1[ind][j] / drar;
-    this->phirar5[ind][j] = 2.0 * this->phirar2[ind][j] / drar;
-    this->phirar6[ind][j] = 3.0 * this->phirar3[ind][j] / drar;
+  for (j = 0; j < nrar; j++) {
+    phirar4[ind][j] = phirar1[ind][j] / drar;
+    phirar5[ind][j] = 2.0 * phirar2[ind][j] / drar;
+    phirar6[ind][j] = 3.0 * phirar3[ind][j] / drar;
   }
 }

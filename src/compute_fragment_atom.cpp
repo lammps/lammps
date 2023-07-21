@@ -84,11 +84,8 @@ void ComputeFragmentAtom::init()
   if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Compute fragment/atom requires a molecular system");
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"fragment/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute fragment/atom");
+  if (modify->get_compute_by_style(style).size() > 1)
+    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,7 +114,7 @@ void ComputeFragmentAtom::compute_peratom()
     vector_atom = fragmentID;
   }
 
-  // if group is dynamic, insure ghost atom masks are current
+  // if group is dynamic, ensure ghost atom masks are current
 
   if (group->dynamic[igroup]) {
     commflag = 0;
@@ -148,11 +145,7 @@ void ComputeFragmentAtom::compute_peratom()
 
   commflag = 1;
 
-  int iteration = 0;
-
   while (true) {
-    iteration++;
-
     comm->forward_comm(this);
     done = 1;
 

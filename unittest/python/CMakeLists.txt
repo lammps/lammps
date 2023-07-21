@@ -20,15 +20,17 @@ else()
   find_package(Python COMPONENTS Interpreter Development)
 endif()
 
-add_executable(test_python_package test_python_package.cpp)
-target_link_libraries(test_python_package PRIVATE lammps GTest::GMock)
-target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
-# this requires CMake 3.12. don't care to add backward compatibility for this.
-if(Python_Development_FOUND)
-  target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
-  target_link_libraries(test_python_package PRIVATE Python::Python)
+if(PKG_PYTHON)
+  add_executable(test_python_package test_python_package.cpp)
+  target_link_libraries(test_python_package PRIVATE lammps GTest::GMock)
+  target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+  # this requires CMake 3.12. don't care to add backward compatibility for this.
+  if(Python_Development_FOUND)
+    target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
+    target_link_libraries(test_python_package PRIVATE Python::Python)
+  endif()
+  add_test(NAME PythonPackage COMMAND test_python_package)
 endif()
-add_test(NAME PythonPackage COMMAND test_python_package)
 
 # build list of environment variables for testing python functionality
 if(WIN32)
@@ -52,7 +54,10 @@ elseif(WIN32)
 else()
   list(APPEND PYTHON_TEST_ENVIRONMENT "LD_LIBRARY_PATH=${LAMMPS_LIB_PATH}:$ENV{LD_LIBRARY_PATH}")
 endif()
-set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
+if(PKG_PYTHON)
+  set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+endif()
 
 if(Python_EXECUTABLE)
   list(APPEND PYTHON_TEST_ENVIRONMENT "TEST_INPUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}")

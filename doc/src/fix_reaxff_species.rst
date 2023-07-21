@@ -9,7 +9,7 @@ Accelerator Variants: *reaxff/species/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID reaxff/species Nevery Nrepeat Nfreq filename keyword value ...
 
@@ -25,7 +25,7 @@ Syntax
   .. parsed-literal::
 
        *cutoff* value = I J Cutoff
-         I, J = atom types
+         I, J = atom types (see asterisk form below)
          Cutoff = Bond-order cutoff value for this pair of atom types
        *element* value = Element1, Element2, ...
        *position* value = posfreq filepos
@@ -39,6 +39,9 @@ Syntax
            *masslimit* value = massmin massmax
              massmin = minimum molecular weight of species to delete
              massmax = maximum molecular weight of species to delete
+       *delete_rate_limit* value = Nlimit Nsteps
+             Nlimit = maximum number of deletions allowed to occur within interval
+             Nsteps = the interval (number of timesteps) over which to count deletions
 
 Examples
 """"""""
@@ -46,7 +49,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all reaxff/species 10 10 100 species.out
-   fix 1 all reaxff/species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2 0.55
+   fix 1 all reaxff/species 1 2 20 species.out cutoff 1 1 0.40 cutoff 1 2*3 0.55
    fix 1 all reaxff/species 1 100 100 species.out element Au O H position 1000 AuOH.pos
    fix 1 all reaxff/species 1 100 100 species.out delete species.del masslimit 0 50
 
@@ -85,13 +88,24 @@ If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text version,
 but will also take longer to write.
 
+.. versionadded:: 15Jun2023
+
+   Support for wildcards added
+
 Optional keyword *cutoff* can be assigned to change the minimum
 bond-order values used in identifying chemical bonds between pairs of
 atoms.  Bond-order cutoffs should be carefully chosen, as bond-order
-cutoffs that are too small may include too many bonds (which will
-result in an error), while cutoffs that are too large will result in
-fragmented molecules.  The default cutoff of 0.3 usually gives good
-results.
+cutoffs that are too small may include too many bonds (which will result
+in an error), while cutoffs that are too large will result in fragmented
+molecules.  The default cutoff of 0.3 usually gives good results.  A
+wildcard asterisk can be used in place of or in conjunction with the I,J
+arguments to set the bond-order cutoff for multiple pairs of atom types.
+This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If :math:`N` is
+the number of atom types, then an asterisk with no numeric values means
+all types from 1 to :math:`N`.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from n to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
 
 The optional keyword *element* can be used to specify the chemical
 symbol printed for each LAMMPS atom type. The number of symbols must
@@ -118,6 +132,8 @@ character appears in *filepos*, then one file per snapshot is written
 at *posfreq* and the "\*" character is replaced with the timestep
 value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 
+.. versionadded:: 3Aug2022
+
 The optional keyword *delete* enables the periodic removal of
 molecules from the system.  Criteria for deletion can be either a list
 of specific chemical formulae or a range of molecular weights.
@@ -140,7 +156,14 @@ When using the *masslimit* keyword, each line of the *filedel* file
 contains the timestep on which deletions occurs, followed by how many
 of each species are deleted (with quantities preceding chemical
 formulae).  The *specieslist* and *masslimit* keywords cannot both be
-used in the same *reaxff/species* fix.
+used in the same *reaxff/species* fix.  The *delete_rate_limit*
+keyword can enforce an upper limit on the overall rate of molecule
+deletion.  The number of deletion occurrences is limited to Nlimit
+within an interval of Nsteps timesteps.   Nlimit can be specified with
+an equal-style :doc:`variable <variable>`.  When using the
+*delete_rate_limit* keyword, no deletions are permitted to occur
+within the first Nsteps timesteps of the first run (after reading a
+either a data or restart file).
 
 ----------
 

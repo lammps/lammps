@@ -36,6 +36,7 @@ using namespace MathConst;
 
 PairBorn::PairBorn(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -424,6 +425,36 @@ double PairBorn::single(int /*i*/, int /*j*/, int itype, int jtype,
   phiborn = a[itype][jtype]*rexp - c[itype][jtype]*r6inv +
     d[itype][jtype]*r2inv*r6inv - offset[itype][jtype];
   return factor_lj*phiborn;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBorn::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double rinv, r2inv, r7inv, r8inv, r9inv, r10inv, du, du2;
+  double r, rexp;
+
+  r = sqrt(rsq);
+  rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r7inv = r2inv * r2inv * r2inv * rinv;
+  r8inv = r7inv * rinv;
+  r9inv = r7inv * r2inv;
+  r10inv = r9inv * rinv;
+
+  // Reminder: born1[itype][jtype] = a[itype][jtype]/rho[itype][jtype];
+  // Reminder: born2[itype][jtype] = 6.0*c[itype][jtype];
+  // Reminder: born3[itype][jtype] = 8.0*d[itype][jtype];
+
+  du = born2[itype][jtype] * r7inv - born1[itype][jtype] * rexp - born3[itype][jtype] * r9inv;
+  du2 = (born1[itype][jtype] / rho[itype][jtype]) * rexp - 7 * born2[itype][jtype] * r8inv + 9 * born3[itype][jtype] * r10inv;
+
+  dupair = factor_lj * du;
+  du2pair = factor_lj * du2;
 }
 
 /* ---------------------------------------------------------------------- */

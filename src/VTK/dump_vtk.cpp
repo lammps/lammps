@@ -31,7 +31,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -294,21 +294,15 @@ int DumpVTK::count()
   }
 
   // invoke Computes for per-atom quantities
-  // only if within a run or minimize
-  // else require that computes are current
-  // this prevents a compute from being invoked by the WriteDump class
+  // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->whichflag == 0) {
-      for (i = 0; i < ncompute; i++)
-        if (compute[i]->invoked_peratom != update->ntimestep)
-          error->all(FLERR,"Compute used in dump between runs is not current");
-    } else {
-      for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
-          compute[i]->compute_peratom();
-          compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
-        }
+    if (update->first_update == 0)
+      error->all(FLERR,"Dump compute cannot be invoked before first run");
+    for (i = 0; i < ncompute; i++) {
+      if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
+        compute[i]->compute_peratom();
+        compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
       }
     }
   }
@@ -927,8 +921,8 @@ void DumpVTK::write()
 
   if (filewriter) write_header(nheader);
 
-  // insure buf is sized for packing and communicating
-  // use nmax to insure filewriter proc can receive info from others
+  // ensure buf is sized for packing and communicating
+  // use nmax to ensure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
 
   if (nmax > maxbuf) {
@@ -939,7 +933,7 @@ void DumpVTK::write()
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
-  // insure ids buffer is sized for sorting
+  // ensure ids buffer is sized for sorting
 
   if (sort_flag && sortcol == 0 && nmax > maxids) {
     maxids = nmax;
@@ -1939,7 +1933,7 @@ void DumpVTK::identify_vectors()
     // assume components are grouped together and in correct order
     if (name.count(it->first + 1) && name.count(it->first + 2)) { // more attributes?
       if (it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
-         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0 )
+         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0)
       {
         it->second.erase(it->second.length()-1);
         std::ostringstream oss;
@@ -2357,16 +2351,16 @@ int DumpVTK::modify_param(int narg, char **arg)
       thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
       thresh_last[nthresh] = -1;
     } else {
-      thresh_fix = (FixStorePeratom **)
-        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStorePeratom *),"dump:thresh_fix");
+      thresh_fix = (FixStoreAtom **)
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStoreAtom *),"dump:thresh_fix");
       thresh_fixID = (char **)
         memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
-      threshid += fmt::format(" {} STORE/PERATOM 1 1", group->names[igroup]);
-      thresh_fix[nthreshlast] = dynamic_cast<FixStorePeratom *>(modify->add_fix(threshid));
+      threshid += fmt::format(" {} STORE/ATOM 1 0 0 1", group->names[igroup]);
+      thresh_fix[nthreshlast] = dynamic_cast<FixStoreAtom *>(modify->add_fix(threshid));
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

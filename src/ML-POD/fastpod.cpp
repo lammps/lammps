@@ -221,7 +221,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
   nrbfmax = (nrbfmax < nrbf33) ? nrbf33 : nrbfmax;
   nrbfmax = (nrbfmax < nrbf34) ? nrbf34 : nrbfmax;
   nrbfmax = (nrbfmax < nrbf44) ? nrbf44 : nrbfmax;
- 
+
   if (P3 < P4) error->all(FLERR,"four-body angular degree must be equal or less than three-body angular degree");
   if (P4 < P33) error->all(FLERR,"five-body angular degree must be equal or less than four-body angular degree");
   if (P33 < P34) error->all(FLERR,"six-body angular degree must be equal or less than five-body angular degree");
@@ -478,11 +478,11 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
   double *coeff34 = &newcoeff[(nl1 + nl2 + nl3 + nl4 + nl23 + nl33)*nelements];
   double *coeff44 = &newcoeff[(nl1 + nl2 + nl3 + nl4 + nl23 + nl33 + nl34)*nelements];
 
-  if (Nj==0) {      
+  if (Nj==0) {
     for (int j=0; j<3*Nj; j++) fij[j] = 0.0;
-    return newcoeff[ti[0]-1];            
+    return newcoeff[ti[0]-1];
   }
-  
+
   int t0 = ti[0]-1;
   int n1 = Nj*K3*nrbf3;
   int n2 = Nj*nrbfmax;
@@ -507,41 +507,41 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
   double *rbfzt = &temp[4*n1 + n5 + 4*n2 + 3*n3]; // Nj*ns
 
   // orthogonal radial basis functions
-  
-  //auto begin = std::chrono::high_resolution_clock::now(); 
+
+  //auto begin = std::chrono::high_resolution_clock::now();
   //auto end = std::chrono::high_resolution_clock::now();
-  
-  //begin = std::chrono::high_resolution_clock::now(); 
-  
+
+  //begin = std::chrono::high_resolution_clock::now();
+
   radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nj);
 
-  //end = std::chrono::high_resolution_clock::now();   
-  //comptime[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-  
+  //end = std::chrono::high_resolution_clock::now();
+  //comptime[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
   //begin = std::chrono::high_resolution_clock::now();
-      
+
   char chn = 'N';
   double alpha = 1.0, beta = 0.0;
   DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbft, &Nj, Phi, &ns, &beta, rbf, &Nj);
   DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfxt, &Nj, Phi, &ns, &beta, rbfx, &Nj);
   DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfyt, &Nj, Phi, &ns, &beta, rbfy, &Nj);
-  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfzt, &Nj, Phi, &ns, &beta, rbfz, &Nj);    
-  
-  //end = std::chrono::high_resolution_clock::now();   
-  //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-  
+  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfzt, &Nj, Phi, &ns, &beta, rbfz, &Nj);
+
+  //end = std::chrono::high_resolution_clock::now();
+  //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
   for (int j=0; j<3*Nj; j++) fij[j] = 0.0;
 
   double e1=0, e2=0, e3=0, e4=0, e23=0, e33=0, e34=0, e44=0;
 
   //begin = std::chrono::high_resolution_clock::now();
-  
+
   e1 = coeff1[t0];
   e2 = tallytwobodylocalforce(fij, &coeff2[nl2*t0], rbf, rbfx, rbfy, rbfz, tj, nrbf2, Nj);
 
-  //end = std::chrono::high_resolution_clock::now();   
-  //comptime[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-  
+  //end = std::chrono::high_resolution_clock::now();
+  //comptime[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
   if (nd3 > 0) {
     double *abf = &temp[4*n1 + n5 + 4*n2]; // Nj*K3
     double *abfx = &temp[4*n1 + n5 + 4*n2 + n4]; // Nj*K3
@@ -549,29 +549,29 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
     double *abfz = &temp[4*n1 + n5 + 4*n2 + 3*n4]; // Nj*K3
     double *tm = &temp[4*n1 + n5 + 4*n2 + 4*n4]; // 4*K3
 
-    //begin = std::chrono::high_resolution_clock::now(); 
-    
+    //begin = std::chrono::high_resolution_clock::now();
+
     angularbasis(abf, abfx, abfy, abfz, rij, tm, pq3, Nj, K3);
 
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[2] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
-    //begin = std::chrono::high_resolution_clock::now(); 
-    
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[2] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
+    //begin = std::chrono::high_resolution_clock::now();
+
     //radialangularbasis(U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, Nj, K3, nrbf3);
-    radialangularbasis(sumU, U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, 
+    radialangularbasis(sumU, U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz,
             abf, abfx, abfy, abfz, tm, tj, Nj, K3, nrbf3, nelements);
-    
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
 //     //begin = std::chrono::high_resolution_clock::now();
-//     
+//
 //     sumradialangularfunctions(sumU, U, tj, Nj, K3, nrbf3, nelements);
-// 
-//     //end = std::chrono::high_resolution_clock::now();   
-//     //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+//
+//     //end = std::chrono::high_resolution_clock::now();
+//     //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
     double *d2 =  &temp[4*n1 + n5 + 4*n2]; // nl2
     double *dd2 = &temp[4*n1 + n5 + 4*n2 + nl2]; // 3*Nj*nl2
     double *d3 =  &temp[4*n1 + n5 + 4*n2 + nl2 + 3*Nj*nl2]; // nl3
@@ -585,29 +585,29 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
 
     if ((nd23>0) || (nd33>0) || (nd34>0)) {
       //begin = std::chrono::high_resolution_clock::now();
-      
+
       threebodydesc(d3, sumU, Nj);
       threebodydescderiv(dd3, sumU, Ux, Uy, Uz, tj, Nj);
-      
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
+
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
     }
 
     //begin = std::chrono::high_resolution_clock::now();
-    
+
     double *cU = &temp[4*n1 + n5 + 4*n2 + nl2 + 3*Nj*nl2 + nl3 + 3*Nj*nl3 + nl4 + 3*Nj*nl4];
     e3 = threebodycoeff(cU, &coeff3[nl3*t0], sumU, Nj);
-    
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[5] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[5] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
     //begin = std::chrono::high_resolution_clock::now();
-    
+
     tallylocalforce(fij, cU, Ux, Uy, Uz, tj, Nj, K3, nrbf3, nelements);
 
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[6] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[6] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
     if (nd23>0) {
       double *d23 = &temp[0];
       fourbodydesc23(d23, d2, d3);
@@ -615,19 +615,19 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
       fourbodyfij23(fij, temp, &coeff23[nl23*t0], d2, d3, dd2, dd3, 3*Nj);
     }
 
-    if (nd33>0) {      
+    if (nd33>0) {
       //begin = std::chrono::high_resolution_clock::now();
-      
+
       double *d33 = &temp[0];
       fivebodydesc33(d33, d3);
       e33 = dotproduct(&coeff33[nl33*t0], d33, nl33);
       fivebodyfij33(fij, temp, &coeff33[nl33*t0], d3, dd3, 3*Nj);
-      
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[10] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
+
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[10] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
     }
 
-    if (nd4 > 0) {      
+    if (nd4 > 0) {
       if (K4 < K3) {
         for (int m=0; m<nrbf4; m++)
           for (int k=0; k<K4; k++)
@@ -650,19 +650,19 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
       }
 
       //begin = std::chrono::high_resolution_clock::now();
-      
+
       e4 = fourbodycoeff(cU, sumU, &coeff4[nl4*t0], Nj);
-      
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-      
+
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
       //begin = std::chrono::high_resolution_clock::now();
-      
+
       tallylocalforce(fij, cU, Ux, Uy, Uz, tj, Nj, K4, nrbf4, nelements);
 
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-      
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
       if (nd34>0) {
         double *d34 = &temp[0];
         sixbodydesc34(d34, d3, d4);
@@ -691,8 +691,8 @@ double FASTPOD::energyforce(double *force, double *x, int *atomtype, int *alist,
   for (int i=0; i<natom; i++) {
     int Nj = pairnumsum[i+1] - pairnumsum[i]; // # neighbors around atom i
 
-    if (Nj==0) {      
-      etot += newcoeff[atomtype[i]-1];      
+    if (Nj==0) {
+      etot += newcoeff[atomtype[i]-1];
     }
     else
     {
@@ -754,12 +754,12 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
 
     if (Nj==0) {
       printf("Zero neighbors detected...\n");
-      if (nd1>0) onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);           
+      if (nd1>0) onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);
     }
     else
-    {    
+    {
     // reallocate temporary memory
-    if (Nj>Njmax) {      
+    if (Nj>Njmax) {
       Njmax = Nj;
       int nmem = estimate_memory(Njmax);
       memory->destroy(tmpmem);
@@ -768,13 +768,13 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
       memory->create(tmpint, 4*Njmax, "tmpint");
       printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
     }
-    
+
     double *rij = &tmpmem[0]; // 3*Nj
     int *ai = &tmpint[0];     // Nj
     int *aj = &tmpint[Nj];   // Nj
     int *ti = &tmpint[2*Nj]; // Nj
     int *tj = &tmpint[3*Nj]; // Nj
-    
+
     myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
 
     if (nd1>0) onebodydescriptors(gd1, gdd1, ti, natom, i);
@@ -1079,7 +1079,7 @@ void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *U
     dd4[m] = 0.0;
 
   int Q = pa4[nabf4];
-  
+
   if (nelements==1) {
     for (int m=0; m<nrbf4; m++)
       for (int p=0; p<nabf4; p++) {
@@ -1104,7 +1104,7 @@ void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *U
             int jj = j + N*j3 + N*K4*m;
             dd4[0 + 3*j + ii] += t12*Ux[jj];
             dd4[1 + 3*j + ii] += t12*Uy[jj];
-            dd4[2 + 3*j + ii] += t12*Uz[jj];            
+            dd4[2 + 3*j + ii] += t12*Uz[jj];
             jj = j + N*j2 + N*K4*m;
             dd4[0 + 3*j + ii] += t13*Ux[jj];
             dd4[1 + 3*j + ii] += t13*Uy[jj];
@@ -1112,10 +1112,10 @@ void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *U
             jj = j + N*j1 + N*K4*m;
             dd4[0 + 3*j + ii] += t23*Ux[jj];
             dd4[1 + 3*j + ii] += t23*Uy[jj];
-            dd4[2 + 3*j + ii] += t23*Uz[jj];            
+            dd4[2 + 3*j + ii] += t23*Uz[jj];
           }
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf4; m++)
@@ -1240,7 +1240,7 @@ double FASTPOD::fourbodycoeff(double *cU, double *sumU, double *coeff4, int N)
           cU[j2 + K4*m] += c6*c1;
           cU[j1 + K4*m] += c6*c2;
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf4; m++)
@@ -1292,9 +1292,9 @@ void FASTPOD::threebodydesc(double *d3, double *sumU, int N)
         int nn = n2 - n1;
         for (int q=0; q<nn; q++) {
           double t1 = pc3[n1+q]*sumU[(n1+q) + K3*m];
-          d3[p + nabf3*m] += t1*sumU[(n1+q) + K3*m];                      
+          d3[p + nabf3*m] += t1*sumU[(n1+q) + K3*m];
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf3; m++)
@@ -1338,9 +1338,9 @@ void FASTPOD::threebodydescderiv(double *dd3, double *sumU, double *Ux, double *
             dd3[0 + ii] += f*Ux[jj];
             dd3[1 + ii] += f*Uy[jj];
             dd3[2 + ii] += f*Uz[jj];
-          }          
+          }
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf3; m++)
@@ -1562,7 +1562,7 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
     double f1 = fcut/r;
     double f2 = f1/r;
     double df1 = dfcut/r;
-    
+
     double alpha = besselparams[0];
     double t1 = (1.0-exp(-alpha));
     double t2 = exp(-alpha*r/rmax);
@@ -1570,91 +1570,91 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
     double dx0 = (alpha/rmax)*t2/t1;
 
     if (nbesselpars==1) {
-      for (int i=0; i<besseldegree; i++) {      
+      for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
-        int nij = n + N*i;        
+        int nij = n + N*i;
         rbf[nij] = b*f1*sinax;
         double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
         rbfx[nij] = drbfdr*dr1;
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;              
-      }      
+        rbfz[nij] = drbfdr*dr3;
+      }
     }
     else if (nbesselpars==2) {
       alpha = besselparams[1];
       t1 = (1.0-exp(-alpha));
       t2 = exp(-alpha*r/rmax);
       double x1 =  (1.0 - t2)/t1;
-      double dx1 = (alpha/rmax)*t2/t1;      
-      for (int i=0; i<besseldegree; i++) {      
+      double dx1 = (alpha/rmax)*t2/t1;
+      for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
-        int nij = n + N*i;        
+        int nij = n + N*i;
         rbf[nij] = b*f1*sinax;
         double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
         rbfx[nij] = drbfdr*dr1;
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
+        rbfz[nij] = drbfdr*dr3;
 
         sinax = sin(a*x1);
-        nij = n + N*i + N*besseldegree*1;        
+        nij = n + N*i + N*besseldegree*1;
         rbf[nij] = b*f1*sinax;
         drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
         rbfx[nij] = drbfdr*dr1;
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
-      }      
+        rbfz[nij] = drbfdr*dr3;
+      }
     }
     else if (nbesselpars==3) {
       alpha = besselparams[1];
       t1 = (1.0-exp(-alpha));
       t2 = exp(-alpha*r/rmax);
       double x1 =  (1.0 - t2)/t1;
-      double dx1 = (alpha/rmax)*t2/t1;      
-      
+      double dx1 = (alpha/rmax)*t2/t1;
+
       alpha = besselparams[2];
       t1 = (1.0-exp(-alpha));
       t2 = exp(-alpha*r/rmax);
       double x2 =  (1.0 - t2)/t1;
-      double dx2 = (alpha/rmax)*t2/t1;      
-      for (int i=0; i<besseldegree; i++) {      
+      double dx2 = (alpha/rmax)*t2/t1;
+      for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
-        int nij = n + N*i;        
+        int nij = n + N*i;
         rbf[nij] = b*f1*sinax;
         double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
         rbfx[nij] = drbfdr*dr1;
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
+        rbfz[nij] = drbfdr*dr3;
 
         sinax = sin(a*x1);
-        nij = n + N*i + N*besseldegree*1;        
+        nij = n + N*i + N*besseldegree*1;
         rbf[nij] = b*f1*sinax;
         drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
         rbfx[nij] = drbfdr*dr1;
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
+        rbfz[nij] = drbfdr*dr3;
 
         sinax = sin(a*x2);
-        nij = n + N*i + N*besseldegree*2;        
+        nij = n + N*i + N*besseldegree*2;
         rbf[nij] = b*f1*sinax;
         drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x2)*dx2);
         rbfx[nij] = drbfdr*dr1;
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
-      }         
+        rbfz[nij] = drbfdr*dr3;
+      }
     }
-            
+
     f1 = fcut/dij;
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
@@ -1667,7 +1667,7 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
       rbfz[nij] = drbfdr*dr3;
     }
   }
-}  
+}
 
 void FASTPOD::orthogonalradialbasis(double *orthorbf, double *rij, double *Phi, double *besselparams,
         double rin, double rmax, int besseldegree, int inversedegree, int nbesselpars, int nrbf2, int N)
@@ -1806,11 +1806,11 @@ void FASTPOD::radialangularfunctions(double *U, double *rbf, double *abf, int N,
     for (int k=0; k<K; k++)
       for (int n=0; n<N; n++)
         U[n + N*k + N*K*m] = abf[n + N*k]*rbf[n + N*m];
-  
+
 //   for (int n=0; n<N; n++)
 //     for (int m=0; m<M; m++)
-//       for (int k=0; k<K; k++)      
-//         U[n + N*k + N*K*m] = abf[n + N*k]*rbf[n + N*m];  
+//       for (int k=0; k<K; k++)
+//         U[n + N*k + N*K*m] = abf[n + N*k]*rbf[n + N*m];
 }
 
 void FASTPOD::radialangularbasis(double *U, double *Ux, double *Uy, double *Uz,
@@ -1842,7 +1842,7 @@ void FASTPOD::radialangularbasis(double *U, double *Ux, double *Uy, double *Uz,
 //         Ux[ii] = abfx[ia]*c1 + c2*rbfx[ib];
 //         Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
 //         Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];
-//       }  
+//       }
 }
 
 void FASTPOD::sumradialangularfunctions(double *sumU, double *U, int *atomtype, int N, int K, int M, int Ne)
@@ -1858,12 +1858,12 @@ void FASTPOD::sumradialangularfunctions(double *sumU, double *U, int *atomtype, 
 }
 
 void FASTPOD::radialangularbasis(double *sumU, double *U, double *Ux, double *Uy, double *Uz,
-        double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf, double *abfx, 
+        double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf, double *abfx,
         double *abfy, double *abfz, double *tm, int *atomtype, int N, int K, int M, int Ne)
 {
   for (int m=0; m<Ne*K*M; m++)
     sumU[m] = 0.0;
-  
+
   if (Ne==1) {
     for (int m=0; m<M; m++)
       for (int k=0; k<K; k++) {
@@ -1877,11 +1877,11 @@ void FASTPOD::radialangularbasis(double *sumU, double *U, double *Ux, double *Uy
           U[ii] = c1*c2;
           Ux[ii] = abfx[ia]*c1 + c2*rbfx[ib];
           Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
-          Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];          
+          Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];
           sum += c1*c2;
         }
         sumU[k + K*m] += sum;
-      }    
+      }
   }
   else {
     for (int m=0; m<M; m++)
@@ -2021,16 +2021,16 @@ void FASTPOD::tallylocalforce(double *fij, double *cU, double *Ux, double *Uy, d
       for (int k=0; k<K; k++) {
         int kk = k + K*m;
         double c = cU[kk];
-        for (int j=0; j<N; j++) {          
+        for (int j=0; j<N; j++) {
           int ii = 3*j;
-          int jj = j + N*k + N*K*m;          
+          int jj = j + N*k + N*K*m;
           fij[0 + ii] += c*Ux[jj];
           fij[1 + ii] += c*Uy[jj];
           fij[2 + ii] += c*Uz[jj];
         }
       }
   }
-  else { 
+  else {
     for (int m=0; m<M; m++)
       for (int k=0; k<K; k++)
         for (int j=0; j<N; j++) {
@@ -2198,14 +2198,14 @@ void FASTPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   }
 
   // enforce consistent signs for the eigenvectors
-  
-  for (int m=0; m<ns; m++) {    
+
+  for (int m=0; m<ns; m++) {
     if (Phi[m + ns*m] < 0.0) {
       for (int i=0; i<ns; i++)
-        Phi[i + ns*m] = -Phi[i + ns*m];      
+        Phi[i + ns*m] = -Phi[i + ns*m];
     }
   }
-  
+
   free(xij); free(S); free(A); free(b); free(Q);
 }
 

@@ -128,12 +128,12 @@ Makefile.lammps is created by the make command, by copying one of the
 Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the
 Makefile.* files.
 
-IMPORTANT: You should examine the final Makefile.lammps to insure it is
+IMPORTANT: You should examine the final Makefile.lammps to ensure it is
 correct for your system, else the LAMMPS build can fail.
 
 IMPORTANT: If you re-build the library, e.g. for a different precision
 (see below), you should do a "make clean" first, e.g. make -f
-Makefile.linux clean, to insure all previous derived files are removed
+Makefile.linux clean, to ensure all previous derived files are removed
 before the new build is done.
 
 NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG,
@@ -205,8 +205,7 @@ $(CUDA_HOME)/lib64/stubs), that can be used for linking.
 Best performance with the GPU library is typically with multiple MPI processes
 sharing the same GPU cards. For NVIDIA, this is most efficient with CUDA
 MPS enabled. To prevent runtime errors for GPUs configured in exclusive process
-mode with MPS, the GPU library should be build with either of the equivalent
--DCUDA_MPS_SUPPORT or -DCUDA_PROXY flags.
+mode with MPS, the GPU library should be build with the -DCUDA_MPS_SUPPORT flag.
 
 ------------------------------------------------------------------------------
                              HIP BUILD NOTES
@@ -244,7 +243,6 @@ _SINGLE_SINGLE          Build library for single precision mode
 _SINGLE_DOUBLE          Build library for mixed precision mode
 _DOUBLE_DOUBLE          Build library for double precision mode
 CUDA_MPS_SUPPORT        Do not generate errors for exclusive mode for CUDA
-CUDA_PROXY              Same as above
 MPI_GERYON              Library should use MPI_Abort for unhandled errors
 GERYON_NUMA_FISSION     Accelerators with main memory NUMA are split into
                         multiple virtual accelerators for each NUMA node
@@ -268,6 +266,7 @@ LAL_SERIALIZE_INIT      Force serialization of initialization and compilation
                         for multiple MPI tasks sharing the same accelerator.
                         Some accelerator API implementations have had issues
                         with temporary file conflicts in the past.
+LAL_DISABLE_PREFETCH    Disable prefetch in kernels
 GERYON_FORCE_SHARED_MAIN_MEM_ON      Should only be used for builds where the
                                      accelerator is guaranteed to share physical
                                      main memory with the host (e.g. integrated

@@ -10,11 +10,13 @@ Go to `lammps` directory and build with the POD package:
 
 ### Fit a POD potential for tantalum
 
-Go to `lammps/examples/PACKAGES/pod/Ta` directory and run 
+Go to `lammps/examples/PACKAGES/pod/Ta_lpod` directory and run 
 
-    lmp -in in.podfit
+    lmp -in in.fitpod
 
-See the README in `lammps/examples/PACKAGES/pod/Ta_lpod` for instructions on how to run MD with the potential.
+See the README in `lammps/examples/PACKAGES/pod/Ta_lpod` for instructions on how to run MD with the potential. Likewise 
+for fast POD (FPOD) in `lammps/examples/PACKAGES/pod/Ta_fpod` and quadratic POD (QPOD) in 
+`lammps/examples/PACKAGES/pod/Ta_fpod`.
 
 ### Examples for other materials
 

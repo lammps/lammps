@@ -23,7 +23,7 @@ against invalid accesses.
    When accessing per-atom data,
    please note that this data is the per-processor local data and indexed
    accordingly. These arrays can change sizes and order at every neighbor list
-   rebuild and atom sort event as atoms are migrating between sub-domains.
+   rebuild and atom sort event as atoms are migrating between subdomains.
 
 .. tabs::
 
@@ -53,12 +53,17 @@ against invalid accesses.
 
       * :py:meth:`version() <lammps.lammps.version()>`: return the numerical version id, e.g. LAMMPS 2 Sep 2015 -> 20150902
       * :py:meth:`get_thermo() <lammps.lammps.get_thermo()>`: return current value of a thermo keyword
+      * :py:meth:`last_thermo() <lammps.lammps.last_thermo()>`: return a dictionary of the last thermodynamic output
       * :py:meth:`get_natoms() <lammps.lammps.get_natoms()>`: total # of atoms as int
       * :py:meth:`reset_box() <lammps.lammps.reset_box()>`: reset the simulation box size
       * :py:meth:`extract_setting() <lammps.lammps.extract_setting()>`: return a global setting
       * :py:meth:`extract_global() <lammps.lammps.extract_global()>`: extract a global quantity
       * :py:meth:`extract_box() <lammps.lammps.extract_box()>`: extract box info
       * :py:meth:`create_atoms() <lammps.lammps.create_atoms()>`: create N atoms with IDs, types, x, v, and image flags
+
+      **Properties**:
+
+      * :py:attr:`last_thermo_step <lammps.lammps.last_thermo_step>`: the last timestep thermodynamic output was computed
 
    .. tab:: PyLammps/IPyLammps API
 
@@ -105,7 +110,7 @@ against invalid accesses.
       variables, compute or fix data (see :doc:`Howto_output`):
 
 
-      .. code-block:: Python
+      .. code-block:: python
 
          result = L.eval("ke") # kinetic energy
          result = L.eval("pe") # potential energy

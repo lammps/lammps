@@ -9,10 +9,10 @@ page.
 
 The following text assumes some familiarity with CMake and focuses on
 using the command line tool ``cmake`` and what settings are supported
-for building LAMMPS.  A more detailed tutorial on how to use ``cmake``
-itself, the text mode or graphical user interface, change the generated
-output files for different build tools and development environments is
-on a :doc:`separate page <Howto_cmake>`.
+for building LAMMPS.  A more detailed tutorial on how to use CMake
+itself, the text mode or graphical user interface, to change the
+generated output files for different build tools and development
+environments is on a :doc:`separate page <Howto_cmake>`.
 
 .. note::
 
@@ -22,12 +22,12 @@ on a :doc:`separate page <Howto_cmake>`.
 .. warning::
 
    You must not mix the :doc:`traditional make based <Build_make>`
-   LAMMPS build procedure with using CMake.  Thus no packages may be
+   LAMMPS build procedure with using CMake.  No packages may be
    installed or a build been previously attempted in the LAMMPS source
    directory by using ``make <machine>``.  CMake will detect if this is
    the case and generate an error.  To remove conflicting files from the
    ``src`` you can use the command ``make no-all purge`` which will
-   un-install all packages and delete all auto-generated files.
+   uninstall all packages and delete all auto-generated files.
 
 
 Advantages of using CMake
@@ -44,9 +44,9 @@ software or for people that want to modify or extend LAMMPS.
   and adapt the LAMMPS default build configuration accordingly.
 - CMake can generate files for different build tools and integrated
   development environments (IDE).
-- CMake supports customization of settings with a text mode or graphical
-  user interface. No knowledge of file formats or and complex command
-  line syntax required.
+- CMake supports customization of settings with a command line, text
+  mode, or graphical user interface.  No knowledge of file formats or
+  complex command line syntax is required.
 - All enabled components are compiled in a single build operation.
 - Automated dependency tracking for all files and configuration options.
 - Support for true out-of-source compilation. Multiple configurations
@@ -55,23 +55,23 @@ software or for people that want to modify or extend LAMMPS.
   source tree.
 - Simplified packaging of LAMMPS for Linux distributions, environment
   modules, or automated build tools like `Homebrew <https://brew.sh/>`_.
-- Integration of automated regression testing (the LAMMPS side for that
-  is still under development).
+- Integration of automated unit and regression testing (the LAMMPS side
+  of this is still under active development).
 
 .. _cmake_build:
 
 Getting started
 ^^^^^^^^^^^^^^^
 
-Building LAMMPS with CMake is a two-step process.  First you use CMake
-to generate a build environment in a new directory.  For that purpose
-you can use either the command-line utility ``cmake`` (or ``cmake3``),
-the text-mode UI utility ``ccmake`` (or ``ccmake3``) or the graphical
-utility ``cmake-gui``, or use them interchangeably.  The second step is
-then the compilation and linking of all objects, libraries, and
-executables. Here is a minimal example using the command line version of
-CMake to build LAMMPS with no add-on packages enabled and no
-customization:
+Building LAMMPS with CMake is a two-step process.  In the first step,
+you use CMake to generate a build environment in a new directory.  For
+that purpose you can use either the command-line utility ``cmake`` (or
+``cmake3``), the text-mode UI utility ``ccmake`` (or ``ccmake3``) or the
+graphical utility ``cmake-gui``, or use them interchangeably.  The
+second step is then the compilation and linking of all objects,
+libraries, and executables using the selected build tool.  Here is a
+minimal example using the command line version of CMake to build LAMMPS
+with no add-on packages enabled and no customization:
 
 .. code-block:: bash
 
@@ -96,17 +96,17 @@ Compilation can take a long time, since LAMMPS is a large project with
 many features. If your machine has multiple CPU cores (most do these
 days), you can speed this up by compiling sources in parallel with
 ``make -j N`` (with N being the maximum number of concurrently executed
-tasks).  Also installation of the `ccache <https://ccache.dev/>`_ (=
-Compiler Cache) software may speed up repeated compilation even more,
-e.g. during code development.
+tasks).  Installation of the `ccache <https://ccache.dev/>`_ (= Compiler
+Cache) software may speed up repeated compilation even more, e.g. during
+code development, especially when repeatedly switching between branches.
 
 After the initial build, whenever you edit LAMMPS source files, enable
 or disable packages, change compiler flags or build options, you must
 re-compile and relink the LAMMPS executable with ``cmake --build .`` (or
 ``make``).  If the compilation fails for some reason, try running
 ``cmake .`` and then compile again. The included dependency tracking
-should make certain that only the necessary subset of files are
-re-compiled.  You can also delete compiled objects, libraries and
+should make certain that only the necessary subset of files is
+re-compiled.  You can also delete compiled objects, libraries, and
 executables with ``cmake --build . --target clean`` (or ``make clean``).
 
 After compilation, you may optionally install the LAMMPS executable into
@@ -132,12 +132,12 @@ file called ``CMakeLists.txt`` (for LAMMPS it is located in the
 ``CMakeCache.txt``, which is generated at the end of the CMake
 configuration step.  The cache file contains all current CMake settings.
 
-To modify settings, enable or disable features, you need to set *variables*
-with either the *-D* command line flag (``-D VARIABLE1_NAME=value``) or
-change them in the text mode of graphical user interface.  The *-D* flag
-can be used several times in one command.
+To modify settings, enable or disable features, you need to set
+*variables* with either the *-D* command line flag (``-D
+VARIABLE1_NAME=value``) or change them in the text mode of the graphical
+user interface.  The *-D* flag can be used several times in one command.
 
-For your convenience we provide :ref:`CMake presets <cmake_presets>`
+For your convenience, we provide :ref:`CMake presets <cmake_presets>`
 that combine multiple settings to enable optional LAMMPS packages or use
 a different compiler tool chain.  Those are loaded with the *-C* flag
 (``-C ../cmake/presets/basic.cmake``).  This step would only be needed
@@ -155,22 +155,23 @@ specific CMake version is given when running ``cmake --help``.
 Multi-configuration build systems
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Throughout this manual it is mostly assumed that LAMMPS is being built
+Throughout this manual, it is mostly assumed that LAMMPS is being built
 on a Unix-like operating system with "make" as the underlying "builder",
-since this is the most common case.  In this case the build "configuration"
-is chose using ``-D CMAKE_BUILD_TYPE=<configuration>`` with ``<configuration>``
-being one of "Release", "Debug", "RelWithDebInfo", or "MinSizeRel".
-Some build tools, however, can also use or even require to have a so-called
-multi-configuration build system setup.  For those the built type (or
-configuration) is chosen at compile time using the same build files. E.g.
-with:
+since this is the most common case.  In this case the build
+"configuration" is chose using ``-D CMAKE_BUILD_TYPE=<configuration>``
+with ``<configuration>`` being one of "Release", "Debug",
+"RelWithDebInfo", or "MinSizeRel".  Some build tools, however, can also
+use or even require having a so-called multi-configuration build system
+setup.  For a multi-configuration build, the built type (or
+configuration) is selected at compile time using the same build
+files. E.g.  with:
 
 .. code-block:: bash
 
    cmake --build build-multi --config Release
 
 In that case the resulting binaries are not in the build folder directly
-but in sub-directories corresponding to the build type (i.e. Release in
+but in subdirectories corresponding to the build type (i.e. Release in
 the example from above).  Similarly, for running unit tests the
 configuration is selected with the *-C* flag:
 
@@ -184,7 +185,7 @@ particular applicable to compiling packages that require additional libraries
 that would be downloaded and compiled by CMake.  The "windows" preset file
 tries to keep track of which packages can be compiled natively with the
 MSVC compilers out-of-the box.  Not all of those external libraries are
-portable to Windows either.
+portable to Windows, either.
 
 
 Installing CMake

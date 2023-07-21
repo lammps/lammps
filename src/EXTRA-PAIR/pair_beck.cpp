@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,14 +17,15 @@
 
 #include "pair_beck.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "math_special.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -54,16 +54,16 @@ PairBeck::~PairBeck()
 
 void PairBeck::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r5,force_beck,factor_lj;
-  double r,rinv;
-  double aaij,alphaij,betaij;
-  double term1,term1inv,term2,term3,term4,term5,term6;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double rsq, r5, force_beck, factor_lj;
+  double r, rinv;
+  double aaij, alphaij, betaij;
+  double term1, term1inv, term2, term3, term4, term5, term6;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -96,45 +96,44 @@ void PairBeck::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
-        r5 = rsq*rsq*r;
+        r5 = rsq * rsq * r;
         aaij = aa[itype][jtype];
         alphaij = alpha[itype][jtype];
         betaij = beta[itype][jtype];
-        term1 = aaij*aaij + rsq;
-        term2 = powint(term1,-5);
-        term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
-        term4 = alphaij + r5*betaij;
-        term5 = alphaij + 6.0*r5*betaij;
-        rinv  = 1.0/r;
-        force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
-        force_beck -= BB[itype][jtype]*r*term2*term3;
+        term1 = aaij * aaij + rsq;
+        term2 = powint(term1, -5);
+        term3 = 21.672 + 30.0 * aaij * aaij + 6.0 * rsq;
+        term4 = alphaij + r5 * betaij;
+        term5 = alphaij + 6.0 * r5 * betaij;
+        rinv = 1.0 / r;
+        force_beck = AA[itype][jtype] * exp(-1.0 * r * term4) * term5;
+        force_beck -= BB[itype][jtype] * r * term2 * term3;
 
-        fpair = factor_lj*force_beck*rinv;
+        fpair = factor_lj * force_beck * rinv;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        f[i][0] += delx * fpair;
+        f[i][1] += dely * fpair;
+        f[i][2] += delz * fpair;
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[j][0] -= delx * fpair;
+          f[j][1] -= dely * fpair;
+          f[j][2] -= delz * fpair;
         }
 
         if (eflag) {
-          term6 = powint(term1,-3);
-          term1inv = 1.0/term1;
-          evdwl = AA[itype][jtype]*exp(-1.0*r*term4);
-          evdwl -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
+          term6 = powint(term1, -3);
+          term1inv = 1.0 / term1;
+          evdwl = AA[itype][jtype] * exp(-1.0 * r * term4);
+          evdwl -= BB[itype][jtype] * term6 * (1.0 + (2.709 + 3.0 * aaij * aaij) * term1inv);
           evdwl *= factor_lj;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
   }
@@ -149,21 +148,20 @@ void PairBeck::compute(int eflag, int vflag)
 void PairBeck::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
 
-  memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(AA,n+1,n+1,"pair:AA");
-  memory->create(BB,n+1,n+1,"pair:BB");
-  memory->create(aa,n+1,n+1,"pair:aa");
-  memory->create(alpha,n+1,n+1,"pair:alpha");
-  memory->create(beta,n+1,n+1,"pair:beta");
+  memory->create(cut, np1, np1, "pair:cut");
+  memory->create(AA, np1, np1, "pair:AA");
+  memory->create(BB, np1, np1, "pair:BB");
+  memory->create(aa, np1, np1, "pair:aa");
+  memory->create(alpha, np1, np1, "pair:alpha");
+  memory->create(beta, np1, np1, "pair:beta");
 }
 
 /* ----------------------------------------------------------------------
@@ -172,14 +170,14 @@ void PairBeck::allocate()
 
 void PairBeck::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1) error->all(FLERR, "Illegal pair_style command");
 
-  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
-    int i,j;
+    int i, j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
@@ -192,26 +190,25 @@ void PairBeck::settings(int narg, char **arg)
 
 void PairBeck::coeff(int narg, char **arg)
 {
-  if (narg != 7 && narg != 8)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 7 && narg != 8) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double AA_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double BB_one = utils::numeric(FLERR,arg[3],false,lmp);
-  double aa_one = utils::numeric(FLERR,arg[4],false,lmp);
-  double alpha_one = utils::numeric(FLERR,arg[5],false,lmp);
-  double beta_one = utils::numeric(FLERR,arg[6],false,lmp);
+  double AA_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double BB_one = utils::numeric(FLERR, arg[3], false, lmp);
+  double aa_one = utils::numeric(FLERR, arg[4], false, lmp);
+  double alpha_one = utils::numeric(FLERR, arg[5], false, lmp);
+  double beta_one = utils::numeric(FLERR, arg[6], false, lmp);
 
   double cut_one = cut_global;
-  if (narg == 8) cut_one = utils::numeric(FLERR,arg[7],false,lmp);
+  if (narg == 8) cut_one = utils::numeric(FLERR, arg[7], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
+    for (int j = MAX(jlo, i); j <= jhi; j++) {
       AA[i][j] = AA_one;
       BB[i][j] = BB_one;
       aa[i][j] = aa_one;
@@ -223,7 +220,7 @@ void PairBeck::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -232,7 +229,7 @@ void PairBeck::coeff(int narg, char **arg)
 
 double PairBeck::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
 
   AA[j][i] = AA[i][j];
   BB[j][i] = BB[i][j];
@@ -251,17 +248,17 @@ void PairBeck::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
-  int i,j;
+  int i, j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      fwrite(&setflag[i][j],sizeof(int),1,fp);
+      fwrite(&setflag[i][j], sizeof(int), 1, fp);
       if (setflag[i][j]) {
-        fwrite(&AA[i][j],sizeof(double),1,fp);
-        fwrite(&BB[i][j],sizeof(double),1,fp);
-        fwrite(&aa[i][j],sizeof(double),1,fp);
-        fwrite(&alpha[i][j],sizeof(double),1,fp);
-        fwrite(&beta[i][j],sizeof(double),1,fp);
-        fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&AA[i][j], sizeof(double), 1, fp);
+        fwrite(&BB[i][j], sizeof(double), 1, fp);
+        fwrite(&aa[i][j], sizeof(double), 1, fp);
+        fwrite(&alpha[i][j], sizeof(double), 1, fp);
+        fwrite(&beta[i][j], sizeof(double), 1, fp);
+        fwrite(&cut[i][j], sizeof(double), 1, fp);
       }
     }
 }
@@ -275,27 +272,27 @@ void PairBeck::read_restart(FILE *fp)
   read_restart_settings(fp);
   allocate();
 
-  int i,j;
+  int i, j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
-      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
+      MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&AA[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&BB[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&aa[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&beta[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR, &AA[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &BB[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &aa[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &alpha[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &beta[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
         }
-        MPI_Bcast(&AA[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&BB[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&aa[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&beta[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&AA[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&BB[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&aa[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&alpha[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&beta[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
 }
@@ -306,8 +303,8 @@ void PairBeck::read_restart(FILE *fp)
 
 void PairBeck::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_global,sizeof(double),1,fp);
-  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&cut_global, sizeof(double), 1, fp);
+  fwrite(&mix_flag, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -318,44 +315,42 @@ void PairBeck::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
   }
-  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairBeck::single(int /*i*/, int /*j*/, int itype, int jtype,
-                                  double rsq,
-                                  double /*factor_coul*/, double factor_lj,
-                                  double &fforce)
+double PairBeck::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                        double /*factor_coul*/, double factor_lj, double &fforce)
 {
-  double phi_beck,r,rinv;
-  double r5,force_beck;
-  double aaij,alphaij,betaij;
-  double term1,term1inv,term2,term3,term4,term5,term6;
+  double phi_beck, r, rinv;
+  double r5, force_beck;
+  double aaij, alphaij, betaij;
+  double term1, term1inv, term2, term3, term4, term5, term6;
 
   r = sqrt(rsq);
-  r5 = rsq*rsq*r;
+  r5 = rsq * rsq * r;
   aaij = aa[itype][jtype];
   alphaij = alpha[itype][jtype];
   betaij = beta[itype][jtype];
-  term1 = aaij*aaij + rsq;
-  term2 = powint(term1,-5);
-  term3 = 21.672 + 30.0*aaij*aaij + 6.0*rsq;
-  term4 = alphaij + r5*betaij;
-  term5 = alphaij + 6.0*r5*betaij;
-  rinv  = 1.0/r;
-  force_beck = AA[itype][jtype]*exp(-1.0*r*term4)*term5;
-  force_beck -= BB[itype][jtype]*r*term2*term3;
-  fforce = factor_lj*force_beck*rinv;
+  term1 = aaij * aaij + rsq;
+  term2 = powint(term1, -5);
+  term3 = 21.672 + 30.0 * aaij * aaij + 6.0 * rsq;
+  term4 = alphaij + r5 * betaij;
+  term5 = alphaij + 6.0 * r5 * betaij;
+  rinv = 1.0 / r;
+  force_beck = AA[itype][jtype] * exp(-1.0 * r * term4) * term5;
+  force_beck -= BB[itype][jtype] * r * term2 * term3;
+  fforce = factor_lj * force_beck * rinv;
 
-  term6 = powint(term1,-3);
-  term1inv = 1.0/term1;
-  phi_beck = AA[itype][jtype]*exp(-1.0*r*term4);
-  phi_beck -= BB[itype][jtype]*term6*(1.0+(2.709+3.0*aaij*aaij)*term1inv);
+  term6 = powint(term1, -3);
+  term1inv = 1.0 / term1;
+  phi_beck = AA[itype][jtype] * exp(-1.0 * r * term4);
+  phi_beck -= BB[itype][jtype] * term6 * (1.0 + (2.709 + 3.0 * aaij * aaij) * term1inv);
 
-  return factor_lj*phi_beck;
+  return factor_lj * phi_beck;
 }

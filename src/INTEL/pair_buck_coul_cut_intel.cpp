@@ -267,7 +267,7 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
           const flt_t delz = ztmp - x[j].z;
           const int jtype = IP_PRE_dword_index(x[j].w);
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
-          const flt_t r = sqrt(rsq);
+          const flt_t r = std::sqrt(rsq);
           const flt_t r2inv = (flt_t)1.0 / rsq;
 
           #ifdef INTEL_VMASK
@@ -294,7 +294,7 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
           if (rsq < c_cuti[jtype].cut_ljsq) {
           #endif
             flt_t r6inv = r2inv * r2inv * r2inv;
-            flt_t rexp = exp(-r * c_forcei[jtype].rhoinv);
+            flt_t rexp = std::exp(-r * c_forcei[jtype].rhoinv);
             forcebuck = r * rexp * c_forcei[jtype].buck1 -
               r6inv * c_forcei[jtype].buck2;
             if (EFLAG)

@@ -17,21 +17,17 @@
 
 #include "pair_pod.h"
 
-#include "mlpod.h"
 #include "fastpod.h"
+#include "mlpod.h"
+#include "tokenizer.h"
 
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "tokenizer.h"
-
-#include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -105,7 +101,7 @@ void PairPOD::compute(int eflag, int vflag)
 
   // initialize global descriptors to zero
 
-  if (descriptormethod == 0) {    
+  if (descriptormethod == 0) {
     int nd1234 = podptr->pod.nd1234;
     podptr->podArraySetValue(gd, 0.0, nd1234);
 
@@ -153,9 +149,9 @@ void PairPOD::compute(int eflag, int vflag)
     // compute energy and effective coefficients
     //eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
     podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
-    
+
     double evdwl = 0.0;
-    
+
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
 
@@ -167,29 +163,29 @@ void PairPOD::compute(int eflag, int vflag)
 
 //       podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum, typeai, idxi,
 //               ai, aj, ti, tj, 1, nij);
-      
+
       evdwl = podptr->calculate_energyforce(fij, energycoeff, forcecoeff, rij, tmpmem, numneighsum, typeai, idxi,
               ai, aj, ti, tj, 1, nij);
-      
+
       // tally atomic energy to global energy
 
       ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
-      
+
       // tally atomic force to global force
 
       tallyforce(f, fij, ai, aj, nij);
-      
-      // tally atomic stress 
-      
+
+      // tally atomic stress
+
       if (vflag) {
         for (int jj = 0; jj < nij; jj++) {
           int j = aj[jj];
           ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
                      fij[0 + 3*jj],fij[1 + 3*jj],fij[2 + 3*jj],
-                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);      
+                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);
         }
       }
-      
+
     }
   }
   else if (descriptormethod == 1) {
@@ -200,7 +196,7 @@ void PairPOD::compute(int eflag, int vflag)
 //     fastpodptr->timing = 1;
 //     if (fastpodptr->timing == 1)
 //       for (int i=0; i<20; i++) fastpodptr->comptime[i] = 0;
-              
+
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
       int jnum = numneigh[i];
@@ -230,15 +226,15 @@ void PairPOD::compute(int eflag, int vflag)
       // tally atomic force to global force
 
       tallyforce(f, fij, ai, aj, nij);
-      
-      // tally atomic stress 
-      
+
+      // tally atomic stress
+
       if (vflag) {
         for (int jj = 0; jj < nij; jj++) {
           int j = aj[jj];
           ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
                      fij[0 + 3*jj],fij[1 + 3*jj],fij[2 + 3*jj],
-                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);      
+                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);
         }
       }
     }
@@ -248,7 +244,7 @@ void PairPOD::compute(int eflag, int vflag)
 //     for (int i=0; i<20; i++) printf("%g  ", fastpodptr->comptime[i]);
 //     printf("\n");
 //   }
-  
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 

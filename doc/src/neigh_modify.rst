@@ -127,7 +127,7 @@ The *cluster* option does a sanity test every time neighbor lists are
 built for bond, angle, dihedral, and improper interactions, to check
 that each set of 2, 3, or 4 atoms is a cluster of nearby atoms.  It
 does this by computing the distance between pairs of atoms in the
-interaction and insuring they are not further apart than half the
+interaction and ensuring they are not further apart than half the
 periodic box length.  If they are, an error is generated, since the
 interaction would be computed between far-away atoms instead of their
 nearby periodic images.  The only way this should happen is if the
@@ -264,7 +264,7 @@ The *molecule/intra* and *molecule/inter* exclusion options can only
 be used with atom styles that define molecule IDs.
 
 The value of the *page* setting must be at least 10x larger than the
-*one* setting.  This insures neighbor pages are not mostly empty
+*one* setting.  This ensures neighbor pages are not mostly empty
 space.
 
 Related commands

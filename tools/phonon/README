@@ -5,34 +5,38 @@
    analyse the phonon related information.
 #-------------------------------------------------------------------------------
 1. Dependencies
-   The clapack library is needed to solve the eigen problems,
-   which could be downloaded from:
-   http://www.netlib.org/clapack/
-   
-   The tricubic library is also needed to do tricubic interpolations,
-   which could now be obtained from:
-   https://github.com/nbigaouette/libtricubic/
-   
+   The ZHEEVD LAPACK function is needed to solve the eigen problems.
+   A C++ compilable version based on CLAPACK is included in the linalg folder
+   and will be automatically built.
+
+   The tricubic library is also needed to do tricubic interpolations.
+   A copy is included and will be automatically built.
+
    The spglib is optionally needed, enabling one to evaluate the
    phonon density of states or vibrational thermal properties
    using only the irreducible q-points in the first Brillouin zone,
    as well as to evaluate the phonon dispersion curvers with the
-   automatic mode. Currently, the 1.8.3 version of spglib is used.
-   It can be obtained from:
-   http://spglib.sourceforge.net/
+   automatic mode. Currently, version 1.11.2.1 of spglib is used.
+   It is automatically downloaded and compiled unless the -DUSE_SPGLIB=off
+   variable is set during CMake configuration.
 
    FFTW 3 might also be needed if you would like to interface with
    phonopy: necessary input files for phonopy will be prepared so
    that you can make use of the functions provided by phonopy.
-   FFTW 3 can be downloaded from:
-   http://www.fftw.org
-   
+   It is autodetected and used if available.
+
+   FFTW 3 can be downloaded from: http://www.fftw.org
+
 2. Compilation
-   To compile the code, one needs therefore to install the above
-   libraries and set the paths correctly in the Makefile.
-   Once this is done, by typing
-     make
-   will yield the executable "phana".
+   To compile the code, one needs to have CMake version 3.16
+   or later installed.
+
+   The CMake configuration is done with:
+     cmake -S . -B build
+   And compilation then performed with:
+     cmake --build build
+   The phana (or phana.exe) executable is then available in
+   the "build" folder
 
 3. Unit system
    The units of the output frequencies by this code is THz for
@@ -46,6 +50,18 @@
 5. Bug report
    If any bug found, please drop a line to: konglt(at)sjtu.edu.cn
 
+6. Precompiled executable
+   The "precompiled" folder contains a precompiled and statically
+   linked Linux executable for x86_64 CPUs. It should work on *any*
+   Linux machine with using the x86_64 architecture. It includes
+   spglib support but not fftw3.
+
+7. Portability
+   Build and use of phana has been successfully tested on:
+    - Fedora Linux 38 using GCC, Clang, and MinGW Linux2Windows cross-compiler
+    - macOS 12 (Monterey) using Xcode
+    - Windows 11 using Visual Studio 2022 with MSVC and Clang
+
 #-------------------------------------------------------------------------------
 Author: Ling-Ti Kong, konglt(at)sjtu.edu.cn
-May 2020
+Aug 2021

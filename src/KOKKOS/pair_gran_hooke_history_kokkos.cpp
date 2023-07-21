@@ -162,7 +162,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_firsttouch = fix_historyKK->k_firstflag.template view<DeviceType>();
   d_firstshear = fix_historyKK->k_firstvalue.template view<DeviceType>();
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairGranHookeHistoryReduce>(0,inum),*this);
+  Kokkos::deep_copy(d_firsttouch,0);
 
   EV_FLOAT ev;
 
@@ -277,42 +277,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 }
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryReduce, const int ii) const {
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const LMP_FLOAT irad = radius[i];
-  const int jnum = d_numneigh[i];
-  int count = 0;
-
-  for (int jj = 0; jj < jnum; jj++) {
-    const int j = d_neighbors(i,jj) & NEIGHMASK;
-
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-    const LMP_FLOAT jrad = radius[j];
-    const LMP_FLOAT radsum = irad + jrad;
-
-    // check for touching neighbors
-
-    if (rsq >= radsum * radsum) {
-      d_firsttouch(i,jj) = 0;
-      d_firstshear(i,3*jj) = 0;
-      d_firstshear(i,3*jj+1) = 0;
-      d_firstshear(i,3*jj+2) = 0;
-    } else {
-      d_firsttouch(i,jj) = 1;
-      d_neighbors_touch(i,count++) = jj;
-    }
-  }
-  d_numneigh_touch[i] = count;
-}
-
-template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>
 KOKKOS_INLINE_FUNCTION
 void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,SHEARUPDATE>, const int ii, EV_FLOAT &ev) const {
@@ -327,7 +291,16 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   const X_FLOAT ztmp = x(i,2);
   const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
-  const int jnum = d_numneigh_touch[i];
+  const int jnum = d_numneigh[i];
+  const int mask_i = mask[i];
+
+  const V_FLOAT vx_i = v(i,0);
+  const V_FLOAT vy_i = v(i,1);
+  const V_FLOAT vz_i = v(i,2);
+
+  const V_FLOAT omegax_i = omega(i,0);
+  const V_FLOAT omegay_i = omega(i,1);
+  const V_FLOAT omegaz_i = omega(i,2);
 
   F_FLOAT fx_i = 0.0;
   F_FLOAT fy_i = 0.0;
@@ -338,8 +311,11 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   F_FLOAT torquez_i = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    const int m = d_neighbors_touch(i, jj);
-    const int j = d_neighbors(i, m) & NEIGHMASK;
+    int j = d_neighbors(i,jj);
+    F_FLOAT factor_lj = special_lj[sbmask(j)];
+    j &= NEIGHMASK;
+
+    if (factor_lj == 0) continue;
 
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
@@ -351,15 +327,24 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     // check for touching neighbors
 
+    if (rsq >= radsum * radsum) {
+      d_firstshear(i,3*jj) = 0;
+      d_firstshear(i,3*jj+1) = 0;
+      d_firstshear(i,3*jj+2) = 0;
+      continue;
+    }
+
+    d_firsttouch(i,jj) = 1;
+
     const LMP_FLOAT r = sqrt(rsq);
     const LMP_FLOAT rinv = 1.0/r;
     const LMP_FLOAT rsqinv = 1/rsq;
 
     // relative translational velocity
 
-    V_FLOAT vr1 = v(i,0) - v(j,0);
-    V_FLOAT vr2 = v(i,1) - v(j,1);
-    V_FLOAT vr3 = v(i,2) - v(j,2);
+    V_FLOAT vr1 = vx_i - v(j,0);
+    V_FLOAT vr2 = vy_i - v(j,1);
+    V_FLOAT vr3 = vz_i - v(j,2);
 
     // normal component
 
@@ -376,31 +361,30 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     // relative rotational velocity
 
-    V_FLOAT wr1 = (irad*omega(i,0) + jrad*omega(j,0)) * rinv;
-    V_FLOAT wr2 = (irad*omega(i,1) + jrad*omega(j,1)) * rinv;
-    V_FLOAT wr3 = (irad*omega(i,2) + jrad*omega(j,2)) * rinv;
+    V_FLOAT wr1 = (irad*omegax_i + jrad*omega(j,0)) * rinv;
+    V_FLOAT wr2 = (irad*omegay_i + jrad*omega(j,1)) * rinv;
+    V_FLOAT wr3 = (irad*omegaz_i + jrad*omega(j,2)) * rinv;
 
     LMP_FLOAT meff = imass*jmass / (imass+jmass);
-    if (mask[i] & freeze_group_bit) meff = jmass;
+    if (mask_i & freeze_group_bit) meff = jmass;
     if (mask[j] & freeze_group_bit) meff = imass;
 
     F_FLOAT damp = meff*gamman*vnnr*rsqinv;
     F_FLOAT ccel = kn*(radsum-r)*rinv - damp;
-    if(limit_damping && (ccel < 0.0)) ccel = 0.0;
+    if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
     // relative velocities
 
     V_FLOAT vtr1 = vt1 - (delz*wr2-dely*wr3);
     V_FLOAT vtr2 = vt2 - (delx*wr3-delz*wr1);
     V_FLOAT vtr3 = vt3 - (dely*wr1-delx*wr2);
-    V_FLOAT vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-    vrel = sqrt(vrel);
 
     // shear history effects
 
-    X_FLOAT shear1 = d_firstshear(i,3*m);
-    X_FLOAT shear2 = d_firstshear(i,3*m+1);
-    X_FLOAT shear3 = d_firstshear(i,3*m+2);
+    X_FLOAT shear1 = d_firstshear(i,3*jj);
+    X_FLOAT shear2 = d_firstshear(i,3*jj+1);
+    X_FLOAT shear3 = d_firstshear(i,3*jj+2);
+
     if (SHEARUPDATE) {
       shear1 += vtr1*dt;
       shear2 += vtr2*dt;
@@ -409,11 +393,12 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     X_FLOAT shrmag = sqrt(shear1*shear1 + shear2*shear2 +
                           shear3*shear3);
 
-    // rotate shear displacements
-
-    X_FLOAT rsht = shear1*delx + shear2*dely + shear3*delz;
-    rsht *= rsqinv;
     if (SHEARUPDATE) {
+      // rotate shear displacements
+
+      X_FLOAT rsht = shear1*delx + shear2*dely + shear3*delz;
+      rsht *= rsqinv;
+
       shear1 -= rsht*delx;
       shear2 -= rsht*dely;
       shear3 -= rsht*delz;
@@ -445,9 +430,9 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     }
 
     if (SHEARUPDATE) {
-      d_firstshear(i,3*m) = shear1;
-      d_firstshear(i,3*m+1) = shear2;
-      d_firstshear(i,3*m+2) = shear3;
+      d_firstshear(i,3*jj) = shear1;
+      d_firstshear(i,3*jj+1) = shear2;
+      d_firstshear(i,3*jj+2) = shear3;
     }
 
     // forces & torques
@@ -455,6 +440,9 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     F_FLOAT fx = delx*ccel + fs1;
     F_FLOAT fy = dely*ccel + fs2;
     F_FLOAT fz = delz*ccel + fs3;
+    fx *= factor_lj;
+    fy *= factor_lj;
+    fz *= factor_lj;
     fx_i += fx;
     fy_i += fy;
     fz_i += fz;
@@ -462,6 +450,9 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     F_FLOAT tor1 = rinv * (dely*fs3 - delz*fs2);
     F_FLOAT tor2 = rinv * (delz*fs1 - delx*fs3);
     F_FLOAT tor3 = rinv * (delx*fs2 - dely*fs1);
+    tor1 *= factor_lj;
+    tor2 *= factor_lj;
+    tor3 *= factor_lj;
     torquex_i -= irad*tor1;
     torquey_i -= irad*tor2;
     torquez_i -= irad*tor3;
@@ -488,7 +479,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   a_torque(i,1) += torquey_i;
   a_torque(i,2) += torquez_i;
 }
-
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>

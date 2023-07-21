@@ -43,7 +43,9 @@ static int compare_coords(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp) {}
+ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp) {
+  binlo = binhi = -1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,9 +55,9 @@ void ResetAtomsID::command(int narg, char **arg)
     error->all(FLERR, "Reset_atoms id command before simulation box is defined");
   if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_atoms id unless atoms have IDs");
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->stores_ids)
-      error->all(FLERR, "Cannot use reset_atoms id when a fix exists that stores atom IDs");
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->stores_ids)
+      error->all(FLERR, "Cannot use reset_atoms id with a fix {} storing atom IDs", ifix->style);
 
   if (comm->me == 0) utils::logmesg(lmp, "Resetting atom IDs ...\n");
 
@@ -479,6 +481,9 @@ int ResetAtomsID::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char 
   MPI_Comm world = rptr->world;
   bigint binlo = rptr->binlo;
   bigint binhi = rptr->binhi;
+
+  if ((binlo < 0) || (binhi < 0))
+    error->one(FLERR, "Called sort_bins without previous setup of bins");
 
   // nbins = my subset of bins from binlo to binhi-1
   // initialize linked lists of my Rvous atoms in each bin

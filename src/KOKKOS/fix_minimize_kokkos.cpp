@@ -27,6 +27,7 @@ using namespace FixConst;
 FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixMinimize(lmp, narg, arg)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
 }
 

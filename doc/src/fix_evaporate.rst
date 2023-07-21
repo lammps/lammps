@@ -6,7 +6,7 @@ fix evaporate command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID evaporate N M region-ID seed
 
@@ -42,7 +42,7 @@ chosen at random and deleted.  If there are less than M eligible
 particles, then all of them are deleted.
 
 If the setting for the *molecule* keyword is *no*, then only single
-atoms are deleted.  In this case, you should insure you do not delete
+atoms are deleted.  In this case, you should ensure you do not delete
 only a portion of a molecule (only some of its atoms), or LAMMPS will
 soon generate an error when it tries to find those atoms.  LAMMPS will
 warn you if any of the atoms eligible for deletion have a non-zero
@@ -69,14 +69,15 @@ incur overhead due to the cost of building neighbor lists.
 
    If you are monitoring the temperature of a system where the atom
    count is changing due to evaporation, you typically should use the
-   :doc:`compute_modify dynamic yes <compute_modify>` command for the
+   :doc:`compute_modify dynamic/dof yes <compute_modify>` command for the
    temperature compute you are using.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.
 
 This fix computes a global scalar, which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the cumulative
@@ -84,7 +85,8 @@ number of deleted atoms.  The scalar value calculated by this fix is
 "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

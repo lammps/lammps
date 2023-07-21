@@ -73,7 +73,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
@@ -200,7 +200,7 @@ void PairCoulLongDielectric::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;

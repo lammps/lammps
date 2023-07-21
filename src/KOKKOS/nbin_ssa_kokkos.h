@@ -199,8 +199,8 @@ struct NPairSSAKokkosBinIDAtomsFunctor {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join (volatile value_type& dst,
-             const volatile value_type& src) const {
+  void join (value_type& dst,
+             const value_type& src) const {
     if (dst < src) dst = src;
   }
 
@@ -226,8 +226,8 @@ struct NPairSSAKokkosBinIDGhostsFunctor {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join (volatile value_type& dst,
-             const volatile value_type& src) const {
+  void join (value_type& dst,
+             const value_type& src) const {
     if (dst < src) dst = src;
   }
 

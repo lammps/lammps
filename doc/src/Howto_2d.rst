@@ -13,16 +13,16 @@ box with a single z plane of atoms - e.g.
 
 .. code-block:: LAMMPS
 
-   create box 1 -10 10 -10 10 -0.25 0.25
+   create_box 1 -10 10 -10 10 -0.25 0.25
 
-If using the :doc:`read data <read_data>` command to read in a file of
+If using the :doc:`read_data <read_data>` command to read in a file of
 atom coordinates, set the "zlo zhi" values to be finite but narrow,
 similar to the create_box command settings just described.  For each
 atom in the file, assign a z coordinate so it falls inside the
 z-boundaries of the box - e.g. 0.0.
 
 Use the :doc:`fix enforce2d <fix_enforce2d>` command as the last
-defined fix to insure that the z-components of velocities and forces
+defined fix to ensure that the z-components of velocities and forces
 are zeroed out every timestep.  The reason to make it the last fix is
 so that any forces induced by other fixes will be zeroed out.
 

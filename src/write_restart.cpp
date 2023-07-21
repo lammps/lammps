@@ -399,7 +399,7 @@ void WriteRestart::write(const std::string &file)
     }
   }
 
-  // Check for I/O error status
+  // check for I/O error status
 
   int io_all = 0;
   MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
@@ -449,7 +449,7 @@ void WriteRestart::header()
 
   // write atom_style and its args
 
-  write_string(ATOM_STYLE,atom->atom_style);
+  write_string(ATOM_STYLE,utils::strip_style_suffix(atom->atom_style,lmp));
   fwrite(&atom->avec->nargcopy,sizeof(int),1,fp);
   for (int i = 0; i < atom->avec->nargcopy; i++) {
     int n = strlen(atom->avec->argcopy[i]) + 1;
@@ -542,26 +542,26 @@ void WriteRestart::force_fields()
 {
   if (force->pair) {
     if (force->pair->restartinfo) {
-      write_string(PAIR,force->pair_style);
+      write_string(PAIR,utils::strip_style_suffix(force->pair_style,lmp));
       force->pair->write_restart(fp);
     } else {
-      write_string(NO_PAIR,force->pair_style);
+      write_string(NO_PAIR,utils::strip_style_suffix(force->pair_style,lmp));
     }
   }
   if (atom->avec->bonds_allow && force->bond) {
-    write_string(BOND,force->bond_style);
+    write_string(BOND,utils::strip_style_suffix(force->bond_style,lmp));
     force->bond->write_restart(fp);
   }
   if (atom->avec->angles_allow && force->angle) {
-    write_string(ANGLE,force->angle_style);
+    write_string(ANGLE,utils::strip_style_suffix(force->angle_style,lmp));
     force->angle->write_restart(fp);
   }
   if (atom->avec->dihedrals_allow && force->dihedral) {
-    write_string(DIHEDRAL,force->dihedral_style);
+    write_string(DIHEDRAL,utils::strip_style_suffix(force->dihedral_style,lmp));
     force->dihedral->write_restart(fp);
   }
   if (atom->avec->impropers_allow && force->improper) {
-    write_string(IMPROPER,force->improper_style);
+    write_string(IMPROPER,utils::strip_style_suffix(force->improper_style,lmp));
     force->improper->write_restart(fp);
   }
 
@@ -672,12 +672,12 @@ void WriteRestart::write_double(int flag, double value)
    byte) into the restart file
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write_string(int flag, const char *value)
+void WriteRestart::write_string(int flag, const std::string &value)
 {
-  int n = strlen(value) + 1;
+  int n = value.size() + 1;
   fwrite(&flag,sizeof(int),1,fp);
   fwrite(&n,sizeof(int),1,fp);
-  fwrite(value,sizeof(char),n,fp);
+  fwrite(value.c_str(),sizeof(char),n,fp);
 }
 
 /* ----------------------------------------------------------------------

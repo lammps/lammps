@@ -104,7 +104,9 @@ struct InitializationSettingsHelper<std::string> {
   using value_type   = std::string;
   using storage_type = std::string;
 
-  static storage_type const unspecified;
+  // prefer c-string to avoid static initialization order nightmare
+  static constexpr char unspecified[] =
+      "some string we don't expect user would ever provide";
 };
 }  // namespace Impl
 

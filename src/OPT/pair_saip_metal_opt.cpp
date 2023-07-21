@@ -34,17 +34,10 @@
 #include "pair_saip_metal_opt.h"
 
 #include "atom.h"
-#include "citeme.h"
 #include "comm.h"
-#include "error.h"
-#include "force.h"
 #include "interlayer_taper.h"
 #include "memory.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

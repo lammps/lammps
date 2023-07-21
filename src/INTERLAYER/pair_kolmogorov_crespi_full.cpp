@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Wengen Ouyang (Tel Aviv University)
+   Contributing author: Wengen Ouyang (Wuhan University)
    e-mail: w.g.ouyang at gmail dot com
    based on previous versions by Jaap Kroes
 

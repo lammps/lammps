@@ -283,7 +283,7 @@ parameters and how to choose them is described in
 ----------
 
 The *electrode* styles add methods that are required for the constant potential
-method implemented in :doc:`fix electrode/* <fix_electrode_conp>`.  The styles
+method implemented in :doc:`fix electrode/* <fix_electrode>`.  The styles
 *ewald/electrode*, *pppm/electrode* and *pppm/electrode/intel* are available.
 These styles do not support the `kspace_modify slab nozforce` command.
 

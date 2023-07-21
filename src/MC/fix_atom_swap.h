@@ -37,6 +37,7 @@ class FixAtomSwap : public Fix {
   double memory_usage() override;
   void write_restart(FILE *) override;
   void restart(char *) override;
+  void *extract(const char *, int &) override;
 
  private:
   int nevery, seed;
@@ -51,6 +52,8 @@ class FixAtomSwap : public Fix {
   int nswap_before;                    // # of swap atoms on procs < this proc
   class Region *region;                // swap region
   char *idregion;                      // swap region id
+
+  int mc_active;              // 1 during MC trials, otherwise 0
 
   int nswaptypes, nmutypes;
   int *type_list;

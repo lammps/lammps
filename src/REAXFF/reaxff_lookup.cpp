@@ -90,11 +90,11 @@ namespace ReaxFF {
       coef[i-1].a = f[i];
     }
 
-    sfree(error_ptr, a, "cubic_spline:a");
-    sfree(error_ptr, b, "cubic_spline:b");
-    sfree(error_ptr, c, "cubic_spline:c");
-    sfree(error_ptr, d, "cubic_spline:d");
-    sfree(error_ptr, v, "cubic_spline:v");
+    sfree(a);
+    sfree(b);
+    sfree(c);
+    sfree(d);
+    sfree(v);
   }
 
   void Complete_Cubic_Spline(LAMMPS_NS::Error* error_ptr, const double *h,
@@ -138,11 +138,11 @@ namespace ReaxFF {
       coef[i-1].a = f[i];
     }
 
-    sfree(error_ptr, a, "cubic_spline:a");
-    sfree(error_ptr, b, "cubic_spline:b");
-    sfree(error_ptr, c, "cubic_spline:c");
-    sfree(error_ptr, d, "cubic_spline:d");
-    sfree(error_ptr, v, "cubic_spline:v");
+    sfree(a);
+    sfree(b);
+    sfree(c);
+    sfree(d);
+    sfree(v);
   }
 
   void Init_Lookup_Tables(reax_system *system, control_params *control,
@@ -276,16 +276,16 @@ namespace ReaxFF {
     for (i = 0; i < ntypes; ++i) {
       for (j = i; j < ntypes; ++j)
         if (LR[i][j].n) {
-          sfree(system->error_ptr, LR[i][j].y, "LR[i,j].y");
-          sfree(system->error_ptr, LR[i][j].H, "LR[i,j].H");
-          sfree(system->error_ptr, LR[i][j].vdW, "LR[i,j].vdW");
-          sfree(system->error_ptr, LR[i][j].CEvd, "LR[i,j].CEvd");
-          sfree(system->error_ptr, LR[i][j].ele, "LR[i,j].ele");
-          sfree(system->error_ptr, LR[i][j].CEclmb, "LR[i,j].CEclmb");
+          sfree(LR[i][j].y);
+          sfree(LR[i][j].H);
+          sfree(LR[i][j].vdW);
+          sfree(LR[i][j].CEvd);
+          sfree(LR[i][j].ele);
+          sfree(LR[i][j].CEclmb);
         }
-      sfree(system->error_ptr, LR[i], "LR[i]");
+      sfree(LR[i]);
     }
-    sfree(system->error_ptr, LR, "LR");
+    sfree(LR);
   }
 }
 

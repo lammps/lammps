@@ -49,7 +49,9 @@ jobs:
       shell: bash
       working-directory: build
       run: |
-        cmake -C ../cmake/presets/most.cmake ../cmake
+        cmake -C ../cmake/presets/most.cmake \
+              -D DOWNLOAD_POTENTIALS=off \
+              ../cmake
         cmake --build . --parallel 2
 
     - name: Perform CodeQL Analysis

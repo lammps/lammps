@@ -8,11 +8,12 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID vector Nevery value1 value2 ...
+   fix ID group-ID vector Nevery [nmax <length>] value1 value2 ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * vector = style name of this fix command
 * Nevery = use input values every this many timesteps
+* nmax <length> = set maximal length of vector to <length> (optional)
 * one or more input values can be listed
 * value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
@@ -32,6 +33,7 @@ Examples
 
    fix 1 all vector 100 c_myTemp
    fix 1 all vector 5 c_myTemp v_integral
+   fix 1 all vector 50 nmax 200 c_myTemp
 
 Description
 """""""""""
@@ -42,6 +44,10 @@ stored as a global vector of growing length.  For multiple specified
 values, they are stored as rows in a global array, whose number of
 rows is growing.  The resulting vector or array can be used by other
 :doc:`output commands <Howto_output>`.
+
+The optional *nmax* keyword can be used to restrict the length of the
+vector to the given *length* value. Once the vector is filled, the
+oldest entries will be discarded when new entries are added.
 
 One way to to use this command is to accumulate a vector that is
 time-integrated using the :doc:`variable trap() <variable>` function.
@@ -94,11 +100,12 @@ calculated by the compute is used.
 
 Note that there is a :doc:`compute reduce <compute_reduce>` command
 which can sum per-atom quantities into a global scalar or vector which
-can thus be accessed by fix vector.  Or it can be a compute defined
-not in your input script, but by :doc:`thermodynamic output <thermo_style>` or other fixes such as :doc:`fix nvt <fix_nh>`
-or :doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
-these commands which give the IDs of these computes.  Users can also
-write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
+can thus be accessed by fix vector.  Or it can be a compute defined not
+in your input script, but by :doc:`thermodynamic output <thermo_style>`
+or other fixes such as :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale
+<fix_temp_rescale>`.  See the doc pages for these commands which give
+the IDs of these computes.  Users can also write code for their own
+compute styles and :doc:`add them to LAMMPS <Modify>`.
 
 If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
@@ -108,7 +115,8 @@ calculated by the fix is used.
 
 Note that some fixes only produce their values on certain timesteps,
 which must be compatible with *Nevery*, else an error will result.
-Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
+Users can also write code for their own fix styles and :doc:`add them to
+LAMMPS <Modify>`.
 
 If a value begins with "v\_", a variable name must follow which has
 been previously defined in the input script.  An equal-style or
@@ -126,8 +134,9 @@ quantities to be stored by fix vector.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.
 
 This fix produces a global vector or global array which can be
 accessed by various :doc:`output commands <Howto_output>`.  The values
@@ -144,15 +153,15 @@ the vector are "intensive" or "extensive".  If the fix produces an
 array, then all elements in the array must be the same, either
 "intensive" or "extensive".  If a compute or fix provides the value
 stored, then the compute or fix determines whether the value is
-intensive or extensive; see the page for that compute or fix for
-further info.  Values produced by a variable are treated as intensive.
+intensive or extensive; see the page for that compute or fix for further
+info.  Values produced by a variable are treated as intensive.
 
 This fix can allocate storage for stored values accumulated over
-multiple runs, using the *start* and *stop* keywords of the
-:doc:`run <run>` command.  See the :doc:`run <run>` command for details of
-how to do this.  If using the :doc:`run pre no <run>` command option,
-this is required to allow the fix to allocate sufficient storage for
-stored values.
+multiple runs, using the *start* and *stop* keywords of the :doc:`run
+<run>` command.  See the :doc:`run <run>` command for details of how to
+do this.  If using the :doc:`run pre no <run>` command option, this is
+required to allow the fix to allocate sufficient storage for stored
+values.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 

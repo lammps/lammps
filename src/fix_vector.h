@@ -52,6 +52,9 @@ class FixVector : public Fix {
 
   int ncount;       // # of values currently in growing vector or array
   int ncountmax;    // max # of values vector/array can hold
+  int nmaxval;      // maximum allowed number of values
+  int nindex;       // start index of data, may wrap around
+
   double *vector;
   double **array;
 };

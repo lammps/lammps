@@ -67,4 +67,8 @@ if(BUILD_LAMMPS_SHELL)
   install(FILES ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
 endif()
 
-
+if(BUILD_LAMMPS_GUI)
+  get_filename_component(LAMMPS_GUI_DIR ${LAMMPS_SOURCE_DIR}/../tools/lammps-gui ABSOLUTE)
+  get_filename_component(LAMMPS_GUI_BIN ${CMAKE_BINARY_DIR}/lammps-gui-build ABSOLUTE)
+  add_subdirectory(${LAMMPS_GUI_DIR} ${LAMMPS_GUI_BIN})
+endif()

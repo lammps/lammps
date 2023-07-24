@@ -980,7 +980,7 @@ void PairMEAMKokkos<DeviceType>::update_meam_views()
 
 namespace LAMMPS_NS {
 template class PairMEAMKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairMEAMKokkos<LMPHostType>;
 #endif
 }

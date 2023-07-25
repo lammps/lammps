@@ -61,6 +61,9 @@
 #include <Python.h>
 #endif
 
+/// string buffer for error messages of global errors
+static std::string lammps_last_global_errormessage;
+
 using namespace LAMMPS_NS;
 
 // for printing the non-null pointer argument warning only once
@@ -179,10 +182,13 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
 #ifdef LAMMPS_EXCEPTIONS
   try
   {
+    lammps_last_global_errormessage.clear();
     lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
   }
   catch(LAMMPSException &e) {
+    lammps_last_global_errormessage = e.message;
+
     fmt::print(stderr, "LAMMPS Exception: {}", e.message);
     if (ptr) *ptr = nullptr;
   }
@@ -6490,6 +6496,14 @@ has thrown a :ref:`C++ exception <exceptions>`.
 
 .. note::
 
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error status inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+.. note::
+
    This function will always report "no error" when the LAMMPS library
    has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
    errors aborting LAMMPS into C++ exceptions. You can use the library
@@ -6497,14 +6511,18 @@ has thrown a :ref:`C++ exception <exceptions>`.
    the case.
 \endverbatim
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *`` or NULL
  * \return 0 on no error, 1 on error.
  */
 int lammps_has_error(void *handle) {
 #ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  return (error->get_last_error().empty()) ? 0 : 1;
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    return (error->get_last_error().empty()) ? 0 : 1;
+  } else {
+    return lammps_last_global_errormessage.empty() ? 0 : 1;
+  }
 #else
   return 0;
 #endif
@@ -6528,28 +6546,46 @@ the failing MPI ranks to send messages.
 
 .. note::
 
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error buffer inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+.. note::
+
    This function will do nothing when the LAMMPS library has been
    compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
    LAMMPS into C++ exceptions.  You can use the library function
    :cpp:func:`lammps_config_has_exceptions` to check whether this is the case.
 \endverbatim
  *
- * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.
  * \param  buffer    string buffer to copy the error message to
  * \param  buf_size  size of the provided string buffer
  * \return           1 when all ranks had the error, 2 on a single rank error. */
 
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 #ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  buffer[0] = buffer[buf_size-1] = '\0';
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    buffer[0] = buffer[buf_size-1] = '\0';
 
-  if (!error->get_last_error().empty()) {
-    int error_type = error->get_last_error_type();
-    strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
-    error->set_last_error("", ERROR_NONE);
-    return error_type;
+    if (!error->get_last_error().empty()) {
+      int error_type = error->get_last_error_type();
+      strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
+      error->set_last_error("", ERROR_NONE);
+      return error_type;
+    }
+  } else {
+    buffer[0] = buffer[buf_size-1] = '\0';
+
+    if (!lammps_last_global_errormessage.empty()) {
+      strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
+      lammps_last_global_errormessage.clear();
+      return 1;
+    }
   }
 #endif
   return 0;

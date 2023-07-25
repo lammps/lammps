@@ -61,6 +61,7 @@ set(PROJECT_SOURCES
   lammpsgui.cpp
   lammpsgui.h
   lammpsgui.ui
+  stdcapture.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

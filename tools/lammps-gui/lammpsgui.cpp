@@ -13,12 +13,15 @@
 
 #include "lammpsgui.h"
 #include "highlighter.h"
+#include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
 #include <QMessageBox>
+#include <QPlainTextEdit>
+#include <QShortcut>
 #include <QTextStream>
 #include <string>
 
@@ -30,12 +33,14 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
     current_file.clear();
+    capturer = new StdCapture;
 
     QFont text_font;
     text_font.setFamily("Consolas");
     text_font.setFixedPitch(true);
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
+    ui->textEdit->setMinimumSize(800, 600);
     highlighter = new Highlighter(ui->textEdit->document());
 
     connect(ui->actionNew, &QAction::triggered, this, &LammpsGui::new_document);
@@ -68,6 +73,7 @@ LammpsGui::~LammpsGui()
 {
     delete ui;
     delete highlighter;
+    delete capturer;
 }
 
 void LammpsGui::new_document()
@@ -187,15 +193,34 @@ void LammpsGui::run_buffer()
     start_lammps();
     if (!lammps_handle) return;
     clear();
+    capturer->BeginCapture();
     std::string buffer = ui->textEdit->toPlainText().toStdString();
     lammps_commands_string(lammps_handle, buffer.c_str());
+    capturer->EndCapture();
+    auto log = capturer->GetCapture();
+    auto box = new QPlainTextEdit();
+    box->document()->setPlainText(log.c_str());
+    box->setReadOnly(true);
+
+    QFont text_font;
+    text_font.setFamily("Consolas");
+    text_font.setFixedPitch(true);
+    text_font.setStyleHint(QFont::TypeWriter);
+    box->document()->setDefaultFont(text_font);
+    box->setLineWrapMode(QPlainTextEdit::NoWrap);
+    box->setMinimumSize(800, 600);
+    QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), box);
+//    QObject::connect(shortcut, &QShortcut::activated, box, &QPlainTextEdit::close());
+
+    box->show();
 
     if (lammps_has_error(lammps_handle)) {
         constexpr int BUFLEN = 1024;
         char errorbuf[BUFLEN];
         lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
 
-        QMessageBox::warning(this, "LAMMPS-GUI Error", QString("Error running LAMMPS:\n\n") + errorbuf);
+        QMessageBox::warning(this, "LAMMPS-GUI Error",
+                             QString("Error running LAMMPS:\n\n") + errorbuf);
     }
 }
 
@@ -212,7 +237,8 @@ void LammpsGui::about()
     start_lammps();
 
     std::string version = "This is LAMMPS-GUI version 0.1\n";
-    if (lammps_handle) version += "using LAMMPS Version " + std::to_string(lammps_version(lammps_handle));
+    if (lammps_handle)
+        version += "using LAMMPS Version " + std::to_string(lammps_version(lammps_handle));
     QMessageBox::information(this, "About LAMMPS-GUI", version.c_str());
 }
 

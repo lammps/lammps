@@ -26,6 +26,7 @@ class LammpsGui;
 QT_END_NAMESPACE
 
 class Highlighter;
+class StdCapture;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
@@ -57,6 +58,7 @@ private slots:
 private:
     Ui::LammpsGui *ui;
     Highlighter *highlighter;
+    StdCapture *capturer;
 
     QString current_file;
     QString current_dir;

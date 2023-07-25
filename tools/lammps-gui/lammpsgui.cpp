@@ -10,7 +10,9 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 #include "lammpsgui.h"
+#include "highlighter.h"
 #include "ui_lammpsgui.h"
 
 #include <QFileDialog>
@@ -34,6 +36,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     text_font.setFixedPitch(true);
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
+    highlighter = new Highlighter(ui->textEdit->document());
 
     connect(ui->actionNew, &QAction::triggered, this, &LammpsGui::new_document);
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
@@ -64,6 +67,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 LammpsGui::~LammpsGui()
 {
     delete ui;
+    delete highlighter;
 }
 
 void LammpsGui::new_document()

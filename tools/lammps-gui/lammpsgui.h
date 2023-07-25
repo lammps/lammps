@@ -17,11 +17,15 @@
 #include <QMainWindow>
 #include <QString>
 
+// forward declarations
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class LammpsGui;
 }
 QT_END_NAMESPACE
+
+class Highlighter;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
@@ -52,6 +56,7 @@ private slots:
 
 private:
     Ui::LammpsGui *ui;
+    Highlighter *highlighter;
 
     QString current_file;
     QString current_dir;

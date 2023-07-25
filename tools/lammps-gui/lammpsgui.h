@@ -48,6 +48,7 @@ private slots:
     void run_buffer();
     void run_line();
     void about();
+    void about_lammps();
 
 private:
     Ui::LammpsGui *ui;

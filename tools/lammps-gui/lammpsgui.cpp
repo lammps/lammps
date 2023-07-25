@@ -37,8 +37,10 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
             &LammpsGui::run_buffer);
     connect(ui->actionExecute_Line, &QAction::triggered, this,
             &LammpsGui::run_line);
-    //    connect(ui->actionAbout, &QAction::triggered, this,
-    //    &LammpsGui::about);
+    connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this,
+            &LammpsGui::about);
+    connect(ui->actionLAMMPS_Info, &QAction::triggered, this,
+            &LammpsGui::about_lammps);
 
 #if !QT_CONFIG(clipboard)
     ui->actionCut->setEnabled(false);
@@ -206,7 +208,21 @@ void LammpsGui::clear()
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
 }
 
+void LammpsGui::about_lammps()
+{
+    char *args[] = {(char *)"LAMMPS GUI", (char *)"-log", (char *)"none"};
+    int nargs    = sizeof(args) / sizeof(char *);
+
+    if (!lammps_handle)
+        lammps_handle = lammps_open_no_mpi(nargs, args, nullptr);
+
+    std::string version = "LAMMPS Version " + std::to_string(lammps_version(lammps_handle));
+    QString lammps_info(version.c_str());
+    QMessageBox::information(this, "About LAMMPS", lammps_info);
+}
+
 void LammpsGui::about()
 {
-    // dummy
+    QMessageBox::information(this, "About LAMMPS-GUI",
+                             "This is LAMMPS-GUI version 0.1");
 }

@@ -25,7 +25,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="CodeEditor" name="textEdit"/>
+      <widget class="CodeEditor" name="textEdit" native="true"/>
      </item>
     </layout>
    </widget>
@@ -36,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -74,6 +74,8 @@
     <property name="title">
      <string>About</string>
     </property>
+    <addaction name="actionAbout_LAMMPS_GUI"/>
+    <addaction name="actionLAMMPS_Info"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -146,7 +148,24 @@
     <string>Execute Line</string>
    </property>
   </action>
+  <action name="actionAbout_LAMMPS_GUI">
+   <property name="text">
+    <string>About LAMMPS-GUI</string>
+   </property>
+  </action>
+  <action name="actionLAMMPS_Info">
+   <property name="text">
+    <string>LAMMPS Info</string>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CodeEditor</class>
+   <extends>QWidget</extends>
+   <header>codeeditor.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

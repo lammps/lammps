@@ -32,6 +32,8 @@ public:
 
 protected:
     void open_file(const QString &filename);
+    void write_file(const QString &filename);
+    void start_lammps();
 
 private slots:
     void new_document();
@@ -46,15 +48,17 @@ private slots:
     void redo();
     void clear();
     void run_buffer();
-    void run_line();
     void about();
-    void about_lammps();
 
 private:
     Ui::LammpsGui *ui;
 
     QString current_file;
+    QString current_dir;
     void *lammps_handle;
 };
 
 #endif // LAMMPSGUI_H
+// Local Variables:
+// c-basic-offset: 4
+// End:

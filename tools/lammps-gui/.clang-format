@@ -12,7 +12,7 @@ BraceWrapping:
 BreakBeforeBraces: Custom
 BreakInheritanceList: AfterColon
 BreakConstructorInitializers: AfterColon
-ColumnLimit:     80
+ColumnLimit:     100
 IndentCaseLabels: true
 IndentWidth:     4
 ObjCBlockIndentWidth: 4

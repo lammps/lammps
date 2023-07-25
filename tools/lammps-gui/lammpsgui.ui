@@ -68,19 +68,11 @@
     </property>
     <addaction name="actionClear"/>
     <addaction name="actionRun_Buffer"/>
-    <addaction name="actionExecute_Line"/>
-   </widget>
-   <widget class="QMenu" name="menuAbout">
-    <property name="title">
-     <string>About</string>
-    </property>
-    <addaction name="actionAbout_LAMMPS_GUI"/>
-    <addaction name="actionLAMMPS_Info"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuRun"/>
-   <addaction name="menuAbout"/>
+   <addaction name="actionAbout_LAMMPS_GUI"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionNew">
@@ -143,19 +135,9 @@
     <string>Execute Buffer</string>
    </property>
   </action>
-  <action name="actionExecute_Line">
-   <property name="text">
-    <string>Execute Line</string>
-   </property>
-  </action>
   <action name="actionAbout_LAMMPS_GUI">
    <property name="text">
-    <string>About LAMMPS-GUI</string>
-   </property>
-  </action>
-  <action name="actionLAMMPS_Info">
-   <property name="text">
-    <string>LAMMPS Info</string>
+    <string>About</string>
    </property>
   </action>
  </widget>

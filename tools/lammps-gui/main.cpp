@@ -13,3 +13,7 @@ int main(int argc, char *argv[])
     w.show();
     return a.exec();
 }
+
+// Local Variables:
+// c-basic-offset: 4
+// End:

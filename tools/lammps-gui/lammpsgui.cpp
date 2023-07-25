@@ -32,7 +32,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     current_file.clear();
 
     QFont text_font;
-    text_font.setFamily("monospace");
+    text_font.setFamily("Consolas");
     text_font.setFixedPitch(true);
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
@@ -189,6 +189,14 @@ void LammpsGui::run_buffer()
     clear();
     std::string buffer = ui->textEdit->toPlainText().toStdString();
     lammps_commands_string(lammps_handle, buffer.c_str());
+
+    if (lammps_has_error(lammps_handle)) {
+        constexpr int BUFLEN = 1024;
+        char errorbuf[BUFLEN];
+        lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
+
+        QMessageBox::warning(this, "LAMMPS-GUI Error", QString("Error running LAMMPS:\n\n") + errorbuf);
+    }
 }
 
 void LammpsGui::clear()
@@ -204,7 +212,7 @@ void LammpsGui::about()
     start_lammps();
 
     std::string version = "This is LAMMPS-GUI version 0.1\n";
-    if (lammps_handle) version += "LAMMPS Version " + std::to_string(lammps_version(lammps_handle));
+    if (lammps_handle) version += "using LAMMPS Version " + std::to_string(lammps_version(lammps_handle));
     QMessageBox::information(this, "About LAMMPS-GUI", version.c_str());
 }
 
@@ -215,8 +223,14 @@ void LammpsGui::start_lammps()
 
     // Create LAMMPS instance if not already present
     if (!lammps_handle) lammps_handle = lammps_open_no_mpi(nargs, args, nullptr);
-    if (!lammps_handle)
-        QMessageBox::warning(this, "LAMMPS Error", "Internal error launching LAMMPS");
+    if (lammps_has_error(lammps_handle)) {
+        constexpr int BUFLEN = 1024;
+        char errorbuf[BUFLEN];
+        lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
+
+        QMessageBox::warning(this, "LAMMPS-GUI Error",
+                             QString("Error launching LAMMPS:\n\n") + errorbuf);
+    }
 }
 
 // Local Variables:

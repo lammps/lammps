@@ -1,25 +1,26 @@
 #include "lammpsgui.h"
-#include "./ui_lammpsgui.h"
-#include "library.h"
+#include "ui_lammpsgui.h"
 
-#include <string>
-#include <QFile>
 #include <QFileDialog>
 #include <QFont>
-#include <QTextStream>
 #include <QMessageBox>
+#include <QTextStream>
+#include <string>
 
-LammpsGui::LammpsGui(QWidget *parent)
-  : QMainWindow(parent), ui(new Ui::LammpsGui), lammps_handle(nullptr)
+#include "library.h"
+
+LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
+    QMainWindow(parent), ui(new Ui::LammpsGui), lammps_handle(nullptr)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
     current_file.clear();
-    current_line = 0;
+
+    QFont text_font;
     text_font.setFamily("monospace");
     text_font.setFixedPitch(true);
     text_font.setStyleHint(QFont::TypeWriter);
-    ui->textEdit->setCurrentFont(text_font);
+    ui->textEdit->document()->setDefaultFont(text_font);
 
     connect(ui->actionNew, &QAction::triggered, this, &LammpsGui::new_document);
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
@@ -32,15 +33,23 @@ LammpsGui::LammpsGui(QWidget *parent)
     connect(ui->actionUndo, &QAction::triggered, this, &LammpsGui::undo);
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
     connect(ui->actionClear, &QAction::triggered, this, &LammpsGui::clear);
-    connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
-    connect(ui->actionExecute_Line, &QAction::triggered, this, &LammpsGui::run_line);
-//    connect(ui->actionAbout, &QAction::triggered, this, &LammpsGui::about);
+    connect(ui->actionRun_Buffer, &QAction::triggered, this,
+            &LammpsGui::run_buffer);
+    connect(ui->actionExecute_Line, &QAction::triggered, this,
+            &LammpsGui::run_line);
+    //    connect(ui->actionAbout, &QAction::triggered, this,
+    //    &LammpsGui::about);
 
 #if !QT_CONFIG(clipboard)
     ui->actionCut->setEnabled(false);
     ui->actionCopy->setEnabled(false);
     ui->actionPaste->setEnabled(false);
 #endif
+
+    if (filename)
+        open_file(filename);
+    else
+        setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
 }
 
 LammpsGui::~LammpsGui()
@@ -50,27 +59,33 @@ LammpsGui::~LammpsGui()
 
 void LammpsGui::new_document()
 {
-  current_file.clear();
-  current_line = 0;
-  ui->textEdit->setText(QString());
-  if (lammps_handle) lammps_close(lammps_handle);
-  lammps_handle = nullptr;
+    current_file.clear();
+    ui->textEdit->document()->setPlainText(QString());
+    if (lammps_handle) lammps_close(lammps_handle);
+    lammps_handle = nullptr;
+    setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
 }
 
 void LammpsGui::open()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
+    open_file(fileName);
+}
+
+void LammpsGui::open_file(const QString &fileName)
+{
     QFile file(fileName);
     current_file = fileName;
-    current_line = 0;
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        QMessageBox::warning(this, "Warning",
+                             "Cannot open file: " + file.errorString());
         return;
     }
-    setWindowTitle(fileName);
+    setWindowTitle(QString("LAMMPS-GUI - " + fileName));
     QTextStream in(&file);
     QString text = in.readAll();
-    ui->textEdit->setText(text);
+    ui->textEdit->document()->setPlainText(text);
+    ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     file.close();
 }
 
@@ -79,17 +94,18 @@ void LammpsGui::save()
     QString fileName;
     // If we don't have a filename from before, get one.
     if (current_file.isEmpty()) {
-        fileName = QFileDialog::getSaveFileName(this, "Save");
+        fileName     = QFileDialog::getSaveFileName(this, "Save");
         current_file = fileName;
     } else {
         fileName = current_file;
     }
     QFile file(fileName);
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
+        QMessageBox::warning(this, "Warning",
+                             "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(fileName);
+    setWindowTitle(QString("LAMMPS-GUI - " + fileName));
     QTextStream out(&file);
     QString text = ui->textEdit->toPlainText();
     out << text;
@@ -102,11 +118,12 @@ void LammpsGui::save_as()
     QFile file(fileName);
 
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
+        QMessageBox::warning(this, "Warning",
+                             "Cannot save file: " + file.errorString());
         return;
     }
     current_file = fileName;
-    setWindowTitle(fileName);
+    setWindowTitle(QString("LAMMPS-GUI - " + fileName));
     QTextStream out(&file);
     QString text = ui->textEdit->toPlainText();
     out << text;
@@ -115,13 +132,13 @@ void LammpsGui::save_as()
 
 void LammpsGui::quit()
 {
-  if (lammps_handle) {
-    lammps_close(lammps_handle);
-    lammps_mpi_finalize();
-    lammps_kokkos_finalize();
-    lammps_python_finalize();
-  } 
-  QCoreApplication::quit();
+    if (lammps_handle) {
+        lammps_close(lammps_handle);
+        lammps_mpi_finalize();
+        lammps_kokkos_finalize();
+        lammps_python_finalize();
+    }
+    QCoreApplication::quit();
 }
 
 void LammpsGui::copy()
@@ -147,7 +164,7 @@ void LammpsGui::paste()
 
 void LammpsGui::undo()
 {
-     ui->textEdit->undo();
+    ui->textEdit->undo();
 }
 
 void LammpsGui::redo()
@@ -157,27 +174,39 @@ void LammpsGui::redo()
 
 void LammpsGui::run_buffer()
 {
-  clear();
-  if (!lammps_handle) lammps_handle = lammps_open_no_mpi(0, nullptr, nullptr);
-  if (!lammps_handle) return;
-  std::string buffer = ui->textEdit->toPlainText().toStdString();
-  lammps_commands_string(lammps_handle, buffer.c_str());
+    char *args[] = {(char *)"LAMMPS GUI", (char *)"-log", (char *)"none"};
+    int nargs    = sizeof(args) / sizeof(char *);
+
+    clear();
+    if (!lammps_handle)
+        lammps_handle = lammps_open_no_mpi(nargs, args, nullptr);
+    if (!lammps_handle) return;
+    std::string buffer = ui->textEdit->toPlainText().toStdString();
+    lammps_commands_string(lammps_handle, buffer.c_str());
 }
 
 void LammpsGui::run_line()
 {
-  // dummy
+    char *args[] = {(char *)"LAMMPS GUI", (char *)"-log", (char *)"none"};
+    int nargs    = sizeof(args) / sizeof(char *);
+
+    if (!lammps_handle)
+        lammps_handle = lammps_open_no_mpi(nargs, args, nullptr);
+    if (!lammps_handle) return;
+
+    //    std::string buffer = ui->textEdit->toPlainText().toStdString();
+    //    lammps_commands_string(lammps_handle, buffer.c_str());
 }
 
 void LammpsGui::clear()
 {
-  if (lammps_handle) {
-    lammps_command(lammps_handle, "clear");
-    current_line = 0;
-  }
+    if (lammps_handle) {
+        lammps_command(lammps_handle, "clear");
+    }
+    ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
 }
 
 void LammpsGui::about()
 {
-  // dummy
+    // dummy
 }

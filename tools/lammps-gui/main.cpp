@@ -5,7 +5,11 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    LammpsGui w;
+
+    const char *infile = nullptr;
+    if (argc > 1) infile = argv[1];
+
+    LammpsGui w(nullptr, infile);
     w.show();
     return a.exec();
 }

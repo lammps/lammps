@@ -11,49 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LAMMPSGUI_H
-#define LAMMPSGUI_H
+#ifndef CODEEDITOR_H
+#define CODEEDITOR_H
 
-#include <QMainWindow>
-#include <QString>
+#include <QPlainTextEdit>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class LammpsGui;
-}
-QT_END_NAMESPACE
-
-class LammpsGui : public QMainWindow {
+class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
 
 public:
-    LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
-    ~LammpsGui();
+    CodeEditor(QWidget *parent = nullptr);
+
+    void lineNumberAreaPaintEvent(QPaintEvent *event);
+    int lineNumberAreaWidth();
 
 protected:
-    void open_file(const QString &filename);
+    void resizeEvent(QResizeEvent *event) override;
 
 private slots:
-    void new_document();
-    void open();
-    void save();
-    void save_as();
-    void quit();
-    void copy();
-    void cut();
-    void paste();
-    void undo();
-    void redo();
-    void clear();
-    void run_buffer();
-    void run_line();
-    void about();
+    void updateLineNumberAreaWidth(int newBlockCount);
+    void highlightCurrentLine();
+    void updateLineNumberArea(const QRect &rect, int dy);
 
 private:
-    Ui::LammpsGui *ui;
-
-    QString current_file;
-    void *lammps_handle;
+    QWidget *lineNumberArea;
 };
 
-#endif // LAMMPSGUI_H
+#endif

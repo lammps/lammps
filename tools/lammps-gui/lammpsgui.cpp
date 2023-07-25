@@ -85,16 +85,19 @@ void LammpsGui::open()
 void LammpsGui::open_file(const QString &fileName)
 {
 
-    QFile file(fileName);
-    QFileInfo path(file);
+    QFileInfo path(fileName);
     current_file = path.fileName();
     current_dir  = path.absolutePath();
+    QFile file(path.absoluteFilePath());
+
     QDir::setCurrent(current_dir);
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        QMessageBox::warning(this, "Warning",
+                             "Cannot open file " + path.absoluteFilePath() + ": " +
+                                 file.errorString());
         return;
     }
-    setWindowTitle(QString("LAMMPS-GUI - " + fileName));
+    setWindowTitle(QString("LAMMPS-GUI - " + current_file));
     QTextStream in(&file);
     QString text = in.readAll();
     ui->textEdit->document()->setPlainText(text);
@@ -111,7 +114,7 @@ void LammpsGui::write_file(const QString &fileName)
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(QString("LAMMPS-GUI - " + fileName));
+    setWindowTitle(QString("LAMMPS-GUI - " + current_file));
     QTextStream out(&file);
     QString text = ui->textEdit->toPlainText();
     out << text;

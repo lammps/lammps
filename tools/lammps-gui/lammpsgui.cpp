@@ -36,7 +36,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     capturer = new StdCapture;
 
     QFont text_font;
-    text_font.setFamily("Consolas");
+    text_font.setFamilies(QStringList({"Consolas", "Monospace", "Sans", "Courier"}));
     text_font.setFixedPitch(true);
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
@@ -203,7 +203,7 @@ void LammpsGui::run_buffer()
     box->setReadOnly(true);
 
     QFont text_font;
-    text_font.setFamily("Consolas");
+    text_font.setFamilies(QStringList({"Consolas", "Monospace", "Sans", "Courier"}));
     text_font.setFixedPitch(true);
     text_font.setStyleHint(QFont::TypeWriter);
     box->document()->setDefaultFont(text_font);

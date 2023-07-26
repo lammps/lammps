@@ -92,13 +92,10 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent)
 
     const QString setup_keywords[] = {QStringLiteral("^\\s*min_style\\W"),
                                       QStringLiteral("^\\s*min_modify\\W"),
-                                      QStringLiteral("^\\s*fix_modify\\W"),
                                       QStringLiteral("^\\s*run_style\\W"),
                                       QStringLiteral("^\\s*timestep\\W"),
                                       QStringLiteral("^\\s*neighbor\\W"),
                                       QStringLiteral("^\\s*neigh_modify\\W"),
-                                      QStringLiteral("^\\s*fix\\W"),
-                                      QStringLiteral("^\\s*unfix\\W"),
                                       QStringLiteral("^\\s*suffix\\W"),
                                       QStringLiteral("^\\s*special_bonds\\W"),
                                       QStringLiteral("^\\s*balance\\W"),
@@ -155,15 +152,25 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent)
         highlightingRules.append(rule);
     }
 
-    const QString define_keywords[] = {
-        QStringLiteral("^\\s*variable\\W"),  QStringLiteral("^\\s*group\\W"),
-        QStringLiteral("^\\s*compute\\W"),   QStringLiteral("^\\s*python\\W"),
-        QStringLiteral("^\\s*set\\W"),       QStringLiteral("^\\s*uncompute\\W"),
-        QStringLiteral("^\\s*kim_query\\W"), QStringLiteral("^\\s*kim\\W"),
-        QStringLiteral("^\\s*group2ndx\\W"), QStringLiteral("^\\s*ndx2group\\W"),
-        QStringLiteral("^\\s*INF\\W"),       QStringLiteral("^\\s*EDGE\\W"),
-        QStringLiteral("^\\s*NULL\\W"),      QStringLiteral("^\\s*&\\W"),
-        QStringLiteral("^\\s*mdi\\W")};
+    const QString define_keywords[] = {QStringLiteral("^\\s*variable\\W"),
+                                       QStringLiteral("^\\s*group\\W"),
+                                       QStringLiteral("^\\s*compute\\W"),
+                                       QStringLiteral("^\\s*python\\W"),
+                                       QStringLiteral("^\\s*set\\W"),
+                                       QStringLiteral("^\\s*uncompute\\W"),
+                                       QStringLiteral("^\\s*kim_query\\W"),
+                                       QStringLiteral("^\\s*kim\\W"),
+                                       QStringLiteral("^\\s*group2ndx\\W"),
+                                       QStringLiteral("^\\s*ndx2group\\W"),
+                                       QStringLiteral("^\\s*compute_modify\\W"),
+                                       QStringLiteral("^\\s*fix_modify\\W"),
+                                       QStringLiteral("^\\s*fix\\W"),
+                                       QStringLiteral("^\\s*unfix\\W"),
+                                       QStringLiteral("^\\s*INF\\W"),
+                                       QStringLiteral("^\\s*EDGE\\W"),
+                                       QStringLiteral("^\\s*NULL\\W"),
+                                       QStringLiteral("^\\s*&\\s*$"),
+                                       QStringLiteral("^\\s*mdi\\W")};
     for (const QString &pattern : define_keywords) {
         rule.pattern = QRegularExpression(pattern);
         rule.format  = defineFormat;
@@ -174,6 +181,7 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent)
         QStringLiteral("(^|\\s+)[0-9]+"),                            // integer
         QStringLiteral("(^|\\s+)[0-9]+\\.[0-9]*[edED]?[-+]?[0-9]*"), // floating point 1
         QStringLiteral("(^|\\s+)[0-9]*\\.[0-9]+[edED]?[-+]?[0-9]*"), // floating point 2
+        QStringLiteral("(^|\\s+)[0-9]+([edED][-+]?[0-9]+)?")         // floating point 3
     };
     for (const QString &pattern : number_keywords) {
         rule.pattern = QRegularExpression(pattern);

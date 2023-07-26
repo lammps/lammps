@@ -3,8 +3,10 @@ LAMMPS-GUI TODO list:
 # Short term goals
 
 - add indicator for when the file in editor is modified (-> status bar?)
+- add indicator icon (red/green "LED/lamp") to status bar indicating presense of a "runnable" LAMMPS instance
+- add "Help" entry to menu bar. Should open a popup window with a one page description of how to use it. Use HTML or Markdown text.
+- add "View" entry to menu bar, where dialog windows may be enabled/disabled (e.g. Render)
 - add dialog when exiting asking if file should be saved when it is modified
-- add indicator for a running calculation (-> status bar?)
 - add CTRL-q hotkey to log windows so you can exit the entire application
 - add "render" dialog where a "write_dump image" can be triggered. dialog should offer options for size, zoom, rotation, colors(?)
 - add "syntax check" with enabled "-skiprun" flag.

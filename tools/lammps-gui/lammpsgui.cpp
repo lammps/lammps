@@ -58,7 +58,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionPaste, &QAction::triggered, this, &LammpsGui::paste);
     connect(ui->actionUndo, &QAction::triggered, this, &LammpsGui::undo);
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
-    connect(ui->actionClear, &QAction::triggered, this, &LammpsGui::clear);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
 

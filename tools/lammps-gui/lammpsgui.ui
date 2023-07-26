@@ -25,7 +25,13 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="CodeEditor" name="textEdit" native="true"/>
+      <widget class="CodeEditor" name="textEdit" native="true">
+       <property name="font">
+        <font>
+         <family>DejaVu Sans Mono</family>
+        </font>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -62,16 +68,9 @@
     <addaction name="actionCut"/>
     <addaction name="actionPaste"/>
    </widget>
-   <widget class="QMenu" name="menuRun">
-    <property name="title">
-     <string>&amp;Run</string>
-    </property>
-    <addaction name="actionClear"/>
-    <addaction name="actionRun_Buffer"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuRun"/>
+   <addaction name="actionRun_Buffer"/>
    <addaction name="actionAbout_LAMMPS_GUI"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -155,14 +154,9 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
-  <action name="actionClear">
-   <property name="text">
-    <string>&amp;Clear</string>
-   </property>
-  </action>
   <action name="actionRun_Buffer">
    <property name="text">
-    <string>&amp;Execute Buffer</string>
+    <string>&amp;Run</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Return</string>

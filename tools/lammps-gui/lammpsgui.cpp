@@ -210,7 +210,7 @@ void LammpsGui::run_buffer()
     box->setLineWrapMode(QPlainTextEdit::NoWrap);
     box->setMinimumSize(800, 600);
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), box);
-//    QObject::connect(shortcut, &QShortcut::activated, box, &QPlainTextEdit::close());
+    QObject::connect(shortcut, &QShortcut::activated, box, &QPlainTextEdit::close);
 
     box->show();
 

@@ -15,7 +15,7 @@
 
 #include "stdcapture.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <io.h>
 #define popen _popen
 #define pclose _pclose
@@ -43,7 +43,7 @@ StdCapture::StdCapture() : m_capturing(false), m_oldStdOut(0)
 
     m_pipe[READ]  = 0;
     m_pipe[WRITE] = 0;
-#if _MSC_VER
+#if _WIN32
     if (pipe(m_pipe, 65536, O_BINARY) == -1) return;
 #else
     if (pipe(m_pipe) == -1) return;
@@ -84,7 +84,7 @@ bool StdCapture::EndCapture()
         bytesRead  = 0;
         fd_blocked = false;
 
-#ifdef _MSC_VER
+#ifdef _WIN32
         if (!eof(m_pipe[READ])) {
             bytesRead = read(m_pipe[READ], buf, bufSize - 1);
         }

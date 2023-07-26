@@ -16,6 +16,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QLabel>
 
 // forward declarations
 
@@ -59,6 +60,7 @@ private:
     Ui::LammpsGui *ui;
     Highlighter *highlighter;
     StdCapture *capturer;
+    QLabel *status;
 
     QString current_file;
     QString current_dir;

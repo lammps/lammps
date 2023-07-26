@@ -16,6 +16,7 @@
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
+//#include <QApplication>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
@@ -67,6 +68,9 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
         open_file(filename);
     else
         setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
+    status = new QLabel("Ready.");
+    status->setFixedWidth(300);
+    ui->statusbar->addWidget(status);
 }
 
 LammpsGui::~LammpsGui()
@@ -74,6 +78,7 @@ LammpsGui::~LammpsGui()
     delete ui;
     delete highlighter;
     delete capturer;
+    delete status;
 }
 
 void LammpsGui::new_document()
@@ -190,6 +195,8 @@ void LammpsGui::redo()
 
 void LammpsGui::run_buffer()
 {
+    status->setText("Running LAMMPS. Please wait...");
+    status->repaint();
     start_lammps();
     if (!lammps_handle) return;
     clear();
@@ -198,10 +205,12 @@ void LammpsGui::run_buffer()
     lammps_commands_string(lammps_handle, buffer.c_str());
     capturer->EndCapture();
     auto log = capturer->GetCapture();
+    status->setText("Ready.");
+
     auto box = new QPlainTextEdit();
     box->document()->setPlainText(log.c_str());
     box->setReadOnly(true);
-
+    box->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " + current_file);
     QFont text_font;
     text_font.setFamilies(QStringList({"Consolas", "Monospace", "Sans", "Courier"}));
     text_font.setFixedPitch(true);
@@ -211,7 +220,6 @@ void LammpsGui::run_buffer()
     box->setMinimumSize(800, 600);
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), box);
     QObject::connect(shortcut, &QShortcut::activated, box, &QPlainTextEdit::close);
-
     box->show();
 
     if (lammps_has_error(lammps_handle)) {

@@ -14,12 +14,11 @@
 #ifndef HIGHLIGHTER_H
 #define HIGHLIGHTER_H
 
-#include <QSyntaxHighlighter>
 #include <QRegularExpression>
+#include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 
-class Highlighter : public QSyntaxHighlighter
-{
+class Highlighter : public QSyntaxHighlighter {
     Q_OBJECT
 
 public:
@@ -29,22 +28,23 @@ protected:
     void highlightBlock(const QString &text) override;
 
 private:
-    struct HighlightingRule
-    {
+    struct HighlightingRule {
         QRegularExpression pattern;
         QTextCharFormat format;
     };
     QVector<HighlightingRule> highlightingRules;
 
-    QRegularExpression commentStartExpression;
-    QRegularExpression commentEndExpression;
+    QTextCharFormat outputFormat;
+    QTextCharFormat readFormat;
+    QTextCharFormat latticeFormat;
+    QTextCharFormat particleFormat;
+    QTextCharFormat setupFormat;
+    QTextCharFormat runFormat;
+    QTextCharFormat defineFormat;
 
-    QTextCharFormat keywordFormat;
-    QTextCharFormat classFormat;
-    QTextCharFormat singleLineCommentFormat;
-    QTextCharFormat multiLineCommentFormat;
-    QTextCharFormat quotationFormat;
-    QTextCharFormat functionFormat;
+    QTextCharFormat numberFormat;
+    QTextCharFormat stringFormat;
+    QTextCharFormat commentFormat;
 };
 #endif
 // Local Variables:

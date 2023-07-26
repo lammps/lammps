@@ -219,8 +219,8 @@ void LammpsGui::run_buffer()
         char errorbuf[BUFLEN];
         lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
 
-        QMessageBox::warning(this, "LAMMPS-GUI Error",
-                             QString("Error running LAMMPS:\n\n") + errorbuf);
+        QMessageBox::critical(this, "LAMMPS-GUI Error",
+                              QString("Error running LAMMPS:\n\n") + errorbuf);
     }
 }
 
@@ -254,7 +254,7 @@ void LammpsGui::start_lammps()
         char errorbuf[BUFLEN];
         lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
 
-        QMessageBox::warning(this, "LAMMPS-GUI Error",
+        QMessageBox::critical(this, "LAMMPS-GUI Error",
                              QString("Error launching LAMMPS:\n\n") + errorbuf);
     }
 }

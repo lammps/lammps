@@ -11,10 +11,13 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library as plugin" OFF)
+
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
 if(LAMMPS_DIR)
   set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR})
   set(LAMMPS_LIBRARY lammps)
+  set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 else()
   # NOTE: the next line should be commented out when used outside of the LAMMPS package
   get_filename_component(LAMMPS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../../src ABSOLUTE)
@@ -25,7 +28,7 @@ else()
   # find LAMMPS library
   find_library(LAMMPS_LIBRARY
     NAMES lammps lammps_serial
-    HINTS ${LAMMPS_HEADER_DIR}/../build ${LAMMPS_HEADER_DIR}/../build-clang ${LAMMPS_HEADER_DIR}/../build-test ${LAMMPS_HEADER_DIR}
+    HINTS ${LAMMPS_LIB_DIR} ${LAMMPS_HEADER_DIR}/../build ${LAMMPS_HEADER_DIR}/../build-clang ${LAMMPS_HEADER_DIR}/../build-test ${LAMMPS_HEADER_DIR}
     REQUIRED
   )
   # by default, install into $HOME/.local (not /usr/local),
@@ -51,6 +54,11 @@ endif()
 find_package(QT NAMES Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
+if(LAMMPS_GUI_USE_PLUGIN)
+  enable_language(C)
+  set(PLUGIN_LOADER_SRC ${LAMMPS_PLUGINLIB_DIR}/liblammpsplugin.c)
+endif()
+
 set(PROJECT_SOURCES
   main.cpp
   codeeditor.cpp
@@ -62,6 +70,7 @@ set(PROJECT_SOURCES
   lammpsgui.h
   lammpsgui.ui
   stdcapture.cpp
+  ${PLUGIN_LOADER_SRC}
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -87,9 +96,14 @@ else()
     endif()
 endif()
 
-target_include_directories(lammps-gui PRIVATE ${LAMMPS_HEADER_DIR})
+if(LAMMPS_GUI_USE_PLUGIN)
+  target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_USE_PLUGIN)
+  target_include_directories(lammps-gui PRIVATE ${LAMMPS_PLUGINLIB_DIR})
+else()
+  target_include_directories(lammps-gui PRIVATE ${LAMMPS_HEADER_DIR})
+  target_link_libraries(lammps-gui PRIVATE ${LAMMPS_LIBRARY})
+endif()
 target_link_libraries(lammps-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(lammps-gui PRIVATE ${LAMMPS_LIBRARY})
 
 set_target_properties(lammps-gui PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

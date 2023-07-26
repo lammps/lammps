@@ -65,6 +65,7 @@ private:
     QString current_file;
     QString current_dir;
     void *lammps_handle;
+    void *plugin_handle;
 };
 
 #endif // LAMMPSGUI_H

@@ -26,10 +26,14 @@
 #include <QTextStream>
 #include <string>
 
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+#include "liblammpsplugin.h"
+#else
 #include "library.h"
+#endif
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
-    QMainWindow(parent), ui(new Ui::LammpsGui), lammps_handle(nullptr)
+    QMainWindow(parent), ui(new Ui::LammpsGui), lammps_handle(nullptr), plugin_handle(nullptr)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
@@ -71,6 +75,19 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     status = new QLabel("Ready.");
     status->setFixedWidth(300);
     ui->statusbar->addWidget(status);
+
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    liblammpsplugin_t *plugin = liblammpsplugin_load("liblammps.so");
+    if (!plugin) plugin = liblammpsplugin_load("liblammps.dylib");
+    if (!plugin) plugin = liblammpsplugin_load("liblammps.dll");
+    bool do_exit = !plugin || (plugin && plugin->abiversion != LAMMPSPLUGIN_ABI_VERSION);
+    if (!plugin) QMessageBox::critical(this, "Warning", "Cannot open LAMMPS shared library file");
+    if (plugin && (plugin->abiversion != LAMMPSPLUGIN_ABI_VERSION))
+        QMessageBox::critical(this, "Warning",
+                              "ERROR: LAMMPS lib plugin ABI version does not match");
+    plugin_handle = plugin;
+    if (do_exit) exit(1);
+#endif
 }
 
 LammpsGui::~LammpsGui()
@@ -85,7 +102,12 @@ void LammpsGui::new_document()
 {
     current_file.clear();
     ui->textEdit->document()->setPlainText(QString());
+
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    if (lammps_handle) ((liblammpsplugin_t *)plugin_handle)->close(lammps_handle);
+#else
     if (lammps_handle) lammps_close(lammps_handle);
+#endif
     lammps_handle = nullptr;
     setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
 }
@@ -153,12 +175,22 @@ void LammpsGui::save_as()
 
 void LammpsGui::quit()
 {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    if (lammps_handle) {
+        liblammpsplugin_t *plugin = (liblammpsplugin_t *)plugin_handle;
+        plugin->close(lammps_handle);
+        plugin->mpi_finalize();
+        plugin->kokkos_finalize();
+        plugin->python_finalize();
+    }
+#else
     if (lammps_handle) {
         lammps_close(lammps_handle);
         lammps_mpi_finalize();
         lammps_kokkos_finalize();
         lammps_python_finalize();
     }
+#endif
     QCoreApplication::quit();
 }
 
@@ -202,7 +234,12 @@ void LammpsGui::run_buffer()
     clear();
     capturer->BeginCapture();
     std::string buffer = ui->textEdit->toPlainText().toStdString();
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    liblammpsplugin_t *plugin = (liblammpsplugin_t *)plugin_handle;
+    plugin->commands_string(lammps_handle, buffer.c_str());
+#else
     lammps_commands_string(lammps_handle, buffer.c_str());
+#endif
     capturer->EndCapture();
     auto log = capturer->GetCapture();
     status->setText("Ready.");
@@ -222,6 +259,16 @@ void LammpsGui::run_buffer()
     QObject::connect(shortcut, &QShortcut::activated, box, &QPlainTextEdit::close);
     box->show();
 
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    if (plugin->has_error(lammps_handle)) {
+        constexpr int BUFLEN = 1024;
+        char errorbuf[BUFLEN];
+        plugin->get_last_error_message(lammps_handle, errorbuf, BUFLEN);
+
+        QMessageBox::critical(this, "LAMMPS-GUI Error",
+                              QString("Error running LAMMPS:\n\n") + errorbuf);
+    }
+#else
     if (lammps_has_error(lammps_handle)) {
         constexpr int BUFLEN = 1024;
         char errorbuf[BUFLEN];
@@ -230,12 +277,17 @@ void LammpsGui::run_buffer()
         QMessageBox::critical(this, "LAMMPS-GUI Error",
                               QString("Error running LAMMPS:\n\n") + errorbuf);
     }
+#endif
 }
 
 void LammpsGui::clear()
 {
     if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        ((liblammpsplugin_t *)plugin_handle)->command(lammps_handle, "clear");
+#else
         lammps_command(lammps_handle, "clear");
+#endif
     }
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
 }
@@ -246,7 +298,11 @@ void LammpsGui::about()
 
     std::string version = "This is LAMMPS-GUI version 0.1";
     capturer->BeginCapture();
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    ((liblammpsplugin_t *)plugin_handle)->commands_string(lammps_handle, "info config");
+#else
     lammps_commands_string(lammps_handle, "info config");
+#endif
     capturer->EndCapture();
     std::string info = capturer->GetCapture();
     auto start       = info.find("LAMMPS version:");
@@ -272,6 +328,20 @@ void LammpsGui::start_lammps()
     char *args[] = {(char *)"LAMMPS GUI", (char *)"-log", (char *)"none"};
     int nargs    = sizeof(args) / sizeof(char *);
 
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    liblammpsplugin_t *plugin = (liblammpsplugin_t *)plugin_handle;
+
+    // Create LAMMPS instance if not already present
+    if (!lammps_handle) lammps_handle = plugin->open_no_mpi(nargs, args, nullptr);
+    if (plugin->has_error(lammps_handle)) {
+        constexpr int BUFLEN = 1024;
+        char errorbuf[BUFLEN];
+        plugin->get_last_error_message(lammps_handle, errorbuf, BUFLEN);
+
+        QMessageBox::critical(this, "LAMMPS-GUI Error",
+                              QString("Error launching LAMMPS:\n\n") + errorbuf);
+    }
+#else
     // Create LAMMPS instance if not already present
     if (!lammps_handle) lammps_handle = lammps_open_no_mpi(nargs, args, nullptr);
     if (lammps_has_error(lammps_handle)) {
@@ -280,8 +350,9 @@ void LammpsGui::start_lammps()
         lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
 
         QMessageBox::critical(this, "LAMMPS-GUI Error",
-                             QString("Error launching LAMMPS:\n\n") + errorbuf);
+                              QString("Error launching LAMMPS:\n\n") + errorbuf);
     }
+#endif
 }
 
 // Local Variables:

@@ -236,10 +236,27 @@ void LammpsGui::about()
 {
     start_lammps();
 
-    std::string version = "This is LAMMPS-GUI version 0.1\n";
-    if (lammps_handle)
-        version += "using LAMMPS Version " + std::to_string(lammps_version(lammps_handle));
-    QMessageBox::information(this, "About LAMMPS-GUI", version.c_str());
+    std::string version = "This is LAMMPS-GUI version 0.1";
+    capturer->BeginCapture();
+    lammps_commands_string(lammps_handle, "info config");
+    capturer->EndCapture();
+    std::string info = capturer->GetCapture();
+    auto start       = info.find("LAMMPS version:");
+    auto end         = info.find("Info-Info-Info", start);
+    QMessageBox msg;
+    msg.setWindowTitle("About LAMMPS-GUI");
+    msg.setText(version.c_str());
+    msg.setInformativeText(std::string(info, start, end - start).c_str());
+    msg.setIcon(QMessageBox::NoIcon);
+    msg.setStandardButtons(QMessageBox::Ok);
+    QFont font;
+    font.setFamilies(QStringList({"Sans", "Arial", "Helvetica"}));
+    font.setFixedPitch(true);
+    font.setStyleHint(QFont::TypeWriter);
+    font.setPointSize(8);
+    font.setWeight(QFont::Medium);
+    msg.setFont(font);
+    msg.exec();
 }
 
 void LammpsGui::start_lammps()

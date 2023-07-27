@@ -37,4 +37,4 @@ velocity          all create 300.0 41279 loop geom
 fix               1 all nve
 fix               2 all qeq/reax 1 0.0 10.0 1e-6 reax/c
 
-run               100
+run               $t

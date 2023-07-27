@@ -6,7 +6,7 @@ compute reduce/chunk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID reduce/chunk chunkID mode input1 input2 ...
 

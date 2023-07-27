@@ -138,7 +138,7 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::init()
 {
-  if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  if (me == 0) utils::logmesg(lmp,"PPPM Kokkos initialization ...\n");
 
   // error check
 
@@ -146,6 +146,10 @@ void PPPMKokkos<DeviceType>::init()
     error->all(FLERR,"Cannot (yet) use PPPM Kokkos with 'kspace_modify diff ad'");
 
   triclinic_check();
+
+  if (triclinic != domain->triclinic)
+    error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
+
   if (domain->triclinic && slabflag)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
   if (domain->dimension == 2)

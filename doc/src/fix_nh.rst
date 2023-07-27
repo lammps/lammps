@@ -30,7 +30,7 @@ Accelerator Variants: *nph/kk*, *nph/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style_name keyword value ...
 

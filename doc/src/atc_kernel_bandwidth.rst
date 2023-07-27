@@ -6,7 +6,7 @@ fix_modify AtC kernel_bandwidth command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> kernel_bandwidth <value>
 

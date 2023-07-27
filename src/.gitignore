@@ -1058,6 +1058,10 @@
 /pair_adp.h
 /pair_agni.cpp
 /pair_agni.h
+/pair_aip_water_2dm.cpp
+/pair_aip_water_2dm.h
+/pair_aip_water_2dm_opt.cpp
+/pair_aip_water_2dm_opt.h
 /pair_airebo.cpp
 /pair_airebo.h
 /pair_airebo_morse.cpp
@@ -1549,6 +1553,10 @@
 /fix_langevin_drude.h
 /fix_mol_swap.cpp
 /fix_mol_swap.h
+/fix_pimd.cpp
+/fix_pimd.h
+/fix_pimd_langevin.cpp
+/fix_pimd_langevin.h
 /fix_alchemy.cpp
 /fix_alchemy.h
 /fix_pimd_nvt.cpp

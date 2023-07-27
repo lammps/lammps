@@ -169,7 +169,7 @@ TEST_F(ComputeGlobalTest, Geometry)
         command("compute mom1 all momentum");
         command("compute mom2 allwater momentum");
         command("compute mop1 all stress/mop x 0.0 total");
-        command("compute mop2 all stress/mop/profile z lower 0.5 kin conf");
+        command("compute mop2 all stress/mop/profile z lower 0.5 kin pair");
         thermo_style += " c_mu1 c_mu2 c_mop1[*] c_mop2[1][1]";
     }
 
@@ -225,9 +225,9 @@ TEST_F(ComputeGlobalTest, Geometry)
         EXPECT_DOUBLE_EQ(mom2[0], -0.022332069630161717);
         EXPECT_DOUBLE_EQ(mom2[1], -0.056896553865696115);
         EXPECT_DOUBLE_EQ(mom2[2], 0.069179891052881484);
-        EXPECT_DOUBLE_EQ(mop1[0], 3522311.3572200728);
-        EXPECT_DOUBLE_EQ(mop1[1], 2871104.9055934539);
-        EXPECT_DOUBLE_EQ(mop1[2], -4136077.5224247416);
+        EXPECT_DOUBLE_EQ(mop1[0], 3536584.0880458541);
+        EXPECT_DOUBLE_EQ(mop1[1], 2887485.033995091);
+        EXPECT_DOUBLE_EQ(mop1[2], -4154145.8952306858);
         EXPECT_DOUBLE_EQ(mop2[0][0], -8.0869239999999998);
         EXPECT_DOUBLE_EQ(mop2[0][1], 0.0);
         EXPECT_DOUBLE_EQ(mop2[0][2], 0.0);

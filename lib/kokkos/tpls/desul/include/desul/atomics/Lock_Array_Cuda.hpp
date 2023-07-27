@@ -76,7 +76,7 @@ namespace Impl {
 /// instances in other translation units, we must update this CUDA global
 /// variable based on the Host global variable prior to running any kernels
 /// that will use it.
-/// That is the purpose of the KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE macro.
+/// That is the purpose of the ensure_cuda_lock_arrays_on_device function.
 __device__
 #ifdef __CUDACC_RDC__
     __constant__ extern
@@ -138,33 +138,42 @@ namespace {
 static int lock_array_copied = 0;
 inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
 }  // namespace
+
+#ifdef __CUDACC_RDC__
+inline
+#else
+inline static
+#endif
+    void
+    copy_cuda_lock_arrays_to_device() {
+  if (lock_array_copied == 0) {
+    cudaMemcpyToSymbol(CUDA_SPACE_ATOMIC_LOCKS_DEVICE,
+                       &CUDA_SPACE_ATOMIC_LOCKS_DEVICE_h,
+                       sizeof(int32_t*));
+    cudaMemcpyToSymbol(CUDA_SPACE_ATOMIC_LOCKS_NODE,
+                       &CUDA_SPACE_ATOMIC_LOCKS_NODE_h,
+                       sizeof(int32_t*));
+  }
+  lock_array_copied = 1;
+}
+
 }  // namespace Impl
 }  // namespace desul
-/* It is critical that this code be a macro, so that it will
-   capture the right address for desul::Impl::CUDA_SPACE_ATOMIC_LOCKS_DEVICE
-   putting this in an inline function will NOT do the right thing! */
-#define DESUL_IMPL_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE()                       \
-  {                                                                        \
-    if (::desul::Impl::lock_array_copied == 0) {                           \
-      cudaMemcpyToSymbol(::desul::Impl::CUDA_SPACE_ATOMIC_LOCKS_DEVICE,    \
-                         &::desul::Impl::CUDA_SPACE_ATOMIC_LOCKS_DEVICE_h, \
-                         sizeof(int32_t*));                                \
-      cudaMemcpyToSymbol(::desul::Impl::CUDA_SPACE_ATOMIC_LOCKS_NODE,      \
-                         &::desul::Impl::CUDA_SPACE_ATOMIC_LOCKS_NODE_h,   \
-                         sizeof(int32_t*));                                \
-    }                                                                      \
-    ::desul::Impl::lock_array_copied = 1;                                  \
-  }
 
 #endif /* defined( __CUDACC__ ) */
 
 #endif /* defined( DESUL_HAVE_CUDA_ATOMICS ) */
 
+namespace desul {
+
 #if defined(__CUDACC_RDC__) || (!defined(__CUDACC__))
-#define DESUL_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE()
+inline void ensure_cuda_lock_arrays_on_device() {}
 #else
-#define DESUL_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE() \
-  DESUL_IMPL_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE()
+static inline void ensure_cuda_lock_arrays_on_device() {
+  Impl::copy_cuda_lock_arrays_to_device();
+}
 #endif
 
-#endif /* #ifndef KOKKOS_CUDA_LOCKS_HPP_ */
+}  // namespace desul
+
+#endif /* #ifndef DESUL_ATOMICS_LOCK_ARRAY_CUDA_HPP_ */

@@ -10,7 +10,7 @@ fix tdpd/source command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID edpd/source keyword values ...
    fix ID group-ID tdpd/source cc_index keyword values ...
@@ -61,7 +61,7 @@ heat conduction with a source term (see Fig.12 in :ref:`(Li2014) <Li2014b>`)
 or diffusion with a source term (see Fig.1 in :ref:`(Li2015) <Li2015b>`), as
 an analog of a periodic Poiseuille flow problem.
 
-.. deprecated:: TBD
+.. deprecated:: 15Jun2023
 
    The *sphere* and *cuboid* keywords will be removed in a future version
    of LAMMPS.  The same functionality and more can be achieved with a region.

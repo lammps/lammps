@@ -9,7 +9,7 @@ Accelerator Variants: *qeq/comb/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID qeq/comb Nevery precision keyword value ...
 

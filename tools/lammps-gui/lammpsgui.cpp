@@ -77,18 +77,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->actionPaste->setEnabled(false);
 #endif
 
-    if (filename)
-        open_file(filename);
-    else
-        setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
-    status = new QLabel("Ready.");
-    status->setFixedWidth(300);
-    ui->statusbar->addWidget(status);
-    progress = new QProgressBar();
-    progress->setRange(0, 1000);
-    progress->setFixedWidth(500);
-    ui->statusbar->addWidget(progress);
-
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     liblammpsplugin_t *lammps = nullptr;
     for (const auto libfile : {"liblammps.so", "./liblammps.so", "liblammps.dylib", "./liblammps.dylib", "liblammps.dll"}) {
@@ -106,6 +94,19 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     plugin_handle = lammps;
     if (do_exit) exit(1);
 #endif
+
+    if (filename)
+        open_file(filename);
+    else
+        setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
+    status = new QLabel("Ready.");
+    status->setFixedWidth(300);
+    ui->statusbar->addWidget(status);
+    progress = new QProgressBar();
+    progress->setRange(0, 1000);
+    progress->setFixedWidth(500);
+    ui->statusbar->addWidget(progress);
+
 }
 
 LammpsGui::~LammpsGui()

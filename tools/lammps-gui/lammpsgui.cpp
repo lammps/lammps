@@ -48,7 +48,9 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     current_file.clear();
     capturer = new StdCapture;
 
-    QFont text_font;
+    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+
+    QFont text_font(":/monospace.ttf");
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
     ui->textEdit->setMinimumSize(800, 600);
@@ -343,7 +345,8 @@ void LammpsGui::run_buffer()
     logwindow->moveCursor(QTextCursor::End);
     logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
                               current_file);
-    QFont text_font;
+    logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png");
+    QFont text_font(":/monospace.ttf");
     text_font.setStyleHint(QFont::TypeWriter);
     logwindow->document()->setDefaultFont(text_font);
     logwindow->setLineWrapMode(QPlainTextEdit::NoWrap);
@@ -396,7 +399,7 @@ void LammpsGui::about()
     msg.setWindowTitle("About LAMMPS-GUI");
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
-    msg.setIcon(QMessageBox::NoIcon);
+    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png"));
     msg.setStandardButtons(QMessageBox::Ok);
     QFont font;
     font.setFamilies(QStringList({"Sans", "Arial", "Helvetica"}));

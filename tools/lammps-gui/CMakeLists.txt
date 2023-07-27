@@ -74,6 +74,7 @@ set(PROJECT_SOURCES
   stdcapture.cpp
   ${PLUGIN_LOADER_SRC}
 )
+qt_add_resources(PROJECT_SOURCES lammpsgui.qrc)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(lammps-gui

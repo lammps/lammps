@@ -345,7 +345,7 @@ void LammpsGui::run_buffer()
     logwindow->moveCursor(QTextCursor::End);
     logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
                               current_file);
-    logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png");
+    logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     QFont text_font(":/monospace.ttf");
     text_font.setStyleHint(QFont::TypeWriter);
     logwindow->document()->setDefaultFont(text_font);

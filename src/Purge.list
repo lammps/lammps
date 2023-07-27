@@ -51,6 +51,9 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed in August 2023
+fix_mscg.cpp
+fix_mscg.h
 # removed on 29 March 2023
 fix_latte.cpp
 fix_latte.h

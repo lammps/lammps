@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Stan Moore (SNL), Megan McCarthy (SNL)
+   Contributing authors: Megan McCarthy (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
 #include "compute_local_comp_atom_kokkos.h"
@@ -58,7 +58,6 @@ ComputeLocalCompAtomKokkos<DeviceType>::~ComputeLocalCompAtomKokkos()
 {
   if (copymode) return;
 
-  // memoryKK->destroy_kokkos(k_lcomp,lcomp);
   memoryKK->destroy_kokkos(k_result,result);
 
 }
@@ -97,9 +96,6 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
     array_atom = result;
   }
 
-  // memoryKK->create_kokkos(k_lcomp,lcomp,size_peratom_cols,"local/comp/atom:lcomp");
-  // d_lcomp = k_lcomp.view<DeviceType>();
-
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
@@ -109,7 +105,6 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
-
 
   // compute properties for each atom in group
   // use full neighbor list to count atoms less than cutoff
@@ -128,14 +123,7 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
   copymode = 0;
 
   k_result.modify<DeviceType>();
-
-  // printf("k_result pre-sync: %g ", k_result.view<Host>()(0,0));
-  // printf("k_result pre-sync: %g \n\n", k_result.view<Host>()(0,1));
-
   k_result.sync_host();
-
-  // printf("k_result post-sync: %g ", k_result.view<Host>()(0,0));
-  // printf("k_result post-sync: %g \n\n", k_result.view<Host>()(0,1));
 
 }
 
@@ -185,9 +173,7 @@ void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalCompAtom,
     double lfac = 1.0 / count;
 
     for (int n = 1; n < size_peratom_cols; n++) {
-      // double item = d_result(i,n);
       d_result(i,n) *= lfac;
-      // d_result(i,n) = 123.0;
     }
   }
 }

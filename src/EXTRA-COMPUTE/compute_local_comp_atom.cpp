@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
+   Contributing authors: Megan McCarthy (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
 #include "compute_local_comp_atom.h"
@@ -126,9 +126,6 @@ void ComputeLocalCompAtom::compute_peratom()
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
   int count, itype, jtype;
-  // int lcomp[ntypes];
-
-  // memory->create(lcomp, ntypes, "local/comp/atom:lcomp");
 
   invoked_peratom = update->ntimestep;
 
@@ -162,8 +159,6 @@ void ComputeLocalCompAtom::compute_peratom()
   for (ii = 0; ii < inum; ii++) {
 
     i = ilist[ii];
-
-    // for (int m = 0; m < ntypes; m++) lcomp[m] = 0.0;
 
     if (mask[i] & groupbit) {
 

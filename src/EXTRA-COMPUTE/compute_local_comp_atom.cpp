@@ -70,7 +70,7 @@ ComputeLocalCompAtom::~ComputeLocalCompAtom()
   if (copymode) return;
 
   memory->destroy(result);
-  memory->destroy(lcomp);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,7 +128,7 @@ void ComputeLocalCompAtom::compute_peratom()
   int count, itype, jtype;
   // int lcomp[ntypes];
 
-  memory->create(lcomp, ntypes, "local/comp/atom:lcomp");
+  // memory->create(lcomp, ntypes, "local/comp/atom:lcomp");
 
   invoked_peratom = update->ntimestep;
 
@@ -163,7 +163,7 @@ void ComputeLocalCompAtom::compute_peratom()
 
     i = ilist[ii];
 
-    for (int m = 0; m < ntypes; m++) lcomp[m] = 0.0;
+    // for (int m = 0; m < ntypes; m++) lcomp[m] = 0.0;
 
     if (mask[i] & groupbit) {
 
@@ -178,7 +178,7 @@ void ComputeLocalCompAtom::compute_peratom()
       count = 1;
 
       itype = type[i];
-      lcomp[itype-1]++;
+      result[i][itype]++;
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
@@ -192,7 +192,7 @@ void ComputeLocalCompAtom::compute_peratom()
         rsq = delx * delx + dely * dely + delz * delz;
         if (rsq < cutsq) {
           count++;
-          lcomp[jtype-1]++;
+          result[i][jtype]++;
         }
       }
 
@@ -203,8 +203,8 @@ void ComputeLocalCompAtom::compute_peratom()
       // local comp fractions per element
 
       double lfac = 1.0 / count;
-      for (int n = 0;  n < ntypes; n++)
-        result[i][n+1] = lcomp[n] * lfac;
+      for (int n = 1;  n < size_peratom_cols; n++)
+        result[i][n+1] *= lfac;
       
     }
   }

@@ -58,8 +58,9 @@ ComputeLocalCompAtomKokkos<DeviceType>::~ComputeLocalCompAtomKokkos()
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_result,result);
   // memoryKK->destroy_kokkos(k_lcomp,lcomp);
+  memoryKK->destroy_kokkos(k_result,result);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,6 +110,7 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
+
   // compute properties for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
@@ -126,7 +128,14 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
   copymode = 0;
 
   k_result.modify<DeviceType>();
+
+  // printf("k_result pre-sync: %g ", k_result.view<Host>()(0,0));
+  // printf("k_result pre-sync: %g \n\n", k_result.view<Host>()(0,1));
+
   k_result.sync_host();
+
+  // printf("k_result post-sync: %g ", k_result.view<Host>()(0,0));
+  // printf("k_result post-sync: %g \n\n", k_result.view<Host>()(0,1));
 
 }
 
@@ -139,11 +148,6 @@ void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalCompAtom,
 
   if (mask[i] & groupbit) {
 
-    // initialize / reset lcomp
-
-    // for (int m = 0; m < ntypes; m++) d_lcomp(m) = 0;
-    // for (int m = 0; m < size_peratom_cols; m++) d_result(i,m) = 0.0;
-
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
     const X_FLOAT ztmp = x(i,2);
@@ -151,11 +155,8 @@ void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalCompAtom,
 
     // i atom contribution
 
-    int count = 1;
+    int count = 1.0;
     int itype = type[i];
-
-    // d_lcomp(itype-1)++;
-    // d_result(i,itype-1) = d_result(i,itype-1) + 1;
     d_result(i,itype)++;
 
     for (int jj = 0; jj < jnum; jj++) {
@@ -171,25 +172,22 @@ void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalCompAtom,
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         count++;
-        // d_lcomp(jtype-1)++;
-        // d_result(i,jtype) = d_result(i,jtype) + 1;
-        d_result(i,jtype)++;
+        d_result(i,jtype) += 1.0;
       }
+    }
 
     // total count of atoms found in sampled radius range
 
     d_result(i,0) = count;
 
-    // local comp fractions per 
+    // local comp fractions per atom type
 
     double lfac = 1.0 / count;
 
-    // for (int n = 1; n < size_peratom_cols; n++) {
-    //   // d_result(i,n+1) = d_lcomp(n+1) * lfac;
-    //   d_result(i,n) = d_result(i,n) * lfac;
-    //   // d_result(i,n+1) = 123.0;
-    // }
-
+    for (int n = 1; n < size_peratom_cols; n++) {
+      // double item = d_result(i,n);
+      d_result(i,n) *= lfac;
+      // d_result(i,n) = 123.0;
     }
   }
 }

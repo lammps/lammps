@@ -39,7 +39,7 @@ class ComputeLocalCompAtom : public Compute {
   double cutsq;             // cutoff**2
   class NeighList *list;    // neighbor list
 
-  int *lcomp;               // peratom array to track local compositions
+//   int *lcomp;               // peratom array to track local compositions
 
   double **result;          // peratom array of local compositions
 };

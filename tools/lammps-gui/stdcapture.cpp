@@ -45,7 +45,8 @@ StdCapture::StdCapture() : m_oldStdOut(0), m_capturing(false)
 #if _WIN32
     if (_pipe(m_pipe, 65536, O_BINARY) == -1) return;
 #else
-    if (pipe2(m_pipe, O_NONBLOCK) == -1) return;
+    if (pipe(m_pipe) == -1) return;
+    fcntl(m_pipe[READ], F_SETFL, fcntl(m_pipe[READ], F_GETFL)|O_NONBLOCK);
 #endif
     m_oldStdOut = dup(fileno(stdout));
     if (m_oldStdOut == -1) return;

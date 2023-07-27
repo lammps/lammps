@@ -26,11 +26,6 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="CodeEditor" name="textEdit" native="true">
-       <property name="font">
-        <font>
-         <family>DejaVu Sans Mono</family>
-        </font>
-       </property>
       </widget>
      </item>
     </layout>

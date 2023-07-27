@@ -35,7 +35,7 @@
 #include <fcntl.h>
 #include <thread>
 
-StdCapture::StdCapture() :  m_oldStdOut(0), m_capturing(false)
+StdCapture::StdCapture() : m_oldStdOut(0), m_capturing(false)
 {
     // make stdout unbuffered so that we don't need to flush the stream
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -105,7 +105,7 @@ std::string StdCapture::GetChunk()
 {
     if (!m_capturing) return std::string();
     int bytesRead = 0;
-    buf[0] = '\0';
+    buf[0]        = '\0';
 
 #ifdef _WIN32
     if (!eof(m_pipe[READ])) {

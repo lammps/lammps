@@ -59,6 +59,7 @@ private slots:
     void redo();
     void clear();
     void run_buffer();
+    void stop_run();
     void about();
     void logupdate();
 

@@ -67,6 +67,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionUndo, &QAction::triggered, this, &LammpsGui::undo);
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
+    connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
 
 #if !QT_CONFIG(clipboard)
@@ -237,29 +238,37 @@ void LammpsGui::redo()
     ui->textEdit->redo();
 }
 
+void LammpsGui::stop_run()
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    ((liblammpsplugin_t *)plugin_handle)->force_timeout(lammps_handle);
+#else
+    lammps_force_timeout(lammps_handle);
+#endif
+}
+
 void LammpsGui::logupdate()
 {
     double t_elapsed, t_remain, t_total;
     int completed = 1000;
 
-    if (is_running) {
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-        liblammpsplugin_t *lammps = (liblammpsplugin_t *)plugin_handle;
-        if (lammps->is_running(lammps_handle)) {
-            t_elapsed = lammps->get_thermo(lammps_handle, "cpu");
-            t_remain  = lammps->get_thermo(lammps_handle, "cpuremain");
-            t_total   = t_elapsed + t_remain + 1.0e-10;
-            completed = t_elapsed / t_total * 1000.0;
-        }
-#else
-        if (lammps_is_running(lammps_handle)) {
-            t_elapsed = lammps_get_thermo(lammps_handle, "cpu");
-            t_remain  = lammps_get_thermo(lammps_handle, "cpuremain");
-            t_total   = t_elapsed + t_remain + 1.0e-10;
-            completed = t_elapsed / t_total * 1000.0;
-        }
-#endif
+    liblammpsplugin_t *lammps = (liblammpsplugin_t *)plugin_handle;
+    if (lammps->is_running(lammps_handle)) {
+        t_elapsed = lammps->get_thermo(lammps_handle, "cpu");
+        t_remain  = lammps->get_thermo(lammps_handle, "cpuremain");
+        t_total   = t_elapsed + t_remain + 1.0e-10;
+        completed = t_elapsed / t_total * 1000.0;
     }
+#else
+    if (lammps_is_running(lammps_handle)) {
+        t_elapsed = lammps_get_thermo(lammps_handle, "cpu");
+        t_remain  = lammps_get_thermo(lammps_handle, "cpuremain");
+        t_total   = t_elapsed + t_remain + 1.0e-10;
+        completed = t_elapsed / t_total * 1000.0;
+    }
+#endif
+
     progress->setValue(completed);
     if (logwindow) {
         const auto text = capturer->GetChunk();
@@ -283,7 +292,7 @@ void LammpsGui::run_done()
     logwindow->insertPlainText(log.c_str());
     logwindow->moveCursor(QTextCursor::End);
 
-    bool success = true;
+    bool success         = true;
     constexpr int BUFLEN = 1024;
     char errorbuf[BUFLEN];
 
@@ -345,6 +354,8 @@ void LammpsGui::run_buffer()
     logwindow->setMinimumSize(800, 600);
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, logwindow, &QPlainTextEdit::close);
+    shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), logwindow);
+    QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
     logwindow->show();
 
     logupdater = new QTimer(this);

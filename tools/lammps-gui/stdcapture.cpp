@@ -24,7 +24,6 @@
 #define dup2 _dup2
 #define fileno _fileno
 #define close _close
-#define pipe _pipe
 #define read _read
 #define eof _eof
 #else
@@ -44,9 +43,9 @@ StdCapture::StdCapture() :  m_oldStdOut(0), m_capturing(false)
     m_pipe[READ]  = 0;
     m_pipe[WRITE] = 0;
 #if _WIN32
-    if (pipe(m_pipe, 65536, O_BINARY) == -1) return;
+    if (_pipe(m_pipe, 65536, O_BINARY) == -1) return;
 #else
-    if (pipe(m_pipe) == -1) return;
+    if (pipe2(m_pipe, O_NONBLOCK) == -1) return;
 #endif
     m_oldStdOut = dup(fileno(stdout));
     if (m_oldStdOut == -1) return;
@@ -75,8 +74,6 @@ bool StdCapture::EndCapture()
     dup2(m_oldStdOut, fileno(stdout));
     m_captured.clear();
 
-    constexpr int bufSize = 1025;
-    char buf[bufSize];
     int bytesRead;
     bool fd_blocked;
 
@@ -104,7 +101,26 @@ bool StdCapture::EndCapture()
     return true;
 }
 
-std::string StdCapture::GetCapture() const
+std::string StdCapture::GetChunk()
+{
+    if (!m_capturing) return std::string();
+    int bytesRead = 0;
+    buf[0] = '\0';
+
+#ifdef _WIN32
+    if (!eof(m_pipe[READ])) {
+        bytesRead = read(m_pipe[READ], buf, bufSize - 1);
+    }
+#else
+    bytesRead = read(m_pipe[READ], buf, bufSize - 1);
+#endif
+    if (bytesRead > 0) {
+        buf[bytesRead] = '\0';
+    }
+    return std::string(buf);
+}
+
+std::string StdCapture::GetCapture()
 {
     std::string::size_type idx = m_captured.find_last_not_of("\r\n");
     if (idx == std::string::npos) {

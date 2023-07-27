@@ -16,7 +16,6 @@
 
 #include <QMainWindow>
 #include <QString>
-#include <QLabel>
 
 // forward declarations
 
@@ -25,6 +24,11 @@ namespace Ui {
 class LammpsGui;
 }
 QT_END_NAMESPACE
+
+class QLabel;
+class QPlainTextEdit;
+class QProgressBar;
+class QTimer;
 
 class Highlighter;
 class StdCapture;
@@ -40,6 +44,7 @@ protected:
     void open_file(const QString &filename);
     void write_file(const QString &filename);
     void start_lammps();
+    void run_done();
 
 private slots:
     void new_document();
@@ -55,17 +60,22 @@ private slots:
     void clear();
     void run_buffer();
     void about();
+    void logupdate();
 
 private:
     Ui::LammpsGui *ui;
     Highlighter *highlighter;
     StdCapture *capturer;
     QLabel *status;
+    QPlainTextEdit *logwindow;
+    QTimer *logupdater;
+    QProgressBar *progress;
 
     QString current_file;
     QString current_dir;
     void *lammps_handle;
     void *plugin_handle;
+    bool is_running;
 };
 
 #endif // LAMMPSGUI_H

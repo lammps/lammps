@@ -7,7 +7,7 @@ LAMMPS-GUI TODO list:
 - add "Help" entry to menu bar. Should open a popup window with a one page description of how to use it. Use HTML or Markdown text.
 - add "View" entry to menu bar, where dialog windows may be enabled/disabled (e.g. Render)
 - add dialog when exiting asking if file should be saved when it is modified
-- add CTRL-q hotkey to log windows so you can exit the entire application
+- add CTRL-q hotkey to log windows so you can exit the entire application (add do you really want to? dialog to this)
 - add "render" dialog where a "write_dump image" can be triggered. dialog should offer options for size, zoom, rotation, colors(?)
 - add "syntax check" with enabled "-skiprun" flag.
 - add settings dialog where certain properties can be set through customizing the LAMMPS command line
@@ -19,7 +19,6 @@ LAMMPS-GUI TODO list:
 
 # Long term ideas
 - support single stepping, i.e. process input line by line (need to detect continuation chars!) with highlighting active line(s)
-- run LAMMMPS instance in a separate thread, modify capture to regularly poll pipe and retrieve/append output while job is running
 - have command text input file in/above status bar where individual commands can be tested. have insert button to copy line into file at the current point
 - support text completion as done with lammps-shell
 - have context menu for known commands to offer retrieving help by dispatching URL to webbrowser (process index from sphinx for that purpose)

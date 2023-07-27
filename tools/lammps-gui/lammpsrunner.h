@@ -11,31 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef STDCAPTURE_H
-#define STDCAPTURE_H
+#ifndef LAMMPSRUNNER_H
+#define LAMMPSRUNNER_H
 
-#include <string>
+#include <QThread>
 
-class StdCapture {
+class LammpsRunner : public QThread {
+    Q_OBJECT
+
 public:
-    StdCapture();
-    virtual ~StdCapture();
+    LammpsRunner(QObject *parent = nullptr);
+    ~LammpsRunner() = default;
 
-    void BeginCapture();
-    bool EndCapture();
-    std::string GetCapture();
-    std::string GetChunk();
+    // execute LAMMPS run in runner thread
+    void run() override;
+
+    // transfer info to worker thread
+    void setup_run(void *_handle, const char *_input, void *_plugin = nullptr)
+    {
+        handle = _handle;
+        plugin = _plugin;
+        input  = _input;
+    }
+
+signals:
+    void resultReady();
 
 private:
-    enum PIPES { READ, WRITE };
-    int m_pipe[2];
-    int m_oldStdOut;
-    bool m_capturing;
-    bool m_init;
-    std::string m_captured;
-
-    static constexpr int bufSize = 1025;
-    char buf[bufSize];
+    void *handle, *plugin;
+    const char *input;
 };
 
 #endif

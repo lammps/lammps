@@ -61,6 +61,7 @@ private slots:
     void run_buffer();
     void stop_run();
     void about();
+    void help();
     void logupdate();
 
 private:

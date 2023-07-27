@@ -69,6 +69,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
+    connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
 
 #if !QT_CONFIG(clipboard)
     ui->actionCut->setEnabled(false);
@@ -423,6 +424,12 @@ void LammpsGui::about()
     font.setWeight(QFont::Medium);
     msg.setFont(font);
     msg.exec();
+}
+
+void LammpsGui::help()
+{
+    QString helpmsg = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
+    QMessageBox::information(this, "LAMMPS-GUI Help", helpmsg);
 }
 
 void LammpsGui::start_lammps()

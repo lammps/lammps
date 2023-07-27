@@ -25,8 +25,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="CodeEditor" name="textEdit" native="true">
-      </widget>
+      <widget class="CodeEditor" name="textEdit" native="true"/>
      </item>
     </layout>
    </widget>
@@ -70,10 +69,17 @@
     <addaction name="actionRun_Buffer"/>
     <addaction name="actionStop_LAMMPS"/>
    </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>&amp;About</string>
+    </property>
+    <addaction name="actionAbout_LAMMPS_GUI"/>
+    <addaction name="action_Help"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menu_Run"/>
-   <addaction name="actionAbout_LAMMPS_GUI"/>
+   <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionNew">
@@ -243,7 +249,8 @@
   </action>
   <action name="actionRun_Buffer">
    <property name="icon">
-    <iconset theme="emblem-default"/>
+    <iconset theme="emblem-default">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Run LAMMPS</string>
@@ -257,7 +264,8 @@
   </action>
   <action name="actionStop_LAMMPS">
    <property name="icon">
-    <iconset theme="process-stop"/>
+    <iconset theme="process-stop">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Stop LAMMPS</string>
@@ -270,11 +278,25 @@
    </property>
   </action>
   <action name="actionAbout_LAMMPS_GUI">
+   <property name="icon">
+    <iconset theme="help-about"/>
+   </property>
    <property name="text">
-    <string>&amp;About</string>
+    <string>&amp;About LAMMPS-GUI</string>
    </property>
    <property name="toolTip">
     <string>About LAMMPS-GUI</string>
+   </property>
+  </action>
+  <action name="action_Help">
+   <property name="icon">
+    <iconset theme="help-faq"/>
+   </property>
+   <property name="text">
+    <string>&amp;Help</string>
+   </property>
+   <property name="toolTip">
+    <string>Short Help</string>
    </property>
   </action>
  </widget>

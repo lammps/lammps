@@ -76,6 +76,7 @@ private:
     QString current_dir;
     void *lammps_handle;
     void *plugin_handle;
+    const char *plugin_path;
     bool is_running;
 };
 

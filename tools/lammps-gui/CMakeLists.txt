@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(lammps-gui VERSION 0.1 LANGUAGES CXX)
+project(lammps-gui VERSION 0.9 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library as plugin" OFF)
+option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
 
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
 if(LAMMPS_DIR)
@@ -106,6 +106,7 @@ else()
   target_include_directories(lammps-gui PRIVATE ${LAMMPS_HEADER_DIR})
   target_link_libraries(lammps-gui PRIVATE ${LAMMPS_LIBRARY})
 endif()
+target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
 target_link_libraries(lammps-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 set_target_properties(lammps-gui PROPERTIES

@@ -41,7 +41,7 @@
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), logupdater(nullptr), progress(nullptr),
-    lammps_handle(nullptr), plugin_handle(nullptr), is_running(false)
+    lammps_handle(nullptr), plugin_handle(nullptr), plugin_path(nullptr), is_running(false)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
@@ -89,11 +89,16 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->statusbar->addWidget(progress);
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-    liblammpsplugin_t *lammps = liblammpsplugin_load("liblammps.so");
-    if (!lammps) lammps = liblammpsplugin_load("liblammps.dylib");
-    if (!lammps) lammps = liblammpsplugin_load("liblammps.dll");
+    liblammpsplugin_t *lammps = nullptr;
+    for (const auto libfile : {"liblammps.so", "./liblammps.so", "liblammps.dylib", "./liblammps.dylib", "liblammps.dll"}) {
+        if (!lammps) lammps = liblammpsplugin_load(libfile);
+        if (lammps) {
+            plugin_path = libfile;
+            break;
+        }
+    }
     bool do_exit = !lammps || (lammps && lammps->abiversion != LAMMPSPLUGIN_ABI_VERSION);
-    if (!lammps) QMessageBox::critical(this, "Warning", "Cannot open LAMMPS shared library file");
+    if (!lammps) QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
     if (lammps && (lammps->abiversion != LAMMPSPLUGIN_ABI_VERSION))
         QMessageBox::critical(this, "Warning",
                               "ERROR: LAMMPS lib plugin ABI version does not match");
@@ -376,7 +381,16 @@ void LammpsGui::clear()
 
 void LammpsGui::about()
 {
-    std::string version = "This is LAMMPS-GUI version 0.1";
+    std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    version += " - LAMMPS linked dynamically";
+    if (plugin_path) {
+        version += " from file ";
+        version += plugin_path;
+    }
+#else
+    version += " - LAMMPS linked statically";
+#endif
     std::string info    = "LAMMPS is currently running. LAMMPS config info not available.";
 
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running

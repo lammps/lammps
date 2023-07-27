@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #include <thread>
 
-StdCapture::StdCapture() : m_capturing(false), m_oldStdOut(0)
+StdCapture::StdCapture() :  m_oldStdOut(0), m_capturing(false)
 {
     // make stdout unbuffered so that we don't need to flush the stream
     setvbuf(stdout, NULL, _IONBF, 0);

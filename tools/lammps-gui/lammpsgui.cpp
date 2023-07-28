@@ -143,6 +143,29 @@ void LammpsGui::open()
 // open file and switch CWD to path of file
 void LammpsGui::open_file(const QString &fileName)
 {
+    if (ui->textEdit->document()->isModified()) {
+        QMessageBox msg;
+        msg.setWindowTitle("Unsaved Changes");
+        msg.setWindowIcon(windowIcon());
+        msg.setText(QString("The buffer ") + current_file + " has changes");
+        msg.setInformativeText("Do you want to save the file before opening a new file?");
+        msg.setIcon(QMessageBox::Question);
+        msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        int rv = msg.exec();
+        switch (rv) {
+            case QMessageBox::Yes:
+                save();
+                break;
+            case QMessageBox::Cancel:
+                return;
+                break;
+            case QMessageBox::No: // fallthrough
+            default:
+                // do nothing
+                break;
+        }
+    }
+
     QFileInfo path(fileName);
     current_file = path.fileName();
     current_dir  = path.absolutePath();
@@ -214,6 +237,28 @@ void LammpsGui::quit()
         lammps_python_finalize();
     }
 #endif
+    if (ui->textEdit->document()->isModified()) {
+        QMessageBox msg;
+        msg.setWindowTitle("Unsaved Changes");
+        msg.setWindowIcon(windowIcon());
+        msg.setText(QString("The buffer ") + current_file + " has changes");
+        msg.setInformativeText("Do you want to save the file before exiting?");
+        msg.setIcon(QMessageBox::Question);
+        msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        int rv = msg.exec();
+        switch (rv) {
+            case QMessageBox::Yes:
+                save();
+                break;
+            case QMessageBox::Cancel:
+                return;
+                break;
+            case QMessageBox::No: // fallthrough
+            default:
+                // do nothing
+                break;
+        }
+    }
     QCoreApplication::quit();
 }
 

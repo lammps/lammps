@@ -27,6 +27,9 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    bool canInsertFromMimeData(const QMimeData *source) const override;
+    void dropEvent(QDropEvent *event) override;
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);

@@ -36,9 +36,10 @@ class StdCapture;
 class LammpsGui : public QMainWindow {
     Q_OBJECT
 
+    friend class CodeEditor;
 public:
     LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
-    ~LammpsGui();
+    ~LammpsGui() override;
 
 protected:
     void open_file(const QString &filename);

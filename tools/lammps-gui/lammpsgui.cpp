@@ -79,7 +79,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     liblammpsplugin_t *lammps = nullptr;
-    for (const auto libfile : {"liblammps.so", "./liblammps.so", "liblammps.dylib", "./liblammps.dylib", "liblammps.dll"}) {
+    for (const auto libfile : {"liblammps.so", "./liblammps.so", "liblammps.dylib",
+                               "./liblammps.dylib", "liblammps.dll"}) {
         if (!lammps) lammps = liblammpsplugin_load(libfile);
         if (lammps) {
             plugin_path = libfile;
@@ -106,7 +107,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     progress->setRange(0, 1000);
     progress->setFixedWidth(500);
     ui->statusbar->addWidget(progress);
-
 }
 
 LammpsGui::~LammpsGui()
@@ -141,7 +141,6 @@ void LammpsGui::open()
 // open file and switch CWD to path of file
 void LammpsGui::open_file(const QString &fileName)
 {
-
     QFileInfo path(fileName);
     current_file = path.fileName();
     current_dir  = path.absolutePath();
@@ -393,7 +392,7 @@ void LammpsGui::about()
 #else
     version += " - LAMMPS linked statically";
 #endif
-    std::string info    = "LAMMPS is currently running. LAMMPS config info not available.";
+    std::string info = "LAMMPS is currently running. LAMMPS config info not available.";
 
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
     if (!is_running) {

@@ -25,7 +25,11 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="CodeEditor" name="textEdit" native="true"/>
+      <widget class="CodeEditor" name="textEdit" native="true">
+       <property name="acceptDrops">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -303,7 +307,7 @@
  <customwidgets>
   <customwidget>
    <class>CodeEditor</class>
-   <extends>QWidget</extends>
+   <extends>QPlainTextEdit</extends>
    <header>codeeditor.h</header>
   </customwidget>
  </customwidgets>

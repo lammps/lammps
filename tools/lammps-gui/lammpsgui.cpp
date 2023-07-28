@@ -70,6 +70,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
+    connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this,
+            &LammpsGui::modified);
 
 #if !QT_CONFIG(clipboard)
     ui->actionCut->setEnabled(false);
@@ -158,6 +160,7 @@ void LammpsGui::open_file(const QString &fileName)
     QString text = in.readAll();
     ui->textEdit->document()->setPlainText(text);
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
+    ui->textEdit->document()->setModified(false);
     file.close();
 }
 
@@ -175,6 +178,7 @@ void LammpsGui::write_file(const QString &fileName)
     QString text = ui->textEdit->toPlainText();
     out << text;
     file.close();
+    ui->textEdit->document()->setModified(false);
 }
 
 void LammpsGui::save()
@@ -284,6 +288,16 @@ void LammpsGui::logupdate()
             logwindow->textCursor().deleteChar();
         }
     }
+}
+
+void LammpsGui::modified()
+{
+    const QString modflag(" - *modified*");
+    auto title = windowTitle().remove(modflag);
+    if (ui->textEdit->document()->isModified())
+        setWindowTitle(title + modflag);
+    else
+        setWindowTitle(title);
 }
 
 void LammpsGui::run_done()

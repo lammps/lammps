@@ -2,7 +2,6 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
-- add indicator for when the file in editor is modified (-> status bar?)
 - add "Help" entry to menu bar. Should open a popup window with a one page description of how to use it. Use HTML or Markdown text.
 - add dialog when exiting asking if file should be saved when it is modified, similar dialog when opening a new file
 - add CTRL-q hotkey to log windows so you can exit the entire application (add do you really want to? dialog to this)

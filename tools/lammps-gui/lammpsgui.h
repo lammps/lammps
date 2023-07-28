@@ -64,6 +64,7 @@ private slots:
     void about();
     void help();
     void logupdate();
+    void modified();
 
 private:
     Ui::LammpsGui *ui;

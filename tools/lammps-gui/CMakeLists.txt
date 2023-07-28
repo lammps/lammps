@@ -18,12 +18,18 @@ if(LAMMPS_DIR)
   set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR})
   set(LAMMPS_LIBRARY lammps)
   set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
+  if(APPLE)
+    set(MACOSX_ICON_FILE ${LAMMPS_DIR}/cmake/packaging/lammps.icns)
+  endif()
 else()
   # NOTE: the next line should be commented out when used outside of the LAMMPS package
   get_filename_component(LAMMPS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../../src ABSOLUTE)
   set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR} CACHE PATH "Location of LAMMPS headers")
   if(NOT LAMMPS_HEADER_DIR)
     message(FATAL_ERROR "Must set LAMMPS_HEADER_DIR")
+  endif()
+  if(APPLE)
+    set(MACOSX_ICON_FILE ${LAMMPS_SOURCE_DIR}/../cmake/packaging/lammps.icns)
   endif()
   # find LAMMPS library
   find_library(LAMMPS_LIBRARY
@@ -75,10 +81,21 @@ set(PROJECT_SOURCES
   ${PLUGIN_LOADER_SRC}
 )
 qt_add_resources(PROJECT_SOURCES lammpsgui.qrc)
+if(APPLE)
+  set(MACOSX_BUNDLE_BUNDLE_NAME lammps-gui)
+  set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
+  set(MACOSX_BUNDLE_COPYRIGHT GPLv2)
+  set(MACOSX_BUNDLE_GUI_IDENTIFIER org.lammps.gui)
+  set(MACOSX_BUNDLE_INFO_STRING "A Simple GUI for LAMMPS")
+  set(MACOSX_BUNDLE_LONG_VERSION_STRING 0.9)
+  set(MACOSX_BUNDLE_SHORT_VERSION_STRING 0.9.0)
+  get_filename_component(MACOSX_BUNDLE_ICON_FILE ${MACOSX_ICON_FILE} NAME)
+endif()
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(lammps-gui
         MANUAL_FINALIZATION
+        ${MACOS_ICON_FILE}
         ${PROJECT_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
@@ -94,6 +111,7 @@ else()
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(lammps-gui
+            ${MACOSX_ICON_FILE}
             ${PROJECT_SOURCES}
         )
     endif()

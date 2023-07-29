@@ -25,7 +25,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="CodeEditor" name="textEdit" native="true">
+      <widget class="CodeEditor" name="textEdit">
        <property name="acceptDrops">
         <bool>true</bool>
        </property>
@@ -65,6 +65,8 @@
     <addaction name="actionCopy"/>
     <addaction name="actionCut"/>
     <addaction name="actionPaste"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit_Preferences"/>
    </widget>
    <widget class="QMenu" name="menu_Run">
     <property name="title">
@@ -283,7 +285,8 @@
   </action>
   <action name="actionAbout_LAMMPS_GUI">
    <property name="icon">
-    <iconset theme="help-about"/>
+    <iconset theme="help-about">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;About LAMMPS-GUI</string>
@@ -294,13 +297,22 @@
   </action>
   <action name="action_Help">
    <property name="icon">
-    <iconset theme="help-faq"/>
+    <iconset theme="help-faq">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Help</string>
    </property>
    <property name="toolTip">
     <string>Short Help</string>
+   </property>
+  </action>
+  <action name="actionEdit_Preferences">
+   <property name="icon">
+    <iconset theme="preferences-desktop"/>
+   </property>
+   <property name="text">
+    <string>Edit Preferences...</string>
    </property>
   </action>
  </widget>

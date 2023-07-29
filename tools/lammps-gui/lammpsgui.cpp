@@ -15,6 +15,7 @@
 
 #include "highlighter.h"
 #include "lammpsrunner.h"
+#include "preferences.h"
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
@@ -38,23 +39,38 @@
 #include "library.h"
 #endif
 
+// duplicate string
+static char *mystrdup(const std::string &text)
+{
+    auto tmp = new char[text.size() + 1];
+    memcpy(tmp, text.c_str(), text.size() + 1);
+    return tmp;
+}
+
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), logupdater(nullptr), progress(nullptr),
-    lammps_handle(nullptr), plugin_handle(nullptr), plugin_path(nullptr), is_running(false)
+    prefdialog(nullptr), lammps_handle(nullptr), plugin_handle(nullptr), plugin_path(nullptr),
+    is_running(false)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
+    highlighter = new Highlighter(ui->textEdit->document());
+    prefdialog  = new Preferences(this);
+    capturer    = new StdCapture;
     current_file.clear();
-    capturer = new StdCapture;
+    recent_files.clear();
+
+    lammps_args.clear();
+    lammps_args.push_back(mystrdup("LAMMPS GUI"));
+    lammps_args.push_back(mystrdup("-log"));
+    lammps_args.push_back(mystrdup("none"));
 
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
-
     QFont text_font(":/monospace.ttf");
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
     ui->textEdit->setMinimumSize(800, 600);
-    highlighter = new Highlighter(ui->textEdit->document());
 
     connect(ui->actionNew, &QAction::triggered, this, &LammpsGui::new_document);
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
@@ -70,6 +86,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
+    connect(ui->actionEdit_Preferences, &QAction::triggered, this, &LammpsGui::preferences);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this,
             &LammpsGui::modified);
 
@@ -393,11 +410,9 @@ void LammpsGui::run_buffer()
     clear();
     capturer->BeginCapture();
 
-    std::string buffer = ui->textEdit->toPlainText().toStdString();
-    char *input        = new char[buffer.size() + 1];
-    memcpy(input, buffer.c_str(), buffer.size() + 1);
+    char *input = mystrdup(ui->textEdit->toPlainText().toStdString());
+    is_running  = true;
 
-    is_running           = true;
     LammpsRunner *runner = new LammpsRunner(this);
     runner->setup_run(lammps_handle, input, plugin_handle);
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
@@ -491,10 +506,16 @@ void LammpsGui::help()
     QMessageBox::information(this, "LAMMPS-GUI Help", helpmsg);
 }
 
+void LammpsGui::preferences()
+{
+    QString helpmsg = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
+    QMessageBox::information(this, "LAMMPS-GUI Help", helpmsg);
+}
+
 void LammpsGui::start_lammps()
 {
-    char *args[] = {(char *)"LAMMPS GUI", (char *)"-log", (char *)"none"};
-    int nargs    = sizeof(args) / sizeof(char *);
+    char **args = lammps_args.data();
+    int nargs   = lammps_args.size();
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     liblammpsplugin_t *lammps = (liblammpsplugin_t *)plugin_handle;

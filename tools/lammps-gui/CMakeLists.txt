@@ -77,6 +77,8 @@ set(PROJECT_SOURCES
   lammpsgui.ui
   lammpsrunner.cpp
   lammpsrunner.h
+  preferences.cpp
+  preferences.h
   stdcapture.cpp
   ${PLUGIN_LOADER_SRC}
 )

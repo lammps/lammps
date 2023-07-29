@@ -16,6 +16,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <vector>
 
 // forward declarations
 
@@ -32,11 +33,13 @@ class QTimer;
 
 class Highlighter;
 class StdCapture;
+class Preferences;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
 
     friend class CodeEditor;
+
 public:
     LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
     ~LammpsGui() override;
@@ -65,6 +68,7 @@ private slots:
     void help();
     void logupdate();
     void modified();
+    void preferences();
 
 private:
     Ui::LammpsGui *ui;
@@ -74,6 +78,7 @@ private:
     QPlainTextEdit *logwindow;
     QTimer *logupdater;
     QProgressBar *progress;
+    Preferences *prefdialog;
 
     QString current_file;
     QString current_dir;
@@ -81,6 +86,8 @@ private:
     void *plugin_handle;
     const char *plugin_path;
     bool is_running;
+    std::vector<char *> recent_files;
+    std::vector<char *> lammps_args;
 };
 
 #endif // LAMMPSGUI_H

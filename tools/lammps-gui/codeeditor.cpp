@@ -27,10 +27,8 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
 
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
-    // connect(this, &CodeEditor::cursorPositionChanged, this, &CodeEditor::highlightCurrentLine);
 
     updateLineNumberAreaWidth(0);
-    // highlightCurrentLine();
 }
 
 int CodeEditor::lineNumberAreaWidth()
@@ -78,11 +76,15 @@ void CodeEditor::dropEvent(QDropEvent *event)
     if (event->mimeData()->hasUrls()) {
         auto file = event->mimeData()->urls()[0].url().remove("file://");
         auto gui = dynamic_cast<LammpsGui *>(parent());
-        if (gui) gui->open_file(file);
+        if (gui) {
+            moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
+            gui->open_file(file);
+        }
     } else if (event->mimeData()->hasText()) {
         fprintf(stderr, "Drag - Drop for text block not yet implemented: text=%s\n",
                 event->mimeData()->text().toStdString().c_str());
     }
+    QPlainTextEdit::dropEvent(event);
 }
 
 void CodeEditor::resizeEvent(QResizeEvent *e)

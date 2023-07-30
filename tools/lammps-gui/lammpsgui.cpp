@@ -82,12 +82,13 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
 #if (__APPLE__)
     QFont text_font("Menlo");
+    setenv("QT_FONT_DPI", "96", 0);
 #else
     QFont text_font(":/Monospace.ttf");
 #endif
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
-    ui->textEdit->setMinimumSize(800, 600);
+    ui->textEdit->setMinimumSize(600, 400);
 
     connect(ui->actionNew, &QAction::triggered, this, &LammpsGui::new_document);
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
@@ -451,7 +452,7 @@ void LammpsGui::run_buffer()
     text_font.setStyleHint(QFont::TypeWriter);
     logwindow->document()->setDefaultFont(text_font);
     logwindow->setLineWrapMode(QPlainTextEdit::NoWrap);
-    logwindow->setMinimumSize(800, 600);
+    logwindow->setMinimumSize(600, 400);
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, logwindow, &QPlainTextEdit::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), logwindow);
@@ -509,14 +510,13 @@ void LammpsGui::about()
     msg.setWindowTitle("About LAMMPS-GUI");
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
-    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png"));
+    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64,64));
     msg.setStandardButtons(QMessageBox::Ok);
     QFont font;
-    font.setFamilies(QStringList({"Sans", "Arial", "Helvetica"}));
     font.setFixedPitch(true);
     font.setStyleHint(QFont::TypeWriter);
+    font.setFamilies(QStringList({"Arial", "Helvetica"}));
     font.setPointSize(8);
-    font.setWeight(QFont::Medium);
     msg.setFont(font);
     msg.exec();
 }

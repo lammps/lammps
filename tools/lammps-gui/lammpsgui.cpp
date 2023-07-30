@@ -50,7 +50,11 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
 
+#if (__APPLE__)
+    QFont text_font("Menlo");
+#else
     QFont text_font(":/monospace.ttf");
+#endif
     text_font.setStyleHint(QFont::TypeWriter);
     ui->textEdit->document()->setDefaultFont(text_font);
     ui->textEdit->setMinimumSize(800, 600);
@@ -411,7 +415,11 @@ void LammpsGui::run_buffer()
     logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
                               current_file);
     logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+#if (__APPLE__)
+    QFont text_font("Menlo");
+#else
     QFont text_font(":/monospace.ttf");
+#endif
     text_font.setStyleHint(QFont::TypeWriter);
     logwindow->document()->setDefaultFont(text_font);
     logwindow->setLineWrapMode(QPlainTextEdit::NoWrap);

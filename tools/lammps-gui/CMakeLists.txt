@@ -135,7 +135,7 @@ if(APPLE)
   )
   # additional steps to populate the bundle tree and create the .dmg image file
   set(APP_CONTENTS ${CMAKE_BINARY_DIR}/lammps-gui.app/Contents)
-  set_custom_target(complete-bundle ALL
+  add_custom_target(complete-bundle ALL
     ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/bin
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/lmp ${APP_CONTENTS}/bin/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/msi2lmp ${APP_CONTENTS}/bin/
@@ -145,12 +145,13 @@ if(APPLE)
     COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
     COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/README.macos ${APP_CONTENTS}/Resources/README.txt
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/lammps.icns ${APP_CONTENTS}/Resources
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png ${APP_CONTENTS}/Resources
     COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps
     COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps/man/man1
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${LAMMPS_DIR}/potentials ${APP_CONTENTS}/share/lammps/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${LAMMPS_DIR}/bench ${APP_CONTENTS}/share/lammps/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${LAMMPS_DIR}/tools/msi2lmp/frc_files ${APP_CONTENTS}/share/lammps/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/potentials ${APP_CONTENTS}/share/lammps/potentials
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/bench ${APP_CONTENTS}/share/lammps/bench
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/tools/msi2lmp/frc_files ${APP_CONTENTS}/share/lammps/frc_files
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/
     COMMAND ${CMAKE_COMMAND} -E create_symlink lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/lmp.1
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/msi2lmp.1 ${APP_CONTENTS}/share/lammps/man/man1
@@ -158,7 +159,7 @@ if(APPLE)
     COMMENT "Copying additional files into macOS app bundle tree"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
-  set_custom_target(build-dmg ALL
+  add_custom_target(build-dmg ALL
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build-macos-dmg-with-gui.sh
     DEPENDS complete-bundle
     COMMENT "Create Drag-n-Drop installer disk image from app bundle"

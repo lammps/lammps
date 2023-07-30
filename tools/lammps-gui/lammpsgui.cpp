@@ -69,7 +69,13 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #if defined(_OPENMP)
     // use maximum number of available threads unless OMP_NUM_THREADS was set
     auto nthreads = std::to_string(omp_get_max_threads());
+#if _WIN32
+    if (!getenv("OMP_NUM_THREADS")) {
+        _putenv_s("OMP_NUM_THREADS", nthreads.c_str());
+    }
+#else
     setenv("OMP_NUM_THREADS", nthreads.c_str(), 0);
+#endif
 #endif
 
     lammps_args.clear();

@@ -72,8 +72,8 @@ bool CodeEditor::canInsertFromMimeData(const QMimeData *source) const
 
 void CodeEditor::dropEvent(QDropEvent *event)
 {
-    event->acceptProposedAction();
     if (event->mimeData()->hasUrls()) {
+        event->accept();
         auto file = event->mimeData()->urls()[0].url().remove("file://");
         auto gui = dynamic_cast<LammpsGui *>(parent());
         if (gui) {
@@ -81,10 +81,10 @@ void CodeEditor::dropEvent(QDropEvent *event)
             gui->open_file(file);
         }
     } else if (event->mimeData()->hasText()) {
+        event->accept();
         fprintf(stderr, "Drag - Drop for text block not yet implemented: text=%s\n",
                 event->mimeData()->text().toStdString().c_str());
-    }
-    QPlainTextEdit::dropEvent(event);
+    } else event->ignore();
 }
 
 void CodeEditor::resizeEvent(QResizeEvent *e)

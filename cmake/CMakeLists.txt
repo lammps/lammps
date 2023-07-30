@@ -798,7 +798,7 @@ include(Documentation)
 ###############################################################################
 # Install potential and force field files in data directory
 ###############################################################################
-set(LAMMPS_INSTALL_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps)
+set(LAMMPS_INSTALL_DATADIR ${CMAKE_INSTALL_DATADIR}/lammps)
 install(DIRECTORY ${LAMMPS_POTENTIALS_DIR} DESTINATION ${LAMMPS_INSTALL_DATADIR})
 if(BUILD_TOOLS)
   install(DIRECTORY ${LAMMPS_TOOLS_DIR}/msi2lmp/frc_files DESTINATION ${LAMMPS_INSTALL_DATADIR})
@@ -865,6 +865,22 @@ if(ClangFormat_FOUND)
     COMMAND ${ClangFormat_EXECUTABLE} --verbose -i -style=file *.cpp *.h */*.cpp */*.h
     WORKING_DIRECTORY ${LAMMPS_SOURCE_DIR})
 endif()
+
+# Packaging
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "LAMMPS")
+set(CPACK_PACKAGE_VENDOR "The LAMMPS Developers")
+set(CPACK_PACKAGE_NAME "LAMMPS")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+
+if(CPACK_GENERATOR STREQUAL "DragNDrop")
+  set(CPACK_DMG_VOLUME_NAME "LAMMPS-macOS-universal")
+  set(CPACK_DMG_BACKGROUND_IMAGE "${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_BACKGROUND")
+  set(CPACK_DS_STORE_SETUP_SCRIPT "${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Setup.scpt")
+  set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+
+  install(FILES ${LAMMPS_DIR/cmake/packaging/README.macos DESTINATION . RENAME README.txt)
+endif()
+include(CPack)
 
 # extract Kokkos compilation settings
 get_cmake_property(_allvars VARIABLES)

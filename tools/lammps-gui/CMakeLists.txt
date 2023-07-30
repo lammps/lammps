@@ -83,12 +83,11 @@ set(PROJECT_SOURCES
   ${PLUGIN_LOADER_SRC}
 )
 qt_add_resources(PROJECT_SOURCES lammpsgui.qrc)
-if(APPLE)
-  set(MACOSX_BUNDLE_BUNDLE_NAME lammps-gui)
-  set(MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION})
+
+if(CPACK_GENERATOR STREQUAL "DragNDrop")
   set(MACOSX_BUNDLE_COPYRIGHT GPLv2)
   set(MACOSX_BUNDLE_GUI_IDENTIFIER org.lammps.gui)
-  set(MACOSX_BUNDLE_INFO_STRING "A Simple GUI for LAMMPS")
+  set(MACOSX_BUNDLE_INFO_STRING "LAMMPS")
   set(MACOSX_BUNDLE_LONG_VERSION_STRING 0.9)
   set(MACOSX_BUNDLE_SHORT_VERSION_STRING 0.9.0)
   get_filename_component(MACOSX_BUNDLE_ICON_FILE ${MACOSX_ICON_FILE} NAME)
@@ -128,6 +127,10 @@ else()
 endif()
 target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
 target_link_libraries(lammps-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+if(BUILD_OMP)
+  find_package(OpenMP COMPONENTS CXX REQUIRED)
+  target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 set_target_properties(lammps-gui PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -136,6 +139,12 @@ set_target_properties(lammps-gui PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
+if(CPACK_GENERATOR STREQUAL "DragNDrop")
+  install(TARGETS lammps-gui BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX})
+else()
+  install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(lammps-gui)

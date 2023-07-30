@@ -4,9 +4,11 @@ APP_NAME=lammps-gui
 
 echo "Delete old files, if they exist"
 rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS-macOS-multiarch.dmg
+echo "Fixup dynamic loader paths"
+install_name_tool -change /usr/local/lib/libomp.dylib @executable_path/../Frameworks/libomp.dylib ${APP_NAME}.app/Contents/bin/lmp
 
 echo "Create initial dmg file with macdeployqt"
-macdeployqt  lammps-gui.app -always-overwrite -dmg
+macdeployqt  lammps-gui.app -dmg
 echo "Create writable dmg file"
 hdiutil convert ${APP_NAME}.dmg -format UDRW -o ${APP_NAME}-rw.dmg
 

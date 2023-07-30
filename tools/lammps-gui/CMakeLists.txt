@@ -17,10 +17,6 @@ option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
 if(LAMMPS_DIR)
   set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR})
   set(LAMMPS_LIBRARY lammps)
-  set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
-  if(APPLE)
-    set(MACOSX_ICON_FILE ${LAMMPS_DIR}/cmake/packaging/lammps.icns)
-  endif()
 else()
   # NOTE: the next line should be commented out when used outside of the LAMMPS package
   get_filename_component(LAMMPS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../../src ABSOLUTE)
@@ -28,9 +24,7 @@ else()
   if(NOT LAMMPS_HEADER_DIR)
     message(FATAL_ERROR "Must set LAMMPS_HEADER_DIR")
   endif()
-  if(APPLE)
-    set(MACOSX_ICON_FILE ${LAMMPS_SOURCE_DIR}/../cmake/packaging/lammps.icns)
-  endif()
+  get_filename_component(LAMMPS_DIR ${LAMMPS_SOURCE_DIR}/.. ABSOLUTE)
   # find LAMMPS library
   find_library(LAMMPS_LIBRARY
     NAMES lammps lammps_serial
@@ -56,7 +50,8 @@ else()
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
   endif()
 endif()
-
+  
+set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 find_package(QT NAMES Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
@@ -84,13 +79,10 @@ set(PROJECT_SOURCES
 )
 qt_add_resources(PROJECT_SOURCES lammpsgui.qrc)
 
-if(CPACK_GENERATOR STREQUAL "DragNDrop")
-  set(MACOSX_BUNDLE_COPYRIGHT GPLv2)
-  set(MACOSX_BUNDLE_GUI_IDENTIFIER org.lammps.gui)
-  set(MACOSX_BUNDLE_INFO_STRING "LAMMPS")
-  set(MACOSX_BUNDLE_LONG_VERSION_STRING 0.9)
-  set(MACOSX_BUNDLE_SHORT_VERSION_STRING 0.9.0)
-  get_filename_component(MACOSX_BUNDLE_ICON_FILE ${MACOSX_ICON_FILE} NAME)
+if(APPLE)
+  set(MACOSX_ICON_FILE ${LAMMPS_DIR}/cmake/packaging/lammps.icns)
+  set(MACOSX_README_FILE ${LAMMPS_DIR}/cmake/packaging/README.macos)
+  set(MACOSX_BACKGROUND_FILE ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png)
 endif()
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -132,18 +124,47 @@ if(BUILD_OMP)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-set_target_properties(lammps-gui PROPERTIES
-    MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
+if(APPLE)
+  set_target_properties(lammps-gui PROPERTIES
+    MACOSX_BUNDLE_INFO_PLIST ${LAMMPS_DIR}/cmake/packaging/MacOSXBundleInfo.plist.in
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE_ICON_FILE lammps.icns
+    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2023, The LAMMPS Developers"
     MACOSX_BUNDLE TRUE
-    WIN32_EXECUTABLE TRUE
-)
-
-if(CPACK_GENERATOR STREQUAL "DragNDrop")
-  install(TARGETS lammps-gui BUNDLE DESTINATION ${CMAKE_INSTALL_PREFIX})
-else()
-  install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+  )
+  # additional steps to populate the bundle tree and create the .dmg image file
+  set(APP_CONTENTS ${CMAKE_BINARY_DIR}/lammps-gui.app/Contents)
+  set_custom_target(complete-bundle ALL
+    ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/bin
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/lmp ${APP_CONTENTS}/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/msi2lmp ${APP_CONTENTS}/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/binary2txt ${APP_CONTENTS}/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/stl_bin2txt ${APP_CONTENTS}/bin/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/phana ${APP_CONTENTS}/bin/
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/README.macos ${APP_CONTENTS}/Resources/README.txt
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png ${APP_CONTENTS}/Resources
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps/man/man1
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${LAMMPS_DIR}/potentials ${APP_CONTENTS}/share/lammps/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${LAMMPS_DIR}/bench ${APP_CONTENTS}/share/lammps/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${LAMMPS_DIR}/tools/msi2lmp/frc_files ${APP_CONTENTS}/share/lammps/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/
+    COMMAND ${CMAKE_COMMAND} -E create_symlink lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/lmp.1
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/msi2lmp.1 ${APP_CONTENTS}/share/lammps/man/man1
+    DEPENDS lammps-gui lammps
+    COMMENT "Copying additional files into macOS app bundle tree"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_custom_target(build-dmg ALL
+    COMMAND ${LAMMPS_DIR}/cmake/packaging/build-macos-dmg-with-gui.sh
+    DEPENDS complete-bundle
+    COMMENT "Create Drag-n-Drop installer disk image from app bundle"
+    BYPRODUCT LAMMPS-macOS-multiarch.dmg
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
 endif()
 
 if(QT_VERSION_MAJOR EQUAL 6)

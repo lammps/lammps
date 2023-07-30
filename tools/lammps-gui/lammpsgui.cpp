@@ -82,7 +82,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
 #if (__APPLE__)
     QFont text_font("Menlo");
-    setenv("QT_FONT_DPI", "96", 0);
 #else
     QFont text_font(":/Monospace.ttf");
 #endif

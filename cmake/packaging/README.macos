@@ -19,7 +19,7 @@ these steps:
    open ~/.zprofile
 
    This will open a text editor for modifying the .zprofile file in your home
-   directory. 
+   directory.
 
 3. Add the following lines to the end of the file, save it, and close the editor
 
@@ -50,7 +50,16 @@ these steps:
 
    lammps-gui ${LAMMPS_BENCH_DIR}/in.rhodo
 
-7. Allow the excutables (lmp, lammps-gui, msi2lmp, binary2txt, phana, stl_bin2txt)
+   Depending on the size and resolution of your screen, the fonts may
+   be too small to read. This can be adjusted by setting the environment
+   variable QT_FONT_DPI. The default value would be 72, so to increase
+   the fonts by a third one can add to the .zprofile file the line
+
+   export QT_FONT_DPI=96
+
+   and reload as shown above.
+
+7. Give permission to execute the commands (lmp, lammps-gui, msi2lmp, binary2txt, phana, stl_bin2txt)
 
    MacOS will likely block the initial run of the executables, since they
    were downloaded from the internet and are missing a known signature from an

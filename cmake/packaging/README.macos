@@ -23,7 +23,7 @@ these steps:
 
 3. Add the following lines to the end of the file, save it, and close the editor
 
-   LAMMPS_INSTALL_DIR=/Applications/lammps-gui.app/Contents
+   LAMMPS_INSTALL_DIR=/Applications/LAMMPS.app/Contents
    LAMMPS_POTENTIALS=${LAMMPS_INSTALL_DIR}/share/lammps/potentials
    LAMMPS_BENCH_DIR=${LAMMPS_INSTALL_DIR}/share/lammps/bench
    MSI2LMP_LIBRARY=${LAMMPS_INSTALL_DIR}/share/lammps/frc_files
@@ -37,10 +37,24 @@ these steps:
    Note, you don't have to type this in new terminals, since they will apply
    the changes from .zprofile automatically.
 
-5. Try running LAMMPS
+   Note: the above assumes you use the default shell (zsh) that comes with
+   MacOS. If you customized MacOS to use a different shell, you'll need to modify
+   that shell's init file (.cshrc, .bashrc, etc.) instead with appropiate commands
+   to modify the same environment variables.
 
-   lmp -in $LAMMPS_BENCH_DIR/in.lj
+5. Try running LAMMPS (which might fail, see step 7)
 
-6. Try running LAMMPS GUI
+   lmp -in ${LAMMPS_BENCH_DIR}/in.lj
 
-   lammps-gui $LAMMPS_BENCH_DIR/in.rhodo
+6. Try running the LAMMPS GUI
+
+   lammps-gui ${LAMMPS_BENCH_DIR}/in.rhodo
+
+7. Allow the excutables (lmp, lammps-gui, msi2lmp, binary2txt, phana, stl_bin2txt)
+
+   MacOS will likely block the initial run of the executables, since they
+   were downloaded from the internet and are missing a known signature from an
+   identified developer. Go to "Settings" and search for "Security settings". It
+   should display a message that an executable like "lmp" was blocked. Press
+   "Open anyway", which might prompt you for your admin credentials. Afterwards
+   "lmp" and the other executables should work as expected.

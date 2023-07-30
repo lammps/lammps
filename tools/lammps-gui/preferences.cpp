@@ -13,13 +13,7 @@
 
 #include "preferences.h"
 
-#include <QTabWidget>
 #include <QDialogButtonBox>
+#include <QTabWidget>
 
-Preferences::Preferences(QWidget *parent) : QDialog(parent)
-{
-
-}
-
-
-
+Preferences::Preferences(QWidget *parent) : QDialog(parent) {}

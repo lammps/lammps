@@ -34,6 +34,7 @@ class QTimer;
 class Highlighter;
 class StdCapture;
 class Preferences;
+class ImageViewer;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
@@ -64,8 +65,10 @@ private slots:
     void clear();
     void run_buffer();
     void stop_run();
+    void view_image();
     void about();
     void help();
+    void manual();
     void logupdate();
     void modified();
     void preferences();
@@ -76,12 +79,14 @@ private:
     StdCapture *capturer;
     QLabel *status;
     QPlainTextEdit *logwindow;
+    ImageViewer *imagewindow;
     QTimer *logupdater;
     QProgressBar *progress;
     Preferences *prefdialog;
 
     QString current_file;
     QString current_dir;
+    QString temp_dir;
     void *lammps_handle;
     void *plugin_handle;
     const char *plugin_path;

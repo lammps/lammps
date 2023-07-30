@@ -14,6 +14,7 @@
 #include "lammpsgui.h"
 
 #include "highlighter.h"
+#include "imageviewer.h"
 #include "lammpsrunner.h"
 #include "preferences.h"
 #include "stdcapture.h"
@@ -30,6 +31,9 @@
 #include <QStatusBar>
 #include <QTextStream>
 #include <QTimer>
+#include <QDesktopServices>
+#include <QUrl>
+
 #include <cstring>
 #include <string>
 
@@ -44,6 +48,12 @@
 #include <omp.h>
 #endif
 
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 // duplicate string
 static char *mystrdup(const std::string &text)
 {
@@ -54,9 +64,9 @@ static char *mystrdup(const std::string &text)
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
-    status(nullptr), logwindow(nullptr), logupdater(nullptr), progress(nullptr),
-    prefdialog(nullptr), lammps_handle(nullptr), plugin_handle(nullptr), plugin_path(nullptr),
-    is_running(false)
+    status(nullptr), logwindow(nullptr), imagewindow(nullptr), logupdater(nullptr),
+    progress(nullptr), prefdialog(nullptr), lammps_handle(nullptr), plugin_handle(nullptr),
+    plugin_path(nullptr), is_running(false)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
@@ -77,6 +87,17 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     setenv("OMP_NUM_THREADS", nthreads.c_str(), 0);
 #endif
 #endif
+
+    const char *tmpdir = getenv("TMPDIR");
+    if (!tmpdir) tmpdir = getenv("TMP");
+    if (!tmpdir) tmpdir = getenv("TEMPDIR");
+    if (!tmpdir) tmpdir = getenv("TEMP");
+#if _WIN32
+    if (!tmpdir) tmpdir = "C:\\Windows\\Temp";
+#else
+    if (!tmpdir) tmpdir = "/tmp";
+#endif
+    temp_dir = tmpdir;
 
     lammps_args.clear();
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));
@@ -107,8 +128,10 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
+    connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::view_image);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
+    connect(ui->actionLAMMPS_Manual, &QAction::triggered, this, &LammpsGui::manual);
     connect(ui->actionEdit_Preferences, &QAction::triggered, this, &LammpsGui::preferences);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this,
             &LammpsGui::modified);
@@ -158,6 +181,7 @@ LammpsGui::~LammpsGui()
     delete capturer;
     delete status;
     delete logwindow;
+    delete imagewindow;
 }
 
 void LammpsGui::new_document()
@@ -469,6 +493,55 @@ void LammpsGui::run_buffer()
     logupdater->start(1000);
 }
 
+void LammpsGui::view_image()
+{
+    // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
+    if (!is_running) {
+        start_lammps();
+        int box = 0;
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        box = ((liblammpsplugin_t *)plugin_handle)->extract_setting(lammps_handle, "box_exists");
+#else
+        box = lammps_extract_setting(lammps_handle, "box_exist");
+#endif
+        if (!box) {
+            QMessageBox::warning(this, "ImageViewer Error",
+                                 "Cannot create snapshot image without a system box");
+            return;
+        }
+
+        std::string dumpcmd = "write_dump all image '";
+        QString dumpfile    = temp_dir;
+#if defined(_WIN32)
+        dumpfile += '\\';
+#else
+        dumpfile += '/';
+#endif
+        dumpfile += current_file + ".ppm";
+
+        dumpcmd += dumpfile.toStdString() + "' type type size 800 600";
+
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        ((liblammpsplugin_t *)plugin_handle)->command(lammps_handle, dumpcmd.c_str());
+#else
+        lammps_command(lammps_handle, dumpcmd.c_str());
+#endif
+        imagewindow = new ImageViewer(dumpfile);
+#if 0
+#if defined(_WIN32)
+        _unlink(dumpfile.toLocal8Bit());
+#else
+        unlink(dumpfile.toLocal8Bit());
+#endif
+#endif
+    } else {
+        QMessageBox::warning(this, "ImageViewer Error",
+                             "Cannot create snapshot image while LAMMPS is running");
+        return;
+    }
+    imagewindow->show();
+}
+
 void LammpsGui::clear()
 {
     if (lammps_handle) {
@@ -500,9 +573,9 @@ void LammpsGui::about()
         start_lammps();
         capturer->BeginCapture();
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-        ((liblammpsplugin_t *)plugin_handle)->commands_string(lammps_handle, "info config");
+        ((liblammpsplugin_t *)plugin_handle)->commands(lammps_handle, "info config");
 #else
-        lammps_commands_string(lammps_handle, "info config");
+        lammps_command(lammps_handle, "info config");
 #endif
         capturer->EndCapture();
         info       = capturer->GetCapture();
@@ -515,7 +588,7 @@ void LammpsGui::about()
     msg.setWindowTitle("About LAMMPS-GUI");
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
-    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64,64));
+    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Ok);
     QFont font;
     font.setFixedPitch(true);
@@ -530,6 +603,11 @@ void LammpsGui::help()
 {
     QString helpmsg = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
     QMessageBox::information(this, "LAMMPS-GUI Help", helpmsg);
+}
+
+void LammpsGui::manual()
+{
+    QDesktopServices::openUrl(QUrl("https://docs.lammps.org/"));
 }
 
 void LammpsGui::preferences()

@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "codeeditor.h"
-#include "linenumberarea.h"
 #include "lammpsgui.h"
+#include "linenumberarea.h"
 
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -67,7 +67,7 @@ void CodeEditor::dragEnterEvent(QDragEnterEvent *event)
 
 bool CodeEditor::canInsertFromMimeData(const QMimeData *source) const
 {
-    return  source->hasUrls(); // || source->hasText();
+    return source->hasUrls(); // || source->hasText();
 }
 
 void CodeEditor::dropEvent(QDropEvent *event)
@@ -75,7 +75,7 @@ void CodeEditor::dropEvent(QDropEvent *event)
     if (event->mimeData()->hasUrls()) {
         event->accept();
         auto file = event->mimeData()->urls()[0].url().remove("file://");
-        auto gui = dynamic_cast<LammpsGui *>(parent());
+        auto gui  = dynamic_cast<LammpsGui *>(parent());
         if (gui) {
             moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
             gui->open_file(file);
@@ -84,7 +84,8 @@ void CodeEditor::dropEvent(QDropEvent *event)
         event->accept();
         fprintf(stderr, "Drag - Drop for text block not yet implemented: text=%s\n",
                 event->mimeData()->text().toStdString().c_str());
-    } else event->ignore();
+    } else
+        event->ignore();
 }
 
 void CodeEditor::resizeEvent(QResizeEvent *e)

@@ -67,6 +67,8 @@
     </property>
     <addaction name="actionRun_Buffer"/>
     <addaction name="actionStop_LAMMPS"/>
+    <addaction name="separator"/>
+    <addaction name="actionImage"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -74,6 +76,7 @@
     </property>
     <addaction name="actionAbout_LAMMPS_GUI"/>
     <addaction name="action_Help"/>
+    <addaction name="actionLAMMPS_Manual"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -276,6 +279,20 @@
     <string>Ctrl+/</string>
    </property>
   </action>
+  <action name="actionImage">
+   <property name="icon">
+    <iconset theme="emblem-photos"/>
+   </property>
+   <property name="text">
+    <string>&amp;View Snapshot</string>
+   </property>
+   <property name="toolTip">
+    <string>View Snapshot of current LAMMPS state</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
   <action name="actionAbout_LAMMPS_GUI">
    <property name="icon">
     <iconset theme="help-about">
@@ -306,7 +323,15 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>Edit Preferences...</string>
+    <string>Edit &amp;Preferences...</string>
+   </property>
+  </action>
+  <action name="actionLAMMPS_Manual">
+   <property name="icon">
+    <iconset theme="help-browser"/>
+   </property>
+   <property name="text">
+    <string>LAMMPS &amp;Manual</string>
    </property>
   </action>
  </widget>

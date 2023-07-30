@@ -19,8 +19,7 @@
 class QTabWidget;
 class QDialogButtonBox;
 
-class Preferences : public QDialog
-{
+class Preferences : public QDialog {
     Q_OBJECT
 
 public:

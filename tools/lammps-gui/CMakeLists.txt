@@ -66,6 +66,8 @@ set(PROJECT_SOURCES
   codeeditor.h
   highlighter.cpp
   highlighter.h
+  imageviewer.cpp
+  imageviewer.h
   linenumberarea.h
   lammpsgui.cpp
   lammpsgui.h

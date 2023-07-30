@@ -39,6 +39,11 @@
 #include "library.h"
 #endif
 
+#if defined(_OPENMP)
+#include <cstdlib>
+#include <omp.h>
+#endif
+
 // duplicate string
 static char *mystrdup(const std::string &text)
 {
@@ -61,10 +66,18 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     current_file.clear();
     recent_files.clear();
 
+#if defined(_OPENMP)
+    // use maximum number of available threads unless OMP_NUM_THREADS was set
+    auto nthreads = std::to_string(omp_get_max_threads());
+    setenv("OMP_NUM_THREADS", nthreads.c_str(), 0);
+#endif
+
     lammps_args.clear();
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));
     lammps_args.push_back(mystrdup("-log"));
     lammps_args.push_back(mystrdup("none"));
+    lammps_args.push_back(mystrdup("-suffix"));
+    lammps_args.push_back(mystrdup("omp"));
 
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
 #if (__APPLE__)

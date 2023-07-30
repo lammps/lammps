@@ -4,8 +4,6 @@ APP_NAME=lammps-gui
 
 echo "Delete old files, if they exist"
 rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS-macOS-multiarch.dmg
-echo "Fixup dynamic loader paths"
-install_name_tool -change /usr/local/lib/libomp.dylib @executable_path/../Frameworks/libomp.dylib ${APP_NAME}.app/Contents/bin/lmp
 
 echo "Create initial dmg file with macdeployqt"
 macdeployqt  lammps-gui.app -dmg
@@ -99,6 +97,12 @@ sync
 echo "Unmount modified disk image and convert to compressed read-only image"
 hdiutil detach "${DEVICE}"
 hdiutil convert "${APP_NAME}-rw.dmg" -format UDZO -o "LAMMPS-macOS-multiarch.dmg"
+
+echo "Attach icon to .dmg file"
+echo "read 'icns' (-16455) \"lammps-gui.app/Contents/Resources/lammps.icns\";" > icon.rsrc
+Rez -a icon.rsrc -o LAMMPS-macOS-multiarch.dmg
+SetFile -a C LAMMPS-macOS-multiarch.dmg
+rm icon.rsrc
 
 echo "Delete temporary disk images"
 rm -f "${APP_NAME}-rw.dmg"

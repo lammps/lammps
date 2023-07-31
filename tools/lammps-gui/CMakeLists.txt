@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(lammps-gui VERSION 0.9 LANGUAGES CXX)
+project(lammps-gui VERSION 0.9.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -52,8 +52,7 @@ else()
 endif()
   
 set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
-find_package(QT NAMES Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
 if(LAMMPS_GUI_USE_PLUGIN)
   enable_language(C)
@@ -87,30 +86,10 @@ if(APPLE)
   set(MACOSX_BACKGROUND_FILE ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png)
 endif()
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(lammps-gui
-        MANUAL_FINALIZATION
-        ${MACOS_ICON_FILE}
-        ${PROJECT_SOURCES}
-    )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET lammps-gui APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
-else()
-    if(ANDROID)
-        add_library(lammps-gui SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(lammps-gui
-            ${MACOSX_ICON_FILE}
-            ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
+add_executable(lammps-gui
+  ${MACOSX_ICON_FILE}
+  ${PROJECT_SOURCES}
+)
 
 if(LAMMPS_GUI_USE_PLUGIN)
   target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_USE_PLUGIN)
@@ -168,8 +147,4 @@ if(APPLE)
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
-endif()
-
-if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(lammps-gui)
 endif()

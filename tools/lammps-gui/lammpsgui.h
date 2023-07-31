@@ -81,6 +81,7 @@ private:
     QPlainTextEdit *logwindow;
     ImageViewer *imagewindow;
     QTimer *logupdater;
+    QLabel *dirstatus;
     QProgressBar *progress;
     Preferences *prefdialog;
 

@@ -20,6 +20,7 @@
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
@@ -31,7 +32,6 @@
 #include <QStatusBar>
 #include <QTextStream>
 #include <QTimer>
-#include <QDesktopServices>
 #include <QUrl>
 
 #include <cstring>
@@ -65,8 +65,8 @@ static char *mystrdup(const std::string &text)
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), logupdater(nullptr),
-    progress(nullptr), prefdialog(nullptr), lammps_handle(nullptr), plugin_handle(nullptr),
-    plugin_path(nullptr), is_running(false)
+    dirstatus(nullptr), progress(nullptr), prefdialog(nullptr), lammps_handle(nullptr),
+    plugin_handle(nullptr), plugin_path(nullptr), is_running(false)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
@@ -74,6 +74,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     prefdialog  = new Preferences(this);
     capturer    = new StdCapture;
     current_file.clear();
+    current_dir = QDir(".").absolutePath();
     recent_files.clear();
 
 #if defined(_OPENMP)
@@ -142,6 +143,19 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->actionPaste->setEnabled(false);
 #endif
 
+    status = new QLabel("Ready.");
+    status->setFixedWidth(250);
+    ui->statusbar->addWidget(status);
+    dirstatus = new QLabel(QString(" Directory: ") + current_dir);
+    dirstatus->setMinimumWidth(500);
+    ui->statusbar->addWidget(dirstatus);
+    progress = new QProgressBar();
+    progress->setRange(0, 1000);
+    progress->setMinimumWidth(500);
+    progress->hide();
+    dirstatus->show();
+    ui->statusbar->addWidget(progress);
+
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     liblammpsplugin_t *lammps = nullptr;
     for (const auto libfile : {"liblammps.so", "./liblammps.so", "liblammps.dylib",
@@ -161,17 +175,12 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     if (do_exit) exit(1);
 #endif
 
-    if (filename)
+    if (filename) {
         open_file(filename);
-    else
+    } else {
         setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
-    status = new QLabel("Ready.");
-    status->setFixedWidth(300);
-    ui->statusbar->addWidget(status);
-    progress = new QProgressBar();
-    progress->setRange(0, 1000);
-    progress->setFixedWidth(500);
-    ui->statusbar->addWidget(progress);
+    }
+
 }
 
 LammpsGui::~LammpsGui()
@@ -182,6 +191,7 @@ LammpsGui::~LammpsGui()
     delete status;
     delete logwindow;
     delete imagewindow;
+    delete dirstatus;
 }
 
 void LammpsGui::new_document()
@@ -249,6 +259,7 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     ui->textEdit->document()->setModified(false);
     file.close();
+    dirstatus->setText(QString(" Directory: ") + current_dir);
 }
 
 void LammpsGui::write_file(const QString &fileName)
@@ -256,6 +267,8 @@ void LammpsGui::write_file(const QString &fileName)
     QFile file(fileName);
     QFileInfo path(file);
     current_file = path.fileName();
+    current_dir  = path.absolutePath();
+
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
@@ -265,6 +278,7 @@ void LammpsGui::write_file(const QString &fileName)
     QString text = ui->textEdit->toPlainText();
     out << text;
     file.close();
+    dirstatus->setText(QString(" Directory: ") + current_dir);
     ui->textEdit->document()->setModified(false);
 }
 
@@ -446,10 +460,15 @@ void LammpsGui::run_done()
                               QString("Error running LAMMPS:\n\n") + errorbuf);
     }
     is_running = false;
+    progress->hide();
+    dirstatus->show();
 }
 
 void LammpsGui::run_buffer()
 {
+    progress->setValue(0);
+    dirstatus->hide();
+    progress->show();
     status->setText("Running LAMMPS. Please wait...");
     status->repaint();
     start_lammps();

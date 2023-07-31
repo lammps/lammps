@@ -2,10 +2,9 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
-- add "Help" entry to menu bar. Should open a popup window with a one page description of how to use it. Use HTML or Markdown text.
 - add CTRL-q hotkey to log windows so you can exit the entire application (add do you really want to? dialog to this)
 - add "syntax check" with enabled "-skiprun" flag
-- add settings dialog where certain properties can be set through customizing the LAMMPS command line
+- add multi-tab settings dialog where certain properties can be set through customizing the LAMMPS command line
    + enable/disable OpenMP (via suffix), OPT package, select number of OpenMP threads
    + toggle whether captured screen output should include input file echo
    + select Font

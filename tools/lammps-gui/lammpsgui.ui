@@ -311,10 +311,10 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>&amp;Help</string>
+    <string>Quick &amp;Help</string>
    </property>
    <property name="toolTip">
-    <string>Short Help</string>
+    <string>Quick Help</string>
    </property>
   </action>
   <action name="actionEdit_Preferences">

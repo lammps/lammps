@@ -161,7 +161,7 @@ void ImageViewer::updateActions()
 void ImageViewer::scaleImage(double factor)
 {
     scaleFactor *= factor;
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
 #else
     imageLabel->resize(scaleFactor * imageLabel->pixmap(Qt::ReturnByValue).size());

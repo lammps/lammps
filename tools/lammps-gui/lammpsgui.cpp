@@ -79,14 +79,16 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
 #if defined(_OPENMP)
     // use maximum number of available threads unless OMP_NUM_THREADS was set
-    auto nthreads = std::to_string(omp_get_max_threads());
+    nthreads = omp_get_max_threads();
 #if _WIN32
     if (!getenv("OMP_NUM_THREADS")) {
-        _putenv_s("OMP_NUM_THREADS", nthreads.c_str());
+        _putenv_s("OMP_NUM_THREADS", std::to_string(nthreads).c_str());
     }
 #else
-    setenv("OMP_NUM_THREADS", nthreads.c_str(), 0);
+    setenv("OMP_NUM_THREADS", std::to_string(nthreads).c_str(), 0);
 #endif
+#else
+    nthreads = 1;
 #endif
 
     const char *tmpdir = getenv("TMPDIR");
@@ -144,7 +146,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #endif
 
     status = new QLabel("Ready.");
-    status->setFixedWidth(250);
+    status->setFixedWidth(300);
     ui->statusbar->addWidget(status);
     dirstatus = new QLabel(QString(" Directory: ") + current_dir);
     dirstatus->setMinimumWidth(500);
@@ -468,7 +470,7 @@ void LammpsGui::run_buffer()
     progress->setValue(0);
     dirstatus->hide();
     progress->show();
-    status->setText("Running LAMMPS. Please wait...");
+    status->setText(QString("Running LAMMPS with %1 thread(s)...").arg(nthreads));
     status->repaint();
     start_lammps();
     if (!lammps_handle) return;

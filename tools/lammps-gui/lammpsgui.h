@@ -92,6 +92,7 @@ private:
     void *plugin_handle;
     const char *plugin_path;
     bool is_running;
+    int nthreads;
     std::vector<char *> recent_files;
     std::vector<char *> lammps_args;
 };

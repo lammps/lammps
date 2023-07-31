@@ -24,11 +24,13 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPalette>
+#include <QPoint>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStatusBar>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 
 ImageViewer::ImageViewer(const QString &fileName, QWidget *parent) :
     QDialog(parent), imageLabel(new QLabel), scrollArea(new QScrollArea), menuBar(new QMenuBar)
@@ -40,6 +42,8 @@ ImageViewer::ImageViewer(const QString &fileName, QWidget *parent) :
 
     scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(imageLabel);
+    scrollArea->setMouseTracking(true);
+    scrollArea->installEventFilter(this);
     scrollArea->setVisible(false);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -86,12 +90,12 @@ void ImageViewer::copy() {}
 
 void ImageViewer::zoomIn()
 {
-    scaleImage(1.25);
+    scaleImage(1.1);
 }
 
 void ImageViewer::zoomOut()
 {
-    scaleImage(0.8);
+    scaleImage(0.9);
 }
 
 void ImageViewer::normalSize()
@@ -129,11 +133,11 @@ void ImageViewer::createActions()
 
     QMenu *viewMenu = menuBar->addMenu(tr("&View"));
 
-    zoomInAct = viewMenu->addAction(tr("Zoom &In (25%)"), this, &ImageViewer::zoomIn);
+    zoomInAct = viewMenu->addAction(tr("Zoom &In (10%)"), this, &ImageViewer::zoomIn);
     zoomInAct->setShortcut(QKeySequence::ZoomIn);
     zoomInAct->setEnabled(false);
 
-    zoomOutAct = viewMenu->addAction(tr("Zoom &Out (25%)"), this, &ImageViewer::zoomOut);
+    zoomOutAct = viewMenu->addAction(tr("Zoom &Out (10%)"), this, &ImageViewer::zoomOut);
     zoomOutAct->setShortcut(QKeySequence::ZoomOut);
     zoomOutAct->setEnabled(false);
 
@@ -177,6 +181,27 @@ void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 {
     scrollBar->setValue(
         int(factor * scrollBar->value() + ((factor - 1) * scrollBar->pageStep() / 2)));
+}
+
+bool ImageViewer::eventFilter(QObject *, QEvent *event)
+{
+    if (event->type() == QEvent::Wheel) {
+        wheelEvent((QWheelEvent *)event);
+        return true;
+    }
+    return false;
+}
+
+void ImageViewer::wheelEvent(QWheelEvent *event)
+{
+    QPoint num = event->angleDelta();
+    if (!num.isNull()) {
+        if (num.y() > 0)
+            zoomIn();
+        else
+            zoomOut();
+    }
+    event->accept();
 }
 
 // Local Variables:

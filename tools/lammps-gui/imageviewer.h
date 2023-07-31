@@ -21,9 +21,11 @@ class QAction;
 class QMenuBar;
 class QDialogButtonBox;
 class QLabel;
+class QObject;
 class QScrollArea;
 class QScrollBar;
 class QStatusBar;
+class QWheelEvent;
 
 class ImageViewer : public QDialog {
     Q_OBJECT
@@ -45,6 +47,8 @@ private:
     void saveFile(const QString &fileName);
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
+    bool eventFilter(QObject *object, QEvent *event);
+    void wheelEvent(QWheelEvent *event);
 
 private:
     QImage image;
@@ -62,3 +66,7 @@ private:
     QAction *fitToWindowAct;
 };
 #endif
+
+// Local Variables:
+// c-basic-offset: 4
+// End:

@@ -78,7 +78,7 @@ set(PROJECT_SOURCES
   stdcapture.cpp
   ${PLUGIN_LOADER_SRC}
 )
-qt_add_resources(PROJECT_SOURCES lammpsgui.qrc)
+qt5_add_resources(PROJECT_SOURCES lammpsgui.qrc)
 
 if(APPLE)
   set(MACOSX_ICON_FILE ${LAMMPS_DIR}/cmake/packaging/lammps.icns)
@@ -99,7 +99,7 @@ else()
   target_link_libraries(lammps-gui PRIVATE ${LAMMPS_LIBRARY})
 endif()
 target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
-target_link_libraries(lammps-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(lammps-gui PRIVATE Qt5::Widgets)
 if(BUILD_OMP)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)

@@ -611,7 +611,7 @@ void LammpsGui::about()
     QFont font;
     font.setFixedPitch(true);
     font.setStyleHint(QFont::TypeWriter);
-    font.setFamilies(QStringList({"Arial", "Helvetica"}));
+    font.setFamily("Arial");
     font.setPointSize(8);
     msg.setFont(font);
     msg.exec();

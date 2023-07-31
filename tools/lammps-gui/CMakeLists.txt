@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(lammps-gui VERSION 0.9.1 LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -11,7 +9,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# checks
 option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
+if(NOT LAMMPS_EXCEPTIONS)
+  message(FATAL_ERROR "Must enable LAMMPS_EXCEPTIONS for building the LAMMPS GUI")
+endif()
+if(BUILD_MPI)
+  message(FATAL_ERROR "Must disable BUILD_MPI or building the LAMMPS GUI")
+endif()
 
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
 if(LAMMPS_DIR)
@@ -50,14 +55,14 @@ else()
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
   endif()
 endif()
-  
-set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
+set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 if(LAMMPS_GUI_USE_PLUGIN)
   enable_language(C)
   set(PLUGIN_LOADER_SRC ${LAMMPS_PLUGINLIB_DIR}/liblammpsplugin.c)
 endif()
+
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
   main.cpp
@@ -98,6 +103,7 @@ else()
   target_include_directories(lammps-gui PRIVATE ${LAMMPS_HEADER_DIR})
   target_link_libraries(lammps-gui PRIVATE ${LAMMPS_LIBRARY})
 endif()
+target_include_directories(lammps-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
 target_link_libraries(lammps-gui PRIVATE Qt5::Widgets)
 if(BUILD_OMP)
@@ -147,4 +153,6 @@ if(APPLE)
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
+else()
+  install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

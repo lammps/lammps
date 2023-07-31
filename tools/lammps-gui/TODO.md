@@ -17,3 +17,4 @@ LAMMPS-GUI TODO list:
 - have command text input file in/above status bar where individual commands can be tested. have insert button to copy line into file at the current point
 - support text completion as done with lammps-shell
 - have context menu for known commands to offer retrieving help by dispatching URL to webbrowser (process index from sphinx for that purpose)
+- add a "python" mode, where instead of launching LAMMPS, python is loaded that the LAMMPS python module is made available.

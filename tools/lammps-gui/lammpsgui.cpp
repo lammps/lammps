@@ -621,14 +621,14 @@ void LammpsGui::help()
 {
     QMessageBox::information(
         this, "LAMMPS-GUI Quick Help",
-        "<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</i></div><br><br>"
-        "<b>Overview</b>"
+        "<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div><br><br>"
+        "Overview"
         "<div align=\"justify\">LAMMPS GUI is a graphical text editor that is "
         "linked to the LAMMPS library and thus can run LAMMPS directly using "
         "the contents of the text buffer as input through the LAMMPS C-library "
         "interface. This makes it convenient to use for beginners and during "
         "tutorials</div><br><br>"
-        "<b>Features</b>"
+        "Features"
         "<div align=\"justify\">The main window of the LAMMPS GUI is a text "
         "editor window with syntax highlighting. The output of a LAMMPS run is "
         "captured and displayed in a log window. The log window is updated "

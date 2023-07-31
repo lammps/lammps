@@ -619,41 +619,44 @@ void LammpsGui::about()
 
 void LammpsGui::help()
 {
-    QMessageBox::information(
-        this, "LAMMPS-GUI Quick Help",
-        "<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div><br><br>"
-        "Overview"
-        "<div align=\"justify\">LAMMPS GUI is a graphical text editor that is "
-        "linked to the LAMMPS library and thus can run LAMMPS directly using "
-        "the contents of the text buffer as input through the LAMMPS C-library "
-        "interface. This makes it convenient to use for beginners and during "
-        "tutorials</div><br><br>"
-        "Features"
-        "<div align=\"justify\">The main window of the LAMMPS GUI is a text "
-        "editor window with syntax highlighting. The output of a LAMMPS run is "
-        "captured and displayed in a log window. The log window is updated "
-        "regularly during the run, as is a progress bar in the main window. "
-        "After the simulation is finished, an image of the simulated system "
-        "can be created and shown (and saved) in image viewer window.  Ongoing "
-        "runs can be stopped at the next run iteration.</div><br>"
-        "<div align=\"justify\">When opening a file, the editor will determine "
-        "the directory where the input file resides and switch its current "
-        "working directory to that same folder. Many LAMMPS inputs contain "
-        "commands that read other files, typically from the folder as the "
-        "input file. The GUI will show its current working directory. "
-        "In addition to using the menu, the editor window also receive files "
-        "as the first command line argument or via drag-n-drop from a "
-        "graphical file manager GUI or a desktop environment.</div><br>"
-        "<div align=\"justify\">Almost all commands are accessible via hotkeys. "
-        "Which those hotkeys are, is shown next to the entries in the menus. "
-        "Log and image viewer windows can be closed with CTRL-W (or Command-W "
-        "on macOS).</div><br>"
-        "<div align=\"justify\">The 'About LAMMPS' dialog will show the "
-        "LAMMPS version and the features included into the LAMMPS library "
-        "linked to the LAMMPS GUI.<br><br>"
-        "Due to its nature as a graphical application, it is <b>not</b> "
-        "possible to use the LAMMPS GUI in parallel with MPI, but OpenMP "
-        "multi-threading is available.</div>");
+    QMessageBox msg;
+    msg.setWindowTitle("LAMMPS-GUI Quick Help");
+    msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
+    msg.setInformativeText("<b>Overview</b>"
+                           "<div align=\"justify\">LAMMPS GUI is a graphical text editor that is "
+                           "linked to the LAMMPS library and thus can run LAMMPS directly using "
+                           "the contents of the text buffer as input through the LAMMPS C-library "
+                           "interface. This makes it convenient to use for beginners and during "
+                           "tutorials</div><br><br>"
+                           "<b>Features</b>"
+                           "<div align=\"justify\">The main window of the LAMMPS GUI is a text "
+                           "editor window with syntax highlighting. The output of a LAMMPS run is "
+                           "captured and displayed in a log window. The log window is updated "
+                           "regularly during the run, as is a progress bar in the main window. "
+                           "After the simulation is finished, an image of the simulated system "
+                           "can be created and shown (and saved) in image viewer window.  Ongoing "
+                           "runs can be stopped at the next run iteration.</div><br>"
+                           "<div align=\"justify\">When opening a file, the editor will determine "
+                           "the directory where the input file resides and switch its current "
+                           "working directory to that same folder. Many LAMMPS inputs contain "
+                           "commands that read other files, typically from the folder as the "
+                           "input file. The GUI will show its current working directory. "
+                           "In addition to using the menu, the editor window also receive files "
+                           "as the first command line argument or via drag-n-drop from a "
+                           "graphical file manager GUI or a desktop environment.</div><br>"
+                           "<div align=\"justify\">Almost all commands are accessible via hotkeys. "
+                           "Which those hotkeys are, is shown next to the entries in the menus. "
+                           "Log and image viewer windows can be closed with CTRL-W (or Command-W "
+                           "on macOS).</div><br>"
+                           "<div align=\"justify\">The 'About LAMMPS' dialog will show the "
+                           "LAMMPS version and the features included into the LAMMPS library "
+                           "linked to the LAMMPS GUI.<br><br>"
+                           "Due to its nature as a graphical application, it is <b>not</b> "
+                           "possible to use the LAMMPS GUI in parallel with MPI, but OpenMP "
+                           "multi-threading is available.</div>");
+    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
+    msg.setStandardButtons(QMessageBox::Close);
+    msg.exec();
 }
 
 void LammpsGui::manual()

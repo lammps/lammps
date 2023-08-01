@@ -9,19 +9,30 @@ rm -rvf ${DESTDIR} LAMMPS-Linux-amd64.zip
 echo "Create staging area for deployment and populate"
 DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
 
-echo "Remove libc related files"
-rm -v ${DESTDIR}/lib ld*.so ${DESTDIR}/lib/ld*.so.[0-9]
+echo "Remove debug info"
+for s in ${DESTDIR}/bin/* ${DESTDIR}/lib/liblammps*
+do \
+        strip --strip-debug $s
+done
+
+echo "Remove libc, gcc, and X11 related files"
+rm -v ${DESTDIR}/lib/ld*.so ${DESTDIR}/lib/ld*.so.[0-9]
 rm -v ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}.so.?
 rm -v ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}-[0-9].[0-9]*.so
+rm -v ${DESTDIR}/lib/libX* ${DESTDIR}/lib/libxcb*
 
 # get qt dir
 QTDIR=$(ldd ${DESTDIR}/bin/lammps-gui | grep libQt5Core | sed -e 's/^.*=> *//' -e 's/libQt5Core.so.*$/qt5/')
+cat > ${DESTDIR}/bin/qt.conf <<EOF
+[Paths]
+Plugins = ../qt5plugins
+EOF
 
 echo "Add required dependencies for Qt"
 for dir in styles platforms imageformats
 do \
-    mkdir -p ${DESTDIR}/lib/${dir}
-    cp -r  ${QTDIR}/plugins/${dir} ${DESTDIR}/lib/
+    mkdir -p ${DESTDIR}/qt5plugins
+    cp -r  ${QTDIR}/plugins/${dir} ${DESTDIR}/qt5plugins/
 done
 
 pushd ..

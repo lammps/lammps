@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(efield/kk,FixFixEfieldKokkos<LMPDeviceType>);
-FixStyle(efield/kk/device,FixFixEfieldKokkos<LMPDeviceType>);
-FixStyle(efield/kk/host,FixFixEfieldKokkos<LMPHostType>);
+FixStyle(efield/kk,FixEfieldKokkos<LMPDeviceType>);
+FixStyle(efield/kk/device,FixEfieldKokkos<LMPDeviceType>);
+FixStyle(efield/kk/host,FixEfieldKokkos<LMPHostType>);
 // clang-format on
 #else
 
@@ -28,25 +28,58 @@ FixStyle(efield/kk/host,FixFixEfieldKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+struct e_double_4 {
+  double d0, d1, d2, d3;
+  KOKKOS_INLINE_FUNCTION
+  e_double_4() {
+    d0 = d1 = d2 = d3 = 0.0;
+  }
+  KOKKOS_INLINE_FUNCTION
+  e_double_4& operator+=(const e_double_4 &rhs) {
+    d0 += rhs.d0;
+    d1 += rhs.d1;
+    d2 += rhs.d2;
+    d3 += rhs.d3;
+    return *this;
+  }
+};
+typedef e_double_4 double_4;
+
+struct TagFixEfieldConstant{};
+
+struct TagFixEfieldNonConstant{};
+
 template<class DeviceType>
 class FixEfieldKokkos : public FixEfield {
-  public:
-    FixEfieldKokkos(class LAMMPS *, int, char **);
+ public:
+  typedef DeviceType device_type;
+  typedef double_4 value_type;
+  typedef ArrayTypes<DeviceType> AT;
 
-    void post_force(int) override;
+  FixEfieldKokkos(class LAMMPS *, int, char **);
+  ~FixEfieldKokkos() override;
+  void init() override;
+  void post_force(int) override;
 
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const int, double &) const;
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixEfieldConstant, const int&, double_4&) const;
 
-  private:
-    typename ArrayTypes<DeviceType>::t_x_array x;
-    typename ArrayTypes<DeviceType>::t_f_array f;
-    typename ArrayTypes<DeviceType>::t_int_1d type;
-    typename ArrayTypes<DeviceType>::t_int_1d mask;
-    typename ArrayTypes<DeviceType>::t_float_1d_randomread q;
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixEfieldNonConstant, const int&, double_4&) const;
+
+ private:
+  DAT::tdual_ffloat_2d k_efield;
+  typename AT::t_ffloat_2d_randomread d_efield;
+  typename AT::t_int_1d d_match;
+
+  typename AT::t_x_array_randomread x;
+  typename AT::t_float_1d_randomread q;
+  typename AT::t_f_array f;
+  typename AT::t_int_1d_randomread mask;
 };
 
-} // namespace LAMMPS_NS
+}
 
-#endif // LMP_FIX_EFIELD_KOKKOS_H
-#endif // FIX_CLASS
+#endif
+#endif
+

@@ -153,7 +153,7 @@ if(APPLE)
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
-elseif(WIN32)
+elseif(MSVC)
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
   install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)

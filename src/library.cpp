@@ -6496,6 +6496,8 @@ has thrown a :ref:`C++ exception <exceptions>`.
 
 .. note::
 
+   .. versionchanged: 2Aug2023
+
    The *handle* pointer may be ``NULL`` for this function, as would be
    the case when a call to create a LAMMPS instance has failed.  Then
    this function will not check the error status inside the LAMMPS
@@ -6545,6 +6547,8 @@ and thus may not be recoverable, as other MPI ranks may be waiting on
 the failing MPI ranks to send messages.
 
 .. note::
+
+   .. versionchanged: 2Aug2023
 
    The *handle* pointer may be ``NULL`` for this function, as would be
    the case when a call to create a LAMMPS instance has failed.  Then

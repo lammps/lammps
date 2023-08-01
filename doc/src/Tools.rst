@@ -640,67 +640,138 @@ you first need to use the :doc:`clear` command.
 LAMMPS GUI
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 2Aug2023
 
 Overview
 ^^^^^^^^
 
 LAMMPS GUI is essentially a small graphical text editor that is linked
 to the :ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run
-LAMMPS using the contents of the editor's text buffer as input.  This is similar to what people usually
-would do using a text editor to edit the input and then a command line
-terminal window to run the input commands.  The main benefit is that
-this integrates very well with graphical desktop environments and that
-it is easier to use for beginners in running computations and thus very
-suitable for tutorials on LAMMPS.  A small difference is that for the
-LAMMPS GUI it is not require to commit its buffer to a file first.
+LAMMPS directly using the contents of the editor's text buffer as input.
+This is similar to what people usually would do using a text editor to
+edit the input and then a command line terminal window to run the input
+commands.  The main benefit is that this integrates very well with
+graphical desktop environments and that it is easier to use for
+beginners in running computations and thus very suitable for tutorials
+on LAMMPS.  A small difference is that for the LAMMPS GUI it is not
+require to first commit its buffer of the text editor to a file.
 
 Features
 ^^^^^^^^
 
 The main window of the LAMMPS GUI is a generic text editor window with
 line numbers and syntax highlighting set up for LAMMPS input files.  It
-can be used to edit any kind of text file.  The output of a run is
-captured and displayed in a separate dialog window and not sent to the
-console.  The log window is regularly updated during the run and a
-progress bar for the run command shown in the main window.  Starting a
-new run will open another log windows. The state of LAMMPS will be reset
-between two runs.  After the simulation is finished, an image of the
-simulated system can be created and shown in an image viewer window.
-Ongoing runs can be stopped at the next iteration via triggering a
-timeout.
+can be used to edit any kind of text file, though.  The output of a run
+is captured and displayed in a separate dialog window and *not* sent to
+the console or a log file (unless the :doc:`log command <log>` is used
+in the input.  The log window is regularly updated during the run and a
+progress bar for the run command shown at the bottom of the main window.
+Starting a new run will open another log windows.  The state of LAMMPS
+will be reset between two runs.  After the simulation is finished, an
+image of the simulated system can be created and shown in an image
+viewer window.  Ongoing runs can be stopped at the next iteration via
+triggering a timeout.
 
 When opening a file, the editor will determine the directory where the
-file resides and switch its current working directory to that folder.
-Many LAMMPS inputs contain commands that read other files, typically
-from the folder with the input file.  The GUI will always show the
-current working directory.  The editor window can also receive (entire)
-files via drag-n-drop from a file manager GUI or a desktop environment.
-When exiting the GUI with a modified buffer, a dialog asking to either
-cancel, ignore the modifications, or save the file with show up. Same
-when attempting to load a new file into a modified buffer.
+file resides and switch its current working directory to the folder of
+that file.  Many LAMMPS inputs contain commands that read other files,
+typically from the folder of the input file.  The GUI will always show
+the current working directory in the bottom.  The editor window can also
+receive (entire) files via drag-n-drop from a file manager GUI or a
+desktop environment.  When exiting the GUI with a modified buffer, a
+dialog asking to either cancel, ignore the modifications, or save the
+file with show up. Same when attempting to load a new file into a
+modified buffer.
+
+Hotkeys
+^^^^^^^
 
 Almost all functionality is accessible from the menu or via hotkeys.
-Which those hotkeys are, is shown next to the entries in the menu.  Log
-and image viewer windows can be closed with CTRL-W (or Command-W on
-macOS).  The "About LAMMPS" dialog will show the LAMMPS version and the
-features included into the LAMMPS library linked to the LAMMPS GUI.
+The following hotkeys are available (On macOS use the Command key
+instead of Ctrl (aka Control)).
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Hotkey
+     - Function
+     - Hotkey
+     - Function
+     - Hotkey
+     - Function
+     - Hotkey
+     - Function
+   * - Ctrl+N
+     - New File
+     - Ctrl+Z
+     - Undo edit
+     - Ctrl+V
+     - Paste text
+     - Ctrl+Q
+     - Quit (Main Window only)
+   * - Ctrl+O
+     - Open File
+     - Ctrl+Shift+Z
+     - Redo edit
+     - Ctrl+Enter
+     - Run LAMMPS
+     - Ctrl+W
+     - Close (Log and Image Window only)
+   * - CTRL+S
+     - Save File
+     - Ctrl+C
+     - Copy text
+     - Ctrl+/
+     - Stop Active Run
+     -
+     -
+   * - Ctrl+Shift+S
+     - Save File As
+     - Ctrl+X
+     - Cut text
+     - Ctrl+I
+     - Create Snapshot Image
+     -
+     -
+
+Further editing keybindings `are documented with the Qt documentation
+<https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In
+case of conflicts the list above takes precedence.
+
+Parallelization
+^^^^^^^^^^^^^^^
 
 Due to its nature as a graphical application, it is not possible to use
 the LAMMPS GUI in parallel with MPI, but OpenMP multi-threading is
-available.
+available and enabled by default.
 
 Prerequisites and portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS GUI is programmed in C++ based on the C++11 standard and using
-the `Qt GUI framework <https://www.qt.io/product/framework>`_, currently
-using Qt version 5.15LTS for better compatibility with older compilers
-and operating systems. It has been successfully compiled and tested on:
+the `Qt GUI framework <https://www.qt.io/product/framework>`_.
+Currently, Qt version 5.12 or later is required; Qt 5.15LTS is
+recommended Qt 6.x not (yet) supported. Furthermore, CMake version 3.16
+is required and LAMMPS must be configured with ``-D
+LAMMPS_EXCETIONS=on`` and ``-D BUILD_MPI=off``. It has been successfully
+compiled and tested on:
 
-- Fedora Linux 38 x86\_64 using GCC 13 and Clang 16
-- Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64
-- Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36
+- Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
+- Fedora Linux 38 x86\_64 using GCC 13 and Clang 16, Qt version 5.15LTS
+- Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
+- Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
+
+Pre-compiled executables
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pre-compiled LAMMPS executables including the GUI are currently
+available from https://download.lammps.org/static. You can unpack the
+archive (or mount the macOS disk image) and run the GUI directly in
+place. The folder may also be moved around and added to the ``PATH``
+environment variable so the executables will be found automatically. The
+LAMMPS GUI executable is called ``lammps-gui`` and takes no arguments or
+will interpret the first argument as filename to load.
 
 Compilation
 ^^^^^^^^^^^
@@ -754,6 +825,34 @@ with different macOS versions, you can also set
 ``-D CMAKE_OSX_DEPLOYMENT_TARGET=11.0`` which will set compatibility to macOS
 11 (Big Sur) and later, even if you are compiling on a more recent macOS
 version.
+
+On macOS, compiling the LAMMPS GUI will automatically create a
+custom application bundle with a drag-n-drop installer in a .dmg file.
+
+Windows
+"""""""
+
+On Windows currently only compilation from within Visual Studio 2022 is supported
+and tested. Compilation via CMake and Ninja is required. Qt needs to be installed,
+by preference downloaded from https://www.qt.io, into the ``C:\\Qt`` folder.
+There is a custom `x64-GUI-MSVC` build configuration provided that will activate
+building the `lammps-gui.exe` executable in addition to LAMMPS.  When requesting
+an installation from the `Build` menu, it will create a compressed zip file
+with the executables and required dependent .dll files.  This zip file can be
+uncompressed and ``lammps-gui.exe`` run directly from there.  The uncompressed
+folder can be added to the ``PATH`` environment and LAMMPS and LAMMPS GUI can
+be launched from anywhere from the command line.
+
+Linux
+"""""
+
+Version 5.12 or later of the Qt library and CMake version 3.16 are
+required and those are provided by, e.g., Ubuntu 20.04LTS. Thus older
+Linux distributions are not likely to be supported, while more recent
+ones will work, even for pre-compiled executables (see above).  After
+compiling with ``cmake --build <build folder>``, the script
+``cmake/packaging/build-linux-tar.sh`` needs to be run to build a tar.gz
+file with the executables and their support libraries.
 
 ----------
 

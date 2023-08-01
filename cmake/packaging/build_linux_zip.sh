@@ -15,11 +15,13 @@ do \
         test -f $s && strip --strip-debug $s
 done
 
-echo "Remove libc, gcc, and X11 related files"
-rm -v ${DESTDIR}/lib/ld*.so ${DESTDIR}/lib/ld*.so.[0-9]
-rm -v ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}.so.?
-rm -v ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}-[0-9].[0-9]*.so
-rm -v ${DESTDIR}/lib/libX* ${DESTDIR}/lib/libxcb*
+echo "Remove libc, gcc, and X11 related shared libs"
+rm -f ${DESTDIR}/lib/ld*.so ${DESTDIR}/lib/ld*.so.[0-9]
+rm -f ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}.so.?
+rm -f ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}-[0-9].[0-9]*.so
+rm -f ${DESTDIR}/lib/libX* ${DESTDIR}/lib/libxcb*
+rm -f ${DESTDIR}/lib/libgcc_s*
+rm -f ${DESTDIR}/lib/libstdc++*
 
 # get qt dir
 QTDIR=$(ldd ${DESTDIR}/bin/lammps-gui | grep libQt5Core | sed -e 's/^.*=> *//' -e 's/libQt5Core.so.*$/qt5/')
@@ -43,6 +45,16 @@ echo "Add additional plugins for Qt"
 for dir in styles imageformats
 do \
     cp -r  ${QTDIR}/plugins/${dir} ${DESTDIR}/qt5plugins/
+done
+
+# get imageplugin dependencies
+for s in ${DESTDIR}/qt5plugins/imageformats/*.so
+do \
+    QTDEPS=$(LD_LIBRARY_PATH=${DESTDIR}/lib ldd $s | grep -v ${DESTDIR} | grep -E '(libQt5|jpeg)' | sed -e 's/^.*=> *//' -e 's/\(lib.*.so.*\) .*$/\1/')
+    for dep in ${QTDEPS}
+    do \
+        cp ${dep} ${DESTDIR}/lib
+    done
 done
 
 echo "Set up wrapper script"

@@ -156,11 +156,28 @@ if(APPLE)
 elseif(WIN32)
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
+  install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+  install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
 else()
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
-  install(TARGETS lammps-gui RUNTIME ARCHIVE LIBRARY RUNTIME FRAMEWORK BUNDLE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-  install(TARGETS lammps-gui
-    COMPONENT lammps-gui
-    RUNTIME_DEPENDENCIES
-    DIRECTORIES ${CMAKE_INSTALL_LIBDIR})
+  install(CODE [[
+    file(GET_RUNTIME_DEPENDENCIES
+      LIBRARIES $<TARGET_FILE:lammps>
+      EXECUTABLES $<TARGET_FILE:lammps-gui> $<TARGET_FILE:lmp>
+      RESOLVED_DEPENDENCIES_VAR _r_deps
+      UNRESOLVED_DEPENDENCIES_VAR _u_deps
+    )
+    foreach(_file ${_r_deps})
+      file(INSTALL
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
+        TYPE SHARED_LIBRARY
+        FOLLOW_SYMLINK_CHAIN
+        FILES "${_file}"
+      )
+    endforeach()
+    list(LENGTH _u_deps _u_length)
+    if("${_u_length}" GREATER 0)
+      message(WARNING "Unresolved dependencies detected: ${_u_deps}")
+    endif()
+  ]])
 endif()

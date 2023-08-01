@@ -1,10 +1,10 @@
-#!/bin/bash -vx
+#!/bin/bash
 
 APP_NAME=lammps-gui
 DESTDIR=${PWD}/../LAMMPS_GUI
 
 echo "Delete old files, if they exist"
-rm -rvf ${DESTDIR} ../LAMMPS-Linux-amd64.zip
+rm -rf ${DESTDIR} ../LAMMPS-Linux-amd64.tar.gz
 
 echo "Create staging area for deployment and populate"
 DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
@@ -39,7 +39,7 @@ do \
     cp ${dep} ${DESTDIR}/lib
 done
 
-echo "Add required dependencies for Qt"
+echo "Add additional plugins for Qt"
 for dir in styles imageformats
 do \
     cp -r  ${QTDIR}/plugins/${dir} ${DESTDIR}/qt5plugins/
@@ -57,7 +57,7 @@ do \
 done
 
 pushd ..
-zip -9rv LAMMPS-Linux-amd64.zip LAMMPS_GUI
+tar -czvvf LAMMPS-Linux-amd64.tar.gz LAMMPS_GUI
 popd
 
 echo "Cleanup dir"

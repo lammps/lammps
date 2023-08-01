@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.21)
 
 project(lammps-gui VERSION 0.9.1 LANGUAGES CXX)
 
@@ -153,6 +153,14 @@ if(APPLE)
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
+elseif(WIN32)
+  install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
 else()
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(TARGETS lammps-gui RUNTIME ARCHIVE LIBRARY RUNTIME FRAMEWORK BUNDLE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS lammps-gui
+    COMPONENT lammps-gui
+    RUNTIME_DEPENDENCIES
+    DIRECTORIES ${CMAKE_INSTALL_LIBDIR})
 endif()

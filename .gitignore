@@ -59,3 +59,4 @@ src/Makefile.package-e
 src/Makefile.package.settings-e
 /cmake/build/x64-Debug-Clang
 /install/x64-GUI-MSVC
+/install

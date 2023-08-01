@@ -158,6 +158,13 @@ elseif(WIN32)
   install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
   install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
   install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
+  # find path to VC++ init batch file
+  get_filename_component(VC_COMPILER_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+  get_filename_component(VC_BASE_DIR "${VC_COMPILER_DIR}/../../../../../.." ABSOLUTE)
+  set(VC_INIT "${VC_BASE_DIR}/Auxiliary/Build/vcvarsall.bat")
+  get_filename_component(QT5_BIN_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
+  get_filename_component(INSTNAME ${CMAKE_INSTALL_PREFIX} NAME)
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -D INSTNAME=${INSTNAME} -D VC_INIT=\"${VC_INIT}\" -D QT5_BIN_DIR=\"${QT5_BIN_DIR}\"                  -P \"${CMAKE_SOURCE_DIR}/packaging/build_windows_vs.cmake\" WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\" COMMAND_ECHO STDOUT)")
 else()
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(CODE [[

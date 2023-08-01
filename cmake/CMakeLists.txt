@@ -795,9 +795,11 @@ include(Tools)
 include(Documentation)
 
 ###############################################################################
-# Install potential and force field files in data directory
+# Install bench, potential and force field files in data directory
 ###############################################################################
 set(LAMMPS_INSTALL_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps)
+
+install(DIRECTORY ${LAMMPS_DIR}/bench DESTINATION ${LAMMPS_INSTALL_DATADIR})
 install(DIRECTORY ${LAMMPS_POTENTIALS_DIR} DESTINATION ${LAMMPS_INSTALL_DATADIR})
 if(BUILD_TOOLS)
   install(DIRECTORY ${LAMMPS_TOOLS_DIR}/msi2lmp/frc_files DESTINATION ${LAMMPS_INSTALL_DATADIR})
@@ -806,10 +808,25 @@ endif()
 configure_file(etc/profile.d/lammps.sh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh @ONLY)
 configure_file(etc/profile.d/lammps.csh.in ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh @ONLY)
 install(
-  FILES ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh
-        ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
-  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
-)
+  FILES ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.sh ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
+  DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "LinuxMUSL")
+  file(WRITE ${CMAKE_BINARY_DIR}/README.txt
+    "Statically linked, portable, serial LAMMPS binary archive for x86_64 Linux\n\n")
+endif()
+if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+  file(WRITE ${CMAKE_BINARY_DIR}/README.txt
+    "Multi-arch, serial LAMMPS binary archive for macOS 11 (Big Sur) and later\n\n")
+endif()
+if((CMAKE_SYSTEM_NAME STREQUAL "LinuxMUSL") OR (APPLE AND CMAKE_OSX_ARCHITECTURES))
+  file(APPEND ${CMAKE_BINARY_DIR}/README.txt
+    "Executables are in 'bin', potential files in 'share/lammps/potentials',\n")
+  file(APPEND ${CMAKE_BINARY_DIR}/README.txt
+    "benchmark and simple input examples are in 'share/lammps/bench'.\n")
+  install(FILES ${CMAKE_BINARY_DIR}/README.txt
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
 
 ###############################################################################
 # Install LAMMPS lib and python module into site-packages folder with

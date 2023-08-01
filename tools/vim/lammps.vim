@@ -17,19 +17,19 @@ syn keyword     lammpsLattice   delete_atoms displace_atoms change_box dimension
 syn keyword     lammpsParticle  pair_coeff pair_style pair_modify pair_write mass velocity angle_coeff angle_style angle_write
 syn keyword     lammpsParticle  atom_modify atom_style bond_coeff bond_style bond_write create_bonds delete_bonds kspace_style
 syn keyword     lammpsParticle  kspace_modify dihedral_style dihedral_coeff dihedral_write improper_style improper_coeff labelmap
-syn keyword     lammpsSetup     min_style min_modify fix_modify run_style timestep neighbor neigh_modify fix unfix suffix special_bonds
+syn keyword     lammpsSetup     min_style min_modify fix_modify run_style timestep neighbor neigh_modify fix unfix suffix special_bonds dump_modify
 syn keyword     lammpsSetup     balance box clear comm_modify comm_style newton package processors reset_atoms reset_ids reset_timestep
 syn keyword     lammpsRun       minimize minimize/kk run rerun tad neb neb/spin prd quit server temper/npt temper/grem temper
 syn keyword     lammpsRun       message hyper dynamical_matrix dynamical_matrix/kk third_order third_order/kk fitpod
 syn keyword     lammpsDefine    variable group compute python set uncompute kim_query kim group2ndx ndx2group mdi
 
-syn keyword     lammpsRepeat    jump next loop
+syn keyword     lammpsRepeat    jump next loop label
 
 syn keyword     lammpsOperator  equal add sub mult div
 
 syn keyword     lammpsConditional if then elif else
 
-syn keyword     lammpsSpecial   EDGE NULL &
+syn keyword     lammpsSpecial   EDGE NULL INF &
 
 syn region      lammpsString    start=+'+ end=+'+       oneline
 syn region      lammpsString    start=+"+ end=+"+       oneline

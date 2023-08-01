@@ -4,7 +4,7 @@ APP_NAME=lammps-gui
 DESTDIR=${PWD}/../LAMMPS_GUI
 
 echo "Delete old files, if they exist"
-rm -rvf ${DESTDIR} LAMMPS-Linux-amd64.zip
+rm -rvf ${DESTDIR} ../LAMMPS-Linux-amd64.zip
 
 echo "Create staging area for deployment and populate"
 DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
@@ -30,7 +30,7 @@ EOF
 
 # platform plugin
 mkdir -p ${DESTDIR}/qt5plugins/platforms
-cp ${QTDIR}/plugins/platform/libqxcb.so ${DESTDIR}/qt5plugins/platforms
+cp ${QTDIR}/plugins/platforms/libqxcb.so ${DESTDIR}/qt5plugins/platforms
 
 # get platform plugin dependencies
 QTDEPS=$(LD_LIBRARY_PATH=${DESTDIR}/lib ldd ${QTDIR}/plugins/platforms/libqxcb.so | grep -v ${DESTDIR} | grep libQt5 | sed -e 's/^.*=> *//' -e 's/\(libQt5.*.so.*\) .*$/\1/')
@@ -48,4 +48,7 @@ done
 pushd ..
 zip -9rv LAMMPS-Linux-amd64.zip LAMMPS_GUI
 popd
+
+echo "Cleanup dir"
+rm -r ${DESTDIR}
 exit 0

@@ -12,7 +12,7 @@ DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
 echo "Remove debug info"
 for s in ${DESTDIR}/bin/* ${DESTDIR}/lib/liblammps*
 do \
-        strip --strip-debug $s
+        test -f $s && strip --strip-debug $s
 done
 
 echo "Remove libc, gcc, and X11 related files"
@@ -28,10 +28,20 @@ cat > ${DESTDIR}/bin/qt.conf <<EOF
 Plugins = ../qt5plugins
 EOF
 
-echo "Add required dependencies for Qt"
-for dir in styles platforms imageformats
+# platform plugin
+mkdir -p ${DESTDIR}/qt5plugins/platforms
+cp ${QTDIR}/plugins/platform/libqxcb.so ${DESTDIR}/qt5plugins/platforms
+
+# get platform plugin dependencies
+QTDEPS=$(LD_LIBRARY_PATH=${DESTDIR}/lib ldd ${QTDIR}/plugins/platforms/libqxcb.so | grep -v ${DESTDIR} | grep libQt5 | sed -e 's/^.*=> *//' -e 's/\(libQt5.*.so.*\) .*$/\1/')
+for dep in ${QTDEPS}
 do \
-    mkdir -p ${DESTDIR}/qt5plugins
+    cp ${dep} ${DESTDIR}/lib
+done
+
+echo "Add required dependencies for Qt"
+for dir in styles imageformats
+do \
     cp -r  ${QTDIR}/plugins/${dir} ${DESTDIR}/qt5plugins/
 done
 

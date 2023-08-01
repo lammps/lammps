@@ -1528,6 +1528,7 @@ inhomogeneous
 init
 initialdelay
 initialisms
+initializer
 initializations
 InitiatorIDs
 initio

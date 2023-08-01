@@ -28,20 +28,34 @@ Include files (varied)
   packages and hard-to-find bugs have regularly manifested in the
   past.
 
-- Header files, especially those defining a "style", should only use
-  the absolute minimum number of include files and **must not**
-  contain any ``using`` statements. Typically, that would only be the
-  header for the base class.  Instead, any include statements should
-  be put in the corresponding implementation files and forward
-  declarations be used.  For implementation files, the "include what
-  you use" principle should be employed.  However, there is the
-  notable exception that when the ``pointers.h`` header is included
-  (or one of the base classes derived from it) certain headers will
-  always be included and thus do not need to be explicitly specified.
-  These are: `mpi.h`, `cstddef`, `cstdio`, `cstdlib`, `string`,
-  `utils.h`, `vector`, `fmt/format.h`, `climits`, `cinttypes`.  This
-  also means any such file can assume that `FILE`, `NULL`, and
-  `INT_MAX` are defined.
+- Header files, especially those defining a "style", should only use the
+  absolute minimum number of include files and **must not** contain any
+  ``using`` statements. Typically, that would only be the header for the
+  base class.  Instead, any include statements should be put in the
+  corresponding implementation files and forward declarations be used.
+  For implementation files, the "include what you use" principle should
+  be employed.  However, there is the notable exception that when the
+  ``pointers.h`` header is included (or the header of one of the classes
+  derived from it), certain headers will *always* be included and thus
+  do not need to be explicitly specified.  These are: `mpi.h`,
+  `cstddef`, `cstdio`, `cstdlib`, `string`, `utils.h`, `vector`,
+  `fmt/format.h`, `climits`, `cinttypes`.  This also means any such file
+  can assume that `FILE`, `NULL`, and `INT_MAX` are defined.
+
+- Class members variables should not be initialized in the header file,
+  but instead should be initialized either in the initializer list of
+  the constructor or explicitly assigned in the body of the constructor.
+  If the member variable is relevant to the functionality of a class
+  (for example when it stores a value from a command line argument), the
+  member variable declaration is followed by a brief comment explaining
+  its purpose and what its values can be.  Class members that are
+  pointers should always be initialized to ``nullptr`` in the
+  initializer list of the constructor.  This reduces clutter in the
+  header and avoids accessing uninitialized pointers, which leads to
+  hard to debug issues, class members are often implicitly initialized
+  to ``NULL`` on the first use (but *not* after a :doc:`clear command
+  <clear>`).  Please see the files ``reset_atoms_mol.h`` and
+  ``reset_atoms_mol.cpp`` as an example.
 
 - System headers or headers from installed libraries are included with
   angular brackets (example: ``#include <vector>``), while local

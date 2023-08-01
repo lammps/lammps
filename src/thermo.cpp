@@ -1228,13 +1228,13 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "elapsed") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "This variable thermo keyword elapsed cannot be used between runs");
     compute_elapsed();
     dvalue = bivalue;
 
   } else if (word == "elaplong") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "This variable thermo keyword elaplong cannot be used between runs");
     compute_elapsed_long();
     dvalue = bivalue;
 
@@ -1246,22 +1246,22 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "cpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "This variable thermo keyword cpu cannot be used between runs");
     compute_cpu();
 
   } else if (word == "tpcpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "This variable thermo keyword tpcpu cannot be used between runs");
     compute_tpcpu();
 
   } else if (word == "spcpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "This variable thermo keyword spcpu cannot be used between runs");
     compute_spcpu();
 
   } else if (word == "cpuremain") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "This variable thermo keyword cpuremain cannot be used between runs");
     compute_cpuremain();
 
   } else if (word == "part") {
@@ -1350,7 +1350,7 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "etail") {
     if (update->eflag_global != update->ntimestep)
-      error->all(FLERR, "Energy was not tallied on needed timestep");
+      error->all(FLERR, "Energy was not tallied on needed timestep for thermo keyword etail");
     compute_etail();
 
   } else if (word == "enthalpy") {

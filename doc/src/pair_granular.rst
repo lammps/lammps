@@ -82,8 +82,8 @@ The first required keyword for the *pair_coeff* command is the normal
 contact model.  Currently supported options for normal contact models
 and their required arguments are:
 
-1. *hooke* : :math:`k_n`, :math:`\eta_{n0}` (or :math:`e`)
-2. *hertz* : :math:`k_n`, :math:`\eta_{n0}` (or :math:`e`)
+1. :ref:`hooke </hooke_model>` : :math:`k_n`, :math:`\eta_{n0}` (or :math:`e`)
+2. :ref:`*hertz*</hertz_model>` : :math:`k_n`, :math:`\eta_{n0}` (or :math:`e`)
 3. *hertz/material* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`
 4. *dmt* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`
 5. *jkr* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`

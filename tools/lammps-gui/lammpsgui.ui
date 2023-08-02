@@ -33,7 +33,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -59,7 +59,8 @@
     <addaction name="actionCut"/>
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
-    <addaction name="actionEdit_Preferences"/>
+    <addaction name="actionPreferences"/>
+    <addaction name="actionDefaults"/>
    </widget>
    <widget class="QMenu" name="menu_Run">
     <property name="title">
@@ -180,7 +181,7 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>C&amp;ut</string>
+    <string>Cu&amp;t</string>
    </property>
    <property name="statusTip">
     <string>Cut Selected Text to Clipboard</string>
@@ -321,13 +322,13 @@
     <string>Ctrl+Shift+/</string>
    </property>
   </action>
-  <action name="actionEdit_Preferences">
+  <action name="actionPreferences">
    <property name="icon">
     <iconset theme="preferences-desktop">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>&amp;Preferences...</string>
+    <string>Pre&amp;ferences...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
@@ -340,6 +341,14 @@
    </property>
    <property name="text">
     <string>LAMMPS &amp;Manual</string>
+   </property>
+  </action>
+  <action name="actionDefaults">
+   <property name="icon">
+    <iconset theme="document-revert"/>
+   </property>
+   <property name="text">
+    <string>Reset to &amp;Defaults</string>
    </property>
   </action>
  </widget>

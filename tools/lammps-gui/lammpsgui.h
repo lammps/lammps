@@ -76,6 +76,7 @@ private slots:
     void logupdate();
     void modified();
     void preferences();
+    void defaults();
 
 private:
     Ui::LammpsGui *ui;
@@ -97,8 +98,8 @@ private:
     QList<QString> recent_files;
     std::vector<char *> lammps_args;
 };
-
 #endif // LAMMPSGUI_H
+
 // Local Variables:
 // c-basic-offset: 4
 // End:

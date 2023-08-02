@@ -5,11 +5,7 @@ LAMMPS-GUI TODO list:
 - add CTRL-q hotkey to log windows so you can exit the entire application (add do you really want to? dialog to this)
 - add "syntax check" with enabled "-skiprun" flag
 - add multi-tab settings dialog where certain properties can be set through customizing the LAMMPS command line
-   + enable/disable OpenMP (via suffix), OPT package, select number of OpenMP threads
-   + toggle whether captured screen output should include input file echo
    + select Font
-   + snapshot image options
-- store settings/preferences when changed and read at startup
 - add list of 5(?) most recently opened/saved files to file dialog (and also write to settings state on exit) (note: must store full path!)
 
 # Long term ideas

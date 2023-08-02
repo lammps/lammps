@@ -278,6 +278,7 @@ void LammpsGui::write_file(const QString &fileName)
     QTextStream out(&file);
     QString text = ui->textEdit->toPlainText();
     out << text;
+    if (text.back().toLatin1() != '\n') out << "\n"; // add final newline if missing
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
     ui->textEdit->document()->setModified(false);

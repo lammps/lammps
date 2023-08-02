@@ -69,7 +69,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
     highlighter = new Highlighter(ui->textEdit->document());
-    prefdialog  = new Preferences(this);
     capturer    = new StdCapture;
     current_file.clear();
     current_dir = QDir(".").absolutePath();
@@ -619,8 +618,8 @@ void LammpsGui::manual()
 
 void LammpsGui::preferences()
 {
-    QString helpmsg = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
-    QMessageBox::information(this, "LAMMPS-GUI Help", helpmsg);
+    Preferences prefs(&lammps);
+    prefs.exec();
 }
 
 void LammpsGui::start_lammps()

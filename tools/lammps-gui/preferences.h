@@ -16,17 +16,51 @@
 
 #include <QDialog>
 
-class QTabWidget;
 class QDialogButtonBox;
+class QSettings;
+class QTabWidget;
+class LammpsWrapper;
 
 class Preferences : public QDialog {
     Q_OBJECT
 
 public:
-    explicit Preferences(QWidget *parent = nullptr);
+    explicit Preferences(LammpsWrapper *lammps, QWidget *parent = nullptr);
+    ~Preferences() override;
 
 private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;
+    QSettings *settings;
+    LammpsWrapper *lammps;
 };
+
+// individual tabs
+
+class AcceleratorTab : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit AcceleratorTab(QSettings *settings, LammpsWrapper *lammps, QWidget *parent = nullptr);
+    enum { None, Intel, Kokkos, OpenMP, Opt };
+
+private:
+    QSettings *settings;
+    LammpsWrapper *lammps;
+};
+
+class SnapshotTab : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit SnapshotTab(QSettings *settings, QWidget *parent = nullptr);
+
+private:
+    QSettings *settings;
+};
+
 #endif
+
+// Local Variables:
+// c-basic-offset: 4
+// End:

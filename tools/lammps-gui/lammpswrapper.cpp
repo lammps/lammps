@@ -19,10 +19,7 @@
 #include "library.h"
 #endif
 
-LammpsWrapper::LammpsWrapper() :
-    lammps_handle(nullptr), plugin_handle(nullptr)
-{
-}
+LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr), plugin_handle(nullptr) {}
 
 void LammpsWrapper::open(int narg, char **args)
 {
@@ -42,7 +39,7 @@ int LammpsWrapper::extract_setting(const char *keyword)
 #if defined(LAMMPS_GUI_USE_PLUGIN)
         val = ((liblammpsplugin_t *)plugin_handle)->extract_setting(lammps_handle, keyword);
 #else
-        val = lammps_extract_setting(lammps_handle, keyword);
+        val           = lammps_extract_setting(lammps_handle, keyword);
 #endif
     }
     return val;
@@ -55,7 +52,7 @@ double LammpsWrapper::get_thermo(const char *keyword)
 #if defined(LAMMPS_GUI_USE_PLUGIN)
         val = ((liblammpsplugin_t *)plugin_handle)->get_thermo(lammps_handle, keyword);
 #else
-        val = lammps_get_thermo(lammps_handle, keyword);
+        val           = lammps_get_thermo(lammps_handle, keyword);
 #endif
     }
     return val;
@@ -68,7 +65,7 @@ bool LammpsWrapper::is_running()
 #if defined(LAMMPS_GUI_USE_PLUGIN)
         val = ((liblammpsplugin_t *)plugin_handle)->is_running(lammps_handle);
 #else
-        val = lammps_is_running(lammps_handle);
+        val           = lammps_is_running(lammps_handle);
 #endif
     }
     return val != 0;

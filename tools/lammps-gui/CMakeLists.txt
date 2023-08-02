@@ -122,7 +122,7 @@ if(APPLE)
   )
   # additional steps to populate the bundle tree and create the .dmg image file
   set(APP_CONTENTS ${CMAKE_BINARY_DIR}/lammps-gui.app/Contents)
-  add_custom_target(complete-bundle ALL
+  add_custom_target(complete-bundle
     ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/bin
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/lmp ${APP_CONTENTS}/bin/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/msi2lmp ${APP_CONTENTS}/bin/
@@ -146,8 +146,8 @@ if(APPLE)
     COMMENT "Copying additional files into macOS app bundle tree"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
-  add_custom_target(build-dmg ALL
-    COMMAND ${LAMMPS_DIR}/cmake/packaging/build-macos-dmg-with-gui.sh
+  add_custom_target(dmg
+    COMMAND ${LAMMPS_DIR}/cmake/packaging/build_macos_dmg.sh
     DEPENDS complete-bundle
     COMMENT "Create Drag-n-Drop installer disk image from app bundle"
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
@@ -165,7 +165,7 @@ elseif(MSVC)
   get_filename_component(QT5_BIN_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
   get_filename_component(INSTNAME ${CMAKE_INSTALL_PREFIX} NAME)
   install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -D INSTNAME=${INSTNAME} -D VC_INIT=\"${VC_INIT}\" -D QT5_BIN_DIR=\"${QT5_BIN_DIR}\"                  -P \"${CMAKE_SOURCE_DIR}/packaging/build_windows_vs.cmake\" WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\" COMMAND_ECHO STDOUT)")
-else()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(CODE [[
     file(GET_RUNTIME_DEPENDENCIES
@@ -185,6 +185,13 @@ else()
     list(LENGTH _u_deps _u_length)
     if("${_u_length}" GREATER 0)
       message(WARNING "Unresolved dependencies detected: ${_u_deps}")
-    endif()
-  ]])
+    endif() ]]
+  )
+  add_custom_target(tgz
+    COMMAND ${LAMMPS_DIR}/cmake/packaging/build_linux_tgz.sh
+    DEPENDS lammps-gui
+    COMMENT "Create compressed tar file of LAMMPS with dependent libraries and wrapper"
+    BYPRODUCT LAMMPS-Linux-amd64.tar.gz
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
 endif()

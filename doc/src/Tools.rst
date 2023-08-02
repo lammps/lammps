@@ -817,42 +817,44 @@ macOS
 """""
 
 When building on macOS, the build procedure will try to manufacture a
-drag-n-drop installer, LAMMPS-macOS-multiarch.dmg.  To build multi-arch
-executables that will run on both, arm64 and x86_64 architectures
-natively, it is necessary to set the CMake variable
-``-D CMAKE_OSX_ARCHITECTURES=arm64;x86_64``.  To achieve wide compatibility
-with different macOS versions, you can also set
-``-D CMAKE_OSX_DEPLOYMENT_TARGET=11.0`` which will set compatibility to macOS
+drag-n-drop installer, LAMMPS-macOS-multiarch.dmg, when using the 'dmg'
+target (i.e. `cmake --build <build dir> --target dmg` or `make dmg`.
+
+To build multi-arch executables that will run on both, arm64 and x86_64
+architectures natively, it is necessary to set the CMake variable ``-D
+CMAKE_OSX_ARCHITECTURES=arm64;x86_64``.  To achieve wide compatibility
+with different macOS versions, you can also set ``-D
+CMAKE_OSX_DEPLOYMENT_TARGET=11.0`` which will set compatibility to macOS
 11 (Big Sur) and later, even if you are compiling on a more recent macOS
 version.
-
-On macOS, compiling the LAMMPS GUI will automatically create a
-custom application bundle with a drag-n-drop installer in a .dmg file.
 
 Windows
 """""""
 
-On Windows currently only compilation from within Visual Studio 2022 is supported
-and tested. Compilation via CMake and Ninja is required. Qt needs to be installed,
-by preference downloaded from https://www.qt.io, into the ``C:\\Qt`` folder.
-There is a custom `x64-GUI-MSVC` build configuration provided that will activate
-building the `lammps-gui.exe` executable in addition to LAMMPS.  When requesting
-an installation from the `Build` menu, it will create a compressed zip file
-with the executables and required dependent .dll files.  This zip file can be
-uncompressed and ``lammps-gui.exe`` run directly from there.  The uncompressed
-folder can be added to the ``PATH`` environment and LAMMPS and LAMMPS GUI can
-be launched from anywhere from the command line.
+On Windows currently only compilation from within Visual Studio 2022 is
+supported and tested. Using CMake and Ninja as build system is
+required. Qt needs to be installed, tested was a package downloaded from
+https://www.qt.io, into the ``C:\\Qt`` folder.  There is a custom
+`x64-GUI-MSVC` build configuration provided that will activate building
+the `lammps-gui.exe` executable in addition to LAMMPS.  When requesting
+an installation from the `Build` menu, it will create a compressed zip
+file with the executables and required dependent .dll files.  This zip
+file can be uncompressed and ``lammps-gui.exe`` run directly from there.
+The uncompressed folder can be added to the ``PATH`` environment and
+LAMMPS and LAMMPS GUI can be launched from anywhere from the command
+line.
 
 Linux
 """""
 
 Version 5.12 or later of the Qt library and CMake version 3.16 are
-required and those are provided by, e.g., Ubuntu 20.04LTS. Thus older
+required and those are provided by, e.g., Ubuntu 20.04LTS.  Thus older
 Linux distributions are not likely to be supported, while more recent
 ones will work, even for pre-compiled executables (see above).  After
-compiling with ``cmake --build <build folder>``, the script
-``cmake/packaging/build-linux-tar.sh`` needs to be run to build a tar.gz
-file with the executables and their support libraries.
+compiling with ``cmake --build <build folder>``, use
+``cmake --build <build folder> --target tgz`` or ``make tgz`` to build
+a ``LAMMPS-Linux-amd64.tar.gz`` file with the executables and their
+support libraries.
 
 ----------
 

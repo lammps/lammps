@@ -81,9 +81,11 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // restorge and initialize settings
     QSettings settings;
 
+    // check and initialize nthreads setting. Default is to use max,
+    // but not override OMP_NUM_THREADS and preferences setting.
 #if defined(_OPENMP)
     // use maximum number of available threads unless OMP_NUM_THREADS was set
-    nthreads = settings.value("nthreads", omp_get_max_threads()).toInt();
+    int nthreads = settings.value("nthreads", omp_get_max_threads()).toInt();
 #if _WIN32
     if (!getenv("OMP_NUM_THREADS")) {
         _putenv_s("OMP_NUM_THREADS", std::to_string(nthreads).c_str());
@@ -92,8 +94,9 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     setenv("OMP_NUM_THREADS", std::to_string(nthreads).c_str(), 0);
 #endif
 #else
-    nthreads = settings.value("nthreads", 1).toInt();
+    int nthreads = settings.value("nthreads", 1).toInt();
 #endif
+    settings.setValue("nthreads", QString::number(nthreads));
 
     const char *tmpdir = getenv("TMPDIR");
     if (!tmpdir) tmpdir = getenv("TMP");
@@ -110,8 +113,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));
     lammps_args.push_back(mystrdup("-log"));
     lammps_args.push_back(mystrdup("none"));
-    //    lammps_args.push_back(mystrdup("-suffix"));
-    //    lammps_args.push_back(mystrdup("omp"));
 
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
 #if (__APPLE__)
@@ -431,9 +432,11 @@ void LammpsGui::run_done()
 
 void LammpsGui::run_buffer()
 {
+    QSettings settings;
     progress->setValue(0);
     dirstatus->hide();
     progress->show();
+    int nthreads = settings.value("nthreads", 1).toInt();
     status->setText(QString("Running LAMMPS with %1 thread(s)...").arg(nthreads));
     status->repaint();
     start_lammps();
@@ -620,17 +623,60 @@ void LammpsGui::preferences()
 {
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
-        
-        // extract and apply settings as needed
+        // must delete LAMMPS instance after setting may be changed so we can apply different
+        // suffixes
+        lammps.close();
     }
 }
 
 void LammpsGui::start_lammps()
 {
+    // temporary extend lammps_args with additional arguments
+    int initial_narg = lammps_args.size();
+    QSettings settings;
+    int nthreads = settings.value("nthreads", 1).toInt();
+    int accel    = settings.value("accelerator", AcceleratorTab::None).toInt();
+    if (accel == AcceleratorTab::Opt) {
+        lammps_args.push_back(mystrdup("-suffix"));
+        lammps_args.push_back(mystrdup("opt"));
+    } else if (accel == AcceleratorTab::OpenMP) {
+        lammps_args.push_back(mystrdup("-suffix"));
+        lammps_args.push_back(mystrdup("omp"));
+        lammps_args.push_back(mystrdup("-pk"));
+        lammps_args.push_back(mystrdup("omp"));
+        lammps_args.push_back(mystrdup(std::to_string(nthreads)));
+    } else if (accel == AcceleratorTab::Intel) {
+        lammps_args.push_back(mystrdup("-suffix"));
+        lammps_args.push_back(mystrdup("intel"));
+        lammps_args.push_back(mystrdup("-pk"));
+        lammps_args.push_back(mystrdup("intel"));
+        lammps_args.push_back(mystrdup(std::to_string(nthreads)));
+    } else if (accel == AcceleratorTab::Gpu) {
+        lammps_args.push_back(mystrdup("-suffix"));
+        lammps_args.push_back(mystrdup("gpu"));
+        lammps_args.push_back(mystrdup("-pk"));
+        lammps_args.push_back(mystrdup("gpu"));
+        lammps_args.push_back(mystrdup("0"));
+    }
+
+    if (settings.value("echo", "0").toInt()) {
+        lammps_args.push_back(mystrdup("-echo"));
+        lammps_args.push_back(mystrdup("screen"));
+    }
+    if (settings.value("cite", "0").toInt()) {
+        lammps_args.push_back(mystrdup("-cite"));
+        lammps_args.push_back(mystrdup("screen"));
+    }
+
     char **args = lammps_args.data();
     int narg    = lammps_args.size();
-
     lammps.open(narg, args);
+
+    // delete additional arguments again (3 were there initially
+    while (lammps_args.size() > initial_narg) {
+        delete lammps_args.back();
+        lammps_args.pop_back();
+    }
 
     if (lammps.has_error()) {
         constexpr int BUFLEN = 1024;

@@ -151,6 +151,24 @@ void LammpsWrapper::finalize()
 #endif
 }
 
+bool LammpsWrapper::config_has_package(const char *package) const
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    return ((liblammpsplugin_t *)plugin_handle)->config_has_package(package) != 0;
+#else
+    return lammps_config_has_package(package) != 0;
+#endif
+}
+
+bool LammpsWrapper::has_gpu_device() const
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    return ((liblammpsplugin_t *)plugin_handle)->has_gpu_device() != 0;
+#else
+    return lammps_has_gpu_device() != 0;
+#endif
+}
+
 #if defined(LAMMPS_GUI_USE_PLUGIN)
 bool LammpsWrapper::has_plugin() const
 {

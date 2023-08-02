@@ -30,7 +30,7 @@ public:
 
 protected slots:
     void accept() override;
-    
+
 private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;
@@ -40,12 +40,22 @@ private:
 
 // individual tabs
 
+class GeneralTab : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit GeneralTab(QSettings *settings, QWidget *parent = nullptr);
+
+private:
+    QSettings *settings;
+};
+
 class AcceleratorTab : public QWidget {
     Q_OBJECT
 
 public:
     explicit AcceleratorTab(QSettings *settings, LammpsWrapper *lammps, QWidget *parent = nullptr);
-    enum { None, Intel, Kokkos, OpenMP, Opt };
+    enum { None, Opt, OpenMP, Intel, Kokkos, Gpu };
 
 private:
     QSettings *settings;

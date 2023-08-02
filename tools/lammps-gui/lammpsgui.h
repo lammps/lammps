@@ -94,7 +94,6 @@ private:
     LammpsWrapper lammps;
     std::string plugin_path;
     bool is_running;
-    int nthreads;
     QList<QString> recent_files;
     std::vector<char *> lammps_args;
 };

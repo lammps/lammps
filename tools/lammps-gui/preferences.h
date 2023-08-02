@@ -28,6 +28,9 @@ public:
     explicit Preferences(LammpsWrapper *lammps, QWidget *parent = nullptr);
     ~Preferences() override;
 
+protected slots:
+    void accept() override;
+    
 private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;

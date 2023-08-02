@@ -724,16 +724,16 @@ instead of Ctrl (aka Control)).
      - Copy text
      - Ctrl+/
      - Stop Active Run
-     -
-     -
+     - Ctrl+P
+     - Preferences
    * - Ctrl+Shift+S
      - Save File As
      - Ctrl+X
      - Cut text
      - Ctrl+I
      - Create Snapshot Image
-     -
-     -
+     - Ctrl+Shift+/
+     - Quick Help
 
 Further editing keybindings `are documented with the Qt documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In

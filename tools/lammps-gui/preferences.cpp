@@ -14,7 +14,9 @@
 #include "preferences.h"
 
 #include <QDialogButtonBox>
+#include <QDoubleValidator>
 #include <QGroupBox>
+#include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
 #include <QRadioButton>
@@ -26,12 +28,14 @@
 
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), tabWidget(new QTabWidget),
-    buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok)), settings(new QSettings), lammps(_lammps)
+    buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
+    settings(new QSettings), lammps(_lammps)
 {
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "Accelerators");
     tabWidget->addTab(new SnapshotTab(settings), "Snapshot Image");
 
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &Preferences::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     auto *layout = new QVBoxLayout;
     layout->addWidget(tabWidget);
@@ -46,6 +50,13 @@ Preferences::~Preferences()
     delete buttonBox;
     delete tabWidget;
     delete settings;
+}
+
+void Preferences::accept()
+{
+    // store all data in settings class
+    // and then confirm accepting
+    QDialog::accept();
 }
 
 AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *parent) :
@@ -74,12 +85,17 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
 {
     QGridLayout *grid = new QGridLayout;
 
-    QLabel *xsize   = new QLabel("Image width:");
-    QLabel *ysize   = new QLabel("Image height:");
-    QLabel *zoom    = new QLabel("Zoom factor:");
-    QLineEdit *xval = new QLineEdit(settings->value("xsize", "800").toString());
-    QLineEdit *yval = new QLineEdit(settings->value("ysize", "600").toString());
-    QLineEdit *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
+    auto *xsize = new QLabel("Image width:");
+    auto *ysize = new QLabel("Image height:");
+    auto *zoom  = new QLabel("Zoom factor:");
+    auto *xval  = new QLineEdit(settings->value("xsize", "800").toString());
+    auto *yval  = new QLineEdit(settings->value("ysize", "600").toString());
+    auto *zval  = new QLineEdit(settings->value("zoom", "1.0").toString());
+
+    auto *intval = new QIntValidator(100, 100000, this);
+    xval->setValidator(intval);
+    yval->setValidator(intval);
+    zval->setValidator(new QDoubleValidator(0.01, 100.0, 100, this));
 
     grid->addWidget(xsize, 0, 0);
     grid->addWidget(ysize, 1, 0);

@@ -281,7 +281,8 @@
   </action>
   <action name="actionImage">
    <property name="icon">
-    <iconset theme="emblem-photos"/>
+    <iconset theme="emblem-photos">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;View Snapshot</string>
@@ -316,6 +317,9 @@
    <property name="toolTip">
     <string>Quick Help</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+/</string>
+   </property>
   </action>
   <action name="actionEdit_Preferences">
    <property name="icon">
@@ -323,12 +327,16 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>Edit &amp;Preferences...</string>
+    <string>&amp;Preferences...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionLAMMPS_Manual">
    <property name="icon">
-    <iconset theme="help-browser"/>
+    <iconset theme="help-browser">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>LAMMPS &amp;Manual</string>

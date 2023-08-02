@@ -619,7 +619,10 @@ void LammpsGui::manual()
 void LammpsGui::preferences()
 {
     Preferences prefs(&lammps);
-    prefs.exec();
+    if (prefs.exec() == QDialog::Accepted) {
+        
+        // extract and apply settings as needed
+    }
 }
 
 void LammpsGui::start_lammps()

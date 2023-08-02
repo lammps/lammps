@@ -9,13 +9,15 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# checks
 option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
+mark_as_advanced(LAMMPS_GUI_USE_PLUGIN)
+
+# checks
 if(NOT LAMMPS_EXCEPTIONS)
   message(FATAL_ERROR "Must enable LAMMPS_EXCEPTIONS for building the LAMMPS GUI")
 endif()
 if(BUILD_MPI)
-  message(FATAL_ERROR "Must disable BUILD_MPI or building the LAMMPS GUI")
+  message(FATAL_ERROR "Must disable BUILD_MPI for building the LAMMPS GUI")
 endif()
 
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
@@ -62,7 +64,8 @@ if(LAMMPS_GUI_USE_PLUGIN)
   set(PLUGIN_LOADER_SRC ${LAMMPS_PLUGINLIB_DIR}/liblammpsplugin.c)
 endif()
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+# we require Qt 5 and at least version 5.12 at that.
+find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
   main.cpp
@@ -72,13 +75,13 @@ set(PROJECT_SOURCES
   highlighter.h
   imageviewer.cpp
   imageviewer.h
-  linenumberarea.h
   lammpsgui.cpp
   lammpsgui.h
   lammpsgui.ui
   lammpsrunner.h
   lammpswrapper.cpp
   lammpswrapper.h
+  linenumberarea.h
   preferences.cpp
   preferences.h
   stdcapture.cpp
@@ -97,6 +100,7 @@ add_executable(lammps-gui
   ${PROJECT_SOURCES}
 )
 
+# compilation settings
 if(LAMMPS_GUI_USE_PLUGIN)
   target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_USE_PLUGIN)
   target_include_directories(lammps-gui PRIVATE ${LAMMPS_PLUGINLIB_DIR})
@@ -112,6 +116,7 @@ if(BUILD_OMP)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# when compiling on macOS, create an "app bundle"
 if(APPLE)
   set_target_properties(lammps-gui PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST ${LAMMPS_DIR}/cmake/packaging/MacOSXBundleInfo.plist.in
@@ -121,7 +126,7 @@ if(APPLE)
     MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2023, The LAMMPS Developers"
     MACOSX_BUNDLE TRUE
   )
-  # additional steps to populate the bundle tree and create the .dmg image file
+  # additional targets to populate the bundle tree and create the .dmg image file
   set(APP_CONTENTS ${CMAKE_BINARY_DIR}/lammps-gui.app/Contents)
   add_custom_target(complete-bundle
     ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/bin
@@ -154,6 +159,7 @@ if(APPLE)
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
+  # settings or building on Windows with Visual Studio
 elseif(MSVC)
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
@@ -165,7 +171,7 @@ elseif(MSVC)
   set(VC_INIT "${VC_BASE_DIR}/Auxiliary/Build/vcvarsall.bat")
   get_filename_component(QT5_BIN_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
   get_filename_component(INSTNAME ${CMAKE_INSTALL_PREFIX} NAME)
-  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -D INSTNAME=${INSTNAME} -D VC_INIT=\"${VC_INIT}\" -D QT5_BIN_DIR=\"${QT5_BIN_DIR}\"                  -P \"${CMAKE_SOURCE_DIR}/packaging/build_windows_vs.cmake\" WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\" COMMAND_ECHO STDOUT)")
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -D INSTNAME=${INSTNAME} -D VC_INIT=\"${VC_INIT}\" -D QT5_BIN_DIR=\"${QT5_BIN_DIR}\" -P \"${CMAKE_SOURCE_DIR}/packaging/build_windows_vs.cmake\" WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\" COMMAND_ECHO STDOUT)")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(CODE [[

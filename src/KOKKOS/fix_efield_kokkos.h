@@ -75,6 +75,7 @@ class FixEfieldKokkos : public FixEfield {
   typename AT::t_x_array_randomread x;
   typename AT::t_float_1d_randomread q;
   typename AT::t_f_array f;
+  typename AT::t_imageint_1d_randomread image;
   typename AT::t_int_1d_randomread mask;
 };
 

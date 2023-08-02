@@ -29,6 +29,7 @@ public:
     {
         lammps->command("clear");
         lammps->commands_string(input);
+        delete[] input;
         emit resultReady();
     }
 

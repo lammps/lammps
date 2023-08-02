@@ -369,7 +369,7 @@ void LammpsGui::logupdate()
     double t_elapsed, t_remain, t_total;
     int completed = 1000;
 
-    if (is_running) {
+    if (lammps.is_running()) {
         t_elapsed = lammps.get_thermo("cpu");
         t_remain  = lammps.get_thermo("cpuremain");
         t_total   = t_elapsed + t_remain + 1.0e-10;
@@ -441,7 +441,8 @@ void LammpsGui::run_buffer()
     clear();
     capturer->BeginCapture();
 
-    char *input = mystrdup(ui->textEdit->toPlainText().toStdString());
+    // always add final newline since the text edit widget does not
+    char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
     is_running  = true;
 
     LammpsRunner *runner = new LammpsRunner(this);
@@ -524,7 +525,6 @@ void LammpsGui::view_image()
 
 void LammpsGui::clear()
 {
-    if (!lammps.is_open()) lammps.command("clear");
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
 }
 

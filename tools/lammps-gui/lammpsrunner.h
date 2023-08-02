@@ -20,13 +20,14 @@ class LammpsRunner : public QThread {
     Q_OBJECT
 
 public:
-    LammpsRunner(QObject *parent = nullptr)  : QThread(parent), lammps(nullptr), input(nullptr) {}
+    LammpsRunner(QObject *parent = nullptr) : QThread(parent), lammps(nullptr), input(nullptr) {}
     ~LammpsRunner() = default;
 
 public:
     // execute LAMMPS in runner thread
     void run() override
     {
+        lammps->command("clear");
         lammps->commands_string(input);
         emit resultReady();
     }

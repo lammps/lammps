@@ -65,6 +65,7 @@ class ComputePropertyGrid : public Compute {
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
+  void pack_proc(int);
   template <int IDIM> void pack_indices(int);
   template <int POS, int MODE, int IDIM> void pack_coords(int);
 };

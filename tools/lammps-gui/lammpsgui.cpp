@@ -20,6 +20,7 @@
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
+#include <QCoreApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -28,20 +29,16 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QProgressBar>
+#include <QSettings>
 #include <QShortcut>
 #include <QStatusBar>
 #include <QTextStream>
+#include <QThread>
 #include <QTimer>
 #include <QUrl>
 
 #include <cstring>
 #include <string>
-
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-#include "liblammpsplugin.h"
-#else
-#include "library.h"
-#endif
 
 #if defined(_OPENMP)
 #include <cstdlib>
@@ -54,6 +51,8 @@
 #include <unistd.h>
 #endif
 
+static const QString blank(" ");
+
 // duplicate string
 static char *mystrdup(const std::string &text)
 {
@@ -65,8 +64,7 @@ static char *mystrdup(const std::string &text)
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), logupdater(nullptr),
-    dirstatus(nullptr), progress(nullptr), prefdialog(nullptr), lammps_handle(nullptr),
-    plugin_handle(nullptr), plugin_path(nullptr), is_running(false)
+    dirstatus(nullptr), progress(nullptr), prefdialog(nullptr)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
@@ -77,9 +75,16 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     current_dir = QDir(".").absolutePath();
     recent_files.clear();
 
+    QCoreApplication::setOrganizationName("The LAMMPS Developers");
+    QCoreApplication::setOrganizationDomain("lammps.org");
+    QCoreApplication::setApplicationName("LAMMPS GUI");
+
+    // restorge and initialize settings
+    QSettings settings;
+
 #if defined(_OPENMP)
     // use maximum number of available threads unless OMP_NUM_THREADS was set
-    nthreads = omp_get_max_threads();
+    nthreads = settings.value("nthreads", omp_get_max_threads()).toInt();
 #if _WIN32
     if (!getenv("OMP_NUM_THREADS")) {
         _putenv_s("OMP_NUM_THREADS", std::to_string(nthreads).c_str());
@@ -88,7 +93,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     setenv("OMP_NUM_THREADS", std::to_string(nthreads).c_str(), 0);
 #endif
 #else
-    nthreads = 1;
+    nthreads = settings.value("nthreads", 1).toInt();
 #endif
 
     const char *tmpdir = getenv("TMPDIR");
@@ -100,14 +105,14 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #else
     if (!tmpdir) tmpdir = "/tmp";
 #endif
-    temp_dir = tmpdir;
+    settings.setValue("tempdir", QString(tmpdir));
 
     lammps_args.clear();
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));
     lammps_args.push_back(mystrdup("-log"));
     lammps_args.push_back(mystrdup("none"));
-    lammps_args.push_back(mystrdup("-suffix"));
-    lammps_args.push_back(mystrdup("omp"));
+    //    lammps_args.push_back(mystrdup("-suffix"));
+    //    lammps_args.push_back(mystrdup("omp"));
 
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
 #if (__APPLE__)
@@ -158,24 +163,24 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     dirstatus->show();
     ui->statusbar->addWidget(progress);
 
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    liblammpsplugin_t *lammps = nullptr;
-    for (const auto libfile : {"liblammps.so", "./liblammps.so", "liblammps.dylib",
-                               "./liblammps.dylib", "liblammps.dll"}) {
-        if (!lammps) lammps = liblammpsplugin_load(libfile);
-        if (lammps) {
+    plugin_path.clear();
+    std::string deffile = settings.value("plugin_path", "liblammps.so").toString().toStdString();
+    for (const char *libfile : {deffile.c_str(), "./liblammps.so", "liblammps.dylib",
+                                "./liblammps.dylib", "liblammps.dll"}) {
+        if (lammps.load_lib(libfile)) {
             plugin_path = libfile;
+            settings.setValue("plugin_path", QString(libfile));
             break;
         }
     }
-    bool do_exit = !lammps || (lammps && lammps->abiversion != LAMMPSPLUGIN_ABI_VERSION);
-    if (!lammps) QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
-    if (lammps && (lammps->abiversion != LAMMPSPLUGIN_ABI_VERSION))
-        QMessageBox::critical(this, "Warning",
-                              "ERROR: LAMMPS lib plugin ABI version does not match");
-    plugin_handle = lammps;
-    if (do_exit) exit(1);
-#endif
+
+    if (plugin_path.empty()) {
+        // none of the plugin paths could load, remove key
+        settings.remove("plugin_path");
+        QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
+        // QCoreApplication::quit();
+        exit(1);
+    }
 
     if (filename) {
         open_file(filename);
@@ -200,12 +205,7 @@ void LammpsGui::new_document()
     current_file.clear();
     ui->textEdit->document()->setPlainText(QString());
 
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    if (lammps_handle) ((liblammpsplugin_t *)plugin_handle)->close(lammps_handle);
-#else
-    if (lammps_handle) lammps_close(lammps_handle);
-#endif
-    lammps_handle = nullptr;
+    lammps.close();
     setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
 }
 
@@ -300,22 +300,9 @@ void LammpsGui::save_as()
 
 void LammpsGui::quit()
 {
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    if (lammps_handle) {
-        liblammpsplugin_t *lammps = (liblammpsplugin_t *)plugin_handle;
-        lammps->close(lammps_handle);
-        lammps->mpi_finalize();
-        lammps->kokkos_finalize();
-        lammps->python_finalize();
-    }
-#else
-    if (lammps_handle) {
-        lammps_close(lammps_handle);
-        lammps_mpi_finalize();
-        lammps_kokkos_finalize();
-        lammps_python_finalize();
-    }
-#endif
+    lammps.close();
+    lammps.finalize();
+
     if (ui->textEdit->document()->isModified()) {
         QMessageBox msg;
         msg.setWindowTitle("Unsaved Changes");
@@ -374,11 +361,7 @@ void LammpsGui::redo()
 
 void LammpsGui::stop_run()
 {
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    ((liblammpsplugin_t *)plugin_handle)->force_timeout(lammps_handle);
-#else
-    lammps_force_timeout(lammps_handle);
-#endif
+    lammps.force_timeout();
 }
 
 void LammpsGui::logupdate()
@@ -386,22 +369,12 @@ void LammpsGui::logupdate()
     double t_elapsed, t_remain, t_total;
     int completed = 1000;
 
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    liblammpsplugin_t *lammps = (liblammpsplugin_t *)plugin_handle;
-    if (lammps->is_running(lammps_handle)) {
-        t_elapsed = lammps->get_thermo(lammps_handle, "cpu");
-        t_remain  = lammps->get_thermo(lammps_handle, "cpuremain");
+    if (is_running) {
+        t_elapsed = lammps.get_thermo("cpu");
+        t_remain  = lammps.get_thermo("cpuremain");
         t_total   = t_elapsed + t_remain + 1.0e-10;
         completed = t_elapsed / t_total * 1000.0;
     }
-#else
-    if (lammps_is_running(lammps_handle)) {
-        t_elapsed = lammps_get_thermo(lammps_handle, "cpu");
-        t_remain  = lammps_get_thermo(lammps_handle, "cpuremain");
-        t_total   = t_elapsed + t_remain + 1.0e-10;
-        completed = t_elapsed / t_total * 1000.0;
-    }
-#endif
 
     progress->setValue(completed);
     if (logwindow) {
@@ -440,18 +413,10 @@ void LammpsGui::run_done()
     constexpr int BUFLEN = 1024;
     char errorbuf[BUFLEN];
 
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    liblammpsplugin_t *lammps = (liblammpsplugin_t *)plugin_handle;
-    if (lammps->has_error(lammps_handle)) {
-        lammps->get_last_error_message(lammps_handle, errorbuf, BUFLEN);
+    if (lammps.has_error()) {
+        lammps.get_last_error_message(errorbuf, BUFLEN);
         success = false;
     }
-#else
-    if (lammps_has_error(lammps_handle)) {
-        lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
-        success = false;
-    }
-#endif
 
     if (success) {
         status->setText("Ready.");
@@ -460,7 +425,6 @@ void LammpsGui::run_done()
         QMessageBox::critical(this, "LAMMPS-GUI Error",
                               QString("Error running LAMMPS:\n\n") + errorbuf);
     }
-    is_running = false;
     progress->hide();
     dirstatus->show();
 }
@@ -473,7 +437,7 @@ void LammpsGui::run_buffer()
     status->setText(QString("Running LAMMPS with %1 thread(s)...").arg(nthreads));
     status->repaint();
     start_lammps();
-    if (!lammps_handle) return;
+    if (!lammps.is_open()) return;
     clear();
     capturer->BeginCapture();
 
@@ -481,7 +445,7 @@ void LammpsGui::run_buffer()
     is_running  = true;
 
     LammpsRunner *runner = new LammpsRunner(this);
-    runner->setup_run(lammps_handle, input, plugin_handle);
+    runner->setup_run(&lammps, input);
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
     runner->start();
@@ -516,43 +480,39 @@ void LammpsGui::run_buffer()
 void LammpsGui::view_image()
 {
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
-    if (!is_running) {
+    if (!lammps.is_running()) {
         start_lammps();
-        int box = 0;
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-        box = ((liblammpsplugin_t *)plugin_handle)->extract_setting(lammps_handle, "box_exists");
-#else
-        box = lammps_extract_setting(lammps_handle, "box_exist");
-#endif
-        if (!box) {
+        if (!lammps.extract_setting("box_exists")) {
             QMessageBox::warning(this, "ImageViewer Error",
                                  "Cannot create snapshot image without a system box");
             return;
         }
 
-        std::string dumpcmd = "write_dump all image '";
-        QString dumpfile    = temp_dir;
+        QSettings settings;
+        QString dumpcmd  = "write_dump all image ";
+        QString dumpfile = settings.value("tempdir").toString();
 #if defined(_WIN32)
         dumpfile += '\\';
 #else
         dumpfile += '/';
 #endif
         dumpfile += current_file + ".ppm";
+        dumpcmd += dumpfile;
 
-        dumpcmd += dumpfile.toStdString() + "' type type size 800 600";
+        settings.beginGroup("snapshot");
+        dumpcmd += blank + settings.value("color", "type").toString();
+        dumpcmd += blank + settings.value("diameter", "type").toString();
+        dumpcmd += QString(" size ") + settings.value("xsize", "800").toString();
+        dumpcmd += blank + settings.value("ysize", "600").toString();
+        dumpcmd += QString(" zoom ") + settings.value("zoom", "1.0").toString();
+        settings.endGroup();
 
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-        ((liblammpsplugin_t *)plugin_handle)->command(lammps_handle, dumpcmd.c_str());
-#else
-        lammps_command(lammps_handle, dumpcmd.c_str());
-#endif
+        lammps.command(dumpcmd.toLocal8Bit());
         imagewindow = new ImageViewer(dumpfile);
-#if 0
 #if defined(_WIN32)
         _unlink(dumpfile.toLocal8Bit());
 #else
         unlink(dumpfile.toLocal8Bit());
-#endif
 #endif
     } else {
         QMessageBox::warning(this, "ImageViewer Error",
@@ -564,39 +524,29 @@ void LammpsGui::view_image()
 
 void LammpsGui::clear()
 {
-    if (lammps_handle) {
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-        ((liblammpsplugin_t *)plugin_handle)->command(lammps_handle, "clear");
-#else
-        lammps_command(lammps_handle, "clear");
-#endif
-    }
+    if (!lammps.is_open()) lammps.command("clear");
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
 }
 
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    version += " - LAMMPS linked dynamically";
-    if (plugin_path) {
-        version += " from file ";
-        version += plugin_path;
+    if (lammps.has_plugin()) {
+        version += " - LAMMPS linked dynamically";
+        if (!plugin_path.empty()) {
+            version += " from file ";
+            version += plugin_path;
+        }
+    } else {
+        version += " - LAMMPS linked statically";
     }
-#else
-    version += " - LAMMPS linked statically";
-#endif
     std::string info = "LAMMPS is currently running. LAMMPS config info not available.";
 
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
-    if (!is_running) {
+    if (!lammps.is_running()) {
         start_lammps();
         capturer->BeginCapture();
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-        ((liblammpsplugin_t *)plugin_handle)->commands(lammps_handle, "info config");
-#else
-        lammps_command(lammps_handle, "info config");
-#endif
+        lammps.command("info config");
         capturer->EndCapture();
         info       = capturer->GetCapture();
         auto start = info.find("LAMMPS version:");
@@ -675,33 +625,18 @@ void LammpsGui::preferences()
 void LammpsGui::start_lammps()
 {
     char **args = lammps_args.data();
-    int nargs   = lammps_args.size();
+    int narg    = lammps_args.size();
 
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    liblammpsplugin_t *lammps = (liblammpsplugin_t *)plugin_handle;
+    lammps.open(narg, args);
 
-    // Create LAMMPS instance if not already present
-    if (!lammps_handle) lammps_handle = lammps->open_no_mpi(nargs, args, nullptr);
-    if (lammps->has_error(lammps_handle)) {
+    if (lammps.has_error()) {
         constexpr int BUFLEN = 1024;
         char errorbuf[BUFLEN];
-        lammps->get_last_error_message(lammps_handle, errorbuf, BUFLEN);
+        lammps.get_last_error_message(errorbuf, BUFLEN);
 
         QMessageBox::critical(this, "LAMMPS-GUI Error",
                               QString("Error launching LAMMPS:\n\n") + errorbuf);
     }
-#else
-    // Create LAMMPS instance if not already present
-    if (!lammps_handle) lammps_handle = lammps_open_no_mpi(nargs, args, nullptr);
-    if (lammps_has_error(lammps_handle)) {
-        constexpr int BUFLEN = 1024;
-        char errorbuf[BUFLEN];
-        lammps_get_last_error_message(lammps_handle, errorbuf, BUFLEN);
-
-        QMessageBox::critical(this, "LAMMPS-GUI Error",
-                              QString("Error launching LAMMPS:\n\n") + errorbuf);
-    }
-#endif
 }
 
 // Local Variables:

@@ -76,8 +76,9 @@ set(PROJECT_SOURCES
   lammpsgui.cpp
   lammpsgui.h
   lammpsgui.ui
-  lammpsrunner.cpp
   lammpsrunner.h
+  lammpswrapper.cpp
+  lammpswrapper.h
   preferences.cpp
   preferences.h
   stdcapture.cpp

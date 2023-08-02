@@ -11,42 +11,39 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LAMMPSRUNNER_H
-#define LAMMPSRUNNER_H
+#ifndef LAMMPSWRAPPER_H
+#define LAMMPSWRAPPER_H
 
-#include <QThread>
-
-class LammpsRunner : public QThread {
-    Q_OBJECT
+class LammpsWrapper {
+public:
+    LammpsWrapper();
 
 public:
-    LammpsRunner(QObject *parent = nullptr)  : QThread(parent), lammps(nullptr), input(nullptr) {}
-    ~LammpsRunner() = default;
+    void open(int nargs, char **args);
+    void close();
+    void finalize();
 
-public:
-    // execute LAMMPS in runner thread
-    void run() override
-    {
-        lammps->commands_string(input);
-        emit resultReady();
-    }
+    void command(const char *);
+    void commands_string(const char *);
 
-    // transfer info to worker thread
-    void setup_run(LammpsWrapper *_lammps, const char *_input)
-    {
-        lammps = _lammps;
-        input  = _input;
-    }
+    void force_timeout();
 
-signals:
-    void resultReady();
+    int extract_setting(const char *keyword);
+    double get_thermo(const char *keyword);
+    bool is_open() const { return lammps_handle != nullptr; }
+    bool is_running();
+    bool has_error() const;
+    int get_last_error_message(char *errorbuf, int buflen);
+
+    bool load_lib(const char *lammpslib);
+    bool has_plugin() const;
 
 private:
-    LammpsWrapper *lammps;
-    const char *input;
+    void *lammps_handle;
+    void *plugin_handle;
 };
-
 #endif
+
 // Local Variables:
 // c-basic-offset: 4
 // End:

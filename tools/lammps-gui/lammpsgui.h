@@ -15,8 +15,12 @@
 #define LAMMPSGUI_H
 
 #include <QMainWindow>
+
+#include <QList>
 #include <QString>
 #include <vector>
+
+#include "lammpswrapper.h"
 
 // forward declarations
 
@@ -87,13 +91,11 @@ private:
 
     QString current_file;
     QString current_dir;
-    QString temp_dir;
-    void *lammps_handle;
-    void *plugin_handle;
-    const char *plugin_path;
+    LammpsWrapper lammps;
+    std::string plugin_path;
     bool is_running;
     int nthreads;
-    std::vector<char *> recent_files;
+    QList<QString> recent_files;
     std::vector<char *> lammps_args;
 };
 

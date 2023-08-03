@@ -224,14 +224,13 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
     intel->setEnabled(lammps->config_has_package("INTEL"));
     intel->setObjectName("intel");
     // Kokkos support only works with OpenMP for now.
+    kokkos->setEnabled(false);
     if (lammps->config_has_package("KOKKOS")) {
         if (lammps->config_accelerator("KOKKOS", "api", "openmp") &&
             !(lammps->config_accelerator("KOKKOS", "api", "cuda") ||
               lammps->config_accelerator("KOKKOS", "api", "hip") ||
               lammps->config_accelerator("KOKKOS", "api", "sycl")))
             kokkos->setEnabled(true);
-        else
-            kokkos->setEnabled(false);
     }
     kokkos->setObjectName("kokkos");
     gpu->setEnabled(lammps->config_has_package("GPU") && lammps->has_gpu_device());

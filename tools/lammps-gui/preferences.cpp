@@ -23,6 +23,7 @@
 #include <QLineEdit>
 #include <QRadioButton>
 #include <QSettings>
+#include <QSpacerItem>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -37,9 +38,9 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
     settings(new QSettings), lammps(_lammps)
 {
-    tabWidget->addTab(new GeneralTab(settings), "General Settings");
-    tabWidget->addTab(new AcceleratorTab(settings, lammps), "Accelerators");
-    tabWidget->addTab(new SnapshotTab(settings), "Snapshot Image");
+    tabWidget->addTab(new GeneralTab(settings), "&General Settings");
+    tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
+    tabWidget->addTab(new SnapshotTab(settings), "&Snapshot Image");
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &Preferences::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -239,12 +240,15 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     zval->setValidator(new QDoubleValidator(0.01, 100.0, 100, this));
     zval->setObjectName("zoom");
 
-    grid->addWidget(xsize, 0, 0);
-    grid->addWidget(ysize, 1, 0);
-    grid->addWidget(zoom, 2, 0);
-    grid->addWidget(xval, 0, 1);
-    grid->addWidget(yval, 1, 1);
-    grid->addWidget(zval, 2, 1);
+    grid->addWidget(xsize, 0, 0, Qt::AlignTop);
+    grid->addWidget(ysize, 1, 0, Qt::AlignTop);
+    grid->addWidget(zoom, 2, 0, Qt::AlignTop);
+    grid->addWidget(xval, 0, 1, Qt::AlignTop);
+    grid->addWidget(yval, 1, 1, Qt::AlignTop);
+    grid->addWidget(zval, 2, 1, Qt::AlignTop);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 3, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 3, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 3, 2);
     setLayout(grid);
 }
 

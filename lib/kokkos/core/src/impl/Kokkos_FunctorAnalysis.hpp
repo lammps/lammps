@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_FUNCTORANALYSIS_HPP
 #define KOKKOS_FUNCTORANALYSIS_HPP
@@ -70,10 +42,10 @@ struct DeduceFunctorPatternInterface<
   using type = FunctorPatternInterface::FOR;
 };
 
-template <class FunctorType, class ExecPolicy, class ReducerType,
+template <class CombinedFunctorReducerType, class ExecPolicy,
           class ExecutionSpace>
 struct DeduceFunctorPatternInterface<
-    ParallelReduce<FunctorType, ExecPolicy, ReducerType, ExecutionSpace>> {
+    ParallelReduce<CombinedFunctorReducerType, ExecPolicy, ExecutionSpace>> {
   using type = FunctorPatternInterface::REDUCE;
 };
 
@@ -92,14 +64,15 @@ struct DeduceFunctorPatternInterface<ParallelScanWithTotal<
 
 /** \brief  Query Functor and execution policy argument tag for value type.
  *
- *  If 'value_type' is not explicitly declared in the functor
- *  then attempt to deduce the type from FunctorType::operator()
- *  interface used by the pattern and policy.
+ *  If 'value_type' is not explicitly declared in the functor and
+ * OverrideValueType is void, then attempt to deduce the type from
+ * FunctorType::operator() interface used by the pattern and policy.
  *
  *  For the REDUCE pattern generate a Reducer and finalization function
  *  derived from what is available within the functor.
  */
-template <typename PatternInterface, class Policy, class Functor>
+template <typename PatternInterface, class Policy, class Functor,
+          typename OverrideValueType>
 struct FunctorAnalysis {
  private:
   using FOR    = FunctorPatternInterface::FOR;
@@ -152,9 +125,10 @@ struct FunctorAnalysis {
   //----------------------------------------
   // Check for Functor::value_type, which is either a simple type T or T[]
 
+  // If the functor doesn't have a value_type alias, use OverrideValueType.
   template <typename F, typename = std::false_type>
   struct has_value_type {
-    using type = void;
+    using type = OverrideValueType;
   };
 
   template <typename F>
@@ -169,9 +143,9 @@ struct FunctorAnalysis {
   };
 
   //----------------------------------------
-  // If Functor::value_type does not exist then evaluate operator(),
-  // depending upon the pattern and whether the policy has a work tag,
-  // to determine the reduction or scan value_type.
+  // If Functor::value_type does not exist and OverrideValueType is void, then
+  // evaluate operator(), depending upon the pattern and whether the policy has
+  // a work tag, to determine the reduction or scan value_type.
 
   template <typename F, typename P = PatternInterface,
             typename V = typename has_value_type<F>::type,
@@ -348,13 +322,15 @@ struct FunctorAnalysis {
 
  private:
   template <bool IsArray, class FF>
-  KOKKOS_INLINE_FUNCTION static constexpr std::enable_if_t<IsArray, unsigned>
+  KOKKOS_INLINE_FUNCTION static constexpr std::enable_if_t<IsArray,
+                                                           unsigned int>
   get_length(FF const& f) {
     return f.value_count;
   }
 
   template <bool IsArray, class FF>
-  KOKKOS_INLINE_FUNCTION static constexpr std::enable_if_t<!IsArray, unsigned>
+  KOKKOS_INLINE_FUNCTION static constexpr std::enable_if_t<!IsArray,
+                                                           unsigned int>
   get_length(FF const&) {
     return candidate_is_void ? 0 : 1;
   }
@@ -365,12 +341,12 @@ struct FunctorAnalysis {
         !candidate_is_void && !candidate_is_array ? sizeof(ValueType) : 0
   };
 
-  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned value_count(
+  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned int value_count(
       const Functor& f) {
     return FunctorAnalysis::template get_length<candidate_is_array>(f);
   }
 
-  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned value_size(
+  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned int value_size(
       const Functor& f) {
     return FunctorAnalysis::template get_length<candidate_is_array>(f) *
            sizeof(ValueType);
@@ -379,13 +355,13 @@ struct FunctorAnalysis {
   //----------------------------------------
 
   template <class Unknown>
-  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned value_count(
+  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned int value_count(
       const Unknown&) {
     return candidate_is_void ? 0 : 1;
   }
 
   template <class Unknown>
-  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned value_size(
+  KOKKOS_FORCEINLINE_FUNCTION static constexpr unsigned int value_size(
       const Unknown&) {
     return candidate_is_void ? 0 : sizeof(ValueType);
   }
@@ -655,6 +631,11 @@ struct FunctorAnalysis {
                         detected_volatile_join_no_tag<F>::value)>>
       : public has_volatile_join_no_tag_function<F> {
     enum : bool { value = true };
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+    static_assert(Impl::dependent_false_v<F>,
+                  "Reducer with a join() operator taking "
+                  "volatile-qualified parameters is no longer supported");
+#endif
   };
 
   template <class F = Functor, typename = void>
@@ -673,6 +654,11 @@ struct FunctorAnalysis {
                                          detected_volatile_join_tag<F>::value)>>
       : public has_volatile_join_tag_function<F> {
     enum : bool { value = true };
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+    static_assert(Impl::dependent_false_v<F>,
+                  "Reducer with a join() operator taking "
+                  "volatile-qualified parameters is no longer supported");
+#endif
   };
 
   //----------------------------------------
@@ -921,12 +907,12 @@ struct FunctorAnalysis {
 
   struct Reducer {
    private:
-    Functor const* const m_functor;
+    Functor m_functor;
 
     template <bool IsArray>
     KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<IsArray, int> len() const
         noexcept {
-      return m_functor->value_count;
+      return m_functor.value_count;
     }
 
     template <bool IsArray>
@@ -941,6 +927,28 @@ struct FunctorAnalysis {
     using pointer_type   = value_type*;
     using reference_type = FunctorAnalysis::reference_type;
     using functor_type   = Functor;  // Adapts a functor
+
+    static constexpr bool has_join_member_function() {
+      return DeduceJoin<>::value;
+    }
+    static constexpr bool has_init_member_function() {
+      return DeduceInit<>::value;
+    }
+    static constexpr bool has_final_member_function() {
+      return DeduceFinal<>::value;
+    }
+
+    KOKKOS_FUNCTION unsigned int value_size() const {
+      return FunctorAnalysis::value_size(m_functor);
+    }
+
+    KOKKOS_FUNCTION unsigned int value_count() const {
+      return FunctorAnalysis::value_count(m_functor);
+    }
+
+    KOKKOS_FUNCTION static constexpr unsigned int static_value_size() {
+      return StaticValueSize;
+    }
 
     template <bool is_array = candidate_is_array>
     KOKKOS_INLINE_FUNCTION static std::enable_if_t<is_array, reference_type>
@@ -966,19 +974,22 @@ struct FunctorAnalysis {
 
     KOKKOS_INLINE_FUNCTION
     void join(ValueType* dst, ValueType const* src) const noexcept {
-      DeduceJoin<>::join(m_functor, dst, src);
+      DeduceJoin<>::join(&m_functor, dst, src);
     }
 
     KOKKOS_INLINE_FUNCTION reference_type init(ValueType* const dst) const
         noexcept {
-      DeduceInit<>::init(m_functor, dst);
+      DeduceInit<>::init(&m_functor, dst);
       return reference(dst);
     }
 
     KOKKOS_INLINE_FUNCTION
     void final(ValueType* dst) const noexcept {
-      DeduceFinal<>::final(m_functor, dst);
+      DeduceFinal<>::final(&m_functor, dst);
     }
+
+    KOKKOS_INLINE_FUNCTION
+    const Functor& get_functor() const { return m_functor; }
 
     Reducer(Reducer const&) = default;
     Reducer(Reducer&&)      = default;
@@ -987,7 +998,7 @@ struct FunctorAnalysis {
     ~Reducer()                    = default;
 
     KOKKOS_INLINE_FUNCTION explicit constexpr Reducer(
-        Functor const* arg_functor) noexcept
+        Functor const& arg_functor) noexcept
         : m_functor(arg_functor) {}
   };
 };

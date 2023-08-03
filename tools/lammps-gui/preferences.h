@@ -28,7 +28,7 @@ public:
     explicit Preferences(LammpsWrapper *lammps, QWidget *parent = nullptr);
     ~Preferences() override;
 
-protected slots:
+private slots:
     void accept() override;
 
 private:
@@ -44,10 +44,15 @@ class GeneralTab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit GeneralTab(QSettings *settings, QWidget *parent = nullptr);
+    explicit GeneralTab(QSettings *settings, LammpsWrapper *lammps, QWidget *parent = nullptr);
+
+private slots:
+    void pluginpath();
+    void newtmpfolder();
 
 private:
     QSettings *settings;
+    LammpsWrapper *lammps;
 };
 
 class AcceleratorTab : public QWidget {

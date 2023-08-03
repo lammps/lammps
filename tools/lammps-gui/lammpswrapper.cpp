@@ -191,7 +191,11 @@ bool LammpsWrapper::load_lib(const char *libfile)
     if (plugin_handle) liblammpsplugin_release((liblammpsplugin_t *)plugin_handle);
     plugin_handle = liblammpsplugin_load(libfile);
     if (!plugin_handle) return false;
-    if (((liblammpsplugin_t *)plugin_handle)->abiversion != LAMMPSPLUGIN_ABI_VERSION) return false;
+    if (((liblammpsplugin_t *)plugin_handle)->abiversion != LAMMPSPLUGIN_ABI_VERSION) {
+        liblammpsplugin_release((liblammpsplugin_t *)plugin_handle);
+        plugin_handle = nullptr;
+        return false;
+    }
     return true;
 }
 #else

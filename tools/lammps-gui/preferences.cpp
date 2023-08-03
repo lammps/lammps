@@ -13,21 +13,26 @@
 
 #include "preferences.h"
 
+#include "lammpswrapper.h"
+
 #include <QCheckBox>
+#include <QCoreApplication>
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QDoubleValidator>
+#include <QFileDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QRadioButton>
 #include <QSettings>
 #include <QSpacerItem>
 #include <QTabWidget>
 #include <QVBoxLayout>
-
-#include "lammpswrapper.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -38,7 +43,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
     settings(new QSettings), lammps(_lammps)
 {
-    tabWidget->addTab(new GeneralTab(settings), "&General Settings");
+    tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
     tabWidget->addTab(new SnapshotTab(settings), "&Snapshot Image");
 
@@ -112,7 +117,8 @@ void Preferences::accept()
     QDialog::accept();
 }
 
-GeneralTab::GeneralTab(QSettings *_settings, QWidget *parent) : QWidget(parent), settings(_settings)
+GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *parent) :
+    QWidget(parent), settings(_settings), lammps(_lammps)
 {
     auto *layout = new QVBoxLayout;
 
@@ -122,11 +128,64 @@ GeneralTab::GeneralTab(QSettings *_settings, QWidget *parent) : QWidget(parent),
     auto *cite = new QCheckBox("Include Citations");
     cite->setCheckState(settings->value("cite", "0").toInt() ? Qt::Checked : Qt::Unchecked);
     cite->setObjectName("cite");
+    auto *tmplabel  = new QLabel("Scratch Folder:");
+    auto *tmpedit   = new QLineEdit(settings->value("tempdir", ".").toString());
+    auto *tmpbrowse = new QPushButton("Browse...");
+    auto *tmplayout = new QHBoxLayout;
+    tmpedit->setObjectName("tmpedit");
+    tmplayout->addWidget(tmplabel);
+    tmplayout->addWidget(tmpedit);
+    tmplayout->addWidget(tmpbrowse);
 
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    auto *pluginlabel = new QLabel("Path to LAMMPS Shared Library File:");
+    auto *pluginedit =
+        new QLineEdit(settings->value("plugin_path", "liblammpsplugin.so").toString());
+    auto *pluginbrowse = new QPushButton("Browse...");
+    auto *pluginlayout = new QHBoxLayout;
+    pluginedit->setObjectName("pluginedit");
+    pluginlayout->addWidget(pluginedit);
+    pluginlayout->addWidget(pluginbrowse);
+
+    connect(pluginbrowse, &QPushButton::released, this, &GeneralTab::pluginpath);
+#endif
     layout->addWidget(echo);
     layout->addWidget(cite);
+    layout->addLayout(tmplayout);
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    layout->addWidget(pluginlabel);
+    layout->addLayout(pluginlayout);
+#endif
     layout->addStretch(1);
     setLayout(layout);
+}
+
+void GeneralTab::newtmpfolder()
+{
+    QLineEdit *field = findChild<QLineEdit *>("tmpedit");
+    QString tmpdir =
+        QFileDialog::getExistingDirectory(this, "Find Folder for Temporary Files", field->text());
+    if (!tmpdir.isEmpty()) field->setText(tmpdir);
+}
+
+void GeneralTab::pluginpath()
+{
+    QLineEdit *field = findChild<QLineEdit *>("pluginedit");
+    QString pluginfile =
+        QFileDialog::getOpenFileName(this, "Select Shared LAMMPS Library to Load", field->text(),
+                                     "Shared Objects (*.so *.dll *.dylib)");
+    if (!pluginfile.isEmpty() && pluginfile.contains("liblammps", Qt::CaseSensitive)) {
+        if (lammps->load_lib(pluginfile.toStdString().c_str())) {
+            auto canonical = QFileInfo(pluginfile).canonicalFilePath();
+            field->setText(pluginfile);
+            settings->setValue("plugin_path", canonical);
+        } else {
+            // plugin did not load cannot continue
+            settings->remove("plugin_path");
+            QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
+            QCoreApplication::quit();
+        }
+    }
 }
 
 AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *parent) :

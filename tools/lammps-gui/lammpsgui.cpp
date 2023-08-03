@@ -164,13 +164,15 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     dirstatus->show();
     ui->statusbar->addWidget(progress);
 
+#if defined(LAMMPS_GUI_USE_PLUGIN)
     plugin_path.clear();
     std::string deffile = settings.value("plugin_path", "liblammps.so").toString().toStdString();
     for (const char *libfile : {deffile.c_str(), "./liblammps.so", "liblammps.dylib",
                                 "./liblammps.dylib", "liblammps.dll"}) {
         if (lammps.load_lib(libfile)) {
-            plugin_path = libfile;
-            settings.setValue("plugin_path", QString(libfile));
+            auto canonical = QFileInfo(libfile).canonicalFilePath();
+            plugin_path    = canonical.toStdString();
+            settings.setValue("plugin_path", canonical);
             break;
         }
     }
@@ -182,6 +184,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
         // QCoreApplication::quit();
         exit(1);
     }
+#endif
 
     if (filename) {
         open_file(filename);

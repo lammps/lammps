@@ -20,7 +20,7 @@
 
 #include "atom.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -82,7 +82,6 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   // parse keywords
 
   nadapt = 0;
-  diamflag = 0;
   chgflag = 0;
 
   iarg = 4;
@@ -114,7 +113,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].which = ATOM;
       if (strcmp(arg[iarg+1],"diameter") == 0) {
         adapt[nadapt].aparam = DIAMETER;
-        diamflag = 1;
+        diam_flag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
@@ -201,7 +200,7 @@ int FixAdaptFEP::setmask()
 void FixAdaptFEP::post_constructor()
 {
   if (!resetflag) return;
-  if (!diamflag && !chgflag) return;
+  if (!diam_flag && !chgflag) return;
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
@@ -209,10 +208,10 @@ void FixAdaptFEP::post_constructor()
   id_fix_diam = nullptr;
   id_fix_chg = nullptr;
 
-  if (diamflag) {
+  if (diam_flag) {
     id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
-    fix_diam = dynamic_cast<FixStore *>(
-      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",id_fix_diam,group->names[igroup])));
+    fix_diam = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_diam,group->names[igroup])));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -229,8 +228,8 @@ void FixAdaptFEP::post_constructor()
 
   if (chgflag) {
     id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
-    fix_chg = dynamic_cast<FixStore *>(
-      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",id_fix_chg,group->names[igroup])));
+    fix_chg = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1",id_fix_chg,group->names[igroup])));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;
@@ -333,11 +332,11 @@ void FixAdaptFEP::init()
   // fixes that store initial per-atom values
 
   if (id_fix_diam) {
-    fix_diam = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix_diam));
+    fix_diam = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix_diam));
     if (!fix_diam) error->all(FLERR,"Could not find fix adapt/fep storage fix ID {}", id_fix_diam);
   }
   if (id_fix_chg) {
-    fix_chg = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix_chg));
+    fix_chg = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix_chg));
     if (!fix_chg) error->all(FLERR,"Could not find fix adapt/fep storage fix ID {}", id_fix_chg);
   }
 
@@ -513,7 +512,7 @@ void FixAdaptFEP::restore_settings()
       *kspace_scale = 1.0;
 
     } else if (ad->which == ATOM) {
-      if (diamflag) {
+      if (diam_flag) {
         double density;
 
         double *vec = fix_diam->vstore;

@@ -15,7 +15,6 @@
    Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
-
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(buck/coul/cut/intel,PairBuckCoulCutIntel);

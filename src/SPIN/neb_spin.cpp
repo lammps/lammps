@@ -48,12 +48,12 @@
 using namespace LAMMPS_NS;
 
 static const char cite_neb_spin[] =
-  "neb/spin command:\n\n"
+  "neb/spin command: doi:10.1016/j.cpc.2015.07.001\n\n"
   "@article{bessarab2015method,\n"
-  "title={Method for finding mechanism and activation energy of "
-  "magnetic transitions, applied to skyrmion and antivortex "
-  "annihilation},\n"
-  "author={Bessarab, P.F. and Uzdin, V.M. and J{\'o}nsson, H.},\n"
+  "title={Method for Finding Mechanism and Activation Energy of\n"
+  "  Magnetic Transitions, Applied to Skyrmion and Antivortex\n"
+  "  Annihilation},\n"
+  "author={Bessarab, P. F. and Uzdin, V. M. and J{\'o}nsson, H.},\n"
   "journal={Computer Physics Communications},\n"
   "volume={196},\n"
   "pages={335--347},\n"
@@ -243,7 +243,7 @@ void NEBSpin::run()
   // perform regular NEBSpin for n1steps or until replicas converge
   // retrieve PE values from fix NEBSpin and print every nevery iterations
   // break out of while loop early if converged
-  // damped dynamic min styles insure all replicas converge together
+  // damped dynamic min styles ensure all replicas converge together
 
   timer->init();
   timer->barrier_start();
@@ -331,7 +331,7 @@ void NEBSpin::run()
   // perform climbing NEBSpin for n2steps or until replicas converge
   // retrieve PE values from fix NEBSpin and print every nevery iterations
   // break induced if converged
-  // damped dynamic min styles insure all replicas converge together
+  // damped dynamic min styles ensure all replicas converge together
 
   timer->init();
   timer->barrier_start();

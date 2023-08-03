@@ -19,7 +19,15 @@ dihedral_style class2
 
 improper_style class2
 
-read_data tiny_nylon.data
+special_bonds lj/coul 0 0 1
+pair_modify tail yes mix sixthpower
+
+read_data tiny_nylon.data &
+  extra/bond/per/atom 5  &
+  extra/angle/per/atom 15 &
+  extra/dihedral/per/atom 15 &
+  extra/improper/per/atom 25 &
+  extra/special/per/atom 25
 
 variable runsteps equal 1000
 variable prob1 equal step/v_runsteps*2+0.1
@@ -27,10 +35,10 @@ variable prob2 equal (step/v_runsteps)>0.5
 
 velocity all create 300.0 4928459 dist gaussian
 
-molecule mol1 rxn1_stp1_unreacted.data_template
-molecule mol2 rxn1_stp1_reacted.data_template
-molecule mol3 rxn1_stp2_unreacted.data_template
-molecule mol4 rxn1_stp2_reacted.data_template
+molecule mol1 rxn1_stp1_unreacted.molecule_template
+molecule mol2 rxn1_stp1_reacted.molecule_template
+molecule mol3 rxn1_stp2_unreacted.molecule_template
+molecule mol4 rxn1_stp2_reacted.molecule_template
 
 thermo 50
 

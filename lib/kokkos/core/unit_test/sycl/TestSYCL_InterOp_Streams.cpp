@@ -48,13 +48,13 @@
 namespace Test {
 // Test Interoperability with SYCL Streams
 TEST(sycl, raw_sycl_queues) {
+  // Make sure all queues use the same context
+  Kokkos::initialize();
+  Kokkos::Experimental::SYCL default_space;
+  sycl::context default_context = default_space.sycl_queue().get_context();
+
   sycl::default_selector device_selector;
-  // FIXME_SYCL using an in-order queue here should not be necessary since we
-  // are using submit_barrier for managing kernel dependencies but this seems to
-  // be required as a hot fix for now.
-  sycl::queue queue(device_selector, sycl::property::queue::in_order());
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
+  sycl::queue queue(default_context, device_selector);
   int* p            = sycl::malloc_device<int>(100, queue);
   using MemorySpace = typename TEST_EXECSPACE::memory_space;
 

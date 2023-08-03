@@ -66,11 +66,16 @@ Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
   kcount = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void Ewald::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
+  if (narg != 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
 
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
+  if (accuracy_relative > 1.0)
+    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+               accuracy_relative, force->kspace_style);
 }
 
 /* ----------------------------------------------------------------------
@@ -852,7 +857,7 @@ void Ewald::coeffs()
         vg[kcount][3] = -vterm*unitk[0]*k*unitk[1]*l;
         vg[kcount][4] = 0.0;
         vg[kcount][5] = 0.0;
-        kcount++;;
+        kcount++;
       }
     }
   }

@@ -40,11 +40,11 @@
 using namespace LAMMPS_NS;
 
 static const char cite_fix_pafi_package[] =
-  "citation for fix pafi:\n\n"
+  "citation for fix pafi: doi:10.1103/PhysRevLett.120.135503\n\n"
   "@article{SwinburneMarinica2018,\n"
   "author={T. D. Swinburne and M. C. Marinica},\n"
-  "title={Unsupervised calculation of free energy barriers in large "
-  "crystalline systems},\n"
+  "title={Unsupervised Calculation of Free Energy Barriers in Large\n"
+  "   Crystalline Systems},\n"
   "journal={Physical Review Letters},\n"
   "volume={120},\n"
   "number={13},\n"

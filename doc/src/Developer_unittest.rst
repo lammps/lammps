@@ -226,9 +226,9 @@ The following test programs are currently available:
    * - ``test_kim_commands.cpp``
      - KimCommands
      - Tests for several commands from the :ref:`KIM package <PKG-KIM>`
-   * - ``test_reset_ids.cpp``
-     - ResetIDs
-     - Tests to validate the :doc:`reset_atom_ids <reset_atom_ids>` and :doc:`reset_mol_ids <reset_mol_ids>` commands
+   * - ``test_reset_atoms.cpp``
+     - ResetAtoms
+     - Tests to validate the :doc:`reset_atoms <reset_atoms>` sub-commands
 
 
 Tests for the C-style library interface

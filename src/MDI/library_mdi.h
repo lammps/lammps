@@ -14,13 +14,12 @@
 #ifndef LAMMPS_LIBRARY_MDI_H
 #define LAMMPS_LIBRARY_MDI_H
 
-/* C style library calls to LAMMPS when a LAMMPS shared library is
- *  used as a plugin through MolSSI Driver Interface (MDI). */
+/* C style library call to LAMMPS when a LAMMPS shared library is
+ *  used as a plugin through MolSSI Driver Interface (MDI) */
 
 #include <mdi.h>
 
 extern "C" {
-int MDI_Plugin_init_lammps();
-int lammps_execute_mdi_command(const char *, MDI_Comm, void *);
+int MDI_Plugin_init_lammps(void *plugin_state);
 }
 #endif

@@ -198,5 +198,5 @@ none
 
 .. _MitchellFincham3:
 
-**(Mitchell and Finchham)** Mitchell, Finchham, J Phys Condensed Matter,
+**(Mitchell and Fincham)** Mitchell, Fincham, J Phys Condensed Matter,
 5, 1031-1038 (1993).

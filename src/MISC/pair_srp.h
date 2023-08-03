@@ -40,7 +40,7 @@ class PairSRP : public Pair {
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
 
- private:
+ protected:
   inline void onetwoexclude(int *&, int &, int *&, int *&, int **&);
   inline void remapBonds(int &);
   void allocate();

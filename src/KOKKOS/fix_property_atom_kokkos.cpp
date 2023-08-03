@@ -55,6 +55,14 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       memory->grow(atom->rmass,nmax,"atom:rmass");
       size_t nbytes = (nmax-nmax_old) * sizeof(double);
       memset(&atom->rmass[nmax_old],0,nbytes);
+    } else if (styles[nv] == TEMPERATURE) {
+      memory->grow(atom->temperature, nmax, "atom:temperature");
+      size_t nbytes = (nmax - nmax_old) * sizeof(double);
+      memset(&atom->temperature[nmax_old], 0, nbytes);
+    } else if (styles[nv] == HEATFLOW) {
+      memory->grow(atom->heatflow, nmax, "atom:heatflow");
+      size_t nbytes = (nmax - nmax_old) * sizeof(double);
+      memset(&atom->heatflow[nmax_old], 0, nbytes);
     } else if (styles[nv] == IVEC) {
       memory->grow(atom->ivector[index[nv]],nmax,"atom:ivector");
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
@@ -74,6 +82,5 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       if (nbytes) memset(&atom->darray[index[nv]][nmax_old][0], 0, nbytes);
     }
   }
-
   nmax_old = nmax;
 }

@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 MLIAPDescriptor::MLIAPDescriptor(LAMMPS *lmp) :
     Pointers(lmp), ndescriptors(0), nelements(0), elements(nullptr), cutsq(nullptr),
-    radelem(nullptr), wjelem(nullptr)
+    cutghost(nullptr), radelem(nullptr), wjelem(nullptr)
 {
   cutmax = 0.0;
 }
@@ -37,6 +37,7 @@ MLIAPDescriptor::~MLIAPDescriptor()
   for (int i = 0; i < nelements; i++) delete[] elements[i];
   delete[] elements;
   memory->destroy(cutsq);
+  memory->destroy(cutghost);
   memory->destroy(radelem);
   memory->destroy(wjelem);
 }

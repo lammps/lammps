@@ -6,7 +6,7 @@ region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region ID style args keyword arg ...
 
@@ -18,6 +18,7 @@ Syntax
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
+         xlo,xhi,ylo,yhi,zlo,zhi can be a variable
        *cone* args = dim c1 c2 radlo radhi lo hi
          dim = *x* or *y* or *z* = axis of cone
          c1,c2 = coords of cone axis in other 2 dimensions (distance units)
@@ -161,6 +162,8 @@ x, c1/c2 = y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.
 Thus the third example above specifies a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
 extending in the y-direction from -5.0 to the upper box boundary.
+
+.. versionadded:: 4May2022
 
 For style *ellipsoid*, an axis-aligned ellipsoid is defined. The
 ellipsoid has its center at (x,y,z) and is defined by 3 axis-aligned

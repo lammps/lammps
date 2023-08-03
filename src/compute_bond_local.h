@@ -39,7 +39,7 @@ class ComputeBondLocal : public Compute {
 
   int singleflag, velflag, ghostvelflag, initflag;
   int dvar;
-  int *bstyle, *vvar;
+  int *bstyle, *bindex, *vvar;
   char *dstr;
   char **vstr;
 

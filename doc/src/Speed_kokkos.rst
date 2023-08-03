@@ -79,7 +79,7 @@ manner via the ``mpirun`` or ``mpiexec`` commands, and is independent of
 Kokkos. E.g. the mpirun command in OpenMPI does this via its ``-np`` and
 ``-npernode`` switches. Ditto for MPICH via ``-np`` and ``-ppn``.
 
-Running on a multi-core CPU
+Running on a multicore CPU
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Here is a quick overview of how to use the KOKKOS package
@@ -254,7 +254,7 @@ is recommended in this scenario.
 
 Using a GPU-aware MPI library is highly recommended. GPU-aware MPI use can be
 avoided by using :doc:`-pk kokkos gpu/aware off <package>`. As above for
-multi-core CPUs (and no GPU), if N is the number of physical cores/node,
+multicore CPUs (and no GPU), if N is the number of physical cores/node,
 then the number of MPI tasks/node should not exceed N.
 
 .. parsed-literal::
@@ -284,6 +284,16 @@ one or more nodes, each with two GPUs:
    its documentation page for details and default
    settings. Experimenting with its options can provide a speed-up for
    specific calculations. For example:
+
+.. note::
+
+   The default binsize for :doc:`atom sorting <atom_modify>` on GPUs
+   is equal to the default CPU neighbor binsize (i.e. 2x smaller than the
+   default GPU neighbor binsize). When running simple pair-wise
+   potentials like Lennard Jones on GPUs, using a 2x larger binsize for
+   atom sorting (equal to the default GPU neighbor binsize) and a more
+   frequent sorting than default (e.g. sorting every 100 time steps
+   instead of 1000) may improve performance.
 
 .. code-block:: bash
 

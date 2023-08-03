@@ -27,13 +27,16 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 17Feb2022
+
 Style *harmonic/cut* computes pairwise repulsive-only harmonic interactions with the formula
 
 .. math::
 
    E = k (r_c - r)^2  \qquad r < r_c
 
-:math:`r_c` is the cutoff.
+where :math:`r_c` is the cutoff.  Note that the usual 1/2 factor is
+included in :math:`k`.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -41,7 +44,7 @@ above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
-* :math:`k` (energy units)
+* :math:`k` (energy/distance^2 units)
 * :math:`r_c` (distance units)
 
 ----------

@@ -123,7 +123,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     command("run 0 post no");
     command("write_restart " + cfg.basename + ".restart");
-    command("write_data " + cfg.basename + ".data");
+    command("write_data " + cfg.basename + ".data nofix");
     command("write_coeff " + cfg.basename + "-coeffs.in");
 
     return lmp;
@@ -285,7 +285,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // run_stress
     stress = lmp->force->bond->virial;
     block  = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
-                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("run_stress", block);
 
     block.clear();

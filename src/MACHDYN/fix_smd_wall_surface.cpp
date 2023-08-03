@@ -112,7 +112,7 @@ void FixSMDWallSurface::setup(int /*vflag*/) {
 
         // set bounds for my proc
         // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-        // insures all data atoms will be owned even with round-off
+        // ensures all data atoms will be owned even with round-off
 
         int triclinic = domain->triclinic;
 

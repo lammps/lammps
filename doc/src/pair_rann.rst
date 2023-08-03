@@ -17,8 +17,8 @@ Examples
 .. code-block:: LAMMPS
 
     pair_style rann
-    pair_coeff ** Mg.rann Mg
-    pair_coeff ** MgAlalloy.rann Mg Mg Al Mg
+    pair_coeff * * Mg.rann Mg
+    pair_coeff * * MgAlalloy.rann Mg Mg Al Mg
 
 Description
 """""""""""

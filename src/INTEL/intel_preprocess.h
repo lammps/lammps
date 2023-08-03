@@ -16,10 +16,16 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
+
 #ifdef __INTEL_LLVM_COMPILER
 #define USE_OMP_SIMD
 #define __INTEL_COMPILER __INTEL_LLVM_COMPILER
 #define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER
+// Indicate to vectorizer that it is safe to use dword indexed gather
+#define IP_PRE_dword_index(i) ((i) & NEIGHMASK)
+#else
+#define IP_PRE_dword_index(i) i
 #endif
 
 #ifdef __INTEL_COMPILER
@@ -80,8 +86,6 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_MAX_STENCIL_CHECK 4096
 #define INTEL_P3M_MAXORDER 8
 #define INTEL_P3M_ALIGNED_MAXORDER 8
-// PRECOMPUTE VALUES IN TABLE (DOESN'T AFFECT ACCURACY)
-#define INTEL_P3M_TABLE 1
 
 #ifdef __INTEL_COMPILER
 #ifdef __AVX__

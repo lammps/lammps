@@ -33,10 +33,18 @@ class ComputeSlice : public Compute {
   void compute_array() override;
 
  private:
-  int me;
-  int nstart, nstop, nskip, nvalues;
-  int *which, *argindex, *value2index;
-  char **ids;
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+  int nstart, nstop, nskip;
 
   void extract_one(int, double *, int);
 };

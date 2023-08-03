@@ -72,25 +72,23 @@ namespace Impl {
 template <class T, class MemoryOrder>
 KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH void _atomic_store(
     T* ptr, T val, MemoryOrder,
-    typename std::enable_if<
-        (sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
-         sizeof(T) == 8) &&
-            std::is_same<typename MemoryOrder::memory_order,
-                         typename std::remove_cv<MemoryOrder>::type>::value,
-        void const**>::type = nullptr) {
+    std::enable_if_t<(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
+                      sizeof(T) == 8) &&
+                         std::is_same<typename MemoryOrder::memory_order,
+                                      std::remove_cv_t<MemoryOrder>>::value,
+                     void const**> = nullptr) {
   __atomic_store_n(ptr, val, MemoryOrder::gnu_constant);
 }
 
 template <class T, class MemoryOrder>
 KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH void _atomic_store(
     T* ptr, T val, MemoryOrder,
-    typename std::enable_if<
-        !(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
-          sizeof(T) == 8) &&
-            std::is_default_constructible<T>::value &&
-            std::is_same<typename MemoryOrder::memory_order,
-                         typename std::remove_cv<MemoryOrder>::type>::value,
-        void const**>::type = nullptr) {
+    std::enable_if_t<!(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
+                       sizeof(T) == 8) &&
+                         std::is_default_constructible<T>::value &&
+                         std::is_same<typename MemoryOrder::memory_order,
+                                      std::remove_cv_t<MemoryOrder>>::value,
+                     void const**> = nullptr) {
   __atomic_store(ptr, &val, MemoryOrder::gnu_constant);
 }
 
@@ -103,9 +101,9 @@ KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH void _atomic_store(
 template <class T>
 __device__ __inline__ void _relaxed_atomic_store_impl(
     T* ptr, T val,
-    typename std::enable_if<(sizeof(T) == 1 || sizeof(T) == 2 ||
-                             sizeof(T) == 4 || sizeof(T) == 8),
-                            void const**>::type = nullptr) {
+    std::enable_if_t<(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
+                      sizeof(T) == 8),
+                     void const**> = nullptr) {
   *ptr = val;
 }
 
@@ -120,9 +118,9 @@ struct StoreOper {
 template <class T>
 __device__ __inline__ void _relaxed_atomic_store_impl(
     T* ptr, T val,
-    typename std::enable_if<!(sizeof(T) == 1 || sizeof(T) == 2 ||
-                              sizeof(T) == 4 || sizeof(T) == 8),
-                            void const**>::type = nullptr) {
+    std::enable_if_t<!(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
+                       sizeof(T) == 8),
+                     void const**> = nullptr) {
   Kokkos::Impl::atomic_oper_fetch(StoreOper<T>{}, ptr, (T &&) val);
 }
 

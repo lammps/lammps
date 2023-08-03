@@ -89,7 +89,7 @@ class MemoryPoolAllocator {
   using value_type      = T;
   using pointer         = T*;
   using size_type       = typename MemoryPool::memory_space::size_type;
-  using difference_type = typename std::make_signed<size_type>::type;
+  using difference_type = std::make_signed_t<size_type>;
 
   template <class U>
   struct rebind {

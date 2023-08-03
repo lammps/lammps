@@ -17,7 +17,7 @@ DEPFLAGS =	-M
 
 LINK =		mpiicpc -std=c++11 -diag-disable=10441 -diag-disable=2196
 LINKFLAGS =	-qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
-LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core	
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
 
 ARCHIVE =	ar

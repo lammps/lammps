@@ -10,7 +10,7 @@ fix tdpd/source command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID edpd/source keyword values ...
    fix ID group-ID tdpd/source cc_index keyword values ...
@@ -18,7 +18,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * edpd/source or tdpd/source = style name of this fix command
 * index (only specified for tdpd/source) = index of chemical species (1 to Nspecies)
-* keyword = *sphere* or *cuboid*
+* keyword = *sphere* or *cuboid* or *region*
 
   .. parsed-literal::
 
@@ -30,6 +30,9 @@ Syntax
          cx,cy,cz = x,y,z center of a cuboid domain (distance units)
          dLx,dLy,dLz = x,y,z side length of a cuboid domain (distance units)
          source = heat source or concentration source (flux units, see below)
+       *region* values = region-ID source
+         region = ID of region for heat or concentration source
+         source = heat source or concentration source (flux units, see below)
 
 Examples
 """"""""
@@ -40,6 +43,7 @@ Examples
    fix 1 all edpd/source cuboid 0.0 0.0 0.0 20.0 10.0 10.0 -0.01
    fix 1 all tdpd/source 1 sphere 5.0 0.0 0.0 5.0 0.01
    fix 1 all tdpd/source 2 cuboid 0.0 0.0 0.0 20.0 10.0 10.0 0.01
+   fix 1 all tdpd/source 1 region lower -0.01
 
 Description
 """""""""""
@@ -57,11 +61,19 @@ heat conduction with a source term (see Fig.12 in :ref:`(Li2014) <Li2014b>`)
 or diffusion with a source term (see Fig.1 in :ref:`(Li2015) <Li2015b>`), as
 an analog of a periodic Poiseuille flow problem.
 
+.. deprecated:: 15Jun2023
+
+   The *sphere* and *cuboid* keywords will be removed in a future version
+   of LAMMPS.  The same functionality and more can be achieved with a region.
+
 If the *sphere* keyword is used, the *cx, cy, cz, radius* values define
 a spherical domain to apply the source flux to.
 
 If the *cuboid* keyword is used, the *cx, cy, cz, dLx, dLy, dLz* define
 a cuboid domain to apply the source flux to.
+
+If the *region* keyword is used, the *region-ID* selects which
+:doc:`region <region>` to apply the source flux to.
 
 ----------
 

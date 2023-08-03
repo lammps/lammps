@@ -39,6 +39,11 @@ static constexpr double SMALL = 0.001;
 ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) : Improper(_lmp)
 {
   writedata = 1;
+
+  // the first and fourth atoms in the quadruplet are the atoms of symmetry
+
+  symmatoms[0] = 1;
+  symmatoms[3] = 2;
 }
 
 /* ---------------------------------------------------------------------- */

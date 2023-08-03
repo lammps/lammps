@@ -778,7 +778,7 @@ double PairRESquared::resquared_analytic(const int i, const int j, const RE2Vars
 
   // torque on j
 
-  if (!(force->newton_pair || j < atom->nlocal)) return Ua + Ur;
+  if (!force->newton_pair && j >= atom->nlocal) return Ua + Ur;
 
   MathExtra::vecmat(fourw, wj.aTe, fwae);
 

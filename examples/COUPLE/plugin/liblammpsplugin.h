@@ -33,16 +33,17 @@
 #endif
 
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
-#include <stdint.h> /* for int64_t */
+#include <stdint.h>  /* for int64_t */
 #endif
 
 /* The following enums must be kept in sync with the equivalent enums
- * or constants in python/lammps/constants.py, fortran/lammps.f90,
- * tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
+ * or constants in src/library.h, src/lmptype.h, python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 /* Data type constants for extracting data from atoms, computes and fixes */
 
 enum _LMP_DATATYPE_CONST {
+  LAMMPS_NONE = -1,     /*!< no data type assigned (yet) */
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
   LAMMPS_INT_2D = 1,    /*!< two-dimensional 32-bit integer array */
   LAMMPS_DOUBLE = 2,    /*!< 64-bit double (array) */
@@ -71,7 +72,27 @@ enum _LMP_TYPE_CONST {
   LMP_SIZE_COLS = 5    /*!< return number of columns */
 };
 
-/* Ifdefs to allow this file to be included in C and C++ programs */
+/* Error codes to select the suitable function in the Error class */
+
+enum _LMP_ERROR_CONST {
+  LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
+  LMP_ERROR_ONE = 1,     /*!< called from one MPI rank */
+  LMP_ERROR_ALL = 2,     /*!< called from all MPI ranks */
+  LMP_ERROR_WORLD = 4,   /*!< error on Comm::world */
+  LMP_ERROR_UNIVERSE = 8 /*!< error on Comm::universe */
+};
+
+/** Variable style constants for extracting data from variables.
+ *
+ * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
+
+enum _LMP_VAR_CONST {
+  LMP_VAR_EQUAL = 0,  /*!< compatible with equal-style variables */
+  LMP_VAR_ATOM = 1,   /*!< compatible with atom-style variables */
+  LMP_VAR_VECTOR = 2, /*!< compatible with vector-style variables */
+  LMP_VAR_STRING = 3  /*!< return value will be a string (catch-all) */
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,7 +106,7 @@ typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
 
-#define LAMMPSPLUGIN_ABI_VERSION 0
+#define LAMMPSPLUGIN_ABI_VERSION 1
 struct _liblammpsplugin {
   int abiversion;
   int has_exceptions;
@@ -113,6 +134,7 @@ struct _liblammpsplugin {
 
   double (*get_natoms)(void *);
   double (*get_thermo)(void *, const char *);
+  void *(*last_thermo)(void *, const char *, int);
 
   void (*extract_box)(void *, double *, double *,
                       double *, double *, double *, int *, int *);
@@ -134,22 +156,25 @@ struct _liblammpsplugin {
   int (*extract_variable_datatype)(void *, const char *);
   int (*set_variable)(void *, char *, char *);
 
-  void (*gather_atoms)(void *, char *, int, int, void *);
-  void (*gather_atoms_concat)(void *, char *, int, int, void *);
-  void (*gather_atoms_subset)(void *, char *, int, int, int, int *, void *);
-  void (*scatter_atoms)(void *, char *, int, int, void *);
-  void (*scatter_atoms_subset)(void *, char *, int, int, int, int *, void *);
+  void (*gather_atoms)(void *, const char *, int, int, void *);
+  void (*gather_atoms_concat)(void *, const char *, int, int, void *);
+  void (*gather_atoms_subset)(void *, const char *, int, int, int, int *, void *);
+  void (*scatter_atoms)(void *, const char *, int, int, void *);
+  void (*scatter_atoms_subset)(void *, const char *, int, int, int, int *, void *);
 
   void (*gather_bonds)(void *, void *);
+  void (*gather_angles)(void *, void *);
+  void (*gather_dihedrals)(void *, void *);
+  void (*gather_impropers)(void *, void *);
 
-  void (*gather)(void *, char *, int, int, void *);
-  void (*gather_concat)(void *, char *, int, int, void *);
-  void (*gather_subset)(void *, char *, int, int, int, int *,void *);
-  void (*scatter)(void *, char *, int, int, void *);
-  void (*scatter_subset)(void *, char *, int, int, int, int *, void *);
+  void (*gather)(void *, const char *, int, int, void *);
+  void (*gather_concat)(void *, const char *, int, int, void *);
+  void (*gather_subset)(void *, const char *, int, int, int, int *,void *);
+  void (*scatter)(void *, const char *, int, int, void *);
+  void (*scatter_subset)(void *, const char *, int, int, int, int *, void *);
 
 /* lammps_create_atoms() takes tagint and imageint as args
- * the ifdef insures they are compatible with rest of LAMMPS
+ * the ifdef ensures they are compatible with rest of LAMMPS
  * caller must match to how LAMMPS library is built */
 
 #ifndef LAMMPS_BIGBIG
@@ -214,11 +239,13 @@ struct _liblammpsplugin {
 
   void (*free)(void *);
 
-  void (*is_running)(void *);
+  int (*is_running)(void *);
   void (*force_timeout)(void *);
 
   int (*has_error)(void *);
   int (*get_last_error_message)(void *, char *, int);
+
+  int (*python_api_version)();
 };
 
 typedef struct _liblammpsplugin liblammpsplugin_t;

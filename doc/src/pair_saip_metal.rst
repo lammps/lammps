@@ -32,6 +32,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 17Feb2022
+
 The *saip/metal* style computes the registry-dependent interlayer
 potential (ILP) potential for hetero-junctions formed with hexagonal
 2D materials and metal surfaces, as described in :ref:`(Ouyang6) <Ouyang6>`.
@@ -132,8 +134,8 @@ interactions.
 
 The CHAu.ILP potential file provided with LAMMPS (see the potentials
 directory) are parameterized for *metal* units.  You can use this
-potential with any LAMMPS units, but you would need to create your
-BNCH.ILP potential file with coefficients listed in the appropriate
+potential with any LAMMPS units, but you would need to create your own
+custom CHAu.ILP potential file with coefficients listed in the appropriate
 units, if your simulation does not use *metal* units.
 
 Related commands

@@ -11,6 +11,7 @@ This section documents the following functions:
 - :cpp:func:`lammps_mpi_finalize`
 - :cpp:func:`lammps_kokkos_finalize`
 - :cpp:func:`lammps_python_finalize`
+- :cpp:func:`lammps_error`
 
 --------------------
 
@@ -114,4 +115,9 @@ calling program.
 -----------------------
 
 .. doxygenfunction:: lammps_python_finalize
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_error
    :project: progguide

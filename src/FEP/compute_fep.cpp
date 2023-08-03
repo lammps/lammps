@@ -190,9 +190,10 @@ void ComputeFEP::init()
     Perturb *pert = &perturb[m];
 
     pert->ivar = input->variable->find(pert->var);
-    if (pert->ivar < 0) error->all(FLERR, "Variable name for compute fep does not exist");
+    if (pert->ivar < 0)
+      error->all(FLERR, "Variable name {} for compute fep does not exist", pert->var);
     if (!input->variable->equalstyle(pert->ivar))
-      error->all(FLERR, "Variable for compute fep is of invalid style");
+      error->all(FLERR, "Variable {} for compute fep is of invalid style", pert->var);
 
     if (force->pair == nullptr) error->all(FLERR, "compute fep pair requires pair interactions");
 

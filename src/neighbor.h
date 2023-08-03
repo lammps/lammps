@@ -94,6 +94,7 @@ class Neighbor : protected Pointers {
   NeighList **lists;
   NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
   NeighRequest **old_requests;    // copy of requests to compare to
+  int *j_sorted;                  // index of requests sorted by cutoff distance
 
   // data from topology neighbor lists
 
@@ -154,6 +155,11 @@ class Neighbor : protected Pointers {
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
 
+  // Option to call build_topology (e.g. from gpu styles instead for overlapped computation)
+
+  int overlap_topo;    // 0 for default/old non-overlap mode
+  void set_overlap_topo(int);
+
   // find a neighbor list based on requestor
   NeighList *find_list(void *, const int id = 0) const;
   // find a neighbor request based on requestor
@@ -165,6 +171,7 @@ class Neighbor : protected Pointers {
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
   bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
+  void add_temporary_bond(int, int, int);    // add temporary bond to bondlist array
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call
@@ -245,11 +252,13 @@ class Neighbor : protected Pointers {
   int init_pair();
   virtual void init_topology();
 
+  void sort_requests();
+
   void morph_unique();
   void morph_skip();
   void morph_granular();
   void morph_halffull();
-  void morph_copy();
+  void morph_copy_trim();
 
   void print_pairwise_info();
   void requests_new2old();
@@ -323,7 +332,8 @@ namespace NeighConst {
     NP_SKIP = 1 << 22,
     NP_HALF_FULL = 1 << 23,
     NP_OFF2ON = 1 << 24,
-    NP_MULTI_OLD = 1 << 25
+    NP_MULTI_OLD = 1 << 25,
+    NP_TRIM = 1 << 26
   };
 
   enum {

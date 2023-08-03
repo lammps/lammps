@@ -1,6 +1,6 @@
 ---
-lammps_version: 23 Jun 2022
-date_generated: Tue Jan 10 20:32:45 2023
+lammps_version: 22 Dec 2022
+date_generated: Mon Dec 26 16:49:37 2022
 epsilon: 1e-13
 skip_tests:
 prerequisites: ! |

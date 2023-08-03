@@ -29,6 +29,16 @@ endif()
 option(GPU_DEBUG "Enable debugging code of the GPU package" OFF)
 mark_as_advanced(GPU_DEBUG)
 
+if(PKG_AMOEBA AND FFT_SINGLE)
+  message(FATAL_ERROR "GPU acceleration of AMOEBA is not (yet) compatible with single precision FFT")
+endif()
+
+if (PKG_AMOEBA)
+  list(APPEND GPU_SOURCES
+              ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.h
+              ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.cpp)
+endif()
+
 file(GLOB GPU_LIB_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
@@ -50,10 +60,12 @@ if(GPU_API STREQUAL "CUDA")
   option(CUDA_MPS_SUPPORT "Enable tweaks to support CUDA Multi-process service (MPS)" OFF)
   if(CUDA_MPS_SUPPORT)
     if(CUDPP_OPT)
-      message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DGPU_CUDA_MPS_SUPPORT=ON")
+      message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DCUDA_MPS_SUPPORT=ON")
     endif()
-    set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY")
+    set(GPU_CUDA_MPS_FLAGS "-DCUDA_MPS_SUPPORT")
   endif()
+  option(CUDA_BUILD_MULTIARCH "Enable building CUDA kernels for all supported GPU architectures" ON)
+  mark_as_advanced(GPU_BUILD_MULTIARCH)
 
   set(GPU_ARCH "sm_50" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
 
@@ -83,56 +95,58 @@ if(GPU_API STREQUAL "CUDA")
   # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
   set(GPU_CUDA_GENCODE "-arch=${GPU_ARCH}")
 
-  # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
-  # only the Kepler achitecture and beyond is supported
-  # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
-  if(CUDA_VERSION VERSION_LESS 8.0)
-    message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
-    message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
-    set(GPU_CUDA_GENCODE "-arch=all")
-  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-    set(GPU_CUDA_GENCODE "-arch=all")
-  else()
-    # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] ")
-    endif()
-    # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
-    endif()
-    # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
-    endif()
-    # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
-    endif()
-    # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
-    endif()
-    # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
-    endif()
-    # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
-    endif()
-    # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
-    endif()
-    # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-    endif()
-    # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+  if(CUDA_BUILD_MULTIARCH)
+    # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
+    # only the Kepler achitecture and beyond is supported
+    # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+    if(CUDA_VERSION VERSION_LESS 8.0)
+      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
+    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
+      message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
+      set(GPU_CUDA_GENCODE "-arch=all")
+    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+      set(GPU_CUDA_GENCODE "-arch=all")
+    else()
+      # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
+      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] ")
+      endif()
+      # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
+      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
+      endif()
+      # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
+      endif()
+      # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
+      endif()
+      # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
+      endif()
+      # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
+      endif()
+      # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
+      endif()
+      # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
+      endif()
+      # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+      endif()
+      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+      endif()
     endif()
   endif()
 
@@ -200,6 +214,7 @@ elseif(GPU_API STREQUAL "OPENCL")
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu
+    ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo.cu
   )
 
   foreach(GPU_KERNEL ${GPU_LIB_CU})
@@ -216,6 +231,7 @@ elseif(GPU_API STREQUAL "OPENCL")
   GenerateOpenCLHeader(tersoff ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu)
   GenerateOpenCLHeader(tersoff_zbl ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu)
   GenerateOpenCLHeader(tersoff_mod ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu)
+  GenerateOpenCLHeader(hippo ${CMAKE_CURRENT_BINARY_DIR}/gpu/hippo_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo.cu)
 
   list(APPEND GPU_LIB_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h
@@ -225,6 +241,7 @@ elseif(GPU_API STREQUAL "OPENCL")
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h
+    ${CMAKE_CURRENT_BINARY_DIR}/gpu/hippo_cl.h
   )
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
@@ -243,22 +260,7 @@ elseif(GPU_API STREQUAL "OPENCL")
   add_dependencies(ocl_get_devices OpenCL::OpenCL)
 
 elseif(GPU_API STREQUAL "HIP")
-  if(NOT DEFINED HIP_PATH)
-      if(NOT DEFINED ENV{HIP_PATH})
-          message(FATAL_ERROR "GPU_API=HIP requires HIP_PATH to be defined.\n"
-          "Either pass the HIP_PATH as a CMake option via -DHIP_PATH=... or set the HIP_PATH environment variable.")
-      else()
-          set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to HIP installation")
-      endif()
-  endif()
-  if(NOT DEFINED ROCM_PATH)
-      if(NOT DEFINED ENV{ROCM_PATH})
-          set(ROCM_PATH "/opt/rocm" CACHE PATH "Path to ROCm installation")
-      else()
-          set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "Path to ROCm installation")
-      endif()
-  endif()
-  list(APPEND CMAKE_PREFIX_PATH ${HIP_PATH} ${ROCM_PATH})
+  include(DetectHIPInstallation)
   find_package(hip REQUIRED)
   option(HIP_USE_DEVICE_SORT "Use GPU sorting" ON)
 
@@ -272,7 +274,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
 
-  if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
+  if(HIP_PLATFORM STREQUAL "amd")
     set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "spirv")
     set(HIP_ARCH "spirv" CACHE STRING "HIP target architecture")
@@ -345,7 +347,7 @@ elseif(GPU_API STREQUAL "HIP")
     set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
     set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
 
-    if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
+    if(HIP_PLATFORM STREQUAL "amd")
         configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
 
         if(HIP_COMPILER STREQUAL "clang")
@@ -399,7 +401,8 @@ elseif(GPU_API STREQUAL "HIP")
       set_property(TARGET gpu PROPERTY CXX_STANDARD 14)
     endif()
     # add hipCUB
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+    find_package(hipcub REQUIRED)
+    target_link_libraries(gpu PRIVATE hip::hipcub)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
 
     if(HIP_PLATFORM STREQUAL "nvcc")
@@ -452,26 +455,12 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_PLATFORM STREQUAL "nvcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/include)
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-  elseif(HIP_PLATFORM STREQUAL "hcc")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_HCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
-
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
-  elseif(HIP_PLATFORM STREQUAL "amd")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_AMD__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
-
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_AMD__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 endif()
 

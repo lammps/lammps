@@ -554,7 +554,8 @@ void PairPolymorphic::read_file(char *file)
       int ntypes = values.next_int();
 
       if (ntypes != nelements)
-        error->one(FLERR,"Incorrect number of elements in potential file");
+        error->one(FLERR,"Incorrect number of elements (expected: {} found: {}) in potential file",
+                   nelements, ntypes);
 
       eta = values.next_int();
 
@@ -572,7 +573,7 @@ void PairPolymorphic::read_file(char *file)
         for (j = 0; j < nelements; j++) {
           if (name == elements[j]) break;
         }
-        if (j == nelements) error->one(FLERR,"Element not defined in potential file");
+        if (j == nelements) error->one(FLERR, "Element {} in potential file not used", name);
         match[i] = j;
       }
 

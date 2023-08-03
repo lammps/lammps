@@ -6,7 +6,7 @@ fix numdiff/virial command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID numdiff/virial Nevery delta
 
@@ -24,6 +24,8 @@ Examples
 
 Description
 """""""""""
+
+.. versionadded:: 17Feb2022
 
 Calculate the virial stress tensor through a finite difference calculation of
 energy versus strain.  These values can be compared to the analytic virial

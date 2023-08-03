@@ -30,9 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-#define KOKKOS_CUDA_MAX_THREADS 256
-#define KOKKOS_CUDA_MIN_BLOCKS 8
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -68,7 +65,6 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
-
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 

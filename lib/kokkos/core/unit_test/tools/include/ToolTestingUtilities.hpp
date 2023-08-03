@@ -1300,6 +1300,24 @@ bool validate_absence(const Lambda& lam, const Matchers... matchers) {
   return true;
 }
 
+template <class Lambda, class Matcher>
+bool validate_existence(const Lambda& lam, const Matcher matcher) {
+  // First, erase events from previous invocations
+  found_events.clear();
+  // Invoke the lambda (this will populate found_events, via tooling)
+  lam();
+  // compare the found events against the expected ones
+  for (const auto& event : found_events) {
+    MatchDiagnostic match = check_presence_of(event, matcher);
+
+    if (match.success) return true;
+  }
+  std::cout << "Test failure: Didn't encounter wanted events" << std::endl;
+  for (const auto& p_event : found_events)
+    std::cout << p_event->descriptor() << std::endl;
+  return false;
+}
+
 }  // namespace Tools
 }  // namespace Test
 }  // namespace Kokkos

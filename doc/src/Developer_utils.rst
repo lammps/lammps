@@ -133,6 +133,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_comment
    :project: progguide
 
+.. doxygenfunction:: strip_style_suffix
+   :project: progguide
+
 .. doxygenfunction:: star_subst
    :project: progguide
 
@@ -154,6 +157,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_and_count_words
    :project: progguide
 
+.. doxygenfunction:: join_words
+   :project: progguide
+
 .. doxygenfunction:: split_words
    :project: progguide
 
@@ -170,6 +176,12 @@ and parsing files or arguments.
    :project: progguide
 
 .. doxygenfunction:: is_double
+   :project: progguide
+
+.. doxygenfunction:: is_id
+   :project: progguide
+
+.. doxygenfunction:: is_type
    :project: progguide
 
 Potential file functions
@@ -200,6 +212,12 @@ Argument processing
    :project: progguide
 
 .. doxygenfunction:: expand_args
+   :project: progguide
+
+.. doxygenfunction:: parse_grid_id
+   :project: progguide
+
+.. doxygenfunction:: expand_type
    :project: progguide
 
 Convenience functions
@@ -625,11 +643,13 @@ Tohoku University (under MIT license)
 
 ---------------------------
 
+.. _communication_buffer_coding_with_ubuf:
+
 Communication buffer coding with *ubuf*
 ---------------------------------------
 
 LAMMPS uses communication buffers where it collects data from various
-class instances and then exchanges the data with neighboring sub-domains.
+class instances and then exchanges the data with neighboring subdomains.
 For simplicity those buffers are defined as ``double`` buffers and
 used for doubles and integer numbers. This presents a unique problem
 when 64-bit integers are used.  While the storage needed for a ``double``

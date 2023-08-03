@@ -62,7 +62,6 @@ namespace ReaxFF {
 
   void DeAllocate_System(reax_system *system)
   {
-    auto error = system->error_ptr;
     auto memory = system->mem_ptr;
 
     // deallocate the atom list
@@ -78,13 +77,12 @@ namespace ReaxFF {
   }
 
   /*************       workspace        *************/
-  void DeAllocate_Workspace(control_params *control, storage *workspace)
+  void DeAllocate_Workspace(storage *workspace)
   {
     if (!workspace->allocated)
       return;
 
     workspace->allocated = 0;
-    auto error = control->error_ptr;
 
     /* bond order storage */
     sfree(workspace->total_bond_order);
@@ -245,7 +243,7 @@ namespace ReaxFF {
       system->my_atoms = (reax_atom *)::realloc(system->my_atoms,
         system->total_cap*sizeof(reax_atom));
       /* workspace */
-      DeAllocate_Workspace(control, workspace);
+      DeAllocate_Workspace(workspace);
       Allocate_Workspace(control, workspace, system->total_cap);
     }
 

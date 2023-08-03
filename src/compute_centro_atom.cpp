@@ -93,14 +93,12 @@ void ComputeCentroAtom::init()
   if (force->pair == nullptr)
     error->all(FLERR, "Compute centro/atom requires a pair style be defined");
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style, "centro/atom") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning(FLERR, "More than one compute centro/atom");
-
   // need an occasional full neighbor list
 
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+
+  if (modify->get_compute_by_style(style).size() > 1)
+    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,7 +167,7 @@ void ComputeCentroAtom::compute_peratom()
       jlist = firstneigh[i];
       jnum = numneigh[i];
 
-      // insure distsq and nearest arrays are long enough
+      // ensure distsq and nearest arrays are long enough
 
       if (jnum > maxneigh) {
         memory->destroy(distsq);
@@ -338,7 +336,7 @@ void ComputeCentroAtom::select(int k, int n, double *arr)
   arr--;
   l = 1;
   ir = n;
-  for (;;) {
+  while (true) {
     if (ir <= l + 1) {
       if (ir == l + 1 && arr[ir] < arr[l]) { SWAP(arr[l], arr[ir]) }
       return;
@@ -351,7 +349,7 @@ void ComputeCentroAtom::select(int k, int n, double *arr)
       i = l + 1;
       j = ir;
       a = arr[l + 1];
-      for (;;) {
+      while (true) {
         do i++;
         while (arr[i] < a);
         do j--;
@@ -378,7 +376,7 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
   iarr--;
   l = 1;
   ir = n;
-  for (;;) {
+  while (true) {
     if (ir <= l + 1) {
       if (ir == l + 1 && arr[ir] < arr[l]) {
         SWAP(arr[l], arr[ir])
@@ -405,7 +403,7 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
       j = ir;
       a = arr[l + 1];
       ia = iarr[l + 1];
-      for (;;) {
+      while (true) {
         do i++;
         while (arr[i] < a);
         do j--;

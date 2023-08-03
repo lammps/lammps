@@ -109,9 +109,14 @@ struct WorkTagTrait : TraitSpecificationBase<WorkTagTrait> {
   //   we should benchmark this assumption if it becomes a problem.
   template <class T>
   using trait_matches_specification = std::integral_constant<
-      bool, !std::is_void<T>::value &&
-                !type_list_any<_trait_matches_spec_predicate<T>::template apply,
-                               _exec_policy_traits_without_work_tag>::value>;
+      bool,
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+      std::is_empty<T>::value &&
+#else
+      !std::is_void<T>::value &&
+#endif
+          !type_list_any<_trait_matches_spec_predicate<T>::template apply,
+                         _exec_policy_traits_without_work_tag>::value>;
 };
 
 // </editor-fold> end trait specification }}}1

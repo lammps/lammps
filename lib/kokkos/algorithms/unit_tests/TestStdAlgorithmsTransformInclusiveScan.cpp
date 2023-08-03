@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_Numeric.hpp>
 #include <utility>
 
 namespace Test {
@@ -207,7 +205,7 @@ void verify_data(ViewType1 data_view,  // contains data
       //           << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
 
       if (std::is_same<gold_view_value_type, int>::value) {
-        EXPECT_TRUE(gold_h(i) == test_view_h(i));
+        EXPECT_EQ(gold_h(i), test_view_h(i));
       } else {
         const auto error = std::abs(gold_h(i) - test_view_h(i));
         if (error > 1e-10) {
@@ -215,7 +213,7 @@ void verify_data(ViewType1 data_view,  // contains data
                     << " " << gold_h(i) << " " << test_view_h(i) << " "
                     << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
         }
-        EXPECT_TRUE(error < 1e-10);
+        EXPECT_LT(error, 1e-10);
       }
     }
     // std::cout << " last el: " << test_view_h(test_view_h.extent(0)-1) <<
@@ -233,12 +231,6 @@ template <class ValueType>
 struct SumBinaryFunctor {
   KOKKOS_INLINE_FUNCTION
   ValueType operator()(const ValueType& a, const ValueType& b) const {
-    return (a + b);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  ValueType operator()(const volatile ValueType& a,
-                       const volatile ValueType& b) const {
     return (a + b);
   }
 };
@@ -282,7 +274,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto r = KE::transform_inclusive_scan(exespace(), KE::cbegin(view_from),
                                           KE::cend(view_from),
                                           KE::begin(view_dest), args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -291,7 +283,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto r = KE::transform_inclusive_scan(
         "label", exespace(), KE::cbegin(view_from), KE::cend(view_from),
         KE::begin(view_dest), args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -299,7 +291,7 @@ void run_single_scenario(const InfoType& scenario_info,
     fill_zero(view_dest);
     auto r =
         KE::transform_inclusive_scan(exespace(), view_from, view_dest, args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -307,7 +299,7 @@ void run_single_scenario(const InfoType& scenario_info,
     fill_zero(view_dest);
     auto r = KE::transform_inclusive_scan("label", exespace(), view_from,
                                           view_dest, args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    EXPECT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, args...);
   }
 
@@ -333,7 +325,7 @@ void run_all_scenarios() {
   }
 }
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
 TEST(std_algorithms_numeric_ops_test, transform_inclusive_scan) {
   run_all_scenarios<DynamicTag, double>();
   // run_all_scenarios<StridedThreeTag, double>();

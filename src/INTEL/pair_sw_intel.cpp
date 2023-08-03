@@ -332,7 +332,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
           int jtype, ijtype;
           if (!ONETYPE) {
             jtype = x[j].w;
-            ijtype = itype_offset + jtype;
+            ijtype = IP_PRE_dword_index(itype_offset + jtype);
             cutsq = p2[ijtype].cutsq;
           }
           const flt_t rsq1 = delx * delx + dely * dely + delz * delz;
@@ -378,11 +378,11 @@ void PairSWIntel::eval(const int offload, const int vflag,
           if (EFLAG) fjtmp = (acc_t)0.0;
           int ijtype;
 
-          if (!ONETYPE) ijtype = tjtype[jj] + itype_offset;
+          if (!ONETYPE) ijtype = IP_PRE_dword_index(tjtype[jj] + itype_offset);
           const flt_t rsq1 = trsq[jj];
 
           const flt_t rinvsq1 = (flt_t)1.0 / rsq1;
-          const flt_t r1 = (flt_t)1.0/sqrt(rinvsq1);
+          const flt_t r1 = (flt_t)1.0/std::sqrt(rinvsq1);
           if (!ONETYPE) cut = p2f[ijtype].cut;
           const flt_t rainv1 = (flt_t)1.0 / (r1 - cut);
 
@@ -459,8 +459,8 @@ void PairSWIntel::eval(const int offload, const int vflag,
             int iktype, ijktype;
             if (!ONETYPE) {
               iktype = tjtype[kk];
-              ijktype = ijkoff + iktype;
-              iktype += itype_offset;
+              ijktype = IP_PRE_dword_index(ijkoff + iktype);
+              iktype = IP_PRE_dword_index(iktype + itype_offset);
               cut = p2[iktype].cut;
               sigma_gamma = p2[iktype].sigma_gamma;
               costheta = p3[ijktype].costheta;
@@ -475,7 +475,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
             const flt_t rsq2 = trsq[kk];
 
             const flt_t rinvsq2 = (flt_t)1.0 / rsq2;
-            const flt_t r2 = (flt_t)1.0 / sqrt(rinvsq2);
+            const flt_t r2 = (flt_t)1.0 / std::sqrt(rinvsq2);
             const flt_t rainv2 = (flt_t)1.0 / (r2 - cut);
             const flt_t gsrainv2 = sigma_gamma * rainv2;
             const flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
@@ -520,7 +520,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
               }
             }
           } // for kk
-          const int j = tj[jj];
+          const int j = IP_PRE_dword_index(tj[jj]);
           f[j].x += fjxtmp;
           f[j].y += fjytmp;
           f[j].z += fjztmp;
@@ -1101,7 +1101,11 @@ void PairSWIntel::allocate()
 
 void PairSWIntel::init_style()
 {
+  // there is no support for skipping threebody loops (yet)
+  bool tmp_threebody = skip_threebody_flag;
+  skip_threebody_flag = false;
   PairSW::init_style();
+  skip_threebody_flag = tmp_threebody;
 
   map[0] = map[1];
 

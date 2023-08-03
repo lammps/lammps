@@ -24,12 +24,13 @@ Syntax
        *fx*,\ *fy*,\ *fz* = force components
 
 * zero or more keyword/value pairs may be appended
-* keyword = *nfile* or *box* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
+* keyword = *nfile* or *box* or *timestep* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
 
   .. parsed-literal::
 
        *nfile* value = Nfiles = how many parallel dump files exist
        *box* value = *yes* or *no* = replace simulation box with dump box
+       *timestep* value = *yes* or *no* = reset simulation timestep with dump timestep
        *replace* value = *yes* or *no* = overwrite atoms with dump atoms
        *purge* value = *yes* or *no* = delete all atoms before adding dump atoms
        *trim* value = *yes* or *no* = trim atoms not in dump snapshot
@@ -60,6 +61,7 @@ Examples
    read_dump dump.dcd 0 x y z box yes format molfile dcd
    read_dump dump.file 1000 x y z vx vy vz box yes format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
    read_dump dump.file 5000 x y vx vy trim yes
+   read_dump dump.file 5000 x y vx vy add yes box no timestep no
    read_dump ../run7/dump.file.gz 10000 x y z box yes
    read_dump dump.xyz 10 x y z box no format molfile xyz ../plugins
    read_dump dump.dcd 0 x y z format molfile dcd
@@ -71,9 +73,9 @@ Description
 """""""""""
 
 Read atom information from a dump file to overwrite the current atom
-coordinates, and optionally the atom velocities and image flags and
-the simulation box dimensions.  This is useful for restarting a run
-from a particular snapshot in a dump file.  See the
+coordinates, and optionally the atom velocities and image flags, the
+simulation timestep, and the simulation box dimensions.  This is useful
+for restarting a run from a particular snapshot in a dump file.  See the
 :doc:`read_restart <read_restart>` and :doc:`read_data <read_data>`
 commands for alternative methods to do this.  Also see the
 :doc:`rerun <rerun>` command for a means of reading multiple snapshots
@@ -89,9 +91,9 @@ Also note that reading per-atom information from a dump snapshot is
 limited to the atom coordinates, velocities and image flags, as
 explained below.  Other atom properties, which may be necessary to run
 a valid simulation, such as atom charge, or bond topology information
-for a molecular system, are not read from (or even contained in) dump
-files.  Thus this auxiliary information should be defined in the usual
-way, e.g. in a data file read in by a :doc:`read_data <read_data>`
+for a molecular system, are not read from (or may not even be contained
+in) dump files.  Thus this auxiliary information should be defined in
+the usual way, e.g. in a data file read in by a :doc:`read_data <read_data>`
 command, before using the read_dump command, or by the :doc:`set <set>`
 command, after the dump snapshot is read.
 
@@ -130,7 +132,7 @@ files can be written by LAMMPS via the :doc:`dump dcd <dump>` command.
 The *path* value specifies a list of directories which LAMMPS will
 search for the molfile plugins appropriate to the specified *style*\ .
 The syntax of the *path* value is like other search paths: it can
-contain multiple directories separated by a colon (or semi-colon on
+contain multiple directories separated by a colon (or semicolon on
 windows).  The *path* keyword is optional and defaults to ".",
 i.e. the current directory.
 
@@ -159,17 +161,16 @@ snapshot was written on for the *native* or *adios* formats.
 The list of timestamps available in an adios .bp file is stored in the
 variable *ntimestep*:
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls dump.bp -d ntimestep
     uint64_t  ntimestep  5*scalar
       (0)    0 50 100 150 200
 
-Note that the *xyz*
-and *molfile* formats do not store the timestep.  For these formats,
-timesteps are numbered logically, in a sequential manner, starting
-from 0.  Thus to access the 10th snapshot in an *xyz* or *mofile*
-formatted dump file, use *Nstep* = 9.
+Note that the *xyz* and *molfile* formats do not store the timestep.
+For these formats, timesteps are numbered logically, in a sequential
+manner, starting from 0.  Thus to access the 10th snapshot in an *xyz*
+or *mofile* formatted dump file, use *Nstep* = 9.
 
 The dimensions of the simulation box for the selected snapshot are
 also read; see the *box* keyword discussion below.  For the *native*
@@ -232,7 +233,7 @@ labels for fields *id* and *type*\ .
 For dump files in *xyz* format, only the *x*, *y*, and *z* fields are
 supported.  The dump file does not store atom IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
-starting from 1.  Thus you should insure that order of atoms is
+starting from 1.  Thus you should ensure that order of atoms is
 consistent from snapshot to snapshot in the XYZ dump file.  See
 the :doc:`dump_modify sort <dump_modify>` command if the XYZ dump file
 was written by LAMMPS.
@@ -242,7 +243,7 @@ For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 velocities, or their respective plugins may not support reading of
 velocities.  The molfile dump files do not store atom IDs, so these
 are assigned consecutively to the atoms as they appear in the dump
-file, starting from 1.  Thus you should insure that order of atoms are
+file, starting from 1.  Thus you should ensure that order of atoms are
 consistent from snapshot to snapshot in the molfile dump file.
 See the :doc:`dump_modify sort <dump_modify>` command if the dump file
 was written by LAMMPS.
@@ -252,7 +253,7 @@ except for the *q* charge field.
 The list of fields stored in an adios .bp file is recorded in the attributes
 *columns* (array of short strings) and *columnstr* (space-separated single string).
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls -la dump.bp column*
     string    columns            attr   = {"id", "type", "x", "y", "z", "vx", "vy", "vz"}
@@ -265,9 +266,13 @@ replace properties of the current system.  There are various options
 for how this is done, determined by the specified fields and optional
 keywords.
 
+.. versionchanged:: 3Aug2022
+
 The timestep of the snapshot becomes the current timestep for the
-simulation.  See the :doc:`reset_timestep <reset_timestep>` command if
-you wish to change this after the dump snapshot is read.
+simulation unless the *timestep* keyword is specified with a *no* value
+(default setting is *yes*).  See the :doc:`reset_timestep <reset_timestep>`
+command if you wish to change this to a different value after the dump
+snapshot is read.
 
 If the *box* keyword is specified with a *yes* value, then the current
 simulation box dimensions are replaced by the dump snapshot box
@@ -391,7 +396,7 @@ Related commands
 Default
 """""""
 
-The option defaults are box = yes, replace = yes, purge = no, trim =
-no, add = no, scaled = no, wrapped = yes, and format = native.
+The option defaults are box = yes, timestep = yes, replace = yes, purge = no,
+trim = no, add = no, scaled = no, wrapped = yes, and format = native.
 
-.. _vmd: http://www.ks.uiuc.edu/Research/vmd
+.. _vmd: https://www.ks.uiuc.edu/Research/vmd

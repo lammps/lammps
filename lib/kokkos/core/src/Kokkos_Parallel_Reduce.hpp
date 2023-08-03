@@ -42,38 +42,39 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_PARALLEL_REDUCE_HPP
 #define KOKKOS_PARALLEL_REDUCE_HPP
 
 #include <Kokkos_NumericTraits.hpp>
 #include <Kokkos_View.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
-#include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_Tools_Generic.hpp>
 #include <type_traits>
 #include <iostream>
 
 namespace Kokkos {
 
-template <class T, class Enable = void>
-struct is_reducer_type {
-  enum { value = 0 };
-};
-
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 template <class T>
-struct is_reducer_type<
-    T, typename std::enable_if<std::is_same<
-           typename std::remove_cv<T>::type,
-           typename std::remove_cv<typename T::reducer>::type>::value>::type> {
-  enum { value = 1 };
-};
+using is_reducer_type KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use Kokkos::is_reducer instead!") = Kokkos::is_reducer<T>;
+#endif
 
 template <class Scalar, class Space>
 struct Sum {
  public:
   // Required
   using reducer    = Sum<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -92,11 +93,6 @@ struct Sum {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const { dest += src; }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest += src;
-  }
 
   KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
@@ -118,7 +114,7 @@ struct Prod {
  public:
   // Required
   using reducer    = Prod<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -137,11 +133,6 @@ struct Prod {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const { dest *= src; }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest *= src;
-  }
 
   KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
@@ -163,7 +154,7 @@ struct Min {
  public:
   // Required
   using reducer    = Min<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -182,11 +173,6 @@ struct Min {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    if (src < dest) dest = src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     if (src < dest) dest = src;
   }
 
@@ -210,7 +196,7 @@ struct Max {
  public:
   // Required
   using reducer    = Max<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -229,11 +215,6 @@ struct Max {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    if (src > dest) dest = src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     if (src > dest) dest = src;
   }
 
@@ -258,7 +239,7 @@ struct LAnd {
  public:
   // Required
   using reducer    = LAnd<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -276,11 +257,6 @@ struct LAnd {
 
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    dest = dest && src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     dest = dest && src;
   }
 
@@ -304,7 +280,7 @@ struct LOr {
  public:
   // Required
   using reducer    = LOr<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -323,11 +299,6 @@ struct LOr {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    dest = dest || src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     dest = dest || src;
   }
 
@@ -351,7 +322,7 @@ struct BAnd {
  public:
   // Required
   using reducer    = BAnd<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -370,11 +341,6 @@ struct BAnd {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    dest = dest & src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     dest = dest & src;
   }
 
@@ -398,7 +364,7 @@ struct BOr {
  public:
   // Required
   using reducer    = BOr<Scalar, Space>;
-  using value_type = typename std::remove_cv<Scalar>::type;
+  using value_type = std::remove_cv_t<Scalar>;
 
   using result_view_type = Kokkos::View<value_type, Space>;
 
@@ -417,11 +383,6 @@ struct BOr {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    dest = dest | src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     dest = dest | src;
   }
 
@@ -450,19 +411,13 @@ struct ValLocScalar {
     val = rhs.val;
     loc = rhs.loc;
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile ValLocScalar& rhs) volatile {
-    val = rhs.val;
-    loc = rhs.loc;
-  }
 };
 
 template <class Scalar, class Index, class Space>
 struct MinLoc {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -490,11 +445,6 @@ struct MinLoc {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    if (src.val < dest.val) dest = src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.val = reduction_identity<scalar_type>::min();
     val.loc = reduction_identity<index_type>::min();
@@ -513,8 +463,8 @@ struct MinLoc {
 template <class Scalar, class Index, class Space>
 struct MaxLoc {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -538,11 +488,6 @@ struct MaxLoc {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    if (src.val > dest.val) dest = src;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     if (src.val > dest.val) dest = src;
   }
 
@@ -571,18 +516,12 @@ struct MinMaxScalar {
     min_val = rhs.min_val;
     max_val = rhs.max_val;
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile MinMaxScalar& rhs) volatile {
-    min_val = rhs.min_val;
-    max_val = rhs.max_val;
-  }
 };
 
 template <class Scalar, class Space>
 struct MinMax {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
 
  public:
   // Required
@@ -606,16 +545,6 @@ struct MinMax {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    if (src.min_val < dest.min_val) {
-      dest.min_val = src.min_val;
-    }
-    if (src.max_val > dest.max_val) {
-      dest.max_val = src.max_val;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     if (src.min_val < dest.min_val) {
       dest.min_val = src.min_val;
     }
@@ -652,21 +581,13 @@ struct MinMaxLocScalar {
     max_val = rhs.max_val;
     max_loc = rhs.max_loc;
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile MinMaxLocScalar& rhs) volatile {
-    min_val = rhs.min_val;
-    min_loc = rhs.min_loc;
-    max_val = rhs.max_val;
-    max_loc = rhs.max_loc;
-  }
 };
 
 template <class Scalar, class Index, class Space>
 struct MinMaxLoc {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -690,18 +611,6 @@ struct MinMaxLoc {
   // Required
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const {
-    if (src.min_val < dest.min_val) {
-      dest.min_val = src.min_val;
-      dest.min_loc = src.min_loc;
-    }
-    if (src.max_val > dest.max_val) {
-      dest.max_val = src.max_val;
-      dest.max_loc = src.max_loc;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
     if (src.min_val < dest.min_val) {
       dest.min_val = src.min_val;
       dest.min_loc = src.min_loc;
@@ -740,8 +649,8 @@ struct MinMaxLoc {
 template <class Scalar, class Index, class Space>
 struct MaxFirstLoc {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -773,15 +682,6 @@ struct MaxFirstLoc {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    if (dest.val < src.val) {
-      dest = src;
-    } else if (!(src.val < dest.val)) {
-      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.val = reduction_identity<scalar_type>::max();
     val.loc = reduction_identity<index_type>::min();
@@ -804,8 +704,8 @@ struct MaxFirstLoc {
 template <class Scalar, class Index, class ComparatorType, class Space>
 struct MaxFirstLocCustomComparator {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -841,15 +741,6 @@ struct MaxFirstLocCustomComparator {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    if (m_comp(dest.val, src.val)) {
-      dest = src;
-    } else if (!m_comp(src.val, dest.val)) {
-      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.val = reduction_identity<scalar_type>::max();
     val.loc = reduction_identity<index_type>::min();
@@ -871,8 +762,8 @@ struct MaxFirstLocCustomComparator {
 template <class Scalar, class Index, class Space>
 struct MinFirstLoc {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -904,15 +795,6 @@ struct MinFirstLoc {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    if (src.val < dest.val) {
-      dest = src;
-    } else if (!(dest.val < src.val)) {
-      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.val = reduction_identity<scalar_type>::min();
     val.loc = reduction_identity<index_type>::min();
@@ -935,8 +817,8 @@ struct MinFirstLoc {
 template <class Scalar, class Index, class ComparatorType, class Space>
 struct MinFirstLocCustomComparator {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -972,15 +854,6 @@ struct MinFirstLocCustomComparator {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    if (m_comp(src.val, dest.val)) {
-      dest = src;
-    } else if (!m_comp(dest.val, src.val)) {
-      dest.loc = (src.loc < dest.loc) ? src.loc : dest.loc;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.val = reduction_identity<scalar_type>::min();
     val.loc = reduction_identity<index_type>::min();
@@ -1002,8 +875,8 @@ struct MinFirstLocCustomComparator {
 template <class Scalar, class Index, class Space>
 struct MinMaxFirstLastLoc {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -1044,23 +917,6 @@ struct MinMaxFirstLastLoc {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    if (src.min_val < dest.min_val) {
-      dest.min_val = src.min_val;
-      dest.min_loc = src.min_loc;
-    } else if (!(dest.min_val < src.min_val)) {
-      dest.min_loc = (src.min_loc < dest.min_loc) ? src.min_loc : dest.min_loc;
-    }
-
-    if (dest.max_val < src.max_val) {
-      dest.max_val = src.max_val;
-      dest.max_loc = src.max_loc;
-    } else if (!(src.max_val < dest.max_val)) {
-      dest.max_loc = (src.max_loc > dest.max_loc) ? src.max_loc : dest.max_loc;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.max_val = ::Kokkos::reduction_identity<scalar_type>::max();
     val.min_val = ::Kokkos::reduction_identity<scalar_type>::min();
@@ -1085,8 +941,8 @@ struct MinMaxFirstLastLoc {
 template <class Scalar, class Index, class ComparatorType, class Space>
 struct MinMaxFirstLastLocCustomComparator {
  private:
-  using scalar_type = typename std::remove_cv<Scalar>::type;
-  using index_type  = typename std::remove_cv<Index>::type;
+  using scalar_type = std::remove_cv_t<Scalar>;
+  using index_type  = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -1130,23 +986,6 @@ struct MinMaxFirstLastLocCustomComparator {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    if (m_comp(src.min_val, dest.min_val)) {
-      dest.min_val = src.min_val;
-      dest.min_loc = src.min_loc;
-    } else if (!m_comp(dest.min_val, src.min_val)) {
-      dest.min_loc = (src.min_loc < dest.min_loc) ? src.min_loc : dest.min_loc;
-    }
-
-    if (m_comp(dest.max_val, src.max_val)) {
-      dest.max_val = src.max_val;
-      dest.max_loc = src.max_loc;
-    } else if (!m_comp(src.max_val, dest.max_val)) {
-      dest.max_loc = (src.max_loc > dest.max_loc) ? src.max_loc : dest.max_loc;
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.max_val = ::Kokkos::reduction_identity<scalar_type>::max();
     val.min_val = ::Kokkos::reduction_identity<scalar_type>::min();
@@ -1173,17 +1012,12 @@ struct FirstLocScalar {
 
   KOKKOS_INLINE_FUNCTION
   void operator=(const FirstLocScalar& rhs) { min_loc_true = rhs.min_loc_true; }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile FirstLocScalar& rhs) volatile {
-    min_loc_true = rhs.min_loc_true;
-  }
 };
 
 template <class Index, class Space>
 struct FirstLoc {
  private:
-  using index_type = typename std::remove_cv<Index>::type;
+  using index_type = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -1213,13 +1047,6 @@ struct FirstLoc {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest.min_loc_true = (src.min_loc_true < dest.min_loc_true)
-                            ? src.min_loc_true
-                            : dest.min_loc_true;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.min_loc_true = ::Kokkos::reduction_identity<index_type>::min();
   }
@@ -1243,17 +1070,12 @@ struct LastLocScalar {
 
   KOKKOS_INLINE_FUNCTION
   void operator=(const LastLocScalar& rhs) { max_loc_true = rhs.max_loc_true; }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile LastLocScalar& rhs) volatile {
-    max_loc_true = rhs.max_loc_true;
-  }
 };
 
 template <class Index, class Space>
 struct LastLoc {
  private:
-  using index_type = typename std::remove_cv<Index>::type;
+  using index_type = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -1283,13 +1105,6 @@ struct LastLoc {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest.max_loc_true = (src.max_loc_true > dest.max_loc_true)
-                            ? src.max_loc_true
-                            : dest.max_loc_true;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.max_loc_true = ::Kokkos::reduction_identity<index_type>::max();
   }
@@ -1313,12 +1128,6 @@ struct StdIsPartScalar {
     min_loc_false = rhs.min_loc_false;
     max_loc_true  = rhs.max_loc_true;
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile StdIsPartScalar& rhs) volatile {
-    min_loc_false = rhs.min_loc_false;
-    max_loc_true  = rhs.max_loc_true;
-  }
 };
 
 //
@@ -1327,7 +1136,7 @@ struct StdIsPartScalar {
 template <class Index, class Space>
 struct StdIsPartitioned {
  private:
-  using index_type = typename std::remove_cv<Index>::type;
+  using index_type = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -1362,17 +1171,6 @@ struct StdIsPartitioned {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest.max_loc_true = (dest.max_loc_true < src.max_loc_true)
-                            ? src.max_loc_true
-                            : dest.max_loc_true;
-
-    dest.min_loc_false = (dest.min_loc_false < src.min_loc_false)
-                             ? dest.min_loc_false
-                             : src.min_loc_false;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.max_loc_true  = ::Kokkos::reduction_identity<index_type>::max();
     val.min_loc_false = ::Kokkos::reduction_identity<index_type>::min();
@@ -1396,11 +1194,6 @@ struct StdPartPointScalar {
   void operator=(const StdPartPointScalar& rhs) {
     min_loc_false = rhs.min_loc_false;
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator=(const volatile StdPartPointScalar& rhs) volatile {
-    min_loc_false = rhs.min_loc_false;
-  }
 };
 
 //
@@ -1409,7 +1202,7 @@ struct StdPartPointScalar {
 template <class Index, class Space>
 struct StdPartitionPoint {
  private:
-  using index_type = typename std::remove_cv<Index>::type;
+  using index_type = std::remove_cv_t<Index>;
 
  public:
   // Required
@@ -1440,13 +1233,6 @@ struct StdPartitionPoint {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest.min_loc_false = (dest.min_loc_false < src.min_loc_false)
-                             ? dest.min_loc_false
-                             : src.min_loc_false;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void init(value_type& val) const {
     val.min_loc_false = ::Kokkos::reduction_identity<index_type>::min();
   }
@@ -1470,8 +1256,8 @@ struct ParallelReduceReturnValue;
 
 template <class ReturnType, class FunctorType>
 struct ParallelReduceReturnValue<
-    typename std::enable_if<Kokkos::is_view<ReturnType>::value>::type,
-    ReturnType, FunctorType> {
+    std::enable_if_t<Kokkos::is_view<ReturnType>::value>, ReturnType,
+    FunctorType> {
   using return_type  = ReturnType;
   using reducer_type = InvalidType;
 
@@ -1488,10 +1274,10 @@ struct ParallelReduceReturnValue<
 
 template <class ReturnType, class FunctorType>
 struct ParallelReduceReturnValue<
-    typename std::enable_if<!Kokkos::is_view<ReturnType>::value &&
-                            (!std::is_array<ReturnType>::value &&
-                             !std::is_pointer<ReturnType>::value) &&
-                            !Kokkos::is_reducer_type<ReturnType>::value>::type,
+    std::enable_if_t<!Kokkos::is_view<ReturnType>::value &&
+                     (!std::is_array<ReturnType>::value &&
+                      !std::is_pointer<ReturnType>::value) &&
+                     !Kokkos::is_reducer<ReturnType>::value>,
     ReturnType, FunctorType> {
   using return_type =
       Kokkos::View<ReturnType, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
@@ -1507,10 +1293,10 @@ struct ParallelReduceReturnValue<
 
 template <class ReturnType, class FunctorType>
 struct ParallelReduceReturnValue<
-    typename std::enable_if<(std::is_array<ReturnType>::value ||
-                             std::is_pointer<ReturnType>::value)>::type,
+    std::enable_if_t<(std::is_array<ReturnType>::value ||
+                      std::is_pointer<ReturnType>::value)>,
     ReturnType, FunctorType> {
-  using return_type = Kokkos::View<typename std::remove_const<ReturnType>::type,
+  using return_type = Kokkos::View<std::remove_const_t<ReturnType>,
                                    Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
   using reducer_type = InvalidType;
@@ -1528,8 +1314,8 @@ struct ParallelReduceReturnValue<
 
 template <class ReturnType, class FunctorType>
 struct ParallelReduceReturnValue<
-    typename std::enable_if<Kokkos::is_reducer_type<ReturnType>::value>::type,
-    ReturnType, FunctorType> {
+    std::enable_if_t<Kokkos::is_reducer<ReturnType>::value>, ReturnType,
+    FunctorType> {
   using return_type  = ReturnType;
   using reducer_type = ReturnType;
   using value_type   = typename return_type::value_type;
@@ -1544,8 +1330,7 @@ struct ParallelReducePolicyType;
 
 template <class PolicyType, class FunctorType>
 struct ParallelReducePolicyType<
-    typename std::enable_if<
-        Kokkos::is_execution_policy<PolicyType>::value>::type,
+    std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value>,
     PolicyType, FunctorType> {
   using policy_type = PolicyType;
   static PolicyType policy(const PolicyType& policy_) { return policy_; }
@@ -1553,8 +1338,8 @@ struct ParallelReducePolicyType<
 
 template <class PolicyType, class FunctorType>
 struct ParallelReducePolicyType<
-    typename std::enable_if<std::is_integral<PolicyType>::value>::type,
-    PolicyType, FunctorType> {
+    std::enable_if_t<std::is_integral<PolicyType>::value>, PolicyType,
+    FunctorType> {
   using execution_space =
       typename Impl::FunctorPolicyExecutionSpace<FunctorType,
                                                  void>::execution_space;
@@ -1619,7 +1404,7 @@ struct ParallelReduceAdaptor {
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   template <typename Dummy = ReturnType>
   KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Array reductions with a raw pointer return type a deprecated. Use a "
+      "Array reductions with a raw pointer return type are deprecated. Use a "
       "Kokkos::View as return argument!")
   static inline std::
       enable_if_t<is_array_reduction && std::is_pointer<Dummy>::value> execute(
@@ -1720,8 +1505,8 @@ struct ParallelReduceFence {
  *    using value_type = <podType>;
  *    void operator()( <intType> iwork , <podType> & update ) const ;
  *    void init( <podType> & update ) const ;
- *    void join( volatile       <podType> & update ,
- *               volatile const <podType> & input ) const ;
+ *    void join(       <podType> & update ,
+ *               const <podType> & input ) const ;
  *
  *    void final( <podType> & update ) const ;
  *  };
@@ -1736,8 +1521,8 @@ struct ParallelReduceFence {
  *    using value_type = <podType>[];
  *    void operator()( <intType> , <podType> update[] ) const ;
  *    void init( <podType> update[] ) const ;
- *    void join( volatile       <podType> update[] ,
- *               volatile const <podType> input[] ) const ;
+ *    void join(       <podType> update[] ,
+ *               const <podType> input[] ) const ;
  *
  *    void final( <podType> update[] ) const ;
  *  };
@@ -1915,16 +1700,17 @@ template <class PolicyType, class FunctorType>
 inline void parallel_reduce(
     const std::string& label, const PolicyType& policy,
     const FunctorType& functor,
-    typename std::enable_if<
-        Kokkos::is_execution_policy<PolicyType>::value>::type* = nullptr) {
-  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
-                                        typename ValueTraits::value_type,
-                                        typename ValueTraits::pointer_type>;
+    std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value>* =
+        nullptr) {
+  using FunctorAnalysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
+                            FunctorType>;
+  using value_type = std::conditional_t<(FunctorAnalysis::StaticValueSize != 0),
+                                        typename FunctorAnalysis::value_type,
+                                        typename FunctorAnalysis::pointer_type>;
 
   static_assert(
-      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
-                            FunctorType>::has_final_member_function,
+      FunctorAnalysis::has_final_member_function,
       "Calling parallel_reduce without either return value or final function.");
 
   using result_view_type =
@@ -1939,16 +1725,17 @@ inline void parallel_reduce(
 template <class PolicyType, class FunctorType>
 inline void parallel_reduce(
     const PolicyType& policy, const FunctorType& functor,
-    typename std::enable_if<
-        Kokkos::is_execution_policy<PolicyType>::value>::type* = nullptr) {
-  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
-                                        typename ValueTraits::value_type,
-                                        typename ValueTraits::pointer_type>;
+    std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value>* =
+        nullptr) {
+  using FunctorAnalysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
+                            FunctorType>;
+  using value_type = std::conditional_t<(FunctorAnalysis::StaticValueSize != 0),
+                                        typename FunctorAnalysis::value_type,
+                                        typename FunctorAnalysis::pointer_type>;
 
   static_assert(
-      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
-                            FunctorType>::has_final_member_function,
+      FunctorAnalysis::has_final_member_function,
       "Calling parallel_reduce without either return value or final function.");
 
   using result_view_type =
@@ -1965,15 +1752,15 @@ inline void parallel_reduce(const size_t& policy, const FunctorType& functor) {
   using policy_type =
       typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
-  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
-                                        typename ValueTraits::value_type,
-                                        typename ValueTraits::pointer_type>;
+  using FunctorAnalysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, policy_type,
+                            FunctorType>;
+  using value_type = std::conditional_t<(FunctorAnalysis::StaticValueSize != 0),
+                                        typename FunctorAnalysis::value_type,
+                                        typename FunctorAnalysis::pointer_type>;
 
   static_assert(
-      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
-                            RangePolicy<>,
-                            FunctorType>::has_final_member_function,
+      FunctorAnalysis::has_final_member_function,
       "Calling parallel_reduce without either return value or final function.");
 
   using result_view_type =
@@ -1992,15 +1779,15 @@ inline void parallel_reduce(const std::string& label, const size_t& policy,
   using policy_type =
       typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
-  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, void>;
-  using value_type  = std::conditional_t<(ValueTraits::StaticValueSize != 0),
-                                        typename ValueTraits::value_type,
-                                        typename ValueTraits::pointer_type>;
+  using FunctorAnalysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, policy_type,
+                            FunctorType>;
+  using value_type = std::conditional_t<(FunctorAnalysis::StaticValueSize != 0),
+                                        typename FunctorAnalysis::value_type,
+                                        typename FunctorAnalysis::pointer_type>;
 
   static_assert(
-      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
-                            RangePolicy<>,
-                            FunctorType>::has_final_member_function,
+      FunctorAnalysis::has_final_member_function,
       "Calling parallel_reduce without either return value or final function.");
 
   using result_view_type =

@@ -392,7 +392,11 @@ void PairSWKokkos<DeviceType>::coeff(int narg, char **arg)
 template<class DeviceType>
 void PairSWKokkos<DeviceType>::init_style()
 {
+  // there is no support for skipping threebody loops (yet)
+  bool tmp_threebody = skip_threebody_flag;
+  skip_threebody_flag = false;
   PairSW::init_style();
+  skip_threebody_flag = tmp_threebody;
 
   // adjust neighbor list request for KOKKOS
 

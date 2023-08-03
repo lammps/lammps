@@ -26,6 +26,22 @@
 #if defined(USE_OPENCL)
 #include "device_cl.h"
 
+const char *ocl_prefetch_test =
+"  #if (NBOR_PREFETCH == 1)                                                \n"\
+"  inline void ucl_prefetch(const __global int *p) { prefetch(p, 1); }     \n"\
+"  #elif (NBOR_PREFETCH == 2)                                              \n"\
+"  enum LSC_LDCC {LSC_LDCC_DEFAULT, LSC_LDCC_L1UC_L3UC, LSC_LDCC_L1UC_L3C, \n"\
+"                 LSC_LDCC_L1C_L3UC, LSC_LDCC_L1C_L3C, LSC_LDCC_L1S_L3UC,  \n"\
+"                 LSC_LDCC_L1S_L3C, LSC_LDCC_L1IAR_L3C, };                 \n"\
+"  void __builtin_IB_lsc_prefetch_global_uint(const __global uint *, int,  \n"\
+"                                             enum LSC_LDCC);              \n"\
+"  inline void ucl_prefetch(const __global int *p) {                       \n"\
+"    __builtin_IB_lsc_prefetch_global_uint((const __global uint *)p, 0,    \n"\
+"                                          LSC_LDCC_L1C_L3UC);             \n"\
+"  }                                                                       \n"\
+"  #endif                                                                  \n"\
+"  __kernel void ptest(__global int *i) { ucl_prefetch(i); i[0]++; }       \n";
+
 #ifdef LAL_OCL_EXTRA_ARGS
 #define LAL_DM_STRINGIFY(x) #x
 #define LAL_PRE_STRINGIFY(x) LAL_DM_STRINGIFY(x)
@@ -52,7 +68,7 @@ DeviceT::~Device() {
 }
 
 template <class numtyp, class acctyp>
-int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
+int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
                          const int first_gpu_id, const int gpu_mode,
                          const double p_split, const int t_per_atom,
                          const double user_cell_size, char *ocl_args,
@@ -86,7 +102,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   #ifdef LAL_OCL_EXTRA_ARGS
   extra_args+=":" LAL_PRE_STRINGIFY(LAL_OCL_EXTRA_ARGS);
   #endif
-  for (int i=0; i<extra_args.length(); i++)
+  for (int i=0; i < (int)extra_args.length(); i++)
     if (extra_args[i]==':') extra_args[i]=' ';
 
   // --------------------------- MPI setup -------------------------------
@@ -265,21 +281,19 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   // Time on the device only if 1 proc per gpu
   _time_device=true;
 
-#if 0
-  // XXX: the following setting triggers a memory leak with OpenCL and MPI
-  //      setting _time_device=true for all processes doesn't seem to be a
-  //      problem with either (no segfault, no (large) memory leak.
-  //      thus keeping this disabled for now. may need to review later.
-  //      2018-07-23 <akohlmey@gmail.com>
+  // Previous source of OCL memory leak when time_device=false
+  // - Logic added to release OCL events when timers are not invoked
   if (_procs_per_gpu>1)
     _time_device=false;
-#endif
+
+  if (!_time_device && _particle_split > 0)
+    gpu->configure_profiling(false);
 
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
   MPI_Comm_rank(_comm_gpu,&_gpu_rank);
 
-  #if !defined(CUDA_PROXY) && !defined(CUDA_MPS_SUPPORT)
+  #if !defined(CUDA_MPS_SUPPORT)
   if (_procs_per_gpu>1 && !gpu->sharing_supported(my_gpu))
     return -7;
   #endif
@@ -303,7 +317,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   #ifdef USE_OPENCL
   if (device_type_flags==nullptr) {
     std::string pname = gpu->platform_name();
-    for (int i=0; i<pname.length(); i++)
+    for (int i=0; i < (int)pname.length(); i++)
       if (pname[i]<='z' && pname[i]>='a')
         pname[i]=toupper(pname[i]);
     if (pname.find("NVIDIA")!=std::string::npos)
@@ -330,7 +344,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   for (int i=0; i<_procs_per_gpu; i++) {
     if (_gpu_rank==i)
       flag=compile_kernels();
-    gpu_barrier();
+    serialize_init();
   }
 
   // check if double precision support is available
@@ -372,7 +386,7 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
 
   _ocl_config_name="CUSTOM";
   int token_count=0;
-  std::string params[18];
+  std::string params[19];
   char ocl_config[2048];
   strncpy(ocl_config,s_config.c_str(),2047);
   char *pch = strtok(ocl_config,",");
@@ -380,7 +394,7 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   pch = strtok(nullptr,",");
   if (pch == nullptr) return -11;
   while (pch != nullptr) {
-    if (token_count==18)
+    if (token_count==19)
       return -11;
     params[token_count]=pch;
     token_count++;
@@ -388,6 +402,41 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   }
 
   _ocl_compile_string="-cl-mad-enable ";
+  #ifdef CL_VERSION_2_0
+  _ocl_compile_string+="-cl-std=CL2.0 ";
+  #endif
+  if (params[0]=="500") {
+    _ocl_compile_string+="-DINTEL_OCL ";
+    #ifdef _DOUBLE_DOUBLE
+    // workaround for double precision with Intel OpenCL
+    params[4]="0";
+    #endif
+  }
+
+  // Test OCL JIT to make sure any prefetch options are supported
+  #ifdef LAL_DISABLE_PREFETCH
+  params[18]="0";
+  #endif
+  _nbor_prefetch=-1;
+  if (params[18]=="2") {
+    _nbor_prefetch=2;
+    UCL_Program ptest(*gpu);
+    std::string ptest_args=_ocl_compile_string+" -DNBOR_PREFETCH="+params[18];
+    int success=ptest.load_string(ocl_prefetch_test,ptest_args.c_str(),
+                                  nullptr,nullptr,1);
+    if (success!=UCL_SUCCESS) params[18]="1";
+  }
+  if (params[18]=="1") {
+    _nbor_prefetch=1;
+    UCL_Program ptest(*gpu);
+    std::string ptest_args=_ocl_compile_string+" -DNBOR_PREFETCH="+params[18];
+    int success=ptest.load_string(ocl_prefetch_test,ptest_args.c_str(),
+                                  nullptr,nullptr,1);
+    if (success!=UCL_SUCCESS) params[18]="0";
+  }
+  if (_nbor_prefetch<0) params[18]="0";
+  if (params[18]=="0") _nbor_prefetch=0;
+
   if (params[4]!="0") _ocl_compile_string+="-cl-fast-relaxed-math ";
   _ocl_compile_string+=std::string(OCL_INT_TYPE)+" "+
     std::string(OCL_PRECISION_COMPILE);
@@ -420,7 +469,8 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
 
                          " -DMAX_SHARED_TYPES="+params[15]+
                          " -DMAX_BIO_SHARED_TYPES="+params[16]+
-                         " -DPPPM_MAX_SPLINE="+params[17];
+                         " -DPPPM_MAX_SPLINE="+params[17]+
+                         " -DNBOR_PREFETCH="+params[18];
   _ocl_compile_string += extra_args;
   #endif
   return 0;
@@ -440,7 +490,7 @@ template <class numtyp, class acctyp>
 int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                   const bool rot, const int nlocal,
                   const int nall, const int maxspecial,
-                  const bool vel) {
+                  const bool vel, const int extra_fields) {
   if (!_device_init)
     return -1;
   if (sizeof(acctyp)==sizeof(double) && !gpu->double_precision())
@@ -469,7 +519,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
 
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor>0 && maxspecial>0,vel))
+    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor>0 && maxspecial>0,vel,extra_fields))
       return -3;
 
     _data_in_estimate++;
@@ -479,6 +529,9 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (vel)
       _data_in_estimate++;
+    if (extra_fields>0)
+      _data_in_estimate++;
+
   } else {
     if (!atom.charge() && charge)
       _data_in_estimate++;
@@ -486,7 +539,9 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (!atom.velocity() && vel)
       _data_in_estimate++;
-    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial,vel))
+    if (atom.using_extra() && extra_fields>0)
+      _data_in_estimate++;
+    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial,vel,extra_fields))
       return -3;
   }
 
@@ -522,7 +577,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
 
 template <class numtyp, class acctyp>
 int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
-                       const int host_nlocal, const int nall,
+                       const int host_nlocal, const int /*nall*/,
                        const int maxspecial, const int gpu_host,
                        const int max_nbors, const double cutoff,
                        const bool pre_cut, const int threads_per_atom,
@@ -552,7 +607,11 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     return -3;
 
   if (_user_cell_size<0.0) {
+    #ifndef LAL_USE_OLD_NEIGHBOR
+    _neighbor_shared.setup_auto_cell_size(true,cutoff,nbor->simd_size());
+    #else
     _neighbor_shared.setup_auto_cell_size(false,cutoff,nbor->simd_size());
+    #endif
   } else
     _neighbor_shared.setup_auto_cell_size(false,_user_cell_size,nbor->simd_size());
   nbor->set_cutoff(cutoff);
@@ -611,6 +670,10 @@ void DeviceT::init_message(FILE *screen, const char *name,
     int last=last_gpu+1;
     if (last>gpu->num_devices())
       last=gpu->num_devices();
+    if (gpu->num_platforms()>1) {
+      std::string pname=gpu->platform_name();
+      fprintf(screen,"Platform: %s\n",pname.c_str());
+    }
     for (int i=first_gpu; i<last; i++) {
       std::string sname;
       if (i==first_gpu)
@@ -682,7 +745,14 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   gpu_overhead=0.0;
   gpu_driver_overhead=0.0;
 
-  for (int z=0; z<11; z++) {
+  // TODO: XXX
+  // The following estimation currently fails on Intel GPUs
+  // that do not support double precision with OpenCL error code -5.
+  // Until we have a better solution, we just skip this test in this case.
+  int zloops = 11;
+  if (!gpu->double_precision()) zloops = 0;
+
+  for (int z=0; z < zloops; z++) {
     gpu->sync();
     gpu_barrier();
     over_timer.start();
@@ -715,7 +785,9 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
       dev_data_out[0].flush();
     #endif
     driver_time=MPI_Wtime()-driver_time;
-    double time=over_timer.seconds();
+    double time=0.0;
+    if (_time_device)
+      time=over_timer.seconds();
 
     if (time_device()) {
       for (int i=0; i<_data_in_estimate; i++)
@@ -737,6 +809,7 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   }
   gpu_overhead/=10.0;
   gpu_driver_overhead/=10.0;
+  gpu->sync();
 
   if (_data_in_estimate>0) {
     delete [] host_data_in;
@@ -789,6 +862,7 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
   if (times[0] > 80e6) times[0]=0.0;
+  if (times[1] > 80e6) times[1]=0.0;
   if (times[3] > 80e6) times[3]=0.0;
   if (times[5] > 80e6) times[5]=0.0;
   #endif
@@ -802,9 +876,8 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       fprintf(screen,"--------------------------------\n");
 
       if (time_device() && (times[3] > 0.0)) {
-        if (times[0] > 0.0)
-          fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
-        fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
+        if (times[0] > 0.0) fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
+        if (times[1] > 0.0) fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
         if (nbor.gpu_nbor() > 0.0)
           fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/_replica_size);
         else
@@ -816,6 +889,10 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Lanes / atom:    %d.\n",threads_per_atom);
       fprintf(screen,"Vector width:    %d.\n", simd_size());
+      fprintf(screen,"Prefetch mode:   ");
+      if (_nbor_prefetch==2) fprintf(screen,"Intrinsics.\n");
+      else if (_nbor_prefetch==1) fprintf(screen,"API.\n");
+      else fprintf(screen,"None.\n");
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       if (nbor.gpu_nbor()==2)
         fprintf(screen,"CPU Neighbor:    %.4f s.\n",times[8]/_replica_size);
@@ -858,32 +935,34 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
+  if (times[0] > 80e6) times[0]=0.0;
+  if (times[1] > 80e6) times[1]=0.0;
   if (times[3] > 80e6) times[3]=0.0;
+  if (times[5] > 80e6) times[5]=0.0;
   #endif
 
 
   if (replica_me()==0)
-    if (screen && times[6]>0.0) {
+    if (screen && (times[6] > 0.0)) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
       fprintf(screen,"    Device Time Info (average) for kspace: ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (time_device() && times[3]>0) {
-        fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
-        fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
+      if (time_device() && (times[3] > 0.0)) {
+        if (times[0] > 0.0) fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
+        if (times[1] > 0.0) fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
         fprintf(screen,"Force interp:    %.4f s.\n",times[4]/_replica_size);
-        fprintf(screen,"Total rho:       %.4f s.\n",
-                (times[0]+times[2]+times[3])/_replica_size);
-        fprintf(screen,"Total interp:    %.4f s.\n",
-                (times[1]+times[4])/_replica_size);
-        fprintf(screen,"Force copy:      %.4f s.\n",times[5]/_replica_size);
+        if (times[0] > 0.0)
+          fprintf(screen,"Total rho:       %.4f s.\n", (times[0]+times[2]+times[3])/_replica_size);
+        if (times[1] > 0.0)
+          fprintf(screen,"Total interp:    %.4f s.\n", (times[1]+times[4])/_replica_size);
+        if (times[5] > 0.0) fprintf(screen,"Force copy:      %.4f s.\n",times[5]/_replica_size);
         fprintf(screen,"Total:           %.4f s.\n",
-                (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/
-                _replica_size);
+                (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/_replica_size);
       }
       fprintf(screen,"CPU Poisson:     %.4f s.\n",times[6]/_replica_size);
       fprintf(screen,"CPU Data Cast:   %.4f s.\n",times[8]/_replica_size);
@@ -939,7 +1018,7 @@ int DeviceT::compile_kernels() {
   k_info.set_function(*dev_program,"kernel_info");
   _compiled=true;
 
-  UCL_Vector<int,int> gpu_lib_data(19,*gpu,UCL_NOT_PINNED);
+  UCL_Vector<int,int> gpu_lib_data(20,*gpu,UCL_NOT_PINNED);
   k_info.set_size(1,1);
   k_info.run(&gpu_lib_data);
   gpu_lib_data.update_host(false);

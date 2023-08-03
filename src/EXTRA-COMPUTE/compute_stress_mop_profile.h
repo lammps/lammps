@@ -38,16 +38,21 @@ class ComputeStressMopProfile : public Compute {
 
  private:
   void compute_pairs();
+  void compute_bonds();
   void setup_bins();
 
-  int me, nvalues, dir;
+  int nvalues, dir;
   int *which;
+
+  int bondflag;
 
   int originflag;
   double origin, delta, offset, invdelta;
   int nbins;
   double **coord, **coordp;
   double **values_local, **values_global;
+  double **bond_local, **bond_global;
+  double **local_contribution;
 
   double dt, nktv2p, ftm2v;
   double area;

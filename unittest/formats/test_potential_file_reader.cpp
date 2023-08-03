@@ -57,8 +57,7 @@ constexpr int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
 constexpr int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
 #endif
 
-class PotentialFileReaderTest : public LAMMPSTest {
-};
+class PotentialFileReaderTest : public LAMMPSTest {};
 
 // open for native units
 TEST_F(PotentialFileReaderTest, Sw_native)
@@ -259,8 +258,7 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     delete reader;
 }
 
-class OpenPotentialTest : public LAMMPSTest {
-};
+class OpenPotentialTest : public LAMMPSTest {};
 
 // open for native units
 TEST_F(OpenPotentialTest, Sw_native)
@@ -325,9 +323,8 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

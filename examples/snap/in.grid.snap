@@ -1,0 +1,94 @@
+# Demonstrate calculation of SNAP bispectrum descriptors on a grid
+
+# CORRECTNESS: The two atom positions coincide with two of
+# the gridpoints, so c_b[2][1-5] should match c_mygrid[8][4-8].
+# The same is true for compute grid/local c_mygridlocal[8][4-11].
+# Local arrays can not be access directly in the script,
+# but they are printed out to file dump.blocal
+
+variable 	nrep index 1
+variable 	a index 3.316
+variable 	ngrid index 2
+
+units		metal
+atom_modify	map hash
+
+# generate the box and atom positions using a BCC lattice
+
+variable       	nx equal ${nrep}
+variable 	ny equal ${nrep}
+variable 	nz equal ${nrep}
+
+boundary	p p p
+
+lattice		custom $a &
+		a1 1 0 0 &
+		a2 0 1 0  &
+		a3 0 0 1 &
+		basis 0 0 0 &
+		basis 0.5 0.5 0.5 &
+
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box	1 box
+create_atoms	1 box
+
+mass 		1 180.88
+
+# define atom compute and grid compute
+
+group 		snapgroup type 1
+variable 	twojmax equal 2
+variable 	rcutfac equal 4.67637
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	wj equal 1
+variable 	radelem equal 0.5
+variable 	bzero equal 0
+variable 	quadratic equal 0
+variable 	switch equal 1
+
+variable 	snap_options string &
+		"${rcutfac} ${rfac0} ${twojmax} ${radelem} &
+		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} &
+		bzeroflag ${bzero} switchflag ${switch}"
+
+# build zero potential to satisfy compute sna/atom
+
+pair_style      zero ${rcutfac}
+pair_coeff      * *
+
+# define atom and grid computes
+
+compute       	b all sna/atom ${snap_options}
+compute 	mygrid all sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
+	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid ${ngrid} ${ngrid} ${ngrid} &
+	 	${snap_options}
+
+# define output
+
+variable	B5atom equal c_b[2][5]
+variable	B5grid equal c_mygrid[8][8]
+
+variable	rmse_global equal "sqrt(   &
+	 (c_mygrid[8][1] - x[2])^2 +      &
+	 (c_mygrid[8][2] - y[2])^2 +      &
+	 (c_mygrid[8][3] - z[2])^2 +      &
+	 (c_mygrid[8][4] - c_b[2][1])^2 + &
+	 (c_mygrid[8][5] - c_b[2][2])^2 + &
+	 (c_mygrid[8][6] - c_b[2][3])^2 + &
+	 (c_mygrid[8][7] - c_b[2][4])^2 + &
+	 (c_mygrid[8][8] - c_b[2][5])^2   &
+	 )"
+
+thermo_style	custom step v_B5atom v_B5grid v_rmse_global
+
+# this is the only way to view the local grid
+
+dump 1 all local 1000 dump.blocal c_mygridlocal[*]
+dump 2 all custom 1000 dump.batom id x y z c_b[*]
+
+# run
+
+run		0
+

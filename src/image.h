@@ -34,6 +34,11 @@ class Image : protected Pointers {
   double *boxcolor;           // color to draw box outline with
   int background[3];          // RGB values of background
 
+  double ambientColor[3];     // light color settings (adjustable by caller)
+  double keyLightColor[3];
+  double fillLightColor[3];
+  double backLightColor[3];
+
   Image(class LAMMPS *, int);
   ~Image() override;
   void buffers();
@@ -80,19 +85,19 @@ class Image : protected Pointers {
   // constant view params
 
   double FOV;
-  double ambientColor[3];
+  //double ambientColor[3];
 
   double keyLightTheta;
   double keyLightPhi;
-  double keyLightColor[3];
+  //double keyLightColor[3];
 
   double fillLightTheta;
   double fillLightPhi;
-  double fillLightColor[3];
+  //double fillLightColor[3];
 
   double backLightTheta;
   double backLightPhi;
-  double backLightColor[3];
+  //double backLightColor[3];
 
   double specularHardness;
   double specularIntensity;

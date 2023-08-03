@@ -110,21 +110,30 @@ namespace MathSpecial {
    *  \param   x argument
    *  \return  x*x */
 
-  static inline double square(const double &x) { return x * x; }
+  static inline double square(const double &x)
+  {
+    return x * x;
+  }
 
   /*! Fast inline version of pow(x, 3.0)
    *
    *  \param   x argument
    *  \return  x*x */
 
-  static inline double cube(const double &x) { return x * x * x; }
+  static inline double cube(const double &x)
+  {
+    return x * x * x;
+  }
 
   /* Fast inline version of pow(-1.0, n)
    *
    *  \param   n argument (integer)
    *  \return  -1 if n is odd, 1.0 if n is even */
 
-  static inline double powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
+  static inline double powsign(const int n)
+  {
+    return (n & 1) ? -1.0 : 1.0;
+  }
 
   /* Fast inline version of pow(x,n) for integer n
    *

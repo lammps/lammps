@@ -8,7 +8,7 @@ Packages are supported by either the LAMMPS developers or the
 contributing authors and written in a syntax and style consistent with
 the rest of LAMMPS.
 
-The "Examples" column is a sub-directory in the examples directory of the
+The "Examples" column is a subdirectory in the examples directory of the
 distribution which has one or more input scripts that use the package.
 E.g. "peptide" refers to the examples/peptide directory; PACKAGES/atc refers
 to the examples/PACKAGES/atc directory.  The "Lib" column indicates
@@ -33,6 +33,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`dump adios <dump_adios>`
      - PACKAGES/adios
      - ext
+   * - :ref:`AMOEBA <PKG-AMOEBA>`
+     - AMOEBA and HIPPO force fields
+     - :doc:`AMOEBA and HIPPO howto <Howto_amoeba>`
+     - amoeba
+     - no
    * - :ref:`ASPHERE <PKG-ASPHERE>`
      - aspherical particle models
      - :doc:`Howto spherical <Howto_spherical>`
@@ -73,10 +78,10 @@ whether an extra library is needed to build and use the package:
      - src/CG-DNA/README
      - PACKAGES/cgdna
      - no
-   * - :ref:`CG-SDK <PKG-CG-SDK>`
-     - SDK coarse-graining model
-     - :doc:`pair_style lj/sdk <pair_sdk>`
-     - PACKAGES/cgsdk
+   * - :ref:`CG-SPICA <PKG-CG-SPICA>`
+     - SPICA (SDK) coarse-graining model
+     - :doc:`pair_style lj/spica <pair_spica>`
+     - PACKAGES/cgspica
      - no
    * - :ref:`CLASS2 <PKG-CLASS2>`
      - class 2 force fields
@@ -150,7 +155,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`ELECTRODE <PKG-ELECTRODE>`
      - electrode charges to match potential
-     - :doc:`fix electrode/conp <fix_electrode_conp>`
+     - :doc:`fix electrode/conp <fix_electrode>`
      - PACKAGES/electrode
      - no
    * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
@@ -228,11 +233,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix lb/fluid <fix_lb_fluid>`
      - PACKAGES/latboltz
      - no
-   * - :ref:`LATTE <PKG-LATTE>`
-     - quantum DFTB forces via LATTE
-     - :doc:`fix latte <fix_latte>`
-     - latte
-     - ext
+   * - :ref:`LEPTON <PKG-LEPTON>`
+     - evaluate strings as potential function
+     - :doc:`pair_style lepton <pair_lepton>`
+     - PACKAGES/lepton
+     - int
    * - :ref:`MACHDYN <PKG-MACHDYN>`
      - smoothed Mach dynamics
      - `SMD User Guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
@@ -265,9 +270,9 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`MESONT <PKG-MESONT>`
      - mesoscopic tubular potential model
-     - pair styles :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>`
+     - pair styles :doc:`mesocnt <pair_mesocnt>`
      - PACKAGES/mesont
-     - int
+     - no
    * - :ref:`MGPT <PKG-MGPT>`
      - fast MGPT multi-ion potentials
      - :doc:`pair_style mgpt <pair_mgpt>`
@@ -292,6 +297,11 @@ whether an extra library is needed to build and use the package:
      - Atomic Cluster Expansion potential
      - :doc:`pair pace <pair_pace>`
      - PACKAGES/pace
+     - ext
+   * - :ref:`ML-POD <PKG-ML-POD>`
+     - Proper orthogonal decomposition potentials
+     - :doc:`pair pod <pair_pod>`
+     - pod
      - ext
    * - :ref:`ML-QUIP <PKG-ML-QUIP>`
      - QUIP/libatoms interface

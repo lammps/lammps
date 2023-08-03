@@ -46,13 +46,14 @@ using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
 static const char cite_pair_reax_c[] =
-  "pair reaxff command:\n\n"
+  "pair reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
-  " author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},\n"
-  " title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},\n"
+  " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
+  " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
   " journal = {Parallel Computing},\n"
   " year =    2012,\n"
   " volume =  38,\n"
+  " number =  {4--5},\n"
   " pages =   {245--259}\n"
   "}\n\n";
 
@@ -133,7 +134,7 @@ PairReaxFF::~PairReaxFF()
     Delete_List(api->lists+THREE_BODIES);
     Delete_List(api->lists+FAR_NBRS);
 
-    DeAllocate_Workspace(api->control, api->workspace);
+    DeAllocate_Workspace(api->workspace);
     DeAllocate_System(api->system);
   }
 
@@ -577,8 +578,8 @@ void PairReaxFF::set_far_nbr(far_neighbor_data *fdest,
 int PairReaxFF::estimate_reax_lists()
 {
   int itr_i, itr_j, i, j;
-  int num_nbrs, num_marked;
-  int *ilist, *jlist, *numneigh, **firstneigh, *marked;
+  int num_nbrs;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   double d_sqr;
   rvec dvec;
   double **x;
@@ -592,15 +593,11 @@ int PairReaxFF::estimate_reax_lists()
   firstneigh = list->firstneigh;
 
   num_nbrs = 0;
-  num_marked = 0;
-  marked = (int*) calloc(api->system->N, sizeof(int));
 
   int numall = list->inum + list->gnum;
 
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
-    marked[i] = 1;
-    ++num_marked;
     jlist = firstneigh[i];
 
     for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
@@ -612,8 +609,6 @@ int PairReaxFF::estimate_reax_lists()
         ++num_nbrs;
     }
   }
-
-  free(marked);
 
   return static_cast<int> (MAX(num_nbrs*safezone, mincap*REAX_MIN_NBRS));
 }

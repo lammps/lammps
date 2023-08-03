@@ -216,8 +216,7 @@ struct FunctorReduceTest {
   void init(value_type& update) const { update = 0.0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& update,
-            volatile value_type const& input) const {
+  void join(value_type& update, value_type const& input) const {
     update += input;
   }
 };

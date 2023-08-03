@@ -28,7 +28,6 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 
@@ -256,11 +255,15 @@ void PairDRIP::read_file(char *filename)
       int n = -1;
       for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
-          if (n >= 0) error->all(FLERR, "DRIP potential file has duplicate entry");
+          if (n >= 0)
+            error->all(FLERR, "DRIP potential file has a duplicate entry for: {} {}", elements[i],
+                       elements[j]);
           n = m;
         }
       }
-      if (n < 0) error->all(FLERR, "Potential file is missing an entry");
+      if (n < 0)
+        error->all(FLERR, "Potential file is missing an entry for: {} {}", elements[i],
+                   elements[j]);
       elem2param[i][j] = n;
     }
   }

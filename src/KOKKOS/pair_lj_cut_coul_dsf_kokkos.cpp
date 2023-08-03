@@ -37,9 +37,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define KOKKOS_CUDA_MAX_THREADS 256
-#define KOKKOS_CUDA_MIN_BLOCKS 8
-
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
 #define A1        0.254829592

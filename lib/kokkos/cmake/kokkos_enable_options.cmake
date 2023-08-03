@@ -61,6 +61,7 @@ KOKKOS_ENABLE_OPTION(HIP_MULTIPLE_KERNEL_INSTANTIATIONS OFF "Whether multiple ke
 
 # This option will go away eventually, but allows fallback to old implementation when needed.
 KOKKOS_ENABLE_OPTION(IMPL_DESUL_ATOMICS   ON  "Whether to use desul based atomics - option only during beta")
+KOKKOS_ENABLE_OPTION(DESUL_ATOMICS_EXTERNAL OFF "Whether to use an external desul installation")
 
 IF (KOKKOS_ENABLE_CUDA)
   SET(KOKKOS_COMPILER_CUDA_VERSION "${KOKKOS_COMPILER_VERSION_MAJOR}${KOKKOS_COMPILER_VERSION_MINOR}")

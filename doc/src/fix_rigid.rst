@@ -60,7 +60,7 @@ fix rigid/nph/small command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style bodystyle args keyword values ...
 
@@ -80,7 +80,7 @@ Syntax
          groupID1, groupID2, ... = list of N group IDs
 
 * zero or more keyword/value pairs may be appended
-* keyword = *langevin* or *reinit* or *temp* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile*
+* keyword = *langevin* or *reinit* or *temp* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity*
 
   .. parsed-literal::
 
@@ -88,7 +88,7 @@ Syntax
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
          seed = random number seed to use for white noise (positive integer)
-       *reinit* = *yes* or *no*
+       *reinit* value = *yes* or *no*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
@@ -98,7 +98,7 @@ Syntax
        *x* or *y* or *z* values = Pstart Pstop Pdamp
          Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
          Pdamp = stress damping parameter (time units)
-       *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
+       *couple* value = *none* or *xyz* or *xy* or *yz* or *xz*
        *tparam* values = Tchain Titer Torder
          Tchain = length of Nose/Hoover thermostat chain
          Titer = number of thermostat iterations performed
@@ -115,6 +115,11 @@ Syntax
          xflag,yflag,zflag = off/on if component of center-of-mass torque is active
        *infile* filename
          filename = file with per-body values of mass, center-of-mass, moments of inertia
+       *gravity* values = gravity-ID
+         gravity-ID = ID of fix gravity command to add gravitational forces
+
+..
+    FIXME These don't seem to be included in the source code
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
 
@@ -311,7 +316,7 @@ to be part of rigid bodies.
 
    To compute the initial center-of-mass position and other
    properties of each rigid body, the image flags for each atom in the
-   body are used to "unwrap" the atom coordinates.  Thus you must insure
+   body are used to "unwrap" the atom coordinates.  Thus you must ensure
    that these image flags are consistent so that the unwrapping creates a
    valid rigid body (one where the atoms are close together),
    particularly if the atoms in a single rigid body straddle a periodic
@@ -332,7 +337,7 @@ This may be useful if you wish a body to rotate but not translate, or
 vice versa, or if you wish it to rotate or translate continuously
 unaffected by interactions with other particles.  Note that if you
 expect a rigid body not to move or rotate by using these keywords, you
-must insure its initial center-of-mass translational or angular
+must ensure its initial center-of-mass translational or angular
 velocity is 0.0.  Otherwise the initial translational or angular
 momentum the body has will persist.
 
@@ -605,10 +610,12 @@ such attributes: the total mass of the rigid body, its center-of-mass
 position, its 6 moments of inertia, its center-of-mass velocity, and
 the 3 image flags of the center-of-mass position.  For rigid bodies
 consisting of point particles or non-overlapping finite-size
-particles, LAMMPS can compute these values accurately.  However, for
-rigid bodies consisting of finite-size particles which overlap each
-other, LAMMPS will ignore the overlaps when computing these 4
-attributes.  The amount of error this induces depends on the amount of
+particles, LAMMPS can compute these values accurately.
+
+However, for rigid bodies consisting of finite-size particles which
+overlap each other, LAMMPS will ignore the overlaps when computing
+these 4 attributes, which means the dynamics of the bodies will be
+incorrect.  The amount of error this induces depends on the amount of
 overlap.  To avoid this issue, the values can be pre-computed
 (e.g. using Monte Carlo integration).
 
@@ -672,6 +679,28 @@ cross periodic boundaries during the simulation.
    auxiliary file will contain one line for every rigid body, even if the
    original file only listed a subset of the rigid bodies.
 
+If the system has rigid bodies with finite-size overlapping particles
+and the model uses the :doc:`fix gravity <fix_gravity>` command to
+apply a gravitational force to the rigid bodies, then the *gravity*
+keyword should be used in the following manner.
+
+First, the group specified for the :doc:`fix gravity <fix_gravity>`
+command should not include any atoms in rigid bodies which have
+overlapping particles.  It can be empty (see the :doc:`group empty
+<group>` command) or only contain single particles not in rigid
+bodies, e.g. background particles.
+
+Second, the *infile* keyword should be used to specify the total mass
+and other properties of the rigid bodies with overlaps, so that their
+dynamics will be modeled correctly, as explained above.
+
+Third, the *gravity* keyword should be used the with the ID of the
+:doc:`fix gravity <fix_gravity>` command as its argument.  The rigid
+fixes will access the gravity fix to extract the current direction of
+the gravity vector at each timestep (which can be static or dynamic).
+A gravity force will then be applied to each rigid body at its
+center-of-mass position using its total mass.
+
 ----------
 
 If you use a :doc:`temperature compute <compute>` with a group that
@@ -697,9 +726,10 @@ also accounted for by this fix.
 
 ----------
 
-If your simulation is a hybrid model with a mixture of rigid bodies
-and non-rigid particles (e.g. solvent) there are several ways these
-rigid fixes can be used in tandem with :doc:`fix nve <fix_nve>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, and :doc:`fix nph <fix_nh>`.
+If your simulation is a hybrid model with a mixture of rigid bodies and
+non-rigid particles (e.g. solvent) there are several ways these rigid
+fixes can be used in tandem with :doc:`fix nve <fix_nve>`, :doc:`fix nvt
+<fix_nh>`, :doc:`fix npt <fix_nh>`, and :doc:`fix nph <fix_nh>`.
 
 If you wish to perform NVE dynamics (no thermostatting or
 barostatting), use one of 4 NVE rigid styles to integrate the rigid
@@ -708,41 +738,46 @@ particles.
 
 If you wish to perform NVT dynamics (thermostatting, but no
 barostatting), you can use one of the 2 NVT rigid styles for the rigid
-bodies, and any thermostatting fix for the non-rigid particles (:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix temp/berendsen <fix_temp_berendsen>`).  You can also use one of the
-4 NVE rigid styles for the rigid bodies and thermostat them using :doc:`fix langevin <fix_langevin>` on the group that contains all the
-particles in the rigid bodies.  The net force added by :doc:`fix langevin <fix_langevin>` to each rigid body effectively thermostats
-its translational center-of-mass motion.  Not sure how well it does at
+bodies, and any thermostatting fix for the non-rigid particles
+(:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix
+temp/berendsen <fix_temp_berendsen>`).  You can also use one of the 4
+NVE rigid styles for the rigid bodies and thermostat them using
+:doc:`fix langevin <fix_langevin>` on the group that contains all the
+particles in the rigid bodies.  The net force added by :doc:`fix
+langevin <fix_langevin>` to each rigid body effectively thermostats its
+translational center-of-mass motion.  Not sure how well it does at
 thermostatting its rotational motion.
 
-If you with to perform NPT or NPH dynamics (barostatting), you cannot
+If you wish to perform NPT or NPH dynamics (barostatting), you cannot
 use both :doc:`fix npt <fix_nh>` and the NPT or NPH rigid styles.  This
 is because there can only be one fix which monitors the global
 pressure and changes the simulation box dimensions.  So you have 3
 choices:
 
-* Use one of the 4 NPT or NPH styles for the rigid bodies.  Use the
-  *dilate* all option so that it will dilate the positions of the
-  non-rigid particles as well.  Use :doc:`fix nvt <fix_nh>` (or any other
-  thermostat) for the non-rigid particles.
-* Use :doc:`fix npt <fix_nh>` for the group of non-rigid particles.  Use
-  the *dilate* all option so that it will dilate the center-of-mass
-  positions of the rigid bodies as well.  Use one of the 4 NVE or 2 NVT
-  rigid styles for the rigid bodies.
-* Use :doc:`fix press/berendsen <fix_press_berendsen>` to compute the
-  pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
-  rigid styles for the rigid bodies.  Use :doc:`fix nvt <fix_nh>` (or any
-  other thermostat) for the non-rigid particles.
+#. Use one of the 4 NPT or NPH styles for the rigid bodies.  Use the
+   *dilate* all option so that it will dilate the positions of the
+   non-rigid particles as well.  Use :doc:`fix nvt <fix_nh>` (or any
+   other thermostat) for the non-rigid particles.
+#. Use :doc:`fix npt <fix_nh>` for the group of non-rigid particles.  Use
+   the *dilate* all option so that it will dilate the center-of-mass
+   positions of the rigid bodies as well.  Use one of the 4 NVE or 2 NVT
+   rigid styles for the rigid bodies.
+#. Use :doc:`fix press/berendsen <fix_press_berendsen>` to compute the
+   pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
+   rigid styles for the rigid bodies.  Use :doc:`fix nvt <fix_nh>` (or
+   any other thermostat) for the non-rigid particles.
 
 In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the
 barostatting fixes.
 
-You could even use the second and third options for a non-hybrid simulation
-consisting of only rigid bodies, assuming you give :doc:`fix npt <fix_nh>` an empty group, though it's an odd thing to do.  The
-barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix press/berensen <fix_press_berendsen>`) will monitor the pressure
-and change the box dimensions, but not time integrate any particles.
-The integration of the rigid bodies will be performed by fix
-rigid/nvt.
+You could even use the second and third options for a non-hybrid
+simulation consisting of only rigid bodies, assuming you give :doc:`fix
+npt <fix_nh>` an empty group, though it's an odd thing to do.  The
+barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix press/berensen
+<fix_press_berendsen>`) will monitor the pressure and change the box
+dimensions, but not time integrate any particles.  The integration of
+the rigid bodies will be performed by fix rigid/nvt.
 
 ----------
 
@@ -863,7 +898,7 @@ possible to compute the target temperature correctly.  Second, the
 assigned velocities may be partially canceled when constraints are
 first enforced, leading to a different temperature than desired.  A
 workaround for this is to perform a :doc:`run 0 <run>` command, which
-insures all DOFs are accounted for properly, and then rescale the
+ensures all DOFs are accounted for properly, and then rescale the
 temperature to the desired value before performing a simulation.  For
 example:
 

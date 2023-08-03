@@ -22,6 +22,8 @@
 #include "modify.h"
 #include "my_pool_chunk.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +120,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 #undef BODY_CLASS
 
   } else
-    error->all(FLERR, utils::check_packages_for_style("body", arg[0], lmp).c_str());
+    error->all(FLERR, utils::check_packages_for_style("body", arg[0], lmp));
 
   bptr->avec = this;
   icp = bptr->icp;

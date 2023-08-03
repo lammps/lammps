@@ -26,6 +26,9 @@ class MDIPlugin : protected Pointers {
  private:
   char *lammps_command;
 
+  // static method for MDI to callback to
+  // when LAMMPS is a driver which launches a plugin engine
+
   static int plugin_wrapper(void *, MDI_Comm, void *);
 };
 

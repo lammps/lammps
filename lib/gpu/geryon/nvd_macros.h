@@ -33,6 +33,9 @@
 #ifdef UCL_DEBUG
 #define UCL_SYNC_DEBUG
 #define UCL_DESTRUCT_CHECK
+#define UCL_DEBUG_ARG(arg) arg
+#else
+#define UCL_DEBUG_ARG(arg)
 #endif
 
 #ifndef UCL_NO_API_CHECK

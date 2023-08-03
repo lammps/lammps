@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_RANDOM_HPP
 #define KOKKOS_RANDOM_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_RANDOM
+#endif
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -648,63 +652,44 @@ struct Random_UniqueIndex {
   }
 };
 
-#ifdef KOKKOS_ENABLE_CUDA
-template <class MemorySpace>
-struct Random_UniqueIndex<Kokkos::Device<Kokkos::Cuda, MemorySpace>> {
-  using locks_view_type =
-      View<int**, Kokkos::Device<Kokkos::Cuda, MemorySpace>>;
-  KOKKOS_FUNCTION
-  static int get_state_idx(const locks_view_type& locks_) {
-#ifdef __CUDA_ARCH__
-    const int i_offset =
-        (threadIdx.x * blockDim.y + threadIdx.y) * blockDim.z + threadIdx.z;
-    int i = (((blockIdx.x * gridDim.y + blockIdx.y) * gridDim.z + blockIdx.z) *
-                 blockDim.x * blockDim.y * blockDim.z +
-             i_offset) %
-            locks_.extent(0);
-    while (Kokkos::atomic_compare_exchange(&locks_(i, 0), 0, 1)) {
-      i += blockDim.x * blockDim.y * blockDim.z;
-      if (i >= static_cast<int>(locks_.extent(0))) {
-        i = i_offset;
-      }
-    }
-    return i;
-#else
-    (void)locks_;
-    return 0;
-#endif
-  }
-};
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#define KOKKOS_IMPL_EXECUTION_SPACE_CUDA_OR_HIP Kokkos::Cuda
+#elif defined(KOKKOS_ENABLE_HIP)
+#define KOKKOS_IMPL_EXECUTION_SPACE_CUDA_OR_HIP Kokkos::Experimental::HIP
 #endif
 
-#ifdef KOKKOS_ENABLE_HIP
 template <class MemorySpace>
 struct Random_UniqueIndex<
-    Kokkos::Device<Kokkos::Experimental::HIP, MemorySpace>> {
+    Kokkos::Device<KOKKOS_IMPL_EXECUTION_SPACE_CUDA_OR_HIP, MemorySpace>> {
   using locks_view_type =
-      View<int**, Kokkos::Device<Kokkos::Experimental::HIP, MemorySpace>>;
+      View<int**, Kokkos::Device<KOKKOS_IMPL_EXECUTION_SPACE_CUDA_OR_HIP,
+                                 MemorySpace>>;
   KOKKOS_FUNCTION
   static int get_state_idx(const locks_view_type& locks_) {
-#ifdef __HIP_DEVICE_COMPILE__
-    const int i_offset =
-        (threadIdx.x * blockDim.y + threadIdx.y) * blockDim.z + threadIdx.z;
-    int i = (((blockIdx.x * gridDim.y + blockIdx.y) * gridDim.z + blockIdx.z) *
+    KOKKOS_IF_ON_DEVICE((
+        const int i_offset =
+            (threadIdx.x * blockDim.y + threadIdx.y) * blockDim.z + threadIdx.z;
+        int i =
+            (((blockIdx.x * gridDim.y + blockIdx.y) * gridDim.z + blockIdx.z) *
                  blockDim.x * blockDim.y * blockDim.z +
              i_offset) %
             locks_.extent(0);
-    while (Kokkos::atomic_compare_exchange(&locks_(i, 0), 0, 1)) {
-      i += blockDim.x * blockDim.y * blockDim.z;
-      if (i >= static_cast<int>(locks_.extent(0))) {
-        i = i_offset;
-      }
-    }
-    return i;
-#else
-    (void)locks_;
-    return 0;
-#endif
+        while (Kokkos::atomic_compare_exchange(&locks_(i, 0), 0, 1)) {
+          i += blockDim.x * blockDim.y * blockDim.z;
+          if (i >= static_cast<int>(locks_.extent(0))) {
+            i = i_offset;
+          }
+        }
+
+        return i;))
+    KOKKOS_IF_ON_HOST(((void)locks_; return 0;))
   }
 };
+
+#undef KOKKOS_IMPL_EXECUTION_SPACE_CUDA_OR_HIP
+
 #endif
 
 #ifdef KOKKOS_ENABLE_SYCL
@@ -1279,7 +1264,6 @@ struct fill_random_functor_begin_end;
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 0,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1303,7 +1287,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 0,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 1,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1331,7 +1314,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 1,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 2,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1361,7 +1343,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 2,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 3,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1392,7 +1373,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 3,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 4,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1424,7 +1404,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 4,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 5,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1458,7 +1437,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 5,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 6,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1494,7 +1472,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 6,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 7,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1532,7 +1509,6 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 7,
 template <class ViewType, class RandomPool, int loops, class IndexType>
 struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 8,
                                      IndexType> {
-  using execution_space = typename ViewType::execution_space;
   ViewType a;
   RandomPool rand_pool;
   typename ViewType::const_value_type begin, end;
@@ -1569,34 +1545,57 @@ struct fill_random_functor_begin_end<ViewType, RandomPool, loops, 8,
   }
 };
 
-template <class ViewType, class RandomPool, class IndexType = int64_t>
-void fill_random(ViewType a, RandomPool g,
+template <class ExecutionSpace, class ViewType, class RandomPool,
+          class IndexType = int64_t>
+void fill_random(const ExecutionSpace& exec, ViewType a, RandomPool g,
                  typename ViewType::const_value_type begin,
                  typename ViewType::const_value_type end) {
   int64_t LDA = a.extent(0);
   if (LDA > 0)
-    parallel_for("Kokkos::fill_random", (LDA + 127) / 128,
-                 Impl::fill_random_functor_begin_end<ViewType, RandomPool, 128,
-                                                     ViewType::Rank, IndexType>(
-                     a, g, begin, end));
+    parallel_for(
+        "Kokkos::fill_random",
+        Kokkos::RangePolicy<ExecutionSpace>(exec, 0, (LDA + 127) / 128),
+        Impl::fill_random_functor_begin_end<ViewType, RandomPool, 128,
+                                            ViewType::Rank, IndexType>(
+            a, g, begin, end));
 }
 
 }  // namespace Impl
+
+template <class ExecutionSpace, class ViewType, class RandomPool,
+          class IndexType = int64_t>
+void fill_random(const ExecutionSpace& exec, ViewType a, RandomPool g,
+                 typename ViewType::const_value_type begin,
+                 typename ViewType::const_value_type end) {
+  Impl::apply_to_view_of_static_rank(
+      [&](auto dst) { Kokkos::Impl::fill_random(exec, dst, g, begin, end); },
+      a);
+}
+
+template <class ExecutionSpace, class ViewType, class RandomPool,
+          class IndexType = int64_t>
+void fill_random(const ExecutionSpace& exec, ViewType a, RandomPool g,
+                 typename ViewType::const_value_type range) {
+  fill_random(exec, a, g, 0, range);
+}
 
 template <class ViewType, class RandomPool, class IndexType = int64_t>
 void fill_random(ViewType a, RandomPool g,
                  typename ViewType::const_value_type begin,
                  typename ViewType::const_value_type end) {
-  Impl::apply_to_view_of_static_rank(
-      [&](auto dst) { Kokkos::Impl::fill_random(dst, g, begin, end); }, a);
+  fill_random(typename ViewType::execution_space{}, a, g, begin, end);
 }
 
 template <class ViewType, class RandomPool, class IndexType = int64_t>
 void fill_random(ViewType a, RandomPool g,
                  typename ViewType::const_value_type range) {
-  fill_random(a, g, 0, range);
+  fill_random(typename ViewType::execution_space{}, a, g, 0, range);
 }
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_RANDOM
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_RANDOM
+#endif
 #endif

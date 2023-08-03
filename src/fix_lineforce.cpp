@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,18 +25,17 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixLineForce::FixLineForce(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixLineForce::FixLineForce(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   dynamic_group_allow = 1;
 
-  if (narg != 6) error->all(FLERR,"Illegal fix lineforce command");
-  xdir = utils::numeric(FLERR,arg[3],false,lmp);
-  ydir = utils::numeric(FLERR,arg[4],false,lmp);
-  zdir = utils::numeric(FLERR,arg[5],false,lmp);
+  if (narg != 6) error->all(FLERR, "Illegal fix lineforce command");
+  xdir = utils::numeric(FLERR, arg[3], false, lmp);
+  ydir = utils::numeric(FLERR, arg[4], false, lmp);
+  zdir = utils::numeric(FLERR, arg[5], false, lmp);
 
-  double len = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
-  if (len == 0.0) error->all(FLERR,"Illegal fix lineforce command");
+  double len = sqrt(xdir * xdir + ydir * ydir + zdir * zdir);
+  if (len == 0.0) error->all(FLERR, "Illegal fix lineforce command");
 
   xdir /= len;
   ydir /= len;
@@ -59,13 +57,13 @@ int FixLineForce::setmask()
 
 void FixLineForce::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
     int nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
       (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel);
-      post_force_respa(vflag,ilevel,0);
+      post_force_respa(vflag, ilevel, 0);
       (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel);
     }
   }
@@ -89,7 +87,7 @@ void FixLineForce::post_force(int /*vflag*/)
   double dot;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      dot = f[i][0]*xdir + f[i][1]*ydir + f[i][2]*zdir;
+      dot = f[i][0] * xdir + f[i][1] * ydir + f[i][2] * zdir;
       f[i][0] = dot * xdir;
       f[i][1] = dot * ydir;
       f[i][2] = dot * zdir;

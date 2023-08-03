@@ -32,17 +32,21 @@ for unicode characters and only all-ASCII source code is accepted.
 
 LAMMPS follows a continuous release development model.  We aim to keep
 the development version (`develop` branch) always fully functional and
-employ a variety of automatic testing procedures to detect failures
-of existing functionality from adding or modifying features.  Most of
-those tests are run on pull requests *before* merging to the `develop`
-branch.  The `develop` branch is protected, so all changes *must* be
-submitted as a pull request and thus cannot avoid the automated tests.
+employ a variety of automatic testing procedures to detect failures of
+existing functionality from adding or modifying features.  Most of those
+tests are run on pull requests and must be passed *before* merging to
+the `develop` branch.  The `develop` branch is protected, so all changes
+*must* be submitted as a pull request and thus cannot avoid the
+automated tests.
 
 Additional tests are run *after* merging.  Before releases are made
 *all* tests must have cleared.  Then a release tag is applied and the
-`release` branch is fast-forwarded to that tag.  This is often referred
-to as a patch release. Bug fixes and updates are
-applied first to the `develop` branch.  Later, they appear in the `release`
-branch when the next patch release occurs.
-For stable releases, selected bug fixes, updates, and new functionality
-are pushed to the `stable` branch and a new stable tag is applied.
+`release` branch is fast-forwarded to that tag.  This is referred to to
+as a "feature release".  Bug fixes and updates are applied first to the
+`develop` branch.  Later, they appear in the `release` branch when the
+next patch release occurs.  For stable releases, backported bug fixes
+and infrastructure updates are first applied to the `maintenance` branch
+and then merged to `stable` and published as "updates".  For a new
+stable release the `stable` branch is updated to the corresponding state
+of the `release` branch and a new stable tag is applied in addition to
+the release tag.

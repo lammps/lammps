@@ -38,7 +38,7 @@ using namespace MathConst;
 #define BIG 1000000000
 
 static const char cite_fix_orient_fcc[] =
-  "fix orient/fcc command:\n\n"
+  "fix orient/fcc command: doi:10.1038/nmat1559\n\n"
   "@Article{Janssens06,\n"
   " author = {K. G. F. Janssens, D. Olmsted, E.A. Holm, S. M. Foiles, S. J. Plimpton, and P. M. Derlet},\n"
   " title = {Computing the Mobility of Grain Boundaries},\n"
@@ -255,7 +255,7 @@ void FixOrientFCC::post_force(int /*vflag*/)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // insure nbr and order data structures are adequate size
+  // ensure nbr and order data structures are adequate size
 
   if (nall > nmax) {
     nmax = nall;

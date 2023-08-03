@@ -212,7 +212,7 @@ void DumpMolfile::write()
 
   if (multifile) openfile();
 
-  // insure proc 0 can receive everyone's info
+  // ensure proc 0 can receive everyone's info
   // limit nmax*size_one to int since used as arg in MPI_Rsend() below
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()
@@ -420,11 +420,7 @@ int DumpMolfile::modify_param(int narg, char **arg)
     }
 
     typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      int n = strlen(arg[itype]) + 1;
-      typenames[itype] = new char[n];
-      strcpy(typenames[itype],arg[itype]);
-    }
+    for (int itype = 1; itype <= ntypes; itype++) typenames[itype] = utils::strdup(arg[itype]);
 
     return ntypes+1;
   }

@@ -1595,4 +1595,3 @@ double SNA::compute_dsfac(double r, double rcut, double sinner, double dinner)
 
   return dsfac;
 }
-

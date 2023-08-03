@@ -35,7 +35,7 @@ enum{NODLM,DLM};
 FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR,"Illegal fix nve/sphere command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "fix nve/sphere", error);
 
   time_integrate = 1;
 
@@ -49,12 +49,12 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nve/sphere command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nve/sphere update", error);
       if (strcmp(arg[iarg+1],"dipole") == 0) extra = DIPOLE;
       else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
         extra = DIPOLE;
         dlm = DLM;
-      } else error->all(FLERR,"Illegal fix nve/sphere command");
+      } else error->all(FLERR,"Unknown keyword in fix nve/sphere update command: {}",arg[iarg+1]);
       iarg += 2;
     }
     else if (strcmp(arg[iarg],"disc")==0) {
@@ -63,7 +63,7 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix nve/sphere disc requires 2d simulation");
       iarg++;
     }
-    else error->all(FLERR,"Illegal fix nve/sphere command");
+    else error->all(FLERR,"Unknown keyword in fix nve/sphere command: {}",arg[iarg]);
   }
 
   // error checks

@@ -6,7 +6,7 @@ compute smd/internal/energy command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/internal/energy
 
@@ -26,7 +26,7 @@ Description
 Define a computation which outputs the per-particle enthalpy, i.e.,
 the sum of potential energy and heat.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
 Output Info

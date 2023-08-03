@@ -29,11 +29,11 @@ actively supported by the LAMMPS developers, as they were contributed
 by LAMMPS users.  If you have problems using them, we can direct you
 to the authors.
 
-The source code for each of these codes is in the tools sub-directory
+The source code for each of these codes is in the tools subdirectory
 of the LAMMPS distribution.  There is a Makefile (which you may need
 to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
-own sub-directories with their own Makefiles and/or README files.
+own subdirectories with their own Makefiles and/or README files.
 
 ----------
 
@@ -93,6 +93,7 @@ Miscellaneous tools
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
+   * :ref:`LAMMPS GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
    * :ref:`singularity/apptainer <singularity_tool>`
@@ -109,7 +110,7 @@ Tool descriptions
 amber2lmp tool
 --------------------------
 
-The amber2lmp sub-directory contains two Python scripts for converting
+The amber2lmp subdirectory contains two Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
 README file in amber2lmp for more information.
 
@@ -145,7 +146,7 @@ since binary files are not compatible across all platforms.
 ch2lmp tool
 ------------------------
 
-The ch2lmp sub-directory contains tools for converting files
+The ch2lmp subdirectory contains tools for converting files
 back-and-forth between the CHARMM MD code and LAMMPS.
 
 They are intended to make it easy to use CHARMM as a builder and as a
@@ -156,7 +157,7 @@ CHARMM22 and later is available as an option. This tool can also add
 solvent water molecules and Na+ or Cl- ions to the system.
 Using lammps2pdb.pl you can convert LAMMPS atom dumps into PDB files.
 
-See the README file in the ch2lmp sub-directory for more information.
+See the README file in the ch2lmp subdirectory for more information.
 
 These tools were created by Pieter in't Veld (pjintve at sandia.gov)
 and Paul Crozier (pscrozi at sandia.gov) at Sandia.
@@ -205,6 +206,7 @@ scripts are available:
    whitespace.py    # detects TAB characters and trailing whitespace
    homepage.py      # detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
    errordocs.py     # detects deprecated error docs in header files
+   versiontags.py   # detects .. versionadded:: or .. versionchanged:: with pending version date
 
 The tools need to be given the main folder of the LAMMPS distribution
 or individual file names as argument and will by default check them
@@ -319,7 +321,8 @@ eam generate tool
 -----------------------------
 
 The tools/eam_generate directory contains several one-file C programs
-that convert an analytic formula into a tabulated :doc:`embedded atom method (EAM) <pair_eam>` setfl potential file.  The potentials they
+that convert an analytic formula into a tabulated :doc:`embedded atom
+method (EAM) <pair_eam>` setfl potential file.  The potentials they
 produce are in the potentials directory, and can be used with the
 :doc:`pair_style eam/alloy <pair_eam>` command.
 
@@ -632,12 +635,235 @@ you first need to use the :doc:`clear` command.
 
 ----------
 
+.. _lammps_gui:
+
+LAMMPS GUI
+----------
+
+.. versionadded:: 2Aug2023
+
+Overview
+^^^^^^^^
+
+LAMMPS GUI is essentially a small graphical text editor that is linked
+to the :ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run
+LAMMPS directly using the contents of the editor's text buffer as input.
+This is similar to what people usually would do using a text editor to
+edit the input and then a command line terminal window to run the input
+commands.  The main benefit is that this integrates very well with
+graphical desktop environments and that it is easier to use for
+beginners in running computations and thus very suitable for tutorials
+on LAMMPS.  A small difference is that for the LAMMPS GUI it is not
+require to first commit its buffer of the text editor to a file.
+
+Features
+^^^^^^^^
+
+The main window of the LAMMPS GUI is a generic text editor window with
+line numbers and syntax highlighting set up for LAMMPS input files.  It
+can be used to edit any kind of text file, though.  The output of a run
+is captured and displayed in a separate dialog window and *not* sent to
+the console or a log file (unless the :doc:`log command <log>` is used
+in the input.  The log window is regularly updated during the run and a
+progress bar for the run command shown at the bottom of the main window.
+Starting a new run will open another log windows.  The state of LAMMPS
+will be reset between two runs.  After the simulation is finished, an
+image of the simulated system can be created and shown in an image
+viewer window.  Ongoing runs can be stopped at the next iteration via
+triggering a timeout.
+
+When opening a file, the editor will determine the directory where the
+file resides and switch its current working directory to the folder of
+that file.  Many LAMMPS inputs contain commands that read other files,
+typically from the folder of the input file.  The GUI will always show
+the current working directory in the bottom.  The editor window can also
+receive (entire) files via drag-n-drop from a file manager GUI or a
+desktop environment.  When exiting the GUI with a modified buffer, a
+dialog asking to either cancel, ignore the modifications, or save the
+file with show up. Same when attempting to load a new file into a
+modified buffer.
+
+Hotkeys
+^^^^^^^
+
+Almost all functionality is accessible from the menu or via hotkeys.
+The following hotkeys are available (On macOS use the Command key
+instead of Ctrl (aka Control)).
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Hotkey
+     - Function
+     - Hotkey
+     - Function
+     - Hotkey
+     - Function
+     - Hotkey
+     - Function
+   * - Ctrl+N
+     - New File
+     - Ctrl+Z
+     - Undo edit
+     - Ctrl+V
+     - Paste text
+     - Ctrl+Q
+     - Quit (Main Window only)
+   * - Ctrl+O
+     - Open File
+     - Ctrl+Shift+Z
+     - Redo edit
+     - Ctrl+Enter
+     - Run LAMMPS
+     - Ctrl+W
+     - Close (Log and Image Window only)
+   * - CTRL+S
+     - Save File
+     - Ctrl+C
+     - Copy text
+     - Ctrl+/
+     - Stop Active Run
+     - Ctrl+P
+     - Preferences
+   * - Ctrl+Shift+S
+     - Save File As
+     - Ctrl+X
+     - Cut text
+     - Ctrl+I
+     - Create Snapshot Image
+     - Ctrl+Shift+/
+     - Quick Help
+
+Further editing keybindings `are documented with the Qt documentation
+<https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In
+case of conflicts the list above takes precedence.
+
+Parallelization
+^^^^^^^^^^^^^^^
+
+Due to its nature as a graphical application, it is not possible to use
+the LAMMPS GUI in parallel with MPI, but OpenMP multi-threading is
+available and enabled by default.
+
+Prerequisites and portability
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LAMMPS GUI is programmed in C++ based on the C++11 standard and using
+the `Qt GUI framework <https://www.qt.io/product/framework>`_.
+Currently, Qt version 5.12 or later is required; Qt 5.15LTS is
+recommended Qt 6.x not (yet) supported. Furthermore, CMake version 3.16
+is required and LAMMPS must be configured with ``-D
+LAMMPS_EXCETIONS=on`` and ``-D BUILD_MPI=off``. It has been successfully
+compiled and tested on:
+
+- Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
+- Fedora Linux 38 x86\_64 using GCC 13 and Clang 16, Qt version 5.15LTS
+- Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
+- Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
+
+Pre-compiled executables
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pre-compiled LAMMPS executables including the GUI are currently
+available from https://download.lammps.org/static. You can unpack the
+archive (or mount the macOS disk image) and run the GUI directly in
+place. The folder may also be moved around and added to the ``PATH``
+environment variable so the executables will be found automatically. The
+LAMMPS GUI executable is called ``lammps-gui`` and takes no arguments or
+will interpret the first argument as filename to load.
+
+Compilation
+^^^^^^^^^^^
+
+The source for the LAMMPS GUI is included with the LAMMPS source code
+distribution in the folder `tools/lammps-gui` and thus it can be can be
+built as part of a regular LAMMPS compilation.
+:doc:`Using CMake <Howto_cmake>` is required.
+To enable its compilation the CMake variable ``-D BUILD_LAMMPS_GUI=on``
+must be set when creating the CMake configuration.  All other settings
+(compiler, flags, compile type) for LAMMPS GUI are then inherited from
+the regular LAMMPS build.  If the Qt library is packaged for Linux
+distributions, then its location is typically auto-detected since the
+required CMake configuration files are stored in a location where CMake
+can find them without additional help.  Otherwise, the location of the
+Qt library installation must be indicated by setting
+``-D Qt5_DIR=/path/to/qt5/lib/cmake/Qt5``, which is a path to a folder inside
+the Qt installation that contains the file ``Qt5Config.cmake``.
+
+It is also possible to build the LAMMPS GUI as a standalone executable
+(e.g. when LAMMPS has been compiled with traditional make), then the
+CMake configuration needs to be told where to find the LAMMPS headers
+and the LAMMPS library, via `-D LAMMPS_SOURCE_DIR=/path/to/lammps/src`.
+CMake will try to guess a build folder with the LAMMPS library from that
+path, but it can also be set with `-D LAMMPS_LIB_DIR=/path/to/lammps/lib`.
+
+Rather than linking to the LAMMPS library during compilation, it is also
+possible to compile the GUI with a plugin loader library that will load
+the LAMMPS library dynamically at runtime during the start of the GUI
+from a shared library; e.g. `liblammps.so` or `liblammps.dylib` or
+`liblammps.dll` (depending on the operating system).  This has the
+advantage that the LAMMPS library can be updated LAMMPS without having
+to recompile the GUI.  The ABI of the LAMMPS C-library interface is very
+stable and generally backward compatible.  This feature is enabled by
+setting ``-D LAMMPS_GUI_USE_PLUGIN=on`` and then
+``-D LAMMPS_PLUGINLIB_DIR=/path/to/lammps/plugin/loader``. Typically, this
+would be the ``examples/COUPLE/plugin`` folder of the LAMMPS distribution.
+
+Platform notes
+^^^^^^^^^^^^^^
+
+macOS
+"""""
+
+When building on macOS, the build procedure will try to manufacture a
+drag-n-drop installer, LAMMPS-macOS-multiarch.dmg, when using the 'dmg'
+target (i.e. `cmake --build <build dir> --target dmg` or `make dmg`.
+
+To build multi-arch executables that will run on both, arm64 and x86_64
+architectures natively, it is necessary to set the CMake variable ``-D
+CMAKE_OSX_ARCHITECTURES=arm64;x86_64``.  To achieve wide compatibility
+with different macOS versions, you can also set ``-D
+CMAKE_OSX_DEPLOYMENT_TARGET=11.0`` which will set compatibility to macOS
+11 (Big Sur) and later, even if you are compiling on a more recent macOS
+version.
+
+Windows
+"""""""
+
+On Windows currently only compilation from within Visual Studio 2022 is
+supported and tested. Using CMake and Ninja as build system is
+required. Qt needs to be installed, tested was a package downloaded from
+https://www.qt.io, into the ``C:\\Qt`` folder.  There is a custom
+`x64-GUI-MSVC` build configuration provided that will activate building
+the `lammps-gui.exe` executable in addition to LAMMPS.  When requesting
+an installation from the `Build` menu, it will create a compressed zip
+file with the executables and required dependent .dll files.  This zip
+file can be uncompressed and ``lammps-gui.exe`` run directly from there.
+The uncompressed folder can be added to the ``PATH`` environment and
+LAMMPS and LAMMPS GUI can be launched from anywhere from the command
+line.
+
+Linux
+"""""
+
+Version 5.12 or later of the Qt library and CMake version 3.16 are
+required and those are provided by, e.g., Ubuntu 20.04LTS.  Thus older
+Linux distributions are not likely to be supported, while more recent
+ones will work, even for pre-compiled executables (see above).  After
+compiling with ``cmake --build <build folder>``, use
+``cmake --build <build folder> --target tgz`` or ``make tgz`` to build
+a ``LAMMPS-Linux-amd64.tar.gz`` file with the executables and their
+support libraries.
+
+----------
+
 .. _arc:
 
 lmp2arc tool
 ------------
 
-The lmp2arc sub-directory contains a tool for converting LAMMPS output
+The lmp2arc subdirectory contains a tool for converting LAMMPS output
 files to the format for Accelrys' Insight MD code (formerly
 MSI/Biosym and its Discover MD code).  See the README file for more
 information.
@@ -656,7 +882,7 @@ Greathouse at Sandia (jagreat at sandia.gov).
 lmp2cfg tool
 ----------------------
 
-The lmp2cfg sub-directory contains a tool for converting LAMMPS output
+The lmp2cfg subdirectory contains a tool for converting LAMMPS output
 files into a series of \*.cfg files which can be read into the
 `AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualizer.  See
 the README file for more information.
@@ -703,7 +929,7 @@ detect most LAMMPS restarts, dump, data and log files. Examples:
 matlab tool
 ------------------------
 
-The matlab sub-directory contains several `MATLAB <matlabhome_>`_ scripts for
+The matlab subdirectory contains several `MATLAB <matlabhome_>`_ scripts for
 post-processing LAMMPS output.  The scripts include readers for log
 and dump files, a reader for EAM potential files, and a converter that
 reads LAMMPS dump files and produces CFG files that can be visualized
@@ -746,7 +972,7 @@ definition file.  This tool was used to create the system for the
 moltemplate tool
 ----------------------------------
 
-The moltemplate sub-directory contains instructions for installing
+The moltemplate subdirectory contains instructions for installing
 moltemplate, a Python-based tool for building molecular systems based
 on a text-file description, and creating LAMMPS data files that encode
 their molecular topology as lists of bonds, angles, dihedrals, etc.
@@ -764,7 +990,7 @@ The latest sources can be found `on its GitHub page <https://github.com/jewettai
 msi2lmp tool
 ----------------------
 
-The msi2lmp sub-directory contains a tool for creating LAMMPS template
+The msi2lmp subdirectory contains a tool for creating LAMMPS template
 input and data files from BIOVIA's Materias Studio files (formerly
 Accelrys' Insight MD code, formerly MSI/Biosym and its Discover MD code).
 
@@ -881,9 +1107,9 @@ dependencies and redirects the download to the local cache.
 phonon tool
 ------------------------
 
-The phonon sub-directory contains a post-processing tool useful for
-analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
-the PHONON package.
+The phonon subdirectory contains a post-processing tool, *phana*, useful
+for analyzing the output of the :doc:`fix phonon <fix_phonon>` command
+in the PHONON package.
 
 See the README file for instruction on building the tool and what
 library it needs.  And see the examples/PACKAGES/phonon directory
@@ -899,7 +1125,7 @@ University.
 polybond tool
 ----------------------------
 
-The polybond sub-directory contains a Python-based tool useful for
+The polybond subdirectory contains a Python-based tool useful for
 performing "programmable polymer bonding".  The Python file
 lmpsdata.py provides a "Lmpsdata" class with various methods which can
 be invoked by a user-written Python script to create data files with
@@ -916,7 +1142,7 @@ This tool was written by Zachary Kraus at Georgia Tech.
 pymol_asphere tool
 -------------------------------
 
-The pymol_asphere sub-directory contains a tool for converting a
+The pymol_asphere subdirectory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
 particles into an input file for the `PyMol visualization package <pymolhome_>`_ or its `open source variant <pymolopen_>`_.
 
@@ -937,7 +1163,7 @@ This tool was written by Mike Brown at Sandia.
 python tool
 -----------------------------
 
-The python sub-directory contains several Python scripts
+The python subdirectory contains several Python scripts
 that perform common LAMMPS post-processing tasks, such as:
 
 * extract thermodynamic info from a log file as columns of numbers
@@ -974,7 +1200,7 @@ while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
 smd tool
 ------------------
 
-The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
+The smd subdirectory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
 files created by the Smooth-Mach Dynamics (MACHDYN) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
@@ -993,7 +1219,7 @@ Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 spin tool
 --------------------
 
-The spin sub-directory contains a C file interpolate.c which can
+The spin subdirectory contains a C file interpolate.c which can
 be compiled and used to perform a cubic polynomial interpolation of
 the MEP following a GNEB calculation.
 
@@ -1010,7 +1236,7 @@ Ivanov, at University of Iceland (ali5 at hi.is).
 singularity/apptainer tool
 --------------------------
 
-The singularity sub-directory contains container definitions files that
+The singularity subdirectory contains container definitions files that
 can be used to build container images for building and testing LAMMPS on
 specific OS variants using the `Apptainer <https://apptainer.org>`_ or
 `Singularity <https://sylabs.io>`_ container software. Contributions for
@@ -1070,7 +1296,7 @@ getting started, but not as a fully tested and supported feature of the
 LAMMPS distribution.  Any contributions to complete this are, of course,
 welcome.  Please also note, that for the case of creating a Python wrapper,
 a fully supported :doc:`Ctypes based lammps module <Python_module>`
-already exists.  That module is designed to be object oriented while
+already exists.  That module is designed to be object-oriented while
 SWIG will generate a 1:1 translation of the functions in the interface file.
 
 Building the wrapper
@@ -1162,6 +1388,8 @@ For illustration purposes below is a part of the Tcl example script.
 
 tabulate tool
 --------------
+
+.. versionadded:: 22Dec2022
 
 The ``tabulate`` folder contains Python scripts scripts to generate tabulated
 potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module

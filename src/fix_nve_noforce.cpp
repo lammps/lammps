@@ -14,7 +14,6 @@
 #include "fix_nve_noforce.h"
 
 #include "atom.h"
-#include "error.h"
 #include "respa.h"
 #include "update.h"
 
@@ -25,7 +24,7 @@ using namespace FixConst;
 
 FixNVENoforce::FixNVENoforce(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal fix nve/noforce command");
+  if (narg != 3) utils::missing_cmd_args(FLERR, "fix nve/noforce", error);
 
   time_integrate = 1;
 }

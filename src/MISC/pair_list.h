@@ -49,11 +49,15 @@ class PairList : public Pair {
   struct lj126_p {
     double epsilon, sigma;
   };
+  struct quartic_p {
+    double k, r0, b1, b2;
+  };
 
   union param_u {
     harm_p harm;
     morse_p morse;
     lj126_p lj126;
+    quartic_p quartic;
   };
 
   struct list_param {

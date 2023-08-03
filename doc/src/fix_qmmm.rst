@@ -6,7 +6,7 @@ fix qmmm command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID qmmm
 
@@ -31,7 +31,7 @@ wave DFT package.  Electrostatic coupling is in preparation and the
 interface has been written in a manner that coupling to other QM codes
 should be possible without changes to LAMMPS itself.
 
-.. _espresso: http://www.quantum-espresso.org
+.. _espresso: https://www.quantum-espresso.org
 
 The interface code for this is in the lib/qmmm directory of the LAMMPS
 distribution and is being made available at this early stage of

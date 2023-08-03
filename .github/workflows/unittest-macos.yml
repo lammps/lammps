@@ -47,6 +47,7 @@ jobs:
         python3 -m pip install pyyaml
         cmake -C ../cmake/presets/clang.cmake \
               -C ../cmake/presets/most.cmake \
+              -D DOWNLOAD_POTENTIALS=off \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D ENABLE_TESTING=on \

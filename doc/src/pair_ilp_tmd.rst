@@ -32,6 +32,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 17Feb2022
+
 The *ilp/tmd* style computes the registry-dependent interlayer
 potential (ILP) potential for transition metal dichalcogenides (TMD)
 as described in :ref:`(Ouyang7) <Ouyang7>`.
@@ -133,8 +135,8 @@ interactions.
 
 The TMD.ILP potential file provided with LAMMPS (see the potentials
 directory) are parameterized for *metal* units.  You can use this
-potential with any LAMMPS units, but you would need to create your
-BNCH.ILP potential file with coefficients listed in the appropriate
+potential with any LAMMPS units, but you would need to create your own
+custom TMD.ILP potential file with coefficients listed in the appropriate
 units, if your simulation does not use *metal* units.
 
 Related commands

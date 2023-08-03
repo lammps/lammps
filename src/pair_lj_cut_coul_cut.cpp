@@ -32,6 +32,7 @@ using namespace MathConst;
 
 PairLJCutCoulCut::PairLJCutCoulCut(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -456,6 +457,35 @@ double PairLJCutCoulCut::single(int i, int j, int itype, int jtype, double rsq, 
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulCut::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                            double factor_coul, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double rinv, r2inv, r3inv, r6inv;
+  double du_lj, du2_lj, du_coul, du2_coul;
+
+  double *q = atom->q;
+  double qqrd2e = force->qqrd2e;
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r3inv = r2inv * rinv;
+  r6inv = r2inv * r2inv * r2inv;
+
+  // Reminder: lj1 = 48*e*s^12, lj2 = 24*e*s^6
+
+  du_lj = r6inv * rinv * (lj2[itype][jtype] - lj1[itype][jtype] * r6inv);
+  du2_lj = r6inv * r2inv * (13 * lj1[itype][jtype] * r6inv - 7 * lj2[itype][jtype]);
+
+  du_coul = -qqrd2e * q[i] * q[j] * r2inv;
+  du2_coul = 2.0 * qqrd2e * q[i] * q[j] * r3inv;
+
+  dupair = factor_lj * du_lj + factor_coul * du_coul;
+  du2pair = factor_lj * du2_lj + factor_coul * du2_coul;
 }
 
 /* ---------------------------------------------------------------------- */

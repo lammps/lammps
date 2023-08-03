@@ -11,8 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Philipp Kloza (University of Cambridge)
+                        pak37@cam.ac.uk
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
+// clang-format off
 PairStyle(mesocnt, PairMesoCNT);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MESOCNT_H
@@ -32,15 +39,21 @@ class PairMesoCNT : public Pair {
   void init_style() override;
   double init_one(int, int) override;
 
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
  protected:
+  int nend_types;
   int uinf_points, gamma_points, phi_points, usemi_points;
-  int *reduced_nlist, *numchainlist;
-  int **reduced_neighlist, **nchainlist, **endlist;
+  int *end_types, *reduced_nlist, *numchainlist, *selfid;
+  int **reduced_neighlist, **nchainlist, **endlist, **selfpos;
   int ***chainlist;
+
+  bool segment_flag, neigh_flag;
 
   double ang, ang_inv, eunit, funit;
   double delta1, delta2;
-  double r, rsq, d, rc, rcsq, rc0, cutoff, cutoffsq;
+  double r, rsq, d, rc, rcsq, rc0, cutoff, cutoffsq, neigh_cutoff;
   double r_ang, rsq_ang, d_ang, rc_ang, rcsq_ang, cutoff_ang, cutoffsq_ang;
   double sig, sig_ang, comega, ctheta;
   double hstart_uinf, hstart_gamma, hstart_phi, psistart_phi, hstart_usemi, xistart_usemi;
@@ -50,18 +63,24 @@ class PairMesoCNT : public Pair {
   double *param, *w, *wnode;
   double **dq_w;
   double ***q1_dq_w, ***q2_dq_w;
+  double *gl_nodes_finf, *gl_nodes_fsemi;
+  double *gl_weights_finf, *gl_weights_fsemi;
   double *uinf_data, *gamma_data, **phi_data, **usemi_data;
   double **uinf_coeff, **gamma_coeff, ****phi_coeff, ****usemi_coeff;
   double **flocal, **fglobal, **basis;
 
+  bool match_end(int);
+
   int count_chains(int *, int);
 
   void allocate();
-  void bond_neigh();
+  void bond_neigh_id();
+  void bond_neigh_topo();
   void neigh_common(int, int, int &, int *);
   void chain_lengths(int *, int, int *);
   void chain_split(int *, int, int *, int **, int *);
   void sort(int *, int);
+
   void read_file(const char *);
   void read_data(PotentialFileReader &, double *, double &, double &, int);
   void read_data(PotentialFileReader &, double **, double &, double &, double &, double &, int);
@@ -69,21 +88,28 @@ class PairMesoCNT : public Pair {
   void spline_coeff(double *, double **, double, int);
   void spline_coeff(double **, double ****, double, double, int);
 
-  double spline(double, double, double, double **, int);
-  double dspline(double, double, double, double **, int);
-  double spline(double, double, double, double, double, double, double ****, int);
-  double dxspline(double, double, double, double, double, double, double ****, int);
-  double dyspline(double, double, double, double, double, double, double ****, int);
-
   void geometry(const double *, const double *, const double *, const double *, const double *,
                 double *, double *, double *, double **);
-  void weight(const double *, const double *, const double *, const double *, double &, double *,
-              double *, double *, double *);
 
   void finf(const double *, double &, double **);
   void fsemi(const double *, double &, double &, double **);
 
+  // Legendre-Gauss integration
+
+  double legendre(int, double);
+  void gl_init_nodes(int, double *);
+  void gl_init_weights(int, double *, double *);
+
   // inlined functions for efficiency
+
+  inline void weight(const double *, const double *, const double *, const double *, double &,
+                     double *, double *, double *, double *);
+
+  inline double spline(double, double, double, double **, int);
+  inline double dspline(double, double, double, double **, int);
+  inline double spline(double, double, double, double, double, double, double ****, int);
+  inline double dxspline(double, double, double, double, double, double, double ****, int);
+  inline double dyspline(double, double, double, double, double, double, double ****, int);
 
   inline double heaviside(double x)
   {

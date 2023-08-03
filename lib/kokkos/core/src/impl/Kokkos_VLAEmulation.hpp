@@ -117,7 +117,7 @@ struct ObjectWithVLAEmulation {
   using vla_entry_count_type = EntryCountType;
 
   using iterator       = VLAValueType*;
-  using const_iterator = typename std::add_const<VLAValueType>::type*;
+  using const_iterator = std::add_const_t<VLAValueType>*;
 
   // TODO @tasking @minor DSH require that Derived be marked final? (note that
   // std::is_final is C++14)

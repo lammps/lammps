@@ -24,7 +24,7 @@ AtomStyle(sphere,AtomVecSphere);
 
 namespace LAMMPS_NS {
 
-class AtomVecSphere : public AtomVec {
+class AtomVecSphere : virtual public AtomVec {
  public:
   AtomVecSphere(class LAMMPS *);
   void process_args(int, char **) override;
@@ -36,7 +36,7 @@ class AtomVecSphere : public AtomVec {
   void pack_data_pre(int) override;
   void pack_data_post(int) override;
 
- private:
+ protected:
   double *radius, *rmass;
   double **omega;
 

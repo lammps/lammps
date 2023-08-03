@@ -35,6 +35,7 @@ class BondFENENM : public BondFENE {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, double, int, int, double &) override;
+  void born_matrix(int, double, int, int, double &, double &) override;
   void *extract(const char *, int &) override;
 
  protected:

@@ -20,10 +20,37 @@ ways through the :doc:`compute chunk/atom <compute_chunk_atom>` command
 and then averaging is done using :doc:`fix ave/chunk <fix_ave_chunk>`.
 Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 
-Reset_ids command
------------------
+Box command
+-----------
 
-The reset_ids command has been renamed to :doc:`reset_atom_ids <reset_atom_ids>`.
+.. deprecated:: 22Dec2022
+
+The *box* command has been removed and the LAMMPS code changed so it won't
+be needed.  If present, LAMMPS will ignore the command and print a warning.
+
+Reset_ids, reset_atom_ids, reset_mol_ids commands
+-------------------------------------------------
+
+.. deprecated:: 22Dec2022
+
+The *reset_ids*, *reset_atom_ids*, and *reset_mol_ids* commands have
+been folded into the :doc:`reset_atoms <reset_atoms>` command.  If
+present, LAMMPS will replace the commands accordingly and print a
+warning.
+
+LATTE package
+-------------
+
+.. deprecated:: 15Jun2023
+
+The LATTE package with the fix latte command was removed from LAMMPS.
+This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`
+and :doc:`fix mdi/qmmm <fix_mdi_qmmm>` from the :ref:`MDI package
+<PKG-MDI>`.  These fixes are compatible with several quantum software
+packages, including LATTE.  See the ``examples/QUANTUM`` dir and the
+:doc:`MDI coupling HOWTO <Howto_mdi>` page.  MDI supports running LAMMPS
+with LATTE as a plugin library (similar to the way fix latte worked), as
+well as on a different set of MPI processors.
 
 MEAM package
 ------------
@@ -36,6 +63,27 @@ for some optimizations leading to better performance.  The pair style
 :doc:`meam <pair_meam>` has the exact same syntax.  For a transition
 period the C++ version of MEAM was called USER-MEAMC so it could
 coexist with the Fortran version.
+
+Minimize style fire/old
+-----------------------
+
+.. deprecated:: 8Feb2023
+
+Minimize style *fire/old* has been removed. Its functionality can be
+reproduced with *fire* with specific options. Please see the
+:doc:`min_modify command <min_modify>` documentation for details.
+
+Pair style mesont/tpm, compute style mesont, atom style mesont
+--------------------------------------------------------------
+
+.. deprecated:: 8Feb2023
+
+Pair style *mesont/tpm*, compute style *mesont*, and atom style
+*mesont* have been removed from the :ref:`MESONT package <PKG-MESONT>`.
+The same functionality is available through
+:doc:`pair style mesocnt <pair_mesocnt>`,
+:doc:`bond style mesocnt <bond_mesocnt>` and
+:doc:`angle style mesocnt <angle_mesocnt>`.
 
 REAX package
 ------------

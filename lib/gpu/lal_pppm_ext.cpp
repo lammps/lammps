@@ -81,7 +81,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                            vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
                            split,success);
 
-    pppm.device->gpu_barrier();
+    pppm.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

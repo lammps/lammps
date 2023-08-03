@@ -19,17 +19,18 @@
 
 #include "fix_restrain.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "respa.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -271,14 +272,12 @@ void FixRestrain::restrain_bond(int m)
   if (newton_bond) {
     if (i2 == -1 || i2 >= nlocal) return;
     if (i1 == -1)
-      error->one(FLERR,"Restrain atoms {} {} missing on "
-                                   "proc {} at step {}", ids[m][0],ids[m][1],
+      error->one(FLERR,"Restrain atoms {} {} missing on proc {} at step {}", ids[m][0],ids[m][1],
                                    comm->me,update->ntimestep);
   } else {
     if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
     if (i1 == -1 || i2 == -1)
-      error->one(FLERR,"Restrain atoms {} {} missing on "
-                                   "proc {} at step {}", ids[m][0],ids[m][1],
+      error->one(FLERR,"Restrain atoms {} {} missing on proc {} at step {}", ids[m][0],ids[m][1],
                                    comm->me,update->ntimestep);
   }
 

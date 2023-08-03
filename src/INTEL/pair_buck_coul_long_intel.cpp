@@ -289,7 +289,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
           const flt_t delx = xtmp - x[j].x;
           const flt_t dely = ytmp - x[j].y;
           const flt_t delz = ztmp - x[j].z;
-          const int jtype = x[j].w;
+          const int jtype = IP_PRE_dword_index(x[j].w);
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
 
           if (rsq < c_forcei[jtype].cutsq) {
@@ -322,7 +322,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
           const int jtype = tjtype[jj];
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
-          const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+          const flt_t r = (flt_t)1.0 / std::sqrt(r2inv);
 
           #ifdef INTEL_ALLOW_TABLE
           if (!ncoultablebits || rsq <= tabinnersq) {

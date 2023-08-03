@@ -24,14 +24,14 @@ AtomStyle(dipole,AtomVecDipole);
 
 namespace LAMMPS_NS {
 
-class AtomVecDipole : public AtomVec {
+class AtomVecDipole : virtual public AtomVec {
  public:
   AtomVecDipole(class LAMMPS *);
 
   void grow_pointers() override;
   void data_atom_post(int) override;
 
- private:
+ protected:
   double **mu;
 };
 

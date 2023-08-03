@@ -46,7 +46,7 @@ It can be enabled for all C++ code with the following CMake flag
 
 With this flag enabled all source files will be processed twice, first to
 be compiled and then to be analyzed. Please note that the analysis can be
-significantly more time consuming than the compilation itself.
+significantly more time-consuming than the compilation itself.
 
 ----------
 
@@ -522,6 +522,8 @@ The following options are available.
 
 These should help to make source and documentation files conforming
 to some the coding style preferences of the LAMMPS developers.
+
+.. _clang-format:
 
 Clang-format support
 --------------------

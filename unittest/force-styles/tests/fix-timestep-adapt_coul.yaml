@@ -6,6 +6,7 @@ skip_tests:
 prerequisites: ! |
   atom full
   fix adapt
+  kspace pppm
 pre_commands: ! |
   variable scale equal ramp(0.5,1.0)
 post_commands: ! |

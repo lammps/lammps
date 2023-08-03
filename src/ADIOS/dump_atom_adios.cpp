@@ -153,7 +153,7 @@ void DumpAtomADIOS::write()
   internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
   internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
-  // insure buf is sized for packing
+  // ensure buf is sized for packing
   // adios does not limit per-process data size so nme*size_one is not
   // constrained to int
   // if sorting on IDs also request ID list from pack()

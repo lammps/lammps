@@ -6,7 +6,7 @@ processors command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    processors Px Py Pz keyword args ...
 
@@ -18,18 +18,17 @@ Syntax
 
        *grid* arg = gstyle params ...
          gstyle = *onelevel* or *twolevel* or *numa* or *custom*
-           onelevel params = none
-           twolevel params = Nc Cx Cy Cz
+           *onelevel* params = none
+           *twolevel* params = Nc Cx Cy Cz
              Nc = number of cores per node
              Cx,Cy,Cz = # of cores in each dimension of 3d sub-grid assigned to each node
-           numa params = none
-           custom params = infile
+           *numa* params = none
+           *custom* params = infile
              infile = file containing grid layout
        *map* arg = *cart* or *cart/reorder* or *xyz* or *xzy* or *yxz* or *yzx* or *zxy* or *zyx*
           cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
           cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
           xyz,xzy,yxz,yzx,zxy,zyx = map processors to 3d grid in IJK ordering
-       *numa* arg = none
        *part* args = Psend Precv cstyle
          Psend = partition # (1 to Np) which will send its processor layout
          Precv = partition # (1 to Np) which will recv the processor layout
@@ -67,7 +66,7 @@ parameters can be specified with an asterisk "\*", which means LAMMPS
 will choose the number of processors in that dimension of the grid.
 It will do this based on the size and shape of the global simulation
 box so as to minimize the surface-to-volume ratio of each processor's
-sub-domain.
+subdomain.
 
 Choosing explicit values for Px or Py or Pz can be used to override
 the default manner in which LAMMPS will create the regular 3d grid of
@@ -82,7 +81,7 @@ equal 1.
 Note that if you run on a prime number of processors P, then a grid
 such as 1 x P x 1 will be required, which may incur extra
 communication costs due to the high surface area of each processor's
-sub-domain.
+subdomain.
 
 Also note that if multiple partitions are being used then P is the
 number of processors in this partition; see the :doc:`-partition command-line switch <Run_options>` page for details.  Also note
@@ -114,10 +113,10 @@ will persist for all simulations.  If balancing is performed, some of
 the methods invoked by those commands retain the logical topology of
 the initial 3d grid, and the mapping of processors to the grid
 specified by the processors command.  However the grid spacings in
-different dimensions may change, so that processors own sub-domains of
+different dimensions may change, so that processors own subdomains of
 different sizes.  If the :doc:`comm_style tiled <comm_style>` command is
 used, methods invoked by the balancing commands may discard the 3d
-grid of processors and tile the simulation domain with sub-domains of
+grid of processors and tile the simulation domain with subdomains of
 different sizes and shapes which no longer have a logical 3d
 connectivity.  If that occurs, all the information specified by the
 processors command is ignored.
@@ -130,13 +129,13 @@ processors.
 
 The *onelevel* style creates a 3d grid that is compatible with the
 Px,Py,Pz settings, and which minimizes the surface-to-volume ratio of
-each processor's sub-domain, as described above.  The mapping of
+each processor's subdomain, as described above.  The mapping of
 processors to the grid is determined by the *map* keyword setting.
 
 The *twolevel* style can be used on machines with multicore nodes to
-minimize off-node communication.  It insures that contiguous
-sub-sections of the 3d grid are assigned to all the cores of a node.
-For example if *Nc* is 4, then 2x2x1 or 2x1x2 or 1x2x2 sub-sections of
+minimize off-node communication.  It ensures that contiguous
+subsections of the 3d grid are assigned to all the cores of a node.
+For example if *Nc* is 4, then 2x2x1 or 2x1x2 or 1x2x2 subsections of
 the 3d grid will correspond to the cores of each node.  This affects
 both the factorization and mapping steps.
 
@@ -146,7 +145,7 @@ parameters can be specified with an asterisk "\*", which means LAMMPS
 will choose the number of cores in that dimension of the node's
 sub-grid.  As with Px,Py,Pz, it will do this based on the size and
 shape of the global simulation box so as to minimize the
-surface-to-volume ratio of each processor's sub-domain.
+surface-to-volume ratio of each processor's subdomain.
 
 .. note::
 
@@ -290,7 +289,7 @@ processors, it could create a 4x2x10 grid, but it will not create a
 
    If you use the :doc:`partition <partition>` command to invoke
    different "processors" commands on different partitions, and you also
-   use the *part* keyword, then you must insure that both the sending and
+   use the *part* keyword, then you must ensure that both the sending and
    receiving partitions invoke the "processors" command that connects the
    2 partitions via the *part* keyword.  LAMMPS cannot easily check for
    this, but your simulation will likely hang in its setup phase if this
@@ -307,7 +306,7 @@ machine or when the processor ranks were reordered by use of the
 :doc:`-reorder command-line switch <Run_options>` or due to use of
 MPI-specific launch options such as a config file.
 
-If you have multiple partitions you should insure that each one writes
+If you have multiple partitions you should ensure that each one writes
 to a different file, e.g. using a :doc:`world-style variable <variable>`
 for the filename.  The file has a self-explanatory header, followed by
 one-line per processor in this format:

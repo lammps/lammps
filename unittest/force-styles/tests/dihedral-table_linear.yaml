@@ -1,7 +1,7 @@
 ---
-lammps_version: 23 Jun 2022
+lammps_version: 22 Dec 2022
 tags: unstable
-date_generated: Tue Jan 10 20:32:45 2023
+date_generated: Mon Dec 26 16:49:31 2022
 epsilon: 7.5e-14
 skip_tests:
 prerequisites: ! |

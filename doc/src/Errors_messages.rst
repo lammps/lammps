@@ -1232,7 +1232,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use chosen neighbor list style with lj/gromacs/kk*
    Self-explanatory.
 
-*Cannot use chosen neighbor list style with lj/sdk/kk*
+*Cannot use chosen neighbor list style with lj/spica/kk*
    That style is not supported by Kokkos.
 
 *Cannot use chosen neighbor list style with pair eam/kk*
@@ -1600,10 +1600,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use newton pair with lj/gromacs/gpu pair style*
    Self-explanatory.
 
-*Cannot use newton pair with lj/sdk/coul/long/gpu pair style*
+*Cannot use newton pair with lj/spica/coul/long/gpu pair style*
    Self-explanatory.
 
-*Cannot use newton pair with lj/sdk/gpu pair style*
+*Cannot use newton pair with lj/spica/gpu pair style*
    Self-explanatory.
 
 *Cannot use newton pair with lj96/cut/gpu pair style*
@@ -5453,6 +5453,11 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Mass command must set a type from 1-N where N is the number of atom
    types.
 
+*Invalid label2type() function syntax in variable formula*
+   The first argument must be a label map kind (atom, bond, angle,
+   dihedral, or improper) and the second argument must be a valid type
+   label that has been assigned to a numeric type.
+
 *Invalid use of library file() function*
    This function is called through the library interface.  This
    error should not occur.  Contact the developers if it does.
@@ -5585,8 +5590,17 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *LJ6 off not supported in pair_style buck/long/coul/long*
    Self-explanatory.
 
+*Label map is incomplete: all types must be assigned a unique type label*
+   For a given type-kind (atom types, bond types, etc.) to be written to
+   the data file, all associated types must be assigned a type label, and
+   each type label can be assigned to only one numeric type.
+
 *Label wasn't found in input script*
    Self-explanatory.
+
+*Labelmap command before simulation box is defined*
+   The labelmap command cannot be used before a read_data,
+   read_restart, or create_box command.
 
 *Lattice orient vectors are not orthogonal*
    The three specified lattice orientation vectors must be mutually
@@ -5621,7 +5635,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Lost atoms are checked for each time thermo output is done.  See the
    thermo_modify lost command for options.  Lost atoms usually indicate
    bad dynamics, e.g. atoms have been blown far out of the simulation
-   box, or moved further than one processor's sub-domain away before
+   box, or moved further than one processor's subdomain away before
    reneighboring.
 
 *MEAM library error %d*
@@ -5863,6 +5877,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must not have multiple fixes change box parameter ...*
    Self-explanatory.
 
+*Must read Angle Type Labels before Angles*
+   An Angle Type Labels section of a data file must come before the Angles section.
+
+*Must read Atom Type Labels before Atoms*
+   An Atom Type Labels section of a data file must come before the Atoms section.
+
 *Must read Atoms before Angles*
    The Atoms section of a data file must come before an Angles section.
 
@@ -5892,6 +5912,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must read Atoms before Velocities*
    The Atoms section of a data file must come before a Velocities
    section.
+
+*Must read Bond Type Labels before Bonds*
+   A Bond Type Labels section of a data file must come before the Bonds section.
+
+*Must read Dihedral Type Labels before Dihedrals*
+   An Dihedral Type Labels section of a data file must come before the Dihedrals section.
+
+*Must read Improper Type Labels before Impropers*
+   An Improper Type Labels section of a data file must come before the Impropers section.
 
 *Must re-specify non-restarted pair style (xxx) after read_restart*
    For pair styles, that do not store their settings in a restart file,
@@ -6063,7 +6092,7 @@ keyword to allow for additional bonds to be formed
    after a read_data, read_restart, or create_box command.
 
 *Next command must list all universe and uloop variables*
-   This is to insure they stay in sync.
+   This is to ensure they stay in sync.
 
 *No Kspace style defined for compute group/group*
    Self-explanatory.
@@ -6237,14 +6266,14 @@ keyword to allow for additional bonds to be formed
    One or more atoms are attempting to map their charge to a MSM grid point
    that is not owned by a processor.  This is likely for one of two
    reasons, both of them bad.  First, it may mean that an atom near the
-   boundary of a processor's sub-domain has moved more than 1/2 the
+   boundary of a processor's subdomain has moved more than 1/2 the
    :doc:`neighbor skin distance <neighbor>` without neighbor lists being
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
    :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
-   moved far outside a processor's sub-domain or even the entire
+   moved far outside a processor's subdomain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
    overlapping atoms, too large a timestep, etc.
 
@@ -6252,14 +6281,14 @@ keyword to allow for additional bonds to be formed
    One or more atoms are attempting to map their charge to a PPPM grid
    point that is not owned by a processor.  This is likely for one of two
    reasons, both of them bad.  First, it may mean that an atom near the
-   boundary of a processor's sub-domain has moved more than 1/2 the
+   boundary of a processor's subdomain has moved more than 1/2 the
    :doc:`neighbor skin distance <neighbor>` without neighbor lists being
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
    :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
-   moved far outside a processor's sub-domain or even the entire
+   moved far outside a processor's subdomain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
    overlapping atoms, too large a timestep, etc.
 
@@ -6267,14 +6296,14 @@ keyword to allow for additional bonds to be formed
    One or more atoms are attempting to map their charge to a PPPM grid
    point that is not owned by a processor.  This is likely for one of two
    reasons, both of them bad.  First, it may mean that an atom near the
-   boundary of a processor's sub-domain has moved more than 1/2 the
+   boundary of a processor's subdomain has moved more than 1/2 the
    :doc:`neighbor skin distance <neighbor>` without neighbor lists being
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
    :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
-   moved far outside a processor's sub-domain or even the entire
+   moved far outside a processor's subdomain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
    overlapping atoms, too large a timestep, etc.
 
@@ -6782,7 +6811,7 @@ keyword to allow for additional bonds to be formed
    This is because the computation of constraint forces within a water
    molecule adds forces to atoms owned by other processors.
 
-*Pair style lj/sdk/coul/long/gpu requires atom attribute q*
+*Pair style lj/spica/coul/long/gpu requires atom attribute q*
    The atom style defined does not have this attribute.
 
 *Pair style nb3b/harmonic requires atom IDs*
@@ -7202,7 +7231,7 @@ keyword to allow for additional bonds to be formed
 
 *Replacing a fix, but new style != old style*
    A fix ID can be used a second time, but only if the style matches the
-   previous fix.  In this case it is assumed you with to reset a fix's
+   previous fix.  In this case it is assumed you want to reset a fix's
    parameters.  This error may mean you are mistakenly re-using a fix ID
    when you do not intend to.
 
@@ -7308,7 +7337,7 @@ keyword to allow for additional bonds to be formed
 *Rigid body atoms %d %d missing on proc %d at step %ld*
    This means that an atom cannot find the atom that owns the rigid body
    it is part of, or vice versa.  The solution is to use the communicate
-   cutoff command to insure ghost atoms are acquired from far enough away
+   cutoff command to ensure ghost atoms are acquired from far enough away
    to encompass the max distance printed when the fix rigid/small command
    was invoked.
 
@@ -7849,6 +7878,10 @@ keyword to allow for additional bonds to be formed
    Number of local atoms times number of columns must fit in a 32-bit
    integer for dump.
 
+*Topology type exceeds system topology type*
+   The number of bond, angle, etc types exceeds the system setting. See
+   the create_box or read_data command for how to specify these values.
+
 *Tree structure in joint connections*
    Fix poems cannot (yet) work with coupled bodies whose joints connect
    the bodies in a tree structure.
@@ -7872,6 +7905,13 @@ keyword to allow for additional bonds to be formed
 
 *Two groups cannot be the same in fix spring couple*
    Self-explanatory.
+
+*The %s type label %s is already in use for type %s*
+   For a given type-kind (atom types, bond types, etc.), a given type
+   label can be assigned to only one numeric type.
+
+*Type label string %s for %s type %s is invalid*
+   See the labelmap command documentation for valid type labels.
 
 *Unable to initialize accelerator for use*
    There was a problem initializing an accelerator for the gpu package

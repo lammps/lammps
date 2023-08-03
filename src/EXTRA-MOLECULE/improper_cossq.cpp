@@ -37,7 +37,12 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperCossq::ImproperCossq(LAMMPS *lmp) : Improper(lmp) {}
+ImproperCossq::ImproperCossq(LAMMPS *lmp) : Improper(lmp)
+{
+  // the first atom in the quadruplet is the atom of symmetry
+
+  symmatoms[0] = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

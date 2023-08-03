@@ -125,7 +125,7 @@ class Molecule : protected Pointers {
   void compute_com();
   void compute_inertia();
   int findfragment(const char *);
-  void check_attributes(int);
+  void check_attributes();
 
  private:
   int me;

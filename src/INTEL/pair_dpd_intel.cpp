@@ -180,7 +180,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
   ATOM_T * _noalias const x = buffers->get_x(offload);
   typedef struct { double x, y, z; } lmp_vt;
   auto *v = (lmp_vt *)atom->v[0];
-  const flt_t dtinvsqrt = 1.0/sqrt(update->dt);
+  const flt_t dtinvsqrt = 1.0/std::sqrt(update->dt);
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
@@ -312,17 +312,17 @@ void PairDPDIntel::eval(const int offload, const int vflag,
             sbindex = jlist[jj] >> SBBITS & 3;
             j = jlist[jj] & NEIGHMASK;
           } else
-            j = jlist[jj];
+            j = IP_PRE_dword_index(jlist[jj]);
 
           const flt_t delx = xtmp - x[j].x;
           const flt_t dely = ytmp - x[j].y;
           const flt_t delz = ztmp - x[j].z;
           if (!ONETYPE) {
-            jtype = x[j].w;
+            jtype = IP_PRE_dword_index(x[j].w);
             icut = parami[jtype].icut;
           }
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
-          const flt_t rinv = (flt_t)1.0/sqrt(rsq);
+          const flt_t rinv = (flt_t)1.0/std::sqrt(rsq);
 
           if (rinv > icut) {
             flt_t factor_dpd, factor_sqrt;
@@ -499,8 +499,7 @@ void PairDPDIntel::init_style()
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->offload_balance() != 0.0)
-    error->all(FLERR,
-          "Offload for dpd/intel is not yet available. Set balance to 0.");
+    error->all(FLERR, "Offload for dpd/intel is not yet available. Set balance to 0.");
   #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)

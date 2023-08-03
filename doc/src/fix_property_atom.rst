@@ -9,24 +9,24 @@ Accelerator Variants: *property/atom/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID property/atom name1 name2 ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * property/atom = style name of this fix command
-* name1,name2,... = *mol* or *q* or *rmass* or *i_name* or *d_name* or *i2_name* or *d2_name*
+* name1,name2,... = *mol* or *q* or *rmass* or i_name or d_name or i2_name or d2_name
 
   .. parsed-literal::
 
        *mol* = molecule IDs
        *q* = charge
        *rmass* = per-atom mass
-       *i_name* = new integer vector referenced by name
-       *d_name* = new floating-point vector referenced by name
-       *i2_name* = new integer array referenced by name
+       i_name = new integer vector referenced by name
+       d_name = new floating-point vector referenced by name
+       i2_name = new integer array referenced by name
           i2_name arg = N = number of columns in the array
-       *d2_name* = new floating-point array referenced by name
+       d2_name = new floating-point array referenced by name
           d2_name arg = N = number of columns in the array
 
 * zero of more keyword/value pairs may be appended
@@ -112,7 +112,7 @@ The new atom properties encode values that migrate with atoms to new
 processors and are written to restart files.  If you want the new
 properties to also be defined for ghost atoms, then use the *ghost*
 keyword with a value of *yes*\ .  This will invoke extra communication
-when ghost atoms are created (at every re-neighboring) to insure the
+when ghost atoms are created (at every re-neighboring) to ensure the
 new properties are also defined for the ghost atoms.
 
 .. admonition:: Properties on ghost atoms

@@ -33,13 +33,20 @@ class ComputeChunkSpreadAtom : public Compute {
   double memory_usage() override;
 
  protected:
-  int mode, nvalues;
-  char *idchunk;
-  char **ids;
-  int *which, *argindex, *value2index;
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    union {
+      class Compute *c;
+      class Fix *f;
+    } val;
+  };
+  std::vector<value_t> values;
 
-  int nmax;
+  char *idchunk;
   class ComputeChunkAtom *cchunk;
+  int nmax;
 
   void init_chunk();
 };

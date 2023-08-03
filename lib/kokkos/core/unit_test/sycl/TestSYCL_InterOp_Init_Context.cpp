@@ -51,8 +51,9 @@ namespace Test {
 
 // Test whether external allocations can be accessed by the default queue.
 TEST(sycl, raw_sycl_interop_context_1) {
+  // Make sure all queues use the same context
   Kokkos::Experimental::SYCL default_space;
-  sycl::context default_context = default_space.sycl_context();
+  sycl::context default_context = default_space.sycl_queue().get_context();
 
   sycl::default_selector device_selector;
   sycl::queue queue(default_context, device_selector);
@@ -86,7 +87,7 @@ TEST(sycl, raw_sycl_interop_context_1) {
 // Test whether regular View allocations can be accessed by non-default queues.
 TEST(sycl, raw_sycl_interop_context_2) {
   Kokkos::Experimental::SYCL default_space;
-  sycl::context default_context = default_space.sycl_context();
+  sycl::context default_context = default_space.sycl_queue().get_context();
 
   sycl::default_selector device_selector;
   sycl::queue queue(default_context, device_selector);

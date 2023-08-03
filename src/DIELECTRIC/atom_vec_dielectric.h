@@ -24,7 +24,7 @@ AtomStyle(dielectric,AtomVecDielectric);
 
 namespace LAMMPS_NS {
 
-class AtomVecDielectric : public AtomVec {
+class AtomVecDielectric : virtual public AtomVec {
   friend class PairLJCutCoulDebyeDielectric;
   friend class PairLJLongCoulLongDielectric;
 
@@ -49,7 +49,7 @@ class AtomVecDielectric : public AtomVec {
   int bond_per_atom, angle_per_atom, dihedral_per_atom, improper_per_atom;
 
   double **mu;
-  double *area, *ed, *em, *epsilon, *curvature, *q_unscaled;
+  double *area, *ed, *em, *epsilon, *curvature, *q_scaled;
 };
 
 }    // namespace LAMMPS_NS

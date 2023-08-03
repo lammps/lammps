@@ -16,8 +16,6 @@
 
 #include "bond.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class BondBPM : public Bond {
@@ -29,9 +27,8 @@ class BondBPM : public Bond {
   void init_style() override;
   void settings(int, char **) override;
   double equilibrium_distance(int) override;
-  void write_restart(FILE *) override{};
-  void read_restart(FILE *) override{};
-  void write_data(FILE *) override{};
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
   double single(int, double, int, int, double &) override = 0;
 
  protected:
@@ -53,7 +50,7 @@ class BondBPM : public Bond {
   FnPtrPack *pack_choice;    // ptrs to pack functions
   double *output_data;
 
-  int prop_atom_flag, nvalues, overlay_flag;
+  int prop_atom_flag, nvalues, overlay_flag, break_flag;
   int index_x_ref, index_y_ref, index_z_ref;
 
   void pack_id1(int, int, int);

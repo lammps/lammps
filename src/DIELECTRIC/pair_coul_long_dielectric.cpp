@@ -36,8 +36,7 @@ using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) :
- PairCoulLong(_lmp), efield(nullptr)
+PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) : PairCoulLong(_lmp), efield(nullptr)
 {
   nmax = 0;
   single_enable = 0;
@@ -74,7 +73,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
@@ -177,7 +176,8 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
             ecoul = scale[itype][jtype] * qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
           }
           if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
-        } else ecoul = 0.0;
+        } else
+          ecoul = 0.0;
 
         if (evflag) ev_tally_full(i, 0.0, ecoul, fpair_i, delx, dely, delz);
       }
@@ -200,7 +200,7 @@ void PairCoulLongDielectric::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;

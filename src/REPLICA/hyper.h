@@ -35,8 +35,8 @@ class Hyper : public Command {
   int t_event;
   double etol, ftol;
   int maxiter, maxeval;
-  int stepmode, dumpflag, ndump, rebond;
-  int *dumplist;
+  int stepmode, dumpflag, rebond;
+  std::vector<class Dump *> dumplist;
 
   int neigh_every, neigh_delay, neigh_dist_check;
   int quench_reneighbor;

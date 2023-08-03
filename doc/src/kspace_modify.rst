@@ -11,7 +11,7 @@ Syntax
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol*
+* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol* or *wire*
 
   .. parsed-literal::
 
@@ -51,7 +51,6 @@ Syntax
        *slab* value = volfactor or *nozforce*
          volfactor = ratio of the total extended volume used in the
            2d approximation compared with the volume of the simulation domain
-         *ew2d* EW2D correction (available with ELECTRODE package)
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
@@ -143,7 +142,8 @@ the code will stop with an error message. When this option is set to
 For a typical application, using the automatic parameter generation
 will provide simulations that are either inaccurate or slow. Using this
 option is thus not recommended. For guidelines on how to obtain good
-parameters, see the :doc:`How-To <Howto_dispersion>` discussion.
+parameters, see the :doc:`long-range dispersion howto <Howto_dispersion>`
+discussion.
 
 ----------
 
@@ -381,18 +381,22 @@ solver is set up.
 
 The *slab* keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
-:doc:`boundary <boundary>` setting of "boundary p p f".  This is done by
-treating the system as if it were periodic in z, but inserting empty
-volume between atom slabs and removing dipole inter-slab interactions
-so that slab-slab interactions are effectively turned off.  The
-volfactor value sets the ratio of the extended dimension in z divided
-by the actual dimension in z.  The recommended value is 3.0.  A larger
-value is inefficient; a smaller value introduces unwanted slab-slab
+:doc:`boundary <boundary>` setting of "boundary p p f".  This is done
+by treating the system as if it were periodic in z, but inserting
+empty volume between atom slabs and removing dipole inter-slab
+interactions so that slab-slab interactions are effectively turned
+off.  The volfactor value sets the ratio of the extended dimension in
+z divided by the actual dimension in z.  It must be a value >= 1.0.  A
+value of 1.0 (the default) means the slab approximation is not used.
+
+The recommended value for volfactor is 3.0.  A larger value is
+inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the *slab*
-option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab* option
-is also extended to non-neutral systems :ref:`(Ballenegger) <Ballenegger>`.
+option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab*
+option is also extended to non-neutral systems :ref:`(Ballenegger)
+<Ballenegger>`.
 
 An alternative slab option can be invoked with the *nozforce* keyword
 in lieu of the volfactor.  This turns off all kspace forces in the z
@@ -402,8 +406,8 @@ boundaries can be set using :doc:`boundary <boundary>` (the slab
 approximation in not needed).  The *slab* keyword is not currently
 supported by Ewald or PPPM when using a triclinic simulation cell. The
 slab correction has also been extended to point dipole interactions
-:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>` *ewald/disp*,
-*ewald/dipole*, and *pppm/dipole*\ .
+:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>`
+*ewald/disp*, *ewald/dipole*, and *pppm/dipole*\ .
 
 .. note::
 
@@ -448,15 +452,32 @@ Related commands
 Default
 """""""
 
-The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
-5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
-gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff =
-ik (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace
-= -1.0, split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel,
-order = order/disp = 7.  For scafacos settings, the scafacos tolerance
-option depends on the method chosen, as documented above.  The
-scafacos fmm_tuning default = 0.
+The option defaults are as follows:
+
+* compute = yes
+* cutoff/adjust = yes (MSM)
+* diff = ik (PPPM)
+* disp/auto = no
+* fftbench = no (PPPM)
+* force = -1.0,
+* force/disp/kspace = -1.0
+* force/disp/real = -1.0
+* gewald = gewald/disp = 0.0
+* mesh = mesh/disp = 0 0 0
+* minorder = 2
+* mix/disp = pair
+* order = 10 (MSM)
+* order = order/disp = 5 (PPPM)
+* order = order/disp = 7 (PPPM/intel)
+* overlap = yes
+* pressure/scalar = yes (MSM)
+* slab = 1.0
+* split = 0
+* tol = 1.0e-6
+
+For scafacos settings, the scafacos tolerance option depends on the
+method chosen, as documented above.  The scafacos fmm_tuning default
+= 0.
 
 ----------
 

@@ -27,6 +27,7 @@ class CommKokkos : public CommBrick {
   bool exchange_comm_classic;
   bool forward_comm_classic;
   bool forward_pair_comm_classic;
+  bool reverse_pair_comm_classic;
   bool forward_fix_comm_classic;
   bool reverse_comm_classic;
   bool exchange_comm_on_host;
@@ -58,6 +59,7 @@ class CommKokkos : public CommBrick {
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_device(Pair *pair);
+  template<class DeviceType> void reverse_comm_device(Pair *pair);
   template<class DeviceType> void forward_comm_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
@@ -66,11 +68,8 @@ class CommKokkos : public CommBrick {
   DAT::tdual_int_2d k_sendlist;
   DAT::tdual_int_scalar k_total_send;
   DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
-  DAT::tdual_int_2d k_exchange_lists;
-  DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_sendflag;
+  DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_indices;
   DAT::tdual_int_scalar k_count;
-  //double *buf_send;                 // send buffer for all comm
-  //double *buf_recv;                 // recv buffer for all comm
 
   DAT::tdual_int_2d k_swap;
   DAT::tdual_int_2d k_swap2;

@@ -46,8 +46,9 @@
 #define KOKKOS_ALGORITHMS_UNITTESTS_TEST_STD_ALGOS_COMMON_HPP
 
 #include <gtest/gtest.h>
+#include <Kokkos_StdAlgorithms.hpp>
 #include <TestStdAlgorithmsHelperFunctors.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
+#include <utility>
 #include <numeric>
 #include <random>
 
@@ -247,6 +248,71 @@ struct std_algorithms_test : public ::testing::Test {
     CopyFunctor<ViewFromType, strided_view_t> F3(view, m_strided_view);
     Kokkos::parallel_for("_std_algo_copy3", view.extent(0), F3);
   }
+};
+
+struct CustomValueType {
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType(){};
+
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType(value_type val) : value(val){};
+
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType(const CustomValueType& other) { this->value = other.value; }
+
+  KOKKOS_INLINE_FUNCTION
+  explicit operator value_type() const { return value; }
+
+  KOKKOS_INLINE_FUNCTION
+  value_type& operator()() { return value; }
+
+  KOKKOS_INLINE_FUNCTION
+  const value_type& operator()() const { return value; }
+
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType& operator+=(const CustomValueType& other) {
+    this->value += other.value;
+    return *this;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType& operator=(const CustomValueType& other) {
+    this->value = other.value;
+    return *this;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType operator+(const CustomValueType& other) const {
+    CustomValueType result;
+    result.value = this->value + other.value;
+    return result;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType operator-(const CustomValueType& other) const {
+    CustomValueType result;
+    result.value = this->value - other.value;
+    return result;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  CustomValueType operator*(const CustomValueType& other) const {
+    CustomValueType result;
+    result.value = this->value * other.value;
+    return result;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  bool operator==(const CustomValueType& other) const {
+    return this->value == other.value;
+  }
+
+ private:
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const CustomValueType& custom_value_type) {
+    return os << custom_value_type.value;
+  }
+  value_type value = {};
 };
 
 }  // namespace stdalgos

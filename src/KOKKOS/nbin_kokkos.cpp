@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "memory_kokkos.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -62,14 +63,14 @@ template<class DeviceType>
 void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
 {
   if (mbins > (int)k_bins.d_view.extent(0)) {
-    k_bins = DAT::tdual_int_2d("Neighbor::d_bins",mbins,atoms_per_bin);
+    MemoryKokkos::realloc_kokkos(k_bins,"Neighbor::d_bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
-    k_bincount = DAT::tdual_int_1d("Neighbor::d_bincount",mbins);
+    MemoryKokkos::realloc_kokkos(k_bincount,"Neighbor::d_bincount",mbins);
     bincount = k_bincount.view<DeviceType>();
   }
   if (nall > (int)k_atom2bin.d_view.extent(0)) {
-    k_atom2bin = DAT::tdual_int_1d("Neighbor::d_atom2bin",nall);
+    MemoryKokkos::realloc_kokkos(k_atom2bin,"Neighbor::d_atom2bin",nall);
     atom2bin = k_atom2bin.view<DeviceType>();
   }
 }

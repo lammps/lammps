@@ -1,0 +1,147 @@
+LAMMPS (23 Jun 2022)
+# water dimer with AMOEBA or HIPPO
+
+units           real
+boundary        s s s
+
+atom_style      amoeba
+bond_style      class2
+angle_style     amoeba
+dihedral_style  none
+
+# per-atom properties required by AMOEBA or HIPPO
+
+fix             amtype all property/atom i_amtype ghost yes
+fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix             extra2 all property/atom i_polaxe d2_xyzaxis 3
+
+# read data file
+
+read_data       data.water_dimer.amoeba fix amtype NULL "Tinker Types"
+Reading data file ...
+  orthogonal box = (-1.463996 -0.756549 -0.009705) to (0.933234 0.75612 2.935934)
+  2 by 1 by 2 MPI processor grid
+  reading atoms ...
+  6 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  4 bonds
+  reading angles ...
+  2 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.009 seconds
+
+# force field
+
+pair_style      amoeba
+pair_coeff      * * amoeba_water.prm amoeba_water.key
+Reading potential file amoeba_water.prm with DATE: 2022-07-05
+Reading potential file amoeba_water.key with DATE: 2022-07-05
+
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0.5      0.5      0.5     
+  special bond factors coul:  0.5      0.5      0.5     
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of 1-5 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# thermo output
+
+compute         virial all pressure NULL virial
+
+thermo_style    custom step temp epair ebond eangle edihed eimp                 emol etotal press c_virial[*]
+
+#dump            1 all custom 10 dump.water_dimer id type x y z fx fy fz
+#dump_modify     1 sort id
+
+# dynamics
+
+fix             1 all nve
+
+thermo          10
+run             100
+AMOEBA force field settings
+  hal: cut 10 taper 8 vscale 0 0 1 1
+  multipole: cut 10 aewald 0 mscale 0 0 0.4 1
+  polar: cut 10 aewald 0
+         pscale 0 0 1 1 piscale 0 0 0.5 1 wscale 1 1 1 1 d/u scale 0 1
+  precondition: cut 4.5
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair amoeba, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (../domain.cpp:970)
+  AMOEBA group count: 2
+Per MPI rank memory allocation (min/avg/max) = 48.35 | 48.48 | 48.62 Mbytes
+   Step          Temp          E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          TotEng         Press       c_virial[1]    c_virial[2]    c_virial[3]    c_virial[4]    c_virial[5]    c_virial[6]  
+         0   0             -5.1627563      0.025695395    0.71581114     0              0              0.74150653    -4.4212497     -12260.522     -43226.042      39448.214     -33003.739     -85.160886     -28101.905     -72.971988    
+        10   1.1174766     -4.7928792      0.045080327    0.30848527     0              0              0.35356559    -4.4226587     -14728.416      11456.119     -52592.829     -3262.8454      70.868937      29494.268      57.977562    
+        20   3.0821934     -5.1387316      0.013108182    0.65694692     0              0              0.6700551     -4.4227393      3007.4148     -25925.326      49641.41      -15284.933     -79.726771     -29005.234     -68.530079    
+        30   3.461967      -4.8079248      0.013888863    0.31895667     0              0              0.33284554    -4.423482       8616.211       40027.877     -31134.295      16291.126      72.510013      23088.238      51.407946    
+        40   4.2181367     -5.0535921      0.0099009766   0.55796811     0              0              0.56786908    -4.4228557      24239.885     -5761.6967      62095.735      15576.675     -76.240192     -33057.385     -58.850871    
+        50   5.216657      -4.8012751      0.0053003148   0.29489399     0              0              0.30019431    -4.4233315      17728.056      44785.731     -21215.714      28613.715      66.24671       20292.137      51.010856    
+        60   9.45101       -5.0818046      0.0043357361   0.5118733      0              0              0.51620903    -4.4247372      16893.135     -15068.961      50111.11       13824.77      -75.966047     -34809.168     -52.83183     
+        70   10.385926     -4.8250769      0.022572262    0.22235766     0              0              0.24492992    -4.4253547     -1117.3665      19070.918     -36063.612      11648.813      61.067533      25754.59       53.919881    
+        80   12.797691     -5.123735       0.023756795    0.48275385     0              0              0.50651065    -4.4264869     -6491.9826     -28436.037      20681.908     -14176.121     -64.024669     -35737.052     -52.583533    
+        90   12.569481     -4.8303379      0.060369422    0.15670502     0              0              0.21707444    -4.4259273     -16762.536      1720.5855     -47624.986     -6793.7441      59.966729      30024.566      52.339671    
+       100   17.750788     -5.1195235      0.039885925    0.38711474     0              0              0.42700067    -4.4279642     -10817.92      -21833.456      4186.8301     -18211.329     -43.11086      -32664.671     -41.508916    
+Loop time of 0.0160927 on 4 procs for 100 steps with 6 atoms
+
+Performance: 536.891 ns/day, 0.045 hours/ns, 6214.012 timesteps/s
+99.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+AMOEBA timing breakdown:
+  Init    time: 0.000643833    4.58%
+  Hal     time: 0.000105979    0.75%
+  Mpole   time: 0.00070704     5.03%
+  Induce  time: 0.0115637     82.32%
+  Polar   time: 0.00101148     7.20%
+  Total   time: 0.0140469   
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.014163   | 0.014289   | 0.01443    |   0.1 | 88.79
+Bond    | 1.3072e-05 | 4.8341e-05 | 8.4206e-05 |   0.0 |  0.30
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00071242 | 0.00081499 | 0.0010064  |   0.0 |  5.06
+Output  | 0.00041395 | 0.00049646 | 0.0005516  |   0.0 |  3.08
+Modify  | 2.5768e-05 | 3.3385e-05 | 4.7843e-05 |   0.0 |  0.21
+Other   |            | 0.0004106  |            |       |  2.55
+
+Nlocal:            1.5 ave           3 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:            4.5 ave           6 max           3 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:           3.75 ave          12 max           0 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+
+Total # of neighbors = 15
+Ave neighs/atom = 2.5
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

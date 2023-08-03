@@ -49,11 +49,20 @@ namespace RANN {
     style = "linear";
   }
 
-  double Activation_linear::activation_function(double A) { return A; }
+  double Activation_linear::activation_function(double A)
+  {
+    return A;
+  }
 
-  double Activation_linear::dactivation_function(double) { return 1.0; }
+  double Activation_linear::dactivation_function(double)
+  {
+    return 1.0;
+  }
 
-  double Activation_linear::ddactivation_function(double) { return 0.0; }
+  double Activation_linear::ddactivation_function(double)
+  {
+    return 0.0;
+  }
 }    // namespace RANN
 }    // namespace LAMMPS_NS
 

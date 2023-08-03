@@ -30,18 +30,21 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_classic;
   int forward_comm_classic;
   int forward_pair_comm_classic;
+  int reverse_pair_comm_classic;
   int forward_fix_comm_classic;
   int reverse_comm_classic;
+  int sort_classic;
   int exchange_comm_on_host;
   int forward_comm_on_host;
   int reverse_comm_on_host;
   int exchange_comm_changed;
   int forward_comm_changed;
   int forward_pair_comm_changed;
+  int reverse_pair_comm_changed;
   int forward_fix_comm_changed;
   int reverse_comm_changed;
+  int sort_changed;
   int nthreads,ngpus;
-  int numa;
   int auto_sync;
   int gpu_aware_flag;
   int neigh_thread;
@@ -52,12 +55,11 @@ class KokkosLMP : protected Pointers {
   double binsize;
 
   static int is_finalized;
-  static Kokkos::InitArguments args;
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);
 
-  static void initialize(Kokkos::InitArguments, Error *);
+  static void initialize(const Kokkos::InitializationSettings&, Error *);
   static void finalize();
   void accelerator(int, char **);
   int neigh_count(int);

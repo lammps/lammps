@@ -41,7 +41,7 @@ struct API {
 
 extern void Allocate_Workspace(control_params *, storage *, int);
 extern void DeAllocate_System(reax_system *);
-extern void DeAllocate_Workspace(control_params *, storage *);
+extern void DeAllocate_Workspace(storage *);
 extern void PreAllocate_Space(reax_system *, storage *);
 extern void ReAllocate(reax_system *, control_params *, simulation_data *, storage *, reax_list **);
 

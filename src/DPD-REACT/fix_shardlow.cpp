@@ -63,21 +63,22 @@ using namespace random_external_state;
 #define EPSILON_SQUARED ((EPSILON) * (EPSILON))
 
 static const char cite_fix_shardlow[] =
-  "fix shardlow command:\n\n"
+  "fix shardlow command: doi:10.1016/j.cpc.2014.03.029, doi:10.1063/1.3660209\n\n"
   "@Article{Larentzos14,\n"
-  " author = {J. P. Larentzos, J. K. Brennan, J. D. Moore, M. Lisal, W. D. Mattson},\n"
-  " title = {Parallel implementation of isothermal and isoenergetic Dissipative Particle Dynamics using Shardlow-like splitting algorithms},\n"
-  " journal = {Computer Physics Communications},\n"
+  " author = {J. P. Larentzos and J. K. Brennan and J. D. Moore and M. Lisal and W. D. Mattson},\n"
+  " title = {Parallel Implementation of Isothermal and Isoenergetic Dissipative Particle Dynamics Using {S}hardlow-Like Splitting Algorithms},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2014,\n"
   " volume =  185\n"
   " pages =   {1987--1998}\n"
   "}\n\n"
   "@Article{Lisal11,\n"
-  " author = {M. Lisal, J. K. Brennan, J. Bonet Avalos},\n"
-  " title = {Dissipative particle dynamics at isothermal, isobaric, isoenergetic, and isoenthalpic conditions using Shardlow-like splitting algorithms},\n"
-  " journal = {Journal of Chemical Physics},\n"
+  " author = {M. Lisal and  J. K. Brennan and J. Bonet Avalos},\n"
+  " title = {Dissipative Particle Dynamics at Isothermal, Isobaric, Isoenergetic, and Isoenthalpic Conditions Using {S}hardlow-Like Splitting Algorithms},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2011,\n"
-  " volume =  135\n"
+  " volume =  135,\n"
+  " number =  20,\n"
   " pages =   {204105}\n"
   "}\n\n";
 

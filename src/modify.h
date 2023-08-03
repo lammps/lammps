@@ -17,7 +17,6 @@
 #include "pointers.h"
 
 #include <map>
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -70,6 +69,7 @@ class Modify : protected Pointers {
   virtual void pre_reverse(int, int);
   virtual void post_force(int);
   virtual void final_integrate();
+  virtual void fused_integrate(int) {}
   virtual void end_of_step();
   virtual double energy_couple();
   virtual double energy_global();
@@ -100,6 +100,8 @@ class Modify : protected Pointers {
   virtual double max_alpha(double *);
   virtual int min_dof();
   virtual int min_reset_ref();
+
+  void reset_grid();
 
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);

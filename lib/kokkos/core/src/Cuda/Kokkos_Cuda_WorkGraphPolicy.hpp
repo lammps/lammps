@@ -63,16 +63,14 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
   FunctorType m_functor;
 
   template <class TagType>
-  __device__ inline
-      typename std::enable_if<std::is_same<TagType, void>::value>::type
-      exec_one(const std::int32_t w) const noexcept {
+  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_one(
+      const std::int32_t w) const noexcept {
     m_functor(w);
   }
 
   template <class TagType>
-  __device__ inline
-      typename std::enable_if<!std::is_same<TagType, void>::value>::type
-      exec_one(const std::int32_t w) const noexcept {
+  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_one(
+      const std::int32_t w) const noexcept {
     const TagType t{};
     m_functor(t, w);
   }
@@ -102,8 +100,7 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
     const int shared = 0;
 
     Kokkos::Impl::CudaParallelLaunch<Self>(
-        *this, grid, block, shared, Cuda().impl_internal_space_instance(),
-        false);
+        *this, grid, block, shared, Cuda().impl_internal_space_instance());
   }
 
   inline ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)

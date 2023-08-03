@@ -43,7 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_PartitioningOperations.hpp>
 
 namespace KE = Kokkos::Experimental;
 
@@ -180,15 +179,15 @@ TEST_F(std_algorithms_partitioning_test, is_partitioned_trivial) {
   IsNegativeFunctor<value_type> p;
   const auto result1 = KE::is_partitioned(exespace(), KE::cbegin(m_static_view),
                                           KE::cbegin(m_static_view), p);
-  EXPECT_EQ(true, result1);
+  EXPECT_TRUE(result1);
 
   const auto result2 = KE::is_partitioned(
       exespace(), KE::cbegin(m_dynamic_view), KE::cbegin(m_dynamic_view), p);
-  EXPECT_EQ(true, result2);
+  EXPECT_TRUE(result2);
 
   const auto result3 = KE::is_partitioned(
       exespace(), KE::cbegin(m_strided_view), KE::cbegin(m_strided_view), p);
-  EXPECT_EQ(true, result3);
+  EXPECT_TRUE(result3);
 }
 
 TEST_F(std_algorithms_partitioning_test, is_partitioned_accepting_iterators) {

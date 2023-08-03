@@ -34,6 +34,7 @@ public:
     bool is_running();
     bool has_error() const;
     int get_last_error_message(char *errorbuf, int buflen);
+    bool config_accelerator(const char *package, const char *category, const char *setting) const;
     bool config_has_package(const char *pkg) const;
     bool has_gpu_device() const;
 

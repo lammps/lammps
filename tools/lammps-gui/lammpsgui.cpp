@@ -665,8 +665,14 @@ void LammpsGui::start_lammps()
         lammps_args.push_back(mystrdup("-pk"));
         lammps_args.push_back(mystrdup("gpu"));
         lammps_args.push_back(mystrdup("0"));
+    } else if (accel == AcceleratorTab::Kokkos) {
+        lammps_args.push_back(mystrdup("-kokkos"));
+        lammps_args.push_back(mystrdup("on"));
+        lammps_args.push_back(mystrdup("t"));
+        lammps_args.push_back(mystrdup(std::to_string(nthreads)));
+        lammps_args.push_back(mystrdup("-suffix"));
+        lammps_args.push_back(mystrdup("kk"));
     }
-
     if (settings.value("echo", "0").toInt()) {
         lammps_args.push_back(mystrdup("-echo"));
         lammps_args.push_back(mystrdup("screen"));

@@ -160,6 +160,17 @@ bool LammpsWrapper::config_has_package(const char *package) const
 #endif
 }
 
+bool LammpsWrapper::config_accelerator(const char *package, const char *category,
+                                       const char *setting) const
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    return ((liblammpsplugin_t *)plugin_handle)->config_accelerator(package, category, setting) !=
+           0;
+#else
+    return lammps_config_accelerator(package, category, setting) != 0;
+#endif
+}
+
 bool LammpsWrapper::has_gpu_device() const
 {
 #if defined(LAMMPS_GUI_USE_PLUGIN)

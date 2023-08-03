@@ -9,7 +9,7 @@ Accelerator Variants: *wall/gran/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
 

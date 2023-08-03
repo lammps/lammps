@@ -1,47 +1,21 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
-#ifndef KOKKOS_TEST_DUALVIEW_HPP
-#define KOKKOS_TEST_DUALVIEW_HPP
+#ifndef KOKKOS_ALGORITHMS_UNITTESTS_TEST_RANDOM_HPP
+#define KOKKOS_ALGORITHMS_UNITTESTS_TEST_RANDOM_HPP
 
 #include <gtest/gtest.h>
 #include <iostream>
@@ -55,8 +29,7 @@
 #include <chrono>
 
 namespace Test {
-
-namespace Impl {
+namespace AlgoRandomImpl {
 
 // This test runs the random number generators and uses some statistic tests to
 // check the 'goodness' of the random numbers:
@@ -189,50 +162,10 @@ struct test_random_functor {
           static_cast<uint64_t>(1.0 * HIST_DIM3D * tmp2 / theMax);
       const uint64_t ind3_3d =
           static_cast<uint64_t>(1.0 * HIST_DIM3D * tmp3 / theMax);
-// Workaround Intel 17 compiler bug which sometimes add random
-// instruction alignment which makes the lock instruction
-// illegal. Seems to be mostly just for unsigned int atomics.
-// Looking at the assembly the compiler
-// appears to insert cache line alignment for the instruction.
-// Isn't restricted to specific archs. Seen it on SNB and SKX, but for
-// different code. Another occurrence was with Desul atomics in
-// a different unit test. This one here happens without desul atomics.
-// Inserting an assembly nop instruction changes the alignment and
-// works round this.
-//
-// 17.0.4 for 64bit Random works with 1/1/1/2/1
-// 17.0.4 for 1024bit Random works with 1/1/1/1/1
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       atomic_fetch_add(&density_1d(ind1_1d), 1);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       atomic_fetch_add(&density_1d(ind2_1d), 1);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       atomic_fetch_add(&density_1d(ind3_1d), 1);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      if (std::is_same<rnd_type, Kokkos::Random_XorShift64<device_type>>::value)
-        asm volatile("nop\n");
-      asm volatile("nop\n");
-#endif
-#endif
       atomic_fetch_add(&density_3d(ind1_3d, ind2_3d, ind3_3d), 1);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
     }
     rand_pool.free_state(rand_gen);
   }
@@ -535,42 +468,46 @@ struct TestDynRankView {
     ASSERT_LE(val.max_val, max);
   }
 };
-}  // namespace Impl
 
-template <typename ExecutionSpace>
-void test_random_xorshift64() {
+}  // namespace AlgoRandomImpl
+
+TEST(TEST_CATEGORY, Random_XorShift64) {
+  using ExecutionSpace = TEST_EXECSPACE;
+
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
     defined(KOKKOS_ENABLE_HIP)
   const int num_draws = 132141141;
 #else  // SERIAL, HPX, OPENMP
   const int num_draws = 10240000;
 #endif
-  Impl::test_random<Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(num_draws);
-  Impl::test_random<Kokkos::Random_XorShift64_Pool<
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(
+      num_draws);
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift64_Pool<
       Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
       num_draws);
-  Impl::TestDynRankView<ExecutionSpace,
-                        Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(10000)
+  AlgoRandomImpl::TestDynRankView<
+      ExecutionSpace, Kokkos::Random_XorShift64_Pool<ExecutionSpace>>(10000)
       .run();
 }
 
-template <typename ExecutionSpace>
-void test_random_xorshift1024() {
+TEST(TEST_CATEGORY, Random_XorShift1024_0) {
+  using ExecutionSpace = TEST_EXECSPACE;
+
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
     defined(KOKKOS_ENABLE_HIP)
   const int num_draws = 52428813;
 #else  // SERIAL, HPX, OPENMP
   const int num_draws = 10130144;
 #endif
-  Impl::test_random<Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(
       num_draws);
-  Impl::test_random<Kokkos::Random_XorShift1024_Pool<
+  AlgoRandomImpl::test_random<Kokkos::Random_XorShift1024_Pool<
       Kokkos::Device<ExecutionSpace, typename ExecutionSpace::memory_space>>>(
       num_draws);
-  Impl::TestDynRankView<ExecutionSpace,
-                        Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(10000)
+  AlgoRandomImpl::TestDynRankView<
+      ExecutionSpace, Kokkos::Random_XorShift1024_Pool<ExecutionSpace>>(10000)
       .run();
 }
-}  // namespace Test
 
-#endif  // KOKKOS_TEST_UNORDERED_MAP_HPP
+}  // namespace Test
+#endif

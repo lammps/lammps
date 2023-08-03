@@ -877,7 +877,7 @@ void FixShake::find_clusters()
       tagprev = tag[i] - iatom - 1;
       npartner[i] = atommols[imol]->nspecial[iatom][0];
       for (j = 0; j < npartner[i]; j++)
-        partner_tag[i][j] = atommols[imol]->special[iatom][j] + tagprev;;
+        partner_tag[i][j] = atommols[imol]->special[iatom][j] + tagprev;
     }
   }
 

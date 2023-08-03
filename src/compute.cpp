@@ -74,6 +74,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   dynamic = 0;
   dynamic_group_allow = 1;
 
+  initialized_flag = 0;
   invoked_scalar = invoked_vector = invoked_array = -1;
   invoked_peratom = invoked_local = -1;
   invoked_flag = INVOKED_NONE;
@@ -107,6 +108,15 @@ Compute::~Compute()
   delete[] id;
   delete[] style;
   memory->destroy(tlist);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Compute::init_flags()
+{
+  initialized_flag = 1;
+  invoked_scalar = invoked_vector = invoked_array = -1;
+  invoked_peratom = invoked_local = -1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -131,15 +131,15 @@ if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL
   set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
 endif()
 
-# we require C++11 without extensions. Kokkos requires at least C++14 (currently)
+# we require C++11 without extensions. Kokkos requires at least C++17 (currently)
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
 endif()
 if(CMAKE_CXX_STANDARD LESS 11)
   message(FATAL_ERROR "C++ standard must be set to at least 11")
 endif()
-if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
-  set(CMAKE_CXX_STANDARD 14)
+if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
@@ -187,6 +187,7 @@ option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
+option(BUILD_LAMMPS_GUI "Build and install the LAMMPS GUI" OFF)
 
 # Support using clang-tidy for C++ files with selected options
 set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
@@ -273,7 +274,6 @@ set(STANDARD_PACKAGES
   MOLECULE
   MOLFILE
   MPIIO
-  MSCG
   NETCDF
   ORIENT
   PERI
@@ -435,7 +435,7 @@ if(BUILD_OMP)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_TOOLS)
+if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_TOOLS)
   enable_language(C)
   if (NOT USE_INTERNAL_LINALG)
     find_package(LAPACK)
@@ -510,7 +510,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM MSCG COMPRESS ML-PACE LEPTON)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -785,9 +785,11 @@ include(Tools)
 include(Documentation)
 
 ###############################################################################
-# Install potential and force field files in data directory
+# Install bench, potential and force field files in data directory
 ###############################################################################
-set(LAMMPS_INSTALL_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/lammps)
+set(LAMMPS_INSTALL_DATADIR ${CMAKE_INSTALL_DATADIR}/lammps)
+
+install(DIRECTORY ${LAMMPS_DIR}/bench DESTINATION ${LAMMPS_INSTALL_DATADIR})
 install(DIRECTORY ${LAMMPS_POTENTIALS_DIR} DESTINATION ${LAMMPS_INSTALL_DATADIR})
 if(BUILD_TOOLS)
   install(DIRECTORY ${LAMMPS_TOOLS_DIR}/msi2lmp/frc_files DESTINATION ${LAMMPS_INSTALL_DATADIR})

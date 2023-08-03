@@ -412,7 +412,7 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
-  if (screen && me ==0)
+  if (screen && me == 0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }
 

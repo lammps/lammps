@@ -6,7 +6,7 @@ fix tmd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID tmd rho_final file1 N file2
 

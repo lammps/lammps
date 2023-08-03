@@ -749,7 +749,7 @@ struct intr_types<float,double> {
 
 #include <cassert>
 #include <immintrin.h>
-#include <stdint.h> // <cstdint> requires C++-11
+#include <cstdint>
 
 #define VEC_INLINE __attribute__((always_inline))
 

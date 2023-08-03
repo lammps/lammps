@@ -43,7 +43,7 @@ MLIAPModelPythonKokkos<DeviceType>::MLIAPModelPythonKokkos(LAMMPS *lmp, char *co
   MLIAPModelPython(lmp,coefffilename,true),
   MLIAPModelKokkos<DeviceType>(lmp, this)
 {
-  if  (!std::is_same<DeviceType,LMPDeviceType>::value )
+  if  (!std::is_same_v<DeviceType,LMPDeviceType> )
     MLIAPModelKokkos<DeviceType>::error->all(FLERR, "MLIAP Kokkos version of the python interface is ONLY available on device");
 
   model_loaded = 0;

@@ -6,7 +6,7 @@ fix print command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID print N string keyword value ...
 

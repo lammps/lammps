@@ -128,6 +128,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *cite = new QCheckBox("Include Citations");
     cite->setCheckState(settings->value("cite", "0").toInt() ? Qt::Checked : Qt::Unchecked);
     cite->setObjectName("cite");
+#if !defined(__APPLE__)
     auto *tmplabel  = new QLabel("Scratch Folder:");
     auto *tmpedit   = new QLineEdit(settings->value("tempdir", ".").toString());
     auto *tmpbrowse = new QPushButton("Browse...");
@@ -136,6 +137,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     tmplayout->addWidget(tmplabel);
     tmplayout->addWidget(tmpedit);
     tmplayout->addWidget(tmpbrowse);
+#endif
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     auto *pluginlabel = new QLabel("Path to LAMMPS Shared Library File:");
@@ -151,7 +153,9 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 #endif
     layout->addWidget(echo);
     layout->addWidget(cite);
+#if !defined(__APPLE__)
     layout->addLayout(tmplayout);
+#endif
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     layout->addWidget(pluginlabel);
     layout->addLayout(pluginlayout);

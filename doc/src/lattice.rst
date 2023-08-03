@@ -6,7 +6,7 @@ lattice command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    lattice style scale keyword values ...
 

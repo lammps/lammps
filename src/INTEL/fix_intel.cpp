@@ -430,7 +430,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
     double *time1 = off_watch_pair();
     double *time2 = off_watch_neighbor();
     int *overflow = get_off_overflow_flag();
-    if (_offload_balance !=0.0) {
+    if (_offload_balance != 0.0) {
       #pragma offload_transfer target(mic:_cop)  \
         nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
         in(overflow:length(5) alloc_if(1) free_if(0))

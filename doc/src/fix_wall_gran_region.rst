@@ -6,7 +6,7 @@ fix wall/gran/region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID keyword values ...
 

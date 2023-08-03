@@ -29,7 +29,7 @@
 const char *ocl_prefetch_test =
 "  #if (NBOR_PREFETCH == 1)                                                \n"\
 "  inline void ucl_prefetch(const __global int *p) { prefetch(p, 1); }     \n"\
-"  #else                                                                   \n"\
+"  #elif (NBOR_PREFETCH == 2)                                              \n"\
 "  enum LSC_LDCC {LSC_LDCC_DEFAULT, LSC_LDCC_L1UC_L3UC, LSC_LDCC_L1UC_L3C, \n"\
 "                 LSC_LDCC_L1C_L3UC, LSC_LDCC_L1C_L3C, LSC_LDCC_L1S_L3UC,  \n"\
 "                 LSC_LDCC_L1S_L3C, LSC_LDCC_L1IAR_L3C, };                 \n"\
@@ -745,7 +745,14 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   gpu_overhead=0.0;
   gpu_driver_overhead=0.0;
 
-  for (int z=0; z<11; z++) {
+  // TODO: XXX
+  // The following estimation currently fails on Intel GPUs
+  // that do not support double precision with OpenCL error code -5.
+  // Until we have a better solution, we just skip this test in this case.
+  int zloops = 11;
+  if (!gpu->double_precision()) zloops = 0;
+
+  for (int z=0; z < zloops; z++) {
     gpu->sync();
     gpu_barrier();
     over_timer.start();

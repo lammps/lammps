@@ -966,10 +966,10 @@ void Atom::bonus_check()
   bigint local_bodies = 0, num_global;
 
   for (int i = 0; i < nlocal; ++i) {
-    if (ellipsoid && (ellipsoid[i] >=0)) ++local_ellipsoids;
-    if (line && (line[i] >=0)) ++local_lines;
-    if (tri && (tri[i] >=0)) ++local_tris;
-    if (body && (body[i] >=0)) ++local_bodies;
+    if (ellipsoid && (ellipsoid[i] >= 0)) ++local_ellipsoids;
+    if (line && (line[i] >= 0)) ++local_lines;
+    if (tri && (tri[i] >= 0)) ++local_tris;
+    if (body && (body[i] >= 0)) ++local_bodies;
   }
 
   MPI_Allreduce(&local_ellipsoids,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -1818,17 +1818,16 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
 void Atom::data_fix_compute_variable(int nprev, int nnew)
 {
-  for (const auto &fix : modify->get_fix_list()) {
-    if (fix->create_attribute)
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->create_attribute)
       for (int i = nprev; i < nnew; i++)
-        fix->set_arrays(i);
+        ifix->set_arrays(i);
   }
 
-  for (int m = 0; m < modify->ncompute; m++) {
-    Compute *compute = modify->compute[m];
-    if (compute->create_attribute)
+  for (const auto &icompute : modify->get_compute_list()) {
+    if (icompute->create_attribute)
       for (int i = nprev; i < nnew; i++)
-        compute->set_arrays(i);
+        icompute->set_arrays(i);
   }
 
   for (int i = nprev; i < nnew; i++)

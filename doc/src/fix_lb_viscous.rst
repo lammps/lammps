@@ -6,7 +6,7 @@ fix lb/viscous command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID lb/viscous
 

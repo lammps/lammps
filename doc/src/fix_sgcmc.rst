@@ -6,7 +6,7 @@ fix sgcmc command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID sgcmc every_nsteps swap_fraction temperature deltamu ...
 

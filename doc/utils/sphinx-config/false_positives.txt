@@ -1528,6 +1528,7 @@ inhomogeneous
 init
 initialdelay
 initialisms
+initializer
 initializations
 InitiatorIDs
 initio
@@ -1559,6 +1560,7 @@ intramolecular
 ints
 inumeric
 inv
+invariance
 invariants
 inversed
 invertible
@@ -3487,6 +3489,7 @@ supercell
 superset
 supersphere
 Supinski
+Sur
 Surblys
 surfactant
 surfactants
@@ -3832,6 +3835,7 @@ vectorized
 Vegt
 vel
 Velázquez
+Ventura
 venv
 Verlag
 verlet

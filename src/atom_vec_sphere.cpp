@@ -16,7 +16,6 @@
 #include "atom.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_adapt.h"
 #include "math_const.h"
 #include "modify.h"
 
@@ -31,6 +30,7 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 {
   mass_type = PER_ATOM;
   molecular = Atom::ATOMIC;
+  radvary = 0;
 
   atom->sphere_flag = 1;
   atom->radius_flag = atom->rmass_flag = atom->omega_flag = atom->torque_flag = 1;
@@ -88,11 +88,11 @@ void AtomVecSphere::init()
 
   // check if optional radvary setting should have been set to 1
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style, "adapt") == 0) {
-      auto fix = dynamic_cast<FixAdapt *>(modify->fix[i]);
-      if (fix->diamflag && radvary == 0)
-        error->all(FLERR, "Fix adapt changes particle radii but atom_style sphere is not dynamic");
+  if (radvary == 0)
+    for (const auto &ifix : modify->get_fix_by_style("^adapt")) {
+      if (ifix->diam_flag)
+        error->all(FLERR, "Fix {} changes atom radii but atom_style sphere is not dynamic",
+                   ifix->style);
     }
 }
 

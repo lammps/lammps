@@ -6,7 +6,7 @@ package command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    package style args
 

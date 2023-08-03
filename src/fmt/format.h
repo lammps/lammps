@@ -542,6 +542,8 @@ FMT_INLINE void assume(bool condition) {
   (void)condition;
 #if FMT_HAS_BUILTIN(__builtin_assume) && !FMT_ICC_VERSION
   __builtin_assume(condition);
+#elif FMT_GCC_VERSION
+  if (!condition) __builtin_unreachable();
 #endif
 }
 
@@ -560,20 +562,6 @@ inline auto get_data(Container& c) -> typename Container::value_type* {
   return c.data();
 }
 
-#if defined(_SECURE_SCL) && _SECURE_SCL
-// Make a checked iterator to avoid MSVC warnings.
-template <typename T> using checked_ptr = stdext::checked_array_iterator<T*>;
-template <typename T>
-constexpr auto make_checked(T* p, size_t size) -> checked_ptr<T> {
-  return {p, size};
-}
-#else
-template <typename T> using checked_ptr = T*;
-template <typename T> constexpr auto make_checked(T* p, size_t) -> T* {
-  return p;
-}
-#endif
-
 // Attempts to reserve space for n extra characters in the output range.
 // Returns a pointer to the reserved range or a reference to it.
 template <typename Container, FMT_ENABLE_IF(is_contiguous<Container>::value)>
@@ -581,12 +569,12 @@ template <typename Container, FMT_ENABLE_IF(is_contiguous<Container>::value)>
 __attribute__((no_sanitize("undefined")))
 #endif
 inline auto
-reserve(std::back_insert_iterator<Container> it, size_t n)
-    -> checked_ptr<typename Container::value_type> {
+reserve(std::back_insert_iterator<Container> it, size_t n) ->
+    typename Container::value_type* {
   Container& c = get_container(it);
   size_t size = c.size();
   c.resize(size + n);
-  return make_checked(get_data(c) + size, n);
+  return get_data(c) + size;
 }
 
 template <typename T>
@@ -618,8 +606,8 @@ template <typename T> auto to_pointer(buffer_appender<T> it, size_t n) -> T* {
 }
 
 template <typename Container, FMT_ENABLE_IF(is_contiguous<Container>::value)>
-inline auto base_iterator(std::back_insert_iterator<Container>& it,
-                          checked_ptr<typename Container::value_type>)
+inline auto base_iterator(std::back_insert_iterator<Container> it,
+                          typename Container::value_type*)
     -> std::back_insert_iterator<Container> {
   return it;
 }
@@ -887,7 +875,7 @@ void buffer<T>::append(const U* begin, const U* end) {
     try_reserve(size_ + count);
     auto free_cap = capacity_ - size_;
     if (free_cap < count) count = free_cap;
-    std::uninitialized_copy_n(begin, count, make_checked(ptr_ + size_, count));
+    std::uninitialized_copy_n(begin, count, ptr_ + size_);
     size_ += count;
     begin += count;
   }
@@ -955,10 +943,9 @@ class basic_memory_buffer final : public detail::buffer<T> {
     T* new_data =
         std::allocator_traits<Allocator>::allocate(alloc_, new_capacity);
     // Suppress a bogus -Wstringop-overflow in gcc 13.1 (#3481).
-    FMT_ASSERT(this->size() <= new_capacity, "");
+    detail::assume(this->size() <= new_capacity);
     // The following code doesn't throw, so the raw pointer above doesn't leak.
-    std::uninitialized_copy(old_data, old_data + this->size(),
-                            detail::make_checked(new_data, new_capacity));
+    std::uninitialized_copy_n(old_data, this->size(), new_data);
     this->set(new_data, new_capacity);
     // deallocate must not throw according to the standard, but even if it does,
     // the buffer already uses the new storage and will deallocate it in
@@ -986,8 +973,7 @@ class basic_memory_buffer final : public detail::buffer<T> {
     size_t size = other.size(), capacity = other.capacity();
     if (data == other.store_) {
       this->set(store_, capacity);
-      detail::copy_str<T>(other.store_, other.store_ + size,
-                          detail::make_checked(store_, capacity));
+      detail::copy_str<T>(other.store_, other.store_ + size, store_);
     } else {
       this->set(data, capacity);
       // Set pointer to the inline array so that delete is not called
@@ -1265,7 +1251,7 @@ FMT_CONSTEXPR auto count_digits(UInt n) -> int {
 FMT_INLINE auto do_count_digits(uint32_t n) -> int {
 // An optimization by Kendall Willets from https://bit.ly/3uOIQrB.
 // This increments the upper 32 bits (log10(T) - 1) when >= T is added.
-#  define FMT_INC(T) (((sizeof(#  T) - 1ull) << 32) - T)
+#  define FMT_INC(T) (((sizeof(#T) - 1ull) << 32) - T)
   static constexpr uint64_t table[] = {
       FMT_INC(0),          FMT_INC(0),          FMT_INC(0),           // 8
       FMT_INC(10),         FMT_INC(10),         FMT_INC(10),          // 64
@@ -1426,6 +1412,8 @@ class utf8_to_utf16 {
   auto str() const -> std::wstring { return {&buffer_[0], size()}; }
 };
 
+enum class to_utf8_error_policy { abort, replace };
+
 // A converter from UTF-16/UTF-32 (host endian) to UTF-8.
 template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
  private:
@@ -1433,11 +1421,11 @@ template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
 
  public:
   to_utf8() {}
-  explicit to_utf8(basic_string_view<WChar> s) {
+  explicit to_utf8(basic_string_view<WChar> s,
+                   to_utf8_error_policy policy = to_utf8_error_policy::abort) {
     static_assert(sizeof(WChar) == 2 || sizeof(WChar) == 4,
                   "Expect utf16 or utf32");
-
-    if (!convert(s))
+    if (!convert(s, policy))
       FMT_THROW(std::runtime_error(sizeof(WChar) == 2 ? "invalid utf16"
                                                       : "invalid utf32"));
   }
@@ -1449,23 +1437,28 @@ template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
   // Performs conversion returning a bool instead of throwing exception on
   // conversion error. This method may still throw in case of memory allocation
   // error.
-  bool convert(basic_string_view<WChar> s) {
-    if (!convert(buffer_, s)) return false;
+  bool convert(basic_string_view<WChar> s,
+               to_utf8_error_policy policy = to_utf8_error_policy::abort) {
+    if (!convert(buffer_, s, policy)) return false;
     buffer_.push_back(0);
     return true;
   }
-  static bool convert(Buffer& buf, basic_string_view<WChar> s) {
+  static bool convert(
+      Buffer& buf, basic_string_view<WChar> s,
+      to_utf8_error_policy policy = to_utf8_error_policy::abort) {
     for (auto p = s.begin(); p != s.end(); ++p) {
       uint32_t c = static_cast<uint32_t>(*p);
       if (sizeof(WChar) == 2 && c >= 0xd800 && c <= 0xdfff) {
-        // surrogate pair
+        // Handle a surrogate pair.
         ++p;
         if (p == s.end() || (c & 0xfc00) != 0xd800 || (*p & 0xfc00) != 0xdc00) {
-          return false;
+          if (policy == to_utf8_error_policy::abort) return false;
+          buf.append(string_view("�"));
+          --p;
+        } else {
+          c = (c << 10) + static_cast<uint32_t>(*p) - 0x35fdc00;
         }
-        c = (c << 10) + static_cast<uint32_t>(*p) - 0x35fdc00;
-      }
-      if (c < 0x80) {
+      } else if (c < 0x80) {
         buf.push_back(static_cast<char>(c));
       } else if (c < 0x800) {
         buf.push_back(static_cast<char>(0xc0 | (c >> 6)));
@@ -1748,14 +1741,14 @@ template <typename T = void> struct basic_data {
   // The kth entry is chosen to be the smallest integer such that the
   // upper 32-bits of 10^(k+1) times it is strictly bigger than 5 * 10^k.
   static constexpr uint32_t fractional_part_rounding_thresholds[8] = {
-      2576980378,  // ceil(2^31 + 2^32/10^1)
-      2190433321,  // ceil(2^31 + 2^32/10^2)
-      2151778616,  // ceil(2^31 + 2^32/10^3)
-      2147913145,  // ceil(2^31 + 2^32/10^4)
-      2147526598,  // ceil(2^31 + 2^32/10^5)
-      2147487943,  // ceil(2^31 + 2^32/10^6)
-      2147484078,  // ceil(2^31 + 2^32/10^7)
-      2147483691   // ceil(2^31 + 2^32/10^8)
+      2576980378U,  // ceil(2^31 + 2^32/10^1)
+      2190433321U,  // ceil(2^31 + 2^32/10^2)
+      2151778616U,  // ceil(2^31 + 2^32/10^3)
+      2147913145U,  // ceil(2^31 + 2^32/10^4)
+      2147526598U,  // ceil(2^31 + 2^32/10^5)
+      2147487943U,  // ceil(2^31 + 2^32/10^6)
+      2147484078U,  // ceil(2^31 + 2^32/10^7)
+      2147483691U   // ceil(2^31 + 2^32/10^8)
   };
 };
 // This is a struct rather than an alias to avoid shadowing warnings in gcc.
@@ -2394,6 +2387,49 @@ FMT_CONSTEXPR auto write(OutputIt out, T value) -> OutputIt {
   return base_iterator(out, it);
 }
 
+// DEPRECATED!
+template <typename Char>
+FMT_CONSTEXPR auto parse_align(const Char* begin, const Char* end,
+                               format_specs<Char>& specs) -> const Char* {
+  FMT_ASSERT(begin != end, "");
+  auto align = align::none;
+  auto p = begin + code_point_length(begin);
+  if (end - p <= 0) p = begin;
+  for (;;) {
+    switch (to_ascii(*p)) {
+    case '<':
+      align = align::left;
+      break;
+    case '>':
+      align = align::right;
+      break;
+    case '^':
+      align = align::center;
+      break;
+    }
+    if (align != align::none) {
+      if (p != begin) {
+        auto c = *begin;
+        if (c == '}') return begin;
+        if (c == '{') {
+          throw_format_error("invalid fill character '{'");
+          return begin;
+        }
+        specs.fill = {begin, to_unsigned(p - begin)};
+        begin = p + 1;
+      } else {
+        ++begin;
+      }
+      break;
+    } else if (p == begin) {
+      break;
+    }
+    p = begin;
+  }
+  specs.align = align;
+  return begin;
+}
+
 // A floating-point presentation format.
 enum class float_format : unsigned char {
   general,  // General: exponent notation or fixed point based on magnitude.
@@ -2860,7 +2896,7 @@ class bigint {
     auto size = other.bigits_.size();
     bigits_.resize(size);
     auto data = other.bigits_.data();
-    std::copy(data, data + size, make_checked(bigits_.data(), size));
+    copy_str<bigit>(data, data + size, bigits_.data());
     exp_ = other.exp_;
   }
 
@@ -3074,6 +3110,7 @@ FMT_CONSTEXPR20 inline void format_dragon(basic_fp<uint128_t> value,
   }
   int even = static_cast<int>((value.f & 1) == 0);
   if (!upper) upper = &lower;
+  bool shortest = num_digits < 0;
   if ((flags & dragon::fixup) != 0) {
     if (add_compare(numerator, *upper, denominator) + even <= 0) {
       --exp10;
@@ -3086,7 +3123,7 @@ FMT_CONSTEXPR20 inline void format_dragon(basic_fp<uint128_t> value,
     if ((flags & dragon::fixed) != 0) adjust_precision(num_digits, exp10 + 1);
   }
   // Invariant: value == (numerator / denominator) * pow(10, exp10).
-  if (num_digits < 0) {
+  if (shortest) {
     // Generate the shortest representation.
     num_digits = 0;
     char* data = buf.data();
@@ -3116,7 +3153,7 @@ FMT_CONSTEXPR20 inline void format_dragon(basic_fp<uint128_t> value,
   }
   // Generate the given number of digits.
   exp10 -= num_digits - 1;
-  if (num_digits == 0) {
+  if (num_digits <= 0) {
     denominator *= 10;
     auto digit = add_compare(numerator, numerator, denominator) > 0 ? '1' : '0';
     buf.push_back(digit);
@@ -3300,7 +3337,7 @@ FMT_CONSTEXPR20 auto format_float(Float value, int precision, float_specs specs,
       significand <<= 1;
     } else {
       // Normalize subnormal inputs.
-      FMT_ASSERT(significand != 0, "zeros should not appear hear");
+      FMT_ASSERT(significand != 0, "zeros should not appear here");
       int shift = countl_zero(significand);
       FMT_ASSERT(shift >= num_bits<uint64_t>() - num_significand_bits<double>(),
                  "");
@@ -3337,9 +3374,7 @@ FMT_CONSTEXPR20 auto format_float(Float value, int precision, float_specs specs,
     }
 
     // Compute the actual number of decimal digits to print.
-    if (fixed) {
-      adjust_precision(precision, exp + digits_in_the_first_segment);
-    }
+    if (fixed) adjust_precision(precision, exp + digits_in_the_first_segment);
 
     // Use Dragon4 only when there might be not enough digits in the first
     // segment.
@@ -4119,7 +4154,9 @@ template <> struct formatter<bytes> {
 };
 
 // group_digits_view is not derived from view because it copies the argument.
-template <typename T> struct group_digits_view { T value; };
+template <typename T> struct group_digits_view {
+  T value;
+};
 
 /**
   \rst

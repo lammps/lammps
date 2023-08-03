@@ -92,7 +92,7 @@
 #ifndef FMT_USE_CONSTEXPR
 #  if (FMT_HAS_FEATURE(cxx_relaxed_constexpr) || FMT_MSC_VERSION >= 1912 || \
        (FMT_GCC_VERSION >= 600 && FMT_CPLUSPLUS >= 201402L)) &&             \
-      !FMT_ICC_VERSION && !defined(__NVCC__)
+      !FMT_ICC_VERSION && (!defined(__NVCC__) || FMT_CPLUSPLUS >= 202002L)
 #    define FMT_USE_CONSTEXPR 1
 #  else
 #    define FMT_USE_CONSTEXPR 0
@@ -292,8 +292,10 @@ struct monostate {
 #endif
 
 // This is defined in core.h instead of format.h to avoid injecting in std.
+// It is a template to avoid undesirable implicit conversions to std::byte.
 #ifdef __cpp_lib_byte
-inline auto format_as(std::byte b) -> unsigned char {
+template <typename T, FMT_ENABLE_IF(std::is_same<T, std::byte>::value)>
+inline auto format_as(T b) -> unsigned char {
   return static_cast<unsigned char>(b);
 }
 #endif
@@ -645,6 +647,9 @@ struct error_handler {
 };
 }  // namespace detail
 
+/** Throws ``format_error`` with a given message. */
+using detail::throw_format_error;
+
 /** String's character type. */
 template <typename S> using char_t = typename detail::char_t_impl<S>::type;
 
@@ -843,10 +848,8 @@ template <typename T> class buffer {
   /** Returns the capacity of this buffer. */
   constexpr auto capacity() const noexcept -> size_t { return capacity_; }
 
-  /** Returns a pointer to the buffer data. */
+  /** Returns a pointer to the buffer data (not null-terminated). */
   FMT_CONSTEXPR auto data() noexcept -> T* { return ptr_; }
-
-  /** Returns a pointer to the buffer data. */
   FMT_CONSTEXPR auto data() const noexcept -> const T* { return ptr_; }
 
   /** Clears this buffer. */
@@ -1555,6 +1558,11 @@ constexpr auto encode_types() -> unsigned long long {
          (encode_types<Context, Args...>() << packed_arg_bits);
 }
 
+#if defined(__cpp_if_constexpr)
+// This type is intentionally undefined, only used for errors
+template <typename T, typename Char> struct type_is_unformattable_for;
+#endif
+
 template <bool PACKED, typename Context, typename T, FMT_ENABLE_IF(PACKED)>
 FMT_CONSTEXPR FMT_INLINE auto make_arg(T& val) -> value<Context> {
   using arg_type = remove_cvref_t<decltype(arg_mapper<Context>().map(val))>;
@@ -1572,6 +1580,11 @@ FMT_CONSTEXPR FMT_INLINE auto make_arg(T& val) -> value<Context> {
                 "Formatting of non-void pointers is disallowed.");
 
   constexpr bool formattable = !std::is_same<arg_type, unformattable>::value;
+#if defined(__cpp_if_constexpr)
+  if constexpr (!formattable) {
+    type_is_unformattable_for<T, typename Context::char_type> _;
+  }
+#endif
   static_assert(
       formattable,
       "Cannot format an argument. To make type T formattable provide a "
@@ -2536,7 +2549,17 @@ FMT_CONSTEXPR auto parse_format_specs(ParseContext& ctx)
       mapped_type_constant<T, context>::value != type::custom_type,
       decltype(arg_mapper<context>().map(std::declval<const T&>())),
       typename strip_named_arg<T>::type>;
+#if defined(__cpp_if_constexpr)
+  if constexpr (std::is_default_constructible_v<
+                    formatter<mapped_type, char_type>>) {
+    return formatter<mapped_type, char_type>().parse(ctx);
+  } else {
+    type_is_unformattable_for<T, char_type> _;
+    return ctx.begin();
+  }
+#else
   return formatter<mapped_type, char_type>().parse(ctx);
+#endif
 }
 
 // Checks char specs and returns true iff the presentation type is char-like.
@@ -2586,15 +2609,15 @@ template <typename Char, typename... Args> class format_string_checker {
   // needed for compile-time checks: https://godbolt.org/z/GvWzcTjh1.
   using parse_func = const Char* (*)(parse_context_type&);
 
+  type types_[num_args > 0 ? static_cast<size_t>(num_args) : 1];
   parse_context_type context_;
   parse_func parse_funcs_[num_args > 0 ? static_cast<size_t>(num_args) : 1];
-  type types_[num_args > 0 ? static_cast<size_t>(num_args) : 1];
 
  public:
   explicit FMT_CONSTEXPR format_string_checker(basic_string_view<Char> fmt)
-      : context_(fmt, num_args, types_),
-        parse_funcs_{&parse_format_specs<Args, parse_context_type>...},
-        types_{mapped_type_constant<Args, buffer_context<Char>>::value...} {}
+      : types_{mapped_type_constant<Args, buffer_context<Char>>::value...},
+        context_(fmt, num_args, types_),
+        parse_funcs_{&parse_format_specs<Args, parse_context_type>...} {}
 
   FMT_CONSTEXPR void on_text(const Char*, const Char*) {}
 
@@ -2614,7 +2637,9 @@ template <typename Char, typename... Args> class format_string_checker {
 #endif
   }
 
-  FMT_CONSTEXPR void on_replacement_field(int, const Char*) {}
+  FMT_CONSTEXPR void on_replacement_field(int id, const Char* begin) {
+    on_format_specs(id, begin, begin);  // Call parse() on empty specs.
+  }
 
   FMT_CONSTEXPR auto on_format_specs(int id, const Char* begin, const Char*)
       -> const Char* {

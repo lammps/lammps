@@ -61,22 +61,32 @@ FMT_BEGIN_NAMESPACE
 
 namespace detail {
 
+template <typename Char> auto get_path_string(const std::filesystem::path& p) {
+  return p.string<Char>();
+}
+
 template <typename Char>
 void write_escaped_path(basic_memory_buffer<Char>& quoted,
                         const std::filesystem::path& p) {
   write_escaped_string<Char>(std::back_inserter(quoted), p.string<Char>());
 }
+
 #  ifdef _WIN32
+template <>
+inline auto get_path_string<char>(const std::filesystem::path& p) {
+  return to_utf8<wchar_t>(p.native(), to_utf8_error_policy::replace);
+}
+
 template <>
 inline void write_escaped_path<char>(memory_buffer& quoted,
                                      const std::filesystem::path& p) {
   auto buf = basic_memory_buffer<wchar_t>();
   write_escaped_string<wchar_t>(std::back_inserter(buf), p.native());
-  // Convert UTF-16 to UTF-8.
-  if (!to_utf8<wchar_t>::convert(quoted, {buf.data(), buf.size()}))
-    FMT_THROW(std::runtime_error("invalid utf16"));
+  bool valid = to_utf8<wchar_t>::convert(quoted, {buf.data(), buf.size()});
+  FMT_ASSERT(valid, "invalid utf16");
 }
-#  endif
+#  endif  // _WIN32
+
 template <>
 inline void write_escaped_path<std::filesystem::path::value_type>(
     basic_memory_buffer<std::filesystem::path::value_type>& quoted,
@@ -88,21 +98,44 @@ inline void write_escaped_path<std::filesystem::path::value_type>(
 }  // namespace detail
 
 FMT_EXPORT
-template <typename Char>
-struct formatter<std::filesystem::path, Char>
-    : formatter<basic_string_view<Char>, Char> {
+template <typename Char> struct formatter<std::filesystem::path, Char> {
+ private:
+  format_specs<Char> specs_;
+  detail::arg_ref<Char> width_ref_;
+  bool debug_ = false;
+
+ public:
+  FMT_CONSTEXPR void set_debug_format(bool set = true) { debug_ = set; }
+
   template <typename ParseContext> FMT_CONSTEXPR auto parse(ParseContext& ctx) {
-    auto out = formatter<basic_string_view<Char>, Char>::parse(ctx);
-    this->set_debug_format(false);
-    return out;
+    auto it = ctx.begin(), end = ctx.end();
+    if (it == end) return it;
+
+    it = detail::parse_align(it, end, specs_);
+    if (it == end) return it;
+
+    it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
+    if (it != end && *it == '?') {
+      debug_ = true;
+      ++it;
+    }
+    return it;
   }
+
   template <typename FormatContext>
-  auto format(const std::filesystem::path& p, FormatContext& ctx) const ->
-      typename FormatContext::iterator {
+  auto format(const std::filesystem::path& p, FormatContext& ctx) const {
+    auto specs = specs_;
+    detail::handle_dynamic_spec<detail::width_checker>(specs.width, width_ref_,
+                                                       ctx);
+    if (!debug_) {
+      auto s = detail::get_path_string<Char>(p);
+      return detail::write(ctx.out(), basic_string_view<Char>(s), specs);
+    }
     auto quoted = basic_memory_buffer<Char>();
     detail::write_escaped_path(quoted, p);
-    return formatter<basic_string_view<Char>, Char>::format(
-        basic_string_view<Char>(quoted.data(), quoted.size()), ctx);
+    return detail::write(ctx.out(),
+                         basic_string_view<Char>(quoted.data(), quoted.size()),
+                         specs);
   }
 };
 FMT_END_NAMESPACE
@@ -160,22 +193,6 @@ FMT_END_NAMESPACE
 
 #ifdef __cpp_lib_variant
 FMT_BEGIN_NAMESPACE
-FMT_EXPORT
-template <typename Char> struct formatter<std::monostate, Char> {
-  template <typename ParseContext>
-  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
-    return ctx.begin();
-  }
-
-  template <typename FormatContext>
-  auto format(const std::monostate&, FormatContext& ctx) const
-      -> decltype(ctx.out()) {
-    auto out = ctx.out();
-    out = detail::write<Char>(out, "monostate");
-    return out;
-  }
-};
-
 namespace detail {
 
 template <typename T>
@@ -209,6 +226,7 @@ auto write_variant_alternative(OutputIt out, const T& v) -> OutputIt {
 }
 
 }  // namespace detail
+
 template <typename T> struct is_variant_like {
   static constexpr const bool value = detail::is_variant_like_<T>::value;
 };
@@ -216,6 +234,20 @@ template <typename T> struct is_variant_like {
 template <typename T, typename C> struct is_variant_formattable {
   static constexpr const bool value =
       detail::is_variant_formattable_<T, C>::value;
+};
+
+FMT_EXPORT
+template <typename Char> struct formatter<std::monostate, Char> {
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const std::monostate&, FormatContext& ctx) const
+      -> decltype(ctx.out()) {
+    return detail::write<Char>(ctx.out(), "monostate");
+  }
 };
 
 FMT_EXPORT
@@ -351,11 +383,9 @@ struct formatter<
 #  else
     out = detail::write_bytes(out, string_view(ti.name()), spec);
 #  endif
-    out = detail::write<Char>(out, Char(':'));
-    out = detail::write<Char>(out, Char(' '));
-    out = detail::write_bytes(out, string_view(ex.what()), spec);
-
-    return out;
+    *out++ = ':';
+    *out++ = ' ';
+    return detail::write_bytes(out, string_view(ex.what()), spec);
 #endif
   }
 };

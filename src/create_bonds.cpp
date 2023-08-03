@@ -49,7 +49,7 @@ void CreateBonds::command(int narg, char **arg)
   if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR, "Cannot use create_bonds with non-molecular system");
 
-  if (narg < 4) error->all(FLERR, "Illegal create_bonds command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "create_bonds", error);
 
   // parse args
 
@@ -58,38 +58,38 @@ void CreateBonds::command(int narg, char **arg)
   int iarg = 0;
   if (strcmp(arg[0], "many") == 0) {
     style = MANY;
-    if (narg != 6) error->all(FLERR, "Illegal create_bonds command");
+    if (narg != 6) error->all(FLERR, "No optional keywords allowed with create_bonds many");
     igroup = group->find(arg[1]);
-    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds group ID");
+    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds first group ID {}", arg[1]);
     group1bit = group->bitmask[igroup];
     igroup = group->find(arg[2]);
-    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds group ID");
+    if (igroup == -1) error->all(FLERR, "Cannot find create_bonds second group ID {}", arg[2]);
     group2bit = group->bitmask[igroup];
     btype = utils::inumeric(FLERR, arg[3], false, lmp);
     rmin = utils::numeric(FLERR, arg[4], false, lmp);
     rmax = utils::numeric(FLERR, arg[5], false, lmp);
-    if (rmin > rmax) error->all(FLERR, "Illegal create_bonds command");
+    if (rmin > rmax) error->all(FLERR, "Inconsistent cutoffs for create_bonds many");
     iarg = 6;
   } else if (strcmp(arg[0], "single/bond") == 0) {
     style = SBOND;
     btype = utils::inumeric(FLERR, arg[1], false, lmp);
     batom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
     batom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
-    if (batom1 == batom2) error->all(FLERR, "Illegal create_bonds command");
+    if (batom1 == batom2) error->all(FLERR, "Bond atoms must be different");
     iarg = 4;
   } else if (strcmp(arg[0], "single/angle") == 0) {
     style = SANGLE;
-    if (narg < 5) error->all(FLERR, "Illegal create_bonds command");
+    if (narg < 5) utils::missing_cmd_args(FLERR, "create_bonds single/angle", error);
     atype = utils::inumeric(FLERR, arg[1], false, lmp);
     aatom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
     aatom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
     aatom3 = utils::tnumeric(FLERR, arg[4], false, lmp);
     if ((aatom1 == aatom2) || (aatom1 == aatom3) || (aatom2 == aatom3))
-      error->all(FLERR, "Illegal create_bonds command");
+      error->all(FLERR, "Angle atoms must be different");
     iarg = 5;
   } else if (strcmp(arg[0], "single/dihedral") == 0) {
     style = SDIHEDRAL;
-    if (narg < 6) error->all(FLERR, "Illegal create_bonds command");
+    if (narg < 6) utils::missing_cmd_args(FLERR, "create_bonds single/dihedral", error);
     dtype = utils::inumeric(FLERR, arg[1], false, lmp);
     datom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
     datom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
@@ -101,7 +101,7 @@ void CreateBonds::command(int narg, char **arg)
     iarg = 6;
   } else if (strcmp(arg[0], "single/improper") == 0) {
     style = SIMPROPER;
-    if (narg < 6) error->all(FLERR, "Illegal create_bonds command");
+    if (narg < 6) utils::missing_cmd_args(FLERR, "create_bonds single/improper", error);
     dtype = utils::inumeric(FLERR, arg[1], false, lmp);
     datom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
     datom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
@@ -197,6 +197,11 @@ void CreateBonds::many()
   if (rmax > neighbor->cutneighmin && comm->me == 0)
     error->warning(FLERR, "Create_bonds max distance > minimum neighbor cutoff");
 
+  if ((domain->xperiodic && (rmax > domain->xprd)) ||
+      (domain->yperiodic && (rmax > domain->yprd)) ||
+      ((domain->dimension == 3) && domain->zperiodic && (rmax > domain->zprd)))
+    error->all(FLERR, "Bond creation cutoff is larger than periodic domain");
+
   // require special_bonds 1-2 weights = 0.0 and KSpace = nullptr
   // so that already bonded atom pairs do not appear in neighbor list
   // otherwise with newton_bond = 1,
@@ -205,7 +210,7 @@ void CreateBonds::many()
 
   if (force->special_lj[1] != 0.0 || force->special_coul[1] != 0.0)
     error->all(FLERR, "Create_bonds command requires special_bonds 1-2 weights be 0.0");
-  if (force->kspace) error->all(FLERR, "Create_bonds command requires no kspace_style be defined");
+  if (force->kspace) error->all(FLERR, "Create_bonds command is incompatible with Kspace styles");
 
   // setup domain, communication and neighboring
   // acquire ghosts and build standard neighbor lists

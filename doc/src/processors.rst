@@ -6,7 +6,7 @@ processors command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    processors Px Py Pz keyword args ...
 

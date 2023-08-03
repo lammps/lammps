@@ -6,7 +6,7 @@ fix_modify AtC set reference_potential_energy command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> set reference_potential_energy [<value|filename>]
 

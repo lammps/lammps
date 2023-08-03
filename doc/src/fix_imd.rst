@@ -6,7 +6,7 @@ fix imd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID imd trate port keyword values ...
 

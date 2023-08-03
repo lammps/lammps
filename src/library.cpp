@@ -58,6 +58,9 @@
 #include <Python.h>
 #endif
 
+/// string buffer for error messages of global errors
+static std::string lammps_last_global_errormessage;
+
 using namespace LAMMPS_NS;
 
 // for printing the non-null pointer argument warning only once
@@ -168,17 +171,18 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   lammps_mpi_init();
   if (ptr) ptr_argument_warning();
 
-  try  {
+  try {
+    lammps_last_global_errormessage.clear();
     lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
-  } catch(LAMMPSException &e) {
-    fprintf(stderr, "LAMMPS Exception: %s\n", e.what());
-    if (ptr) *ptr = nullptr;
   } catch (fmt::format_error &fe) {
+    lammps_last_global_errormessage = fe.what();
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
     if (ptr) *ptr = nullptr;
-  } catch (std::exception &e) {
-    fprintf(stderr, "Exception: %s\n", e.what());
+  } catch(LAMMPSException &e) {
+    lammps_last_global_errormessage = e.what();
+
+    fmt::print(stderr, "LAMMPS Exception: {}", e.what());
     if (ptr) *ptr = nullptr;
   }
   return (void *) lmp;
@@ -2317,7 +2321,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     } else if (lmp->input->variable->vectorstyle(ivar)) {
       double *values = nullptr;
       int nvector = lmp->input->variable->compute_vector(ivar, &values);
-      if ( group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0 ) {
+      if (group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0) {
           int* nvecptr = (int *) malloc(sizeof(int));
           *nvecptr = nvector;
           return (void *) nvecptr;
@@ -2359,7 +2363,7 @@ int lammps_extract_variable_datatype(void *handle, const char *name)
   BEGIN_CAPTURE
   {
     int ivar = lmp->input->variable->find(name);
-    if ( ivar < 0 ) return -1;
+    if (ivar < 0) return -1;
 
     if (lmp->input->variable->equalstyle(ivar))
       return LMP_VAR_EQUAL;
@@ -5186,7 +5190,7 @@ int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int n
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList *list = lmp->neighbor->lists[i];
-      if ( (list->requestor_type == NeighList::PAIR)
+      if ((list->requestor_type == NeighList::PAIR)
            && (pair == list->requestor)
            && (list->id == reqid) ) return i;
     }
@@ -5216,7 +5220,7 @@ int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList *list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::FIX)
+    if ((list->requestor_type == NeighList::FIX)
          && (fix == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5245,7 +5249,7 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList * list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::COMPUTE)
+    if ((list->requestor_type == NeighList::COMPUTE)
          && (compute == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5696,7 +5700,7 @@ int lammps_style_name(void *handle, const char *category, int idx,
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
-  if ((idx >=0) && (idx < (int) styles.size())) {
+  if ((idx >= 0) && (idx < (int) styles.size())) {
     strncpy(buffer, styles[idx].c_str(), buf_size);
     return 1;
   }
@@ -5831,23 +5835,23 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"group") == 0) {
-    if ((idx >=0) && (idx < lmp->group->ngroup)) {
+    if ((idx >= 0) && (idx < lmp->group->ngroup)) {
       strncpy(buffer, lmp->group->names[idx], buf_size);
       return 1;
     }
   } else if (strcmp(category,"molecule") == 0) {
-    if ((idx >=0) && (idx < lmp->atom->nmolecule)) {
+    if ((idx >= 0) && (idx < lmp->atom->nmolecule)) {
       strncpy(buffer, lmp->atom->molecules[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"region") == 0) {
     auto regions = lmp->domain->get_region_list();
-    if ((idx >=0) && (idx < (int) regions.size())) {
+    if ((idx >= 0) && (idx < (int) regions.size())) {
       strncpy(buffer, regions[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >=0) && (idx < lmp->input->variable->nvar)) {
+    if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
       strncpy(buffer, lmp->input->variable->names[idx], buf_size);
       return 1;
     }
@@ -6475,15 +6479,37 @@ void lammps_force_timeout(void *handle)
 This function can be used to query if an error inside of LAMMPS
 has thrown a :ref:`C++ exception <exceptions>`.
 
+.. note::
+
+   .. versionchanged: 2Aug2023
+
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error status inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+.. note::
+
+   This function will always report "no error" when the LAMMPS library
+   has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
+   errors aborting LAMMPS into C++ exceptions. You can use the library
+   function :cpp:func:`lammps_config_has_exceptions` to check whether this is
+   the case.
 \endverbatim
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *`` or NULL
  * \return 0 on no error, 1 on error.
  */
-int lammps_has_error(void *handle) {
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  return (error->get_last_error().empty()) ? 0 : 1;
+int lammps_has_error(void *handle)
+{
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    return (error->get_last_error().empty()) ? 0 : 1;
+  } else {
+    return lammps_last_global_errormessage.empty() ? 0 : 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -6502,23 +6528,50 @@ a "2" indicates an abort that would happen only in a single MPI rank
 and thus may not be recoverable, as other MPI ranks may be waiting on
 the failing MPI ranks to send messages.
 
+.. note::
+
+   .. versionchanged: 2Aug2023
+
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error buffer inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+.. note::
+
+   This function will do nothing when the LAMMPS library has been
+   compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
+   LAMMPS into C++ exceptions.  You can use the library function
+   :cpp:func:`lammps_config_has_exceptions` to check whether this is the case.
 \endverbatim
  *
- * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.
  * \param  buffer    string buffer to copy the error message to
  * \param  buf_size  size of the provided string buffer
  * \return           1 when all ranks had the error, 2 on a single rank error. */
 
-int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  buffer[0] = buffer[buf_size-1] = '\0';
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size)
+{
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    buffer[0] = buffer[buf_size-1] = '\0';
 
-  if (!error->get_last_error().empty()) {
-    int error_type = error->get_last_error_type();
-    strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
-    error->set_last_error("", ERROR_NONE);
-    return error_type;
+    if (!error->get_last_error().empty()) {
+      int error_type = error->get_last_error_type();
+      strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
+      error->set_last_error("", ERROR_NONE);
+      return error_type;
+    }
+  } else {
+    buffer[0] = buffer[buf_size-1] = '\0';
+
+    if (!lammps_last_global_errormessage.empty()) {
+      strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
+      lammps_last_global_errormessage.clear();
+      return 1;
+    }
   }
   return 0;
 }

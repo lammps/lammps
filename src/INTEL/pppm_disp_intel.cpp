@@ -1478,7 +1478,7 @@ void PPPMDispIntel::fieldforce_c_ik(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 
       int nxsum = nx + nlower;
       int nysum = ny + nlower;
-      int nzsum = nz + nlower;;
+      int nzsum = nz + nlower;
 
       FFT_SCALAR dx = nx+fshiftone - (x[i][0]-lo0)*xi;
       FFT_SCALAR dy = ny+fshiftone - (x[i][1]-lo1)*yi;

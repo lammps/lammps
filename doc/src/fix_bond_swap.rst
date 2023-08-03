@@ -6,7 +6,7 @@ fix bond/swap command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID bond/swap Nevery fraction cutoff seed
 

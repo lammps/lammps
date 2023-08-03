@@ -931,7 +931,7 @@ void FixAveGrid::atom2grid()
               vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
               if (rmass) one = rmass[i];
               else one = mass[type[i]];
-              array2d[bin[i][0]][bin[i][1]][m] += one*vsq;;
+              array2d[bin[i][0]][bin[i][1]][m] += one*vsq;
             }
           }
       } else {

@@ -5468,6 +5468,13 @@ int lammps_config_has_ffmpeg_support() {
 /** Check whether LAMMPS errors will throw C++ exceptions.
  *
 \verbatim embed:rst
+
+.. deprecated:: TBD
+
+   LAMMPS has now exceptions always enabled, so this function
+   will now always return 1 and can be removed from applications
+   using the library interface.
+
 In case of an error, LAMMPS will either abort or throw a C++ exception.
 The latter has to be :ref:`enabled at compile time <exceptions>`.
 This function checks if exceptions were enabled.

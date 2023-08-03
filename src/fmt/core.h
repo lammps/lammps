@@ -2549,7 +2549,8 @@ FMT_CONSTEXPR auto parse_format_specs(ParseContext& ctx)
       mapped_type_constant<T, context>::value != type::custom_type,
       decltype(arg_mapper<context>().map(std::declval<const T&>())),
       typename strip_named_arg<T>::type>;
-#if defined(__cpp_if_constexpr)
+// LAMMPS customization. Fails to compile with (some) Intel compilers
+#if defined(__cpp_if_constexpr) && 0
   if constexpr (std::is_default_constructible_v<
                     formatter<mapped_type, char_type>>) {
     return formatter<mapped_type, char_type>().parse(ctx);

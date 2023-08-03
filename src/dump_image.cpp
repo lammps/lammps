@@ -667,8 +667,9 @@ void DumpImage::write()
     // cannot invoke before first run, otherwise invoke if necessary
 
     if (grid_compute) {
-      if (update->first_update == 0)
-        error->all(FLERR,"Grid compute used in dump image cannot be invoked before first run");
+      if (!grid_compute->is_initialized())
+        error->all(FLERR,"Grid compute ID {} used in dump image cannot be invoked "
+                   "before initialization by a run", grid_compute->id);
       if (!(grid_compute->invoked_flag & Compute::INVOKED_PERGRID)) {
         grid_compute->compute_pergrid();
         grid_compute->invoked_flag |= Compute::INVOKED_PERGRID;

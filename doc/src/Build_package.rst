@@ -55,7 +55,6 @@ packages:
    * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
    * :ref:`MOLFILE <molfile>`
-   * :ref:`MSCG <mscg>`
    * :ref:`NETCDF <netcdf>`
    * :ref:`OPENMP <openmp>`
    * :ref:`OPT <opt>`

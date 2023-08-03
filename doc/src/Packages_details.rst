@@ -88,7 +88,6 @@ page gives those details.
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MOLFILE <PKG-MOLFILE>`
    * :ref:`MPIIO <PKG-MPIIO>`
-   * :ref:`MSCG <PKG-MSCG>`
    * :ref:`NETCDF <PKG-NETCDF>`
    * :ref:`OPENMP <PKG-OPENMP>`
    * :ref:`OPT <PKG-OPT>`
@@ -2063,38 +2062,6 @@ The MPIIO package requires that LAMMPS is build in :ref:`MPI parallel mode <seri
 * :doc:`restart <restart>`
 * :doc:`write_restart <write_restart>`
 * :doc:`read_restart <read_restart>`
-
-----------
-
-.. _PKG-MSCG:
-
-MSCG package
-------------
-
-**Contents:**
-
-A :doc:`fix mscg <fix_mscg>` command which can parameterize a
-Multi-Scale Coarse-Graining (MSCG) model using the open-source `MS-CG library <mscg-home_>`_.
-
-.. _mscg-home: https://github.com/uchicago-voth/MSCG-release
-
-To use this package you must have the MS-CG library available on your
-system.
-
-**Authors:** The fix was written by Lauren Abbott (Sandia).  The MS-CG
-library was developed by Jacob Wagner in Greg Voth's group at the
-University of Chicago.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <mscg>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/MSCG: filenames -> commands
-* src/MSCG/README
-* lib/mscg/README
-* examples/mscg
 
 ----------
 

@@ -877,6 +877,9 @@ message(STATUS "<<< Build configuration >>>
    Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
+if(CMAKE_CROSSCOMPILING)
+  message(STATUS "Cross compiling on ${CMAKE_HOST_SYSTEM}")
+endif()
 ###############################################################################
 # Print package summary
 ###############################################################################

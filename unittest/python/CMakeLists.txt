@@ -86,13 +86,10 @@ if(Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
-  # some of the tests in this file will fail without exceptions enabled
-  if(LAMMPS_EXCEPTIONS)
-    add_test(NAME PythonCommands
-             COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
-             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-    set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
-  endif()
+  add_test(NAME PythonCommands
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
   add_test(NAME PythonNumpy
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-numpy.py -v

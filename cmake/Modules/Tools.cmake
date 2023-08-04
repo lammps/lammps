@@ -44,9 +44,6 @@ if(BUILD_LAMMPS_SHELL)
   endif()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(READLINE IMPORTED_TARGET REQUIRED readline)
-  if(NOT LAMMPS_EXCEPTIONS)
-    message(WARNING "The LAMMPS shell needs LAMMPS_EXCEPTIONS enabled for full functionality")
-  endif()
 
   # include resource compiler to embed icons into the executable on Windows
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")

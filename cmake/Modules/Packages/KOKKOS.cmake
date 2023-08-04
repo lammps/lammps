@@ -26,6 +26,8 @@ endif()
 ########################################################################
 
 option(EXTERNAL_KOKKOS "Build against external kokkos library" OFF)
+option(Kokkos_INSTALL_HEADER "Intall kokkos header files" OFF)
+mark_as_advanced(Kokkos_INSTALL_HEADER)
 option(DOWNLOAD_KOKKOS "Download the KOKKOS library instead of using the bundled one" OFF)
 if(DOWNLOAD_KOKKOS)
   # extract Kokkos-related variables and values so we can forward them to the Kokkos library build
@@ -89,7 +91,11 @@ else()
   if(CMAKE_REQUEST_PIC)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   endif()
-  add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR} EXCLUDE_FROM_ALL)
+  if(Kokkos_INSTALL_HEADER)
+    add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+  else()
+    add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR} EXCLUDE_FROM_ALL)
+  endif()
 
   set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
                           ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src

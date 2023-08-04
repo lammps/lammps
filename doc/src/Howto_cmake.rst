@@ -338,8 +338,6 @@ Some common LAMMPS specific variables
      - common compiler flags, for optimization or instrumentation (default:)
    * - ``LAMMPS_MACHINE``
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
-   * - ``LAMMPS_EXCEPTIONS``
-     - when set to ``on`` errors will throw a C++ exception instead of aborting (default: ``off``)
    * - ``FFT``
      - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
    * - ``FFT_SINGLE``
@@ -412,9 +410,9 @@ interface (``ccmake`` or ``cmake-gui``).
 
    Using a preset to select a compiler package (``clang.cmake``,
    ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
-   are an exception to the mechanism of updating the configuration incrementally,
-   as they will trigger a reset of cached internal CMake settings and thus
-   reset settings to their default values.
+   are an exception to the mechanism of updating the configuration
+   incrementally, as they will trigger a reset of cached internal CMake
+   settings and thus reset settings to their default values.
 
 Compilation and build targets
 -----------------------------

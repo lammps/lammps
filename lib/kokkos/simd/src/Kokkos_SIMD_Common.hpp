@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_SIMD_COMMON_HPP
 #define KOKKOS_SIMD_COMMON_HPP
@@ -53,14 +25,6 @@
 namespace Kokkos {
 
 namespace Experimental {
-
-template <class To, class From>
-[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION constexpr To bit_cast(
-    From const& src) {
-  To dst;
-  std::memcpy(&dst, &src, sizeof(To));
-  return dst;
-}
 
 template <class T, class Abi>
 class simd;
@@ -128,14 +92,14 @@ class where_expression<bool, T> : public const_where_expression<bool, T> {
 };
 
 template <class T, class Abi>
-[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
     where_expression<simd_mask<T, Abi>, simd<T, Abi>>
     where(typename simd<T, Abi>::mask_type const& mask, simd<T, Abi>& value) {
   return where_expression(mask, value);
 }
 
 template <class T, class Abi>
-[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
     const_where_expression<simd_mask<T, Abi>, simd<T, Abi>>
     where(typename simd<T, Abi>::mask_type const& mask,
           simd<T, Abi> const& value) {
@@ -152,6 +116,44 @@ template <class T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION const_where_expression<bool, T> where(
     bool mask, T const& value) {
   return const_where_expression(mask, value);
+}
+
+// fallback simd multiplication using generator constructor
+// At the time of this writing, this fallback is only used
+// to multiply vectors of 64-bit signed integers for the AVX2 backend
+
+template <class T, class Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator*(
+    simd<T, Abi> const& lhs, simd<T, Abi> const& rhs) {
+  return simd<T, Abi>([&](std::size_t i) { return lhs[i] * rhs[i]; });
+}
+
+// fallback simd shift using generator constructor
+// At the time of this writing, these fallbacks are only used
+// to shift vectors of 64-bit unsigned integers for the NEON backend
+
+template <class T, class U, class Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator>>(
+    simd<T, Abi> const& lhs, unsigned int rhs) {
+  return simd<T, Abi>([&](std::size_t i) { return lhs[i] >> rhs; });
+}
+
+template <class T, class U, class Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator<<(
+    simd<T, Abi> const& lhs, unsigned int rhs) {
+  return simd<T, Abi>([&](std::size_t i) { return lhs[i] << rhs; });
+}
+
+template <class T, class U, class Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator>>(
+    simd<T, Abi> const& lhs, simd<U, Abi> const& rhs) {
+  return simd<T, Abi>([&](std::size_t i) { return lhs[i] >> rhs[i]; });
+}
+
+template <class T, class U, class Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator<<(
+    simd<T, Abi> const& lhs, simd<U, Abi> const& rhs) {
+  return simd<T, Abi>([&](std::size_t i) { return lhs[i] << rhs[i]; });
 }
 
 // The code below provides:
@@ -306,21 +308,58 @@ KOKKOS_FORCEINLINE_FUNCTION where_expression<M, T>& operator/=(
 // fallback implementations of reductions across simd_mask:
 
 template <class T, class Abi>
-[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION bool all_of(
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION bool all_of(
     simd_mask<T, Abi> const& a) {
   return a == simd_mask<T, Abi>(true);
 }
 
 template <class T, class Abi>
-[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION bool any_of(
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION bool any_of(
     simd_mask<T, Abi> const& a) {
   return a != simd_mask<T, Abi>(false);
 }
 
 template <class T, class Abi>
-[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION bool none_of(
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION bool none_of(
     simd_mask<T, Abi> const& a) {
   return a == simd_mask<T, Abi>(false);
+}
+
+template <typename T, typename Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION T
+hmin(const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> const& x) {
+  auto const& v = x.impl_get_value();
+  auto const& m = x.impl_get_mask();
+  auto result   = Kokkos::reduction_identity<T>::min();
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    if (m[i]) result = Kokkos::min(result, v[i]);
+  }
+  return result;
+}
+
+template <class T, class Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION T
+hmax(const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> const& x) {
+  auto const& v = x.impl_get_value();
+  auto const& m = x.impl_get_mask();
+  auto result   = Kokkos::reduction_identity<T>::max();
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    if (m[i]) result = Kokkos::max(result, v[i]);
+  }
+  return result;
+}
+
+template <class T, class Abi>
+[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION T
+reduce(const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> const& x, T,
+       std::plus<>) {
+  auto const& v = x.impl_get_value();
+  auto const& m = x.impl_get_mask();
+  auto result   = Kokkos::reduction_identity<T>::sum();
+  for (std::size_t i = 0; i < v.size(); ++i) {
+    if (m[i]) result += v[i];
+  }
+  return result;
 }
 
 }  // namespace Experimental

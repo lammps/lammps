@@ -691,11 +691,12 @@ void Thermo::modify_params(int narg, char **arg)
         utils::bounds(FLERR, arg[iarg + 1], 1, nfield_initial, nlo, nhi, error);
         int icol = -1;
         for (int i = nlo - 1; i < nhi; i++) {
-          if (i < 0) icol = nfield_initial + i + 1; // doesn't happen currently
-          else icol = i;
+          if (i < 0)
+            icol = nfield_initial + i + 1;    // doesn't happen currently
+          else
+            icol = i;
           if (icol < 0 || (icol >= nfield_initial))
-            error->all(FLERR, "Invalid thermo_modify format argument: {}",
-              arg[iarg + 1]);
+            error->all(FLERR, "Invalid thermo_modify format argument: {}", arg[iarg + 1]);
           format_column_user[icol] = arg[iarg + 2];
         }
       } else {
@@ -1135,7 +1136,8 @@ void Thermo::check_temp(const std::string &keyword)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init temperature",
                keyword);
   if (!temperature->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
   if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
     temperature->compute_scalar();
     temperature->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1154,7 +1156,8 @@ void Thermo::check_pe(const std::string &keyword)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
                keyword);
   if (!pe->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
   if (!(pe->invoked_flag & Compute::INVOKED_SCALAR)) {
     pe->compute_scalar();
     pe->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1170,7 +1173,8 @@ void Thermo::check_press_scalar(const std::string &keyword)
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
   if (!pressure->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
   if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
     pressure->compute_scalar();
     pressure->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1186,7 +1190,8 @@ void Thermo::check_press_vector(const std::string &keyword)
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
   if (!pressure->is_initialized())
-    error->all(FLERR,"Thermo keyword {} cannot be invoked before initialization by a run",keyword);
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
   if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;
@@ -1228,13 +1233,13 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "elapsed") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword elapsed cannot be used between runs");
     compute_elapsed();
     dvalue = bivalue;
 
   } else if (word == "elaplong") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword elaplong cannot be used between runs");
     compute_elapsed_long();
     dvalue = bivalue;
 
@@ -1246,22 +1251,22 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "cpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword cpu cannot be used between runs");
     compute_cpu();
 
   } else if (word == "tpcpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword tpcpu cannot be used between runs");
     compute_tpcpu();
 
   } else if (word == "spcpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword spcpu cannot be used between runs");
     compute_spcpu();
 
   } else if (word == "cpuremain") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword cpuremain cannot be used between runs");
     compute_cpuremain();
 
   } else if (word == "part") {
@@ -1350,7 +1355,7 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "etail") {
     if (update->eflag_global != update->ntimestep)
-      error->all(FLERR, "Energy was not tallied on needed timestep");
+      error->all(FLERR, "Energy was not tallied on needed timestep for thermo keyword etail");
     compute_etail();
 
   } else if (word == "enthalpy") {

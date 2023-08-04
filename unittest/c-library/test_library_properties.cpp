@@ -518,9 +518,6 @@ TEST_F(LibraryProperties, neighlist)
 
 TEST_F(LibraryProperties, has_error)
 {
-    // need errors to throw exceptions to be able to intercept them.
-    if (!lammps_config_has_exceptions()) GTEST_SKIP();
-
     EXPECT_EQ(lammps_has_error(lmp), 0);
 
     // trigger an error, but hide output

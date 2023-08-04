@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="Monospace.ttf">DejaVuSansMono.ttf</file>
+    <file>lammps-icon-128x128.png</file>
+</qresource>
+</RCC>

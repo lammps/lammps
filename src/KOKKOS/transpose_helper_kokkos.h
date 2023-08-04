@@ -32,7 +32,7 @@ struct TransposeHelperKokkos {
   using t_view_dst = t_view_dst_;
   using t_view_src = t_view_src_;
 
-  static_assert(std::is_same<typename t_view_dst::value_type, typename t_view_src::value_type>::value, "Value types do not match");
+  static_assert(std::is_same_v<typename t_view_dst::value_type, typename t_view_src::value_type>, "Value types do not match");
   static_assert(t_view_dst::Rank == 2, "Destination view rank != 2");
   static_assert(t_view_src::Rank == 2, "Source view rank != 2");
 
@@ -78,11 +78,11 @@ struct TransposeHelperKokkos {
 
     assert(d_dst.extent(0) == d_src.extent(0) && d_dst.extent(1) == d_dst.extent(1));
 
-    if (std::is_same<dst_layout, src_layout>::value) {
+    if (std::is_same_v<dst_layout, src_layout>) {
       Kokkos::deep_copy(d_dst, d_src);
     } else {
 
-      src_is_layout_right = std::is_same<src_layout, Kokkos::LayoutRight>::value;
+      src_is_layout_right = std::is_same_v<src_layout, Kokkos::LayoutRight>;
 
       extent_tiles[0] = (d_dst.extent(0) + tile_size - 1) / tile_size;
       extent_tiles[1] = (d_dst.extent(1) + tile_size - 1) / tile_size;

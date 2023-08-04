@@ -37,12 +37,13 @@ if(BUILD_TOOLS)
   add_subdirectory(${LAMMPS_TOOLS_DIR}/phonon ${CMAKE_BINARY_DIR}/phana_build)
 endif()
 
+find_package(PkgConfig QUIET)
 if(BUILD_LAMMPS_SHELL)
+  if(NOT PkgConfig_FOUND)
+    message(FATAL_ERROR "Must have pkg-config installed for building LAMMPS shell")
+  endif()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(READLINE IMPORTED_TARGET REQUIRED readline)
-  if(NOT LAMMPS_EXCEPTIONS)
-    message(WARNING "The LAMMPS shell needs LAMMPS_EXCEPTIONS enabled for full functionality")
-  endif()
 
   # include resource compiler to embed icons into the executable on Windows
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -67,4 +68,8 @@ if(BUILD_LAMMPS_SHELL)
   install(FILES ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
 endif()
 
-
+if(BUILD_LAMMPS_GUI)
+  get_filename_component(LAMMPS_GUI_DIR ${LAMMPS_SOURCE_DIR}/../tools/lammps-gui ABSOLUTE)
+  get_filename_component(LAMMPS_GUI_BIN ${CMAKE_BINARY_DIR}/lammps-gui-build ABSOLUTE)
+  add_subdirectory(${LAMMPS_GUI_DIR} ${LAMMPS_GUI_BIN})
+endif()

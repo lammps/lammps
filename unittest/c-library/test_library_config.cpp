@@ -195,7 +195,7 @@ TEST_F(LibraryConfig, force_timeout)
 
 TEST(LAMMPSConfig, exceptions)
 {
-    EXPECT_EQ(lammps_config_has_exceptions(), LAMMPS_HAS_EXCEPTIONS);
+    EXPECT_EQ(lammps_config_has_exceptions(), 1);
 };
 
 TEST(LAMMPSConfig, mpi_support)

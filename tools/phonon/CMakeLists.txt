@@ -1,3 +1,4 @@
+# -*- CMake -*- configuration for building the PHONON package analysis tool: phana
 
 # Support Linux from Ubuntu 20.04LTS onward, CentOS 7.x (with EPEL),
 # macOS, MSVC 2019 (=Version 16)

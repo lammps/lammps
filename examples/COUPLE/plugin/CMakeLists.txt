@@ -1,9 +1,8 @@
-##########################################
-# CMake build system for coupling to the LAMMPS library
+# -*- CMake -*- file for example programs that use the LAMMPS library
 # where the library is loaded dynamically at runtime.
 ##########################################
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # enforce out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})

@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+# -*- CMake -*- file for simple examples using the LAMMPS library interface
+
+cmake_minimum_required(VERSION 3.16)
 
 # enforce out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})

@@ -1,8 +1,9 @@
+# -*- CMake -*- master configuration file for building LAMMPS
 ########################################
 # CMake build system
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 ########################################
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it
 if(POLICY CMP0074)
@@ -12,22 +13,11 @@ endif()
 if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
 endif()
-# set policy to silence warnings about missing executable permissions in
-# pythonx.y-config when cross-compiling. review occasionally if it may be set to NEW
-if(POLICY CMP0109)
-  cmake_policy(SET CMP0109 OLD)
-endif()
 # set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)
 endif()
-########################################
-# Use CONFIGURE_DEPENDS as option for file(GLOB...) when available
-if(CMAKE_VERSION VERSION_LESS 3.12)
-  unset(CONFIGURE_DEPENDS)
-else()
-  set(CONFIGURE_DEPENDS CONFIGURE_DEPENDS)
-endif()
+
 ########################################
 
 project(lammps CXX)
@@ -203,8 +193,8 @@ else()
 endif()
 
 include(GNUInstallDirs)
-file(GLOB ALL_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
-file(GLOB MAIN_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/main.cpp)
+file(GLOB ALL_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
+file(GLOB MAIN_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
 add_library(lammps ${ALL_SOURCES})
 
@@ -442,7 +432,7 @@ if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_T
     find_package(BLAS)
   endif()
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
-    file(GLOB LINALG_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
+    file(GLOB LINALG_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
     add_library(linalg STATIC ${LINALG_SOURCES})
     set_target_properties(linalg PROPERTIES OUTPUT_NAME lammps_linalg${LAMMPS_MACHINE})
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
@@ -460,12 +450,7 @@ option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
 if(WITH_JPEG)
   find_package(JPEG REQUIRED)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_JPEG)
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    target_include_directories(lammps PRIVATE ${JPEG_INCLUDE_DIRS})
-    target_link_libraries(lammps PRIVATE ${JPEG_LIBRARIES})
-  else()
-    target_link_libraries(lammps PRIVATE JPEG::JPEG)
-  endif()
+  target_link_libraries(lammps PRIVATE JPEG::JPEG)
 endif()
 
 find_package(PNG QUIET)
@@ -577,8 +562,8 @@ endforeach()
 foreach(PKG ${STANDARD_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
-  file(GLOB ${PKG}_HEADERS ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.h)
+  file(GLOB ${PKG}_SOURCES CONFIGURE_DEPENDS ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS CONFIGURE_DEPENDS ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -605,8 +590,8 @@ endforeach()
 foreach(PKG ${SUFFIX_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
-  file(GLOB ${PKG}_HEADERS ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.h)
+  file(GLOB ${PKG}_SOURCES CONFIGURE_DEPENDS ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS CONFIGURE_DEPENDS ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -620,7 +605,7 @@ endforeach()
 foreach(PKG_LIB POEMS ATC AWPMD H5MD)
   if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
-    file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${CONFIGURE_DEPENDS}
+    file(GLOB_RECURSE ${PKG_LIB}_SOURCES CONFIGURE_DEPENDS
       ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
@@ -815,20 +800,11 @@ install(
 # This is primarily for people that only want to use the Python wrapper.
 ###############################################################################
 if(BUILD_SHARED_LIBS)
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-    set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
-    find_package(PythonInterp) # Deprecated since version 3.12
-    if(PYTHONINTERP_FOUND)
-      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-    endif()
-  else()
-    # backward compatibility
-    if(PYTHON_EXECUTABLE)
-      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-    endif()
-    find_package(Python COMPONENTS Interpreter)
+  # backward compatibility
+  if(PYTHON_EXECUTABLE)
+    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
+  find_package(Python COMPONENTS Interpreter)
   if(BUILD_IS_MULTI_CONFIG)
     set(MY_BUILD_DIR ${CMAKE_BINARY_DIR}/$<CONFIG>)
   else()
@@ -887,13 +863,23 @@ else()
 endif()
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
+if(GIT_FOUND AND EXISTS ${LAMMPS_DIR}/.git)
+  execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified --always
+    OUTPUT_VARIABLE GIT_DESCRIBE
+    ERROR_QUIET
+    WORKING_DIRECTORY ${LAMMPS_DIR}
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 message(STATUS "<<< Build configuration >>>
-   LAMMPS Version:   ${PROJECT_VERSION}
+   LAMMPS Version:   ${PROJECT_VERSION} ${GIT_DESCRIBE}
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
    CMake Version:    ${CMAKE_VERSION}
    Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
+if(CMAKE_CROSSCOMPILING)
+  message(STATUS "Cross compiling on ${CMAKE_HOST_SYSTEM}")
+endif()
 ###############################################################################
 # Print package summary
 ###############################################################################
@@ -937,11 +923,9 @@ if(_index GREATER -1)
 endif()
 message(STATUS "<<< Linker flags: >>>")
 message(STATUS "Executable name:  ${LAMMPS_BINARY}")
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-  get_target_property(OPTIONS lammps LINK_OPTIONS)
-  if(OPTIONS)
-    message(STATUS "Linker options:   ${OPTIONS}")
-  endif()
+get_target_property(OPTIONS lammps LINK_OPTIONS)
+if(OPTIONS)
+  message(STATUS "Linker options:   ${OPTIONS}")
 endif()
 if(CMAKE_EXE_LINKER_FLAGS)
   message(STATUS "Executable linker flags: ${CMAKE_EXE_LINKER_FLAGS}")

@@ -43,7 +43,8 @@ static int compare_coords(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp) {
+ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp)
+{
   binlo = binhi = -1;
 }
 

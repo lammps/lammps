@@ -169,6 +169,17 @@ elseif(MSVC)
   get_filename_component(QT5_BIN_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
   get_filename_component(INSTNAME ${CMAKE_INSTALL_PREFIX} NAME)
   install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -D INSTNAME=${INSTNAME} -D VC_INIT=\"${VC_INIT}\" -D QT5_BIN_DIR=\"${QT5_BIN_DIR}\" -P \"${CMAKE_SOURCE_DIR}/packaging/build_windows_vs.cmake\" WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\" COMMAND_ECHO STDOUT)")
+elseif((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+  install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
+  install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+  install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
+  add_custom_target(zip
+    COMMAND sh -vx ${LAMMPS_DIR}/cmake/packaging/build_windows_cross_zip.sh ${CMAKE_INSTALL_PREFIX}
+    DEPENDS lmp lammps-gui
+    COMMENT "Create zip file with windows binaries"
+    BYPRODUCT LAMMPS-Win10-amd64.zip
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(CODE [[

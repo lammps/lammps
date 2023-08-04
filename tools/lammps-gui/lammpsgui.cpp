@@ -539,13 +539,13 @@ void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
     if (lammps.has_plugin()) {
-        version += " - LAMMPS linked dynamically";
+        version += " - LAMMPS library loaded as plugin";
         if (!plugin_path.empty()) {
             version += " from file ";
             version += plugin_path;
         }
     } else {
-        version += " - LAMMPS linked statically";
+        version += " - LAMMPS library linked to executable";
     }
     std::string info = "LAMMPS is currently running. LAMMPS config info not available.";
 

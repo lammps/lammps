@@ -101,7 +101,7 @@ if(USE_SPGLIB)
     -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES_}
     -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
     UPDATE_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.spglib ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build/CMakeLists.txt
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build-build --target install
+    INSTALL_COMMAND ${CMAKE_COMMAND} --install ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build-build --prefix ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext
     BUILD_BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/lib/${CMAKE_STATIC_LIBRARY_PREFIX}symspg${CMAKE_STATIC_LIBRARY_SUFFIX}"
   )
 

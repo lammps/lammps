@@ -50,10 +50,10 @@ class FixVector : public Fix {
 
   bigint nextstep, initialstep;
 
-  int ncount;       // # of values currently in growing vector or array
-  int ncountmax;    // max # of values vector/array can hold
-  int nmaxval;      // maximum allowed number of values
-  int nindex;       // start index of data, may wrap around
+  bigint ncount;       // # of values processed and stored into growing vector or array
+  bigint ncountmax;    // max # of values vector/array can hold
+  bigint nmaxval;      // maximum allowed number of values
+  bigint nindex;       // start index of data, may wrap around
 
   double *vector;
   double **array;

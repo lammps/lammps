@@ -1,26 +1,37 @@
 #!/bin/bash -vx
 
 APP_NAME=lammps-gui
-DESTDIR=${PWD}/../LAMMPS_GUI
+DESTDIR=${PWD}/LAMMPS_GUI
+SYSROOT="$1"
 
 echo "Delete old files, if they exist"
-rm -rvf ${DESTDIR} LAMMPS-Win10-amd64.zip
+rm -rvf ${DESTDIR}/LAMMPS_GUI ${DESTDIR}/LAMMPS-Win10-amd64.zip
 
 echo "Create staging area for deployment and populate"
 DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
 
-echo "Add required dependencies for Qt"
-for dll in Qt5Core.dll Qt5Gui.dll Qt5Widgets.dll
+echo "Copying required DLL files"
+for dll in $(objdump -p *.exe *.dll | sed -n -e '/DLL Name:/s/^.*DLL Name: *//p' | sort | uniq)
 do \
-    cp /usr/x86_64-w64-mingw32/sys-root/mingw/bin/${dll} ${DESTDIR}/bin/
+    doskip=0
+    for skip in ADVAPI32 CFGMGR32 KERNEL32 msvcrt ole32 PSAPI WSOCK32 liblammps
+    do \
+        test ${dll} = ${skip}.dll && doskip=1
+    done
+    test ${doskip} -eq 1 && continue
+    test -f ${DESTDIR}/bin/${dll} || cp -v ${SYSROOT}/bin/${dll} ${DESTDIR}/bin
 done
-for dir in styles platforms imageformats
+    
+echo "Copy required Qt plugins"
+mkdir -p ${DESTDIR}/qt5plugins
+for plugin in imageformats platforms styles
 do \
-    mkdir -p ${DESTDIR}/${dir}
-    cp -r /usr/x86_64-w64-mingw32/sys-root/mingw/lib/qt5/plugins/${dir}/*.dll ${DESTDIR}/${dir}
+    cp -r ${SYSROOT}/lib/qt5/plugins/${plugin} ${DESTDIR}/qt5plugins/
 done
 
-pushd ..
+cat > ${DESTDIR}/bin/qt.conf <<EOF
+[Paths]
+Plugins = ../qt5plugins
+EOF
 zip -9rv LAMMPS-Win10-amd64.zip LAMMPS_GUI
-popd
 exit 0

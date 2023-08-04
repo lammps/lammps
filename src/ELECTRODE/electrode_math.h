@@ -18,6 +18,7 @@
 #ifndef LMP_ELECTRODE_MATH_H
 #define LMP_ELECTRODE_MATH_H
 
+#include "math.h"
 #include "math_const.h"
 
 namespace LAMMPS_NS {

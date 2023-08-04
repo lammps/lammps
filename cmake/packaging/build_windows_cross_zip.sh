@@ -21,7 +21,7 @@ do \
     test ${doskip} -eq 1 && continue
     test -f ${DESTDIR}/bin/${dll} || cp -v ${SYSROOT}/bin/${dll} ${DESTDIR}/bin
 done
-    
+
 echo "Copy required Qt plugins"
 mkdir -p ${DESTDIR}/qt5plugins
 for plugin in imageformats platforms styles

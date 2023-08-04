@@ -89,7 +89,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR, std::string("fix ") + style + " region", error);
       region = domain->get_region_by_id(arg[iarg + 1]);
-      if (!region) error->all(FLERR, "Region {} for fix efield does not exist", arg[iarg + 1]);
+      if (!region) error->all(FLERR, "Region {} for fix {} does not exist", arg[iarg + 1], style);
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "energy") == 0) {

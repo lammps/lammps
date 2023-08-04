@@ -4093,6 +4093,7 @@ zmq
 zN
 zs
 zsc
+Zsh
 zst
 Zstandard
 zstd

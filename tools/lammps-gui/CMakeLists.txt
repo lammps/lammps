@@ -13,9 +13,6 @@ option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
 mark_as_advanced(LAMMPS_GUI_USE_PLUGIN)
 
 # checks
-if(NOT LAMMPS_EXCEPTIONS)
-  message(FATAL_ERROR "Must enable LAMMPS_EXCEPTIONS for building the LAMMPS GUI")
-endif()
 if(BUILD_MPI)
   message(FATAL_ERROR "Must disable BUILD_MPI for building the LAMMPS GUI")
 endif()

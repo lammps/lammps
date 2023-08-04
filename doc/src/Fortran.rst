@@ -2278,19 +2278,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   In case of an error, LAMMPS will either abort or throw a C++ exception.
-   The latter has to be :ref:`enabled at compile time <exceptions>`.
-   This function checks if exceptions were enabled.
-
-   When using the library interface with C++ exceptions enabled, the library
-   interface functions will "catch" them, and the error status can then be
-   checked by calling :f:func:`has_error`. The most recent error message can be
-   retrieved via :f:func:`get_last_error_message`.
-   This can allow one to restart a calculation or delete and recreate
-   the LAMMPS instance when a C++ exception occurs.  One application
-   of using exceptions this way is the :ref:`lammps_shell`.  If C++
-   exceptions are disabled and an error happens during a call to
-   LAMMPS or the Fortran API, the application will terminate.
+   When using the library interface, the library interface functions
+   will "catch" exceptions, and then the error status can be checked by
+   calling :f:func:`has_error`.  The most recent error message can be
+   retrieved via :f:func:`get_last_error_message`.  This allows to
+   restart a calculation or delete and recreate the LAMMPS instance when
+   a C++ exception occurs.  One application of using exceptions this way
+   is the :ref:`lammps_shell`.
 
    :to: :cpp:func:`lammps_config_has_exceptions`
    :r has_exceptions:

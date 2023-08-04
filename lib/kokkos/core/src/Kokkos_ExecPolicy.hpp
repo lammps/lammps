@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_EXECPOLICY_HPP
 #define KOKKOS_EXECPOLICY_HPP
@@ -217,8 +185,17 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
  private:
   /** \brief finalize chunk_size if it was set to AUTO*/
   inline void set_auto_chunk_size() {
-    int64_t concurrency =
-        static_cast<int64_t>(traits::execution_space::concurrency());
+#ifdef KOKKOS_ENABLE_SYCL
+    if (std::is_same_v<typename traits::execution_space,
+                       Kokkos::Experimental::SYCL>) {
+      // chunk_size <=1 lets the compiler choose the workgroup size when
+      // launching kernels
+      m_granularity      = 1;
+      m_granularity_mask = 0;
+      return;
+    }
+#endif
+    auto concurrency = static_cast<int64_t>(m_space.concurrency());
     if (concurrency == 0) concurrency = 1;
 
     if (m_granularity > 0) {
@@ -762,18 +739,9 @@ struct ThreadVectorRangeBoundariesStruct {
       : start(static_cast<index_type>(0)), end(count) {}
 
   KOKKOS_INLINE_FUNCTION
-  constexpr ThreadVectorRangeBoundariesStruct(const index_type& count) noexcept
-      : start(static_cast<index_type>(0)), end(count) {}
-
-  KOKKOS_INLINE_FUNCTION
   constexpr ThreadVectorRangeBoundariesStruct(
       const TeamMemberType, const index_type& arg_begin,
       const index_type& arg_end) noexcept
-      : start(static_cast<index_type>(arg_begin)), end(arg_end) {}
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr ThreadVectorRangeBoundariesStruct(
-      const index_type& arg_begin, const index_type& arg_end) noexcept
       : start(static_cast<index_type>(arg_begin)), end(arg_end) {}
 };
 
@@ -868,6 +836,192 @@ ThreadVectorRange(const TeamMemberType&, const iType1& arg_begin,
 
 namespace Impl {
 
+enum class TeamMDRangeLastNestLevel : bool { NotLastNestLevel, LastNestLevel };
+enum class TeamMDRangeParThread : bool { NotParThread, ParThread };
+enum class TeamMDRangeParVector : bool { NotParVector, ParVector };
+enum class TeamMDRangeThreadAndVector : bool { NotBoth, Both };
+
+template <typename Rank, TeamMDRangeThreadAndVector ThreadAndVector>
+struct HostBasedNestLevel;
+
+template <typename Rank, TeamMDRangeThreadAndVector ThreadAndVector>
+struct AcceleratorBasedNestLevel;
+
+// ThreadAndVectorNestLevel determines on which nested level parallelization
+// happens.
+//   - Rank is Kokkos::Rank<TotalNestLevel, Iter>
+//     - TotalNestLevel is the total number of loop nests
+//     - Iter is whether to go forward or backward through ranks (i.e. the
+//       iteration order for MDRangePolicy)
+//   - ThreadAndVector determines whether both vector and thread parallelism is
+//     in use
+template <typename Rank, typename ExecSpace,
+          TeamMDRangeThreadAndVector ThreadAndVector>
+struct ThreadAndVectorNestLevel;
+
+struct NoReductionTag {};
+
+template <typename Rank, typename TeamMDPolicy, typename Lambda,
+          typename ReductionValueType>
+KOKKOS_INLINE_FUNCTION void md_parallel_impl(TeamMDPolicy const& policy,
+                                             Lambda const& lambda,
+                                             ReductionValueType&& val);
+}  // namespace Impl
+
+template <typename Rank, typename TeamHandle>
+struct TeamThreadMDRange;
+
+template <unsigned N, Iterate OuterDir, Iterate InnerDir, typename TeamHandle>
+struct TeamThreadMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
+  using NestLevelType  = int;
+  using BoundaryType   = int;
+  using TeamHandleType = TeamHandle;
+  using ExecutionSpace = typename TeamHandleType::execution_space;
+  using ArrayLayout    = typename ExecutionSpace::array_layout;
+
+  static constexpr NestLevelType total_nest_level =
+      Rank<N, OuterDir, InnerDir>::rank;
+  static constexpr Iterate iter    = OuterDir;
+  static constexpr auto par_thread = Impl::TeamMDRangeParThread::ParThread;
+  static constexpr auto par_vector = Impl::TeamMDRangeParVector::NotParVector;
+
+  static constexpr Iterate direction =
+      OuterDir == Iterate::Default
+          ? layout_iterate_type_selector<ArrayLayout>::outer_iteration_pattern
+          : iter;
+
+  template <class... Args>
+  KOKKOS_FUNCTION TeamThreadMDRange(TeamHandleType const& team_, Args&&... args)
+      : team(team_), boundaries{static_cast<BoundaryType>(args)...} {
+    static_assert(sizeof...(Args) == total_nest_level);
+  }
+
+  TeamHandleType const& team;
+  BoundaryType boundaries[total_nest_level];
+};
+
+template <typename TeamHandle, typename... Args>
+TeamThreadMDRange(TeamHandle const&, Args&&...)
+    ->TeamThreadMDRange<Rank<sizeof...(Args), Iterate::Default>, TeamHandle>;
+
+template <typename Rank, typename TeamHandle>
+struct ThreadVectorMDRange;
+
+template <unsigned N, Iterate OuterDir, Iterate InnerDir, typename TeamHandle>
+struct ThreadVectorMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
+  using NestLevelType  = int;
+  using BoundaryType   = int;
+  using TeamHandleType = TeamHandle;
+  using ExecutionSpace = typename TeamHandleType::execution_space;
+  using ArrayLayout    = typename ExecutionSpace::array_layout;
+
+  static constexpr NestLevelType total_nest_level =
+      Rank<N, OuterDir, InnerDir>::rank;
+  static constexpr Iterate iter    = OuterDir;
+  static constexpr auto par_thread = Impl::TeamMDRangeParThread::NotParThread;
+  static constexpr auto par_vector = Impl::TeamMDRangeParVector::ParVector;
+
+  static constexpr Iterate direction =
+      OuterDir == Iterate::Default
+          ? layout_iterate_type_selector<ArrayLayout>::outer_iteration_pattern
+          : iter;
+
+  template <class... Args>
+  KOKKOS_INLINE_FUNCTION ThreadVectorMDRange(TeamHandleType const& team_,
+                                             Args&&... args)
+      : team(team_), boundaries{static_cast<BoundaryType>(args)...} {
+    static_assert(sizeof...(Args) == total_nest_level);
+  }
+
+  TeamHandleType const& team;
+  BoundaryType boundaries[total_nest_level];
+};
+
+template <typename TeamHandle, typename... Args>
+ThreadVectorMDRange(TeamHandle const&, Args&&...)
+    ->ThreadVectorMDRange<Rank<sizeof...(Args), Iterate::Default>, TeamHandle>;
+
+template <typename Rank, typename TeamHandle>
+struct TeamVectorMDRange;
+
+template <unsigned N, Iterate OuterDir, Iterate InnerDir, typename TeamHandle>
+struct TeamVectorMDRange<Rank<N, OuterDir, InnerDir>, TeamHandle> {
+  using NestLevelType  = int;
+  using BoundaryType   = int;
+  using TeamHandleType = TeamHandle;
+  using ExecutionSpace = typename TeamHandleType::execution_space;
+  using ArrayLayout    = typename ExecutionSpace::array_layout;
+
+  static constexpr NestLevelType total_nest_level =
+      Rank<N, OuterDir, InnerDir>::rank;
+  static constexpr Iterate iter    = OuterDir;
+  static constexpr auto par_thread = Impl::TeamMDRangeParThread::ParThread;
+  static constexpr auto par_vector = Impl::TeamMDRangeParVector::ParVector;
+
+  static constexpr Iterate direction =
+      iter == Iterate::Default
+          ? layout_iterate_type_selector<ArrayLayout>::outer_iteration_pattern
+          : iter;
+
+  template <class... Args>
+  KOKKOS_INLINE_FUNCTION TeamVectorMDRange(TeamHandleType const& team_,
+                                           Args&&... args)
+      : team(team_), boundaries{static_cast<BoundaryType>(args)...} {
+    static_assert(sizeof...(Args) == total_nest_level);
+  }
+
+  TeamHandleType const& team;
+  BoundaryType boundaries[total_nest_level];
+};
+
+template <typename TeamHandle, typename... Args>
+TeamVectorMDRange(TeamHandle const&, Args&&...)
+    ->TeamVectorMDRange<Rank<sizeof...(Args), Iterate::Default>, TeamHandle>;
+
+template <typename Rank, typename TeamHandle, typename Lambda,
+          typename ReducerValueType>
+KOKKOS_INLINE_FUNCTION void parallel_reduce(
+    TeamThreadMDRange<Rank, TeamHandle> const& policy, Lambda const& lambda,
+    ReducerValueType& val) {
+  Impl::md_parallel_impl<Rank>(policy, lambda, val);
+}
+
+template <typename Rank, typename TeamHandle, typename Lambda>
+KOKKOS_INLINE_FUNCTION void parallel_for(
+    TeamThreadMDRange<Rank, TeamHandle> const& policy, Lambda const& lambda) {
+  Impl::md_parallel_impl<Rank>(policy, lambda, Impl::NoReductionTag());
+}
+
+template <typename Rank, typename TeamHandle, typename Lambda,
+          typename ReducerValueType>
+KOKKOS_INLINE_FUNCTION void parallel_reduce(
+    ThreadVectorMDRange<Rank, TeamHandle> const& policy, Lambda const& lambda,
+    ReducerValueType& val) {
+  Impl::md_parallel_impl<Rank>(policy, lambda, val);
+}
+
+template <typename Rank, typename TeamHandle, typename Lambda>
+KOKKOS_INLINE_FUNCTION void parallel_for(
+    ThreadVectorMDRange<Rank, TeamHandle> const& policy, Lambda const& lambda) {
+  Impl::md_parallel_impl<Rank>(policy, lambda, Impl::NoReductionTag());
+}
+
+template <typename Rank, typename TeamHandle, typename Lambda,
+          typename ReducerValueType>
+KOKKOS_INLINE_FUNCTION void parallel_reduce(
+    TeamVectorMDRange<Rank, TeamHandle> const& policy, Lambda const& lambda,
+    ReducerValueType& val) {
+  Impl::md_parallel_impl<Rank>(policy, lambda, val);
+}
+
+template <typename Rank, typename TeamHandle, typename Lambda>
+KOKKOS_INLINE_FUNCTION void parallel_for(
+    TeamVectorMDRange<Rank, TeamHandle> const& policy, Lambda const& lambda) {
+  Impl::md_parallel_impl<Rank>(policy, lambda, Impl::NoReductionTag());
+}
+
+namespace Impl {
+
 template <typename FunctorType, typename TagType,
           bool HasTag = !std::is_void<TagType>::value>
 struct ParallelConstructName;
@@ -914,30 +1068,30 @@ struct PatternImplSpecializationFromTag;
 
 template <class... Args>
 struct PatternImplSpecializationFromTag<Kokkos::ParallelForTag, Args...>
-    : identity<ParallelFor<Args...>> {};
+    : type_identity<ParallelFor<Args...>> {};
 
 template <class... Args>
 struct PatternImplSpecializationFromTag<Kokkos::ParallelReduceTag, Args...>
-    : identity<ParallelReduce<Args...>> {};
+    : type_identity<ParallelReduce<Args...>> {};
 
 template <class... Args>
 struct PatternImplSpecializationFromTag<Kokkos::ParallelScanTag, Args...>
-    : identity<ParallelScan<Args...>> {};
+    : type_identity<ParallelScan<Args...>> {};
 
 template <class PatternImpl>
 struct PatternTagFromImplSpecialization;
 
 template <class... Args>
 struct PatternTagFromImplSpecialization<ParallelFor<Args...>>
-    : identity<ParallelForTag> {};
+    : type_identity<ParallelForTag> {};
 
 template <class... Args>
 struct PatternTagFromImplSpecialization<ParallelReduce<Args...>>
-    : identity<ParallelReduceTag> {};
+    : type_identity<ParallelReduceTag> {};
 
 template <class... Args>
 struct PatternTagFromImplSpecialization<ParallelScan<Args...>>
-    : identity<ParallelScanTag> {};
+    : type_identity<ParallelScanTag> {};
 
 }  // end namespace Impl
 

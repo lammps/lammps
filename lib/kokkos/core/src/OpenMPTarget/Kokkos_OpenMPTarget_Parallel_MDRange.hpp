@@ -1,53 +1,26 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_OPENMPTARGET_PARALLEL_MDRANGE_HPP
 #define KOKKOS_OPENMPTARGET_PARALLEL_MDRANGE_HPP
 
 #include <omp.h>
 #include <Kokkos_Parallel.hpp>
-#include <OpenMPTarget/Kokkos_OpenMPTarget_Exec.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel_Common.hpp>
 
 // WORKAROUND OPENMPTARGET: sometimes tile sizes don't make it correctly,
 // this was tracked down to a bug in clang with regards of mapping structs
@@ -438,73 +411,48 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 namespace Kokkos {
 namespace Impl {
 
-template <class FunctorType, class ReducerType, class... Traits>
-class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
+template <class CombinedFunctorReducerType, class... Traits>
+class ParallelReduce<CombinedFunctorReducerType,
+                     Kokkos::MDRangePolicy<Traits...>,
                      Kokkos::Experimental::OpenMPTarget> {
  private:
-  using Policy = Kokkos::MDRangePolicy<Traits...>;
+  using Policy      = Kokkos::MDRangePolicy<Traits...>;
+  using FunctorType = typename CombinedFunctorReducerType::functor_type;
+  using ReducerType = typename CombinedFunctorReducerType::reducer_type;
 
   using WorkTag = typename Policy::work_tag;
   using Member  = typename Policy::member_type;
   using Index   = typename Policy::index_type;
 
-  using ReducerConditional =
-      std::conditional<std::is_same<InvalidType, ReducerType>::value,
-                       FunctorType, ReducerType>;
-  using ReducerTypeFwd = typename ReducerConditional::type;
-  using Analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
-                                         Policy, ReducerTypeFwd>;
+  using pointer_type   = typename ReducerType::pointer_type;
+  using reference_type = typename ReducerType::reference_type;
 
-  using pointer_type   = typename Analysis::pointer_type;
-  using reference_type = typename Analysis::reference_type;
-
-  enum {
-    HasJoin =
-        Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, Policy,
-                              FunctorType>::has_join_member_function
-  };
-  enum { UseReducer = is_reducer<ReducerType>::value };
+  static constexpr bool UseReducer =
+      !std::is_same_v<FunctorType, typename ReducerType::functor_type>;
 
   const pointer_type m_result_ptr;
-  const FunctorType m_functor;
+  const CombinedFunctorReducerType m_functor_reducer;
   const Policy m_policy;
-  const ReducerType m_reducer;
 
-  using ParReduceCommon = ParallelReduceCommon<pointer_type>;
+  using ParReduceCopy = ParallelReduceCopy<pointer_type>;
 
   bool m_result_ptr_on_device;
 
  public:
   inline void execute() const {
-    execute_tile<Policy::rank, typename Analysis::value_type>(
-        m_functor, m_policy, m_result_ptr);
+    execute_tile<Policy::rank, typename ReducerType::value_type>(
+        m_functor_reducer.get_functor(), m_policy, m_result_ptr);
   }
 
   template <class ViewType>
-  inline ParallelReduce(
-      const FunctorType& arg_functor, Policy arg_policy,
-      const ViewType& arg_result_view,
-      std::enable_if_t<Kokkos::is_view<ViewType>::value &&
-                           !Kokkos::is_reducer<ReducerType>::value,
-                       void*> = NULL)
+  inline ParallelReduce(const CombinedFunctorReducerType& arg_functor_reducer,
+                        Policy arg_policy, const ViewType& arg_result_view)
       : m_result_ptr(arg_result_view.data()),
-        m_functor(arg_functor),
+        m_functor_reducer(arg_functor_reducer),
         m_policy(arg_policy),
-        m_reducer(InvalidType()),
         m_result_ptr_on_device(
             MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
                               typename ViewType::memory_space>::accessible) {}
-
-  inline ParallelReduce(const FunctorType& arg_functor, Policy arg_policy,
-                        const ReducerType& reducer)
-      : m_result_ptr(reducer.view().data()),
-        m_functor(arg_functor),
-        m_policy(arg_policy),
-        m_reducer(reducer),
-        m_result_ptr_on_device(
-            MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
-                              typename ReducerType::result_view_type::
-                                  memory_space>::accessible) {}
 
   template <int Rank, class ValueType>
   inline std::enable_if_t<Rank == 2> execute_tile(const FunctorType& functor,
@@ -551,8 +499,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -572,10 +520,13 @@ reduction(+:result)
     // FIXME_OPENMPTARGET: Unable to separate directives and their companion
     // loops which leads to code duplication for different reduction types.
     if constexpr (UseReducer) {
-#pragma omp declare reduction(                                         \
-    custom:ValueType                                                   \
-    : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
-    initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+#pragma omp declare reduction(                                                 \
+    custom:ValueType                                                           \
+    : OpenMPTargetReducerWrapper <typename ReducerType::functor_type>::join(   \
+        omp_out, omp_in))                                                      \
+    initializer(                                                               \
+        OpenMPTargetReducerWrapper <typename ReducerType::functor_type>::init( \
+            omp_priv))
 
 #pragma omp target teams distribute parallel for collapse(3) map(to         \
                                                                  : functor) \
@@ -606,8 +557,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -669,8 +620,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -740,8 +691,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <int Rank, class ValueType>
@@ -817,8 +768,8 @@ reduction(+:result)
       }
     }
 
-    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
-                                   m_result_ptr_on_device);
+    ParReduceCopy::memcpy_result(ptr, &result, sizeof(ValueType),
+                                 m_result_ptr_on_device);
   }
 
   template <typename Policy, typename Functor>

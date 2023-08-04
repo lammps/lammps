@@ -107,7 +107,6 @@ PACKAGE = \
 	molecule \
 	molfile \
 	mpiio \
-	mscg \
 	netcdf \
 	openmp \
 	opt \
@@ -214,7 +213,6 @@ PACKLIB = \
 	kokkos \
 	lepton \
 	mpiio \
-	mscg \
 	poems \
 	python \
 	voronoi \
@@ -252,7 +250,6 @@ PACKEXT = \
 	ml-pace \
 	ml-quip \
 	molfile \
-	mscg \
 	netcdf \
 	plumed \
 	qmmm \

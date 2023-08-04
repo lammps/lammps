@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 
@@ -538,8 +510,12 @@ TEST(TEST_CATEGORY, atomics) {
   ASSERT_TRUE(
       (TestAtomic::Loop<Kokkos::complex<float>, TEST_EXECSPACE>(100, 3)));
 
-// FIXME_SYCL atomics for large types to be implemented
-#ifndef KOKKOS_ENABLE_SYCL
+// FIXME_SYCL Replace macro by SYCL_EXT_ONEAPI_DEVICE_GLOBAL or remove
+// condition alltogether when possible.
+#if defined(KOKKOS_ENABLE_SYCL) && \
+    !defined(KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED)
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::SYCL>) return;
+#endif
   ASSERT_TRUE(
       (TestAtomic::Loop<Kokkos::complex<double>, TEST_EXECSPACE>(1, 1)));
   ASSERT_TRUE(
@@ -564,7 +540,53 @@ TEST(TEST_CATEGORY, atomics) {
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 3)));
 #endif
 #endif
+}
+
+// see https://github.com/trilinos/Trilinos/pull/11506
+struct TpetraUseCase {
+  template <class Scalar>
+  struct AbsMaxHelper {
+    Scalar value;
+
+    KOKKOS_FUNCTION AbsMaxHelper& operator+=(AbsMaxHelper const& rhs) {
+      Scalar lhs_abs_value = Kokkos::abs(value);
+      Scalar rhs_abs_value = Kokkos::abs(rhs.value);
+      value = lhs_abs_value > rhs_abs_value ? lhs_abs_value : rhs_abs_value;
+      return *this;
+    }
+
+    KOKKOS_FUNCTION AbsMaxHelper operator+(AbsMaxHelper const& rhs) const {
+      AbsMaxHelper ret = *this;
+      ret += rhs;
+      return ret;
+    }
+  };
+
+  using T = int;
+  Kokkos::View<T> d_{"lbl"};
+  KOKKOS_FUNCTION void operator()(int i) const {
+    // 0, -1, 2, -3, ...
+    auto v_i = static_cast<T>(i);
+    if (i % 2 == 1) v_i = -v_i;
+    Kokkos::atomic_add(reinterpret_cast<AbsMaxHelper<T>*>(&d_()),
+                       AbsMaxHelper<T>{v_i});
+  }
+
+  TpetraUseCase() { Kokkos::parallel_for(10, *this); }
+
+  void check() {
+    T v;
+    Kokkos::deep_copy(v, d_);
+    ASSERT_EQ(v, 9);
+  }
+};
+
+TEST(TEST_CATEGORY, atomics_tpetra_max_abs) {
+#ifdef KOKKOS_COMPILER_NVHPC
+  GTEST_SKIP() << "FIXME_NVHPC (?)";
 #endif
+
+  TpetraUseCase().check();
 }
 
 }  // namespace Test

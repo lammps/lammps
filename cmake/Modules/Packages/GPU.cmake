@@ -64,6 +64,8 @@ if(GPU_API STREQUAL "CUDA")
     endif()
     set(GPU_CUDA_MPS_FLAGS "-DCUDA_MPS_SUPPORT")
   endif()
+  option(CUDA_BUILD_MULTIARCH "Enable building CUDA kernels for all supported GPU architectures" ON)
+  mark_as_advanced(GPU_BUILD_MULTIARCH)
 
   set(GPU_ARCH "sm_50" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
 
@@ -93,56 +95,58 @@ if(GPU_API STREQUAL "CUDA")
   # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
   set(GPU_CUDA_GENCODE "-arch=${GPU_ARCH}")
 
-  # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
-  # only the Kepler achitecture and beyond is supported
-  # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
-  if(CUDA_VERSION VERSION_LESS 8.0)
-    message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
-    message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
-    set(GPU_CUDA_GENCODE "-arch=all")
-  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-    set(GPU_CUDA_GENCODE "-arch=all")
-  else()
-    # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] ")
-    endif()
-    # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
-    if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
-    endif()
-    # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
-    endif()
-    # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
-    endif()
-    # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
-    endif()
-    # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
-    endif()
-    # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
-    endif()
-    # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
-    endif()
-    # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-    endif()
-    # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+  if(CUDA_BUILD_MULTIARCH)
+    # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
+    # only the Kepler achitecture and beyond is supported
+    # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+    if(CUDA_VERSION VERSION_LESS 8.0)
+      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
+    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
+      message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
+      set(GPU_CUDA_GENCODE "-arch=all")
+    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+      set(GPU_CUDA_GENCODE "-arch=all")
+    else()
+      # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
+      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] ")
+      endif()
+      # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
+      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
+      endif()
+      # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
+      endif()
+      # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
+      endif()
+      # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
+      endif()
+      # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
+      endif()
+      # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
+      endif()
+      # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
+      endif()
+      # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+      endif()
+      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+      endif()
     endif()
   endif()
 

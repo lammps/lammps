@@ -32,21 +32,12 @@ using LAMMPS_NS::LAMMPSException;
 
 using ::testing::ContainsRegex;
 
-#define TEST_FAILURE(errmsg, ...)                                                               \
-    if (Info::has_exceptions()) {                                                               \
-        ::testing::internal::CaptureStdout();                                                   \
-        ASSERT_ANY_THROW({__VA_ARGS__});                                                        \
-        auto mesg = ::testing::internal::GetCapturedStdout();                                   \
-        ASSERT_THAT(mesg, ContainsRegex(errmsg));                                               \
-    } else {                                                                                    \
-        if (LAMMPS_NS::platform::mpi_vendor() != "Open MPI") {                                             \
-            ::testing::internal::CaptureStdout();                                               \
-            ASSERT_DEATH({__VA_ARGS__}, "");                                                    \
-            auto mesg = ::testing::internal::GetCapturedStdout();                               \
-            ASSERT_THAT(mesg, ContainsRegex(errmsg));                                           \
-        } else {                                                                                \
-            std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n"; \
-        }                                                                                       \
+#define TEST_FAILURE(errmsg, ...)                             \
+    {                                                         \
+        ::testing::internal::CaptureStdout();                 \
+        ASSERT_ANY_THROW({__VA_ARGS__});                      \
+        auto mesg = ::testing::internal::GetCapturedStdout(); \
+        ASSERT_THAT(mesg, ContainsRegex(errmsg));             \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).

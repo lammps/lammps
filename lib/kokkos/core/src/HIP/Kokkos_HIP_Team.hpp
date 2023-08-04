@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_HIP_TEAM_HPP
 #define KOKKOS_HIP_TEAM_HPP
@@ -94,8 +66,9 @@ struct HIPJoinFunctor {
  */
 class HIPTeamMember {
  public:
-  using execution_space      = Kokkos::Experimental::HIP;
+  using execution_space      = HIP;
   using scratch_memory_space = execution_space::scratch_memory_space;
+  using team_handle          = HIPTeamMember;
 
  private:
   mutable void* m_team_reduce;
@@ -166,8 +139,7 @@ class HIPTeamMember {
       val = *(reinterpret_cast<ValueType*>(m_team_reduce));
     } else {               // team <= warp
       ValueType tmp(val);  // input might not be a register variable
-      ::Kokkos::Experimental::Impl::in_place_shfl(
-          val, tmp, blockDim.x * thread_id, blockDim.x * blockDim.y);
+      in_place_shfl(val, tmp, blockDim.x * thread_id, blockDim.x * blockDim.y);
     }
 #else
     (void)val;
@@ -209,8 +181,8 @@ class HIPTeamMember {
               typename ReducerType::value_type& value) const noexcept {
 #ifdef __HIP_DEVICE_COMPILE__
     typename Kokkos::Impl::FunctorAnalysis<
-        FunctorPatternInterface::REDUCE, TeamPolicy<Experimental::HIP>,
-        ReducerType>::Reducer wrapped_reducer(&reducer);
+        FunctorPatternInterface::REDUCE, TeamPolicy<HIP>, ReducerType,
+        typename ReducerType::value_type>::Reducer wrapped_reducer(reducer);
     hip_intra_block_shuffle_reduction(value, wrapped_reducer, blockDim.y);
     reducer.reference() = value;
 #else
@@ -246,8 +218,8 @@ class HIPTeamMember {
 
     Impl::HIPJoinFunctor<Type> hip_join_functor;
     typename Kokkos::Impl::FunctorAnalysis<
-        FunctorPatternInterface::REDUCE, TeamPolicy<Experimental::HIP>,
-        Impl::HIPJoinFunctor<Type>>::Reducer reducer(&hip_join_functor);
+        FunctorPatternInterface::REDUCE, TeamPolicy<HIP>,
+        Impl::HIPJoinFunctor<Type>, Type>::Reducer reducer(hip_join_functor);
     Impl::hip_intra_block_reduce_scan<true>(reducer, base_data + 1);
 
     if (global_accum) {
@@ -297,8 +269,7 @@ class HIPTeamMember {
     typename ReducerType::value_type tmp2 = tmp;
 
     for (int i = blockDim.x; (i >>= 1);) {
-      ::Kokkos::Experimental::Impl::in_place_shfl_down(tmp2, tmp, i,
-                                                       blockDim.x);
+      in_place_shfl_down(tmp2, tmp, i, blockDim.x);
       if (static_cast<int>(threadIdx.x) < i) {
         reducer.join(tmp, tmp2);
       }
@@ -309,7 +280,7 @@ class HIPTeamMember {
     // because floating point summation is not associative
     // and thus different threads could have different results.
 
-    ::Kokkos::Experimental::Impl::in_place_shfl(tmp2, tmp, 0, blockDim.x);
+    in_place_shfl(tmp2, tmp, 0, blockDim.x);
     value               = tmp2;
     reducer.reference() = tmp2;
 #else
@@ -397,16 +368,8 @@ struct ThreadVectorRangeBoundariesStruct<iType, HIPTeamMember> {
       : start(static_cast<index_type>(0)), end(count) {}
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(index_type count)
-      : start(static_cast<index_type>(0)), end(count) {}
-
-  KOKKOS_INLINE_FUNCTION
   ThreadVectorRangeBoundariesStruct(const HIPTeamMember, index_type arg_begin,
                                     index_type arg_end)
-      : start(arg_begin), end(arg_end) {}
-
-  KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(index_type arg_begin, index_type arg_end)
       : start(arg_begin), end(arg_end) {}
 };
 
@@ -581,8 +544,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     const FunctorType& lambda) {
   // Extract value_type from lambda
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void,
-      FunctorType>::value_type;
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
+      void>::value_type;
 
   const auto start     = loop_bounds.start;
   const auto end       = loop_bounds.end;
@@ -824,7 +787,7 @@ parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
     //  inversion.
     for (int j = 1; j < static_cast<int>(blockDim.x); j <<= 1) {
       value_type tmp = identity;
-      ::Kokkos::Experimental::Impl::in_place_shfl_up(tmp, val, j, blockDim.x);
+      Impl::in_place_shfl_up(tmp, val, j, blockDim.x);
       if (j <= static_cast<int>(threadIdx.x)) {
         reducer.join(val, tmp);
       }
@@ -836,8 +799,7 @@ parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
     // Update i's contribution into the val
     // and add it to accum for next round
     if (i < loop_boundaries.end) closure(i, val, true);
-    ::Kokkos::Experimental::Impl::in_place_shfl(accum, val, blockDim.x - 1,
-                                                blockDim.x);
+    Impl::in_place_shfl(accum, val, blockDim.x - 1, blockDim.x);
   }
 #else
   (void)loop_boundaries;
@@ -862,7 +824,8 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
         loop_boundaries,
     const Closure& closure) {
   using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure>::value_type;
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure,
+      void>::value_type;
   value_type dummy;
   parallel_scan(loop_boundaries, closure, Kokkos::Sum<value_type>(dummy));
 }
@@ -899,7 +862,7 @@ KOKKOS_INLINE_FUNCTION void single(
     const FunctorType& lambda, ValueType& val) {
 #ifdef __HIP_DEVICE_COMPILE__
   if (threadIdx.x == 0) lambda(val);
-  ::Kokkos::Experimental::Impl::in_place_shfl(val, val, 0, blockDim.x);
+  Impl::in_place_shfl(val, val, 0, blockDim.x);
 #else
   (void)lambda;
   (void)val;

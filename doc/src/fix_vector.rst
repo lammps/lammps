@@ -8,12 +8,11 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID vector Nevery [nmax <length>] value1 value2 ...
+   fix ID group-ID vector Nevery value1 value2 ... keyword args ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * vector = style name of this fix command
 * Nevery = use input values every this many timesteps
-* nmax <length> = set maximal length of vector to <length> (optional)
 * one or more input values can be listed
 * value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
@@ -26,6 +25,13 @@ Syntax
        v_name = value calculated by an equal-style variable with name
        v_name[I] = Ith component of vector-style variable with name
 
+* zero or more keyword/args pairs may be appended
+* keyword = *nmax*
+
+  .. parsed-literal::
+
+       *nmax* length = set maximal length of vector to <length>
+
 Examples
 """"""""
 
@@ -33,16 +39,16 @@ Examples
 
    fix 1 all vector 100 c_myTemp
    fix 1 all vector 5 c_myTemp v_integral
-   fix 1 all vector 50 nmax 200 c_myTemp
+   fix 1 all vector 50 c_myTemp nmax 200
 
 Description
 """""""""""
 
-Use one or more global values as inputs every few timesteps, and
-simply store them.  For a single specified value, the values are
+Use one or more global values as inputs every few timesteps, and simply
+store them as a sequence.  For a single specified value, the values are
 stored as a global vector of growing length.  For multiple specified
-values, they are stored as rows in a global array, whose number of
-rows is growing.  The resulting vector or array can be used by other
+values, they are stored as rows in a global array, whose number of rows
+is growing.  The resulting vector or array can be used by other
 :doc:`output commands <Howto_output>`.
 
 The optional *nmax* keyword can be used to restrict the length of the
@@ -82,6 +88,15 @@ be used, since they produce per-atom values.
 The *Nevery* argument specifies on what timesteps the input values
 will be used in order to be stored.  Only timesteps that are a
 multiple of *Nevery*, including timestep 0, will contribute values.
+
+.. note::
+   :class: warning
+
+      If *Nevery* is a small number and the simulation runs for many
+      steps, the accumulated vector or array can become very large and
+      thus consume a lot of memory. The implementation limit is about
+      2 billion entries. Using the *nmax* keyword mentioned above can
+      avoid that by limiting the size of the vector.
 
 Note that if you perform multiple runs, using the "pre no" option of
 the :doc:`run <run>` command to avoid initialization on subsequent runs,

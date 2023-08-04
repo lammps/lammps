@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Megan McCarthy (SNL), Stan Moore (SNL)
+   Contributing author: Megan McCarthy (SNL)
 ------------------------------------------------------------------------- */
 
 #include "compute_local_comp_atom_kokkos.h"
@@ -42,13 +42,11 @@ template<class DeviceType>
 ComputeLocalCompAtomKokkos<DeviceType>::ComputeLocalCompAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
   ComputeLocalCompAtom(lmp, narg, arg)
 {
-
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +57,6 @@ ComputeLocalCompAtomKokkos<DeviceType>::~ComputeLocalCompAtomKokkos()
   if (copymode) return;
 
   memoryKK->destroy_kokkos(k_result,result);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,7 +79,6 @@ void ComputeLocalCompAtomKokkos<DeviceType>::init()
 template<class DeviceType>
 void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
 {
-
   invoked_peratom = update->ntimestep;
 
   // grow result array if necessary
@@ -124,14 +120,12 @@ void ComputeLocalCompAtomKokkos<DeviceType>::compute_peratom()
 
   k_result.modify<DeviceType>();
   k_result.sync_host();
-
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeLocalCompAtomKokkos<DeviceType>::operator()(TagComputeLocalCompAtom, const int &ii) const
 {
-
   const int i = d_ilist[ii];
 
   if (mask[i] & groupbit) {

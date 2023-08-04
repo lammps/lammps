@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Megan McCarthy (SNL), Stan Moore (SNL)
+   Contributing author: Megan McCarthy (SNL)
 ------------------------------------------------------------------------- */
 
 #include "compute_local_comp_atom.h"
@@ -70,7 +70,6 @@ ComputeLocalCompAtom::~ComputeLocalCompAtom()
   if (copymode) return;
 
   memory->destroy(result);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +107,6 @@ void ComputeLocalCompAtom::init()
 
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (cutflag) req->set_cutoff(cutoff);
-
 }
 
 /* ---------------------------------------------------------------------- */

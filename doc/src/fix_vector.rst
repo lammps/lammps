@@ -50,9 +50,9 @@ vector to the given *length* value. Once the vector is filled, the
 oldest entries will be discarded when new entries are added.
 
 One way to to use this command is to accumulate a vector that is
-time-integrated using the :doc:`variable trap() <variable>` function.
-For example the velocity auto-correlation function (VACF) can be
-time-integrated, to yield a diffusion coefficient, as follows:
+numerically integrated using the :doc:`variable trap() <variable>`
+function. For example, the velocity auto-correlation function (VACF)
+can be integrated, to yield a diffusion coefficient, as follows:
 
 .. code-block:: LAMMPS
 
@@ -174,7 +174,10 @@ Related commands
 
 :doc:`compute <compute>`, :doc:`variable <variable>`
 
-Default
-"""""""
+Defaults
+""""""""
 
-none
+The default value of *nmax* is deduced from the number of steps
+in a run (or multiple runs when using the *start* and *stop* 
+keywords of the :doc:`run command <run>`) divided by the choice
+of *Nevery* plus 1.

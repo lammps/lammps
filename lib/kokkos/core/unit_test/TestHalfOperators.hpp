@@ -1,53 +1,22 @@
-
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef TESTHALFOPERATOR_HPP_
 #define TESTHALFOPERATOR_HPP_
 namespace Test {
-#define FP16_EPSILON 0.0009765625F  // 1/2^10
-#define BF16_EPSILON 0.0078125F     // 1/2^7
 using namespace Kokkos::Experimental;
 using ExecutionSpace = TEST_EXECSPACE;
 using ScalarType     = double;
@@ -55,9 +24,19 @@ using ViewType       = Kokkos::View<ScalarType*, ExecutionSpace>;
 using ViewTypeHost   = Kokkos::View<ScalarType*, Kokkos::HostSpace>;
 KOKKOS_FUNCTION
 const half_t& accept_ref(const half_t& a) { return a; }
+KOKKOS_FUNCTION
+double accept_ref_expected(const half_t& a) {
+  double tmp = static_cast<double>(a);
+  return tmp;
+}
 #if !KOKKOS_BHALF_T_IS_FLOAT
 KOKKOS_FUNCTION
 const bhalf_t& accept_ref(const bhalf_t& a) { return a; }
+KOKKOS_FUNCTION
+double accept_ref_expected(const bhalf_t& a) {
+  double tmp = static_cast<double>(a);
+  return tmp;
+}
 #endif  // !KOKKOS_BHALF_T_IS_FLOAT
 
 enum OP_TESTS {
@@ -272,6 +251,8 @@ enum OP_TESTS {
   N_OP_TESTS
 };
 
+// volatile-qualified parameter type 'volatile half_type' is deprecated
+#if !defined(KOKKOS_ENABLE_CXX20) && !defined(KOKKOS_ENABLE_CXX23)
 template <class view_type, class half_type>
 struct Functor_TestHalfVolatileOperators {
   volatile half_type h_lhs, h_rhs;
@@ -358,6 +339,7 @@ struct Functor_TestHalfVolatileOperators {
     expected_lhs(CDIV_H_H) /= d_rhs;
   }
 };
+#endif
 
 template <class view_type, class half_type>
 struct Functor_TestHalfOperators {
@@ -912,8 +894,16 @@ struct Functor_TestHalfOperators {
     // actual_lhs(TW)   = h_lhs <=> h_rhs;  // Need C++20?
     // expected_lhs(TW) = d_lhs <=> d_rhs;  // Need C++20?
 
-    actual_lhs(PASS_BY_REF)   = static_cast<double>(accept_ref(h_lhs));
-    expected_lhs(PASS_BY_REF) = d_lhs;
+    actual_lhs(PASS_BY_REF) = static_cast<double>(accept_ref(h_lhs));
+
+    // Use accept_ref and accept_ref_expected to ensure the compiler
+    // does not optimize out the casts half_type -> double -> half_type.
+    // Note that these casts are accompanied by rounding. For the bhalf_t
+    // epsilon, these rounding policies used for casting is enough to cause
+    // the unit tests to fail.
+    // In short, one cannot simply assign static_cast<double>(h_lhs) to
+    // expected_lhs(PASS_BY_REF).
+    expected_lhs(PASS_BY_REF) = accept_ref_expected(h_lhs);
 
     half_tmp = static_cast<float>(h_lhs);
     tmp_ptr  = &(tmp_lhs = half_tmp);
@@ -936,12 +926,7 @@ struct Functor_TestHalfOperators {
 
 template <class half_type>
 void __test_half_operators(half_type h_lhs, half_type h_rhs) {
-  double epsilon = FLT_EPSILON;
-
-  if (std::is_same<half_type, Kokkos::Experimental::half_t>::value)
-    epsilon = FP16_EPSILON;
-  if (std::is_same<half_type, Kokkos::Experimental::bhalf_t>::value)
-    epsilon = BF16_EPSILON;
+  double epsilon = Kokkos::Experimental::epsilon<half_type>::value;
 
   Functor_TestHalfOperators<ViewType, half_type> f_device(h_lhs, h_rhs);
   Functor_TestHalfOperators<ViewTypeHost, half_type> f_host(h_lhs, h_rhs);
@@ -961,6 +946,8 @@ void __test_half_operators(half_type h_lhs, half_type h_rhs) {
                 epsilon);
   }
 
+// volatile-qualified parameter type 'volatile half_type' is deprecated
+#if !defined(KOKKOS_ENABLE_CXX20) && !defined(KOKKOS_ENABLE_CXX23)
   // Test partial volatile support
   volatile half_type _h_lhs = h_lhs;
   volatile half_type _h_rhs = h_rhs;
@@ -984,6 +971,7 @@ void __test_half_operators(half_type h_lhs, half_type h_rhs) {
                   epsilon);
     }
   }
+#endif
 
   // is_trivially_copyable is false with the addition of explicit
   // copy constructors that are required for supporting reductions

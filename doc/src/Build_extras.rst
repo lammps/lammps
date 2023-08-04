@@ -52,7 +52,6 @@ This is the list of packages that may require additional steps.
    * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
    * :ref:`MOLFILE <molfile>`
-   * :ref:`MSCG <mscg>`
    * :ref:`NETCDF <netcdf>`
    * :ref:`OPENMP <openmp>`
    * :ref:`OPT <opt>`
@@ -639,6 +638,12 @@ They must be specified in uppercase.
    *  - VEGA90A
       - GPU
       - AMD GPU MI200 GFX90A
+   *  - NAVI1030
+      - GPU
+      - AMD GPU V620/W6800
+   *  - NAVI1100
+      - GPU
+      - AMD GPU RX7900XTX
    *  - INTEL_GEN
       - GPU
       - SPIR64-based devices, e.g. Intel GPUs, using JIT
@@ -661,7 +666,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 3.7.1 of the Kokkos library.
+This list was last updated for version 4.0.1 of the Kokkos library.
 
 .. tabs::
 
@@ -928,59 +933,6 @@ Python version 3.6 or later.
       folder, as that can lead to compilation errors if Python support
       is not enabled.  If you did this by accident, please remove the
       generated .cpp and .h files.
-
-----------
-
-.. _mscg:
-
-MSCG package
------------------------
-
-To build with this package, you must download and build the MS-CG
-library.  Building the MS-CG library requires that the GSL
-(GNU Scientific Library) headers and libraries are installed on your
-machine.  See the ``lib/mscg/README`` and ``MSCG/Install`` files for
-more details.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D DOWNLOAD_MSCG=value    # download MSCG for build, value = no (default) or yes
-         -D MSCG_LIBRARY=path      # MSCG library file (only needed if a custom location)
-         -D MSCG_INCLUDE_DIR=path  # MSCG include directory (only needed if a custom location)
-
-      If ``DOWNLOAD_MSCG`` is set, the MSCG library will be downloaded
-      and built inside the CMake build directory.  If the MSCG library
-      is already on your system (in a location CMake cannot find it),
-      ``MSCG_LIBRARY`` is the filename (plus path) of the MSCG library
-      file, not the directory the library file is in.
-      ``MSCG_INCLUDE_DIR`` is the directory the MSCG include file is in.
-
-   .. tab:: Traditional make
-
-      You can download and build the MS-CG library manually if you
-      prefer; follow the instructions in ``lib/mscg/README``\ .  You can
-      also do it in one step from the ``lammps/src`` dir, using a
-      command like these, which simply invokes the
-      ``lib/mscg/Install.py`` script with the specified args:
-
-      .. code-block:: bash
-
-         make lib-mscg             # print help message
-         make lib-mscg args="-b -m serial"   # download and build in lib/mscg/MSCG-release-master
-                                             # with the settings compatible with "make serial"
-         make lib-mscg args="-b -m mpi"      # download and build in lib/mscg/MSCG-release-master
-                                             # with the settings compatible with "make mpi"
-         make lib-mscg args="-p /usr/local/mscg-release" # use the existing MS-CG installation in /usr/local/mscg-release
-
-      Note that 2 symbolic (soft) links, ``includelink`` and ``liblink``,
-      will be created in ``lib/mscg`` to point to the MS-CG
-      ``src/installation`` dir.  When LAMMPS is built in src it will use
-      these links.  You should not need to edit the
-      ``lib/mscg/Makefile.lammps`` file.
 
 ----------
 

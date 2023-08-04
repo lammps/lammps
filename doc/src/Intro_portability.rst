@@ -12,7 +12,7 @@ Programming language standards
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Most of the C++ code currently requires a compiler compatible with the
-C++11 standard, the KOKKOS package currently requires C++14.  Most of
+C++11 standard, the KOKKOS package currently requires C++17.  Most of
 the Python code is written to be compatible with Python 3.5 or later or
 Python 2.7.  Some Python scripts *require* Python 3 and a few others
 still need to be ported from Python 2 to Python 3.

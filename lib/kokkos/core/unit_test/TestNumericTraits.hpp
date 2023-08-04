@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -68,7 +40,14 @@ struct extrema {
 
   DEFINE_EXTREMA(float, -FLT_MAX, FLT_MAX);
   DEFINE_EXTREMA(double, -DBL_MAX, DBL_MAX);
+
+// FIXME_NVHPC: with 23.3 using long double in KOKKOS_FUNCTION is hard error
+#if !defined(KOKKOS_ENABLE_CUDA) || !defined(KOKKOS_COMPILER_NVHPC)
   DEFINE_EXTREMA(long double, -LDBL_MAX, LDBL_MAX);
+#else
+  static long double min(long double) { return -LDBL_MAX; }
+  static long double max(long double) { return LDBL_MAX; }
+#endif
 
 #undef DEFINE_EXTREMA
 };
@@ -81,7 +60,6 @@ struct FiniteMax { template <class T> using trait = Kokkos::Experimental::finite
 struct RoundError { template <class T> using trait = Kokkos::Experimental::round_error<T>; };
 struct NormMin { template <class T> using trait = Kokkos::Experimental::norm_min<T>; };
 struct DenormMin { template <class T> using trait = Kokkos::Experimental::denorm_min<T>; };
-struct ReciprocalOverflowThreshold { template <class T> using trait = Kokkos::Experimental::reciprocal_overflow_threshold<T>; };
 struct Digits { template <class T> using trait = Kokkos::Experimental::digits<T>; };
 struct Digits10 { template <class T> using trait = Kokkos::Experimental::digits10<T>; };
 struct MaxDigits10 { template <class T> using trait = Kokkos::Experimental::max_digits10<T>; };
@@ -152,18 +130,6 @@ struct TestNumericTraits {
     use_on_device();
   }
 
-  KOKKOS_FUNCTION void operator()(ReciprocalOverflowThreshold, int,
-                                  int& e) const {
-    using Kokkos::Experimental::reciprocal_overflow_threshold;
-    auto const inv = 1 / reciprocal_overflow_threshold<T>::value;
-    if (inv + inv == inv && inv != 0) {
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "inverse of reciprocal overflow threshold is inf\n");
-      ++e;
-    }
-    use_on_device();
-  }
-
   // clang-format off
   KOKKOS_FUNCTION void operator()(FiniteMax, int, int&) const { use_on_device(); }
   KOKKOS_FUNCTION void operator()(RoundError, int, int&) const { use_on_device(); }
@@ -204,7 +170,8 @@ struct TestNumericTraits {
   }
 
   KOKKOS_FUNCTION void use_on_device() const {
-#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_NVHPC) || \
+    defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_OPENACC)
     take_by_value(trait<T>::value);
 #else
     (void)take_address_of(trait<T>::value);
@@ -239,9 +206,8 @@ struct TestNumericTraits<
 TEST(TEST_CATEGORY, numeric_traits_infinity) {
   TestNumericTraits<TEST_EXECSPACE, float, Infinity>();
   TestNumericTraits<TEST_EXECSPACE, double, Infinity>();
-  // fails with XL 16.1.1 see issue #4100
   // FIXME_NVHPC long double not supported
-#if !defined(KOKKOS_COMPILER_IBM) && !defined(KOKKOS_COMPILER_NVHPC)
+#if !defined(KOKKOS_COMPILER_NVHPC)
   TestNumericTraits<TEST_EXECSPACE, long double, Infinity>();
 #endif
 }
@@ -249,9 +215,8 @@ TEST(TEST_CATEGORY, numeric_traits_infinity) {
 TEST(TEST_CATEGORY, numeric_traits_epsilon) {
   TestNumericTraits<TEST_EXECSPACE, float, Epsilon>();
   TestNumericTraits<TEST_EXECSPACE, double, Epsilon>();
-  // fails with XL 16.1.1 see issue #4100
   // FIXME_NVHPC long double not supported
-#if !defined(KOKKOS_COMPILER_IBM) && !defined(KOKKOS_COMPILER_NVHPC)
+#if !defined(KOKKOS_COMPILER_NVHPC)
   TestNumericTraits<TEST_EXECSPACE, long double, Epsilon>();
 #endif
 }
@@ -283,16 +248,6 @@ TEST(TEST_CATEGORY, numeric_traits_denorm_min) {
   // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
   // TERMINATED by signal 11
   TestNumericTraits<TEST_EXECSPACE, long double, DenormMin>();
-#endif
-}
-
-TEST(TEST_CATEGORY, numeric_traits_reciprocal_overflow_threshold) {
-  TestNumericTraits<TEST_EXECSPACE, float, ReciprocalOverflowThreshold>();
-  TestNumericTraits<TEST_EXECSPACE, double, ReciprocalOverflowThreshold>();
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
-  // nvc++-Fatal-/home/projects/x86-64/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/tools/cpp2
-  // TERMINATED by signal 11
-  TestNumericTraits<TEST_EXECSPACE, long double, ReciprocalOverflowThreshold>();
 #endif
 }
 
@@ -528,17 +483,20 @@ CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, infinity);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, infinity);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, epsilon);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, epsilon);
-#ifndef KOKKOS_COMPILER_IBM  // fails with XL 16.1.1
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, epsilon);
-#endif
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, denorm_min);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, denorm_min);
+
+// FIXME_OPENMPTARGET - The static_assert causes issues on Intel GPUs with the
+// OpenMPTarget backend.
+#if !(defined(KOKKOS_ENABLE_OPENMPTARGET) && \
+      defined(KOKKOS_COMPILER_INTEL_LLVM))
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, denorm_min);
-// NOTE reciprocal_overflow_threshold purposefully omitted since it does not
-// exist in std::numeric_limits
+#endif
+
 // clang-format off
 static_assert(Kokkos::Experimental::norm_min<float      >::value == std::numeric_limits<      float>::min(), "");
 static_assert(Kokkos::Experimental::norm_min<double     >::value == std::numeric_limits<     double>::min(), "");
@@ -703,8 +661,6 @@ CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_INTEGRAL(finite_max);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(epsilon);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(round_error);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(norm_min);
-CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(
-    reciprocal_overflow_threshold);
 
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(digits);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_INTEGRAL(digits);

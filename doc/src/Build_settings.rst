@@ -459,27 +459,13 @@ those systems:
 .. _exceptions:
 
 Exception handling when using LAMMPS as a library
-------------------------------------------------------------------
+-------------------------------------------------
 
-This setting is useful when external codes drive LAMMPS as a library.
-With this option enabled, LAMMPS errors do not kill the calling code.
-Instead, the call stack is unwound and control returns to the caller,
-e.g. to Python. Of course, the calling code has to be set up to
-*catch* exceptions thrown from within LAMMPS.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
-
-   .. tab:: Traditional make
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_EXCEPTIONS   <other LMP_INC settings>
+LAMMPS errors do not kill the calling code, but throw an exception.  In
+the C-library interface, the call stack is unwound and control returns
+to the caller, e.g. to Python or a code that is coupled to LAMMPS and
+the error status can be queried.  When using C++ directly, the calling
+code has to be set up to *catch* exceptions thrown from within LAMMPS.
 
 .. note::
 

@@ -52,8 +52,8 @@ is growing.  The resulting vector or array can be used by other
 :doc:`output commands <Howto_output>`.
 
 The optional *nmax* keyword can be used to restrict the length of the
-vector to the given *length* value. Once the vector is filled, the
-oldest entries will be discarded when new entries are added.
+vector to the given *length* value.  Once the restricted vector is
+filled, the oldest entry will be discarded when a entry is added.
 
 One way to to use this command is to accumulate a vector that is
 numerically integrated using the :doc:`variable trap() <variable>`

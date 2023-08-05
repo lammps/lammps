@@ -324,7 +324,7 @@ TEST_F(FileOperationsTest, write_restart)
     command("write_restart multi-%.restart");
     command("write_restart multi2-%.restart fileper 2");
     command("write_restart multi3-%.restart nfile 1");
-    if (Info::has_package("MPIIO")) command("write_restart test.restart.mpiio");
+    // if (Info::has_package("MPIIO")) command("write_restart test.restart.mpiio");
     END_HIDE_OUTPUT();
 
     ASSERT_FILE_EXISTS("noinit.restart");

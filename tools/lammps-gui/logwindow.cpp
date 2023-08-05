@@ -13,7 +13,6 @@
 
 #include "logwindow.h"
 #include <QSettings>
-#include <cstdio>
 
 LogWindow::LogWindow(QWidget *parent) : QPlainTextEdit(parent)
 {
@@ -23,7 +22,6 @@ LogWindow::LogWindow(QWidget *parent) : QPlainTextEdit(parent)
 
 void LogWindow::closeEvent(QCloseEvent *event)
 {
-    fprintf(stderr, "log closing\n");
     QSettings settings;
     if (!isMaximized()) {
         settings.setValue("logx", width());

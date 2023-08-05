@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.0.0 LANGUAGES CXX)
+project(lammps-gui VERSION 1.1.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -13,10 +13,6 @@ option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
 mark_as_advanced(LAMMPS_GUI_USE_PLUGIN)
 
 # checks
-if(BUILD_MPI)
-  message(FATAL_ERROR "Must disable BUILD_MPI for building the LAMMPS GUI")
-endif()
-
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
 if(LAMMPS_DIR)
   set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR})
@@ -62,7 +58,7 @@ if(LAMMPS_GUI_USE_PLUGIN)
 endif()
 
 # we require Qt 5 and at least version 5.12 at that.
-find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
 
 set(PROJECT_SOURCES
   main.cpp
@@ -72,6 +68,8 @@ set(PROJECT_SOURCES
   highlighter.h
   imageviewer.cpp
   imageviewer.h
+  chartviewer.cpp
+  chartviewer.h
   lammpsgui.cpp
   lammpsgui.h
   lammpsgui.ui
@@ -109,7 +107,7 @@ else()
 endif()
 target_include_directories(lammps-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
-target_link_libraries(lammps-gui PRIVATE Qt5::Widgets)
+target_link_libraries(lammps-gui PRIVATE Qt5::Widgets Qt5::Charts)
 if(BUILD_OMP)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)

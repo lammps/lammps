@@ -30,6 +30,7 @@ public:
 
     int extract_setting(const char *keyword);
     double get_thermo(const char *keyword);
+    void *last_thermo(const char *keyword, int idx);
     bool is_open() const { return lammps_handle != nullptr; }
     bool is_running();
     bool has_error() const;

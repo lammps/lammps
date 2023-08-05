@@ -13,6 +13,7 @@
 
 #include "lammpsgui.h"
 
+#include "chartviewer.h"
 #include "highlighter.h"
 #include "imageviewer.h"
 #include "lammpsrunner.h"
@@ -64,8 +65,8 @@ static char *mystrdup(const std::string &text)
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
-    status(nullptr), logwindow(nullptr), imagewindow(nullptr), logupdater(nullptr),
-    dirstatus(nullptr), progress(nullptr), prefdialog(nullptr)
+    status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
+    logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr)
 {
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
@@ -203,6 +204,7 @@ LammpsGui::~LammpsGui()
     delete status;
     delete logwindow;
     delete imagewindow;
+    delete chartwindow;
     delete dirstatus;
 }
 
@@ -384,6 +386,7 @@ void LammpsGui::logupdate()
     double t_elapsed, t_remain, t_total;
     int completed = 1000;
 
+    // estimate completion percentage
     if (lammps.is_running()) {
         t_elapsed = lammps.get_thermo("cpu");
         t_remain  = lammps.get_thermo("cpuremain");
@@ -398,6 +401,28 @@ void LammpsGui::logupdate()
             logwindow->insertPlainText(text.c_str());
             logwindow->moveCursor(QTextCursor::End);
             logwindow->textCursor().deleteChar();
+        }
+    }
+
+    // extract chache thermo data
+    if (chartwindow) {
+        void *ptr = lammps.last_thermo("step", 0);
+        if (ptr) {
+            int step = 0;
+            if (lammps.extract_setting("bigint") == 4)
+                step = *(int *)ptr;
+            else
+                step = (int)*(int64_t *)ptr;
+            int ncols = *(int *)lammps.last_thermo("num", 0);
+            if (!chartwindow->has_columns()) {
+                // for (int i = 0; i < ncols; ++i) {
+                chartwindow->add_column((const char *)lammps.last_thermo("keyword", 1));
+                // }
+            }
+
+            // for (int i = 0; i < ncols; ++i) {
+            chartwindow->add_data(step, 0, *(double *)lammps.last_thermo("data", 1));
+            // }
         }
     }
 }
@@ -424,6 +449,27 @@ void LammpsGui::run_done()
     logwindow->insertPlainText(log.c_str());
     logwindow->moveCursor(QTextCursor::End);
 
+    if (chartwindow) {
+        void *ptr = lammps.last_thermo("step", 0);
+        if (ptr) {
+            int step = 0;
+            if (lammps.extract_setting("bigint") == 4)
+                step = *(int *)ptr;
+            else
+                step = (int)*(int64_t *)ptr;
+            int ncols = *(int *)lammps.last_thermo("num", 0);
+            if (!chartwindow->has_columns()) {
+                // for (int i = 0; i < ncols; ++i) {
+                chartwindow->add_column((const char *)lammps.last_thermo("keyword", 1));
+                // }
+            }
+
+            // for (int i = 0; i < ncols; ++i) {
+            chartwindow->add_data(step, 0, *(double *)lammps.last_thermo("data", 1));
+            // }
+        }
+    }
+    
     bool success         = true;
     constexpr int BUFLEN = 1024;
     char errorbuf[BUFLEN];
@@ -458,7 +504,8 @@ void LammpsGui::run_buffer()
     int nthreads = settings.value("nthreads", 1).toInt();
     int accel    = settings.value("accelerator", AcceleratorTab::None).toInt();
     if ((accel != AcceleratorTab::OpenMP) && (accel != AcceleratorTab::Intel) &&
-        (accel != AcceleratorTab::Kokkos)) nthreads = 1;
+        (accel != AcceleratorTab::Kokkos))
+        nthreads = 1;
     if (nthreads > 1)
         status->setText(QString("Running LAMMPS with %1 thread(s)...").arg(nthreads));
     else
@@ -503,9 +550,22 @@ void LammpsGui::run_buffer()
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
     logwindow->show();
 
+    // if configured, delete old log window before opening new one
+    if (settings.value("chartreplace", false).toBool()) delete chartwindow;
+    chartwindow = new ChartViewer();
+    chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on buffer - " +
+                                current_file);
+    chartwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    chartwindow->setMinimumSize(400, 300);
+    shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), chartwindow);
+    QObject::connect(shortcut, &QShortcut::activated, chartwindow, &ChartViewer::close);
+    shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), chartwindow);
+    QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
+    chartwindow->show();
+
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(500);
+    logupdater->start(200);
 }
 
 void LammpsGui::view_image()

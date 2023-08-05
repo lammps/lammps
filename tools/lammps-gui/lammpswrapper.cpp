@@ -58,6 +58,19 @@ double LammpsWrapper::get_thermo(const char *keyword)
     return val;
 }
 
+void *LammpsWrapper::last_thermo(const char *keyword, int index)
+{
+    void *ptr = nullptr;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        ptr = ((liblammpsplugin_t *)plugin_handle)->last_thermo(lammps_handle, keyword, index);
+#else
+        ptr           = lammps_last_thermo(lammps_handle, keyword, index);
+#endif
+    }
+    return ptr;
+}
+
 bool LammpsWrapper::is_running()
 {
     int val = 0;

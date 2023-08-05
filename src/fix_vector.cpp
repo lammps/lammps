@@ -38,16 +38,11 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   nmaxval = MAXSMALLINT;
   nindex = 0;
 
-  int iarg = 4;
-  if (strcmp(arg[iarg], "nmax") == 0) {
-    nmaxval = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-    if (nmaxval < 1) error->all(FLERR, "Invalid nmax value");
-    iarg += 2;
-  }
-
   // parse values
 
+  int iarg = 4;
   values.clear();
+
   while (iarg < narg) {
     ArgInfo argi(arg[iarg]);
 
@@ -61,8 +56,21 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Invalid fix vector argument: {}", arg[iarg]);
 
     if (val.which == ArgInfo::NONE) break;
+
     values.push_back(val);
     ++iarg;
+  }
+
+  while (iarg < narg) {
+
+    if (strcmp(arg[iarg], "nmax") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix vector nmax", error);
+      nmaxval = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (nmaxval < 1) error->all(FLERR, "Invalid nmax value");
+      iarg += 2;
+    } else {
+      error->all(FLERR, "Unknown fix vector keyword: {}", arg[iarg]);
+    }
   }
 
   // setup and error check

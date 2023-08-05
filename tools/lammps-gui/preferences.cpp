@@ -115,6 +115,8 @@ void Preferences::accept()
     if (box) settings->setValue("cite", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("logreplace");
     if (box) settings->setValue("logreplace", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("chartreplace");
+    if (box) settings->setValue("chartreplace", box->isChecked());
     QDialog::accept();
 }
 
@@ -133,6 +135,10 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
                                                                       : Qt::Unchecked);
+    auto *pltr = new QCheckBox("Replace chart window on new run");
+    pltr->setObjectName("chartreplace");
+    pltr->setCheckState(settings->value("chartreplace", false).toBool() ? Qt::Checked
+                                                                        : Qt::Unchecked);
 #if !defined(__APPLE__)
     auto *tmplabel  = new QLabel("Scratch Folder:");
     auto *tmpedit   = new QLineEdit(settings->value("tempdir", ".").toString());
@@ -159,6 +165,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(echo);
     layout->addWidget(cite);
     layout->addWidget(logr);
+    layout->addWidget(pltr);
 #if !defined(__APPLE__)
     layout->addLayout(tmplayout);
 #endif

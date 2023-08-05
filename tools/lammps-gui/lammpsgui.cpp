@@ -584,7 +584,7 @@ void LammpsGui::run_buffer()
 
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(200);
+    logupdater->start(250);
 }
 
 void LammpsGui::view_image()

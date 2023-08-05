@@ -16,6 +16,7 @@
 #include "highlighter.h"
 #include "imageviewer.h"
 #include "lammpsrunner.h"
+#include "logwindow.h"
 #include "preferences.h"
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
@@ -81,8 +82,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // restorge and initialize settings
     QSettings settings;
 
-    // check and initialize nthreads setting. Default is to use max,
-    // but not override OMP_NUM_THREADS and preferences setting.
+    // check and initialize nthreads setting. Default is to use max if there
+    // is no preference but do not override OMP_NUM_THREADS
 #if defined(_OPENMP)
     // use maximum number of available threads unless OMP_NUM_THREADS was set
     int nthreads = settings.value("nthreads", omp_get_max_threads()).toInt();
@@ -155,11 +156,11 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     status->setFixedWidth(300);
     ui->statusbar->addWidget(status);
     dirstatus = new QLabel(QString(" Directory: ") + current_dir);
-    dirstatus->setMinimumWidth(500);
+    dirstatus->setMinimumWidth(400);
     ui->statusbar->addWidget(dirstatus);
     progress = new QProgressBar();
     progress->setRange(0, 1000);
-    progress->setMinimumWidth(500);
+    progress->setMinimumWidth(400);
     progress->hide();
     dirstatus->show();
     ui->statusbar->addWidget(progress);
@@ -191,8 +192,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     } else {
         setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
     }
-
-    resize(settings.value("mainx", 500).toInt(), settings.value("mainy", 320).toInt());
+    resize(settings.value("mainx", "500").toInt(), settings.value("mainy", "320").toInt());
 }
 
 LammpsGui::~LammpsGui()
@@ -335,8 +335,10 @@ void LammpsGui::quit()
 
     // store some global settings
     QSettings settings;
-    settings.setValue("mainx", width());
-    settings.setValue("mainy", height());
+    if (!isMaximized()) {
+        settings.setValue("mainx", width());
+        settings.setValue("mainy", height());
+    }
     settings.sync();
     QCoreApplication::quit();
 }
@@ -412,7 +414,7 @@ void LammpsGui::modified()
 
 void LammpsGui::run_done()
 {
-    logupdater->stop();
+    if (logupdater) logupdater->stop();
     delete logupdater;
     logupdater = nullptr;
     progress->setValue(1000);
@@ -444,12 +446,23 @@ void LammpsGui::run_done()
 
 void LammpsGui::run_buffer()
 {
+    if (lammps.is_running()) {
+        QMessageBox::warning(this, "LAMMPS GUI Error",
+                             "Must stop current run before starting a new run");
+        return;
+    }
     QSettings settings;
     progress->setValue(0);
     dirstatus->hide();
     progress->show();
     int nthreads = settings.value("nthreads", 1).toInt();
-    status->setText(QString("Running LAMMPS with %1 thread(s)...").arg(nthreads));
+    int accel    = settings.value("accelerator", AcceleratorTab::None).toInt();
+    if ((accel != AcceleratorTab::OpenMP) && (accel != AcceleratorTab::Intel) &&
+        (accel != AcceleratorTab::Kokkos)) nthreads = 1;
+    if (nthreads > 1)
+        status->setText(QString("Running LAMMPS with %1 thread(s)...").arg(nthreads));
+    else
+        status->setText(QString("Running LAMMPS ..."));
     status->repaint();
     start_lammps();
     if (!lammps.is_open()) return;
@@ -466,7 +479,9 @@ void LammpsGui::run_buffer()
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
     runner->start();
 
-    logwindow = new QPlainTextEdit();
+    // if configured, delete old log window before opening new one
+    if (settings.value("logreplace", false).toBool()) delete logwindow;
+    logwindow = new LogWindow();
     logwindow->setReadOnly(true);
     logwindow->setCenterOnScroll(true);
     logwindow->moveCursor(QTextCursor::End);
@@ -480,17 +495,17 @@ void LammpsGui::run_buffer()
 #endif
     text_font.setStyleHint(QFont::TypeWriter);
     logwindow->document()->setDefaultFont(text_font);
-    logwindow->setLineWrapMode(QPlainTextEdit::NoWrap);
-    logwindow->setMinimumSize(600, 400);
+    logwindow->setLineWrapMode(LogWindow::NoWrap);
+    logwindow->setMinimumSize(400, 300);
     QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), logwindow);
-    QObject::connect(shortcut, &QShortcut::activated, logwindow, &QPlainTextEdit::close);
+    QObject::connect(shortcut, &QShortcut::activated, logwindow, &LogWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
     logwindow->show();
 
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(1000);
+    logupdater->start(500);
 }
 
 void LammpsGui::view_image()

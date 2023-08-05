@@ -79,6 +79,8 @@ set(PROJECT_SOURCES
   lammpswrapper.cpp
   lammpswrapper.h
   linenumberarea.h
+  logwindow.cpp
+  logwindow.h
   preferences.cpp
   preferences.h
   stdcapture.cpp

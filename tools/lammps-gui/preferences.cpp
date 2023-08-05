@@ -110,10 +110,11 @@ void Preferences::accept()
 
     // general settings
     QCheckBox *box = tabWidget->findChild<QCheckBox *>("echo");
-    if (box) settings->setValue("echo", box->isChecked() ? "1" : "0");
+    if (box) settings->setValue("echo", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("cite");
-    if (box) settings->setValue("cite", box->isChecked() ? "1" : "0");
-
+    if (box) settings->setValue("cite", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("logreplace");
+    if (box) settings->setValue("logreplace", box->isChecked());
     QDialog::accept();
 }
 
@@ -123,11 +124,15 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *layout = new QVBoxLayout;
 
     auto *echo = new QCheckBox("Echo input to log");
-    echo->setCheckState(settings->value("echo", "0").toInt() ? Qt::Checked : Qt::Unchecked);
     echo->setObjectName("echo");
-    auto *cite = new QCheckBox("Include Citations");
-    cite->setCheckState(settings->value("cite", "0").toInt() ? Qt::Checked : Qt::Unchecked);
+    echo->setCheckState(settings->value("echo", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    auto *cite = new QCheckBox("Include citation details");
     cite->setObjectName("cite");
+    cite->setCheckState(settings->value("cite", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    auto *logr = new QCheckBox("Replace log window on new run");
+    logr->setObjectName("logreplace");
+    logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
+                                                                      : Qt::Unchecked);
 #if !defined(__APPLE__)
     auto *tmplabel  = new QLabel("Scratch Folder:");
     auto *tmpedit   = new QLineEdit(settings->value("tempdir", ".").toString());
@@ -153,6 +158,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 #endif
     layout->addWidget(echo);
     layout->addWidget(cite);
+    layout->addWidget(logr);
 #if !defined(__APPLE__)
     layout->addLayout(tmplayout);
 #endif

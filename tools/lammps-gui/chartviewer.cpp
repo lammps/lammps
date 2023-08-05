@@ -13,18 +13,95 @@
 
 #include "chartviewer.h"
 
+#include <QHBoxLayout>
 #include <QLineSeries>
 #include <QSettings>
+#include <QVBoxLayout>
 
 using namespace QtCharts;
 
-ChartViewer::ChartViewer(QWidget *parent) :
-    QChartView(parent), last_step(-1), chart(new QChart), series(new QLineSeries),
+ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
+    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), active_chart(-1),
+    filename(_filename)
+{
+    auto *top = new QHBoxLayout;
+    menu->addMenu(file);
+    menu->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+
+    columns = new QComboBox;
+    top->addWidget(menu);
+    top->addWidget(columns);
+    saveAsAct    = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
+    closeAct     = file->addAction("&Close", this, &QWidget::close);
+    auto *layout = new QVBoxLayout;
+    layout->addLayout(top);
+    setLayout(layout);
+
+    connect(columns, SIGNAL(currentIndexChanged(int)), this, SLOT(change_chart(int)));
+    QSettings settings;
+    resize(settings.value("chartx", 500).toInt(), settings.value("charty", 320).toInt());
+}
+
+void ChartWindow::add_chart(const QString &title, int index)
+{
+    auto *chart = new ChartViewer(title, index);
+    layout()->addWidget(chart);
+    columns->addItem(title, index);
+    columns->show();
+    // hide all but the first chart added
+    if (charts.size() > 0) chart->hide();
+    charts.append(chart);
+    active_chart = 0;
+}
+
+void ChartWindow::add_data(int step, double data, int index)
+{
+    for (auto &c : charts)
+        if (c->get_index() == index) c->add_data(step, data);
+}
+
+void ChartWindow::saveAs()
+{
+    if (charts.empty() || (active_chart < 0)) return;
+    QString defaultname = filename + "." + columns->currentText() + ".png";
+    if (filename.isEmpty()) defaultname = columns->currentText() + ".png";
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as Image", defaultname,
+                                                    "Image Files (*.jpg *.png *.bmp *.ppm)");
+    if (!fileName.isEmpty()) {
+        charts[active_chart]->grab().save(fileName);
+    }
+}
+
+void ChartWindow::change_chart(int index)
+{
+    int choice = columns->currentData().toInt();
+    for (auto &c : charts) {
+        if (choice == c->get_index())
+            c->show();
+        else
+            c->hide();
+    }
+}
+
+void ChartWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings;
+    if (!isMaximized()) {
+        settings.setValue("chartx", width());
+        settings.setValue("charty", height());
+    }
+    QWidget::closeEvent(event);
+}
+
+/* -------------------------------------------------------------------- */
+
+ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
+    QChartView(parent), last_step(-1), index(_index), chart(new QChart), series(new QLineSeries),
     xaxis(new QValueAxis), yaxis(new QValueAxis)
 {
     chart->legend()->hide();
-    chart->addAxis(xaxis,Qt::AlignBottom);
-    chart->addAxis(yaxis,Qt::AlignLeft);
+    chart->addAxis(xaxis, Qt::AlignBottom);
+    chart->addAxis(yaxis, Qt::AlignLeft);
     chart->addSeries(series);
     series->attachAxis(xaxis);
     series->attachAxis(yaxis);
@@ -33,22 +110,17 @@ ChartViewer::ChartViewer(QWidget *parent) :
     yaxis->setTickCount(5);
     xaxis->setMinorTickCount(5);
     yaxis->setMinorTickCount(5);
+    yaxis->setTitleText(title);
+    series->setName(title);
 
     setRenderHint(QPainter::Antialiasing);
     setChart(chart);
     setRubberBand(QChartView::RectangleRubberBand);
-
-    QSettings settings;
-    resize(settings.value("chartx", 500).toInt(), settings.value("charty", 320).toInt());
 }
 
-void ChartViewer::add_column(const QString &title)
-{
-    yaxis->setTitleText(title);
-    series->setName(title);
-}
+/* -------------------------------------------------------------------- */
 
-void ChartViewer::add_data(int step, int column, double data)
+void ChartViewer::add_data(int step, double data)
 {
     if (last_step < step) {
         last_step = step;
@@ -68,16 +140,6 @@ void ChartViewer::add_data(int step, int column, double data)
         xaxis->setRange(xmin, xmax);
         yaxis->setRange(ymin, ymax);
     }
-}
-
-void ChartViewer::closeEvent(QCloseEvent *event)
-{
-    QSettings settings;
-    if (!isMaximized()) {
-        settings.setValue("chartx", width());
-        settings.setValue("charty", height());
-    }
-    QChartView::closeEvent(event);
 }
 
 // Local Variables:

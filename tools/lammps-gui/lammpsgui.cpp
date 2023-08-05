@@ -414,15 +414,26 @@ void LammpsGui::logupdate()
             else
                 step = (int)*(int64_t *)ptr;
             int ncols = *(int *)lammps.last_thermo("num", 0);
-            if (!chartwindow->has_columns()) {
-                // for (int i = 0; i < ncols; ++i) {
-                chartwindow->add_column((const char *)lammps.last_thermo("keyword", 1));
-                // }
+            if (!chartwindow->has_charts()) {
+                for (int i = 0; i < ncols; ++i) {
+                    QString label = (const char *)lammps.last_thermo("keyword", i);
+                    // no need to store the timestep column
+                    if (label == "Step") continue;
+                    chartwindow->add_chart(label, i);
+                }
             }
 
-            // for (int i = 0; i < ncols; ++i) {
-            chartwindow->add_data(step, 0, *(double *)lammps.last_thermo("data", 1));
-            // }
+            for (int i = 0; i < ncols; ++i) {
+                int datatype = *(int *)lammps.last_thermo("type", i);
+                double data;
+                if (datatype == 0) // int
+                    data = *(int *)lammps.last_thermo("data", i);
+                else if (datatype == 2) // double
+                    data = *(double *)lammps.last_thermo("data", i);
+                else if (datatype == 4) // bigint
+                    data = (double)*(int64_t *)lammps.last_thermo("data", i);
+                chartwindow->add_data(step, data, i);
+            }
         }
     }
 }
@@ -458,18 +469,26 @@ void LammpsGui::run_done()
             else
                 step = (int)*(int64_t *)ptr;
             int ncols = *(int *)lammps.last_thermo("num", 0);
-            if (!chartwindow->has_columns()) {
-                // for (int i = 0; i < ncols; ++i) {
-                chartwindow->add_column((const char *)lammps.last_thermo("keyword", 1));
-                // }
+            for (int i = 0; i < ncols; ++i) {
+                if (!chartwindow->has_charts()) {
+                    QString label = (const char *)lammps.last_thermo("keyword", i);
+                    // no need to store the timestep column
+                    if (label == "Step") continue;
+                    chartwindow->add_chart(label, i);
+                }
+                int datatype = *(int *)lammps.last_thermo("type", i);
+                double data;
+                if (datatype == 0) // int
+                    data = *(int *)lammps.last_thermo("data", i);
+                else if (datatype == 2) // double
+                    data = *(double *)lammps.last_thermo("data", i);
+                else if (datatype == 4) // bigint
+                    data = (double)*(int64_t *)lammps.last_thermo("data", i);
+                chartwindow->add_data(step, data, i);
             }
-
-            // for (int i = 0; i < ncols; ++i) {
-            chartwindow->add_data(step, 0, *(double *)lammps.last_thermo("data", 1));
-            // }
         }
     }
-    
+
     bool success         = true;
     constexpr int BUFLEN = 1024;
     char errorbuf[BUFLEN];
@@ -552,13 +571,13 @@ void LammpsGui::run_buffer()
 
     // if configured, delete old log window before opening new one
     if (settings.value("chartreplace", false).toBool()) delete chartwindow;
-    chartwindow = new ChartViewer();
+    chartwindow = new ChartWindow(current_file);
     chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on buffer - " +
                                 current_file);
     chartwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     chartwindow->setMinimumSize(400, 300);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), chartwindow);
-    QObject::connect(shortcut, &QShortcut::activated, chartwindow, &ChartViewer::close);
+    QObject::connect(shortcut, &QShortcut::activated, chartwindow, &ChartWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), chartwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
     chartwindow->show();

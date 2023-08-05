@@ -14,23 +14,61 @@
 #ifndef CHARTVIEWER_H
 #define CHARTVIEWER_H
 
+#include <QList>
+#include <QString>
+#include <QWidget>
 #include <QtCharts>
 
-class ChartViewer : public QtCharts::QChartView {
+class QAction;
+class QMenuBar;
+class QMenu;
+class QComboBox;
+class ChartViewer;
+
+class ChartWindow : public QWidget {
     Q_OBJECT
 
 public:
-    ChartViewer(QWidget *parent = nullptr);
-    bool has_columns() const { return last_step >= 0; }
-    void add_column(const QString &title);
-    void add_data(int step, int column, double data);
-    int get_last_step() const;
+    ChartWindow(const QString &filename, QWidget *parent = nullptr);
+
+    bool has_charts() const { return !charts.isEmpty(); }
+    void add_chart(const QString &title, int index);
+    void add_data(int step, double data, int index);
+
+private slots:
+    void saveAs();
+    void change_chart(int index);
+
+    //    void normalSize();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private:
-    int last_step;
+    QMenuBar *menu;
+    QMenu *file;
+    QComboBox *columns;
+    QAction *saveAsAct;
+    QAction *closeAct;
+
+    QString filename;
+    int active_chart;
+    QList<ChartViewer *> charts;
+};
+
+/* -------------------------------------------------------------------- */
+
+class ChartViewer : public QtCharts::QChartView {
+    Q_OBJECT
+
+public:
+    explicit ChartViewer(const QString &title, int index, QWidget *parent = nullptr);
+
+    void add_data(int step, double data);
+    int get_index() const { return index; };
+
+private:
+    int last_step, index;
     QtCharts::QChart *chart;
     QtCharts::QLineSeries *series;
     QtCharts::QValueAxis *xaxis;

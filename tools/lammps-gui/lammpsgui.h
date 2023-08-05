@@ -39,7 +39,7 @@ class Highlighter;
 class StdCapture;
 class Preferences;
 class ImageViewer;
-class ChartViewer;
+class ChartWindow;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
@@ -86,7 +86,7 @@ private:
     QLabel *status;
     QPlainTextEdit *logwindow;
     ImageViewer *imagewindow;
-    ChartViewer *chartwindow;
+    ChartWindow *chartwindow;
     QTimer *logupdater;
     QLabel *dirstatus;
     QProgressBar *progress;

@@ -1,7 +1,10 @@
 .. index:: compute local/comp/atom
+.. index:: compute local/comp/atom/kk
 
 compute local/comp/atom command
-======================================
+===============================
+
+Accelerator Variants: *local/comp/atom/kk*
 
 Syntax
 """"""
@@ -33,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: 24May2023
+.. versionadded:: TBD
 
 Define a computation that calculates a local composition vector for each
 atom. For a central atom with :math:`M` neighbors within the neighbor cutoff sphere,
@@ -43,14 +46,14 @@ the sum of all compositions equals one.
 
 .. note::
 
-   This compute uses the number of atom types, not chemical species, assigned in 
-   :doc:`pair_coeff <pair_coeff>` command.  If an interatomic potential has two 
-   species (i.e., Cu and Ni) assigned to four different atom types in 
-   :doc:`pair_coeff <pair_coeff>` (i.e., 'Cu Cu Ni Ni'), the compute will 
-   output four fractional values.  In those cases, the user may desire an extra 
-   calculation step to consolidate per-type fractions into per-species fractions.  
-   This calculation can be conducted within LAMMPS using another compute such as 
-   :doc:`compute reduce <compute_reduce>`, an atom-style :doc:`variable`, or as a 
+   This compute uses the number of atom types, not chemical species, assigned in
+   :doc:`pair_coeff <pair_coeff>` command.  If an interatomic potential has two
+   species (i.e., Cu and Ni) assigned to four different atom types in
+   :doc:`pair_coeff <pair_coeff>` (i.e., 'Cu Cu Ni Ni'), the compute will
+   output four fractional values.  In those cases, the user may desire an extra
+   calculation step to consolidate per-type fractions into per-species fractions.
+   This calculation can be conducted within LAMMPS using another compute such as
+   :doc:`compute reduce <compute_reduce>`, an atom-style :doc:`variable`, or as a
    post-processing step.
 
 ----------
@@ -91,7 +94,7 @@ Output info
 This compute calculates a per-atom array with :math:`1 + N` columns, where :math:`N`
 is the number of atom types. The first column is a count of the number of atoms
 used to calculate composition (including the central atom), and each subsequent
-column indicates the fraction of that atom type within the cutoff sphere. 
+column indicates the fraction of that atom type within the cutoff sphere.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>`

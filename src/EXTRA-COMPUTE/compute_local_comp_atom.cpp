@@ -198,7 +198,7 @@ void ComputeLocalCompAtom::compute_peratom()
       double lfac = 1.0 / count;
       for (int n = 1;  n < size_peratom_cols; n++)
         result[i][n+1] *= lfac;
-      
+
     }
   }
 }

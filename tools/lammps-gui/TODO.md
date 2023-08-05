@@ -10,7 +10,6 @@ LAMMPS-GUI TODO list:
 
 # Long term ideas
 - write a "wizard" dialog that can be used for beginners to create an input file template for a few typical use scenarios
-- use the "lammps_get_last_thermo" function to get access to thermodynamic data during a run and add plot/graph dialog that can plot one or more of those graphs while the simulation is still running
 - possibly also implement a callback interface, so that external programs can be called after thermo data is updated.
 - support single stepping, i.e. process input line by line (need to detect continuation chars!) with highlighting active line(s)
 - have command text input file in/above status bar where individual commands can be tested. have insert button to copy line into file at the current point

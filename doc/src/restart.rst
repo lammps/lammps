@@ -6,7 +6,7 @@ restart command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    restart 0
    restart N root keyword value ...

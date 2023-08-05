@@ -298,7 +298,6 @@ void Info::command(int narg, char **arg)
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
-    if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
 
 #if defined(LAMMPS_BIGBIG)
     fputs("-DLAMMPS_BIGBIG\n",out);
@@ -1096,11 +1095,7 @@ bool Info::has_fft_single_support() {
 }
 
 bool Info::has_exceptions() {
-#ifdef LAMMPS_EXCEPTIONS
   return true;
-#else
-  return false;
-#endif
 }
 
 bool Info::has_package(const std::string &package_name) {

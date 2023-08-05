@@ -1,53 +1,25 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_INITIALIZATION_SETTINGS_HPP
 #define KOKKOS_INITIALIZATION_SETTINGS_HPP
 
 #include <Kokkos_Macros.hpp>
 
-#include <climits>
+#include <optional>
 #include <string>
 
 namespace Kokkos {
@@ -78,65 +50,18 @@ struct InitArguments {
 };
 #endif
 
-namespace Impl {
-// FIXME_CXX17 replace with std::optional
-template <class>
-struct InitializationSettingsHelper;
-template <>
-struct InitializationSettingsHelper<int> {
-  using value_type   = int;
-  using storage_type = int;
-
-  static constexpr storage_type unspecified = INT_MIN;
-};
-template <>
-struct InitializationSettingsHelper<bool> {
-  using value_type   = bool;
-  using storage_type = char;
-
-  static constexpr storage_type unspecified = CHAR_MAX;
-  static_assert(static_cast<storage_type>(true) != unspecified &&
-                    static_cast<storage_type>(false) != unspecified,
-                "");
-};
-template <>
-struct InitializationSettingsHelper<std::string> {
-  using value_type   = std::string;
-  using storage_type = std::string;
-
-  // prefer c-string to avoid static initialization order nightmare
-  static constexpr char unspecified[] =
-      "some string we don't expect user would ever provide";
-};
-}  // namespace Impl
-
 class InitializationSettings {
-#define KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER(NAME) \
-  impl_do_not_use_i_really_mean_it_##NAME##_
-
-#define KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER_TYPE(NAME) impl_##NAME##_type
-
-#define KOKKOS_IMPL_DECLARE(TYPE, NAME)                                      \
- private:                                                                    \
-  using KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER_TYPE(NAME) = TYPE;                 \
-  Impl::InitializationSettingsHelper<TYPE>::storage_type                     \
-      KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER(NAME) =                              \
-          Impl::InitializationSettingsHelper<TYPE>::unspecified;             \
-                                                                             \
- public:                                                                     \
-  InitializationSettings& set_##NAME(                                        \
-      Impl::InitializationSettingsHelper<TYPE>::value_type NAME) {           \
-    KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER(NAME) = NAME;                          \
-    return *this;                                                            \
-  }                                                                          \
-  bool has_##NAME() const noexcept {                                         \
-    return KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER(NAME) !=                        \
-           Impl::InitializationSettingsHelper<                               \
-               KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER_TYPE(NAME)>::unspecified;   \
-  }                                                                          \
-  KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER_TYPE(NAME) get_##NAME() const noexcept { \
-    return KOKKOS_IMPL_INIT_ARGS_DATA_MEMBER(NAME);                          \
-  }                                                                          \
+#define KOKKOS_IMPL_DECLARE(TYPE, NAME)                                    \
+ private:                                                                  \
+  std::optional<TYPE> m_##NAME;                                            \
+                                                                           \
+ public:                                                                   \
+  InitializationSettings& set_##NAME(TYPE NAME) {                          \
+    m_##NAME = NAME;                                                       \
+    return *this;                                                          \
+  }                                                                        \
+  bool has_##NAME() const noexcept { return static_cast<bool>(m_##NAME); } \
+  TYPE get_##NAME() const noexcept { return *m_##NAME; }                   \
   static_assert(true, "no-op to require trailing semicolon")
 
  public:

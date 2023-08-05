@@ -9,7 +9,7 @@ Accelerator Variants: *property/atom/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID property/atom name1 name2 ... keyword value ...
 

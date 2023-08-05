@@ -611,15 +611,16 @@ TEST_F(FileOperationsTest, read_data_fix)
     EXPECT_EQ(lmp->atom->tag[GETIDX(8)], 8);
     EXPECT_EQ(lmp->atom->tag[GETIDX(9)], 9);
     EXPECT_EQ(lmp->atom->tag[GETIDX(10)], 10);
+
+    // clean up
+    delete_file("test_mol_id_merge.data");
+    delete_file("test_mol_id.data");
 }
 
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

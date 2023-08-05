@@ -37,7 +37,7 @@ fix wall/table command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style [tabstyle] [N] face args ... keyword value ...
 

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -196,9 +168,12 @@ void host_check_binary_op_one_loader(BinaryOp binary_op, std::size_t n,
         loader.host_load(second_args + i, nlanes, second_arg);
     if (!(loaded_first_arg && loaded_second_arg)) continue;
     simd_type expected_result;
-    for (std::size_t lane = 0; lane < nlanes; ++lane) {
-      expected_result[lane] =
-          binary_op.on_host(first_arg[lane], second_arg[lane]);
+    // gcc 8.4.0 warns if using nlanes as upper bound about first_arg and/or
+    // second_arg being uninitialized
+    for (std::size_t lane = 0; lane < simd_type::size(); ++lane) {
+      if (lane < nlanes)
+        expected_result[lane] =
+            binary_op.on_host(T(first_arg[lane]), T(second_arg[lane]));
     }
     simd_type const computed_result = binary_op.on_host(first_arg, second_arg);
     host_check_equality(expected_result, computed_result, nlanes);
@@ -305,39 +280,245 @@ class divides {
   }
 };
 
-template <class Abi>
-inline void host_check_math_ops() {
-  std::size_t constexpr n     = 11;
-  double const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
-  double const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+template <typename Abi, typename DataType, size_t n>
+inline void host_check_all_math_ops(const DataType (&first_args)[n],
+                                    const DataType (&second_args)[n]) {
   host_check_binary_op_all_loaders<Abi>(plus(), n, first_args, second_args);
   host_check_binary_op_all_loaders<Abi>(minus(), n, first_args, second_args);
   host_check_binary_op_all_loaders<Abi>(multiplies(), n, first_args,
                                         second_args);
-  host_check_binary_op_all_loaders<Abi>(divides(), n, first_args, second_args);
+
+  // TODO: Place fallback division implementations for all simd integer types
+  if constexpr (std::is_same_v<DataType, double>)
+    host_check_binary_op_all_loaders<Abi>(divides(), n, first_args,
+                                          second_args);
+}
+
+template <typename Abi, typename DataType>
+inline void host_check_abi_size() {
+  using simd_type = Kokkos::Experimental::simd<DataType, Abi>;
+  using mask_type = typename simd_type::mask_type;
+  static_assert(simd_type::size() == mask_type::size());
+}
+
+template <class Abi, typename DataType>
+inline void host_check_math_ops() {
+  constexpr size_t n = 11;
+
+  host_check_abi_size<Abi, DataType>();
+
+  if constexpr (std::is_signed_v<DataType>) {
+    DataType const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+    host_check_all_math_ops<Abi>(first_args, second_args);
+  } else {
+    DataType const first_args[n]  = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
+    host_check_all_math_ops<Abi>(first_args, second_args);
+  }
 }
 
 template <class Abi>
-KOKKOS_INLINE_FUNCTION void device_check_math_ops() {
-  std::size_t constexpr n     = 11;
-  double const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
-  double const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+inline void host_check_mask_ops() {
+  using mask_type = Kokkos::Experimental::simd_mask<double, Abi>;
+  EXPECT_FALSE(none_of(mask_type(true)));
+  EXPECT_TRUE(none_of(mask_type(false)));
+  EXPECT_TRUE(all_of(mask_type(true)));
+  EXPECT_FALSE(all_of(mask_type(false)));
+}
+
+template <class Abi>
+inline void host_check_conversions() {
+  {
+    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
+    auto b = Kokkos::Experimental::simd<std::int64_t, Abi>(a);
+    EXPECT_TRUE(all_of(b == decltype(b)(1)));
+  }
+  {
+    auto a = Kokkos::Experimental::simd<std::int32_t, Abi>(1);
+    auto b = Kokkos::Experimental::simd<std::uint64_t, Abi>(a);
+    EXPECT_TRUE(all_of(b == decltype(b)(1)));
+  }
+  {
+    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
+    auto b = Kokkos::Experimental::simd<std::int32_t, Abi>(a);
+    EXPECT_TRUE(all_of(b == decltype(b)(1)));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<double, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(a);
+    EXPECT_TRUE(b == decltype(b)(true));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<std::uint64_t, Abi>(a);
+    EXPECT_TRUE(b == decltype(b)(true));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<std::int64_t, Abi>(a);
+    EXPECT_TRUE(b == decltype(b)(true));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<double, Abi>(a);
+    EXPECT_TRUE(b == decltype(b)(true));
+  }
+}
+
+template <class Abi>
+inline void host_check_shifts() {
+  auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(8);
+  auto b = a >> 1;
+  EXPECT_TRUE(all_of(b == decltype(b)(4)));
+}
+
+template <class Abi>
+inline void host_check_condition() {
+  auto a = Kokkos::Experimental::condition(
+      Kokkos::Experimental::simd<std::int32_t, Abi>(1) > 0,
+      Kokkos::Experimental::simd<std::uint64_t, Abi>(16),
+      Kokkos::Experimental::simd<std::uint64_t, Abi>(20));
+  EXPECT_TRUE(all_of(a == decltype(a)(16)));
+}
+
+template <typename Abi, typename DataType, size_t n>
+KOKKOS_INLINE_FUNCTION void device_check_all_math_ops(
+    const DataType (&first_args)[n], const DataType (&second_args)[n]) {
   device_check_binary_op_all_loaders<Abi>(plus(), n, first_args, second_args);
   device_check_binary_op_all_loaders<Abi>(minus(), n, first_args, second_args);
   device_check_binary_op_all_loaders<Abi>(multiplies(), n, first_args,
                                           second_args);
-  device_check_binary_op_all_loaders<Abi>(divides(), n, first_args,
-                                          second_args);
+
+  if constexpr (std::is_same_v<DataType, double>)
+    device_check_binary_op_all_loaders<Abi>(divides(), n, first_args,
+                                            second_args);
+}
+
+template <typename Abi, typename DataType>
+KOKKOS_INLINE_FUNCTION void device_check_abi_size() {
+  using simd_type = Kokkos::Experimental::simd<DataType, Abi>;
+  using mask_type = typename simd_type::mask_type;
+  static_assert(simd_type::size() == mask_type::size());
+}
+
+template <class Abi, typename DataType>
+KOKKOS_INLINE_FUNCTION void device_check_math_ops() {
+  constexpr size_t n = 11;
+
+  device_check_abi_size<Abi, DataType>();
+
+  if constexpr (std::is_signed_v<DataType>) {
+    DataType const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+    device_check_all_math_ops<Abi>(first_args, second_args);
+  } else {
+    DataType const first_args[n]  = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
+    DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
+    device_check_all_math_ops<Abi>(first_args, second_args);
+  }
+}
+
+template <class Abi>
+KOKKOS_INLINE_FUNCTION void device_check_mask_ops() {
+  using mask_type = Kokkos::Experimental::simd_mask<double, Abi>;
+  kokkos_checker checker;
+  checker.truth(!none_of(mask_type(true)));
+  checker.truth(none_of(mask_type(false)));
+  checker.truth(all_of(mask_type(true)));
+  checker.truth(!all_of(mask_type(false)));
+}
+
+template <class Abi>
+KOKKOS_INLINE_FUNCTION void device_check_conversions() {
+  kokkos_checker checker;
+  {
+    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
+    auto b = Kokkos::Experimental::simd<std::int64_t, Abi>(a);
+    checker.truth(all_of(b == decltype(b)(1)));
+  }
+  {
+    auto a = Kokkos::Experimental::simd<std::int32_t, Abi>(1);
+    auto b = Kokkos::Experimental::simd<std::uint64_t, Abi>(a);
+    checker.truth(all_of(b == decltype(b)(1)));
+  }
+  {
+    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
+    auto b = Kokkos::Experimental::simd<std::int32_t, Abi>(a);
+    checker.truth(all_of(b == decltype(b)(1)));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<double, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(a);
+    checker.truth(b == decltype(b)(true));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<std::uint64_t, Abi>(a);
+    checker.truth(b == decltype(b)(true));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<std::int64_t, Abi>(a);
+    checker.truth(b == decltype(b)(true));
+  }
+  {
+    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
+    auto b = Kokkos::Experimental::simd_mask<double, Abi>(a);
+    checker.truth(b == decltype(b)(true));
+  }
+}
+
+template <class Abi>
+KOKKOS_INLINE_FUNCTION void device_check_shifts() {
+  kokkos_checker checker;
+  auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(8);
+  auto b = a >> 1;
+  checker.truth(all_of(b == decltype(b)(4)));
+}
+
+template <class Abi>
+KOKKOS_INLINE_FUNCTION void device_check_condition() {
+  kokkos_checker checker;
+  auto a = Kokkos::Experimental::condition(
+      Kokkos::Experimental::simd<std::int32_t, Abi>(1) > 0,
+      Kokkos::Experimental::simd<std::uint64_t, Abi>(16),
+      Kokkos::Experimental::simd<std::uint64_t, Abi>(20));
+  checker.truth(all_of(a == decltype(a)(16)));
+}
+
+template <typename Abi, typename... DataTypes>
+inline void host_check_math_ops_all_types(
+    Kokkos::Experimental::Impl::data_types<DataTypes...>) {
+  (host_check_math_ops<Abi, DataTypes>(), ...);
 }
 
 template <class Abi>
 inline void host_check_abi() {
-  host_check_math_ops<Abi>();
+  using DataTypes = Kokkos::Experimental::Impl::data_type_set;
+
+  host_check_math_ops_all_types<Abi>(DataTypes());
+  host_check_mask_ops<Abi>();
+  host_check_conversions<Abi>();
+  host_check_shifts<Abi>();
+  host_check_condition<Abi>();
+}
+
+template <typename Abi, typename... DataTypes>
+KOKKOS_INLINE_FUNCTION void device_check_math_ops_all_types(
+    Kokkos::Experimental::Impl::data_types<DataTypes...>) {
+  (device_check_math_ops<Abi, DataTypes>(), ...);
 }
 
 template <class Abi>
 KOKKOS_INLINE_FUNCTION void device_check_abi() {
-  device_check_math_ops<Abi>();
+  using DataTypes = Kokkos::Experimental::Impl::data_type_set;
+
+  device_check_math_ops_all_types<Abi>(DataTypes());
+  device_check_mask_ops<Abi>();
+  device_check_conversions<Abi>();
+  device_check_shifts<Abi>();
+  device_check_condition<Abi>();
 }
 
 inline void host_check_abis(Kokkos::Experimental::Impl::abi_set<>) {}

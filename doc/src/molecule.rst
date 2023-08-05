@@ -6,7 +6,7 @@ molecule command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule ID file1 keyword values ... file2 keyword values ... fileN ...
 

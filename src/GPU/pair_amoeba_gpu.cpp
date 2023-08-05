@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -745,15 +745,15 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
     auto field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       field[i][0] += field_ptr[idx];
       field[i][1] += field_ptr[idx+1];
       field[i][2] += field_ptr[idx+2];
     }
 
-    field_ptr += 4*inum;
+    field_ptr += 3*inum;
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       fieldp[i][0] += field_ptr[idx];
       fieldp[i][1] += field_ptr[idx+1];
       fieldp[i][2] += field_ptr[idx+2];
@@ -762,15 +762,15 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
     auto field_ptr = (double *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       field[i][0] += field_ptr[idx];
       field[i][1] += field_ptr[idx+1];
       field[i][2] += field_ptr[idx+2];
     }
 
-    field_ptr += 4*inum;
+    field_ptr += 3*inum;
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       fieldp[i][0] += field_ptr[idx];
       fieldp[i][1] += field_ptr[idx+1];
       fieldp[i][2] += field_ptr[idx+2];
@@ -976,15 +976,15 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
     auto field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       field[i][0] += field_ptr[idx];
       field[i][1] += field_ptr[idx+1];
       field[i][2] += field_ptr[idx+2];
     }
 
-    field_ptr += 4*inum;
+    field_ptr += 3*inum;
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       fieldp[i][0] += field_ptr[idx];
       fieldp[i][1] += field_ptr[idx+1];
       fieldp[i][2] += field_ptr[idx+2];
@@ -993,15 +993,15 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
     auto field_ptr = (double *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       field[i][0] += field_ptr[idx];
       field[i][1] += field_ptr[idx+1];
       field[i][2] += field_ptr[idx+2];
     }
 
-    field_ptr += 4*inum;
+    field_ptr += 3*inum;
     for (int i = 0; i < nlocal; i++) {
-      int idx = 4*i;
+      int idx = 3*i;
       fieldp[i][0] += field_ptr[idx];
       fieldp[i][1] += field_ptr[idx+1];
       fieldp[i][2] += field_ptr[idx+2];
@@ -2029,9 +2029,9 @@ void PairAmoebaGPU::compute_force_from_torque(const numtyp* tq_ptr,
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    _tq[0] = tq_ptr[4*i];
-    _tq[1] = tq_ptr[4*i+1];
-    _tq[2] = tq_ptr[4*i+2];
+    _tq[0] = tq_ptr[3*i];
+    _tq[1] = tq_ptr[3*i+1];
+    _tq[2] = tq_ptr[3*i+2];
     torque2force(i,_tq,fix,fiy,fiz,force_comp);
 
     iz = zaxis2local[i];

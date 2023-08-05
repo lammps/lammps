@@ -49,6 +49,7 @@ GranSubModHeatRadius::GranSubModHeatRadius(GranularModel *gm, LAMMPS *lmp) : Gra
 {
   num_coeffs = 1;
   contact_radius_flag = 1;
+  conductivity = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,6 +77,7 @@ GranSubModHeatArea::GranSubModHeatArea(GranularModel *gm, LAMMPS *lmp) : GranSub
 {
   num_coeffs = 1;
   contact_radius_flag = 1;
+  heat_transfer_coeff = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

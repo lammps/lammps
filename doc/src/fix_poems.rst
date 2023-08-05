@@ -6,7 +6,7 @@ fix poems command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID poems keyword values
 

@@ -98,7 +98,7 @@ dump_modify options for dump image/movie
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify dump-ID keyword values ...
 

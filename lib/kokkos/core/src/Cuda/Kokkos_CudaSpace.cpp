@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -50,8 +22,8 @@
 #ifdef KOKKOS_ENABLE_CUDA
 
 #include <Kokkos_Core.hpp>
-#include <Kokkos_Cuda.hpp>
-#include <Kokkos_CudaSpace.hpp>
+#include <Cuda/Kokkos_Cuda.hpp>
+#include <Cuda/Kokkos_CudaSpace.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -122,40 +94,12 @@ void DeepCopyAsyncCuda(void *dst, const void *src, size_t n) {
 
 namespace Kokkos {
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-KOKKOS_DEPRECATED void CudaSpace::access_error() {
-  const std::string msg(
-      "Kokkos::CudaSpace::access_error attempt to execute Cuda function from "
-      "non-Cuda space");
-  Kokkos::Impl::throw_runtime_exception(msg);
-}
-
-KOKKOS_DEPRECATED void CudaSpace::access_error(const void *const) {
-  const std::string msg(
-      "Kokkos::CudaSpace::access_error attempt to execute Cuda function from "
-      "non-Cuda space");
-  Kokkos::Impl::throw_runtime_exception(msg);
-}
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+bool CudaUVMSpace::available() { return true; }
 #endif
 
 /*--------------------------------------------------------------------------*/
 
-bool CudaUVMSpace::available() {
-#if defined(CUDA_VERSION) && !defined(__APPLE__)
-  enum : bool { UVM_available = true };
-#else
-  enum : bool { UVM_available = false };
-#endif
-  return UVM_available;
-}
-
-/*--------------------------------------------------------------------------*/
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-int CudaUVMSpace::number_of_allocations() {
-  return Kokkos::Impl::num_uvm_allocations.load();
-}
-#endif
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_PIN_UVM_TO_HOST
 // The purpose of the following variable is to allow a state-based choice
 // for pinning UVM allocations to the CPU. For now this is considered
@@ -228,10 +172,11 @@ void *impl_allocate_common(const Cuda &exec_space, const char *arg_label,
     if (exec_space_provided) {
       cudaStream_t stream = exec_space.cuda_stream();
       error_code          = cudaMallocAsync(&ptr, arg_alloc_size, stream);
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamSynchronize(stream));
+      exec_space.fence("Kokkos::Cuda: backend fence after async malloc");
     } else {
       error_code = cudaMallocAsync(&ptr, arg_alloc_size, 0);
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaDeviceSynchronize());
+      Impl::cuda_device_synchronize(
+          "Kokkos::Cuda: backend fence after async malloc");
     }
   } else {
     error_code = cudaMalloc(&ptr, arg_alloc_size);
@@ -380,9 +325,11 @@ void CudaSpace::impl_deallocate(
 #error CUDART_VERSION undefined!
 #elif (defined(KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC) && CUDART_VERSION >= 11020)
     if (arg_alloc_size >= memory_threshold_g) {
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaDeviceSynchronize());
+      Impl::cuda_device_synchronize(
+          "Kokkos::Cuda: backend fence before async free");
       KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFreeAsync(arg_alloc_ptr, 0));
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaDeviceSynchronize());
+      Impl::cuda_device_synchronize(
+          "Kokkos::Cuda: backend fence after async free");
     } else {
       KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFree(arg_alloc_ptr));
     }
@@ -476,49 +423,6 @@ SharedAllocationRecord<void, void>
     SharedAllocationRecord<Kokkos::CudaHostPinnedSpace, void>::s_root_record;
 #endif
 
-::cudaTextureObject_t
-SharedAllocationRecord<Kokkos::CudaSpace, void>::attach_texture_object(
-    const unsigned sizeof_alias, void *const alloc_ptr,
-    size_t const alloc_size) {
-  enum { TEXTURE_BOUND_1D = 1u << 27 };
-
-  if ((alloc_ptr == nullptr) ||
-      (sizeof_alias * TEXTURE_BOUND_1D <= alloc_size)) {
-    std::ostringstream msg;
-    msg << "Kokkos::CudaSpace ERROR: Cannot attach texture object to"
-        << " alloc_ptr(" << alloc_ptr << ")"
-        << " alloc_size(" << alloc_size << ")"
-        << " max_size(" << (sizeof_alias * TEXTURE_BOUND_1D) << ")";
-    std::cerr << msg.str() << std::endl;
-    std::cerr.flush();
-    Kokkos::Impl::throw_runtime_exception(msg.str());
-  }
-
-  ::cudaTextureObject_t tex_obj;
-
-  struct cudaResourceDesc resDesc;
-  struct cudaTextureDesc texDesc;
-
-  memset(&resDesc, 0, sizeof(resDesc));
-  memset(&texDesc, 0, sizeof(texDesc));
-
-  resDesc.resType = cudaResourceTypeLinear;
-  resDesc.res.linear.desc =
-      (sizeof_alias == 4
-           ? cudaCreateChannelDesc<int>()
-           : (sizeof_alias == 8
-                  ? cudaCreateChannelDesc< ::int2>()
-                  :
-                  /* sizeof_alias == 16 */ cudaCreateChannelDesc< ::int4>()));
-  resDesc.res.linear.sizeInBytes = alloc_size;
-  resDesc.res.linear.devPtr      = alloc_ptr;
-
-  KOKKOS_IMPL_CUDA_SAFE_CALL(
-      cudaCreateTextureObject(&tex_obj, &resDesc, &texDesc, nullptr));
-
-  return tex_obj;
-}
-
 //==============================================================================
 // <editor-fold desc="SharedAllocationRecord destructors"> {{{1
 
@@ -577,7 +481,6 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::SharedAllocationRecord(
                                                arg_alloc_size),
           sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
           arg_label),
-      m_tex_obj(0),
       m_space(arg_space) {
 
   SharedAllocationHeader header;
@@ -608,7 +511,6 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::SharedAllocationRecord(
                                                arg_label, arg_alloc_size),
           sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
           arg_label),
-      m_tex_obj(0),
       m_space(arg_space) {
 
   SharedAllocationHeader header;
@@ -635,7 +537,6 @@ SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::SharedAllocationRecord(
                                                arg_alloc_size),
           sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
           arg_label),
-      m_tex_obj(0),
       m_space(arg_space) {
   this->base_t::_fill_host_accessible_header_info(*base_t::m_alloc_ptr,
                                                   arg_label);
@@ -674,11 +575,7 @@ void cuda_prefetch_pointer(const Cuda &space, const void *ptr, size_t bytes,
   // DualView syncs down. Probably because the latency is not too bad in the
   // first place for the pull down. If we want to change that provde
   // cudaCpuDeviceId as the device if to_device is false
-#if CUDA_VERSION < 10000
-  bool is_managed = attr.isManaged;
-#else
   bool is_managed = attr.type == cudaMemoryTypeManaged;
-#endif
   if (to_device && is_managed &&
       space.cuda_device_prop().concurrentManagedAccess) {
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemPrefetchAsync(

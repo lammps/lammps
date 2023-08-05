@@ -2021,7 +2021,7 @@ void ReadData::pairIJcoeffs()
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR,"Label map is incomplete: all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (i = 0; i < ntypes; i++)

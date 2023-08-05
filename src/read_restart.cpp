@@ -768,7 +768,7 @@ void ReadRestart::header()
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
-      if (comm->me ==0)
+      if (comm->me == 0)
         utils::logmesg(lmp,"  restoring atom style {} from restart\n",atom->atom_style);
       for (int i = 0; i < nargcopy; i++) delete[] argcopy[i];
       delete[] argcopy;
@@ -921,14 +921,14 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_pair(style,1);
       delete[] style;
-      if (comm->me ==0)
+      if (comm->me == 0)
         utils::logmesg(lmp,"  restoring pair style {} from restart\n",
                        force->pair_style);
       force->pair->read_restart(fp);
 
     } else if (flag == NO_PAIR) {
       style = read_string();
-      if (comm->me ==0)
+      if (comm->me == 0)
         utils::logmesg(lmp,"  pair style {} stores no restart info\n", style);
       force->create_pair("none",0);
       force->pair_restart = style;
@@ -937,7 +937,7 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_bond(style,1);
       delete[] style;
-      if (comm->me ==0)
+      if (comm->me == 0)
         utils::logmesg(lmp,"  restoring bond style {} from restart\n",
                        force->bond_style);
       force->bond->read_restart(fp);
@@ -946,7 +946,7 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_angle(style,1);
       delete[] style;
-      if (comm->me ==0)
+      if (comm->me == 0)
         utils::logmesg(lmp,"  restoring angle style {} from restart\n",
                        force->angle_style);
       force->angle->read_restart(fp);
@@ -955,7 +955,7 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_dihedral(style,1);
       delete[] style;
-      if (comm->me ==0)
+      if (comm->me == 0)
         utils::logmesg(lmp,"  restoring dihedral style {} from restart\n",
                        force->dihedral_style);
       force->dihedral->read_restart(fp);
@@ -964,7 +964,7 @@ void ReadRestart::force_fields()
       style = read_string();
       force->create_improper(style,1);
       delete[] style;
-      if (comm->me ==0)
+      if (comm->me == 0)
         utils::logmesg(lmp,"  restoring improper style {} from restart\n",
                        force->improper_style);
       force->improper->read_restart(fp);

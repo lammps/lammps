@@ -239,7 +239,7 @@ struct _liblammpsplugin {
 
   void (*free)(void *);
 
-  void (*is_running)(void *);
+  int (*is_running)(void *);
   void (*force_timeout)(void *);
 
   int (*has_error)(void *);

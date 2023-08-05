@@ -191,6 +191,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     } else {
         setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
     }
+
+    resize(settings.value("mainx", 500).toInt(), settings.value("mainy", 320).toInt());
 }
 
 LammpsGui::~LammpsGui()
@@ -330,6 +332,12 @@ void LammpsGui::quit()
                 break;
         }
     }
+
+    // store some global settings
+    QSettings settings;
+    settings.setValue("mainx", width());
+    settings.setValue("mainy", height());
+    settings.sync();
     QCoreApplication::quit();
 }
 

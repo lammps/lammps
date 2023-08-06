@@ -648,29 +648,35 @@ Overview
 LAMMPS GUI is essentially a small graphical text editor that is linked
 to the :ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run
 LAMMPS directly using the contents of the editor's text buffer as input.
+
 This is similar to what people usually would do using a text editor to
-edit the input and then a command line terminal window to run the input
-commands.  The main benefit is that this integrates very well with
-graphical desktop environments and that it is easier to use for
-beginners in running computations and thus very suitable for tutorials
-on LAMMPS.  A small difference is that for the LAMMPS GUI it is not
-require to first commit its buffer of the text editor to a file.
+edit the input and then open a command line terminal window to run the
+necessary commands.  The main benefit of a GUI is that this integrates
+very well with graphical desktop environments and many basic tasks can
+be done directly from within the GUI without switching to a text
+console.  This makes it easier for beginners to get started running
+computations and thus very suitable for tutorials on LAMMPS.
+
+
 
 Features
 ^^^^^^^^
 
-The main window of the LAMMPS GUI is a generic text editor window with
-line numbers and syntax highlighting set up for LAMMPS input files.  It
-can be used to edit any kind of text file, though.  The output of a run
-is captured and displayed in a separate dialog window and *not* sent to
-the console or a log file (unless the :doc:`log command <log>` is used
-in the input.  The log window is regularly updated during the run and a
-progress bar for the run command shown at the bottom of the main window.
-Starting a new run will open another log windows.  The state of LAMMPS
-will be reset between two runs.  After the simulation is finished, an
-image of the simulated system can be created and shown in an image
-viewer window.  Ongoing runs can be stopped at the next iteration via
-triggering a timeout.
+The main window of the LAMMPS GUI is a text editor window with line
+numbers and syntax highlighting set up for LAMMPS input files.  When
+starting a run the output to the console is captured and displayed in a
+log window.  Also, generated thermodynamic data is collected and shown
+in chart window.  An ongoing run can be stopped at the next iteration
+and after a run is completed, a snapshot image can be generated and
+displayed in an image viewer window.  The log and the chart window
+are window regularly updated during the run and a progress bar for
+the run command estimating the remaining time on the current run
+command is shown at the bottom of the main window. The collected
+thermodynamic data can be exported to text files or snapshot images
+of the charts can be exported. Also the snapshot image can be exported.
+A number of settings (e.g. whether a new run should use a new or replace
+the existing log or chart window) or which accelerator to use, can
+be updated from a preferences dialog.
 
 When opening a file, the editor will determine the directory where the
 file resides and switch its current working directory to the folder of

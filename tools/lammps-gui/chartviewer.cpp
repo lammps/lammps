@@ -32,6 +32,9 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     top->addWidget(menu);
     top->addWidget(columns);
     saveAsAct    = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
+    exportCsvAct = file->addAction("&Export data to CSV...", this, &ChartWindow::exportCsv);
+    exportDatAct = file->addAction("Export data to &Gnuplot...", this, &ChartWindow::exportDat);
+    file->addSeparator();
     closeAct     = file->addAction("&Close", this, &QWidget::close);
     auto *layout = new QVBoxLayout;
     layout->addLayout(top);
@@ -69,6 +72,74 @@ void ChartWindow::saveAs()
                                                     "Image Files (*.jpg *.png *.bmp *.ppm)");
     if (!fileName.isEmpty()) {
         charts[active_chart]->grab().save(fileName);
+    }
+}
+
+void ChartWindow::exportDat()
+{
+    if (charts.empty() || (active_chart < 0)) return;
+    QString defaultname = filename + ".dat";
+    if (filename.isEmpty()) defaultname = "lammpsdata.dat";
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as Gnuplot data", defaultname,
+                                                    "Image Files (*.dat)");
+    if (!fileName.isEmpty()) {
+        QFile file(fileName);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+
+            file.write("# Thermodynamic data from ");
+            file.write(filename.toLocal8Bit());
+            file.write("\n# Columns:");
+            for (auto &c : charts) {
+                file.write(" ");
+                file.write(c->get_title());
+            }
+            file.write("\n");
+
+            int lines = charts[0]->get_count();
+            for (int i = 0; i < lines; ++i) {
+                // timestep
+                file.write(QString::number(charts[0]->get_step(i)).toLocal8Bit());
+                for (auto &c : charts) {
+                    file.write(" ");
+                    file.write(QString::number(c->get_data(i)).toLocal8Bit());
+                }
+                file.write("\n");
+            }
+            file.close();
+        }
+    }
+}
+
+void ChartWindow::exportCsv()
+{
+    if (charts.empty() || (active_chart < 0)) return;
+    QString defaultname = filename + ".csv";
+    if (filename.isEmpty()) defaultname = "lammpsdata.csv";
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as CSV data", defaultname,
+                                                    "Image Files (*.csv)");
+    if (!fileName.isEmpty()) {
+        QFile file(fileName);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+
+            file.write("Step");
+            for (auto &c : charts) {
+                file.write(",");
+                file.write(c->get_title());
+            }
+            file.write("\n");
+
+            int lines = charts[0]->get_count();
+            for (int i = 0; i < lines; ++i) {
+                // timestep
+                file.write(QString::number(charts[0]->get_step(i)).toLocal8Bit());
+                for (auto &c : charts) {
+                    file.write(",");
+                    file.write(QString::number(c->get_data(i)).toLocal8Bit());
+                }
+                file.write("\n");
+            }
+            file.close();
+        }
     }
 }
 

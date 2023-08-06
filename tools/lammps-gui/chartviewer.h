@@ -37,9 +37,10 @@ public:
 
 private slots:
     void saveAs();
-    void change_chart(int index);
+    void exportDat();
+    void exportCsv();
 
-    //    void normalSize();
+    void change_chart(int index);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -49,6 +50,8 @@ private:
     QMenu *file;
     QComboBox *columns;
     QAction *saveAsAct;
+    QAction *exportCsvAct;
+    QAction *exportDatAct;
     QAction *closeAct;
 
     QString filename;
@@ -66,6 +69,10 @@ public:
 
     void add_data(int step, double data);
     int get_index() const { return index; };
+    int get_count() const { return series->count(); }
+    const char *get_title() const { return series->name().toLocal8Bit(); }
+    double get_step(int index) const { return series->at(index).x(); }
+    double get_data(int index) const { return series->at(index).y(); }
 
 private:
     int last_step, index;

@@ -2,6 +2,8 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
+- use qgetenv, qputenv for portability
+- update enabled/disabled status for accelerators during startup and fall back to None if needed.
 - add CTRL-q hotkey to log windows so you can exit the entire application (add do you really want to? dialog to this)
 - add "syntax check" with enabled "-skiprun" flag
 - add multi-tab settings dialog where certain properties can be set through customizing the LAMMPS command line

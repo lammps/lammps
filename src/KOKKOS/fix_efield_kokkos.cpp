@@ -77,8 +77,9 @@ void FixEfieldKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
 {
-  atomKK->sync(execution_space, F_MASK | Q_MASK | IMAGE_MASK | MASK_MASK);
+  atomKK->sync(execution_space, X_MASK | F_MASK | Q_MASK | IMAGE_MASK | MASK_MASK);
 
+  x = atomKK->k_f.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   q = atomKK->k_q.view<DeviceType>();
   image = atomKK->k_image.view<DeviceType>();
@@ -132,10 +133,8 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
     auto l_image = image;
     auto l_groupbit = groupbit;
 
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-     LAMMPS_LAMBDA(int i, double_4& fsum_kk) {
+    Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(const int& i, double_4& fsum_kk) {
       if (l_mask[i] & l_groupbit) {
-        
         Few<double,3> x_i;
         x_i[0] = l_x(i,0);
         x_i[1] = l_x(i,1);
@@ -148,14 +147,12 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
         l_f(i,0) += fx;
         l_f(i,1) += fy;
         l_f(i,2) += fz;
-     
         fsum_kk.d0 -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
         fsum_kk.d1 += fx;
         fsum_kk.d2 += fy;
         fsum_kk.d3 += fz;
       }
-    }, fsum_kk);
-
+    },fsum_kk);
     }
 
     copymode = 0;
@@ -186,7 +183,53 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
     }
 
     copymode = 1;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant>(0,nlocal),*this,fsum_kk);
+    //Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant>(0,nlocal),*this,fsum_kk);
+
+    {
+    // local variables for lambda capture
+    auto prd = Few<double,3>(domain->prd);
+    auto h = Few<double,6>(domain->h);
+    auto triclinic = domain->triclinic;
+    auto l_ex = ex;
+    auto l_ey = ey;
+    auto l_ez = ez;
+    auto l_d_efield = d_efield;
+
+    auto l_x = x;
+    auto l_q = q;
+    auto l_f = f;
+    auto l_mask = mask;
+    auto l_image = image;
+    auto l_groupbit = groupbit;
+    auto l_xstyle = xstyle;
+    auto l_ystyle = ystyle;
+    auto l_zstyle = zstyle;
+
+    Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(const int& i, double_4& fsum_kk) {
+      if (l_mask[i] & l_groupbit) {
+        Few<double,3> x_i;
+        x_i[0] = l_x(i,0);
+        x_i[1] = l_x(i,1);
+        x_i[2] = l_x(i,2);
+        auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,l_image(i));
+        auto qtmp = l_q(i);
+        auto fx = qtmp * l_ex;
+        auto fy = qtmp * l_ey;
+        auto fz = qtmp * l_ez;
+        if (l_xstyle == ATOM) l_f(i,0) += l_d_efield(i,0);
+        else if (l_xstyle) l_f(i,0) += fx;
+        if (l_ystyle == ATOM) l_f(i,1) += l_d_efield(i,1);
+        else if (l_ystyle) l_f(i,1) += fy;
+        if (l_zstyle == ATOM) l_f(i,2) += l_d_efield(i,2);
+        else if (l_zstyle) l_f(i,2) += fz;
+        fsum_kk.d0 -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+        fsum_kk.d1 += fx;
+        fsum_kk.d2 += fy;
+        fsum_kk.d3 += fz;
+      }
+    },fsum_kk);
+    }
+
     copymode = 0;
   }
 
@@ -197,7 +240,7 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
   fsum[2] = fsum_kk.d2;
   fsum[3] = fsum_kk.d3;
 }
-
+/*
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant, const int &i, double_4& fsum_kk) const {
@@ -255,7 +298,7 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant, const int 
     fsum_kk.d3 += fz;
   }
 }
-
+*/
 namespace LAMMPS_NS {
 template class FixEfieldKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

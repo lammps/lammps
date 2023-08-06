@@ -60,13 +60,13 @@ class FixEfieldKokkos : public FixEfield {
   ~FixEfieldKokkos() override;
   void init() override;
   void post_force(int) override;
-
+/*
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEfieldConstant, const int&, double_4&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEfieldNonConstant, const int&, double_4&) const;
-
+*/
  private:
   DAT::tdual_ffloat_2d k_efield;
   typename AT::t_ffloat_2d_randomread d_efield;

@@ -4,6 +4,9 @@ LAMMPS-GUI TODO list:
 
 - use qgetenv, qputenv for portability
 - update enabled/disabled status for accelerators during startup and fall back to None if needed.
+- rewrite syntax highlighting to be line oriented instead of word oriented.
+  handle first part of line based on regular expressions, then advance and only highlight strings and numbers.
+  handle "&" continuation and multiline strings with """ like C style comments in Qt docs example
 - add CTRL-q hotkey to log windows so you can exit the entire application (add do you really want to? dialog to this)
 - add "syntax check" with enabled "-skiprun" flag
 - add multi-tab settings dialog where certain properties can be set through customizing the LAMMPS command line
@@ -11,8 +14,10 @@ LAMMPS-GUI TODO list:
 - add list of 5(?) most recently opened/saved files to file dialog (and also write to settings state on exit) (note: must store full path!)
 
 # Long term ideas
+- rewrite entire application to either use QtCreator for everything or just build the App and its layout manually
+- also a rewrite should establish consistent naming conventions. now we have a mix of LAMMPS style, Qt style, and others.
+- add option to attach a debugger to the running program (highly non-portable, need customization support in preferences)
 - write a "wizard" dialog that can be used for beginners to create an input file template for a few typical use scenarios
-- possibly also implement a callback interface, so that external programs can be called after thermo data is updated.
 - support single stepping, i.e. process input line by line (need to detect continuation chars!) with highlighting active line(s)
 - have command text input file in/above status bar where individual commands can be tested. have insert button to copy line into file at the current point
 - support text completion as done with lammps-shell

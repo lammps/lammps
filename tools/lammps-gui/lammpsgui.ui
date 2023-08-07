@@ -13,19 +13,13 @@
   <property name="windowTitle">
    <string>LammpsGui</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="CodeEditor" name="textEdit">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="acceptDrops">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-   </layout>
+  <widget class="CodeEditor" name="textEdit">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="acceptDrops">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -33,7 +27,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -345,7 +339,8 @@
   </action>
   <action name="actionDefaults">
    <property name="icon">
-    <iconset theme="document-revert"/>
+    <iconset theme="document-revert">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Reset to &amp;Defaults</string>

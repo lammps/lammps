@@ -75,6 +75,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
     // Pressure and pistons period tau_p
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
+    // p_mass[i] = 1e-3;
 
     p_fric[i] = 0.;
 
@@ -88,6 +89,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
     // Random value for each piston
     fran[i] = 0.0;
     f_piston[i] = 0.0;
+    dilation[i] = 0.0;
   }
 
   // process keywords
@@ -364,9 +366,9 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   // with alpha = Q/p_period
   // similar to fix_langevin formalism
   for (int i = 0; i < 6; i++) {
-    p_fric[i] = p_mass/p_period[i];
-    gjfa[i] = (1.0 - p_fric[i] * update->dt / 2.0 / p_mass) / (1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
-    gjfb[i] = 1./(1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
+    // p_mass[i] = p_period[i]; // force->boltz*t_start*(atom->natoms + 1)*p_period[i]*p_period[i];
+    gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
+    gjfb[i] = 1./(1.0 + update->dt / 2.0 / p_period[i]);
   }
 
   nrigid = 0;
@@ -469,6 +471,8 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
   // Compute new random term on pistons dynamics
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
   t_target = t_start + delta * (t_stop-t_start);
+  // for (int i = 0; i < 6; i++)
+  //   p_mass[i] = force->boltz*t_target*(atom->natoms + 1)*p_period[i]*p_period[i];
   couple_beta(t_target);
 
   dt = update->dt;
@@ -600,7 +604,7 @@ void FixPressLangevin::couple_beta(double t_target)
   int me = comm->me;
 
   for (int i=0; i<6; i++)
-    gamma[i] = sqrt(2.0*force->boltz*update->dt*p_fric[i]*t_target);
+    gamma[i] = sqrt(2.0*p_mass*force->boltz*update->dt/p_period[i]*t_target);
 
   fran[0] = fran[1] = fran[2] = 0.0;
   fran[3] = fran[4] = fran[5] = 0.0;
@@ -806,7 +810,7 @@ int FixPressLangevin::modify_param(int narg, char **arg)
 void FixPressLangevin::reset_dt()
 {
   for (int i=0; i<6; i++) {
-    gjfa[i] = (1.0 - p_fric[i] * update->dt / 2.0 / p_mass) / (1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
-    gjfb[i] = sqrt(1.0 + p_fric[i] * update->dt / 2.0 / p_mass);
+    gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
+    gjfb[i] = sqrt(1.0 + update->dt / 2.0 / p_period[i]);
     }
 }

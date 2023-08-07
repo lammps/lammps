@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include <QFont>
 #include <QLabel>
+#include <QLocale>
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QProgressBar>
@@ -68,6 +69,9 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
     logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr)
 {
+    // enforce using the plain ASCII C locale within the GUI.
+    QLocale::setDefault(QLocale("C"));
+
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
     highlighter = new Highlighter(ui->textEdit->document());
@@ -569,7 +573,7 @@ void LammpsGui::run_buffer()
     QObject::connect(shortcut, &QShortcut::activated, logwindow, &LogWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
-    if (settings.value("viewlog",true).toBool())
+    if (settings.value("viewlog", true).toBool())
         logwindow->show();
     else
         logwindow->hide();
@@ -585,7 +589,7 @@ void LammpsGui::run_buffer()
     QObject::connect(shortcut, &QShortcut::activated, chartwindow, &ChartWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), chartwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
-    if (settings.value("viewchart",true).toBool())
+    if (settings.value("viewchart", true).toBool())
         chartwindow->show();
     else
         chartwindow->hide();

@@ -143,7 +143,9 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
     connect(ui->actionLAMMPS_Manual, &QAction::triggered, this, &LammpsGui::manual);
     connect(ui->actionPreferences, &QAction::triggered, this, &LammpsGui::preferences);
-    connect(ui->actionDefaults, &QAction::triggered, this, &LammpsGui::defaults);
+    connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
+    connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
+
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this,
             &LammpsGui::modified);
 
@@ -404,7 +406,7 @@ void LammpsGui::logupdate()
         }
     }
 
-    // extract chache thermo data
+    // extract cached thermo data
     if (chartwindow) {
         void *ptr = lammps.last_thermo("step", 0);
         if (ptr) {
@@ -567,7 +569,10 @@ void LammpsGui::run_buffer()
     QObject::connect(shortcut, &QShortcut::activated, logwindow, &LogWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
-    logwindow->show();
+    if (settings.value("viewlog",true).toBool())
+        logwindow->show();
+    else
+        logwindow->hide();
 
     // if configured, delete old log window before opening new one
     if (settings.value("chartreplace", false).toBool()) delete chartwindow;
@@ -580,7 +585,10 @@ void LammpsGui::run_buffer()
     QObject::connect(shortcut, &QShortcut::activated, chartwindow, &ChartWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash), chartwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
-    chartwindow->show();
+    if (settings.value("viewchart",true).toBool())
+        chartwindow->show();
+    else
+        chartwindow->hide();
 
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
@@ -635,6 +643,34 @@ void LammpsGui::view_image()
 void LammpsGui::clear()
 {
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
+}
+
+void LammpsGui::view_chart()
+{
+    QSettings settings;
+    if (chartwindow) {
+        if (chartwindow->isVisible()) {
+            chartwindow->hide();
+            settings.setValue("viewchart", false);
+        } else {
+            chartwindow->show();
+            settings.setValue("viewchart", true);
+        }
+    }
+}
+
+void LammpsGui::view_log()
+{
+    QSettings settings;
+    if (logwindow) {
+        if (logwindow->isVisible()) {
+            logwindow->hide();
+            settings.setValue("viewlog", false);
+        } else {
+            logwindow->show();
+            settings.setValue("viewlog", true);
+        }
+    }
 }
 
 void LammpsGui::about()

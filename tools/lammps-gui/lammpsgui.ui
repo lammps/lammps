@@ -27,7 +27,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -73,9 +73,17 @@
     <addaction name="action_Help"/>
     <addaction name="actionLAMMPS_Manual"/>
    </widget>
+   <widget class="QMenu" name="menu_View">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="actionView_Log_Window"/>
+    <addaction name="actionView_Graph_Window"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menu_Run"/>
+   <addaction name="menu_View"/>
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -344,6 +352,22 @@
    </property>
    <property name="text">
     <string>Reset to &amp;Defaults</string>
+   </property>
+  </action>
+  <action name="actionView_Log_Window">
+   <property name="icon">
+    <iconset theme="utilities-terminal"/>
+   </property>
+   <property name="text">
+    <string>&amp;Log Window</string>
+   </property>
+  </action>
+  <action name="actionView_Graph_Window">
+   <property name="icon">
+    <iconset theme="x-office-drawing"/>
+   </property>
+   <property name="text">
+    <string>&amp;Chart Window</string>
    </property>
   </action>
  </widget>

@@ -117,6 +117,10 @@ void Preferences::accept()
     if (box) settings->setValue("logreplace", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("chartreplace");
     if (box) settings->setValue("chartreplace", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("viewlog");
+    if (box) settings->setValue("viewlog", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("viewchart");
+    if (box) settings->setValue("viewchart", box->isChecked());
     QDialog::accept();
 }
 
@@ -131,6 +135,12 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *cite = new QCheckBox("Include citation details");
     cite->setObjectName("cite");
     cite->setCheckState(settings->value("cite", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    auto *logv = new QCheckBox("Show log window by default");
+    logv->setObjectName("viewlog");
+    logv->setCheckState(settings->value("viewlog", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    auto *pltv = new QCheckBox("Show chart window by default");
+    pltv->setObjectName("viewchart");
+    pltv->setCheckState(settings->value("viewchart", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *logr = new QCheckBox("Replace log window on new run");
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
@@ -164,6 +174,8 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 #endif
     layout->addWidget(echo);
     layout->addWidget(cite);
+    layout->addWidget(logv);
+    layout->addWidget(pltv);
     layout->addWidget(logr);
     layout->addWidget(pltr);
 #if !defined(__APPLE__)

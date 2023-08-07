@@ -71,6 +71,8 @@ private slots:
     void run_buffer();
     void stop_run();
     void view_image();
+    void view_chart();
+    void view_log();
     void about();
     void help();
     void manual();

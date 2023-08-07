@@ -115,6 +115,8 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
 
   if (varflag == CONSTANT) {
     copymode = 1;
+
+    // It would be more concise to use the operators below, but there is still an issue with unwrap (TODO below)
     //Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant>(0,nlocal),*this,fsum_kk);
 
     {
@@ -183,8 +185,8 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
     }
 
     copymode = 1;
+    // It would be more concise to use the operators below, but there is still an issue with unwrap (TODO below)
     //Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant>(0,nlocal),*this,fsum_kk);
-
     {
     // local variables for lambda capture
     auto prd = Few<double,3>(domain->prd);
@@ -240,12 +242,13 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
   fsum[2] = fsum_kk.d2;
   fsum[3] = fsum_kk.d3;
 }
-/*
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant, const int &i, double_4& fsum_kk) const {
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
+
     auto prd = Few<double,3>(domain->prd);
     auto h = Few<double,6>(domain->h);
     auto triclinic = domain->triclinic;
@@ -254,14 +257,14 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant, const int &i,
     x_i[1] = x(i,1);
     x_i[2] = x(i,2);
     auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,image(i));
-    const F_FLOAT qtmp = q[i];
+    const F_FLOAT qtmp = q(i);
     const F_FLOAT fx = qtmp * ex;
     const F_FLOAT fy = qtmp * ey;
     const F_FLOAT fz = qtmp * ez;
     f(i,0) += fx;
     f(i,1) += fy;
     f(i,2) += fz;
-   
+    // TODO: access to unwrap below crashes
     fsum_kk.d0 -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
     fsum_kk.d1 += fx;
     fsum_kk.d2 += fy;
@@ -292,13 +295,14 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant, const int 
     else if (ystyle) f(i,1) += fy;
     if (zstyle == ATOM) f(i,2) += d_efield(i,2);
     else if (zstyle) f(i,2) += fz;
+    // TODO: access to unwrap below crashes
     fsum_kk.d0 -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
     fsum_kk.d1 += fx;
     fsum_kk.d2 += fy;
     fsum_kk.d3 += fz;
   }
 }
-*/
+
 namespace LAMMPS_NS {
 template class FixEfieldKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

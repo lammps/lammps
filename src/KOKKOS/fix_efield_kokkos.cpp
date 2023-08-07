@@ -79,7 +79,7 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space, X_MASK | F_MASK | Q_MASK | IMAGE_MASK | MASK_MASK);
 
-  x = atomKK->k_f.view<DeviceType>();
+  x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   q = atomKK->k_q.view<DeviceType>();
   image = atomKK->k_image.view<DeviceType>();

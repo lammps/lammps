@@ -87,6 +87,25 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // restorge and initialize settings
     QSettings settings;
 
+    // switch configured accelerator back to "none" if needed.
+    int accel = settings.value("accelerator", AcceleratorTab::None).toInt();
+    if (accel == AcceleratorTab::Opt) {
+        if (!lammps.config_has_package("OPT"))
+            settings.setValue("accelerator", AcceleratorTab::None);
+    } else if (accel == AcceleratorTab::OpenMP) {
+        if (!lammps.config_has_package("OPENMP"))
+            settings.setValue("accelerator", AcceleratorTab::None);
+    } else if (accel == AcceleratorTab::Intel) {
+        if (!lammps.config_has_package("INTEL"))
+            settings.setValue("accelerator", AcceleratorTab::None);
+    } else if (accel == AcceleratorTab::Gpu) {
+        if (!lammps.config_has_package("GPU") || !lammps.has_gpu_device())
+            settings.setValue("accelerator", AcceleratorTab::None);
+    } else if (accel == AcceleratorTab::Kokkos) {
+        if (!lammps.config_has_package("KOKKOS"))
+            settings.setValue("accelerator", AcceleratorTab::None);
+    }
+
     // check and initialize nthreads setting. Default is to use max if there
     // is no preference but do not override OMP_NUM_THREADS
 #if defined(_OPENMP)

@@ -3,7 +3,6 @@ LAMMPS-GUI TODO list:
 # Short term goals
 
 - use qgetenv, qputenv for portability
-- update enabled/disabled status for accelerators during startup and fall back to None if needed.
 - rewrite syntax highlighting to be line oriented instead of word oriented.
   handle first part of line based on regular expressions, then advance and only highlight strings and numbers.
   handle "&" continuation and multiline strings with """ like C style comments in Qt docs example

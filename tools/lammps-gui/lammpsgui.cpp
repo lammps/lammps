@@ -140,12 +140,12 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammps_args.push_back(mystrdup("none"));
 
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
-#if (__APPLE__)
-    QFont text_font("Menlo");
-#else
-    QFont text_font(":/Monospace.ttf");
-#endif
-    text_font.setStyleHint(QFont::TypeWriter);
+
+    QFont all_font("Arial", -1);
+    all_font.setStyleHint(QFont::SansSerif, QFont::PreferOutline);
+    QApplication::setFont(all_font);
+    QFont text_font("Monospace");
+    text_font.setStyleHint(QFont::Monospace, QFont::PreferOutline);
     ui->textEdit->document()->setDefaultFont(text_font);
     ui->textEdit->setMinimumSize(600, 400);
 
@@ -729,9 +729,6 @@ void LammpsGui::about()
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Ok);
     QFont font;
-    font.setFixedPitch(true);
-    font.setStyleHint(QFont::TypeWriter);
-    font.setFamily("Arial");
     font.setPointSize(8);
     msg.setFont(font);
     msg.exec();

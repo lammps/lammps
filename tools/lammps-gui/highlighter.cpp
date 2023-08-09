@@ -213,8 +213,8 @@ void Highlighter::highlightBlock(const QString &text)
     auto undo = QRegularExpression("^(unfix|uncompute|undump)\\s+(\\w+)").match(text);
     bool do_style = true;
     bool do_force = true;
-    bool do_defs = true;
-    bool do_undo = true;
+    bool do_defs  = true;
+    bool do_undo  = true;
     for (const HighlightingRule &rule : qAsConst(highlightingRules)) {
         QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
         while (matchIterator.hasNext()) {
@@ -226,17 +226,17 @@ void Highlighter::highlightBlock(const QString &text)
                 setFormat(style.capturedStart(3), style.capturedLength(3), stringFormat);
                 setFormat(style.capturedStart(4), style.capturedLength(4), runFormat);
                 do_style = false;
-            // special treatment for force styles styles
+                // special treatment for force styles styles
             } else if (force.hasMatch() && do_force) {
                 setFormat(force.capturedStart(1), force.capturedLength(1), particleFormat);
                 setFormat(force.capturedStart(2), force.capturedLength(2), runFormat);
                 do_force = false;
-            // special treatment for undo commands
+                // special treatment for undo commands
             } else if (undo.hasMatch() && do_undo) {
                 setFormat(undo.capturedStart(1), undo.capturedLength(1), defineFormat);
                 setFormat(undo.capturedStart(2), undo.capturedLength(2), stringFormat);
                 do_undo = false;
-            // special treatment for some definitions
+                // special treatment for some definitions
             } else if (defs.hasMatch() && do_defs) {
                 setFormat(defs.capturedStart(1), defs.capturedLength(1), particleFormat);
                 setFormat(defs.capturedStart(2), defs.capturedLength(2), stringFormat);

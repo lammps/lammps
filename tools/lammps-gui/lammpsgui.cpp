@@ -143,9 +143,14 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
     QFont all_font("Arial", -1);
     all_font.setStyleHint(QFont::SansSerif, QFont::PreferOutline);
+    all_font.fromString(settings.value("allfont", all_font.toString()).toString());
+    settings.setValue("allfont", all_font.toString());
     QApplication::setFont(all_font);
-    QFont text_font("Monospace");
+
+    QFont text_font("Monospace", -1);
     text_font.setStyleHint(QFont::Monospace, QFont::PreferOutline);
+    text_font.fromString(settings.value("textfont", text_font.toString()).toString());
+    settings.setValue("textfont", text_font.toString());
     ui->textEdit->document()->setDefaultFont(text_font);
     ui->textEdit->setMinimumSize(600, 400);
 

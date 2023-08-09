@@ -24,6 +24,8 @@
 
 // forward declarations
 
+class GeneralTab;
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class LammpsGui;
@@ -45,6 +47,7 @@ class LammpsGui : public QMainWindow {
     Q_OBJECT
 
     friend class CodeEditor;
+    friend class GeneralTab;
 
 public:
     LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
@@ -81,8 +84,10 @@ private slots:
     void preferences();
     void defaults();
 
-private:
+protected:
     Ui::LammpsGui *ui;
+
+private:
     Highlighter *highlighter;
     StdCapture *capturer;
     QLabel *status;

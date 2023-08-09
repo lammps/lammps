@@ -13,14 +13,18 @@
 
 #include "preferences.h"
 
+#include "lammpsgui.h"
 #include "lammpswrapper.h"
+#include "ui_lammpsgui.h"
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QDoubleValidator>
 #include <QFileDialog>
+#include <QFontDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QIntValidator>
@@ -121,6 +125,7 @@ void Preferences::accept()
     if (box) settings->setValue("viewlog", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewchart");
     if (box) settings->setValue("viewchart", box->isChecked());
+
     QDialog::accept();
 }
 
@@ -158,6 +163,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     tmplayout->addWidget(tmplabel);
     tmplayout->addWidget(tmpedit);
     tmplayout->addWidget(tmpbrowse);
+    connect(tmpbrowse, &QPushButton::released, this, &GeneralTab::newtmpfolder);
 #endif
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
@@ -172,6 +178,15 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 
     connect(pluginbrowse, &QPushButton::released, this, &GeneralTab::pluginpath);
 #endif
+
+    auto *fontlayout  = new QHBoxLayout;
+    auto *getallfont  = new QPushButton("Select Default Font...");
+    auto *gettextfont = new QPushButton("Select Text Font...");
+    fontlayout->addWidget(getallfont);
+    fontlayout->addWidget(gettextfont);
+    connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
+    connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
+
     layout->addWidget(echo);
     layout->addWidget(cite);
     layout->addWidget(logv);
@@ -185,8 +200,47 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(pluginlabel);
     layout->addLayout(pluginlayout);
 #endif
+    layout->addLayout(fontlayout);
     layout->addStretch(1);
     setLayout(layout);
+}
+
+void GeneralTab::updatefonts(const QFont &all, const QFont &text)
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+
+    QApplication::setFont(all);
+    main->ui->textEdit->document()->setDefaultFont(text);
+}
+
+void GeneralTab::newallfont()
+{
+    QSettings settings;
+    QFont all, text;
+    all.fromString(settings.value("allfont", "").toString());
+    text.fromString(settings.value("textfont", "").toString());
+
+    bool ok    = false;
+    QFont font = QFontDialog::getFont(&ok, all, this, QString("Select Default Font"));
+    if (ok) updatefonts(font, text);
+
+    settings.setValue("allfont", font.toString());
+}
+
+void GeneralTab::newtextfont()
+{
+    QSettings settings;
+    QFont all, text;
+    all.fromString(settings.value("allfont", "").toString());
+    text.fromString(settings.value("textfont", "").toString());
+
+    bool ok    = false;
+    QFont font = QFontDialog::getFont(&ok, text, this, QString("Select Text Font"));
+    if (ok) updatefonts(all, font);
+
+    settings.setValue("textfont", font.toString());
 }
 
 void GeneralTab::newtmpfolder()

@@ -98,6 +98,11 @@ void Preferences::accept()
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("nthreads", field->text());
 
+    // store temp dir
+    field = tabWidget->findChild<QLineEdit *>("tmpedit");
+    if (field)
+        if (field->hasAcceptableInput()) settings->setValue("tempdir", field->text());
+
     // store image width, height, and zoom
 
     settings->beginGroup("snapshot");
@@ -248,7 +253,11 @@ void GeneralTab::newtmpfolder()
     QLineEdit *field = findChild<QLineEdit *>("tmpedit");
     QString tmpdir =
         QFileDialog::getExistingDirectory(this, "Find Folder for Temporary Files", field->text());
-    if (!tmpdir.isEmpty()) field->setText(tmpdir);
+
+    if (!tmpdir.isEmpty()) {
+        QFileInfo newtmp(tmpdir);
+        if (newtmp.isDir() && newtmp.isWritable()) field->setText(tmpdir);
+    }
 }
 
 void GeneralTab::pluginpath()

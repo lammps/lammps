@@ -132,7 +132,13 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #else
     if (!tmpdir) tmpdir = "/tmp";
 #endif
-    settings.setValue("tempdir", QString(tmpdir));
+
+    QFileInfo newtmp(settings.value("tempdir", QString(tmpdir)).toString());
+    if (newtmp.isDir() && newtmp.isWritable()) {
+        settings.setValue("tempdir", newtmp.filePath());
+    } else {
+        settings.setValue("tempdir", QString(tmpdir));
+    }
 
     lammps_args.clear();
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));

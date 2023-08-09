@@ -177,6 +177,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
     connect(ui->actionLAMMPS_Manual, &QAction::triggered, this, &LammpsGui::manual);
     connect(ui->actionPreferences, &QAction::triggered, this, &LammpsGui::preferences);
+    connect(ui->actionDefaults, &QAction::triggered, this, &LammpsGui::defaults);
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
 

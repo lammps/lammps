@@ -740,7 +740,7 @@ void LammpsGui::about()
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Ok);
     QFont font;
-    font.setPointSize(8);
+    font.setPointSizeF(font.pointSizeF()*0.75);
     msg.setFont(font);
     msg.exec();
 }

@@ -1,3 +1,4 @@
+# -*- CMake -*- file for tests of file reading or writing classes and functions in LAMMPS
 
 add_executable(test_atom_styles test_atom_styles.cpp)
 target_link_libraries(test_atom_styles PRIVATE lammps GTest::GMock)

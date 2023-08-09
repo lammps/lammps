@@ -3621,6 +3621,7 @@ Tk
 Tkin
 tloop
 tlsph
+tm
 tmax
 Tmax
 tmd
@@ -4093,6 +4094,7 @@ zmq
 zN
 zs
 zsc
+Zsh
 zst
 Zstandard
 zstd

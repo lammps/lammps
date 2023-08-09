@@ -26,7 +26,7 @@ if(BUILD_TOOLS)
 
   enable_language(C)
   get_filename_component(MSI2LMP_SOURCE_DIR ${LAMMPS_TOOLS_DIR}/msi2lmp/src ABSOLUTE)
-  file(GLOB MSI2LMP_SOURCES ${CONFIGURE_DEPENDS} ${MSI2LMP_SOURCE_DIR}/[^.]*.c)
+  file(GLOB MSI2LMP_SOURCES CONFIGURE_DEPENDS ${MSI2LMP_SOURCE_DIR}/[^.]*.c)
   add_executable(msi2lmp ${MSI2LMP_SOURCES})
   if(STANDARD_MATH_LIB)
     target_link_libraries(msi2lmp PRIVATE ${STANDARD_MATH_LIB})

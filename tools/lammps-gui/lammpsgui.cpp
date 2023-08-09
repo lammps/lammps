@@ -725,7 +725,7 @@ void LammpsGui::about()
     if (!lammps.is_running()) {
         start_lammps();
         capturer->BeginCapture();
-        lammps.command("info accel config commu");
+        lammps.command("info accel config");
         capturer->EndCapture();
         info       = capturer->GetCapture();
         auto start = info.find("LAMMPS version:");
@@ -738,10 +738,15 @@ void LammpsGui::about()
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
-    msg.setStandardButtons(QMessageBox::Ok);
+    msg.setStandardButtons(QMessageBox::Close);
     QFont font;
-    font.setPointSizeF(font.pointSizeF()*0.75);
+    font.setPointSizeF(font.pointSizeF() * 0.75);
     msg.setFont(font);
+
+    auto *minwidth      = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    QGridLayout *layout = (QGridLayout *)msg.layout();
+    layout->addItem(minwidth, layout->rowCount(), 0, 1, layout->columnCount());
+
     msg.exec();
 }
 

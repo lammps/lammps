@@ -56,12 +56,14 @@ public:
 protected:
     void open_file(const QString &filename);
     void write_file(const QString &filename);
+    void update_recents(const QString &filename = "");
     void start_lammps();
     void run_done();
 
 private slots:
     void new_document();
     void open();
+    void open_recent();
     void save();
     void save_as();
     void quit();
@@ -101,10 +103,11 @@ private:
 
     QString current_file;
     QString current_dir;
+    QList<QString> recent;
+
     LammpsWrapper lammps;
     std::string plugin_path;
     bool is_running;
-    QList<QString> recent_files;
     std::vector<char *> lammps_args;
 };
 #endif // LAMMPSGUI_H

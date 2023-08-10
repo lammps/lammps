@@ -55,6 +55,7 @@
 #endif
 
 static const QString blank(" ");
+static constexpr int MAXRECENT = 5;
 
 // duplicate string
 static char *mystrdup(const std::string &text)
@@ -72,19 +73,21 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
 
+    // register QList<QString>
+    qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
+
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
     highlighter = new Highlighter(ui->textEdit->document());
     capturer    = new StdCapture;
     current_file.clear();
     current_dir = QDir(".").absolutePath();
-    recent_files.clear();
 
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
     QCoreApplication::setOrganizationDomain("lammps.org");
     QCoreApplication::setApplicationName("LAMMPS GUI");
 
-    // restorge and initialize settings
+    // restore and initialize settings
     QSettings settings;
 
     // switch configured accelerator back to "none" if needed.
@@ -160,6 +163,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->textEdit->document()->setDefaultFont(text_font);
     ui->textEdit->setMinimumSize(600, 400);
 
+    update_recents();
+
     connect(ui->actionNew, &QAction::triggered, this, &LammpsGui::new_document);
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
     connect(ui->actionSave, &QAction::triggered, this, &LammpsGui::save);
@@ -180,6 +185,11 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionDefaults, &QAction::triggered, this, &LammpsGui::defaults);
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
+    connect(ui->action_1, &QAction::triggered, this, &LammpsGui::open_recent);
+    connect(ui->action_2, &QAction::triggered, this, &LammpsGui::open_recent);
+    connect(ui->action_3, &QAction::triggered, this, &LammpsGui::open_recent);
+    connect(ui->action_4, &QAction::triggered, this, &LammpsGui::open_recent);
+    connect(ui->action_5, &QAction::triggered, this, &LammpsGui::open_recent);
 
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this,
             &LammpsGui::modified);
@@ -260,6 +270,66 @@ void LammpsGui::open()
     open_file(fileName);
 }
 
+void LammpsGui::open_recent()
+{
+    QAction *act = qobject_cast<QAction *>(sender());
+    if (act) open_file(act->data().toString());
+}
+
+void LammpsGui::update_recents(const QString &filename)
+{
+    QSettings settings;
+    recent = settings.value("recent").value<QList<QString>>();
+
+    for (int i = 0; i < recent.size(); ++i) {
+        QFileInfo fi(recent[i]);
+        if (!fi.isReadable()) {
+            recent.removeAt(i);
+            i = 0;
+        }
+    }
+
+    if (!filename.isEmpty() && !recent.contains(filename)) recent.prepend(filename);
+    if (recent.size() > 5) recent.removeLast();
+    settings.setValue("recent", QVariant::fromValue(recent));
+
+    ui->action_1->setVisible(false);
+    if ((recent.size() > 0) && !recent[0].isEmpty()) {
+        QFileInfo fi(recent[0]);
+        ui->action_1->setText(QString("1. ") + fi.fileName());
+        ui->action_1->setData(recent[0]);
+        ui->action_1->setVisible(true);
+    }
+    ui->action_2->setVisible(false);
+    if ((recent.size() > 1) && !recent[1].isEmpty()) {
+        QFileInfo fi(recent[1]);
+        ui->action_2->setText(QString("2. ") + fi.fileName());
+        ui->action_2->setData(recent[1]);
+        ui->action_2->setVisible(true);
+    }
+    ui->action_3->setVisible(false);
+    if ((recent.size() > 2) && !recent[2].isEmpty()) {
+        QFileInfo fi(recent[2]);
+        ui->action_3->setText(QString("3. ") + fi.fileName());
+        ui->action_3->setData(recent[2]);
+        ui->action_3->setVisible(true);
+    }
+    ui->action_4->setVisible(false);
+    if ((recent.size() > 3) && !recent[3].isEmpty()) {
+        QFileInfo fi(recent[3]);
+        ui->action_4->setText(QString("4. ") + fi.fileName());
+        ui->action_4->setData(recent[0]);
+        ui->action_4->setVisible(true);
+    }
+    ui->action_5->setVisible(false);
+    if ((recent.size() > 4) && !recent[4].isEmpty()) {
+        QFileInfo fi(recent[4]);
+        ui->action_5->setText(QString("5. ") + fi.fileName());
+        ui->action_5->setData(recent[0]);
+        ui->action_5->setVisible(true);
+    }
+}
+
 // open file and switch CWD to path of file
 void LammpsGui::open_file(const QString &fileName)
 {
@@ -291,6 +361,8 @@ void LammpsGui::open_file(const QString &fileName)
     current_dir  = path.absolutePath();
     QFile file(path.absoluteFilePath());
 
+    update_recents(path.absoluteFilePath());
+
     QDir::setCurrent(current_dir);
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning",
@@ -310,16 +382,19 @@ void LammpsGui::open_file(const QString &fileName)
 
 void LammpsGui::write_file(const QString &fileName)
 {
-    QFile file(fileName);
-    QFileInfo path(file);
+    QFileInfo path(fileName);
     current_file = path.fileName();
     current_dir  = path.absolutePath();
+    QFile file(path.absoluteFilePath());
 
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
     setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+
+    update_recents(path.absoluteFilePath());
+
     QTextStream out(&file);
     QString text = ui->textEdit->toPlainText();
     out << text;

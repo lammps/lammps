@@ -8,11 +8,8 @@ LAMMPS-GUI TODO list:
   handle "&" continuation and multiline strings with """ like C style comments in Qt docs example
 - add CTRL-q hotkey to log windows so you can exit the entire application (add do you really want to? dialog to this)
 - add "syntax check" with enabled "-skiprun" flag
-- add multi-tab settings dialog where certain properties can be set through customizing the LAMMPS command line
-   + select Font
-- add list of 5(?) most recently opened/saved files to file dialog (and also write to settings state on exit) (note: must store full path!)
-- need to handle "label" and "jump" commands from within
-- switch processing of input to line based commands
+- need to handle "label" and "jump" commands from within ?
+- switch processing of input to line based commands or?
 - switch input file editor to read-only while loop is running
 
 # Long term ideas

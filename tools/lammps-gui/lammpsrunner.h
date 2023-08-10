@@ -32,7 +32,7 @@ public:
         emit resultReady();
     }
 
-    // transfer info to worker thread
+    // transfer info to worker thread and reset LAMMPS instance
     void setup_run(LammpsWrapper *_lammps, const char *_input)
     {
         lammps = _lammps;

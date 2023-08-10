@@ -27,7 +27,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -35,7 +35,14 @@
      <string>&amp;File</string>
     </property>
     <addaction name="actionNew"/>
+    <addaction name="separator"/>
     <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="action_1"/>
+    <addaction name="action_2"/>
+    <addaction name="action_3"/>
+    <addaction name="action_4"/>
+    <addaction name="action_5"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
@@ -356,7 +363,8 @@
   </action>
   <action name="actionView_Log_Window">
    <property name="icon">
-    <iconset theme="utilities-terminal"/>
+    <iconset theme="utilities-terminal">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Log Window</string>
@@ -364,10 +372,36 @@
   </action>
   <action name="actionView_Graph_Window">
    <property name="icon">
-    <iconset theme="x-office-drawing"/>
+    <iconset theme="x-office-drawing">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Chart Window</string>
+   </property>
+  </action>
+  <action name="action_1">
+   <property name="text">
+    <string>&amp;1.</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>&amp;2.</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>&amp;3.</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>&amp;4.</string>
+   </property>
+  </action>
+  <action name="action_5">
+   <property name="text">
+    <string>&amp;5.</string>
    </property>
   </action>
  </widget>

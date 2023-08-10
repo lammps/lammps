@@ -47,11 +47,12 @@ class FixSpringSelf : public Fix {
   int size_restart(int) override;
   int maxsize_restart() override;
 
- private:
+ protected:
   double k, espring;
   double **xoriginal;    // original coords of atoms
   int xflag, yflag, zflag;
   int ilevel_respa;
+  int maxatom;
 };
 
 }    // namespace LAMMPS_NS

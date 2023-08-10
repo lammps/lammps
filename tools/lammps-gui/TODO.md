@@ -11,6 +11,9 @@ LAMMPS-GUI TODO list:
 - add multi-tab settings dialog where certain properties can be set through customizing the LAMMPS command line
    + select Font
 - add list of 5(?) most recently opened/saved files to file dialog (and also write to settings state on exit) (note: must store full path!)
+- need to handle "label" and "jump" commands from within
+- switch processing of input to line based commands
+- switch input file editor to read-only while loop is running
 
 # Long term ideas
 - rewrite entire application to either use QtCreator for everything or just build the App and its layout manually

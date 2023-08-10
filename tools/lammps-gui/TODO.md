@@ -2,7 +2,11 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
+- add option to image viewer to select a group and rerender, similar for the two rotate options with +/- buttons and +/- zoom buttons.
+  add checkbutton for HQ rendering (i.e. SSAO)
+  also move the image setting preferences there and remove scrollwheel zoom support.
 - use qgetenv, qputenv for portability
+- write LAMMPS GUI Howto showing/explaining options -> simplify docs and readme
 - rewrite syntax highlighting to be line oriented instead of word oriented.
   handle first part of line based on regular expressions, then advance and only highlight strings and numbers.
   handle "&" continuation and multiline strings with """ like C style comments in Qt docs example

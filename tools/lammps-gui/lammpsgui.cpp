@@ -736,12 +736,8 @@ void LammpsGui::view_image()
         settings.endGroup();
 
         lammps.command(dumpcmd.toLocal8Bit());
-        imagewindow = new ImageViewer(dumpfile);
-#if defined(_WIN32)
-        _unlink(dumpfile.toLocal8Bit());
-#else
-        unlink(dumpfile.toLocal8Bit());
-#endif
+        imagewindow = new ImageViewer(dumpfile, &lammps);
+        QFile::remove(dumpfile);
     } else {
         QMessageBox::warning(this, "ImageViewer Error",
                              "Cannot create snapshot image while LAMMPS is running");

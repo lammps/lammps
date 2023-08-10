@@ -14,8 +14,10 @@
 #ifndef IMAGEVIEWER_H
 #define IMAGEVIEWER_H
 
+#include <QComboBox>
 #include <QDialog>
 #include <QImage>
+#include <QString>
 
 class QAction;
 class QMenuBar;
@@ -25,13 +27,15 @@ class QObject;
 class QScrollArea;
 class QScrollBar;
 class QStatusBar;
-class QWheelEvent;
+class LammpsWrapper;
+class QComboBox;
 
 class ImageViewer : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ImageViewer(const QString &fileName, QWidget *parent = nullptr);
+    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps,
+                         QWidget *parent = nullptr);
 
 private slots:
     void saveAs();
@@ -47,8 +51,6 @@ private:
     void saveFile(const QString &fileName);
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
-    bool eventFilter(QObject *object, QEvent *event);
-    void wheelEvent(QWheelEvent *event);
 
 private:
     QImage image;
@@ -64,6 +66,9 @@ private:
     QAction *zoomOutAct;
     QAction *normalSizeAct;
     QAction *fitToWindowAct;
+
+    LammpsWrapper *lammps;
+    QString group;
 };
 #endif
 

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "imageviewer.h"
+#include "lammpswrapper.h"
 
 #include <QAction>
 #include <QDialogButtonBox>
@@ -25,15 +26,18 @@
 #include <QMessageBox>
 #include <QPalette>
 #include <QPoint>
+#include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStatusBar>
 #include <QVBoxLayout>
 #include <QWheelEvent>
+#include <QWidgetAction>
 
-ImageViewer::ImageViewer(const QString &fileName, QWidget *parent) :
-    QDialog(parent), imageLabel(new QLabel), scrollArea(new QScrollArea), menuBar(new QMenuBar)
+ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
+    QDialog(parent), imageLabel(new QLabel), scrollArea(new QScrollArea), menuBar(new QMenuBar),
+    lammps(_lammps), group("all")
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -42,8 +46,6 @@ ImageViewer::ImageViewer(const QString &fileName, QWidget *parent) :
 
     scrollArea->setBackgroundRole(QPalette::Dark);
     scrollArea->setWidget(imageLabel);
-    scrollArea->setMouseTracking(true);
-    scrollArea->installEventFilter(this);
     scrollArea->setVisible(false);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -52,7 +54,17 @@ ImageViewer::ImageViewer(const QString &fileName, QWidget *parent) :
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(menuBar);
+    QHBoxLayout *menuLayout = new QHBoxLayout;
+    menuLayout->addWidget(menuBar);
+    menuLayout->addWidget(new QPushButton("Zoom Out"));
+    menuLayout->addWidget(new QPushButton("Zoom In"));
+    menuLayout->addWidget(new QPushButton("Rotate Left"));
+    menuLayout->addWidget(new QPushButton("Rotate Right"));
+    menuLayout->addWidget(new QPushButton("Rotate Up"));
+    menuLayout->addWidget(new QPushButton("Rotate Down"));
+    menuLayout->addWidget(new QComboBox);
+        
+    mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     mainLayout->addWidget(buttonBox);
     setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).completeBaseName());
@@ -90,12 +102,12 @@ void ImageViewer::copy() {}
 
 void ImageViewer::zoomIn()
 {
-    scaleImage(1.1);
+    scaleImage(1.25);
 }
 
 void ImageViewer::zoomOut()
 {
-    scaleImage(0.9);
+    scaleImage(0.8);
 }
 
 void ImageViewer::normalSize()
@@ -133,16 +145,16 @@ void ImageViewer::createActions()
 
     QMenu *viewMenu = menuBar->addMenu(tr("&View"));
 
-    zoomInAct = viewMenu->addAction(tr("Zoom &In (10%)"), this, &ImageViewer::zoomIn);
+    zoomInAct = viewMenu->addAction(tr("Image Zoom &In (25%)"), this, &ImageViewer::zoomIn);
     zoomInAct->setShortcut(QKeySequence::ZoomIn);
     zoomInAct->setEnabled(false);
 
-    zoomOutAct = viewMenu->addAction(tr("Zoom &Out (10%)"), this, &ImageViewer::zoomOut);
+    zoomOutAct = viewMenu->addAction(tr("Image Zoom &Out (25%)"), this, &ImageViewer::zoomOut);
     zoomOutAct->setShortcut(QKeySequence::ZoomOut);
     zoomOutAct->setEnabled(false);
 
-    normalSizeAct = viewMenu->addAction(tr("&Normal Size"), this, &ImageViewer::normalSize);
-    normalSizeAct->setShortcut(tr("Ctrl+S"));
+    normalSizeAct = viewMenu->addAction(tr("&Reset Image Size"), this, &ImageViewer::normalSize);
+    normalSizeAct->setShortcut(tr("Ctrl+0"));
     normalSizeAct->setEnabled(false);
 
     viewMenu->addSeparator();
@@ -150,7 +162,7 @@ void ImageViewer::createActions()
     fitToWindowAct = viewMenu->addAction(tr("&Fit to Window"), this, &ImageViewer::fitToWindow);
     fitToWindowAct->setEnabled(false);
     fitToWindowAct->setCheckable(true);
-    fitToWindowAct->setShortcut(tr("Ctrl+F"));
+    fitToWindowAct->setShortcut(tr("Ctrl+="));
 }
 
 void ImageViewer::updateActions()
@@ -181,27 +193,6 @@ void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
 {
     scrollBar->setValue(
         int(factor * scrollBar->value() + ((factor - 1) * scrollBar->pageStep() / 2)));
-}
-
-bool ImageViewer::eventFilter(QObject *, QEvent *event)
-{
-    if (event->type() == QEvent::Wheel) {
-        wheelEvent((QWheelEvent *)event);
-        return true;
-    }
-    return false;
-}
-
-void ImageViewer::wheelEvent(QWheelEvent *event)
-{
-    QPoint num = event->angleDelta();
-    if (!num.isNull()) {
-        if (num.y() > 0)
-            zoomIn();
-        else
-            zoomOut();
-    }
-    event->accept();
 }
 
 // Local Variables:

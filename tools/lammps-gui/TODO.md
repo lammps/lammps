@@ -12,8 +12,12 @@ LAMMPS-GUI TODO list:
 - switch processing of input to line based commands or?
 - switch input file editor to read-only while loop is running
 - add Variables menu entry where command line variables can be set
+- embed all icons/graphics
 
 # Long term ideas
+- add feature to LAMMPS (to the LAMMPS class) to store current file name and line number, update while reading/parsing
+  use in error messages
+  add API to library interface to query this info and use it for highlighting in text editor
 - rewrite entire application to either use QtCreator for everything or just build the App and its layout manually
 - port to Qt6
 - also a rewrite should establish consistent naming conventions. now we have a mix of LAMMPS style, Qt style, and others.

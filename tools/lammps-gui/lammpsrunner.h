@@ -27,7 +27,6 @@ public:
     // execute LAMMPS in runner thread
     void run() override
     {
-        lammps->command("clear");
         lammps->commands_string(input);
         delete[] input;
         emit resultReady();
@@ -38,6 +37,7 @@ public:
     {
         lammps = _lammps;
         input  = _input;
+        lammps->command("clear");
     }
 
 signals:

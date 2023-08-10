@@ -318,14 +318,14 @@ void LammpsGui::update_recents(const QString &filename)
     if ((recent.size() > 3) && !recent[3].isEmpty()) {
         QFileInfo fi(recent[3]);
         ui->action_4->setText(QString("4. ") + fi.fileName());
-        ui->action_4->setData(recent[0]);
+        ui->action_4->setData(recent[3]);
         ui->action_4->setVisible(true);
     }
     ui->action_5->setVisible(false);
     if ((recent.size() > 4) && !recent[4].isEmpty()) {
         QFileInfo fi(recent[4]);
         ui->action_5->setText(QString("5. ") + fi.fileName());
-        ui->action_5->setData(recent[0]);
+        ui->action_5->setData(recent[4]);
         ui->action_5->setVisible(true);
     }
 }

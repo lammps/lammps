@@ -120,6 +120,10 @@ void Preferences::accept()
     if (combo) settings->setValue("antialias", combo->currentIndex());
     QCheckBox *box = tabWidget->findChild<QCheckBox *>("ssao");
     if (box) settings->setValue("ssao", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("box");
+    if (box) settings->setValue("box", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("axes");
+    if (box) settings->setValue("axes", box->isChecked());
     settings->endGroup();
 
     // general settings
@@ -131,6 +135,8 @@ void Preferences::accept()
     if (box) settings->setValue("logreplace", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("chartreplace");
     if (box) settings->setValue("chartreplace", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("imagereplace");
+    if (box) settings->setValue("imagereplace", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewlog");
     if (box) settings->setValue("viewlog", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewchart");
@@ -159,6 +165,10 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
                                                                       : Qt::Unchecked);
+    auto *imgr = new QCheckBox("Replace image window on new render");
+    imgr->setObjectName("imagereplace");
+    imgr->setCheckState(settings->value("imagereplace", false).toBool() ? Qt::Checked
+                                                                        : Qt::Unchecked);
     auto *pltr = new QCheckBox("Replace chart window on new run");
     pltr->setObjectName("chartreplace");
     pltr->setCheckState(settings->value("chartreplace", false).toBool() ? Qt::Checked
@@ -202,6 +212,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(pltv);
     layout->addWidget(logr);
     layout->addWidget(pltr);
+    layout->addWidget(imgr);
 #if !defined(__APPLE__)
     layout->addLayout(tmplayout);
 #endif
@@ -382,12 +393,16 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *zoom  = new QLabel("Zoom factor:");
     auto *anti  = new QLabel("Antialias:");
     auto *ssao  = new QLabel("HQ Image mode:");
+    auto *bbox  = new QLabel("Show Box:");
+    auto *axes  = new QLabel("Show Axes:");
     settings->beginGroup("snapshot");
     auto *xval = new QLineEdit(settings->value("xsize", "800").toString());
     auto *yval = new QLineEdit(settings->value("ysize", "600").toString());
     auto *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
     auto *aval = new QComboBox;
     auto *sval = new QCheckBox;
+    auto *bval = new QCheckBox;
+    auto *eval = new QCheckBox;
     sval->setCheckState(settings->value("ssao", false).toBool() ? Qt::Checked : Qt::Unchecked);
     sval->setObjectName("ssao");
     aval->addItem("1x", 1);
@@ -396,6 +411,10 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     aval->addItem("4x", 4);
     aval->setCurrentIndex(settings->value("antialias", "0").toInt());
     aval->setObjectName("anti");
+    bval->setCheckState(settings->value("box", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    bval->setObjectName("box");
+    eval->setCheckState(settings->value("axes", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    eval->setObjectName("axes");
     settings->endGroup();
 
     auto *intval = new QIntValidator(100, 100000, this);
@@ -411,14 +430,18 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(zoom, 2, 0, Qt::AlignTop);
     grid->addWidget(anti, 3, 0, Qt::AlignTop);
     grid->addWidget(ssao, 4, 0, Qt::AlignTop);
+    grid->addWidget(bbox, 5, 0, Qt::AlignTop);
+    grid->addWidget(axes, 6, 0, Qt::AlignTop);
     grid->addWidget(xval, 0, 1, Qt::AlignTop);
     grid->addWidget(yval, 1, 1, Qt::AlignTop);
     grid->addWidget(zval, 2, 1, Qt::AlignTop);
     grid->addWidget(aval, 3, 1, Qt::AlignTop);
     grid->addWidget(sval, 4, 1, Qt::AlignVCenter);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 5, 0);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 5, 1);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 5, 2);
+    grid->addWidget(bval, 5, 1, Qt::AlignVCenter);
+    grid->addWidget(eval, 6, 1, Qt::AlignVCenter);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 7, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 7, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 7, 2);
     setLayout(grid);
 }
 

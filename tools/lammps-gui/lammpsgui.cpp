@@ -177,7 +177,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
-    connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::view_image);
+    connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::render_image);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
     connect(ui->actionLAMMPS_Manual, &QAction::triggered, this, &LammpsGui::manual);
@@ -185,6 +185,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionDefaults, &QAction::triggered, this, &LammpsGui::defaults);
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
+    connect(ui->actionView_Image_Window, &QAction::triggered, this, &LammpsGui::view_image);
     connect(ui->action_1, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_2, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_3, &QAction::triggered, this, &LammpsGui::open_recent);
@@ -704,7 +705,7 @@ void LammpsGui::run_buffer()
     logupdater->start(250);
 }
 
-void LammpsGui::view_image()
+void LammpsGui::render_image()
 {
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
     if (!lammps.is_running()) {
@@ -714,6 +715,8 @@ void LammpsGui::view_image()
                                  "Cannot create snapshot image without a system box");
             return;
         }
+        // if configured, delete old image window before opening new one
+        if (QSettings().value("imagereplace", false).toBool()) delete imagewindow;
         imagewindow = new ImageViewer(current_file, &lammps);
     } else {
         QMessageBox::warning(this, "ImageViewer Error",
@@ -752,6 +755,17 @@ void LammpsGui::view_log()
         } else {
             logwindow->show();
             settings.setValue("viewlog", true);
+        }
+    }
+}
+
+void LammpsGui::view_image()
+{
+    if (imagewindow) {
+        if (imagewindow->isVisible()) {
+            imagewindow->hide();
+        } else {
+            imagewindow->show();
         }
     }
 }
@@ -871,6 +885,7 @@ void LammpsGui::preferences()
             (oldecho != settings.value("echo", 0).toInt()) ||
             (oldcite != settings.value("cite", 0).toInt()))
             lammps.close();
+        if (imagewindow) imagewindow->createImage();
     }
 }
 

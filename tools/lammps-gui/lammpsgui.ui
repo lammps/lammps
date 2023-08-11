@@ -86,6 +86,7 @@
     </property>
     <addaction name="actionView_Log_Window"/>
     <addaction name="actionView_Graph_Window"/>
+    <addaction name="actionView_Image_Window"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -402,6 +403,14 @@
   <action name="action_5">
    <property name="text">
     <string>&amp;5.</string>
+   </property>
+  </action>
+  <action name="actionView_Image_Window">
+   <property name="icon">
+    <iconset theme="emblem-photos"/>
+   </property>
+   <property name="text">
+    <string>&amp;Image Window</string>
    </property>
   </action>
  </widget>

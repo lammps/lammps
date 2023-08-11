@@ -53,9 +53,10 @@ private slots:
     void do_rot_down();
     void change_group(int);
 
+public:
+    void createImage();
 private:
     void createActions();
-    void createImage();
     void updateActions();
     void saveFile(const QString &fileName);
     void scaleImage(double factor);

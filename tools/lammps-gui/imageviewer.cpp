@@ -58,12 +58,12 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
-    auto *zoomin   = new QPushButton(QIcon(":/gtk-zoom-in.png"), "Zoom In");
-    auto *zoomout  = new QPushButton(QIcon(":/gtk-zoom-out.png"),"Zoom Out");
-    auto *rotleft  = new QPushButton(QIcon(":/object-rotate-left.png"), "Rotate Left");
-    auto *rotright = new QPushButton(QIcon(":/object-rotate-right.png"), "Rotate Right");
-    auto *rotup    = new QPushButton(QIcon(":/gtk-go-up.png"),"Rotate Up");
-    auto *rotdown  = new QPushButton(QIcon(":/gtk-go-down.png"),"Rotate Down");
+    auto *zoomin   = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
+    auto *zoomout  = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
+    auto *rotleft  = new QPushButton(QIcon(":/object-rotate-left.png"), "");
+    auto *rotright = new QPushButton(QIcon(":/object-rotate-right.png"), "");
+    auto *rotup    = new QPushButton(QIcon(":/gtk-go-up.png"), "");
+    auto *rotdown  = new QPushButton(QIcon(":/gtk-go-down.png"), "");
     auto *combo    = new QComboBox;
     combo->setObjectName("group");
     int ngroup = lammps->id_count("group");
@@ -148,14 +148,14 @@ void ImageViewer::do_rot_right()
 void ImageViewer::do_rot_down()
 {
     hrot -= 15;
-    if (hrot < -0) hrot += 180;
+    if (hrot < 0) hrot += 360;
     createImage();
 }
 
 void ImageViewer::do_rot_up()
 {
     hrot += 15;
-    if (hrot > 180) hrot -= 180;
+    if (hrot > 360) hrot -= 360;
     createImage();
 }
 
@@ -178,6 +178,7 @@ void ImageViewer::createImage()
     int aa    = settings.value("antialias", 0).toInt() + 1;
     int xsize = settings.value("xsize", 800).toInt() * aa;
     int ysize = settings.value("ysize", 600).toInt() * aa;
+    int hhrot = (hrot > 180) ? 360 - hrot : hrot;
 
     dumpcmd += blank + settings.value("color", "type").toString();
     dumpcmd += blank + settings.value("diameter", "type").toString();
@@ -185,9 +186,18 @@ void ImageViewer::createImage()
     dumpcmd += QString(" zoom ") + QString::number(zoom);
     lammps->command(dumpcmd.toLocal8Bit());
     if (lammps->extract_setting("dimension") == 3) {
-        dumpcmd += QString(" view ") + QString::number(hrot) + blank + QString::number(vrot);
+        dumpcmd += QString(" view ") + QString::number(hhrot) + blank + QString::number(vrot);
     }
     if (settings.value("ssao", false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
+    if (settings.value("box", true).toBool())
+        dumpcmd += QString(" box yes 0.02");
+    else
+        dumpcmd += QString(" box no 0.0");
+    if (settings.value("axes", true).toBool())
+        dumpcmd += QString(" axes yes 0.2 0.02");
+    else
+        dumpcmd += QString(" axes no 0.0 0.0");
+
     settings.endGroup();
 
     lammps->command(dumpcmd.toLocal8Bit());

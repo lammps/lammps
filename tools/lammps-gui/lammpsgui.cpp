@@ -736,7 +736,7 @@ void LammpsGui::view_image()
         dumpcmd += blank + settings.value("diameter", "type").toString();
         dumpcmd += QString(" size ") + QString::number(xsize) + blank + QString::number(ysize);
         dumpcmd += QString(" zoom ") + settings.value("zoom", "1.0").toString();
-        if (settings.value("ssao",false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
+        if (settings.value("ssao", false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
         settings.endGroup();
 
         lammps.command(dumpcmd.toLocal8Bit());
@@ -882,11 +882,21 @@ void LammpsGui::defaults()
 
 void LammpsGui::preferences()
 {
+    QSettings settings;
+    int oldthreads = settings.value("nthreads", 1).toInt();
+    int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
+    int oldecho    = settings.value("echo", 0).toInt();
+    int oldcite    = settings.value("cite", 0).toInt();
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
-        // must delete LAMMPS instance after setting may be changed so we can apply different
-        // suffixes
-        lammps.close();
+        // must delete LAMMPS instance after preferences have changed that require
+        // using different command line flags when creating the LAMMPS instance like
+        // suffixes or package commands
+        if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
+            (oldthreads != settings.value("nthreads", 1).toInt()) ||
+            (oldecho != settings.value("echo", 0).toInt()) ||
+            (oldcite != settings.value("cite", 0).toInt()))
+            lammps.close();
     }
 }
 

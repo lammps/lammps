@@ -739,7 +739,12 @@ void LammpsGui::view_image()
         if (settings.value("ssao", false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
         settings.endGroup();
 
+        dirstatus->setText(" Rendering Snapshot Image... ");
+        status->repaint();
         lammps.command(dumpcmd.toLocal8Bit());
+        dirstatus->setText(QString(" Directory: ") + current_dir);
+        status->repaint();
+
         imagewindow = new ImageViewer(dumpfile, &lammps);
         QFile::remove(dumpfile);
     } else {
@@ -887,6 +892,7 @@ void LammpsGui::preferences()
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
     int oldecho    = settings.value("echo", 0).toInt();
     int oldcite    = settings.value("cite", 0).toInt();
+
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
         // must delete LAMMPS instance after preferences have changed that require

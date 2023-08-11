@@ -58,12 +58,12 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
-    auto *zoomin   = new QPushButton("Zoom In");
-    auto *zoomout  = new QPushButton("Zoom Out");
-    auto *rotleft  = new QPushButton("Rotate Left");
-    auto *rotright = new QPushButton("Rotate Right");
-    auto *rotup    = new QPushButton("Rotate Up");
-    auto *rotdown  = new QPushButton("Rotate Down");
+    auto *zoomin   = new QPushButton(QIcon(":/gtk-zoom-in.png"), "Zoom In");
+    auto *zoomout  = new QPushButton(QIcon(":/gtk-zoom-out.png"),"Zoom Out");
+    auto *rotleft  = new QPushButton(QIcon(":/object-rotate-left.png"), "Rotate Left");
+    auto *rotright = new QPushButton(QIcon(":/object-rotate-right.png"), "Rotate Right");
+    auto *rotup    = new QPushButton(QIcon(":/gtk-go-up.png"),"Rotate Up");
+    auto *rotdown  = new QPushButton(QIcon(":/gtk-go-down.png"),"Rotate Down");
     auto *combo    = new QComboBox;
     combo->setObjectName("group");
     int ngroup = lammps->id_count("group");
@@ -131,31 +131,31 @@ void ImageViewer::do_zoom_out()
     createImage();
 }
 
-void ImageViewer::do_rot_right()
+void ImageViewer::do_rot_left()
 {
     vrot -= 15;
-    if (vrot < 0) vrot += 360;
+    if (vrot < -180) vrot += 360;
     createImage();
 }
 
-void ImageViewer::do_rot_left()
+void ImageViewer::do_rot_right()
 {
     vrot += 15;
-    if (vrot > 360) vrot -= 360;
+    if (vrot > 180) vrot -= 360;
     createImage();
 }
 
 void ImageViewer::do_rot_down()
 {
     hrot -= 15;
-    if (hrot < 0) hrot += 360;
+    if (hrot < -0) hrot += 180;
     createImage();
 }
 
 void ImageViewer::do_rot_up()
 {
     hrot += 15;
-    if (hrot > 360) hrot -= 360;
+    if (hrot > 180) hrot -= 180;
     createImage();
 }
 
@@ -269,14 +269,17 @@ void ImageViewer::createActions()
 
     zoomInAct = viewMenu->addAction(tr("Image Zoom &In (25%)"), this, &ImageViewer::zoomIn);
     zoomInAct->setShortcut(QKeySequence::ZoomIn);
+    zoomInAct->setIcon(QIcon(":/gtk-zoom-in.png"));
     zoomInAct->setEnabled(false);
 
     zoomOutAct = viewMenu->addAction(tr("Image Zoom &Out (25%)"), this, &ImageViewer::zoomOut);
     zoomOutAct->setShortcut(QKeySequence::ZoomOut);
+    zoomInAct->setIcon(QIcon(":/gtk-zoom-out.png"));
     zoomOutAct->setEnabled(false);
 
     normalSizeAct = viewMenu->addAction(tr("&Reset Image Size"), this, &ImageViewer::normalSize);
     normalSizeAct->setShortcut(tr("Ctrl+0"));
+    zoomInAct->setIcon(QIcon(":/gtk-zoom-fit.png"));
     normalSizeAct->setEnabled(false);
 
     viewMenu->addSeparator();

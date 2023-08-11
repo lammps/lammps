@@ -73,7 +73,6 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   xoriginal = nullptr;
-  maxatom = atom->nmax;
   FixSpringSelf::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
@@ -97,6 +96,8 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
 
 FixSpringSelf::~FixSpringSelf()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);

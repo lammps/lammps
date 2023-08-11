@@ -43,9 +43,8 @@ FixSpringSelfKokkos<DeviceType>::FixSpringSelfKokkos(LAMMPS *lmp, int narg, char
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  maxatom = atom->nmax;
   memory->destroy(xoriginal);
-  memoryKK->create_kokkos(k_xoriginal,xoriginal,maxatom,3,"spring/self:xoriginal");
+  memoryKK->create_kokkos(k_xoriginal,xoriginal,atom->nmax,3,"spring/self:xoriginal");
   d_xoriginal = k_xoriginal.view<DeviceType>();
 }
 
@@ -84,15 +83,6 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
   mask = atomKK->k_mask.view<DeviceType>();
 
   int nlocal = atom->nlocal;
-
-  // reallocate xoriginal array if necessary
-
-  if (atom->nmax > maxatom) {
-    maxatom = atom->nmax;
-    memoryKK->destroy_kokkos(k_xoriginal,xoriginal);
-    memoryKK->create_kokkos(k_xoriginal,xoriginal,maxatom,3,"fix_spring/self:xoriginal");
-    d_xoriginal = k_xoriginal.view<DeviceType>();
-  }
 
   double espring_kk;
 

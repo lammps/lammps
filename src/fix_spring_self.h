@@ -52,7 +52,6 @@ class FixSpringSelf : public Fix {
   double **xoriginal;    // original coords of atoms
   int xflag, yflag, zflag;
   int ilevel_respa;
-  int maxatom;
 };
 
 }    // namespace LAMMPS_NS

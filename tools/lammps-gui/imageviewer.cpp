@@ -170,7 +170,7 @@ void ImageViewer::createImage()
 {
     QSettings settings;
     QString dumpcmd = QString("write_dump ") + group + " image ";
-    QDir dumpdir    = settings.value("tempdir").toString();
+    QDir dumpdir(QDir::tempPath());
     QFile dumpfile(dumpdir.absoluteFilePath(filename + ".ppm"));
     dumpcmd += dumpfile.fileName();
 

@@ -55,6 +55,7 @@ private slots:
 
 public:
     void createImage();
+
 private:
     void createActions();
     void updateActions();

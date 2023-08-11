@@ -48,12 +48,6 @@
 #include <omp.h>
 #endif
 
-#if defined(_WIN32)
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
-
 static const QString blank(" ");
 static constexpr int MAXRECENT = 5;
 
@@ -114,34 +108,13 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #if defined(_OPENMP)
     // use maximum number of available threads unless OMP_NUM_THREADS was set
     int nthreads = settings.value("nthreads", omp_get_max_threads()).toInt();
-#if _WIN32
-    if (!getenv("OMP_NUM_THREADS")) {
-        _putenv_s("OMP_NUM_THREADS", std::to_string(nthreads).c_str());
+    if (!qEnvironmentVariableIsSet("OMP_NUM_THREADS")) {
+        qputenv("OMP_NUM_THREADS", std::to_string(nthreads).c_str());
     }
-#else
-    setenv("OMP_NUM_THREADS", std::to_string(nthreads).c_str(), 0);
-#endif
 #else
     int nthreads = settings.value("nthreads", 1).toInt();
 #endif
     settings.setValue("nthreads", QString::number(nthreads));
-
-    const char *tmpdir = getenv("TMPDIR");
-    if (!tmpdir) tmpdir = getenv("TMP");
-    if (!tmpdir) tmpdir = getenv("TEMPDIR");
-    if (!tmpdir) tmpdir = getenv("TEMP");
-#if _WIN32
-    if (!tmpdir) tmpdir = "C:\\Windows\\Temp";
-#else
-    if (!tmpdir) tmpdir = "/tmp";
-#endif
-
-    QFileInfo newtmp(settings.value("tempdir", QString(tmpdir)).toString());
-    if (newtmp.isDir() && newtmp.isWritable()) {
-        settings.setValue("tempdir", newtmp.filePath());
-    } else {
-        settings.setValue("tempdir", QString(tmpdir));
-    }
 
     lammps_args.clear();
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));
@@ -666,12 +639,8 @@ void LammpsGui::run_buffer()
     logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
                               current_file);
     logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
-#if (__APPLE__)
-    QFont text_font("Menlo");
-#else
-    QFont text_font(":/Monospace.ttf");
-#endif
-    text_font.setStyleHint(QFont::TypeWriter);
+    QFont text_font;
+    text_font.fromString(settings.value("textfont", text_font.toString()).toString());
     logwindow->document()->setDefaultFont(text_font);
     logwindow->setLineWrapMode(LogWindow::NoWrap);
     logwindow->setMinimumSize(400, 300);

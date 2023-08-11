@@ -49,7 +49,6 @@ public:
 
 private slots:
     void pluginpath();
-    void newtmpfolder();
     void newallfont();
     void newtextfont();
 

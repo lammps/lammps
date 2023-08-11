@@ -99,11 +99,6 @@ void Preferences::accept()
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("nthreads", field->text());
 
-    // store temp dir
-    field = tabWidget->findChild<QLineEdit *>("tmpedit");
-    if (field)
-        if (field->hasAcceptableInput()) settings->setValue("tempdir", field->text());
-
     // store image width, height, zoom, and rendering settings
 
     settings->beginGroup("snapshot");
@@ -173,17 +168,6 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     pltr->setObjectName("chartreplace");
     pltr->setCheckState(settings->value("chartreplace", false).toBool() ? Qt::Checked
                                                                         : Qt::Unchecked);
-#if !defined(__APPLE__)
-    auto *tmplabel  = new QLabel("Scratch Folder:");
-    auto *tmpedit   = new QLineEdit(settings->value("tempdir", ".").toString());
-    auto *tmpbrowse = new QPushButton("Browse...");
-    auto *tmplayout = new QHBoxLayout;
-    tmpedit->setObjectName("tmpedit");
-    tmplayout->addWidget(tmplabel);
-    tmplayout->addWidget(tmpedit);
-    tmplayout->addWidget(tmpbrowse);
-    connect(tmpbrowse, &QPushButton::released, this, &GeneralTab::newtmpfolder);
-#endif
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     auto *pluginlabel = new QLabel("Path to LAMMPS Shared Library File:");
@@ -213,9 +197,6 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(logr);
     layout->addWidget(pltr);
     layout->addWidget(imgr);
-#if !defined(__APPLE__)
-    layout->addLayout(tmplayout);
-#endif
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     layout->addWidget(pluginlabel);
     layout->addLayout(pluginlayout);
@@ -261,18 +242,6 @@ void GeneralTab::newtextfont()
     if (ok) updatefonts(all, font);
 
     settings.setValue("textfont", font.toString());
-}
-
-void GeneralTab::newtmpfolder()
-{
-    QLineEdit *field = findChild<QLineEdit *>("tmpedit");
-    QString tmpdir =
-        QFileDialog::getExistingDirectory(this, "Find Folder for Temporary Files", field->text());
-
-    if (!tmpdir.isEmpty()) {
-        QFileInfo newtmp(tmpdir);
-        if (newtmp.isDir() && newtmp.isWritable()) field->setText(tmpdir);
-    }
 }
 
 void GeneralTab::pluginpath()

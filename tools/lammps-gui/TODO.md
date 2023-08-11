@@ -2,8 +2,6 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
-- use qgetenv, qputenv for portability
-- use QFile/QDir/QFileInto for portable file and directory operations.
 - write LAMMPS GUI Howto showing/explaining options -> simplify docs and readme
 - rewrite syntax highlighting to be line oriented instead of word oriented.
   handle first part of line based on regular expressions, then advance and only highlight strings and numbers.

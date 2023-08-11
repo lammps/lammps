@@ -728,11 +728,15 @@ void LammpsGui::view_image()
         dumpcmd += dumpfile;
 
         settings.beginGroup("snapshot");
+        int aa    = settings.value("antialias", 0).toInt() + 1;
+        int xsize = settings.value("xsize", 800).toInt() * aa;
+        int ysize = settings.value("ysize", 800).toInt() * aa;
+
         dumpcmd += blank + settings.value("color", "type").toString();
         dumpcmd += blank + settings.value("diameter", "type").toString();
-        dumpcmd += QString(" size ") + settings.value("xsize", "800").toString();
-        dumpcmd += blank + settings.value("ysize", "600").toString();
+        dumpcmd += QString(" size ") + QString::number(xsize) + blank + QString::number(ysize);
         dumpcmd += QString(" zoom ") + settings.value("zoom", "1.0").toString();
+        if (settings.value("ssao",false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
         settings.endGroup();
 
         lammps.command(dumpcmd.toLocal8Bit());

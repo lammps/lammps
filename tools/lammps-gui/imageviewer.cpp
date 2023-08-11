@@ -30,6 +30,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSettings>
 #include <QStatusBar>
 #include <QVBoxLayout>
 #include <QWheelEvent>
@@ -63,7 +64,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(new QPushButton("Rotate Up"));
     menuLayout->addWidget(new QPushButton("Rotate Down"));
     menuLayout->addWidget(new QComboBox);
-        
+
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     mainLayout->addWidget(buttonBox);
@@ -74,12 +75,19 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
     const QImage newImage = reader.read();
+
     if (newImage.isNull()) {
         QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),
                              tr("Cannot load %1: %2").arg(fileName, reader.errorString()));
         return;
     }
-    image = newImage;
+    QSettings settings;
+    settings.beginGroup("snapshot");
+    int xsize = settings.value("xsize", 800).toInt();
+    int ysize = settings.value("ysize", 600).toInt();
+    settings.endGroup();
+    // scale back to achieve antialiasing
+    image = newImage.scaled(xsize, ysize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     imageLabel->setPixmap(QPixmap::fromImage(image));
     scaleFactor = 1.0;
     resize(image.width() + 20, image.height() + 50);

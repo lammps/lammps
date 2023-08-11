@@ -19,6 +19,7 @@
 
 #include <QApplication>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QDir>
@@ -103,7 +104,7 @@ void Preferences::accept()
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("tempdir", field->text());
 
-    // store image width, height, and zoom
+    // store image width, height, zoom, and rendering settings
 
     settings->beginGroup("snapshot");
     field = tabWidget->findChild<QLineEdit *>("xsize");
@@ -115,10 +116,14 @@ void Preferences::accept()
     field = tabWidget->findChild<QLineEdit *>("zoom");
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("zoom", field->text());
+    QComboBox *combo = tabWidget->findChild<QComboBox *>("anti");
+    if (combo) settings->setValue("antialias", combo->currentIndex());
+    QCheckBox *box = tabWidget->findChild<QCheckBox *>("ssao");
+    if (box) settings->setValue("ssao", box->isChecked());
     settings->endGroup();
 
     // general settings
-    QCheckBox *box = tabWidget->findChild<QCheckBox *>("echo");
+    box = tabWidget->findChild<QCheckBox *>("echo");
     if (box) settings->setValue("echo", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("cite");
     if (box) settings->setValue("cite", box->isChecked());
@@ -130,7 +135,6 @@ void Preferences::accept()
     if (box) settings->setValue("viewlog", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewchart");
     if (box) settings->setValue("viewchart", box->isChecked());
-
     QDialog::accept();
 }
 
@@ -376,10 +380,22 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *xsize = new QLabel("Image width:");
     auto *ysize = new QLabel("Image height:");
     auto *zoom  = new QLabel("Zoom factor:");
+    auto *anti  = new QLabel("Antialias:");
+    auto *ssao  = new QLabel("HQ Image mode:");
     settings->beginGroup("snapshot");
     auto *xval = new QLineEdit(settings->value("xsize", "800").toString());
     auto *yval = new QLineEdit(settings->value("ysize", "600").toString());
     auto *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
+    auto *aval = new QComboBox;
+    auto *sval = new QCheckBox;
+    sval->setCheckState(settings->value("ssao", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    sval->setObjectName("ssao");
+    aval->addItem("1x", 1);
+    aval->addItem("2x", 2);
+    aval->addItem("3x", 3);
+    aval->addItem("4x", 4);
+    aval->setCurrentIndex(settings->value("antialias", "0").toInt());
+    aval->setObjectName("anti");
     settings->endGroup();
 
     auto *intval = new QIntValidator(100, 100000, this);
@@ -393,12 +409,16 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(xsize, 0, 0, Qt::AlignTop);
     grid->addWidget(ysize, 1, 0, Qt::AlignTop);
     grid->addWidget(zoom, 2, 0, Qt::AlignTop);
+    grid->addWidget(anti, 3, 0, Qt::AlignTop);
+    grid->addWidget(ssao, 4, 0, Qt::AlignTop);
     grid->addWidget(xval, 0, 1, Qt::AlignTop);
     grid->addWidget(yval, 1, 1, Qt::AlignTop);
     grid->addWidget(zval, 2, 1, Qt::AlignTop);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 3, 0);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 3, 1);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 3, 2);
+    grid->addWidget(aval, 3, 1, Qt::AlignTop);
+    grid->addWidget(sval, 4, 1, Qt::AlignVCenter);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 5, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 5, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 5, 2);
     setLayout(grid);
 }
 

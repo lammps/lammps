@@ -45,6 +45,33 @@ int LammpsWrapper::extract_setting(const char *keyword)
     return val;
 }
 
+int LammpsWrapper::id_count(const char *keyword)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->id_count(lammps_handle, keyword);
+#else
+        val           = lammps_id_count(lammps_handle, keyword);
+#endif
+    }
+    return val;
+}
+
+int LammpsWrapper::id_name(const char *keyword, int idx, char *buf, int buflen)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val =
+            ((liblammpsplugin_t *)plugin_handle)->id_name(lammps_handle, keyword, idx, buf, buflen);
+#else
+        val           = lammps_id_name(lammps_handle, keyword, idx, buf, buflen);
+#endif
+    }
+    return val;
+}
+
 double LammpsWrapper::get_thermo(const char *keyword)
 {
     double val = 0.0;

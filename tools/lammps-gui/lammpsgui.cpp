@@ -230,7 +230,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
         // none of the plugin paths could load, remove key
         settings.remove("plugin_path");
         QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
-        // QCoreApplication::quit();
         exit(1);
     }
 #endif
@@ -715,38 +714,7 @@ void LammpsGui::view_image()
                                  "Cannot create snapshot image without a system box");
             return;
         }
-
-        QSettings settings;
-        QString dumpcmd  = "write_dump all image ";
-        QString dumpfile = settings.value("tempdir").toString();
-#if defined(_WIN32)
-        dumpfile += '\\';
-#else
-        dumpfile += '/';
-#endif
-        dumpfile += current_file + ".ppm";
-        dumpcmd += dumpfile;
-
-        settings.beginGroup("snapshot");
-        int aa    = settings.value("antialias", 0).toInt() + 1;
-        int xsize = settings.value("xsize", 800).toInt() * aa;
-        int ysize = settings.value("ysize", 800).toInt() * aa;
-
-        dumpcmd += blank + settings.value("color", "type").toString();
-        dumpcmd += blank + settings.value("diameter", "type").toString();
-        dumpcmd += QString(" size ") + QString::number(xsize) + blank + QString::number(ysize);
-        dumpcmd += QString(" zoom ") + settings.value("zoom", "1.0").toString();
-        if (settings.value("ssao", false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
-        settings.endGroup();
-
-        dirstatus->setText(" Rendering Snapshot Image... ");
-        status->repaint();
-        lammps.command(dumpcmd.toLocal8Bit());
-        dirstatus->setText(QString(" Directory: ") + current_dir);
-        status->repaint();
-
-        imagewindow = new ImageViewer(dumpfile, &lammps);
-        QFile::remove(dumpfile);
+        imagewindow = new ImageViewer(current_file, &lammps);
     } else {
         QMessageBox::warning(this, "ImageViewer Error",
                              "Cannot create snapshot image while LAMMPS is running");

@@ -36,9 +36,11 @@
 #include <QWheelEvent>
 #include <QWidgetAction>
 
+static const QString blank(" ");
+
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), imageLabel(new QLabel), scrollArea(new QScrollArea), menuBar(new QMenuBar),
-    lammps(_lammps), group("all")
+    lammps(_lammps), group("all"), filename(fileName)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -55,40 +57,56 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
+
+    auto *zoomin   = new QPushButton("Zoom In");
+    auto *zoomout  = new QPushButton("Zoom Out");
+    auto *rotleft  = new QPushButton("Rotate Left");
+    auto *rotright = new QPushButton("Rotate Right");
+    auto *rotup    = new QPushButton("Rotate Up");
+    auto *rotdown  = new QPushButton("Rotate Down");
+    auto *combo    = new QComboBox;
+    combo->setObjectName("group");
+    int ngroup = lammps->id_count("group");
+    char gname[64];
+    for (int i = 0; i < ngroup; ++i) {
+        lammps->id_name("group", i, gname, 64);
+        combo->addItem(gname);
+    }
+
     QHBoxLayout *menuLayout = new QHBoxLayout;
     menuLayout->addWidget(menuBar);
-    menuLayout->addWidget(new QPushButton("Zoom Out"));
-    menuLayout->addWidget(new QPushButton("Zoom In"));
-    menuLayout->addWidget(new QPushButton("Rotate Left"));
-    menuLayout->addWidget(new QPushButton("Rotate Right"));
-    menuLayout->addWidget(new QPushButton("Rotate Up"));
-    menuLayout->addWidget(new QPushButton("Rotate Down"));
-    menuLayout->addWidget(new QComboBox);
+    menuLayout->addWidget(zoomin);
+    menuLayout->addWidget(zoomout);
+    menuLayout->addWidget(rotleft);
+    menuLayout->addWidget(rotright);
+    menuLayout->addWidget(rotup);
+    menuLayout->addWidget(rotdown);
+    menuLayout->addWidget(new QLabel(" Group: "));
+    menuLayout->addWidget(combo);
+
+    connect(zoomin, &QPushButton::released, this, &ImageViewer::do_zoom_in);
+    connect(zoomout, &QPushButton::released, this, &ImageViewer::do_zoom_out);
+    connect(rotleft, &QPushButton::released, this, &ImageViewer::do_rot_left);
+    connect(rotright, &QPushButton::released, this, &ImageViewer::do_rot_right);
+    connect(rotup, &QPushButton::released, this, &ImageViewer::do_rot_up);
+    connect(rotdown, &QPushButton::released, this, &ImageViewer::do_rot_down);
+    connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(change_group(int)));
 
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     mainLayout->addWidget(buttonBox);
     setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).completeBaseName());
 
-    createActions();
-
-    QImageReader reader(fileName);
-    reader.setAutoTransform(true);
-    const QImage newImage = reader.read();
-
-    if (newImage.isNull()) {
-        QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),
-                             tr("Cannot load %1: %2").arg(fileName, reader.errorString()));
-        return;
-    }
     QSettings settings;
     settings.beginGroup("snapshot");
-    int xsize = settings.value("xsize", 800).toInt();
-    int ysize = settings.value("ysize", 600).toInt();
+    zoom = settings.value("zoom", 1.0).toDouble();
+    hrot = settings.value("hrot", 60).toInt();
+    vrot = settings.value("vrot", 30).toInt();
     settings.endGroup();
-    // scale back to achieve antialiasing
-    image = newImage.scaled(xsize, ysize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    imageLabel->setPixmap(QPixmap::fromImage(image));
+
+    createActions();
+    createImage();
+
     scaleFactor = 1.0;
     resize(image.width() + 20, image.height() + 50);
 
@@ -97,6 +115,102 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     updateActions();
     if (!fitToWindowAct->isChecked()) imageLabel->adjustSize();
     setLayout(mainLayout);
+}
+
+void ImageViewer::do_zoom_in()
+{
+    zoom = zoom * 1.1;
+    if (zoom > 5.0) zoom = 5.0;
+    createImage();
+}
+
+void ImageViewer::do_zoom_out()
+{
+    zoom = zoom / 1.1;
+    if (zoom < 0.5) zoom = 0.5;
+    createImage();
+}
+
+void ImageViewer::do_rot_right()
+{
+    vrot -= 15;
+    if (vrot < 0) vrot += 360;
+    createImage();
+}
+
+void ImageViewer::do_rot_left()
+{
+    vrot += 15;
+    if (vrot > 360) vrot -= 360;
+    createImage();
+}
+
+void ImageViewer::do_rot_down()
+{
+    hrot -= 15;
+    if (hrot < 0) hrot += 360;
+    createImage();
+}
+
+void ImageViewer::do_rot_up()
+{
+    hrot += 15;
+    if (hrot > 360) hrot -= 360;
+    createImage();
+}
+
+void ImageViewer::change_group(int idx)
+{
+    QComboBox *box = findChild<QComboBox *>("group");
+    if (box) group = box->currentText();
+    createImage();
+}
+
+void ImageViewer::createImage()
+{
+    QSettings settings;
+    QString dumpcmd = QString("write_dump ") + group + " image ";
+    QDir dumpdir    = settings.value("tempdir").toString();
+    QFile dumpfile(dumpdir.absoluteFilePath(filename + ".ppm"));
+    dumpcmd += dumpfile.fileName();
+
+    settings.beginGroup("snapshot");
+    int aa    = settings.value("antialias", 0).toInt() + 1;
+    int xsize = settings.value("xsize", 800).toInt() * aa;
+    int ysize = settings.value("ysize", 600).toInt() * aa;
+
+    dumpcmd += blank + settings.value("color", "type").toString();
+    dumpcmd += blank + settings.value("diameter", "type").toString();
+    dumpcmd += QString(" size ") + QString::number(xsize) + blank + QString::number(ysize);
+    dumpcmd += QString(" zoom ") + QString::number(zoom);
+    lammps->command(dumpcmd.toLocal8Bit());
+    if (lammps->extract_setting("dimension") == 3) {
+        dumpcmd += QString(" view ") + QString::number(hrot) + blank + QString::number(vrot);
+    }
+    if (settings.value("ssao", false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
+    settings.endGroup();
+
+    lammps->command(dumpcmd.toLocal8Bit());
+
+    QImageReader reader(dumpfile.fileName());
+    reader.setAutoTransform(true);
+    const QImage newImage = reader.read();
+
+    if (newImage.isNull()) {
+        QMessageBox::warning(
+            this, QGuiApplication::applicationDisplayName(),
+            tr("Cannot load %1: %2").arg(dumpfile.fileName(), reader.errorString()));
+        return;
+    }
+    dumpfile.remove();
+
+    settings.beginGroup("snapshot");
+    xsize = settings.value("xsize", 800).toInt();
+    ysize = settings.value("ysize", 600).toInt();
+    settings.endGroup();
+    // scale back to achieve antialiasing
+    image = newImage.scaled(xsize, ysize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    imageLabel->setPixmap(QPixmap::fromImage(image));
 }
 
 void ImageViewer::saveAs()

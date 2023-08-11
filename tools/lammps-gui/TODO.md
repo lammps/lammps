@@ -2,9 +2,6 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
-- add option to image viewer to select a group and rerender, similar for the two rotate options with +/- buttons and +/- zoom buttons.
-  add checkbutton for HQ rendering (i.e. SSAO)
-  also move the image setting preferences there and remove scrollwheel zoom support.
 - use qgetenv, qputenv for portability
 - use QFile/QDir/QFileInto for portable file and directory operations.
 - write LAMMPS GUI Howto showing/explaining options -> simplify docs and readme

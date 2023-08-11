@@ -45,8 +45,17 @@ private slots:
     void normalSize();
     void fitToWindow();
 
+    void do_zoom_in();
+    void do_zoom_out();
+    void do_rot_left();
+    void do_rot_right();
+    void do_rot_up();
+    void do_rot_down();
+    void change_group(int);
+
 private:
     void createActions();
+    void createImage();
     void updateActions();
     void saveFile(const QString &fileName);
     void scaleImage(double factor);
@@ -69,6 +78,9 @@ private:
 
     LammpsWrapper *lammps;
     QString group;
+    QString filename;
+    int hrot, vrot;
+    double zoom;
 };
 #endif
 

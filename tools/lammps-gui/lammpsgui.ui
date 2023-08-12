@@ -70,6 +70,8 @@
     <addaction name="actionRun_Buffer"/>
     <addaction name="actionStop_LAMMPS"/>
     <addaction name="separator"/>
+    <addaction name="actionSet_Variables"/>
+    <addaction name="separator"/>
     <addaction name="actionImage"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -296,10 +298,10 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>&amp;View Snapshot</string>
+    <string>View &amp;Image</string>
    </property>
    <property name="toolTip">
-    <string>View Snapshot of current LAMMPS state</string>
+    <string>View Snapshot image of current LAMMPS state</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -407,10 +409,19 @@
   </action>
   <action name="actionView_Image_Window">
    <property name="icon">
-    <iconset theme="emblem-photos"/>
+    <iconset theme="emblem-photos">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Image Window</string>
+   </property>
+  </action>
+  <action name="actionSet_Variables">
+   <property name="icon">
+    <iconset theme="preferences-desktop-personal"/>
+   </property>
+   <property name="text">
+    <string>Set &amp;Variables</string>
    </property>
   </action>
  </widget>

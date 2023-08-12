@@ -11,7 +11,6 @@ LAMMPS-GUI TODO list:
 - need to handle "label" and "jump" commands from within ?
 - switch processing of input to line based commands or?
 - switch input file editor to read-only while loop is running
-- add Variables menu entry where command line variables can be set
 - embed all icons/graphics
 
 # Long term ideas

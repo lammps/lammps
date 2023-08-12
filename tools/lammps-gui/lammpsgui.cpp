@@ -303,6 +303,60 @@ void LammpsGui::update_recents(const QString &filename)
     }
 }
 
+void LammpsGui::update_variables()
+{
+    const auto doc = ui->textEdit->toPlainText().split('\n');
+    QStringList known;
+    QRegularExpression indexvar("^\\s*variable\\s+(\\w+)\\s+index\\s+(.*)");
+    QRegularExpression anyvar("^\\s*variable\\s+(\\w+)\\s+(\\w+)\\s+(.*)");
+    QRegularExpression usevar("(\\$(\\w)|\\${(\\w+)})");
+    QRegularExpression refvar("v_(\\w+)");
+
+    // forget previously listed variables
+    variables.clear();
+
+    for (const auto &line : doc) {
+
+        // first find variable definitions.
+        // index variables are special since they can be overridden from the command line
+        auto index = indexvar.match(line);
+        auto any   = anyvar.match(line);
+
+        if (index.hasMatch()) {
+            if (index.lastCapturedIndex() >= 2) {
+                auto name = index.captured(1);
+                if (!known.contains(name)) {
+                    variables.append(qMakePair(name, index.captured(2)));
+                    known.append(name);
+                }
+            }
+        } else if (any.hasMatch()) {
+            if (any.lastCapturedIndex() >= 3) {
+                auto name = any.captured(1);
+                if (!known.contains(name)) known.append(name);
+            }
+        }
+
+        // now split line into words and search for use of undefined variables
+        auto words = line.split(' ');
+        for (const auto &word : words) {
+            auto use = usevar.match(word);
+            auto ref = refvar.match(word);
+            if (use.hasMatch()) {
+                auto name = use.captured(use.lastCapturedIndex());
+                if (!known.contains(name)) {
+                    known.append(name);
+                    variables.append(qMakePair(name, QString()));
+                }
+            }
+            if (ref.hasMatch()) {
+                auto name = ref.captured(use.lastCapturedIndex());
+                if (!known.contains(name)) known.append(name);
+            }
+        }
+    }
+}
+
 // open file and switch CWD to path of file
 void LammpsGui::open_file(const QString &fileName)
 {
@@ -351,6 +405,8 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->document()->setModified(false);
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
+
+    update_variables();
 }
 
 void LammpsGui::write_file(const QString &fileName)

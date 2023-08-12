@@ -17,6 +17,7 @@
 #include <QMainWindow>
 
 #include <QList>
+#include <QPair>
 #include <QString>
 #include <vector>
 
@@ -57,6 +58,7 @@ protected:
     void open_file(const QString &filename);
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
+    void update_variables();
     void start_lammps();
     void run_done();
 
@@ -105,6 +107,7 @@ private:
     QString current_file;
     QString current_dir;
     QList<QString> recent;
+    QList<QPair<QString, QString>> variables;
 
     LammpsWrapper lammps;
     std::string plugin_path;

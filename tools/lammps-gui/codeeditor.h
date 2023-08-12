@@ -14,7 +14,10 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
+#include <QMap>
 #include <QPlainTextEdit>
+#include <QShortcut>
+#include <QString>
 
 class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
@@ -30,14 +33,29 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     bool canInsertFromMimeData(const QMimeData *source) const override;
     void dropEvent(QDropEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rect, int dy);
+    void get_help();
+    void find_help(QString &page, QString &help);
+    void open_help();
 
 private:
     QWidget *lineNumberArea;
+    QShortcut *help_action;
+
+    QMap<QString, QString> cmd_map;
+    QMap<QString, QString> fix_map;
+    QMap<QString, QString> compute_map;
+    QMap<QString, QString> pair_map;
+    QMap<QString, QString> bond_map;
+    QMap<QString, QString> angle_map;
+    QMap<QString, QString> dihedral_map;
+    QMap<QString, QString> improper_map;
+    QMap<QString, QString> dump_map;
 };
 
 #endif

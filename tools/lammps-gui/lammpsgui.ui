@@ -318,6 +318,9 @@
    <property name="toolTip">
     <string>About LAMMPS-GUI</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+A</string>
+   </property>
   </action>
   <action name="action_Help">
    <property name="icon">
@@ -331,7 +334,7 @@
     <string>Quick Help</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+/</string>
+    <string>Ctrl+Shift+H</string>
    </property>
   </action>
   <action name="actionPreferences">
@@ -354,6 +357,9 @@
    <property name="text">
     <string>LAMMPS &amp;Manual</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
+   </property>
   </action>
   <action name="actionDefaults">
    <property name="icon">
@@ -372,6 +378,9 @@
    <property name="text">
     <string>&amp;Log Window</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
   </action>
   <action name="actionView_Graph_Window">
    <property name="icon">
@@ -380,6 +389,9 @@
    </property>
    <property name="text">
     <string>&amp;Chart Window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
   <action name="action_1">
@@ -414,6 +426,9 @@
    </property>
    <property name="text">
     <string>&amp;Image Window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+I</string>
    </property>
   </action>
   <action name="actionSet_Variables">

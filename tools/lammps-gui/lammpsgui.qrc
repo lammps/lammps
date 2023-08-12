@@ -1,29 +1,35 @@
 <!DOCTYPE RCC><RCC version="1.0">
-<qresource>
+<qresource prefix="/">
     <file>lammps-icon-128x128.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
+    <file>help_index.table</file>
+</qresource>
+<qresource prefix="/">
+    <file>system-help.png</file>
+</qresource>
+<qresource prefix="/">
     <file>gtk-zoom-in.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
     <file>gtk-zoom-out.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
     <file>gtk-zoom-fit.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
     <file>edit-delete.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
     <file>object-rotate-right.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
     <file>object-rotate-left.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
     <file>gtk-go-up.png</file>
 </qresource>
-<qresource>
+<qresource prefix="/">
     <file>gtk-go-down.png</file>
 </qresource>
 </RCC>

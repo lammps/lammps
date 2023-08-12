@@ -28,6 +28,12 @@ public:
 
 private slots:
     void accept() override;
+    void add_row();
+    void del_row();
+
+private:
+    QList<QPair<QString, QString>> &vars;
+    class QVBoxLayout *layout;
 };
 
 #endif

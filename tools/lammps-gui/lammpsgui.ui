@@ -418,10 +418,14 @@
   </action>
   <action name="actionSet_Variables">
    <property name="icon">
-    <iconset theme="preferences-desktop-personal"/>
+    <iconset theme="preferences-desktop-personal">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Set &amp;Variables</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+V</string>
    </property>
   </action>
  </widget>

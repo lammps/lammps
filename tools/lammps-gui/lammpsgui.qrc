@@ -12,6 +12,9 @@
     <file>gtk-zoom-fit.png</file>
 </qresource>
 <qresource>
+    <file>edit-delete.png</file>
+</qresource>
+<qresource>
     <file>object-rotate-right.png</file>
 </qresource>
 <qresource>

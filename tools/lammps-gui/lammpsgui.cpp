@@ -271,35 +271,35 @@ void LammpsGui::update_recents(const QString &filename)
     ui->action_1->setVisible(false);
     if ((recent.size() > 0) && !recent[0].isEmpty()) {
         QFileInfo fi(recent[0]);
-        ui->action_1->setText(QString("1. ") + fi.fileName());
+        ui->action_1->setText(QString("&1. ") + fi.fileName());
         ui->action_1->setData(recent[0]);
         ui->action_1->setVisible(true);
     }
     ui->action_2->setVisible(false);
     if ((recent.size() > 1) && !recent[1].isEmpty()) {
         QFileInfo fi(recent[1]);
-        ui->action_2->setText(QString("2. ") + fi.fileName());
+        ui->action_2->setText(QString("&2. ") + fi.fileName());
         ui->action_2->setData(recent[1]);
         ui->action_2->setVisible(true);
     }
     ui->action_3->setVisible(false);
     if ((recent.size() > 2) && !recent[2].isEmpty()) {
         QFileInfo fi(recent[2]);
-        ui->action_3->setText(QString("3. ") + fi.fileName());
+        ui->action_3->setText(QString("&3. ") + fi.fileName());
         ui->action_3->setData(recent[2]);
         ui->action_3->setVisible(true);
     }
     ui->action_4->setVisible(false);
     if ((recent.size() > 3) && !recent[3].isEmpty()) {
         QFileInfo fi(recent[3]);
-        ui->action_4->setText(QString("4. ") + fi.fileName());
+        ui->action_4->setText(QString("&4. ") + fi.fileName());
         ui->action_4->setData(recent[3]);
         ui->action_4->setVisible(true);
     }
     ui->action_5->setVisible(false);
     if ((recent.size() > 4) && !recent[4].isEmpty()) {
         QFileInfo fi(recent[4]);
-        ui->action_5->setText(QString("5. ") + fi.fileName());
+        ui->action_5->setText(QString("&5. ") + fi.fileName());
         ui->action_5->setData(recent[4]);
         ui->action_5->setVisible(true);
     }
@@ -898,7 +898,10 @@ void LammpsGui::edit_variables()
 {
     QList<QPair<QString, QString>> newvars = variables;
     SetVariables vars(newvars);
-    if (vars.exec() == QDialog::Accepted) variables = newvars;
+    if (vars.exec() == QDialog::Accepted) {
+        variables = newvars;
+        lammps.close();
+    }
 }
 
 void LammpsGui::preferences()
@@ -966,6 +969,18 @@ void LammpsGui::start_lammps()
     if (settings.value("cite", "0").toInt()) {
         lammps_args.push_back(mystrdup("-cite"));
         lammps_args.push_back(mystrdup("screen"));
+    }
+
+    // add variables, if defined
+    for (auto &var : variables) {
+        QString name  = var.first;
+        QString value = var.second;
+        if (!name.isEmpty() && !value.isEmpty()) {
+            lammps_args.push_back(mystrdup("-var"));
+            lammps_args.push_back(mystrdup(name.toStdString()));
+            for (const auto &v : value.split(' '))
+                lammps_args.push_back(mystrdup(v.toStdString()));
+        }
     }
 
     char **args = lammps_args.data();

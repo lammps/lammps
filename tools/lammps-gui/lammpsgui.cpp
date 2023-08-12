@@ -19,6 +19,7 @@
 #include "lammpsrunner.h"
 #include "logwindow.h"
 #include "preferences.h"
+#include "setvariables.h"
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
@@ -150,6 +151,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
+    connect(ui->actionSet_Variables, &QAction::triggered, this, &LammpsGui::edit_variables);
     connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::render_image);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
@@ -890,6 +892,13 @@ void LammpsGui::defaults()
     QSettings settings;
     settings.clear();
     settings.sync();
+}
+
+void LammpsGui::edit_variables()
+{
+    QList<QPair<QString, QString>> newvars = variables;
+    SetVariables vars(newvars);
+    if (vars.exec() == QDialog::Accepted) variables = newvars;
 }
 
 void LammpsGui::preferences()

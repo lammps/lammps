@@ -81,6 +81,8 @@ set(PROJECT_SOURCES
   logwindow.h
   preferences.cpp
   preferences.h
+  setvariables.cpp
+  setvariables.h
   stdcapture.cpp
   ${PLUGIN_LOADER_SRC}
 )

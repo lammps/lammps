@@ -133,6 +133,149 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
   espring = 0.5*espring_kk;
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
+{
+  const int i = d_exchange_sendlist(mysend);
+
+  d_buf[mysend] = nsend + offset;
+  int m = nsend + offset;
+  d_buf[m++] = d_xoriginal(i,0);
+  d_buf[m++] = d_xoriginal(i,1);
+  d_buf[m++] = d_xoriginal(i,2);
+  if (mysend == nsend-1) d_count() = m;
+  offset = m - nsend;
+
+  const int j = d_copylist(mysend);
+  if (j > -1) {
+    d_xoriginal(i,0) = d_xoriginal(j,0);
+    d_xoriginal(i,1) = d_xoriginal(j,1);
+    d_xoriginal(i,2) = d_xoriginal(j,2);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixSpringSelfKokkos<DeviceType>::pack_exchange_kokkos(
+   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
+   ExecutionSpace space)
+{
+
+  k_buf.sync<DeviceType>();
+  k_copylist.sync<DeviceType>();
+  k_exchange_sendlist.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_copylist = k_copylist.view<DeviceType>();
+  d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
+  this->nsend = nsend;
+
+  
+  k_xoriginal.template sync<DeviceType>();
+
+  Kokkos::deep_copy(d_count,0);
+
+  copymode = 1;
+
+  FixSpringSelfKokkosPackExchangeFunctor<DeviceType> pack_exchange_functor(this);
+  Kokkos::parallel_scan(nsend,pack_exchange_functor);
+
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+
+  if (space == Host) k_buf.sync<LMPHostType>();
+  else k_buf.sync<LMPDeviceType>();
+
+  k_xoriginal.template modify<DeviceType>();
+
+  Kokkos::deep_copy(h_count,d_count);
+
+  return h_count();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixSpringSelfKokkos<DeviceType>::operator()(TagFixSpringSelfUnpackExchange, const int &i) const
+{
+  int index = d_indices(i);
+
+  if (index > -1) {
+    int m = d_buf[i];
+
+    d_xoriginal(index,0) = static_cast<tagint> (d_buf[m++]);
+    d_xoriginal(index,1) = static_cast<tagint> (d_buf[m++]);
+    d_xoriginal(index,2) = static_cast<tagint> (d_buf[m++]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixSpringSelfKokkos<DeviceType>::unpack_exchange_kokkos(
+  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  ExecutionSpace /*space*/)
+{
+  k_buf.sync<DeviceType>();
+  k_indices.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_indices = k_indices.view<DeviceType>();
+
+  k_xoriginal.template sync<DeviceType>();
+
+  copymode = 1;
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixSpringSelfUnpackExchange>(0,nrecv),*this);
+
+  copymode = 0;
+
+  k_xoriginal.template modify<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for exchange with another proc
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixSpringSelfKokkos<DeviceType>::pack_exchange(int i, double *buf)
+{
+  k_xoriginal.sync_host();
+
+  int m = FixSpringSelf::pack_exchange(i,buf);
+
+  k_xoriginal.modify_host();
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values in local atom-based arrays from exchange with another proc
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixSpringSelfKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
+{
+  k_xoriginal.sync_host();
+
+  int m = FixSpringSelf::unpack_exchange(nlocal,buf);
+
+  k_xoriginal.modify_host();
+
+  return m;
+}
+
 namespace LAMMPS_NS {
 template class FixSpringSelfKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

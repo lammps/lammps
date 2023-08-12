@@ -25,11 +25,14 @@ FixStyle(spring/self/kk/host,FixSpringSelfKokkos<LMPHostType>);
 
 #include "fix_spring_self.h"
 #include "kokkos_type.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
+struct TagFixSpringSelfUnpackExchange{};
+
 template<class DeviceType>
-class FixSpringSelfKokkos : public FixSpringSelf {
+class FixSpringSelfKokkos : public FixSpringSelf, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef double value_type;
@@ -40,14 +43,58 @@ class FixSpringSelfKokkos : public FixSpringSelf {
   void init() override;
   void post_force(int) override;
 
- private:
+  KOKKOS_INLINE_FUNCTION
+  void pack_exchange_item(const int&, int &, const bool &) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixSpringSelfUnpackExchange, const int&) const;
+
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+                           DAT::tdual_int_1d k_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &indices,int nrecv,
+                              ExecutionSpace space) override;
+
+
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
+ protected:
   DAT::tdual_ffloat_2d k_xoriginal;
-  typename AT::t_ffloat_2d_randomread d_xoriginal;
+  typename AT::t_ffloat_2d d_xoriginal;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_imageint_1d_randomread image;
   typename AT::t_int_1d_randomread mask;
+
+  int nsend;
+
+  typename AT::t_int_2d d_sendlist;
+  typename AT::t_xfloat_1d_um d_buf;
+
+  typename AT::t_int_1d d_exchange_sendlist;
+  typename AT::t_int_1d d_copylist;
+  typename AT::t_int_1d d_indices;
+
+  typename AT::t_int_scalar d_count;
+  HAT::t_int_scalar h_count;
+
+};
+
+template <class DeviceType>
+struct FixSpringSelfKokkosPackExchangeFunctor {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  FixSpringSelfKokkos<DeviceType> c;
+  FixSpringSelfKokkosPackExchangeFunctor(FixSpringSelfKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int &i, int &offset, const bool &final) const {
+    c.pack_exchange_item(i, offset, final);
+  }
 };
 
 }

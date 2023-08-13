@@ -193,6 +193,7 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
         auto action = menu->addAction(QString("View Documentation for '%1'").arg(help));
         action->setIcon(QIcon(":/system-help.png"));
         action->setData(page);
+        connect(action, &QAction::triggered, this, &CodeEditor::open_help);
         // if we link to help with specific styles (fix, compute, pair, bond, ...)
         // also link to the docs for the primary command
         auto words = help.split(' ');

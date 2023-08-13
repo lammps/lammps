@@ -104,6 +104,7 @@ private:
     QLabel *dirstatus;
     QProgressBar *progress;
     Preferences *prefdialog;
+    QLabel *lammpsstatus;
 
     QString current_file;
     QString current_dir;

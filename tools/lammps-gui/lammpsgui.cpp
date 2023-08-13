@@ -63,7 +63,8 @@ static char *mystrdup(const std::string &text)
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
-    logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr)
+    logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr),
+    lammpsstatus(nullptr)
 {
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
@@ -176,6 +177,11 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->actionPaste->setEnabled(false);
 #endif
 
+    lammpsstatus = new QLabel(QString());
+    auto pix = QPixmap(":/lammps-icon-128x128.png");
+    lammpsstatus->setPixmap(pix.scaled(22,22,Qt::KeepAspectRatio));
+    ui->statusbar->addWidget(lammpsstatus);
+    lammpsstatus->hide();
     status = new QLabel("Ready.");
     status->setFixedWidth(300);
     ui->statusbar->addWidget(status);
@@ -236,6 +242,7 @@ void LammpsGui::new_document()
     ui->textEdit->document()->setPlainText(QString());
 
     lammps.close();
+    lammpsstatus->hide();
     setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
 }
 
@@ -453,6 +460,7 @@ void LammpsGui::save_as()
 void LammpsGui::quit()
 {
     lammps.close();
+    lammpsstatus->hide();
     lammps.finalize();
 
     if (ui->textEdit->document()->isModified()) {
@@ -901,6 +909,7 @@ void LammpsGui::edit_variables()
     if (vars.exec() == QDialog::Accepted) {
         variables = newvars;
         lammps.close();
+        lammpsstatus->hide();
     }
 }
 
@@ -922,6 +931,7 @@ void LammpsGui::preferences()
             (oldecho != settings.value("echo", 0).toInt()) ||
             (oldcite != settings.value("cite", 0).toInt()))
             lammps.close();
+            lammpsstatus->hide();
         if (imagewindow) imagewindow->createImage();
     }
 }
@@ -986,6 +996,7 @@ void LammpsGui::start_lammps()
     char **args = lammps_args.data();
     int narg    = lammps_args.size();
     lammps.open(narg, args);
+    lammpsstatus->show();
 
     // delete additional arguments again (3 were there initially
     while (lammps_args.size() > initial_narg) {

@@ -679,7 +679,7 @@ Here are a few highlights of LAMMPS GUI
 - Screen output is captured in a Log Window
 - Thermodynamic output is captured and displayed as line graph in a Chart Window
 - Visualization of current state in Image Viewer (via :doc:`dump image <dump_image>`)
-- Many customizable settings and preferences that are persistent
+- Many adjustable settings and preferences that are persistent
 - Dialog to set variables from the LAMMPS command line
 
 Parallelization

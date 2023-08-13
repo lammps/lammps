@@ -437,7 +437,7 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>Set &amp;Variables</string>
+    <string>Set &amp;Variables...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+V</string>

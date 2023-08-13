@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Categories=Science;Engineering;
+Exec=lammps-gui %f
+Name=The LAMMPS GUI
+Terminal=false
+GenericName=MD Simulator
+Keywords=MD Simulation;LAMMPS;Molecular Dynamics;N-Body
+Icon=lammps

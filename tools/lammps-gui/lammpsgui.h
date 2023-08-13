@@ -85,6 +85,7 @@ private slots:
     void about();
     void help();
     void manual();
+    void howto();
     void logupdate();
     void modified();
     void preferences();

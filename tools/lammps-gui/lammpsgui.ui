@@ -80,6 +80,7 @@
     </property>
     <addaction name="actionAbout_LAMMPS_GUI"/>
     <addaction name="action_Help"/>
+    <addaction name="actionLAMMPS_GUI_Howto"/>
     <addaction name="actionLAMMPS_Manual"/>
    </widget>
    <widget class="QMenu" name="menu_View">
@@ -395,26 +396,42 @@
    </property>
   </action>
   <action name="action_1">
+   <property name="icon">
+    <iconset theme=":/document-open-recent.png"/>
+   </property>
    <property name="text">
     <string>&amp;1.</string>
    </property>
   </action>
   <action name="action_2">
+   <property name="icon">
+    <iconset theme=":/document-open-recent.png"/>
+   </property>
    <property name="text">
     <string>&amp;2.</string>
    </property>
   </action>
   <action name="action_3">
+   <property name="icon">
+    <iconset theme=":/document-open-recent.png"/>
+   </property>
    <property name="text">
     <string>&amp;3.</string>
    </property>
   </action>
   <action name="action_4">
+   <property name="icon">
+    <iconset theme=":/document-open-recent.png"/>
+   </property>
    <property name="text">
     <string>&amp;4.</string>
    </property>
   </action>
   <action name="action_5">
+   <property name="icon">
+    <iconset>
+            <normaloff>:/document-open-recent.png</normaloff>:/document-open-recent.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;5.</string>
    </property>
@@ -441,6 +458,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+V</string>
+   </property>
+  </action>
+  <action name="actionLAMMPS_GUI_Howto">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/system-help.png</normaloff>:/system-help.png</iconset>
+   </property>
+   <property name="text">
+    <string>LAMMPS GUI Howto</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+G</string>
    </property>
   </action>
  </widget>

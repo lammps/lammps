@@ -156,6 +156,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::render_image);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
+    connect(ui->actionLAMMPS_GUI_Howto, &QAction::triggered, this, &LammpsGui::howto);
     connect(ui->actionLAMMPS_Manual, &QAction::triggered, this, &LammpsGui::manual);
     connect(ui->actionPreferences, &QAction::triggered, this, &LammpsGui::preferences);
     connect(ui->actionDefaults, &QAction::triggered, this, &LammpsGui::defaults);
@@ -893,6 +894,11 @@ void LammpsGui::help()
 void LammpsGui::manual()
 {
     QDesktopServices::openUrl(QUrl("https://docs.lammps.org/"));
+}
+
+void LammpsGui::howto()
+{
+    QDesktopServices::openUrl(QUrl("https://docs.lammps.org/Howto_lammps_gui.html"));
 }
 
 void LammpsGui::defaults()

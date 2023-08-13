@@ -54,8 +54,10 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
                     fix_map[words.at(2)] = words.at(0);
                 } else if (words.at(1) == "compute") {
                     compute_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "kspace_style") {
+                    cmd_map["kspace_style"] = "kspace_style.html";
                 }
-                // ignoring: min_style, kspace_style, dump, fix_modify ATC
+                // ignoring: dump, fix_modify ATC
             } else if (words.size() == 2) {
                 cmd_map[words.at(1)] = words.at(0);
             } else {
@@ -188,10 +190,21 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     auto *menu = createStandardContextMenu();
     if (!page.isEmpty()) {
         menu->addSeparator();
-        auto action = menu->addAction(QString("Look up help for '%1'").arg(help));
+        auto action = menu->addAction(QString("View Documentation for '%1'").arg(help));
         action->setIcon(QIcon(":/system-help.png"));
         action->setData(page);
-        connect(action, &QAction::triggered, this, &CodeEditor::open_help);
+        // if we link to help with specific styles (fix, compute, pair, bond, ...)
+        // also link to the docs for the primary command
+        auto words = help.split(' ');
+        if (words.size() > 1) {
+            help = words.at(0);
+            page = words.at(0);
+            page += ".html";
+            auto action2 = menu->addAction(QString("View Documentation for '%1'").arg(help));
+            action2->setIcon(QIcon(":/system-help.png"));
+            action2->setData(page);
+            connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
+        }
     }
     menu->exec(event->globalPos());
     delete menu;

@@ -116,8 +116,96 @@ additional variables can be added through the ``Add Row`` button and
 existing rows deleted by clicking on the ``X`` icons on the right.
 
 The ``View Image`` entry will send a :doc:`dump image <dump_image>`
-command to the LAMMPS instance, read the resulting file and show it in
-an ``Image Viewer``.  Window.
+command to the LAMMPS instance, read the resulting file, and show it in
+an ``Image Viewer`` window.
+
+View
+^^^^
+
+The ``View`` menu offers to show or hide the three optional windows
+with log output, graphs, or images.  The default settings for those
+can be changed in the ``Preferences dialog``.
+
+About
+^^^^^
+
+The ``About`` menu finally offers a couple of dialog windows and an
+option to launch the LAMMPS online documentation in a web browser.  The
+``About LAMMPS GUI`` entry displays a dialog with a summary of the
+configuration settings of the LAMMPS library in use and the version
+number of LAMMPS GUI itself.  The ``Quick Help`` displays a dialog with
+a minimal description of LAMMPS GUI.  And ``LAMMPS Manual`` will open
+the main page of this LAMMPS documentation at https://docs.lammps.org/.
+
+Preferences
+-----------
+
+The ``Preferences`` dialog allows to customize some of the behavior
+and looks of the LAMMPS GUI application.  The settings are grouped
+and each group is displayed within a tab.
+
+.. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
+   :width: 32%
+
+.. |guiprefs2| image:: JPG/lammps-gui-prefs-accel.png
+   :width: 32%
+
+.. |guiprefs3| image:: JPG/lammps-gui-prefs-image.png
+   :width: 32%
+
+|guiprefs1|  |guiprefs2|  |guiprefs3|
+
+General Settings:
+^^^^^^^^^^^^^^^^^
+
+- *Echo input to log:* when checked, all input commands, including
+  variable expansions, will be echoed to the log window. This is
+  equivalent to using `-echo screen` at the command line.  There is no
+  log *file* produced since it always uses `-log none`.
+- *Include citation details:* when checked full citation info will be
+  included to the log window.  This is equivalent to using `-cite
+  screen` on the command line.
+- *Show log window by default:* when checked, the screen output of a
+  LAMMPS run will be collected in a log window during the run
+- *Show chart window by default:* when checked, the thermodynamic
+  output of a LAMMPS run will be collected and displayed in a chart
+  window as line graphs.
+- *Replace log window on new run:* when checked, an existing log
+  window will be replaced on a new LAMMPS run, otherwise each run will
+  create a new log window.
+- *Replace chart window on new run:* when checked, an existing chart
+  window will be replaced on a new LAMMPS run, otherwise each run will
+  create a new chart window.
+- *Replace image window on new render:* when checked, an existing
+  chart window will be replaced when a new snapshot image is requested,
+  otherwise each command will create a new image window.
+- *Select Default Font:* Opens a font selection dialog where the type
+  and size for the default font (used for everthing but the editor and
+  log) of the application can be set.
+- *Select Text Font:* Opens a font selection dialog where the type and
+  size for the text editor and log font of the application can be set.
+
+Accelerators:
+^^^^^^^^^^^^^
+
+This tab enables to select accelerator settings and is equivalent to
+using the `-suffix` and `-package` flags on the command line.  Only
+settings supported by the LAMMPS library and local hardware are
+available.  The `Number of threads` field allows to set the maximum
+number of threads for the accelerator packages that use threads.
+
+Snapshot Image:
+^^^^^^^^^^^^^^^
+
+This tab allows to set some defaults for the snapshot images displayed
+in the ``Image Viewer`` window, like its dimensions and the zoom factor
+applied.  The *Antialias* switch requests to render images at an up to 4
+times larger image size and then uses a bicubic scaling algorithm to
+rescale them back to the requested size.  This produces higher quality
+images with smoother edges at the expense of requiring more CPU time to
+render the image.  The *HQ Image mode* option turns on using a screen
+space ambient occlusion mode when rendering images.  This is more time
+consuming, but produces a more 'spatial' representation of the system.
 
 
 Hotkeys

@@ -44,6 +44,31 @@ when starting again.  The name of the current file in the buffer is
 shown in the window title and the text `*modified*` is added in case
 the buffer has modifications that are not yet saved to a file.
 
+Editor Functions
+^^^^^^^^^^^^^^^^
+
+The editor has the usual functionality that similar programs have: text
+selection via mouse or with cursor moves while holding the Shift key,
+Cut, Copy, Paste, Undo, Redo.  All of these editing functions are available
+via hotkeys.  When trying to exit the editor with a modified buffer, a
+dialog will pop up asking whether to cancel the quit, or don't save or
+save the buffer's contents to a file.
+
+Context Specific Help
+^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: JPG/lammps-gui-popup-help.png
+   :align: center
+   :scale: 50%
+
+A unique feature of the LAMMPS GUI is the option to look up the
+documentation for the command in the current line.  This can be achieved
+by either clicking the right mouse button or by using the `Ctrl-?`
+hotkey.  When clicking the mouse there are additional entries in the
+context menu that will open the corresponding documentation page in the
+online LAMMPS documentation.  When using the hotkey, the first of those
+entries will be chosen directly.
+
 Menu
 ----
 

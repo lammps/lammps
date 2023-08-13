@@ -9,6 +9,9 @@
     <file>system-help.png</file>
 </qresource>
 <qresource prefix="/">
+    <file>help-browser.png</file>
+</qresource>
+<qresource prefix="/">
     <file>gtk-zoom-in.png</file>
 </qresource>
 <qresource prefix="/">

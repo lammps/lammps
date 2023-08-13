@@ -207,6 +207,11 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
         }
     }
+    auto action3 = menu->addAction(QString("LAMMPS Manual"));
+    action3->setIcon(QIcon(":/help-browser.png"));
+    action3->setData(QString());
+    connect(action3, &QAction::triggered, this, &CodeEditor::open_help);
+
     menu->exec(event->globalPos());
     delete menu;
 }

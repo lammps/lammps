@@ -209,7 +209,7 @@ void ImageViewer::createImage()
     if (newImage.isNull()) {
         QMessageBox::warning(
             this, QGuiApplication::applicationDisplayName(),
-            tr("Cannot load %1: %2").arg(dumpfile.fileName(), reader.errorString()));
+            QString("Cannot load %1: %2").arg(dumpfile.fileName(), reader.errorString()));
         return;
     }
     dumpfile.remove();
@@ -263,44 +263,44 @@ void ImageViewer::saveFile(const QString &fileName)
 
 void ImageViewer::createActions()
 {
-    QMenu *fileMenu = menuBar->addMenu(tr("&File"));
+    QMenu *fileMenu = menuBar->addMenu("&File");
 
-    saveAsAct = fileMenu->addAction(tr("&Save As..."), this, &ImageViewer::saveAs);
+    saveAsAct = fileMenu->addAction("&Save As...", this, &ImageViewer::saveAs);
     saveAsAct->setIcon(QIcon(":/document-save-as.png"));
     saveAsAct->setEnabled(false);
     fileMenu->addSeparator();
-    copyAct = fileMenu->addAction(tr("&Copy"), this, &ImageViewer::copy);
+    copyAct = fileMenu->addAction("&Copy", this, &ImageViewer::copy);
     copyAct->setIcon(QIcon(":/edit-copy.png"));
     copyAct->setShortcut(QKeySequence::Copy);
     copyAct->setEnabled(false);
     fileMenu->addSeparator();
-    QAction *exitAct = fileMenu->addAction(tr("&Close"), this, &QWidget::close);
+    QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
     exitAct->setIcon(QIcon(":/window-close.png"));
-    exitAct->setShortcut(tr("Ctrl+W"));
+    exitAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
 
-    QMenu *viewMenu = menuBar->addMenu(tr("&View"));
+    QMenu *viewMenu = menuBar->addMenu("&View");
 
-    zoomInAct = viewMenu->addAction(tr("Image Zoom &In (25%)"), this, &ImageViewer::zoomIn);
+    zoomInAct = viewMenu->addAction("Image Zoom &In (25%)", this, &ImageViewer::zoomIn);
     zoomInAct->setShortcut(QKeySequence::ZoomIn);
     zoomInAct->setIcon(QIcon(":/gtk-zoom-in.png"));
     zoomInAct->setEnabled(false);
 
-    zoomOutAct = viewMenu->addAction(tr("Image Zoom &Out (25%)"), this, &ImageViewer::zoomOut);
+    zoomOutAct = viewMenu->addAction("Image Zoom &Out (25%)", this, &ImageViewer::zoomOut);
     zoomOutAct->setShortcut(QKeySequence::ZoomOut);
     zoomOutAct->setIcon(QIcon(":/gtk-zoom-out.png"));
     zoomOutAct->setEnabled(false);
 
-    normalSizeAct = viewMenu->addAction(tr("&Reset Image Size"), this, &ImageViewer::normalSize);
-    normalSizeAct->setShortcut(tr("Ctrl+0"));
+    normalSizeAct = viewMenu->addAction("&Reset Image Size", this, &ImageViewer::normalSize);
+    normalSizeAct->setShortcut(QKeySequence::fromString("Ctrl+0"));
     normalSizeAct->setIcon(QIcon(":/gtk-zoom-fit.png"));
     normalSizeAct->setEnabled(false);
 
     viewMenu->addSeparator();
 
-    fitToWindowAct = viewMenu->addAction(tr("&Fit to Window"), this, &ImageViewer::fitToWindow);
+    fitToWindowAct = viewMenu->addAction("&Fit to Window", this, &ImageViewer::fitToWindow);
     fitToWindowAct->setEnabled(false);
     fitToWindowAct->setCheckable(true);
-    fitToWindowAct->setShortcut(tr("Ctrl+="));
+    fitToWindowAct->setShortcut(QKeySequence::fromString("Ctrl+="));
 }
 
 void ImageViewer::updateActions()

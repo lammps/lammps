@@ -41,6 +41,7 @@ class FixSpringSelfKokkos : public FixSpringSelf, public KokkosBase {
   FixSpringSelfKokkos(class LAMMPS *, int, char **);
   ~FixSpringSelfKokkos() override;
   void init() override;
+  void grow_arrays(int) override;
   void post_force(int) override;
 
   KOKKOS_INLINE_FUNCTION

@@ -38,14 +38,20 @@ FixSpringSelfKokkos<DeviceType>::FixSpringSelfKokkos(LAMMPS *lmp, int narg, char
   FixSpringSelf(lmp, narg, arg)
 {
   kokkosable = 1;
+  exchange_comm_device = 1;
+  maxexchange = 6;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
   memory->destroy(xoriginal);
-  memoryKK->create_kokkos(k_xoriginal,xoriginal,atom->nmax,3,"spring/self:xoriginal");
-  d_xoriginal = k_xoriginal.view<DeviceType>();
+
+  int nmax = atom->nmax;
+  grow_arrays(nmax);
+
+  d_count = typename AT::t_int_scalar("fix_shake:count");
+  h_count = Kokkos::create_mirror_view(d_count);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,6 +137,17 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space, F_MASK);
 
   espring = 0.5*espring_kk;
+}
+
+/* ----------------------------------------------------------------------
+   allocate local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixSpringSelfKokkos<DeviceType>::grow_arrays(int nmax)
+{
+  memoryKK->grow_kokkos(k_xoriginal,xoriginal,nmax,3,"spring/self:xoriginal");
+  d_xoriginal = k_xoriginal.view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

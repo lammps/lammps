@@ -266,13 +266,16 @@ void ImageViewer::createActions()
     QMenu *fileMenu = menuBar->addMenu(tr("&File"));
 
     saveAsAct = fileMenu->addAction(tr("&Save As..."), this, &ImageViewer::saveAs);
+    saveAsAct->setIcon(QIcon(":/document-save-as.png"));
     saveAsAct->setEnabled(false);
     fileMenu->addSeparator();
     copyAct = fileMenu->addAction(tr("&Copy"), this, &ImageViewer::copy);
+    copyAct->setIcon(QIcon(":/edit-copy.png"));
     copyAct->setShortcut(QKeySequence::Copy);
     copyAct->setEnabled(false);
     fileMenu->addSeparator();
     QAction *exitAct = fileMenu->addAction(tr("&Close"), this, &QWidget::close);
+    exitAct->setIcon(QIcon(":/window-close.png"));
     exitAct->setShortcut(tr("Ctrl+W"));
 
     QMenu *viewMenu = menuBar->addMenu(tr("&View"));
@@ -284,12 +287,12 @@ void ImageViewer::createActions()
 
     zoomOutAct = viewMenu->addAction(tr("Image Zoom &Out (25%)"), this, &ImageViewer::zoomOut);
     zoomOutAct->setShortcut(QKeySequence::ZoomOut);
-    zoomInAct->setIcon(QIcon(":/gtk-zoom-out.png"));
+    zoomOutAct->setIcon(QIcon(":/gtk-zoom-out.png"));
     zoomOutAct->setEnabled(false);
 
     normalSizeAct = viewMenu->addAction(tr("&Reset Image Size"), this, &ImageViewer::normalSize);
     normalSizeAct->setShortcut(tr("Ctrl+0"));
-    zoomInAct->setIcon(QIcon(":/gtk-zoom-fit.png"));
+    normalSizeAct->setIcon(QIcon(":/gtk-zoom-fit.png"));
     normalSizeAct->setEnabled(false);
 
     viewMenu->addSeparator();

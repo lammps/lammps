@@ -20,6 +20,8 @@ tutorials on LAMMPS and then makes it easier to switch to a full
 featured text editor and more sophisticated visualization and analysis
 tools.
 
+-----
+
 The following text provides a detailed tour of the features and
 functionality of the LAMMPS GUI.
 
@@ -43,6 +45,73 @@ The size of the main window will be stored when exiting and restored
 when starting again.  The name of the current file in the buffer is
 shown in the window title and the text `*modified*` is added in case
 the buffer has modifications that are not yet saved to a file.
+
+Opening Files
+^^^^^^^^^^^^^
+
+The LAMMPS GUI application will try to open the first command line
+argument as input file; further arguments are ignored.  When no
+argument is given LAMMPS GUI will start with an empty buffer.
+Files can also be opened via the ``File`` menu or by drag-and-drop
+of a file from a file manager to the editor window.  Only one
+file can be open at a time, so opening a new file with a filled
+buffer will close this buffer and in case the buffer has unsaved
+modifications will ask to either cancel the load, discard the
+changes or save them.
+
+
+Running LAMMPS
+^^^^^^^^^^^^^^
+
+From within the LAMMPS GUI main window LAMMPS can be started either from
+the ``Run`` menu or by the hotkey `Ctrl-Enter` (`Command-Enter` on macOS).
+LAMMPS is running in a separate thread, so the GUI will stay responsive
+yet is capable to interact with the calculation and access its data.
+It is important to note, that LAMMPS is using the contents of the input
+buffer for the run, **not** the file. Thus if there are unsaved changes
+in the buffer, they will be used.
+
+.. image:: JPG/lammps-gui-running.png
+   :align: center
+   :scale: 75%
+
+While LAMMPS is running the contents of the status bar change: on the
+left side there is a text indicating that LAMMPS is running, which will
+contain the selected number of threads, if thread-parallel acceleration
+was selected in the ``Preferences`` dialog.  On the right side, a
+progress bar is shown that displays the estimated progress on the
+current :doc:`run command <run>`.  Additionally, two windows will open:
+the log window with the captured screen output and the chart window
+with a linegraph created from the thermodynamic output of the run.
+
+The run can be stopped cleanly by using either the ``Stop LAMMPS`` entry
+in the ``Run`` menu or with the hotkey `Ctrl-/` (`Command-/` on macOS).
+This will cause that the running LAMMPS process will complete the
+current iteration and then stop. This is equivalent to the command
+`timer timeout 0 <timer>` and implemented by calling the
+:cpp:func:`lammps_force_timeout()` function of the LAMMPS C-library
+interface.
+
+
+Viewing Snapshot Images
+^^^^^^^^^^^^^^^^^^^^^^^
+
+By selecting the ``View Image`` entry in the ``Run`` menu or by hitting
+the `Ctrl-I` (`Command-I` on macOS) hotkey, LAMMPS gui will issue a
+:doc:`write_dump image <dump_image>` command and read the resulting
+snapshot image into an image viewer window.
+
+.. image:: JPG/lammps-gui-image.png
+   :align: center
+   :scale: 50%
+
+The image size and some image quality settings can be changed in the
+``Preferences`` dialog window.  From the image viewer window further
+adjustments can be made: the image can be rotated, one can zoom in
+or out, and it is possible to only display the atoms within a predefined
+group (default is "all").  After each change the image is rendered
+again and the display updated.
+
 
 Editor Functions
 ^^^^^^^^^^^^^^^^
@@ -170,13 +239,13 @@ and looks of the LAMMPS GUI application.  The settings are grouped
 and each group is displayed within a tab.
 
 .. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
-   :width: 32%
+   :width: 25%
 
 .. |guiprefs2| image:: JPG/lammps-gui-prefs-accel.png
-   :width: 32%
+   :width: 25%
 
 .. |guiprefs3| image:: JPG/lammps-gui-prefs-image.png
-   :width: 32%
+   :width: 25%
 
 |guiprefs1|  |guiprefs2|  |guiprefs3|
 
@@ -238,7 +307,7 @@ Hotkeys
 
 Almost all functionality is accessible from the menu or via hotkeys.
 The following hotkeys are available (On macOS use the Command key
-instead of Ctrl (aka Control)).
+instead of Ctrl/Control).
 
 .. list-table::
    :header-rows: 1
@@ -256,34 +325,42 @@ instead of Ctrl (aka Control)).
      - New File
      - Ctrl+Z
      - Undo edit
-     - Ctrl+V
-     - Paste text
-     - Ctrl+Q
-     - Quit (Main Window only)
+     - Ctrl+Enter
+     - Run LAMMPS
+     - Ctrl+Shift+A
+     - About LAMMPS GUI
    * - Ctrl+O
      - Open File
      - Ctrl+Shift+Z
      - Redo edit
-     - Ctrl+Enter
-     - Run LAMMPS
-     - Ctrl+W
-     - Close (Log and Image Window only)
+     - Ctrl+/
+     - Stop Active Run
+     - Ctrl+Shift+H
+     - Quick Help
    * - CTRL+S
      - Save File
      - Ctrl+C
      - Copy text
-     - Ctrl+/
-     - Stop Active Run
-     - Ctrl+P
-     - Preferences
+     - Ctrl+Shift+V
+     - Set Variables
+     - Ctrl+Shift+G
+     - LAMMPS GUI Howto
    * - Ctrl+Shift+S
      - Save File As
      - Ctrl+X
      - Cut text
      - Ctrl+I
      - Create Snapshot Image
-     - Ctrl+Shift+/
-     - Quick Help
+     - Ctrl+Shift+M
+     - LAMMPS Manual
+   * - Ctrl+Q
+     - Quit
+     - Ctrl+V
+     - Paste text
+     - Ctrl+P
+     - Preferences
+     - Ctrl+?
+     - Context Help
 
 Further editing keybindings `are documented with the Qt documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In

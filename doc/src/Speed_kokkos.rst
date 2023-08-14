@@ -18,7 +18,7 @@ package was developed primarily by Christian Trott (Sandia) and Stan
 Moore (Sandia) with contributions of various styles by others,
 including Sikandar Mashayak (UIUC), Ray Shan (Sandia), and Dan Ibanez
 (Sandia). For more information on developing using Kokkos abstractions
-see the Kokkos `Wiki <https://github.com/kokkos/kokkos/wiki>`_.
+see the `Kokkos Wiki <https://github.com/kokkos/kokkos/wiki>`_.
 
 Kokkos currently provides support for 4 modes of execution (per MPI
 task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
@@ -29,11 +29,12 @@ produce an executable compatible with a specific hardware.
 .. admonition:: C++14 support
    :class: note
 
-   Kokkos requires using a compiler that supports the c++14 standard. For
-   some compilers, it may be necessary to add a flag to enable c++14 support.
+   Kokkos version 3.x requires using a compiler that supports the c++14 standard.
+   For some compilers, it may be necessary to add a flag to enable c++14 support.
    For example, the GNU compiler uses the -std=c++14 flag. For a list of
-   compilers that have been tested with the Kokkos library, see the Kokkos
-   `README <https://github.com/kokkos/kokkos/blob/master/README.md>`_.
+   compilers that have been tested with the Kokkos library, see the
+   `requirements document of the Kokkos Wiki
+   <https://kokkos.github.io/kokkos-core-wiki/requirements.html>`_.
 
 .. admonition:: NVIDIA CUDA support
    :class: note

@@ -100,17 +100,10 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionNew">
    <property name="icon">
-    <iconset theme="document-new">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/document-new.png"/>
    </property>
    <property name="text">
     <string>&amp;New</string>
-   </property>
-   <property name="toolTip">
-    <string>Start a New Input File</string>
-   </property>
-   <property name="statusTip">
-    <string>Start a New Input File</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -118,17 +111,10 @@
   </action>
   <action name="actionOpen">
    <property name="icon">
-    <iconset theme="document-open">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/document-open.png"/>
    </property>
    <property name="text">
     <string>&amp;Open</string>
-   </property>
-   <property name="toolTip">
-    <string>Open an Input File</string>
-   </property>
-   <property name="statusTip">
-    <string>Open an Input File</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -136,17 +122,10 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset theme="document-save">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/document-save.png"/>
    </property>
    <property name="text">
     <string>&amp;Save</string>
-   </property>
-   <property name="toolTip">
-    <string>Save Input File</string>
-   </property>
-   <property name="statusTip">
-    <string>Save Input File</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -154,17 +133,10 @@
   </action>
   <action name="actionSave_As">
    <property name="icon">
-    <iconset theme="document-save-as">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/document-save-as.png"/>
    </property>
    <property name="text">
     <string>Save &amp;As</string>
-   </property>
-   <property name="toolTip">
-    <string>Save Input File As...</string>
-   </property>
-   <property name="statusTip">
-    <string>Save Input File As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -172,17 +144,10 @@
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset theme="application-exit">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/application-exit.png"/>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
-   </property>
-   <property name="toolTip">
-    <string>Quit LAMMPS-GUI</string>
-   </property>
-   <property name="statusTip">
-    <string>Quit LAMMPS-GUI</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -190,14 +155,10 @@
   </action>
   <action name="actionCut">
    <property name="icon">
-    <iconset theme="edit-cut">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/edit-cut.png"/>
    </property>
    <property name="text">
     <string>Cu&amp;t</string>
-   </property>
-   <property name="statusTip">
-    <string>Cut Selected Text to Clipboard</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
@@ -205,14 +166,10 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme="edit-copy">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/edit-copy.png"/>
    </property>
    <property name="text">
     <string>&amp;Copy</string>
-   </property>
-   <property name="statusTip">
-    <string>Copy Selected Text to Clipboard</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -220,14 +177,10 @@
   </action>
   <action name="actionPaste">
    <property name="icon">
-    <iconset theme="edit-paste">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/edit-paste.png"/>
    </property>
    <property name="text">
     <string>&amp;Paste</string>
-   </property>
-   <property name="statusTip">
-    <string>Paste Text from Clipboard</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
@@ -235,14 +188,10 @@
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset theme="edit-undo">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/edit-undo.png"/>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
-   </property>
-   <property name="statusTip">
-    <string>Undo Edit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
@@ -250,14 +199,10 @@
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset theme="edit-redo">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/edit-redo.png"/>
    </property>
    <property name="text">
     <string>&amp;Redo</string>
-   </property>
-   <property name="statusTip">
-    <string>Redo Edit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
@@ -265,14 +210,10 @@
   </action>
   <action name="actionRun_Buffer">
    <property name="icon">
-    <iconset theme="emblem-default">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/emblem-default.png"/>
    </property>
    <property name="text">
     <string>&amp;Run LAMMPS</string>
-   </property>
-   <property name="toolTip">
-    <string>Run LAMMPS with Input</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Return</string>
@@ -280,14 +221,10 @@
   </action>
   <action name="actionStop_LAMMPS">
    <property name="icon">
-    <iconset theme="process-stop">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/process-stop.png"/>
    </property>
    <property name="text">
     <string>&amp;Stop LAMMPS</string>
-   </property>
-   <property name="toolTip">
-    <string>Stop LAMMPS Process</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+/</string>
@@ -295,14 +232,10 @@
   </action>
   <action name="actionImage">
    <property name="icon">
-    <iconset theme="emblem-photos">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/emblem-photos.png"/>
    </property>
    <property name="text">
     <string>View &amp;Image</string>
-   </property>
-   <property name="toolTip">
-    <string>View Snapshot image of current LAMMPS state</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -310,14 +243,10 @@
   </action>
   <action name="actionAbout_LAMMPS_GUI">
    <property name="icon">
-    <iconset theme="help-about">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/help-about.png"/>
    </property>
    <property name="text">
     <string>&amp;About LAMMPS-GUI</string>
-   </property>
-   <property name="toolTip">
-    <string>About LAMMPS-GUI</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
@@ -325,14 +254,10 @@
   </action>
   <action name="action_Help">
    <property name="icon">
-    <iconset theme="help-faq">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/help-faq.png"/>
    </property>
    <property name="text">
     <string>Quick &amp;Help</string>
-   </property>
-   <property name="toolTip">
-    <string>Quick Help</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+H</string>
@@ -340,8 +265,7 @@
   </action>
   <action name="actionPreferences">
    <property name="icon">
-    <iconset theme="preferences-desktop">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/preferences-desktop.png"/>
    </property>
    <property name="text">
     <string>Pre&amp;ferences...</string>
@@ -352,8 +276,7 @@
   </action>
   <action name="actionLAMMPS_Manual">
    <property name="icon">
-    <iconset theme="help-browser">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/help-browser.png"/>
    </property>
    <property name="text">
     <string>LAMMPS &amp;Manual</string>
@@ -364,8 +287,7 @@
   </action>
   <action name="actionDefaults">
    <property name="icon">
-    <iconset theme="document-revert">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/document-revert.png"/>
    </property>
    <property name="text">
     <string>Reset to &amp;Defaults</string>
@@ -373,8 +295,7 @@
   </action>
   <action name="actionView_Log_Window">
    <property name="icon">
-    <iconset theme="utilities-terminal">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/utilities-terminal.png"/>
    </property>
    <property name="text">
     <string>&amp;Log Window</string>
@@ -385,8 +306,7 @@
   </action>
   <action name="actionView_Graph_Window">
    <property name="icon">
-    <iconset theme="x-office-drawing">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/x-office-drawing.png"/>
    </property>
    <property name="text">
     <string>&amp;Chart Window</string>
@@ -429,8 +349,7 @@
   </action>
   <action name="action_5">
    <property name="icon">
-    <iconset>
-            <normaloff>:/document-open-recent.png</normaloff>:/document-open-recent.png</iconset>
+    <iconset theme=":/document-open-recent.png"/>
    </property>
    <property name="text">
     <string>&amp;5.</string>
@@ -438,8 +357,7 @@
   </action>
   <action name="actionView_Image_Window">
    <property name="icon">
-    <iconset theme="emblem-photos">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/emblem-photos.png"/>
    </property>
    <property name="text">
     <string>&amp;Image Window</string>
@@ -450,8 +368,7 @@
   </action>
   <action name="actionSet_Variables">
    <property name="icon">
-    <iconset theme="preferences-desktop-personal">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme=":/preferences-desktop-personal.png"/>
    </property>
    <property name="text">
     <string>Set &amp;Variables...</string>
@@ -462,8 +379,7 @@
   </action>
   <action name="actionLAMMPS_GUI_Howto">
    <property name="icon">
-    <iconset>
-     <normaloff>:/system-help.png</normaloff>:/system-help.png</iconset>
+    <iconset theme=":/system-help.png"/>
    </property>
    <property name="text">
     <string>LAMMPS GUI Howto</string>

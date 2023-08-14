@@ -16,5 +16,23 @@
         <file>document-open-recent.png</file>
         <file>document-open.png</file>
         <file>document-new.png</file>
+        <file>edit-undo.png</file>
+        <file>edit-redo.png</file>
+        <file>edit-paste.png</file>
+        <file>edit-cut.png</file>
+        <file>edit-copy.png</file>
+        <file>application-exit.png</file>
+        <file>utilities-terminal.png</file>
+        <file>x-office-drawing.png</file>
+        <file>document-save.png</file>
+        <file>document-revert.png</file>
+        <file>preferences-desktop.png</file>
+        <file>preferences-desktop-personal.png</file>
+        <file>preferences-desktop-font.png</file>
+        <file>help-faq.png</file>
+        <file>help-about.png</file>
+        <file>emblem-photos.png</file>
+        <file>process-stop.png</file>
+        <file>emblem-default.png</file>
     </qresource>
 </RCC>

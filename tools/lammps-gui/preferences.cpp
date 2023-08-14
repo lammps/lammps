@@ -28,6 +28,7 @@
 #include <QFontDialog>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
@@ -182,9 +183,11 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(pluginbrowse, &QPushButton::released, this, &GeneralTab::pluginpath);
 #endif
 
-    auto *fontlayout  = new QHBoxLayout;
-    auto *getallfont  = new QPushButton("Select Default Font...");
-    auto *gettextfont = new QPushButton("Select Text Font...");
+    auto *fontlayout = new QHBoxLayout;
+    auto *getallfont =
+        new QPushButton(QIcon(":/preferences-desktop-font.png"), "Select Default Font...");
+    auto *gettextfont =
+        new QPushButton(QIcon(":/preferences-desktop-font.png"), "Select Text Font...");
     fontlayout->addWidget(getallfont);
     fontlayout->addWidget(gettextfont);
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);

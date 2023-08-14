@@ -34,8 +34,11 @@ if(ClangFormat_EXECUTABLE)
     # Ubuntu 22.04 LTS output:
     # Ubuntu clang-format version 14.0.0-1ubuntu1
     #
+    # Debian 11 output:
+    # Debian clang-format version 11.0.1-2
+    #
     # Debian 12 output:
-    # Debian clang-format version 14.0.0
+    # Debian clang-format version 14.0.6
     #
     # Fedora 36 output:
     # clang-format version 14.0.5 (Fedora 14.0.5-1.fc36)

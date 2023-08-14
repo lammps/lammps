@@ -13,11 +13,12 @@
 #include <cstring>  // std::strlen
 #include <iterator>
 #include <limits>
+#include <memory>  // std::addressof
 #include <string>
 #include <type_traits>
 
 // The fmt library version in the form major * 10000 + minor * 100 + patch.
-#define FMT_VERSION 100001
+#define FMT_VERSION 100100
 
 #if defined(__clang__) && !defined(__ibmxl__)
 #  define FMT_CLANG_VERSION (__clang_major__ * 100 + __clang_minor__)
@@ -1290,9 +1291,9 @@ template <typename Context> class value {
   FMT_INLINE value(const named_arg_info<char_type>* args, size_t size)
       : named_args{args, size} {}
 
-  template <typename T> FMT_CONSTEXPR FMT_INLINE value(T& val) {
+  template <typename T> FMT_CONSTEXPR20 FMT_INLINE value(T& val) {
     using value_type = remove_const_t<T>;
-    custom.value = const_cast<value_type*>(&val);
+    custom.value = const_cast<value_type*>(std::addressof(val));
     // Get the formatter type through the context to allow different contexts
     // have different extension points, e.g. `formatter<T>` for `format` and
     // `printf_formatter<T>` for `printf`.
@@ -1669,6 +1670,7 @@ template <typename Context> class basic_format_arg {
   ``vis(value)`` will be called with the value of type ``double``.
   \endrst
  */
+// DEPRECATED!
 FMT_EXPORT
 template <typename Visitor, typename Context>
 FMT_CONSTEXPR FMT_INLINE auto visit_format_arg(

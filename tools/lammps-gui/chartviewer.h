@@ -31,7 +31,13 @@ class ChartWindow : public QWidget {
 public:
     ChartWindow(const QString &filename, QWidget *parent = nullptr);
 
-    bool has_charts() const { return !charts.isEmpty(); }
+    int num_charts() const { return charts.size(); }
+    bool has_title(const QString &title, int index) const
+    {
+        return (columns->itemText(index) == title);
+    }
+    int get_step() const;
+    void reset_charts();
     void add_chart(const QString &title, int index);
     void add_data(int step, double data, int index);
 

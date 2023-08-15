@@ -558,7 +558,11 @@ void LammpsGui::logupdate()
 
     // extract cached thermo data
     if (chartwindow) {
-        void *ptr = lammps.last_thermo("step", 0);
+        // thermo data is not yet valid during setup
+        void *ptr = lammps.last_thermo("setup", 0);
+        if (ptr && *(int *)ptr) return;
+
+        ptr = lammps.last_thermo("step", 0);
         if (ptr) {
             int step = 0;
             if (lammps.extract_setting("bigint") == 4)
@@ -566,7 +570,29 @@ void LammpsGui::logupdate()
             else
                 step = (int)*(int64_t *)ptr;
             int ncols = *(int *)lammps.last_thermo("num", 0);
-            if (!chartwindow->has_charts()) {
+
+            // check if the column assignment has changed
+            // if yes, delete charts and start over
+            if (chartwindow->num_charts() > 0) {
+                int count     = 0;
+                bool do_reset = false;
+                if (step < chartwindow->get_step()) do_reset = true;
+                for (int i = 0, idx = 0; i < ncols; ++i) {
+                    QString label = (const char *)lammps.last_thermo("keyword", i);
+                    // no need to store the timestep column
+                    if (label == "Step") continue;
+                    if (!chartwindow->has_title(label, idx)) {
+                        do_reset = true;
+                    } else {
+                        ++count;
+                    }
+                    ++idx;
+                }
+                if (chartwindow->num_charts() != count) do_reset = true;
+                if (do_reset) chartwindow->reset_charts();
+            }
+
+            if (chartwindow->num_charts() == 0) {
                 for (int i = 0; i < ncols; ++i) {
                     QString label = (const char *)lammps.last_thermo("keyword", i);
                     // no need to store the timestep column
@@ -622,7 +648,7 @@ void LammpsGui::run_done()
                 step = (int)*(int64_t *)ptr;
             int ncols = *(int *)lammps.last_thermo("num", 0);
             for (int i = 0; i < ncols; ++i) {
-                if (!chartwindow->has_charts()) {
+                if (chartwindow->num_charts() == 0) {
                     QString label = (const char *)lammps.last_thermo("keyword", i);
                     // no need to store the timestep column
                     if (label == "Step") continue;

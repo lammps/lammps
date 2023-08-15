@@ -49,6 +49,31 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     resize(settings.value("chartx", 500).toInt(), settings.value("charty", 320).toInt());
 }
 
+int ChartWindow::get_step() const
+{
+    if (charts.size() > 0) {
+        auto *v = charts[0];
+        return (int)v->get_step(v->get_count()-1);
+    } else {
+        return -1;
+    }
+}
+
+void ChartWindow::reset_charts()
+{
+    while (layout()->count() > 1) {
+        auto *item = layout()->takeAt(1);
+        if (item) {
+            layout()->removeItem(item);
+            delete item->widget();
+            delete item;
+        }
+    }
+    charts.clear();
+    columns->clear();
+    active_chart = 0;
+}
+
 void ChartWindow::add_chart(const QString &title, int index)
 {
     auto *chart = new ChartViewer(title, index);
@@ -182,6 +207,7 @@ ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
     series->attachAxis(yaxis);
     xaxis->setTitleText("Time step");
     xaxis->setTickCount(5);
+    xaxis->setLabelFormat("%d");
     yaxis->setTickCount(5);
     xaxis->setMinorTickCount(5);
     yaxis->setMinorTickCount(5);

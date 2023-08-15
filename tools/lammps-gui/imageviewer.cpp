@@ -72,6 +72,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     auto *rotright = new QPushButton(QIcon(":/object-rotate-right.png"), "");
     auto *rotup    = new QPushButton(QIcon(":/gtk-go-up.png"), "");
     auto *rotdown  = new QPushButton(QIcon(":/gtk-go-down.png"), "");
+    auto *reset    = new QPushButton(QIcon(":/gtk-zoom-fit.png"), "");
     auto *combo    = new QComboBox;
     combo->setObjectName("group");
     int ngroup = lammps->id_count("group");
@@ -93,6 +94,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(rotright);
     menuLayout->addWidget(rotup);
     menuLayout->addWidget(rotdown);
+    menuLayout->addWidget(reset);
     menuLayout->addWidget(new QLabel(" Group: "));
     menuLayout->addWidget(combo);
 
@@ -106,26 +108,20 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(rotright, &QPushButton::released, this, &ImageViewer::do_rot_right);
     connect(rotup, &QPushButton::released, this, &ImageViewer::do_rot_up);
     connect(rotdown, &QPushButton::released, this, &ImageViewer::do_rot_down);
+    connect(reset, &QPushButton::released, this, &ImageViewer::reset_view);
     connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(change_group(int)));
 
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     mainLayout->addWidget(buttonBox);
-    setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).completeBaseName());
-
-    QSettings settings;
-    settings.beginGroup("snapshot");
-    zoom    = settings.value("zoom", 1.0).toDouble();
-    hrot    = settings.value("hrot", 60).toInt();
-    vrot    = settings.value("vrot", 30).toInt();
-    showbox = settings.value("box", true).toBool();
-    dobox->setChecked(showbox);
-    showaxes = settings.value("axes", false).toBool();
-    doaxes->setChecked(showaxes);
-    settings.endGroup();
-
+    setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).fileName());
     createActions();
-    createImage();
+
+    reset_view();
+    dobox->setChecked(showbox);
+    doaxes->setChecked(showaxes);
+    dossao->setChecked(usessao);
+    doanti->setChecked(antialias);
 
     scaleFactor = 1.0;
     resize(image.width() + 20, image.height() + 50);
@@ -135,6 +131,37 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     updateActions();
     if (!fitToWindowAct->isChecked()) imageLabel->adjustSize();
     setLayout(mainLayout);
+}
+
+void ImageViewer::reset_view()
+{
+    QSettings settings;
+    settings.beginGroup("snapshot");
+    zoom      = settings.value("zoom", 1.0).toDouble();
+    hrot      = settings.value("hrot", 60).toInt();
+    vrot      = settings.value("vrot", 30).toInt();
+    showbox   = settings.value("box", true).toBool();
+    showaxes  = settings.value("axes", false).toBool();
+    usessao   = settings.value("ssao", false).toBool();
+    antialias = settings.value("antialias", false).toBool();
+    settings.endGroup();
+
+    // reset state of checkable push buttons (only after main layout is set up)
+    auto *lo = layout();
+    if (lo) {
+        lo           = lo->itemAt(0)->layout();
+        auto *button = qobject_cast<QPushButton *>(lo->itemAt(1)->widget());
+        button->setChecked(usessao);
+        button = qobject_cast<QPushButton *>(lo->itemAt(2)->widget());
+        button->setChecked(antialias);
+        button = qobject_cast<QPushButton *>(lo->itemAt(3)->widget());
+        button->setChecked(showbox);
+        button = qobject_cast<QPushButton *>(lo->itemAt(4)->widget());
+        button->setChecked(showaxes);
+        auto *cb = qobject_cast<QComboBox *>(lo->itemAt(lo->count() - 1)->widget());
+        cb->setCurrentText("all");
+    }
+    createImage();
 }
 
 void ImageViewer::toggle_ssao()
@@ -251,7 +278,8 @@ void ImageViewer::createImage()
     else
         dumpcmd += QString(" axes no 0.0 0.0");
 
-    dumpcmd += " modify boxcolor silver";
+    dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
+    dumpcmd += " backcolor " + settings.value("background", "black").toString();
     settings.endGroup();
 
     lammps->command(dumpcmd.toLocal8Bit());

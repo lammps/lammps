@@ -120,6 +120,10 @@ void Preferences::accept()
     if (box) settings->setValue("box", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("axes");
     if (box) settings->setValue("axes", box->isChecked());
+    QComboBox *combo = tabWidget->findChild<QComboBox *>("background");
+    if (combo) settings->setValue("background", combo->currentText());
+    combo = tabWidget->findChild<QComboBox *>("boxcolor");
+    if (combo) settings->setValue("boxcolor", combo->currentText());
     settings->endGroup();
 
     // general settings
@@ -367,6 +371,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *ssao  = new QLabel("HQ Image mode:");
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
+    auto *cback = new QLabel("Background Color:");
+    auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
     auto *xval = new QLineEdit(settings->value("xsize", "800").toString());
     auto *yval = new QLineEdit(settings->value("ysize", "600").toString());
@@ -383,7 +389,6 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     bval->setObjectName("box");
     eval->setCheckState(settings->value("axes", false).toBool() ? Qt::Checked : Qt::Unchecked);
     eval->setObjectName("axes");
-    settings->endGroup();
 
     auto *intval = new QIntValidator(100, 100000, this);
     xval->setValidator(intval);
@@ -393,6 +398,26 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     zval->setValidator(new QDoubleValidator(0.01, 100.0, 100, this));
     zval->setObjectName("zoom");
 
+    auto *background = new QComboBox;
+    background->setObjectName("background");
+    background->addItem("black");
+    background->addItem("white");
+    background->addItem("darkgray");
+    background->addItem("gray");
+    background->addItem("silver");
+    background->setCurrentText(settings->value("background", "black").toString());
+
+    auto *boxcolor = new QComboBox;
+    boxcolor->setObjectName("boxcolor");
+    boxcolor->addItem("yellow");
+    boxcolor->addItem("silver");
+    boxcolor->addItem("gray");
+    boxcolor->addItem("red");
+    boxcolor->addItem("green");
+    boxcolor->addItem("blue");
+    boxcolor->setCurrentText(settings->value("boxcolor", "yellow").toString());
+    settings->endGroup();
+
     grid->addWidget(xsize, 0, 0, Qt::AlignTop);
     grid->addWidget(ysize, 1, 0, Qt::AlignTop);
     grid->addWidget(zoom, 2, 0, Qt::AlignTop);
@@ -400,6 +425,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(ssao, 4, 0, Qt::AlignTop);
     grid->addWidget(bbox, 5, 0, Qt::AlignTop);
     grid->addWidget(axes, 6, 0, Qt::AlignTop);
+    grid->addWidget(cback, 7, 0, Qt::AlignTop);
+    grid->addWidget(cbox, 8, 0, Qt::AlignTop);
     grid->addWidget(xval, 0, 1, Qt::AlignTop);
     grid->addWidget(yval, 1, 1, Qt::AlignTop);
     grid->addWidget(zval, 2, 1, Qt::AlignTop);
@@ -407,9 +434,12 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(sval, 4, 1, Qt::AlignVCenter);
     grid->addWidget(bval, 5, 1, Qt::AlignVCenter);
     grid->addWidget(eval, 6, 1, Qt::AlignVCenter);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 7, 0);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 7, 1);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 7, 2);
+    grid->addWidget(background, 7, 1, Qt::AlignVCenter);
+    grid->addWidget(boxcolor, 8, 1, Qt::AlignVCenter);
+
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 9, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 9, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 9, 2);
     setLayout(grid);
 }
 

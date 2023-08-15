@@ -45,6 +45,7 @@ private slots:
     void normalSize();
     void fitToWindow();
 
+    void reset_view();
     void toggle_ssao();
     void toggle_anti();
     void toggle_box();

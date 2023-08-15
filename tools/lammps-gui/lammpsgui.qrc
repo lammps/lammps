@@ -37,5 +37,9 @@
         <file>window-close.png</file>
         <file>application-plot.png</file>
         <file>application-calc.png</file>
+        <file>system-box.png</file>
+        <file>axes-img.png</file>
+        <file>hd-img.png</file>
+        <file>antialias.png</file>
     </qresource>
 </RCC>

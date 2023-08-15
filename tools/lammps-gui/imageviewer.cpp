@@ -58,6 +58,14 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
+    auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
+    dossao->setCheckable(true);
+    auto *doanti = new QPushButton(QIcon(":/antialias.png"), "");
+    doanti->setCheckable(true);
+    auto *dobox = new QPushButton(QIcon(":/system-box.png"), "");
+    dobox->setCheckable(true);
+    auto *doaxes = new QPushButton(QIcon(":/axes-img.png"), "");
+    doaxes->setCheckable(true);
     auto *zoomin   = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
     auto *zoomout  = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
     auto *rotleft  = new QPushButton(QIcon(":/object-rotate-left.png"), "");
@@ -75,6 +83,10 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QHBoxLayout *menuLayout = new QHBoxLayout;
     menuLayout->addWidget(menuBar);
+    menuLayout->addWidget(dossao);
+    menuLayout->addWidget(doanti);
+    menuLayout->addWidget(dobox);
+    menuLayout->addWidget(doaxes);
     menuLayout->addWidget(zoomin);
     menuLayout->addWidget(zoomout);
     menuLayout->addWidget(rotleft);
@@ -84,6 +96,10 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(new QLabel(" Group: "));
     menuLayout->addWidget(combo);
 
+    connect(dossao, &QPushButton::released, this, &ImageViewer::toggle_ssao);
+    connect(doanti, &QPushButton::released, this, &ImageViewer::toggle_anti);
+    connect(dobox, &QPushButton::released, this, &ImageViewer::toggle_box);
+    connect(doaxes, &QPushButton::released, this, &ImageViewer::toggle_axes);
     connect(zoomin, &QPushButton::released, this, &ImageViewer::do_zoom_in);
     connect(zoomout, &QPushButton::released, this, &ImageViewer::do_zoom_out);
     connect(rotleft, &QPushButton::released, this, &ImageViewer::do_rot_left);
@@ -99,9 +115,13 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QSettings settings;
     settings.beginGroup("snapshot");
-    zoom = settings.value("zoom", 1.0).toDouble();
-    hrot = settings.value("hrot", 60).toInt();
-    vrot = settings.value("vrot", 30).toInt();
+    zoom    = settings.value("zoom", 1.0).toDouble();
+    hrot    = settings.value("hrot", 60).toInt();
+    vrot    = settings.value("vrot", 30).toInt();
+    showbox = settings.value("box", true).toBool();
+    dobox->setChecked(showbox);
+    showaxes = settings.value("axes", false).toBool();
+    doaxes->setChecked(showaxes);
     settings.endGroup();
 
     createActions();
@@ -115,6 +135,38 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     updateActions();
     if (!fitToWindowAct->isChecked()) imageLabel->adjustSize();
     setLayout(mainLayout);
+}
+
+void ImageViewer::toggle_ssao()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    usessao             = !usessao;
+    button->setChecked(usessao);
+    createImage();
+}
+
+void ImageViewer::toggle_anti()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    antialias           = !antialias;
+    button->setChecked(antialias);
+    createImage();
+}
+
+void ImageViewer::toggle_box()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    showbox             = !showbox;
+    button->setChecked(showbox);
+    createImage();
+}
+
+void ImageViewer::toggle_axes()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    showaxes            = !showaxes;
+    button->setChecked(showaxes);
+    createImage();
 }
 
 void ImageViewer::do_zoom_in()
@@ -175,7 +227,7 @@ void ImageViewer::createImage()
     dumpcmd += dumpfile.fileName();
 
     settings.beginGroup("snapshot");
-    int aa    = settings.value("antialias", 0).toInt() + 1;
+    int aa    = antialias ? 2 : 1;
     int xsize = settings.value("xsize", 800).toInt() * aa;
     int ysize = settings.value("ysize", 600).toInt() * aa;
     int hhrot = (hrot > 180) ? 360 - hrot : hrot;
@@ -188,16 +240,18 @@ void ImageViewer::createImage()
     if (lammps->extract_setting("dimension") == 3) {
         dumpcmd += QString(" view ") + QString::number(hhrot) + blank + QString::number(vrot);
     }
-    if (settings.value("ssao", false).toBool()) dumpcmd += QString(" ssao yes 453983 0.6");
-    if (settings.value("box", true).toBool())
-        dumpcmd += QString(" box yes 0.02");
+    if (usessao) dumpcmd += QString(" ssao yes 453983 0.75");
+    if (showbox)
+        dumpcmd += QString(" box yes 0.025");
     else
         dumpcmd += QString(" box no 0.0");
-    if (settings.value("axes", true).toBool())
-        dumpcmd += QString(" axes yes 0.2 0.02");
+
+    if (showaxes)
+        dumpcmd += QString(" axes yes 0.2 0.025");
     else
         dumpcmd += QString(" axes no 0.0 0.0");
 
+    dumpcmd += " modify boxcolor silver";
     settings.endGroup();
 
     lammps->command(dumpcmd.toLocal8Bit());

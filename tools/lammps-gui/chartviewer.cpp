@@ -31,14 +31,14 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     columns = new QComboBox;
     top->addWidget(menu);
     top->addWidget(columns);
-    saveAsAct    = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
+    saveAsAct = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
     saveAsAct->setIcon(QIcon(":/document-save-as.png"));
     exportCsvAct = file->addAction("&Export data to CSV...", this, &ChartWindow::exportCsv);
     exportCsvAct->setIcon(QIcon(":/application-calc.png"));
     exportDatAct = file->addAction("Export data to &Gnuplot...", this, &ChartWindow::exportDat);
     exportDatAct->setIcon(QIcon(":/application-plot.png"));
     file->addSeparator();
-    closeAct     = file->addAction("&Close", this, &QWidget::close);
+    closeAct = file->addAction("&Close", this, &QWidget::close);
     closeAct->setIcon(QIcon(":/window-close.png"));
     auto *layout = new QVBoxLayout;
     layout->addLayout(top);

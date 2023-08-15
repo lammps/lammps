@@ -179,8 +179,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #endif
 
     lammpsstatus = new QLabel(QString());
-    auto pix = QPixmap(":/lammps-icon-128x128.png");
-    lammpsstatus->setPixmap(pix.scaled(22,22,Qt::KeepAspectRatio));
+    auto pix     = QPixmap(":/lammps-icon-128x128.png");
+    lammpsstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
     ui->statusbar->addWidget(lammpsstatus);
     lammpsstatus->hide();
     status = new QLabel("Ready.");
@@ -935,9 +935,10 @@ void LammpsGui::preferences()
         if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
             (oldthreads != settings.value("nthreads", 1).toInt()) ||
             (oldecho != settings.value("echo", 0).toInt()) ||
-            (oldcite != settings.value("cite", 0).toInt()))
+            (oldcite != settings.value("cite", 0).toInt())) {
             lammps.close();
             lammpsstatus->hide();
+        }
         if (imagewindow) imagewindow->createImage();
     }
 }

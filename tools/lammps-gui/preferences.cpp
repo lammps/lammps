@@ -112,9 +112,9 @@ void Preferences::accept()
     field = tabWidget->findChild<QLineEdit *>("zoom");
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("zoom", field->text());
-    QComboBox *combo = tabWidget->findChild<QComboBox *>("anti");
-    if (combo) settings->setValue("antialias", combo->currentIndex());
-    QCheckBox *box = tabWidget->findChild<QCheckBox *>("ssao");
+    QCheckBox *box = tabWidget->findChild<QCheckBox *>("anti");
+    if (box) settings->setValue("antialias", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("ssao");
     if (box) settings->setValue("ssao", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("box");
     if (box) settings->setValue("box", box->isChecked());
@@ -371,17 +371,13 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *xval = new QLineEdit(settings->value("xsize", "800").toString());
     auto *yval = new QLineEdit(settings->value("ysize", "600").toString());
     auto *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
-    auto *aval = new QComboBox;
+    auto *aval = new QCheckBox;
     auto *sval = new QCheckBox;
     auto *bval = new QCheckBox;
     auto *eval = new QCheckBox;
     sval->setCheckState(settings->value("ssao", false).toBool() ? Qt::Checked : Qt::Unchecked);
     sval->setObjectName("ssao");
-    aval->addItem("1x", 1);
-    aval->addItem("2x", 2);
-    aval->addItem("3x", 3);
-    aval->addItem("4x", 4);
-    aval->setCurrentIndex(settings->value("antialias", "0").toInt());
+    aval->setCheckState(settings->value("antialias", false).toBool() ? Qt::Checked : Qt::Unchecked);
     aval->setObjectName("anti");
     bval->setCheckState(settings->value("box", true).toBool() ? Qt::Checked : Qt::Unchecked);
     bval->setObjectName("box");

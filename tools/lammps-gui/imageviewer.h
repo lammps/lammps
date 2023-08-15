@@ -45,6 +45,10 @@ private slots:
     void normalSize();
     void fitToWindow();
 
+    void toggle_ssao();
+    void toggle_anti();
+    void toggle_box();
+    void toggle_axes();
     void do_zoom_in();
     void do_zoom_out();
     void do_rot_left();
@@ -83,6 +87,7 @@ private:
     QString filename;
     int hrot, vrot;
     double zoom;
+    bool showbox, showaxes, antialias, usessao;
 };
 #endif
 

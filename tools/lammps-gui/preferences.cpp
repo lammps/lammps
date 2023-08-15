@@ -401,10 +401,10 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *background = new QComboBox;
     background->setObjectName("background");
     background->addItem("black");
-    background->addItem("white");
     background->addItem("darkgray");
     background->addItem("gray");
     background->addItem("silver");
+    background->addItem("white");
     background->setCurrentText(settings->value("background", "black").toString());
 
     auto *boxcolor = new QComboBox;
@@ -412,9 +412,9 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     boxcolor->addItem("yellow");
     boxcolor->addItem("silver");
     boxcolor->addItem("gray");
-    boxcolor->addItem("red");
-    boxcolor->addItem("green");
-    boxcolor->addItem("blue");
+    boxcolor->addItem("darkred");
+    boxcolor->addItem("darkgreen");
+    boxcolor->addItem("darkblue");
     boxcolor->setCurrentText(settings->value("boxcolor", "yellow").toString());
     settings->endGroup();
 

@@ -146,10 +146,12 @@ void ImageViewer::reset_view()
     antialias = settings.value("antialias", false).toBool();
     settings.endGroup();
 
-    // reset state of checkable push buttons (only after main layout is set up)
+    // reset state of checkable push buttons and combo box (after main layout is set up)
     auto *lo = layout();
     if (lo) {
-        lo           = lo->itemAt(0)->layout();
+        // grab layout manager for the top bar
+        lo = lo->itemAt(0)->layout();
+        // grab the first 4 buttons after the menu bar
         auto *button = qobject_cast<QPushButton *>(lo->itemAt(1)->widget());
         button->setChecked(usessao);
         button = qobject_cast<QPushButton *>(lo->itemAt(2)->widget());
@@ -158,6 +160,7 @@ void ImageViewer::reset_view()
         button->setChecked(showbox);
         button = qobject_cast<QPushButton *>(lo->itemAt(4)->widget());
         button->setChecked(showaxes);
+        // grab the last entry -> group selector
         auto *cb = qobject_cast<QComboBox *>(lo->itemAt(lo->count() - 1)->widget());
         cb->setCurrentText("all");
     }

@@ -850,7 +850,7 @@ void LammpsGui::about()
     if (!lammps.is_running()) {
         start_lammps();
         capturer->BeginCapture();
-        lammps.command("info accel config");
+        lammps.command("info config");
         capturer->EndCapture();
         info       = capturer->GetCapture();
         auto start = info.find("LAMMPS version:");

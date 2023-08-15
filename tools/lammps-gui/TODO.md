@@ -2,7 +2,6 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
-- write LAMMPS GUI Howto showing/explaining options -> simplify docs and readme
 - rewrite syntax highlighting to be line oriented instead of word oriented.
   handle first part of line based on regular expressions, then advance and only highlight strings and numbers.
   handle "&" continuation and multiline strings with """ like C style comments in Qt docs example
@@ -11,7 +10,6 @@ LAMMPS-GUI TODO list:
 - need to handle "label" and "jump" commands from within ?
 - switch processing of input to line based commands or?
 - switch input file editor to read-only while loop is running
-- embed all icons/graphics
 
 # Long term ideas
 - add feature to LAMMPS (to the LAMMPS class) to store current file name and line number, update while reading/parsing
@@ -25,4 +23,5 @@ LAMMPS-GUI TODO list:
 - support single stepping, i.e. process input line by line (need to detect continuation chars!) with highlighting active line(s)
 - have command text input file in/above status bar where individual commands can be tested. have insert button to copy line into file at the current point
 - support text completion as done with lammps-shell
-- add a "python" mode, where instead of launching LAMMPS, python is loaded that the LAMMPS python module is made available.
+- add a "python" mode, where instead of launching LAMMPS, python is loaded where the LAMMPS python module is made available.
+- support multiple tabs and multiple LAMMPS instances?

@@ -246,7 +246,7 @@
     <iconset theme=":/help-about.png"/>
    </property>
    <property name="text">
-    <string>&amp;About LAMMPS-GUI</string>
+    <string>&amp;About LAMMPS</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>

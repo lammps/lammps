@@ -101,8 +101,8 @@ void SetVariables::del_row()
         auto *row  = layout->takeAt(delrow);
         while (row->layout()->count() > 0) {
             auto *item = row->layout()->takeAt(0);
-            row->layout()->removeItem(item);
             if (item) {
+                row->layout()->removeItem(item);
                 delete item->widget();
                 delete item;
             }

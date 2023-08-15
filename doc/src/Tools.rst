@@ -806,7 +806,7 @@ command will automatically include a suitable CMake toolset file (the
 regular cmake command can be used after that).  After building the
 libraries and executables, you can build the target 'zip'
 (i.e. ``cmake --build <build dir> --target zip`` or ``make zip``
-to stage all installable files into a LAMMPS_GUI folder and then
+to stage all installed files into a LAMMPS_GUI folder and then
 run a script to copy all required dependencies, some other files,
 and create a zip file from it.
 

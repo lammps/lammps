@@ -83,7 +83,7 @@ was selected in the ``Preferences`` dialog.  On the right side, a
 progress bar is shown that displays the estimated progress on the
 current :doc:`run command <run>`.  Additionally, two windows will open:
 the log window with the captured screen output and the chart window
-with a linegraph created from the thermodynamic output of the run.
+with a line graph created from the thermodynamic output of the run.
 
 The run can be stopped cleanly by using either the ``Stop LAMMPS`` entry
 in the ``Run`` menu or with the hotkey `Ctrl-/` (`Command-/` on macOS).
@@ -109,7 +109,7 @@ snapshot image into an image viewer window.
 The image size, some default image quality settings, and some colors
 can be changed in the ``Preferences`` dialog window.  From the image
 viewer window further adjustments can be made: high-quality rendering,
-antialiasing, display of box or axes, zoom factor. The the image can
+anti-aliasing, display of box or axes, zoom factor. The the image can
 be rotated horizontally and vertically and it is possible to only
 display the atoms within a predefined group (default is "all").
 After each change, the image is rendered again and the display updated.
@@ -215,6 +215,16 @@ The ``View Image`` entry will send a :doc:`dump image <dump_image>`
 command to the LAMMPS instance, read the resulting file, and show it in
 an ``Image Viewer`` window.
 
+The ``View in OVITO`` entry will launch `OVITO <https://ovito.org>`_
+with a :doc:`data file <write_data>` of the current state of the system.
+This option is only available, if the LAMMPS GUI can find the OVITO
+executable in the system path.
+
+The ``View in VMD`` entry will instead launch VMD, also to load a
+:doc:`data file <write_data>` of the current state of the system.  This
+option is only available, if the LAMMPS GUI can find the VMD executable
+in the system path.
+
 View
 ^^^^
 
@@ -295,13 +305,15 @@ Snapshot Image:
 
 This tab allows to set some defaults for the snapshot images displayed
 in the ``Image Viewer`` window, like its dimensions and the zoom factor
-applied.  The *Antialias* switch requests to render images at an up to 4
-times larger image size and then uses a bicubic scaling algorithm to
-rescale them back to the requested size.  This produces higher quality
-images with smoother edges at the expense of requiring more CPU time to
-render the image.  The *HQ Image mode* option turns on using a screen
-space ambient occlusion mode when rendering images.  This is more time
-consuming, but produces a more 'spatial' representation of the system.
+applied.  The *Antialias* switch requests to render images with twice
+the number of pixels for width and height and then uses a bi-cubic
+scaling algorithm to rescale them back to the requested size.  This
+produces higher quality images with smoother edges at the expense of
+requiring more CPU time to render the image.  The *HQ Image mode* option
+turns on using a screen space ambient occlusion mode (SSAO) when
+rendering images.  This is also more time consuming, but produces a more
+'spatial' representation of the system.  Finally there are a couple of
+drop down lists to select the background and box color.
 
 
 Hotkeys

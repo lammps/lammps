@@ -66,6 +66,7 @@ private slots:
     void new_document();
     void open();
     void open_recent();
+    void start_exe();
     void save();
     void save_as();
     void quit();

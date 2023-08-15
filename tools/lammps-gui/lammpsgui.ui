@@ -73,6 +73,8 @@
     <addaction name="actionSet_Variables"/>
     <addaction name="separator"/>
     <addaction name="actionImage"/>
+    <addaction name="actionView_in_OVITO"/>
+    <addaction name="actionView_in_VMD"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -291,6 +293,28 @@
    </property>
    <property name="text">
     <string>Reset to &amp;Defaults</string>
+   </property>
+  </action>
+  <action name="actionView_in_OVITO">
+   <property name="icon">
+    <iconset theme=":/ovito.png"/>
+   </property>
+   <property name="text">
+    <string>View in &amp;OVITO</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionView_in_VMD">
+   <property name="icon">
+    <iconset theme=":/vmd.png"/>
+   </property>
+   <property name="text">
+    <string>View in VM&amp;D</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
   <action name="actionView_Log_Window">

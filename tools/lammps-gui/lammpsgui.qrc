@@ -41,5 +41,7 @@
         <file>axes-img.png</file>
         <file>hd-img.png</file>
         <file>antialias.png</file>
+        <file>ovito.png</file>
+        <file>vmd.png</file>
     </qresource>
 </RCC>

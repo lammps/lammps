@@ -32,10 +32,12 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QPlainTextEdit>
+#include <QProcess>
 #include <QProgressBar>
 #include <QSettings>
 #include <QShortcut>
 #include <QStatusBar>
+#include <QStringList>
 #include <QTextStream>
 #include <QThread>
 #include <QTimer>
@@ -58,6 +60,34 @@ static char *mystrdup(const std::string &text)
     auto tmp = new char[text.size() + 1];
     memcpy(tmp, text.c_str(), text.size() + 1);
     return tmp;
+}
+
+// find if executable is in path
+// https://stackoverflow.com/a/51041497
+
+static bool has_exe(const QString &exe)
+{
+    QProcess findProcess;
+    QStringList arguments;
+    arguments << exe;
+#if defined(_WIN32)
+    findProcess.start("where", arguments);
+#else
+    findProcess.start("which", arguments);
+#endif
+    findProcess.setReadChannel(QProcess::ProcessChannel::StandardOutput);
+
+    if (!findProcess.waitForFinished()) return false; // Not found or which does not work
+
+    QString retStr(findProcess.readAll());
+    retStr = retStr.trimmed();
+
+    QFile file(retStr);
+    QFileInfo check_file(file);
+    if (check_file.exists() && check_file.isFile())
+        return true; // Found!
+    else
+        return false; // Not found!
 }
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
@@ -140,6 +170,12 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
     update_recents();
 
+    // check if we have OVITO and VMD installed and deacivate actions if not
+    ui->actionView_in_OVITO->setEnabled(has_exe("ovito"));
+    ui->actionView_in_OVITO->setData("ovito");
+    ui->actionView_in_VMD->setEnabled(has_exe("vmd"));
+    ui->actionView_in_VMD->setData("vmd");
+
     connect(ui->actionNew, &QAction::triggered, this, &LammpsGui::new_document);
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
     connect(ui->actionSave, &QAction::triggered, this, &LammpsGui::save);
@@ -160,6 +196,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionLAMMPS_Manual, &QAction::triggered, this, &LammpsGui::manual);
     connect(ui->actionPreferences, &QAction::triggered, this, &LammpsGui::preferences);
     connect(ui->actionDefaults, &QAction::triggered, this, &LammpsGui::defaults);
+    connect(ui->actionView_in_OVITO, &QAction::triggered, this, &LammpsGui::start_exe);
+    connect(ui->actionView_in_VMD, &QAction::triggered, this, &LammpsGui::start_exe);
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
     connect(ui->actionView_Image_Window, &QAction::triggered, this, &LammpsGui::view_image);
@@ -257,6 +295,57 @@ void LammpsGui::open_recent()
 {
     QAction *act = qobject_cast<QAction *>(sender());
     if (act) open_file(act->data().toString());
+}
+
+void LammpsGui::start_exe()
+{
+    if (!lammps.extract_setting("box_exists")) return;
+    QAction *act = qobject_cast<QAction *>(sender());
+    if (act) {
+        auto exe        = act->data().toString();
+        QString datacmd = "write_data ";
+        QDir datadir(QDir::tempPath());
+        QFile datafile(datadir.absoluteFilePath(current_file + ".data"));
+        datacmd += datafile.fileName();
+        if (exe == "vmd") {
+            QStringList args;
+            QFile vmdfile(datadir.absoluteFilePath(current_file + ".vmd"));
+            vmdfile.open(QIODevice::WriteOnly);
+            vmdfile.write("package require topotools\n");
+            vmdfile.write("topo readlammpsdata ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write("\ntopo guessatom lammps data\n");
+            vmdfile.write("animate write psf ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write(".psf\nanimate write dcd ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write(".dcd\nmol delete top\nmol new ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write(".psf type psf waitfor all\nmol addfile ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write(".dcd type dcd waitfor all\nfile delete ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write(" ");
+            vmdfile.write(vmdfile.fileName().toLocal8Bit());
+            vmdfile.write(" ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write(".dcd ");
+            vmdfile.write(datafile.fileName().toLocal8Bit());
+            vmdfile.write(".psf\n");
+            vmdfile.close();
+            args << "-e" << vmdfile.fileName();
+            lammps.command(datacmd.toLocal8Bit());
+            auto *vmd = new QProcess(this);
+            vmd->start(exe, args);
+        }
+        if (exe == "ovito") {
+            QStringList args;
+            args << datafile.fileName();
+            lammps.command(datacmd.toLocal8Bit());
+            auto *ovito = new QProcess(this);
+            ovito->start(exe, args);
+        }
+    }
 }
 
 void LammpsGui::update_recents(const QString &filename)

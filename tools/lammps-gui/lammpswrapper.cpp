@@ -23,13 +23,13 @@ LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr), plugin_handle(nullptr) 
 
 void LammpsWrapper::open(int narg, char **args)
 {
-    if (!lammps_handle) {
+    // since there may only be one LAMMPS instance in LAMMPS GUI we don't open a second
+    if (lammps_handle) return;
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-        lammps_handle = ((liblammpsplugin_t *)plugin_handle)->open_no_mpi(narg, args, nullptr);
+    lammps_handle = ((liblammpsplugin_t *)plugin_handle)->open_no_mpi(narg, args, nullptr);
 #else
-        lammps_handle = lammps_open_no_mpi(narg, args, nullptr);
+    lammps_handle = lammps_open_no_mpi(narg, args, nullptr);
 #endif
-    }
 }
 
 int LammpsWrapper::extract_setting(const char *keyword)
@@ -58,15 +58,14 @@ int LammpsWrapper::id_count(const char *keyword)
     return val;
 }
 
-int LammpsWrapper::id_name(const char *keyword, int idx, char *buf, int buflen)
+int LammpsWrapper::id_name(const char *keyword, int idx, char *buf, int len)
 {
     int val = 0;
     if (lammps_handle) {
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-        val =
-            ((liblammpsplugin_t *)plugin_handle)->id_name(lammps_handle, keyword, idx, buf, buflen);
+        val = ((liblammpsplugin_t *)plugin_handle)->id_name(lammps_handle, keyword, idx, buf, len);
 #else
-        val           = lammps_id_name(lammps_handle, keyword, idx, buf, buflen);
+        val                = lammps_id_name(lammps_handle, keyword, idx, buf, len);
 #endif
     }
     return val;
@@ -79,7 +78,7 @@ double LammpsWrapper::get_thermo(const char *keyword)
 #if defined(LAMMPS_GUI_USE_PLUGIN)
         val = ((liblammpsplugin_t *)plugin_handle)->get_thermo(lammps_handle, keyword);
 #else
-        val           = lammps_get_thermo(lammps_handle, keyword);
+        val                = lammps_get_thermo(lammps_handle, keyword);
 #endif
     }
     return val;
@@ -92,7 +91,7 @@ void *LammpsWrapper::last_thermo(const char *keyword, int index)
 #if defined(LAMMPS_GUI_USE_PLUGIN)
         ptr = ((liblammpsplugin_t *)plugin_handle)->last_thermo(lammps_handle, keyword, index);
 #else
-        ptr           = lammps_last_thermo(lammps_handle, keyword, index);
+        ptr                = lammps_last_thermo(lammps_handle, keyword, index);
 #endif
     }
     return ptr;
@@ -105,7 +104,7 @@ bool LammpsWrapper::is_running()
 #if defined(LAMMPS_GUI_USE_PLUGIN)
         val = ((liblammpsplugin_t *)plugin_handle)->is_running(lammps_handle);
 #else
-        val           = lammps_is_running(lammps_handle);
+        val                = lammps_is_running(lammps_handle);
 #endif
     }
     return val != 0;
@@ -143,6 +142,7 @@ bool LammpsWrapper::has_error() const
 #endif
 }
 
+// may be called with null handle. returns global error then.
 int LammpsWrapper::get_last_error_message(char *buf, int buflen)
 {
 #if defined(LAMMPS_GUI_USE_PLUGIN)
@@ -155,9 +155,9 @@ int LammpsWrapper::get_last_error_message(char *buf, int buflen)
 void LammpsWrapper::force_timeout()
 {
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-    ((liblammpsplugin_t *)plugin_handle)->force_timeout(lammps_handle);
+    if (lammps_handle) ((liblammpsplugin_t *)plugin_handle)->force_timeout(lammps_handle);
 #else
-    lammps_force_timeout(lammps_handle);
+    if (lammps_handle) lammps_force_timeout(lammps_handle);
 #endif
 }
 

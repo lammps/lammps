@@ -645,16 +645,16 @@ LAMMPS GUI
 Overview
 ^^^^^^^^
 
-LAMMPS GUI is essentially a simple graphical text editor that is linked
-to the :ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run
-LAMMPS directly using the contents of the editor's text buffer as input.
+LAMMPS GUI is a simple graphical text editor that is linked to the
+:ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run LAMMPS
+directly using the contents of the editor's text buffer as input.
 
-This is similar to what people usually would do to run LAMMPS using a
-regular text editor to edit the input and running the necessary
-commands, possibly including the text editor, from a command line
-terminal window.  And this similarity is a design goal, making it easy
-for beginners to start with LAMMPS, but also making it easy to
-transition to use LAMMPS like most experienced users do.
+This is similar to what people traditionally would do to run LAMMPS:
+using a regular text editor to edit the input and run the necessary
+commands, possibly including the text editor, too, from a command line
+terminal window.  This similarity is a design goal. While making it easy
+for beginners to start with LAMMPS, it is also the intention to simplify
+the transition to workflows like most experienced LAMMPS users do.
 
 All features have been extensively exposed to hotkeys, so that there is
 also appeal for experienced LAMMPS users, too, especially for

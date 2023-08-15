@@ -1,29 +1,30 @@
 Using the LAMMPS GUI
 ====================
 
-LAMMPS GUI is essentially a simple graphical text editor that is linked
-to the :ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run
-LAMMPS directly using the contents of the editor's text buffer as input.
+LAMMPS GUI is a simple graphical text editor that is linked to the
+:ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run LAMMPS
+directly using the contents of the editor's text buffer as input.
 
-This is similar to what people usually would do to run LAMMPS using a
-regular text editor to edit the input and run the necessary command,
-possibly including the text editor, from a command line terminal window.
-That is quite effective when running LAMMPS on high-performance
-computing facilities and when you are very proficient with using the
-command line.  The main benefit of a GUI application is that this
-integrates very well with graphical desktop environments and many basic
-tasks can be done directly from within the GUI without switching to a
-text console and requiring external programs or scripts to extract data
-from the generated output.  This makes it easier for beginners to get
-started running simple LAMMPS simulation and thus very suitable for
-tutorials on LAMMPS and then makes it easier to switch to a full
+This is similar to what people traditionally would do to run LAMMPS:
+using a regular text editor to edit the input and run the necessary
+commands, possibly including the text editor, too, from a command line
+terminal window.  That is quite effective when running LAMMPS on
+high-performance computing facilities and when you are very proficient
+in using the command line.  The main benefit of a GUI application is
+that this integrates well with graphical desktop environments and many
+basic tasks can be done directly from within the GUI without switching
+to a text console or requiring external programs or scripts to extract
+data from the generated output.  This makes it easier for beginners to
+get started running simple LAMMPS simulations and thus very suitable for
+tutorials on LAMMPS.  But also makes it easier to switch to a full
 featured text editor and more sophisticated visualization and analysis
 tools.
 
 -----
 
 The following text provides a detailed tour of the features and
-functionality of the LAMMPS GUI.
+functionality of the LAMMPS GUI.  This document describes LAMMPS GUI
+version 1.2.
 
 Main window
 -----------
@@ -38,19 +39,19 @@ the following:
 
 There is the menu bar at the top, then the main editor buffer with the
 input file contents in the center with line numbers on the left and the
-input colored according to some LAMMPS syntax rules.  At the bottom is
-the status bar, which shows the status of LAMMPS execution on the right
-("Ready." when idle) and the current working directory on the left.
-The size of the main window will be stored when exiting and restored
-when starting again.  The name of the current file in the buffer is
-shown in the window title and the text `*modified*` is added in case
-the buffer has modifications that are not yet saved to a file.
+input colored according to the LAMMPS input file syntax.  At the bottom
+is the status bar, which shows the status of LAMMPS execution on the
+left ("Ready." when idle) and the current working directory on the
+right.  The size of the main window will be stored when exiting and
+restored when starting again.  The name of the current file in the
+buffer is shown in the window title and the text `*modified*` is added
+in case the buffer has modifications that are not yet saved to a file.
 
 Opening Files
 ^^^^^^^^^^^^^
 
 The LAMMPS GUI application will try to open the first command line
-argument as input file; further arguments are ignored.  When no
+argument as input file, further arguments are ignored.  When no
 argument is given LAMMPS GUI will start with an empty buffer.
 Files can also be opened via the ``File`` menu or by drag-and-drop
 of a file from a file manager to the editor window.  Only one
@@ -64,18 +65,18 @@ Running LAMMPS
 ^^^^^^^^^^^^^^
 
 From within the LAMMPS GUI main window LAMMPS can be started either from
-the ``Run`` menu or by the hotkey `Ctrl-Enter` (`Command-Enter` on macOS).
-LAMMPS is running in a separate thread, so the GUI will stay responsive
-yet is capable to interact with the calculation and access its data.
-It is important to note, that LAMMPS is using the contents of the input
-buffer for the run, **not** the file. Thus if there are unsaved changes
-in the buffer, they will be used.
+the ``Run`` menu or by the hotkey `Ctrl-Enter` (`Command-Enter` on
+macOS).  LAMMPS is running in a separate thread, so the GUI will stay
+responsive and thus is capable to interact with the calculation and
+access its data.  It is important to note, that LAMMPS is using the
+contents of the input buffer for the run, **not** the file it was read
+from. If there are unsaved changes in the buffer, they *will* be used.
 
 .. image:: JPG/lammps-gui-running.png
    :align: center
    :scale: 75%
 
-While LAMMPS is running the contents of the status bar change: on the
+While LAMMPS is running, the contents of the status bar change: on the
 left side there is a text indicating that LAMMPS is running, which will
 contain the selected number of threads, if thread-parallel acceleration
 was selected in the ``Preferences`` dialog.  On the right side, a
@@ -105,12 +106,13 @@ snapshot image into an image viewer window.
    :align: center
    :scale: 50%
 
-The image size and some image quality settings can be changed in the
-``Preferences`` dialog window.  From the image viewer window further
-adjustments can be made: the image can be rotated, one can zoom in
-or out, and it is possible to only display the atoms within a predefined
-group (default is "all").  After each change the image is rendered
-again and the display updated.
+The image size, some default image quality settings, and some colors
+can be changed in the ``Preferences`` dialog window.  From the image
+viewer window further adjustments can be made: high-quality rendering,
+antialiasing, display of box or axes, zoom factor. The the image can
+be rotated horizontally and vertically and it is possible to only
+display the atoms within a predefined group (default is "all").
+After each change, the image is rendered again and the display updated.
 
 
 Editor Functions

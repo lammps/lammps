@@ -10,6 +10,7 @@ LAMMPS-GUI TODO list:
 - need to handle "label" and "jump" commands from within ?
 - switch processing of input to line based commands or?
 - switch input file editor to read-only while loop is running
+- triple quoted heredocs don't work with lammps_commands_string()
 
 # Long term ideas
 - add feature to LAMMPS (to the LAMMPS class) to store current file name and line number, update while reading/parsing

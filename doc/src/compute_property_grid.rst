@@ -61,6 +61,8 @@ varying fastest, then Y, then Z slowest.  For 2d grids (in 2d
 simulations), the grid IDs range from 1 to Nx*Ny, with X varying
 fastest and Y slowest.
 
+.. versionadded:: TBD
+
 The *proc* attribute is the ID of the processor which owns the grid
 cell.  Processor IDs range from 0 to Nprocs - 1, where Nprocs is the
 number of processors the simulation is running on.  Each grid cell is

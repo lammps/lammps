@@ -286,7 +286,7 @@ General Settings:
   chart window will be replaced when a new snapshot image is requested,
   otherwise each command will create a new image window.
 - *Select Default Font:* Opens a font selection dialog where the type
-  and size for the default font (used for everthing but the editor and
+  and size for the default font (used for everything but the editor and
   log) of the application can be set.
 - *Select Text Font:* Opens a font selection dialog where the type and
   size for the text editor and log font of the application can be set.

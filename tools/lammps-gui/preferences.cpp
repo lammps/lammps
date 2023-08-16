@@ -54,6 +54,14 @@
 #include <unistd.h>
 #endif
 
+// duplicate string
+static char *mystrdup(const std::string &text)
+{
+    auto tmp = new char[text.size() + 1];
+    memcpy(tmp, text.c_str(), text.size() + 1);
+    return tmp;
+}
+
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), tabWidget(new QTabWidget),
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
@@ -158,9 +166,9 @@ void Preferences::accept()
                                 "LAMMPS-GUI must be relaunched."),
                         QMessageBox::Ok);
         msg.exec();
-        const char *path = QCoreApplication::applicationFilePath().toStdString().c_str();
-        const char *arg0 = QCoreApplication::arguments().at(0).toStdString().c_str();
-        execl(path, arg0, nullptr);
+        const char *path = mystrdup(QCoreApplication::applicationFilePath().toStdString());
+        const char *arg0 = mystrdup(QCoreApplication::arguments().at(0).toStdString());
+        execl(path, arg0, (char *)NULL);
     }
     QDialog::accept();
 }

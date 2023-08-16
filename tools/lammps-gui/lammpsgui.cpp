@@ -296,6 +296,10 @@ void LammpsGui::new_document()
     current_file.clear();
     ui->textEdit->document()->setPlainText(QString());
 
+    if (lammps.is_running()) {
+        stop_run();
+        runner->wait();
+    }
     lammps.close();
     lammpsstatus->hide();
     setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
@@ -565,6 +569,10 @@ void LammpsGui::save_as()
 
 void LammpsGui::quit()
 {
+    if (lammps.is_running()) {
+        stop_run();
+        runner->wait();
+    }
     lammps.close();
     lammpsstatus->hide();
     lammps.finalize();
@@ -822,7 +830,7 @@ void LammpsGui::run_buffer()
     char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
     is_running  = true;
 
-    LammpsRunner *runner = new LammpsRunner(this);
+    runner = new LammpsRunner(this);
     runner->setup_run(&lammps, input);
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
@@ -1051,6 +1059,11 @@ void LammpsGui::edit_variables()
     SetVariables vars(newvars);
     if (vars.exec() == QDialog::Accepted) {
         variables = newvars;
+        if (lammps.is_running()) {
+            stop_run();
+            runner->wait();
+            delete runner;
+        }
         lammps.close();
         lammpsstatus->hide();
     }
@@ -1073,6 +1086,11 @@ void LammpsGui::preferences()
             (oldthreads != settings.value("nthreads", 1).toInt()) ||
             (oldecho != settings.value("echo", 0).toInt()) ||
             (oldcite != settings.value("cite", 0).toInt())) {
+            if (lammps.is_running()) {
+                stop_run();
+                runner->wait();
+                delete runner;
+            }
             lammps.close();
             lammpsstatus->hide();
         }

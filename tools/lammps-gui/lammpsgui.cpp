@@ -34,6 +34,7 @@
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QProgressBar>
+#include <QPushButton>
 #include <QSettings>
 #include <QShortcut>
 #include <QStatusBar>
@@ -241,7 +242,22 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     auto pix     = QPixmap(":/lammps-icon-128x128.png");
     lammpsstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
     ui->statusbar->addWidget(lammpsstatus);
+    lammpsstatus->setToolTip("LAMMPS instance is active");
     lammpsstatus->hide();
+
+    auto *lammpsrun = new QPushButton(QIcon(":/system-run.png"),"");
+    auto *lammpsstop = new QPushButton(QIcon(":/process-stop.png"), "");
+    auto *lammpsimage = new QPushButton(QIcon(":/emblem-photos.png"), "");
+    lammpsrun->setToolTip("Run LAMMPS on input");
+    lammpsstop->setToolTip("Stop LAMMPS");
+    lammpsimage->setToolTip("Create snapshot image");
+    ui->statusbar->addWidget(lammpsrun);
+    ui->statusbar->addWidget(lammpsstop);
+    ui->statusbar->addWidget(lammpsimage);
+    connect(lammpsrun, &QPushButton::released, this, &LammpsGui::run_buffer);
+    connect(lammpsstop, &QPushButton::released, this, &LammpsGui::stop_run);
+    connect(lammpsimage, &QPushButton::released, this, &LammpsGui::render_image);
+    
     status = new QLabel("Ready.");
     status->setFixedWidth(300);
     ui->statusbar->addWidget(status);

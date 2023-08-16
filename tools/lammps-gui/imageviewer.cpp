@@ -60,21 +60,33 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
     dossao->setCheckable(true);
+    dossao->setToolTip("Toggle SSAO rendering");
     auto *doanti = new QPushButton(QIcon(":/antialias.png"), "");
     doanti->setCheckable(true);
+    doanti->setToolTip("Toggle anti-aliasing");
     auto *dobox = new QPushButton(QIcon(":/system-box.png"), "");
     dobox->setCheckable(true);
+    dobox->setToolTip("Toggle displaying box");
     auto *doaxes = new QPushButton(QIcon(":/axes-img.png"), "");
     doaxes->setCheckable(true);
+    doaxes->setToolTip("Toggle displaying axes");
     auto *zoomin   = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
+    zoomin->setToolTip("Zoom in by 10 percent");
     auto *zoomout  = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
+    zoomout->setToolTip("Zoom out by 10 percent");
     auto *rotleft  = new QPushButton(QIcon(":/object-rotate-left.png"), "");
+    rotleft->setToolTip("Rotate left by 15 degrees");
     auto *rotright = new QPushButton(QIcon(":/object-rotate-right.png"), "");
+    rotright->setToolTip("Rotate right by 15 degrees");
     auto *rotup    = new QPushButton(QIcon(":/gtk-go-up.png"), "");
+    rotup->setToolTip("Rotate up by 15 degrees");
     auto *rotdown  = new QPushButton(QIcon(":/gtk-go-down.png"), "");
+    rotdown->setToolTip("Rotate down by 15 degrees");
     auto *reset    = new QPushButton(QIcon(":/gtk-zoom-fit.png"), "");
+    reset->setToolTip("Reset view to defaults");
     auto *combo    = new QComboBox;
     combo->setObjectName("group");
+    combo->setToolTip("Select group to display");
     int ngroup = lammps->id_count("group");
     char gname[64];
     for (int i = 0; i < ngroup; ++i) {
@@ -215,28 +227,28 @@ void ImageViewer::do_zoom_out()
 
 void ImageViewer::do_rot_left()
 {
-    vrot -= 15;
+    vrot -= 10;
     if (vrot < -180) vrot += 360;
     createImage();
 }
 
 void ImageViewer::do_rot_right()
 {
-    vrot += 15;
+    vrot += 10;
     if (vrot > 180) vrot -= 360;
     createImage();
 }
 
 void ImageViewer::do_rot_down()
 {
-    hrot -= 15;
+    hrot -= 10;
     if (hrot < 0) hrot += 360;
     createImage();
 }
 
 void ImageViewer::do_rot_up()
 {
-    hrot += 15;
+    hrot += 10;
     if (hrot > 360) hrot -= 360;
     createImage();
 }

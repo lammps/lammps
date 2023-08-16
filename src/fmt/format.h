@@ -920,7 +920,7 @@ class basic_memory_buffer final : public detail::buffer<T> {
  private:
   T store_[SIZE];
 
-  // Don't inherit from Allocator avoid generating type_info for it.
+  // Don't inherit from Allocator to avoid generating type_info for it.
   FMT_NO_UNIQUE_ADDRESS Allocator alloc_;
 
   // Deallocate memory allocated by the buffer.
@@ -3178,7 +3178,8 @@ FMT_CONSTEXPR20 inline void format_dragon(basic_fp<uint128_t> value,
       }
       if (buf[0] == overflow) {
         buf[0] = '1';
-        ++exp10;
+        if ((flags & dragon::fixed) != 0) buf.push_back('0');
+        else ++exp10;
       }
       return;
     }

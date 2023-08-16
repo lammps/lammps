@@ -48,8 +48,8 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <windows.h>
-#define execv(exe, args) _execv(exe, args)
+#include <process.h>
+#define execl(exe, arg0, arg1) _execl(exe, arg0, arg1)
 #else
 #include <unistd.h>
 #endif
@@ -158,8 +158,9 @@ void Preferences::accept()
                                 "LAMMPS-GUI must be relaunched."),
                         QMessageBox::Ok);
         msg.exec();
-        execv(QCoreApplication::applicationFilePath().toStdString().c_str(), nullptr);
-        fprintf(stderr, "after relaunch\n");
+        const char *path = QCoreApplication::applicationFilePath().toStdString().c_str();
+        const char *arg0 = QCoreApplication::arguments().at(0).toStdString().c_str();
+        execl(path, arg0, nullptr);
     }
     QDialog::accept();
 }

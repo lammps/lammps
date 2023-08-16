@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.0.0 LANGUAGES CXX)
+project(lammps-gui VERSION 1.2.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -16,10 +16,6 @@ mark_as_advanced(LAMMPS_GUI_USE_PLUGIN)
 if(NOT LAMMPS_EXCEPTIONS)
   message(FATAL_ERROR "Must enable LAMMPS_EXCEPTIONS for building the LAMMPS GUI")
 endif()
-if(BUILD_MPI)
-  message(FATAL_ERROR "Must disable BUILD_MPI for building the LAMMPS GUI")
-endif()
-
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
 if(LAMMPS_DIR)
   set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR})
@@ -60,12 +56,21 @@ endif()
 
 set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 if(LAMMPS_GUI_USE_PLUGIN)
+  if(APPLE)
+    message(FATAL_ERROR "Dynamic loading of the LAMMPS library currently not supported on this platform")
+  endif()
   enable_language(C)
   set(PLUGIN_LOADER_SRC ${LAMMPS_PLUGINLIB_DIR}/liblammpsplugin.c)
 endif()
 
+# include resource compiler to embed icons into the executable on Windows
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  enable_language(RC)
+  set(ICON_RC_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lmpicons.rc)
+endif()
+
 # we require Qt 5 and at least version 5.12 at that.
-find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
 
 set(PROJECT_SOURCES
   main.cpp
@@ -75,6 +80,8 @@ set(PROJECT_SOURCES
   highlighter.h
   imageviewer.cpp
   imageviewer.h
+  chartviewer.cpp
+  chartviewer.h
   lammpsgui.cpp
   lammpsgui.h
   lammpsgui.ui
@@ -82,10 +89,15 @@ set(PROJECT_SOURCES
   lammpswrapper.cpp
   lammpswrapper.h
   linenumberarea.h
+  logwindow.cpp
+  logwindow.h
   preferences.cpp
   preferences.h
+  setvariables.cpp
+  setvariables.h
   stdcapture.cpp
   ${PLUGIN_LOADER_SRC}
+  ${ICON_RC_FILE}
 )
 qt5_add_resources(PROJECT_SOURCES lammpsgui.qrc)
 
@@ -110,7 +122,7 @@ else()
 endif()
 target_include_directories(lammps-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
-target_link_libraries(lammps-gui PRIVATE Qt5::Widgets)
+target_link_libraries(lammps-gui PRIVATE Qt5::Widgets Qt5::Charts)
 if(BUILD_OMP)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
@@ -172,8 +184,23 @@ elseif(MSVC)
   get_filename_component(QT5_BIN_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
   get_filename_component(INSTNAME ${CMAKE_INSTALL_PREFIX} NAME)
   install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -D INSTNAME=${INSTNAME} -D VC_INIT=\"${VC_INIT}\" -D QT5_BIN_DIR=\"${QT5_BIN_DIR}\" -P \"${CMAKE_SOURCE_DIR}/packaging/build_windows_vs.cmake\" WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\" COMMAND_ECHO STDOUT)")
+elseif((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+  install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
+  install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+  install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
+  add_custom_target(zip
+    COMMAND sh -vx ${LAMMPS_DIR}/cmake/packaging/build_windows_cross_zip.sh ${CMAKE_INSTALL_PREFIX}
+    DEPENDS lmp lammps-gui
+    COMMENT "Create zip file with windows binaries"
+    BYPRODUCT LAMMPS-Win10-amd64.zip
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-gui.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications/)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-input.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/packages/)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-input.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/text/x-application-lammps.xml)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/icons/hicolor DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/)
   install(CODE [[
     file(GET_RUNTIME_DEPENDENCIES
       LIBRARIES $<TARGET_FILE:lammps>

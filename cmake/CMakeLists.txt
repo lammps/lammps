@@ -1,3 +1,4 @@
+# -*- CMake -*- master configuration file for building LAMMPS
 ########################################
 # CMake build system
 # This file is part of LAMMPS
@@ -888,8 +889,15 @@ else()
 endif()
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
+if(GIT_FOUND AND EXISTS ${LAMMPS_DIR}/.git)
+  execute_process(COMMAND ${GIT_EXECUTABLE} describe --dirty=-modified --always
+    OUTPUT_VARIABLE GIT_DESCRIBE
+    ERROR_QUIET
+    WORKING_DIRECTORY ${LAMMPS_DIR}
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 message(STATUS "<<< Build configuration >>>
-   LAMMPS Version:   ${PROJECT_VERSION}
+   LAMMPS Version:   ${PROJECT_VERSION} ${GIT_DESCRIBE}
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
    CMake Version:    ${CMAKE_VERSION}
    Build type:       ${LAMMPS_BUILD_TYPE}
@@ -1025,6 +1033,14 @@ if(BUILD_TOOLS)
 endif()
 if(BUILD_LAMMPS_SHELL)
   message(STATUS "<<< Building LAMMPS Shell >>>")
+endif()
+if(BUILD_LAMMPS_GUI)
+  message(STATUS "<<< Building LAMMPS GUI >>>")
+  if(LAMMPS_GUI_USE_PLUGIN)
+    message(STATUS "Loading LAMMPS library as plugin at run time")
+  else()
+    message(STATUS "Linking LAMMPS library at compile time")
+  endif()
 endif()
 if(ENABLE_TESTING)
   message(STATUS "<<< Building Unit Tests >>>")

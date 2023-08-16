@@ -15,19 +15,61 @@
 #include "lammpsgui.h"
 #include "linenumberarea.h"
 
+#include <QAction>
+#include <QDesktopServices>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QIcon>
+#include <QKeySequence>
+#include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QRegularExpression>
 #include <QTextBlock>
+#include <QUrl>
 
 CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
 {
-    lineNumberArea = new LineNumberArea(this);
+    help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
+    connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
 
+    // initialize help system
+    QFile help_index(":/help_index.table");
+    if (help_index.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        while (!help_index.atEnd()) {
+            auto line  = QString(help_index.readLine());
+            auto words = line.trimmed().split(' ');
+            if (words.size() > 2) {
+                if (words.at(1) == "pair_style") {
+                    pair_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "bond_style") {
+                    bond_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "angle_style") {
+                    angle_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "dihedral_style") {
+                    dihedral_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "improper_style") {
+                    improper_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "fix") {
+                    fix_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "compute") {
+                    compute_map[words.at(2)] = words.at(0);
+                } else if (words.at(1) == "kspace_style") {
+                    cmd_map["kspace_style"] = "kspace_style.html";
+                }
+                // ignoring: dump, fix_modify ATC
+            } else if (words.size() == 2) {
+                cmd_map[words.at(1)] = words.at(0);
+            } else {
+                fprintf(stderr, "unhandled: %s", line.toStdString().c_str());
+            }
+        }
+        help_index.close();
+    }
+
+    lineNumberArea = new LineNumberArea(this);
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
-
     updateLineNumberAreaWidth(0);
 }
 
@@ -136,6 +178,102 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         bottom = top + qRound(blockBoundingRect(block).height());
         ++blockNumber;
     }
+}
+
+void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
+{
+    // reposition the cursor here?
+    QString page, help;
+    find_help(page, help);
+
+    // print augmented context menu if an entry was found
+    auto *menu = createStandardContextMenu();
+    if (!page.isEmpty()) {
+        menu->addSeparator();
+        auto action = menu->addAction(QString("View Documentation for '%1'").arg(help));
+        action->setIcon(QIcon(":/system-help.png"));
+        action->setData(page);
+        connect(action, &QAction::triggered, this, &CodeEditor::open_help);
+        // if we link to help with specific styles (fix, compute, pair, bond, ...)
+        // also link to the docs for the primary command
+        auto words = help.split(' ');
+        if (words.size() > 1) {
+            help = words.at(0);
+            page = words.at(0);
+            page += ".html";
+            auto action2 = menu->addAction(QString("View Documentation for '%1'").arg(help));
+            action2->setIcon(QIcon(":/system-help.png"));
+            action2->setData(page);
+            connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
+        }
+    }
+    auto action3 = menu->addAction(QString("LAMMPS Manual"));
+    action3->setIcon(QIcon(":/help-browser.png"));
+    action3->setData(QString());
+    connect(action3, &QAction::triggered, this, &CodeEditor::open_help);
+
+    menu->exec(event->globalPos());
+    delete menu;
+}
+
+void CodeEditor::get_help()
+{
+    QString page, help;
+    find_help(page, help);
+    if (!page.isEmpty())
+        QDesktopServices::openUrl(QUrl(QString("https://docs.lammps.org/%1").arg(page)));
+}
+
+void CodeEditor::find_help(QString &page, QString &help)
+{
+    // process line of text where the cursor is
+    auto text = textCursor().block().text().replace('\t', ' ').trimmed();
+    auto style =
+        QRegularExpression("^(pair|bond|angle|dihedral|improper)_style\\s+(\\S+)").match(text);
+    help.clear();
+    page.clear();
+    if (style.hasMatch()) {
+        if (style.captured(1) == "pair") {
+            page = pair_map.value(style.captured(2), QString());
+            help = QString("pair_style %1").arg(style.captured(2));
+        } else if (style.captured(1) == "bond") {
+            page = bond_map.value(style.captured(2), QString());
+            help = QString("bond_style %1").arg(style.captured(2));
+        } else if (style.captured(1) == "angle") {
+            page = angle_map.value(style.captured(2), QString());
+            help = QString("angle_style %1").arg(style.captured(2));
+        } else if (style.captured(1) == "dihedral") {
+            page = dihedral_map.value(style.captured(2), QString());
+            help = QString("dihedral_style %1").arg(style.captured(2));
+        } else if (style.captured(1) == "improper") {
+            page = improper_map.value(style.captured(2), QString());
+            help = QString("improper_style %1").arg(style.captured(2));
+        }
+    }
+
+    style = QRegularExpression("^(fix|compute)\\s+\\w+\\s+\\w+\\s+(\\S+)").match(text);
+    if (style.hasMatch()) {
+        help = QString("%1 %2").arg(style.captured(1), style.captured(2));
+        if (style.captured(1) == "fix") {
+            page = fix_map.value(style.captured(2), QString());
+        } else if (style.captured(1) == "compute") {
+            page = compute_map.value(style.captured(2), QString());
+        }
+    }
+
+    // could not find a matching "style", now try the plain command
+    if (page.isEmpty() && !text.isEmpty()) {
+        auto cmd = text.split(' ').at(0);
+        help     = cmd;
+        page     = cmd_map.value(cmd, QString());
+    }
+}
+
+void CodeEditor::open_help()
+{
+    QAction *act = qobject_cast<QAction *>(sender());
+    QDesktopServices::openUrl(
+        QUrl(QString("https://docs.lammps.org/%1").arg(act->data().toString())));
 }
 
 // Local Variables:

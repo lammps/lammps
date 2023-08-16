@@ -29,7 +29,11 @@ public:
     void force_timeout();
 
     int extract_setting(const char *keyword);
+    int id_count(const char *idtype);
+    int id_name(const char *idtype, int idx, char *buf, int buflen);
+
     double get_thermo(const char *keyword);
+    void *last_thermo(const char *keyword, int idx);
     bool is_open() const { return lammps_handle != nullptr; }
     bool is_running();
     bool has_error() const;

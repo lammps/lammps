@@ -45,6 +45,7 @@ private slots:
     void normalSize();
     void fitToWindow();
 
+    void edit_size();
     void reset_view();
     void toggle_ssao();
     void toggle_anti();
@@ -86,6 +87,7 @@ private:
     LammpsWrapper *lammps;
     QString group;
     QString filename;
+    int xsize, ysize;
     int hrot, vrot;
     double zoom;
     bool showbox, showaxes, antialias, usessao;

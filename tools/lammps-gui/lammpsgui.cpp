@@ -245,8 +245,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammpsstatus->setToolTip("LAMMPS instance is active");
     lammpsstatus->hide();
 
-    auto *lammpsrun = new QPushButton(QIcon(":/system-run.png"),"");
-    auto *lammpsstop = new QPushButton(QIcon(":/process-stop.png"), "");
+    auto *lammpsrun   = new QPushButton(QIcon(":/system-run.png"), "");
+    auto *lammpsstop  = new QPushButton(QIcon(":/process-stop.png"), "");
     auto *lammpsimage = new QPushButton(QIcon(":/emblem-photos.png"), "");
     lammpsrun->setToolTip("Run LAMMPS on input");
     lammpsstop->setToolTip("Stop LAMMPS");
@@ -257,7 +257,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(lammpsrun, &QPushButton::released, this, &LammpsGui::run_buffer);
     connect(lammpsstop, &QPushButton::released, this, &LammpsGui::stop_run);
     connect(lammpsimage, &QPushButton::released, this, &LammpsGui::render_image);
-    
+
     status = new QLabel("Ready.");
     status->setFixedWidth(300);
     ui->statusbar->addWidget(status);

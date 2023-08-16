@@ -331,7 +331,7 @@ void ComputePropertyGrid::pack_id(int n)
 void ComputePropertyGrid::pack_proc(int n)
 {
   int me = comm->me;
-  
+
   if (dimension == 2) {
     if (nvalues == 1) {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)

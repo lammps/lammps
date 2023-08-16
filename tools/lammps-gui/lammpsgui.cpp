@@ -116,6 +116,27 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // restore and initialize settings
     QSettings settings;
 
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    plugin_path.clear();
+    std::string deffile = settings.value("plugin_path", "liblammps.so").toString().toStdString();
+    for (const char *libfile : {deffile.c_str(), "./liblammps.so", "liblammps.dylib",
+                                "./liblammps.dylib", "liblammps.dll"}) {
+        if (lammps.load_lib(libfile)) {
+            auto canonical = QFileInfo(libfile).canonicalFilePath();
+            plugin_path    = canonical.toStdString();
+            settings.setValue("plugin_path", canonical);
+            break;
+        }
+    }
+
+    if (plugin_path.empty()) {
+        // none of the plugin paths could load, remove key
+        settings.remove("plugin_path");
+        QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
+        exit(1);
+    }
+#endif
+
     // switch configured accelerator back to "none" if needed.
     int accel = settings.value("accelerator", AcceleratorTab::None).toInt();
     if (accel == AcceleratorTab::Opt) {
@@ -233,27 +254,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     progress->hide();
     dirstatus->show();
     ui->statusbar->addWidget(progress);
-
-#if defined(LAMMPS_GUI_USE_PLUGIN)
-    plugin_path.clear();
-    std::string deffile = settings.value("plugin_path", "liblammps.so").toString().toStdString();
-    for (const char *libfile : {deffile.c_str(), "./liblammps.so", "liblammps.dylib",
-                                "./liblammps.dylib", "liblammps.dll"}) {
-        if (lammps.load_lib(libfile)) {
-            auto canonical = QFileInfo(libfile).canonicalFilePath();
-            plugin_path    = canonical.toStdString();
-            settings.setValue("plugin_path", canonical);
-            break;
-        }
-    }
-
-    if (plugin_path.empty()) {
-        // none of the plugin paths could load, remove key
-        settings.remove("plugin_path");
-        QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
-        exit(1);
-    }
-#endif
 
     if (filename) {
         open_file(filename);

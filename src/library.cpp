@@ -773,6 +773,10 @@ argument string.
      - Description of return value
      - Data type
      - Uses index
+   * - setup
+     - 1 if setup is not completed and thus thermo data invalid, 0 otherwise
+     - pointer to int
+     - no
    * - step
      - timestep when the last thermo output was generated or -1
      - pointer to bigint
@@ -811,7 +815,10 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
 
   BEGIN_CAPTURE
   {
-    if (strcmp(what, "step") == 0) {
+    if (strcmp(what, "setup") == 0) {
+      val = (void *) &lmp->update->setupflag;
+
+    } else if (strcmp(what, "step") == 0) {
       val = (void *) th->get_timestep();
 
     } else if (strcmp(what, "num") == 0) {

@@ -14,8 +14,10 @@
 #ifndef IMAGEVIEWER_H
 #define IMAGEVIEWER_H
 
+#include <QComboBox>
 #include <QDialog>
 #include <QImage>
+#include <QString>
 
 class QAction;
 class QMenuBar;
@@ -25,13 +27,15 @@ class QObject;
 class QScrollArea;
 class QScrollBar;
 class QStatusBar;
-class QWheelEvent;
+class LammpsWrapper;
+class QComboBox;
 
 class ImageViewer : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ImageViewer(const QString &fileName, QWidget *parent = nullptr);
+    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps,
+                         QWidget *parent = nullptr);
 
 private slots:
     void saveAs();
@@ -41,14 +45,28 @@ private slots:
     void normalSize();
     void fitToWindow();
 
+    void reset_view();
+    void toggle_ssao();
+    void toggle_anti();
+    void toggle_box();
+    void toggle_axes();
+    void do_zoom_in();
+    void do_zoom_out();
+    void do_rot_left();
+    void do_rot_right();
+    void do_rot_up();
+    void do_rot_down();
+    void change_group(int);
+
+public:
+    void createImage();
+
 private:
     void createActions();
     void updateActions();
     void saveFile(const QString &fileName);
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
-    bool eventFilter(QObject *object, QEvent *event);
-    void wheelEvent(QWheelEvent *event);
 
 private:
     QImage image;
@@ -64,6 +82,13 @@ private:
     QAction *zoomOutAct;
     QAction *normalSizeAct;
     QAction *fitToWindowAct;
+
+    LammpsWrapper *lammps;
+    QString group;
+    QString filename;
+    int hrot, vrot;
+    double zoom;
+    bool showbox, showaxes, antialias, usessao;
 };
 #endif
 

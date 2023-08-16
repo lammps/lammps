@@ -228,7 +228,10 @@ bool LammpsWrapper::has_plugin() const
 
 bool LammpsWrapper::load_lib(const char *libfile)
 {
-    if (plugin_handle) liblammpsplugin_release((liblammpsplugin_t *)plugin_handle);
+    if (plugin_handle) {
+        close();
+        liblammpsplugin_release((liblammpsplugin_t *)plugin_handle);
+    }
     plugin_handle = liblammpsplugin_load(libfile);
     if (!plugin_handle) return false;
     if (((liblammpsplugin_t *)plugin_handle)->abiversion != LAMMPSPLUGIN_ABI_VERSION) {

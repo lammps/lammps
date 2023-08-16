@@ -44,10 +44,20 @@
 #include <omp.h>
 #endif
 
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#define execv(exe, args) _execv(exe, args)
+#else
+#include <unistd.h>
+#endif
+
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), tabWidget(new QTabWidget),
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
-    settings(new QSettings), lammps(_lammps)
+    settings(new QSettings), lammps(_lammps), need_relaunch(false)
 {
     tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
@@ -141,6 +151,16 @@ void Preferences::accept()
     if (box) settings->setValue("viewlog", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewchart");
     if (box) settings->setValue("viewchart", box->isChecked());
+
+    if (need_relaunch) {
+        QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),
+                        QString("LAMMPS library plugin path was changed.\n"
+                                "LAMMPS-GUI must be relaunched."),
+                        QMessageBox::Ok);
+        msg.exec();
+        execv(QCoreApplication::applicationFilePath().toStdString().c_str(), nullptr);
+        fprintf(stderr, "after relaunch\n");
+    }
     QDialog::accept();
 }
 
@@ -258,16 +278,11 @@ void GeneralTab::pluginpath()
         QFileDialog::getOpenFileName(this, "Select Shared LAMMPS Library to Load", field->text(),
                                      "Shared Objects (*.so *.dll *.dylib)");
     if (!pluginfile.isEmpty() && pluginfile.contains("liblammps", Qt::CaseSensitive)) {
-        if (lammps->load_lib(pluginfile.toStdString().c_str())) {
-            auto canonical = QFileInfo(pluginfile).canonicalFilePath();
-            field->setText(pluginfile);
-            settings->setValue("plugin_path", canonical);
-        } else {
-            // plugin did not load cannot continue
-            settings->remove("plugin_path");
-            QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file");
-            QCoreApplication::quit();
-        }
+        auto canonical = QFileInfo(pluginfile).canonicalFilePath();
+        field->setText(pluginfile);
+        settings->setValue("plugin_path", canonical);
+        // ugly hack
+        qobject_cast<Preferences *>(parent()->parent()->parent())->need_relaunch = true;
     }
 }
 

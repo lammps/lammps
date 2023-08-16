@@ -32,6 +32,8 @@ public:
 private slots:
     void accept() override;
 
+public:
+    bool need_relaunch;
 private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;

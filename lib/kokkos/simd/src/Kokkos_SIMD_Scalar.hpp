@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_SIMD_SCALAR_HPP
 #define KOKKOS_SIMD_SCALAR_HPP
@@ -272,10 +244,7 @@ class const_where_expression<simd_mask<T, simd_abi::scalar>,
   KOKKOS_FORCEINLINE_FUNCTION
   const_where_expression(mask_type const& mask_arg, value_type const& value_arg)
       : m_value(const_cast<value_type&>(value_arg)), m_mask(mask_arg) {}
-  KOKKOS_FORCEINLINE_FUNCTION
-  mask_type const& mask() const { return m_mask; }
-  KOKKOS_FORCEINLINE_FUNCTION
-  value_type const& value() const { return m_value; }
+
   KOKKOS_FORCEINLINE_FUNCTION
   void copy_to(T* mem, element_aligned_tag) const {
     if (static_cast<bool>(m_mask)) *mem = static_cast<T>(m_value);
@@ -285,6 +254,16 @@ class const_where_expression<simd_mask<T, simd_abi::scalar>,
   scatter_to(T* mem, simd<Integral, simd_abi::scalar> const& index) const {
     if (static_cast<bool>(m_mask))
       mem[static_cast<Integral>(index)] = static_cast<T>(m_value);
+  }
+
+  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION value_type const&
+  impl_get_value() const {
+    return m_value;
+  }
+
+  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION mask_type const&
+  impl_get_mask() const {
+    return m_mask;
   }
 };
 
@@ -322,29 +301,70 @@ class where_expression<simd_mask<T, simd_abi::scalar>,
   }
 };
 
-template <class T, class BinaryOp>
+template <class T>
+[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION
+    where_expression<simd_mask<T, Kokkos::Experimental::simd_abi::scalar>,
+                     simd<T, Kokkos::Experimental::simd_abi::scalar>>
+    where(typename simd<
+              T, Kokkos::Experimental::simd_abi::scalar>::mask_type const& mask,
+          simd<T, Kokkos::Experimental::simd_abi::scalar>& value) {
+  return where_expression(mask, value);
+}
+
+template <class T>
+[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION
+    const_where_expression<simd_mask<T, Kokkos::Experimental::simd_abi::scalar>,
+                           simd<T, Kokkos::Experimental::simd_abi::scalar>>
+    where(typename simd<
+              T, Kokkos::Experimental::simd_abi::scalar>::mask_type const& mask,
+          simd<T, Kokkos::Experimental::simd_abi::scalar> const& value) {
+  return const_where_expression(mask, value);
+}
+
+template <class T>
+[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION bool all_of(
+    simd_mask<T, Kokkos::Experimental::simd_abi::scalar> const& a) {
+  return a == simd_mask<T, Kokkos::Experimental::simd_abi::scalar>(true);
+}
+
+template <class T>
+[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION bool any_of(
+    simd_mask<T, Kokkos::Experimental::simd_abi::scalar> const& a) {
+  return a != simd_mask<T, Kokkos::Experimental::simd_abi::scalar>(false);
+}
+
+template <class T>
+[[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION bool none_of(
+    simd_mask<T, Kokkos::Experimental::simd_abi::scalar> const& a) {
+  return a == simd_mask<T, Kokkos::Experimental::simd_abi::scalar>(false);
+}
+
+template <class T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION T
 reduce(const_where_expression<simd_mask<T, simd_abi::scalar>,
                               simd<T, simd_abi::scalar>> const& x,
-       T identity_element, BinaryOp) {
-  return static_cast<bool>(x.mask()) ? static_cast<T>(x.value())
-                                     : identity_element;
+       T identity_element, std::plus<>) {
+  return static_cast<bool>(x.impl_get_mask())
+             ? static_cast<T>(x.impl_get_value())
+             : identity_element;
 }
 
 template <class T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION T
 hmax(const_where_expression<simd_mask<T, simd_abi::scalar>,
                             simd<T, simd_abi::scalar>> const& x) {
-  return static_cast<bool>(x.mask()) ? static_cast<T>(x.value())
-                                     : Kokkos::reduction_identity<T>::max();
+  return static_cast<bool>(x.impl_get_mask())
+             ? static_cast<T>(x.impl_get_value())
+             : Kokkos::reduction_identity<T>::max();
 }
 
 template <class T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION T
 hmin(const_where_expression<simd_mask<T, simd_abi::scalar>,
                             simd<T, simd_abi::scalar>> const& x) {
-  return static_cast<bool>(x.mask()) ? static_cast<T>(x.value())
-                                     : Kokkos::reduction_identity<T>::min();
+  return static_cast<bool>(x.impl_get_mask())
+             ? static_cast<T>(x.impl_get_value())
+             : Kokkos::reduction_identity<T>::min();
 }
 
 }  // namespace Experimental

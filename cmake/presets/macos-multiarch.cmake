@@ -1,4 +1,4 @@
-# preset that will build portable multi-arch binaries on macOS without MPI and OpenMP
+# preset that will build portable multi-arch binaries on macOS without MPI
 
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0 CACHE STRING "" FORCE)
@@ -10,5 +10,5 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
 
 set(BUILD_MPI FALSE CACHE BOOL "" FORCE)
-set(BUILD_OMP FALSE CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS FALSE CACHE BOOL "" FORCE)
+set(LAMMPS_EXCEPTIONS TRUE CACHE BOOL "" FORCE)

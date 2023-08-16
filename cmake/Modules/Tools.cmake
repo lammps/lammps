@@ -26,7 +26,7 @@ if(BUILD_TOOLS)
 
   enable_language(C)
   get_filename_component(MSI2LMP_SOURCE_DIR ${LAMMPS_TOOLS_DIR}/msi2lmp/src ABSOLUTE)
-  file(GLOB MSI2LMP_SOURCES ${CONFIGURE_DEPENDS} ${MSI2LMP_SOURCE_DIR}/[^.]*.c)
+  file(GLOB MSI2LMP_SOURCES CONFIGURE_DEPENDS ${MSI2LMP_SOURCE_DIR}/[^.]*.c)
   add_executable(msi2lmp ${MSI2LMP_SOURCES})
   if(STANDARD_MATH_LIB)
     target_link_libraries(msi2lmp PRIVATE ${STANDARD_MATH_LIB})
@@ -44,9 +44,6 @@ if(BUILD_LAMMPS_SHELL)
   endif()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(READLINE IMPORTED_TARGET REQUIRED readline)
-  if(NOT LAMMPS_EXCEPTIONS)
-    message(WARNING "The LAMMPS shell needs LAMMPS_EXCEPTIONS enabled for full functionality")
-  endif()
 
   # include resource compiler to embed icons into the executable on Windows
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -71,4 +68,8 @@ if(BUILD_LAMMPS_SHELL)
   install(FILES ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
 endif()
 
-
+if(BUILD_LAMMPS_GUI)
+  get_filename_component(LAMMPS_GUI_DIR ${LAMMPS_SOURCE_DIR}/../tools/lammps-gui ABSOLUTE)
+  get_filename_component(LAMMPS_GUI_BIN ${CMAKE_BINARY_DIR}/lammps-gui-build ABSOLUTE)
+  add_subdirectory(${LAMMPS_GUI_DIR} ${LAMMPS_GUI_BIN})
+endif()

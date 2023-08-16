@@ -290,7 +290,7 @@ void ThirdOrderKokkos::update_force()
     timer->stamp(Timer::KSPACE);
   }
 
-  if (execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
+  if (execute_on_host && !std::is_same_v<LMPHostType,LMPDeviceType>) {
     if (f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
       f_merge_copy = DAT::t_f_array("ThirdOrderKokkos::f_merge_copy",atomKK->k_f.extent(0));
     }

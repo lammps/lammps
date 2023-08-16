@@ -56,7 +56,7 @@ MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_cud
 
 FFT_INC = -DFFT_CUFFT
 FFT_PATH = 
-FFT_LIB = -lcufft
+FFT_LIB = ${CRAY_CUDATOOLKIT_POST_LINK_OPTS} -lcufft
 
 # JPEG and/or PNG library
 # see discussion in Section 3.5.4 of manual

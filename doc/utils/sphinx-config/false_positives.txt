@@ -3489,6 +3489,7 @@ supercell
 superset
 supersphere
 Supinski
+Sur
 Surblys
 surfactant
 surfactants
@@ -3620,6 +3621,7 @@ Tk
 Tkin
 tloop
 tlsph
+tm
 tmax
 Tmax
 tmd
@@ -3834,6 +3836,7 @@ vectorized
 Vegt
 vel
 Velázquez
+Ventura
 venv
 Verlag
 verlet
@@ -4091,6 +4094,7 @@ zmq
 zN
 zs
 zsc
+Zsh
 zst
 Zstandard
 zstd

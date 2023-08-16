@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_SCRATCHSPACE_HPP
 #define KOKKOS_SCRATCHSPACE_HPP
@@ -127,14 +95,13 @@ class ScratchMemorySpace {
 
  private:
   template <bool alignment_requested, typename IntType>
-  KOKKOS_INLINE_FUNCTION void* get_shmem_common(const IntType& size,
-                                                const ptrdiff_t alignment,
-                                                int level = -1) const {
+  KOKKOS_INLINE_FUNCTION void* get_shmem_common(
+      const IntType& size, [[maybe_unused]] const ptrdiff_t alignment,
+      int level = -1) const {
     if (level == -1) level = m_default_level;
-    auto& m_iter = (level == 0) ? m_iter_L0 : m_iter_L1;
-    auto& m_end  = (level == 0) ? m_end_L0 : m_end_L1;
-
-    if (alignment_requested) {
+    auto& m_iter    = (level == 0) ? m_iter_L0 : m_iter_L1;
+    auto m_iter_old = m_iter;
+    if constexpr (alignment_requested) {
       const ptrdiff_t missalign = size_t(m_iter) % alignment;
       if (missalign) m_iter += alignment - missalign;
     }
@@ -143,18 +110,18 @@ class ScratchMemorySpace {
     // Note: for team scratch m_offset is 0, since every
     // thread will get back the same shared pointer
     void* tmp           = m_iter + m_offset * size;
-    ptrdiff_t increment = size * m_multiplier;
+    uintptr_t increment = size * m_multiplier;
 
-    // increment m_iter first and decrement it again if not
-    // enough memory was available. In the non-failing path
-    // this will save instructions.
-    m_iter += increment;
+    // Cast to uintptr_t to avoid problems with pointer arithmetic using SYCL
+    const auto end_iter =
+        reinterpret_cast<uintptr_t>((level == 0) ? m_end_L0 : m_end_L1);
+    auto current_iter = reinterpret_cast<uintptr_t>(m_iter);
+    auto capacity     = end_iter - current_iter;
 
-    if (m_end < m_iter) {
-      // Request did overflow: reset the base team ptr, and
-      // return nullptr
-      m_iter -= increment;
-      tmp = nullptr;
+    if (increment > capacity) {
+      // Request did overflow: return nullptr and reset m_iter
+      m_iter = m_iter_old;
+      tmp    = nullptr;
 #ifdef KOKKOS_ENABLE_DEBUG
       // mfh 23 Jun 2015: printf call consumes 25 registers
       // in a CUDA build, so only print in debug mode.  The
@@ -162,8 +129,10 @@ class ScratchMemorySpace {
       KOKKOS_IMPL_DO_NOT_USE_PRINTF(
           "ScratchMemorySpace<...>::get_shmem: Failed to allocate "
           "%ld byte(s); remaining capacity is %ld byte(s)\n",
-          long(size), long(m_end - m_iter));
+          long(size), long(capacity));
 #endif  // KOKKOS_ENABLE_DEBUG
+    } else {
+      m_iter += increment;
     }
     return tmp;
   }

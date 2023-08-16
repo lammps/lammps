@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "dump.h"
 #include "error.h"
+#include "exceptions.h"
 #include "fix.h"
 #include "fix_external.h"
 #include "force.h"
@@ -52,10 +53,6 @@
 #include "variable.h"
 
 #include <cstring>
-
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
-#endif
 
 #if defined(LMP_PYTHON)
 #include <Python.h>
@@ -96,7 +93,6 @@ static void ptr_argument_warning()
    END_CAPTURE
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_EXCEPTIONS
 #define BEGIN_CAPTURE \
   Error *error = lmp->error; \
   try
@@ -104,20 +100,16 @@ static void ptr_argument_warning()
 #define END_CAPTURE \
   catch(LAMMPSAbortException &ae) { \
     int nprocs = 0; \
-    MPI_Comm_size(ae.universe, &nprocs ); \
+    MPI_Comm_size(ae.get_universe(), &nprocs ); \
     \
     if (nprocs > 1) { \
-      error->set_last_error(ae.message, ERROR_ABORT); \
+      error->set_last_error(ae.what(), ERROR_ABORT); \
     } else { \
-      error->set_last_error(ae.message, ERROR_NORMAL); \
+      error->set_last_error(ae.what(), ERROR_NORMAL); \
     } \
   } catch(LAMMPSException &e) { \
-    error->set_last_error(e.message, ERROR_NORMAL); \
+    error->set_last_error(e.what(), ERROR_NORMAL); \
   }
-#else
-#define BEGIN_CAPTURE
-#define END_CAPTURE
-#endif
 
 // ----------------------------------------------------------------------
 // Library functions to create/destroy an instance of LAMMPS
@@ -179,23 +171,20 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   lammps_mpi_init();
   if (ptr) ptr_argument_warning();
 
-#ifdef LAMMPS_EXCEPTIONS
-  try
-  {
+  try {
     lammps_last_global_errormessage.clear();
     lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
-  }
-  catch(LAMMPSException &e) {
-    lammps_last_global_errormessage = e.message;
+  } catch (fmt::format_error &fe) {
+    lammps_last_global_errormessage = fe.what();
+    fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+    if (ptr) *ptr = nullptr;
+  } catch(LAMMPSException &e) {
+    lammps_last_global_errormessage = e.what();
 
-    fmt::print(stderr, "LAMMPS Exception: {}", e.message);
+    fmt::print(stderr, "LAMMPS Exception: {}", e.what());
     if (ptr) *ptr = nullptr;
   }
-#else
-  lmp = new LAMMPS(argc, argv, comm);
-  if (ptr) *ptr = (void *) lmp;
-#endif
   return (void *) lmp;
 }
 
@@ -490,7 +479,6 @@ void lammps_error(void *handle, int error_type, const char *error_text)
   }
   END_CAPTURE
 
-#if defined(LAMMPS_EXCEPTIONS)
     // with enabled exceptions the above code will simply throw an
     // exception and record the error message. So we have to explicitly
     // stop here like we do in main.cpp
@@ -506,7 +494,6 @@ void lammps_error(void *handle, int error_type, const char *error_text)
       exit(1);
     }
   }
-#endif
 }
 
 // ----------------------------------------------------------------------
@@ -2345,9 +2332,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     }
   }
   END_CAPTURE
-#if defined(LAMMPS_EXCEPTIONS)
   return nullptr;
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -5483,6 +5468,13 @@ int lammps_config_has_ffmpeg_support() {
 /** Check whether LAMMPS errors will throw C++ exceptions.
  *
 \verbatim embed:rst
+
+.. deprecated:: TBD
+
+   LAMMPS has now exceptions always enabled, so this function
+   will now always return 1 and can be removed from applications
+   using the library interface.
+
 In case of an error, LAMMPS will either abort or throw a C++ exception.
 The latter has to be :ref:`enabled at compile time <exceptions>`.
 This function checks if exceptions were enabled.
@@ -6496,6 +6488,8 @@ has thrown a :ref:`C++ exception <exceptions>`.
 
 .. note::
 
+   .. versionchanged: 2Aug2023
+
    The *handle* pointer may be ``NULL`` for this function, as would be
    the case when a call to create a LAMMPS instance has failed.  Then
    this function will not check the error status inside the LAMMPS
@@ -6514,8 +6508,8 @@ has thrown a :ref:`C++ exception <exceptions>`.
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *`` or NULL
  * \return 0 on no error, 1 on error.
  */
-int lammps_has_error(void *handle) {
-#ifdef LAMMPS_EXCEPTIONS
+int lammps_has_error(void *handle)
+{
   if (handle) {
     LAMMPS *lmp = (LAMMPS *) handle;
     Error *error = lmp->error;
@@ -6523,9 +6517,6 @@ int lammps_has_error(void *handle) {
   } else {
     return lammps_last_global_errormessage.empty() ? 0 : 1;
   }
-#else
-  return 0;
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -6546,6 +6537,8 @@ the failing MPI ranks to send messages.
 
 .. note::
 
+   .. versionchanged: 2Aug2023
+
    The *handle* pointer may be ``NULL`` for this function, as would be
    the case when a call to create a LAMMPS instance has failed.  Then
    this function will not check the error buffer inside the LAMMPS
@@ -6565,8 +6558,8 @@ the failing MPI ranks to send messages.
  * \param  buf_size  size of the provided string buffer
  * \return           1 when all ranks had the error, 2 on a single rank error. */
 
-int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
-#ifdef LAMMPS_EXCEPTIONS
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size)
+{
   if (handle) {
     LAMMPS *lmp = (LAMMPS *) handle;
     Error *error = lmp->error;
@@ -6587,7 +6580,6 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
       return 1;
     }
   }
-#endif
   return 0;
 }
 

@@ -79,7 +79,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     yval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
     yval->setValue(settings.value("ysize", "600").toInt());
     yval->setObjectName("ysize");
-    xval->setToolTip("Set rendered image height");
+    yval->setToolTip("Set rendered image height");
     settings.endGroup();
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);

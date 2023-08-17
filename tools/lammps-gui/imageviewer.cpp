@@ -333,6 +333,19 @@ void ImageViewer::createImage()
     if (lo) qobject_cast<QLabel *>(lo->itemAt(1)->widget())->setEnabled(true);
     this->repaint();
 
+    int ntypes       = lammps->extract_setting("ntypes");
+    double *masses   = (double *)lammps->extract_atom("mass");
+    QString units    = (const char *)lammps->extract_global("units");
+    QString elements = "element ";
+    QString adiams;
+    if ((units == "real") || (units == "metal")) {
+        for (int i = 1; i <= ntypes; ++i) {
+            int idx = get_pte_from_mass(masses[i]);
+            elements += QString(pte_label[idx]) + blank;
+            adiams += QString("adiam %1 %2 ").arg(i).arg(pte_vdw_radius[idx]);
+        }
+    }
+
     QSettings settings;
     QString dumpcmd = QString("write_dump ") + group + " image ";
     QDir dumpdir(QDir::tempPath());
@@ -345,11 +358,15 @@ void ImageViewer::createImage()
     int tmpysize = ysize * aa;
     int hhrot    = (hrot > 180) ? 360 - hrot : hrot;
 
-    dumpcmd += blank + settings.value("color", "type").toString();
+    if (!adiams.isEmpty())
+        dumpcmd += blank + "element";
+    else
+        dumpcmd += blank + settings.value("color", "type").toString();
     dumpcmd += blank + settings.value("diameter", "type").toString();
     dumpcmd += QString(" size ") + QString::number(tmpxsize) + blank + QString::number(tmpysize);
     dumpcmd += QString(" zoom ") + QString::number(zoom);
-    lammps->command(dumpcmd.toLocal8Bit());
+    dumpcmd += " shiny 0.5 ";
+
     if (lammps->extract_setting("dimension") == 3) {
         dumpcmd += QString(" view ") + QString::number(hhrot) + blank + QString::number(vrot);
     }
@@ -360,12 +377,13 @@ void ImageViewer::createImage()
         dumpcmd += QString(" box no 0.0");
 
     if (showaxes)
-        dumpcmd += QString(" axes yes 0.2 0.025");
+        dumpcmd += QString(" axes yes 0.5 0.025");
     else
         dumpcmd += QString(" axes no 0.0 0.0");
 
     dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
     dumpcmd += " backcolor " + settings.value("background", "black").toString();
+    if (!adiams.isEmpty()) dumpcmd += blank + elements + blank + adiams;
     settings.endGroup();
 
     lammps->command(dumpcmd.toLocal8Bit());

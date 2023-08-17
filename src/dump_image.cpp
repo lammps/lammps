@@ -1555,6 +1555,35 @@ int DumpImage::modify_param(int narg, char **arg)
     return n;
   }
 
+  // if antialias state changes, we need to increase the buffer space
+  // change the (internal) image dimensions and reset the view parameters
+  if (strcmp(arg[0],"fsaa") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    int aa = utils::logical(FLERR, arg[1], false, lmp);
+    if (image->fsaa == NO) {
+      if (aa == YES) {
+        image->width = image->width*2;
+        image->height = image->height*2;
+        // reallocate buffers to make room
+        image->buffers();
+      }
+    } else {
+      if (aa == NO) {
+        image->width = image->width/2;
+        image->height = image->height/2;
+        box_bounds();
+        box_center();
+        view_params();
+      }
+    }
+    image->fsaa = aa;
+    // reset size based parameters
+    box_bounds();
+    box_center();
+    view_params();
+    return 2;
+  }
+
   if (strcmp(arg[0],"bcolor") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     if (atom->nbondtypes == 0)

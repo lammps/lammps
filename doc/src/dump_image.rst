@@ -103,7 +103,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *backcolor* or *bcolor* or *bdiam* or *bitrate* or *boxcolor* or *color* or *framerate* or *gmap*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *backcolor* or *bcolor* or *bdiam* or *bitrate* or *boxcolor* or *color* or *framerate* or *fsaa* or *gmap*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -151,6 +151,8 @@ Syntax
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
        *framerate* arg = fps
          fps = frames per second for movie
+       *fsaa* arg = yes/no
+         yes/no = do or do not apply anti-aliasing
        *gmap* args = identical to *amap* args
 
 Examples
@@ -954,6 +956,17 @@ To speed a movie up, you can do the inverse.  Using a frame rate
 higher than 24 is not recommended, as it will result in simply
 dropping the rendered images. It is more efficient to dump images less
 frequently.
+
+----------
+
+.. versionadded:: TBD
+
+The *fsaa* keyword can be used with the dump image command to improve
+the image quality by enabling full scene anti-aliasing.  Internally the
+image is rendered at twice the width and height and then scaled down by
+computing the average of each 2x2 block of pixels to produce a single
+pixel in the final image at the original size. This produces smoother,
+less ragged edges.
 
 ----------
 

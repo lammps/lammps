@@ -56,8 +56,8 @@ enum{NO,YES};
 /* ---------------------------------------------------------------------- */
 
 Image::Image(LAMMPS *lmp, int nmap_caller) :
-  Pointers(lmp), depthBuffer(nullptr), surfaceBuffer(nullptr), imageBuffer(nullptr),
-  depthcopy(nullptr),surfacecopy(nullptr),rgbcopy(nullptr)
+    Pointers(lmp), depthBuffer(nullptr), surfaceBuffer(nullptr), depthcopy(nullptr),
+    surfacecopy(nullptr), imageBuffer(nullptr), rgbcopy(nullptr), writeBuffer(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

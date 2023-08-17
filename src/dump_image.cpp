@@ -248,10 +248,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       int width = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       int height = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (width <= 0 || height <= 0)
-        error->all(FLERR,"Illegal dump image command");
-      image->width = width;
-      image->height = height;
+      if (width <= 0 || height <= 0) error->all(FLERR,"Illegal dump image command");
+      if (image->fsaa) {
+        image->width = width*2;
+        image->height = height*2;
+      } else {
+        image->width = width;
+        image->height = height;
+      }
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"view") == 0) {
@@ -343,6 +347,23 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (shiny < 0.0 || shiny > 1.0)
         error->all(FLERR,"Illegal dump image command");
       image->shiny = shiny;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"fsaa") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      int aa = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      if (aa) {
+        if (!image->fsaa) {
+          image->width = image->width*2;
+          image->height = image->height*2;
+        }
+      } else {
+        if (image->fsaa) {
+          image->width = image->width/2;
+          image->height = image->height/2;
+        }
+      }
+      image->fsaa = aa;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ssao") == 0) {
@@ -1553,35 +1574,6 @@ int DumpImage::modify_param(int narg, char **arg)
     if (strcmp(arg[0],"gmap") == 0) flag = image->map_reset(1,n-1,&arg[1]);
     if (flag) error->all(FLERR,"Illegal dump_modify command");
     return n;
-  }
-
-  // if antialias state changes, we need to increase the buffer space
-  // change the (internal) image dimensions and reset the view parameters
-  if (strcmp(arg[0],"fsaa") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    int aa = utils::logical(FLERR, arg[1], false, lmp);
-    if (image->fsaa == NO) {
-      if (aa == YES) {
-        image->width = image->width*2;
-        image->height = image->height*2;
-        // reallocate buffers to make room
-        image->buffers();
-      }
-    } else {
-      if (aa == NO) {
-        image->width = image->width/2;
-        image->height = image->height/2;
-        box_bounds();
-        box_center();
-        view_params();
-      }
-    }
-    image->fsaa = aa;
-    // reset size based parameters
-    box_bounds();
-    box_center();
-    view_params();
-    return 2;
   }
 
   if (strcmp(arg[0],"bcolor") == 0) {

@@ -38,6 +38,22 @@
 #include <QWheelEvent>
 #include <QWidgetAction>
 
+#include <cmath>
+
+extern "C" {
+#include "periodic_table.h"
+static int get_pte_from_mass(double mass)
+{
+    int idx = 0;
+    for (int i = 0; i < nr_pte_entries; ++i)
+        if (fabs(mass - pte_mass[i]) < 0.65) idx = i;
+    if ((mass > 0.0) && (mass < 2.2)) idx = 1;
+    // discriminate between Cobalt and Nickel. The loop will detect Nickel
+    if ((mass < 61.24) && (mass > 58.8133)) idx = 27;
+    return idx;
+}
+}
+
 static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :

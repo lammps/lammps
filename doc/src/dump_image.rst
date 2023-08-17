@@ -965,8 +965,11 @@ The *fsaa* keyword can be used with the dump image command to improve
 the image quality by enabling full scene anti-aliasing.  Internally the
 image is rendered at twice the width and height and then scaled down by
 computing the average of each 2x2 block of pixels to produce a single
-pixel in the final image at the original size. This produces smoother,
-less ragged edges.
+pixel in the final image at the original size. This produces images with
+smoother, less ragged edges.  The calculation of this effect can
+increase the cost of computing the image by roughly 4x or more,
+especially for large images and with large processor counts due to
+increased communication cost.
 
 ----------
 

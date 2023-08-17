@@ -78,6 +78,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QSettings settings;
 
+    vdwfactor = 0.4;
     auto *renderstatus = new QLabel(QString());
     auto pix           = QPixmap(":/emblem-photos.png");
     renderstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
@@ -106,6 +107,9 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     auto *doanti = new QPushButton(QIcon(":/antialias.png"), "");
     doanti->setCheckable(true);
     doanti->setToolTip("Toggle anti-aliasing");
+    auto *dovdw = new QPushButton(QIcon(":/vdw-style.png"), "");
+    dovdw->setCheckable(true);
+    dovdw->setToolTip("Toggle VDW style representation");
     auto *dobox = new QPushButton(QIcon(":/system-box.png"), "");
     dobox->setCheckable(true);
     dobox->setToolTip("Toggle displaying box");
@@ -145,6 +149,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(yval);
     menuLayout->addWidget(dossao);
     menuLayout->addWidget(doanti);
+    menuLayout->addWidget(dovdw);
     menuLayout->addWidget(dobox);
     menuLayout->addWidget(doaxes);
     menuLayout->addWidget(zoomin);
@@ -159,6 +164,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     connect(dossao, &QPushButton::released, this, &ImageViewer::toggle_ssao);
     connect(doanti, &QPushButton::released, this, &ImageViewer::toggle_anti);
+    connect(dovdw, &QPushButton::released, this, &ImageViewer::toggle_vdw);
     connect(dobox, &QPushButton::released, this, &ImageViewer::toggle_box);
     connect(doaxes, &QPushButton::released, this, &ImageViewer::toggle_axes);
     connect(zoomin, &QPushButton::released, this, &ImageViewer::do_zoom_in);
@@ -178,6 +184,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     reset_view();
     dobox->setChecked(showbox);
+    dovdw->setChecked(vdwfactor > 1.0);
     doaxes->setChecked(showaxes);
     dossao->setChecked(usessao);
     doanti->setChecked(antialias);
@@ -201,6 +208,7 @@ void ImageViewer::reset_view()
     zoom      = settings.value("zoom", 1.0).toDouble();
     hrot      = settings.value("hrot", 60).toInt();
     vrot      = settings.value("vrot", 30).toInt();
+    vdwfactor = settings.value("vdwstyle", false).toBool() ? 1.6 : 0.5;
     showbox   = settings.value("box", true).toBool();
     showaxes  = settings.value("axes", false).toBool();
     usessao   = settings.value("ssao", false).toBool();
@@ -223,8 +231,10 @@ void ImageViewer::reset_view()
         button = qobject_cast<QPushButton *>(lo->itemAt(7)->widget());
         button->setChecked(antialias);
         button = qobject_cast<QPushButton *>(lo->itemAt(8)->widget());
-        button->setChecked(showbox);
+        button->setChecked(vdwfactor > 1.0);
         button = qobject_cast<QPushButton *>(lo->itemAt(9)->widget());
+        button->setChecked(showbox);
+        button = qobject_cast<QPushButton *>(lo->itemAt(10)->widget());
         button->setChecked(showaxes);
         // grab the last entry -> group selector
         auto *cb = qobject_cast<QComboBox *>(lo->itemAt(lo->count() - 1)->widget());
@@ -258,6 +268,17 @@ void ImageViewer::toggle_anti()
     QPushButton *button = qobject_cast<QPushButton *>(sender());
     antialias           = !antialias;
     button->setChecked(antialias);
+    createImage();
+}
+
+void ImageViewer::toggle_vdw()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    if (vdwfactor > 1.0)
+        vdwfactor = 0.4;
+    else
+        vdwfactor = 1.6;
+    button->setChecked(vdwfactor > 1.0);
     createImage();
 }
 
@@ -333,19 +354,6 @@ void ImageViewer::createImage()
     if (lo) qobject_cast<QLabel *>(lo->itemAt(1)->widget())->setEnabled(true);
     this->repaint();
 
-    int ntypes       = lammps->extract_setting("ntypes");
-    double *masses   = (double *)lammps->extract_atom("mass");
-    QString units    = (const char *)lammps->extract_global("units");
-    QString elements = "element ";
-    QString adiams;
-    if ((units == "real") || (units == "metal")) {
-        for (int i = 1; i <= ntypes; ++i) {
-            int idx = get_pte_from_mass(masses[i]);
-            elements += QString(pte_label[idx]) + blank;
-            adiams += QString("adiam %1 %2 ").arg(i).arg(pte_vdw_radius[idx]);
-        }
-    }
-
     QSettings settings;
     QString dumpcmd = QString("write_dump ") + group + " image ";
     QDir dumpdir(QDir::tempPath());
@@ -358,6 +366,20 @@ void ImageViewer::createImage()
     int tmpysize = ysize * aa;
     int hhrot    = (hrot > 180) ? 360 - hrot : hrot;
 
+    // determine elements from masses and set their covalent radii
+    int ntypes       = lammps->extract_setting("ntypes");
+    double *masses   = (double *)lammps->extract_atom("mass");
+    QString units    = (const char *)lammps->extract_global("units");
+    QString elements = "element ";
+    QString adiams;
+    if ((units == "real") || (units == "metal")) {
+        for (int i = 1; i <= ntypes; ++i) {
+            int idx = get_pte_from_mass(masses[i]);
+            elements += QString(pte_label[idx]) + blank;
+            adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * pte_vdw_radius[idx]);
+        }
+    }
+
     if (!adiams.isEmpty())
         dumpcmd += blank + "element";
     else
@@ -365,7 +387,7 @@ void ImageViewer::createImage()
     dumpcmd += blank + settings.value("diameter", "type").toString();
     dumpcmd += QString(" size ") + QString::number(tmpxsize) + blank + QString::number(tmpysize);
     dumpcmd += QString(" zoom ") + QString::number(zoom);
-    dumpcmd += " shiny 0.5 ";
+    dumpcmd += " shiny 0.5 bond atom 0.4 ";
 
     if (lammps->extract_setting("dimension") == 3) {
         dumpcmd += QString(" view ") + QString::number(hhrot) + blank + QString::number(vrot);
@@ -383,7 +405,7 @@ void ImageViewer::createImage()
 
     dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
     dumpcmd += " backcolor " + settings.value("background", "black").toString();
-    if (!adiams.isEmpty()) dumpcmd += blank + elements + blank + adiams;
+    if (!adiams.isEmpty()) dumpcmd += blank + elements + blank + adiams + blank;
     settings.endGroup();
 
     lammps->command(dumpcmd.toLocal8Bit());

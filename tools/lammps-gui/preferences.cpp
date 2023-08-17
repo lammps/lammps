@@ -138,6 +138,8 @@ void Preferences::accept()
     if (box) settings->setValue("box", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("axes");
     if (box) settings->setValue("axes", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("vdwstyle");
+    if (box) settings->setValue("vdwstyle", box->isChecked());
     QComboBox *combo = tabWidget->findChild<QComboBox *>("background");
     if (combo) settings->setValue("background", combo->currentText());
     combo = tabWidget->findChild<QComboBox *>("boxcolor");
@@ -395,6 +397,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *ssao  = new QLabel("HQ Image mode:");
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
+    auto *vdw  = new QLabel("VDW Style:");
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
@@ -405,6 +408,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *sval = new QCheckBox;
     auto *bval = new QCheckBox;
     auto *eval = new QCheckBox;
+    auto *vval = new QCheckBox;
     sval->setCheckState(settings->value("ssao", false).toBool() ? Qt::Checked : Qt::Unchecked);
     sval->setObjectName("ssao");
     aval->setCheckState(settings->value("antialias", false).toBool() ? Qt::Checked : Qt::Unchecked);
@@ -413,6 +417,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     bval->setObjectName("box");
     eval->setCheckState(settings->value("axes", false).toBool() ? Qt::Checked : Qt::Unchecked);
     eval->setObjectName("axes");
+    vval->setCheckState(settings->value("vdwstyle", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    vval->setObjectName("vdwstyle");
 
     auto *intval = new QIntValidator(100, 100000, this);
     xval->setValidator(intval);
@@ -449,8 +455,9 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(ssao, 4, 0, Qt::AlignTop);
     grid->addWidget(bbox, 5, 0, Qt::AlignTop);
     grid->addWidget(axes, 6, 0, Qt::AlignTop);
-    grid->addWidget(cback, 7, 0, Qt::AlignTop);
-    grid->addWidget(cbox, 8, 0, Qt::AlignTop);
+    grid->addWidget(vdw, 7, 0, Qt::AlignTop);
+    grid->addWidget(cback, 8, 0, Qt::AlignTop);
+    grid->addWidget(cbox, 9, 0, Qt::AlignTop);
     grid->addWidget(xval, 0, 1, Qt::AlignTop);
     grid->addWidget(yval, 1, 1, Qt::AlignTop);
     grid->addWidget(zval, 2, 1, Qt::AlignTop);
@@ -458,12 +465,13 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(sval, 4, 1, Qt::AlignVCenter);
     grid->addWidget(bval, 5, 1, Qt::AlignVCenter);
     grid->addWidget(eval, 6, 1, Qt::AlignVCenter);
-    grid->addWidget(background, 7, 1, Qt::AlignVCenter);
+    grid->addWidget(vval, 7, 1, Qt::AlignVCenter);
+    grid->addWidget(background, 8, 1, Qt::AlignVCenter);
     grid->addWidget(boxcolor, 8, 1, Qt::AlignVCenter);
 
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 9, 0);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 9, 1);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 9, 2);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 10, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 10, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 10, 2);
     setLayout(grid);
 }
 

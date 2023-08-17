@@ -49,6 +49,7 @@ private slots:
     void reset_view();
     void toggle_ssao();
     void toggle_anti();
+    void toggle_vdw();
     void toggle_box();
     void toggle_axes();
     void do_zoom_in();
@@ -89,7 +90,7 @@ private:
     QString filename;
     int xsize, ysize;
     int hrot, vrot;
-    double zoom;
+    double zoom, vdwfactor;
     bool showbox, showaxes, antialias, usessao;
 };
 #endif

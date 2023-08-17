@@ -43,5 +43,6 @@
         <file>antialias.png</file>
         <file>ovito.png</file>
         <file>vmd.png</file>
+        <file>vdw-style.png</file>
     </qresource>
 </RCC>

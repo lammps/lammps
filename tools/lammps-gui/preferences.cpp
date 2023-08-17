@@ -448,30 +448,31 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     boxcolor->setCurrentText(settings->value("boxcolor", "yellow").toString());
     settings->endGroup();
 
-    grid->addWidget(xsize, 0, 0, Qt::AlignTop);
-    grid->addWidget(ysize, 1, 0, Qt::AlignTop);
-    grid->addWidget(zoom, 2, 0, Qt::AlignTop);
-    grid->addWidget(anti, 3, 0, Qt::AlignTop);
-    grid->addWidget(ssao, 4, 0, Qt::AlignTop);
-    grid->addWidget(bbox, 5, 0, Qt::AlignTop);
-    grid->addWidget(axes, 6, 0, Qt::AlignTop);
-    grid->addWidget(vdw, 7, 0, Qt::AlignTop);
-    grid->addWidget(cback, 8, 0, Qt::AlignTop);
-    grid->addWidget(cbox, 9, 0, Qt::AlignTop);
-    grid->addWidget(xval, 0, 1, Qt::AlignTop);
-    grid->addWidget(yval, 1, 1, Qt::AlignTop);
-    grid->addWidget(zval, 2, 1, Qt::AlignTop);
-    grid->addWidget(aval, 3, 1, Qt::AlignTop);
-    grid->addWidget(sval, 4, 1, Qt::AlignVCenter);
-    grid->addWidget(bval, 5, 1, Qt::AlignVCenter);
-    grid->addWidget(eval, 6, 1, Qt::AlignVCenter);
-    grid->addWidget(vval, 7, 1, Qt::AlignVCenter);
-    grid->addWidget(background, 8, 1, Qt::AlignVCenter);
-    grid->addWidget(boxcolor, 8, 1, Qt::AlignVCenter);
+    int i = 0;
+    grid->addWidget(xsize, i, 0, Qt::AlignTop);
+    grid->addWidget(xval, i++, 1, Qt::AlignTop);
+    grid->addWidget(ysize, i, 0, Qt::AlignTop);
+    grid->addWidget(yval, i++, 1, Qt::AlignTop);
+    grid->addWidget(zoom, i, 0, Qt::AlignTop);
+    grid->addWidget(zval, i++, 1, Qt::AlignTop);
+    grid->addWidget(anti, i, 0, Qt::AlignTop);
+    grid->addWidget(aval, i++, 1, Qt::AlignTop);
+    grid->addWidget(ssao, i, 0, Qt::AlignTop);
+    grid->addWidget(sval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(bbox, i, 0, Qt::AlignTop);
+    grid->addWidget(bval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(axes, i, 0, Qt::AlignTop);
+    grid->addWidget(eval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(vdw, i, 0, Qt::AlignTop);
+    grid->addWidget(vval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(cback, i, 0, Qt::AlignTop);
+    grid->addWidget(background, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(cbox, i, 0, Qt::AlignTop);
+    grid->addWidget(boxcolor, i++, 1, Qt::AlignVCenter);
 
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 10, 0);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), 10, 1);
-    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), 10, 2);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), i, 2);
     setLayout(grid);
 }
 

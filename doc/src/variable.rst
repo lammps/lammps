@@ -1174,19 +1174,19 @@ The various allowed compute references in the variable formulas for
 equal-, vector-, and atom-style variables are listed in the following
 table:
 
-+--------+------------+--------------------------------------------+
-| equal  | c_ID       | global scalar                              |
-| equal  | c_ID[I]    | element of global vector                   |
-| equal  | c_ID[I][J] | element of global array                    |
-| equal  | C_ID[I]    | element of per-atom vector, I = ID of atom |
-| equal  | C_ID{i}[J] | element of per-atom array, I = ID of atom  |
-+--------+------------+--------------------------------------------|
-| vector | c_ID       | global vector                              |
-| vector | c_ID[I]    | column of global array                     |
----------+------------+--------------------------------------------+
-| atom   | c_ID       | per-atom vector                            |
-| atom   | c_ID[I]    | column of per-atom array                   |
-+--------+------------+--------------------------------------------+
++--------+------------+------------------------------------------+
+| equal  | c_ID       | global scalar                            |
+| equal  | c_ID[I]    | element of global vector                 |
+| equal  | c_ID[I][J] | element of global array                  |
+| equal  | C_ID[I]    | element of per-atom vector (I = atom ID) |
+| equal  | C_ID{i}[J] | element of per-atom array (I = atom ID)  |
++--------+------------+------------------------------------------+
+| vector | c_ID       | global vector                            |
+| vector | c_ID[I]    | column of global array                   |
+---------+------------+------------------------------------------+
+| atom   | c_ID       | per-atom vector                          |
+| atom   | c_ID[I]    | column of per-atom array                 |
++--------+------------+------------------------------------------+
 
 Note that if an equal-style variable formula wishes to access per-atom
 data from a compute, it must use capital "C" as the ID prefix and not
@@ -1235,23 +1235,22 @@ Atom-style variables can use scalar values (same as for equal-style
 varaibles), or per-atom vectors of values.  The latter can also be a
 column of a per-atom array.
 
-The various allowed fix references in the variable formulas for
-equal-, vector-, and atom-style variables are listed in the following
-table:
+The allowed fix references in variable formulas for equal-, vector-,
+and atom-style variables are listed in the following table:
 
-+--------+------------+--------------------------------------------+
-| equal  | f_ID       | global scalar                              |
-| equal  | f_ID[I]    | element of global vector                   |
-| equal  | f_ID[I][J] | element of global array                    |
-| equal  | F_ID[I]    | element of per-atom vector, I = ID of atom |
-| equal  | F_ID{i}[J] | element of per-atom array, I = ID of atom  |
-+--------+------------+--------------------------------------------|
-| vector | f_ID       | global vector                              |
-| vector | f_ID[I]    | column of global array                     |
----------+------------+--------------------------------------------+
-| atom   | f_ID       | per-atom vector                            |
-| atom   | f_ID[I]    | column of per-atom array                   |
-+--------+------------+--------------------------------------------+
++--------+------------+------------------------------------------+
+| equal  | f_ID       | global scalar                            |
+| equal  | f_ID[I]    | element of global vector                 |
+| equal  | f_ID[I][J] | element of global array                  |
+| equal  | F_ID[I]    | element of per-atom vector (I = atom ID) |
+| equal  | F_ID{i}[J] | element of per-atom array (I = atom ID)  |
++--------+------------+------------------------------------------+
+| vector | f_ID       | global vector                            |
+| vector | f_ID[I]    | column of global array                   |
+---------+------------+------------------------------------------+
+| atom   | f_ID       | per-atom vector                          |
+| atom   | f_ID[I]    | column of per-atom array                 |
++--------+------------+------------------------------------------+
 
 Note that if an equal-style variable formula wishes to access per-atom
 data from a fix, it must use capital "F" as the ID prefix and not
@@ -1312,21 +1311,27 @@ including other atom-style or atomfile-style variables.  If it uses a
 vector-style variable, a subscript must be used to access a single
 value from the vector-style variable.
 
-Examples of different kinds of variable references are as follows.
-There is no ambiguity as to what a reference means, since variables
-produce only a global scalar or global vector or per-atom vector.
+The allowed variable references in variable formulas for equal-,
+vector-, and atom-style variables are listed in the following table.
+Note that there is no ambiguity as to what a reference means, since
+referenced variables produce only a global scalar or global vector or
+per-atom vector.
 
-+------------+----------------------------------------------------------------------+
-| v_name    | global scalar from equal-style variable                               |
-+------------+----------------------------------------------------------------------+
-| v_name    | global vector from vector-style variable                              |
-+------------+----------------------------------------------------------------------+
-| v_name    | per-atom vector from atom-style or atomfile-style variable            |
-+------------+----------------------------------------------------------------------+
-| v_name[I] | Ith element of a global vector from vector-style variable             |
-+------------+----------------------------------------------------------------------+
-| v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable  |
-+------------+----------------------------------------------------------------------+
++--------+-----------+-----------------------------------------------------------------------------------+
+| equal  | v_name    | global scalar from an equal-style variable                                        |
+| equal  | v_name[I] | element of global vector from a vector-style variable                             |
+| equal  | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
++--------+-----------+-----------------------------------------------------------------------------------+
+| vector | v_name    | global scalar from an equal-style variable                                        |
+| vector | v_name    | global vector from a vector-style variable                                        |
+| vector | v_name[I] | element of global vector from a vector-style variable                             |
+| vector | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
++--------+-----------+-----------------------------------------------------------------------------------+
+| atom   | v_name    | global scalar from an equal-style variable                                        |
+| atom   | v_name    | per-atom vector from an atom-style or atomfile-style variable                     |
+| atom   | v_name[I] | element of global vector from a vector-style variable                             |
+| atom   | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
++--------+-----------+-----------------------------------------------------------------------------------+
 
 For the I index, an integer can be specified or a variable name,
 specified as v_name, where name is the name of the variable.  The

@@ -201,7 +201,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
       if (iflag == ArgInfo::COMPUTE) id_grid_compute = utils::strdup(id);
       else if (iflag == ArgInfo::FIX) id_grid_fix = utils::strdup(id);
-      delete [] id;
+      delete[] id;
       grid_igrid = igrid;
       grid_idata = idata;
       grid_index = index;
@@ -461,18 +461,18 @@ DumpImage::~DumpImage()
 {
   delete image;
 
-  delete [] diamtype;
-  delete [] diamelement;
-  delete [] colortype;
-  delete [] colorelement;
-  delete [] bdiamtype;
-  delete [] bcolortype;
+  delete[] diamtype;
+  delete[] diamelement;
+  delete[] colortype;
+  delete[] colorelement;
+  delete[] bdiamtype;
+  delete[] bcolortype;
   memory->destroy(chooseghost);
   memory->destroy(bufcopy);
   memory->destroy(gbuf);
 
-  delete [] id_grid_compute;
-  delete [] id_grid_fix;
+  delete[] id_grid_compute;
+  delete[] id_grid_fix;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -667,8 +667,9 @@ void DumpImage::write()
     // cannot invoke before first run, otherwise invoke if necessary
 
     if (grid_compute) {
-      if (update->first_update == 0)
-        error->all(FLERR,"Grid compute used in dump image cannot be invoked before first run");
+      if (!grid_compute->is_initialized())
+        error->all(FLERR,"Grid compute ID {} used in dump image cannot be invoked "
+                   "before initialization by a run", grid_compute->id);
       if (!(grid_compute->invoked_flag & Compute::INVOKED_PERGRID)) {
         grid_compute->compute_pergrid();
         grid_compute->invoked_flag |= Compute::INVOKED_PERGRID;

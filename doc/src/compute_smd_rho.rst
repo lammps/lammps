@@ -6,7 +6,7 @@ compute smd/rho command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/rho
 

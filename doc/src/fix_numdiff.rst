@@ -6,7 +6,7 @@ fix numdiff command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID numdiff Nevery delta
 

@@ -6,7 +6,7 @@ fix external command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID external mode args
 

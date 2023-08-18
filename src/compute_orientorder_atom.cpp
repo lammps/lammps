@@ -370,7 +370,7 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
   arr3--;
   l = 1;
   ir = n;
-  for (;;) {
+  while (true) {
     if (ir <= l + 1) {
       if (ir == l + 1 && arr[ir] < arr[l]) {
         SWAP(arr[l], arr[ir]);
@@ -405,7 +405,7 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
       a3[0] = arr3[l + 1][0];
       a3[1] = arr3[l + 1][1];
       a3[2] = arr3[l + 1][2];
-      for (;;) {
+      while (true) {
         do i++;
         while (arr[i] < a);
         do j--;

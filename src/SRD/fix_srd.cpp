@@ -2645,7 +2645,6 @@ void FixSRD::parameterize()
         if (radius && radius[i] > 0.0) {
           double r = radfactor * radius[i];
           volbig += 4.0 / 3.0 * MY_PI * r * r * r;
-          ;
         } else if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
           volbig += 4.0 / 3.0 * MY_PI * shape[0] * shape[1] * shape[2] * radfactor * radfactor *
@@ -2658,7 +2657,7 @@ void FixSRD::parameterize()
           MathExtra::sub3(c2, c1, c2mc1);
           MathExtra::sub3(c3, c1, c3mc1);
           MathExtra::cross3(c2mc1, c3mc1, cross);
-          volbig += 0.5 * MathExtra::len3(cross);
+          volbig += 0.5 * MathExtra::len3(cross) * WIDTH;
         }
       }
   } else {

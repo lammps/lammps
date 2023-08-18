@@ -6,7 +6,7 @@ print command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    print string keyword value
 
@@ -46,7 +46,7 @@ lines of output, the string can be enclosed in triple quotes, as in
 the last example above.  If the text string contains variables, they
 will be evaluated and their current values printed.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
    support for vector style variables
 

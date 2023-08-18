@@ -1,6 +1,6 @@
 # Contributing to LAMMPS via GitHub
 
-Thank your for considering to contribute to the LAMMPS software project.
+Thank you for considering to contribute to the LAMMPS software project.
 
 The following is a set of guidelines as well as explanations of policies and work flows for contributing to the LAMMPS molecular dynamics software project. These guidelines focus on submitting issues or pull requests on the LAMMPS GitHub project.
 

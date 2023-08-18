@@ -6,7 +6,7 @@ fix damping/cundall command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID damping/cundall gamma_l gamma_a keyword values ...
 

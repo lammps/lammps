@@ -51,8 +51,6 @@ class FixReaxFFSpecies : public Fix {
   int *Mol2Spec;
   double *clusterID;
   AtomCoord *x0;
-
-  double bg_cut;
   double **BOCut;
 
   std::vector<std::string> del_species;

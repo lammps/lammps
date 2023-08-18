@@ -41,7 +41,7 @@ warning.
 LATTE package
 -------------
 
-.. deprecated:: TBD
+.. deprecated:: 15Jun2023
 
 The LATTE package with the fix latte command was removed from LAMMPS.
 This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`
@@ -84,6 +84,16 @@ The same functionality is available through
 :doc:`pair style mesocnt <pair_mesocnt>`,
 :doc:`bond style mesocnt <bond_mesocnt>` and
 :doc:`angle style mesocnt <angle_mesocnt>`.
+
+MSCG package
+------------
+
+.. deprecated:: TBD
+
+The MSCG package has been removed from LAMMPS since it was unmaintained
+for many years and instead superseded by the `OpenMSCG software
+<https://software.rcc.uchicago.edu/mscg/>`_ of the Voth group at the
+University of Chicago, which can be used independent from LAMMPS.
 
 REAX package
 ------------

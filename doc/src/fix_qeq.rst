@@ -22,7 +22,7 @@ fix qeq/fire command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style Nevery cutoff tolerance maxiter qfile keyword ...
 

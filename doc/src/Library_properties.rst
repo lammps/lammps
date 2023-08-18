@@ -5,6 +5,7 @@ This section documents the following functions:
 
 - :cpp:func:`lammps_get_natoms`
 - :cpp:func:`lammps_get_thermo`
+- :cpp:func:`lammps_last_thermo`
 - :cpp:func:`lammps_extract_box`
 - :cpp:func:`lammps_reset_box`
 - :cpp:func:`lammps_memory_usage`
@@ -77,6 +78,11 @@ subdomains and processors.
 -----------------------
 
 .. doxygenfunction:: lammps_get_thermo
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_last_thermo
    :project: progguide
 
 -----------------------

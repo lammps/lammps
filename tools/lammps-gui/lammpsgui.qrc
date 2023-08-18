@@ -1,0 +1,47 @@
+<RCC>
+    <qresource prefix="/">
+        <file>lammps-icon-128x128.png</file>
+        <file>help_index.table</file>
+        <file>system-help.png</file>
+        <file>help-browser.png</file>
+        <file>gtk-zoom-in.png</file>
+        <file>gtk-zoom-out.png</file>
+        <file>gtk-zoom-fit.png</file>
+        <file>edit-delete.png</file>
+        <file>object-rotate-right.png</file>
+        <file>object-rotate-left.png</file>
+        <file>gtk-go-up.png</file>
+        <file>gtk-go-down.png</file>
+        <file>document-save-as.png</file>
+        <file>document-open-recent.png</file>
+        <file>document-open.png</file>
+        <file>document-new.png</file>
+        <file>edit-undo.png</file>
+        <file>edit-redo.png</file>
+        <file>edit-paste.png</file>
+        <file>edit-cut.png</file>
+        <file>edit-copy.png</file>
+        <file>application-exit.png</file>
+        <file>utilities-terminal.png</file>
+        <file>x-office-drawing.png</file>
+        <file>document-save.png</file>
+        <file>document-revert.png</file>
+        <file>preferences-desktop.png</file>
+        <file>preferences-desktop-personal.png</file>
+        <file>preferences-desktop-font.png</file>
+        <file>help-faq.png</file>
+        <file>help-about.png</file>
+        <file>emblem-photos.png</file>
+        <file>process-stop.png</file>
+        <file>emblem-default.png</file>
+        <file>window-close.png</file>
+        <file>application-plot.png</file>
+        <file>application-calc.png</file>
+        <file>system-box.png</file>
+        <file>axes-img.png</file>
+        <file>hd-img.png</file>
+        <file>antialias.png</file>
+        <file>ovito.png</file>
+        <file>vmd.png</file>
+    </qresource>
+</RCC>

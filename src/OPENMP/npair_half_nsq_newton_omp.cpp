@@ -49,8 +49,8 @@ void NPairHalfNsqNewtonOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,n,itype,jtype,itag,jtag,which,imol,iatom;
-  tagint tagprev;
+  int i,j,n,itype,jtype,which,imol,iatom;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 
@@ -127,7 +127,7 @@ void NPairHalfNsqNewtonOmp::build(NeighList *list)
         if (molecular != Atom::ATOMIC) {
           if (!moltemplate)
             which = find_special(special[i],nspecial[i],tag[j]);
-          else if (imol >=0)
+          else if (imol >= 0)
             which = find_special(onemols[imol]->special[iatom],
                                  onemols[imol]->nspecial[iatom],
                                  tag[j]-tagprev);

@@ -1,3 +1,4 @@
+# -*- CMake -*- file for tests of classes computing or modifying forces
 
 find_package(YAML)
 if(NOT YAML_FOUND)
@@ -19,16 +20,7 @@ function(extract_tags out yaml_file)
   set(${out} "${TAGS}" PARENT_SCOPE)
 endfunction()
 
-if(CMAKE_VERSION VERSION_LESS 3.12)
-  # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-  set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
-  find_package(PythonInterp) # Deprecated since version 3.12
-  if(PYTHONINTERP_FOUND)
-    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-  endif()
-else()
-  find_package(Python COMPONENTS Interpreter)
-endif()
+find_package(Python COMPONENTS Interpreter)
 if(Python_EXECUTABLE)
   add_custom_target(check-tests
     ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_tests.py
@@ -53,10 +45,8 @@ target_link_libraries(style_tests PUBLIC GTest::GMock Yaml::Yaml lammps)
 
 # propagate sanitizer options to test tools
 if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-    target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
-    target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
-  endif()
+  target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
+  target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
 endif()
 
 # unit test for error stats class
@@ -97,7 +87,7 @@ else()
 endif()
 
 # tests for molecular systems and related pair styles
-file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
+file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
 # cannot test MSM with single precision data
 if(FFT_SINGLE)
   list(FILTER MOL_PAIR_TESTS EXCLUDE REGEX "msm")
@@ -115,7 +105,7 @@ foreach(TEST ${MOL_PAIR_TESTS})
 endforeach()
 
 # tests for metal-like atomic systems and related pair styles
-file(GLOB ATOMIC_PAIR_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/atomic-pair-*.yaml)
+file(GLOB ATOMIC_PAIR_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/atomic-pair-*.yaml)
 foreach(TEST ${ATOMIC_PAIR_TESTS})
   string(REGEX REPLACE "^.*atomic-pair-(.*)\.yaml" "AtomicPairStyle:\\1" TNAME ${TEST})
   extract_tags(TEST_TAGS ${TEST})
@@ -129,7 +119,7 @@ foreach(TEST ${ATOMIC_PAIR_TESTS})
 endforeach()
 
 # tests for Si-like manybody systems and related pair styles
-file(GLOB MANYBODY_PAIR_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/manybody-pair-*.yaml)
+file(GLOB MANYBODY_PAIR_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/manybody-pair-*.yaml)
 foreach(TEST ${MANYBODY_PAIR_TESTS})
   string(REGEX REPLACE "^.*manybody-pair-(.*)\.yaml" "ManybodyPairStyle:\\1" TNAME ${TEST})
   extract_tags(TEST_TAGS ${TEST})
@@ -146,7 +136,7 @@ endforeach()
 add_executable(test_bond_style test_bond_style.cpp)
 target_link_libraries(test_bond_style PRIVATE lammps style_tests)
 
-file(GLOB BOND_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/bond-*.yaml)
+file(GLOB BOND_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/bond-*.yaml)
 foreach(TEST ${BOND_TESTS})
   string(REGEX REPLACE "^.*bond-(.*)\.yaml" "BondStyle:\\1" TNAME ${TEST})
   extract_tags(TEST_TAGS ${TEST})
@@ -163,7 +153,7 @@ endforeach()
 add_executable(test_angle_style test_angle_style.cpp)
 target_link_libraries(test_angle_style PRIVATE lammps style_tests)
 
-file(GLOB ANGLE_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/angle-*.yaml)
+file(GLOB ANGLE_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/angle-*.yaml)
 foreach(TEST ${ANGLE_TESTS})
   string(REGEX REPLACE "^.*angle-(.*)\.yaml" "AngleStyle:\\1" TNAME ${TEST})
   extract_tags(TEST_TAGS ${TEST})
@@ -177,7 +167,7 @@ foreach(TEST ${ANGLE_TESTS})
 endforeach()
 
 # kspace style tester, currently uses the pair style tool
-file(GLOB KSPACE_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/kspace-*.yaml)
+file(GLOB KSPACE_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/kspace-*.yaml)
 # cannot test MSM with single precision data
 if(FFT_SINGLE)
   list(FILTER KSPACE_TESTS EXCLUDE REGEX "msm")
@@ -199,10 +189,13 @@ add_executable(test_fix_timestep test_fix_timestep.cpp)
 if(NOT BUILD_SHARED_LIBS)
   target_compile_definitions(test_fix_timestep PRIVATE USING_STATIC_LIBS=1)
 endif()
+if(FFT_SINGLE)
+  target_compile_definitions(test_fix_timestep PRIVATE -DFFT_SINGLE)
+endif()
 target_link_libraries(test_fix_timestep PRIVATE lammps style_tests)
 
 # tests for timestep related fixes (time integration, thermostat, force manipulation, constraints/restraints)
-file(GLOB FIX_TIMESTEP_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/fix-timestep-*.yaml)
+file(GLOB FIX_TIMESTEP_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/fix-timestep-*.yaml)
 foreach(TEST ${FIX_TIMESTEP_TESTS})
   string(REGEX REPLACE "^.*fix-timestep-(.*)\.yaml" "FixTimestep:\\1" TNAME ${TEST})
   extract_tags(TEST_TAGS ${TEST})
@@ -223,7 +216,7 @@ endforeach()
 add_executable(test_dihedral_style test_dihedral_style.cpp)
 target_link_libraries(test_dihedral_style PRIVATE lammps style_tests)
 
-file(GLOB DIHEDRAL_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/dihedral-*.yaml)
+file(GLOB DIHEDRAL_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/dihedral-*.yaml)
 foreach(TEST ${DIHEDRAL_TESTS})
   string(REGEX REPLACE "^.*dihedral-(.*)\.yaml" "DihedralStyle:\\1" TNAME ${TEST})
   extract_tags(TEST_TAGS ${TEST})
@@ -240,7 +233,7 @@ endforeach()
 add_executable(test_improper_style test_improper_style.cpp)
 target_link_libraries(test_improper_style PRIVATE lammps style_tests)
 
-file(GLOB IMPROPER_TESTS LIST_DIRECTORIES false ${CONFIGURE_DEPENDS} ${TEST_INPUT_FOLDER}/improper-*.yaml)
+file(GLOB IMPROPER_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/improper-*.yaml)
 foreach(TEST ${IMPROPER_TESTS})
   string(REGEX REPLACE "^.*improper-(.*)\.yaml" "ImproperStyle:\\1" TNAME ${TEST})
   extract_tags(TEST_TAGS ${TEST})

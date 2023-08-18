@@ -1626,6 +1626,22 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->vector_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
+            if (compute->size_vector == 0)
+              print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
+            if (!compute->is_initialized())
+              print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                              "initialization by a run",ivar);
+            if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
+              compute->compute_vector();
+              compute->invoked_flag |= Compute::INVOKED_VECTOR;
+            }
+
+            auto newtree = new Tree();
+            newtree->type = VECTORARRAY;
+            newtree->array = compute->vector;
+            newtree->nvector = compute->size_vector;
+            newtree->nstride = 1;
+            treestack[ntreestack++] = newtree;
             
           // c_ID[i] = vector from global array
 
@@ -1633,6 +1649,24 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->array_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
+            if (compute->size_array_rows == 0)
+              print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
+            if (index1 > compute->size_array_cols)
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+            if (!compute->is_initialized())
+              print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                              "initialization by a run",ivar);
+            if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
+              compute->compute_array();
+              compute->invoked_flag |= Compute::INVOKED_ARRAY;
+            }
+
+            auto newtree = new Tree();
+            newtree->type = VECTORARRAY;
+            newtree->array = &compute->array[0][index1-1];
+            newtree->nvector = compute->size_array_rows;
+            newtree->nstride = compute->size_array_cols;
+            treestack[ntreestack++] = newtree;
             
           // no other possibilities for vector-style variable, so error
             
@@ -1695,38 +1729,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           } else print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
         }
 
-          
-          if (tree == nullptr)
-            print_var_error(FLERR,"Compute global vector in equal-style variable formula",ivar);
-          if (treetype == ATOM)
-            print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
-          if (compute->size_array_rows == 0)
-            print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
-          if (!compute->is_initialized())
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
-                            "initialization by a run",ivar);
-          if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
-            compute->compute_array();
-            compute->invoked_flag |= Compute::INVOKED_ARRAY;
-          }
-
-          auto newtree = new Tree();
-          newtree->type = VECTORARRAY;
-          newtree->array = &compute->array[0][index1-1];
-          newtree->nvector = compute->size_array_rows;
-          newtree->nstride = compute->size_array_cols;
-          treestack[ntreestack++] = newtree;
 
 
 
 
 
-
-
-
-
-
-          
+        
       // ----------------
       // fix
       // ----------------

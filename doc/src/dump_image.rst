@@ -621,6 +621,28 @@ shading is particularly large.
 
 ----------
 
+Image Quality Settings
+""""""""""""""""""""""
+
+The two keywords *fsaa* and *ssao* can be used to improve the image
+quality at the expense of additional computational cost to render the
+images. The images below show from left to right the same render with
+default settings, with *fsaa* added, with *ssao* added, and with both
+keywords added.
+
+.. |imagequality1| image:: JPG/image.default.png
+   :width: 24%
+.. |imagequality2| image:: JPG/image.fsaa.png
+   :width: 24%
+.. |imagequality3| image:: JPG/image.ssao.png
+   :width: 24%
+.. |imagequality4| image:: JPG/image.both.png
+   :width: 24%
+
+|imagequality1|  |imagequality2|  |imagequality3|  |imagequality4|
+
+----------
+
 A series of JPEG, PNG, or PPM images can be converted into a movie
 file and then played as a movie using commonly available tools. Using
 dump style *movie* automates this step and avoids the intermediate

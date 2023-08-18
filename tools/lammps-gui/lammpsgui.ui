@@ -212,7 +212,7 @@
   </action>
   <action name="actionRun_Buffer">
    <property name="icon">
-    <iconset theme=":/emblem-default.png"/>
+    <iconset theme=":/system-run.png"/>
    </property>
    <property name="text">
     <string>&amp;Run LAMMPS</string>

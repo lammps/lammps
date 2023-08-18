@@ -26,6 +26,7 @@
 // forward declarations
 
 class GeneralTab;
+class LammpsRunner;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -114,6 +115,7 @@ private:
     QList<QPair<QString, QString>> variables;
 
     LammpsWrapper lammps;
+    LammpsRunner *runner;
     std::string plugin_path;
     bool is_running;
     std::vector<char *> lammps_args;

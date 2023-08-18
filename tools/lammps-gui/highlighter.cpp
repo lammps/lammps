@@ -183,7 +183,7 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent)
     }
 
     const QString number_keywords[] = {
-        QStringLiteral("(^|\\s+)[0-9]+"),                            // integer
+        QStringLiteral("(^|\\s+)[0-9:*]+"),                          // integer and integer ranges
         QStringLiteral("(^|\\s+)[0-9]+\\.[0-9]*[edED]?[-+]?[0-9]*"), // floating point 1
         QStringLiteral("(^|\\s+)[0-9]*\\.[0-9]+[edED]?[-+]?[0-9]*"), // floating point 2
         QStringLiteral("(^|\\s+)[0-9]+([edED][-+]?[0-9]+)?")         // floating point 3
@@ -207,10 +207,12 @@ Highlighter::Highlighter(QTextDocument *parent) : QSyntaxHighlighter(parent)
 
 void Highlighter::highlightBlock(const QString &text)
 {
+    // clang-format off
     auto style = QRegularExpression("^(fix|compute|dump|set)\\s+(\\w+)\\s+(\\S+)\\s+(\\S+)").match(text);
     auto force = QRegularExpression("^(atom_style|pair_style|bond_style|angle_style|dihedral_style|improper_style|kspace_style)\\s+(\\S+)").match(text);
     auto defs = QRegularExpression("^(group|variable)\\s+(\\S+)\\s+(\\S+)").match(text);
     auto undo = QRegularExpression("^(unfix|uncompute|undump)\\s+(\\w+)").match(text);
+    // clang-format on
     bool do_style = true;
     bool do_force = true;
     bool do_defs  = true;

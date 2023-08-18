@@ -33,7 +33,7 @@
         <file>help-about.png</file>
         <file>emblem-photos.png</file>
         <file>process-stop.png</file>
-        <file>emblem-default.png</file>
+        <file>system-run.png</file>
         <file>window-close.png</file>
         <file>application-plot.png</file>
         <file>application-calc.png</file>
@@ -43,5 +43,6 @@
         <file>antialias.png</file>
         <file>ovito.png</file>
         <file>vmd.png</file>
+        <file>vdw-style.png</file>
     </qresource>
 </RCC>

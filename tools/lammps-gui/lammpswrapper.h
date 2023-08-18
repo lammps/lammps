@@ -29,15 +29,21 @@ public:
     void force_timeout();
 
     int extract_setting(const char *keyword);
+    void *extract_global(const char *keyword);
+    void *extract_atom(const char *keyword);
+
     int id_count(const char *idtype);
     int id_name(const char *idtype, int idx, char *buf, int buflen);
 
     double get_thermo(const char *keyword);
     void *last_thermo(const char *keyword, int idx);
+
     bool is_open() const { return lammps_handle != nullptr; }
     bool is_running();
+
     bool has_error() const;
     int get_last_error_message(char *errorbuf, int buflen);
+
     bool config_accelerator(const char *package, const char *category, const char *setting) const;
     bool config_has_package(const char *pkg) const;
     bool has_gpu_device() const;

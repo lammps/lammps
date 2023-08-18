@@ -34,6 +34,7 @@
 #include <QPlainTextEdit>
 #include <QProcess>
 #include <QProgressBar>
+#include <QPushButton>
 #include <QSettings>
 #include <QShortcut>
 #include <QStatusBar>
@@ -241,7 +242,22 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     auto pix     = QPixmap(":/lammps-icon-128x128.png");
     lammpsstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
     ui->statusbar->addWidget(lammpsstatus);
+    lammpsstatus->setToolTip("LAMMPS instance is active");
     lammpsstatus->hide();
+
+    auto *lammpsrun   = new QPushButton(QIcon(":/system-run.png"), "");
+    auto *lammpsstop  = new QPushButton(QIcon(":/process-stop.png"), "");
+    auto *lammpsimage = new QPushButton(QIcon(":/emblem-photos.png"), "");
+    lammpsrun->setToolTip("Run LAMMPS on input");
+    lammpsstop->setToolTip("Stop LAMMPS");
+    lammpsimage->setToolTip("Create snapshot image");
+    ui->statusbar->addWidget(lammpsrun);
+    ui->statusbar->addWidget(lammpsstop);
+    ui->statusbar->addWidget(lammpsimage);
+    connect(lammpsrun, &QPushButton::released, this, &LammpsGui::run_buffer);
+    connect(lammpsstop, &QPushButton::released, this, &LammpsGui::stop_run);
+    connect(lammpsimage, &QPushButton::released, this, &LammpsGui::render_image);
+
     status = new QLabel("Ready.");
     status->setFixedWidth(300);
     ui->statusbar->addWidget(status);
@@ -280,6 +296,10 @@ void LammpsGui::new_document()
     current_file.clear();
     ui->textEdit->document()->setPlainText(QString());
 
+    if (lammps.is_running()) {
+        stop_run();
+        runner->wait();
+    }
     lammps.close();
     lammpsstatus->hide();
     setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
@@ -549,6 +569,10 @@ void LammpsGui::save_as()
 
 void LammpsGui::quit()
 {
+    if (lammps.is_running()) {
+        stop_run();
+        runner->wait();
+    }
     lammps.close();
     lammpsstatus->hide();
     lammps.finalize();
@@ -806,7 +830,7 @@ void LammpsGui::run_buffer()
     char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
     is_running  = true;
 
-    LammpsRunner *runner = new LammpsRunner(this);
+    runner = new LammpsRunner(this);
     runner->setup_run(&lammps, input);
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
@@ -1035,6 +1059,11 @@ void LammpsGui::edit_variables()
     SetVariables vars(newvars);
     if (vars.exec() == QDialog::Accepted) {
         variables = newvars;
+        if (lammps.is_running()) {
+            stop_run();
+            runner->wait();
+            delete runner;
+        }
         lammps.close();
         lammpsstatus->hide();
     }
@@ -1057,6 +1086,11 @@ void LammpsGui::preferences()
             (oldthreads != settings.value("nthreads", 1).toInt()) ||
             (oldecho != settings.value("echo", 0).toInt()) ||
             (oldcite != settings.value("cite", 0).toInt())) {
+            if (lammps.is_running()) {
+                stop_run();
+                runner->wait();
+                delete runner;
+            }
             lammps.close();
             lammpsstatus->hide();
         }

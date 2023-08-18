@@ -368,6 +368,7 @@ void ImageViewer::createImage()
 
     // determine elements from masses and set their covalent radii
     int ntypes       = lammps->extract_setting("ntypes");
+    int nbondtypes   = lammps->extract_setting("nbondtypes");
     double *masses   = (double *)lammps->extract_atom("mass");
     QString units    = (const char *)lammps->extract_global("units");
     QString elements = "element ";
@@ -387,7 +388,8 @@ void ImageViewer::createImage()
     dumpcmd += blank + settings.value("diameter", "type").toString();
     dumpcmd += QString(" size ") + QString::number(tmpxsize) + blank + QString::number(tmpysize);
     dumpcmd += QString(" zoom ") + QString::number(zoom);
-    dumpcmd += " shiny 0.5 bond atom 0.4 ";
+    dumpcmd += " shiny 0.5 ";
+    if (nbondtypes > 0) dumpcmd += " bond atom 0.4 ";
 
     if (lammps->extract_setting("dimension") == 3) {
         dumpcmd += QString(" view ") + QString::number(hhrot) + blank + QString::number(vrot);

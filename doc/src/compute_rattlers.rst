@@ -32,8 +32,10 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Define a compute that identifies rattlers in a system. Rattlers are
-identified using an interative approach. The coordination number of
+identified using an interactive approach. The coordination number of
 all atoms is first calculated.  The *type* and *radius* settings are
 used to select whether interaction cutoffs are determined by atom
 types or by the sum of atomic radii (atom style sphere), respectively.

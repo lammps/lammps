@@ -44,6 +44,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 This fix computes different metrics of the nonaffine displacement of
 particles. The first metric, *d2min* calculates the :math:`D^2_\mathrm{min}`
 nonaffine displacement by Falk and Langer in :ref:`(Falk) <d2min-Falk>`.

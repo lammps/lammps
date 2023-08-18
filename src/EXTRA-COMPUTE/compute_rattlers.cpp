@@ -28,7 +28,6 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cmath>
 #include <cstring>

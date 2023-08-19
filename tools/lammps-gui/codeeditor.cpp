@@ -71,6 +71,7 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
     updateLineNumberAreaWidth(0);
+    setCursorWidth(2);
 }
 
 int CodeEditor::lineNumberAreaWidth()

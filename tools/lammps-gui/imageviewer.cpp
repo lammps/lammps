@@ -79,11 +79,13 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     QSettings settings;
 
     vdwfactor = 0.4;
+    auto pix  = QPixmap(":/emblem-photos.png");
+
     auto *renderstatus = new QLabel(QString());
-    auto pix           = QPixmap(":/emblem-photos.png");
     renderstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
     renderstatus->setEnabled(false);
     renderstatus->setToolTip("Render status");
+    renderstatus->setObjectName("renderstatus");
     settings.beginGroup("snapshot");
     auto *xval = new QSpinBox;
     xval->setRange(100, 10000);
@@ -101,21 +103,27 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
 
+    auto *dummy  = new QLabel(QString());
     auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
     dossao->setCheckable(true);
     dossao->setToolTip("Toggle SSAO rendering");
+    dossao->setObjectName("ssao");
     auto *doanti = new QPushButton(QIcon(":/antialias.png"), "");
     doanti->setCheckable(true);
     doanti->setToolTip("Toggle anti-aliasing");
+    doanti->setObjectName("antialias");
     auto *dovdw = new QPushButton(QIcon(":/vdw-style.png"), "");
     dovdw->setCheckable(true);
     dovdw->setToolTip("Toggle VDW style representation");
+    dovdw->setObjectName("vdw");
     auto *dobox = new QPushButton(QIcon(":/system-box.png"), "");
     dobox->setCheckable(true);
     dobox->setToolTip("Toggle displaying box");
+    doanti->setObjectName("box");
     auto *doaxes = new QPushButton(QIcon(":/axes-img.png"), "");
     doaxes->setCheckable(true);
     doaxes->setToolTip("Toggle displaying axes");
+    doaxes->setObjectName("axes");
     auto *zoomin = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
     zoomin->setToolTip("Zoom in by 10 percent");
     auto *zoomout = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
@@ -133,6 +141,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     auto *combo = new QComboBox;
     combo->setObjectName("group");
     combo->setToolTip("Select group to display");
+    combo->setObjectName("group");
     int ngroup = lammps->id_count("group");
     char gname[64];
     for (int i = 0; i < ngroup; ++i) {
@@ -147,6 +156,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(xval);
     menuLayout->addWidget(new QLabel(" Height: "));
     menuLayout->addWidget(yval);
+    menuLayout->addWidget(dummy);
     menuLayout->addWidget(dossao);
     menuLayout->addWidget(doanti);
     menuLayout->addWidget(dovdw);
@@ -215,32 +225,25 @@ void ImageViewer::reset_view()
     antialias = settings.value("antialias", false).toBool();
     settings.endGroup();
 
-    // reset state of checkable push buttons and combo box (after main layout is set up)
-    auto *lo = layout();
-    if (lo) {
-        // grab layout manager for the top bar
-        lo = lo->itemAt(0)->layout();
+    // reset state of checkable push buttons and combo box (if accessible)
 
-        auto *field = qobject_cast<QSpinBox *>(lo->itemAt(3)->widget());
-        field->setValue(xsize);
-        field = qobject_cast<QSpinBox *>(lo->itemAt(5)->widget());
-        field->setValue(ysize);
+    auto *field = findChild<QSpinBox *>("xsize");
+    if (field) field->setValue(xsize);
+    field = findChild<QSpinBox *>("ysize");
+    if (field) field->setValue(ysize);
 
-        auto *button = qobject_cast<QPushButton *>(lo->itemAt(6)->widget());
-        button->setChecked(usessao);
-        button = qobject_cast<QPushButton *>(lo->itemAt(7)->widget());
-        button->setChecked(antialias);
-        button = qobject_cast<QPushButton *>(lo->itemAt(8)->widget());
-        button->setChecked(vdwfactor > 1.0);
-        button = qobject_cast<QPushButton *>(lo->itemAt(9)->widget());
-        button->setChecked(showbox);
-        button = qobject_cast<QPushButton *>(lo->itemAt(10)->widget());
-        button->setChecked(showaxes);
-        // grab the last entry -> group selector
-        auto *cb = qobject_cast<QComboBox *>(lo->itemAt(lo->count() - 1)->widget());
-        cb->setCurrentText("all");
-        this->repaint();
-    }
+    auto *button = findChild<QPushButton *>("ssao");
+    if (button) button->setChecked(usessao);
+    button = findChild<QPushButton *>("antialias");
+    if (button) button->setChecked(antialias);
+    button = findChild<QPushButton *>("vdw");
+    if (button) button->setChecked(vdwfactor > 1.0);
+    button = findChild<QPushButton *>("box");
+    if (button) button->setChecked(showbox);
+    button = findChild<QPushButton *>("axes");
+    if (button) button->setChecked(showaxes);
+    auto *cb = findChild<QComboBox *>("combo");
+    if (cb) cb->setCurrentText("all");
     createImage();
 }
 
@@ -349,10 +352,9 @@ void ImageViewer::change_group(int idx)
 
 void ImageViewer::createImage()
 {
-    auto *lo = layout();
-    if (lo) lo = lo->itemAt(0)->layout();
-    if (lo) qobject_cast<QLabel *>(lo->itemAt(1)->widget())->setEnabled(true);
-    this->repaint();
+    QLabel *renderstatus = findChild<QLabel *>("renderstatus");
+    if (renderstatus) renderstatus->setEnabled(true);
+    repaint();
 
     QSettings settings;
     QString dumpcmd = QString("write_dump ") + group + " image ";
@@ -428,8 +430,8 @@ void ImageViewer::createImage()
     image = newImage.scaled(xsize, ysize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     imageLabel->setPixmap(QPixmap::fromImage(image));
     imageLabel->adjustSize();
-    if (lo) qobject_cast<QLabel *>(lo->itemAt(1)->widget())->setEnabled(false);
-    this->repaint();
+    if (renderstatus) renderstatus->setEnabled(false);
+    repaint();
 }
 
 void ImageViewer::saveAs()

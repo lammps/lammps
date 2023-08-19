@@ -1084,8 +1084,8 @@ void LammpsGui::preferences()
     QSettings settings;
     int oldthreads = settings.value("nthreads", 1).toInt();
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
-    int oldecho    = settings.value("echo", 0).toInt();
-    int oldcite    = settings.value("cite", 0).toInt();
+    bool oldecho    = settings.value("echo", 0).toBool();
+    bool oldcite    = settings.value("cite", 0).toBool();
 
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
@@ -1094,8 +1094,8 @@ void LammpsGui::preferences()
         // suffixes or package commands
         if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
             (oldthreads != settings.value("nthreads", 1).toInt()) ||
-            (oldecho != settings.value("echo", 0).toInt()) ||
-            (oldcite != settings.value("cite", 0).toInt())) {
+            (oldecho != settings.value("echo", 0).toBool()) ||
+            (oldcite != settings.value("cite", 0).toBool())) {
             if (lammps.is_running()) {
                 stop_run();
                 runner->wait();
@@ -1144,11 +1144,11 @@ void LammpsGui::start_lammps()
         lammps_args.push_back(mystrdup("-suffix"));
         lammps_args.push_back(mystrdup("kk"));
     }
-    if (settings.value("echo", "0").toInt()) {
+    if (settings.value("echo", "0").toBool()) {
         lammps_args.push_back(mystrdup("-echo"));
         lammps_args.push_back(mystrdup("screen"));
     }
-    if (settings.value("cite", "0").toInt()) {
+    if (settings.value("cite", "0").toBool()) {
         lammps_args.push_back(mystrdup("-cite"));
         lammps_args.push_back(mystrdup("screen"));
     }

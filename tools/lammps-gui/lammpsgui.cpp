@@ -23,11 +23,13 @@
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
+#include <QClipboard>
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
+#include <QGuiApplication>
 #include <QLabel>
 #include <QLocale>
 #include <QMessageBox>
@@ -957,6 +959,10 @@ void LammpsGui::about()
     } else {
         version += " - LAMMPS library linked to executable";
     }
+
+    QString to_clipboard(version.c_str());
+    to_clipboard += "\n\n";
+
     std::string info = "LAMMPS is currently running. LAMMPS config info not available.";
 
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
@@ -971,8 +977,12 @@ void LammpsGui::about()
         info       = std::string(info, start, end - start);
     }
 
+    to_clipboard += info.c_str();
+    QGuiApplication::clipboard()->setText(to_clipboard);
+    info += "(Note: this text has been copied to the clipboard)\n";
+
     QMessageBox msg;
-    msg.setWindowTitle("About LAMMPS-GUI");
+    msg.setWindowTitle("About LAMMPS");
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));

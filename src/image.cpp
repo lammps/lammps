@@ -929,6 +929,9 @@ void Image::compute_SSAO()
   int pixelstart = static_cast<int> (1.0*me/nprocs * npixels);
   int pixelstop = static_cast<int> (1.0*(me+1)/nprocs * npixels);
 
+#if defined(_OPENMP)
+#pragma omp parallel for
+#endif
   for (int index = pixelstart; index < pixelstop; index++) {
     int x = index % width;
     int y = index / width;

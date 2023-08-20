@@ -78,7 +78,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     QSettings settings;
 
-    vdwfactor = 0.4;
+    vdwfactor = 0.5;
     auto pix  = QPixmap(":/emblem-photos.png");
 
     auto *renderstatus = new QLabel(QString());
@@ -278,7 +278,7 @@ void ImageViewer::toggle_vdw()
 {
     QPushButton *button = qobject_cast<QPushButton *>(sender());
     if (vdwfactor > 1.0)
-        vdwfactor = 0.4;
+        vdwfactor = 0.5;
     else
         vdwfactor = 1.6;
     button->setChecked(vdwfactor > 1.0);
@@ -391,8 +391,12 @@ void ImageViewer::createImage()
     dumpcmd += QString(" size ") + QString::number(tmpxsize) + blank + QString::number(tmpysize);
     dumpcmd += QString(" zoom ") + QString::number(zoom);
     dumpcmd += " shiny 0.5 ";
-    if (nbondtypes > 0) dumpcmd += " bond atom 0.4 ";
-
+    if (nbondtypes > 0) {
+        if (vdwfactor > 1.0)
+            dumpcmd += " bond none none ";
+        else
+            dumpcmd += " bond atom 0.5 ";
+    }
     if (lammps->extract_setting("dimension") == 3) {
         dumpcmd += QString(" view ") + QString::number(hhrot) + blank + QString::number(vrot);
     }

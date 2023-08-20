@@ -103,7 +103,8 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
 
-    auto *dummy  = new QLabel(QString());
+    auto *dummy  = new QPushButton(QIcon(),"");
+    dummy->hide();
     auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
     dossao->setCheckable(true);
     dossao->setToolTip("Toggle SSAO rendering");

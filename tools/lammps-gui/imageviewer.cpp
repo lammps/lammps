@@ -361,7 +361,7 @@ void ImageViewer::createImage()
     QString dumpcmd = QString("write_dump ") + group + " image ";
     QDir dumpdir(QDir::tempPath());
     QFile dumpfile(dumpdir.absoluteFilePath(filename + ".ppm"));
-    dumpcmd += dumpfile.fileName();
+    dumpcmd += "'" + dumpfile.fileName() + "'";
 
     settings.beginGroup("snapshot");
     int aa       = antialias ? 2 : 1;

@@ -63,9 +63,11 @@ Description
 """""""""""
 
 Define a calculation that "reduces" one or more vector inputs into
-scalar values, one per listed input.  The inputs can be per-atom or
-local quantities and must all be the same kind (per-atom or local);
-see discussion of the optional *inputs* keyword below.
+scalar values, one per listed input.  For the compute reduce command,
+the inputs can be either per-atom or local quantities and must all be
+of the same kind (per-atom or local); see discussion of the optional
+*inputs* keyword below.  The compute reduce/region command can only be
+used with per-atom inputs.
 
 Atom attributes are per-atom quantities, :doc:`computes <compute>` and
 :doc:`fixes <fix>` can generate either per-atom or local quantities,
@@ -92,13 +94,13 @@ values.
 
 Each listed input is operated on independently.  For per-atom inputs,
 the group specified with this command means only atoms within the
-group contribute to the result.  For per-atom inputs, if the compute
-reduce/region command is used, the atoms must also currently be within
-the region.  Note that an input that produces per-atom quantities may
-define its own group which affects the quantities it returns.  For
-example, if a compute is used as an input which generates a per-atom
-vector, it will generate values of 0.0 for atoms that are not in the
-group specified for that compute.
+group contribute to the result.  Likewise for per-atom inputs, if the
+compute reduce/region command is used, the atoms must also currently
+be within the region.  Note that an input that produces per-atom
+quantities may define its own group which affects the quantities it
+returns.  For example, if a compute is used as an input which
+generates a per-atom vector, it will generate values of 0.0 for atoms
+that are not in the group specified for that compute.
 
 Each listed input can be an atom attribute (position, velocity, force
 component) or can be the result of a :doc:`compute <compute>` or
@@ -246,7 +248,9 @@ the quantities being reduced are in.
 
 Restrictions
 """"""""""""
- none
+
+As noted above, the compute reduce/region command can only be used
+with per-atom inputs.
 
 Related commands
 """"""""""""""""

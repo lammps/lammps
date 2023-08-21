@@ -91,7 +91,7 @@ private:
     int xsize, ysize;
     int hrot, vrot;
     double zoom, vdwfactor;
-    bool showbox, showaxes, antialias, usessao;
+    bool showbox, showaxes, antialias, usessao, useelements;
 };
 #endif
 

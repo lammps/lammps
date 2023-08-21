@@ -19,7 +19,6 @@ Examples
 
    read_restart save.10000
    read_restart restart.*
-   read_restart restart.*.mpiio
 
 Description
 """""""""""
@@ -119,22 +118,6 @@ the files.  The number of processors which created the set can be
 different the number of processors in the current LAMMPS simulation.
 This can be a fast mode of input on parallel machines that support
 parallel I/O.
-
-A restart file can also be read in parallel as one large binary file
-via the MPI-IO library, assuming it was also written with MPI-IO.
-MPI-IO is part of the MPI standard for versions 2.0 and above.  Using
-MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
-installed, e.g.
-
-.. code-block:: bash
-
-   make yes-mpiio    # installs the MPIIO package
-   make mpi          # build LAMMPS for your platform
-
-Second, use a restart filename which contains ".mpiio".  Note that it
-does not have to end in ".mpiio", just contain those characters.
-Unlike MPI-IO dump files, a particular restart file must be both
-written and read using MPI-IO.
 
 ----------
 
@@ -268,8 +251,7 @@ information about these bonds is written to the restart file.
 Restrictions
 """"""""""""
 
-To write and read restart files in parallel with MPI-IO, the MPIIO
-package must be installed.
+none
 
 Related commands
 """"""""""""""""

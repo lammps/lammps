@@ -58,7 +58,7 @@ static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), imageLabel(new QLabel), scrollArea(new QScrollArea), menuBar(new QMenuBar),
-    lammps(_lammps), group("all"), filename(fileName)
+    lammps(_lammps), group("all"), filename(fileName), useelements(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -194,8 +194,11 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     createActions();
 
     reset_view();
+    // layout has not yet be established, so we need to fix up some pushbutton
+    // properties directly since lookup in reset_view() will have failed
     dobox->setChecked(showbox);
     dovdw->setChecked(vdwfactor > 1.0);
+    dovdw->setEnabled(useelements);
     doaxes->setChecked(showaxes);
     dossao->setChecked(usessao);
     doanti->setChecked(antialias);
@@ -376,17 +379,26 @@ void ImageViewer::createImage()
     QString units    = (const char *)lammps->extract_global("units");
     QString elements = "element ";
     QString adiams;
-    bool unknown_elements = false;
+    useelements = false;
     if ((units == "real") || (units == "metal")) {
+        useelements = true;
         for (int i = 1; i <= ntypes; ++i) {
             int idx = get_pte_from_mass(masses[i]);
-            if (idx == 0) unknown_elements = true;
+            if (idx == 0) useelements = false;
             elements += QString(pte_label[idx]) + blank;
             adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * pte_vdw_radius[idx]);
         }
     }
-    // could not detect (some) elements. clear adiams string to disable VDW display
-    if (unknown_elements) adiams.clear();
+
+    // adjust pushbutton state and clear adiams string to disable VDW display, if needed
+    if (useelements) {
+        auto *button = findChild<QPushButton *>("vdw");
+        if (button) button->setEnabled(true);
+    } else {
+        adiams.clear();
+        auto *button = findChild<QPushButton *>("vdw");
+        if (button) button->setEnabled(false);
+    }
 
     if (!adiams.isEmpty())
         dumpcmd += blank + "element";

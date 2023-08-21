@@ -103,7 +103,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
 
-    auto *dummy  = new QPushButton(QIcon(),"");
+    auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
     auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
     dossao->setCheckable(true);
@@ -376,13 +376,17 @@ void ImageViewer::createImage()
     QString units    = (const char *)lammps->extract_global("units");
     QString elements = "element ";
     QString adiams;
+    bool unknown_elements = false;
     if ((units == "real") || (units == "metal")) {
         for (int i = 1; i <= ntypes; ++i) {
             int idx = get_pte_from_mass(masses[i]);
+            if (idx == 0) unknown_elements = true;
             elements += QString(pte_label[idx]) + blank;
             adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * pte_vdw_radius[idx]);
         }
     }
+    // could not detect (some) elements. clear adiams string to disable VDW display
+    if (unknown_elements) adiams.clear();
 
     if (!adiams.isEmpty())
         dumpcmd += blank + "element";

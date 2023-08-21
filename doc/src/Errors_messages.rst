@@ -7148,9 +7148,6 @@ keyword to allow for additional bonds to be formed
 *Read_dump xyz fields do not have consistent scaling/wrapping*
    Self-explanatory.
 
-*Reading from MPI-IO filename when MPIIO package is not installed*
-   Self-explanatory.
-
 *Reax_defs.h setting for NATDEF is too small*
    Edit the setting in the ReaxFF library and re-compile the
    library and re-build LAMMPS.
@@ -8488,9 +8485,6 @@ keyword to allow for additional bonds to be formed
 *Write_restart command before simulation box is defined*
    The write_restart command cannot be used before a read_data,
    read_restart, or create_box command.
-
-*Writing to MPI-IO filename when MPIIO package is not installed*
-   Self-explanatory.
 
 *Zero length rotation vector with displace_atoms*
    Self-explanatory.

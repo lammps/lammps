@@ -52,6 +52,17 @@ lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
 # removed in August 2023
+dump_atom_mpiio.cpp
+dump_atom_mpiio.h
+dump_cfg_mpiio.cpp
+dump_cfg_mpiio.h
+dump_custom_mpiio.cpp
+dump_custom_mpiio.h
+dump_xyz_mpiio.cpp
+dump_xyz_mpiio.h
+restart_mpiio.cpp
+restart_mpiio.h
+# removed on 3 August 2023
 fix_mscg.cpp
 fix_mscg.h
 # removed on 29 March 2023

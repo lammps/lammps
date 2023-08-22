@@ -1502,7 +1502,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         // equal-style variable is being evaluated
 
         if (style[ivar] == EQUAL) {
-          
+
           // c_ID = scalar from global scalar
 
           if (lowercase && nbracket == 0) {
@@ -1588,7 +1588,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // C_ID[i][j] = scalar element of per-atom array, note uppercase "C"
 
           } else if (!lowercase && nbracket == 2) {
-            
+
             if (!compute->peratom_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
             if (!compute->size_peratom_cols)
@@ -1612,13 +1612,13 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                              tree,treestack,ntreestack,argstack,nargstack);
 
           // no other possibilities for equal-style variable, so error
-            
+
           } else print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
 
         // vector-style variable is being evaluated
 
         } else if (style[ivar] == VECTOR) {
-            
+
           // c_ID = vector from global vector
 
           if (lowercase && nbracket == 0) {
@@ -1641,7 +1641,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             newtree->nvector = compute->size_vector;
             newtree->nstride = 1;
             treestack[ntreestack++] = newtree;
-            
+
           // c_ID[i] = vector from global array
 
           } else if (lowercase && nbracket == 1) {
@@ -1666,15 +1666,15 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             newtree->nvector = compute->size_array_rows;
             newtree->nstride = compute->size_array_cols;
             treestack[ntreestack++] = newtree;
-            
+
           // no other possibilities for vector-style variable, so error
-            
+
           } else print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
 
         // atom-style variable is being evaluated
 
         } else if (style[ivar] == ATOM) {
-            
+
           // c_ID = vector from per-atom vector
 
           if (lowercase && nbracket == 0) {
@@ -1696,7 +1696,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             newtree->array = compute->vector_atom;
             newtree->nstride = 1;
             treestack[ntreestack++] = newtree;
-            
+
           // c_ID[i] = vector from per-atom array
 
           } else if (lowercase && nbracket == 1) {
@@ -1724,10 +1724,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             treestack[ntreestack++] = newtree;
 
           // no other possibilities for atom-style variable, so error
-            
+
           } else print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
         }
-        
+
       // ----------------
       // fix
       // ----------------
@@ -1770,7 +1770,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         // equal-style variable is being evaluated
 
         if (style[ivar] == EQUAL) {
-          
+
           // f_ID = scalar from global scalar
 
           if (lowercase && nbracket == 0) {
@@ -1826,14 +1826,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (update->whichflag > 0 &&
                 update->ntimestep % fix->peratom_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
-            
+
             peratom2global(1,nullptr,fix->vector_atom,1,index1,tree,
                            treestack,ntreestack,argstack,nargstack);
 
           // F_ID[i][j] = scalar element of per-atom array, note uppercase "F"
 
           } else if (!lowercase && nbracket == 2) {
-            
+
             if (!fix->peratom_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
             if (!fix->size_peratom_cols)
@@ -1852,13 +1852,13 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                              tree,treestack,ntreestack,argstack,nargstack);
 
           // no other possibilities for equal-style variable, so error
-            
+
           } else print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
 
         // vector-style variable is being evaluated
 
         } else if (style[ivar] == VECTOR) {
-            
+
           // f_ID = vector from global vector
 
           if (lowercase && nbracket == 0) {
@@ -1875,7 +1875,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             memory->create(vec,nvec,"variable:values");
             for (int m = 0; m < nvec; m++)
               vec[m] = fix->compute_vector(m);
-            
+
             auto newtree = new Tree();
             newtree->type = VECTORARRAY;
             newtree->array = vec;
@@ -1883,7 +1883,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             newtree->nstride = 1;
             newtree->selfalloc = 1;
             treestack[ntreestack++] = newtree;
-            
+
           // f_ID[i] = vector from global array
 
           } else if (lowercase && nbracket == 1) {
@@ -1910,15 +1910,15 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             newtree->nstride = 1;
             newtree->selfalloc = 1;
             treestack[ntreestack++] = newtree;
-            
+
           // no other possibilities for vector-style variable, so error
-            
+
           } else print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
 
         // atom-style variable is being evaluated
 
         } else if (style[ivar] == ATOM) {
-            
+
           // f_ID = vector from per-atom vector
 
           if (lowercase && nbracket == 0) {
@@ -1935,7 +1935,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             newtree->array = fix->vector_atom;
             newtree->nstride = 1;
             treestack[ntreestack++] = newtree;
-            
+
           // f_ID[i] = vector from per-atom array
 
           } else if (lowercase && nbracket == 1) {
@@ -1958,7 +1958,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             treestack[ntreestack++] = newtree;
 
           // no other possibilities for atom-style variable, so error
-            
+
           } else print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
         }
 
@@ -2053,21 +2053,21 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Atom-style variable in equal-style variable formula",ivar);
             if (treetype == VECTOR)
               print_var_error(FLERR,"Atom-style variable in vector-style variable formula",ivar);
-            
+
             Tree *newtree = nullptr;
             evaluate(data[ivar][0],&newtree,ivar);
             treestack[ntreestack++] = newtree;
 
           // vector from atomfile-style variable
           // point to the values in FixStore instance
-            
+
           } else if (style[ivar] == ATOMFILE) {
 
             if (tree == nullptr)
               print_var_error(FLERR,"Atomfile-style variable in equal-style variable formula",ivar);
             if (treetype == VECTOR)
               print_var_error(FLERR,"Atomfile-style variable in vector-style variable formula",ivar);
-            
+
             auto newtree = new Tree();
             newtree->type = ATOMARRAY;
             newtree->array = reader[ivar]->fixstore->vstore;
@@ -2121,7 +2121,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                            tree,treestack,ntreestack,argstack,nargstack);
 
           // no other possibilities for variable with one bracket
-            
+
           } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
         }
 

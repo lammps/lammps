@@ -391,13 +391,13 @@ void ComputeVoronoi::checkOccupation()
 
   int i, j, k;
   double rx, ry, rz;
-  
+
   int nlocal = atom->nlocal;
   int nall = atom->nghost + nlocal;
   double **x = atom->x;
 
   // prepare destination buffer for variable evaluation
-  
+
   if (atom->nmax > lmax) {
     memory->destroy(lnext);
     lmax = atom->nmax;
@@ -432,7 +432,7 @@ void ComputeVoronoi::checkOccupation()
   }
 
   // MPI sum occupation
-  
+
 #ifdef NOTINPLACE
   memcpy(sendocc, occvec, oldnatoms*sizeof(*occvec));
   MPI_Allreduce(sendocc, occvec, oldnatoms, MPI_INT, MPI_SUM, world);
@@ -441,7 +441,7 @@ void ComputeVoronoi::checkOccupation()
 #endif
 
   // determine the total number of atoms in this atom's currently occupied cell
-  
+
   int c;
   for (i=0; i<oldnall; i++) { // loop over lroot (old voronoi cells)
     // count
@@ -464,7 +464,7 @@ void ComputeVoronoi::checkOccupation()
   // but take into account that new atoms might have been added to
   // the system, so we can only look up occupancy for tags that are
   // smaller or equal to the recorded largest tag.
-  
+
   for (i=0; i<nlocal; i++) {
     tagint mytag = atom->tag[i];
     if (mytag > oldmaxtag)
@@ -479,7 +479,7 @@ void ComputeVoronoi::checkOccupation()
 void ComputeVoronoi::loopCells()
 {
   // invoke voro++ and fetch results for owned atoms in group
-  
+
   voronoicell_neighbor c;
   int i;
   if (faces_flag) nfaces = 0;

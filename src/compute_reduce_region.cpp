@@ -61,7 +61,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   // initialization in case it has not yet been run, e.g. when
   // the compute was invoked right after it has been created
-  
+
   if ((val.which == ArgInfo::COMPUTE) || (val.which == ArgInfo::FIX)) {
     if (val.val.c == nullptr) init();
   }

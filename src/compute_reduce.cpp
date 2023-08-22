@@ -40,7 +40,7 @@ enum{UNDECIDED,PERATOM,LOCAL};    // same as in ComputeReduceRegion
 void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
-  
+
   double n = std::fabs(*(double *) in), r = *(double *) inout;
   double m;
 
@@ -55,7 +55,7 @@ void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 void abs_min(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
-  
+
   double n = std::fabs(*(double *) in), r = *(double *) inout;
   double m;
 
@@ -270,7 +270,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Compute {} compute {} does not calculate a per-atom array", style, val.id);
         if (val.argindex && val.argindex > val.val.c->size_peratom_cols)
           error->all(FLERR, "Compute {} compute {} array is accessed out-of-range", style, val.id);
-        
+
       } else if (input_mode == LOCAL) {
         if (!val.val.c->peratom_flag)
           error->all(FLERR, "Compute {} compute {} does not calculate local values", style, val.id);
@@ -295,7 +295,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Compute {} fix {} does not calculate a per-atom array", style, val.id);
         if (val.argindex && (val.argindex > val.val.f->size_peratom_cols))
           error->all(FLERR, "Compute {} fix {} array is accessed out-of-range", style, val.id);
-        
+
       } else if (input_mode == LOCAL) {
         if (!val.val.f->local_flag)
           error->all(FLERR, "Compute {} fix {} does not calculate local values", style, val.id);

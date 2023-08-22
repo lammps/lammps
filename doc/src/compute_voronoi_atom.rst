@@ -190,6 +190,10 @@ Voro++ software in the src/VORONOI/README file.
 Output info
 """""""""""
 
+.. deprecated:: TBD
+
+   The *peratom* keyword was removed as it is no longer required.
+
 This compute calculates a per-atom array with two columns. In regular
 dynamic tessellation mode the first column is the Voronoi volume, the
 second is the neighbor count, as described above (read above for the

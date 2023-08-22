@@ -26,8 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{UNDECIDED,PERATOM,LOCAL};    // same as in ComputeReduce
-
 static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */

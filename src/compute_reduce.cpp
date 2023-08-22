@@ -31,8 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{UNDECIDED,PERATOM,LOCAL};    // same as in ComputeReduceRegion
-
 #define BIG 1.0e20
 
 //----------------------------------------------------------------
@@ -232,6 +230,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Compute {} inputs must be all peratom or all local");
         input_mode = LOCAL;
       }
+      iarg += 2;
     } else
       error->all(FLERR, "Unknown compute {} keyword: {}", style, arg[iarg]);
   }

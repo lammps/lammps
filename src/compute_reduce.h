@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class ComputeReduce : public Compute {
  public:
   enum { SUM, SUMSQ, SUMABS, MINN, MAXX, AVE, AVESQ, AVEABS, MINABS, MAXABS };
-  enum { PERATOM, LOCAL };
+  enum { UNDECIDED, PERATOM, LOCAL };
 
   ComputeReduce(class LAMMPS *, int, char **);
   ~ComputeReduce() override;

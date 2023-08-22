@@ -63,9 +63,7 @@ undump          dlocal
 # TEST 2: 
 #
 
-# This compute voronoi generates  
-# local and global quantities, but
-# not per-atom quantities
+# This compute voronoi generates peratom and local and global quantities
 
 compute 	v2 all voronoi/atom neighbors yes edge_histo 6
 
@@ -83,6 +81,3 @@ thermo_style 	custom c_sumarea c_v2[3] c_v2[4] c_v2[5] c_v2[6] c_v2[7]
 thermo 		1
 
 run  		0
-
-
-

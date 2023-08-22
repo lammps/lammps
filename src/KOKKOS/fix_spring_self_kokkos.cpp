@@ -39,19 +39,29 @@ FixSpringSelfKokkos<DeviceType>::FixSpringSelfKokkos(LAMMPS *lmp, int narg, char
 {
   kokkosable = 1;
   exchange_comm_device = 1;
-  maxexchange = 6;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  memory->destroy(xoriginal);
+  xoriginal_tmp = xoriginal;
+  xoriginal = nullptr;
 
   int nmax = atom->nmax;
   grow_arrays(nmax);
 
-  d_count = typename AT::t_int_scalar("fix_shake:count");
+  for (int i = 0; i < atom->nlocal; i++) {
+    k_xoriginal.h_view(i,0) = xoriginal_tmp[i][0];
+    k_xoriginal.h_view(i,1) = xoriginal_tmp[i][1];
+    k_xoriginal.h_view(i,2) = xoriginal_tmp[i][2];
+  }
+
+  k_xoriginal.modify_host();
+
+  d_count = typename AT::t_int_scalar("spring/self:count");
   h_count = Kokkos::create_mirror_view(d_count);
+
+  memory->destroy(xoriginal_tmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,17 +91,15 @@ void FixSpringSelfKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
 {
-  atomKK->sync(execution_space, X_MASK | F_MASK | MASK_MASK);
+  atomKK->sync(execution_space, X_MASK | F_MASK | IMAGE_MASK | MASK_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   image = atomKK->k_image.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
-
   int nlocal = atom->nlocal;
 
   double espring_kk;
-
 
   copymode = 1;
   //Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixSpringSelfConstant>(0,nlocal),*this, espring_kk);

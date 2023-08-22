@@ -508,14 +508,14 @@ namespace ReaxFF {
 
             if ((j < ntypes) && (k < ntypes) && (l < ntypes) && (m < ntypes)) {
 
-              tor_flag[j][k][l][m] = tor_flag[m][l][k][j] = 1;
-              fbp[j][k][l][m].cnt  = fbp[m][l][k][j].cnt  = 1;
+              tor_flag[j][k][l][m] = tor_flag[m][l][k][j] = tor_flag[j][l][k][m] = tor_flag[m][k][l][j] =1; // have changed!
+              fbp[j][k][l][m].cnt  = fbp[m][l][k][j].cnt  = fbp[j][l][k][m].cnt  = fbp[m][k][l][j].cnt  =1;
 
-              fbp[j][k][l][m].prm[0].V1     = fbp[m][l][k][j].prm[0].V1     = val1;
-              fbp[j][k][l][m].prm[0].V2     = fbp[m][l][k][j].prm[0].V2     = val2;
-              fbp[j][k][l][m].prm[0].V3     = fbp[m][l][k][j].prm[0].V3     = val3;
-              fbp[j][k][l][m].prm[0].p_tor1 = fbp[m][l][k][j].prm[0].p_tor1 = val4;
-              fbp[j][k][l][m].prm[0].p_cot1 = fbp[m][l][k][j].prm[0].p_cot1 = val5;
+              fbp[j][k][l][m].prm[0].V1     = fbp[m][l][k][j].prm[0].V1     = fbp[j][l][k][m].prm[0].V1     = fbp[m][k][l][j].prm[0].V1     = val1;
+              fbp[j][k][l][m].prm[0].V2     = fbp[m][l][k][j].prm[0].V2     = fbp[j][l][k][m].prm[0].V2     = fbp[m][k][l][j].prm[0].V2     = val2;
+              fbp[j][k][l][m].prm[0].V3     = fbp[m][l][k][j].prm[0].V3     = fbp[j][l][k][m].prm[0].V3     = fbp[m][k][l][j].prm[0].V3     = val3;
+              fbp[j][k][l][m].prm[0].p_tor1 = fbp[m][l][k][j].prm[0].p_tor1 = fbp[j][l][k][m].prm[0].p_tor1 = fbp[m][k][l][j].prm[0].p_tor1 = val4;
+              fbp[j][k][l][m].prm[0].p_cot1 = fbp[m][l][k][j].prm[0].p_cot1 = fbp[j][l][k][m].prm[0].p_cot1 = fbp[m][k][l][j].prm[0].p_cot1 = val5;
             }
 
           } else { /* This means the entry is of the form 0-X-Y-0 */

@@ -1179,7 +1179,7 @@ table:
 | equal  | c_ID[I]    | element of global vector                 |
 | equal  | c_ID[I][J] | element of global array                  |
 | equal  | C_ID[I]    | element of per-atom vector (I = atom ID) |
-| equal  | C_ID{i}[J] | element of per-atom array (I = atom ID)  |
+| equal  | C_ID[I][J] | element of per-atom array (I = atom ID)  |
 +--------+------------+------------------------------------------+
 | vector | c_ID       | global vector                            |
 | vector | c_ID[I]    | column of global array                   |
@@ -1243,7 +1243,7 @@ and atom-style variables are listed in the following table:
 | equal  | f_ID[I]    | element of global vector                 |
 | equal  | f_ID[I][J] | element of global array                  |
 | equal  | F_ID[I]    | element of per-atom vector (I = atom ID) |
-| equal  | F_ID{i}[J] | element of per-atom array (I = atom ID)  |
+| equal  | F_ID[I][J] | element of per-atom array (I = atom ID)  |
 +--------+------------+------------------------------------------+
 | vector | f_ID       | global vector                            |
 | vector | f_ID[I]    | column of global array                   |

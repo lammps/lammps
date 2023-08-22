@@ -1997,7 +1997,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // scalar from internal-style variable
           // access value directly
 
-          if (style[ivar] = INTERNAL) {
+          if (style[ivar] == INTERNAL) {
 
             value1 = dvalue[ivar];
             if (tree) {

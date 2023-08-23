@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_wall_harmonic.h"
+#include "fix_wall_harmonic_returned.h"
 #include "atom.h"
 #include "error.h"
 
@@ -19,21 +19,28 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixWallHarmonic::FixWallHarmonic(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, narg, arg)
+FixWallHarmonicReturned::FixWallHarmonicReturned(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, narg, arg)
 {
   dynamic_group_allow = 1;
 }
 
 /* ----------------------------------------------------------------------
    interaction of all particles in group with a wall
+   recalling force applied if outside the control volume
+   and within the interaction cutoff
    m = index of wall coeffs
-   which = xlo,xhi,ylo,yhi,zlo,zhi
-   error if any particle is on or behind wall
+   which = 0,1,..,5 (xlo,xhi,ylo,yhi,zlo,zhi)
+   coord = 
+   dim = 0,1,2 (x,y,z)
+   side = -1,1 (low, high)
+   if side is the low boundary,
+   no error if any particle is on or above the wall
 ------------------------------------------------------------------------- */
 
-void FixWallHarmonic::wall_particle(int m, int which, double coord)
+
+void FixWallHarmonicReturned::wall_particle(int m, int which, double coord)
 {
-  double delta, dr, fwall;
+  double dr, fwall;
   double vn;
 
   double **x = atom->x;
@@ -45,33 +52,31 @@ void FixWallHarmonic::wall_particle(int m, int which, double coord)
   int side = which % 2;
   if (side == 0) side = -1;
 
-  int onflag = 0;
-
+  // iterate through the atoms owned by the proc
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
+      // calculate the distance (dr) of each atom from the wall
       if (side < 0)
-        delta = x[i][dim] - coord;
+        dr = coord - x[i][dim]; 
       else
-        delta = coord - x[i][dim];
-      if (delta >= cutoff[m]) continue;
-      if (delta <= 0.0) {
-        onflag = 1;
+        dr = x[i][dim] - coord; 
+      if (dr >= cutoff[m]) continue; // no force if above the interaction cutoff
+      if (dr <= 0.0) {
+        /* No force if the particle is inside the control volume */
         continue;
       }
-      dr = cutoff[m] - delta;
-      fwall = side * 2.0 * epsilon[m] * dr;
-      f[i][dim] -= fwall;
-      ewall[0] += epsilon[m] * dr * dr;
-      ewall[m + 1] += fwall;
+      fwall = side * 2.0 * epsilon[m] * dr; // calculate the simple harmonic force
+      f[i][dim] -= fwall; // apply the force over the atom in the same dimension as the wall
+      ewall[0] += epsilon[m] * dr * dr; // sum the energies of the walls for record
+      ewall[m + 1] += fwall; // sum the forces of the wall for record
 
       if (evflag) {
         if (side < 0)
-          vn = -fwall * delta;
+          vn = -fwall * dr;
         else
-          vn = fwall * delta;
+          vn = fwall * dr;
         v_tally(dim, i, vn);
       }
     }
 
-  if (onflag) error->one(FLERR, "Particle on or inside fix wall surface");
 }

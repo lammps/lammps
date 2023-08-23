@@ -674,7 +674,7 @@ void FixSRD::pre_neighbor()
           hi = nbin2z - 1;
         }
 
-        for (iz = lo; iz < hi; iz++)
+        for (iz = lo; iz <= hi; iz++)
           for (ix = 0; ix < nbin2x; ix++)
             for (iy = 0; iy < nbin2y; iy++) {
               ibin = iz * nbin2y * nbin2x + iy * nbin2x + ix;
@@ -1423,6 +1423,7 @@ void FixSRD::collisions_multi()
   tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  Big* bigfirst;
 
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
@@ -1443,8 +1444,8 @@ void FixSRD::collisions_multi()
         k = binbig[ibin][m];
         big = &biglist[k];
         j = big->index;
-        if (j == jlast) continue;
         type = big->type;
+        if ((j == jlast) && (type == typefirst)) continue;
 
         if (type == SPHERE)
           inside = inside_sphere(x[i], x[j], big);
@@ -1498,6 +1499,7 @@ void FixSRD::collisions_multi()
             t_first = t_remain;
             jfirst = j;
             typefirst = type;
+            bigfirst = big;
             xscollfirst[0] = xscoll[0];
             xscollfirst[1] = xscoll[1];
             xscollfirst[2] = xscoll[2];
@@ -1514,6 +1516,7 @@ void FixSRD::collisions_multi()
       if (t_first == 0.0) break;
       j = jlast = jfirst;
       type = typefirst;
+      big = bigfirst;
       xscoll[0] = xscollfirst[0];
       xscoll[1] = xscollfirst[1];
       xscoll[2] = xscollfirst[2];

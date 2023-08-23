@@ -38,11 +38,11 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeLocalCompAtom::ComputeLocalCompAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), result(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), result(nullptr)
 {
   if (narg < 3 || narg > 5) error->all(FLERR, "Illegal compute local/comp/atom command");
 
-  cutoff = 0.0;
+  cutsq = cutoff = 0.0;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -196,9 +196,7 @@ void ComputeLocalCompAtom::compute_peratom()
       // local comp fractions per element
 
       double lfac = 1.0 / count;
-      for (int n = 1;  n < size_peratom_cols; n++)
-        result[i][n+1] *= lfac;
-
+      for (int n = 1; n < size_peratom_cols; n++) result[i][n + 1] *= lfac;
     }
   }
 }

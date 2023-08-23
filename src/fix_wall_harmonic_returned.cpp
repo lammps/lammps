@@ -30,7 +30,7 @@ FixWallHarmonicReturned::FixWallHarmonicReturned(LAMMPS *lmp, int narg, char **a
    and within the interaction cutoff
    m = index of wall coeffs
    which = 0,1,..,5 (xlo,xhi,ylo,yhi,zlo,zhi)
-   coord = 
+   coord = wall coordinate on the dim
    dim = 0,1,2 (x,y,z)
    side = -1,1 (low, high)
    if side is the low boundary,
@@ -57,9 +57,9 @@ void FixWallHarmonicReturned::wall_particle(int m, int which, double coord)
     if (mask[i] & groupbit) {
       // calculate the distance (dr) of each atom from the wall
       if (side < 0)
-        dr = coord - x[i][dim]; 
+        dr = coord - x[i][dim];
       else
-        dr = x[i][dim] - coord; 
+        dr = x[i][dim] - coord;
       if (dr >= cutoff[m]) continue; // no force if above the interaction cutoff
       if (dr <= 0.0) {
         /* No force if the particle is inside the control volume */

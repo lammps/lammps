@@ -133,8 +133,6 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   // parse values
 
-  input_mode = UNDECIDED;
-
   values.clear();
   nvalues = 0;
   for (int iarg = 0; iarg < nargnew; ++iarg) {
@@ -144,41 +142,32 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     val.val.c = nullptr;
 
     if (strcmp(arg[iarg], "x") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::X;
       val.argindex = 0;
     } else if (strcmp(arg[iarg], "y") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::X;
       val.argindex = 1;
     } else if (strcmp(arg[iarg], "z") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::X;
       val.argindex = 2;
 
     } else if (strcmp(arg[iarg], "vx") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::V;
       val.argindex = 0;
     } else if (strcmp(arg[iarg], "vy") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::V;
       val.argindex = 1;
     } else if (strcmp(arg[iarg], "vz") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::V;
       val.argindex = 2;
 
     } else if (strcmp(arg[iarg], "fx") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::F;
       val.argindex = 0;
     } else if (strcmp(arg[iarg], "fy") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::F;
       val.argindex = 1;
     } else if (strcmp(arg[iarg], "fz") == 0) {
-      input_mode = PERATOM;
       val.which = ArgInfo::F;
       val.argindex = 2;
 
@@ -203,6 +192,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   nvalues = values.size();
   replace = new int[nvalues];
   for (int i = 0; i < nvalues; ++i) replace[i] = -1;
+  input_mode = PERATOM;
   std::string mycmd = "compute ";
   mycmd += style;
 
@@ -225,11 +215,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "inputs") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, mycmd + " inputs", error);
       if (strcmp(arg[iarg+1], "peratom") == 0) input_mode = PERATOM;
-      else if (strcmp(arg[iarg+1], "local") == 0) {
-        if (input_mode == PERATOM)
-          error->all(FLERR,"Compute {} inputs must be all peratom or all local");
-        input_mode = LOCAL;
-      }
+      else if (strcmp(arg[iarg+1], "local") == 0) input_mode = LOCAL;
       iarg += 2;
     } else
       error->all(FLERR, "Unknown compute {} keyword: {}", style, arg[iarg]);
@@ -255,7 +241,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
 
   for (auto &val : values) {
-    if (val.which == ArgInfo::COMPUTE) {
+    if (val.which == ArgInfo::X || val.which == ArgInfo::V || val.which == ArgInfo::F) {
+      if (input_mode == LOCAL) error->all(FLERR,"Compute {} inputs must be all local");
+      
+    } else if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
         error->all(FLERR, "Compute ID {} for compute {} does not exist", val.id, style);

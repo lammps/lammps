@@ -580,8 +580,8 @@
 /compute_ke_eff.h
 /compute_ke_rigid.cpp
 /compute_ke_rigid.h
-/compute_local_comp_atom.cpp
-/compute_local_comp_atom.h
+/compute_composition_atom.cpp
+/compute_composition_atom.h
 /compute_meso_e_atom.cpp
 /compute_meso_e_atom.h
 /compute_meso_rho_atom.cpp

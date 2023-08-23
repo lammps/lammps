@@ -4,6 +4,7 @@
 .. index:: fix wall/lj1043
 .. index:: fix wall/colloid
 .. index:: fix wall/harmonic
+.. index:: fix wall/harmonic/reversed
 .. index:: fix wall/lepton
 .. index:: fix wall/morse
 .. index:: fix wall/table
@@ -25,6 +26,9 @@ fix wall/colloid command
 fix wall/harmonic command
 =========================
 
+fix wall/harmonic/reversed command
+=========================
+
 fix wall/lepton command
 =========================
 
@@ -42,7 +46,7 @@ Syntax
    fix ID group-ID style [tabstyle] [N] face args ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *wall/lj93* or *wall/lj126* or *wall/lj1043* or *wall/colloid* or *wall/harmonic* or *wall/lepton* or *wall/morse* or *wall/table*
+* style = *wall/lj93* or *wall/lj126* or *wall/lj1043* or *wall/colloid* or *wall/harmonic* or *wall/harmonic/reversed* or *wall/lepton* or *wall/morse* or *wall/table*
 * tabstyle = *linear* or *spline* = method of table interpolation (only applies to *wall/table*)
 * N = use N values in *linear* or *spline* interpolation (only applies to *wall/table*)
 * one or more face/arg pairs may be appended
@@ -187,6 +191,9 @@ spring potential:
 
  E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
+For style *wall/harmonic/reversed*, the energy E is given by an attractive-only harmonic
+spring potential of the same form as *wall/harmonic*.
+
 For style *wall/morse*, the energy E is given by a Morse potential:
 
 .. math::
@@ -211,7 +218,7 @@ Optionally, the expression may use "rc" to refer to the cutoff distance
 for the given wall.  Further constants in the expression can be defined
 in the same string as additional expressions separated by semicolons.
 The expression "k*(r-rc)^2;k=100.0" represents a repulsive-only harmonic
-spring as in fix *wall/harmonic* with a force constant *K* (same as
+spring as in fix *wall/harmonic* or *wall/harmonic/reversed* with a force constant *K* (same as
 :math:`\epsilon` above) of 100 energy units.  More details on the Lepton
 expression strings are given below.
 
@@ -310,7 +317,8 @@ particle and a 3d half-lattice of Lennard-Jones 12/6 particles of size
 the density of particles in the wall and colloid can be different, as
 specified by the :math:`\epsilon` prefactor.
 
-For the *wall/harmonic* style, :math:`\epsilon` is effectively the spring
+For the *wall/harmonic* and *wall/harmonic/reversed* style,
+ :math:`\epsilon` is effectively the spring
 constant K, and has units (energy/distance\^2).  The input parameter
 :math:`\sigma` is ignored.  The minimum energy position of the harmonic
 spring is at the *cutoff*\ .  This is a repulsive-only spring since the

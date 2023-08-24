@@ -23,11 +23,13 @@
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
+#include <QClipboard>
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
+#include <QGuiApplication>
 #include <QLabel>
 #include <QLocale>
 #include <QMessageBox>
@@ -323,35 +325,35 @@ void LammpsGui::start_exe()
     QAction *act = qobject_cast<QAction *>(sender());
     if (act) {
         auto exe        = act->data().toString();
-        QString datacmd = "write_data ";
+        QString datacmd = "write_data '";
         QDir datadir(QDir::tempPath());
         QFile datafile(datadir.absoluteFilePath(current_file + ".data"));
-        datacmd += datafile.fileName();
+        datacmd += datafile.fileName() + "'";
         if (exe == "vmd") {
             QStringList args;
-            QFile vmdfile(datadir.absoluteFilePath(current_file + ".vmd"));
+            QFile vmdfile(datadir.absoluteFilePath("tmp-loader.vmd"));
             vmdfile.open(QIODevice::WriteOnly);
             vmdfile.write("package require topotools\n");
-            vmdfile.write("topo readlammpsdata ");
+            vmdfile.write("topo readlammpsdata {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write("\ntopo guessatom lammps data\n");
-            vmdfile.write("animate write psf ");
+            vmdfile.write("}\ntopo guessatom lammps data\n");
+            vmdfile.write("animate write psf {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write(".psf\nanimate write dcd ");
+            vmdfile.write(".psf}\nanimate write dcd {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write(".dcd\nmol delete top\nmol new ");
+            vmdfile.write(".dcd}\nmol delete top\nmol new {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write(".psf type psf waitfor all\nmol addfile ");
+            vmdfile.write(".psf} type psf waitfor all\nmol addfile {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write(".dcd type dcd waitfor all\nfile delete ");
+            vmdfile.write(".dcd} type dcd waitfor all\nfile delete {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write(" ");
+            vmdfile.write("} {");
             vmdfile.write(vmdfile.fileName().toLocal8Bit());
-            vmdfile.write(" ");
+            vmdfile.write("} {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write(".dcd ");
+            vmdfile.write(".dcd} {");
             vmdfile.write(datafile.fileName().toLocal8Bit());
-            vmdfile.write(".psf\n");
+            vmdfile.write(".psf}\n");
             vmdfile.close();
             args << "-e" << vmdfile.fileName();
             lammps.command(datacmd.toLocal8Bit());
@@ -957,6 +959,10 @@ void LammpsGui::about()
     } else {
         version += " - LAMMPS library linked to executable";
     }
+
+    QString to_clipboard(version.c_str());
+    to_clipboard += "\n\n";
+
     std::string info = "LAMMPS is currently running. LAMMPS config info not available.";
 
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
@@ -971,8 +977,12 @@ void LammpsGui::about()
         info       = std::string(info, start, end - start);
     }
 
+    to_clipboard += info.c_str();
+    QGuiApplication::clipboard()->setText(to_clipboard);
+    info += "(Note: this text has been copied to the clipboard)\n";
+
     QMessageBox msg;
-    msg.setWindowTitle("About LAMMPS-GUI");
+    msg.setWindowTitle("About LAMMPS");
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
@@ -1074,8 +1084,8 @@ void LammpsGui::preferences()
     QSettings settings;
     int oldthreads = settings.value("nthreads", 1).toInt();
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
-    int oldecho    = settings.value("echo", 0).toInt();
-    int oldcite    = settings.value("cite", 0).toInt();
+    bool oldecho    = settings.value("echo", 0).toBool();
+    bool oldcite    = settings.value("cite", 0).toBool();
 
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
@@ -1084,8 +1094,8 @@ void LammpsGui::preferences()
         // suffixes or package commands
         if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
             (oldthreads != settings.value("nthreads", 1).toInt()) ||
-            (oldecho != settings.value("echo", 0).toInt()) ||
-            (oldcite != settings.value("cite", 0).toInt())) {
+            (oldecho != settings.value("echo", 0).toBool()) ||
+            (oldcite != settings.value("cite", 0).toBool())) {
             if (lammps.is_running()) {
                 stop_run();
                 runner->wait();
@@ -1134,11 +1144,11 @@ void LammpsGui::start_lammps()
         lammps_args.push_back(mystrdup("-suffix"));
         lammps_args.push_back(mystrdup("kk"));
     }
-    if (settings.value("echo", "0").toInt()) {
+    if (settings.value("echo", "0").toBool()) {
         lammps_args.push_back(mystrdup("-echo"));
         lammps_args.push_back(mystrdup("screen"));
     }
-    if (settings.value("cite", "0").toInt()) {
+    if (settings.value("cite", "0").toBool()) {
         lammps_args.push_back(mystrdup("-cite"));
         lammps_args.push_back(mystrdup("screen"));
     }

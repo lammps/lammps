@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,9 +21,6 @@ ComputeStyle(pace,ComputePACE);
 #define LMP_COMPUTE_PACE_H
 
 #include "compute.h"
-#include "ace-evaluator/ace_c_basis.h"
-#include "ace-evaluator/ace_evaluator.h"
-#include "ace-evaluator/ace_abstract_basis.h"
 
 namespace LAMMPS_NS {
 
@@ -49,13 +46,12 @@ class ComputePACE : public Compute {
   int nelements, chemflag;
   int bikflag, bik_rows, dgradflag, dgrad_rows;
   double *cg;
-  class ACECTildeEvaluator *ace;
-  class ACECTildeBasisSet *basis_set;
   double cutmax;
   Compute *c_pe;
   Compute *c_virial;
 
   void dbdotr_compute();
+  struct ACECimpl *acecimpl;
 };
 
 }    // namespace LAMMPS_NS

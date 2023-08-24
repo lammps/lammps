@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.2.0 LANGUAGES CXX)
+project(lammps-gui VERSION 1.2.2 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -43,6 +43,7 @@ else()
       add_compile_options(/Zc:__cplusplus)
       add_compile_options(/wd4244)
       add_compile_options(/wd4267)
+      add_compile_options(/wd4250)
       if(LAMMPS_EXCEPTIONS)
         add_compile_options(/EHsc)
       endif()

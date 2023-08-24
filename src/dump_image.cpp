@@ -248,10 +248,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       int width = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       int height = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (width <= 0 || height <= 0)
-        error->all(FLERR,"Illegal dump image command");
-      image->width = width;
-      image->height = height;
+      if (width <= 0 || height <= 0) error->all(FLERR,"Illegal dump image command");
+      if (image->fsaa) {
+        image->width = width*2;
+        image->height = height*2;
+      } else {
+        image->width = width;
+        image->height = height;
+      }
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"view") == 0) {
@@ -343,6 +347,23 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (shiny < 0.0 || shiny > 1.0)
         error->all(FLERR,"Illegal dump image command");
       image->shiny = shiny;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"fsaa") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      int aa = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      if (aa) {
+        if (!image->fsaa) {
+          image->width = image->width*2;
+          image->height = image->height*2;
+        }
+      } else {
+        if (image->fsaa) {
+          image->width = image->width/2;
+          image->height = image->height/2;
+        }
+      }
+      image->fsaa = aa;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ssao") == 0) {

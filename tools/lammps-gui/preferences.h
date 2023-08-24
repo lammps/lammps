@@ -34,6 +34,7 @@ private slots:
 
 public:
     bool need_relaunch;
+
 private:
     QTabWidget *tabWidget;
     QDialogButtonBox *buttonBox;

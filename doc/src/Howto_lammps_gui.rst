@@ -65,12 +65,13 @@ Running LAMMPS
 ^^^^^^^^^^^^^^
 
 From within the LAMMPS GUI main window LAMMPS can be started either from
-the ``Run`` menu or by the hotkey `Ctrl-Enter` (`Command-Enter` on
-macOS).  LAMMPS is running in a separate thread, so the GUI will stay
-responsive and thus is capable to interact with the calculation and
-access its data.  It is important to note, that LAMMPS is using the
-contents of the input buffer for the run, **not** the file it was read
-from. If there are unsaved changes in the buffer, they *will* be used.
+the ``Run`` menu, by the hotkey `Ctrl-Enter` (`Command-Enter` on macOS),
+or by clicking on the green button in the status bar.  LAMMPS runs in a
+separate thread, so the GUI stays responsive and thus it is able to
+interact with the calculation and access its data.  It is important to
+note, that LAMMPS is using the contents of the input buffer for the run,
+**not** the file it was read from. If there are unsaved changes in the
+buffer, they *will* be used.
 
 .. image:: JPG/lammps-gui-running.png
    :align: center
@@ -82,48 +83,59 @@ contain the selected number of threads, if thread-parallel acceleration
 was selected in the ``Preferences`` dialog.  On the right side, a
 progress bar is shown that displays the estimated progress on the
 current :doc:`run command <run>`.  Additionally, two windows will open:
-the log window with the captured screen output and the chart window
-with a line graph created from the thermodynamic output of the run.
+the log window with the captured screen output and the chart window with
+a line graph created from the thermodynamic output of the run.
 
 The run can be stopped cleanly by using either the ``Stop LAMMPS`` entry
-in the ``Run`` menu or with the hotkey `Ctrl-/` (`Command-/` on macOS).
-This will cause that the running LAMMPS process will complete the
-current iteration and then stop. This is equivalent to the command
-`timer timeout 0 <timer>` and implemented by calling the
-:cpp:func:`lammps_force_timeout()` function of the LAMMPS C-library
-interface.
+in the ``Run`` menu, the hotkey `Ctrl-/` (`Command-/` on macOS), or
+clicking on the red button in the status bar.  This will cause that the
+running LAMMPS process will complete the current iteration and then
+stop.  This is equivalent to the command :doc:`timer timeout 0 <timer>`
+and implemented by calling the :cpp:func:`lammps_force_timeout()`
+function of the LAMMPS C-library interface.
 
 
 Viewing Snapshot Images
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-By selecting the ``View Image`` entry in the ``Run`` menu or by hitting
-the `Ctrl-I` (`Command-I` on macOS) hotkey, LAMMPS gui will issue a
+By selecting the ``View Image`` entry in the ``Run`` menu, by hitting
+the `Ctrl-I` (`Command-I` on macOS) hotkey or by clicking on the
+"palette" button in the status bar, LAMMPS GUI will issue a
 :doc:`write_dump image <dump_image>` command and read the resulting
-snapshot image into an image viewer window.
+snapshot image into an image viewer window.  When possible, LAMMPS
+GUI will try to detect which elements the atoms correspond to (via
+their mass) and then colorize them accordingly. Otherwise just some
+predefined sequence of colors are assigned to different atom types.
 
 .. image:: JPG/lammps-gui-image.png
    :align: center
    :scale: 50%
 
-The image size, some default image quality settings, and some colors
-can be changed in the ``Preferences`` dialog window.  From the image
-viewer window further adjustments can be made: high-quality rendering,
-anti-aliasing, display of box or axes, zoom factor. The the image can
-be rotated horizontally and vertically and it is possible to only
-display the atoms within a predefined group (default is "all").
-After each change, the image is rendered again and the display updated.
+The default image size, some default image quality settings, the view
+style and some colors can be changed in the ``Preferences`` dialog
+window.  From the image viewer window further adjustments can be made:
+actual image size, high-quality rendering, anti-aliasing, view style,
+display of box or axes, zoom factor. The the image can be rotated
+horizontally and vertically and it is possible to only display the atoms
+within a predefined group (default is "all").  After each change, the
+image is rendered again and the display updated.  The small palette icon
+on the top left will be colored while LAMMPS is running to render the
+image and it will be grayed out again, when it is done.  When there are
+many items to show and high quality images with anti-aliasing are
+requested, re-rendering can take several seconds.  From the ``File``
+menu, the shown image can be saved to a file permanently or copied into
+the cut-n-paste buffer for pasting into another application.
 
 
 Editor Functions
 ^^^^^^^^^^^^^^^^
 
-The editor has the usual functionality that similar programs have: text
-selection via mouse or with cursor moves while holding the Shift key,
-Cut, Copy, Paste, Undo, Redo.  All of these editing functions are available
-via hotkeys.  When trying to exit the editor with a modified buffer, a
-dialog will pop up asking whether to cancel the quit, or don't save or
-save the buffer's contents to a file.
+The editor has most the usual functionality that similar programs have:
+text selection via mouse or with cursor moves while holding the Shift
+key, Cut, Copy, Paste, Undo, Redo.  All of these editing functions are
+available via hotkeys.  When trying to exit the editor with a modified
+buffer, a dialog will pop up asking whether to cancel the quit, or don't
+save or save the buffer's contents to a file.
 
 Context Specific Help
 ^^^^^^^^^^^^^^^^^^^^^
@@ -285,8 +297,15 @@ General Settings:
 - *Replace image window on new render:* when checked, an existing
   chart window will be replaced when a new snapshot image is requested,
   otherwise each command will create a new image window.
+- *Path to LAMMPS Shared Library File:* this options is only available
+  when LAMMPS GUI was compiled to load the LAMMPS library at run time
+  instead of being linked to it directly.  With the ``Browse..`` button
+  or by changing the text, a different shared library file with a
+  different compilation of LAMMPS with different settings or from a
+  different version can be loaded.  After this setting was changed,
+  LAMMPS GUI needs to be re-launched.
 - *Select Default Font:* Opens a font selection dialog where the type
-  and size for the default font (used for everthing but the editor and
+  and size for the default font (used for everything but the editor and
   log) of the application can be set.
 - *Select Text Font:* Opens a font selection dialog where the type and
   size for the text editor and log font of the application can be set.
@@ -294,10 +313,10 @@ General Settings:
 Accelerators:
 ^^^^^^^^^^^^^
 
-This tab enables to select accelerator settings and is equivalent to
-using the `-suffix` and `-package` flags on the command line.  Only
-settings supported by the LAMMPS library and local hardware are
-available.  The `Number of threads` field allows to set the maximum
+This tab enables to select which accelerator package is used and is
+equivalent to using the `-suffix` and `-package` flags on the command
+line.  Only settings supported by the LAMMPS library and local hardware
+are available.  The `Number of threads` field allows to set the maximum
 number of threads for the accelerator packages that use threads.
 
 Snapshot Image:
@@ -306,14 +325,16 @@ Snapshot Image:
 This tab allows to set some defaults for the snapshot images displayed
 in the ``Image Viewer`` window, like its dimensions and the zoom factor
 applied.  The *Antialias* switch requests to render images with twice
-the number of pixels for width and height and then uses a bi-cubic
-scaling algorithm to rescale them back to the requested size.  This
-produces higher quality images with smoother edges at the expense of
-requiring more CPU time to render the image.  The *HQ Image mode* option
-turns on using a screen space ambient occlusion mode (SSAO) when
-rendering images.  This is also more time consuming, but produces a more
-'spatial' representation of the system.  Finally there are a couple of
-drop down lists to select the background and box color.
+the number of pixels for width and height and then smoothly scales the
+image back to the requested size.  This produces higher quality images
+with smoother edges at the expense of requiring more CPU time to render
+the image.  The *HQ Image mode* option turns on using a screen space
+ambient occlusion mode (SSAO) when rendering images.  This is also more
+time consuming, but produces a more 'spatial' representation of the
+system.  The *VDW Style* checkbox selects whether atoms are represented
+by space filling spheres when checked or by smaller spheres and stick.
+Finally there are a couple of drop down lists to select the background
+and box color.
 
 
 Hotkeys

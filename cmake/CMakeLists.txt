@@ -145,6 +145,7 @@ if(MSVC)
     add_compile_options(/Zc:__cplusplus)
     add_compile_options(/wd4244)
     add_compile_options(/wd4267)
+    add_compile_options(/wd4250)
     add_compile_options(/EHsc)
   endif()
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -268,7 +269,6 @@ set(STANDARD_PACKAGES
   MOFFF
   MOLECULE
   MOLFILE
-  MPIIO
   NETCDF
   ORIENT
   PERI
@@ -377,7 +377,6 @@ endif()
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
 pkg_depends(ML-IAP ML-SNAP)
-pkg_depends(MPIIO MPI)
 pkg_depends(ATC MANYBODY)
 pkg_depends(LATBOLTZ MPI)
 pkg_depends(SCAFACOS MPI)
@@ -388,6 +387,7 @@ pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
 pkg_depends(ELECTRODE KSPACE)
 pkg_depends(EXTRA-MOLECULE MOLECULE)
+pkg_depends(MESONT MOLECULE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -577,13 +577,6 @@ foreach(PKG ${STANDARD_PACKAGES})
   endif()
 
   RegisterPackages(${${PKG}_SOURCES_DIR})
-endforeach()
-
-# packages that need defines set
-foreach(PKG MPIIO)
-  if(PKG_${PKG})
-    target_compile_definitions(lammps PRIVATE -DLMP_${PKG})
-  endif()
 endforeach()
 
 # dedicated check for entire contents of accelerator packages

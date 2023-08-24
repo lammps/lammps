@@ -218,11 +218,11 @@ void FixEfieldKokkos<DeviceType>::post_force(int /*vflag*/)
         auto fx = qtmp * l_ex;
         auto fy = qtmp * l_ey;
         auto fz = qtmp * l_ez;
-        if (l_xstyle == ATOM) l_f(i,0) += l_d_efield(i,0);
+        if (l_xstyle == ATOM) l_f(i,0) += qtmp * l_d_efield(i,0);
         else if (l_xstyle) l_f(i,0) += fx;
-        if (l_ystyle == ATOM) l_f(i,1) += l_d_efield(i,1);
+        if (l_ystyle == ATOM) l_f(i,1) += qtmp * l_d_efield(i,1);
         else if (l_ystyle) l_f(i,1) += fy;
-        if (l_zstyle == ATOM) l_f(i,2) += l_d_efield(i,2);
+        if (l_zstyle == ATOM) l_f(i,2) += qtmp * l_d_efield(i,2);
         else if (l_zstyle) l_f(i,2) += fz;
         fsum_kk.d0 -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
         fsum_kk.d1 += fx;

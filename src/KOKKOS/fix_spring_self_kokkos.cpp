@@ -108,16 +108,17 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
   auto prd = Few<double,3>(domain->prd);
   auto h = Few<double,6>(domain->h);
   auto triclinic = domain->triclinic;
-  auto l_xflag = xflag;
-  auto l_yflag = yflag;
-  auto l_zflag = zflag;
   auto l_k = k;
-  auto l_x = x;
   auto l_xoriginal = d_xoriginal;
+
+  auto l_x = x;
   auto l_f = f;
   auto l_mask = mask;
   auto l_image = image;
   auto l_groupbit = groupbit;
+  auto l_xflag = xflag;
+  auto l_yflag = yflag;
+  auto l_zflag = zflag;
 
   Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(const int& i, double& espring_kk) {
     if (l_mask[i] & l_groupbit) {
@@ -154,9 +155,24 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
 template<class DeviceType>
 void FixSpringSelfKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  memoryKK->grow_kokkos(k_xoriginal,xoriginal,nmax,3,"spring/self:xoriginal");
+  memoryKK->grow_kokkos(k_xoriginal,xoriginal,nmax,"spring/self:xoriginal");
   d_xoriginal = k_xoriginal.view<DeviceType>();
 }
+
+/* ----------------------------------------------------------------------
+   copy values within local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixSpringSelfKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+{
+  k_xoriginal.sync_host();
+
+  FixSpringSelf::copy_arrays(i,j,delflag);
+
+  k_xoriginal.modify_host();
+}
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -202,7 +218,7 @@ int FixSpringSelfKokkos<DeviceType>::pack_exchange_kokkos(
   d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
   this->nsend = nsend;
 
-  
+
   k_xoriginal.template sync<DeviceType>();
 
   Kokkos::deep_copy(d_count,0);

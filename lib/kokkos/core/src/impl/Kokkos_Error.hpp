@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_ERROR_HPP
 #define KOKKOS_IMPL_ERROR_HPP
@@ -58,10 +30,6 @@
 #include <SYCL/Kokkos_SYCL_Abort.hpp>
 #endif
 
-#ifndef KOKKOS_ABORT_MESSAGE_BUFFER_SIZE
-#define KOKKOS_ABORT_MESSAGE_BUFFER_SIZE 2048
-#endif  // ifndef KOKKOS_ABORT_MESSAGE_BUFFER_SIZE
-
 namespace Kokkos {
 namespace Impl {
 
@@ -69,8 +37,7 @@ namespace Impl {
 
 #if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)
 
-#if defined(__APPLE__) || defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-// cuda_abort does not abort when building for macOS.
+#if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
 // required to workaround failures in random number generator unit tests with
 // pre-volta architectures
 #define KOKKOS_IMPL_ABORT_NORETURN
@@ -89,7 +56,7 @@ namespace Impl {
 #elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
 // FIXME_SYCL SYCL doesn't abort
 #define KOKKOS_IMPL_ABORT_NORETURN
-#elif !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#elif !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(KOKKOS_ENABLE_OPENACC)
 // Host aborts
 #define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
 #else
@@ -97,14 +64,18 @@ namespace Impl {
 #define KOKKOS_IMPL_ABORT_NORETURN
 #endif
 
-#ifdef KOKKOS_ENABLE_SYCL  // FIXME_SYCL
+// FIXME_SYCL
+// Accomodate host pass for device functions that are not [[noreturn]]
+#if defined(KOKKOS_ENABLE_SYCL) || \
+    (defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK))
 #define KOKKOS_IMPL_ABORT_NORETURN_DEVICE
 #else
 #define KOKKOS_IMPL_ABORT_NORETURN_DEVICE KOKKOS_IMPL_ABORT_NORETURN
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) ||          \
+    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET) || \
+    defined(KOKKOS_ENABLE_OPENACC)
 KOKKOS_IMPL_ABORT_NORETURN_DEVICE inline KOKKOS_IMPL_DEVICE_FUNCTION void
 device_abort(const char *const msg) {
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -113,8 +84,8 @@ device_abort(const char *const msg) {
   ::Kokkos::Impl::hip_abort(msg);
 #elif defined(KOKKOS_ENABLE_SYCL)
   ::Kokkos::Impl::sycl_abort(msg);
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  printf("%s", msg);  // FIXME_OPENMPTARGET
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_OPENACC)
+  printf("%s", msg);  // FIXME_OPENMPTARGET FIXME_OPENACC
 #else
 #error faulty logic
 #endif
@@ -186,8 +157,7 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
 
   ~RawMemoryAllocationFailure() noexcept override = default;
 
-  KOKKOS_ATTRIBUTE_NODISCARD
-  const char *what() const noexcept override {
+  [[nodiscard]] const char *what() const noexcept override {
     if (m_failure_mode == FailureMode::OutOfMemoryError) {
       return "Memory allocation error: out of memory";
     } else if (m_failure_mode == FailureMode::AllocationNotAligned) {
@@ -197,23 +167,24 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
     return nullptr;  // unreachable
   }
 
-  KOKKOS_ATTRIBUTE_NODISCARD
-  size_t attempted_size() const noexcept { return m_attempted_size; }
+  [[nodiscard]] size_t attempted_size() const noexcept {
+    return m_attempted_size;
+  }
 
-  KOKKOS_ATTRIBUTE_NODISCARD
-  size_t attempted_alignment() const noexcept { return m_attempted_alignment; }
+  [[nodiscard]] size_t attempted_alignment() const noexcept {
+    return m_attempted_alignment;
+  }
 
-  KOKKOS_ATTRIBUTE_NODISCARD
-  AllocationMechanism allocation_mechanism() const noexcept {
+  [[nodiscard]] AllocationMechanism allocation_mechanism() const noexcept {
     return m_mechanism;
   }
 
-  KOKKOS_ATTRIBUTE_NODISCARD
-  FailureMode failure_mode() const noexcept { return m_failure_mode; }
+  [[nodiscard]] FailureMode failure_mode() const noexcept {
+    return m_failure_mode;
+  }
 
   void print_error_message(std::ostream &o) const;
-  KOKKOS_ATTRIBUTE_NODISCARD
-  std::string get_error_message() const;
+  [[nodiscard]] std::string get_error_message() const;
 
   virtual void append_additional_error_information(std::ostream &) const {}
 };

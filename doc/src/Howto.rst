@@ -100,6 +100,7 @@ Tutorials howto
 
    Howto_cmake
    Howto_github
+   Howto_lammps_gui
    Howto_pylammps
    Howto_wsl
 

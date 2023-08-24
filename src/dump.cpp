@@ -120,8 +120,6 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
 
   char *ptr;
   if ((ptr = strchr(filename,'%'))) {
-    if (strstr(style,"mpiio"))
-      error->all(FLERR,"Dump file MPI-IO output not allowed with % in filename");
     multiproc = 1;
     nclusterprocs = 1;
     filewriter = 1;

@@ -417,7 +417,7 @@ void FixElectrodeConp::post_constructor()
   input->variable->set(fmt::format("{} equal f_{}[{}]", var_vtop, fixname, 1 + top_group));
   input->variable->set(fmt::format("{} equal (v_{}-v_{})/lz", var_efield, var_vbot, var_vtop));
   // check for other efields and warn if found
-  if (modify->get_fix_by_style("efield").size() > 0 && comm->me == 0)
+  if (modify->get_fix_by_style("^efield").size() > 0 && comm->me == 0)
     error->warning(FLERR, "Other efield fixes found -- please make sure this is intended!");
   // call fix command:
   // fix [varstem]_efield all efield 0.0 0.0 [var_vdiff]/lz

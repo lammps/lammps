@@ -1,20 +1,20 @@
-.. index:: compute local/comp/atom
-.. index:: compute local/comp/atom/kk
+.. index:: compute composition/atom
+.. index:: compute composition/atom/kk
 
-compute local/comp/atom command
-===============================
+compute composition/atom command
+================================
 
-Accelerator Variants: *local/comp/atom/kk*
+Accelerator Variants: *composition/atom/kk*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID local/comp/atom keyword values ...
+   compute ID group-ID composition/atom keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* local/comp/atom = style name of this compute command
+* composition/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
 
   .. parsed-literal::
@@ -27,9 +27,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all local/comp/atom
+   compute 1 all composition/atom
 
-   compute 1 all local/comp/atom cutoff 9.0
+   compute 1 all composition/atom cutoff 9.0
    comm_modify cutoff 9.0
 
 

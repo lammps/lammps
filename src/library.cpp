@@ -628,16 +628,9 @@ executing.
 void lammps_commands_string(void *handle, const char *str)
 {
   auto lmp = (LAMMPS *) handle;
-
-  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
-  int n = strlen(str);
-  char *ptr, *copy = new char[n+1];
-
-  for (ptr = copy; *str != '\0'; ++str) {
-    if ((str[0] == '\r') && (str[1] == '\n')) continue;
-    *ptr++ = *str;
-  }
-  *ptr = '\0';
+  std::string cmd;
+  bool append = false;
+  bool triple = false;
 
   BEGIN_CAPTURE
   {
@@ -645,27 +638,30 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    n = strlen(copy);
-    ptr = copy;
-    for (int i=0; i < n; ++i) {
+    // process continuation characters and here docs
+    for (const auto &line : utils::split_lines(str)) {
+      if (append || triple)
+        cmd += line;
+      else
+        cmd = line;
 
-      // handle continuation character as last character in line or string
-      if ((copy[i] == '&') && (copy[i+1] == '\n'))
-        copy[i+1] = copy[i] = ' ';
-      else if ((copy[i] == '&') && (copy[i+1] == '\0'))
-        copy[i] = ' ';
+      if (utils::strmatch(line, "\"\"\".*\"\"\"")) {
+        triple = false;
+      } else if (utils::strmatch(line, "\"\"\"")) {
+        triple = !triple;
+      }
+      if (triple) cmd += '\n';
 
-      if (copy[i] == '\n') {
-        copy[i] = '\0';
-        lmp->input->one(ptr);
-        ptr = copy + i+1;
-      } else if (copy[i+1] == '\0')
-        lmp->input->one(ptr);
+      if (!triple && utils::strmatch(cmd, "&$")) {
+        append = true;
+        cmd.back() = ' ';
+      } else append = false;
+
+      if (!append && !triple)
+        lmp->input->one(cmd.c_str());
     }
   }
   END_CAPTURE
-
-  delete[] copy;
 }
 
 // -----------------------------------------------------------------------

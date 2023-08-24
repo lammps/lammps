@@ -90,9 +90,9 @@ The run can be stopped cleanly by using either the ``Stop LAMMPS`` entry
 in the ``Run`` menu, the hotkey `Ctrl-/` (`Command-/` on macOS), or
 clicking on the red button in the status bar.  This will cause that the
 running LAMMPS process will complete the current iteration and then
-stop.  This is equivalent to the command `timer timeout 0 <timer>` and
-implemented by calling the :cpp:func:`lammps_force_timeout()` function
-of the LAMMPS C-library interface.
+stop.  This is equivalent to the command :doc:`timer timeout 0 <timer>`
+and implemented by calling the :cpp:func:`lammps_force_timeout()`
+function of the LAMMPS C-library interface.
 
 
 Viewing Snapshot Images

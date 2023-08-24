@@ -12,6 +12,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(MSVC)
   add_compile_options(/wd4244)
   add_compile_options(/wd4267)
+  add_compile_options(/wd4250)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 

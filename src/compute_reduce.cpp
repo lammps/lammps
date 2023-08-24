@@ -243,7 +243,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   for (auto &val : values) {
     if (val.which == ArgInfo::X || val.which == ArgInfo::V || val.which == ArgInfo::F) {
       if (input_mode == LOCAL) error->all(FLERR,"Compute {} inputs must be all local");
-      
+
     } else if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)

@@ -127,7 +127,7 @@ struct _liblammpsplugin {
 
   void (*error)(void *, int, const char *);
 
-  void (*file)(void *, char *);
+  void (*file)(void *, const char *);
   char *(*command)(void *, const char *);
   void (*commands_list)(void *, int, const char **);
   void (*commands_string)(void *, const char *);

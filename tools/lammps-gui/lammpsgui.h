@@ -77,7 +77,6 @@ private slots:
     void paste();
     void undo();
     void redo();
-    void clear();
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
 

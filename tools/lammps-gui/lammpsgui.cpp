@@ -855,7 +855,6 @@ void LammpsGui::do_run(bool use_buffer)
     status->repaint();
     start_lammps();
     if (!lammps.is_open()) return;
-    clear();
     capturer->BeginCapture();
 
     runner     = new LammpsRunner(this);
@@ -944,11 +943,6 @@ void LammpsGui::render_image()
         return;
     }
     imagewindow->show();
-}
-
-void LammpsGui::clear()
-{
-    ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
 }
 
 void LammpsGui::view_chart()

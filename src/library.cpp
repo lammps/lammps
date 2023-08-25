@@ -49,6 +49,7 @@
 #include "respa.h"
 #include "thermo.h"
 #include "timer.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
@@ -644,6 +645,7 @@ void lammps_commands_string(void *handle, const char *str)
 
     std::size_t cursor = 0;
     int nline = -1;
+    std::string label;
 
     // split buffer into lines, set line number, process continuation characters, and here docs
 
@@ -677,8 +679,29 @@ void lammps_commands_string(void *handle, const char *str)
         cmd.back() = ' ';
       } else append = false;
 
-      if (!append && !triple)
+      auto words = Tokenizer(cmd).as_vector();
+      if (!label.empty()) {
+        // skip lines until label command found
+        if ((words.size() == 2) && (words[0] == "label") && (words[1] == label)) {
+          label.clear();
+        } else continue;
+      }
+
+      if (!append && !triple) {
+        // need to handle jump command here
+        if ((words.size() == 3) && (words[0] == "jump")) {
+          if (words[1] != "SELF")
+            lmp->error->all(FLERR, "May only use jump SELF with command string buffer ");
+          // emulate jump command unless with need to skip it
+          if (!lmp->input->get_jump_skip()) {
+            label = words[2];
+            cursor = 0;
+            nline = -1;
+            continue;
+          }
+        }
         lmp->input->one(cmd.c_str());
+      }
     }
   }
   END_CAPTURE

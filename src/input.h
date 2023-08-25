@@ -39,6 +39,7 @@ class Input : protected Pointers {
   char *one(const std::string &);                          // process a single command
   void substitute(char *&, char *&, int &, int &, int);    // substitute for variables in a string
   void write_echo(const std::string &);                    // send text to active echo file pointers
+  int get_jump_skip() const { return jump_skip; }
 
  protected:
   char *command;      // ptr to current command

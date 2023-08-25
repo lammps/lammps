@@ -57,6 +57,9 @@ using namespace LAMMPS_NS;
 #define DELTALINE 256
 #define DELTA 4
 
+// maximum nesting level of input files
+static constexpr int LMP_MAXFILE = 16;
+
 /* ----------------------------------------------------------------------
    one instance per command in style_command.h
 ------------------------------------------------------------------------- */
@@ -118,9 +121,9 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 
   if (me == 0) {
     nfile = 1;
-    maxfile = 16;
-    infiles = new FILE *[maxfile];
+    infiles = new FILE *[LMP_MAXFILE];
     infiles[0] = infile;
+    inlines = new int[LMP_MAXFILE];
   } else infiles = nullptr;
 
   variable = new Variable(lmp);
@@ -190,6 +193,7 @@ of the file is reached.  The *infile* pointer will usually point to
 void Input::file()
 {
   int m,n,mstart,ntriple,endfile;
+  int nline = *output->thermo->get_line();
 
   while (true) {
 
@@ -245,9 +249,12 @@ void Input::file()
         m--;
         while (m >= 0 && isspace(line[m])) m--;
 
-        // continue reading if final printable char is "&"
+        // continue reading if final printable char is "&", count line
 
-        if (m >= 0 && line[m] == '&') continue;
+        if (m >= 0 && line[m] == '&') {
+          ++nline;
+          continue;
+        }
 
         // continue reading if odd number of triple quotes
 
@@ -264,6 +271,7 @@ void Input::file()
         break;
       }
     }
+    output->thermo->set_line(++nline);
 
     // bcast the line
     // if n = 0, end-of-file
@@ -301,6 +309,7 @@ void Input::file()
 
     if (execute_command() && line)
       error->all(FLERR,"Unknown command: {}",line);
+    nline = *output->thermo->get_line();
   }
 }
 
@@ -327,12 +336,14 @@ void Input::file(const char *filename)
   // call to file() will close filename and decrement nfile
 
   if (me == 0) {
-    if (nfile == maxfile) error->one(FLERR,"Too many nested levels of input scripts");
+    if (nfile == LMP_MAXFILE) error->one(FLERR,"Too many nested levels of input scripts");
 
     if (filename) {
       infile = fopen(filename,"r");
       if (infile == nullptr)
         error->one(FLERR,"Cannot open input script {}: {}", filename, utils::getsyserror());
+      if (nfile > 0) inlines[nfile - 1] = *output->thermo->get_line();
+      inlines[nfile] = -1;
       infiles[nfile++] = infile;
     }
   }
@@ -346,6 +357,7 @@ void Input::file(const char *filename)
       fclose(infile);
       nfile--;
       infile = infiles[nfile-1];
+      output->thermo->set_line(inlines[nfile-1]);
     }
   }
 }
@@ -869,6 +881,7 @@ int Input::execute_command()
 void Input::clear()
 {
   if (narg > 0) error->all(FLERR,"Illegal clear command: unexpected arguments but found {}", narg);
+  output->thermo->set_line(-1);
   lmp->destroy();
   lmp->create();
   lmp->post_create();
@@ -1015,7 +1028,7 @@ void Input::include()
   if (narg != 1) error->all(FLERR,"Illegal include command");
 
   if (me == 0) {
-    if (nfile == maxfile)
+    if (nfile == LMP_MAXFILE)
       error->one(FLERR,"Too many nested levels of input scripts");
 
     // expand variables
@@ -1054,14 +1067,15 @@ void Input::jump()
   }
 
   if (me == 0) {
-    if (strcmp(arg[0],"SELF") == 0) rewind(infile);
-    else {
+    output->thermo->set_line(-1);
+    if (strcmp(arg[0],"SELF") == 0) {
+      rewind(infile);
+    } else {
       if (infile && infile != stdin) fclose(infile);
       infile = fopen(arg[0],"r");
       if (infile == nullptr)
-        error->one(FLERR,"Cannot open input script {}: {}",
-                                     arg[0], utils::getsyserror());
-
+        error->one(FLERR,"Cannot open input script {}: {}", arg[0], utils::getsyserror());
+      inlines[nfile-1] = -1;
       infiles[nfile-1] = infile;
     }
   }
@@ -1914,7 +1928,9 @@ void Input::thermo_modify()
 
 void Input::thermo_style()
 {
+  int nline = *output->thermo->get_line();
   output->create_thermo(narg,arg);
+  output->thermo->set_line(nline);
 }
 
 /* ---------------------------------------------------------------------- */

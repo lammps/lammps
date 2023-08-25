@@ -20,7 +20,7 @@
 namespace LAMMPS_NS {
 
 class Thermo : protected Pointers {
-  friend class MinCG;              // accesses compute_pe
+  friend class MinCG;    // accesses compute_pe
 
  public:
   char *style;
@@ -44,9 +44,12 @@ class Thermo : protected Pointers {
 
   // for accessing cached thermo data
   const int *get_nfield() const { return &nfield; }
+  const int *get_line() const { return &nline; }
   const bigint *get_timestep() const { return &ntimestep; }
   const std::vector<multitype> &get_fields() const { return field_data; }
   const std::vector<std::string> &get_keywords() const { return keyword; }
+
+  void set_line(int _nline) { nline = _nline; }
 
  private:
   int nfield, nfield_initial;
@@ -71,6 +74,7 @@ class Thermo : protected Pointers {
 
   bigint natoms;
   bigint ntimestep;
+  int nline;
 
   // data used by routines that compute single values
   int ivalue;          // integer value to print

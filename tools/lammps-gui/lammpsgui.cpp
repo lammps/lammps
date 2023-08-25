@@ -922,7 +922,7 @@ void LammpsGui::do_run(bool use_buffer)
 
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(50);
+    logupdater->start(100);
 }
 
 void LammpsGui::render_image()

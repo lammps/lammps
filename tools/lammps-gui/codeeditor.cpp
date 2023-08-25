@@ -96,7 +96,18 @@ void CodeEditor::setFont(const QFont &newfont)
 
 void CodeEditor::setHighlight(int block)
 {
-    highlight = block;
+    highlight   = block;
+
+    // also move cursor to current position
+    auto cursor = textCursor();
+    int moves   = block - cursor.blockNumber();
+    if (moves < 0)
+        cursor.movePosition(QTextCursor::Up, QTextCursor::MoveAnchor, -moves);
+    else
+        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, moves);
+    setTextCursor(cursor);
+
+    // update graphics
     repaint();
 }
 

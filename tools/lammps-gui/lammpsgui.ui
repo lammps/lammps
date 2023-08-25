@@ -68,6 +68,7 @@
      <string>&amp;Run</string>
     </property>
     <addaction name="actionRun_Buffer"/>
+    <addaction name="actionRun_File"/>
     <addaction name="actionStop_LAMMPS"/>
     <addaction name="separator"/>
     <addaction name="actionSet_Variables"/>
@@ -215,10 +216,21 @@
     <iconset theme=":/system-run.png"/>
    </property>
    <property name="text">
-    <string>&amp;Run LAMMPS</string>
+    <string>&amp;Run LAMMPS from Editor Buffer</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Return</string>
+   </property>
+  </action>
+  <action name="actionRun_File">
+   <property name="icon">
+    <iconset theme=":/run-file.png"/>
+   </property>
+   <property name="text">
+    <string>&amp;Run LAMMPS from File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Return</string>
    </property>
   </action>
   <action name="actionStop_LAMMPS">

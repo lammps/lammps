@@ -147,6 +147,17 @@ void LammpsWrapper::command(const char *input)
     }
 }
 
+void LammpsWrapper::file(const char *filename)
+{
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        ((liblammpsplugin_t *)plugin_handle)->file(lammps_handle, filename);
+#else
+        lammps_file(lammps_handle, filename);
+#endif
+    }
+}
+
 void LammpsWrapper::commands_string(const char *input)
 {
     if (lammps_handle) {

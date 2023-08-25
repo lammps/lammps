@@ -211,6 +211,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionUndo, &QAction::triggered, this, &LammpsGui::undo);
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
+    connect(ui->actionRun_File, &QAction::triggered, this, &LammpsGui::run_file);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
     connect(ui->actionSet_Variables, &QAction::triggered, this, &LammpsGui::edit_variables);
     connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::render_image);
@@ -810,13 +811,34 @@ void LammpsGui::run_done()
     dirstatus->show();
 }
 
-void LammpsGui::run_buffer()
+void LammpsGui::do_run(bool use_buffer)
 {
     if (lammps.is_running()) {
         QMessageBox::warning(this, "LAMMPS GUI Error",
                              "Must stop current run before starting a new run");
         return;
     }
+
+    if (!use_buffer && ui->textEdit->document()->isModified()) {
+        QMessageBox msg;
+        msg.setWindowTitle("Unsaved Changes");
+        msg.setWindowIcon(windowIcon());
+        msg.setText(QString("The buffer ") + current_file + " has changes");
+        msg.setInformativeText("Do you want to save the buffer before running LAMMPS?");
+        msg.setIcon(QMessageBox::Question);
+        msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        int rv = msg.exec();
+        switch (rv) {
+            case QMessageBox::Yes:
+                save();
+                break;
+            case QMessageBox::Cancel: // falthrough
+            default:
+                return;
+                break;
+        }
+    }
+
     QSettings settings;
     progress->setValue(0);
     dirstatus->hide();
@@ -836,12 +858,17 @@ void LammpsGui::run_buffer()
     clear();
     capturer->BeginCapture();
 
-    // always add final newline since the text edit widget does not
-    char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
-    is_running  = true;
+    runner     = new LammpsRunner(this);
+    is_running = true;
+    if (use_buffer) {
+        // always add final newline since the text edit widget does not
+        char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
+        runner->setup_run(&lammps, input, nullptr);
+    } else {
+        char *fname = mystrdup(current_file.toStdString());
+        runner->setup_run(&lammps, nullptr, fname);
+    }
 
-    runner = new LammpsRunner(this);
-    runner->setup_run(&lammps, input);
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
     runner->start();
@@ -852,8 +879,12 @@ void LammpsGui::run_buffer()
     logwindow->setReadOnly(true);
     logwindow->setCenterOnScroll(true);
     logwindow->moveCursor(QTextCursor::End);
-    logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
-                              current_file);
+    if (use_buffer)
+        logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
+                                  current_file);
+    else
+        logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on file - " +
+                                  current_file);
     logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     QFont text_font;
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
@@ -872,8 +903,12 @@ void LammpsGui::run_buffer()
     // if configured, delete old log window before opening new one
     if (settings.value("chartreplace", false).toBool()) delete chartwindow;
     chartwindow = new ChartWindow(current_file);
-    chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on buffer - " +
-                                current_file);
+    if (use_buffer)
+        chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on buffer - " +
+                                    current_file);
+    else
+        chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on file - " +
+                                    current_file);
     chartwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     chartwindow->setMinimumSize(400, 300);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), chartwindow);
@@ -1092,8 +1127,8 @@ void LammpsGui::preferences()
     QSettings settings;
     int oldthreads = settings.value("nthreads", 1).toInt();
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
-    bool oldecho    = settings.value("echo", 0).toBool();
-    bool oldcite    = settings.value("cite", 0).toBool();
+    bool oldecho   = settings.value("echo", 0).toBool();
+    bool oldcite   = settings.value("cite", 0).toBool();
 
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {

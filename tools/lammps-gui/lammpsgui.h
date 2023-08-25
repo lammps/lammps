@@ -60,6 +60,7 @@ protected:
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
     void update_variables();
+    void do_run(bool use_buffer);
     void start_lammps();
     void run_done();
 
@@ -77,7 +78,9 @@ private slots:
     void undo();
     void redo();
     void clear();
-    void run_buffer();
+    void run_buffer() { do_run(true); }
+    void run_file() { do_run(false); }
+
     void stop_run();
     void edit_variables();
     void render_image();

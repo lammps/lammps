@@ -23,6 +23,7 @@ public:
     void close();
     void finalize();
 
+    void file(const char *);
     void command(const char *);
     void commands_string(const char *);
 

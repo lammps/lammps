@@ -636,6 +636,7 @@ void lammps_commands_string(void *handle, const char *str)
   bool append = false;
   bool triple = false;
   if (str) buffer = str;
+  buffer += '\n';
 
   BEGIN_CAPTURE
   {
@@ -655,7 +656,8 @@ void lammps_commands_string(void *handle, const char *str)
       cursor = buffer.find('\n', start);
       if (cursor != std::string::npos) {
         line = buffer.substr(start, cursor-start);
-        std::replace(line.begin(), line.end(), '\r', ' ');
+        auto start_erase = std::remove(line.begin(), line.end(), '\r');
+        line.erase(start_erase, line.end());
         ++cursor;
         lmp->output->thermo->set_line(nline);
       } else {

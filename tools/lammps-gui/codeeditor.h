@@ -40,7 +40,6 @@ protected:
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
-    void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rect, int dy);
     void get_help();
     void find_help(QString &page, QString &help);

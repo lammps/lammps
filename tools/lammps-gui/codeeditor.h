@@ -14,6 +14,7 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
+#include <QFont>
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QShortcut>
@@ -27,6 +28,7 @@ public:
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
+    void setFont(const QFont &newfont);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

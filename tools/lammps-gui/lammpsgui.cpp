@@ -189,7 +189,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     text_font.setStyleHint(QFont::Monospace, QFont::PreferOutline);
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
     settings.setValue("textfont", text_font.toString());
-    ui->textEdit->document()->setDefaultFont(text_font);
+    ui->textEdit->setFont(text_font);
     ui->textEdit->setMinimumSize(600, 400);
 
     update_recents();

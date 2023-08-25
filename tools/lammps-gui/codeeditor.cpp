@@ -88,6 +88,12 @@ int CodeEditor::lineNumberAreaWidth()
     return space;
 }
 
+void CodeEditor::setFont(const QFont &newfont)
+{
+    lineNumberArea->setFont(newfont);
+    document()->setDefaultFont(newfont);
+}
+
 void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
 {
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);

@@ -617,10 +617,10 @@ combined by removing the '&' and the following newline character.  After
 this processing the string is handed to LAMMPS for parsing and
 executing.
 
-.. note::
+.. versionadded:: TBD
 
-   Multi-line commands enabled by triple quotes will NOT work with
-   this function.
+   The command is now able to process long strings with triple quotes and
+   loops using :doc:`jump SELF \<label\> <jump>`.
 
 \endverbatim
  *

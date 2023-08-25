@@ -1433,6 +1433,7 @@ void FixSRD::collisions_multi()
 
     ibounce = 0;
     jlast = -1;
+    typefirst = -1;
     dt = dt_big;
 
     while (true) {

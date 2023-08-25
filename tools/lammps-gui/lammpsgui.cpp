@@ -659,6 +659,13 @@ void LammpsGui::logupdate()
         t_remain  = lammps.get_thermo("cpuremain");
         t_total   = t_elapsed + t_remain + 1.0e-10;
         completed = t_elapsed / t_total * 1000.0;
+
+        int nline = -1;
+        void *ptr = lammps.last_thermo("line", 0);
+        if (ptr) {
+            nline = *((int *)ptr);
+            ui->textEdit->setHighlight(nline);
+        }
     }
 
     progress->setValue(completed);
@@ -747,6 +754,7 @@ void LammpsGui::run_done()
     delete logupdater;
     logupdater = nullptr;
     progress->setValue(1000);
+    ui->textEdit->setHighlight(-1);
 
     capturer->EndCapture();
     auto log = capturer->GetCapture();

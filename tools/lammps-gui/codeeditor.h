@@ -29,6 +29,7 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
     void setFont(const QFont &newfont);
+    void setHighlight(int block);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -48,6 +49,7 @@ private slots:
 private:
     QWidget *lineNumberArea;
     QShortcut *help_action;
+    int highlight;
 
     QMap<QString, QString> cmd_map;
     QMap<QString, QString> fix_map;

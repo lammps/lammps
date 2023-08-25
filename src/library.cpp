@@ -18,6 +18,7 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
+#include <algorithm>
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
@@ -627,10 +628,13 @@ executing.
 
 void lammps_commands_string(void *handle, const char *str)
 {
+  if (!handle) return;
+
   auto lmp = (LAMMPS *) handle;
-  std::string cmd;
+  std::string cmd, line, buffer;
   bool append = false;
   bool triple = false;
+  if (str) buffer = str;
 
   BEGIN_CAPTURE
   {
@@ -638,8 +642,24 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    // process continuation characters and here docs
-    for (const auto &line : utils::split_lines(str)) {
+    std::size_t cursor = 0;
+    int nline = -1;
+
+    // split buffer into lines, set line number, process continuation characters, and here docs
+
+    while (cursor < buffer.size()) {
+      ++ nline;
+      std::size_t start = cursor;
+      cursor = buffer.find('\n', start);
+      if (cursor != std::string::npos) {
+        line = buffer.substr(start, cursor-start);
+        std::replace(line.begin(), line.end(), '\r', ' ');
+        ++cursor;
+        lmp->output->thermo->set_line(nline);
+      } else {
+        line = buffer;
+      }
+
       if (append || triple)
         cmd += line;
       else

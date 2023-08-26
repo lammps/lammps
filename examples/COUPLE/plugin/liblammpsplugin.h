@@ -155,6 +155,7 @@ struct _liblammpsplugin {
   void *(*extract_variable)(void *, const char *, char *);
   int (*extract_variable_datatype)(void *, const char *);
   int (*set_variable)(void *, char *, char *);
+  int (*variable_info)(void *, int, char *, int);
 
   void (*gather_atoms)(void *, const char *, int, int, void *);
   void (*gather_atoms_concat)(void *, const char *, int, int, void *);

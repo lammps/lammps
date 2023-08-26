@@ -2460,6 +2460,42 @@ int lammps_set_variable(void *handle, char *name, char *str)
   return err;
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+/** Retrieve informational string for a variable.
+ *
+ * .. versionadded:: TBD
+ *
+ * This function copies a string with human readable information about
+ * a defined variable: name, style, current value(s) into the provided
+ * C-style string buffer.  That is the same info as produced by the
+ * :doc:`info variables <info>` command. The length of the buffer must
+ * be provided as *buf_size* argument.  If the info exceeds the length
+ * of the buffer, it will be truncated accordingly.  If the index is
+ * out of range, the function returns 0 and *buffer* is set to an empty
+ * string, otherwise 1.
+ *
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx      index of the variable (0 <= idx < nvar)
+ * \param buffer   string buffer to copy the info to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0  */
+
+int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
+  auto lmp = (LAMMPS *) handle;
+  Info info(lmp);
+  auto varinfo = info.get_variable_info(idx);
+
+  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+    strncpy(buffer, varinfo.c_str(), buf_size);
+    return 1;
+  }
+
+  buffer[0] = '\0';
+  return 0;
+}
+
 // ----------------------------------------------------------------------
 // Library functions for scatter/gather operations of data
 // ----------------------------------------------------------------------

@@ -97,6 +97,19 @@ int LammpsWrapper::id_name(const char *keyword, int idx, char *buf, int len)
     return val;
 }
 
+int LammpsWrapper::variable_info(int idx, char *buf, int len)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->variable_info(lammps_handle, idx, buf, len);
+#else
+        val = lammps_variable_info(lammps_handle, idx, buf, len);
+#endif
+    }
+    return val;
+}
+
 double LammpsWrapper::get_thermo(const char *keyword)
 {
     double val = 0.0;

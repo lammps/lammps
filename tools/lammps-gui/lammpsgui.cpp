@@ -97,7 +97,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
     logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr),
-    lammpsstatus(nullptr)
+    lammpsstatus(nullptr), varwindow(nullptr)
 {
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
@@ -192,6 +192,19 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->textEdit->setFont(text_font);
     ui->textEdit->setMinimumSize(600, 400);
 
+    varwindow = new QLabel(QString());
+    varwindow->setWindowTitle("LAMMPS-GUI - Current Variables:");
+    varwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    varwindow->setMinimumSize(100, 50);
+    varwindow->setText("(none)");
+    varwindow->setFont(text_font);
+    varwindow->setFrameStyle(QFrame::Sunken);
+    varwindow->setFrameShape(QFrame::Panel);
+    varwindow->setAlignment(Qt::AlignVCenter);
+    varwindow->setContentsMargins(5, 5, 5, 5);
+    varwindow->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    varwindow->hide();
+
     update_recents();
 
     // check if we have OVITO and VMD installed and deacivate actions if not
@@ -226,6 +239,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
     connect(ui->actionView_Image_Window, &QAction::triggered, this, &LammpsGui::view_image);
+    connect(ui->actionView_Variable_Window, &QAction::triggered, this, &LammpsGui::view_variables);
     connect(ui->action_1, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_2, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_3, &QAction::triggered, this, &LammpsGui::open_recent);
@@ -292,6 +306,7 @@ LammpsGui::~LammpsGui()
     delete imagewindow;
     delete chartwindow;
     delete dirstatus;
+    delete varwindow;
 }
 
 void LammpsGui::new_document()
@@ -669,6 +684,20 @@ void LammpsGui::logupdate()
             nline = *((int *)ptr);
             ui->textEdit->setHighlight(nline, false);
         }
+
+        if (varwindow) {
+            int nvar = lammps.id_count("variable");
+            char buffer[200];
+            QString varinfo("\n");
+            for (int i = 0; i < nvar; ++i) {
+                lammps.variable_info(i, buffer, 200);
+                varinfo += buffer;
+            }
+            if (nvar == 0) varinfo += "  (none)  ";
+
+            varwindow->setText(varinfo);
+            varwindow->adjustSize();
+        }
     }
 
     progress->setValue(completed);
@@ -988,6 +1017,17 @@ void LammpsGui::view_image()
             imagewindow->hide();
         } else {
             imagewindow->show();
+        }
+    }
+}
+
+void LammpsGui::view_variables()
+{
+    if (varwindow) {
+        if (varwindow->isVisible()) {
+            varwindow->hide();
+        } else {
+            varwindow->show();
         }
     }
 }

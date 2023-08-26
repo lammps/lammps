@@ -27,6 +27,7 @@
 
 class GeneralTab;
 class LammpsRunner;
+class LogWindow;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -86,6 +87,7 @@ private slots:
     void view_image();
     void view_chart();
     void view_log();
+    void view_variables();
     void about();
     void help();
     void manual();
@@ -102,7 +104,7 @@ private:
     Highlighter *highlighter;
     StdCapture *capturer;
     QLabel *status;
-    QPlainTextEdit *logwindow;
+    LogWindow *logwindow;
     ImageViewer *imagewindow;
     ChartWindow *chartwindow;
     QTimer *logupdater;
@@ -110,6 +112,7 @@ private:
     QProgressBar *progress;
     Preferences *prefdialog;
     QLabel *lammpsstatus;
+    QLabel *varwindow;
 
     QString current_file;
     QString current_dir;

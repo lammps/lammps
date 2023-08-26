@@ -93,6 +93,7 @@
     <addaction name="actionView_Log_Window"/>
     <addaction name="actionView_Graph_Window"/>
     <addaction name="actionView_Image_Window"/>
+    <addaction name="actionView_Variable_Window"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -411,6 +412,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+V</string>
+   </property>
+  </action>
+  <action name="actionView_Variable_Window">
+   <property name="icon">
+    <iconset theme=":/preferences-desktop-personal.png"/>
+   </property>
+   <property name="text">
+    <string>&amp;Variables Window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+W</string>
    </property>
   </action>
   <action name="actionLAMMPS_GUI_Howto">

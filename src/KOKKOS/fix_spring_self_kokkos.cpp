@@ -101,8 +101,11 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
 
   double espring_kk;
 
+  k_xoriginal.modify<LMPHostType>();
+  k_xoriginal.sync<DeviceType>();
+
   copymode = 1;
-  //Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixSpringSelfConstant>(0,nlocal),*this, espring_kk);
+
   {
   // local variables for lambda capture
   auto prd = Few<double,3>(domain->prd);
@@ -172,7 +175,6 @@ void FixSpringSelfKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 
   k_xoriginal.modify_host();
 }
-
 
 /* ---------------------------------------------------------------------- */
 

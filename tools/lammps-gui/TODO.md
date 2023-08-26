@@ -6,9 +6,8 @@ LAMMPS-GUI TODO list:
   handle first part of line based on regular expressions, then advance and only highlight strings and numbers.
   handle "&" continuation and multiline strings with """ like C style comments in Qt docs example
 - add "syntax check" with enabled "-skiprun" flag
-- need to handle "label" and "jump" commands from within ?
 - switch input file editor to read-only while loop is running
-- triple quoted heredocs don't work with lammps_commands_string()
+- add slideshow of images from dump image commands in the input
 
 # Long term ideas
 - rewrite entire application to build the App and its layout manually

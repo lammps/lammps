@@ -3895,7 +3895,8 @@ int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
         // guess a somewhat reasonable initial velocity based on reaction site
         // further control is possible using bond_react_MASTER_group
         // compute |velocity| corresponding to a given temperature t, using specific atom's mass
-        double vtnorm = sqrt(t / (force->mvv2e / (dimension * force->boltz)) / atom->mass[twomol->type[m]]);
+        double mymass = atom->rmass ? atom->rmass[n] : atom->mass[twomol->type[m]];
+        double vtnorm = sqrt(t / (force->mvv2e / (dimension * force->boltz)) / mymass);
         v[n][0] = random[rxnID]->uniform();
         v[n][1] = random[rxnID]->uniform();
         v[n][2] = random[rxnID]->uniform();

@@ -261,6 +261,7 @@ void Input::file()
         if (ntriple % 2) {
           line[m+1] = '\n';
           m += 2;
+          ++nline;
           continue;
         }
 

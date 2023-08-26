@@ -651,7 +651,7 @@ void lammps_commands_string(void *handle, const char *str)
     // split buffer into lines, set line number, process continuation characters, and here docs
 
     while (cursor < buffer.size()) {
-      ++ nline;
+      ++nline;
       std::size_t start = cursor;
       cursor = buffer.find('\n', start);
       if (cursor != std::string::npos) {

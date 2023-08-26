@@ -827,11 +827,10 @@ void FixBondReact::init()
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // check cutoff for iatomtype,jatomtype
-  for (int i = 0; i < nreacts; i++) {
-    if (!utils::strmatch(force->pair_style,"^hybrid"))
-      if (force->pair == nullptr || cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]])
+  if (!utils::strmatch(force->pair_style,"^hybrid"))
+    for (int i = 0; i < nreacts; i++)
+      if (force->pair == nullptr || (closeneigh[i] < 0 && cutsq[i][1] > force->pair->cutsq[iatomtype[i]][jatomtype[i]]))
         error->all(FLERR,"Fix bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
-  }
 
   // need a half neighbor list, built every Nevery steps
   neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);

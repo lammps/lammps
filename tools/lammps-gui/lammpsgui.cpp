@@ -504,6 +504,7 @@ void LammpsGui::open_file(const QString &fileName)
                 break;
         }
     }
+    ui->textEdit->setHighlight(CodeEditor::NO_HIGHLIGHT, false);
 
     QFileInfo path(fileName);
     current_file = path.fileName();
@@ -527,6 +528,7 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->document()->setModified(false);
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
+    status->setText("Ready.");
 
     update_variables();
 }
@@ -665,7 +667,7 @@ void LammpsGui::logupdate()
         void *ptr = lammps.last_thermo("line", 0);
         if (ptr) {
             nline = *((int *)ptr);
-            ui->textEdit->setHighlight(nline);
+            ui->textEdit->setHighlight(nline, false);
         }
     }
 
@@ -755,7 +757,7 @@ void LammpsGui::run_done()
     delete logupdater;
     logupdater = nullptr;
     progress->setValue(1000);
-    ui->textEdit->setHighlight(-1);
+    ui->textEdit->setHighlight(CodeEditor::NO_HIGHLIGHT, false);
 
     capturer->EndCapture();
     auto log = capturer->GetCapture();
@@ -800,13 +802,19 @@ void LammpsGui::run_done()
         success = false;
     }
 
+    int nline = CodeEditor::NO_HIGHLIGHT;
+    void *ptr = lammps.last_thermo("line", 0);
+    if (ptr) nline = *((int *)ptr);
+
     if (success) {
         status->setText("Ready.");
     } else {
         status->setText("Failed.");
+        ui->textEdit->setHighlight(nline, true);
         QMessageBox::critical(this, "LAMMPS-GUI Error",
                               QString("Error running LAMMPS:\n\n") + errorbuf);
     }
+    ui->textEdit->setCursor(nline);
     progress->hide();
     dirstatus->show();
 }

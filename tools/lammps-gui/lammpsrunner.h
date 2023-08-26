@@ -42,7 +42,7 @@ public:
     {
         lammps = _lammps;
         input  = _input;
-        file = _file;
+        file   = _file;
         lammps->command("clear");
     }
 

@@ -29,7 +29,10 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
     void setFont(const QFont &newfont);
-    void setHighlight(int block);
+    void setCursor(int block);
+    void setHighlight(int block, bool error);
+
+    static constexpr int NO_HIGHLIGHT = 1 << 30;
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

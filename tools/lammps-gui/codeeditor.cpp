@@ -28,7 +28,7 @@
 #include <QTextBlock>
 #include <QUrl>
 
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent), highlight(-1)
+CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
@@ -94,11 +94,9 @@ void CodeEditor::setFont(const QFont &newfont)
     document()->setDefaultFont(newfont);
 }
 
-void CodeEditor::setHighlight(int block)
+void CodeEditor::setCursor(int block)
 {
-    highlight   = block;
-
-    // also move cursor to current position
+    // move cursor to given position
     auto cursor = textCursor();
     int moves   = block - cursor.blockNumber();
     if (moves < 0)
@@ -106,6 +104,17 @@ void CodeEditor::setHighlight(int block)
     else
         cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, moves);
     setTextCursor(cursor);
+}
+
+void CodeEditor::setHighlight(int block, bool error)
+{
+    if (error)
+        highlight = -block;
+    else
+        highlight = block;
+
+    // also reset the cursor
+    setCursor(block);
 
     // update graphics
     repaint();
@@ -173,12 +182,17 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1) + " ";
-            if ((highlight < 0) || (blockNumber != highlight)) {
+            if ((highlight == NO_HIGHLIGHT) || (blockNumber != std::abs(highlight))) {
                 painter.setPen(Qt::black);
             } else {
                 number = QString(">") + QString::number(blockNumber + 1) + "<";
-                painter.fillRect(0, top, lineNumberArea->width(), fontMetrics().height(),
-                                 Qt::darkRed);
+                if (highlight < 0)
+                    painter.fillRect(0, top, lineNumberArea->width(), fontMetrics().height(),
+                                     Qt::darkRed);
+                else
+                    painter.fillRect(0, top, lineNumberArea->width(), fontMetrics().height(),
+                                     Qt::darkGreen);
+
                 painter.setPen(Qt::white);
             }
             painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),

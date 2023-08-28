@@ -127,6 +127,8 @@ action fix_dt_reset_kokkos.cpp
 action fix_dt_reset_kokkos.h
 action fix_enforce2d_kokkos.cpp
 action fix_enforce2d_kokkos.h
+action fix_efield_kokkos.cpp
+action fix_efield_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h
 action fix_freeze_kokkos.cpp fix_freeze.cpp
@@ -171,6 +173,8 @@ action fix_shake_kokkos.cpp fix_shake.cpp
 action fix_shake_kokkos.h fix_shake.h
 action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
+action fix_spring_self_kokkos.cpp
+action fix_spring_self_kokkos.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp

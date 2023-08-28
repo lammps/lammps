@@ -210,7 +210,7 @@ void PairYukawaColloidKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 }
 
-
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
@@ -227,11 +227,10 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
                                      : params(itype,jtype).a;
 
-  // U   = a * exp(-kappa*r-(radi+radj)) / kappa
-  // f   = a * exp(-kappa*r)
+  // U   = a * exp(-kappa*(r-(radi+radj))) / kappa
+  // f   = -dU/dr = a * exp(-kappa*r)
   // f/r = a * exp(-kappa*r) / r
   const F_FLOAT rinv = 1.0 / rr;
-  const F_FLOAT rinv2 = rinv*rinv;
   const F_FLOAT screening = exp(-kappa*(rr-(radi+radj)));
   const F_FLOAT forceyukawa = aa * screening;
   const F_FLOAT fpair = forceyukawa * rinv;
@@ -255,7 +254,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT offset = STACKPARAMS ? m_params[itype][jtype].offset
                                      : params(itype,jtype).offset;
 
-  // U   = a * exp(-kappa*r) / kappa
+  // U   = a * exp(-kappa*(r-(radi+radj))) / kappa
   const F_FLOAT rinv = 1.0 / rr;
   const F_FLOAT screening = exp(-kappa*(rr-(radi+radj)));
 

@@ -587,28 +587,30 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
 
           energy[cfi] = utils::numeric(FLERR,words[index+2],false,lmp);
         }
-
+        
         // find the word containing "stress"
 
         it = std::find_if(words.begin(), words.end(), [](const std::string& str) { return str.find("tress") != std::string::npos; });
 
-        // get index of element from iterator
-
+        // get index of element from iterator        
+        
         index = std::distance(words.begin(), it);
+        
+        if (index < std::distance(words.begin(), words.end())) {                          
+          if (words[index].find("=") != std::string::npos) {
 
-        if (words[index].find("=") != std::string::npos) {
+            // stress numbers start at index + 1
 
-          // stress numbers start at index + 1
+            for (int k = 0; k < 9; k++) {
+              stress[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
+            }
+          } else {
 
-          for (int k = 0; k < 9; k++) {
-            stress[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
-          }
-        } else {
+            // lattice numbers start at index + 2
 
-          // lattice numbers start at index + 2
-
-          for (int k = 0; k < 9; k++) {
-            stress[k + 9*cfi] = utils::numeric(FLERR,words[index+2+k],false,lmp);
+            for (int k = 0; k < 9; k++) {
+              stress[k + 9*cfi] = utils::numeric(FLERR,words[index+2+k],false,lmp);
+            }
           }
         }
       }
@@ -618,8 +620,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
       we[cfi] = we_group;
       wf[cfi] = wf_group;
 
-      cfi += 1;
-
+      cfi += 1;      
     }
 
     // loop over atoms
@@ -704,6 +705,7 @@ void FitPOD::get_data(datastruct &data, const std::vector<std::string> &species)
       we_group = data.fitting_weights[0];
       wf_group = data.fitting_weights[1];
     }
+    utils::logmesg(lmp, "Read xyz file: {}\n", group_name);
     read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs], &data.we[nconfigs], &data.wf[nconfigs],
         &data.position[3*natoms], &data.force[3*natoms], &data.atomtype[natoms],
         data.data_files[i], species, we_group, wf_group);

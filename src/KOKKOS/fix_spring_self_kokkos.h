@@ -72,7 +72,7 @@ class FixSpringSelfKokkos : public FixSpringSelf, public KokkosBase {
   typename AT::t_f_array f;
   typename AT::t_imageint_1d_randomread image;
   typename AT::t_int_1d_randomread mask;
- 
+
   int nsend;
 
   typename AT::t_int_2d d_sendlist;

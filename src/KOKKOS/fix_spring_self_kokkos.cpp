@@ -12,6 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Trung Nguyen (U Chicago)
+------------------------------------------------------------------------- */
+
 #include "fix_spring_self_kokkos.h"
 
 #include "atom_kokkos.h"

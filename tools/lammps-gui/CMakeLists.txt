@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.3.1 LANGUAGES CXX)
+project(lammps-gui VERSION 1.4.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -72,17 +72,17 @@ find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
 
 set(PROJECT_SOURCES
   main.cpp
+  lammpsgui.cpp
+  lammpsgui.h
+  lammpsgui.ui
+  chartviewer.cpp
+  chartviewer.h
   codeeditor.cpp
   codeeditor.h
   highlighter.cpp
   highlighter.h
   imageviewer.cpp
   imageviewer.h
-  chartviewer.cpp
-  chartviewer.h
-  lammpsgui.cpp
-  lammpsgui.h
-  lammpsgui.ui
   lammpsrunner.h
   lammpswrapper.cpp
   lammpswrapper.h
@@ -93,6 +93,8 @@ set(PROJECT_SOURCES
   preferences.h
   setvariables.cpp
   setvariables.h
+  slideshow.h
+  slideshow.cpp
   stdcapture.cpp
   ${PLUGIN_LOADER_SRC}
   ${ICON_RC_FILE}

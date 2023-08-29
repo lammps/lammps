@@ -20,6 +20,7 @@
 #include "logwindow.h"
 #include "preferences.h"
 #include "setvariables.h"
+#include "slideshow.h"
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
@@ -96,8 +97,8 @@ static bool has_exe(const QString &exe)
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
-    logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr),
-    lammpsstatus(nullptr), varwindow(nullptr)
+    slideshow(nullptr), logupdater(nullptr), dirstatus(nullptr), progress(nullptr),
+    prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr)
 {
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
@@ -239,6 +240,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
     connect(ui->actionView_Image_Window, &QAction::triggered, this, &LammpsGui::view_image);
+    connect(ui->actionView_Slide_Show, &QAction::triggered, this, &LammpsGui::view_slides);
     connect(ui->actionView_Variable_Window, &QAction::triggered, this, &LammpsGui::view_variables);
     connect(ui->action_1, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_2, &QAction::triggered, this, &LammpsGui::open_recent);
@@ -265,15 +267,19 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     auto *lammpsrun   = new QPushButton(QIcon(":/system-run.png"), "");
     auto *lammpsstop  = new QPushButton(QIcon(":/process-stop.png"), "");
     auto *lammpsimage = new QPushButton(QIcon(":/emblem-photos.png"), "");
+    auto *lammpsslide = new QPushButton(QIcon(":/image-x-generic.png"), "");
     lammpsrun->setToolTip("Run LAMMPS on input");
     lammpsstop->setToolTip("Stop LAMMPS");
     lammpsimage->setToolTip("Create snapshot image");
+    lammpsslide->setToolTip("View Slide Show");
     ui->statusbar->addWidget(lammpsrun);
     ui->statusbar->addWidget(lammpsstop);
     ui->statusbar->addWidget(lammpsimage);
+    ui->statusbar->addWidget(lammpsslide);
     connect(lammpsrun, &QPushButton::released, this, &LammpsGui::run_buffer);
     connect(lammpsstop, &QPushButton::released, this, &LammpsGui::stop_run);
     connect(lammpsimage, &QPushButton::released, this, &LammpsGui::render_image);
+    connect(lammpsslide, &QPushButton::released, this, &LammpsGui::view_slides);
 
     status = new QLabel("Ready.");
     status->setFixedWidth(300);
@@ -307,6 +313,7 @@ LammpsGui::~LammpsGui()
     delete chartwindow;
     delete dirstatus;
     delete varwindow;
+    delete slideshow;
 }
 
 void LammpsGui::new_document()
@@ -980,6 +987,15 @@ void LammpsGui::render_image()
         return;
     }
     imagewindow->show();
+}
+
+void LammpsGui::view_slides()
+{
+    if (!slideshow) slideshow = new SlideShow(current_file, &lammps);
+    if (slideshow->isVisible())
+        slideshow->hide();
+    else
+        slideshow->show();
 }
 
 void LammpsGui::view_chart()

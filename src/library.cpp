@@ -2465,17 +2465,21 @@ int lammps_set_variable(void *handle, char *name, char *str)
 
 /** Retrieve informational string for a variable.
  *
- * .. versionadded:: TBD
- *
- * This function copies a string with human readable information about
- * a defined variable: name, style, current value(s) into the provided
- * C-style string buffer.  That is the same info as produced by the
- * :doc:`info variables <info>` command. The length of the buffer must
- * be provided as *buf_size* argument.  If the info exceeds the length
- * of the buffer, it will be truncated accordingly.  If the index is
- * out of range, the function returns 0 and *buffer* is set to an empty
- * string, otherwise 1.
- *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function copies a string with human readable information about
+a defined variable: name, style, current value(s) into the provided
+C-style string buffer.  That is the same info as produced by the
+:doc:`info variables <info>` command. The length of the buffer must
+be provided as *buf_size* argument.  If the info exceeds the length
+of the buffer, it will be truncated accordingly.  If the index is
+out of range, the function returns 0 and *buffer* is set to an empty
+string, otherwise 1.
+
+\endverbatim
+
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param idx      index of the variable (0 <= idx < nvar)
  * \param buffer   string buffer to copy the info to

@@ -2587,6 +2587,7 @@ Nurdin
 Nvalue
 nvaluelast
 Nvalues
+nvar
 nvc
 nvcc
 nve

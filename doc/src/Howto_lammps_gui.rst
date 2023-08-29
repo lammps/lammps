@@ -5,6 +5,15 @@ This document describes **LAMMPS GUI version 1.3**.
 
 -----
 
+Pre-compiled, ready-to-use LAMMPS GUI executables for Linux (Ubuntu
+20.04LTS and compatible or later), macOS (version 11 or later), and
+Windows (version 10 or later) :ref:`are available <lammps-gui-install>`.
+The source code of the LAMMPS GUI is included in the
+``tools/lammps-gui`` folder of the LAMMPS distribution and it can be
+compiled alongside LAMMPS.
+
+-----
+
 LAMMPS GUI is a simple graphical text editor that is linked to the
 :ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run LAMMPS
 directly using the contents of the editor's text buffer as input and can

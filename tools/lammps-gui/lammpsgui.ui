@@ -251,7 +251,7 @@
     <iconset theme=":/emblem-photos.png"/>
    </property>
    <property name="text">
-    <string>View &amp;Image</string>
+    <string>Create &amp;Image</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>

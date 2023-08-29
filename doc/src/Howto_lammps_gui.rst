@@ -213,7 +213,7 @@ via the "Set Variables..." dialog from the ``Run`` menu.
 Viewing Snapshot Images
 -----------------------
 
-By selecting the ``View Image`` entry in the ``Run`` menu, by hitting
+By selecting the ``Create Image`` entry in the ``Run`` menu, by hitting
 the `Ctrl-I` (`Command-I` on macOS) hotkey, or by clicking on the
 "palette" button in the status bar, LAMMPS GUI will issue a
 :doc:`write_dump image <dump_image>` command and read the resulting
@@ -347,7 +347,7 @@ not defined as far as the built-in parser can detect them.  New rows for
 additional variables can be added through the ``Add Row`` button and
 existing rows may be deleted by clicking on the ``X`` icons on the right.
 
-The ``View Image`` entry will send a :doc:`dump image <dump_image>`
+The ``Create Image`` entry will send a :doc:`dump image <dump_image>`
 command to the LAMMPS instance, read the resulting file, and show it in
 an ``Image Viewer`` window.
 

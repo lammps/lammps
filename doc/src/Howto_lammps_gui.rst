@@ -1,37 +1,43 @@
 Using the LAMMPS GUI
 ====================
 
-LAMMPS GUI is a simple graphical text editor that is linked to the
-:ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run LAMMPS
-directly using the contents of the editor's text buffer as input.
-
-This is similar to what people traditionally would do to run LAMMPS:
-using a regular text editor to edit the input and run the necessary
-commands, possibly including the text editor, too, from a command line
-terminal window.  That is quite effective when running LAMMPS on
-high-performance computing facilities and when you are very proficient
-in using the command line.  The main benefit of a GUI application is
-that this integrates well with graphical desktop environments and many
-basic tasks can be done directly from within the GUI without switching
-to a text console or requiring external programs or scripts to extract
-data from the generated output.  This makes it easier for beginners to
-get started running simple LAMMPS simulations and thus very suitable for
-tutorials on LAMMPS.  But also makes it easier to switch to a full
-featured text editor and more sophisticated visualization and analysis
-tools.
+This document describes **LAMMPS GUI version 1.3**.
 
 -----
 
+LAMMPS GUI is a simple graphical text editor that is linked to the
+:ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run LAMMPS
+directly using the contents of the editor's text buffer as input and can
+retrieve and display information from LAMMPS while it is running.
+
+This is similar to what people traditionally would do to run LAMMPS
+using a command line window: using a regular text editor to edit the
+input, run LAMMPS on the input with selected command line flags, and
+then extract data from the created files and view them.  That procedure
+is quite effective and often required when running LAMMPS on
+high-performance computing facilities, or for people proficient in using
+the command line, as that would allow them to select tools for the
+individual steps they are more comfortable with.  The main benefit of a
+GUI application is that it integrates well with graphical desktop
+environments and many basic tasks can be done directly from the GUI
+without switching to a text console or requiring external programs, let
+alone scripts to extract data from the generated output.  This makes it
+easier for beginners to get started running simple LAMMPS simulations
+and thus very suitable for tutorials on LAMMPS.  But also keeps the
+barrier low to switch to a full featured programming editor and more
+sophisticated visualization and analysis tools later.
+
 The following text provides a detailed tour of the features and
-functionality of the LAMMPS GUI.  This document describes LAMMPS GUI
-version 1.2.
+functionality of the LAMMPS GUI.
+
+-----
 
 Main window
 -----------
 
 When LAMMPS GUI starts, it will show the main window with either an
-empty buffer, or have a file loaded. In the latter case it may look like
-the following:
+empty buffer, or the contents of a file loaded. In the latter case it
+may look like the following:
 
 .. image:: JPG/lammps-gui-main.png
    :align: center
@@ -51,27 +57,36 @@ Opening Files
 ^^^^^^^^^^^^^
 
 The LAMMPS GUI application will try to open the first command line
-argument as input file, further arguments are ignored.  When no
-argument is given LAMMPS GUI will start with an empty buffer.
-Files can also be opened via the ``File`` menu or by drag-and-drop
-of a file from a file manager to the editor window.  Only one
-file can be open at a time, so opening a new file with a filled
-buffer will close this buffer and in case the buffer has unsaved
-modifications will ask to either cancel the load, discard the
-changes or save them.
+argument as input file, further arguments are ignored.  When no argument
+is given, LAMMPS GUI will start with an empty buffer.  Files can also be
+opened via the ``File`` menu or by drag-and-drop of a file from a file
+manager to the editor window.  Only one file can be open at a time, so
+opening a new file with a filled buffer will close this buffer and - in
+case the buffer has unsaved modifications - will ask to either cancel
+the load, discard the changes, or save them to the file.
 
 
 Running LAMMPS
 ^^^^^^^^^^^^^^
 
 From within the LAMMPS GUI main window LAMMPS can be started either from
-the ``Run`` menu, by the hotkey `Ctrl-Enter` (`Command-Enter` on macOS),
-or by clicking on the green button in the status bar.  LAMMPS runs in a
-separate thread, so the GUI stays responsive and thus it is able to
-interact with the calculation and access its data.  It is important to
-note, that LAMMPS is using the contents of the input buffer for the run,
-**not** the file it was read from. If there are unsaved changes in the
-buffer, they *will* be used.
+the ``Run`` menu using the ``Run LAMMPS from Editor Buffer`` entry, by
+the hotkey `Ctrl-Enter` (`Command-Enter` on macOS), or by clicking on
+the green button in the status bar.
+
+LAMMPS runs in a separate thread, so the GUI stays responsive and thus
+it is able to interact with the running calculation and access its data.
+It is important to note, that running LAMMPS this way is using the
+contents of the input buffer for the run (via the
+:cpp:func:`lammps_commands_string()` function of the LAMMPS C-library
+interface), and **not** the file it was read from.  Thus, if there are
+unsaved changes in the buffer, they *will* be used.  As an alternative,
+it is possible to start LAMMPS with the contents of the file from the
+``Run LAMMPS from File`` menu entry or with `Ctrl-Shift-Enter`.  This
+option is intended as a fallback option, in case the input uses some
+functionality that is not compatible with running LAMMPS from a list of
+strings.  For consistency, any unsaved changes in the buffer must be
+either saved to the file or undone before LAMMPS can be run from a file.
 
 .. image:: JPG/lammps-gui-running.png
    :align: center
@@ -82,9 +97,29 @@ left side there is a text indicating that LAMMPS is running, which will
 contain the selected number of threads, if thread-parallel acceleration
 was selected in the ``Preferences`` dialog.  On the right side, a
 progress bar is shown that displays the estimated progress on the
-current :doc:`run command <run>`.  Additionally, two windows will open:
-the log window with the captured screen output and the chart window with
-a line graph created from the thermodynamic output of the run.
+current :doc:`run command <run>`.
+
+Also, line number of the currently executed command will be highlighted
+in green.
+           
+.. image:: JPG/lammps-gui-run-highlight.png
+   :align: center
+   :scale: 75%
+
+
+In case of an error (in the example below the command :doc:`label
+<label>` was incorrectly capitalized as 'Label'), and error message
+dialog will be shown and the line of the input where the error was
+triggered will be highlighted. And the state of LAMMPS as shown in the
+status bar will be "Failed." instead of "Ready."
+
+.. image:: JPG/lammps-gui-run-error.png
+   :align: center
+   :scale: 75%
+
+Additionally, two windows will open: the log window with the captured
+screen output and the chart window with a line graph created from the
+thermodynamic output of the run. More information on those is below.
 
 The run can be stopped cleanly by using either the ``Stop LAMMPS`` entry
 in the ``Run`` menu, the hotkey `Ctrl-/` (`Command-/` on macOS), or
@@ -94,18 +129,89 @@ stop.  This is equivalent to the command :doc:`timer timeout 0 <timer>`
 and implemented by calling the :cpp:func:`lammps_force_timeout()`
 function of the LAMMPS C-library interface.
 
+Log Window
+----------
+
+By default, when starting a run, a "Log Window" will open that displays the current
+output of the LAMMPS calculation as shown below.
+
+.. image:: JPG/lammps-gui-log.png
+   :align: center
+   :scale: 50%
+
+This shows the output that would normally be printed to the screen when running
+the LAMMPS command in a command line window.  LAMMPS GUI captures it and will
+update the window regularly during a run with the output as it is generated.
+
+By default, there will be a new window for each run, so that it is possible to
+compare outputs from different runs with, for example, changes to some settings.
+But it is also possible to change the behavior of LAMMPS GUI to *replace* an
+existing log window for a new run or to not show the window by default.  It
+is possible to show or hide this window from the ``View`` menu.
+
+The text in the log window is read-only and cannot be modified, but
+editor commands to select and copy all or parts of the text can be used.
+The "Select All" and "Copy" functions are also available via a context
+menu by clicking with the right mouse button.
+           
+
+Chart Window
+------------
+
+By default, when starting a run, a "Chart Window" will open that displays charts
+of thermodynamic output of the LAMMPS calculation as shown below.
+
+.. image:: JPG/lammps-gui-chart.png
+   :align: center
+   :scale: 50%
+
+These charts will be updated with new data as the run progresses, so
+they can be used to visually monitor the evolution of the available
+properties.  The drop down menu on the top right allows to select
+between the different properties that are written to the output.  Only
+one property can be shown at a time.  From the ``File`` menu on the top
+left, it is possible to save an image of the currently displayed chart
+or export the data in either plain text columns (as usable for plotting
+tools like `gnuplot <http://www.gnuplot.info/>`_ or `grace
+<https://plasma-gate.weizmann.ac.il/Grace/>`_), or as CSV data which can
+be imported for further processing with Microsoft Excel or `pandas
+<https://pandas.pydata.org/>`_
+
+Data from multiple run commands will be combined into a single data set
+unless the format, number, or names of output columns are changed or the
+current time step is reset with :doc:`reset_timestep <reset_timestep>`
+or a :doc:`clear <clear>` command is issued.
+
+Variable Info
+-------------
+
+During a run, it may be of interest to monitor the value of variables,
+for example to monitor the progress of loops.  This can be done via
+enabling the "Variables Window" in the ``View`` menu or by using the
+`Ctrl-Shift-W` hotkey.  This will show info similar to the :doc:`info
+variables <info>` command in a separate window as shown below.
+
+.. image:: JPG/lammps-gui-variable-info.png
+   :align: center
+   :scale: 75%
+
+Like the log and chart windows, its content is continuously updated
+during a run, and will show "(none)" if there are no variables defined.
+Please note that it is also possible to *set* :doc:`index style
+variables <variable>`, that would normally be set via command line flags,
+via the "Set Variables..." dialog from the ``Run`` menu.
 
 Viewing Snapshot Images
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 By selecting the ``View Image`` entry in the ``Run`` menu, by hitting
-the `Ctrl-I` (`Command-I` on macOS) hotkey or by clicking on the
+the `Ctrl-I` (`Command-I` on macOS) hotkey, or by clicking on the
 "palette" button in the status bar, LAMMPS GUI will issue a
 :doc:`write_dump image <dump_image>` command and read the resulting
-snapshot image into an image viewer window.  When possible, LAMMPS
-GUI will try to detect which elements the atoms correspond to (via
-their mass) and then colorize them accordingly. Otherwise just some
-predefined sequence of colors are assigned to different atom types.
+snapshot image into an image viewer window.  When possible, LAMMPS GUI
+will try to detect which elements the atoms correspond to (via their
+mass) and then colorize them accordingly.  Otherwise some predefined
+sequence of colors is assigned to the different atom types.
 
 .. image:: JPG/lammps-gui-image.png
    :align: center
@@ -120,22 +226,24 @@ horizontally and vertically and it is possible to only display the atoms
 within a predefined group (default is "all").  After each change, the
 image is rendered again and the display updated.  The small palette icon
 on the top left will be colored while LAMMPS is running to render the
-image and it will be grayed out again, when it is done.  When there are
-many items to show and high quality images with anti-aliasing are
+new image and it will be grayed out again, when it is done.  When there
+are many items to show and high quality images with anti-aliasing are
 requested, re-rendering can take several seconds.  From the ``File``
 menu, the shown image can be saved to a file permanently or copied into
 the cut-n-paste buffer for pasting into another application.
 
 
 Editor Functions
-^^^^^^^^^^^^^^^^
+----------------
 
 The editor has most the usual functionality that similar programs have:
 text selection via mouse or with cursor moves while holding the Shift
-key, Cut, Copy, Paste, Undo, Redo.  All of these editing functions are
-available via hotkeys.  When trying to exit the editor with a modified
-buffer, a dialog will pop up asking whether to cancel the quit, or don't
-save or save the buffer's contents to a file.
+key, Cut (`Ctrl-X`), Copy (`Ctrl-C`), Paste (`Ctrl-V`), Undo (`Ctrl-Z`),
+Redo (`Ctrl-Shift-Z`), Select All (`Ctrl-A`).  All of these editing
+functions are available via the indicated hotkeys.  When trying to exit
+the editor with a modified buffer, a dialog will pop up asking whether
+to cancel the quit, or don't save or save the buffer's contents to a
+file.
 
 Context Specific Help
 ^^^^^^^^^^^^^^^^^^^^^
@@ -174,7 +282,8 @@ The ``File`` menu offers the usual options:
 - ``Save As`` will open a dialog to select and new file name and save
   the buffer to it
 - ``Quit`` will exit LAMMPS GUI. If there are unsaved changes, a dialog
-  will appear to either cancel the quit, save or don't save the file.
+  will appear to either cancel the quit, to save, or to not save the
+  edited file.
 
 In addition, up to 5 recent file names will be listed after the ``Open``
 entry that allows to re-open recent files. This list is stored when
@@ -185,8 +294,8 @@ Edit
 
 The ``Edit`` menu offers the usual editor functions like ``Undo``,
 ``Redo``, ``Cut``, ``Copy``, ``Paste``, but also offers to open the
-``Preferences`` dialog and to delete all stored preferences so they
-will be reset to their defaults.
+``Preferences`` dialog (hotkey `Ctrl-P`) and to delete all stored
+preferences so they will be reset to their default values.
 
 Run
 ^^^
@@ -195,12 +304,17 @@ The ``Run`` menu allows to start and stop a LAMMPS process.  Rather than
 calling the LAMMPS executable as a separate executable, the LAMMPS GUI
 is linked to the LAMMPS library and thus can run LAMMPS internally
 through the :ref:`LAMMPS C-library interface <lammps_c_api>`.
+
 Specifically, a LAMMPS instance will be created by calling
-:cpp:func:`lammps_open_no_mpi` and then the buffer contents run by
+:cpp:func:`lammps_open_no_mpi` and then the buffer contents are run by
 calling :cpp:func:`lammps_commands_string`.  Certain commands and
 features are only available, after a LAMMPS instance is created.  Its
 presence is indicated by a small LAMMPS ``L`` logo in the status bar at
-the bottom left of the main window.
+the bottom left of the main window.  As an alternative, it is also
+possible to run LAMMPS using the contents of the edited file by reading
+the file.  This is mainly provided as a fallback option in case the
+input uses some feature that is not available when running from a string
+buffer.
 
 The LAMMPS calculation will be run in a concurrent thread so that the
 GUI will stay responsive and will be updated during the run.  This can
@@ -209,9 +323,10 @@ timestep.  The ``Stop LAMMPS`` entry will do this by calling
 :cpp:func:`lammps_force_timeout`, which is equivalent to a :doc:`timer
 timeout 0 <timer>` command.
 
-The ``Set Variables`` entry will open a dialog box where :doc:`index style variables <variable>`
-can be set. Those variables will be passed to the LAMMPS instance when
-it is created and are thus set *before* a run is started.
+The ``Set Variables...`` entry will open a dialog box where :doc:`index
+style variables <variable>` can be set. Those variables will be passed
+to the LAMMPS instance when it is created and are thus set *before* a
+run is started.
 
 .. image:: JPG/lammps-gui-variables.png
    :align: center
@@ -221,7 +336,7 @@ The ``Set Variables`` dialog will be pre-populated with entries that are
 set as index variables in the input and any variables that are used but
 not defined as far as the built-in parser can detect them.  New rows for
 additional variables can be added through the ``Add Row`` button and
-existing rows deleted by clicking on the ``X`` icons on the right.
+existing rows may be deleted by clicking on the ``X`` icons on the right.
 
 The ``View Image`` entry will send a :doc:`dump image <dump_image>`
 command to the LAMMPS instance, read the resulting file, and show it in
@@ -240,8 +355,8 @@ in the system path.
 View
 ^^^^
 
-The ``View`` menu offers to show or hide the three optional windows
-with log output, graphs, or images.  The default settings for those
+The ``View`` menu offers to show or hide the additional windows with
+log output, charts, variables, images.  The default settings for those
 can be changed in the ``Preferences dialog``.
 
 About
@@ -254,6 +369,8 @@ configuration settings of the LAMMPS library in use and the version
 number of LAMMPS GUI itself.  The ``Quick Help`` displays a dialog with
 a minimal description of LAMMPS GUI.  And ``LAMMPS Manual`` will open
 the main page of this LAMMPS documentation at https://docs.lammps.org/.
+
+-----
 
 Preferences
 -----------
@@ -336,6 +453,7 @@ by space filling spheres when checked or by smaller spheres and stick.
 Finally there are a couple of drop down lists to select the background
 and box color.
 
+-----------
 
 Hotkeys
 -------
@@ -363,7 +481,7 @@ instead of Ctrl/Control).
      - Ctrl+Enter
      - Run LAMMPS
      - Ctrl+Shift+A
-     - About LAMMPS GUI
+     - About LAMMPS
    * - Ctrl+O
      - Open File
      - Ctrl+Shift+Z
@@ -385,7 +503,7 @@ instead of Ctrl/Control).
      - Ctrl+X
      - Cut text
      - Ctrl+I
-     - Create Snapshot Image
+     - Snapshot Image
      - Ctrl+Shift+M
      - LAMMPS Manual
    * - Ctrl+Q
@@ -396,6 +514,14 @@ instead of Ctrl/Control).
      - Preferences
      - Ctrl+?
      - Context Help
+   * - Ctrl-W
+     - Close Window
+     - Ctrl-A
+     - Select All
+     - Ctrl-Shift-Enter
+     - Run Current File
+     - Ctrl-Shift-W
+     - Show Variables
 
 Further editing keybindings `are documented with the Qt documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In

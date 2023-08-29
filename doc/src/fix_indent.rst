@@ -6,7 +6,7 @@ fix indent command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID indent K keyword values ...
 

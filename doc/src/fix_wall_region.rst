@@ -6,7 +6,7 @@ fix wall/region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/region region-ID style args ... cutoff
 

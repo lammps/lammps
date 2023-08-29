@@ -301,9 +301,10 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
   __local numtyp sp_sqrt[4];
-  if (tid<4)
+  if (tid<4) {
     sp_lj[tid]=sp_lj_in[tid];
     sp_sqrt[tid]=sp_sqrt_in[tid];
+  }
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
   }

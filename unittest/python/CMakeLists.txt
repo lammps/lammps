@@ -1,7 +1,8 @@
-# Test calling Python from LAMMPS (and importing the LAMMPS module
-# inside those functions). This can do an "anonymous" import of symbols
-# from the executable, so the shared library is not needed. The
-# availability of the PYTHON package is tested for inside the tester.
+# -*- CMake -*- file for tests calling Python from LAMMPS (and importing
+# the LAMMPS module inside those functions). This can do an "anonymous"
+# import of symbols from the executable, so the shared library is not
+# needed. The availability of the PYTHON package is tested for inside
+# the tester.
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -11,20 +12,12 @@ if(NOT BUILD_SHARED_LIBS)
   return()
 endif()
 
-if(CMAKE_VERSION VERSION_LESS 3.12)
-  find_package(PythonInterp 3.6) # Deprecated since version 3.12
-  if(PYTHONINTERP_FOUND)
-    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-  endif()
-else()
-  find_package(Python COMPONENTS Interpreter Development)
-endif()
+find_package(Python 3.6 COMPONENTS Interpreter Development)
 
 if(PKG_PYTHON)
   add_executable(test_python_package test_python_package.cpp)
   target_link_libraries(test_python_package PRIVATE lammps GTest::GMock)
   target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
-  # this requires CMake 3.12. don't care to add backward compatibility for this.
   if(Python_Development_FOUND)
     target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
     target_link_libraries(test_python_package PRIVATE Python::Python)
@@ -86,13 +79,10 @@ if(Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonOpen PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
-  # some of the tests in this file will fail without exceptions enabled
-  if(LAMMPS_EXCEPTIONS)
-    add_test(NAME PythonCommands
-             COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
-             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-    set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
-  endif()
+  add_test(NAME PythonCommands
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-commands.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
   add_test(NAME PythonNumpy
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-numpy.py -v

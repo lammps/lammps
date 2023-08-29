@@ -248,10 +248,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       int width = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       int height = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (width <= 0 || height <= 0)
-        error->all(FLERR,"Illegal dump image command");
-      image->width = width;
-      image->height = height;
+      if (width <= 0 || height <= 0) error->all(FLERR,"Illegal dump image command");
+      if (image->fsaa) {
+        image->width = width*2;
+        image->height = height*2;
+      } else {
+        image->width = width;
+        image->height = height;
+      }
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"view") == 0) {
@@ -343,6 +347,23 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (shiny < 0.0 || shiny > 1.0)
         error->all(FLERR,"Illegal dump image command");
       image->shiny = shiny;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"fsaa") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      int aa = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      if (aa) {
+        if (!image->fsaa) {
+          image->width = image->width*2;
+          image->height = image->height*2;
+        }
+      } else {
+        if (image->fsaa) {
+          image->width = image->width/2;
+          image->height = image->height/2;
+        }
+      }
+      image->fsaa = aa;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ssao") == 0) {
@@ -667,8 +688,9 @@ void DumpImage::write()
     // cannot invoke before first run, otherwise invoke if necessary
 
     if (grid_compute) {
-      if (update->first_update == 0)
-        error->all(FLERR,"Grid compute used in dump image cannot be invoked before first run");
+      if (!grid_compute->is_initialized())
+        error->all(FLERR,"Grid compute ID {} used in dump image cannot be invoked "
+                   "before initialization by a run", grid_compute->id);
       if (!(grid_compute->invoked_flag & Compute::INVOKED_PERGRID)) {
         grid_compute->compute_pergrid();
         grid_compute->invoked_flag |= Compute::INVOKED_PERGRID;

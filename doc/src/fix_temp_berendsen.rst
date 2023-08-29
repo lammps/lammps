@@ -6,7 +6,7 @@ fix temp/berendsen command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID temp/berendsen Tstart Tstop Tdamp
 

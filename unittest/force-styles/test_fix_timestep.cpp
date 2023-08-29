@@ -279,6 +279,10 @@ TEST(FixTimestep, plain)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     double epsilon = test_config.epsilon;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
 
     ErrorStats stats;
 
@@ -411,7 +415,6 @@ TEST(FixTimestep, plain)
     ifix = lmp->modify->find_fix("test");
     if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid") &&
         !utils::strmatch(lmp->modify->fix[ifix]->style, "^nve/limit")) {
-
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -579,6 +582,10 @@ TEST(FixTimestep, omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     double epsilon = test_config.epsilon;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
 
     ErrorStats stats;
 

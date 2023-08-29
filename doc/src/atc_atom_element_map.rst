@@ -6,7 +6,7 @@ fix_modify AtC atom_element_map command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> atom_element_map <eulerian|lagrangian> [<frequency>]
 

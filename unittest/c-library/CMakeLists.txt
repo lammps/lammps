@@ -1,3 +1,4 @@
+# -*- CMake -*- file for testing the c-library interface
 
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
 target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)
@@ -45,13 +46,6 @@ else()
   set(HAS_MPI 0)
 endif()
 list(APPEND TEST_CONFIG_DEFS -DLAMMPS_HAS_MPI=${HAS_MPI})
-
-if(LAMMPS_EXCEPTIONS)
-  set(HAS_EXCEPTIONS 1)
-else()
-  set(HAS_EXCEPTIONS 0)
-endif()
-list(APPEND TEST_CONFIG_DEFS -DLAMMPS_HAS_EXCEPTIONS=${HAS_EXCEPTIONS})
 
 foreach(WITH "JPEG" "PNG" "GZIP" "FFMPEG")
   if(WITH_${WITH})

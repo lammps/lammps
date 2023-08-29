@@ -6,7 +6,7 @@ fix wall/srd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/srd face arg ... keyword value ...
 

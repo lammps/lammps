@@ -6,7 +6,7 @@ compute smd/internal/energy command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/internal/energy
 

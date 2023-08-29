@@ -6,7 +6,7 @@ fix_modify AtC write_atom_weights command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> write_atom_weights <filename> <frequency>
 

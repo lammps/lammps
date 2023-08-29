@@ -36,6 +36,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
+#include "output.h"
+#include "thermo.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
@@ -497,6 +499,10 @@ void DumpImage::init_style()
   if (sort_flag) error->all(FLERR,"Dump image cannot perform sorting");
 
   DumpCustom::init_style();
+
+  // cache dump image filename pattern for access through library interface.
+
+  if (multifile) output->thermo->set_image_fname(filename);
 
   // for grid output, find current ptr for compute or fix
   // check that fix frequency is acceptable

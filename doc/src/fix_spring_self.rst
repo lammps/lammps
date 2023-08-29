@@ -1,4 +1,5 @@
 .. index:: fix spring/self
+.. index:: fix spring/self/kk
 
 fix spring/self command
 =======================

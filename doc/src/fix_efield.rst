@@ -1,4 +1,5 @@
 .. index:: fix efield
+.. index:: fix efield/kk
 .. index:: fix efield/tip4p
 
 fix efield command

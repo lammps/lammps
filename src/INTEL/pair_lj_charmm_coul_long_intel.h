@@ -73,7 +73,7 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
     typename IntelBuffers<flt_t, flt_t>::vec2_t **lj;
 
     ForceConst() : _ntypes(0), _ntable(0) {}
-    ~ForceConst() { set_ntypes(0, 0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, 0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, const int ntable, Memory *memory, const int cop);
 

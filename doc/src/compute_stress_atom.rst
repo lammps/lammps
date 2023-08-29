@@ -223,7 +223,7 @@ result. I.e. the last 2 columns of thermo output will be the same:
    system pressure.
 
 The compute stress/atom can be used in a number of ways.  Here is an
-example to compute a 1-d pressure profile in z-direction across the
+example to compute a 1-d pressure profile in x-direction across the
 complete simulation box. You will need to adjust the number of bins and the
 selections for time averaging to your specific simulation.  This assumes
 that the dimensions of the simulation cell does not change.

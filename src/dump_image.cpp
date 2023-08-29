@@ -77,18 +77,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // set filetype based on filename suffix
 
-  int n = strlen(filename);
-  if (strlen(filename) > 4 && strcmp(&filename[n-4],".jpg") == 0)
+  if (utils::strmatch(filename, "\\.jpg$") || utils::strmatch(filename, "\\.JPG$")
+      || utils::strmatch(filename, "\\.jpeg$") || utils::strmatch(filename, "\\.JPEG$"))
     filetype = JPG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".JPG") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".jpeg") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".JPEG") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".png") == 0)
-    filetype = PNG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".PNG") == 0)
+  else if  (utils::strmatch(filename, "\\.png$") || utils::strmatch(filename, "\\.PNG$"))
     filetype = PNG;
   else filetype = PPM;
 

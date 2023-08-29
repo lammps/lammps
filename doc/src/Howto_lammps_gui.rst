@@ -101,7 +101,7 @@ current :doc:`run command <run>`.
 
 Also, line number of the currently executed command will be highlighted
 in green.
-           
+
 .. image:: JPG/lammps-gui-run-highlight.png
    :align: center
    :scale: 75%
@@ -153,7 +153,7 @@ The text in the log window is read-only and cannot be modified, but
 editor commands to select and copy all or parts of the text can be used.
 The "Select All" and "Copy" functions are also available via a context
 menu by clicking with the right mouse button.
-           
+
 
 Chart Window
 ------------

@@ -27,6 +27,7 @@
 
 class GeneralTab;
 class LammpsRunner;
+class LogWindow;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -60,6 +61,7 @@ protected:
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
     void update_variables();
+    void do_run(bool use_buffer);
     void start_lammps();
     void run_done();
 
@@ -76,14 +78,16 @@ private slots:
     void paste();
     void undo();
     void redo();
-    void clear();
-    void run_buffer();
+    void run_buffer() { do_run(true); }
+    void run_file() { do_run(false); }
+
     void stop_run();
     void edit_variables();
     void render_image();
     void view_image();
     void view_chart();
     void view_log();
+    void view_variables();
     void about();
     void help();
     void manual();
@@ -100,7 +104,7 @@ private:
     Highlighter *highlighter;
     StdCapture *capturer;
     QLabel *status;
-    QPlainTextEdit *logwindow;
+    LogWindow *logwindow;
     ImageViewer *imagewindow;
     ChartWindow *chartwindow;
     QTimer *logupdater;
@@ -108,6 +112,7 @@ private:
     QProgressBar *progress;
     Preferences *prefdialog;
     QLabel *lammpsstatus;
+    QLabel *varwindow;
 
     QString current_file;
     QString current_dir;

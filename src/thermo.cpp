@@ -112,6 +112,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostbefore = warnbefore = 0;
   flushflag = 0;
   ntimestep = -1;
+  nline = -1;
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords, including wildcard expansion

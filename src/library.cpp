@@ -18,6 +18,7 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
+#include <algorithm>
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
@@ -48,6 +49,7 @@
 #include "respa.h"
 #include "thermo.h"
 #include "timer.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
@@ -615,10 +617,10 @@ combined by removing the '&' and the following newline character.  After
 this processing the string is handed to LAMMPS for parsing and
 executing.
 
-.. note::
+.. versionadded:: TBD
 
-   Multi-line commands enabled by triple quotes will NOT work with
-   this function.
+   The command is now able to process long strings with triple quotes and
+   loops using :doc:`jump SELF \<label\> <jump>`.
 
 \endverbatim
  *
@@ -627,10 +629,14 @@ executing.
 
 void lammps_commands_string(void *handle, const char *str)
 {
+  if (!handle) return;
+
   auto lmp = (LAMMPS *) handle;
-  std::string cmd;
+  std::string cmd, line, buffer;
   bool append = false;
   bool triple = false;
+  if (str) buffer = str;
+  buffer += '\n';
 
   BEGIN_CAPTURE
   {
@@ -638,8 +644,26 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    // process continuation characters and here docs
-    for (const auto &line : utils::split_lines(str)) {
+    std::size_t cursor = 0;
+    int nline = -1;
+    std::string label;
+
+    // split buffer into lines, set line number, process continuation characters, and here docs
+
+    while (cursor < buffer.size()) {
+      ++nline;
+      std::size_t start = cursor;
+      cursor = buffer.find('\n', start);
+      if (cursor != std::string::npos) {
+        line = buffer.substr(start, cursor-start);
+        auto start_erase = std::remove(line.begin(), line.end(), '\r');
+        line.erase(start_erase, line.end());
+        ++cursor;
+        lmp->output->thermo->set_line(nline);
+      } else {
+        line = buffer;
+      }
+
       if (append || triple)
         cmd += line;
       else
@@ -657,8 +681,29 @@ void lammps_commands_string(void *handle, const char *str)
         cmd.back() = ' ';
       } else append = false;
 
-      if (!append && !triple)
+      auto words = Tokenizer(cmd).as_vector();
+      if (!label.empty()) {
+        // skip lines until label command found
+        if ((words.size() == 2) && (words[0] == "label") && (words[1] == label)) {
+          label.clear();
+        } else continue;
+      }
+
+      if (!append && !triple) {
+        // need to handle jump command here
+        if ((words.size() == 3) && (words[0] == "jump")) {
+          if (words[1] != "SELF")
+            lmp->error->all(FLERR, "May only use jump SELF with command string buffer ");
+          // emulate jump command unless with need to skip it
+          if (!lmp->input->get_jump_skip()) {
+            label = words[2];
+            cursor = 0;
+            nline = -1;
+            continue;
+          }
+        }
         lmp->input->one(cmd.c_str());
+      }
     }
   }
   END_CAPTURE
@@ -773,6 +818,10 @@ argument string.
      - 1 if setup is not completed and thus thermo data invalid, 0 otherwise
      - pointer to int
      - no
+   * - line
+     - line number (0-based) of current line in current file or buffer
+     - pointer to int
+     - no
    * - step
      - timestep when the last thermo output was generated or -1
      - pointer to bigint
@@ -813,6 +862,9 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
   {
     if (strcmp(what, "setup") == 0) {
       val = (void *) &lmp->update->setupflag;
+
+    } else if (strcmp(what, "line") == 0) {
+      val = (void *) th->get_line();
 
     } else if (strcmp(what, "step") == 0) {
       val = (void *) th->get_timestep();
@@ -2406,6 +2458,46 @@ int lammps_set_variable(void *handle, char *name, char *str)
   END_CAPTURE
 
   return err;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+/** Retrieve informational string for a variable.
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function copies a string with human readable information about
+a defined variable: name, style, current value(s) into the provided
+C-style string buffer.  That is the same info as produced by the
+:doc:`info variables <info>` command. The length of the buffer must
+be provided as *buf_size* argument.  If the info exceeds the length
+of the buffer, it will be truncated accordingly.  If the index is
+out of range, the function returns 0 and *buffer* is set to an empty
+string, otherwise 1.
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx      index of the variable (0 <= idx < nvar)
+ * \param buffer   string buffer to copy the info to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0  */
+
+int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
+  auto lmp = (LAMMPS *) handle;
+  Info info(lmp);
+  auto varinfo = info.get_variable_info(idx);
+
+  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+    strncpy(buffer, varinfo.c_str(), buf_size);
+    return 1;
+  }
+
+  buffer[0] = '\0';
+  return 0;
 }
 
 // ----------------------------------------------------------------------

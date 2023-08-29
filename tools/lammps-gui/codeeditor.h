@@ -14,6 +14,7 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
+#include <QFont>
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QShortcut>
@@ -27,6 +28,11 @@ public:
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
+    void setFont(const QFont &newfont);
+    void setCursor(int block);
+    void setHighlight(int block, bool error);
+
+    static constexpr int NO_HIGHLIGHT = 1 << 30;
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -37,7 +43,6 @@ protected:
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
-    void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rect, int dy);
     void get_help();
     void find_help(QString &page, QString &help);
@@ -46,6 +51,7 @@ private slots:
 private:
     QWidget *lineNumberArea;
     QShortcut *help_action;
+    int highlight;
 
     QMap<QString, QString> cmd_map;
     QMap<QString, QString> fix_map;

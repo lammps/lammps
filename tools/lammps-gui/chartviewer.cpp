@@ -16,6 +16,7 @@
 #include <QHBoxLayout>
 #include <QLineSeries>
 #include <QSettings>
+#include <QSpacerItem>
 #include <QVBoxLayout>
 
 using namespace QtCharts;
@@ -30,6 +31,8 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
 
     columns = new QComboBox;
     top->addWidget(menu);
+    top->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    top->addWidget(new QLabel("Select data:"));
     top->addWidget(columns);
     saveAsAct = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
     saveAsAct->setIcon(QIcon(":/document-save-as.png"));

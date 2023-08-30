@@ -7,7 +7,6 @@ LAMMPS-GUI TODO list:
   handle "&" continuation and multiline strings with """ like C style comments in Qt docs example
 - add "syntax check" with enabled "-skiprun" flag
 - switch input file editor to read-only while loop is running
-- add slideshow of images from dump image commands in the input
 
 # Long term ideas
 - rewrite entire application to build the App and its layout manually

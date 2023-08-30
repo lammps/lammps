@@ -195,7 +195,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *pltv = new QCheckBox("Show chart window by default");
     pltv->setObjectName("viewchart");
     pltv->setCheckState(settings->value("viewchart", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *sldv = new QCheckBox("Show slide show by default");
+    auto *sldv = new QCheckBox("Show slide show window by default");
     sldv->setObjectName("viewslide");
     sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *logr = new QCheckBox("Replace log window on new run");

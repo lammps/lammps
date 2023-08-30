@@ -75,7 +75,7 @@ echo '
           set statusbar visible to false
           set toolbar visible to false
           set the bounds to { 100, 40, 868, 640 }
-          set position of item "'LAMMPS'.app" to { 190, 216 }
+          set position of item "'LAMMPS_GUI'.app" to { 190, 216 }
           set position of item "Applications" to { 576, 216 }
           set position of item "README.txt" to { 190, 400 }
         end tell

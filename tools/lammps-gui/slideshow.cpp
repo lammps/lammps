@@ -149,8 +149,6 @@ void SlideShow::loadImage(int idx)
     do {
         QImageReader reader(imagefiles[idx]);
         reader.setAutoTransform(true);
-        if (!reader.canRead())
-            fprintf(stderr, "cannot read file %s\n", imagefiles[idx].toStdString().c_str());
         const QImage newImage = reader.read();
 
         // There was an error reading the image file. Try reading the previous image instead.

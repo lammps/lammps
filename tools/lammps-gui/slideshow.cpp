@@ -52,6 +52,10 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     auto *mainLayout = new QVBoxLayout;
     auto *navLayout  = new QHBoxLayout;
 
+    // workaround for incorrect highlight bug on macOS
+    auto *dummy = new QPushButton(QIcon(), "");
+    dummy->hide();
+
     auto *gofirst = new QPushButton(QIcon(":/go-first.png"), "");
     gofirst->setToolTip("Go to first Image");
     auto *goprev = new QPushButton(QIcon(":/go-previous-2.png"), "");
@@ -90,6 +94,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
 
     navLayout->addWidget(imageName);
     navLayout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    navLayout->addWidget(dummy);
     navLayout->addWidget(gofirst);
     navLayout->addWidget(goprev);
     navLayout->addWidget(goplay);
@@ -144,6 +149,8 @@ void SlideShow::loadImage(int idx)
     do {
         QImageReader reader(imagefiles[idx]);
         reader.setAutoTransform(true);
+        if (!reader.canRead())
+            fprintf(stderr, "cannot read file %s\n", imagefiles[idx].toStdString().c_str());
         const QImage newImage = reader.read();
 
         // There was an error reading the image file. Try reading the previous image instead.

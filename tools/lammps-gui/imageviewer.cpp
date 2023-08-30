@@ -103,8 +103,10 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
 
+    // workaround for incorrect highlight bug on macOS
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
+
     auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
     dossao->setCheckable(true);
     dossao->setToolTip("Toggle SSAO rendering");

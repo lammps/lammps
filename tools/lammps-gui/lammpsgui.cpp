@@ -1111,6 +1111,7 @@ void LammpsGui::about()
 
     QMessageBox msg;
     msg.setWindowTitle("About LAMMPS");
+    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
@@ -1130,6 +1131,7 @@ void LammpsGui::help()
 {
     QMessageBox msg;
     msg.setWindowTitle("LAMMPS-GUI Quick Help");
+    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
     msg.setInformativeText("<p>LAMMPS GUI is a graphical text editor that is linked to the LAMMPS "
                            "library and thus can run LAMMPS directly using the contents of the "

@@ -190,6 +190,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     mainLayout->addWidget(buttonBox);
+    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).fileName());
     createActions();
 

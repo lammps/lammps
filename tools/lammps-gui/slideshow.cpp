@@ -104,6 +104,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     mainLayout->addWidget(imageLabel);
     mainLayout->addLayout(navLayout);
     mainLayout->addWidget(buttonBox);
+    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + QFileInfo(fileName).fileName());
 
     imagefiles.clear();

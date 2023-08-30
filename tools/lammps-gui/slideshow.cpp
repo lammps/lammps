@@ -40,6 +40,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     imageName->setFrameStyle(QFrame::Raised);
     imageName->setFrameShape(QFrame::Panel);
     imageName->setAlignment(Qt::AlignCenter);
+    imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), this);
     QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::close);
@@ -51,6 +52,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
 
     auto *mainLayout = new QVBoxLayout;
     auto *navLayout  = new QHBoxLayout;
+    auto *botLayout  = new QHBoxLayout;
 
     // workaround for incorrect highlight bug on macOS
     auto *dummy = new QPushButton(QIcon(), "");
@@ -92,7 +94,6 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     connect(gofirst, &QPushButton::released, this, &SlideShow::first);
     connect(normal, &QPushButton::released, this, &SlideShow::normalSize);
 
-    navLayout->addWidget(imageName);
     navLayout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum));
     navLayout->addWidget(dummy);
     navLayout->addWidget(gofirst);
@@ -108,7 +109,12 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
 
     mainLayout->addWidget(imageLabel);
     mainLayout->addLayout(navLayout);
-    mainLayout->addWidget(buttonBox);
+
+    botLayout->addWidget(imageName);
+    botLayout->addWidget(buttonBox);
+    botLayout->setStretch(0, 3);
+    mainLayout->addLayout(botLayout);
+
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + QFileInfo(fileName).fileName());
 

@@ -2496,9 +2496,9 @@ string, otherwise 1.
 int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
   auto lmp = (LAMMPS *) handle;
   Info info(lmp);
-  auto varinfo = info.get_variable_info(idx);
 
   if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+    auto varinfo = info.get_variable_info(idx);
     strncpy(buffer, varinfo.c_str(), buf_size);
     return 1;
   }

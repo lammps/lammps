@@ -405,13 +405,13 @@ and looks of the LAMMPS GUI application.  The settings are grouped
 and each group is displayed within a tab.
 
 .. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
-   :width: 25%
+   :width: 32%
 
 .. |guiprefs2| image:: JPG/lammps-gui-prefs-accel.png
-   :width: 25%
+   :width: 32%
 
 .. |guiprefs3| image:: JPG/lammps-gui-prefs-image.png
-   :width: 25%
+   :width: 32%
 
 |guiprefs1|  |guiprefs2|  |guiprefs3|
 

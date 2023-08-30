@@ -822,6 +822,10 @@ argument string.
      - line number (0-based) of current line in current file or buffer
      - pointer to int
      - no
+   * - imagename
+     - file name of the last :doc:`dump image <dump_image>` file written
+     - pointer to 0-terminated const char array
+     - no
    * - step
      - timestep when the last thermo output was generated or -1
      - pointer to bigint
@@ -865,6 +869,9 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
 
     } else if (strcmp(what, "line") == 0) {
       val = (void *) th->get_line();
+
+    } else if (strcmp(what, "imagename") == 0) {
+      val = (void *) th->get_image_fname();
 
     } else if (strcmp(what, "step") == 0) {
       val = (void *) th->get_timestep();

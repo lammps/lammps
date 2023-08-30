@@ -475,6 +475,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 DumpImage::~DumpImage()
 {
   delete image;
+  output->thermo->set_image_fname("");
 
   delete[] diamtype;
   delete[] diamelement;
@@ -499,10 +500,6 @@ void DumpImage::init_style()
   if (sort_flag) error->all(FLERR,"Dump image cannot perform sorting");
 
   DumpCustom::init_style();
-
-  // cache dump image filename pattern for access through library interface.
-
-  if (multifile) output->thermo->set_image_fname(filename);
 
   // for grid output, find current ptr for compute or fix
   // check that fix frequency is acceptable
@@ -790,6 +787,12 @@ void DumpImage::write()
     if (multifile) {
       fclose(fp);
       fp = nullptr;
+
+      // cache last dump image filename for access through library interface.
+      // update only *after* the file has been written so there will be no invalid read.
+      // have to recreate the substitution done within openfile().
+
+      output->thermo->set_image_fname(utils::star_subst(filename, update->ntimestep, padflag));
     }
   }
 }

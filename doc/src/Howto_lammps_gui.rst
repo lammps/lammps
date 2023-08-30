@@ -1,7 +1,7 @@
 Using the LAMMPS GUI
 ====================
 
-This document describes **LAMMPS GUI version 1.3**.
+This document describes **LAMMPS GUI version 1.4**.
 
 -----
 
@@ -168,7 +168,7 @@ Chart Window
 ------------
 
 By default, when starting a run, a "Chart Window" will open that displays charts
-of thermodynamic output of the LAMMPS calculation as shown below.
+of the thermodynamic output of the LAMMPS calculation as shown below.
 
 .. image:: JPG/lammps-gui-chart.png
    :align: center
@@ -190,6 +190,22 @@ Data from multiple run commands will be combined into a single data set
 unless the format, number, or names of output columns are changed or the
 current time step is reset with :doc:`reset_timestep <reset_timestep>`
 or a :doc:`clear <clear>` command is issued.
+
+Image Slide Show
+----------------
+
+By default, in case the LAMMPS input contains a :doc:`dump image
+<dump_image>` command, a "Slide Show" window will open which loads and
+displays the images created by LAMMPS as they are written.
+
+.. image:: JPG/lammps-gui-slideshow.png
+   :align: center
+   :scale: 50%
+
+The various buttons at the bottom right of the window allow to either
+single step through the list of images or play an animation (as a
+continuous loop or once from first to last).  It is also possible to
+zoom in or zoom out.
 
 Variable Info
 -------------
@@ -405,7 +421,7 @@ General Settings:
 - *Echo input to log:* when checked, all input commands, including
   variable expansions, will be echoed to the log window. This is
   equivalent to using `-echo screen` at the command line.  There is no
-  log *file* produced since it always uses `-log none`.
+  log *file* produced by default, since LAMMPS GUI uses `-log none`.
 - *Include citation details:* when checked full citation info will be
   included to the log window.  This is equivalent to using `-cite
   screen` on the command line.
@@ -414,6 +430,9 @@ General Settings:
 - *Show chart window by default:* when checked, the thermodynamic
   output of a LAMMPS run will be collected and displayed in a chart
   window as line graphs.
+- *Show slide show window by default:* when checked, a slide show
+  window will be shown with images from a dump image command, if
+  present, in the LAMMPS input.
 - *Replace log window on new run:* when checked, an existing log
   window will be replaced on a new LAMMPS run, otherwise each run will
   create a new log window.
@@ -527,8 +546,8 @@ instead of Ctrl/Control).
      - Close Window
      - Ctrl-A
      - Select All
-     - Ctrl-Shift-Enter
-     - Run Current File
+     - Ctrl-L
+     - Slide Show
      - Ctrl-Shift-W
      - Show Variables
 

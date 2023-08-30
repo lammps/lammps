@@ -500,54 +500,52 @@ instead of Ctrl/Control).
      - Function
      - Hotkey
      - Function
-     - Hotkey
-     - Function
    * - Ctrl+N
      - New File
      - Ctrl+Z
      - Undo edit
      - Ctrl+Enter
      - Run LAMMPS
-     - Ctrl+Shift+A
-     - About LAMMPS
    * - Ctrl+O
      - Open File
      - Ctrl+Shift+Z
      - Redo edit
      - Ctrl+/
      - Stop Active Run
-     - Ctrl+Shift+H
-     - Quick Help
    * - CTRL+S
      - Save File
      - Ctrl+C
      - Copy text
      - Ctrl+Shift+V
      - Set Variables
-     - Ctrl+Shift+G
-     - LAMMPS GUI Howto
    * - Ctrl+Shift+S
      - Save File As
      - Ctrl+X
      - Cut text
      - Ctrl+I
      - Snapshot Image
-     - Ctrl+Shift+M
-     - LAMMPS Manual
    * - Ctrl+Q
      - Quit
      - Ctrl+V
      - Paste text
-     - Ctrl+P
-     - Preferences
-     - Ctrl+?
-     - Context Help
+     - Ctrl-L
+     - Slide Show
    * - Ctrl-W
      - Close Window
      - Ctrl-A
      - Select All
-     - Ctrl-L
-     - Slide Show
+     - Ctrl+P
+     - Preferences
+   * - Ctrl+Shift+A
+     - About LAMMPS
+     - Ctrl+Shift+H
+     - Quick Help
+     - Ctrl+Shift+G
+     - LAMMPS GUI Howto
+   * - Ctrl+Shift+M
+     - LAMMPS Manual
+     - Ctrl+?
+     - Context Help
      - Ctrl-Shift-W
      - Show Variables
 

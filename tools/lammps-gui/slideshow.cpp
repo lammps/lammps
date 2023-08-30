@@ -15,12 +15,14 @@
 
 #include <QDialogButtonBox>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QImage>
 #include <QImageReader>
 #include <QLabel>
 #include <QPalette>
 #include <QPushButton>
+#include <QScreen>
 #include <QSettings>
 #include <QShortcut>
 #include <QSpacerItem>
@@ -108,6 +110,10 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     scaleFactor = 1.0;
     current     = 0;
 
+    auto maxsize = QGuiApplication::primaryScreen()->availableSize() * 4 / 5;
+    maxheight    = maxsize.height();
+    maxwidth     = maxsize.width();
+
     setLayout(mainLayout);
 }
 
@@ -149,7 +155,10 @@ void SlideShow::loadImage(int idx)
                                             Qt::SmoothTransformation);
             imageLabel->setPixmap(QPixmap::fromImage(image));
             imageLabel->setMinimumSize(newwidth, newheight);
-            imageName->setText(imagefiles[idx]);
+            imageName->setText(QString(" Image %1 / %2 : %3 ")
+                                   .arg(idx + 1)
+                                   .arg(imagefiles.size())
+                                   .arg(imagefiles[idx]));
             adjustSize();
             current = idx;
             break;
@@ -242,9 +251,15 @@ void SlideShow::normalSize()
 
 void SlideShow::scaleImage(double factor)
 {
+    // compute maxfactor so the image is not scaled beyond 80 of width or height of screen
+    double maxfactor = 10.0;
+    maxfactor        = qMin((double)maxheight / (double)image.height(), maxfactor);
+    maxfactor        = qMin((double)maxwidth / (double)image.width(), maxfactor);
+
+    if (factor > maxfactor) factor = maxfactor;
     scaleFactor *= factor;
-    if (scaleFactor > 2.0) scaleFactor = 2.0;
     if (scaleFactor < 0.25) scaleFactor = 0.25;
+
     loadImage(current);
 }
 

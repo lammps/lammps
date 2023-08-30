@@ -54,6 +54,7 @@ private:
     double scaleFactor = 1.0;
 
     int current;
+    int maxwidth, maxheight;
     bool do_loop;
     QStringList imagefiles;
 };

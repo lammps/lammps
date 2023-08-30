@@ -40,10 +40,6 @@ public:
 private slots:
     void saveAs();
     void copy();
-    void zoomIn();
-    void zoomOut();
-    void normalSize();
-    void fitToWindow();
 
     void edit_size();
     void reset_view();

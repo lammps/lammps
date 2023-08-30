@@ -12,177 +12,240 @@
 ------------------------------------------------------------------------- */
 
 #include "slideshow.h"
-#include "lammpswrapper.h"
 
-#include <QAction>
 #include <QDialogButtonBox>
-#include <QDir>
-#include <QFileDialog>
-#include <QGuiApplication>
+#include <QFileInfo>
+#include <QHBoxLayout>
 #include <QImage>
 #include <QImageReader>
 #include <QLabel>
-#include <QMenuBar>
-#include <QMessageBox>
 #include <QPalette>
-#include <QPoint>
 #include <QPushButton>
-#include <QScreen>
-#include <QScrollArea>
-#include <QScrollBar>
 #include <QSettings>
-#include <QStatusBar>
+#include <QShortcut>
+#include <QSpacerItem>
+#include <QTimer>
 #include <QVBoxLayout>
-#include <QWidgetAction>
 
-#include <cmath>
-
-static const QString blank(" ");
-
-SlideShow::SlideShow(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
-    QDialog(parent), imageLabel(new QLabel), scrollArea(new QScrollArea), menuBar(new QMenuBar),
-    lammps(_lammps)
+SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
+    QDialog(parent), playtimer(nullptr), imageLabel(new QLabel), imageName(new QLabel("(none)")),
+    do_loop(true)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
-    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    imageLabel->setScaledContents(true);
-    imageLabel->minimumSizeHint();
+    imageLabel->setScaledContents(false);
+    imageLabel->setMinimumSize(100, 100);
 
-    scrollArea->setBackgroundRole(QPalette::Dark);
-    scrollArea->setWidget(imageLabel);
-    scrollArea->setVisible(false);
+    imageName->setFrameStyle(QFrame::Raised);
+    imageName->setFrameShape(QFrame::Panel);
+    imageName->setAlignment(Qt::AlignCenter);
+
+    auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), this);
+    QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::close);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    QSettings settings;
+    auto *mainLayout = new QVBoxLayout;
+    auto *navLayout  = new QHBoxLayout;
 
-    mainLayout->addWidget(scrollArea);
+    auto *gofirst = new QPushButton(QIcon(":/go-first.png"), "");
+    gofirst->setToolTip("Go to first Image");
+    auto *goprev = new QPushButton(QIcon(":/go-previous-2.png"), "");
+    goprev->setToolTip("Go to previous Image");
+    auto *goplay = new QPushButton(QIcon(":/media-playback-start-2.png"), "");
+    goplay->setToolTip("Play animation");
+    goplay->setCheckable(true);
+    goplay->setChecked(playtimer);
+    goplay->setObjectName("play");
+    auto *gonext = new QPushButton(QIcon(":/go-next-2.png"), "");
+    gonext->setToolTip("Go to next Image");
+    auto *golast = new QPushButton(QIcon(":/go-last.png"), "");
+    golast->setToolTip("Go to last Image");
+    auto *goloop = new QPushButton(QIcon(":/media-playlist-repeat.png"), "");
+    goloop->setToolTip("Loop animation");
+    goloop->setCheckable(true);
+    goloop->setChecked(do_loop);
+
+    auto *zoomin = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
+    zoomin->setToolTip("Zoom in by 10 percent");
+    auto *zoomout = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
+    zoomout->setToolTip("Zoom out by 10 percent");
+    auto *normal = new QPushButton(QIcon(":/gtk-zoom-fit.png"), "");
+    normal->setToolTip("Reset zoom to normal");
+
+    connect(gofirst, &QPushButton::released, this, &SlideShow::first);
+    connect(goprev, &QPushButton::released, this, &SlideShow::prev);
+    connect(goplay, &QPushButton::released, this, &SlideShow::play);
+    connect(gonext, &QPushButton::released, this, &SlideShow::next);
+    connect(golast, &QPushButton::released, this, &SlideShow::last);
+    connect(goloop, &QPushButton::released, this, &SlideShow::loop);
+    connect(zoomin, &QPushButton::released, this, &SlideShow::zoomIn);
+    connect(zoomout, &QPushButton::released, this, &SlideShow::zoomOut);
+    connect(gofirst, &QPushButton::released, this, &SlideShow::first);
+    connect(normal, &QPushButton::released, this, &SlideShow::normalSize);
+
+    navLayout->addWidget(imageName);
+    navLayout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    navLayout->addWidget(gofirst);
+    navLayout->addWidget(goprev);
+    navLayout->addWidget(goplay);
+    navLayout->addWidget(gonext);
+    navLayout->addWidget(golast);
+    navLayout->addWidget(goloop);
+
+    navLayout->addWidget(zoomin);
+    navLayout->addWidget(zoomout);
+    navLayout->addWidget(normal);
+
+    mainLayout->addWidget(imageLabel);
+    mainLayout->addLayout(navLayout);
     mainLayout->addWidget(buttonBox);
-    setWindowTitle(QString("Slide Show: ") + QFileInfo(fileName).fileName());
-    createActions();
+    setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + QFileInfo(fileName).fileName());
 
+    imagefiles.clear();
     scaleFactor = 1.0;
-    resize(image.width() + 20, image.height() + 50);
+    current     = 0;
 
-    scrollArea->setVisible(true);
-    fitToWindowAct->setEnabled(true);
-    updateActions();
-    if (!fitToWindowAct->isChecked()) imageLabel->adjustSize();
     setLayout(mainLayout);
 }
 
-void SlideShow::saveAs()
+void SlideShow::add_image(const QString &filename)
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Save Image File As", QString(),
-                                                    "Image Files (*.jpg *.png *.bmp *.ppm)");
-    saveFile(fileName);
+    if (!imagefiles.contains(filename)) {
+        int lastidx = imagefiles.size();
+        imagefiles.append(filename);
+        loadImage(lastidx);
+    }
 }
 
-void SlideShow::copy() {}
+void SlideShow::clear()
+{
+    imagefiles.clear();
+    image.fill(Qt::black);
+    imageLabel->setPixmap(QPixmap::fromImage(image));
+    imageLabel->adjustSize();
+    imageName->setText("(none)");
+    repaint();
+}
+
+void SlideShow::loadImage(int idx)
+{
+    if ((idx < 0) || (idx >= imagefiles.size())) return;
+
+    do {
+        QImageReader reader(imagefiles[idx]);
+        reader.setAutoTransform(true);
+        const QImage newImage = reader.read();
+
+        // There was an error reading the image file. Try reading the previous image instead.
+        if (newImage.isNull()) {
+            --idx;
+        } else {
+            int newheight = (int)newImage.height() * scaleFactor;
+            int newwidth  = (int)newImage.width() * scaleFactor;
+            image         = newImage.scaled(newwidth, newheight, Qt::IgnoreAspectRatio,
+                                            Qt::SmoothTransformation);
+            imageLabel->setPixmap(QPixmap::fromImage(image));
+            imageLabel->setMinimumSize(newwidth, newheight);
+            imageName->setText(imagefiles[idx]);
+            adjustSize();
+            current = idx;
+            break;
+        }
+    } while (idx >= 0);
+}
+
+void SlideShow::first()
+{
+    current = 0;
+    loadImage(current);
+}
+
+void SlideShow::last()
+{
+    current = imagefiles.size() - 1;
+    loadImage(current);
+}
+
+void SlideShow::play()
+{
+    // if we do not loop, start animation from beginning
+    if (!do_loop) current = 0;
+
+    if (playtimer) {
+        playtimer->stop();
+        delete playtimer;
+        playtimer = nullptr;
+    } else {
+        playtimer = new QTimer(this);
+        connect(playtimer, &QTimer::timeout, this, &SlideShow::next);
+        playtimer->start(100);
+    }
+
+    // reset push button state. use findChild() if not triggered from button.
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    if (!button) button = findChild<QPushButton *>("play");
+    if (button) button->setChecked(playtimer);
+}
+
+void SlideShow::next()
+{
+    ++current;
+    if (current >= imagefiles.size()) {
+        if (do_loop) {
+            current = 0;
+        } else {
+            // stop animation
+            if (playtimer) play();
+            --current;
+        }
+    }
+    loadImage(current);
+}
+
+void SlideShow::prev()
+{
+    --current;
+    if (current < 0) {
+        if (do_loop)
+            current = imagefiles.size() - 1;
+        else
+            current = 0;
+    }
+    loadImage(current);
+}
+
+void SlideShow::loop()
+{
+    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    do_loop             = !do_loop;
+    button->setChecked(do_loop);
+}
 
 void SlideShow::zoomIn()
 {
-    scaleImage(1.25);
+    scaleImage(1.1);
 }
 
 void SlideShow::zoomOut()
 {
-    scaleImage(0.8);
+    scaleImage(0.9);
 }
 
 void SlideShow::normalSize()
 {
-    imageLabel->adjustSize();
     scaleFactor = 1.0;
-}
-
-void SlideShow::fitToWindow()
-{
-    bool fitToWindow = fitToWindowAct->isChecked();
-    scrollArea->setWidgetResizable(fitToWindow);
-    if (!fitToWindow) normalSize();
-    updateActions();
-}
-
-void SlideShow::saveFile(const QString &fileName)
-{
-    if (!fileName.isEmpty()) image.save(fileName);
-}
-
-void SlideShow::createActions()
-{
-    QMenu *fileMenu = menuBar->addMenu("&File");
-
-    saveAsAct = fileMenu->addAction("&Save As...", this, &SlideShow::saveAs);
-    saveAsAct->setIcon(QIcon(":/document-save-as.png"));
-    saveAsAct->setEnabled(false);
-    fileMenu->addSeparator();
-    copyAct = fileMenu->addAction("&Copy", this, &SlideShow::copy);
-    copyAct->setIcon(QIcon(":/edit-copy.png"));
-    copyAct->setShortcut(QKeySequence::Copy);
-    copyAct->setEnabled(false);
-    fileMenu->addSeparator();
-    QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
-    exitAct->setIcon(QIcon(":/window-close.png"));
-    exitAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
-
-    QMenu *viewMenu = menuBar->addMenu("&View");
-
-    zoomInAct = viewMenu->addAction("Image Zoom &In (25%)", this, &SlideShow::zoomIn);
-    zoomInAct->setShortcut(QKeySequence::ZoomIn);
-    zoomInAct->setIcon(QIcon(":/gtk-zoom-in.png"));
-    zoomInAct->setEnabled(false);
-
-    zoomOutAct = viewMenu->addAction("Image Zoom &Out (25%)", this, &SlideShow::zoomOut);
-    zoomOutAct->setShortcut(QKeySequence::ZoomOut);
-    zoomOutAct->setIcon(QIcon(":/gtk-zoom-out.png"));
-    zoomOutAct->setEnabled(false);
-
-    normalSizeAct = viewMenu->addAction("&Reset Image Size", this, &SlideShow::normalSize);
-    normalSizeAct->setShortcut(QKeySequence::fromString("Ctrl+0"));
-    normalSizeAct->setIcon(QIcon(":/gtk-zoom-fit.png"));
-    normalSizeAct->setEnabled(false);
-
-    viewMenu->addSeparator();
-
-    fitToWindowAct = viewMenu->addAction("&Fit to Window", this, &SlideShow::fitToWindow);
-    fitToWindowAct->setEnabled(false);
-    fitToWindowAct->setCheckable(true);
-    fitToWindowAct->setShortcut(QKeySequence::fromString("Ctrl+="));
-}
-
-void SlideShow::updateActions()
-{
-    saveAsAct->setEnabled(!image.isNull());
-    copyAct->setEnabled(!image.isNull());
-    zoomInAct->setEnabled(!fitToWindowAct->isChecked());
-    zoomOutAct->setEnabled(!fitToWindowAct->isChecked());
-    normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
+    scaleImage(1.0);
 }
 
 void SlideShow::scaleImage(double factor)
 {
     scaleFactor *= factor;
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
-#else
-    imageLabel->resize(scaleFactor * imageLabel->pixmap(Qt::ReturnByValue).size());
-#endif
-
-    adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
-    adjustScrollBar(scrollArea->verticalScrollBar(), factor);
-    zoomInAct->setEnabled(scaleFactor < 3.0);
-    zoomOutAct->setEnabled(scaleFactor > 0.333);
-}
-
-void SlideShow::adjustScrollBar(QScrollBar *scrollBar, double factor)
-{
-    scrollBar->setValue(
-        int(factor * scrollBar->value() + ((factor - 1) * scrollBar->pageStep() / 2)));
+    if (scaleFactor > 2.0) scaleFactor = 2.0;
+    if (scaleFactor < 0.25) scaleFactor = 0.25;
+    loadImage(current);
 }
 
 // Local Variables:

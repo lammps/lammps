@@ -361,7 +361,7 @@
     <string>&amp;Slide Show Window</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+W</string>
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="action_1">

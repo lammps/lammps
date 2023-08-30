@@ -552,6 +552,10 @@ void LammpsGui::open_file(const QString &fileName)
     dirstatus->setText(QString(" Directory: ") + current_dir);
     status->setText("Ready.");
 
+    if (slideshow) {
+        delete slideshow;
+        slideshow = nullptr;
+    }
     update_variables();
 }
 
@@ -717,20 +721,25 @@ void LammpsGui::logupdate()
         }
     }
 
+    // get timestep
+    int step  = 0;
+    void *ptr = lammps.last_thermo("step", 0);
+    if (ptr) {
+        if (lammps.extract_setting("bigint") == 4)
+            step = *(int *)ptr;
+        else
+            step = (int)*(int64_t *)ptr;
+    }
+
     // extract cached thermo data
     if (chartwindow) {
         // thermo data is not yet valid during setup
         void *ptr = lammps.last_thermo("setup", 0);
         if (ptr && *(int *)ptr) return;
 
-        ptr = lammps.last_thermo("step", 0);
+        ptr = lammps.last_thermo("num", 0);
         if (ptr) {
-            int step = 0;
-            if (lammps.extract_setting("bigint") == 4)
-                step = *(int *)ptr;
-            else
-                step = (int)*(int64_t *)ptr;
-            int ncols = *(int *)lammps.last_thermo("num", 0);
+            int ncols = *(int *)ptr;
 
             // check if the column assignment has changed
             // if yes, delete charts and start over
@@ -774,6 +783,22 @@ void LammpsGui::logupdate()
                 chartwindow->add_data(step, data, i);
             }
         }
+    }
+
+    // update list of available image file names
+
+    QString imagefile = (const char *)lammps.last_thermo("imagename", 0);
+    if (!imagefile.isEmpty()) {
+        if (!slideshow) {
+            slideshow = new SlideShow(current_file);
+            if (QSettings().value("viewslide", true).toBool())
+                slideshow->show();
+            else
+                slideshow->hide();
+        } else {
+            slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + current_file);
+        }
+        slideshow->add_image(imagefile);
     }
 }
 
@@ -963,6 +988,12 @@ void LammpsGui::do_run(bool use_buffer)
     else
         chartwindow->hide();
 
+    if (slideshow) {
+        slideshow->setWindowTitle("LAMMPS-GUI - Slide Show");
+        slideshow->clear();
+        slideshow->hide();
+    }
+
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
     logupdater->start(100);
@@ -991,7 +1022,7 @@ void LammpsGui::render_image()
 
 void LammpsGui::view_slides()
 {
-    if (!slideshow) slideshow = new SlideShow(current_file, &lammps);
+    if (!slideshow) slideshow = new SlideShow(current_file);
     if (slideshow->isVisible())
         slideshow->hide();
     else

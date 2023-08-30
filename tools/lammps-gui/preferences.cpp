@@ -161,6 +161,8 @@ void Preferences::accept()
     if (box) settings->setValue("viewlog", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewchart");
     if (box) settings->setValue("viewchart", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("viewslide");
+    if (box) settings->setValue("viewslide", box->isChecked());
 
     if (need_relaunch) {
         QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),
@@ -192,6 +194,9 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *pltv = new QCheckBox("Show chart window by default");
     pltv->setObjectName("viewchart");
     pltv->setCheckState(settings->value("viewchart", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    auto *sldv = new QCheckBox("Show slide show by default");
+    sldv->setObjectName("viewslide");
+    sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *logr = new QCheckBox("Replace log window on new run");
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
@@ -232,6 +237,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(cite);
     layout->addWidget(logv);
     layout->addWidget(pltv);
+    layout->addWidget(sldv);
     layout->addWidget(logr);
     layout->addWidget(pltr);
     layout->addWidget(imgr);

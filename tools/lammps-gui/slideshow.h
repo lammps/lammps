@@ -14,60 +14,48 @@
 #ifndef SLIDESHOW_H
 #define SLIDESHOW_H
 
-#include <QComboBox>
 #include <QDialog>
 #include <QImage>
 #include <QString>
+#include <QStringList>
 
-class QAction;
-class QMenuBar;
 class QDialogButtonBox;
 class QLabel;
-class QObject;
-class QScrollArea;
-class QScrollBar;
-class QStatusBar;
-class LammpsWrapper;
-class QComboBox;
+class QTimer;
 
 class SlideShow : public QDialog {
     Q_OBJECT
 
 public:
-    explicit SlideShow(const QString &fileName, LammpsWrapper *_lammps,
-                         QWidget *parent = nullptr);
+    explicit SlideShow(const QString &fileName, QWidget *parent = nullptr);
+    void add_image(const QString &filename);
+    void clear();
 
 private slots:
-    void saveAs();
-    void copy();
+    void first();
+    void last();
+    void next();
+    void prev();
+    void play();
+    void loop();
     void zoomIn();
     void zoomOut();
     void normalSize();
-    void fitToWindow();
 
 private:
-    void createActions();
-    void updateActions();
-    void saveFile(const QString &fileName);
     void scaleImage(double factor);
-    void adjustScrollBar(QScrollBar *scrollBar, double factor);
+    void loadImage(int idx);
 
 private:
     QImage image;
-    QMenuBar *menuBar;
-    QLabel *imageLabel;
-    QScrollArea *scrollArea;
+    QTimer *playtimer;
+    QLabel *imageLabel, *imageName;
     QDialogButtonBox *buttonBox;
     double scaleFactor = 1.0;
 
-    QAction *saveAsAct;
-    QAction *copyAct;
-    QAction *zoomInAct;
-    QAction *zoomOutAct;
-    QAction *normalSizeAct;
-    QAction *fitToWindowAct;
-
-    LammpsWrapper *lammps;
+    int current;
+    bool do_loop;
+    QStringList imagefiles;
 };
 #endif
 

@@ -1041,7 +1041,8 @@ void Atom::deallocate_topology()
 ------------------------------------------------------------------------- */
 
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
-                      int type_offset, int shiftflag, double *shift,
+                      int type_offset, int triclinic_general,
+                      int shiftflag, double *shift,
                       int labelflag, int *ilabel)
 {
   int xptr,iptr;
@@ -1053,6 +1054,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   auto location = "Atoms section of data file";
 
   // use the first line to detect and validate the number of words/tokens per line
+  
   next = strchr(buf,'\n');
   if (!next) error->all(FLERR, "Missing data in {}", location);
   *next = '\0';
@@ -1069,6 +1071,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     error->all(FLERR,"Incorrect format in {}: {}", location, utils::trim(buf));
 
   *next = '\n';
+  
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
   // ensures all data atoms will be owned even with round-off
@@ -1143,11 +1146,19 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nvalues = values.size();
-    if ((nvalues == 0) || (utils::strmatch(values[0],"^#.*")))  {
-      // skip over empty or comment lines
+
+    // skip comment lines
+    
+    if ((nvalues == 0) || (utils::strmatch(values[0],"^#.*"))) {
+
+    // check that line has correct # of words
+        
     } else if ((nvalues < nwords) ||
                ((nvalues > nwords) && (!utils::strmatch(values[nwords],"^#")))) {
       error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+
+    // extract the atom coords and image flags (if they exist)
+      
     } else {
       int imx = 0, imy = 0, imz = 0;
       if (imageflag) {
@@ -1167,13 +1178,25 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       xdata[0] = utils::numeric(FLERR,values[xptr],false,lmp);
       xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
       xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
+
+      // convert atom coords from general triclinic to restricted triclinic
+      
+      if (triclinic_general) domain->general_to_restricted(xdata);
+
+      // apply shift if requested by read_data command
+      
       if (shiftflag) {
         xdata[0] += shift[0];
         xdata[1] += shift[1];
         xdata[2] += shift[2];
       }
 
+      // map atom into simulation box for periodic dimensions
+      
       domain->remap(xdata,imagedata);
+
+      // determine if this proc owns the atom
+      
       if (triclinic) {
         domain->x2lamda(xdata,lamda);
         coord = lamda;

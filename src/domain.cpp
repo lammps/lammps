@@ -28,6 +28,7 @@
 #include "force.h"
 #include "kspace.h"
 #include "lattice.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
@@ -41,6 +42,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define BIG   1.0e20
 #define SMALL 1.0e-4
@@ -81,7 +83,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   minylo = minyhi = 0.0;
   minzlo = minzhi = 0.0;
 
-  triclinic = 0;
+  triclinic = triclinic_general = 0;
 
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
@@ -517,6 +519,180 @@ void Domain::reset_box()
 }
 
 /* ----------------------------------------------------------------------
+   define and store a general triclinic simulation box
+   3 edge vectors of box = avec/bvec/cvec caller
+   origin of edge vectors = origin_caller = lower left corner of box
+   create mapping to restricted triclinic box
+   set boxlo[3], boxhi[3] and 3 tilt factors
+   create rotation matrices for general <--> restricted transformations
+------------------------------------------------------------------------- */
+
+void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
+                                   double *cvec_caller, double *origin_caller)
+{
+  if (triclinic || triclinic_general)
+    error->all(FLERR,"General triclinic box edge vectors are already set");
+  
+  triclinic = triclinic_general = 1;
+
+  avec[0] = avec_caller[0];
+  avec[1] = avec_caller[1];
+  avec[2] = avec_caller[2];
+
+  bvec[0] = bvec_caller[0];
+  bvec[1] = bvec_caller[1];
+  bvec[2] = bvec_caller[2];
+
+  cvec[0] = cvec_caller[0];
+  cvec[1] = cvec_caller[1];
+  cvec[2] = cvec_caller[2];
+
+  tri_origin[0] = origin_caller[0];
+  tri_origin[1] = origin_caller[1];
+  tri_origin[2] = origin_caller[2];
+
+  // error check for co-planar A,B,C
+
+  double abcross[3];
+  MathExtra::cross3(avec,bvec,abcross);
+  double dot = MathExtra::dot3(abcross,cvec);
+  if (dot == 0.0)
+    error->all(FLERR,"General triclinic box edge vectors are co-planar");
+    
+  // quat1 = convert A into A' along x-axis
+  // rot1 = unit vector to rotate A around
+  // theta1 = angle of rotation calculated from
+  //   A dot xunit = Ax = |A| cos(theta1)
+
+  double rot1[3],quat1[4];
+  double xaxis[3] = {1.0, 0.0, 0.0};
+
+  double avec_len = MathExtra::len3(avec);
+  MathExtra::cross3(avec,xaxis,rot1);
+  MathExtra::norm3(rot1);
+  double theta1 = acos(avec[0]/avec_len);
+  MathExtra::axisangle_to_quat(rot1,theta1,quat1);
+
+  // rotmat1 = rotation matrix associated with quat1
+
+  double rotmat1[3][3];
+  MathExtra::quat_to_mat(quat1,rotmat1);
+
+  // B1 = rotation of B by quat1 rotation matrix
+
+  double bvec1[3];
+
+  MathExtra::matvec(rotmat1,bvec,bvec1);
+
+  // quat2 = rotation to convert B1 into B' in xy plane
+  // Byz1 = projection of B1 into yz plane
+  // rot2 = unit vector to rotate B1 around = -x axis
+  // theta2 = angle of rotation calculated from
+  //   Byz1 dot yunit = B1y = |Byz1} cos(theta2)
+
+  double byzvec1[3],quat2[4];
+  MathExtra::copy3(bvec1,byzvec1);
+  byzvec1[0] = 0.0;
+  double byzvec1_len = MathExtra::len3(byzvec1);
+  double rot2[3] = {-1.0, 0.0, 0.0};
+  double theta2 = acos(bvec1[1]/byzvec1_len);
+  MathExtra::axisangle_to_quat(rot2,theta2,quat2);
+
+  // quat = product of quat2 * quat1 = transformation via single quat
+  // rotate_g2r = general to restricted transformation matrix
+  // rotate_r2g = restricted to general transformation matrix
+  // if A x B not in direction of C, flip sign of z component of transform
+  //   done by flipping sign of 3rd row of rotate_g2r matrix
+
+  double quat[4];
+  MathExtra::quatquat(quat2,quat1,quat);
+  MathExtra::quat_to_mat(quat,rotate_g2r);
+
+  if (dot < 0.0) {
+    rotate_g2r[2][0] = -rotate_g2r[2][0];
+    rotate_g2r[2][1] = -rotate_g2r[2][1];
+    rotate_g2r[2][2] = -rotate_g2r[2][2];
+  }
+  
+  MathExtra::transpose3(rotate_g2r,rotate_r2g);
+  
+  // A',B',C' = transformation of A,B,C to restricted triclinic
+  
+  double aprime[3],bprime[3],cprime[3];
+  MathExtra::matvec(rotate_g2r,avec,aprime);
+  MathExtra::matvec(rotate_g2r,bvec,bprime);
+  MathExtra::matvec(rotate_g2r,cvec,cprime);
+
+  // set restricted triclinic boxlo, boxhi, and tilt factors
+
+  boxlo[0] = tri_origin[0];
+  boxlo[1] = tri_origin[1];
+  boxlo[2] = tri_origin[2];
+
+  boxhi[0] = boxlo[0] + aprime[0];
+  boxhi[1] = boxlo[1] + bprime[1];
+  boxhi[2] = boxlo[2] + cprime[2];
+
+  xy = bprime[1];
+  xz = cprime[0];
+  yz = cprime[1];
+  
+  // debug
+
+  /*
+  printf("Quat: %g %g %g %g\n",quat[0],quat[1],quat[2],quat[3]);
+  double angle = 2.0*acos(quat[0]);
+  printf("Theta: %g\n",angle);
+  printf("Rotvec: %g %g %g\n",quat[1]/sin(0.5*angle),quat[2]/sin(0.5*angle),quat[3]/sin(0.5*angle));
+  printf("Aprime: %g %g %g\n",aprime[0],aprime[1],aprime[2]);
+  printf("Bprime: %g %g %g\n",bprime[0],bprime[1],bprime[2]);
+  printf("Cprime: %g %g %g\n",cprime[0],cprime[1],cprime[2]);
+  printf("Length A: %g %g\n",MathExtra::len3(avec),MathExtra::len3(aprime));
+  printf("Length B: %g %g\n",MathExtra::len3(bvec),MathExtra::len3(bprime));
+  printf("Length C: %g %g\n",MathExtra::len3(cvec),MathExtra::len3(cprime));
+
+  double coord1[3] = {0.5,0.0,0.0};
+  double coord2[3] = {0.5,0.0,0.3};
+  double newcoord[3];
+  MathExtra::matvec(rotate_g2r,coord1,newcoord);
+  printf("Atom1: %g %g %g\n",newcoord[0],newcoord[1],newcoord[2]);
+  MathExtra::matvec(rotate_g2r,coord2,newcoord);
+  printf("Atom2: %g %g %g\n",newcoord[0],newcoord[1],newcoord[2]);
+  */
+}
+
+/* ----------------------------------------------------------------------
+   transform one atom's coords from general triclinic to restricted triclinic
+------------------------------------------------------------------------- */
+
+void Domain::general_to_restricted(double *x)
+{
+  double xnew[3];
+  
+  MathExtra::matvec(rotate_g2r,x,xnew);
+  x[0] = xnew[0] + tri_origin[0];
+  x[1] = xnew[1] + tri_origin[1];
+  x[2] = xnew[2] + tri_origin[2];
+}
+
+/* ----------------------------------------------------------------------
+   transform one atom's coords from restricted triclinic to general triclinic
+------------------------------------------------------------------------- */
+
+void Domain::restricted_to_general(double *x)
+{
+  double xshift[3],xnew[3];
+  
+  xshift[0] = x[0] - tri_origin[0];
+  xshift[1] = x[1] - tri_origin[1];
+  xshift[2] = x[2] - tri_origin[2];
+  MathExtra::matvec(rotate_r2g,xshift,xnew);
+  x[0] = xnew[0];
+  x[1] = xnew[1];
+  x[2] = xnew[2];
+}
+
+/* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom
    called every reneighboring and by other commands that change atoms
    resulting coord must satisfy lo <= coord < hi
@@ -676,9 +852,7 @@ int Domain::inside(double* x)
         lamda[1] < lo[1] || lamda[1] >= hi[1] ||
         lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
     else return 1;
-
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -713,7 +887,6 @@ int Domain::inside_nonperiodic(double* x)
     if (!zperiodic && (lamda[2] < lo[2] || lamda[2] >= hi[2])) return 0;
     return 1;
   }
-
 }
 
 /* ----------------------------------------------------------------------

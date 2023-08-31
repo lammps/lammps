@@ -72,8 +72,11 @@ void WriteData::command(int narg, char **arg)
   pairflag = II;
   coeffflag = 1;
   fixflag = 1;
+  triclinic_general = 0;
   lmapflag = 1;
-  // store current (default) setting since we may change it.
+  
+  // store current (default) setting since we may change it
+  
   int types_style = atom->types_style;
   int noinit = 0;
 
@@ -93,6 +96,9 @@ void WriteData::command(int narg, char **arg)
       iarg++;
     } else if (strcmp(arg[iarg],"nofix") == 0) {
       fixflag = 0;
+      iarg++;
+    } else if (strcmp(arg[iarg],"triclinic") == 0) {
+      triclinic_general = 1;
       iarg++;
     } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
       lmapflag = 0;
@@ -135,7 +141,9 @@ void WriteData::command(int narg, char **arg)
   }
 
   write(file);
+
   // restore saved setting
+  
   atom->types_style = types_style;
 }
 
@@ -206,8 +214,32 @@ void WriteData::write(const std::string &file)
   }
 
   // per atom info in Atoms and Velocities sections
-
+  // if general triclinic:
+  //   save restricted triclinic atom coords
+  //   transform atom coords from restricted to general
+  //   restore save atom coords after output
+  // NOTE: do same for velocities as well ?
+  
+  double **xstore = nullptr;
+  
+  if (triclinic_general) {
+    double **x = atom->x;
+    int nlocal = atom->nlocal;
+    memory->create(xstore,nlocal,3,"write_data:xstore");
+    if (nlocal) memcpy(&xstore[0][0],&x[0][0],3*nlocal*sizeof(double));
+    for (int i = 0; i < nlocal; i++)
+      domain->restricted_to_general(x[i]);
+  }
+  
   if (natoms) atoms();
+
+  if (triclinic_general) {
+    double **x = atom->x;
+    int nlocal = atom->nlocal;
+    if (nlocal) memcpy(&x[0][0],&xstore[0][0],3*nlocal*sizeof(double));
+    memory->destroy(xstore);
+  }
+
   if (natoms) velocities();
 
   // molecular topology info if defined
@@ -289,15 +321,22 @@ void WriteData::header()
         for (int m = 0; m < ifix->wd_header; m++)
           ifix->write_data_header(fp,m);
 
-  // box info
+  // box info: orthogonal, restricted triclinic, or general triclinic (if requested)
 
-  auto box = fmt::format("\n{} {} xlo xhi\n{} {} ylo yhi\n{} {} zlo zhi\n",
-                         domain->boxlo[0],domain->boxhi[0],
-                         domain->boxlo[1],domain->boxhi[1],
-                         domain->boxlo[2],domain->boxhi[2]);
-  if (domain->triclinic)
-    box += fmt::format("{} {} {} xy xz yz\n",domain->xy,domain->xz,domain->yz);
-  fputs(box.c_str(),fp);
+  if (!triclinic_general) {
+    fmt::print(fp,"\n{} {} xlo xhi\n{} {} ylo yhi\n{} {} zlo zhi\n",
+               domain->boxlo[0],domain->boxhi[0],
+               domain->boxlo[1],domain->boxhi[1],
+               domain->boxlo[2],domain->boxhi[2]);
+    if (domain->triclinic)
+      fmt::print(fp,"{} {} {} xy xz yz\n",domain->xy,domain->xz,domain->yz);
+    
+  } else if (triclinic_general) {
+    fmt::print(fp,"\n{} {} {} {} avec\n{} {} {} {} bvec\n{} {} {} {} cvec\n",
+               domain->avec[0],domain->avec[1],domain->avec[2],domain->tri_origin[0],
+               domain->bvec[0],domain->bvec[1],domain->bvec[2],domain->tri_origin[1],
+               domain->cvec[0],domain->cvec[1],domain->cvec[2],domain->tri_origin[2]);
+  }
 }
 
 /* ----------------------------------------------------------------------

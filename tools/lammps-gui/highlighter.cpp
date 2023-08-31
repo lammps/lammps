@@ -31,7 +31,7 @@ Highlighter::Highlighter(QTextDocument *parent) :
                             "\\s+(\\S+)\\s+(\\S+)")),
     isUndo(QStringLiteral("^\\s*(unfix|uncompute|undump|label|jump|next|loop)\\s+(\\S+)")),
     isParticle(QStringLiteral("^\\s*(pair_coeff|pair_modify|mass|velocity|create_bonds|delete_"
-                              "bonds|kspace_modify|labelmap)\\s+(\\S+)")),
+                              "bonds|kspace_modify|labelmap|atom_modify)\\s+(\\S+)")),
     isSetup(
         QStringLiteral("^\\s*(min_style|min_modify|run_style|timestep|neighbor|neigh_modify|"
                        "suffix|special_bonds|balance|box|clear|quit|comm_modify|comm_style|newton|"
@@ -41,7 +41,7 @@ Highlighter::Highlighter(QTextDocument *parent) :
     isRun(QStringLiteral("^\\s*(minimize|minimize/kk|run|rerun|tad|neb|neb/spin|prd|server|temper/"
                          "npt|temper/grem|temper|message|hyper|dynamical_matrix|dynamical_matrix/"
                          "kk|third_order|third_order/kk|fitpod)")),
-    isVariable(QStringLiteral("\\s+(\\$[a-z]|\\${[^} ]+})")),
+    isVariable(QStringLiteral("\\s+(\\$[a-z]|\\${[^} ]+}|\\$\\(\\S+\\))")),
     isReference(
         QStringLiteral("\\s+(c_\\S+|C_\\S+|f_\\S+|F_\\S+|i_\\S+|i2_\\S+|d_\\S+|d2_\\S+|v_\\S+)")),
     isNumber1(QStringLiteral("(^|\\s+)[0-9:*]+")), // integer and integer ranges

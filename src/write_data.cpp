@@ -217,8 +217,7 @@ void WriteData::write(const std::string &file)
   // if general triclinic:
   //   save restricted triclinic atom coords
   //   transform atom coords from restricted to general
-  //   restore save atom coords after output
-  // NOTE: do same for velocities as well ?
+  //   restore saved atom coords after output
   
   double **xstore = nullptr;
   

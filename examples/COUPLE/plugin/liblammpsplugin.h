@@ -127,7 +127,7 @@ struct _liblammpsplugin {
 
   void (*error)(void *, int, const char *);
 
-  void (*file)(void *, char *);
+  void (*file)(void *, const char *);
   char *(*command)(void *, const char *);
   void (*commands_list)(void *, int, const char **);
   void (*commands_string)(void *, const char *);
@@ -155,6 +155,7 @@ struct _liblammpsplugin {
   void *(*extract_variable)(void *, const char *, char *);
   int (*extract_variable_datatype)(void *, const char *);
   int (*set_variable)(void *, char *, char *);
+  int (*variable_info)(void *, int, char *, int);
 
   void (*gather_atoms)(void *, const char *, int, int, void *);
   void (*gather_atoms_concat)(void *, const char *, int, int, void *);
@@ -239,7 +240,7 @@ struct _liblammpsplugin {
 
   void (*free)(void *);
 
-  void (*is_running)(void *);
+  int (*is_running)(void *);
   void (*force_timeout)(void *);
 
   int (*has_error)(void *);

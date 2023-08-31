@@ -258,6 +258,6 @@ void FixUpdateSpecialBonds::write_restart(FILE *fp)
   pre_exchange();
   if (comm->me == 0) {
     int size = 0;
-    fwrite(&size,sizeof(int),1,fp);
+    fwrite(&size, sizeof(int), 1, fp);
   }
 }

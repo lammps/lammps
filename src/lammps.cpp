@@ -738,7 +738,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
  * and files and MPI communicators in sub-partitions ("universes"). Then it
  * deletes the fundamental class instances and copies of data inside the class.
  */
-LAMMPS::~LAMMPS()
+LAMMPS::~LAMMPS() noexcept(false)
 {
   const int me = comm->me;
 
@@ -1437,7 +1437,6 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
   if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
-  if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
 #if defined(LAMMPS_BIGBIG)
   fputs("-DLAMMPS_BIGBIG\n",fp);
 #elif defined(LAMMPS_SMALLBIG)

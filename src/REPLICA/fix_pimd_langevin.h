@@ -110,8 +110,7 @@ class FixPIMDLangevin : public Fix {
   double *tau_k, *c1_k, *c2_k;
   double pilescale;
   double Lan_temp;
-  double r1, r2, r3;
-  double _omega_np, *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
+  double *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
 
   class RanMars *random;
 
@@ -125,7 +124,6 @@ class FixPIMDLangevin : public Fix {
 
   /* Bussi-Zykova-Parrinello barostat */
 
-  double f_omega, mtk_term1;
   int pstat_flag;    // pstat_flag = 1 if barostat is used
   int pstyle;        // pstyle = ISO or ANISO (will support TRICLINIC in the future)
   double W, tau_p, Pext, p_hydro, totenthalpy, Vcoeff;
@@ -143,7 +141,6 @@ class FixPIMDLangevin : public Fix {
 
   /* centroid-virial estimator computation */
   double vol0 = 0.0;
-  double volume;
   double **xc, *xcall;
   int maxxc;
   int maxunwrap;
@@ -152,12 +149,12 @@ class FixPIMDLangevin : public Fix {
   void reallocate_xc();
   void collect_xc();
   void remove_com_motion();
-  double xf, vir, vir_, xcf, centroid_vir;
+  double vir, vir_, centroid_vir;
   double t_prim, t_vir, t_cv, p_prim, p_vir, p_cv, p_md;
 
   /* Computes */
-  double kine, pote, tote, totke;
-  double ke_bead, se_bead, pe_bead, pot_energy_partition;
+  double pote, tote, totke;
+  double ke_bead, se_bead, pe_bead;
   double total_spring_energy;
   char *id_pe;
   char *id_press;

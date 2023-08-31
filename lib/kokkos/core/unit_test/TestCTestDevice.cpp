@@ -1,12 +1,22 @@
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
+// the U.S. Government retains certain rights in this software.
+//
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//@HEADER
+
 #include <gtest/gtest.h>
 
-namespace Kokkos {
-namespace Impl {
-
-int get_ctest_gpu(const char *local_rank_str);
-
-}  // namespace Impl
-}  // namespace Kokkos
+#include <impl/Kokkos_DeviceManagement.hpp>  // get_ctest_gpu
 
 #ifdef _WIN32
 int setenv(const char *name, const char *value, int overwrite) {
@@ -68,60 +78,60 @@ void ctest_environment::SetUp() {
 
 TEST_F(ctest_environment, no_device_type) {
   unsetenv("CTEST_KOKKOS_DEVICE_TYPE");
-  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu("0"), 0);
+  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(0), 0);
 }
 
 TEST_F(ctest_environment, no_process_count) {
   unsetenv("CTEST_RESOURCE_GROUP_COUNT");
-  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu("0"), 0);
+  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(0), 0);
 }
 
 TEST_F(ctest_environment, invalid_rank) {
   EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu("10"), std::runtime_error,
+      Kokkos::Impl::get_ctest_gpu(10), std::runtime_error,
       "Error: local rank 10 is outside the bounds of resource groups provided "
       "by CTest.");
 }
 
 TEST_F(ctest_environment, no_type_str) {
   EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu("0"), std::runtime_error,
+      Kokkos::Impl::get_ctest_gpu(0), std::runtime_error,
       "Error: CTEST_RESOURCE_GROUP_0 is not specified. Raised by "
       "Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, missing_type) {
   EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu("1"), std::runtime_error,
+      Kokkos::Impl::get_ctest_gpu(1), std::runtime_error,
       "Error: device type 'gpus' not included in CTEST_RESOURCE_GROUP_1. "
       "Raised by Kokkos::Impl::get_ctest_gpu().");
   EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu("2"), std::runtime_error,
+      Kokkos::Impl::get_ctest_gpu(2), std::runtime_error,
       "Error: device type 'gpus' not included in CTEST_RESOURCE_GROUP_2. "
       "Raised by Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, no_id_str) {
   EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu("3"), std::runtime_error,
+      Kokkos::Impl::get_ctest_gpu(3), std::runtime_error,
       "Error: CTEST_RESOURCE_GROUP_3_GPUS is not specified. Raised by "
       "Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, invalid_id_str) {
   EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu("4"), std::runtime_error,
+      Kokkos::Impl::get_ctest_gpu(4), std::runtime_error,
       "Error: invalid value of CTEST_RESOURCE_GROUP_4_GPUS: 'id:2'. Raised by "
       "Kokkos::Impl::get_ctest_gpu().");
   EXPECT_THROW_WITH_MESSAGE(
-      Kokkos::Impl::get_ctest_gpu("5"), std::runtime_error,
+      Kokkos::Impl::get_ctest_gpu(5), std::runtime_error,
       "Error: invalid value of CTEST_RESOURCE_GROUP_5_GPUS: 'slots:1,id:2'. "
       "Raised by Kokkos::Impl::get_ctest_gpu().");
 }
 
 TEST_F(ctest_environment, good) {
-  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu("6"), 2);
-  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu("7"), 3);
-  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu("8"), 1);
-  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu("9"), 4);
+  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(6), 2);
+  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(7), 3);
+  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(8), 1);
+  EXPECT_EQ(Kokkos::Impl::get_ctest_gpu(9), 4);
 }

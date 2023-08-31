@@ -55,7 +55,9 @@ enum{NO,YES};
 
 /* ---------------------------------------------------------------------- */
 
-Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
+Image::Image(LAMMPS *lmp, int nmap_caller) :
+    Pointers(lmp), depthBuffer(nullptr), surfaceBuffer(nullptr), depthcopy(nullptr),
+    surfacecopy(nullptr), imageBuffer(nullptr), rgbcopy(nullptr), writeBuffer(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -69,6 +71,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
   persp = 0.0;
   shiny = 1.0;
   ssao = NO;
+  fsaa = NO;
 
   up[0] = 0.0;
   up[1] = 0.0;
@@ -154,6 +157,13 @@ Image::~Image()
 
 void Image::buffers()
 {
+  memory->destroy(depthBuffer);
+  memory->destroy(surfaceBuffer);
+  memory->destroy(imageBuffer);
+  memory->destroy(depthcopy);
+  memory->destroy(surfacecopy);
+  memory->destroy(rgbcopy);
+
   npixels = width * height;
   memory->create(depthBuffer,npixels,"image:depthBuffer");
   memory->create(surfaceBuffer,2*npixels,"image:surfaceBuffer");
@@ -379,6 +389,26 @@ void Image::merge()
     writeBuffer = rgbcopy;
   } else {
     writeBuffer = imageBuffer;
+  }
+
+  // scale down image for antialiasing. can be done in place with simple averaging
+  if (fsaa) {
+    for (int h=0; h < height; h += 2) {
+      for (int w=0; w < width; w +=2) {
+        int idx1 = 3*height*h + 3*w;
+        int idx2 = 3*height*h + 3*(w+1);
+        int idx3 = 3*height*(h+1) + 3*w;
+        int idx4 = 3*height*(h+1) + 3*(w+1);
+
+        int out = 3*(height/2)*(h/2) + 3*(w/2);
+        for (int i=0; i < 3; ++i) {
+          writeBuffer[out+i] = (unsigned char) (0.25*((int)writeBuffer[idx1+i]
+                                                      +(int)writeBuffer[idx2+i]
+                                                      +(int)writeBuffer[idx3+i]
+                                                      +(int)writeBuffer[idx4+i]));
+        }
+      }
+    }
   }
 }
 
@@ -929,6 +959,9 @@ void Image::compute_SSAO()
   int pixelstart = static_cast<int> (1.0*me/nprocs * npixels);
   int pixelstop = static_cast<int> (1.0*(me+1)/nprocs * npixels);
 
+#if defined(_OPENMP)
+#pragma omp parallel for
+#endif
   for (int index = pixelstart; index < pixelstop; index++) {
     int x = index % width;
     int y = index / width;
@@ -1037,6 +1070,7 @@ void Image::compute_SSAO()
 void Image::write_JPG(FILE *fp)
 {
 #ifdef LAMMPS_JPEG
+  int aafactor = fsaa ? 2 : 1;
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
   JSAMPROW row_pointer;
@@ -1044,8 +1078,8 @@ void Image::write_JPG(FILE *fp)
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_compress(&cinfo);
   jpeg_stdio_dest(&cinfo,fp);
-  cinfo.image_width = width;
-  cinfo.image_height = height;
+  cinfo.image_width = width/aafactor;
+  cinfo.image_height = height/aafactor;
   cinfo.input_components = 3;
   cinfo.in_color_space = JCS_RGB;
 
@@ -1055,7 +1089,7 @@ void Image::write_JPG(FILE *fp)
 
   while (cinfo.next_scanline < cinfo.image_height) {
     row_pointer = (JSAMPROW)
-      &writeBuffer[(cinfo.image_height - 1 - cinfo.next_scanline) * 3 * width];
+      &writeBuffer[(cinfo.image_height - 1 - cinfo.next_scanline) * 3 * (width/aafactor)];
     jpeg_write_scanlines(&cinfo,&row_pointer,1);
   }
 
@@ -1071,6 +1105,7 @@ void Image::write_JPG(FILE *fp)
 void Image::write_PNG(FILE *fp)
 {
 #ifdef LAMMPS_PNG
+  int aafactor = fsaa ? 2 : 1;
   png_structp png_ptr;
   png_infop info_ptr;
 
@@ -1090,8 +1125,8 @@ void Image::write_PNG(FILE *fp)
   }
 
   png_init_io(png_ptr, fp);
-  png_set_compression_level(png_ptr,Z_BEST_COMPRESSION);
-  png_set_IHDR(png_ptr,info_ptr,width,height,8,PNG_COLOR_TYPE_RGB,
+  png_set_compression_level(png_ptr,Z_BEST_SPEED);
+  png_set_IHDR(png_ptr,info_ptr,width/aafactor,height/aafactor,8,PNG_COLOR_TYPE_RGB,
     PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
 
   png_text text_ptr[2];
@@ -1111,9 +1146,9 @@ void Image::write_PNG(FILE *fp)
   png_set_text(png_ptr,info_ptr,text_ptr,1);
   png_write_info(png_ptr,info_ptr);
 
-  auto row_pointers = new png_bytep[height];
-  for (int i=0; i < height; ++i)
-    row_pointers[i] = (png_bytep) &writeBuffer[(height-i-1)*3*width];
+  auto row_pointers = new png_bytep[height/aafactor];
+  for (int i=0; i < height/aafactor; ++i)
+    row_pointers[i] = (png_bytep) &writeBuffer[((height/aafactor)-i-1)*3*(width/aafactor)];
 
   png_write_image(png_ptr, row_pointers);
   png_write_end(png_ptr, info_ptr);
@@ -1129,11 +1164,12 @@ void Image::write_PNG(FILE *fp)
 
 void Image::write_PPM(FILE *fp)
 {
-  fprintf(fp,"P6\n%d %d\n255\n",width,height);
+  int aafactor = fsaa ? 2 : 1;
+  fprintf(fp,"P6\n%d %d\n255\n",width/aafactor,height/aafactor);
 
   int y;
-  for (y = height-1; y >= 0; y--)
-    fwrite(&writeBuffer[y*width*3],3,width,fp);
+  for (y = (height/aafactor)-1; y >= 0; y--)
+    fwrite(&writeBuffer[y*(width/aafactor)*3],3,width/aafactor,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1384,7 +1420,7 @@ double *Image::color2rgb(const char *color, int index)
     {0/255.0, 0/255.0, 139/255.0},
     {0/255.0, 139/255.0, 139/255.0},
     {184/255.0, 134/255.0, 11/255.0},
-    {169/255.0, 169/255.0, 169/255.0},
+    {69/255.0, 69/255.0, 69/255.0},
     {0/255.0, 100/255.0, 0/255.0},
     {189/255.0, 183/255.0, 107/255.0},
     {139/255.0, 0/255.0, 139/255.0},

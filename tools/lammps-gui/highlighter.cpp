@@ -15,29 +15,28 @@
 
 Highlighter::Highlighter(QTextDocument *parent) :
     QSyntaxHighlighter(parent),
-    isLattice1(QStringLiteral("^\\s*(units|atom_style|dielectric|dimension)\\s+(\\S+)")),
+    isLattice1(QStringLiteral("^\\s*(units|atom_style|change_box|dielectric|dimension)\\s+(\\S+)")),
     isLattice2(QStringLiteral("^\\s*(lattice|region|create_box|create_atoms|delete_atoms|displace_"
                               "atoms)\\s+(\\S+)\\s+(\\S+)")),
     isLattice3(QStringLiteral("^\\s*(boundary|replicate)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)")),
-    isOutput1(QStringLiteral(
-        "^\\s*(log|write_data|write_coeff|write_restart|restart|info|thermo|print|thermo_style|"
-        "timer|pair_write|bond_write|angle_write|dihedral_write)\\s+(\\S+)")),
+    isOutput1(QStringLiteral("^\\s*(echo|log|write_data|write_coeff|write_restart|restart|info|"
+                             "thermo|print|thermo_style|"
+                             "timer|pair_write|bond_write|angle_write|dihedral_write)\\s+(\\S+)")),
     isOutput2(QStringLiteral("^\\s*(write_dump|shell|thermo_modify)\\s+(\\S+)\\s+(\\S+)")),
     isRead(QStringLiteral("^\\s*(include|read_restart|read_data|read_dump|molecule)")),
-    isStyle(QStringLiteral("^\\s*(fix|compute|dump|set)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)")),
-    isForce(QStringLiteral("^\\s*(pair_style|bond_style|angle_style|dihedral_style|"
-                           "improper_style|kspace_style)\\s+(\\S+)")),
+    isStyle(QStringLiteral("^\\s*(fix|compute|dump)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)")),
+    isForce(QStringLiteral(
+        "^\\s*(pair_style|bond_style|angle_style|dihedral_style|improper_style|kspace_style|pair_"
+        "coeff|angle_coeff|bond_coeff|dihedral_coeff|improper_coeff)\\s+(\\S+)")),
     isDefine(QStringLiteral("^\\s*(group|variable|python|set|group2ndx|ndx2group|kim|kim_query|mdi)"
                             "\\s+(\\S+)\\s+(\\S+)")),
-    isUndo(QStringLiteral("^\\s*(unfix|uncompute|undump|label|jump|next|loop)\\s+(\\S+)")),
-    isParticle(QStringLiteral("^\\s*(pair_coeff|pair_modify|mass|velocity|create_bonds|delete_"
+    isUndo(QStringLiteral("^\\s*(unfix|uncompute|undump|label|jump|next)\\s+(\\S+)")),
+    isParticle(QStringLiteral("^\\s*(pair_modify|mass|velocity|create_bonds|delete_"
                               "bonds|kspace_modify|labelmap|atom_modify)\\s+(\\S+)")),
-    isSetup(
-        QStringLiteral("^\\s*(min_style|min_modify|run_style|timestep|neighbor|neigh_modify|"
-                       "suffix|special_bonds|balance|box|clear|quit|comm_modify|comm_style|newton|"
-                       "package|processors|reset_atoms|reset_ids|reset_timestep|dump_modify|fix_"
-                       "modify|compute_modify)")),
-
+    isSetup(QStringLiteral(
+        "^\\s*(min_style|min_modify|run_style|timestep|neighbor|neigh_modify|suffix|special_bonds|"
+        "balance|box|clear|plugin|quit|comm_modify|comm_style|newton|package|partition|processors|"
+        "reset_atoms|reset_ids|reset_timestep|dump_modify|fix_modify|compute_modify)")),
     isRun(QStringLiteral("^\\s*(minimize|minimize/kk|run|rerun|tad|neb|neb/spin|prd|server|temper/"
                          "npt|temper/grem|temper|message|hyper|dynamical_matrix|dynamical_matrix/"
                          "kk|third_order|third_order/kk|fitpod)")),

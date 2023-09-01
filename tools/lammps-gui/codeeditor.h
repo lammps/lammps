@@ -49,6 +49,7 @@ private slots:
     void get_help();
     void find_help(QString &page, QString &help);
     void open_help();
+    void reformatCurrentLine();
 
 private:
     QWidget *lineNumberArea;

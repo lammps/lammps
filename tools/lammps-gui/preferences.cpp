@@ -37,6 +37,7 @@
 #include <QRadioButton>
 #include <QSettings>
 #include <QSpacerItem>
+#include <QSpinBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -70,6 +71,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
     tabWidget->addTab(new SnapshotTab(settings), "&Snapshot Image");
+    tabWidget->addTab(new EditorTab(settings), "&Editor Settings");
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &Preferences::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -80,7 +82,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     setLayout(layout);
     setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     setWindowTitle("LAMMPS-GUI - Preferences");
-    resize(500, 400);
+    resize(600, 450);
 }
 
 Preferences::~Preferences()
@@ -175,6 +177,20 @@ void Preferences::accept()
         const char *arg0 = mystrdup(QCoreApplication::arguments().at(0).toStdString());
         execl(path, arg0, (char *)NULL);
     }
+
+    // reformattting settings
+
+    settings->beginGroup("reformat");
+    auto spin = tabWidget->findChild<QSpinBox *>("cmdval");
+    if (spin) settings->setValue("command", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("typeval");
+    if (spin) settings->setValue("type", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("idval");
+    if (spin) settings->setValue("id", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("nameval");
+    if (spin) settings->setValue("name", spin->value());
+    settings->endGroup();
+
     QDialog::accept();
 }
 
@@ -476,6 +492,50 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(background, i++, 1, Qt::AlignVCenter);
     grid->addWidget(cbox, i, 0, Qt::AlignTop);
     grid->addWidget(boxcolor, i++, 1, Qt::AlignVCenter);
+
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), i, 2);
+    setLayout(grid);
+}
+
+EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), settings(_settings)
+{
+    settings->beginGroup("reformat");
+    auto *grid     = new QGridLayout;
+    auto *reformat = new QLabel("Tab Reformatting settings:");
+    auto *cmdlbl   = new QLabel("Command width:");
+    auto *typelbl  = new QLabel("Type width:");
+    auto *idlbl    = new QLabel("ID width:");
+    auto *namelbl  = new QLabel("Name width:");
+    auto *cmdval   = new QSpinBox;
+    auto *typeval  = new QSpinBox;
+    auto *idval    = new QSpinBox;
+    auto *nameval  = new QSpinBox;
+    cmdval->setRange(1, 32);
+    cmdval->setValue(settings->value("command", "16").toInt());
+    cmdval->setObjectName("cmdval");
+    typeval->setRange(1, 32);
+    typeval->setValue(settings->value("type", "4").toInt());
+    typeval->setObjectName("typeval");
+    idval->setRange(1, 32);
+    idval->setValue(settings->value("id", "8").toInt());
+    idval->setObjectName("idval");
+    nameval->setRange(1, 32);
+    nameval->setValue(settings->value("name", "8").toInt());
+    nameval->setObjectName("nameval");
+    settings->endGroup();
+
+    int i = 0;
+    grid->addWidget(reformat, i++, 0, 1, 2, Qt::AlignTop | Qt::AlignHCenter);
+    grid->addWidget(cmdlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(cmdval, i++, 1, Qt::AlignTop);
+    grid->addWidget(typelbl, i, 0, Qt::AlignTop);
+    grid->addWidget(typeval, i++, 1, Qt::AlignTop);
+    grid->addWidget(idlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(idval, i++, 1, Qt::AlignTop);
+    grid->addWidget(namelbl, i, 0, Qt::AlignTop);
+    grid->addWidget(nameval, i++, 1, Qt::AlignTop);
 
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);

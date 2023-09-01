@@ -25,6 +25,7 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QRegularExpression>
+#include <QSettings>
 #include <QTextBlock>
 #include <QUrl>
 
@@ -212,16 +213,24 @@ QString CodeEditor::reformatLine(const QString &line)
 {
     auto words = split_line(line.toStdString());
     QString newtext;
+    QSettings settings;
+    settings.beginGroup("reformat");
+    int cmdsize  = settings.value("command", "16").toInt();
+    int typesize = settings.value("type", "4").toInt();
+    int idsize   = settings.value("id", "4").toInt();
+    int namesize = settings.value("name", "8").toInt();
+    settings.endGroup();
 
     if (words.size()) {
         // commented line. do nothing
         if (words[0][0] == '#') return line;
 
-        // append LAMMPS command padded to 16 chars to the next work
-        newtext += words[0].c_str();
-        if (words.size() > 1)
-            for (int i = 0; i < (15 - words[0].size()); ++i)
+        // start with LAMMPS command plus padding if another word follows
+        newtext = words[0].c_str();
+        if (words.size() > 1) {
+            for (int i = words[0].size() + 1; i < cmdsize; ++i)
                 newtext += ' ';
+        }
 
         // append remaining words with just a single blank added.
         for (int i = 1; i < words.size(); ++i) {
@@ -230,15 +239,31 @@ QString CodeEditor::reformatLine(const QString &line)
 
             // special cases
 
-            // additional space for types or type ranges
-            if ((words[0] == "pair_coeff") && (i < 3))
-                for (int j = words[i].size(); j < 4; ++j)
-                    newtext += ' ';
+            if (i < 3) {
+                // additional space for types or type ranges
+                if (words[0] == "pair_coeff")
+                    for (int j = words[i].size(); j < typesize; ++j)
+                        newtext += ' ';
 
-            if ((i < 2) && ((words[0] == "bond_coeff") || (words[0] == "angle_coeff") ||
-                            (words[0] == "dihedral_coeff") || (words[0] == "improper_coeff")))
-                for (int j = words[i].size(); j < 4; ++j)
-                    newtext += ' ';
+                // pad 4 for IDs and 8 for groups
+                if ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump")) {
+                    if (i == 1) {
+                        for (int j = words[i].size(); j < idsize; ++j)
+                            newtext += ' ';
+                    } else if (i == 2) {
+                        for (int j = words[i].size(); j < namesize; ++j)
+                            newtext += ' ';
+                    }
+                }
+            }
+
+            if (i < 2) {
+                if ((words[0] == "bond_coeff") || (words[0] == "angle_coeff") ||
+                    (words[0] == "dihedral_coeff") || (words[0] == "improper_coeff") ||
+                    (words[0] == "mass"))
+                    for (int j = words[i].size(); j < typesize; ++j)
+                        newtext += ' ';
+            }
         }
     }
     return newtext;
@@ -247,18 +272,7 @@ QString CodeEditor::reformatLine(const QString &line)
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Tab) {
-        auto cursor  = textCursor();
-        auto text    = cursor.block().text();
-        auto newtext = reformatLine(text);
-
-        // perform edit but only if text has changed
-        if (QString::compare(text, newtext)) {
-            cursor.beginEditBlock();
-            cursor.movePosition(QTextCursor::StartOfLine);
-            cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor, 1);
-            cursor.insertText(newtext);
-            cursor.endEditBlock();
-        }
+        reformatCurrentLine();
         return;
     }
     if (event->key() == Qt::Key_Backtab) {
@@ -364,7 +378,12 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     auto *menu = createStandardContextMenu();
     if (!page.isEmpty()) {
         menu->addSeparator();
-        auto action = menu->addAction(QString("View Documentation for '%1'").arg(help));
+        auto action = menu->addAction(QString("Reformat '%1' command").arg(help));
+        action->setIcon(QIcon(":/format-indent-less-3.png"));
+        connect(action, &QAction::triggered, this, &CodeEditor::reformatCurrentLine);
+
+        menu->addSeparator();
+        action = menu->addAction(QString("View Documentation for '%1'").arg(help));
         action->setIcon(QIcon(":/system-help.png"));
         action->setData(page);
         connect(action, &QAction::triggered, this, &CodeEditor::open_help);
@@ -388,6 +407,22 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
 
     menu->exec(event->globalPos());
     delete menu;
+}
+
+void CodeEditor::reformatCurrentLine()
+{
+    auto cursor  = textCursor();
+    auto text    = cursor.block().text();
+    auto newtext = reformatLine(text);
+
+    // perform edit but only if text has changed
+    if (QString::compare(text, newtext)) {
+        cursor.beginEditBlock();
+        cursor.movePosition(QTextCursor::StartOfLine);
+        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor, 1);
+        cursor.insertText(newtext);
+        cursor.endEditBlock();
+    }
 }
 
 void CodeEditor::get_help()

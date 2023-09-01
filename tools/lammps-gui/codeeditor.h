@@ -31,6 +31,7 @@ public:
     void setFont(const QFont &newfont);
     void setCursor(int block);
     void setHighlight(int block, bool error);
+    QString reformatLine(const QString &line);
 
     static constexpr int NO_HIGHLIGHT = 1 << 30;
 
@@ -40,6 +41,7 @@ protected:
     bool canInsertFromMimeData(const QMimeData *source) const override;
     void dropEvent(QDropEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);

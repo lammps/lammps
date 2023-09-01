@@ -28,6 +28,92 @@
 #include <QTextBlock>
 #include <QUrl>
 
+#include <string>
+#include <vector>
+
+// Convert string into words on whitespace while handling single and double
+// quotes. Adapted from LAMMPS_NS::utils::split_words() to preserve quotes.
+
+static std::vector<std::string> split_line(const std::string &text)
+{
+    std::vector<std::string> list;
+    const char *buf = text.c_str();
+    std::size_t beg = 0;
+    std::size_t len = 0;
+    std::size_t add = 0;
+    char c          = *buf;
+
+    while (c) { // leading whitespace
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
+            c = *++buf;
+            ++beg;
+            continue;
+        };
+        len = 0;
+
+    // handle escaped/quoted text.
+    quoted:
+
+        if (c == '\'') { // handle single quote
+            add = 0;
+            len = 1;
+            c   = *++buf;
+            while (((c != '\'') && (c != '\0')) || ((c == '\\') && (buf[1] == '\''))) {
+                if ((c == '\\') && (buf[1] == '\'')) {
+                    ++buf;
+                    ++len;
+                }
+                c = *++buf;
+                ++len;
+            }
+            ++len;
+            c = *++buf;
+
+            // handle triple double quotation marks
+        } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
+            len = 3;
+            add = 1;
+            buf += 3;
+            c = *buf;
+
+        } else if (c == '"') { // handle double quote
+            add = 0;
+            len = 1;
+            c   = *++buf;
+            while (((c != '"') && (c != '\0')) || ((c == '\\') && (buf[1] == '"'))) {
+                if ((c == '\\') && (buf[1] == '"')) {
+                    ++buf;
+                    ++len;
+                }
+                c = *++buf;
+                ++len;
+            }
+            ++len;
+            c = *++buf;
+        }
+
+        while (true) { // unquoted
+            if ((c == '\'') || (c == '"')) goto quoted;
+            // skip escaped quote
+            if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
+                ++buf;
+                ++len;
+                c = *++buf;
+                ++len;
+            }
+            if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') || (c == '\f') ||
+                (c == '\0')) {
+                list.push_back(text.substr(beg, len));
+                beg += len + add;
+                break;
+            }
+            c = *++buf;
+            ++len;
+        }
+    }
+    return list;
+}
+
 CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
@@ -118,6 +204,57 @@ void CodeEditor::setHighlight(int block, bool error)
 
     // update graphics
     repaint();
+}
+
+
+// reformat line
+
+QString CodeEditor::reformatLine(const QString &line)
+{
+    auto words = split_line(line.toStdString());
+    QString newtext;
+
+    if (words.size()) {
+        // commented line. do nothing
+        if (words[0][0] == '#') return line;
+
+        // append LAMMPS command padded to 16 chars to the next work
+        newtext += words[0].c_str();
+        if (words.size() > 1)
+            for (int i = 0; i < (15 - words[0].size()); ++i)
+                newtext += ' ';
+
+        // append remaining words with just a single blank added.
+        for (int i = 1; i < words.size(); ++i) {
+            newtext += ' ';
+            newtext += words[i].c_str();
+        }
+    }
+    return newtext;
+}
+
+void CodeEditor::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Tab) {
+        auto cursor  = textCursor();
+        auto text    = cursor.block().text();
+        auto newtext = reformatLine(text);
+
+        // perform edit but only if text has changed
+        if (QString::compare(text, newtext)) {
+            cursor.beginEditBlock();
+            cursor.movePosition(QTextCursor::StartOfLine);
+            cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor, 1);
+            cursor.insertText(newtext);
+            cursor.endEditBlock();
+        }
+        return;
+    }
+    if (event->key() == Qt::Key_Backtab) {
+        fprintf(stderr, "Shift + Tab key hit\n");
+        return;
+    }
+    QPlainTextEdit::keyPressEvent(event);
 }
 
 void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)

@@ -667,7 +667,7 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
 }
 
 /* ----------------------------------------------------------------------
-   transform one atom's coords from general triclinic to restricted triclinic
+   transform atom coords from general triclinic to restricted triclinic
 ------------------------------------------------------------------------- */
 
 void Domain::general_to_restricted(double *x)
@@ -681,7 +681,7 @@ void Domain::general_to_restricted(double *x)
 }
 
 /* ----------------------------------------------------------------------
-   transform one atom's coords from restricted triclinic to general triclinic
+   transform atom coords from restricted triclinic to general triclinic
 ------------------------------------------------------------------------- */
 
 void Domain::restricted_to_general(double *x)

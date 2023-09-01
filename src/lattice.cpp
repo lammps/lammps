@@ -582,8 +582,9 @@ void Lattice::cross(double *x, double *y, double *z)
 }
 
 /* ----------------------------------------------------------------------
-   convert x,y,z from lattice coords to box coords (flag = 0) or vice versa
-   use new point to expand bounding box (min to max)
+   convert x,y,z from lattice coords to box coords (flag = 0)
+   or from box coords to lattice coords (flag = 1)
+   either way, use new point to expand bounding box (min to max)
 ------------------------------------------------------------------------- */
 
 void Lattice::bbox(int flag, double x, double y, double z,

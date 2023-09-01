@@ -115,8 +115,10 @@ void CreateBox::command(int narg, char **arg)
     double chi = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
     iarg += 6;
 
-    // use lattice2box() to generate avec, bvec, cvec and origin
-
+    // use lattice2box() to generate origin and ABC vectors
+    // origin = abc lo
+    // ABC vector = hi in one dim - orign
+    
     double avec[3],bvec[3],cvec[3],origin[3];
     double px,py,pz;
     
@@ -144,12 +146,7 @@ void CreateBox::command(int narg, char **arg)
     cvec[1] = py - origin[1];
     cvec[2] = pz - origin[2];
 
-    printf("ORIGIN %g %g %g\n",origin[0],origin[1],origin[2]);
-    printf("AVEC %g %g %g\n",avec[0],avec[1],avec[2]);
-    printf("BVEC %g %g %g\n",bvec[0],bvec[1],bvec[2]);
-    printf("CVEC %g %g %g\n",cvec[0],cvec[1],cvec[2]);
-
-    // setup general triclinic box in Domain
+    // setup general triclinic box within Domain
     
     domain->set_general_triclinic(avec,bvec,cvec,origin);
   }

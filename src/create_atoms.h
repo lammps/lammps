@@ -69,6 +69,7 @@ class CreateAtoms : public Command {
   void add_mesh(const char *);
   int add_bisection(const double[3][3], tagint);
   int add_quasirandom(const double[3][3], tagint);
+  void add_lattice_triclinic_general();
   void add_lattice();
   void loop_lattice(int);
   void add_molecule(double *);

@@ -450,8 +450,8 @@ void CreateAtoms::command(int narg, char **arg)
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  // add atoms/molecules in one of 3 ways
-
+  // add atoms/molecules with appropriate add() method
+  
   bigint natoms_previous = atom->natoms;
   int nlocal_previous = atom->nlocal;
 
@@ -1156,11 +1156,33 @@ void CreateAtoms::add_mesh(const char *filename)
 }
 
 /* ----------------------------------------------------------------------
+   add many atoms to general triclinic box by looping over lattice
+------------------------------------------------------------------------- */
+
+void CreateAtoms::add_lattice_triclinic_general()
+{
+  
+  
+}
+
+/* ----------------------------------------------------------------------
    add many atoms by looping over lattice
 ------------------------------------------------------------------------- */
 
 void CreateAtoms::add_lattice()
 {
+  // add atoms on general triclinic lattice if Domain has setting for it
+  // verify lattice is valid for general triclinic
+  
+  int triclinic_general = domain->triclinic_general;
+  
+  if (triclinic_general) {
+    if (!domain->lattice->is_custom())
+      error->all(FLERR,"Create_atoms for general triclinic requires custom lattice");
+    if (domain->lattice->is_oriented())
+      error->all(FLERR,"Create_atoms for general triclinic requires lattice with default orientation");
+  }
+
   // convert 8 corners of my subdomain from box coords to lattice coords
   // for orthogonal, use corner pts of my subbox
   // for triclinic, use bounding box of my subbox
@@ -1202,17 +1224,56 @@ void CreateAtoms::add_lattice()
   xmin = ymin = zmin = BIG;
   xmax = ymax = zmax = -BIG;
 
-  // convert to lattice coordinates and set bounding box
+  // convert 8 corner points of bounding box to lattice coordinates
+  // compute new bounding box (xyz min/max) in lattice coords
+  // for orthogonal or restricted triclinic, use 8 corner points of bbox lo/hi
+  
+  if (!triclinic_general) {
+    domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    domain->lattice->bbox(1, bboxhi[0], bboxhi[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    domain->lattice->bbox(1, bboxhi[0], bboxhi[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
 
-  domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
-  domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
-  domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
-  domain->lattice->bbox(1, bboxhi[0], bboxhi[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
-  domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
-  domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
-  domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
-  domain->lattice->bbox(1, bboxhi[0], bboxhi[1], bboxhi[2], xmin, ymin, zmin, xmax, ymax, zmax);
+  // for general triclinic, convert 8 corner points of bbox to general triclinic coords
+  // new set of 8 points is no longer an orthogonal bounding box
+  // instead invoke lattice->bbox() on each of 8 points
 
+  } else if (triclinic_general) {
+    double point[3];
+
+    point[0] = bboxlo[0]; point[1] = bboxlo[1]; point[2] = bboxlo[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    point[0] = bboxhi[0]; point[1] = bboxlo[1]; point[2] = bboxlo[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+
+    point[0] = bboxlo[0]; point[1] = bboxhi[1]; point[2] = bboxlo[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    point[0] = bboxhi[0]; point[1] = bboxhi[1]; point[2] = bboxlo[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+
+    point[0] = bboxlo[0]; point[1] = bboxlo[1]; point[2] = bboxhi[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    point[0] = bboxhi[0]; point[1] = bboxlo[1]; point[2] = bboxhi[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+
+    point[0] = bboxlo[0]; point[1] = bboxhi[1]; point[2] = bboxhi[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+    point[0] = bboxhi[0]; point[1] = bboxhi[1]; point[2] = bboxhi[2];
+    domain->restricted_to_general(point);
+    domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
+  }
+  
   // ilo:ihi,jlo:jhi,klo:khi = loop bounds for lattice overlap of my subbox
   // overlap = any part of a unit cell (face,edge,pt) in common with my subbox
   // in lattice space, subbox is a tilted box
@@ -1233,6 +1294,8 @@ void CreateAtoms::add_lattice()
   if (ymin < 0.0) jlo--;
   if (zmin < 0.0) klo--;
 
+  printf("LOOP LATTICE bounds: %d %d: %d %d: %d %d\n",ilo,ihi,jlo,jhi,klo,khi);
+  
   // count lattice sites on each proc
 
   nlatt_overflow = 0;
@@ -1298,6 +1361,7 @@ void CreateAtoms::loop_lattice(int action)
 {
   int i, j, k, m;
 
+  int triclinic_general = domain->triclinic_general;
   const double *const *const basis = domain->lattice->basis;
 
   nlatt = 0;
@@ -1317,6 +1381,10 @@ void CreateAtoms::loop_lattice(int action)
 
           domain->lattice->lattice2box(x[0], x[1], x[2]);
 
+          // convert from general to restricted triclinic coords
+
+          if (triclinic_general) domain->general_to_restricted(x);
+          
           // if a region was specified, test if atom is in it
 
           if (style == REGION)

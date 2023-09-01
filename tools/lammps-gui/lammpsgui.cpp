@@ -113,6 +113,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     capturer    = new StdCapture;
     current_file.clear();
     current_dir = QDir(".").absolutePath();
+    // use $HOME if we get dropped to "/" like on macOS
+    if (current_dir == "/") current_dir = QDir::homePath();
 
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
     QCoreApplication::setOrganizationDomain("lammps.org");

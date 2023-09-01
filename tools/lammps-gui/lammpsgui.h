@@ -45,6 +45,7 @@ class StdCapture;
 class Preferences;
 class ImageViewer;
 class ChartWindow;
+class SlideShow;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
@@ -84,6 +85,7 @@ private slots:
     void stop_run();
     void edit_variables();
     void render_image();
+    void view_slides();
     void view_image();
     void view_chart();
     void view_log();
@@ -107,6 +109,7 @@ private:
     LogWindow *logwindow;
     ImageViewer *imagewindow;
     ChartWindow *chartwindow;
+    SlideShow *slideshow;
     QTimer *logupdater;
     QLabel *dirstatus;
     QProgressBar *progress;

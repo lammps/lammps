@@ -20,6 +20,7 @@
 #include "logwindow.h"
 #include "preferences.h"
 #include "setvariables.h"
+#include "slideshow.h"
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
@@ -96,8 +97,8 @@ static bool has_exe(const QString &exe)
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
-    logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr),
-    lammpsstatus(nullptr), varwindow(nullptr)
+    slideshow(nullptr), logupdater(nullptr), dirstatus(nullptr), progress(nullptr),
+    prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr)
 {
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
@@ -239,6 +240,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
     connect(ui->actionView_Image_Window, &QAction::triggered, this, &LammpsGui::view_image);
+    connect(ui->actionView_Slide_Show, &QAction::triggered, this, &LammpsGui::view_slides);
     connect(ui->actionView_Variable_Window, &QAction::triggered, this, &LammpsGui::view_variables);
     connect(ui->action_1, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_2, &QAction::triggered, this, &LammpsGui::open_recent);
@@ -307,6 +309,7 @@ LammpsGui::~LammpsGui()
     delete chartwindow;
     delete dirstatus;
     delete varwindow;
+    delete slideshow;
 }
 
 void LammpsGui::new_document()
@@ -545,6 +548,10 @@ void LammpsGui::open_file(const QString &fileName)
     dirstatus->setText(QString(" Directory: ") + current_dir);
     status->setText("Ready.");
 
+    if (slideshow) {
+        delete slideshow;
+        slideshow = nullptr;
+    }
     update_variables();
 }
 
@@ -710,20 +717,25 @@ void LammpsGui::logupdate()
         }
     }
 
+    // get timestep
+    int step  = 0;
+    void *ptr = lammps.last_thermo("step", 0);
+    if (ptr) {
+        if (lammps.extract_setting("bigint") == 4)
+            step = *(int *)ptr;
+        else
+            step = (int)*(int64_t *)ptr;
+    }
+
     // extract cached thermo data
     if (chartwindow) {
         // thermo data is not yet valid during setup
         void *ptr = lammps.last_thermo("setup", 0);
         if (ptr && *(int *)ptr) return;
 
-        ptr = lammps.last_thermo("step", 0);
+        ptr = lammps.last_thermo("num", 0);
         if (ptr) {
-            int step = 0;
-            if (lammps.extract_setting("bigint") == 4)
-                step = *(int *)ptr;
-            else
-                step = (int)*(int64_t *)ptr;
-            int ncols = *(int *)lammps.last_thermo("num", 0);
+            int ncols = *(int *)ptr;
 
             // check if the column assignment has changed
             // if yes, delete charts and start over
@@ -767,6 +779,22 @@ void LammpsGui::logupdate()
                 chartwindow->add_data(step, data, i);
             }
         }
+    }
+
+    // update list of available image file names
+
+    QString imagefile = (const char *)lammps.last_thermo("imagename", 0);
+    if (!imagefile.isEmpty()) {
+        if (!slideshow) {
+            slideshow = new SlideShow(current_file);
+            if (QSettings().value("viewslide", true).toBool())
+                slideshow->show();
+            else
+                slideshow->hide();
+        } else {
+            slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + current_file);
+        }
+        slideshow->add_image(imagefile);
     }
 }
 
@@ -956,6 +984,12 @@ void LammpsGui::do_run(bool use_buffer)
     else
         chartwindow->hide();
 
+    if (slideshow) {
+        slideshow->setWindowTitle("LAMMPS-GUI - Slide Show");
+        slideshow->clear();
+        slideshow->hide();
+    }
+
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
     logupdater->start(100);
@@ -980,6 +1014,15 @@ void LammpsGui::render_image()
         return;
     }
     imagewindow->show();
+}
+
+void LammpsGui::view_slides()
+{
+    if (!slideshow) slideshow = new SlideShow(current_file);
+    if (slideshow->isVisible())
+        slideshow->hide();
+    else
+        slideshow->show();
 }
 
 void LammpsGui::view_chart()
@@ -1068,6 +1111,7 @@ void LammpsGui::about()
 
     QMessageBox msg;
     msg.setWindowTitle("About LAMMPS");
+    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
@@ -1087,6 +1131,7 @@ void LammpsGui::help()
 {
     QMessageBox msg;
     msg.setWindowTitle("LAMMPS-GUI Quick Help");
+    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
     msg.setInformativeText("<p>LAMMPS GUI is a graphical text editor that is linked to the LAMMPS "
                            "library and thus can run LAMMPS directly using the contents of the "

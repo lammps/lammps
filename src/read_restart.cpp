@@ -796,9 +796,12 @@ void ReadRestart::header()
     } else if (flag == ATOM_ID) {
       atom->tag_enable = read_int();
     } else if (flag == ATOM_MAP_STYLE) {
-      atom->map_style = read_int();
+      // we should be able to enable an atom map, even
+      // if the simulation in the restart didn't use one
+      int itmp = read_int();
+      if (atom->map_user == Atom::MAP_NONE) atom->map_style = itmp;
     } else if (flag == ATOM_MAP_USER) {
-      atom->map_user  = read_int();
+      int itmp = read_int();  // ignored
     } else if (flag == ATOM_SORTFREQ) {
       atom->sortfreq = read_int();
     } else if (flag == ATOM_SORTBIN) {

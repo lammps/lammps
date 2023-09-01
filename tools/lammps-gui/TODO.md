@@ -2,12 +2,8 @@ LAMMPS-GUI TODO list:
 
 # Short term goals
 
-- rewrite syntax highlighting to be line oriented instead of word oriented.
-  handle first part of line based on regular expressions, then advance and only highlight strings and numbers.
-  handle "&" continuation and multiline strings with """ like C style comments in Qt docs example
 - add "syntax check" with enabled "-skiprun" flag
 - switch input file editor to read-only while loop is running
-- add slideshow of images from dump image commands in the input
 
 # Long term ideas
 - rewrite entire application to build the App and its layout manually

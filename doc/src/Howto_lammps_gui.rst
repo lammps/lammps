@@ -1,7 +1,7 @@
 Using the LAMMPS GUI
 ====================
 
-This document describes **LAMMPS GUI version 1.3**.
+This document describes **LAMMPS GUI version 1.4**.
 
 -----
 
@@ -168,7 +168,7 @@ Chart Window
 ------------
 
 By default, when starting a run, a "Chart Window" will open that displays charts
-of thermodynamic output of the LAMMPS calculation as shown below.
+of the thermodynamic output of the LAMMPS calculation as shown below.
 
 .. image:: JPG/lammps-gui-chart.png
    :align: center
@@ -190,6 +190,22 @@ Data from multiple run commands will be combined into a single data set
 unless the format, number, or names of output columns are changed or the
 current time step is reset with :doc:`reset_timestep <reset_timestep>`
 or a :doc:`clear <clear>` command is issued.
+
+Image Slide Show
+----------------
+
+By default, in case the LAMMPS input contains a :doc:`dump image
+<dump_image>` command, a "Slide Show" window will open which loads and
+displays the images created by LAMMPS as they are written.
+
+.. image:: JPG/lammps-gui-slideshow.png
+   :align: center
+   :scale: 50%
+
+The various buttons at the bottom right of the window allow to either
+single step through the list of images or play an animation (as a
+continuous loop or once from first to last).  It is also possible to
+zoom in or zoom out.
 
 Variable Info
 -------------
@@ -213,7 +229,7 @@ via the "Set Variables..." dialog from the ``Run`` menu.
 Viewing Snapshot Images
 -----------------------
 
-By selecting the ``View Image`` entry in the ``Run`` menu, by hitting
+By selecting the ``Create Image`` entry in the ``Run`` menu, by hitting
 the `Ctrl-I` (`Command-I` on macOS) hotkey, or by clicking on the
 "palette" button in the status bar, LAMMPS GUI will issue a
 :doc:`write_dump image <dump_image>` command and read the resulting
@@ -347,7 +363,7 @@ not defined as far as the built-in parser can detect them.  New rows for
 additional variables can be added through the ``Add Row`` button and
 existing rows may be deleted by clicking on the ``X`` icons on the right.
 
-The ``View Image`` entry will send a :doc:`dump image <dump_image>`
+The ``Create Image`` entry will send a :doc:`dump image <dump_image>`
 command to the LAMMPS instance, read the resulting file, and show it in
 an ``Image Viewer`` window.
 
@@ -389,13 +405,13 @@ and looks of the LAMMPS GUI application.  The settings are grouped
 and each group is displayed within a tab.
 
 .. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
-   :width: 25%
+   :width: 32%
 
 .. |guiprefs2| image:: JPG/lammps-gui-prefs-accel.png
-   :width: 25%
+   :width: 32%
 
 .. |guiprefs3| image:: JPG/lammps-gui-prefs-image.png
-   :width: 25%
+   :width: 32%
 
 |guiprefs1|  |guiprefs2|  |guiprefs3|
 
@@ -405,7 +421,7 @@ General Settings:
 - *Echo input to log:* when checked, all input commands, including
   variable expansions, will be echoed to the log window. This is
   equivalent to using `-echo screen` at the command line.  There is no
-  log *file* produced since it always uses `-log none`.
+  log *file* produced by default, since LAMMPS GUI uses `-log none`.
 - *Include citation details:* when checked full citation info will be
   included to the log window.  This is equivalent to using `-cite
   screen` on the command line.
@@ -414,6 +430,9 @@ General Settings:
 - *Show chart window by default:* when checked, the thermodynamic
   output of a LAMMPS run will be collected and displayed in a chart
   window as line graphs.
+- *Show slide show window by default:* when checked, a slide show
+  window will be shown with images from a dump image command, if
+  present, in the LAMMPS input.
 - *Replace log window on new run:* when checked, an existing log
   window will be replaced on a new LAMMPS run, otherwise each run will
   create a new log window.
@@ -481,54 +500,52 @@ instead of Ctrl/Control).
      - Function
      - Hotkey
      - Function
-     - Hotkey
-     - Function
    * - Ctrl+N
      - New File
      - Ctrl+Z
      - Undo edit
      - Ctrl+Enter
      - Run LAMMPS
-     - Ctrl+Shift+A
-     - About LAMMPS
    * - Ctrl+O
      - Open File
      - Ctrl+Shift+Z
      - Redo edit
      - Ctrl+/
      - Stop Active Run
-     - Ctrl+Shift+H
-     - Quick Help
    * - CTRL+S
      - Save File
      - Ctrl+C
      - Copy text
      - Ctrl+Shift+V
      - Set Variables
-     - Ctrl+Shift+G
-     - LAMMPS GUI Howto
    * - Ctrl+Shift+S
      - Save File As
      - Ctrl+X
      - Cut text
      - Ctrl+I
      - Snapshot Image
-     - Ctrl+Shift+M
-     - LAMMPS Manual
    * - Ctrl+Q
      - Quit
      - Ctrl+V
      - Paste text
-     - Ctrl+P
-     - Preferences
-     - Ctrl+?
-     - Context Help
+     - Ctrl-L
+     - Slide Show
    * - Ctrl-W
      - Close Window
      - Ctrl-A
      - Select All
-     - Ctrl-Shift-Enter
-     - Run Current File
+     - Ctrl+P
+     - Preferences
+   * - Ctrl+Shift+A
+     - About LAMMPS
+     - Ctrl+Shift+H
+     - Quick Help
+     - Ctrl+Shift+G
+     - LAMMPS GUI Howto
+   * - Ctrl+Shift+M
+     - LAMMPS Manual
+     - Ctrl+?
+     - Context Help
      - Ctrl-Shift-W
      - Show Variables
 

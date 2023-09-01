@@ -93,6 +93,7 @@
     <addaction name="actionView_Log_Window"/>
     <addaction name="actionView_Graph_Window"/>
     <addaction name="actionView_Image_Window"/>
+    <addaction name="actionView_Slide_Show"/>
     <addaction name="actionView_Variable_Window"/>
    </widget>
    <addaction name="menuFile"/>
@@ -250,7 +251,7 @@
     <iconset theme=":/emblem-photos.png"/>
    </property>
    <property name="text">
-    <string>View &amp;Image</string>
+    <string>Create &amp;Image</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -350,6 +351,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="actionView_Slide_Show">
+   <property name="icon">
+    <iconset theme=":/image-x-generic.png"/>
+   </property>
+   <property name="text">
+    <string>&amp;Slide Show Window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="action_1">

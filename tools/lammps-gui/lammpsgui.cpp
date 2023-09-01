@@ -57,6 +57,7 @@
 
 static const QString blank(" ");
 static constexpr int MAXRECENT = 5;
+static constexpr int BUFLEN = 128;
 
 // duplicate string
 static char *mystrdup(const std::string &text)
@@ -296,6 +297,25 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
         setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
     }
     resize(settings.value("mainx", "500").toInt(), settings.value("mainy", "320").toInt());
+
+    // start LAMMPS and initialize command completion
+    start_lammps();
+    QStringList command_list;
+    QFile internal_commands(":/lammps_internal_commands.txt");
+    if (internal_commands.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        while (!internal_commands.atEnd()) {
+            command_list << QString(internal_commands.readLine()).trimmed();
+        }
+    }
+    internal_commands.close();
+    int ncmds = lammps.style_count("command");
+    char buf[BUFLEN];
+    for (int i = 0; i < ncmds; ++i) {
+        if (lammps.style_name("command", i, buf, BUFLEN))
+            command_list << buf;
+    }
+    command_list.sort();
+    ui->textEdit->setCommandList(command_list);
 }
 
 LammpsGui::~LammpsGui()

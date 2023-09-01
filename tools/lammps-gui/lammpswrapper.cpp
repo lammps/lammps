@@ -97,6 +97,33 @@ int LammpsWrapper::id_name(const char *keyword, int idx, char *buf, int len)
     return val;
 }
 
+int LammpsWrapper::style_count(const char *keyword)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->style_count(lammps_handle, keyword);
+#else
+        val = lammps_style_count(lammps_handle, keyword);
+#endif
+    }
+    return val;
+}
+
+int LammpsWrapper::style_name(const char *keyword, int idx, char *buf, int len)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val =
+            ((liblammpsplugin_t *)plugin_handle)->style_name(lammps_handle, keyword, idx, buf, len);
+#else
+        val = lammps_style_name(lammps_handle, keyword, idx, buf, len);
+#endif
+    }
+    return val;
+}
+
 int LammpsWrapper::variable_info(int idx, char *buf, int len)
 {
     int val = 0;

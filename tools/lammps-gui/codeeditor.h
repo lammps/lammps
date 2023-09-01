@@ -14,11 +14,13 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
+#include <QCompleter>
 #include <QFont>
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QShortcut>
 #include <QString>
+#include <QStringList>
 
 class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
@@ -32,6 +34,7 @@ public:
     void setCursor(int block);
     void setHighlight(int block, bool error);
     QString reformatLine(const QString &line);
+    void setCommandList(const QStringList &words);
 
     static constexpr int NO_HIGHLIGHT = 1 << 30;
 
@@ -50,10 +53,12 @@ private slots:
     void find_help(QString &page, QString &help);
     void open_help();
     void reformatCurrentLine();
+    void insertCompletedCommand(const QString &completion);
 
 private:
     QWidget *lineNumberArea;
     QShortcut *help_action;
+    QCompleter *command_completer;
     int highlight;
 
     QMap<QString, QString> cmd_map;

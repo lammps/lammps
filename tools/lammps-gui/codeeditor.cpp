@@ -15,6 +15,7 @@
 #include "lammpsgui.h"
 #include "linenumberarea.h"
 
+#include <QAbstractItemView>
 #include <QAction>
 #include <QDesktopServices>
 #include <QDragEnterEvent>
@@ -25,7 +26,9 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QRegularExpression>
+#include <QScrollBar>
 #include <QSettings>
+#include <QStringListModel>
 #include <QTextBlock>
 #include <QUrl>
 
@@ -42,8 +45,8 @@ static std::vector<std::string> split_line(const std::string &text)
     std::size_t beg = 0;
     std::size_t len = 0;
     std::size_t add = 0;
-    char c          = *buf;
 
+    char c = *buf;
     while (c) { // leading whitespace
         if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
             c = *++buf;
@@ -115,7 +118,8 @@ static std::vector<std::string> split_line(const std::string &text)
     return list;
 }
 
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent), highlight(NO_HIGHLIGHT)
+CodeEditor::CodeEditor(QWidget *parent) :
+    QPlainTextEdit(parent), command_completer(nullptr), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
@@ -269,14 +273,64 @@ QString CodeEditor::reformatLine(const QString &line)
     return newtext;
 }
 
+void CodeEditor::setCommandList(const QStringList &words)
+{
+    delete command_completer;
+    command_completer = new QCompleter(this);
+    command_completer->setModel(new QStringListModel(words, command_completer));
+    command_completer->setCompletionMode(QCompleter::PopupCompletion);
+    command_completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    command_completer->setWidget(this);
+    command_completer->setWrapAround(false);
+
+    QObject::connect(command_completer, QOverload<const QString &>::of(&QCompleter::activated),
+                     this, &CodeEditor::insertCompletedCommand);
+    reformatCurrentLine();
+}
+
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
+    if (command_completer && command_completer->popup()->isVisible()) {
+        // The following keys are forwarded by the completer to the widget
+        switch (event->key()) {
+            case Qt::Key_Enter:
+            case Qt::Key_Return:
+            case Qt::Key_Escape:
+            case Qt::Key_Tab:
+            case Qt::Key_Backtab:
+                event->ignore();
+                return; // let the completer do default behavior
+            default:
+                break;
+        }
+    }
     if (event->key() == Qt::Key_Tab) {
         reformatCurrentLine();
         return;
     }
     if (event->key() == Qt::Key_Backtab) {
-        fprintf(stderr, "Shift + Tab key hit\n");
+        if (command_completer) {
+            auto cursor = textCursor();
+            auto line   = cursor.block().text().trimmed();
+            if (line.isEmpty()) return;
+
+            auto words = split_line(line.toStdString());
+            cursor.select(QTextCursor::WordUnderCursor);
+
+            // if on first word, try to complete command
+            if ((words.size() > 0) && (words[0] == cursor.selectedText().toStdString())) {
+                // no completion on comment lines
+                if (words[0][0] == '#') return;
+                command_completer->setCompletionPrefix(words[0].c_str());
+                auto popup = command_completer->popup();
+                QRect cr   = cursorRect();
+                cr.setWidth(popup->sizeHintForColumn(0) +
+                            popup->verticalScrollBar()->sizeHint().width());
+                popup->setAlternatingRowColors(true);
+                command_completer->setCurrentRow(0);
+                command_completer->complete(cr);
+            }
+        }
         return;
     }
     QPlainTextEdit::keyPressEvent(event);
@@ -423,6 +477,17 @@ void CodeEditor::reformatCurrentLine()
         cursor.insertText(newtext);
         cursor.endEditBlock();
     }
+}
+
+void CodeEditor::insertCompletedCommand(const QString &completion)
+{
+    if (command_completer->widget() != this) return;
+    auto cursor = textCursor();
+    int extra   = completion.length() - command_completer->completionPrefix().length();
+    cursor.movePosition(QTextCursor::Left);
+    cursor.movePosition(QTextCursor::EndOfWord);
+    cursor.insertText(completion.right(extra));
+    setTextCursor(cursor);
 }
 
 void CodeEditor::get_help()

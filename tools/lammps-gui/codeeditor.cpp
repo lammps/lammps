@@ -206,7 +206,6 @@ void CodeEditor::setHighlight(int block, bool error)
     repaint();
 }
 
-
 // reformat line
 
 QString CodeEditor::reformatLine(const QString &line)
@@ -228,6 +227,18 @@ QString CodeEditor::reformatLine(const QString &line)
         for (int i = 1; i < words.size(); ++i) {
             newtext += ' ';
             newtext += words[i].c_str();
+
+            // special cases
+
+            // additional space for types or type ranges
+            if ((words[0] == "pair_coeff") && (i < 3))
+                for (int j = words[i].size(); j < 4; ++j)
+                    newtext += ' ';
+
+            if ((i < 2) && ((words[0] == "bond_coeff") || (words[0] == "angle_coeff") ||
+                            (words[0] == "dihedral_coeff") || (words[0] == "improper_coeff")))
+                for (int j = words[i].size(); j < 4; ++j)
+                    newtext += ' ';
         }
     }
     return newtext;

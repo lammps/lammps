@@ -57,7 +57,7 @@
 
 static const QString blank(" ");
 static constexpr int MAXRECENT = 5;
-static constexpr int BUFLEN = 128;
+static constexpr int BUFLEN    = 128;
 
 // duplicate string
 static char *mystrdup(const std::string &text)
@@ -311,8 +311,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     int ncmds = lammps.style_count("command");
     char buf[BUFLEN];
     for (int i = 0; i < ncmds; ++i) {
-        if (lammps.style_name("command", i, buf, BUFLEN))
-            command_list << buf;
+        if (lammps.style_name("command", i, buf, BUFLEN)) command_list << buf;
     }
     command_list.sort();
     ui->textEdit->setCommandList(command_list);

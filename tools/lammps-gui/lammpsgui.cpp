@@ -317,6 +317,10 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     }
     command_list.sort();
     ui->textEdit->setCommandList(command_list);
+    settings.beginGroup("reformat");
+    ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+    ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
+    settings.endGroup();
 }
 
 LammpsGui::~LammpsGui()
@@ -1256,6 +1260,10 @@ void LammpsGui::preferences()
             lammpsstatus->hide();
         }
         if (imagewindow) imagewindow->createImage();
+        settings.beginGroup("reformat");
+        ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+        ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
+        settings.endGroup();
     }
 }
 

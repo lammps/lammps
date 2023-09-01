@@ -178,7 +178,7 @@ void Preferences::accept()
         execl(path, arg0, (char *)NULL);
     }
 
-    // reformattting settings
+    // reformatting settings
 
     settings->beginGroup("reformat");
     auto spin = tabWidget->findChild<QSpinBox *>("cmdval");
@@ -189,6 +189,10 @@ void Preferences::accept()
     if (spin) settings->setValue("id", spin->value());
     spin = tabWidget->findChild<QSpinBox *>("nameval");
     if (spin) settings->setValue("name", spin->value());
+    box = tabWidget->findChild<QCheckBox *>("retval");
+    if (box) settings->setValue("return", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("autoval");
+    if (box) settings->setValue("automatic", box->isChecked());
     settings->endGroup();
 
     QDialog::accept();
@@ -508,10 +512,14 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     auto *typelbl  = new QLabel("Type width:");
     auto *idlbl    = new QLabel("ID width:");
     auto *namelbl  = new QLabel("Name width:");
+    auto *retlbl   = new QLabel("Reformat with 'Return':");
+    auto *autolbl  = new QLabel("Automatic completion:");
     auto *cmdval   = new QSpinBox;
     auto *typeval  = new QSpinBox;
     auto *idval    = new QSpinBox;
     auto *nameval  = new QSpinBox;
+    auto *retval   = new QCheckBox;
+    auto *autoval  = new QCheckBox;
     cmdval->setRange(1, 32);
     cmdval->setValue(settings->value("command", "16").toInt());
     cmdval->setObjectName("cmdval");
@@ -524,6 +532,11 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     nameval->setRange(1, 32);
     nameval->setValue(settings->value("name", "8").toInt());
     nameval->setObjectName("nameval");
+    retval->setCheckState(settings->value("return", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    retval->setObjectName("retval");
+    autoval->setCheckState(settings->value("automatic", true).toBool() ? Qt::Checked
+                                                                       : Qt::Unchecked);
+    autoval->setObjectName("autoval");
     settings->endGroup();
 
     int i = 0;
@@ -536,6 +549,10 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     grid->addWidget(idval, i++, 1, Qt::AlignTop);
     grid->addWidget(namelbl, i, 0, Qt::AlignTop);
     grid->addWidget(nameval, i++, 1, Qt::AlignTop);
+    grid->addWidget(retlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(retval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(autolbl, i, 0, Qt::AlignTop);
+    grid->addWidget(autoval, i++, 1, Qt::AlignVCenter);
 
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);

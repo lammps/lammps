@@ -33,6 +33,8 @@ public:
     void setFont(const QFont &newfont);
     void setCursor(int block);
     void setHighlight(int block, bool error);
+    void setReformatOnReturn(bool flag) { reformat_on_return = flag; }
+    void setAutoComplete(bool flag) { automatic_completion = flag; }
     QString reformatLine(const QString &line);
     void setCommandList(const QStringList &words);
 
@@ -61,6 +63,8 @@ private:
     QShortcut *help_action;
     QCompleter *command_completer;
     int highlight;
+    bool reformat_on_return;
+    bool automatic_completion;
 
     QMap<QString, QString> cmd_map;
     QMap<QString, QString> fix_map;

@@ -290,9 +290,10 @@ void CodeEditor::setCommandList(const QStringList &words)
 
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
+    const auto key = event->key();
     if (command_completer && command_completer->popup()->isVisible()) {
         // The following keys are forwarded by the completer to the widget
-        switch (event->key()) {
+        switch (key) {
             case Qt::Key_Enter:
             case Qt::Key_Return:
             case Qt::Key_Escape:
@@ -304,15 +305,47 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
                 break;
         }
     }
-    if (event->key() == Qt::Key_Tab) {
+
+    // reformat current line and consume key event
+    if (key == Qt::Key_Tab) {
         reformatCurrentLine();
         return;
     }
-    if (event->key() == Qt::Key_Backtab) {
+
+    // run command completion and consume key event
+    if (key == Qt::Key_Backtab) {
         runCompletion();
         return;
     }
+
+    // automatically reformat when hitting the return or enter key
+    if (reformat_on_return && (key == Qt::Key_Return) || (key == Qt::Key_Enter)) {
+        reformatCurrentLine();
+    }
+
+    // pass key event on to parent class
     QPlainTextEdit::keyPressEvent(event);
+
+    // pop up completion automatically after 3 characters
+    if (automatic_completion) {
+        auto cursor = textCursor();
+        auto line   = cursor.block().text().trimmed();
+        if (!line.isEmpty()) {
+            auto words = split_line(line.toStdString());
+            cursor.select(QTextCursor::WordUnderCursor);
+            auto word = cursor.selectedText().trimmed();
+            if (command_completer) {
+                if (words[0] == word.toStdString()) {
+                    if (word.length() > 2)
+                        runCompletion();
+                    else if (command_completer->popup()->isVisible())
+                        command_completer->popup()->hide();
+                } else {
+                    if (command_completer->popup()->isVisible()) command_completer->popup()->hide();
+                }
+            }
+        }
+    }
 }
 
 void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
@@ -475,7 +508,12 @@ void CodeEditor::runCompletion()
 
             command_completer->setCompletionPrefix(words[0].c_str());
             auto popup = command_completer->popup();
-            QRect cr   = cursorRect();
+            // if the command is already a complete command, remove existing popup
+            if (words[0] == command_completer->currentCompletion().toStdString()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
             cr.setWidth(popup->sizeHintForColumn(0) +
                         popup->verticalScrollBar()->sizeHint().width());
             popup->setAlternatingRowColors(true);

@@ -3,6 +3,9 @@ LAMMPS-GUI TODO list:
 # Short term goals
 
 - add "syntax check" with enabled "-skiprun" flag
+- implement "static" completion for fix/compute/styles/region etc...
+- implement "dynamic" completion for variable names, group names, molecule names, compute/dump/fix/region/group IDs
+- implement indenting regions for (nested) loops?
 
 # Long term ideas
 - rewrite entire application to build the App and its layout manually

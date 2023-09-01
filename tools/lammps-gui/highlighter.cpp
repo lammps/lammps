@@ -33,13 +33,13 @@ Highlighter::Highlighter(QTextDocument *parent) :
     isUndo(QStringLiteral("^\\s*(unfix|uncompute|undump|label|jump|next)\\s+(\\S+)")),
     isParticle(QStringLiteral("^\\s*(pair_modify|mass|velocity|create_bonds|delete_"
                               "bonds|kspace_modify|labelmap|atom_modify)\\s+(\\S+)")),
+    isRun(QStringLiteral("^\\s*(minimize|minimize/kk|run|rerun|tad|neb|neb/spin|prd|server|temper/"
+                         "npt|temper/grem|temper|message|hyper|dynamical_matrix|dynamical_matrix/"
+                         "kk|third_order|third_order/kk|fitpod)")),
     isSetup(QStringLiteral(
         "^\\s*(min_style|min_modify|run_style|timestep|neighbor|neigh_modify|suffix|special_bonds|"
         "balance|box|clear|plugin|quit|comm_modify|comm_style|newton|package|partition|processors|"
         "reset_atoms|reset_ids|reset_timestep|dump_modify|fix_modify|compute_modify)")),
-    isRun(QStringLiteral("^\\s*(minimize|minimize/kk|run|rerun|tad|neb|neb/spin|prd|server|temper/"
-                         "npt|temper/grem|temper|message|hyper|dynamical_matrix|dynamical_matrix/"
-                         "kk|third_order|third_order/kk|fitpod)")),
     isVariable(QStringLiteral("\\s+(\\$[a-z]|\\${[^} ]+}|\\$\\(\\S+\\))")),
     isReference(
         QStringLiteral("\\s+(c_\\S+|C_\\S+|f_\\S+|F_\\S+|i_\\S+|i2_\\S+|d_\\S+|d2_\\S+|v_\\S+)")),
@@ -155,14 +155,14 @@ void Highlighter::highlightBlock(const QString &text)
         setFormat(match.capturedStart(2), match.capturedLength(2), formatString);
     }
 
-    match = isSetup.match(text);
-    if (match.hasMatch()) {
-        setFormat(match.capturedStart(1), match.capturedLength(1), formatSetup);
-    }
-
     match = isRun.match(text);
     if (match.hasMatch()) {
         setFormat(match.capturedStart(1), match.capturedLength(1), formatRun);
+    }
+
+    match = isSetup.match(text);
+    if (match.hasMatch()) {
+        setFormat(match.capturedStart(1), match.capturedLength(1), formatSetup);
     }
 
     // numbers

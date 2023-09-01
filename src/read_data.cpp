@@ -557,9 +557,11 @@ void ReadData::command(int narg, char **arg)
 
       // setup simulation box
       // 3 options: orthogonal, restricted triclinic, general triclinic
-      // for general triclinic: convect general ABC edge vectors to LAMMPS restricted triclinic
 
       if (!triclinic_general) {
+
+        // orthongal box
+        
         domain->boxlo[0] = boxlo[0];
         domain->boxhi[0] = boxhi[0];
         domain->boxlo[1] = boxlo[1];
@@ -567,6 +569,8 @@ void ReadData::command(int narg, char **arg)
         domain->boxlo[2] = boxlo[2];
         domain->boxhi[2] = boxhi[2];
 
+        // restricted triclinic box
+        
         if (triclinic) {
           domain->triclinic = 1;
           domain->xy = xy;
@@ -574,6 +578,10 @@ void ReadData::command(int narg, char **arg)
           domain->yz = yz;
         }
 
+      // general triclinic box
+      // set_general_triclinic() converts
+      //   ABC edge vectors + origin to restricted triclinic
+        
       } else if (triclinic_general) {
         domain->set_general_triclinic(avec,bvec,cvec,tri_origin);
       }
@@ -581,7 +589,8 @@ void ReadData::command(int narg, char **arg)
 
     // change simulation box to be union of existing box and new box + shift
     // only done if firstpass and not first data file
-    // shift not allowed for general triclinic
+    // for restricted triclinic, new tilt factors not allowed
+    // for general triclinic, different new box and shift not allowed
 
     if (firstpass && addflag != NONE) {
 

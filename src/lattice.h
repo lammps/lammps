@@ -33,15 +33,19 @@ class Lattice : protected Pointers {
   ~Lattice() override;
   void lattice2box(double &, double &, double &);
   void box2lattice(double &, double &, double &);
-  void bbox(int, double, double, double, double &, double &, double &, double &, double &,
-            double &);
-
+  void bbox(int, double, double, double,
+            double &, double &, double &, double &, double &, double &);
+  int is_custom();
+  int is_oriented();
+  
  private:
   double scale;
   double origin[3];    // lattice origin
+  int oriented;        // 1 if non-default orient xyz, else 0
   int orientx[3];      // lattice orientation vecs
   int orienty[3];      // orientx = what lattice dir lies
   int orientz[3];      //           along x dim in box
+  
 
   double primitive[3][3];    // lattice <-> box transform matrices
   double priminv[3][3];

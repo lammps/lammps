@@ -262,6 +262,14 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     scale = pow(nbasis/volume/scale,1.0/dimension);
   }
 
+  // set orientflag
+  // for general triclinic, create_box and create_atoms require orientflag = 0
+
+  oriented = 0;
+  if (orientx[0] != 1 || orientx[1] != 0 || orientx[2] != 0) oriented = 1;
+  if (orienty[0] != 0 || orienty[1] != 1 || orienty[2] != 0) oriented = 1;
+  if (orientz[0] != 0 || orientz[1] != 0 || orientz[2] != 1) oriented = 1;
+  
   // initialize lattice <-> box transformation matrices
 
   setup_transform();
@@ -309,6 +317,28 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 Lattice::~Lattice()
 {
   memory->destroy(basis);
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if style = CUSTOM, else 0
+   queried by create_box and create_atoms for general triclinic
+------------------------------------------------------------------------- */
+
+int Lattice::is_custom()
+{
+  if (style == CUSTOM) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return 1 any orient vectors are non-default, else 0
+   queried by create_box and create_atoms for general triclinic
+------------------------------------------------------------------------- */
+
+int Lattice::is_oriented()
+{
+  if (oriented) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

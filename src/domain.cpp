@@ -551,6 +551,11 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   tri_origin[1] = origin_caller[1];
   tri_origin[2] = origin_caller[2];
 
+  // error check on cvec for 2d systems
+
+  if (dimension == 2 && (cvec[0] != 0.0 || cvec[1] != 0.0))
+    error->all(FLERR,"General triclinic box edge vector C invalid for 2d system");
+  
   // error check for co-planar A,B,C
 
   double abcross[3];

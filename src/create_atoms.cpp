@@ -1178,7 +1178,7 @@ void CreateAtoms::add_lattice()
   } else
     domain->bbox(domain->sublo_lamda, domain->subhi_lamda, bboxlo, bboxhi);
 
-  // narrow down the subbox by the bounding box of the given region, if available.
+  // narrow down the subbox by the bounding box of the given region, if available
   // for small regions in large boxes, this can result in a significant speedup
 
   if ((style == REGION) && region->bboxflag) {

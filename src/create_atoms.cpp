@@ -1156,16 +1156,6 @@ void CreateAtoms::add_mesh(const char *filename)
 }
 
 /* ----------------------------------------------------------------------
-   add many atoms to general triclinic box by looping over lattice
-------------------------------------------------------------------------- */
-
-void CreateAtoms::add_lattice_triclinic_general()
-{
-  
-  
-}
-
-/* ----------------------------------------------------------------------
    add many atoms by looping over lattice
 ------------------------------------------------------------------------- */
 

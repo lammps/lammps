@@ -309,28 +309,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
         return;
     }
     if (event->key() == Qt::Key_Backtab) {
-        if (command_completer) {
-            auto cursor = textCursor();
-            auto line   = cursor.block().text().trimmed();
-            if (line.isEmpty()) return;
-
-            auto words = split_line(line.toStdString());
-            cursor.select(QTextCursor::WordUnderCursor);
-
-            // if on first word, try to complete command
-            if ((words.size() > 0) && (words[0] == cursor.selectedText().toStdString())) {
-                // no completion on comment lines
-                if (words[0][0] == '#') return;
-                command_completer->setCompletionPrefix(words[0].c_str());
-                auto popup = command_completer->popup();
-                QRect cr   = cursorRect();
-                cr.setWidth(popup->sizeHintForColumn(0) +
-                            popup->verticalScrollBar()->sizeHint().width());
-                popup->setAlternatingRowColors(true);
-                command_completer->setCurrentRow(0);
-                command_completer->complete(cr);
-            }
-        }
+        runCompletion();
         return;
     }
     QPlainTextEdit::keyPressEvent(event);
@@ -476,6 +455,32 @@ void CodeEditor::reformatCurrentLine()
         cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor, 1);
         cursor.insertText(newtext);
         cursor.endEditBlock();
+    }
+}
+
+void CodeEditor::runCompletion()
+{
+    if (command_completer) {
+        auto cursor = textCursor();
+        auto line   = cursor.block().text().trimmed();
+        if (line.isEmpty()) return;
+
+        auto words = split_line(line.toStdString());
+        cursor.select(QTextCursor::WordUnderCursor);
+
+        // if on first word, try to complete command
+        if ((words.size() > 0) && (words[0] == cursor.selectedText().toStdString())) {
+            // no completion on comment lines
+            if (words[0][0] == '#') return;
+
+            command_completer->setCompletionPrefix(words[0].c_str());
+            auto popup = command_completer->popup();
+            QRect cr   = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            command_completer->complete(cr);
+        }
     }
 }
 

@@ -53,6 +53,7 @@ private slots:
     void find_help(QString &page, QString &help);
     void open_help();
     void reformatCurrentLine();
+    void runCompletion();
     void insertCompletedCommand(const QString &completion);
 
 private:

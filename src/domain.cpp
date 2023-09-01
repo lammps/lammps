@@ -638,13 +638,12 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   boxhi[1] = boxlo[1] + bprime[1];
   boxhi[2] = boxlo[2] + cprime[2];
 
-  xy = bprime[1];
+  xy = bprime[0];
   xz = cprime[0];
   yz = cprime[1];
   
   // debug
 
-  /*
   printf("Quat: %g %g %g %g\n",quat[0],quat[1],quat[2],quat[3]);
   double angle = 2.0*acos(quat[0]);
   printf("Theta: %g\n",angle);
@@ -663,7 +662,6 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   printf("Atom1: %g %g %g\n",newcoord[0],newcoord[1],newcoord[2]);
   MathExtra::matvec(rotate_g2r,coord2,newcoord);
   printf("Atom2: %g %g %g\n",newcoord[0],newcoord[1],newcoord[2]);
-  */
 }
 
 /* ----------------------------------------------------------------------

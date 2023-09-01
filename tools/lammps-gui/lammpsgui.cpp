@@ -302,21 +302,52 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
     // start LAMMPS and initialize command completion
     start_lammps();
-    QStringList command_list;
+    QStringList style_list;
+    char buf[BUFLEN];
     QFile internal_commands(":/lammps_internal_commands.txt");
     if (internal_commands.open(QIODevice::ReadOnly | QIODevice::Text)) {
         while (!internal_commands.atEnd()) {
-            command_list << QString(internal_commands.readLine()).trimmed();
+            style_list << QString(internal_commands.readLine()).trimmed();
         }
     }
     internal_commands.close();
     int ncmds = lammps.style_count("command");
-    char buf[BUFLEN];
     for (int i = 0; i < ncmds; ++i) {
-        if (lammps.style_name("command", i, buf, BUFLEN)) command_list << buf;
+        if (lammps.style_name("command", i, buf, BUFLEN)) {
+            if (strstr(buf, "/kk/host") || strstr(buf, "/kk/device")) continue;
+            style_list << buf;
+        }
     }
-    command_list.sort();
-    ui->textEdit->setCommandList(command_list);
+    style_list.sort();
+    ui->textEdit->setCommandList(style_list);
+
+#define ADD_STYLES(keyword, Type)                                               \
+    style_list.clear();                                                         \
+    ncmds = lammps.style_count(#keyword);                                       \
+    for (int i = 0; i < ncmds; ++i) {                                           \
+        if (lammps.style_name(#keyword, i, buf, BUFLEN)) {                      \
+            if (strstr(buf, "/kk/host") || strstr(buf, "/kk/device")) continue; \
+            style_list << buf;                                                  \
+        }                                                                       \
+    }                                                                           \
+    style_list.sort();                                                          \
+    ui->textEdit->set##Type##List(style_list)
+
+    ADD_STYLES(fix, Fix);
+    ADD_STYLES(compute, Compute);
+    ADD_STYLES(dump, Dump);
+    ADD_STYLES(atom, Atom);
+    ADD_STYLES(pair, Pair);
+    ADD_STYLES(bond, Bond);
+    ADD_STYLES(angle, Angle);
+    ADD_STYLES(dihedral, Dihedral);
+    ADD_STYLES(improper, Improper);
+    ADD_STYLES(kspace, Kspace);
+    ADD_STYLES(region, Region);
+    ADD_STYLES(integrate, Integrate);
+    ADD_STYLES(minimize, Minimize);
+#undef ADD_STYLES
+
     settings.beginGroup("reformat");
     ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
     ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());

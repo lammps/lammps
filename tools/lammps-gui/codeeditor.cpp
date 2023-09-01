@@ -17,6 +17,7 @@
 
 #include <QAbstractItemView>
 #include <QAction>
+#include <QCompleter>
 #include <QDesktopServices>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -28,6 +29,7 @@
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QSettings>
+#include <QShortcut>
 #include <QStringListModel>
 #include <QTextBlock>
 #include <QUrl>
@@ -119,10 +121,43 @@ static std::vector<std::string> split_line(const std::string &text)
 }
 
 CodeEditor::CodeEditor(QWidget *parent) :
-    QPlainTextEdit(parent), command_completer(nullptr), highlight(NO_HIGHLIGHT)
+    QPlainTextEdit(parent), command_comp(new QCompleter(this)), fix_comp(new QCompleter(this)),
+    compute_comp(new QCompleter(this)), dump_comp(new QCompleter(this)),
+    atom_comp(new QCompleter(this)), pair_comp(new QCompleter(this)),
+    bond_comp(new QCompleter(this)), angle_comp(new QCompleter(this)),
+    dihedral_comp(new QCompleter(this)), improper_comp(new QCompleter(this)),
+    kspace_comp(new QCompleter(this)), region_comp(new QCompleter(this)),
+    integrate_comp(new QCompleter(this)), minimize_comp(new QCompleter(this)),
+    highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
+
+    // set up completer class (without a model currently)
+#define COMPLETER_SETUP(completer)                                                            \
+    completer->setCompletionMode(QCompleter::PopupCompletion);                                \
+    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);                     \
+    completer->setWidget(this);                                                               \
+    completer->setWrapAround(false);                                                          \
+    QObject::connect(completer, QOverload<const QString &>::of(&QCompleter::activated), this, \
+                     &CodeEditor::insertCompletedCommand)
+
+    COMPLETER_SETUP(command_comp);
+    COMPLETER_SETUP(fix_comp);
+    COMPLETER_SETUP(compute_comp);
+    COMPLETER_SETUP(dump_comp);
+    COMPLETER_SETUP(atom_comp);
+    COMPLETER_SETUP(pair_comp);
+    COMPLETER_SETUP(bond_comp);
+    COMPLETER_SETUP(angle_comp);
+    COMPLETER_SETUP(dihedral_comp);
+    COMPLETER_SETUP(improper_comp);
+    COMPLETER_SETUP(kspace_comp);
+    COMPLETER_SETUP(region_comp);
+    COMPLETER_SETUP(integrate_comp);
+    COMPLETER_SETUP(minimize_comp);
+
+#undef COMPLETER_SETUP
 
     // initialize help system
     QFile help_index(":/help_index.table");
@@ -165,6 +200,26 @@ CodeEditor::CodeEditor(QWidget *parent) :
     setCursorWidth(2);
 }
 
+CodeEditor::~CodeEditor()
+{
+    delete help_action;
+    delete lineNumberArea;
+
+    delete command_comp;
+    delete fix_comp;
+    delete compute_comp;
+    delete atom_comp;
+    delete pair_comp;
+    delete bond_comp;
+    delete angle_comp;
+    delete dihedral_comp;
+    delete improper_comp;
+    delete kspace_comp;
+    delete region_comp;
+    delete integrate_comp;
+    delete minimize_comp;
+}
+
 int CodeEditor::lineNumberAreaWidth()
 {
     int digits = 1;
@@ -175,7 +230,6 @@ int CodeEditor::lineNumberAreaWidth()
     }
 
     int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * (digits + 2);
-
     return space;
 }
 
@@ -273,25 +327,33 @@ QString CodeEditor::reformatLine(const QString &line)
     return newtext;
 }
 
-void CodeEditor::setCommandList(const QStringList &words)
-{
-    delete command_completer;
-    command_completer = new QCompleter(this);
-    command_completer->setModel(new QStringListModel(words, command_completer));
-    command_completer->setCompletionMode(QCompleter::PopupCompletion);
-    command_completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-    command_completer->setWidget(this);
-    command_completer->setWrapAround(false);
+#define COMPLETER_INIT_FUNC(keyword, Type)                                     \
+    void CodeEditor::set##Type##List(const QStringList &words)                 \
+    {                                                                          \
+        keyword##_comp->setModel(new QStringListModel(words, keyword##_comp)); \
+    }
 
-    QObject::connect(command_completer, QOverload<const QString &>::of(&QCompleter::activated),
-                     this, &CodeEditor::insertCompletedCommand);
-    reformatCurrentLine();
-}
+COMPLETER_INIT_FUNC(command, Command)
+COMPLETER_INIT_FUNC(fix, Fix)
+COMPLETER_INIT_FUNC(compute, Compute)
+COMPLETER_INIT_FUNC(dump, Dump)
+COMPLETER_INIT_FUNC(atom, Atom)
+COMPLETER_INIT_FUNC(pair, Pair)
+COMPLETER_INIT_FUNC(bond, Bond)
+COMPLETER_INIT_FUNC(angle, Angle)
+COMPLETER_INIT_FUNC(dihedral, Dihedral)
+COMPLETER_INIT_FUNC(improper, Improper)
+COMPLETER_INIT_FUNC(kspace, Kspace)
+COMPLETER_INIT_FUNC(region, Region)
+COMPLETER_INIT_FUNC(integrate, Integrate)
+COMPLETER_INIT_FUNC(minimize, Minimize)
+
+#undef COMPLETER_INIT_FUNC
 
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
     const auto key = event->key();
-    if (command_completer && command_completer->popup()->isVisible()) {
+    if (command_comp->popup()->isVisible()) {
         // The following keys are forwarded by the completer to the widget
         switch (key) {
             case Qt::Key_Enter:
@@ -333,16 +395,23 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
         if (!line.isEmpty()) {
             auto words = split_line(line.toStdString());
             cursor.select(QTextCursor::WordUnderCursor);
-            auto word = cursor.selectedText().trimmed();
-            if (command_completer) {
-                if (words[0] == word.toStdString()) {
+            auto word  = cursor.selectedText().trimmed();
+            auto popup = command_comp->popup();
+            // we're on the first word in a line -> complete on commands
+            if (words[0] == word.toStdString()) {
+                if (word.length() > 2)
+                    runCompletion();
+                else if (popup->isVisible())
+                    popup->hide();
+            } else if (words[0] == "fix") {
+                if (words.size() > 2) { // fix style is 3rd word
                     if (word.length() > 2)
                         runCompletion();
-                    else if (command_completer->popup()->isVisible())
-                        command_completer->popup()->hide();
-                } else {
-                    if (command_completer->popup()->isVisible()) command_completer->popup()->hide();
+                    else if (popup->isVisible())
+                        popup->hide();
                 }
+            } else {
+                if (popup->isVisible()) popup->hide();
             }
         }
     }
@@ -493,40 +562,38 @@ void CodeEditor::reformatCurrentLine()
 
 void CodeEditor::runCompletion()
 {
-    if (command_completer) {
-        auto cursor = textCursor();
-        auto line   = cursor.block().text().trimmed();
-        if (line.isEmpty()) return;
+    auto cursor = textCursor();
+    auto line   = cursor.block().text().trimmed();
+    if (line.isEmpty()) return;
 
-        auto words = split_line(line.toStdString());
-        cursor.select(QTextCursor::WordUnderCursor);
+    auto words = split_line(line.toStdString());
+    cursor.select(QTextCursor::WordUnderCursor);
 
-        // if on first word, try to complete command
-        if ((words.size() > 0) && (words[0] == cursor.selectedText().toStdString())) {
-            // no completion on comment lines
-            if (words[0][0] == '#') return;
+    // if on first word, try to complete command
+    if ((words.size() > 0) && (words[0] == cursor.selectedText().toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
 
-            command_completer->setCompletionPrefix(words[0].c_str());
-            auto popup = command_completer->popup();
-            // if the command is already a complete command, remove existing popup
-            if (words[0] == command_completer->currentCompletion().toStdString()) {
-                if (popup->isVisible()) popup->hide();
-                return;
-            }
-            QRect cr = cursorRect();
-            cr.setWidth(popup->sizeHintForColumn(0) +
-                        popup->verticalScrollBar()->sizeHint().width());
-            popup->setAlternatingRowColors(true);
-            command_completer->complete(cr);
+        command_comp->setCompletionPrefix(words[0].c_str());
+        auto popup = command_comp->popup();
+        // if the command is already a complete command, remove existing popup
+        if (words[0] == command_comp->currentCompletion().toStdString()) {
+            if (popup->isVisible()) popup->hide();
+            return;
         }
+        QRect cr = cursorRect();
+        cr.setWidth(popup->sizeHintForColumn(0) + popup->verticalScrollBar()->sizeHint().width());
+        popup->setAlternatingRowColors(true);
+        command_comp->complete(cr);
     }
 }
 
 void CodeEditor::insertCompletedCommand(const QString &completion)
 {
-    if (command_completer->widget() != this) return;
+    auto *completer = qobject_cast<QCompleter *>(sender());
+    if (completer->widget() != this) return;
     auto cursor = textCursor();
-    int extra   = completion.length() - command_completer->completionPrefix().length();
+    int extra   = completion.length() - completer->completionPrefix().length();
     cursor.movePosition(QTextCursor::Left);
     cursor.movePosition(QTextCursor::EndOfWord);
     cursor.insertText(completion.right(extra));

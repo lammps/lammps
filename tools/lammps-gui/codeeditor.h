@@ -14,19 +14,22 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
-#include <QCompleter>
 #include <QFont>
 #include <QMap>
 #include <QPlainTextEdit>
-#include <QShortcut>
 #include <QString>
 #include <QStringList>
+
+class QCompleter;
+class QStringListModel;
+class QShortcut;
 
 class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
 
 public:
     CodeEditor(QWidget *parent = nullptr);
+    ~CodeEditor() override;
 
     void lineNumberAreaPaintEvent(QPaintEvent *event);
     int lineNumberAreaWidth();
@@ -36,7 +39,21 @@ public:
     void setReformatOnReturn(bool flag) { reformat_on_return = flag; }
     void setAutoComplete(bool flag) { automatic_completion = flag; }
     QString reformatLine(const QString &line);
+
     void setCommandList(const QStringList &words);
+    void setFixList(const QStringList &words);
+    void setComputeList(const QStringList &words);
+    void setDumpList(const QStringList &words);
+    void setAtomList(const QStringList &words);
+    void setPairList(const QStringList &words);
+    void setBondList(const QStringList &words);
+    void setAngleList(const QStringList &words);
+    void setDihedralList(const QStringList &words);
+    void setImproperList(const QStringList &words);
+    void setKspaceList(const QStringList &words);
+    void setRegionList(const QStringList &words);
+    void setIntegrateList(const QStringList &words);
+    void setMinimizeList(const QStringList &words);
 
     static constexpr int NO_HIGHLIGHT = 1 << 30;
 
@@ -61,7 +78,10 @@ private slots:
 private:
     QWidget *lineNumberArea;
     QShortcut *help_action;
-    QCompleter *command_completer;
+    QCompleter *command_comp, *fix_comp, *compute_comp, *dump_comp, *atom_comp, *pair_comp,
+        *bond_comp, *angle_comp, *dihedral_comp, *improper_comp, *kspace_comp, *region_comp,
+        *integrate_comp, *minimize_comp;
+
     int highlight;
     bool reformat_on_return;
     bool automatic_completion;

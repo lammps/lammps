@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.5.1 LANGUAGES CXX)
+project(lammps-gui VERSION 1.5.2 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -51,6 +51,11 @@ else()
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
   endif()
 endif()
+
+#get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
+#if (LAMMPS_VERSION LESS_EQUAL 20230802)
+#  message(FATAL_ERROR "LAMMPS GUI v${PROJECT_VERSION} is incompatible with LAMMPS 2 August 2023 or older")
+#endif()
 
 set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 if(LAMMPS_GUI_USE_PLUGIN)

@@ -487,9 +487,9 @@ using CMake or Make.
    .. tab:: CMake build
 
       .. code-block:: bash
-
-         -D BUILD_TOOLS=value         # yes or no (default)
-         -D BUILD_LAMMPS_SHELL=value  # yes or no (default)
+         -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt, chain.x, micelle2d.x, msi2lmp, phana, stl_bin2txt
+         -D BUILD_LAMMPS_SHELL=value  # yes or no (default). Build lammps-shell
+         -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build lammps-gui
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).

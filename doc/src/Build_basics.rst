@@ -503,7 +503,6 @@ using CMake or Make.
          make binary2txt       # build only binary2txt tool
          make chain            # build only chain tool
          make micelle2d        # build only micelle2d tool
-         make thermo_extract   # build only thermo_extract tool
 
          cd lammps/tools/lammps-shell
          make                  # build LAMMPS shell

@@ -389,22 +389,22 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
         reformatCurrentLine();
     }
 
-    // pass key event to parent class
+    // process key event in parent class
     QPlainTextEdit::keyPressEvent(event);
 
-    // if enabled, do pop up completion automatically after 3 characters
+    // if enabled, try pop up completion automatically after 3 characters
     if (automatic_completion) {
         auto cursor = textCursor();
         auto line   = cursor.block().text();
 
-        // QTextCursor::WordUnderCursor recognizes '/' as word boundary.
-        // Work around it by search to beginning of word since we only need the length
+        // QTextCursor::WordUnderCursor is unusable here since recognizes '/' as word boundary.
+        // Work around it by manually searching for the location of the beginning of the word.
         int begin = cursor.positionInBlock();
         while (begin >= 0) {
             if (line[begin].isSpace()) break;
             --begin;
         }
-        if ((cursor.positionInBlock() - begin) > 2) runCompletion();
+        if ((cursor.positionInBlock() - begin) > 3) runCompletion();
     }
 }
 
@@ -555,14 +555,28 @@ void CodeEditor::runCompletion()
 {
     auto cursor = textCursor();
     auto line   = cursor.block().text().trimmed();
+    // no completion possible on empty lines
     if (line.isEmpty()) return;
-
     auto words = split_line(line.toStdString());
-    // FIXME. need a workaround for broken WordUnderCursor here
-    cursor.select(QTextCursor::WordUnderCursor);
+
+    // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word boundary.
+    // Work around it by manually searching for the beginning and end position of the word
+    // under the cursor and then using that substring.
+    int begin = cursor.positionInBlock();
+    line      = cursor.block().text();
+    while (begin >= 0) {
+        if (line[begin].isSpace()) break;
+        --begin;
+    }
+    int end = ++begin;
+    while (end < line.length()) {
+        if (line[end].isSpace()) break;
+        ++end;
+    }
+    const auto selected = line.mid(begin, end - begin);
 
     // if on first word, try to complete command
-    if ((words.size() > 0) && (words[0] == cursor.selectedText().toStdString())) {
+    if ((words.size() > 0) && (words[0] == selected.toStdString())) {
         // no completion on comment lines
         if (words[0][0] == '#') return;
 
@@ -583,7 +597,7 @@ void CodeEditor::runCompletion()
         current_comp->complete(cr);
 
         // completions for second word
-    } else if ((words.size() > 1) && (words[1] == cursor.selectedText().toStdString())) {
+    } else if ((words.size() > 1) && (words[1] == selected.toStdString())) {
         // no completion on comment lines
         if (words[0][0] == '#') return;
 
@@ -622,7 +636,7 @@ void CodeEditor::runCompletion()
             current_comp->complete(cr);
         }
         // completions for third word
-    } else if ((words.size() > 2) && (words[2] == cursor.selectedText().toStdString())) {
+    } else if ((words.size() > 2) && (words[2] == selected.toStdString())) {
         // no completion on comment lines
         if (words[0][0] == '#') return;
 
@@ -647,7 +661,7 @@ void CodeEditor::runCompletion()
             current_comp->complete(cr);
         }
         // completions for fourth word
-    } else if ((words.size() > 3) && (words[3] == cursor.selectedText().toStdString())) {
+    } else if ((words.size() > 3) && (words[3] == selected.toStdString())) {
         // no completion on comment lines
         if (words[0][0] == '#') return;
 

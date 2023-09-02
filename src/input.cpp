@@ -175,6 +175,7 @@ Input::~Input()
   delete[] labelstr;
   memory->sfree(arg);
   delete[] infiles;
+  delete[] inlines;
   delete variable;
 
   delete command_map;

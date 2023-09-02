@@ -502,9 +502,14 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
 
     // print augmented context menu if an entry was found
     auto *menu = createStandardContextMenu();
+    menu->addSeparator();
+    auto action = menu->addAction(QString("Display available completions").arg(help));
+    action->setIcon(QIcon(":/expand-text.png"));
+    connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
+
     if (!page.isEmpty()) {
         menu->addSeparator();
-        auto action = menu->addAction(QString("Reformat '%1' command").arg(help));
+        action = menu->addAction(QString("Reformat '%1' command").arg(help));
         action->setIcon(QIcon(":/format-indent-less-3.png"));
         connect(action, &QAction::triggered, this, &CodeEditor::reformatCurrentLine);
 

@@ -503,7 +503,7 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     // print augmented context menu if an entry was found
     auto *menu = createStandardContextMenu();
     menu->addSeparator();
-    auto action = menu->addAction(QString("Display available completions").arg(help));
+    auto action = menu->addAction(QString("Display available completions for '%1'").arg(help));
     action->setIcon(QIcon(":/expand-text.png"));
     connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
 

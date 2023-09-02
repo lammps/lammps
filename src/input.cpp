@@ -102,9 +102,11 @@ function executed, and finally the class instance is deleted.
  * \param  argc  number of entries in *argv*
  * \param  argv  argument vector  */
 
-Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
+Input::Input(LAMMPS *lmp, int argc, char **argv) :
+    Pointers(lmp), variable(nullptr), labelstr(nullptr), infiles(nullptr), inlines(nullptr),
+    command_map(nullptr)
 {
-  MPI_Comm_rank(world,&me);
+  MPI_Comm_rank(world, &me);
 
   maxline = maxcopy = maxwork = 0;
   line = copy = work = nullptr;
@@ -115,7 +117,6 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   echo_log = 1;
 
   label_active = 0;
-  labelstr = nullptr;
   jump_skip = 0;
   utf8_warn = true;
 
@@ -124,7 +125,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
     infiles = new FILE *[LMP_MAXFILE];
     infiles[0] = infile;
     inlines = new int[LMP_MAXFILE];
-  } else infiles = nullptr;
+  }
 
   variable = new Variable(lmp);
 

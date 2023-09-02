@@ -314,23 +314,39 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     int ncmds = lammps.style_count("command");
     for (int i = 0; i < ncmds; ++i) {
         if (lammps.style_name("command", i, buf, BUFLEN)) {
-            if (strstr(buf, "/kk/host") || strstr(buf, "/kk/device")) continue;
-            style_list << buf;
+            // skip suffixed names
+            const QString style(buf);
+            if (style.endsWith("/kk/host") || style.endsWith("/kk/device") || style.endsWith("/kk"))
+                continue;
+            style_list << style;
         }
     }
     style_list.sort();
     ui->textEdit->setCommandList(style_list);
 
-#define ADD_STYLES(keyword, Type)                                               \
-    style_list.clear();                                                         \
-    ncmds = lammps.style_count(#keyword);                                       \
-    for (int i = 0; i < ncmds; ++i) {                                           \
-        if (lammps.style_name(#keyword, i, buf, BUFLEN)) {                      \
-            if (strstr(buf, "/kk/host") || strstr(buf, "/kk/device")) continue; \
-            style_list << buf;                                                  \
-        }                                                                       \
-    }                                                                           \
-    style_list.sort();                                                          \
+    style_list.clear();
+    const char *varstyles[] = {"delete",   "atomfile", "file",   "format", "getenv", "index",
+                               "internal", "loop",     "python", "string", "timer",  "uloop",
+                               "universe", "world",    "equal",  "vector", "atom"};
+    for (const auto var : varstyles)
+        style_list << var;
+    style_list.sort();
+    ui->textEdit->setVariableList(style_list);
+
+#define ADD_STYLES(keyword, Type)                                                              \
+    style_list.clear();                                                                        \
+    ncmds = lammps.style_count(#keyword);                                                      \
+    for (int i = 0; i < ncmds; ++i) {                                                          \
+        if (lammps.style_name(#keyword, i, buf, BUFLEN)) {                                     \
+            const QString style(buf);                                                          \
+            if (style.endsWith("/gpu") || style.endsWith("/intel") || style.endsWith("/kk") || \
+                style.endsWith("/kk/device") || style.endsWith("/kk/host") ||                  \
+                style.endsWith("/omp") || style.endsWith("/opt"))                              \
+                continue;                                                                      \
+            style_list << style;                                                               \
+        }                                                                                      \
+    }                                                                                          \
+    style_list.sort();                                                                         \
     ui->textEdit->set##Type##List(style_list)
 
     ADD_STYLES(fix, Fix);

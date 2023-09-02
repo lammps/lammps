@@ -121,13 +121,14 @@ static std::vector<std::string> split_line(const std::string &text)
 }
 
 CodeEditor::CodeEditor(QWidget *parent) :
-    QPlainTextEdit(parent), command_comp(new QCompleter(this)), fix_comp(new QCompleter(this)),
-    compute_comp(new QCompleter(this)), dump_comp(new QCompleter(this)),
-    atom_comp(new QCompleter(this)), pair_comp(new QCompleter(this)),
-    bond_comp(new QCompleter(this)), angle_comp(new QCompleter(this)),
-    dihedral_comp(new QCompleter(this)), improper_comp(new QCompleter(this)),
-    kspace_comp(new QCompleter(this)), region_comp(new QCompleter(this)),
-    integrate_comp(new QCompleter(this)), minimize_comp(new QCompleter(this)),
+    QPlainTextEdit(parent), current_comp(nullptr), command_comp(new QCompleter(this)),
+    fix_comp(new QCompleter(this)), compute_comp(new QCompleter(this)),
+    dump_comp(new QCompleter(this)), atom_comp(new QCompleter(this)),
+    pair_comp(new QCompleter(this)), bond_comp(new QCompleter(this)),
+    angle_comp(new QCompleter(this)), dihedral_comp(new QCompleter(this)),
+    improper_comp(new QCompleter(this)), kspace_comp(new QCompleter(this)),
+    region_comp(new QCompleter(this)), integrate_comp(new QCompleter(this)),
+    minimize_comp(new QCompleter(this)), variable_comp(new QCompleter(this)),
     highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
@@ -138,6 +139,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     completer->setCompletionMode(QCompleter::PopupCompletion);                                \
     completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);                     \
     completer->setWidget(this);                                                               \
+    completer->setMaxVisibleItems(16);                                                        \
     completer->setWrapAround(false);                                                          \
     QObject::connect(completer, QOverload<const QString &>::of(&QCompleter::activated), this, \
                      &CodeEditor::insertCompletedCommand)
@@ -156,7 +158,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     COMPLETER_SETUP(region_comp);
     COMPLETER_SETUP(integrate_comp);
     COMPLETER_SETUP(minimize_comp);
-
+    COMPLETER_SETUP(variable_comp);
 #undef COMPLETER_SETUP
 
     // initialize help system
@@ -218,6 +220,7 @@ CodeEditor::~CodeEditor()
     delete region_comp;
     delete integrate_comp;
     delete minimize_comp;
+    delete variable_comp;
 }
 
 int CodeEditor::lineNumberAreaWidth()
@@ -347,13 +350,14 @@ COMPLETER_INIT_FUNC(kspace, Kspace)
 COMPLETER_INIT_FUNC(region, Region)
 COMPLETER_INIT_FUNC(integrate, Integrate)
 COMPLETER_INIT_FUNC(minimize, Minimize)
+COMPLETER_INIT_FUNC(variable, Variable)
 
 #undef COMPLETER_INIT_FUNC
 
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
     const auto key = event->key();
-    if (command_comp->popup()->isVisible()) {
+    if (current_comp && current_comp->popup()->isVisible()) {
         // The following keys are forwarded by the completer to the widget
         switch (key) {
             case Qt::Key_Enter:
@@ -385,15 +389,22 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
         reformatCurrentLine();
     }
 
-    // pass key event on to parent class
+    // pass key event to parent class
     QPlainTextEdit::keyPressEvent(event);
 
-    // pop up completion automatically after 3 characters
+    // if enabled, do pop up completion automatically after 3 characters
     if (automatic_completion) {
         auto cursor = textCursor();
-        cursor.select(QTextCursor::WordUnderCursor);
-        auto word = cursor.selectedText().trimmed();
-        if (word.length() > 2) runCompletion();
+        auto line   = cursor.block().text();
+
+        // QTextCursor::WordUnderCursor recognizes '/' as word boundary.
+        // Work around it by search to beginning of word since we only need the length
+        int begin = cursor.positionInBlock();
+        while (begin >= 0) {
+            if (line[begin].isSpace()) break;
+            --begin;
+        }
+        if ((cursor.positionInBlock() - begin) > 2) runCompletion();
     }
 }
 
@@ -547,6 +558,7 @@ void CodeEditor::runCompletion()
     if (line.isEmpty()) return;
 
     auto words = split_line(line.toStdString());
+    // FIXME. need a workaround for broken WordUnderCursor here
     cursor.select(QTextCursor::WordUnderCursor);
 
     // if on first word, try to complete command
@@ -554,17 +566,113 @@ void CodeEditor::runCompletion()
         // no completion on comment lines
         if (words[0][0] == '#') return;
 
-        command_comp->setCompletionPrefix(words[0].c_str());
-        auto popup = command_comp->popup();
+        current_comp = command_comp;
+        current_comp->setCompletionPrefix(words[0].c_str());
+        auto popup = current_comp->popup();
         // if the command is already a complete command, remove existing popup
-        if (words[0] == command_comp->currentCompletion().toStdString()) {
-            if (popup->isVisible()) popup->hide();
+        if (words[0] == current_comp->currentCompletion().toStdString()) {
+            if (popup->isVisible()) {
+                popup->hide();
+                current_comp = nullptr;
+            }
             return;
         }
         QRect cr = cursorRect();
         cr.setWidth(popup->sizeHintForColumn(0) + popup->verticalScrollBar()->sizeHint().width());
         popup->setAlternatingRowColors(true);
-        command_comp->complete(cr);
+        current_comp->complete(cr);
+
+        // completions for second word
+    } else if ((words.size() > 1) && (words[1] == cursor.selectedText().toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
+
+        current_comp = nullptr;
+        if (words[0] == "pair_style")
+            current_comp = pair_comp;
+        else if (words[0] == "bond_style")
+            current_comp = bond_comp;
+        else if (words[0] == "angle_style")
+            current_comp = angle_comp;
+        else if (words[0] == "dihedral_style")
+            current_comp = dihedral_comp;
+        else if (words[0] == "improper_style")
+            current_comp = improper_comp;
+        else if (words[0] == "kspace_style")
+            current_comp = kspace_comp;
+        else if (words[0] == "atom_style")
+            current_comp = atom_comp;
+        else if (words[0] == "run_style")
+            current_comp = integrate_comp;
+        else if (words[0] == "minimize_style")
+            current_comp = minimize_comp;
+
+        if (current_comp) {
+            current_comp->setCompletionPrefix(words[1].c_str());
+            auto popup = current_comp->popup();
+            // if the command is already a complete command, remove existing popup
+            if (words[1] == current_comp->currentCompletion().toStdString()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            current_comp->complete(cr);
+        }
+        // completions for third word
+    } else if ((words.size() > 2) && (words[2] == cursor.selectedText().toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
+
+        current_comp = nullptr;
+        if (words[0] == "region")
+            current_comp = region_comp;
+        else if (words[0] == "variable")
+            current_comp = variable_comp;
+
+        if (current_comp) {
+            current_comp->setCompletionPrefix(words[2].c_str());
+            auto popup = current_comp->popup();
+            // if the command is already a complete command, remove existing popup
+            if (words[2] == current_comp->currentCompletion().toStdString()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            current_comp->complete(cr);
+        }
+        // completions for fourth word
+    } else if ((words.size() > 3) && (words[3] == cursor.selectedText().toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
+
+        current_comp = nullptr;
+        if (words[0] == "fix")
+            current_comp = fix_comp;
+        else if (words[0] == "compute")
+            current_comp = compute_comp;
+        else if (words[0] == "dump")
+            current_comp = dump_comp;
+
+        if (current_comp) {
+            current_comp->setCompletionPrefix(words[3].c_str());
+            auto popup = current_comp->popup();
+            // if the command is already a complete command, remove existing popup
+            if (words[3] == current_comp->currentCompletion().toStdString()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            current_comp->complete(cr);
+        }
     }
 }
 

@@ -577,31 +577,45 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   MathExtra::norm3(rot1);
   double theta1 = acos(avec[0]/avec_len);
   MathExtra::axisangle_to_quat(rot1,theta1,quat1);
-
+  
   // rotmat1 = rotation matrix associated with quat1
 
   double rotmat1[3][3];
   MathExtra::quat_to_mat(quat1,rotmat1);
 
+  // DEBUG
+  double afinal[3];
+  MathExtra::matvec(rotmat1,avec,afinal);
+  printf("AFINAL %g %g %g\n",afinal[0],afinal[1],afinal[2]);
+
   // B1 = rotation of B by quat1 rotation matrix
 
   double bvec1[3];
-
   MathExtra::matvec(rotmat1,bvec,bvec1);
+
+  printf("BVEC1 %g %g %g\n",bvec1[0],bvec1[1],bvec1[2]);
 
   // quat2 = rotation to convert B1 into B' in xy plane
   // Byz1 = projection of B1 into yz plane
   // rot2 = unit vector to rotate B1 around = -x axis
   // theta2 = angle of rotation calculated from
-  //   Byz1 dot yunit = B1y = |Byz1} cos(theta2)
+  //   Byz1 dot yunit = B1y = |Byz1| cos(theta2)
 
   double byzvec1[3],quat2[4];
   MathExtra::copy3(bvec1,byzvec1);
   byzvec1[0] = 0.0;
   double byzvec1_len = MathExtra::len3(byzvec1);
   double rot2[3] = {-1.0, 0.0, 0.0};
+  if (byzvec1[2] < 0.0) rot2[0] = 1.0;
   double theta2 = acos(bvec1[1]/byzvec1_len);
   MathExtra::axisangle_to_quat(rot2,theta2,quat2);
+
+  // DEBUG
+  double rotmat2[3][3];
+  MathExtra::quat_to_mat(quat2,rotmat2);
+  double bfinal[3];
+  MathExtra::matvec(rotmat1,bvec1,bfinal);
+  printf("BFINAL %g %g %g\n",bfinal[0],bfinal[1],bfinal[2]);
 
   // quat = product of quat2 * quat1 = transformation via single quat
   // rotate_g2r = general to restricted transformation matrix
@@ -644,6 +658,14 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   
   // debug
 
+  printf("Cvec: %g %g %g\n",cvec[0],cvec[1],cvec[2]);
+  printf("ABcross: %g %g %g\n",abcross[0],abcross[1],abcross[2]);
+  printf("Dot: %g\n",dot);
+  printf("Avec: %g %g %g\n",avec[0],avec[1],avec[2]);
+  printf("Theta1: %g\n",theta1);
+  printf("Rotvec1: %g %g %g\n",rot1[0],rot1[1],rot1[2]);
+  printf("Theta2: %g\n",theta2);
+  printf("Rotvec2: %g %g %g\n",rot2[0],rot2[1],rot2[2]);
   printf("Quat: %g %g %g %g\n",quat[0],quat[1],quat[2],quat[3]);
   double angle = 2.0*acos(quat[0]);
   printf("Theta: %g\n",angle);

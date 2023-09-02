@@ -186,6 +186,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       a1[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       a1[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
+
     } else if (strcmp(arg[iarg],"a2") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "lattice a2", error);
       if (style != CUSTOM)
@@ -254,11 +255,12 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // reset scale for LJ units (input scale is rho*)
   // scale = (Nbasis/(Vprimitive * rho*)) ^ (1/dim)
-
+  // use fabs() in case a1,a2,a3 are not right-handed for general triclinic
+  
   if (strcmp(update->unit_style,"lj") == 0) {
     double vec[3];
     cross(a2,a3,vec);
-    double volume = dot(a1,vec);
+    double volume = fabs(dot(a1,vec));
     scale = pow(nbasis/volume/scale,1.0/dimension);
   }
 
@@ -497,7 +499,7 @@ void Lattice::setup_transform()
 ------------------------------------------------------------------------- */
 
 void Lattice::lattice2box(double &x, double &y, double &z)
-{
+{ 
   double x1 = primitive[0][0]*x + primitive[0][1]*y + primitive[0][2]*z;
   double y1 = primitive[1][0]*x + primitive[1][1]*y + primitive[1][2]*z;
   double z1 = primitive[2][0]*x + primitive[2][1]*y + primitive[2][2]*z;
@@ -590,7 +592,7 @@ void Lattice::cross(double *x, double *y, double *z)
 void Lattice::bbox(int flag, double x, double y, double z,
                    double &xmin, double &ymin, double &zmin,
                    double &xmax, double &ymax, double &zmax)
-{
+{ 
   if (flag == 0) lattice2box(x,y,z);
   else box2lattice(x,y,z);
 

@@ -129,10 +129,12 @@ void CreateBox::command(int narg, char **arg)
     origin[2] = pz;
 
     px = ahi; py = blo; pz = clo;
+    printf("CB PXYZ %g %g %g\n",px,py,pz);
     domain->lattice->lattice2box(px,py,pz);
     avec[0] = px - origin[0];
     avec[1] = py - origin[1];
     avec[2] = pz - origin[2];
+    printf("CB AVEC %g %g %g\n",avec[0],avec[1],avec[2]);
 
     px = alo; py = bhi; pz = clo;
     domain->lattice->lattice2box(px,py,pz);

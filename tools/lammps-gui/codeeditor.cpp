@@ -391,29 +391,9 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     // pop up completion automatically after 3 characters
     if (automatic_completion) {
         auto cursor = textCursor();
-        auto line   = cursor.block().text().trimmed();
-        if (!line.isEmpty()) {
-            auto words = split_line(line.toStdString());
-            cursor.select(QTextCursor::WordUnderCursor);
-            auto word  = cursor.selectedText().trimmed();
-            auto popup = command_comp->popup();
-            // we're on the first word in a line -> complete on commands
-            if (words[0] == word.toStdString()) {
-                if (word.length() > 2)
-                    runCompletion();
-                else if (popup->isVisible())
-                    popup->hide();
-            } else if (words[0] == "fix") {
-                if (words.size() > 2) { // fix style is 3rd word
-                    if (word.length() > 2)
-                        runCompletion();
-                    else if (popup->isVisible())
-                        popup->hide();
-                }
-            } else {
-                if (popup->isVisible()) popup->hide();
-            }
-        }
+        cursor.select(QTextCursor::WordUnderCursor);
+        auto word = cursor.selectedText().trimmed();
+        if (word.length() > 2) runCompletion();
     }
 }
 

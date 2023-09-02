@@ -512,7 +512,7 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     auto *typelbl  = new QLabel("Type width:");
     auto *idlbl    = new QLabel("ID width:");
     auto *namelbl  = new QLabel("Name width:");
-    auto *retlbl   = new QLabel("Reformat with 'Return':");
+    auto *retlbl   = new QLabel("Reformat with 'Enter':");
     auto *autolbl  = new QLabel("Automatic completion:");
     auto *cmdval   = new QSpinBox;
     auto *typeval  = new QSpinBox;

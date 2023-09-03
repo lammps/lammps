@@ -36,10 +36,11 @@ Highlighter::Highlighter(QTextDocument *parent) :
     isRun(QStringLiteral("^\\s*(minimize|minimize/kk|run|rerun|tad|neb|neb/spin|prd|server|temper/"
                          "npt|temper/grem|temper|message|hyper|dynamical_matrix|dynamical_matrix/"
                          "kk|third_order|third_order/kk|fitpod)")),
-    isSetup(QStringLiteral(
-        "^\\s*(min_style|min_modify|run_style|timestep|neighbor|neigh_modify|suffix|special_bonds|"
-        "balance|box|clear|plugin|quit|comm_modify|comm_style|newton|package|partition|processors|"
-        "reset_atoms|reset_ids|reset_timestep|dump_modify|fix_modify|compute_modify)")),
+    isSetup(QStringLiteral("^\\s*(min_modify|neighbor|neigh_modify|special_bonds|balance|box|clear|"
+                           "quit|newton|partition|processors|reset_atoms|reset_ids)")),
+    isSetup1(
+        QStringLiteral("^\\s*(min_style|run_style|timestep|suffix|plugin|comm_modify|comm_style|"
+                       "package|reset_timestep|dump_modify|fix_modify|compute_modify)\\s+(\\S+)")),
     isVariable(QStringLiteral("\\s+(\\$[a-z]|\\${[^} ]+}|\\$\\(\\S+\\))")),
     isReference(
         QStringLiteral("\\s+(c_\\S+|C_\\S+|f_\\S+|F_\\S+|i_\\S+|i2_\\S+|d_\\S+|d2_\\S+|v_\\S+)")),
@@ -163,6 +164,12 @@ void Highlighter::highlightBlock(const QString &text)
     match = isSetup.match(text);
     if (match.hasMatch()) {
         setFormat(match.capturedStart(1), match.capturedLength(1), formatSetup);
+    }
+
+    match = isSetup1.match(text);
+    if (match.hasMatch()) {
+        setFormat(match.capturedStart(1), match.capturedLength(1), formatSetup);
+        setFormat(match.capturedStart(2), match.capturedLength(2), formatString);
     }
 
     // numbers

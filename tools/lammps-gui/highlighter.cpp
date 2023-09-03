@@ -44,12 +44,11 @@ Highlighter::Highlighter(QTextDocument *parent) :
     isVariable(QStringLiteral("\\s+(\\$[a-z]|\\${[^} ]+}|\\$\\(\\S+\\))")),
     isReference(
         QStringLiteral("\\s+(c_\\S+|C_\\S+|f_\\S+|F_\\S+|i_\\S+|i2_\\S+|d_\\S+|d2_\\S+|v_\\S+)")),
-    isNumber1(QStringLiteral("(^|\\s+)[0-9:*]+")), // integer and integer ranges
-    isNumber2(QStringLiteral("(^|\\s+)[0-9]+\\.[0-9]*[edED]?[-+]?[0-9]*")), // floating point 1
-    isNumber3(QStringLiteral("(^|\\s+)[0-9]*\\.[0-9]+[edED]?[-+]?[0-9]*")), // floating point 2
-    isNumber4(QStringLiteral("(^|\\s+)[0-9]+([edED][-+]?[0-9]+)?")),        // floating point 3
-    isSpecial(
-        QStringLiteral("(\\s\\+?-?INF|\\sEDGE|\\sNULL|\\sSELF|if\\s|then\\s|else\\s|elif\\s)")),
+    isNumber1(QStringLiteral("(^|\\s+)[-+]?[0-9:*]+")), // integer and integer ranges
+    isNumber2(QStringLiteral("(^|\\s+)[-+]?[0-9]+\\.[0-9]*[edED]?[-+]?[0-9]*")), // floating point 1
+    isNumber3(QStringLiteral("(^|\\s+)[-+]?[0-9]*\\.[0-9]+[edED]?[-+]?[0-9]*")), // floating point 2
+    isNumber4(QStringLiteral("(^|\\s+)[-+]?[0-9]+([edED][-+]?[0-9]+)?")),        // floating point 3
+    isSpecial(QStringLiteral("(\\sINF|\\sEDGE|\\sNULL|\\sSELF|if\\s|then\\s|else\\s|elif\\s)")),
     isContinue(QStringLiteral("&$")), isComment(QStringLiteral("#.*")),
     isQuotedComment(QStringLiteral("(\".*#.*\"|'.*#.*')")),
     isTriple(QStringLiteral("[^\"]*\"\"\"[^\"]*")),

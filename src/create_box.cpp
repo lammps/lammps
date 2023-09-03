@@ -117,7 +117,7 @@ void CreateBox::command(int narg, char **arg)
 
     // use lattice2box() to generate origin and ABC vectors
     // origin = abc lo
-    // ABC vectors = hi in one dim - orign
+    // ABC vectors = hi in one dim - origin
     
     double avec[3],bvec[3],cvec[3],origin[3];
     double px,py,pz;

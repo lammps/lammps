@@ -239,11 +239,11 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     if (origin[2] != 0.0)
       error->all(FLERR,
                  "Lattice settings are not compatible with 2d simulation");
-    if (orientx[2] != 0 || orienty[2] != 0 ||
-        orientz[0] != 0 || orientz[1] != 0)
+    if (a1[2] != 0.0 || a2[2] != 0.0 || a3[0] != 0.0 || a3[1] != 0.0)
       error->all(FLERR,
                  "Lattice settings are not compatible with 2d simulation");
-    if (a1[2] != 0.0 || a2[2] != 0.0 || a3[0] != 0.0 || a3[1] != 0.0)
+    if (orientx[2] != 0 || orienty[2] != 0 ||
+        orientz[0] != 0 || orientz[1] != 0)
       error->all(FLERR,
                  "Lattice settings are not compatible with 2d simulation");
   }

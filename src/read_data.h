@@ -63,10 +63,10 @@ class ReadData : public Command {
 
   double boxlo[3], boxhi[3];
   double xy, xz, yz;
-  double avec[3], bvec[3], cvec[3], tri_origin[3];
+  double avec[3], bvec[3], cvec[3], gtri_origin[3];
   int triclinic, triclinic_general;
   int xloxhi_flag, yloyhi_flag, zlozhi_flag, tilt_flag;
-  int avec_flag, bvec_flag, cvec_flag;
+  int avec_flag, bvec_flag, cvec_flag, gtri_origin_flag;
   
   // optional args
 

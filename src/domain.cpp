@@ -527,8 +527,8 @@ void Domain::reset_box()
    create rotation matrices for general <--> restricted transformations
 ------------------------------------------------------------------------- */
 
-void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
-                                   double *cvec_caller, double *origin_caller)
+void Domain::setup_general_triclinic(double *avec_caller, double *bvec_caller,
+                                     double *cvec_caller, double *origin_caller)
 {
   if (triclinic || triclinic_general)
     error->all(FLERR,"General triclinic box edge vectors are already set");
@@ -547,15 +547,15 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   cvec[1] = cvec_caller[1];
   cvec[2] = cvec_caller[2];
 
-  tri_origin[0] = origin_caller[0];
-  tri_origin[1] = origin_caller[1];
-  tri_origin[2] = origin_caller[2];
+  gtri_origin[0] = origin_caller[0];
+  gtri_origin[1] = origin_caller[1];
+  gtri_origin[2] = origin_caller[2];
 
   // error check on cvec for 2d systems
 
   if (dimension == 2 && (cvec[0] != 0.0 || cvec[1] != 0.0))
     error->all(FLERR,"General triclinic box edge vector C invalid for 2d system");
-  
+
   // error check for co-planar A,B,C
 
   double abcross[3];
@@ -563,8 +563,8 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   double dot = MathExtra::dot3(abcross,cvec);
   if (dot == 0.0)
     error->all(FLERR,"General triclinic box edge vectors are co-planar");
-    
-  // quat1 = convert A into A' along x-axis
+
+  // quat1 = convert A into A' along +x-axis
   // rot1 = unit vector to rotate A around
   // theta1 = angle of rotation calculated from
   //   A dot xunit = Ax = |A| cos(theta1)
@@ -583,45 +583,34 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   double rotmat1[3][3];
   MathExtra::quat_to_mat(quat1,rotmat1);
 
-  // DEBUG
-  double afinal[3];
-  MathExtra::matvec(rotmat1,avec,afinal);
-  printf("AFINAL %g %g %g\n",afinal[0],afinal[1],afinal[2]);
-
   // B1 = rotation of B by quat1 rotation matrix
 
   double bvec1[3];
   MathExtra::matvec(rotmat1,bvec,bvec1);
 
-  printf("BVEC1 %g %g %g\n",bvec1[0],bvec1[1],bvec1[2]);
-
   // quat2 = rotation to convert B1 into B' in xy plane
   // Byz1 = projection of B1 into yz plane
-  // rot2 = unit vector to rotate B1 around = -x axis
+  // +xaxis = unit vector to rotate B1 around
   // theta2 = angle of rotation calculated from
   //   Byz1 dot yunit = B1y = |Byz1| cos(theta2)
-
+  // theta2 via acos() is positive (0 to PI)
+  //   positive is valid if B1z < 0.0 else flip sign of theta2
+  
   double byzvec1[3],quat2[4];
   MathExtra::copy3(bvec1,byzvec1);
   byzvec1[0] = 0.0;
   double byzvec1_len = MathExtra::len3(byzvec1);
-  double rot2[3] = {-1.0, 0.0, 0.0};
-  if (byzvec1[2] < 0.0) rot2[0] = 1.0;
   double theta2 = acos(bvec1[1]/byzvec1_len);
-  MathExtra::axisangle_to_quat(rot2,theta2,quat2);
+  if (bvec1[2] > 0.0) theta2 = -theta2;
+  MathExtra::axisangle_to_quat(xaxis,theta2,quat2);
 
-  // DEBUG
-  double rotmat2[3][3];
-  MathExtra::quat_to_mat(quat2,rotmat2);
-  double bfinal[3];
-  MathExtra::matvec(rotmat1,bvec1,bfinal);
-  printf("BFINAL %g %g %g\n",bfinal[0],bfinal[1],bfinal[2]);
-
-  // quat = product of quat2 * quat1 = transformation via single quat
+  // quat = transformation via single quat = quat2 * quat1
   // rotate_g2r = general to restricted transformation matrix
+  // if dot < 0.0 (A x B not in C direction)
+  //   flip sign of z component of transform,
+  //   by flipping sign of 3rd row of rotate_g2r matrix
   // rotate_r2g = restricted to general transformation matrix
-  // if A x B not in direction of C, flip sign of z component of transform
-  //   done by flipping sign of 3rd row of rotate_g2r matrix
+  //   simply a transpose of rotate_g2r since orthonormal
 
   double quat[4];
   MathExtra::quatquat(quat2,quat1,quat);
@@ -644,9 +633,9 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
 
   // set restricted triclinic boxlo, boxhi, and tilt factors
 
-  boxlo[0] = tri_origin[0];
-  boxlo[1] = tri_origin[1];
-  boxlo[2] = tri_origin[2];
+  boxlo[0] = gtri_origin[0];
+  boxlo[1] = gtri_origin[1];
+  boxlo[2] = gtri_origin[2];
 
   boxhi[0] = boxlo[0] + aprime[0];
   boxhi[1] = boxlo[1] + bprime[1];
@@ -658,14 +647,10 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   
   // debug
 
-  printf("Cvec: %g %g %g\n",cvec[0],cvec[1],cvec[2]);
-  printf("ABcross: %g %g %g\n",abcross[0],abcross[1],abcross[2]);
-  printf("Dot: %g\n",dot);
-  printf("Avec: %g %g %g\n",avec[0],avec[1],avec[2]);
   printf("Theta1: %g\n",theta1);
   printf("Rotvec1: %g %g %g\n",rot1[0],rot1[1],rot1[2]);
   printf("Theta2: %g\n",theta2);
-  printf("Rotvec2: %g %g %g\n",rot2[0],rot2[1],rot2[2]);
+  printf("Rotvec2: %g %g %g\n",xaxis[0],xaxis[1],xaxis[2]);
   printf("Quat: %g %g %g %g\n",quat[0],quat[1],quat[2],quat[3]);
   double angle = 2.0*acos(quat[0]);
   printf("Theta: %g\n",angle);
@@ -676,14 +661,6 @@ void Domain::set_general_triclinic(double *avec_caller, double *bvec_caller,
   printf("Length A: %g %g\n",MathExtra::len3(avec),MathExtra::len3(aprime));
   printf("Length B: %g %g\n",MathExtra::len3(bvec),MathExtra::len3(bprime));
   printf("Length C: %g %g\n",MathExtra::len3(cvec),MathExtra::len3(cprime));
-
-  double coord1[3] = {0.5,0.0,0.0};
-  double coord2[3] = {0.5,0.0,0.3};
-  double newcoord[3];
-  MathExtra::matvec(rotate_g2r,coord1,newcoord);
-  printf("Atom1: %g %g %g\n",newcoord[0],newcoord[1],newcoord[2]);
-  MathExtra::matvec(rotate_g2r,coord2,newcoord);
-  printf("Atom2: %g %g %g\n",newcoord[0],newcoord[1],newcoord[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -695,9 +672,9 @@ void Domain::general_to_restricted(double *x)
   double xnew[3];
   
   MathExtra::matvec(rotate_g2r,x,xnew);
-  x[0] = xnew[0] + tri_origin[0];
-  x[1] = xnew[1] + tri_origin[1];
-  x[2] = xnew[2] + tri_origin[2];
+  x[0] = xnew[0] + gtri_origin[0];
+  x[1] = xnew[1] + gtri_origin[1];
+  x[2] = xnew[2] + gtri_origin[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -708,9 +685,9 @@ void Domain::restricted_to_general(double *x)
 {
   double xshift[3],xnew[3];
   
-  xshift[0] = x[0] - tri_origin[0];
-  xshift[1] = x[1] - tri_origin[1];
-  xshift[2] = x[2] - tri_origin[2];
+  xshift[0] = x[0] - gtri_origin[0];
+  xshift[1] = x[1] - gtri_origin[1];
+  xshift[2] = x[2] - gtri_origin[2];
   MathExtra::matvec(rotate_r2g,xshift,xnew);
   x[0] = xnew[0];
   x[1] = xnew[1];

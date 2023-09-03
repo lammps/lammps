@@ -91,7 +91,7 @@ class Domain : protected Pointers {
   // general triclinic box
 
   double avec[3], bvec[3], cvec[3];  // ABC edge vectors of general triclinic box
-  double tri_origin[3];              // origin of general triclinic box
+  double gtri_origin[3];             // origin of general triclinic box
   double rotate_g2r[3][3];           // rotation matrix from general --> restricted tri
   double rotate_r2g[3][3];           // rotation matrix from restricted --> general tri
 
@@ -141,7 +141,7 @@ class Domain : protected Pointers {
   void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);
 
-  void set_general_triclinic(double *, double *, double *, double *);
+  void setup_general_triclinic(double *, double *, double *, double *);
   void general_to_restricted(double *);
   void restricted_to_general(double *);
   

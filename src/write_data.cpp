@@ -331,10 +331,12 @@ void WriteData::header()
       fmt::print(fp,"{} {} {} xy xz yz\n",domain->xy,domain->xz,domain->yz);
     
   } else if (triclinic_general) {
-    fmt::print(fp,"\n{} {} {} {} avec\n{} {} {} {} bvec\n{} {} {} {} cvec\n",
-               domain->avec[0],domain->avec[1],domain->avec[2],domain->tri_origin[0],
-               domain->bvec[0],domain->bvec[1],domain->bvec[2],domain->tri_origin[1],
-               domain->cvec[0],domain->cvec[1],domain->cvec[2],domain->tri_origin[2]);
+    fmt::print(fp,"\n{} {} {} avec\n{} {} {} bvec\n{} {} {} cvec\n",
+               domain->avec[0],domain->avec[1],domain->avec[2],
+               domain->bvec[0],domain->bvec[1],domain->bvec[2],
+               domain->cvec[0],domain->cvec[1],domain->cvec[2]);
+    fmt::print(fp,"{} {} {} gtri origin\n",
+               domain->gtri_origin[0],domain->gtri_origin[1],domain->gtri_origin[2]);
   }
 }
 

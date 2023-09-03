@@ -480,7 +480,7 @@ void ReadData::command(int narg, char **arg)
   ellipsoidflag = lineflag = triflag = bodyflag = 0;
 
   xloxhi_flag = yloyhi_flag = zlozhi_flag = tilt_flag = 0;
-  avec_flag = bvec_flag = cvec_flag = 0;
+  avec_flag = bvec_flag = cvec_flag = gtri_origin_flag = 0;
 
   // values in this data file
 
@@ -495,7 +495,7 @@ void ReadData::command(int narg, char **arg)
   bvec[0] = bvec[1] = bvec[2] = 0.0;
   cvec[0] = cvec[1] = cvec[2] = 0.0;
   avec[0] = bvec[1] = cvec[2] = 1.0;
-  tri_origin[0] = tri_origin[1] = tri_origin[2] = 0.0;
+  gtri_origin[0] = gtri_origin[1] = gtri_origin[2] = 0.0;
   
   keyword[0] = '\0';
 
@@ -518,7 +518,7 @@ void ReadData::command(int narg, char **arg)
 
     // check if simulation box specified consistently
 
-    if (!avec_flag && !bvec_flag && !cvec_flag) {
+    if (!avec_flag && !bvec_flag && !cvec_flag && !gtri_origin_flag) {
       triclinic = triclinic_general = 0;
       if (tilt_flag) triclinic = 1;
     } else {
@@ -579,11 +579,11 @@ void ReadData::command(int narg, char **arg)
         }
 
       // general triclinic box
-      // set_general_triclinic() converts
-      //   ABC edge vectors + origin to restricted triclinic
+      // setup_general_triclinic() converts
+      //   ABC edge vectors + gtri_origin to restricted triclinic
         
       } else if (triclinic_general) {
-        domain->set_general_triclinic(avec,bvec,cvec,tri_origin);
+        domain->setup_general_triclinic(avec,bvec,cvec,gtri_origin);
       }
     }
 
@@ -609,8 +609,8 @@ void ReadData::command(int narg, char **arg)
           errflag = 1;
         if (cvec[0] != domain->cvec[0] || cvec[1] != domain->cvec[1] || cvec[2] != domain->cvec[2])
           errflag = 1;
-        if (tri_origin[0] != domain->tri_origin[0] || tri_origin[1] != domain->tri_origin[1] ||
-            tri_origin[2] != domain->tri_origin[2])
+        if (gtri_origin[0] != domain->gtri_origin[0] || gtri_origin[1] != domain->gtri_origin[1] ||
+            gtri_origin[2] != domain->gtri_origin[2])
           errflag = 1;
         if (errflag)
           error->all(FLERR,"Read_data subsequent file ABC vectors must be same as first file");
@@ -1414,26 +1414,29 @@ void ReadData::header(int firstpass)
       xz = utils::numeric(FLERR, words[1], false, lmp);
       yz = utils::numeric(FLERR, words[2], false, lmp);
       
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\avec\\s")) {
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\avec\\s")) {
       avec_flag = 1;
       avec[0] = utils::numeric(FLERR, words[0], false, lmp);
       avec[1] = utils::numeric(FLERR, words[1], false, lmp);
       avec[2] = utils::numeric(FLERR, words[2], false, lmp);
-      tri_origin[0] = utils::numeric(FLERR, words[3], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\bvec\\s")) {
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\bvec\\s")) {
       bvec_flag = 1;
       bvec[0] = utils::numeric(FLERR, words[0], false, lmp);
       bvec[1] = utils::numeric(FLERR, words[1], false, lmp);
       bvec[2] = utils::numeric(FLERR, words[2], false, lmp);
-      tri_origin[1] = utils::numeric(FLERR, words[3], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\cvec\\s")) {
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\cvec\\s")) {
       cvec_flag = 1;
       cvec[0] = utils::numeric(FLERR, words[0], false, lmp);
       cvec[1] = utils::numeric(FLERR, words[1], false, lmp);
       cvec[2] = utils::numeric(FLERR, words[2], false, lmp);
-      tri_origin[2] = utils::numeric(FLERR, words[3], false, lmp);
+
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\gtri\\s+origin\\s")) {
+      gtri_origin_flag = 1;
+      gtri_origin[0] = utils::numeric(FLERR, words[0], false, lmp);
+      gtri_origin[1] = utils::numeric(FLERR, words[1], false, lmp);
+      gtri_origin[2] = utils::numeric(FLERR, words[2], false, lmp);
 
     } else
       break;

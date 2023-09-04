@@ -96,7 +96,7 @@ void CreateBox::command(int narg, char **arg)
 
   // setup general triclinic box (with no region)
   // read next box extent arguments to create ABC edge vectors + origin
-  // setup_general_triclinic() converts
+  // define_general_triclinic() converts
   //   ABC edge vectors + origin to restricted triclinic
 
   } else if (triclinic_general) {
@@ -146,9 +146,9 @@ void CreateBox::command(int narg, char **arg)
     cvec[1] = py - origin[1];
     cvec[2] = pz - origin[2];
 
-    // setup general triclinic box within Domain
+    // define general triclinic box within Domain
     
-    domain->setup_general_triclinic(avec,bvec,cvec,origin);
+    domain->define_general_triclinic(avec,bvec,cvec,origin);
   }
 
   // if molecular, zero out topology info

@@ -227,7 +227,7 @@ void WriteData::write(const std::string &file)
     memory->create(xstore,nlocal,3,"write_data:xstore");
     if (nlocal) memcpy(&xstore[0][0],&x[0][0],3*nlocal*sizeof(double));
     for (int i = 0; i < nlocal; i++)
-      domain->restricted_to_general(x[i]);
+      domain->restricted_to_general_coords(x[i]);
   }
   
   if (natoms) atoms();
@@ -335,8 +335,8 @@ void WriteData::header()
                domain->avec[0],domain->avec[1],domain->avec[2],
                domain->bvec[0],domain->bvec[1],domain->bvec[2],
                domain->cvec[0],domain->cvec[1],domain->cvec[2]);
-    fmt::print(fp,"{} {} {} gtri origin\n",
-               domain->gtri_origin[0],domain->gtri_origin[1],domain->gtri_origin[2]);
+    fmt::print(fp,"{} {} {} abc origin\n",
+               domain->boxlo[0],domain->boxlo[1],domain->boxhi[2]);
   }
 }
 

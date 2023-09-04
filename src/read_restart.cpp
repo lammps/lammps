@@ -783,6 +783,13 @@ void ReadRestart::header()
     } else if (flag == YZ) {
       domain->yz = read_double();
 
+    } else if (flag == TRICLINIC_GENERAL) {
+      domain->triclinic_general = read_int();
+    } else if (flag == ROTATE_G2R) {
+      read_double_vec(9,&domain->rotate_g2r[0][0]);
+    } else if (flag == ROTATE_R2G) {
+      read_double_vec(9,&domain->rotate_r2g[0][0]);
+
     } else if (flag == SPECIAL_LJ) {
       read_int();
       read_double_vec(3,&force->special_lj[1]);

@@ -111,8 +111,6 @@ void PairLJCut::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        printf("AAA tags %d %d ij %d %d nlocal %d dist %g\n",
-               atom->tag[i],atom->tag[j],i,j,atom->nlocal,sqrt(rsq));
         r2inv = 1.0 / rsq;
         r6inv = r2inv * r2inv * r2inv;
         forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);

@@ -290,6 +290,29 @@ void Domain::set_global_box()
     boxhi_bound[1] = MAX(boxhi[1],boxhi[1]+yz);
     boxhi_bound[2] = boxhi[2];
   }
+
+  // update general triclinic box if defined
+  // reset ABC edge vectors from restricted triclinic box
+  // boxlo = lower left corner of general triclinic box
+  
+  if (triclinic_general) {
+    double aprime[3],bprime[3],cprime[3];
+
+    aprime[0] = boxhi[0] - boxlo[0];
+    aprime[1] = aprime[2] = 0.0;
+    bprime[0] = xy;
+    bprime[1] = boxhi[1] - boxlo[1];
+    bprime[2] = 0.0;
+    cprime[0] = xz;
+    cprime[1] = yz;
+    cprime[2] = boxhi[2] - boxlo[2];
+
+    // transform restricted A'B'C' to general triclinic A,B,C
+    
+    MathExtra::matvec(rotate_r2g,aprime,avec);
+    MathExtra::matvec(rotate_r2g,bprime,bvec);
+    MathExtra::matvec(rotate_r2g,cprime,cvec);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -527,8 +550,8 @@ void Domain::reset_box()
    create rotation matrices for general <--> restricted transformations
 ------------------------------------------------------------------------- */
 
-void Domain::setup_general_triclinic(double *avec_caller, double *bvec_caller,
-                                     double *cvec_caller, double *origin_caller)
+void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
+                                      double *cvec_caller, double *origin_caller)
 {
   if (triclinic || triclinic_general)
     error->all(FLERR,"General triclinic box edge vectors are already set");
@@ -547,9 +570,9 @@ void Domain::setup_general_triclinic(double *avec_caller, double *bvec_caller,
   cvec[1] = cvec_caller[1];
   cvec[2] = cvec_caller[2];
 
-  gtri_origin[0] = origin_caller[0];
-  gtri_origin[1] = origin_caller[1];
-  gtri_origin[2] = origin_caller[2];
+  boxlo[0] = origin_caller[0];
+  boxlo[1] = origin_caller[1];
+  boxlo[2] = origin_caller[2];
 
   // error check on cvec for 2d systems
 
@@ -623,19 +646,15 @@ void Domain::setup_general_triclinic(double *avec_caller, double *bvec_caller,
   }
   
   MathExtra::transpose3(rotate_g2r,rotate_r2g);
-  
-  // A',B',C' = transformation of A,B,C to restricted triclinic
-  
+
+  // transform general ABC to restricted triclinic A'B'C'
+
   double aprime[3],bprime[3],cprime[3];
   MathExtra::matvec(rotate_g2r,avec,aprime);
   MathExtra::matvec(rotate_g2r,bvec,bprime);
   MathExtra::matvec(rotate_g2r,cvec,cprime);
 
   // set restricted triclinic boxlo, boxhi, and tilt factors
-
-  boxlo[0] = gtri_origin[0];
-  boxlo[1] = gtri_origin[1];
-  boxlo[2] = gtri_origin[2];
 
   boxhi[0] = boxlo[0] + aprime[0];
   boxhi[1] = boxlo[1] + bprime[1];
@@ -667,28 +686,72 @@ void Domain::setup_general_triclinic(double *avec_caller, double *bvec_caller,
    transform atom coords from general triclinic to restricted triclinic
 ------------------------------------------------------------------------- */
 
-void Domain::general_to_restricted(double *x)
+void Domain::general_to_restricted_coords(double *x)
 {
-  double xnew[3];
+  double xshift[3],xnew[3];
   
-  MathExtra::matvec(rotate_g2r,x,xnew);
-  x[0] = xnew[0] + gtri_origin[0];
-  x[1] = xnew[1] + gtri_origin[1];
-  x[2] = xnew[2] + gtri_origin[2];
+  xshift[0] = x[0] - boxlo[0];
+  xshift[1] = x[1] - boxlo[1];
+  xshift[2] = x[2] - boxlo[2];
+  MathExtra::matvec(rotate_g2r,xshift,xnew);
+  x[0] = xnew[0] + boxlo[0];
+  x[1] = xnew[1] + boxlo[1];
+  x[2] = xnew[2] + boxlo[2];
 }
 
 /* ----------------------------------------------------------------------
    transform atom coords from restricted triclinic to general triclinic
 ------------------------------------------------------------------------- */
 
-void Domain::restricted_to_general(double *x)
+void Domain::restricted_to_general_coords(double *x)
 {
   double xshift[3],xnew[3];
   
-  xshift[0] = x[0] - gtri_origin[0];
-  xshift[1] = x[1] - gtri_origin[1];
-  xshift[2] = x[2] - gtri_origin[2];
+  xshift[0] = x[0] - boxlo[0];
+  xshift[1] = x[1] - boxlo[1];
+  xshift[2] = x[2] - boxlo[2];
   MathExtra::matvec(rotate_r2g,xshift,xnew);
+  x[0] = xnew[0] + boxlo[0];
+  x[1] = xnew[1] + boxlo[1];
+  x[2] = xnew[2] + boxlo[2];
+}
+
+void Domain::restricted_to_general_coords(double *x, double *xnew)
+{
+  double xshift[3];
+  
+  xshift[0] = x[0] - boxlo[0];
+  xshift[1] = x[1] - boxlo[1];
+  xshift[2] = x[2] - boxlo[2];
+  MathExtra::matvec(rotate_r2g,xshift,xnew);
+  xnew[0] += boxlo[0];
+  xnew[1] += boxlo[1];
+  xnew[2] += boxlo[2];
+}
+
+/* ----------------------------------------------------------------------
+   transform atom vector from general triclinic to restricted triclinic
+------------------------------------------------------------------------- */
+
+void Domain::general_to_restricted_vector(double *x)
+{
+  double xnew[3];
+  
+  MathExtra::matvec(rotate_g2r,x,xnew);
+  x[0] = xnew[0];
+  x[1] = xnew[1];
+  x[2] = xnew[2];
+}
+
+/* ----------------------------------------------------------------------
+   transform atom vector from restricted triclinic to general triclinic
+------------------------------------------------------------------------- */
+
+void Domain::restricted_to_general_vector(double *x)
+{
+  double xnew[3];
+  
+  MathExtra::matvec(rotate_r2g,x,xnew);
   x[0] = xnew[0];
   x[1] = xnew[1];
   x[2] = xnew[2];

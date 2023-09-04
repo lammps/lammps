@@ -1181,7 +1181,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
       // convert atom coords from general triclinic to restricted triclinic
       
-      if (triclinic_general) domain->general_to_restricted(xdata);
+      if (triclinic_general) domain->general_to_restricted_coords(xdata);
 
       // apply shift if requested by read_data command
       

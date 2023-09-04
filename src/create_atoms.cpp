@@ -1236,31 +1236,31 @@ void CreateAtoms::add_lattice()
     double point[3];
 
     point[0] = bboxlo[0]; point[1] = bboxlo[1]; point[2] = bboxlo[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
     point[0] = bboxhi[0]; point[1] = bboxlo[1]; point[2] = bboxlo[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
 
     point[0] = bboxlo[0]; point[1] = bboxhi[1]; point[2] = bboxlo[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
     point[0] = bboxhi[0]; point[1] = bboxhi[1]; point[2] = bboxlo[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
 
     point[0] = bboxlo[0]; point[1] = bboxlo[1]; point[2] = bboxhi[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
     point[0] = bboxhi[0]; point[1] = bboxlo[1]; point[2] = bboxhi[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
 
     point[0] = bboxlo[0]; point[1] = bboxhi[1]; point[2] = bboxhi[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
     point[0] = bboxhi[0]; point[1] = bboxhi[1]; point[2] = bboxhi[2];
-    domain->restricted_to_general(point);
+    domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
   }
   
@@ -1373,7 +1373,7 @@ void CreateAtoms::loop_lattice(int action)
 
           // convert from general to restricted triclinic coords
 
-          if (triclinic_general) domain->general_to_restricted(x);
+          if (triclinic_general) domain->general_to_restricted_coords(x);
           
           // if a region was specified, test if atom is in it
 

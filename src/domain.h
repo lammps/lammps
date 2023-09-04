@@ -89,9 +89,9 @@ class Domain : protected Pointers {
   double h_rate[6], h_ratelo[3];    // rate of box size/shape change
 
   // general triclinic box
-
+  // boxlo = lower left corner
+  
   double avec[3], bvec[3], cvec[3];  // ABC edge vectors of general triclinic box
-  double gtri_origin[3];             // origin of general triclinic box
   double rotate_g2r[3][3];           // rotation matrix from general --> restricted tri
   double rotate_r2g[3][3];           // rotation matrix from restricted --> general tri
 
@@ -141,10 +141,13 @@ class Domain : protected Pointers {
   void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);
 
-  void setup_general_triclinic(double *, double *, double *, double *);
-  void general_to_restricted(double *);
-  void restricted_to_general(double *);
-  
+  void define_general_triclinic(double *, double *, double *, double *);
+  void general_to_restricted_coords(double *); 
+  void restricted_to_general_coords(double *);
+  void restricted_to_general_coords(double *, double *);
+  void general_to_restricted_vector(double *); 
+  void restricted_to_general_vector(double *);
+ 
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(Region *);

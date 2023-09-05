@@ -636,6 +636,7 @@ void LammpsGui::open_file(const QString &fileName)
         slideshow = nullptr;
     }
     update_variables();
+    lammps.close();
 }
 
 void LammpsGui::write_file(const QString &fileName)

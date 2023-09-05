@@ -342,6 +342,10 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
 #define ADD_STYLES(keyword, Type)                                                              \
     style_list.clear();                                                                        \
+    if ((std::string(#keyword) == "pair") || (std::string(#keyword) == "bond") ||              \
+        (std::string(#keyword) == "angle") || (std::string(#keyword) == "dihedral") ||         \
+        (std::string(#keyword) == "improper") || (std::string(#keyword) == "kspace"))          \
+        style_list << QString("none");                                                         \
     ncmds = lammps.style_count(#keyword);                                                      \
     for (int i = 0; i < ncmds; ++i) {                                                          \
         if (lammps.style_name(#keyword, i, buf, BUFLEN)) {                                     \

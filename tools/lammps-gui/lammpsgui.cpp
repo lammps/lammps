@@ -1083,7 +1083,7 @@ void LammpsGui::render_image()
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
     if (!lammps.is_running()) {
         start_lammps();
-        if (!lammps.extract_setting("box_exists")) {
+        if (!lammps.extract_setting("box_exist")) {
             QMessageBox::warning(this, "ImageViewer Error",
                                  "Cannot create snapshot image without a system box");
             return;

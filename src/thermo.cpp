@@ -34,6 +34,7 @@
 #include "kspace.h"
 #include "lattice.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -51,6 +52,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
 // CUSTOMIZATION: add a new keyword by adding it to this list:
 
@@ -111,6 +113,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
+  triclinic_general = 0;
   ntimestep = -1;
 
   // set style and corresponding lineflag
@@ -569,6 +572,13 @@ void Thermo::modify_params(int narg, char **arg)
 
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"triclinic/general") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR,"Illegal thermo_modify command");
+      triclinic_general = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (triclinic_general && !domain->triclinic_general)
+        error->all(FLERR,"Thermo_modify triclinic/general invalid b/c simulation box is not");
+      iarg += 2;
+
     } else if (strcmp(arg[iarg], "lost") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify lost", error);
       if (strcmp(arg[iarg + 1], "ignore") == 0)
@@ -947,21 +957,33 @@ void Thermo::parse_fields(const std::string &str)
       addfield("Impros", &Thermo::compute_impropers, BIGINT);
 
     } else if (word == "pxx") {
-      addfield("Pxx", &Thermo::compute_pxx, FLOAT);
+      if (triclinic_general)
+        addfield("Pxx", &Thermo::compute_pxx_triclinic_general, FLOAT);
+      else addfield("Pxx", &Thermo::compute_pxx, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pyy") {
-      addfield("Pyy", &Thermo::compute_pyy, FLOAT);
+      if (triclinic_general)
+        addfield("Pyy", &Thermo::compute_pyy_triclinic_general, FLOAT);
+      else addfield("Pyy", &Thermo::compute_pyy, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pzz") {
-      addfield("Pzz", &Thermo::compute_pzz, FLOAT);
+      if (triclinic_general)
+        addfield("Pzz", &Thermo::compute_pzz_triclinic_general, FLOAT);
+      else addfield("Pzz", &Thermo::compute_pzz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pxy") {
-      addfield("Pxy", &Thermo::compute_pxy, FLOAT);
+      if (triclinic_general)
+        addfield("Pxy", &Thermo::compute_pxy_triclinic_general, FLOAT);
+      else addfield("Pxy", &Thermo::compute_pxy, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
-    } else if (word == "pxz") {
-      addfield("Pxz", &Thermo::compute_pxz, FLOAT);
+    } else if (word == "pxz") { 
+      if (triclinic_general)
+        addfield("Pxz", &Thermo::compute_pxz_triclinic_general, FLOAT);
+      else addfield("Pxz", &Thermo::compute_pxz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pyz") {
+      if (triclinic_general)
+        addfield("Pyz", &Thermo::compute_pyz_triclinic_general, FLOAT);
       addfield("Pyz", &Thermo::compute_pyz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
 
@@ -1195,6 +1217,17 @@ void Thermo::check_press_vector(const std::string &keyword)
   if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;
+
+    // store 3x3 matrix form of symmetric pressure tensor for use in triclinic_general()
+    
+    if (triclinic_general) {
+      press_tensor[0][0] = pressure->vector[0];
+      press_tensor[1][1] = pressure->vector[1];
+      press_tensor[2][2] = pressure->vector[2];
+      press_tensor[0][1] = press_tensor[1][0] = pressure->vector[3];
+      press_tensor[0][2] = press_tensor[2][0] = pressure->vector[4];
+      press_tensor[1][2] = press_tensor[2][1] = pressure->vector[5];
+    }
   }
 }
 
@@ -1412,27 +1445,33 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   else if (word == "pxx") {
     check_press_vector(word);
-    compute_pxx();
+    if (triclinic_general) compute_pxx_triclinic_general();
+    else compute_pxx();
 
   } else if (word == "pyy") {
     check_press_vector(word);
-    compute_pyy();
+    if (triclinic_general) compute_pyy_triclinic_general();
+    else compute_pyy();
 
   } else if (word == "pzz") {
     check_press_vector(word);
-    compute_pzz();
+    if (triclinic_general) compute_pzz_triclinic_general();
+    else compute_pzz();
 
   } else if (word == "pxy") {
     check_press_vector(word);
-    compute_pxy();
+    if (triclinic_general) compute_pxy_triclinic_general();
+    else compute_pxy();
 
   } else if (word == "pxz") {
     check_press_vector(word);
-    compute_pxz();
+    if (triclinic_general) compute_pxz_triclinic_general();
+    else compute_pxz();
 
   } else if (word == "pyz") {
     check_press_vector(word);
-    compute_pyz();
+    if (triclinic_general) compute_pyz_triclinic_general();
+    else compute_pyz();
   }
 
   else if (word == "fmax")
@@ -2080,6 +2119,66 @@ void Thermo::compute_pxz()
 void Thermo::compute_pyz()
 {
   dvalue = pressure->vector[5];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_pxx_triclinic_general()
+{
+  double middle[3][3],final[3][3];
+  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
+  MathExtra::times3(middle,domain->rotate_g2r,final);
+  dvalue = final[0][0];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_pyy_triclinic_general()
+{
+  double middle[3][3],final[3][3];
+  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
+  MathExtra::times3(middle,domain->rotate_g2r,final);
+  dvalue = final[1][1];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_pzz_triclinic_general()
+{
+  double middle[3][3],final[3][3];
+  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
+  MathExtra::times3(middle,domain->rotate_g2r,final);
+  dvalue = final[2][2];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_pxy_triclinic_general()
+{
+  double middle[3][3],final[3][3];
+  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
+  MathExtra::times3(middle,domain->rotate_g2r,final);
+  dvalue = final[0][1];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_pxz_triclinic_general()
+{
+  double middle[3][3],final[3][3];
+  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
+  MathExtra::times3(middle,domain->rotate_g2r,final);
+  dvalue = final[0][2];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_pyz_triclinic_general()
+{
+  double middle[3][3],final[3][3];
+  MathExtra::times3(domain->rotate_r2g,press_tensor,middle);
+  MathExtra::times3(middle,domain->rotate_g2r,final);
+  dvalue = final[1][2];
 }
 
 /* ---------------------------------------------------------------------- */

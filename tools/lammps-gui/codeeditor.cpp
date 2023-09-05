@@ -129,7 +129,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     improper_comp(new QCompleter(this)), kspace_comp(new QCompleter(this)),
     region_comp(new QCompleter(this)), integrate_comp(new QCompleter(this)),
     minimize_comp(new QCompleter(this)), variable_comp(new QCompleter(this)),
-    highlight(NO_HIGHLIGHT)
+    units_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
@@ -159,6 +159,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     COMPLETER_SETUP(integrate_comp);
     COMPLETER_SETUP(minimize_comp);
     COMPLETER_SETUP(variable_comp);
+    COMPLETER_SETUP(units_comp);
 #undef COMPLETER_SETUP
 
     // initialize help system
@@ -221,6 +222,7 @@ CodeEditor::~CodeEditor()
     delete integrate_comp;
     delete minimize_comp;
     delete variable_comp;
+    delete units_comp;
 }
 
 int CodeEditor::lineNumberAreaWidth()
@@ -351,6 +353,7 @@ COMPLETER_INIT_FUNC(region, Region)
 COMPLETER_INIT_FUNC(integrate, Integrate)
 COMPLETER_INIT_FUNC(minimize, Minimize)
 COMPLETER_INIT_FUNC(variable, Variable)
+COMPLETER_INIT_FUNC(units, Units)
 
 #undef COMPLETER_INIT_FUNC
 
@@ -625,6 +628,8 @@ void CodeEditor::runCompletion()
             current_comp = integrate_comp;
         else if (words[0] == "minimize_style")
             current_comp = minimize_comp;
+        else if (words[0] == "units")
+            current_comp = units_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[1].c_str());

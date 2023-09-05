@@ -55,6 +55,7 @@ public:
     void setIntegrateList(const QStringList &words);
     void setMinimizeList(const QStringList &words);
     void setVariableList(const QStringList &words);
+    void setUnitsList(const QStringList &words);
 
     static constexpr int NO_HIGHLIGHT = 1 << 30;
 
@@ -81,7 +82,7 @@ private:
     QShortcut *help_action;
     QCompleter *current_comp, *command_comp, *fix_comp, *compute_comp, *dump_comp, *atom_comp,
         *pair_comp, *bond_comp, *angle_comp, *dihedral_comp, *improper_comp, *kspace_comp,
-        *region_comp, *integrate_comp, *minimize_comp, *variable_comp;
+        *region_comp, *integrate_comp, *minimize_comp, *variable_comp, *units_comp;
 
     int highlight;
     bool reformat_on_return;

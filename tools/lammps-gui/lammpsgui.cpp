@@ -333,6 +333,13 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     style_list.sort();
     ui->textEdit->setVariableList(style_list);
 
+    style_list.clear();
+    const char *unitstyles[] = {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
+    for (const auto unit : unitstyles)
+        style_list << unit;
+    style_list.sort();
+    ui->textEdit->setUnitsList(style_list);
+
 #define ADD_STYLES(keyword, Type)                                                              \
     style_list.clear();                                                                        \
     ncmds = lammps.style_count(#keyword);                                                      \

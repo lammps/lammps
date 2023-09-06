@@ -37,7 +37,7 @@ class DumpCustom : public Dump {
   int nevery;        // dump frequency for output
   char *idregion;    // region ID, nullptr if no region
 
-  int triclinic_general;              // set by dump_modify
+  int triclinic_general;              // 1 if output box,x,v,f for general triclinic
   
   int nthresh;                        // # of defined thresholds
   int nthreshlast;                    // # of defined thresholds with value = LAST

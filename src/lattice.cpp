@@ -238,7 +238,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (dimension == 2) {
     if (origin[2] != 0.0)
       error->all(FLERR,
-                 "Lattice origin not compatible with 2d simulation");
+                 "Lattice origin z coord must be 0.0 for 2d simulation");
     if (a1[2] != 0.0 || a2[2] != 0.0 || a3[0] != 0.0 || a3[1] != 0.0)
       error->all(FLERR,
                  "Lattice a1/a2/a3 vectors are not compatible with 2d simulation");
@@ -246,6 +246,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         orientz[0] != 0 || orientz[1] != 0)
       error->all(FLERR,
                  "Lattice orient vectors are not compatible with 2d simulation");
+    for (int i = 0; i < nbasis; i++)
+      if (basis[i][2] != 0.0)
+        error->all(FLERR,"Lattice basis atom z coords must be zero for 2d simulation");
   }
 
   if (spaceflag) {

@@ -54,6 +54,8 @@ static constexpr double INV_P_CONST = 0.7548777;
 static constexpr double INV_SQ_P_CONST = 0.5698403;
 static constexpr int DEFAULT_MAXTRY = 1000;
 
+#define EPS_ZCOORD 1.0e-12
+
 enum { BOX, REGION, SINGLE, RANDOM, MESH };
 enum { ATOM, MOLECULE };
 enum { COUNT, INSERT, INSERT_SELECTED };
@@ -1163,7 +1165,7 @@ void CreateAtoms::add_lattice()
 {
   // add atoms on general triclinic lattice if Domain has setting for it
   // verify lattice is valid for general triclinic
-  
+
   int triclinic_general = domain->triclinic_general;
   
   if (triclinic_general) {
@@ -1272,7 +1274,8 @@ void CreateAtoms::add_lattice()
   // decrement lo, increment hi to avoid round-off issues in lattice->bbox(),
   //   which can lead to missing atoms in rare cases
   // extra decrement of lo if min < 0, since static_cast(-1.5) = -1
-
+  // for 2d simulation, klo = khi = 0 so just one plane of atoms
+  
   ilo = static_cast<int>(xmin) - 1;
   jlo = static_cast<int>(ymin) - 1;
   klo = static_cast<int>(zmin) - 1;
@@ -1284,7 +1287,7 @@ void CreateAtoms::add_lattice()
   if (ymin < 0.0) jlo--;
   if (zmin < 0.0) klo--;
 
-  printf("LOOP LATTICE bounds: %d %d: %d %d: %d %d\n",ilo,ihi,jlo,jhi,klo,khi);
+  if (domain->dimension == 2) klo = khi = 0;
   
   // count lattice sites on each proc
 
@@ -1351,6 +1354,7 @@ void CreateAtoms::loop_lattice(int action)
 {
   int i, j, k, m;
 
+  int dimension = domain->dimension;
   int triclinic_general = domain->triclinic_general;
   const double *const *const basis = domain->lattice->basis;
 
@@ -1372,9 +1376,18 @@ void CreateAtoms::loop_lattice(int action)
           domain->lattice->lattice2box(x[0], x[1], x[2]);
 
           // convert from general to restricted triclinic coords
+          // for 2d simulation, check if z coord is within EPS_ZCOORD of zero
+          //   then set to zero
 
-          if (triclinic_general) domain->general_to_restricted_coords(x);
-          
+          if (triclinic_general) {
+            domain->general_to_restricted_coords(x);
+            if (dimension == 2) {
+              if (fabs(x[2]) > EPS_ZCOORD)
+                error->all(FLERR,"Create_atoms atom z coord is non-zero for 2d simulation");
+              x[2] = 0.0;
+            }
+          }          
+
           // if a region was specified, test if atom is in it
 
           if (style == REGION)

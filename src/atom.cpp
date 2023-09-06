@@ -49,6 +49,7 @@ using namespace MathConst;
 
 #define DELTA 1
 #define EPSILON 1.0e-6
+#define EPS_ZCOORD 1.0e-12
 #define MAXLINE 256
 
 /* ----------------------------------------------------------------------
@@ -1076,6 +1077,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
   // ensures all data atoms will be owned even with round-off
 
+  int dimension = domain->dimension;
   int triclinic = domain->triclinic;
 
   double epsilon[3];
@@ -1165,7 +1167,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         imx = utils::inumeric(FLERR,values[iptr],false,lmp);
         imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
         imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
-        if ((domain->dimension == 2) && (imz != 0))
+        if ((dimension == 2) && (imz != 0))
           error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
         if ((!domain->xperiodic) && (imx != 0)) { reset_image_flag[0] = true; imx = 0; }
         if ((!domain->yperiodic) && (imy != 0)) { reset_image_flag[1] = true; imy = 0; }
@@ -1179,6 +1181,15 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
       xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
 
+      // for 2d simulation, check if z coord is within EPS_ZCOORD of zero
+      //   then set to zero
+
+      if (dimension == 2) {
+        if (fabs(xdata[2]) > EPS_ZCOORD)
+          error->all(FLERR,"Read_data atom z coord is non-zero for 2d simulation");
+        xdata[2] = 0.0;
+      }
+      
       // convert atom coords from general triclinic to restricted triclinic
       
       if (triclinic_general) domain->general_to_restricted_coords(xdata);

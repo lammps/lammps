@@ -63,6 +63,7 @@ void CreateBox::command(int narg, char **arg)
   int iarg = 2;
   
   if (region) {
+    
     // region is not prism
     // setup orthogonal box
     // set simulation domain from region extent
@@ -94,6 +95,11 @@ void CreateBox::command(int narg, char **arg)
       domain->yz = prism->yz;
     }
 
+    if (domain->dimension == 2) {
+      if (domain->boxlo[2] >= 0.0 || domain->boxhi[2] <= 0.0)
+        error->all(FLERR,"Create_box region zlo/zhi for 2d simulation must straddle 0.0");
+    }
+
   // setup general triclinic box (with no region)
   // read next box extent arguments to create ABC edge vectors + origin
   // define_general_triclinic() converts
@@ -114,7 +120,12 @@ void CreateBox::command(int narg, char **arg)
     double clo = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
     double chi = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
     iarg += 6;
-
+    
+    if (domain->dimension == 2) {
+      if (clo >= 0.0 || clo <= 0.0)
+        error->all(FLERR,"Create_box region clo/chi for 2d simulation must straddle 0.0");
+    }
+    
     // use lattice2box() to generate origin and ABC vectors
     // origin = abc lo
     // ABC vectors = hi in one dim - origin

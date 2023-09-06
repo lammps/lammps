@@ -491,11 +491,14 @@ void ReadData::command(int narg, char **arg)
 
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
-  avec[0] = avec[1] = avec[2] = 0.0;
-  bvec[0] = bvec[1] = bvec[2] = 0.0;
-  cvec[0] = cvec[1] = cvec[2] = 0.0;
+  xy = xz = yz = 0.0;
+  
   avec[0] = bvec[1] = cvec[2] = 1.0;
+  avec[1] = avec[2] = 0.0;
+  bvec[0] = bvec[2] = 0.0;
+  cvec[0] = cvec[1] = 0.0;
   abc_origin[0] = abc_origin[1] = abc_origin[2] = 0.0;
+  if (domain->dimension == 2) abc_origin[2] = -0.5;
   
   keyword[0] = '\0';
 
@@ -525,6 +528,19 @@ void ReadData::command(int narg, char **arg)
       if (xloxhi_flag || yloyhi_flag || zlozhi_flag || tilt_flag)
         error->all(FLERR,"Read_data header cannot specify simulation box lo/hi/tilt and ABC vectors");
       triclinic = triclinic_general = 1;
+    }
+
+    // check if simulation box specified correctly for 2d
+
+    if (domain->dimension == 2) {
+      if (triclinic_general == 0) {
+        if (boxlo[2] >= 0.0 || boxhi[2] <= 0.0)
+          error->all(FLERR,"Read_data zlo/zhi for 2d simulation must straddle 0.0");
+      } else if (triclinic_general == 1) {
+        if (cvec[0] != 0.0 || cvec[1] != 0.0 || cvec[2] != 1.0 || abc_origin[2] != -0.5)
+          error->all(FLERR,"Read_data cvec and/or abc_origin is invalid for "
+                     "2d simulation with general triclinic box");
+      }
     }
     
     // problem setup using info from header

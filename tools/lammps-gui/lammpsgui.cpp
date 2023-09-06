@@ -1100,6 +1100,8 @@ void LammpsGui::render_image()
                 ui->textEdit->setTextCursor(saved);
                 lammps.command("clear");
                 lammps.commands_string(selection.toStdString().c_str());
+                // clear any possible error status
+                lammps.get_last_error_message(nullptr, 0);
             }
             // still no system box. bail out with a suitable message
             if (!lammps.extract_setting("box_exist")) {

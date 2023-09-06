@@ -6630,7 +6630,8 @@ This function can be used to retrieve the error message that was set
 in the event of an error inside of LAMMPS which resulted in a
 :ref:`C++ exception <exceptions>`.  A suitable buffer for a C-style
 string has to be provided and its length.  If the internally stored
-error message is longer, it will be truncated accordingly.  The return
+error message is longer, it will be truncated accordingly.  If the
+buffer is a NULL pointer, then nothing will be copied.  The return
 value of the function corresponds to the kind of error: a "1" indicates
 an error that occurred on all MPI ranks and is often recoverable, while
 a "2" indicates an abort that would happen only in a single MPI rank
@@ -6647,6 +6648,11 @@ the failing MPI ranks to send messages.
    instance, but instead would check the global error buffer of the
    library interface.
 
+   .. versionchanged: TBD
+
+   The *buffer* pointer may be ``NULL``.  This will clear any error
+   status without copying the error message.
+
 .. note::
 
    This function will do nothing when the LAMMPS library has been
@@ -6656,7 +6662,7 @@ the failing MPI ranks to send messages.
 \endverbatim
  *
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.
- * \param  buffer    string buffer to copy the error message to
+ * \param  buffer    string buffer to copy the error message to, may be NULL
  * \param  buf_size  size of the provided string buffer
  * \return           1 when all ranks had the error, 2 on a single rank error. */
 
@@ -6665,19 +6671,19 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size)
   if (handle) {
     LAMMPS *lmp = (LAMMPS *) handle;
     Error *error = lmp->error;
-    buffer[0] = buffer[buf_size-1] = '\0';
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
 
     if (!error->get_last_error().empty()) {
       int error_type = error->get_last_error_type();
-      strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
+      if (buffer) strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
       error->set_last_error("", ERROR_NONE);
       return error_type;
     }
   } else {
-    buffer[0] = buffer[buf_size-1] = '\0';
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
 
     if (!lammps_last_global_errormessage.empty()) {
-      strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
+      if (buffer) strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
       lammps_last_global_errormessage.clear();
       return 1;
     }

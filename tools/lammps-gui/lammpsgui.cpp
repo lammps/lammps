@@ -636,6 +636,10 @@ void LammpsGui::open_file(const QString &fileName)
         slideshow = nullptr;
     }
     update_variables();
+    if (imagewindow) {
+        delete imagewindow;
+        imagewindow = nullptr;
+    }
     lammps.close();
 }
 

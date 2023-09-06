@@ -1085,9 +1085,28 @@ void LammpsGui::render_image()
     if (!lammps.is_running()) {
         start_lammps();
         if (!lammps.extract_setting("box_exist")) {
-            QMessageBox::warning(this, "ImageViewer Error",
-                                 "Cannot create snapshot image without a system box");
-            return;
+            // there is no current system defined yet.
+            // so we select the input from the start to the first run or minimize command
+            // add a run 0 and thus create the state of the initial system without running.
+            // this will allow us to create a snapshot image.
+            auto saved = ui->textEdit->textCursor();
+            if (ui->textEdit->find(QRegularExpression(QStringLiteral("^\\s*(run|minimize)\\s+")))) {
+                auto cursor = ui->textEdit->textCursor();
+                cursor.movePosition(QTextCursor::PreviousBlock);
+                cursor.movePosition(QTextCursor::EndOfLine);
+                cursor.movePosition(QTextCursor::Start, QTextCursor::KeepAnchor);
+                auto selection = cursor.selectedText().replace(QChar(0x2029), '\n');
+                selection += "run 0 pre yes post no";
+                ui->textEdit->setTextCursor(saved);
+                lammps.command("clear");
+                lammps.commands_string(selection.toStdString().c_str());
+            }
+            // still no system box. bail out with a suitable message
+            if (!lammps.extract_setting("box_exist")) {
+                QMessageBox::warning(this, "ImageViewer Error",
+                                     "Cannot create snapshot image without a system box");
+                return;
+            }
         }
         // if configured, delete old image window before opening new one
         if (QSettings().value("imagereplace", false).toBool()) delete imagewindow;

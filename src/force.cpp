@@ -45,7 +45,11 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Force::Force(LAMMPS *lmp) : Pointers(lmp)
+Force::Force(LAMMPS *lmp) :
+    Pointers(lmp), pair(nullptr), pair_style(nullptr), pair_restart(nullptr), bond(nullptr),
+    bond_style(nullptr), angle(nullptr), angle_style(nullptr), dihedral(nullptr),
+    dihedral_style(nullptr), improper(nullptr), improper_style(nullptr), kspace(nullptr),
+    kspace_style(nullptr)
 {
   newton = newton_pair = newton_bond = 1;
 
@@ -346,7 +350,7 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
-      sflag = 1 + 2*lmp->pair_only_flag;
+      sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (bond_map->find(estyle) != bond_map->end()) {
         BondCreator &bond_creator = (*bond_map)[estyle];
@@ -414,7 +418,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
-      sflag = 1 + 2*lmp->pair_only_flag;
+      sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator &angle_creator = (*angle_map)[estyle];
@@ -482,7 +486,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
-      sflag = 1 + 2*lmp->pair_only_flag;
+      sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
         DihedralCreator &dihedral_creator = (*dihedral_map)[estyle];
@@ -550,7 +554,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
-      sflag = 1 + 2*lmp->pair_only_flag;
+      sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (improper_map->find(estyle) != improper_map->end()) {
         ImproperCreator &improper_creator = (*improper_map)[estyle];
@@ -618,7 +622,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
-      sflag = 1 + 2*lmp->pair_only_flag;
+      sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator &kspace_creator = (*kspace_map)[estyle];

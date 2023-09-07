@@ -7,12 +7,10 @@
 # --------------------- MPI Launch Command
 
 export MPI="mpirun"
-#export MPI="numactl -p 1 mpirun"    # -- Systems w/ MCDRAM in flat mode
 
 # ------------- Name and location of the LAMMPS binary
 
 export LMP_BIN=../../lmp_intel_cpu_intelmpi
-#export LMP_BIN=../../lmp_knl
 
 # ------------- Directory containing the LAMMPS installation
 
@@ -20,21 +18,18 @@ export LMP_ROOT=../../../
 
 # ------------- Number of physical cores (not HW threads)
 
-export LMP_CORES=36            # -- For Intel Xeon E5-2697v4 SKU
-#export LMP_CORES=68           # -- For Intel Xeon Phi x200 7250 SKU
+export LMP_CORES=36
+# Set automatically with lscpu
+export LMP_CORES=`lscpu | awk '$1=="Core(s)"{t=NF; cores=$t}$1=="Socket(s):"{t=NF; sockets=$t}END{print cores*sockets}'`
 
 # ------------- Number of HW threads to use in tests
 
-export LMP_THREAD_LIST="2"     # -- For 2 threads per core w/ HT enabled
-#export LMP_THREAD_LIST="2 4"   # -- For 2 threads per core w/ HT enabled
+export LMP_THREAD_LIST="1 2"   # -- Also test 2 threads per core w/ HT enabled
 
 # ------------- MPI Tuning Parameters
 
-#export I_MPI_SHM_LMT=shm      # -- Uncomment for Xeon Phi x200 series
-
-# ------------- Library locations for build
-
-#source /opt/intel/parallel_studio_xe_2017.2.050/psxevars.sh
+export I_MPI_FABRICS=shm
+export I_MPI_PIN_DOMAIN=core
 
 #########################################################################
 # End settings for your system
@@ -50,8 +45,6 @@ export DATE_STRING=`date +%s`
 export LOG_DIR=$LOG_DIR_HOST"_"$LOG_DIR_HEADER"_"$DATE_STRING
 mkdir $LOG_DIR
 
-export I_MPI_PIN_DOMAIN=core
-#export I_MPI_FABRICS=shm
 export KMP_BLOCKTIME=0
 
 echo -n "Creating restart file...."
@@ -73,6 +66,9 @@ do
       export LOGFILE=$LOG_DIR/$workload"_lrt".$LMP_CORES"c"$threads"t".log
       cmd="$MPI -np $LMP_CORES $LMP_BIN -in in.intel.$workload -log $LOGFILE $RLMP_ARGS";
       rthreads=$((threads-1))
+      if [ $rthreads -lt 1 ]; then
+          rthreads=1
+      fi
       export KMP_AFFINITY=none
       export OMP_NUM_THREADS=$rthreads
       echo "  $cmd" >> $LOG_DIR/commands.info
@@ -82,4 +78,5 @@ do
 done
 
 # Performance reported by LAMMPS (Timesteps/second ignoring warm-up run)
-grep Perf $LOG_DIR/*.log | awk 'BEGIN{n=1}n%2==0{print $0}{n++}' | sed 's/\/day//g' | sed 's/steps\/s/steps_s/g' | sed 's/hours\/ns//g' | sed 's/.*\///g' | sed 's/\.log:Performance://g' | awk '{c=NF-1; print $1,$c}'
+grep Perf $LOG_DIR/*.log | awk 'n%2==1{c=NF-3; print $1,$c}{n++}' | sed -e 's/.*\///g' -e 's/:.*://g'
+

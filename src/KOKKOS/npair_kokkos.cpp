@@ -240,22 +240,25 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
       // assumes newton off
 
       NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef LMP_KOKKOS_GPU
-      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-        int team_size = atoms_per_bin*factor;
-        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-        if (team_size <= team_size_max) {
-          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-          Kokkos::parallel_for(config, f);
-        } else { // fall back to flat method
-          f.sharedsize = 0;
-          Kokkos::parallel_for(nall, f);
-        }
-      } else
-        Kokkos::parallel_for(nall, f);
-#else
+
+// temporarily disable team policy for ghost due to known bug
+
+//#ifdef LMP_KOKKOS_GPU
+//      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
+//        int team_size = atoms_per_bin*factor;
+//        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+//        if (team_size <= team_size_max) {
+//          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+//          Kokkos::parallel_for(config, f);
+//        } else { // fall back to flat method
+//          f.sharedsize = 0;
+//          Kokkos::parallel_for(nall, f);
+//        }
+//      } else
+//        Kokkos::parallel_for(nall, f);
+//#else
       Kokkos::parallel_for(nall, f);
-#endif
+//#endif
     } else {
       if (SIZE) {
         NPairKokkosBuildFunctorSize<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);

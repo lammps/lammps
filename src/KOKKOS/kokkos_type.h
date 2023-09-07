@@ -28,11 +28,6 @@ constexpr int FULL = 1;
 constexpr int HALFTHREAD = 2;
 constexpr int HALF = 4;
 
-#if defined(KOKKOS_ENABLE_CXX11)
-#undef ISFINITE
-#define ISFINITE(x) std::isfinite(x)
-#endif
-
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define LMP_KOKKOS_GPU
 #endif
@@ -187,7 +182,7 @@ struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
 };
 #elif defined(KOKKOS_ENABLE_HIP)
 template<>
-struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
+struct ExecutionSpaceFromDevice<Kokkos::HIP> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
 #elif defined(KOKKOS_ENABLE_SYCL)
@@ -206,7 +201,7 @@ struct ExecutionSpaceFromDevice<Kokkos::Experimental::OpenMPTarget> {
 #if defined(KOKKOS_ENABLE_CUDA)
 typedef Kokkos::CudaHostPinnedSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_HIP)
-typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
+typedef Kokkos::HIPHostPinnedSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_SYCL)
 typedef Kokkos::Experimental::SYCLHostUSMSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -220,7 +215,7 @@ typedef LMPHostType LMPPinnedHostType;
 #if defined(KOKKOS_ENABLE_CUDA)
 typedef Kokkos::Cuda LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_HIP)
-typedef Kokkos::Experimental::HIP LMPDeviceSpace;
+typedef Kokkos::HIP LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_SYCL)
 typedef Kokkos::Experimental::SYCL LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
@@ -258,7 +253,7 @@ struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
 };
 #elif defined(KOKKOS_ENABLE_HIP)
 template<>
-struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
+struct AtomicDup<HALFTHREAD,Kokkos::HIP> {
   using value = Kokkos::Experimental::ScatterAtomic;
 };
 #elif defined(KOKKOS_ENABLE_SYCL)
@@ -586,18 +581,18 @@ struct dual_hash_type {
  }
 
   template<class DeviceType>
-  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
+  std::enable_if_t<(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
 
   template<class DeviceType>
-  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
-
-  template<class DeviceType>
-  KOKKOS_INLINE_FUNCTION
-  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const hash_type&> const_view() const {return d_view;}
+  std::enable_if_t<!(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
-  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const host_hash_type&> const_view() const {return h_view;}
+  std::enable_if_t<(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const hash_type&> const_view() const {return d_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<!(std::is_same_v<DeviceType,LMPDeviceType> || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const host_hash_type&> const_view() const {return h_view;}
 
   void modify_device()
   {
@@ -1310,9 +1305,13 @@ struct alignas(4 * sizeof(int)) reax_int4 {
 #define SNAP_KOKKOS_HOST_VECLEN 1
 
 #ifdef LMP_KOKKOS_GPU
-#define SNAP_KOKKOS_DEVICE_VECLEN 32
+  #if defined(KOKKOS_ENABLE_SYCL)
+    #define SNAP_KOKKOS_DEVICE_VECLEN 16
+  #else
+    #define SNAP_KOKKOS_DEVICE_VECLEN 32
+  #endif
 #else
-#define SNAP_KOKKOS_DEVICE_VECLEN 1
+  #define SNAP_KOKKOS_DEVICE_VECLEN 1
 #endif
 
 

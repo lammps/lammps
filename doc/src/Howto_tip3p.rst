@@ -128,11 +128,11 @@ TIP3P with rigid bonds.
 
     fix rigid all shake 0.001 10 10000 b 1 a 1
     minimize 0.0 0.0 1000 10000
-    run 0 post no
 
     reset_timestep 0
+    timestep 1.0
     velocity all create 300.0 5463576
-    fix integrate all nvt temp 300 300 1.0
+    fix integrate all nvt temp 300 300 100.0
 
     thermo_style custom step temp press etotal pe
 

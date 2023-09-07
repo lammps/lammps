@@ -292,12 +292,13 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
       else ito -= wlocal - nlocal;
 
       int e_ito = ito;
-      const int list_size = (e_ito + tid * 2 + 2) * maxnbors;
+      const bigint list_size = (bigint)(e_ito + tid * 2 + 2) *
+        (bigint)maxnbors;
 
       int pack_offset = maxnbors;
-      int ct = (ifrom + tid * 2) * maxnbors;
+      bigint ct = (bigint)(ifrom + tid * 2) * (bigint)maxnbors;
       int * _noalias neighptr = intel_list + ct;
-      const int obound = pack_offset + maxnbors * 2;
+      const bigint obound = pack_offset + maxnbors * 2;
 
       const int toffs = tid * ncache_stride;
       flt_t * _noalias const tx = ncachex + toffs;
@@ -558,7 +559,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
         if (ct + obound > list_size) {
           if (i < ito - 1) {
             *overflow = 1;
-            ct = (ifrom + tid * 2) * maxnbors;
+            ct = (bigint)(ifrom + tid * 2) * (bigint)maxnbors;
           }
         }
       }

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 
@@ -729,8 +701,8 @@ bool Test(int test) {
 #else
   int team_size = 33;
 #endif
-  if (team_size > int(ExecutionSpace::concurrency()))
-    team_size = int(ExecutionSpace::concurrency());
+  int const concurrency = ExecutionSpace().concurrency();
+  if (team_size > concurrency) team_size = concurrency;
   passed = passed && test_scalar<int, ExecutionSpace>(317, team_size, test);
   passed = passed &&
            test_scalar<long long int, ExecutionSpace>(317, team_size, test);
@@ -770,8 +742,9 @@ class TestTripleNestedReduce {
 
   void run_test(const size_type &nrows, const size_type &ncols,
                 size_type team_size, const size_type &vector_length) {
-    if (team_size > size_type(DeviceType::execution_space::concurrency()))
-      team_size = size_type(DeviceType::execution_space::concurrency());
+    auto const concurrency =
+        static_cast<size_type>(execution_space().concurrency());
+    if (team_size > concurrency) team_size = concurrency;
 
 #ifdef KOKKOS_ENABLE_HPX
     team_size = 1;
@@ -978,7 +951,7 @@ struct checkScan {
       }
     }
     for (int i = 0; i < host_outputs.extent_int(0); ++i)
-      ASSERT_EQ(host_outputs(i), expected(i));
+      ASSERT_EQ(host_outputs(i), expected(i)) << "differ at index " << i;
   }
 };
 }  // namespace VectorScanReducer
@@ -987,7 +960,10 @@ struct checkScan {
 TEST(TEST_CATEGORY, team_vector) {
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(0)));
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(1)));
+#if !(defined(KOKKOS_ENABLE_CUDA) && \
+      defined(KOKKOS_COMPILER_NVHPC))  // FIXME_NVHPC
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(2)));
+#endif
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(3)));
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(4)));
   ASSERT_TRUE((TestTeamVector::Test<TEST_EXECSPACE>(5)));
@@ -1033,6 +1009,13 @@ TEST(TEST_CATEGORY, parallel_scan_with_reducers) {
 
   constexpr int n              = 1000000;
   constexpr int n_vector_range = 100;
+
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>) {
+    GTEST_SKIP() << "All but max inclusive scan differ at index 101";
+  }
+#endif
 
   checkScan<TEST_EXECSPACE, ScanType::Exclusive, n, n_vector_range,
             Kokkos::Prod<T, TEST_EXECSPACE>>()

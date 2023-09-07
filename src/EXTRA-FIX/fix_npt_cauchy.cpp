@@ -2461,7 +2461,7 @@ void FixNPTCauchy::CauchyStat_init()
 
   if (!init_store)
     init_store = dynamic_cast<FixStoreGlobal *>(
-      modify->add_fix(std::string(id_store) + " all STORE global 1 6"));
+      modify->add_fix(std::string(id_store) + " all STORE/GLOBAL 1 6"));
 
   initRUN = 0;
   initPK = 1;

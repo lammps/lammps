@@ -442,7 +442,7 @@ void ComputeBasalAtom::select(int k, int n, double *arr)
   arr--;
   l = 1;
   ir = n;
-  for (;;) {
+  while (true) {
     if (ir <= l+1) {
       if (ir == l+1 && arr[ir] < arr[l]) {
         SWAP(arr[l],arr[ir])
@@ -463,7 +463,7 @@ void ComputeBasalAtom::select(int k, int n, double *arr)
       i = l+1;
       j = ir;
       a = arr[l+1];
-      for (;;) {
+      while (true) {
         do i++; while (arr[i] < a);
         do j--; while (arr[j] > a);
         if (j < i) break;
@@ -488,7 +488,7 @@ void ComputeBasalAtom::select2(int k, int n, double *arr, int *iarr)
   iarr--;
   l = 1;
   ir = n;
-  for (;;) {
+  while (true) {
     if (ir <= l+1) {
       if (ir == l+1 && arr[ir] < arr[l]) {
         SWAP(arr[l],arr[ir])
@@ -515,7 +515,7 @@ void ComputeBasalAtom::select2(int k, int n, double *arr, int *iarr)
       j = ir;
       a = arr[l+1];
       ia = iarr[l+1];
-      for (;;) {
+      while (true) {
         do i++; while (arr[i] < a);
         do j--; while (arr[j] > a);
         if (j < i) break;

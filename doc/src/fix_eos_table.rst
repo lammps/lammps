@@ -6,7 +6,7 @@ fix eos/table command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID eos/table style file N keyword
 

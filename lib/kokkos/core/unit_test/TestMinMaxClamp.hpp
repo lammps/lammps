@@ -1,52 +1,21 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-
-// FIXME C++17
-#define STATIC_ASSERT(cond) static_assert(cond, "");
 
 namespace Test {
 template <class T>
@@ -80,15 +49,15 @@ TEST(TEST_CATEGORY, max) {
   b = 1;
   EXPECT_EQ(Kokkos::max(a, b), 3);
 
-  STATIC_ASSERT(Kokkos::max(1, 2) == 2);
-  STATIC_ASSERT(Kokkos::max(1, 2, ::Test::Greater<int>{}) == 1);
+  static_assert(Kokkos::max(1, 2) == 2);
+  static_assert(Kokkos::max(1, 2, ::Test::Greater<int>{}) == 1);
 
   EXPECT_EQ(Kokkos::max({3.f, -1.f, 0.f}), 3.f);
 
-  STATIC_ASSERT(Kokkos::max({3, -1, 0}) == 3);
-  STATIC_ASSERT(Kokkos::max({3, -1, 0}, ::Test::Greater<int>{}) == -1);
+  static_assert(Kokkos::max({3, -1, 0}) == 3);
+  static_assert(Kokkos::max({3, -1, 0}, ::Test::Greater<int>{}) == -1);
 
-  STATIC_ASSERT(Kokkos::max({
+  static_assert(Kokkos::max({
                                 ::Test::PairIntCompareFirst{255, 0},
                                 ::Test::PairIntCompareFirst{255, 1},
                                 ::Test::PairIntCompareFirst{0, 2},
@@ -141,15 +110,15 @@ TEST(TEST_CATEGORY, min) {
   b = 2;
   EXPECT_EQ(Kokkos::min(a, b), 2);
 
-  STATIC_ASSERT(Kokkos::min(3.f, 2.f) == 2.f);
-  STATIC_ASSERT(Kokkos::min(3.f, 2.f, ::Test::Greater<int>{}) == 3.f);
+  static_assert(Kokkos::min(3.f, 2.f) == 2.f);
+  static_assert(Kokkos::min(3.f, 2.f, ::Test::Greater<int>{}) == 3.f);
 
   EXPECT_EQ(Kokkos::min({3.f, -1.f, 0.f}), -1.f);
 
-  STATIC_ASSERT(Kokkos::min({3, -1, 0}) == -1);
-  STATIC_ASSERT(Kokkos::min({3, -1, 0}, ::Test::Greater<int>{}) == 3);
+  static_assert(Kokkos::min({3, -1, 0}) == -1);
+  static_assert(Kokkos::min({3, -1, 0}, ::Test::Greater<int>{}) == 3);
 
-  STATIC_ASSERT(Kokkos::min({
+  static_assert(Kokkos::min({
                                 ::Test::PairIntCompareFirst{255, 0},
                                 ::Test::PairIntCompareFirst{255, 1},
                                 ::Test::PairIntCompareFirst{0, 2},
@@ -207,21 +176,21 @@ TEST(TEST_CATEGORY, minmax) {
 
 #ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC nvhpc can't deal with device side
                                // constexpr constructors so I removed the
-                               // constexpr in pair, which makes STATIC_ASSERT
+                               // constexpr in pair, which makes static_assert
                                // here fail
-  STATIC_ASSERT((Kokkos::pair<float, float>(Kokkos::minmax(3.f, 2.f)) ==
+  static_assert((Kokkos::pair<float, float>(Kokkos::minmax(3.f, 2.f)) ==
                  Kokkos::make_pair(2.f, 3.f)));
-  STATIC_ASSERT(
+  static_assert(
       (Kokkos::pair<float, float>(Kokkos::minmax(
            3.f, 2.f, ::Test::Greater<int>{})) == Kokkos::make_pair(3.f, 2.f)));
 
   EXPECT_EQ(Kokkos::minmax({3.f, -1.f, 0.f}), Kokkos::make_pair(-1.f, 3.f));
 
-  STATIC_ASSERT(Kokkos::minmax({3, -1, 0}) == Kokkos::make_pair(-1, 3));
-  STATIC_ASSERT(Kokkos::minmax({3, -1, 0}, ::Test::Greater<int>{}) ==
+  static_assert(Kokkos::minmax({3, -1, 0}) == Kokkos::make_pair(-1, 3));
+  static_assert(Kokkos::minmax({3, -1, 0}, ::Test::Greater<int>{}) ==
                 Kokkos::make_pair(3, -1));
 
-  STATIC_ASSERT(Kokkos::minmax({
+  static_assert(Kokkos::minmax({
                                    ::Test::PairIntCompareFirst{255, 0},
                                    ::Test::PairIntCompareFirst{255, 1},
                                    ::Test::PairIntCompareFirst{0, 2},
@@ -230,7 +199,7 @@ TEST(TEST_CATEGORY, minmax) {
                                    ::Test::PairIntCompareFirst{0, 5},
                                })
                     .first.second == 2);  // leftmost
-  STATIC_ASSERT(Kokkos::minmax({
+  static_assert(Kokkos::minmax({
                                    ::Test::PairIntCompareFirst{255, 0},
                                    ::Test::PairIntCompareFirst{255, 1},
                                    ::Test::PairIntCompareFirst{0, 2},

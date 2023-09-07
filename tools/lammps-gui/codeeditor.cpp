@@ -129,7 +129,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     improper_comp(new QCompleter(this)), kspace_comp(new QCompleter(this)),
     region_comp(new QCompleter(this)), integrate_comp(new QCompleter(this)),
     minimize_comp(new QCompleter(this)), variable_comp(new QCompleter(this)),
-    units_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
+    units_comp(new QCompleter(this)), group_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
@@ -160,6 +160,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     COMPLETER_SETUP(minimize_comp);
     COMPLETER_SETUP(variable_comp);
     COMPLETER_SETUP(units_comp);
+    COMPLETER_SETUP(group_comp);
 #undef COMPLETER_SETUP
 
     // initialize help system
@@ -223,6 +224,7 @@ CodeEditor::~CodeEditor()
     delete minimize_comp;
     delete variable_comp;
     delete units_comp;
+    delete group_comp;
 }
 
 int CodeEditor::lineNumberAreaWidth()
@@ -284,6 +286,8 @@ QString CodeEditor::reformatLine(const QString &line)
     int namesize = settings.value("name", "8").toInt();
     settings.endGroup();
 
+    bool rebuildGroupComp = false;
+
     if (words.size()) {
         // commented line. do nothing
         if (words[0][0] == '#') return line;
@@ -293,6 +297,8 @@ QString CodeEditor::reformatLine(const QString &line)
         if (words.size() > 1) {
             for (int i = words[0].size() + 1; i < cmdsize; ++i)
                 newtext += ' ';
+            // new/updated group command -> update completer
+            if (words[0] == "group") rebuildGroupComp = true;
         }
 
         // append remaining words with just a single blank added.
@@ -329,6 +335,7 @@ QString CodeEditor::reformatLine(const QString &line)
             }
         }
     }
+    if (rebuildGroupComp) setGroupList();
     return newtext;
 }
 
@@ -356,6 +363,28 @@ COMPLETER_INIT_FUNC(variable, Variable)
 COMPLETER_INIT_FUNC(units, Units)
 
 #undef COMPLETER_INIT_FUNC
+
+// build completer for groups by parsing through edit buffer
+
+void CodeEditor::setGroupList()
+{
+    QStringList groups;
+    QRegularExpression groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(groupcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if (words.size() > 1) groups << words[1];
+    }
+    groups.sort();
+    groups.prepend(QStringLiteral("all"));
+
+    setTextCursor(saved);
+    group_comp->setModel(new QStringListModel(groups, group_comp));
+}
 
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
@@ -630,6 +659,9 @@ void CodeEditor::runCompletion()
             current_comp = minimize_comp;
         else if (words[0] == "units")
             current_comp = units_comp;
+        else if ((words[0] == "change_box") || (words[0] == "displace_atoms") ||
+                 (words[0] == "velocity") || (words[0] == "write_dump"))
+            current_comp = group_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[1].c_str());
@@ -655,6 +687,12 @@ void CodeEditor::runCompletion()
             current_comp = region_comp;
         else if (words[0] == "variable")
             current_comp = variable_comp;
+        else if (words[0] == "fix")
+            current_comp = group_comp;
+        else if (words[0] == "compute")
+            current_comp = group_comp;
+        else if (words[0] == "dump")
+            current_comp = group_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[2].c_str());

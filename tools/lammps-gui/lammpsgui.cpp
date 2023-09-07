@@ -627,6 +627,7 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->document()->setPlainText(text);
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     ui->textEdit->document()->setModified(false);
+    ui->textEdit->setGroupList();
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
     status->setText("Ready.");

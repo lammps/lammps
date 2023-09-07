@@ -6,23 +6,23 @@ This document describes **LAMMPS GUI version 1.5**.
 -----
 
 Pre-compiled, ready-to-use LAMMPS GUI executables for Linux (Ubuntu
-20.04LTS and compatible or later), macOS (version 11 or later), and
-Windows (version 10 or later) :ref:`are available <lammps-gui-install>`.
-The source code of the LAMMPS GUI is included in the
-``tools/lammps-gui`` folder of the LAMMPS distribution and it can be
+20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
+later), and Windows (version 10 or later) :ref:`are available
+<lammps-gui-install>`.  The source code of the LAMMPS GUI is included in
+the ``tools/lammps-gui`` folder of the LAMMPS distribution and it can be
 compiled alongside LAMMPS.
 
 -----
 
 LAMMPS GUI is a simple graphical text editor that is linked to the
-:ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run LAMMPS
-directly using the contents of the editor's text buffer as input.  It
-can retrieve and display information from LAMMPS while it is running and
-is in several ways adapted specifically for editing LAMMPS input files.
+:ref:`LAMMPS library <lammps_c_api>` and thus can run LAMMPS directly
+using the contents of the editor's text buffer as input.  It can
+retrieve and display information from LAMMPS while it is running and is
+adapted in multiple ways specifically for editing LAMMPS input files.
 
-This is similar to what people traditionally would do to run LAMMPS
-using a command line window: using a regular text editor to edit the
-input, run LAMMPS on the input with selected command line flags, and
+LAMMPS GUI tries to be similar to what people traditionally would do to
+run LAMMPS using a command line window: editing inputs with a text
+editor, run LAMMPS on the input with selected command line flags, and
 then extract data from the created files and view them.  That procedure
 is quite effective and often required when running LAMMPS on
 high-performance computing facilities, or for people proficient in using
@@ -55,15 +55,15 @@ may look like the following:
    :align: center
    :scale: 50%
 
-There is the menu bar at the top, then the main editor buffer, and a
-status bar at the bottom.  The input file contents are shown with line
-numbers on the left and the input is colored according to the LAMMPS
-input file syntax.  The status bar shows the status of LAMMPS execution
-on the left (e.g. "Ready." when idle) and the current working directory
-on the right.  The name of the current file in the buffer is shown in
-the window title and the text `*modified*` is added in case the buffer
-has modifications that are not yet saved to a file.  The size of the
-main window will be stored when exiting and restored when starting
+There is the typical menu bar at the top, then the main editor buffer,
+and a status bar at the bottom.  The input file contents are shown with
+line numbers on the left and the input is colored according to the
+LAMMPS input file syntax.  The status bar shows the status of LAMMPS
+execution on the left (e.g. "Ready." when idle) and the current working
+directory on the right.  The name of the current file in the buffer is
+shown in the window title and the text `*modified*` is added in case the
+buffer has modifications that are not yet saved to a file.  The size of
+the main window will be stored when exiting and restored when starting
 again.
 
 Opening Files
@@ -86,7 +86,7 @@ the ``Run`` menu using the ``Run LAMMPS from Editor Buffer`` entry, by
 the hotkey `Ctrl-Enter` (`Command-Enter` on macOS), or by clicking on
 the green "Run" button in the status bar.
 
-LAMMPS runs in a separate thread, so the GUI stays responsive and is is
+LAMMPS runs in a separate thread, so the GUI stays responsive and is
 able to interact with the running calculation and access its data.  It
 is important to note, that running LAMMPS this way is using the contents
 of the input buffer for the run (via the
@@ -106,7 +106,7 @@ either saved to the file or undone before LAMMPS can be run from a file.
 
 While LAMMPS is running, the contents of the status bar change: on the
 left side there is a text indicating that LAMMPS is running, which will
-contain the selected number of threads, if thread-parallel acceleration
+also show the number of active threads, if thread-parallel acceleration
 was selected in the ``Preferences`` dialog.  On the right side, a
 progress bar is shown that displays the estimated progress on the
 current :doc:`run command <run>`.
@@ -219,7 +219,8 @@ displays the images created by LAMMPS as they are written.
 The various buttons at the bottom right of the window allow to either
 single step through the list of images or play an animation (as a
 continuous loop or once from first to last).  It is also possible to
-zoom in or zoom out if the displayed image.
+zoom in or zoom out if the displayed image.  The slide show window
+will be closed when a new file is loaded.
 
 Variable Info
 -------------
@@ -249,6 +250,11 @@ the `Ctrl-I` (`Command-I` on macOS) hotkey, or by clicking on the
 :doc:`write_dump image <dump_image>` command and read the resulting
 snapshot image with the current state of the system into an image viewer
 window.  This functionality is not available *during* an ongoing run.
+When LAMMPS is not yet initialized, LAMMPS GUI will try to identify the
+line with the first run or minimize command and execute all command up
+to that line from the input buffer and then just add a "run 0" command.
+This will initialize the system so images can be rendered.  If there
+was an error, the snapshot image viewer will not be available.
 
 When possible, LAMMPS GUI will try to detect which elements the atoms
 correspond to (via their mass) and then colorize them in the image

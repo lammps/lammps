@@ -6,7 +6,7 @@ fix store/force command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID store/force
 

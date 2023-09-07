@@ -36,6 +36,9 @@ class ComputeStressCartesian : public Compute {
  private:
   int nbins1, nbins2, dir1, dir2, dims;
   double bin_width1, bin_width2, invV;
+  bool compute_ke = true;
+  bool compute_pair = true;
+  bool compute_bond = true;
 
   // Number density, kinetic and configurational contribution to the pressure.
   double *dens, *pkxx, *pkyy, *pkzz, *pcxx, *pcyy, *pczz;

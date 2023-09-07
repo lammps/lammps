@@ -6,7 +6,7 @@ fix_modify AtC add_species command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> add_species <tag> <group|type> <ID>
 

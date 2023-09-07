@@ -6,7 +6,7 @@ label command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label ID
 

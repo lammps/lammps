@@ -69,15 +69,13 @@ SPC/E with rigid bonds.
    timestep 1.0
    fix rigid     all shake 0.0001 10 10000 b 1 a 1
    minimize 0.0 0.0 1000 10000
-   run 0 post no
-   reset_timestep 0
    velocity all create 300.0 5463576
-   fix integrate all nvt temp 300.0 300.0 1.0
+   fix integrate all nvt temp 300.0 300.0 100.0
 
    thermo_style custom step temp press etotal density pe ke
    thermo 1000
    run 20000 upto
-   write_data tip4p.data nocoeff
+   write_data spce.data nocoeff
 
 .. _spce_molecule:
 .. code-block::

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_SYCL_PARALLEL_RANGE_HPP_
 #define KOKKOS_SYCL_PARALLEL_RANGE_HPP_
@@ -56,7 +28,7 @@ struct FunctorWrapperRangePolicyParallelFor {
 
   void operator()(sycl::item<1> item) const {
     const typename Policy::index_type id = item.get_linear_id() + m_begin;
-    if constexpr (std::is_void<WorkTag>::value)
+    if constexpr (std::is_void_v<WorkTag>)
       m_functor_wrapper.get_functor()(id);
     else
       m_functor_wrapper.get_functor()(WorkTag(), id);
@@ -64,6 +36,27 @@ struct FunctorWrapperRangePolicyParallelFor {
 
   typename Policy::index_type m_begin;
   FunctorWrapper m_functor_wrapper;
+};
+
+// Same as above but for a user-provided workgroup size
+template <typename FunctorWrapper, typename Policy>
+struct FunctorWrapperRangePolicyParallelForCustom {
+  using WorkTag = typename Policy::work_tag;
+
+  void operator()(sycl::item<1> item) const {
+    const typename Policy::index_type id = item.get_linear_id();
+    if (id < m_work_size) {
+      const auto shifted_id = id + m_begin;
+      if constexpr (std::is_void_v<WorkTag>)
+        m_functor_wrapper.get_functor()(shifted_id);
+      else
+        m_functor_wrapper.get_functor()(WorkTag(), shifted_id);
+    }
+  }
+
+  typename Policy::index_type m_begin;
+  FunctorWrapper m_functor_wrapper;
+  typename Policy::index_type m_work_size;
 };
 }  // namespace Kokkos::Impl
 
@@ -74,9 +67,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
   using Policy = Kokkos::RangePolicy<Traits...>;
 
  private:
-  using Member       = typename Policy::member_type;
-  using WorkTag      = typename Policy::work_tag;
-  using LaunchBounds = typename Policy::launch_bounds;
+  using Member  = typename Policy::member_type;
+  using WorkTag = typename Policy::work_tag;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -90,12 +82,29 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
     sycl::queue& q                          = space.sycl_queue();
 
     auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
-      FunctorWrapperRangePolicyParallelFor<Functor, Policy> f{policy.begin(),
-                                                              functor};
-      sycl::range<1> range(policy.end() - policy.begin());
       cgh.depends_on(memcpy_event);
-      cgh.parallel_for<FunctorWrapperRangePolicyParallelFor<Functor, Policy>>(
-          range, f);
+      if (policy.chunk_size() <= 1) {
+        FunctorWrapperRangePolicyParallelFor<Functor, Policy> f{policy.begin(),
+                                                                functor};
+        sycl::range<1> range(policy.end() - policy.begin());
+        cgh.parallel_for<FunctorWrapperRangePolicyParallelFor<Functor, Policy>>(
+            range, f);
+      } else {
+        // Use the chunk size as workgroup size. We need to make sure that the
+        // range the kernel is launched with is a multiple of the workgroup
+        // size. Hence, we need to restrict the execution of the functor in the
+        // kernel to the actual range.
+        const auto actual_range = policy.end() - policy.begin();
+        const auto wgroup_size  = policy.chunk_size();
+        const auto launch_range =
+            (actual_range + wgroup_size - 1) / wgroup_size * wgroup_size;
+        FunctorWrapperRangePolicyParallelForCustom<Functor, Policy> f{
+            policy.begin(), functor, actual_range};
+        sycl::nd_range<1> range(launch_range, wgroup_size);
+        cgh.parallel_for<
+            FunctorWrapperRangePolicyParallelForCustom<Functor, Policy>>(range,
+                                                                         f);
+      }
     });
     q.ext_oneapi_submit_barrier(std::vector<sycl::event>{parallel_for_event});
 
@@ -140,7 +149,6 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
  private:
   using array_index_type = typename Policy::array_index_type;
   using index_type       = typename Policy::index_type;
-  using LaunchBounds     = typename Policy::launch_bounds;
   using WorkTag          = typename Policy::work_tag;
 
   const FunctorType m_functor;

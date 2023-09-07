@@ -6,7 +6,7 @@ prd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    prd N t_event n_dephase t_dephase t_correlate compute-ID seed keyword value ...
 

@@ -9,7 +9,7 @@ Accelerator Variants: *langevin/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID langevin Tstart Tstop damp seed keyword values ...
 

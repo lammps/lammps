@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_SYCL_PARALLEL_TEAM_HPP
 #define KOKKOS_SYCL_PARALLEL_TEAM_HPP
@@ -102,13 +74,13 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
   template <class FunctorType>
   inline int team_size_max(const FunctorType& f,
                            const ParallelReduceTag&) const {
-    return internal_team_size_max_reduce(f);
+    return internal_team_size_max_reduce<void>(f);
   }
 
   template <class FunctorType, class ReducerType>
   inline int team_size_max(const FunctorType& f, const ReducerType& /*r*/,
                            const ParallelReduceTag&) const {
-    return internal_team_size_max_reduce(f);
+    return internal_team_size_max_reduce<typename ReducerType::value_type>(f);
   }
 
   template <typename FunctorType>
@@ -119,13 +91,14 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
   template <typename FunctorType>
   inline int team_size_recommended(FunctorType const& f,
                                    ParallelReduceTag const&) const {
-    return internal_team_size_recommended_reduce(f);
+    return internal_team_size_recommended_reduce<void>(f);
   }
 
   template <class FunctorType, class ReducerType>
   int team_size_recommended(FunctorType const& f, ReducerType const&,
                             ParallelReduceTag const&) const {
-    return internal_team_size_recommended_reduce(f);
+    return internal_team_size_recommended_reduce<
+        typename ReducerType::value_type>(f);
   }
   inline bool impl_auto_vector_length() const { return m_tune_vector_length; }
   inline bool impl_auto_team_size() const { return m_tune_team_size; }
@@ -164,9 +137,6 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
   inline void impl_set_vector_length(size_t size) { m_vector_length = size; }
   inline void impl_set_team_size(size_t size) { m_team_size = size; }
   int impl_vector_length() const { return m_vector_length; }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  KOKKOS_DEPRECATED int vector_length() const { return impl_vector_length(); }
-#endif
 
   int team_size() const { return m_team_size; }
 
@@ -334,11 +304,8 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
         (sizeof(double) + m_thread_scratch_size[0]);
     return std::min({
              int(m_space.impl_internal_space_instance()->m_maxWorkgroupSize),
-      // FIXME_SYCL Avoid requesting to many registers on NVIDIA GPUs.
-#if defined(KOKKOS_ARCH_KEPLER) || defined(KOKKOS_ARCH_MAXWELL) ||  \
-    defined(KOKKOS_ARCH_PASCAL) || defined(KOKKOS_ARCH_VOLTA) ||    \
-    defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE) || \
-    defined(KOKKOS_ARCH_HOPPER)
+      // FIXME_SYCL Avoid requesting too many registers on NVIDIA GPUs.
+#if defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
                  256,
 #endif
                  max_threads_for_memory
@@ -346,10 +313,11 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
            impl_vector_length();
   }
 
-  template <class FunctorType>
+  template <class ValueType, class FunctorType>
   int internal_team_size_max_reduce(const FunctorType& f) const {
-    using Analysis        = FunctorAnalysis<FunctorPatternInterface::REDUCE,
-                                     TeamPolicyInternal, FunctorType>;
+    using Analysis =
+        FunctorAnalysis<FunctorPatternInterface::REDUCE, TeamPolicyInternal,
+                        FunctorType, ValueType>;
     using value_type      = typename Analysis::value_type;
     const int value_count = Analysis::value_count(f);
 
@@ -367,11 +335,8 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
          m_thread_scratch_size[0]);
     return std::min<int>({
              int(m_space.impl_internal_space_instance()->m_maxWorkgroupSize),
-      // FIXME_SYCL Avoid requesting to many registers on NVIDIA GPUs.
-#if defined(KOKKOS_ARCH_KEPLER) || defined(KOKKOS_ARCH_MAXWELL) ||  \
-    defined(KOKKOS_ARCH_PASCAL) || defined(KOKKOS_ARCH_VOLTA) ||    \
-    defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE) || \
-    defined(KOKKOS_ARCH_HOPPER)
+      // FIXME_SYCL Avoid requesting too many registers on NVIDIA GPUs.
+#if defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
                  256,
 #endif
                  max_threads_for_memory
@@ -385,10 +350,11 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
     return 1 << Kokkos::Impl::int_log2(internal_team_size_max_for(f));
   }
 
-  template <class FunctorType>
+  template <class ValueType, class FunctorType>
   int internal_team_size_recommended_reduce(const FunctorType& f) const {
     // FIXME_SYCL improve
-    return 1 << Kokkos::Impl::int_log2(internal_team_size_max_reduce(f));
+    return 1 << Kokkos::Impl::int_log2(
+               internal_team_size_max_reduce<ValueType>(f));
   }
 };
 
@@ -417,11 +383,12 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   // Only let one ParallelFor/Reduce modify the team scratch memory. The
   // constructor acquires the mutex which is released in the destructor.
   std::scoped_lock<std::mutex> m_scratch_lock;
+  int m_scratch_pool_id = -1;
 
   template <typename FunctorWrapper>
   sycl::event sycl_direct_launch(const Policy& policy,
                                  const FunctorWrapper& functor_wrapper,
-                                 const sycl::event& memcpy_events) const {
+                                 const sycl::event& memcpy_event) const {
     // Convenience references
     const Kokkos::Experimental::SYCL& space = policy.space();
     sycl::queue& q                          = space.sycl_queue();
@@ -429,12 +396,10 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
       // FIXME_SYCL accessors seem to need a size greater than zero at least for
       // host queues
-      sycl::accessor<char, 1, sycl::access::mode::read_write,
-                     sycl::access::target::local>
-          team_scratch_memory_L0(
-              sycl::range<1>(
-                  std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
-              cgh);
+      sycl::local_accessor<char, 1> team_scratch_memory_L0(
+          sycl::range<1>(
+              std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
+          cgh);
 
       // Avoid capturing *this since it might not be trivially copyable
       const auto shmem_begin       = m_shmem_begin;
@@ -463,14 +428,13 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
       auto max_sg_size =
           kernel
               .get_info<sycl::info::kernel_device_specific::max_sub_group_size>(
-                  q.get_device(),
-                  sycl::range<3>(m_team_size, m_vector_size, 1));
+                  q.get_device());
       auto final_vector_size = std::min<int>(m_vector_size, max_sg_size);
       // FIXME_SYCL For some reason, explicitly enforcing the kernel bundle to
       // be used gives a runtime error.
       // cgh.use_kernel_bundle(kernel_bundle);
 
-      cgh.depends_on(memcpy_events);
+      cgh.depends_on(memcpy_event);
       cgh.parallel_for(
           sycl::nd_range<2>(
               sycl::range<2>(m_team_size, m_league_size * final_vector_size),
@@ -485,10 +449,9 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   inline void execute() const {
     if (m_league_size == 0) return;
 
+    auto& space = *m_policy.space().impl_internal_space_instance();
     Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem&
-        indirectKernelMem = m_policy.space()
-                                .impl_internal_space_instance()
-                                ->get_indirect_kernel_mem();
+        indirectKernelMem = space.get_indirect_kernel_mem();
 
     auto functor_wrapper = Experimental::Impl::make_sycl_function_wrapper(
         m_functor, indirectKernelMem);
@@ -496,6 +459,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     sycl::event event = sycl_direct_launch(m_policy, functor_wrapper,
                                            functor_wrapper.get_copy_event());
     functor_wrapper.register_event(event);
+    space.register_team_scratch_event(m_scratch_pool_id, event);
   }
 
   ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
@@ -521,9 +485,11 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.
-    auto& space = *m_policy.space().impl_internal_space_instance();
+    auto& space       = *m_policy.space().impl_internal_space_instance();
+    m_scratch_pool_id = space.acquire_team_scratch_space();
     m_global_scratch_ptr =
         static_cast<sycl::device_ptr<char>>(space.resize_team_scratch_space(
+            m_scratch_pool_id,
             static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
 
     if (static_cast<int>(space.m_maxShmemPerBlock) <
@@ -549,35 +515,31 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-template <class FunctorType, class ReducerType, class... Properties>
-class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
-                     ReducerType, Kokkos::Experimental::SYCL> {
+template <class CombinedFunctorReducerType, class... Properties>
+class ParallelReduce<CombinedFunctorReducerType,
+                     Kokkos::TeamPolicy<Properties...>,
+                     Kokkos::Experimental::SYCL> {
  public:
   using Policy = TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>;
+  using FunctorType = typename CombinedFunctorReducerType::functor_type;
+  using ReducerType = typename CombinedFunctorReducerType::reducer_type;
 
  private:
-  using ReducerConditional =
-      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                         FunctorType, ReducerType>;
-  using ReducerTypeFwd = typename ReducerConditional::type;
-  using Analysis =
-      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, ReducerTypeFwd>;
   using member_type   = typename Policy::member_type;
   using WorkTag       = typename Policy::work_tag;
   using launch_bounds = typename Policy::launch_bounds;
 
-  using pointer_type   = typename Analysis::pointer_type;
-  using reference_type = typename Analysis::reference_type;
-  using value_type     = typename Analysis::value_type;
+  using pointer_type   = typename ReducerType::pointer_type;
+  using reference_type = typename ReducerType::reference_type;
+  using value_type     = typename ReducerType::value_type;
 
  public:
   using functor_type = FunctorType;
   using size_type    = Kokkos::Experimental::SYCL::size_type;
 
  private:
-  const FunctorType m_functor;
+  const CombinedFunctorReducerType m_functor_reducer;
   const Policy m_policy;
-  const ReducerType m_reducer;
   const pointer_type m_result_ptr;
   const bool m_result_ptr_device_accessible;
   size_type m_shmem_begin;
@@ -590,13 +552,13 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   // Only let one ParallelFor/Reduce modify the team scratch memory. The
   // constructor acquires the mutex which is released in the destructor.
   std::scoped_lock<std::mutex> m_scratch_lock;
+  int m_scratch_pool_id = -1;
 
-  template <typename PolicyType, typename FunctorWrapper,
-            typename ReducerWrapper>
+  template <typename PolicyType, typename CombinedFunctorReducerWrapper>
   sycl::event sycl_direct_launch(
-      const PolicyType& policy, const FunctorWrapper& functor_wrapper,
-      const ReducerWrapper& reducer_wrapper,
-      const std::vector<sycl::event>& memcpy_events) const {
+      const PolicyType& policy,
+      const CombinedFunctorReducerWrapper& functor_reducer_wrapper,
+      const sycl::event& memcpy_event) const {
     // Convenience references
     const Kokkos::Experimental::SYCL& space = policy.space();
     Kokkos::Experimental::Impl::SYCLInternal& instance =
@@ -604,7 +566,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
     sycl::queue& q = space.sycl_queue();
 
     const unsigned int value_count =
-        Analysis::value_count(ReducerConditional::select(m_functor, m_reducer));
+        m_functor_reducer.get_reducer().value_count();
     std::size_t size = std::size_t(m_league_size) * m_team_size * m_vector_size;
     value_type* results_ptr = nullptr;
 
@@ -623,43 +585,38 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       auto parallel_reduce_event = q.submit([&](sycl::handler& cgh) {
         // FIXME_SYCL accessors seem to need a size greater than zero at least
         // for host queues
-        sycl::accessor<char, 1, sycl::access::mode::read_write,
-                       sycl::access::target::local>
-            team_scratch_memory_L0(
-                sycl::range<1>(
-                    std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
-                cgh);
+        sycl::local_accessor<char, 1> team_scratch_memory_L0(
+            sycl::range<1>(
+                std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
+            cgh);
 
         // Avoid capturing *this since it might not be trivially copyable
         const auto shmem_begin       = m_shmem_begin;
         const size_t scratch_size[2] = {m_scratch_size[0], m_scratch_size[1]};
         sycl::device_ptr<char> const global_scratch_ptr = m_global_scratch_ptr;
 
-        cgh.depends_on(memcpy_events);
+        cgh.depends_on(memcpy_event);
         cgh.parallel_for(
             sycl::nd_range<2>(sycl::range<2>(1, 1), sycl::range<2>(1, 1)),
             [=](sycl::nd_item<2> item) {
-              const auto& functor          = functor_wrapper.get_functor();
-              const auto& selected_reducer = ReducerConditional::select(
-                  static_cast<const FunctorType&>(functor),
-                  static_cast<const ReducerType&>(
-                      reducer_wrapper.get_functor()));
-              typename Analysis::Reducer final_reducer(&selected_reducer);
+              const CombinedFunctorReducerType& functor_reducer =
+                  functor_reducer_wrapper.get_functor();
+              const FunctorType& functor = functor_reducer.get_functor();
+              const ReducerType& reducer = functor_reducer.get_reducer();
 
-              reference_type update = final_reducer.init(results_ptr);
+              reference_type update = reducer.init(results_ptr);
               if (size == 1) {
                 const member_type team_member(
                     team_scratch_memory_L0.get_pointer(), shmem_begin,
                     scratch_size[0], global_scratch_ptr, scratch_size[1], item);
-                if constexpr (std::is_void<WorkTag>::value)
+                if constexpr (std::is_void_v<WorkTag>)
                   functor(team_member, update);
                 else
                   functor(WorkTag(), team_member, update);
               }
-              final_reducer.final(results_ptr);
+              reducer.final(results_ptr);
               if (device_accessible_result_ptr)
-                final_reducer.copy(device_accessible_result_ptr,
-                                   &results_ptr[0]);
+                reducer.copy(device_accessible_result_ptr, &results_ptr[0]);
             });
       });
       q.ext_oneapi_submit_barrier(
@@ -676,12 +633,10 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
         // FIXME_SYCL accessors seem to need a size greater than zero at least
         // for host queues
-        sycl::accessor<char, 1, sycl::access::mode::read_write,
-                       sycl::access::target::local>
-            team_scratch_memory_L0(
-                sycl::range<1>(
-                    std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
-                cgh);
+        sycl::local_accessor<char, 1> team_scratch_memory_L0(
+            sycl::range<1>(
+                std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
+            cgh);
 
         // Avoid capturing *this since it might not be trivially copyable
         const auto shmem_begin       = m_shmem_begin;
@@ -689,10 +644,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         sycl::device_ptr<char> const global_scratch_ptr = m_global_scratch_ptr;
 
         auto team_reduction_factory =
-            [&](sycl::accessor<value_type, 1, sycl::access::mode::read_write,
-                               sycl::access::target::local>
-                    local_mem,
-                sycl::device_ptr<value_type> results_ptr) mutable {
+            [&](sycl::local_accessor<value_type, 1> local_mem,
+                sycl::device_ptr<value_type> results_ptr) {
               sycl::global_ptr<value_type> device_accessible_result_ptr =
                   m_result_ptr_device_accessible ? m_result_ptr : nullptr;
               auto lambda = [=](sycl::nd_item<2> item) {
@@ -704,32 +657,29 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
                 auto& num_teams_done = reinterpret_cast<unsigned int&>(
                     local_mem[wgroup_size * std::max(value_count, 1u)]);
-                const auto local_id          = item.get_local_linear_id();
-                const auto& functor          = functor_wrapper.get_functor();
-                const auto& selected_reducer = ReducerConditional::select(
-                    static_cast<const FunctorType&>(functor),
-                    static_cast<const ReducerType&>(
-                        reducer_wrapper.get_functor()));
-                typename Analysis::Reducer final_reducer(&selected_reducer);
+                const auto local_id = item.get_local_linear_id();
+                const CombinedFunctorReducerType& functor_reducer =
+                    functor_reducer_wrapper.get_functor();
+                const FunctorType& functor = functor_reducer.get_functor();
+                const ReducerType& reducer = functor_reducer.get_reducer();
 
-                if constexpr (Analysis::StaticValueSize == 0) {
+                if constexpr (ReducerType::static_value_size() == 0) {
                   reference_type update =
-                      final_reducer.init(&local_mem[local_id * value_count]);
+                      reducer.init(&local_mem[local_id * value_count]);
                   const member_type team_member(
                       team_scratch_memory_L0.get_pointer(), shmem_begin,
                       scratch_size[0],
                       global_scratch_ptr + item.get_group(1) * scratch_size[1],
                       scratch_size[1], item);
-                  if constexpr (std::is_void<WorkTag>::value)
+                  if constexpr (std::is_void_v<WorkTag>)
                     functor(team_member, update);
                   else
                     functor(WorkTag(), team_member, update);
                   item.barrier(sycl::access::fence_space::local_space);
 
                   SYCLReduction::workgroup_reduction<>(
-                      item, local_mem.get_pointer(), results_ptr,
-                      device_accessible_result_ptr, value_count,
-                      selected_reducer, false,
+                      item, local_mem, results_ptr,
+                      device_accessible_result_ptr, value_count, reducer, false,
                       std::min<std::size_t>(size,
                                             item.get_local_range()[0] *
                                                 item.get_local_range()[1]));
@@ -744,40 +694,40 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
                   sycl::group_barrier(item.get_group());
                   if (num_teams_done == n_wgroups) {
                     if (local_id >= n_wgroups)
-                      final_reducer.init(&local_mem[local_id * value_count]);
+                      reducer.init(&local_mem[local_id * value_count]);
                     else {
-                      final_reducer.copy(&local_mem[local_id * value_count],
-                                         &results_ptr[local_id * value_count]);
+                      reducer.copy(&local_mem[local_id * value_count],
+                                   &results_ptr[local_id * value_count]);
                       for (unsigned int id = local_id + wgroup_size;
                            id < n_wgroups; id += wgroup_size) {
-                        final_reducer.join(&local_mem[local_id * value_count],
-                                           &results_ptr[id * value_count]);
+                        reducer.join(&local_mem[local_id * value_count],
+                                     &results_ptr[id * value_count]);
                       }
                     }
 
                     SYCLReduction::workgroup_reduction<>(
-                        item, local_mem.get_pointer(), results_ptr,
-                        device_accessible_result_ptr, value_count,
-                        selected_reducer, true,
+                        item, local_mem, results_ptr,
+                        device_accessible_result_ptr, value_count, reducer,
+                        true,
                         std::min(n_wgroups, item.get_local_range()[0] *
                                                 item.get_local_range()[1]));
                   }
                 } else {
                   value_type local_value;
-                  reference_type update = final_reducer.init(&local_value);
+                  reference_type update = reducer.init(&local_value);
                   const member_type team_member(
                       team_scratch_memory_L0.get_pointer(), shmem_begin,
                       scratch_size[0],
                       global_scratch_ptr + item.get_group(1) * scratch_size[1],
                       scratch_size[1], item);
-                  if constexpr (std::is_void<WorkTag>::value)
+                  if constexpr (std::is_void_v<WorkTag>)
                     functor(team_member, update);
                   else
                     functor(WorkTag(), team_member, update);
 
                   SYCLReduction::workgroup_reduction<>(
-                      item, local_mem.get_pointer(), local_value, results_ptr,
-                      device_accessible_result_ptr, final_reducer, false,
+                      item, local_mem, local_value, results_ptr,
+                      device_accessible_result_ptr, reducer, false,
                       std::min<std::size_t>(size,
                                             item.get_local_range()[0] *
                                                 item.get_local_range()[1]));
@@ -792,18 +742,18 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
                   item.barrier(sycl::access::fence_space::local_space);
                   if (num_teams_done == n_wgroups) {
                     if (local_id >= n_wgroups)
-                      final_reducer.init(&local_value);
+                      reducer.init(&local_value);
                     else {
                       local_value = results_ptr[local_id];
                       for (unsigned int id = local_id + wgroup_size;
                            id < n_wgroups; id += wgroup_size) {
-                        final_reducer.join(&local_value, &results_ptr[id]);
+                        reducer.join(&local_value, &results_ptr[id]);
                       }
                     }
 
                     SYCLReduction::workgroup_reduction<>(
-                        item, local_mem.get_pointer(), local_value, results_ptr,
-                        device_accessible_result_ptr, final_reducer, true,
+                        item, local_mem, local_value, results_ptr,
+                        device_accessible_result_ptr, reducer, true,
                         std::min(n_wgroups, item.get_local_range()[0] *
                                                 item.get_local_range()[1]));
                   }
@@ -824,7 +774,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         }();
         auto max_sg_size = kernel.get_info<
             sycl::info::kernel_device_specific::max_sub_group_size>(
-            q.get_device(), sycl::range<3>(m_team_size, m_vector_size, 1));
+            q.get_device());
         auto final_vector_size = std::min<int>(m_vector_size, max_sg_size);
         // FIXME_SYCL For some reason, explicitly enforcing the kernel bundle to
         // be used gives a runtime error.
@@ -833,12 +783,11 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
         auto wgroup_size = m_team_size * final_vector_size;
         std::size_t size = std::size_t(m_league_size) * wgroup_size;
-        sycl::accessor<value_type, 1, sycl::access::mode::read_write,
-                       sycl::access::target::local>
-            local_mem(sycl::range<1>(wgroup_size) * std::max(value_count, 1u) +
-                          (sizeof(unsigned int) + sizeof(value_type) - 1) /
-                              sizeof(value_type),
-                      cgh);
+        sycl::local_accessor<value_type, 1> local_mem(
+            sycl::range<1>(wgroup_size) * std::max(value_count, 1u) +
+                (sizeof(unsigned int) + sizeof(value_type) - 1) /
+                    sizeof(value_type),
+            cgh);
 
         const auto init_size =
             std::max<std::size_t>((size + wgroup_size - 1) / wgroup_size, 1);
@@ -848,7 +797,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
         auto reduction_lambda = team_reduction_factory(local_mem, results_ptr);
 
-        cgh.depends_on(memcpy_events);
+        cgh.depends_on(memcpy_event);
 
         cgh.parallel_for(
             sycl::nd_range<2>(
@@ -879,27 +828,26 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         *m_policy.space().impl_internal_space_instance();
     using IndirectKernelMem =
         Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem;
-    IndirectKernelMem& indirectKernelMem  = instance.get_indirect_kernel_mem();
-    IndirectKernelMem& indirectReducerMem = instance.get_indirect_kernel_mem();
+    IndirectKernelMem& indirectKernelMem = instance.get_indirect_kernel_mem();
 
-    auto functor_wrapper = Experimental::Impl::make_sycl_function_wrapper(
-        m_functor, indirectKernelMem);
-    auto reducer_wrapper = Experimental::Impl::make_sycl_function_wrapper(
-        m_reducer, indirectReducerMem);
+    auto functor_reducer_wrapper =
+        Experimental::Impl::make_sycl_function_wrapper(m_functor_reducer,
+                                                       indirectKernelMem);
 
-    sycl::event event = sycl_direct_launch(
-        m_policy, functor_wrapper, reducer_wrapper,
-        {functor_wrapper.get_copy_event(), reducer_wrapper.get_copy_event()});
-    functor_wrapper.register_event(event);
-    reducer_wrapper.register_event(event);
+    sycl::event event =
+        sycl_direct_launch(m_policy, functor_reducer_wrapper,
+                           functor_reducer_wrapper.get_copy_event());
+    functor_reducer_wrapper.register_event(event);
+    instance.register_team_scratch_event(m_scratch_pool_id, event);
   }
 
  private:
   void initialize() {
     // FIXME_SYCL optimize
     if (m_team_size < 0)
-      m_team_size =
-          m_policy.team_size_recommended(m_functor, ParallelReduceTag{});
+      m_team_size = m_policy.team_size_recommended(
+          m_functor_reducer.get_functor(), m_functor_reducer.get_reducer(),
+          ParallelReduceTag{});
     // Must be a power of two greater than two, get the one not bigger than the
     // requested one.
     if ((m_team_size & m_team_size - 1) || m_team_size < 2) {
@@ -908,18 +856,20 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       m_team_size = temp_team_size;
     }
 
-    m_shmem_begin = (sizeof(double) * (m_team_size + 2));
-    m_shmem_size =
-        (m_policy.scratch_size(0, m_team_size) +
-         FunctorTeamShmemSize<FunctorType>::value(m_functor, m_team_size));
+    m_shmem_begin     = (sizeof(double) * (m_team_size + 2));
+    m_shmem_size      = (m_policy.scratch_size(0, m_team_size) +
+                    FunctorTeamShmemSize<FunctorType>::value(
+                        m_functor_reducer.get_functor(), m_team_size));
     m_scratch_size[0] = m_shmem_size;
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
 
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.
-    auto& space = *m_policy.space().impl_internal_space_instance();
+    auto& space       = *m_policy.space().impl_internal_space_instance();
+    m_scratch_pool_id = space.acquire_team_scratch_space();
     m_global_scratch_ptr =
         static_cast<sycl::device_ptr<char>>(space.resize_team_scratch_space(
+            m_scratch_pool_id,
             static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
 
     if (static_cast<int>(space.m_maxShmemPerBlock) <
@@ -932,43 +882,23 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       Kokkos::Impl::throw_runtime_exception(out.str());
     }
 
-    if (m_team_size > m_policy.team_size_max(m_functor, ParallelReduceTag{}))
+    if (m_team_size > m_policy.team_size_max(m_functor_reducer.get_functor(),
+                                             m_functor_reducer.get_reducer(),
+                                             ParallelReduceTag{}))
       Kokkos::Impl::throw_runtime_exception(
           "Kokkos::Impl::ParallelFor<SYCL> requested too large team size.");
   }
 
  public:
   template <class ViewType>
-  ParallelReduce(
-      FunctorType const& arg_functor, Policy const& arg_policy,
-      ViewType const& arg_result,
-      std::enable_if_t<Kokkos::is_view<ViewType>::value, void*> = nullptr)
-      : m_functor(arg_functor),
+  ParallelReduce(CombinedFunctorReducerType const& arg_functor_reducer,
+                 Policy const& arg_policy, ViewType const& arg_result)
+      : m_functor_reducer(arg_functor_reducer),
         m_policy(arg_policy),
-        m_reducer(InvalidType()),
         m_result_ptr(arg_result.data()),
         m_result_ptr_device_accessible(
             MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
                               typename ViewType::memory_space>::accessible),
-        m_league_size(arg_policy.league_size()),
-        m_team_size(arg_policy.team_size()),
-        m_vector_size(arg_policy.impl_vector_length()),
-        m_scratch_lock(arg_policy.space()
-                           .impl_internal_space_instance()
-                           ->m_team_scratch_mutex) {
-    initialize();
-  }
-
-  ParallelReduce(FunctorType const& arg_functor, Policy const& arg_policy,
-                 ReducerType const& reducer)
-      : m_functor(arg_functor),
-        m_policy(arg_policy),
-        m_reducer(reducer),
-        m_result_ptr(reducer.view().data()),
-        m_result_ptr_device_accessible(
-            MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                              typename ReducerType::result_view_type::
-                                  memory_space>::accessible),
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
         m_vector_size(arg_policy.impl_vector_length()),

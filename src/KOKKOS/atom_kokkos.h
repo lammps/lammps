@@ -164,32 +164,32 @@ struct SortFunctor {
   ViewType source;
   Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type> dest;
   IndexView index;
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==1,IndexView>::type ind):source(src),index(ind) {
+  SortFunctor(ViewType src, std::enable_if_t<ViewType::dynamic_rank==1,IndexView> ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==2,IndexView>::type ind):source(src),index(ind) {
+  SortFunctor(ViewType src, std::enable_if_t<ViewType::dynamic_rank==2,IndexView> ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==3,IndexView>::type ind):source(src),index(ind) {
+  SortFunctor(ViewType src, std::enable_if_t<ViewType::dynamic_rank==3,IndexView> ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2));
   }
-  SortFunctor(ViewType src, typename std::enable_if<ViewType::dynamic_rank==4,IndexView>::type ind):source(src),index(ind) {
+  SortFunctor(ViewType src, std::enable_if_t<ViewType::dynamic_rank==4,IndexView> ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2),src.extent(3));
   }
   KOKKOS_INLINE_FUNCTION
-  void operator()(const typename std::enable_if<ViewType::rank==1, int>::type& i) {
+  void operator()(const std::enable_if_t<ViewType::rank==1, int>& i) {
     dest(i) = source(index(i));
   }
-  void operator()(const typename std::enable_if<ViewType::rank==2, int>::type& i) {
+  void operator()(const std::enable_if_t<ViewType::rank==2, int>& i) {
     for (int j=0; j < (int)source.extent(1); j++)
       dest(i,j) = source(index(i),j);
   }
-  void operator()(const typename std::enable_if<ViewType::rank==3, int>::type& i) {
+  void operator()(const std::enable_if_t<ViewType::rank==3, int>& i) {
     for (int j=0; j < (int)source.extent(1); j++)
       for (int k=0; k < (int)source.extent(2); k++)
         dest(i,j,k) = source(index(i),j,k);
   }
-  void operator()(const typename std::enable_if<ViewType::rank==4, int>::type& i) {
+  void operator()(const std::enable_if_t<ViewType::rank==4, int>& i) {
     for (int j=0; j < (int)source.extent(1); j++)
       for (int k=0; k < (int)source.extent(2); k++)
         for (int l=0; l < (int)source.extent(3); l++)

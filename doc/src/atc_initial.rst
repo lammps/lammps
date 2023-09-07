@@ -6,7 +6,7 @@ fix_modify AtC initial command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> initial <field> <nodeset> <constant|function>
 

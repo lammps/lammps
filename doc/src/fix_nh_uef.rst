@@ -10,7 +10,7 @@ fix npt/uef command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style_name erate edot_x edot_y temp Tstart Tstop Tdamp keyword value ...
 

@@ -476,16 +476,14 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
     nwords = utils::count_words(utils::trim_comment(line));
-    if (nwords != nspecies+2) {
-      printf("nwords=%d  nspecies=%d\n",nwords,nspecies);
-      error->all(FLERR,"Illegal fix eos/table/rx command");
-    }
-    nwords = 0;
+    if (nwords != nspecies+2)
+      error->all(FLERR,"Illegal fix eos/table/rx command: nwords={} nspecies={}", nwords, nspecies);
+
     word = strtok(line," \t\n\r\f");
     word = strtok(nullptr," \t\n\r\f");
     rtmp = atof(word);
 
-    for (int icolumn=0;icolumn<ncolumn;icolumn++) {
+    for (int icolumn=0; icolumn < ncolumn; icolumn++) {
       ispecies = eosSpecies[icolumn];
 
       Table *tbl = &tables[ispecies];

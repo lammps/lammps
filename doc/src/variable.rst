@@ -6,7 +6,7 @@ variable command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    variable name style args ...
 
@@ -67,7 +67,7 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)
          feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
@@ -532,7 +532,7 @@ variables.
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                 |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)                                                                                                                                                             |
+| Special functions  | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)                                                                                                                                   |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Feature functions  | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                               |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -996,10 +996,17 @@ via the link in this paragraph.
 
 The label2type(kind,label) function converts type labels into numeric
 types, using label maps created by the :doc:`labelmap <labelmap>` or
-:doc:`read_data <read_data>` commands.  The first argument is the
-label map kind (atom, bond, angle, dihedral, or improper) and the
-second argument is the label.  The function returns the corresponding
-numeric type.
+:doc:`read_data <read_data>` commands.  The first argument is the label
+map kind (atom, bond, angle, dihedral, or improper) and the second
+argument is the label.  The function returns the corresponding numeric
+type or triggers an error if the queried label does not exist.
+
+.. versionadded:: 15Jun2023
+
+The is_typelabel(kind,label) function has the same arguments as
+label2type(), but returns 1 if the type label has been assigned,
+otherwise it returns 0.  This function can be used to check if a
+particular type label already exists in the simulation.
 
 ----------
 
@@ -1313,7 +1320,7 @@ Vectors" discussion above.
 Vector Initialization
 ---------------------
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 *Vector*-style variables only can be initialized with a special
 syntax, instead of using a formula.  The syntax is a bracketed,
@@ -1434,7 +1441,7 @@ timestep that the variable needs the tallies.  An input script can
 also request variables be evaluated before or after or in between
 runs, e.g. by including them in a :doc:`print <print>` command.
 
-LAMMPS keeps track of all of this as it performs a doc:`run <run>` or
+LAMMPS keeps track of all of this as it performs a :doc:`run <run>` or
 :doc:`minimize <minimize>` simulation, as well as in between
 simulations.  An error will be generated if you attempt to evaluate a
 variable when LAMMPS knows it cannot produce accurate values.  For
@@ -1446,7 +1453,7 @@ command, then an error will occur.
 
 However, there are two special cases to be aware when a variable
 requires invocation of a compute (directly or indirectly).  The first
-is if the variable is evaluated before the first doc:`run <run>` or
+is if the variable is evaluated before the first :doc:`run <run>` or
 :doc:`minimize <minimize>` command in the input script.  In this case,
 LAMMPS will generate an error.  This is because many computes require
 initializations which have not yet taken place.  One example is the
@@ -1456,10 +1463,10 @@ energy or virial quantities; these values are not tallied until the
 first simulation begins.
 
 The second special case is when a variable that depends on a compute
-is evaluated in between doc:`run <run>` or :doc:`minimize <minimize>`
+is evaluated in between :doc:`run <run>` or :doc:`minimize <minimize>`
 commands.  It is possible for other input script commands issued
 following the previous run, but before the variable is evaluated, to
-change the system.  For example, the doc:`delete_atoms <delete_atoms>`
+change the system.  For example, the :doc:`delete_atoms <delete_atoms>`
 command could be used to remove atoms.  Since the compute will not
 re-initialize itself until the next simulation or it may depend on
 energy/virial computations performed before the system was changed, it
@@ -1474,7 +1481,7 @@ commands
 .. code-block:: LAMMPS
 
    # delete_atoms random fraction 0.5 yes all NULL 49839
-   # run 0
+   # run 0 post no
    variable t equal temp    # this thermo keyword invokes a temperature compute
    print "Temperature of system = $t"
    run 1000

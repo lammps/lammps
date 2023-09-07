@@ -265,9 +265,9 @@ void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<N
 
   const F_FLOAT df = -d_k[type] * df1;
 
-  const F_FLOAT sx2  = df*dtgx;;
-  const F_FLOAT sy2  = df*dtgy;;
-  const F_FLOAT sz2  = df*dtgz;;
+  const F_FLOAT sx2  = df*dtgx;
+  const F_FLOAT sy2  = df*dtgy;
+  const F_FLOAT sz2  = df*dtgz;
 
   F_FLOAT f1[3],f2[3],f3[3],f4[3];
   f1[0] = df*dtfx;

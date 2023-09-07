@@ -79,6 +79,7 @@ class Fix : protected Pointers {
   int maxexchange_dynamic;     // 1 if fix sets maxexchange dynamically
   int pre_exchange_migrate;    // 1 if fix migrates atoms in pre_exchange()
   int stores_ids;              // 1 if fix stores atom IDs
+  int diam_flag;               // 1 if fix may change partical diameter
 
   int scalar_flag;                 // 0/1 if compute_scalar() function exists
   int vector_flag;                 // 0/1 if compute_vector() function exists

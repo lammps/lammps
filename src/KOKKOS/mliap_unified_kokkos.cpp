@@ -371,6 +371,25 @@ void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
   }
 }
 
+/* ----------------------------------------------------------------------
+   set energy for i indexed atoms
+   ---------------------------------------------------------------------- */
+
+void LAMMPS_NS::update_atom_energy(MLIAPDataKokkosDevice *data, double *ei)
+{
+  auto d_eatoms = data->eatoms;
+  const auto nlistatoms = data->nlistatoms;
+
+  Kokkos::parallel_reduce(nlistatoms, KOKKOS_LAMBDA(int i, double &local_sum){
+    double e = ei[i];
+    // must not count any contribution where i is not a local atom
+    if (i < nlistatoms) {
+      d_eatoms[i] = e;
+      local_sum += e;
+    }
+  },*data->energy);
+}
+
 namespace LAMMPS_NS {
 template class MLIAPDummyModelKokkos<LMPDeviceType>;
 template class MLIAPDummyDescriptorKokkos<LMPDeviceType>;

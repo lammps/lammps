@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 #ifndef KOKKOS_COMPLEX_HPP
 #define KOKKOS_COMPLEX_HPP
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -51,6 +23,7 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_MathematicalFunctions.hpp>
 #include <Kokkos_NumericTraits.hpp>
+#include <Kokkos_ReductionIdentity.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <complex>
 #include <type_traits>
@@ -278,16 +251,13 @@ class
     return *this;
   }
 
-  //---------------------------------------------------------------------------
-  // TODO: refactor Kokkos reductions to remove dependency on
-  // volatile member overloads since they are being deprecated in c++20
-  //---------------------------------------------------------------------------
-
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   //! Copy constructor from volatile.
   template <
       class RType,
       std::enable_if_t<std::is_convertible<RType, RealType>::value, int> = 0>
-  KOKKOS_INLINE_FUNCTION complex(const volatile complex<RType>& src) noexcept
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION
+  complex(const volatile complex<RType>& src) noexcept
       // Intentionally do the conversions implicitly here so that users don't
       // get any warnings about narrowing, etc., that they would expect to get
       // otherwise.
@@ -315,7 +285,8 @@ class
   //    vl = cr;
   template <class Complex,
             std::enable_if_t<std::is_same<Complex, complex>::value, int> = 0>
-  KOKKOS_INLINE_FUNCTION void operator=(const Complex& src) volatile noexcept {
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator=(
+      const Complex& src) volatile noexcept {
     re_ = src.re_;
     im_ = src.im_;
     // We deliberately do not return anything here.  See explanation
@@ -337,7 +308,7 @@ class
   //    vl = cvr;
   template <class Complex,
             std::enable_if_t<std::is_same<Complex, complex>::value, int> = 0>
-  KOKKOS_INLINE_FUNCTION volatile complex& operator=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION volatile complex& operator=(
       const volatile Complex& src) volatile noexcept {
     re_ = src.re_;
     im_ = src.im_;
@@ -359,7 +330,7 @@ class
   //
   template <class Complex,
             std::enable_if_t<std::is_same<Complex, complex>::value, int> = 0>
-  KOKKOS_INLINE_FUNCTION complex& operator=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION complex& operator=(
       const volatile Complex& src) noexcept {
     re_ = src.re_;
     im_ = src.im_;
@@ -370,7 +341,8 @@ class
   // RealType RHS versions.
 
   //! Assignment operator (from a volatile real number).
-  KOKKOS_INLINE_FUNCTION void operator=(const volatile RealType& val) noexcept {
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator=(
+      const volatile RealType& val) noexcept {
     re_ = val;
     im_ = RealType(0);
     // We deliberately do not return anything here.  See explanation
@@ -378,7 +350,7 @@ class
   }
 
   //! Assignment operator volatile LHS and non-volatile RHS
-  KOKKOS_INLINE_FUNCTION complex& operator=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION complex& operator=(
       const RealType& val) volatile noexcept {
     re_ = val;
     im_ = RealType(0);
@@ -387,7 +359,7 @@ class
 
   //! Assignment operator volatile LHS and volatile RHS
   // TODO Should this return void like the other volatile assignment operators?
-  KOKKOS_INLINE_FUNCTION complex& operator=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION complex& operator=(
       const volatile RealType& val) volatile noexcept {
     re_ = val;
     im_ = RealType(0);
@@ -395,33 +367,41 @@ class
   }
 
   //! The imaginary part of this complex number (volatile overload).
-  KOKKOS_INLINE_FUNCTION
-  volatile RealType& imag() volatile noexcept { return im_; }
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION volatile RealType&
+  imag() volatile noexcept {
+    return im_;
+  }
 
   //! The real part of this complex number (volatile overload).
-  KOKKOS_INLINE_FUNCTION
-  volatile RealType& real() volatile noexcept { return re_; }
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION volatile RealType&
+  real() volatile noexcept {
+    return re_;
+  }
 
   //! The imaginary part of this complex number (volatile overload).
-  KOKKOS_INLINE_FUNCTION
-  RealType imag() const volatile noexcept { return im_; }
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION RealType imag() const
+      volatile noexcept {
+    return im_;
+  }
 
   //! The real part of this complex number (volatile overload).
-  KOKKOS_INLINE_FUNCTION
-  RealType real() const volatile noexcept { return re_; }
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION RealType real() const
+      volatile noexcept {
+    return re_;
+  }
 
-  KOKKOS_INLINE_FUNCTION void operator+=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator+=(
       const volatile complex<RealType>& src) volatile noexcept {
     re_ += src.re_;
     im_ += src.im_;
   }
 
-  KOKKOS_INLINE_FUNCTION void operator+=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator+=(
       const volatile RealType& src) volatile noexcept {
     re_ += src;
   }
 
-  KOKKOS_INLINE_FUNCTION void operator*=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator*=(
       const volatile complex<RealType>& src) volatile noexcept {
     const RealType realPart = re_ * src.re_ - im_ * src.im_;
     const RealType imagPart = re_ * src.im_ + im_ * src.re_;
@@ -430,13 +410,12 @@ class
     im_ = imagPart;
   }
 
-  KOKKOS_INLINE_FUNCTION void operator*=(
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator*=(
       const volatile RealType& src) volatile noexcept {
     re_ *= src;
     im_ *= src;
   }
-
-  // TODO DSH 2019-10-7 why are there no volatile /= and friends?
+#endif  // KOKKOS_ENABLE_DEPRECATED_CODE_4
 };
 
 //==============================================================================

@@ -122,16 +122,16 @@ keyword must be used.
 
 .. note::
 
-   The simulation box size (xlo to xhi, ylo to yhi, zlo to zhi) in
-   the new data file will be merged with the existing simulation box to
-   create a large enough box in each dimension to contain both the
-   existing and new atoms.  Each box dimension never shrinks due to this
-   merge operation, it only stays the same or grows. Care must be used if
-   you are growing the existing simulation box in a periodic dimension.
-   If there are existing atoms with bonds that straddle that periodic
-   boundary, then the atoms may become far apart if the box size grows.
-   This will separate the atoms in the bond, which can lead to "lost"
-   bond atoms or bad dynamics.
+   The simulation box size in the new data file will be merged with
+   the existing simulation box to create a large enough box in each
+   dimension to contain both the existing and new atoms.  Each box
+   dimension never shrinks due to this merge operation, it only stays
+   the same or grows.  Care must be used if you are growing the
+   existing simulation box in a periodic dimension.  If there are
+   existing atoms with bonds that straddle that periodic boundary,
+   then the atoms may become far apart if the box size grows.  This
+   will separate the atoms in the bond, which can lead to "lost" bond
+   atoms or bad dynamics.
 
 The three choices for the *add* argument affect how the atom IDs and
 molecule IDs of atoms in the data file are treated.  If *append* is
@@ -288,13 +288,16 @@ Format of the header of a data file
 """""""""""""""""""""""""""""""""""
 
 These are the recognized header keywords.  Header lines can come in
-any order.  The value(s) are read from the beginning of the line.
+any order.  Each keyword takes a single value unless noted in this
+list.  The value(s) are read from the beginning of the line.
 Thus the keyword *atoms* should be in a line like "1000 atoms"; the
 keyword *ylo yhi* should be in a line like "-10.0 10.0 ylo yhi"; the
 keyword *xy xz yz* should be in a line like "0.0 5.0 6.0 xy xz yz".
-All these settings have a default value of 0, except the lo/hi box
-size defaults are -0.5 and 0.5.  A line need only appear if the value
-is different than the default.
+
+All these settings have a default value of 0, except for the
+simulation box size settings; their defaults are explained below.  A
+keyword line need only appear if its value is different than the
+default.
 
 * *atoms* = # of atoms in system
 * *bonds* = # of bonds in system
@@ -315,73 +318,150 @@ is different than the default.
 * *lines* = # of line segments in system
 * *triangles* = # of triangles in system
 * *bodies* = # of bodies in system
-* *xlo xhi* = simulation box boundaries in x dimension
-* *ylo yhi* = simulation box boundaries in y dimension
-* *zlo zhi* = simulation box boundaries in z dimension
-* *xy xz yz* = simulation box tilt factors for triclinic system
+* *xlo xhi* = simulation box boundaries in x dimension (2 values)
+* *ylo yhi* = simulation box boundaries in y dimension (2 values)
+* *zlo zhi* = simulation box boundaries in z dimension (2 values)
+* *xy xz yz* = simulation box tilt factors for triclinic system (3 values)
+* *avec* = first edge vector of a general triclinic simulation box (3 values)
+* *bvec* = second edge vector of a general triclinic simulation box (3 values)
+* *cvec* = third edge vector of a general triclinic simulation box (3 values)
+* *abc origin* = origin on a general triclinic simulation box (3 values)
 
-The initial simulation box size is determined by the lo/hi settings.
-In any dimension, the system may be periodic or non-periodic; see the
-:doc:`boundary <boundary>` command.  When the simulation box is created
-it is also partitioned into a regular 3d grid of rectangular bricks,
-one per processor, based on the number of processors being used and
-the settings of the :doc:`processors <processors>` command.  The
-partitioning can later be changed by the :doc:`balance <balance>` or
-:doc:`fix balance <fix_balance>` commands.
+----------
 
-If the *xy xz yz* line does not appear, LAMMPS will set up an
-axis-aligned (orthogonal) simulation box.  If the line does appear,
-LAMMPS creates a non-orthogonal simulation domain shaped as a
-parallelepiped with triclinic symmetry.  The parallelepiped has its
-"origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
-from the origin given by A = (xhi-xlo,0,0); B = (xy,yhi-ylo,0); C =
-(xz,yz,zhi-zlo).  *Xy,xz,yz* can be 0.0 or positive or negative values
-and are called "tilt factors" because they are the amount of
-displacement applied to faces of an originally orthogonal box to
-transform it into the parallelepiped.
+Header specification of the simulation box size and shape
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The tilt factors (xy,xz,yz) should not skew the box more than half the
-distance of the corresponding parallel box length.  For example, if
-:math:`x_\text{lo} = 2` and :math:`x_\text{hi} = 12`, then the :math:`x`
-box length is 10 and the :math:`xy` tilt factor must be between
-:math:`-5` and :math:`5`.  Similarly, both :math:`xz` and :math:`yz`
-must be between :math:`-(x_\text{hi}-x_\text{lo})/2` and
-:math:`+(y_\text{hi}-y_\text{lo})/2`.  Note that this is not a
-limitation, since if the maximum tilt factor is 5 (as in this example),
-then configurations with tilt :math:`= \dots, -15`, :math:`-5`,
-:math:`5`, :math:`15`, :math:`25, \dots` are all geometrically
-equivalent.  Simulations with large tilt factors will run inefficiently,
-since they require more ghost atoms and thus more communication.  With
-very large tilt factors, LAMMPS will eventually produce incorrect
-trajectories and stop with errors due to lost atoms or similar.
+The final 8 keywords in the list of header keywords are for simulation
+boxes of 3 kinds which LAMMPS supports:
 
-See the :doc:`Howto triclinic <Howto_triclinic>` page for a
-geometric description of triclinic boxes, as defined by LAMMPS, and
-how to transform these parameters to and from other commonly used
-triclinic representations.
+* orthogonal box = faces are perpendicular to the xyz coordinate axes
+* restricted triclinic box = a parallelepiped defined by 3 edge vectors oriented in a constrained manner
+* general triclinic box = a parallelepiped defined by 3 arbitrary edge vectors
 
-When a triclinic system is used, the simulation domain should normally
-be periodic in the dimension that the tilt is applied to, which is
-given by the second dimension of the tilt factor (e.g. y for xy tilt).
-This is so that pairs of atoms interacting across that boundary will
-have one of them shifted by the tilt factor.  Periodicity is set by
-the :doc:`boundary <boundary>` command.  For example, if the xy tilt
-factor is non-zero, then the y dimension should be periodic.
-Similarly, the z dimension should be periodic if xz or yz is non-zero.
-LAMMPS does not require this periodicity, but you may lose atoms if
-this is not the case.
+For restricted and general triclinic boxes, see the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page for a fuller
+description than is given here.
 
-Also note that if your simulation will tilt the box, e.g. via the
-:doc:`fix deform <fix_deform>` command, the simulation box must be setup
-to be triclinic, even if the tilt factors are initially 0.0.  You can
-also change an orthogonal box to a triclinic box or vice versa by using
-the :doc:`change box <change_box>` command with its *ortho* and
-*triclinic* options.
+The units of the values for all 8 keywords in in distance units; see
+the :doc:`units <units>` command for details.
 
-For 2d simulations, the *zlo zhi* values should be set to bound the z
-coords for atoms that appear in the file; the default of -0.5 0.5 is
-valid if all z coords are 0.0.  For 2d triclinic simulations, the xz
-and yz tilt factors must be 0.0.
+For all 3 kinds of simulation boxes, the system may be periodic or
+non-periodic in any dimension; see the :doc:`boundary <boundary>`
+command.  When the simulation box is created by the read_data command,
+it is also partitioned into a regular 3d grid of subdomains, one per
+processor, based on the number of processors being used and the
+settings of the :doc:`processors <processors>` command.  For each kind
+of simulatino box the subdomains have the same shape as the simulation
+box, i.e. smaller orthogonal bricks for orthogonal boxes, smaller
+tilted bricks for triclinic boxes.  The partitioning can later be
+changed by the :doc:`balance <balance>` or :doc:`fix balance
+<fix_balance>` commands.
+
+For an orthogonal box, only the *xlo xhi*, *ylo yhi*, *zlo zhi*
+keywords are used.  They define the extent of the simulation box in
+each dimension.  The origin (lower left corner) of the orthogonal box
+is at (xlo,ylo,zlo).  The default values for these 3 keywords are -0.5
+and 0.5 for each lo/hi pair.  For a 2d simulation, the zlo and zhi
+values must straddle zero.  The default zlo/zhi values do this, so
+that keyword is not needed in 2d.
+
+For a restricted triclinic box, the *xy xz yz* keyword is used in
+addition to the *xlo xhi*, *ylo yhi*, *zlo zhi* keywords.  The three
+*xy,xz,yz* values can be 0.0 or positive or negative, and are called
+"tilt factors" because they are the amount of displacement applied to
+faces of an orthogonal box to transform it into a restricted triclinic
+parallelepiped.
+
+The :doc:`Howto_triclinic <Howto_triclinic>` doc page discusses the
+tilt factors in detail and explains that the resulting edge vectors of
+the restricted triclinic box are:
+
+* **A** = (xhi-xlo,0,0)
+* **B** = (xy,yhi-ylo,0)
+* **C** = (xz,yz,zhi-zlo)
+
+This restricted form of edge vectors means that **A** is along the
+x-axis, **B** is in the xy plane with a y-component in the +y
+direction, and **C** has a z-component in the +z direction.  The
+origin (lower left corner) of the restricted triclinic box is at
+(xlo,ylo,zlo).
+
+For a 2d simulation, the zlo and zhi values must straddle zero.  The
+default zlo/zhi values do this, so that keyword is not needed in 2d.
+The xz and yz values must also be zero in 2d.  The shape of the 2d
+restricted triclinic simulation box is effectively a parallelogram.
+
+.. note::
+
+   When a restricted triclinic box is used, the simulation domain
+   should normally be periodic in any dimensions that tilt is applied
+   to, which is given by the second dimension of the tilt factor
+   (e.g. y for xy tilt).  This is so that pairs of atoms interacting
+   across that boundary will have one of them shifted by the tilt
+   factor.  Periodicity is set by the :doc:`boundary <boundary>`
+   command.  For example, if the xy tilt factor is non-zero, then the
+   y dimension should be periodic.  Similarly, the z dimension should
+   be periodic if xz or yz is non-zero.  LAMMPS does not require this
+   periodicity, but you may lose atoms if this is not the case.
+
+.. note::
+
+   Normally, the specified tilt factors (xy,xz,yz) should not skew the
+   simulation box by more than half the distance of the corresponding
+   parallel box length for computational efficiency.  For example, if
+   :math:`x_\text{lo} = 2` and :math:`x_\text{hi} = 12`, then the
+   :math:`x` box length is 10 and the :math:`xy` tilt factor should be
+   between :math:`-5` and :math:`5`.  LAMMPS will issue a warning if
+   this is not the case.  See the :doc:`Howto_triclinic
+   <Howto_triclinic>` doc page for more details.
+
+.. note::
+
+   If a simulation box is initially orthogonal, but will tilt during a
+   simulation, e.g. via the :doc:`fix deform <fix_deform>` command,
+   then the box should be defined as restricted triclinic with all 3
+   tilt factors = 0.0.  Alternatively, the :doc:`change box
+   <change_box>` command can be used to convert an orthogonal box to a
+   restricted triclinic box.
+
+For a general triclinic box, the *avec*, *bvec*, *cvec*, and *abc
+origin* keywords are used.  The *xlo xhi*, *ylo yhi*, *zlo zhi*, and
+*xy xz yz* keywords are not used.  The first 3 keywords define the 3
+edge vectors **A**, **B**, **C** of a general triclinic box.  They can
+be arbitrary vectors so long as they are distinct, non-zero, and not
+co-planar.  There is no "right-hand rule" requirement that (**A** x
+**B**) point in the direction of **C**.  The origin of the box (origin
+of the 3 edge vectors) is set by the *abc origin* keyword.
+
+The default values for these 4 keywords are as follows:
+
+* avec = (1,0,0)
+* bvec = (0,1,0)
+* cvec = (0,0,1)
+* *abc origin = (0,0,0) for 3d, (0,0,-0.5) for 2d
+
+For 2d simulations, *cvec* = (0,0,1) is required, and the 3rd value of
+*abc origin* must be -0.5.  These are the default values, so the
+*cvec* keyword is not needed in 2d.
+
+.. note::
+
+   LAMMPS allows specification of general triclinic simulation boxes
+   as a convenience for users who may be converting data from
+   solid-state crystallograhic representations for input to LAMMPS.
+   However, as explained on the :doc:`Howto_triclinic
+   <Howto_triclinic>` doc page, internally LAMMPS only uses restricted
+   triclinic simulation boxes.  This means the box and atom
+   information (coordinates, velocities) in the data file are
+   converted from general to restricted triclinic form as soon as the
+   file is read.  The :doc:`Howto_triclinic <Howto_triclinic>` doc
+   page also discusses other LAMMPS commands which can input/output
+   general triclinic representations of the simulation box and
+   per-atom data.
+
+The following explanations apply to all 3 kinds of simulation boxes:
+orthogonal, restricted triclinic, and general triclinic.
 
 If the system is periodic (in a dimension), then atom coordinates can
 be outside the bounds (in that dimension); they will be remapped (in a
@@ -405,7 +485,6 @@ warning message, if that happens.  This is equivalent to wrapping atoms
 individually back into the principal unit cell in that direction.  This
 operation is equivalent to the behavior of the :doc:`change_box command
 <change_box>` when used to change periodicity.
-
 
 If those atoms with non-zero image flags are involved in bonded
 interactions, this reset can lead to undesired changes, when the image
@@ -440,25 +519,32 @@ needed, so that the image flag would be zero.
    to lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
    read_data command will generate an error in this case.
 
+----------
+
+Meaning of other header keywords
+""""""""""""""""""""""""""""""""
+
 The "extra bond per atom" setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to
-the system when a simulation runs, e.g. by using the :doc:`fix bond/create <fix_bond_create>` command. Using this header flag
-is deprecated; please use the *extra/bond/per/atom* keyword (and
+the system when a simulation runs, e.g. by using the :doc:`fix
+bond/create <fix_bond_create>` command. Using this header flag is
+deprecated; please use the *extra/bond/per/atom* keyword (and
 correspondingly for angles, dihedrals and impropers) in the read_data
 command instead. Either will pre-allocate space in LAMMPS data
 structures for storing the new bonds (angles, dihedrals, impropers).
 
 The "extra special per atom" setting is typically only needed if new
-bonds/angles/etc will be added to the system, e.g. by using the :doc:`fix bond/create <fix_bond_create>` command.  Or if entire new molecules
-will be added to the system, e.g. by using the
-:doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>` commands,
-which will have more special 1-2,1-3,1-4 neighbors than any other
-molecules defined in the data file.  Using this header flag is
-deprecated; please use the *extra/special/per/atom* keyword instead.
-Using this setting will pre-allocate space in the LAMMPS data
-structures for storing these neighbors.  See the
-:doc:`special_bonds <special_bonds>` and :doc:`molecule <molecule>` doc
-pages for more discussion of 1-2,1-3,1-4 neighbors.
+bonds/angles/etc will be added to the system, e.g. by using the
+:doc:`fix bond/create <fix_bond_create>` command.  Or if entire new
+molecules will be added to the system, e.g. by using the :doc:`fix
+deposit <fix_deposit>` or :doc:`fix pour <fix_pour>` commands, which
+will have more special 1-2,1-3,1-4 neighbors than any other molecules
+defined in the data file.  Using this header flag is deprecated;
+please use the *extra/special/per/atom* keyword instead.  Using this
+setting will pre-allocate space in the LAMMPS data structures for
+storing these neighbors.  See the :doc:`special_bonds <special_bonds>`
+and :doc:`molecule <molecule>` doc pages for more discussion of
+1-2,1-3,1-4 neighbors.
 
 .. note::
 
@@ -470,13 +556,13 @@ pages for more discussion of 1-2,1-3,1-4 neighbors.
    If they appear in later data files, they are ignored.
 
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
-only used with :doc:`atom_style ellipsoid or line or tri or body <atom_style>` and specify how many of the atoms are
-finite-size ellipsoids or lines or triangles or bodies; the remainder
-are point particles.  See the discussion of ellipsoidflag and the
-*Ellipsoids* section below.  See the discussion of lineflag and the
-*Lines* section below.  See the discussion of triangleflag and the
-*Triangles* section below.  See the discussion of bodyflag and the
-*Bodies* section below.
+only used with :doc:`atom_style ellipsoid or line or tri or body
+<atom_style>` and specify how many of the atoms are finite-size
+ellipsoids or lines or triangles or bodies; the remainder are point
+particles.  See the discussion of ellipsoidflag and the *Ellipsoids*
+section below.  See the discussion of lineflag and the *Lines* section
+below.  See the discussion of triangleflag and the *Triangles* section
+below.  See the discussion of bodyflag and the *Bodies* section below.
 
 .. note::
 
@@ -680,6 +766,16 @@ appended to it, which indicate which image of a periodic simulation
 box the atom is in.  These may be important to include for some kinds
 of analysis.
 
+.. note::
+
+   For orthogonal and restricted and general triclinic simulation
+   boxes, the atom coordinates (x,y,z) listed in this section should
+   be inside the corresponding simulation box.  For general triclinic
+   boxes that means the box defined by the 3 edge vectors specified by
+   the *avec*, *bvec*, *cvec* header keywords.  See the discussion
+   above in the header section about how atom coordinates outside the
+   simulation box are (or are not) remapped to be inside the box.
+
 .. list-table::
 
    * - angle
@@ -773,8 +869,9 @@ The per-atom values have these meanings and units, listed alphabetically:
 The units for these quantities depend on the unit style; see the
 :doc:`units <units>` command for details.
 
-For 2d simulations specify z as 0.0, or a value within the *zlo zhi*
-setting in the data file header.
+For 2d simulations, z must be specified as 0.0.  If the data file is
+created by another program, then z values for a 2d simulation can be
+within epsilon of 0.0, and LAMMPS will force them to zero.
 
 The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
@@ -1513,8 +1610,8 @@ fields:
 
    atom-ID vx vy vz ervel wx wy wz
 
-Translational velocities can also be set by the
-:doc:`velocity <velocity>` command in the input script.
+Translational velocities can also be (re)set by the :doc:`velocity
+<velocity>` command in the input script.
 
 ----------
 

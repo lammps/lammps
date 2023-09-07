@@ -24,6 +24,9 @@ for info on how zlo and zhi are defined for 2d simulations.
 
 ----------
 
+Triclinic simulation boxes
+""""""""""""""""""""""""""
+
 LAMMPS also allows simulations to be performed using triclinic
 (non-orthogonal) simulation boxes shaped as a parallelepiped with
 triclinic symmetry.
@@ -46,55 +49,41 @@ this purpose.  It allows dynamic control of the xy, xz, yz tilt
 factors as a simulation runs.  This is discussed in the next section
 on non-equilibrium MD (NEMD) simulations.
 
-Conceptually, the tricliic parallelepiped is defined with an "origin"
+Conceptually, a triclinic parallelepiped is defined with an "origin"
 at (xlo,ylo,zhi) and 3 edge vectors **A** = (ax,ay,az), **B** =
 (bx,by,bz), **C** = (cx,cy,cz) which can now be arbitrary vectors, so
-long as they are distinct and are not co-planar.
+long as they are non-zero, distinct, and not co-planar.  There is no
+"right-hand rule" requirement that (**A** x **B**) point in the
+direction of **C**.
 
 The 4 commands listed above for defining orthogonal simulation boxes
 have triclinic options which allow for specification of the origin and
 edge vectors **A**, **B**, **C**.  For each command, this can be done
-in one of two ways, for what LAMMPS calls a *general* triclinic box,
-or a *restricited* triclinic box.  A *general* triclinic box is
-specified by an origin and 9 parameters (ax,ay,az), (bx,by,bz),
-(cx,cy,cz), or 12 parameters in total.  A *restricted* triclinic box
-also has an origin, but its edge vectors are of the following form:
-**A** = (xhi-xlo,0,0), **B** = (xy,yhi-ylo,0), **C** =
-(xz,yz,zhi-zlo).  So 9 parameters in total.
+in one of two ways, for what LAMMPS calls a *general* triclinic box or
+a *restricted* triclinic box.
 
-The restricted form of edge vectors means that **A** is along the
-x-axis, **B** is in the x-y plane with a y-component in the +y
+A *general* triclinic box is specified by an origin and 9 parameters
+(ax,ay,az), (bx,by,bz), (cx,cy,cz), or 12 parameters in total.  A
+*restricted* triclinic box also has an origin, but its edge vectors
+are of the following form: **A** = (xhi-xlo,0,0), **B** =
+(xy,yhi-ylo,0), **C** = (xz,yz,zhi-zlo).  So 9 parameters in total.
+
+The restricted form of edge vectors requires that **A** is along the
+x-axis, **B** is in the xy plane with a y-component in the +y
 direction, and **C** has a z-component in the +z direction.
-*Xy,xz,yz* can be 0.0 or positive or negative values and are called
+*Xy,xz,yz* can be zero or positive or negative values and are called
 "tilt factors" because they are the amount of displacement applied to
 faces of an originally orthogonal box to transform it into a
-restricted parallelepiped.
+restricted triclinic parallelepiped.
 
 .. note::
 
-   Any general triclinic box (i.e. any solid-state crystal basis
-   vectors) can be rotated/inverted in 3d around its origin to conform
-   to the definition of a restricted triclinic box.  An inversion may
+   Any general triclinic box (i.e. solid-state crystal basis vectors)
+   can be rotated/inverted in 3d around its origin to conform to the
+   LAMMPS definition of a restricted triclinic box.  An inversion may
    need to be applied to the rotated **C** vector to ensure its final
-   z-component is in the +z direction.
-
-.. note::
-
-   While LAMMPS allows specification of a triclinic simulation box in
-   either **general** or **restricted** form, internally LAMMPS only
-   uses restricted triclinic simulation boxes.  This is for parallel
-   efficiency and to formulate partitioning of the simulation box
-   across processors, neighbor list building, and inter-processor
-   communication of per-atom data with methods similar to those used
-   for orthogonal boxes.  This means 3 things.  (1) Input of a general
-   triclinic is immediately converted to restricted form.
-   (2) If output in general triclinic form is requested (e.g. for atom
-   coordinates in a dump file), then conversion from restricted
-   triclinic coordinates is done at the time of output.  (3) Most
-   importantly, other LAMMPS commands such as the :doc:`region
-   <region>` command, that refer to the simulation box geometry,
-   operate on restricted triclinic boxes, even if a general triclinic
-   box was specified as input.
+   z-component is in the +z direction.  See the discussion in the next
+   sub-section about general triclinic simulation boxes in LAMMPS.
 
 Note that for 2d simulations a triclinic simulation box is effectively
 a parallelogram; see the :doc:'Howto 2d <Howto_2d>` doc page for
@@ -111,25 +100,67 @@ if the xz and/or yz tilt factors are non-zero, then particles which
 exit the -z face of the box will be displaced in x by the xz tilt
 factor and in y by the yz tilt factor.
 
-For general and restricted triclinic boxes, their **A**, **B**, **C**
-edge vector components can be output via
+The :doc:`thermo_style custom <thermo_style>` command has keywords for
+outputting the parameters that define restricted and general triclinic
+simulation boxes. For restricted triclinic, this is (xlo,ylo,zlo),
+(xhi,yhi,zhi), and the xy,xz,yz tilt factors.  For general triclinic,
+this is the (xlo,ylo,zhi) origin and the 9 components of the **A**,
+**B**, **C** edge vectors.  For both orthogonal and restricted
+triclinic boxes, lx/ly/lz refer to the same box sizes, namely lx =
+xhi - xlo, etc.
 
-The :doc:`thermo_style custom <thermo_style>` command also has options
-for outputting the parameters that define general and restricted
-triclinic simulation boxes.  For general triclinic, this is the
-(xlo,ylo,zhi) origin and the 9 components of the **A**, **B**, **C**
-edge vectors.  For restricted triclinic, this is (xlo,ylo,zlo),
-(xhi,yhi,zhi), and the xy,xz,yz tilt factors.  For both orthogonal and
-restricted triclinic boxes, lx/ly/lz refer to the same box sizes,
-namely lx = xhi - xlo, etc.
-
-The remainder of this doc page explains mathematical transformations
-between different ways of representing general and restrictied
-triclinic boxes, which may be useful when creating LAMMPS inputs for
-triclinic simulations or interpreting outputs.  How LAMMPS uses tilt
-factors for restricted triclinic simulation boxes is also discussed.
+The remainder of this doc page explains (a) how LAMMPS operates with
+general triclinic simulation boxes, (b) mathematical transformations
+between general and restricted triclinic boxes (which may be useful
+when creating LAMMPS inputs or interpreting outputs for triclinic
+simulations, and (c) how LAMMPS uses tilt factors for restricted
+triclinic simulation boxes.
 
 ----------
+
+General triclinic simulation boxes in LAMMPS
+""""""""""""""""""""""""""""""""""""""""""""
+
+LAMMPS allows specification of general triclinic simulation boxes as a
+convenience for users who may be converting data from solid-state
+crystallograhic representations for input to LAMMPS.
+
+However, internally LAMMPS only uses restricted triclinic simulation
+boxes.  This is for parallel efficiency and to formulate partitioning
+of the simulation box across processors, neighbor list building, and
+inter-processor communication of per-atom data with methods similar to
+those used for orthogonal boxes.
+
+This means 3 things which it is important to understand:
+
+* Input of a general triclinic system is immediately converted to a
+  restricted triclinic system.
+* If output of general triclinic data is requested (e.g. for atom
+  coordinates in a dump file), then conversion from restricted
+  triclinic data is done at the time of output.
+* Most importantly, other LAMMPS commands such as the :doc:`boundary
+  <boundary>` command or :doc:`region <region>` command, that refer to
+  the simulation box geometry, operate on restricted triclinic boxes,
+  even if a general triclinic box was defined initially.
+
+This is the list of commands that have specific general triclinic
+options:
+
+create_box
+create_atoms
+lattice
+read_data
+write_data
+dump atoms, dump custom
+dump_modify
+thermo_style
+thermo_modify
+read_restart, write_restart
+
+----------
+
+Transformation from general to restricted triclinic boxes
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Let **A**,\ **B**,\ **C** be the edge vectors of a general triclinic
 simulation box.  Assume that **A** x **B** . **C** > 0.  The
@@ -163,12 +194,12 @@ inversion. This can be achieved by interchanging two of the **A**,
 **B**, **C** vectors or by changing the sign of one of them.
 
 For consistency, the same rotation/inversion applied to the triclinic
-box edge vectors also typically needs to be applied to atom positions,
-velocities, and other vector quantities.  This can be conveniently
-achieved by first converting to fractional coordinates in the general
-triclinic coordinates and then converting to coordinates in the
-resetricted triclinic basis.  The transformation is given by the
-following equation:
+box edge vectors can also be applied to atom positions, velocities,
+and other vector quantities.  This can be conveniently achieved by
+first converting to fractional coordinates in the general triclinic
+coordinates and then converting to coordinates in the resetricted
+triclinic basis.  The transformation is given by the following
+equation:
 
 .. math::
 
@@ -184,6 +215,9 @@ the fractional vector in the general triclinic basis and **x** is the
 resulting vector in the restricted triclinic basis.
 
 ----------
+
+Crystallographic general triclinic representation of a simulation box
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 General triclinic crystal structures are often defined using three
 lattice constants *a*, *b*, and *c*, and three angles :math:`\alpha`,
@@ -222,6 +256,9 @@ The values of *a*, *b*, *c*, :math:`\alpha` , :math:`\beta`, and
 
 ----------
 
+Output of restricted and general triclinic boxes in a dump file
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 As discussed on the :doc:`dump <dump>` command doc page, when the BOX
 BOUNDS for a snapshot is written to a dump file for a resticted
 triclinic box, an orthogonal bounding box which encloses the triclinic
@@ -253,6 +290,9 @@ back into the restricted triclinic box parameters, e.g. xlo =
 xlo_bound - MIN(0.0,xy,xz,xy+xz).
 
 ----------
+
+Periodicity and tilt factors for triclinic simulation boxes
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 There is no requirement that a triclinic box be periodic in any
 dimension, though as explained above it typically should be in y or z
@@ -288,7 +328,7 @@ Similarly, both xz and yz should be between -(xhi-xlo)/2 and
 +(yhi-ylo)/2.  Note that these are not limitations, since if the
 maximum tilt factor is 5 (as in this example), then simulations boxes
 and atom configurations with tilt = ..., -15, -5, 5, 15, 25, ... are
-geometrically all equivalent.
+all geometrically equivalent.
 
 If the box tilt exceeds this limit during a dynamics run (e.g. due to
 the :doc:`fix deform <fix_deform>` command), then by default the box

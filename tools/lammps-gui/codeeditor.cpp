@@ -436,7 +436,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
             if (line[begin].isSpace()) break;
             --begin;
         }
-        if ((cursor.positionInBlock() - begin) > 3) runCompletion();
+        if ((cursor.positionInBlock() - begin) > 2) runCompletion();
     }
 }
 

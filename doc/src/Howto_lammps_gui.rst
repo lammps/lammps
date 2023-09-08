@@ -12,7 +12,7 @@ retrieve and display information from LAMMPS while it is running and is
 adapted in multiple ways specifically for editing LAMMPS input files.
 
 .. note::
-   
+
    Pre-compiled, ready-to-use LAMMPS GUI executables for Linux (Ubuntu
    20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
    later), and Windows (version 10 or later) :ref:`are available
@@ -198,20 +198,20 @@ shown below.
 The drop down menu on the top right allows selection of different
 properties that are computed and written to thermo output.  Only one
 property can be shown at a time.  The plots will be updated with new
-data as the run progresses, so they can be used to visually monitor
-the evolution of tavailable properties.  From the ``File`` menu on the
-top left, it is possible to save an image of the currently displayed
-plot or export the data in either plain text columns (for use by
-plotting tools like `gnuplot <http://www.gnuplot.info/>`_ or `grace
-<https://plasma-gate.weizmann.ac.il/Grace/>`_), or as CSV data which
-can be imported for further processing with Microsoft Excel or `pandas
+data as the run progresses, so they can be used to visually monitor the
+evolution of available properties.  From the ``File`` menu on the top
+left, it is possible to save an image of the currently displayed plot or
+export the data in either plain text columns (for use by plotting tools
+like `gnuplot <http://www.gnuplot.info/>`_ or `grace
+<https://plasma-gate.weizmann.ac.il/Grace/>`_), or as CSV data which can
+be imported for further processing with Microsoft Excel or `pandas
 <https://pandas.pydata.org/>`_
 
-Thermo output data from successive run commands in the input script
-will be combined into a single data set unless the format, number, or
-names of output columns are changed with a :doc:`thermo_style
-<thermo_style>` or :doc:`thermo_modify <thermo_modify>` or the current
-time step is reset with :doc:`reset_timestep <reset_timestep>` or if a
+Thermo output data from successive run commands in the input script will
+be combined into a single data set unless the format, number, or names
+of output columns are changed with a :doc:`thermo_style <thermo_style>`
+or a :doc:`thermo_modify <thermo_modify>` command, or the current time
+step is reset with :doc:`reset_timestep <reset_timestep>`, or if a
 :doc:`clear <clear>` command is issued.
 
 Image Slide Show
@@ -226,10 +226,10 @@ displays the images created by LAMMPS as they are written.
    :scale: 50%
 
 The various buttons at the bottom right of the window allow either
-single steppin through the sequence of images or playing an animation
-(as a continuous loop or once from first to last).  It is also
-possible to zoom in or zoom out of the displayed images.  The slide
-show window will be closed when a new file is loaded.
+single stepping through the sequence of images or playing an animation
+(as a continuous loop or once from first to last).  It is also possible
+to zoom in or zoom out of the displayed images.  The slide show window
+will be closed when a new file is loaded.
 
 Variable Info
 -------------
@@ -260,12 +260,12 @@ the "palette" button in the status bar, LAMMPS GUI will send a custom
 :doc:`write_dump image <dump_image>` command to LAMMPS and read the
 resulting snapshot image with the current state of the system into an
 image viewer window.  This functionality is not available *during* an
-ongoing run.  When LAMMPS is not yet initialized, LAMMPS GUI will try
-to identify the line with the first run or minimize command and
-execute all command up to that line from the input buffer and then add
-a "run 0" command.  This will initialize the system so an image can be
-rendered.  If there was an error, the snapshot image viewer will not
-appear.
+ongoing run.  When LAMMPS is not yet initialized, LAMMPS GUI will try to
+identify the line with the first run or minimize command and execute all
+command up to that line from the input buffer and then add a "run 0"
+command.  This will initialize the system so an image of the initial
+state of the system can be rendered.  If there was an error, the
+snapshot image viewer will not appear.
 
 When possible, LAMMPS GUI will try to detect which elements the atoms
 correspond to (via their mass) and then colorize them in the image
@@ -300,25 +300,25 @@ have: text selection via mouse or with cursor moves while holding the
 Shift key, Cut (`Ctrl-X`), Copy (`Ctrl-C`), Paste (`Ctrl-V`), Undo
 (`Ctrl-Z`), Redo (`Ctrl-Shift-Z`), Select All (`Ctrl-A`).  When trying
 to exit the editor with a modified buffer, a dialog will pop up asking
-whether to cancel the operation, or to save or not save the buffer
+whether to cancel the exit operation, or to save or not save the buffer
 contents to a file.
 
 Context Specific Word Completion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, LAMMPS GUI will display a popup window with possible
-completions for LAMMPS input script commands or styles after 3
+By default, LAMMPS GUI will display a small popup frame with possible
+completions for LAMMPS input script commands or styles after 2
 characters of a word have been typed. The word can then be completed
 through selecting an entry by scrolling down with the cursor keys and
 selecting with the 'Enter' key or by clicking on the entry with the
 mouse.  The automatic completion popup can be disabled in the
 ``Preferences`` dialog, but the completion can still be requested
-manually by either hitting the 'Shift-TAB' key or by right-clicking
-with the mouse and selecting the option from the context menu.  Most
-of the completion information is taken from the LAMMPS instance and
-thus it will be adjusted to only show options available that have been
-enabled while compiling LAMMPS, however that excludes accelerated
-styles and commands.  Only non-suffix versions are shown.
+manually by either hitting the 'Shift-TAB' key or by right-clicking with
+the mouse and selecting the option from the context menu.  Most of the
+completion information is taken from the LAMMPS instance and thus it
+will be adjusted to only show options available that have been enabled
+while compiling LAMMPS, however that excludes accelerated styles and
+commands, only non-suffix versions are shown.
 
 Line Reformatting
 ^^^^^^^^^^^^^^^^^
@@ -441,7 +441,7 @@ the system.  This option is only available if the LAMMPS GUI can find
 the OVITO executable in the system path.
 
 The ``View in VMD`` entry will launch VMC with a :doc:`data file
-<write_data>` contianing the current state of the system.  This option
+<write_data>` containing the current state of the system.  This option
 is only available if the LAMMPS GUI can find the VMD executable in the
 system path.
 
@@ -471,7 +471,7 @@ main page of the LAMMPS documentation in the web browser.
 Preferences
 -----------
 
-The ``Preferences`` dialog allows customizzation of the behavior and
+The ``Preferences`` dialog allows customization of the behavior and
 look of the LAMMPS GUI application.  The settings are grouped and each
 group is displayed within a tab.
 

@@ -377,7 +377,7 @@ void CodeEditor::setGroupList()
     setTextCursor(cursor);
     while (find(groupcmd)) {
         auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
-        if (words.size() > 1) groups << words[1];
+        if ((words.size() > 1) && !groups.contains(words[1])) groups << words[1];
     }
     groups.sort();
     groups.prepend(QStringLiteral("all"));
@@ -386,9 +386,46 @@ void CodeEditor::setGroupList()
     group_comp->setModel(new QStringListModel(groups, group_comp));
 }
 
+void CodeEditor::setVarNameList()
+{
+    QStringList vars;
+    LammpsWrapper *lammps = &qobject_cast<LammpsGui *>(parent())->lammps;
+    int nvar              = lammps->id_count("variable");
+    char buffer[200];
+    for (int i = 0; i < nvar; ++i) {
+        lammps->variable_info(i, buffer, 200);
+        if (strlen(buffer) == 1) vars << QString("$%1").arg(buffer);
+        vars << QString("${%1}").arg(buffer);
+        vars << QString("v_%1").arg(buffer);
+    }
+
+    QRegularExpression varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(varcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if ((words.size() > 1)) {
+            QString w = QString("$%1").arg(words[1]);
+            if ((words[1].size() == 1) && !vars.contains(w)) vars << w;
+            w = QString("${%1}").arg(words[1]);
+            if (!vars.contains(w)) vars << w;
+            w = QString("v_%1").arg(words[1]);
+            if (!vars.contains(w)) vars << w;
+        }
+    }
+    vars.sort();
+
+    setTextCursor(saved);
+    varname_comp->setModel(new QStringListModel(vars, varname_comp));
+}
+
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
     const auto key = event->key();
+
     if (current_comp && current_comp->popup()->isVisible()) {
         // The following keys are forwarded by the completer to the widget
         switch (key) {

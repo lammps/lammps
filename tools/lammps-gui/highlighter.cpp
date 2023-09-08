@@ -41,7 +41,7 @@ Highlighter::Highlighter(QTextDocument *parent) :
     isSetup1(
         QStringLiteral("^\\s*(min_style|run_style|timestep|suffix|plugin|comm_modify|comm_style|"
                        "package|reset_timestep|dump_modify|fix_modify|compute_modify)\\s+(\\S+)")),
-    isVariable(QStringLiteral("\\s+(\\$[a-z]|\\${[^} ]+}|\\$\\(\\S+\\))")),
+    isVariable(QStringLiteral("(\\$[a-z]|\\${[^} ]+}|\\$\\(\\S+\\))")),
     isReference(
         QStringLiteral("\\s+(c_\\S+|C_\\S+|f_\\S+|F_\\S+|i_\\S+|i2_\\S+|d_\\S+|d2_\\S+|v_\\S+)")),
     isNumber1(QStringLiteral("(^|\\s+)[-+]?[0-9:*]+")), // integer and integer ranges

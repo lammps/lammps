@@ -440,7 +440,7 @@ with a :doc:`data file <write_data>` containing the current state of
 the system.  This option is only available if the LAMMPS GUI can find
 the OVITO executable in the system path.
 
-The ``View in VMD`` entry will launch VMC with a :doc:`data file
+The ``View in VMD`` entry will launch VMD with a :doc:`data file
 <write_data>` containing the current state of the system.  This option
 is only available if the LAMMPS GUI can find the VMD executable in the
 system path.

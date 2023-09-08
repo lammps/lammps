@@ -294,8 +294,10 @@ QString CodeEditor::reformatLine(const QString &line)
     int namesize = settings.value("name", "8").toInt();
     settings.endGroup();
 
-    bool rebuildGroupComp   = false;
-    bool rebuildVarNameComp = false;
+    bool rebuildGroupComp     = false;
+    bool rebuildVarNameComp   = false;
+    bool rebuildComputeIDComp = false;
+    bool rebuildFixIDComp     = false;
 
     if (words.size()) {
         // commented line. do nothing
@@ -310,6 +312,10 @@ QString CodeEditor::reformatLine(const QString &line)
             if (words[0] == "group") rebuildGroupComp = true;
             // new/updated variable command -> update completer
             if (words[0] == "variable") rebuildVarNameComp = true;
+            // new/updated compute command -> update completer
+            if (words[0] == "compute") rebuildComputeIDComp = true;
+            // new/updated fix command -> update completer
+            if (words[0] == "fix") rebuildFixIDComp = true;
         }
 
         // append remaining words with just a single blank added.
@@ -348,6 +354,8 @@ QString CodeEditor::reformatLine(const QString &line)
     }
     if (rebuildGroupComp) setGroupList();
     if (rebuildVarNameComp) setVarNameList();
+    if (rebuildComputeIDComp) setComputeIDList();
+    if (rebuildFixIDComp) setFixIDList();
     return newtext;
 }
 
@@ -434,6 +442,54 @@ void CodeEditor::setVarNameList()
     varname_comp->setModel(new QStringListModel(vars, varname_comp));
 }
 
+void CodeEditor::setComputeIDList()
+{
+    QStringList compid;
+    QRegularExpression compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(compcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if ((words.size() > 1)) {
+            QString w = QString("c_%1").arg(words[1]);
+            if (!compid.contains(w)) compid << w;
+            w = QString("C_%1").arg(words[1]);
+            if (!compid.contains(w)) compid << w;
+        }
+    }
+    compid.sort();
+
+    setTextCursor(saved);
+    compid_comp->setModel(new QStringListModel(compid, compid_comp));
+}
+
+void CodeEditor::setFixIDList()
+{
+    QStringList fixid;
+    QRegularExpression fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(fixcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if ((words.size() > 1)) {
+            QString w = QString("f_%1").arg(words[1]);
+            if (!fixid.contains(w)) fixid << w;
+            w = QString("F_%1").arg(words[1]);
+            if (!fixid.contains(w)) fixid << w;
+        }
+    }
+    fixid.sort();
+
+    setTextCursor(saved);
+    fixid_comp->setModel(new QStringListModel(fixid, fixid_comp));
+}
+
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
     const auto key = event->key();
@@ -485,7 +541,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
             if (line[begin].isSpace()) break;
             --begin;
         }
-        if (((cursor.positionInBlock() - begin) > 2) || (line[begin+1] == '$')) runCompletion();
+        if (((cursor.positionInBlock() - begin) > 2) || (line[begin + 1] == '$')) runCompletion();
     }
 }
 
@@ -731,6 +787,14 @@ void CodeEditor::runCompletion()
             current_comp = group_comp;
         else if (selected.startsWith("v_"))
             current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[1].c_str());
@@ -764,6 +828,14 @@ void CodeEditor::runCompletion()
             current_comp = group_comp;
         else if (selected.startsWith("v_"))
             current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[2].c_str());
@@ -793,6 +865,14 @@ void CodeEditor::runCompletion()
             current_comp = dump_comp;
         else if (selected.startsWith("v_"))
             current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[3].c_str());
@@ -809,15 +889,24 @@ void CodeEditor::runCompletion()
             current_comp->complete(cr);
         }
         // reference located anywhere further right in the line
-    } else if (words.size() > 3) {
+    } else if (words.size() > 4) {
         current_comp = nullptr;
-        if (selected.startsWith("v_")) current_comp = varname_comp;
+        if (selected.startsWith("v_"))
+            current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
 
         if (current_comp) {
-            current_comp->setCompletionPrefix(words[3].c_str());
+            current_comp->setCompletionPrefix(selected);
             auto popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
-            if (words[3] == current_comp->currentCompletion().toStdString()) {
+            if (selected == current_comp->currentCompletion()) {
                 if (popup->isVisible()) popup->hide();
                 return;
             }

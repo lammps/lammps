@@ -58,6 +58,8 @@ public:
     void setUnitsList(const QStringList &words);
     void setGroupList();
     void setVarNameList();
+    void setComputeIDList();
+    void setFixIDList();
 
     static constexpr int NO_HIGHLIGHT = 1 << 30;
 

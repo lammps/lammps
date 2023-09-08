@@ -629,6 +629,8 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->document()->setModified(false);
     ui->textEdit->setGroupList();
     ui->textEdit->setVarNameList();
+    ui->textEdit->setComputeIDList();
+    ui->textEdit->setFixIDList();
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
     status->setText("Ready.");

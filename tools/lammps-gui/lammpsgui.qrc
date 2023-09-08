@@ -2,6 +2,9 @@
 <RCC>
   <qresource prefix="/">
     <file>lammps-icon-128x128.png</file>
+    <file>help_index.table</file>
+    <!-- This file is updated with: grep 'mycmd ==' ../../src/input.cpp | sed -e 's/^.*mycmd == "\(.*\)".*$/\1/' > lammps_internal_commands.txt -->
+    <file>lammps_internal_commands.txt</file>
     <file>antialias.png</file>
     <file>application-calc.png</file>
     <file>application-exit.png</file>
@@ -20,6 +23,8 @@
     <file>edit-redo.png</file>
     <file>edit-undo.png</file>
     <file>emblem-photos.png</file>
+    <file>expand-text.png</file>
+    <file>format-indent-less-3.png</file>
     <file>go-first.png</file>
     <file>go-last.png</file>
     <file>go-next-2.png</file>
@@ -33,7 +38,6 @@
     <file>help-about.png</file>
     <file>help-browser.png</file>
     <file>help-faq.png</file>
-    <file>help_index.table</file>
     <file>image-x-generic.png</file>
     <file>media-playback-start-2.png</file>
     <file>media-playlist-repeat.png</file>

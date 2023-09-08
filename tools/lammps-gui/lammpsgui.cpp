@@ -57,6 +57,7 @@
 
 static const QString blank(" ");
 static constexpr int MAXRECENT = 5;
+static constexpr int BUFLEN    = 128;
 
 // duplicate string
 static char *mystrdup(const std::string &text)
@@ -112,6 +113,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     capturer    = new StdCapture;
     current_file.clear();
     current_dir = QDir(".").absolutePath();
+    // use $HOME if we get dropped to "/" like on macOS
+    if (current_dir == "/") current_dir = QDir::homePath();
 
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
     QCoreApplication::setOrganizationDomain("lammps.org");
@@ -296,6 +299,86 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
         setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
     }
     resize(settings.value("mainx", "500").toInt(), settings.value("mainy", "320").toInt());
+
+    // start LAMMPS and initialize command completion
+    start_lammps();
+    QStringList style_list;
+    char buf[BUFLEN];
+    QFile internal_commands(":/lammps_internal_commands.txt");
+    if (internal_commands.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        while (!internal_commands.atEnd()) {
+            style_list << QString(internal_commands.readLine()).trimmed();
+        }
+    }
+    internal_commands.close();
+    int ncmds = lammps.style_count("command");
+    for (int i = 0; i < ncmds; ++i) {
+        if (lammps.style_name("command", i, buf, BUFLEN)) {
+            // skip suffixed names
+            const QString style(buf);
+            if (style.endsWith("/kk/host") || style.endsWith("/kk/device") || style.endsWith("/kk"))
+                continue;
+            style_list << style;
+        }
+    }
+    style_list.sort();
+    ui->textEdit->setCommandList(style_list);
+
+    style_list.clear();
+    const char *varstyles[] = {"delete",   "atomfile", "file",   "format", "getenv", "index",
+                               "internal", "loop",     "python", "string", "timer",  "uloop",
+                               "universe", "world",    "equal",  "vector", "atom"};
+    for (const auto var : varstyles)
+        style_list << var;
+    style_list.sort();
+    ui->textEdit->setVariableList(style_list);
+
+    style_list.clear();
+    const char *unitstyles[] = {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
+    for (const auto unit : unitstyles)
+        style_list << unit;
+    style_list.sort();
+    ui->textEdit->setUnitsList(style_list);
+
+#define ADD_STYLES(keyword, Type)                                                              \
+    style_list.clear();                                                                        \
+    if ((std::string(#keyword) == "pair") || (std::string(#keyword) == "bond") ||              \
+        (std::string(#keyword) == "angle") || (std::string(#keyword) == "dihedral") ||         \
+        (std::string(#keyword) == "improper") || (std::string(#keyword) == "kspace"))          \
+        style_list << QString("none");                                                         \
+    ncmds = lammps.style_count(#keyword);                                                      \
+    for (int i = 0; i < ncmds; ++i) {                                                          \
+        if (lammps.style_name(#keyword, i, buf, BUFLEN)) {                                     \
+            const QString style(buf);                                                          \
+            if (style.endsWith("/gpu") || style.endsWith("/intel") || style.endsWith("/kk") || \
+                style.endsWith("/kk/device") || style.endsWith("/kk/host") ||                  \
+                style.endsWith("/omp") || style.endsWith("/opt"))                              \
+                continue;                                                                      \
+            style_list << style;                                                               \
+        }                                                                                      \
+    }                                                                                          \
+    style_list.sort();                                                                         \
+    ui->textEdit->set##Type##List(style_list)
+
+    ADD_STYLES(fix, Fix);
+    ADD_STYLES(compute, Compute);
+    ADD_STYLES(dump, Dump);
+    ADD_STYLES(atom, Atom);
+    ADD_STYLES(pair, Pair);
+    ADD_STYLES(bond, Bond);
+    ADD_STYLES(angle, Angle);
+    ADD_STYLES(dihedral, Dihedral);
+    ADD_STYLES(improper, Improper);
+    ADD_STYLES(kspace, Kspace);
+    ADD_STYLES(region, Region);
+    ADD_STYLES(integrate, Integrate);
+    ADD_STYLES(minimize, Minimize);
+#undef ADD_STYLES
+
+    settings.beginGroup("reformat");
+    ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+    ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
+    settings.endGroup();
 }
 
 LammpsGui::~LammpsGui()
@@ -544,6 +627,10 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->document()->setPlainText(text);
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     ui->textEdit->document()->setModified(false);
+    ui->textEdit->setGroupList();
+    ui->textEdit->setVarNameList();
+    ui->textEdit->setComputeIDList();
+    ui->textEdit->setFixIDList();
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
     status->setText("Ready.");
@@ -552,7 +639,20 @@ void LammpsGui::open_file(const QString &fileName)
         delete slideshow;
         slideshow = nullptr;
     }
+    if (imagewindow) {
+        delete imagewindow;
+        imagewindow = nullptr;
+    }
+    if (chartwindow) {
+        delete chartwindow;
+        chartwindow = nullptr;
+    }
+    if (logwindow) {
+        delete logwindow;
+        logwindow = nullptr;
+    }
     update_variables();
+    lammps.close();
 }
 
 void LammpsGui::write_file(const QString &fileName)
@@ -1000,10 +1100,31 @@ void LammpsGui::render_image()
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
     if (!lammps.is_running()) {
         start_lammps();
-        if (!lammps.extract_setting("box_exists")) {
-            QMessageBox::warning(this, "ImageViewer Error",
-                                 "Cannot create snapshot image without a system box");
-            return;
+        if (!lammps.extract_setting("box_exist")) {
+            // there is no current system defined yet.
+            // so we select the input from the start to the first run or minimize command
+            // add a run 0 and thus create the state of the initial system without running.
+            // this will allow us to create a snapshot image.
+            auto saved = ui->textEdit->textCursor();
+            if (ui->textEdit->find(QRegularExpression(QStringLiteral("^\\s*(run|minimize)\\s+")))) {
+                auto cursor = ui->textEdit->textCursor();
+                cursor.movePosition(QTextCursor::PreviousBlock);
+                cursor.movePosition(QTextCursor::EndOfLine);
+                cursor.movePosition(QTextCursor::Start, QTextCursor::KeepAnchor);
+                auto selection = cursor.selectedText().replace(QChar(0x2029), '\n');
+                selection += "run 0 pre yes post no";
+                ui->textEdit->setTextCursor(saved);
+                lammps.command("clear");
+                lammps.commands_string(selection.toStdString().c_str());
+                // clear any possible error status
+                lammps.get_last_error_message(nullptr, 0);
+            }
+            // still no system box. bail out with a suitable message
+            if (!lammps.extract_setting("box_exist")) {
+                QMessageBox::warning(this, "ImageViewer Error",
+                                     "Cannot create snapshot image without a system box");
+                return;
+            }
         }
         // if configured, delete old image window before opening new one
         if (QSettings().value("imagereplace", false).toBool()) delete imagewindow;
@@ -1214,8 +1335,8 @@ void LammpsGui::preferences()
     QSettings settings;
     int oldthreads = settings.value("nthreads", 1).toInt();
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
-    bool oldecho   = settings.value("echo", 0).toBool();
-    bool oldcite   = settings.value("cite", 0).toBool();
+    bool oldecho   = settings.value("echo", false).toBool();
+    bool oldcite   = settings.value("cite", false).toBool();
 
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
@@ -1224,8 +1345,8 @@ void LammpsGui::preferences()
         // suffixes or package commands
         if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
             (oldthreads != settings.value("nthreads", 1).toInt()) ||
-            (oldecho != settings.value("echo", 0).toBool()) ||
-            (oldcite != settings.value("cite", 0).toBool())) {
+            (oldecho != settings.value("echo", false).toBool()) ||
+            (oldcite != settings.value("cite", false).toBool())) {
             if (lammps.is_running()) {
                 stop_run();
                 runner->wait();
@@ -1235,6 +1356,10 @@ void LammpsGui::preferences()
             lammpsstatus->hide();
         }
         if (imagewindow) imagewindow->createImage();
+        settings.beginGroup("reformat");
+        ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+        ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
+        settings.endGroup();
     }
 }
 
@@ -1274,11 +1399,11 @@ void LammpsGui::start_lammps()
         lammps_args.push_back(mystrdup("-suffix"));
         lammps_args.push_back(mystrdup("kk"));
     }
-    if (settings.value("echo", "0").toBool()) {
+    if (settings.value("echo", false).toBool()) {
         lammps_args.push_back(mystrdup("-echo"));
         lammps_args.push_back(mystrdup("screen"));
     }
-    if (settings.value("cite", "0").toBool()) {
+    if (settings.value("cite", false).toBool()) {
         lammps_args.push_back(mystrdup("-cite"));
         lammps_args.push_back(mystrdup("screen"));
     }

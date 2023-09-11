@@ -1129,7 +1129,7 @@ void EwaldDisp::compute_energy_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-#define swap(a, b) { register double t = a; a= b; b = t; }
+#define swap(a, b) { double t = a; a= b; b = t; }
 
 void EwaldDisp::compute_virial()
 {

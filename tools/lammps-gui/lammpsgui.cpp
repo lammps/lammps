@@ -20,6 +20,7 @@
 #include "logwindow.h"
 #include "preferences.h"
 #include "setvariables.h"
+#include "slideshow.h"
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
@@ -56,6 +57,7 @@
 
 static const QString blank(" ");
 static constexpr int MAXRECENT = 5;
+static constexpr int BUFLEN    = 128;
 
 // duplicate string
 static char *mystrdup(const std::string &text)
@@ -96,8 +98,8 @@ static bool has_exe(const QString &exe)
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
-    logupdater(nullptr), dirstatus(nullptr), progress(nullptr), prefdialog(nullptr),
-    lammpsstatus(nullptr)
+    slideshow(nullptr), logupdater(nullptr), dirstatus(nullptr), progress(nullptr),
+    prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr)
 {
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
@@ -111,6 +113,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     capturer    = new StdCapture;
     current_file.clear();
     current_dir = QDir(".").absolutePath();
+    // use $HOME if we get dropped to "/" like on macOS
+    if (current_dir == "/") current_dir = QDir::homePath();
 
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
     QCoreApplication::setOrganizationDomain("lammps.org");
@@ -189,8 +193,21 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     text_font.setStyleHint(QFont::Monospace, QFont::PreferOutline);
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
     settings.setValue("textfont", text_font.toString());
-    ui->textEdit->document()->setDefaultFont(text_font);
+    ui->textEdit->setFont(text_font);
     ui->textEdit->setMinimumSize(600, 400);
+
+    varwindow = new QLabel(QString());
+    varwindow->setWindowTitle("LAMMPS-GUI - Current Variables:");
+    varwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    varwindow->setMinimumSize(100, 50);
+    varwindow->setText("(none)");
+    varwindow->setFont(text_font);
+    varwindow->setFrameStyle(QFrame::Sunken);
+    varwindow->setFrameShape(QFrame::Panel);
+    varwindow->setAlignment(Qt::AlignVCenter);
+    varwindow->setContentsMargins(5, 5, 5, 5);
+    varwindow->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    varwindow->hide();
 
     update_recents();
 
@@ -211,6 +228,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionUndo, &QAction::triggered, this, &LammpsGui::undo);
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
+    connect(ui->actionRun_File, &QAction::triggered, this, &LammpsGui::run_file);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
     connect(ui->actionSet_Variables, &QAction::triggered, this, &LammpsGui::edit_variables);
     connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::render_image);
@@ -225,6 +243,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionView_Log_Window, &QAction::triggered, this, &LammpsGui::view_log);
     connect(ui->actionView_Graph_Window, &QAction::triggered, this, &LammpsGui::view_chart);
     connect(ui->actionView_Image_Window, &QAction::triggered, this, &LammpsGui::view_image);
+    connect(ui->actionView_Slide_Show, &QAction::triggered, this, &LammpsGui::view_slides);
+    connect(ui->actionView_Variable_Window, &QAction::triggered, this, &LammpsGui::view_variables);
     connect(ui->action_1, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_2, &QAction::triggered, this, &LammpsGui::open_recent);
     connect(ui->action_3, &QAction::triggered, this, &LammpsGui::open_recent);
@@ -279,6 +299,86 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
         setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
     }
     resize(settings.value("mainx", "500").toInt(), settings.value("mainy", "320").toInt());
+
+    // start LAMMPS and initialize command completion
+    start_lammps();
+    QStringList style_list;
+    char buf[BUFLEN];
+    QFile internal_commands(":/lammps_internal_commands.txt");
+    if (internal_commands.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        while (!internal_commands.atEnd()) {
+            style_list << QString(internal_commands.readLine()).trimmed();
+        }
+    }
+    internal_commands.close();
+    int ncmds = lammps.style_count("command");
+    for (int i = 0; i < ncmds; ++i) {
+        if (lammps.style_name("command", i, buf, BUFLEN)) {
+            // skip suffixed names
+            const QString style(buf);
+            if (style.endsWith("/kk/host") || style.endsWith("/kk/device") || style.endsWith("/kk"))
+                continue;
+            style_list << style;
+        }
+    }
+    style_list.sort();
+    ui->textEdit->setCommandList(style_list);
+
+    style_list.clear();
+    const char *varstyles[] = {"delete",   "atomfile", "file",   "format", "getenv", "index",
+                               "internal", "loop",     "python", "string", "timer",  "uloop",
+                               "universe", "world",    "equal",  "vector", "atom"};
+    for (const auto var : varstyles)
+        style_list << var;
+    style_list.sort();
+    ui->textEdit->setVariableList(style_list);
+
+    style_list.clear();
+    const char *unitstyles[] = {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
+    for (const auto unit : unitstyles)
+        style_list << unit;
+    style_list.sort();
+    ui->textEdit->setUnitsList(style_list);
+
+#define ADD_STYLES(keyword, Type)                                                              \
+    style_list.clear();                                                                        \
+    if ((std::string(#keyword) == "pair") || (std::string(#keyword) == "bond") ||              \
+        (std::string(#keyword) == "angle") || (std::string(#keyword) == "dihedral") ||         \
+        (std::string(#keyword) == "improper") || (std::string(#keyword) == "kspace"))          \
+        style_list << QString("none");                                                         \
+    ncmds = lammps.style_count(#keyword);                                                      \
+    for (int i = 0; i < ncmds; ++i) {                                                          \
+        if (lammps.style_name(#keyword, i, buf, BUFLEN)) {                                     \
+            const QString style(buf);                                                          \
+            if (style.endsWith("/gpu") || style.endsWith("/intel") || style.endsWith("/kk") || \
+                style.endsWith("/kk/device") || style.endsWith("/kk/host") ||                  \
+                style.endsWith("/omp") || style.endsWith("/opt"))                              \
+                continue;                                                                      \
+            style_list << style;                                                               \
+        }                                                                                      \
+    }                                                                                          \
+    style_list.sort();                                                                         \
+    ui->textEdit->set##Type##List(style_list)
+
+    ADD_STYLES(fix, Fix);
+    ADD_STYLES(compute, Compute);
+    ADD_STYLES(dump, Dump);
+    ADD_STYLES(atom, Atom);
+    ADD_STYLES(pair, Pair);
+    ADD_STYLES(bond, Bond);
+    ADD_STYLES(angle, Angle);
+    ADD_STYLES(dihedral, Dihedral);
+    ADD_STYLES(improper, Improper);
+    ADD_STYLES(kspace, Kspace);
+    ADD_STYLES(region, Region);
+    ADD_STYLES(integrate, Integrate);
+    ADD_STYLES(minimize, Minimize);
+#undef ADD_STYLES
+
+    settings.beginGroup("reformat");
+    ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+    ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
+    settings.endGroup();
 }
 
 LammpsGui::~LammpsGui()
@@ -291,6 +391,8 @@ LammpsGui::~LammpsGui()
     delete imagewindow;
     delete chartwindow;
     delete dirstatus;
+    delete varwindow;
+    delete slideshow;
 }
 
 void LammpsGui::new_document()
@@ -503,6 +605,7 @@ void LammpsGui::open_file(const QString &fileName)
                 break;
         }
     }
+    ui->textEdit->setHighlight(CodeEditor::NO_HIGHLIGHT, false);
 
     QFileInfo path(fileName);
     current_file = path.fileName();
@@ -524,10 +627,32 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->document()->setPlainText(text);
     ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     ui->textEdit->document()->setModified(false);
+    ui->textEdit->setGroupList();
+    ui->textEdit->setVarNameList();
+    ui->textEdit->setComputeIDList();
+    ui->textEdit->setFixIDList();
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
+    status->setText("Ready.");
 
+    if (slideshow) {
+        delete slideshow;
+        slideshow = nullptr;
+    }
+    if (imagewindow) {
+        delete imagewindow;
+        imagewindow = nullptr;
+    }
+    if (chartwindow) {
+        delete chartwindow;
+        chartwindow = nullptr;
+    }
+    if (logwindow) {
+        delete logwindow;
+        logwindow = nullptr;
+    }
     update_variables();
+    lammps.close();
 }
 
 void LammpsGui::write_file(const QString &fileName)
@@ -659,6 +784,27 @@ void LammpsGui::logupdate()
         t_remain  = lammps.get_thermo("cpuremain");
         t_total   = t_elapsed + t_remain + 1.0e-10;
         completed = t_elapsed / t_total * 1000.0;
+
+        int nline = -1;
+        void *ptr = lammps.last_thermo("line", 0);
+        if (ptr) {
+            nline = *((int *)ptr);
+            ui->textEdit->setHighlight(nline, false);
+        }
+
+        if (varwindow) {
+            int nvar = lammps.id_count("variable");
+            char buffer[200];
+            QString varinfo("\n");
+            for (int i = 0; i < nvar; ++i) {
+                lammps.variable_info(i, buffer, 200);
+                varinfo += buffer;
+            }
+            if (nvar == 0) varinfo += "  (none)  ";
+
+            varwindow->setText(varinfo);
+            varwindow->adjustSize();
+        }
     }
 
     progress->setValue(completed);
@@ -671,20 +817,25 @@ void LammpsGui::logupdate()
         }
     }
 
+    // get timestep
+    int step  = 0;
+    void *ptr = lammps.last_thermo("step", 0);
+    if (ptr) {
+        if (lammps.extract_setting("bigint") == 4)
+            step = *(int *)ptr;
+        else
+            step = (int)*(int64_t *)ptr;
+    }
+
     // extract cached thermo data
     if (chartwindow) {
         // thermo data is not yet valid during setup
         void *ptr = lammps.last_thermo("setup", 0);
         if (ptr && *(int *)ptr) return;
 
-        ptr = lammps.last_thermo("step", 0);
+        ptr = lammps.last_thermo("num", 0);
         if (ptr) {
-            int step = 0;
-            if (lammps.extract_setting("bigint") == 4)
-                step = *(int *)ptr;
-            else
-                step = (int)*(int64_t *)ptr;
-            int ncols = *(int *)lammps.last_thermo("num", 0);
+            int ncols = *(int *)ptr;
 
             // check if the column assignment has changed
             // if yes, delete charts and start over
@@ -729,6 +880,22 @@ void LammpsGui::logupdate()
             }
         }
     }
+
+    // update list of available image file names
+
+    QString imagefile = (const char *)lammps.last_thermo("imagename", 0);
+    if (!imagefile.isEmpty()) {
+        if (!slideshow) {
+            slideshow = new SlideShow(current_file);
+            if (QSettings().value("viewslide", true).toBool())
+                slideshow->show();
+            else
+                slideshow->hide();
+        } else {
+            slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + current_file);
+        }
+        slideshow->add_image(imagefile);
+    }
 }
 
 void LammpsGui::modified()
@@ -747,6 +914,7 @@ void LammpsGui::run_done()
     delete logupdater;
     logupdater = nullptr;
     progress->setValue(1000);
+    ui->textEdit->setHighlight(CodeEditor::NO_HIGHLIGHT, false);
 
     capturer->EndCapture();
     auto log = capturer->GetCapture();
@@ -791,24 +959,51 @@ void LammpsGui::run_done()
         success = false;
     }
 
+    int nline = CodeEditor::NO_HIGHLIGHT;
+    void *ptr = lammps.last_thermo("line", 0);
+    if (ptr) nline = *((int *)ptr);
+
     if (success) {
         status->setText("Ready.");
     } else {
         status->setText("Failed.");
+        ui->textEdit->setHighlight(nline, true);
         QMessageBox::critical(this, "LAMMPS-GUI Error",
                               QString("Error running LAMMPS:\n\n") + errorbuf);
     }
+    ui->textEdit->setCursor(nline);
     progress->hide();
     dirstatus->show();
 }
 
-void LammpsGui::run_buffer()
+void LammpsGui::do_run(bool use_buffer)
 {
     if (lammps.is_running()) {
         QMessageBox::warning(this, "LAMMPS GUI Error",
                              "Must stop current run before starting a new run");
         return;
     }
+
+    if (!use_buffer && ui->textEdit->document()->isModified()) {
+        QMessageBox msg;
+        msg.setWindowTitle("Unsaved Changes");
+        msg.setWindowIcon(windowIcon());
+        msg.setText(QString("The buffer ") + current_file + " has changes");
+        msg.setInformativeText("Do you want to save the buffer before running LAMMPS?");
+        msg.setIcon(QMessageBox::Question);
+        msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        int rv = msg.exec();
+        switch (rv) {
+            case QMessageBox::Yes:
+                save();
+                break;
+            case QMessageBox::Cancel: // falthrough
+            default:
+                return;
+                break;
+        }
+    }
+
     QSettings settings;
     progress->setValue(0);
     dirstatus->hide();
@@ -825,15 +1020,19 @@ void LammpsGui::run_buffer()
     status->repaint();
     start_lammps();
     if (!lammps.is_open()) return;
-    clear();
     capturer->BeginCapture();
 
-    // always add final newline since the text edit widget does not
-    char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
-    is_running  = true;
+    runner     = new LammpsRunner(this);
+    is_running = true;
+    if (use_buffer) {
+        // always add final newline since the text edit widget does not
+        char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
+        runner->setup_run(&lammps, input, nullptr);
+    } else {
+        char *fname = mystrdup(current_file.toStdString());
+        runner->setup_run(&lammps, nullptr, fname);
+    }
 
-    runner = new LammpsRunner(this);
-    runner->setup_run(&lammps, input);
     connect(runner, &LammpsRunner::resultReady, this, &LammpsGui::run_done);
     connect(runner, &LammpsRunner::finished, runner, &QObject::deleteLater);
     runner->start();
@@ -844,8 +1043,12 @@ void LammpsGui::run_buffer()
     logwindow->setReadOnly(true);
     logwindow->setCenterOnScroll(true);
     logwindow->moveCursor(QTextCursor::End);
-    logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
-                              current_file);
+    if (use_buffer)
+        logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
+                                  current_file);
+    else
+        logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on file - " +
+                                  current_file);
     logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     QFont text_font;
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
@@ -864,8 +1067,12 @@ void LammpsGui::run_buffer()
     // if configured, delete old log window before opening new one
     if (settings.value("chartreplace", false).toBool()) delete chartwindow;
     chartwindow = new ChartWindow(current_file);
-    chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on buffer - " +
-                                current_file);
+    if (use_buffer)
+        chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on buffer - " +
+                                    current_file);
+    else
+        chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on file - " +
+                                    current_file);
     chartwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     chartwindow->setMinimumSize(400, 300);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), chartwindow);
@@ -877,9 +1084,15 @@ void LammpsGui::run_buffer()
     else
         chartwindow->hide();
 
+    if (slideshow) {
+        slideshow->setWindowTitle("LAMMPS-GUI - Slide Show");
+        slideshow->clear();
+        slideshow->hide();
+    }
+
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(250);
+    logupdater->start(100);
 }
 
 void LammpsGui::render_image()
@@ -887,10 +1100,31 @@ void LammpsGui::render_image()
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running
     if (!lammps.is_running()) {
         start_lammps();
-        if (!lammps.extract_setting("box_exists")) {
-            QMessageBox::warning(this, "ImageViewer Error",
-                                 "Cannot create snapshot image without a system box");
-            return;
+        if (!lammps.extract_setting("box_exist")) {
+            // there is no current system defined yet.
+            // so we select the input from the start to the first run or minimize command
+            // add a run 0 and thus create the state of the initial system without running.
+            // this will allow us to create a snapshot image.
+            auto saved = ui->textEdit->textCursor();
+            if (ui->textEdit->find(QRegularExpression(QStringLiteral("^\\s*(run|minimize)\\s+")))) {
+                auto cursor = ui->textEdit->textCursor();
+                cursor.movePosition(QTextCursor::PreviousBlock);
+                cursor.movePosition(QTextCursor::EndOfLine);
+                cursor.movePosition(QTextCursor::Start, QTextCursor::KeepAnchor);
+                auto selection = cursor.selectedText().replace(QChar(0x2029), '\n');
+                selection += "run 0 pre yes post no";
+                ui->textEdit->setTextCursor(saved);
+                lammps.command("clear");
+                lammps.commands_string(selection.toStdString().c_str());
+                // clear any possible error status
+                lammps.get_last_error_message(nullptr, 0);
+            }
+            // still no system box. bail out with a suitable message
+            if (!lammps.extract_setting("box_exist")) {
+                QMessageBox::warning(this, "ImageViewer Error",
+                                     "Cannot create snapshot image without a system box");
+                return;
+            }
         }
         // if configured, delete old image window before opening new one
         if (QSettings().value("imagereplace", false).toBool()) delete imagewindow;
@@ -903,9 +1137,13 @@ void LammpsGui::render_image()
     imagewindow->show();
 }
 
-void LammpsGui::clear()
+void LammpsGui::view_slides()
 {
-    ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
+    if (!slideshow) slideshow = new SlideShow(current_file);
+    if (slideshow->isVisible())
+        slideshow->hide();
+    else
+        slideshow->show();
 }
 
 void LammpsGui::view_chart()
@@ -947,6 +1185,17 @@ void LammpsGui::view_image()
     }
 }
 
+void LammpsGui::view_variables()
+{
+    if (varwindow) {
+        if (varwindow->isVisible()) {
+            varwindow->hide();
+        } else {
+            varwindow->show();
+        }
+    }
+}
+
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
@@ -983,6 +1232,7 @@ void LammpsGui::about()
 
     QMessageBox msg;
     msg.setWindowTitle("About LAMMPS");
+    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
     msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
@@ -1002,6 +1252,7 @@ void LammpsGui::help()
 {
     QMessageBox msg;
     msg.setWindowTitle("LAMMPS-GUI Quick Help");
+    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
     msg.setInformativeText("<p>LAMMPS GUI is a graphical text editor that is linked to the LAMMPS "
                            "library and thus can run LAMMPS directly using the contents of the "
@@ -1084,8 +1335,8 @@ void LammpsGui::preferences()
     QSettings settings;
     int oldthreads = settings.value("nthreads", 1).toInt();
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
-    bool oldecho    = settings.value("echo", 0).toBool();
-    bool oldcite    = settings.value("cite", 0).toBool();
+    bool oldecho   = settings.value("echo", false).toBool();
+    bool oldcite   = settings.value("cite", false).toBool();
 
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
@@ -1094,8 +1345,8 @@ void LammpsGui::preferences()
         // suffixes or package commands
         if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
             (oldthreads != settings.value("nthreads", 1).toInt()) ||
-            (oldecho != settings.value("echo", 0).toBool()) ||
-            (oldcite != settings.value("cite", 0).toBool())) {
+            (oldecho != settings.value("echo", false).toBool()) ||
+            (oldcite != settings.value("cite", false).toBool())) {
             if (lammps.is_running()) {
                 stop_run();
                 runner->wait();
@@ -1105,6 +1356,10 @@ void LammpsGui::preferences()
             lammpsstatus->hide();
         }
         if (imagewindow) imagewindow->createImage();
+        settings.beginGroup("reformat");
+        ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+        ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
+        settings.endGroup();
     }
 }
 
@@ -1144,11 +1399,11 @@ void LammpsGui::start_lammps()
         lammps_args.push_back(mystrdup("-suffix"));
         lammps_args.push_back(mystrdup("kk"));
     }
-    if (settings.value("echo", "0").toBool()) {
+    if (settings.value("echo", false).toBool()) {
         lammps_args.push_back(mystrdup("-echo"));
         lammps_args.push_back(mystrdup("screen"));
     }
-    if (settings.value("cite", "0").toBool()) {
+    if (settings.value("cite", false).toBool()) {
         lammps_args.push_back(mystrdup("-cite"));
         lammps_args.push_back(mystrdup("screen"));
     }

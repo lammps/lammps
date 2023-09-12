@@ -104,9 +104,13 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   removecomflag = 1;
   fmmode = PHYSICAL;
   pstyle = ISO;
-  totenthalpy = 0.0;
+  pote = tote = totke = totenthalpy = total_spring_energy = 0.0;
+  centroid_vir = vir = vir_ = 0.0;
+  ke_bead = se_bead = pe_bead = tote = t_prim = t_vir = t_cv = p_prim = p_md = p_cv = 0.0;
 
   int seed = -1;
+
+  if (domain->dimension != 3) error->universe_all(FLERR, "Fix pimd/langevin requires a 3d system");
 
   for (int i = 0; i < 6; i++) {
     p_flag[i] = 0;
@@ -755,7 +759,6 @@ void FixPIMDLangevin::qc_step()
     domain->set_global_box();
     domain->set_local_box();
   }
-  volume = domain->xprd * domain->yprd * domain->zprd;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -816,7 +819,7 @@ void FixPIMDLangevin::press_v_step()
   double **f = atom->f;
   double **v = atom->v;
   int *type = atom->type;
-  volume = domain->xprd * domain->yprd * domain->zprd;
+  double volume = domain->xprd * domain->yprd * domain->zprd;
 
   if (pstyle == ISO) {
     if (barostat == BZP) {
@@ -834,9 +837,8 @@ void FixPIMDLangevin::press_v_step()
       MPI_Barrier(universe->uworld);
       MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
     } else if (barostat == MTTK) {
-      mtk_term1 = 2. / atom->natoms * totke / 3;
-      f_omega = (volume * np * (p_md - p_hydro) + mtk_term1) / W;
-      vw[0] += 0.5 * dtv * f_omega;
+      double mtk_term1 = 2.0 / atom->natoms * totke / 3.0;
+      vw[0] += 0.5 * dtv * (volume * np * (p_md - p_hydro) + mtk_term1) / W;
     }
   } else if (pstyle == ANISO) {
     compute_stress_tensor();
@@ -863,19 +865,13 @@ void FixPIMDLangevin::press_v_step()
 void FixPIMDLangevin::press_o_step()
 {
   if (pstyle == ISO) {
-    if (universe->me == 0) {
-      r1 = random->gaussian();
-      vw[0] = c1 * vw[0] + c2 * sqrt(1.0 / W / beta_np) * r1;
-    }
+    if (universe->me == 0) vw[0] = c1 * vw[0] + c2 * sqrt(1.0 / W / beta_np) * random->gaussian();
     MPI_Barrier(universe->uworld);
     MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
   } else if (pstyle == ANISO) {
     if (universe->me == 0) {
       for (int ii = 0; ii < 3; ii++) {
-        if (p_flag[ii]) {
-          r1 = random->gaussian();
-          vw[ii] = c1 * vw[ii] + c2 * sqrt(1.0 / W / beta_np) * r1;
-        }
+        if (p_flag[ii]) vw[ii] = c1 * vw[ii] + c2 * sqrt(1.0 / W / beta_np) * random->gaussian();
       }
     }
     MPI_Barrier(universe->uworld);
@@ -888,7 +884,7 @@ void FixPIMDLangevin::press_o_step()
 void FixPIMDLangevin::langevin_init()
 {
   double beta = 1.0 / kt;
-  _omega_np = np / beta / hbar;
+  const double _omega_np = np / beta / hbar;
   double _omega_np_dt_half = _omega_np * update->dt * 0.5;
 
   _omega_k = new double[np];
@@ -966,22 +962,19 @@ void FixPIMDLangevin::o_step()
   double beta_np = 1.0 / force->boltz / Lan_temp * inverse_np * force->mvv2e;
   if (thermostat == PILE_L) {
     for (int i = 0; i < nlocal; i++) {
-      r1 = random->gaussian();
-      r2 = random->gaussian();
-      r3 = random->gaussian();
       atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] +
-          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1;
+          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
       atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] +
-          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
+          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
       atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] +
-          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
+          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
     }
   }
 }
 
 /* ----------------------------------------------------------------------
    Normal Mode PIMD
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 void FixPIMDLangevin::nmpimd_init()
 {
@@ -1063,7 +1056,7 @@ void FixPIMDLangevin::nmpimd_transform(double **src, double **des, double *vecto
 
 /* ----------------------------------------------------------------------
    Comm operations
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
 void FixPIMDLangevin::comm_init()
 {
@@ -1224,7 +1217,9 @@ void FixPIMDLangevin::remove_com_motion()
 void FixPIMDLangevin::compute_cvir()
 {
   int nlocal = atom->nlocal;
-  xf = vir_ = xcf = centroid_vir = 0.0;
+  double xf = 0.0;
+  double xcf = 0.0;
+  vir_ = centroid_vir = 0.0;
   for (int i = 0; i < nlocal; i++) {
     for (int j = 0; j < 3; j++) {
       xf += x_unwrap[i][j] * atom->f[i][j];
@@ -1251,7 +1246,7 @@ void FixPIMDLangevin::compute_cvir()
 
 void FixPIMDLangevin::compute_vir()
 {
-  volume = domain->xprd * domain->yprd * domain->zprd;
+  double volume = domain->xprd * domain->yprd * domain->zprd;
   c_press->compute_vector();
   virial[0] = c_press->vector[0] * volume;
   virial[1] = c_press->vector[1] * volume;
@@ -1295,7 +1290,7 @@ void FixPIMDLangevin::compute_stress_tensor()
 
 void FixPIMDLangevin::compute_totke()
 {
-  kine = 0.0;
+  double kine = 0.0;
   totke = ke_bead = 0.0;
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -1334,11 +1329,10 @@ void FixPIMDLangevin::compute_spring_energy()
 void FixPIMDLangevin::compute_pote()
 {
   pe_bead = 0.0;
-  pot_energy_partition = 0.0;
   pote = 0.0;
   c_pe->compute_scalar();
   pe_bead = c_pe->scalar;
-  pot_energy_partition = pe_bead / universe->procs_per_world[universe->iworld];
+  double pot_energy_partition = pe_bead / universe->procs_per_world[universe->iworld];
   MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
@@ -1390,7 +1384,7 @@ void FixPIMDLangevin::compute_p_cv()
 
 void FixPIMDLangevin::compute_totenthalpy()
 {
-  volume = domain->xprd * domain->yprd * domain->zprd;
+  double volume = domain->xprd * domain->yprd * domain->zprd;
   if (barostat == BZP) {
     if (pstyle == ISO) {
       totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * volume / force->nktv2p -
@@ -1468,7 +1462,7 @@ double FixPIMDLangevin::compute_vector(int n)
   if (n == 9) return p_cv;
 
   if (pstat_flag) {
-    volume = domain->xprd * domain->yprd * domain->zprd;
+    double volume = domain->xprd * domain->yprd * domain->zprd;
     if (pstyle == ISO) {
       if (n == 10) return vw[0];
       if (barostat == BZP) {
@@ -1486,7 +1480,7 @@ double FixPIMDLangevin::compute_vector(int n)
       if (n == 13) return 0.5 * W * (vw[0] * vw[0] + vw[1] * vw[1] + vw[2] * vw[2]);
       if (n == 14) { return np * Pext * volume / force->nktv2p; }
       if (n == 15) {
-        volume = domain->xprd * domain->yprd * domain->zprd;
+        double volume = domain->xprd * domain->yprd * domain->zprd;
         return -Vcoeff * np * kt * log(volume);
       }
       if (n == 16) return totenthalpy;

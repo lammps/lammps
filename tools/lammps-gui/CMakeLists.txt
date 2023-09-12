@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.2.4 LANGUAGES CXX)
+project(lammps-gui VERSION 1.5.3 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -52,6 +52,11 @@ else()
   endif()
 endif()
 
+#get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
+#if (LAMMPS_VERSION LESS_EQUAL 20230802)
+#  message(FATAL_ERROR "LAMMPS GUI v${PROJECT_VERSION} is incompatible with LAMMPS 2 August 2023 or older")
+#endif()
+
 set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 if(LAMMPS_GUI_USE_PLUGIN)
   if(APPLE)
@@ -72,17 +77,17 @@ find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
 
 set(PROJECT_SOURCES
   main.cpp
+  lammpsgui.cpp
+  lammpsgui.h
+  lammpsgui.ui
+  chartviewer.cpp
+  chartviewer.h
   codeeditor.cpp
   codeeditor.h
   highlighter.cpp
   highlighter.h
   imageviewer.cpp
   imageviewer.h
-  chartviewer.cpp
-  chartviewer.h
-  lammpsgui.cpp
-  lammpsgui.h
-  lammpsgui.ui
   lammpsrunner.h
   lammpswrapper.cpp
   lammpswrapper.h
@@ -93,6 +98,8 @@ set(PROJECT_SOURCES
   preferences.h
   setvariables.cpp
   setvariables.h
+  slideshow.h
+  slideshow.cpp
   stdcapture.cpp
   ${PLUGIN_LOADER_SRC}
   ${ICON_RC_FILE}

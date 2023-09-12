@@ -37,6 +37,7 @@
 #include <QRadioButton>
 #include <QSettings>
 #include <QSpacerItem>
+#include <QSpinBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -70,6 +71,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
     tabWidget->addTab(new SnapshotTab(settings), "&Snapshot Image");
+    tabWidget->addTab(new EditorTab(settings), "&Editor Settings");
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &Preferences::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -78,8 +80,9 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     layout->addWidget(tabWidget);
     layout->addWidget(buttonBox);
     setLayout(layout);
+    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     setWindowTitle("LAMMPS-GUI - Preferences");
-    resize(500, 400);
+    resize(600, 450);
 }
 
 Preferences::~Preferences()
@@ -161,6 +164,8 @@ void Preferences::accept()
     if (box) settings->setValue("viewlog", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("viewchart");
     if (box) settings->setValue("viewchart", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("viewslide");
+    if (box) settings->setValue("viewslide", box->isChecked());
 
     if (need_relaunch) {
         QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),
@@ -172,6 +177,24 @@ void Preferences::accept()
         const char *arg0 = mystrdup(QCoreApplication::arguments().at(0).toStdString());
         execl(path, arg0, (char *)NULL);
     }
+
+    // reformatting settings
+
+    settings->beginGroup("reformat");
+    auto spin = tabWidget->findChild<QSpinBox *>("cmdval");
+    if (spin) settings->setValue("command", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("typeval");
+    if (spin) settings->setValue("type", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("idval");
+    if (spin) settings->setValue("id", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("nameval");
+    if (spin) settings->setValue("name", spin->value());
+    box = tabWidget->findChild<QCheckBox *>("retval");
+    if (box) settings->setValue("return", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("autoval");
+    if (box) settings->setValue("automatic", box->isChecked());
+    settings->endGroup();
+
     QDialog::accept();
 }
 
@@ -192,6 +215,9 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *pltv = new QCheckBox("Show chart window by default");
     pltv->setObjectName("viewchart");
     pltv->setCheckState(settings->value("viewchart", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    auto *sldv = new QCheckBox("Show slide show window by default");
+    sldv->setObjectName("viewslide");
+    sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *logr = new QCheckBox("Replace log window on new run");
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
@@ -232,6 +258,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(cite);
     layout->addWidget(logv);
     layout->addWidget(pltv);
+    layout->addWidget(sldv);
     layout->addWidget(logr);
     layout->addWidget(pltr);
     layout->addWidget(imgr);
@@ -397,7 +424,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *ssao  = new QLabel("HQ Image mode:");
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
-    auto *vdw  = new QLabel("VDW Style:");
+    auto *vdw   = new QLabel("VDW Style:");
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
@@ -469,6 +496,63 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(background, i++, 1, Qt::AlignVCenter);
     grid->addWidget(cbox, i, 0, Qt::AlignTop);
     grid->addWidget(boxcolor, i++, 1, Qt::AlignVCenter);
+
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);
+    grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Expanding, QSizePolicy::Expanding), i, 2);
+    setLayout(grid);
+}
+
+EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), settings(_settings)
+{
+    settings->beginGroup("reformat");
+    auto *grid     = new QGridLayout;
+    auto *reformat = new QLabel("Tab Reformatting settings:");
+    auto *cmdlbl   = new QLabel("Command width:");
+    auto *typelbl  = new QLabel("Type width:");
+    auto *idlbl    = new QLabel("ID width:");
+    auto *namelbl  = new QLabel("Name width:");
+    auto *retlbl   = new QLabel("Reformat with 'Enter':");
+    auto *autolbl  = new QLabel("Automatic completion:");
+    auto *cmdval   = new QSpinBox;
+    auto *typeval  = new QSpinBox;
+    auto *idval    = new QSpinBox;
+    auto *nameval  = new QSpinBox;
+    auto *retval   = new QCheckBox;
+    auto *autoval  = new QCheckBox;
+    cmdval->setRange(1, 32);
+    cmdval->setValue(settings->value("command", "16").toInt());
+    cmdval->setObjectName("cmdval");
+    typeval->setRange(1, 32);
+    typeval->setValue(settings->value("type", "4").toInt());
+    typeval->setObjectName("typeval");
+    idval->setRange(1, 32);
+    idval->setValue(settings->value("id", "8").toInt());
+    idval->setObjectName("idval");
+    nameval->setRange(1, 32);
+    nameval->setValue(settings->value("name", "8").toInt());
+    nameval->setObjectName("nameval");
+    retval->setCheckState(settings->value("return", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    retval->setObjectName("retval");
+    autoval->setCheckState(settings->value("automatic", true).toBool() ? Qt::Checked
+                                                                       : Qt::Unchecked);
+    autoval->setObjectName("autoval");
+    settings->endGroup();
+
+    int i = 0;
+    grid->addWidget(reformat, i++, 0, 1, 2, Qt::AlignTop | Qt::AlignHCenter);
+    grid->addWidget(cmdlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(cmdval, i++, 1, Qt::AlignTop);
+    grid->addWidget(typelbl, i, 0, Qt::AlignTop);
+    grid->addWidget(typeval, i++, 1, Qt::AlignTop);
+    grid->addWidget(idlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(idval, i++, 1, Qt::AlignTop);
+    grid->addWidget(namelbl, i, 0, Qt::AlignTop);
+    grid->addWidget(nameval, i++, 1, Qt::AlignTop);
+    grid->addWidget(retlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(retval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(autolbl, i, 0, Qt::AlignTop);
+    grid->addWidget(autoval, i++, 1, Qt::AlignVCenter);
 
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);

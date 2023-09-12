@@ -103,8 +103,10 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
 
+    // workaround for incorrect highlight bug on macOS
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
+
     auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
     dossao->setCheckable(true);
     dossao->setToolTip("Toggle SSAO rendering");
@@ -190,6 +192,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     mainLayout->addWidget(buttonBox);
+    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
     setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).fileName());
     createActions();
 
@@ -207,9 +210,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     resize(image.width() + 20, image.height() + 50);
 
     scrollArea->setVisible(true);
-    fitToWindowAct->setEnabled(true);
     updateActions();
-    if (!fitToWindowAct->isChecked()) imageLabel->adjustSize();
     setLayout(mainLayout);
 }
 
@@ -464,30 +465,6 @@ void ImageViewer::saveAs()
 
 void ImageViewer::copy() {}
 
-void ImageViewer::zoomIn()
-{
-    scaleImage(1.25);
-}
-
-void ImageViewer::zoomOut()
-{
-    scaleImage(0.8);
-}
-
-void ImageViewer::normalSize()
-{
-    imageLabel->adjustSize();
-    scaleFactor = 1.0;
-}
-
-void ImageViewer::fitToWindow()
-{
-    bool fitToWindow = fitToWindowAct->isChecked();
-    scrollArea->setWidgetResizable(fitToWindow);
-    if (!fitToWindow) normalSize();
-    updateActions();
-}
-
 void ImageViewer::saveFile(const QString &fileName)
 {
     if (!fileName.isEmpty()) image.save(fileName);
@@ -509,39 +486,12 @@ void ImageViewer::createActions()
     QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
     exitAct->setIcon(QIcon(":/window-close.png"));
     exitAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
-
-    QMenu *viewMenu = menuBar->addMenu("&View");
-
-    zoomInAct = viewMenu->addAction("Image Zoom &In (25%)", this, &ImageViewer::zoomIn);
-    zoomInAct->setShortcut(QKeySequence::ZoomIn);
-    zoomInAct->setIcon(QIcon(":/gtk-zoom-in.png"));
-    zoomInAct->setEnabled(false);
-
-    zoomOutAct = viewMenu->addAction("Image Zoom &Out (25%)", this, &ImageViewer::zoomOut);
-    zoomOutAct->setShortcut(QKeySequence::ZoomOut);
-    zoomOutAct->setIcon(QIcon(":/gtk-zoom-out.png"));
-    zoomOutAct->setEnabled(false);
-
-    normalSizeAct = viewMenu->addAction("&Reset Image Size", this, &ImageViewer::normalSize);
-    normalSizeAct->setShortcut(QKeySequence::fromString("Ctrl+0"));
-    normalSizeAct->setIcon(QIcon(":/gtk-zoom-fit.png"));
-    normalSizeAct->setEnabled(false);
-
-    viewMenu->addSeparator();
-
-    fitToWindowAct = viewMenu->addAction("&Fit to Window", this, &ImageViewer::fitToWindow);
-    fitToWindowAct->setEnabled(false);
-    fitToWindowAct->setCheckable(true);
-    fitToWindowAct->setShortcut(QKeySequence::fromString("Ctrl+="));
 }
 
 void ImageViewer::updateActions()
 {
     saveAsAct->setEnabled(!image.isNull());
     copyAct->setEnabled(!image.isNull());
-    zoomInAct->setEnabled(!fitToWindowAct->isChecked());
-    zoomOutAct->setEnabled(!fitToWindowAct->isChecked());
-    normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
 }
 
 void ImageViewer::scaleImage(double factor)
@@ -555,8 +505,6 @@ void ImageViewer::scaleImage(double factor)
 
     adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
     adjustScrollBar(scrollArea->verticalScrollBar(), factor);
-    zoomInAct->setEnabled(scaleFactor < 3.0);
-    zoomOutAct->setEnabled(scaleFactor > 0.333);
 }
 
 void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)

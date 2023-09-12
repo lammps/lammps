@@ -673,11 +673,13 @@ Here are a few highlights of LAMMPS GUI
 - Text editor will remember up to 5 recent files
 - Context specific LAMMPS command help via online documentation
 - LAMMPS is running in a concurrent thread, so the GUI remains responsive
-- Support for accelerator packages
-- Progress bar indicates that LAMMPS is running
+- Support for most accelerator packages
+- Progress bar indicates how far a run command is completed
 - LAMMPS can be started and stopped with a hotkey
 - Screen output is captured in a Log Window
 - Thermodynamic output is captured and displayed as line graph in a Chart Window
+- Indicator for currently executed command
+- Indicator for line that caused an error
 - Visualization of current state in Image Viewer (via :doc:`dump image <dump_image>`)
 - Many adjustable settings and preferences that are persistent
 - Dialog to set variables from the LAMMPS command line
@@ -703,6 +705,9 @@ required.  The LAMMPS GUI has been successfully compiled and tested on:
 - Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
+
+.. _lammps-gui-install:
+
 
 Pre-compiled executables
 ^^^^^^^^^^^^^^^^^^^^^^^^

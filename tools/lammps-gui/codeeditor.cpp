@@ -15,7 +15,9 @@
 #include "lammpsgui.h"
 #include "linenumberarea.h"
 
+#include <QAbstractItemView>
 #include <QAction>
+#include <QCompleter>
 #include <QDesktopServices>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -25,13 +27,146 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QRegularExpression>
+#include <QScrollBar>
+#include <QSettings>
+#include <QShortcut>
+#include <QStringListModel>
 #include <QTextBlock>
 #include <QUrl>
 
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
+#include <string>
+#include <vector>
+
+// Convert string into words on whitespace while handling single and double
+// quotes. Adapted from LAMMPS_NS::utils::split_words() to preserve quotes.
+
+static std::vector<std::string> split_line(const std::string &text)
+{
+    std::vector<std::string> list;
+    const char *buf = text.c_str();
+    std::size_t beg = 0;
+    std::size_t len = 0;
+    std::size_t add = 0;
+
+    char c = *buf;
+    while (c) { // leading whitespace
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
+            c = *++buf;
+            ++beg;
+            continue;
+        };
+        len = 0;
+
+    // handle escaped/quoted text.
+    quoted:
+
+        if (c == '\'') { // handle single quote
+            add = 0;
+            len = 1;
+            c   = *++buf;
+            while (((c != '\'') && (c != '\0')) || ((c == '\\') && (buf[1] == '\''))) {
+                if ((c == '\\') && (buf[1] == '\'')) {
+                    ++buf;
+                    ++len;
+                }
+                c = *++buf;
+                ++len;
+            }
+            ++len;
+            c = *++buf;
+
+            // handle triple double quotation marks
+        } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
+            len = 3;
+            add = 1;
+            buf += 3;
+            c = *buf;
+
+        } else if (c == '"') { // handle double quote
+            add = 0;
+            len = 1;
+            c   = *++buf;
+            while (((c != '"') && (c != '\0')) || ((c == '\\') && (buf[1] == '"'))) {
+                if ((c == '\\') && (buf[1] == '"')) {
+                    ++buf;
+                    ++len;
+                }
+                c = *++buf;
+                ++len;
+            }
+            ++len;
+            c = *++buf;
+        }
+
+        while (true) { // unquoted
+            if ((c == '\'') || (c == '"')) goto quoted;
+            // skip escaped quote
+            if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {
+                ++buf;
+                ++len;
+                c = *++buf;
+                ++len;
+            }
+            if ((c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') || (c == '\f') ||
+                (c == '\0')) {
+                list.push_back(text.substr(beg, len));
+                beg += len + add;
+                break;
+            }
+            c = *++buf;
+            ++len;
+        }
+    }
+    return list;
+}
+
+CodeEditor::CodeEditor(QWidget *parent) :
+    QPlainTextEdit(parent), current_comp(nullptr), command_comp(new QCompleter(this)),
+    fix_comp(new QCompleter(this)), compute_comp(new QCompleter(this)),
+    dump_comp(new QCompleter(this)), atom_comp(new QCompleter(this)),
+    pair_comp(new QCompleter(this)), bond_comp(new QCompleter(this)),
+    angle_comp(new QCompleter(this)), dihedral_comp(new QCompleter(this)),
+    improper_comp(new QCompleter(this)), kspace_comp(new QCompleter(this)),
+    region_comp(new QCompleter(this)), integrate_comp(new QCompleter(this)),
+    minimize_comp(new QCompleter(this)), variable_comp(new QCompleter(this)),
+    units_comp(new QCompleter(this)), group_comp(new QCompleter(this)),
+    varname_comp(new QCompleter(this)), fixid_comp(new QCompleter(this)),
+    compid_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
+
+    // set up completer class (without a model currently)
+#define COMPLETER_SETUP(completer)                                                            \
+    completer->setCompletionMode(QCompleter::PopupCompletion);                                \
+    completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);                     \
+    completer->setWidget(this);                                                               \
+    completer->setMaxVisibleItems(16);                                                        \
+    completer->setWrapAround(false);                                                          \
+    QObject::connect(completer, QOverload<const QString &>::of(&QCompleter::activated), this, \
+                     &CodeEditor::insertCompletedCommand)
+
+    COMPLETER_SETUP(command_comp);
+    COMPLETER_SETUP(fix_comp);
+    COMPLETER_SETUP(compute_comp);
+    COMPLETER_SETUP(dump_comp);
+    COMPLETER_SETUP(atom_comp);
+    COMPLETER_SETUP(pair_comp);
+    COMPLETER_SETUP(bond_comp);
+    COMPLETER_SETUP(angle_comp);
+    COMPLETER_SETUP(dihedral_comp);
+    COMPLETER_SETUP(improper_comp);
+    COMPLETER_SETUP(kspace_comp);
+    COMPLETER_SETUP(region_comp);
+    COMPLETER_SETUP(integrate_comp);
+    COMPLETER_SETUP(minimize_comp);
+    COMPLETER_SETUP(variable_comp);
+    COMPLETER_SETUP(units_comp);
+    COMPLETER_SETUP(group_comp);
+    COMPLETER_SETUP(varname_comp);
+    COMPLETER_SETUP(fixid_comp);
+    COMPLETER_SETUP(compid_comp);
+#undef COMPLETER_SETUP
 
     // initialize help system
     QFile help_index(":/help_index.table");
@@ -74,6 +209,32 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
     setCursorWidth(2);
 }
 
+CodeEditor::~CodeEditor()
+{
+    delete help_action;
+    delete lineNumberArea;
+
+    delete command_comp;
+    delete fix_comp;
+    delete compute_comp;
+    delete atom_comp;
+    delete pair_comp;
+    delete bond_comp;
+    delete angle_comp;
+    delete dihedral_comp;
+    delete improper_comp;
+    delete kspace_comp;
+    delete region_comp;
+    delete integrate_comp;
+    delete minimize_comp;
+    delete variable_comp;
+    delete units_comp;
+    delete group_comp;
+    delete varname_comp;
+    delete fixid_comp;
+    delete compid_comp;
+}
+
 int CodeEditor::lineNumberAreaWidth()
 {
     int digits = 1;
@@ -83,9 +244,305 @@ int CodeEditor::lineNumberAreaWidth()
         ++digits;
     }
 
-    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
-
+    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * (digits + 2);
     return space;
+}
+
+void CodeEditor::setFont(const QFont &newfont)
+{
+    lineNumberArea->setFont(newfont);
+    document()->setDefaultFont(newfont);
+}
+
+void CodeEditor::setCursor(int block)
+{
+    // move cursor to given position
+    auto cursor = textCursor();
+    int moves   = block - cursor.blockNumber();
+    if (moves < 0)
+        cursor.movePosition(QTextCursor::Up, QTextCursor::MoveAnchor, -moves);
+    else
+        cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, moves);
+    setTextCursor(cursor);
+}
+
+void CodeEditor::setHighlight(int block, bool error)
+{
+    if (error)
+        highlight = -block;
+    else
+        highlight = block;
+
+    // also reset the cursor
+    setCursor(block);
+
+    // update graphics
+    repaint();
+}
+
+// reformat line
+
+QString CodeEditor::reformatLine(const QString &line)
+{
+    auto words = split_line(line.toStdString());
+    QString newtext;
+    QSettings settings;
+    settings.beginGroup("reformat");
+    int cmdsize  = settings.value("command", "16").toInt();
+    int typesize = settings.value("type", "4").toInt();
+    int idsize   = settings.value("id", "4").toInt();
+    int namesize = settings.value("name", "8").toInt();
+    settings.endGroup();
+
+    bool rebuildGroupComp     = false;
+    bool rebuildVarNameComp   = false;
+    bool rebuildComputeIDComp = false;
+    bool rebuildFixIDComp     = false;
+
+    if (words.size()) {
+        // commented line. do nothing
+        if (words[0][0] == '#') return line;
+
+        // start with LAMMPS command plus padding if another word follows
+        newtext = words[0].c_str();
+        if (words.size() > 1) {
+            for (int i = words[0].size() + 1; i < cmdsize; ++i)
+                newtext += ' ';
+            // new/updated group command -> update completer
+            if (words[0] == "group") rebuildGroupComp = true;
+            // new/updated variable command -> update completer
+            if (words[0] == "variable") rebuildVarNameComp = true;
+            // new/updated compute command -> update completer
+            if (words[0] == "compute") rebuildComputeIDComp = true;
+            // new/updated fix command -> update completer
+            if (words[0] == "fix") rebuildFixIDComp = true;
+        }
+
+        // append remaining words with just a single blank added.
+        for (int i = 1; i < words.size(); ++i) {
+            newtext += ' ';
+            newtext += words[i].c_str();
+
+            // special cases
+
+            if (i < 3) {
+                // additional space for types or type ranges
+                if (words[0] == "pair_coeff")
+                    for (int j = words[i].size(); j < typesize; ++j)
+                        newtext += ' ';
+
+                // pad 4 for IDs and 8 for groups
+                if ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump")) {
+                    if (i == 1) {
+                        for (int j = words[i].size(); j < idsize; ++j)
+                            newtext += ' ';
+                    } else if (i == 2) {
+                        for (int j = words[i].size(); j < namesize; ++j)
+                            newtext += ' ';
+                    }
+                }
+            }
+
+            if (i < 2) {
+                if ((words[0] == "bond_coeff") || (words[0] == "angle_coeff") ||
+                    (words[0] == "dihedral_coeff") || (words[0] == "improper_coeff") ||
+                    (words[0] == "mass"))
+                    for (int j = words[i].size(); j < typesize; ++j)
+                        newtext += ' ';
+            }
+        }
+    }
+    if (rebuildGroupComp) setGroupList();
+    if (rebuildVarNameComp) setVarNameList();
+    if (rebuildComputeIDComp) setComputeIDList();
+    if (rebuildFixIDComp) setFixIDList();
+    return newtext;
+}
+
+#define COMPLETER_INIT_FUNC(keyword, Type)                                     \
+    void CodeEditor::set##Type##List(const QStringList &words)                 \
+    {                                                                          \
+        keyword##_comp->setModel(new QStringListModel(words, keyword##_comp)); \
+    }
+
+COMPLETER_INIT_FUNC(command, Command)
+COMPLETER_INIT_FUNC(fix, Fix)
+COMPLETER_INIT_FUNC(compute, Compute)
+COMPLETER_INIT_FUNC(dump, Dump)
+COMPLETER_INIT_FUNC(atom, Atom)
+COMPLETER_INIT_FUNC(pair, Pair)
+COMPLETER_INIT_FUNC(bond, Bond)
+COMPLETER_INIT_FUNC(angle, Angle)
+COMPLETER_INIT_FUNC(dihedral, Dihedral)
+COMPLETER_INIT_FUNC(improper, Improper)
+COMPLETER_INIT_FUNC(kspace, Kspace)
+COMPLETER_INIT_FUNC(region, Region)
+COMPLETER_INIT_FUNC(integrate, Integrate)
+COMPLETER_INIT_FUNC(minimize, Minimize)
+COMPLETER_INIT_FUNC(variable, Variable)
+COMPLETER_INIT_FUNC(units, Units)
+
+#undef COMPLETER_INIT_FUNC
+
+// build completer for groups by parsing through edit buffer
+
+void CodeEditor::setGroupList()
+{
+    QStringList groups;
+    QRegularExpression groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(groupcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if ((words.size() > 1) && !groups.contains(words[1])) groups << words[1];
+    }
+    groups.sort();
+    groups.prepend(QStringLiteral("all"));
+
+    setTextCursor(saved);
+    group_comp->setModel(new QStringListModel(groups, group_comp));
+}
+
+void CodeEditor::setVarNameList()
+{
+    QStringList vars;
+    LammpsWrapper *lammps = &qobject_cast<LammpsGui *>(parent())->lammps;
+    int nvar              = lammps->id_count("variable");
+    char buffer[200];
+    for (int i = 0; i < nvar; ++i) {
+        lammps->variable_info(i, buffer, 200);
+        if (strlen(buffer) == 1) vars << QString("$%1").arg(buffer);
+        vars << QString("${%1}").arg(buffer);
+        vars << QString("v_%1").arg(buffer);
+    }
+
+    QRegularExpression varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(varcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if ((words.size() > 1)) {
+            QString w = QString("$%1").arg(words[1]);
+            if ((words[1].size() == 1) && !vars.contains(w)) vars << w;
+            w = QString("${%1}").arg(words[1]);
+            if (!vars.contains(w)) vars << w;
+            w = QString("v_%1").arg(words[1]);
+            if (!vars.contains(w)) vars << w;
+        }
+    }
+    vars.sort();
+
+    setTextCursor(saved);
+    varname_comp->setModel(new QStringListModel(vars, varname_comp));
+}
+
+void CodeEditor::setComputeIDList()
+{
+    QStringList compid;
+    QRegularExpression compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(compcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if ((words.size() > 1)) {
+            QString w = QString("c_%1").arg(words[1]);
+            if (!compid.contains(w)) compid << w;
+            w = QString("C_%1").arg(words[1]);
+            if (!compid.contains(w)) compid << w;
+        }
+    }
+    compid.sort();
+
+    setTextCursor(saved);
+    compid_comp->setModel(new QStringListModel(compid, compid_comp));
+}
+
+void CodeEditor::setFixIDList()
+{
+    QStringList fixid;
+    QRegularExpression fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
+    auto saved = textCursor();
+    // reposition cursor to beginning of text and search for group commands
+    auto cursor = textCursor();
+    cursor.movePosition(QTextCursor::Start);
+    setTextCursor(cursor);
+    while (find(fixcmd)) {
+        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        if ((words.size() > 1)) {
+            QString w = QString("f_%1").arg(words[1]);
+            if (!fixid.contains(w)) fixid << w;
+            w = QString("F_%1").arg(words[1]);
+            if (!fixid.contains(w)) fixid << w;
+        }
+    }
+    fixid.sort();
+
+    setTextCursor(saved);
+    fixid_comp->setModel(new QStringListModel(fixid, fixid_comp));
+}
+
+void CodeEditor::keyPressEvent(QKeyEvent *event)
+{
+    const auto key = event->key();
+
+    if (current_comp && current_comp->popup()->isVisible()) {
+        // The following keys are forwarded by the completer to the widget
+        switch (key) {
+            case Qt::Key_Enter:
+            case Qt::Key_Return:
+            case Qt::Key_Escape:
+            case Qt::Key_Tab:
+            case Qt::Key_Backtab:
+                event->ignore();
+                return; // let the completer do default behavior
+            default:
+                break;
+        }
+    }
+
+    // reformat current line and consume key event
+    if (key == Qt::Key_Tab) {
+        reformatCurrentLine();
+        return;
+    }
+
+    // run command completion and consume key event
+    if (key == Qt::Key_Backtab) {
+        runCompletion();
+        return;
+    }
+
+    // automatically reformat when hitting the return or enter key
+    if (reformat_on_return && (key == Qt::Key_Return) || (key == Qt::Key_Enter)) {
+        reformatCurrentLine();
+    }
+
+    // process key event in parent class
+    QPlainTextEdit::keyPressEvent(event);
+
+    // if enabled, try pop up completion automatically after 3 characters
+    if (automatic_completion) {
+        auto cursor = textCursor();
+        auto line   = cursor.block().text();
+
+        // QTextCursor::WordUnderCursor is unusable here since recognizes '/' as word boundary.
+        // Work around it by manually searching for the location of the beginning of the word.
+        int begin = cursor.positionInBlock();
+        while (begin >= 0) {
+            if (line[begin].isSpace()) break;
+            --begin;
+        }
+        if (((cursor.positionInBlock() - begin) > 2) || (line[begin + 1] == '$')) runCompletion();
+    }
 }
 
 void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
@@ -139,37 +596,30 @@ void CodeEditor::resizeEvent(QResizeEvent *e)
     lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void CodeEditor::highlightCurrentLine()
-{
-    QList<QTextEdit::ExtraSelection> extraSelections;
-
-    if (!isReadOnly()) {
-        QTextEdit::ExtraSelection selection;
-
-        QColor lineColor = QColor(Qt::yellow).lighter(160);
-
-        selection.format.setBackground(lineColor);
-        selection.format.setProperty(QTextFormat::FullWidthSelection, true);
-        selection.cursor = textCursor();
-        selection.cursor.clearSelection();
-        extraSelections.append(selection);
-    }
-
-    setExtraSelections(extraSelections);
-}
-
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(lineNumberArea);
-    painter.fillRect(event->rect(), Qt::lightGray);
     QTextBlock block = firstVisibleBlock();
     int blockNumber  = block.blockNumber();
-    int top          = qRound(blockBoundingGeometry(block).translated(contentOffset()).top());
-    int bottom       = top + qRound(blockBoundingRect(block).height());
+
+    int top    = qRound(blockBoundingGeometry(block).translated(contentOffset()).top());
+    int bottom = top + qRound(blockBoundingRect(block).height());
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
-            QString number = QString::number(blockNumber + 1);
-            painter.setPen(Qt::black);
+            QString number = QString::number(blockNumber + 1) + " ";
+            if ((highlight == NO_HIGHLIGHT) || (blockNumber != std::abs(highlight))) {
+                painter.setPen(Qt::black);
+            } else {
+                number = QString(">") + QString::number(blockNumber + 1) + "<";
+                if (highlight < 0)
+                    painter.fillRect(0, top, lineNumberArea->width(), fontMetrics().height(),
+                                     Qt::darkRed);
+                else
+                    painter.fillRect(0, top, lineNumberArea->width(), fontMetrics().height(),
+                                     Qt::darkGreen);
+
+                painter.setPen(Qt::white);
+            }
             painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),
                              Qt::AlignRight, number);
         }
@@ -189,9 +639,19 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
 
     // print augmented context menu if an entry was found
     auto *menu = createStandardContextMenu();
+    menu->addSeparator();
+    auto action = menu->addAction(QString("Display available completions for '%1'").arg(help));
+    action->setIcon(QIcon(":/expand-text.png"));
+    connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
+
     if (!page.isEmpty()) {
         menu->addSeparator();
-        auto action = menu->addAction(QString("View Documentation for '%1'").arg(help));
+        action = menu->addAction(QString("Reformat '%1' command").arg(help));
+        action->setIcon(QIcon(":/format-indent-less-3.png"));
+        connect(action, &QAction::triggered, this, &CodeEditor::reformatCurrentLine);
+
+        menu->addSeparator();
+        action = menu->addAction(QString("View Documentation for '%1'").arg(help));
         action->setIcon(QIcon(":/system-help.png"));
         action->setData(page);
         connect(action, &QAction::triggered, this, &CodeEditor::open_help);
@@ -215,6 +675,260 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
 
     menu->exec(event->globalPos());
     delete menu;
+}
+
+void CodeEditor::reformatCurrentLine()
+{
+    auto cursor  = textCursor();
+    auto text    = cursor.block().text();
+    auto newtext = reformatLine(text);
+
+    // perform edit but only if text has changed
+    if (QString::compare(text, newtext)) {
+        cursor.beginEditBlock();
+        cursor.movePosition(QTextCursor::StartOfLine);
+        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor, 1);
+        cursor.insertText(newtext);
+        cursor.endEditBlock();
+    }
+}
+
+void CodeEditor::runCompletion()
+{
+    auto cursor = textCursor();
+    auto line   = cursor.block().text().trimmed();
+    // no completion possible on empty lines
+    if (line.isEmpty()) return;
+    auto words = split_line(line.toStdString());
+
+    // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word boundary.
+    // Work around it by manually searching for the beginning and end position of the word
+    // under the cursor and then using that substring.
+    int begin = cursor.positionInBlock();
+    line      = cursor.block().text();
+    while (begin >= 0) {
+        if (line[begin].isSpace()) break;
+        --begin;
+    }
+    int end = ++begin;
+    while (end < line.length()) {
+        if (line[end].isSpace()) break;
+        ++end;
+    }
+    const auto selected = line.mid(begin, end - begin);
+
+    // variable expansion may be anywhere
+    if (selected.startsWith("$")) {
+        current_comp = varname_comp;
+        current_comp->setCompletionPrefix(selected);
+        auto popup = current_comp->popup();
+        // if the command is already a complete command, remove existing popup
+        if (selected == current_comp->currentCompletion()) {
+            if (popup->isVisible()) {
+                popup->hide();
+                current_comp = nullptr;
+            }
+            return;
+        }
+        QRect cr = cursorRect();
+        cr.setWidth(popup->sizeHintForColumn(0) + popup->verticalScrollBar()->sizeHint().width());
+        popup->setAlternatingRowColors(true);
+        current_comp->complete(cr);
+
+        // if on first word, try to complete command
+    } else if ((words.size() > 0) && (words[0] == selected.toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
+
+        current_comp = command_comp;
+        current_comp->setCompletionPrefix(words[0].c_str());
+        auto popup = current_comp->popup();
+        // if the command is already a complete command, remove existing popup
+        if (words[0] == current_comp->currentCompletion().toStdString()) {
+            if (popup->isVisible()) {
+                popup->hide();
+                current_comp = nullptr;
+            }
+            return;
+        }
+        QRect cr = cursorRect();
+        cr.setWidth(popup->sizeHintForColumn(0) + popup->verticalScrollBar()->sizeHint().width());
+        popup->setAlternatingRowColors(true);
+        current_comp->complete(cr);
+
+        // completions for second word
+    } else if ((words.size() > 1) && (words[1] == selected.toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
+
+        current_comp = nullptr;
+        if (words[0] == "pair_style")
+            current_comp = pair_comp;
+        else if (words[0] == "bond_style")
+            current_comp = bond_comp;
+        else if (words[0] == "angle_style")
+            current_comp = angle_comp;
+        else if (words[0] == "dihedral_style")
+            current_comp = dihedral_comp;
+        else if (words[0] == "improper_style")
+            current_comp = improper_comp;
+        else if (words[0] == "kspace_style")
+            current_comp = kspace_comp;
+        else if (words[0] == "atom_style")
+            current_comp = atom_comp;
+        else if (words[0] == "run_style")
+            current_comp = integrate_comp;
+        else if (words[0] == "minimize_style")
+            current_comp = minimize_comp;
+        else if (words[0] == "units")
+            current_comp = units_comp;
+        else if ((words[0] == "change_box") || (words[0] == "displace_atoms") ||
+                 (words[0] == "velocity") || (words[0] == "write_dump"))
+            current_comp = group_comp;
+        else if (selected.startsWith("v_"))
+            current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
+
+        if (current_comp) {
+            current_comp->setCompletionPrefix(words[1].c_str());
+            auto popup = current_comp->popup();
+            // if the command is already a complete command, remove existing popup
+            if (words[1] == current_comp->currentCompletion().toStdString()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            current_comp->complete(cr);
+        }
+        // completions for third word
+    } else if ((words.size() > 2) && (words[2] == selected.toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
+
+        current_comp = nullptr;
+        if (words[0] == "region")
+            current_comp = region_comp;
+        else if (words[0] == "variable")
+            current_comp = variable_comp;
+        else if (words[0] == "fix")
+            current_comp = group_comp;
+        else if (words[0] == "compute")
+            current_comp = group_comp;
+        else if (words[0] == "dump")
+            current_comp = group_comp;
+        else if (selected.startsWith("v_"))
+            current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
+
+        if (current_comp) {
+            current_comp->setCompletionPrefix(words[2].c_str());
+            auto popup = current_comp->popup();
+            // if the command is already a complete command, remove existing popup
+            if (words[2] == current_comp->currentCompletion().toStdString()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            current_comp->complete(cr);
+        }
+        // completions for fourth word
+    } else if ((words.size() > 3) && (words[3] == selected.toStdString())) {
+        // no completion on comment lines
+        if (words[0][0] == '#') return;
+
+        current_comp = nullptr;
+        if (words[0] == "fix")
+            current_comp = fix_comp;
+        else if (words[0] == "compute")
+            current_comp = compute_comp;
+        else if (words[0] == "dump")
+            current_comp = dump_comp;
+        else if (selected.startsWith("v_"))
+            current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
+
+        if (current_comp) {
+            current_comp->setCompletionPrefix(words[3].c_str());
+            auto popup = current_comp->popup();
+            // if the command is already a complete command, remove existing popup
+            if (words[3] == current_comp->currentCompletion().toStdString()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            current_comp->complete(cr);
+        }
+        // reference located anywhere further right in the line
+    } else if (words.size() > 4) {
+        current_comp = nullptr;
+        if (selected.startsWith("v_"))
+            current_comp = varname_comp;
+        else if (selected.startsWith("c_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("C_"))
+            current_comp = compid_comp;
+        else if (selected.startsWith("f_"))
+            current_comp = fixid_comp;
+        else if (selected.startsWith("F_"))
+            current_comp = fixid_comp;
+
+        if (current_comp) {
+            current_comp->setCompletionPrefix(selected);
+            auto popup = current_comp->popup();
+            // if the command is already a complete command, remove existing popup
+            if (selected == current_comp->currentCompletion()) {
+                if (popup->isVisible()) popup->hide();
+                return;
+            }
+            QRect cr = cursorRect();
+            cr.setWidth(popup->sizeHintForColumn(0) +
+                        popup->verticalScrollBar()->sizeHint().width());
+            popup->setAlternatingRowColors(true);
+            current_comp->complete(cr);
+        }
+    }
+}
+
+void CodeEditor::insertCompletedCommand(const QString &completion)
+{
+    auto *completer = qobject_cast<QCompleter *>(sender());
+    if (completer->widget() != this) return;
+    auto cursor = textCursor();
+    int extra   = completion.length() - completer->completionPrefix().length();
+    cursor.movePosition(QTextCursor::Left);
+    cursor.movePosition(QTextCursor::EndOfWord);
+    cursor.insertText(completion.right(extra));
+    setTextCursor(cursor);
 }
 
 void CodeEditor::get_help()

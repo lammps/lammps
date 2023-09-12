@@ -1,7 +1,7 @@
 # CMake script to be run post installation to build zipped package
 
 # clean up old zipfile and deployment tree
-file(REMOVE LAMMPS-Win10-amd64.zip)
+file(REMOVE LAMMPS_GUI-Win10-amd64.zip)
 file(REMOVE_RECURSE LAMMPS_GUI)
 file(RENAME ${INSTNAME} LAMMPS_GUI)
 
@@ -22,7 +22,7 @@ execute_process(COMMAND cmd.exe /c qtdeploy.bat COMMAND_ECHO STDERR)
 file(REMOVE qtdeploy.bat)
 
 # create zip archive
-file(WRITE makearchive.ps1 "Compress-Archive -Path LAMMPS_GUI -CompressionLevel Optimal -DestinationPath LAMMPS-Win10-amd64.zip")
+file(WRITE makearchive.ps1 "Compress-Archive -Path LAMMPS_GUI -CompressionLevel Optimal -DestinationPath LAMMPS_GUI-Win10-amd64.zip")
 execute_process(COMMAND powershell -ExecutionPolicy Bypass -File makearchive.ps1)
 file(REMOVE makearchive.ps1)
 file(REMOVE_RECURSE LAMMPS_GUI)

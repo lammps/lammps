@@ -45,7 +45,11 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Force::Force(LAMMPS *lmp) : Pointers(lmp)
+Force::Force(LAMMPS *lmp) :
+    Pointers(lmp), pair(nullptr), pair_style(nullptr), pair_restart(nullptr), bond(nullptr),
+    bond_style(nullptr), angle(nullptr), angle_style(nullptr), dihedral(nullptr),
+    dihedral_style(nullptr), improper(nullptr), improper_style(nullptr), kspace(nullptr),
+    kspace_style(nullptr)
 {
   newton = newton_pair = newton_bond = 1;
 

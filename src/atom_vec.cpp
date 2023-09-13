@@ -1656,6 +1656,7 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
 {
   int m, n, datatype, cols;
   void *pdata;
+  double vector[3];
 
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -1684,7 +1685,7 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
           ivalue += cols;
           continue;
         }
-        for (m = 0; m < cols; m++)
+        for (m = 0; m < cols; m++)                                      \
           array[nlocal][m] = utils::numeric(FLERR, values[ivalue++], true, lmp);
       }
     } else if (datatype == Atom::INT) {
@@ -2218,6 +2219,35 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
     fmt::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
                buf[i][4]);
     index++;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   convert read_data file info from general to restricted triclinic
+   parent class only operates on data from Velocities section of data file
+   child classes operate on all other data: Atoms, Ellipsoids, Lines, Triangles, etc
+------------------------------------------------------------------------- */
+
+void AtomVec::data_general_to_restricted(int nlocal_previous, int nlocal)
+{
+  int datatype, cols;
+  void *pdata;
+
+  for (int n = 1; n < ndata_vel; n++) {
+    pdata = mdata_vel.pdata[n];
+    datatype = mdata_vel.datatype[n];
+    cols = mdata_vel.cols[n];
+
+    // operate on v, omega, angmom
+    // no other read_data atom fields are Nx3 double arrays
+    
+    if (datatype == Atom::DOUBLE) {
+      if (cols == 3) {
+        double **array = *((double ***) pdata);
+        for (int i = nlocal_previous; i < nlocal; i++)
+          domain->general_to_restricted_vector(array[i]);
+      }
+    }
   }
 }
 

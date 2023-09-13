@@ -1062,6 +1062,12 @@ void ReadData::command(int narg, char **arg)
     atom->avec->grow(atom->nmax);
   }
 
+  // if general triclinic, perform general to restricted rotation operation
+  //   on any quantities read from data file which require it
+
+  if (triclinic_general)
+    atom->avec->data_general_to_restricted(nlocal_previous, atom->nlocal);
+
   // init per-atom fix/compute/variable values for created atoms
 
   atom->data_fix_compute_variable(nlocal_previous, atom->nlocal);
@@ -1518,8 +1524,8 @@ void ReadData::atoms()
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (tlabelflag && !lmap->is_complete(Atom::ATOM))
       error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, triclinic_general,
-                     shiftflag, shift, tlabelflag, lmap->lmap2lmap.atom);
+    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, 
+                     shiftflag, shift, tlabelflag, lmap->lmap2lmap.atom, triclinic_general);
     nread += nchunk;
   }
 

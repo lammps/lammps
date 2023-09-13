@@ -123,7 +123,8 @@ class AtomVec : protected Pointers {
   virtual void create_atom(int, double *);
   virtual void create_atom_post(int) {}
 
-  virtual void data_atom(double *, imageint, const std::vector<std::string> &, std::string &);
+  virtual void data_atom(double *, imageint, const std::vector<std::string> &,
+                         std::string &);
   virtual void data_atom_post(int) {}
   virtual void data_atom_bonus(int, const std::vector<std::string> &) {}
   virtual void data_body(int, int, int, int *, double *) {}
@@ -150,6 +151,8 @@ class AtomVec : protected Pointers {
 
   virtual int pack_data_bonus(double *, int) { return 0; }
   virtual void write_data_bonus(FILE *, int, double *, int) {}
+
+  virtual void data_general_to_restricted(int, int);
 
   virtual int property_atom(const std::string &) { return -1; }
   virtual void pack_property_atom(int, double *, int, int) {}

@@ -1376,8 +1376,8 @@ void CreateAtoms::loop_lattice(int action)
           domain->lattice->lattice2box(x[0], x[1], x[2]);
 
           // convert from general to restricted triclinic coords
-          // for 2d simulation, check if z coord is within EPS_ZCOORD of zero
-          //   then set to zero
+          // for 2d simulation:
+          // check if z coord is within EPS_ZCOORD of zero and set to zero
 
           if (triclinic_general) {
             domain->general_to_restricted_coords(x);

@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "citeme.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "pair.h"
@@ -185,6 +186,20 @@ void AtomVecDielectric::data_atom_post(int ilocal)
 
   double *mu_one = mu[ilocal];
   mu_one[3] = sqrt(mu_one[0] * mu_one[0] + mu_one[1] * mu_one[1] + mu_one[2] * mu_one[2]);
+}
+
+/* ----------------------------------------------------------------------
+   convert read_data file info from general to restricted triclinic
+   parent class operates on data from Velocities section of data file
+   child class operates on dipole moment mu
+------------------------------------------------------------------------- */
+
+void AtomVecDielectric::data_general_to_restricted(int nlocal_previous, int nlocal)
+{
+  AtomVec::data_general_to_restricted(nlocal_previous, nlocal);
+
+  for (int i = nlocal_previous; i < nlocal; i++)
+    domain->general_to_restricted_vector(mu[i]);
 }
 
 /* ----------------------------------------------------------------------

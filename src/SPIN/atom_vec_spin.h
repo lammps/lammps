@@ -31,6 +31,7 @@ class AtomVecSpin : virtual public AtomVec {
   void grow_pointers() override;
   void force_clear(int, size_t) override;
   void data_atom_post(int) override;
+  void data_general_to_restricted(int, int);
 
  protected:
   double **sp, **fm, **fm_long;

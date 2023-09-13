@@ -1039,12 +1039,12 @@ void Atom::deallocate_topology()
 /* ----------------------------------------------------------------------
    unpack N lines from Atom section of data file
    call style-specific routine to parse line
+   triclinic_general = 1 if data file defines a general triclinic box
 ------------------------------------------------------------------------- */
 
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
-                      int type_offset, int triclinic_general,
-                      int shiftflag, double *shift,
-                      int labelflag, int *ilabel)
+                      int type_offset, int shiftflag, double *shift,
+                      int labelflag, int *ilabel, int triclinic_general)
 {
   int xptr,iptr;
   imageint imagedata;
@@ -1181,8 +1181,8 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
       xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
 
-      // for 2d simulation, check if z coord is within EPS_ZCOORD of zero
-      //   then set to zero
+      // for 2d simulation:
+      // check if z coord is within EPS_ZCOORD of zero and set to zero
 
       if (dimension == 2) {
         if (fabs(xdata[2]) > EPS_ZCOORD)
@@ -1255,8 +1255,8 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 /* ----------------------------------------------------------------------
    unpack N lines from Velocity section of data file
    check that atom IDs are > 0 and <= map_tag_max
-   call style-specific routine to parse line
-------------------------------------------------------------------------- */
+   call style-specific routine to parse line-
+------------------------------------------------------------------------ */
 
 void Atom::data_vels(int n, char *buf, tagint id_offset)
 {

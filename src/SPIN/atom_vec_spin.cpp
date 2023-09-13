@@ -1,5 +1,4 @@
 /* ----------------------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -10,7 +9,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
@@ -26,6 +24,7 @@
 #include "atom_vec_spin.h"
 
 #include "atom.h"
+#include "domain.h"
 
 #include <cmath>
 #include <cstring>
@@ -99,4 +98,18 @@ void AtomVecSpin::data_atom_post(int ilocal)
   sp_one[0] *= norm;
   sp_one[1] *= norm;
   sp_one[2] *= norm;
+}
+
+/* ----------------------------------------------------------------------
+   convert read_data file info from general to restricted triclinic
+   parent class operates on data from Velocities section of data file
+   child class operates on spin vector sp
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::data_general_to_restricted(int nlocal_previous, int nlocal)
+{
+  AtomVec::data_general_to_restricted(nlocal_previous, nlocal);
+
+  for (int i = nlocal_previous; i < nlocal; i++)
+    domain->general_to_restricted_vector(sp[i]);
 }

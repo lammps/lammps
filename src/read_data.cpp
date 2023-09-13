@@ -1066,7 +1066,7 @@ void ReadData::command(int narg, char **arg)
   //   on any quantities read from data file which require it
 
   if (triclinic_general)
-    atom->avec->data_general_to_restricted(nlocal_previous, atom->nlocal);
+    atom->avec->read_data_general_to_restricted(nlocal_previous, atom->nlocal);
 
   // init per-atom fix/compute/variable values for created atoms
 

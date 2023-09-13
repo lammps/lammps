@@ -1191,6 +1191,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       }
       
       // convert atom coords from general triclinic to restricted triclinic
+      // so can decide which proc owns the atom
       
       if (triclinic_general) domain->general_to_restricted_coords(xdata);
 
@@ -1216,6 +1217,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
           coord[1] >= sublo[1] && coord[1] < subhi[1] &&
           coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+        
         avec->data_atom(xdata,imagedata,values,typestr);
         typestr = utils::utf8_subst(typestr);
         if (id_offset) tag[nlocal-1] += id_offset;

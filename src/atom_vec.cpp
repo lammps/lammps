@@ -68,6 +68,9 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   image = nullptr;
   x = v = f = nullptr;
 
+  x_hold = nullptr;
+  v_hold = omega_hold = angmom_hold = nullptr;
+  
   threads = nullptr;
 }
 
@@ -2223,12 +2226,12 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 }
 
 /* ----------------------------------------------------------------------
-   convert read_data file info from general to restricted triclinic
+   convert info input by read_data from general to restricted triclinic
    parent class only operates on data from Velocities section of data file
    child classes operate on all other data: Atoms, Ellipsoids, Lines, Triangles, etc
 ------------------------------------------------------------------------- */
 
-void AtomVec::data_general_to_restricted(int nlocal_previous, int nlocal)
+void AtomVec::read_data_general_to_restricted(int nlocal_previous, int nlocal)
 {
   int datatype, cols;
   void *pdata;
@@ -2239,7 +2242,7 @@ void AtomVec::data_general_to_restricted(int nlocal_previous, int nlocal)
     cols = mdata_vel.cols[n];
 
     // operate on v, omega, angmom
-    // no other read_data atom fields are Nx3 double arrays
+    // no other read_data Velocities fields are Nx3 double arrays
     
     if (datatype == Atom::DOUBLE) {
       if (cols == 3) {
@@ -2248,6 +2251,99 @@ void AtomVec::data_general_to_restricted(int nlocal_previous, int nlocal)
           domain->general_to_restricted_vector(array[i]);
       }
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   convert info output by write_data from restricted to general triclinic
+   parent class only operates on x and data from Velocities section of data file
+   child classes operate on all other data: Atoms, Ellipsoids, Lines, Triangles, etc
+------------------------------------------------------------------------- */
+
+void AtomVec::write_data_restricted_to_general()
+{
+  int datatype, cols;
+  void *pdata;
+
+  int nlocal = atom->nlocal;
+
+  memory->create(x_hold,nlocal,3,"atomvec:x_hold");
+  if (nlocal) memcpy(&x_hold[0][0],&x[0][0],3*nlocal*sizeof(double));
+  for (int i = 0; i < nlocal; i++)
+    domain->restricted_to_general_coords(x[i]);
+
+  double **omega = atom->omega;
+  double **angmom = atom->angmom;
+
+  for (int n = 1; n < ndata_vel; n++) {
+    pdata = mdata_vel.pdata[n];
+    datatype = mdata_vel.datatype[n];
+    cols = mdata_vel.cols[n];
+
+    // operate on v, omega, angmom
+    // no other write_data Velocities fields are Nx3 double arrays
+    
+    if (datatype == Atom::DOUBLE) {
+      if (cols == 3) {
+        double **array = *((double ***) pdata);
+
+        if (array == v) {
+          memory->create(v_hold,nlocal,3,"atomvec:v_hold");
+          if (nlocal) memcpy(&v_hold[0][0],&v[0][0],3*nlocal*sizeof(double));
+          for (int i = 0; i < nlocal; i++)
+            domain->restricted_to_general_vector(v[i]);
+        } else if (array == omega) {
+          memory->create(omega_hold,nlocal,3,"atomvec:omega_hold");
+          if (nlocal) memcpy(&omega_hold[0][0],&omega[0][0],3*nlocal*sizeof(double));
+          for (int i = 0; i < nlocal; i++)
+            domain->restricted_to_general_vector(omega[i]);
+        } else if (array == angmom) {
+          memory->create(angmom_hold,nlocal,3,"atomvec:angmom_hold");
+          if (nlocal) memcpy(&angmom_hold[0][0],&angmom[0][0],3*nlocal*sizeof(double));
+          for (int i = 0; i < nlocal; i++)
+            domain->restricted_to_general_vector(angmom[i]);
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   restore info output by write_data to restricted triclinic
+   original data is in "hold" arrays
+   parent class only operates on x and data from Velocities section of data file
+   child classes operate on all other data: Atoms, Ellipsoids, Lines, Triangles, etc
+------------------------------------------------------------------------- */
+
+void AtomVec::write_data_restore_restricted()
+{
+  int nlocal = atom->nlocal;
+
+  if (x_hold) {
+    memcpy(&x[0][0],&x_hold[0][0],3*nlocal*sizeof(double));
+    memory->destroy(x_hold);
+    x_hold = nullptr;
+  }
+  
+  // operate on v, omega, angmom
+  // no other write_data Velocities fields are Nx3 double arrays
+  
+  if (v_hold) {
+    memcpy(&v[0][0],&v_hold[0][0],3*nlocal*sizeof(double));
+    memory->destroy(v_hold);
+    v_hold = nullptr;
+  }
+
+  if (omega_hold) {
+    memcpy(&atom->omega[0][0],&omega_hold[0][0],3*nlocal*sizeof(double));
+    memory->destroy(omega_hold);
+    omega_hold = nullptr;
+  }
+  
+  if (angmom_hold) {
+    memcpy(&atom->angmom[0][0],&angmom_hold[0][0],3*nlocal*sizeof(double));
+    memory->destroy(angmom_hold);
+    angmom_hold = nullptr;
   }
 }
 

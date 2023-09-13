@@ -194,9 +194,9 @@ void AtomVecDielectric::data_atom_post(int ilocal)
    child class operates on dipole moment mu
 ------------------------------------------------------------------------- */
 
-void AtomVecDielectric::data_general_to_restricted(int nlocal_previous, int nlocal)
+void AtomVecDielectric::read_data_general_to_restricted(int nlocal_previous, int nlocal)
 {
-  AtomVec::data_general_to_restricted(nlocal_previous, nlocal);
+  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
 
   for (int i = nlocal_previous; i < nlocal; i++)
     domain->general_to_restricted_vector(mu[i]);

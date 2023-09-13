@@ -160,7 +160,7 @@ void AtomVecSMD::data_atom_post(int ilocal)
   // x and x0 are in Atoms section of data file
   // reset x0 b/c x may have been modified in Atom::data_atoms()
   //   for PBC, shift, etc
-  // this also means no need for data_general_to_restricted() method
+  // this also means no need for read_data_general_to_restricted() method
   //   to rotate x0 for general triclinic
   
   x0[ilocal][0] = x[ilocal][0];

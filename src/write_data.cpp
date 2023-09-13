@@ -97,7 +97,7 @@ void WriteData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nofix") == 0) {
       fixflag = 0;
       iarg++;
-    } else if (strcmp(arg[iarg],"triclinic") == 0) {
+    } else if (strcmp(arg[iarg],"triclinic/general") == 0) {
       triclinic_general = 1;
       iarg++;
     } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
@@ -213,32 +213,14 @@ void WriteData::write(const std::string &file)
     if (coeffflag) force_fields();
   }
 
-  // per atom info in Atoms and Velocities sections
   // if general triclinic:
-  //   save restricted triclinic atom coords
-  //   transform atom coords from restricted to general
-  //   restore saved atom coords after output
+  // reset internal per-atom data that needs rotation
+
+  atom->avec->write_data_restricted_to_general();
   
-  double **xstore = nullptr;
-  
-  if (triclinic_general) {
-    double **x = atom->x;
-    int nlocal = atom->nlocal;
-    memory->create(xstore,nlocal,3,"write_data:xstore");
-    if (nlocal) memcpy(&xstore[0][0],&x[0][0],3*nlocal*sizeof(double));
-    for (int i = 0; i < nlocal; i++)
-      domain->restricted_to_general_coords(x[i]);
-  }
+  // per atom info in Atoms and Velocities sections
   
   if (natoms) atoms();
-
-  if (triclinic_general) {
-    double **x = atom->x;
-    int nlocal = atom->nlocal;
-    if (nlocal) memcpy(&x[0][0],&xstore[0][0],3*nlocal*sizeof(double));
-    memory->destroy(xstore);
-  }
-
   if (natoms) velocities();
 
   // molecular topology info if defined
@@ -265,6 +247,11 @@ void WriteData::write(const std::string &file)
       if (ifix->wd_section)
         for (int m = 0; m < ifix->wd_section; m++) fix(ifix,m);
 
+  // if general triclinic:
+  // restore internal per-atom data that was rotated
+
+  atom->avec->write_data_restore_restricted();
+  
   // close data file
 
   if (me == 0) fclose(fp);

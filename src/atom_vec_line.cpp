@@ -438,6 +438,29 @@ void AtomVecLine::data_atom_post(int ilocal)
 }
 
 /* ----------------------------------------------------------------------
+   convert read_data file info from general to restricted triclinic
+   parent class operates on data from Velocities section of data file
+   child class operates on bonus theta
+------------------------------------------------------------------------- */
+
+void AtomVecLine::read_data_general_to_restricted(int nlocal_previous, int nlocal)
+{
+  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
+
+  double btheta;
+  double theta_g2r = 2.0*acos(domain->quat_g2r[0]);
+  
+  for (int i = nlocal_previous; i < nlocal; i++) {
+    if (line[i] < 0) continue;
+    btheta = bonus[line[i]].theta;
+    btheta += theta_g2r;
+    if (btheta > MathConst::MY_PI) btheta -= MathConst::MY_2PI;
+    else if (btheta <= -MathConst::MY_PI) btheta += MathConst::MY_2PI;
+    bonus[line[i]].theta = btheta;
+  }
+}
+
+/* ----------------------------------------------------------------------
    modify values for AtomVec::pack_data() to pack
 ------------------------------------------------------------------------- */
 

@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "pair.h"
 #include "pair_hybrid.h"
 
@@ -50,6 +51,8 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *_lmp) : AtomVec(_lmp)
 
   atom->molecule_flag = atom->q_flag = atom->mu_flag = 1;
   atom->dielectric_flag = 1;
+
+  mu_hold = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -200,6 +203,42 @@ void AtomVecDielectric::read_data_general_to_restricted(int nlocal_previous, int
 
   for (int i = nlocal_previous; i < nlocal; i++)
     domain->general_to_restricted_vector(mu[i]);
+}
+
+/* ----------------------------------------------------------------------
+   convert info output by write_data from restricted to general triclinic
+   parent class operates on x and data from Velocities section of data file
+   child class operates on dipole momemt mu
+------------------------------------------------------------------------- */
+
+void AtomVecDielectric::write_data_restricted_to_general()
+{
+  AtomVec::write_data_restricted_to_general();
+
+  int nlocal = atom->nlocal;
+  memory->create(mu_hold,nlocal,3,"atomvec:mu_hold");
+  if (nlocal) memcpy(&mu_hold[0][0],&mu[0][0],3*nlocal*sizeof(double));
+  for (int i = 0; i < nlocal; i++)
+    domain->restricted_to_general_vector(mu[i]);
+}
+
+/* ----------------------------------------------------------------------
+   restore info output by write_data to restricted triclinic
+   original data is in "hold" arrays
+   parent class operates on x and data from Velocities section of data file
+   child class operates on dipole moment mu
+------------------------------------------------------------------------- */
+
+void AtomVecDielectric::write_data_restore_restricted()
+{
+  AtomVec::write_data_restore_restricted();
+
+  if (!mu_hold) return;
+  
+  int nlocal = atom->nlocal;
+  memcpy(&mu[0][0],&mu_hold[0][0],3*nlocal*sizeof(double));
+  memory->destroy(mu_hold);
+  mu_hold = nullptr;
 }
 
 /* ----------------------------------------------------------------------

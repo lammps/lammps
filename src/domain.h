@@ -92,6 +92,7 @@ class Domain : protected Pointers {
   // boxlo = lower left corner
   
   double avec[3], bvec[3], cvec[3];  // ABC edge vectors of general triclinic box
+  double quat_g2r[4];                // quaternion for general --> restricted rotation
   double rotate_g2r[3][3];           // rotation matrix from general --> restricted tri
   double rotate_r2g[3][3];           // rotation matrix from restricted --> general tri
 

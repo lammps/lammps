@@ -53,6 +53,7 @@ class AtomVecLine : public AtomVec {
 
   void create_atom_post(int) override;
   void data_atom_post(int) override;
+  void read_data_general_to_restricted(int, int);
   void pack_data_pre(int) override;
   void pack_data_post(int) override;
 

@@ -31,10 +31,13 @@ class AtomVecSpin : virtual public AtomVec {
   void grow_pointers() override;
   void force_clear(int, size_t) override;
   void data_atom_post(int) override;
-  void data_general_to_restricted(int, int);
+  void read_data_general_to_restricted(int, int);
+  void write_data_restricted_to_general();
+  void write_data_restore_restricted();
 
  protected:
   double **sp, **fm, **fm_long;
+  double **sp_hold;
 };
 
 }    // namespace LAMMPS_NS

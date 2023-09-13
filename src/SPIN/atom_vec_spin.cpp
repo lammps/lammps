@@ -25,6 +25,7 @@
 
 #include "atom.h"
 #include "domain.h"
+#include "memory.h"
 
 #include <cmath>
 #include <cstring>
@@ -41,6 +42,8 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
 
   atom->sp_flag = 1;
 
+  sp_hold = nullptr;
+  
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
@@ -106,10 +109,46 @@ void AtomVecSpin::data_atom_post(int ilocal)
    child class operates on spin vector sp
 ------------------------------------------------------------------------- */
 
-void AtomVecSpin::data_general_to_restricted(int nlocal_previous, int nlocal)
+void AtomVecSpin::read_data_general_to_restricted(int nlocal_previous, int nlocal)
 {
-  AtomVec::data_general_to_restricted(nlocal_previous, nlocal);
+  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
 
   for (int i = nlocal_previous; i < nlocal; i++)
     domain->general_to_restricted_vector(sp[i]);
+}
+
+/* ----------------------------------------------------------------------
+   convert info output by write_data from restricted to general triclinic
+   parent class operates on x and data from Velocities section of data file
+   child class operates on spin vector sp
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::write_data_restricted_to_general()
+{
+  AtomVec::write_data_restricted_to_general();
+
+  int nlocal = atom->nlocal;
+  memory->create(sp_hold,nlocal,3,"atomvec:sp_hold");
+  if (nlocal) memcpy(&sp_hold[0][0],&sp[0][0],3*nlocal*sizeof(double));
+  for (int i = 0; i < nlocal; i++)
+    domain->restricted_to_general_vector(sp[i]);
+}
+
+/* ----------------------------------------------------------------------
+   restore info output by write_data to restricted triclinic
+   original data is in "hold" arrays
+   parent class operates on x and data from Velocities section of data file
+   child class operates on spin vector sp
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::write_data_restore_restricted()
+{
+  AtomVec::write_data_restore_restricted();
+
+  if (!sp_hold) return;
+  
+  int nlocal = atom->nlocal;
+  memcpy(&sp[0][0],&sp_hold[0][0],3*nlocal*sizeof(double));
+  memory->destroy(sp_hold);
+  sp_hold = nullptr;
 }

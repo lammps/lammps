@@ -55,6 +55,9 @@ class AtomVecTri : public AtomVec {
 
   void create_atom_post(int) override;
   void data_atom_post(int) override;
+  void read_data_general_to_restricted(int, int);
+  void write_data_restricted_to_general();
+  void write_data_restore_restricted();
   void pack_data_pre(int) override;
   void pack_data_post(int) override;
 
@@ -71,6 +74,8 @@ class AtomVecTri : public AtomVec {
   int *tri;
   double *radius, *rmass;
   double **omega, **angmom;
+
+  double **quat_hold;
 
   int nghost_bonus, nmax_bonus;
   int tri_flag;

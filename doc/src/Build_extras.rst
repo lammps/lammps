@@ -2074,21 +2074,21 @@ Eigen3 is a template library, so you do not need to build it.
    .. tab:: Traditional make
 
       You can download the Eigen3 library manually if you prefer; follow
-      the instructions in ``lib/smd/README``.  You can also do it in one
+      the instructions in ``lib/machdyn/README``.  You can also do it in one
       step from the ``lammps/src`` dir, using a command like these,
-      which simply invokes the ``lib/smd/Install.py`` script with the
+      which simply invokes the ``lib/machdyn/Install.py`` script with the
       specified args:
 
       .. code-block:: bash
 
-         make lib-smd                         # print help message
-         make lib-smd args="-b"               # download to lib/smd/eigen3
-         make lib-smd args="-p /usr/include/eigen3"    # use existing Eigen installation in /usr/include/eigen3
+         make lib-machdyn                         # print help message
+         make lib-machdyn args="-b"               # download to lib/machdyn/eigen3
+         make lib-machdyn args="-p /usr/include/eigen3"    # use existing Eigen installation in /usr/include/eigen3
 
       Note that a symbolic (soft) link named ``includelink`` is created
-      in ``lib/smd`` to point to the Eigen dir.  When LAMMPS builds it
+      in ``lib/machdyn`` to point to the Eigen dir.  When LAMMPS builds it
       will use this link.  You should not need to edit the
-      ``lib/smd/Makefile.lammps`` file.
+      ``lib/machdyn/Makefile.lammps`` file.
 
 ----------
 

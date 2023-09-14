@@ -167,6 +167,9 @@ void Preferences::accept()
     box = tabWidget->findChild<QCheckBox *>("viewslide");
     if (box) settings->setValue("viewslide", box->isChecked());
 
+    auto spin = tabWidget->findChild<QSpinBox *>("updfreq");
+    if (spin) settings->setValue("updfreq", spin->value());
+
     if (need_relaunch) {
         QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),
                         QString("LAMMPS library plugin path was changed.\n"
@@ -181,7 +184,7 @@ void Preferences::accept()
     // reformatting settings
 
     settings->beginGroup("reformat");
-    auto spin = tabWidget->findChild<QSpinBox *>("cmdval");
+    spin = tabWidget->findChild<QSpinBox *>("cmdval");
     if (spin) settings->setValue("command", spin->value());
     spin = tabWidget->findChild<QSpinBox *>("typeval");
     if (spin) settings->setValue("type", spin->value());
@@ -254,6 +257,17 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
+    auto *freqlayout = new QHBoxLayout;
+    auto *freqlabel = new QLabel("GUI update interval (ms)");
+    auto *freqval  = new QSpinBox;
+    freqval->setRange(1, 1000);
+    freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
+    freqval->setValue(settings->value("updfreq", "100").toInt());
+    freqval->setObjectName("updfreq");
+    freqlayout->addWidget(freqlabel);
+    freqlayout->addWidget(freqval);
+    freqlayout->addStretch(1);
+
     layout->addWidget(echo);
     layout->addWidget(cite);
     layout->addWidget(logv);
@@ -267,6 +281,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addLayout(pluginlayout);
 #endif
     layout->addLayout(fontlayout);
+    layout->addLayout(freqlayout);
     layout->addStretch(1);
     setLayout(layout);
 }

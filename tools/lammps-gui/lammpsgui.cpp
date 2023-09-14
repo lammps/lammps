@@ -1092,7 +1092,7 @@ void LammpsGui::do_run(bool use_buffer)
 
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(100);
+    logupdater->start(settings.value("updfreq", "100").toInt());
 }
 
 void LammpsGui::render_image()

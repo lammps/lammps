@@ -1445,20 +1445,24 @@ int DumpCustom::parse_fields(int narg, char **arg)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[iarg] = &DumpCustom::pack_q;
       vtype[iarg] = Dump::DOUBLE;
+      
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_mux;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_mux_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_mux;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_muy;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_muy_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_muy;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_muz;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_muz_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_muz;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
@@ -1491,47 +1495,58 @@ int DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_omegax;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_omegax_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_omegax;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_omegay;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_omegay_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_omegay;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_omegaz;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_omegaz_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_omegaz;
       vtype[iarg] = Dump::DOUBLE;
+      
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_angmomx;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_angmomx_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_angmomx;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_angmomy;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_angmomy_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_angmomy;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_angmomz;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_angmomz_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_angmomz;
       vtype[iarg] = Dump::DOUBLE;
+      
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_tqx;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_tqx_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_tqx;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_tqy;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_tqy_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_tqy;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      pack_choice[iarg] = &DumpCustom::pack_tqz;
+      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_tqz_triclinic_general;
+      else pack_choice[iarg] = &DumpCustom::pack_tqz;
       vtype[iarg] = Dump::DOUBLE;
 
     // compute or fix or variable or custom vector/array
@@ -2888,7 +2903,7 @@ void DumpCustom::pack_vx_triclinic_general(int n)
   double vtri[3];
 
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_coords(v[clist[i]],vtri);
+    domain->restricted_to_general_vector(v[clist[i]],vtri);
     buf[n] = vtri[0];
     n += size_one;
   }
@@ -2902,7 +2917,7 @@ void DumpCustom::pack_vy_triclinic_general(int n)
   double vtri[3];
 
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_coords(v[clist[i]],vtri);
+    domain->restricted_to_general_vector(v[clist[i]],vtri);
     buf[n] = vtri[1];
     n += size_one;
   }
@@ -2916,7 +2931,7 @@ void DumpCustom::pack_vz_triclinic_general(int n)
   double vtri[3];
 
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_coords(v[clist[i]],vtri);
+    domain->restricted_to_general_vector(v[clist[i]],vtri);
     buf[n] = vtri[2];
     n += size_one;
   }
@@ -2966,7 +2981,7 @@ void DumpCustom::pack_fx_triclinic_general(int n)
   double ftri[3];
   
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_coords(f[clist[i]],ftri);
+    domain->restricted_to_general_vector(f[clist[i]],ftri);
     buf[n] = ftri[0];
     n += size_one;
   }
@@ -2980,7 +2995,7 @@ void DumpCustom::pack_fy_triclinic_general(int n)
   double ftri[3];
 
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_coords(f[clist[i]],ftri);
+    domain->restricted_to_general_vector(f[clist[i]],ftri);
     buf[n] = ftri[1];
     n += size_one;
   }
@@ -2994,7 +3009,7 @@ void DumpCustom::pack_fz_triclinic_general(int n)
   double ftri[3];
 
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_coords(f[clist[i]],ftri);
+    domain->restricted_to_general_vector(f[clist[i]],ftri);
     buf[n] = ftri[2];
     n += size_one;
   }
@@ -3056,6 +3071,48 @@ void DumpCustom::pack_mu(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = mu[clist[i]][3];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_mux_triclinic_general(int n)
+{
+  double **mu = atom->mu;
+  double mutri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(mu[clist[i]],mutri);
+    buf[n] = mutri[0];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_muy_triclinic_general(int n)
+{
+  double **mu = atom->mu;
+  double mutri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(mu[clist[i]],mutri);
+    buf[n] = mutri[1];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_muz_triclinic_general(int n)
+{
+  double **mu = atom->mu;
+  double mutri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(mu[clist[i]],mutri);
+    buf[n] = mutri[2];
     n += size_one;
   }
 }
@@ -3146,6 +3203,48 @@ void DumpCustom::pack_omegaz(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::pack_omegax_triclinic_general(int n)
+{
+  double **omega = atom->omega;
+  double omegatri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(omega[clist[i]],omegatri);
+    buf[n] = omegatri[0];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_omegay_triclinic_general(int n)
+{
+  double **omega = atom->omega;
+  double omegatri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(omega[clist[i]],omegatri);
+    buf[n] = omegatri[1];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_omegaz_triclinic_general(int n)
+{
+  double **omega = atom->omega;
+  double omegatri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(omega[clist[i]],omegatri);
+    buf[n] = omegatri[2];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::pack_angmomx(int n)
 {
   double **angmom = atom->angmom;
@@ -3182,6 +3281,48 @@ void DumpCustom::pack_angmomz(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpCustom::pack_angmomx_triclinic_general(int n)
+{
+  double **angmom = atom->angmom;
+  double angmomtri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(angmom[clist[i]],angmomtri);
+    buf[n] = angmomtri[0];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_angmomy_triclinic_general(int n)
+{
+  double **angmom = atom->angmom;
+  double angmomtri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(angmom[clist[i]],angmomtri);
+    buf[n] = angmomtri[1];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_angmomz_triclinic_general(int n)
+{
+  double **angmom = atom->angmom;
+  double angmomtri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(angmom[clist[i]],angmomtri);
+    buf[n] = angmomtri[2];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpCustom::pack_tqx(int n)
 {
   double **torque = atom->torque;
@@ -3212,6 +3353,48 @@ void DumpCustom::pack_tqz(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = torque[clist[i]][2];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_tqx_triclinic_general(int n)
+{
+  double **torque = atom->torque;
+  double torquetri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(torque[clist[i]],torquetri);
+    buf[n] = torquetri[0];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_tqy_triclinic_general(int n)
+{
+  double **torque = atom->torque;
+  double torquetri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(torque[clist[i]],torquetri);
+    buf[n] = torquetri[1];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_tqz_triclinic_general(int n)
+{
+  double **torque = atom->torque;
+  double torquetri[3];
+  
+  for (int i = 0; i < nchoose; i++) {
+    domain->restricted_to_general_vector(torque[clist[i]],torquetri);
+    buf[n] = torquetri[2];
     n += size_one;
   }
 }

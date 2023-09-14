@@ -148,6 +148,7 @@ class Domain : protected Pointers {
   void restricted_to_general_coords(double *, double *);
   void general_to_restricted_vector(double *); 
   void restricted_to_general_vector(double *);
+  void restricted_to_general_vector(double *, double *x); 
  
   void set_lattice(int, char **);
   void add_region(int, char **);

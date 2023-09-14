@@ -733,28 +733,34 @@ void Domain::restricted_to_general_coords(double *x, double *xnew)
    transform atom vector from general triclinic to restricted triclinic
 ------------------------------------------------------------------------- */
 
-void Domain::general_to_restricted_vector(double *x)
+void Domain::general_to_restricted_vector(double *v)
 {
-  double xnew[3];
+  double vnew[3];
   
-  MathExtra::matvec(rotate_g2r,x,xnew);
-  x[0] = xnew[0];
-  x[1] = xnew[1];
-  x[2] = xnew[2];
+  MathExtra::matvec(rotate_g2r,v,vnew);
+  v[0] = vnew[0];
+  v[1] = vnew[1];
+  v[2] = vnew[2];
 }
 
 /* ----------------------------------------------------------------------
    transform atom vector from restricted triclinic to general triclinic
 ------------------------------------------------------------------------- */
 
-void Domain::restricted_to_general_vector(double *x)
+void Domain::restricted_to_general_vector(double *v)
 {
-  double xnew[3];
+  double vnew[3];
   
-  MathExtra::matvec(rotate_r2g,x,xnew);
-  x[0] = xnew[0];
-  x[1] = xnew[1];
-  x[2] = xnew[2];
+  MathExtra::matvec(rotate_r2g,v,vnew);
+  v[0] = vnew[0];
+  v[1] = vnew[1];
+  v[2] = vnew[2];
+}
+
+
+void Domain::restricted_to_general_vector(double *v, double *vnew)
+{
+  MathExtra::matvec(rotate_r2g,v,vnew);
 }
 
 /* ----------------------------------------------------------------------

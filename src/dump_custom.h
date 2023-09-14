@@ -204,10 +204,15 @@ class DumpCustom : public Dump {
   void pack_fz_triclinic_general(int);
 
   void pack_q(int);
+
   void pack_mux(int);
   void pack_muy(int);
   void pack_muz(int);
   void pack_mu(int);
+  void pack_mux_triclinic_general(int);
+  void pack_muy_triclinic_general(int);
+  void pack_muz_triclinic_general(int);
+
   void pack_radius(int);
   void pack_diameter(int);
   
@@ -217,12 +222,23 @@ class DumpCustom : public Dump {
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);
+  void pack_omegax_triclinic_general(int);
+  void pack_omegay_triclinic_general(int);
+  void pack_omegaz_triclinic_general(int);
+  
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
+  void pack_angmomx_triclinic_general(int);
+  void pack_angmomy_triclinic_general(int);
+  void pack_angmomz_triclinic_general(int);
+  
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
+  void pack_tqx_triclinic_general(int);
+  void pack_tqy_triclinic_general(int);
+  void pack_tqz_triclinic_general(int);
 };
 
 }    // namespace LAMMPS_NS

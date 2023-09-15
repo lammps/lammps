@@ -184,6 +184,12 @@ private:
                       int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
     double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
+  
+//   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N,
+//                       int dim);
+  int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
+    double *x, double *a1, double *a2, double *a3, double *rcutvec, double rcutmax, int *pbc, int nx);
+  
   void estimate_memory_neighborstruct(const datastruct &data, int *pbc, double rcut, int nelements);
   void allocate_memory_neighborstruct();
   void estimate_memory_descriptorstruct(const datastruct &data);

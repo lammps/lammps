@@ -1184,6 +1184,7 @@ void FitPOD::estimate_memory_descriptorstruct(const datastruct &data)
     double *a3 = &lattice[6];
 
     Nij = podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum, x, a1, a2, a3, rcut, pbc, natom);
+    
     Nijmax = MAX(Nijmax, Nij);
 
     int ns2 = pdegree2[0]*nbesselpars + pdegree2[1];
@@ -1471,7 +1472,7 @@ void FitPOD::linear_descriptors(const datastruct &data, int ci)
   int nd4 = podptr->pod.nd4;
   int nd1234 = nd1+nd2+nd3+nd4;
   int *pbc = podptr->pod.pbc;
-  double rcut = podptr->pod.rcut;
+  double rcutmax = podptr->pod.rcut;
 
   int natom = data.num_atom[ci];
   int natom_cumsum = data.num_atom_cumsum[ci];
@@ -1484,7 +1485,7 @@ void FitPOD::linear_descriptors(const datastruct &data, int ci)
 
   // neighbor list
   int Nij = podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum,
-        position, a1, a2, a3, rcut, pbc, natom);
+        position, a1, a2, a3, rcutmax, pbc, natom);
 
   int *tmpint = &desc.tmpint[0];
   double *tmpmem = &desc.gdd[dim*natom*nd1234+natom*nd1234];
@@ -1496,7 +1497,7 @@ void FitPOD::linear_descriptors_fastpod(const datastruct &data, int ci)
 {
   int dim = 3;
   int *pbc = fastpodptr->pbc;
-  double rcut = fastpodptr->rcut;
+  double rcutmax = fastpodptr->rcut;
 
   int natom = data.num_atom[ci];
   int natom_cumsum = data.num_atom_cumsum[ci];
@@ -1509,7 +1510,7 @@ void FitPOD::linear_descriptors_fastpod(const datastruct &data, int ci)
 
   // neighbor list
   podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum,
-          position, a1, a2, a3, rcut, pbc, natom);
+          position, a1, a2, a3, rcutmax, pbc, natom);
 
   fastpodptr->descriptors(desc.gd, desc.gdd, nb.y, atomtype, nb.alist, nb.pairlist,
           nb.pairnum_cumsum, natom);

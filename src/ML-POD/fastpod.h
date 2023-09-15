@@ -48,6 +48,9 @@ private:
   void myneighbors(double *rij, double *x, int *ai, int *aj, int *ti, int *tj,
         int *jlist, int *pairnumsum, int *atomtype, int *alist, int i);
 
+  int myneighbors(double *rij, double *rinij, double *rcutij, double *x, int *ai, int *aj, int *ti, int *tj,
+        double *rinvec, double *rcutvec, int *jlist, int *pairnumsum, int *atomtype, int *alist, int i);
+        
   void twobodycoeff(double *newcoeff2, double *coeff2);
 
   double threebodycoeff(double *cU, double *coeff3, double *sumU, int N);
@@ -60,6 +63,9 @@ private:
   void radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, double *rij, double *besselparams, double rin,
         double rmax, int besseldegree, int inversedegree, int nbesselpars, int N);
 
+  void radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, double *rij, double *besselparams, double *rinij,
+        double *rcutij, int besseldegree, int inversedegree, int nbesselpars, int N);
+  
   void orthogonalradialbasis(double *orthorbf, double *rij, double *Phi, double *besselparams,
         double rin, double rmax, int besseldegree, int inversedegree, int nbesselpars, int nrbf2, int N);
 
@@ -111,7 +117,12 @@ public:
 
   double rin;
   double rcut;
-
+  
+  double *rinvec;
+  double *rcutvec;
+  int rcutsize;
+  bool rcutvecflag;
+          
   int nelements;
   int pbc[3];
   int *elemindex ;

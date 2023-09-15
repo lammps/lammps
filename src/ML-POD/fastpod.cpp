@@ -44,6 +44,8 @@ FASTPOD::FASTPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &c
     pc3(nullptr), pq4(nullptr), pa4(nullptr), pb4(nullptr), pc4(nullptr), ind23(nullptr),
     ind32(nullptr), ind33(nullptr), ind34(nullptr), ind43(nullptr), ind44(nullptr)
 {
+  rcutvecflag = false;    
+  rcutsize = 1;
   rin = 0.5;
   rcut = 5.0;
   nelements = 1;
@@ -175,13 +177,43 @@ void FASTPOD::read_pod_file(std::string pod_file)
       pbc[2] = utils::inumeric(FLERR,words[3],false,lmp);
     }
 
+    rcutsize = nelements*(nelements+1)/2;
+    memory->create(rinvec, rcutsize, "FPOD:rinvec");
+    if (keywd == "rinvec") {
+      rcutvecflag = true;
+      if (words.size() != rcutsize + 1)
+        error->one(FLERR,"Improper POD file. Please supply rin for all pairwise interactions", utils::getsyserror());
+      for (int irin = 1; irin <= rcutsize; irin++) {
+        rinvec[irin] = utils::inumeric(FLERR,words[irin],false,lmp);
+      }
+    }
+
+    memory->create(rcutvec, rcutsize, "FPOD:rcutvec");
+    if (keywd == "rcutvec") {
+      rcutvecflag = true;
+      if (words.size() != rcutsize + 1)
+        error->one(FLERR,"Improper POD file. Please supply rcut for all pairwise interactions", utils::getsyserror());
+      for (int ircut = 1; ircut <= rcutsize; ircut++) {
+        rcutvec[ircut] = utils::inumeric(FLERR,words[ircut],false,lmp);
+      }
+    }
+
     if ((keywd != "#") && (keywd != "species") && (keywd != "pbc")) {
 
       if (words.size() != 2)
         error->one(FLERR,"Improper POD file.", utils::getsyserror());
-
-      if (keywd == "rin") rin = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "rcut") rcut = utils::numeric(FLERR,words[1],false,lmp);
+      
+      if (rcutvecflag == false) {
+        if (keywd == "rin") rin = utils::numeric(FLERR,words[1],false,lmp);
+        if (keywd == "rcut") rcut = utils::numeric(FLERR,words[1],false,lmp);        
+      }
+      else {
+        rcut = rcutvec[0];
+        for (int ircut = 1; ircut <= rcutsize; ircut++)
+          if (rcut<rcutvec[ircut])
+            rcut = rcutvec[ircut];        
+      }
+            
       if (keywd == "bessel_polynomial_degree")
         besseldegree = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "inverse_polynomial_degree")
@@ -342,8 +374,20 @@ void FASTPOD::read_pod_file(std::string pod_file)
       utils::logmesg(lmp, "{} ", species[i]);
     utils::logmesg(lmp, "\n");
     utils::logmesg(lmp, "periodic boundary conditions: {} {} {}\n", pbc[0], pbc[1], pbc[2]);
-    utils::logmesg(lmp, "inner cut-off radius: {}\n", rin);
-    utils::logmesg(lmp, "outer cut-off radius: {}\n", rcut);
+    if (rcutvecflag==1) {
+      utils::logmesg(lmp, "inner cut-off radius: ");
+      for (int i=0; i<rcutsize; i++)
+        utils::logmesg(lmp, "{} ", rinvec[i]);
+      utils::logmesg(lmp, "\n");
+      utils::logmesg(lmp, "outer cut-off radius: ");
+      for (int i=0; i<rcutsize; i++)
+        utils::logmesg(lmp, "{} ", rcutvec[i]);
+      utils::logmesg(lmp, "\n");    
+    }
+    else {
+      utils::logmesg(lmp, "inner cut-off radius: {}\n", rin);
+      utils::logmesg(lmp, "outer cut-off radius: {}\n", rcut);
+    }
     utils::logmesg(lmp, "bessel polynomial degree: {}\n", besseldegree);
     utils::logmesg(lmp, "inverse polynomial degree: {}\n",inversedegree);
     utils::logmesg(lmp, "one-body potential: {}\n", onebody);
@@ -513,7 +557,10 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
 
   //begin = std::chrono::high_resolution_clock::now();
 
-  radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nj);
+  if (rcutvecflag==false)
+    radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nj);
+  else
+    radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rinvec, rcutvec, pdegree[0], pdegree[1], nbesselpars, Nj);
 
   //end = std::chrono::high_resolution_clock::now();
   //comptime[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
@@ -1068,6 +1115,38 @@ void FASTPOD::myneighbors(double *rij, double *x, int *ai, int *aj, int *ti, int
   }
 }
 
+int FASTPOD::myneighbors(double *rij, double *rinij, double *rcutij, double *x, int *ai, int *aj, int *ti, int *tj,
+        double *rinvec, double *rcutvec, int *jlist, int *pairnumsum, int *atomtype, int *alist, int i)
+{
+  int itype = atomtype[i];
+  int start = pairnumsum[i];
+  int m = pairnumsum[i+1] - start; // number of neighbors around i
+  int nij = 0;
+  for (int l=0; l<m ; l++) {   // loop over each atom around atom i
+    int j = jlist[l + start];  // atom j
+    int jtype = atomtype[alist[j]];
+    double rcut = rcutvec[(itype-1)*nelements + jtype-1];
+    double rin = rinvec[(itype-1)*nelements + jtype-1];
+    double rcutsq = rcut*rcut;
+    
+    double delx   = x[0 + 3*j] -  x[0 + 3*i];
+    double dely   = x[1 + 3*j] -  x[1 + 3*i];
+    double delz   = x[2 + 3*j] -  x[2 + 3*i];    
+    double rsq = delx * delx + dely * dely + delz * delz;    
+    if (rsq < rcutsq && rsq > 1e-20) {
+      ai[nij]        = i;
+      aj[nij]        = alist[j];
+      ti[nij]        = itype;
+      tj[nij]        = atomtype[alist[j]];
+      rij[0 + 3*nij]   = delx;
+      rij[1 + 3*nij]   = dely;
+      rij[2 + 3*nij]   = delz;      
+      nij++;
+    }    
+  }
+  return nij;
+}
+
 void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *Ux, double *Uy,
         double *Uz, int *atomtype, int N)
 {
@@ -1549,6 +1628,141 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
     double dr2 = xij2/dij;
     double dr3 = xij3/dij;
 
+    double r = dij - rin;
+    double y = r/rmax;
+    double y2 = y*y;
+    double y3 = 1.0 - y2*y;
+    double y4 = y3*y3 + 1e-6;
+    double y5 = sqrt(y4);
+    double y6 = exp(-1.0/y5);
+    double y7 = y4*sqrt(y4);
+    double fcut = y6/exp(-1.0);
+    double dfcut = ((3.0/(rmax*exp(-1.0)))*(y2)*y6*(y*y2 - 1.0))/y7;
+    double f1 = fcut/r;
+    double f2 = f1/r;
+    double df1 = dfcut/r;
+
+    double alpha = besselparams[0];
+    double t1 = (1.0-exp(-alpha));
+    double t2 = exp(-alpha*r/rmax);
+    double x0 =  (1.0 - t2)/t1;
+    double dx0 = (alpha/rmax)*t2/t1;
+
+    if (nbesselpars==1) {
+      for (int i=0; i<besseldegree; i++) {
+        double a = (i+1)*MY_PI;
+        double b = (sqrt(2.0/(rmax))/(i+1));
+        double af1 = a*f1;
+
+        double sinax = sin(a*x0);
+        int nij = n + N*i;
+        rbf[nij] = b*f1*sinax;
+        double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;
+      }
+    }
+    else if (nbesselpars==2) {
+      alpha = besselparams[1];
+      t1 = (1.0-exp(-alpha));
+      t2 = exp(-alpha*r/rmax);
+      double x1 =  (1.0 - t2)/t1;
+      double dx1 = (alpha/rmax)*t2/t1;
+      for (int i=0; i<besseldegree; i++) {
+        double a = (i+1)*MY_PI;
+        double b = (sqrt(2.0/(rmax))/(i+1));
+        double af1 = a*f1;
+
+        double sinax = sin(a*x0);
+        int nij = n + N*i;
+        rbf[nij] = b*f1*sinax;
+        double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;
+
+        sinax = sin(a*x1);
+        nij = n + N*i + N*besseldegree*1;
+        rbf[nij] = b*f1*sinax;
+        drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;
+      }
+    }
+    else if (nbesselpars==3) {
+      alpha = besselparams[1];
+      t1 = (1.0-exp(-alpha));
+      t2 = exp(-alpha*r/rmax);
+      double x1 =  (1.0 - t2)/t1;
+      double dx1 = (alpha/rmax)*t2/t1;
+
+      alpha = besselparams[2];
+      t1 = (1.0-exp(-alpha));
+      t2 = exp(-alpha*r/rmax);
+      double x2 =  (1.0 - t2)/t1;
+      double dx2 = (alpha/rmax)*t2/t1;
+      for (int i=0; i<besseldegree; i++) {
+        double a = (i+1)*MY_PI;
+        double b = (sqrt(2.0/(rmax))/(i+1));
+        double af1 = a*f1;
+
+        double sinax = sin(a*x0);
+        int nij = n + N*i;
+        rbf[nij] = b*f1*sinax;
+        double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;
+
+        sinax = sin(a*x1);
+        nij = n + N*i + N*besseldegree*1;
+        rbf[nij] = b*f1*sinax;
+        drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;
+
+        sinax = sin(a*x2);
+        nij = n + N*i + N*besseldegree*2;
+        rbf[nij] = b*f1*sinax;
+        drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x2)*dx2);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;
+      }
+    }
+
+    f1 = fcut/dij;
+    for (int i=0; i<inversedegree; i++) {
+      int p = besseldegree*nbesselpars + i;
+      int nij = n + N*p;
+      double a = powint(dij, i+1);
+      rbf[nij] = fcut/a;
+      double drbfdr = (dfcut - (i+1.0)*f1)/a;
+      rbfx[nij] = drbfdr*dr1;
+      rbfy[nij] = drbfdr*dr2;
+      rbfz[nij] = drbfdr*dr3;
+    }
+  }
+}
+
+void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, double *rij, double *besselparams, double *rinij,
+        double *rcutij, int besseldegree, int inversedegree, int nbesselpars, int N)
+{
+  for (int n=0; n<N; n++) {
+    double xij1 = rij[0+3*n];
+    double xij2 = rij[1+3*n];
+    double xij3 = rij[2+3*n];
+    double rcut = rcutij[n];
+    double rin = rinij[n];        
+    double rmax = rcut - rin;
+
+    double dij = sqrt(xij1*xij1 + xij2*xij2 + xij3*xij3);
+    double dr1 = xij1/dij;
+    double dr2 = xij2/dij;
+    double dr3 = xij3/dij;
     double r = dij - rin;
     double y = r/rmax;
     double y2 = y*y;

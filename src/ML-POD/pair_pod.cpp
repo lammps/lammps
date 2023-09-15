@@ -53,6 +53,7 @@ PairPOD::PairPOD(LAMMPS *lmp) :
   nij = 0;
   nijmax = 0;
   szd = 0;
+  nelements = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,14 +99,17 @@ void PairPOD::compute(int eflag, int vflag)
   int inum = list->inum;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-
+   
   // initialize global descriptors to zero
 
   if (descriptormethod == 0) {
+    nelements = podptr->pod.nelements;
+    
     int nd1234 = podptr->pod.nd1234;
     podptr->podArraySetValue(gd, 0.0, nd1234);
 
     double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
+            
 
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
@@ -123,7 +127,7 @@ void PairPOD::compute(int eflag, int vflag)
 
       // get neighbor pairs for atom i
 
-      lammpsNeighPairs(x, firstneigh, type, map, numneigh, rcutsq, i);
+      lammpsNeighListOPOD(x, firstneigh, type, map, numneigh, rcutsq, i);
 
       // compute global POD descriptors for atom i
 
@@ -157,7 +161,7 @@ void PairPOD::compute(int eflag, int vflag)
 
       // get neighbor pairs for atom i
 
-      lammpsNeighPairs(x, firstneigh, type, map, numneigh, rcutsq, i);
+      lammpsNeighListOPOD(x, firstneigh, type, map, numneigh, rcutsq, i);
 
       // compute atomic force for atom i
 
@@ -189,7 +193,8 @@ void PairPOD::compute(int eflag, int vflag)
     }
   }
   else if (descriptormethod == 1) {
-
+    nelements = fastpodptr->nelements;
+  
     double rcutsq = fastpodptr->rcut*fastpodptr->rcut;
     double evdwl = 0.0;
 
@@ -213,7 +218,7 @@ void PairPOD::compute(int eflag, int vflag)
 
       // get neighbor list for atom i
 
-      lammpsNeighborList(x, firstneigh, type, map, numneigh, rcutsq, i);
+      lammpsNeighListFPOD(x, firstneigh, type, map, numneigh, rcutsq, i);
 
       // compute atomic energy and force for atom i
 
@@ -372,7 +377,7 @@ void PairPOD::free_tempmemory()
 }
 
 void PairPOD::allocate_tempmemory()
-{
+{  
   memory->create(rij, dim * nijmax, "pair:rij");
   memory->create(fij, dim * nijmax, "pair:fij");
   memory->create(idxi, nijmax, "pair:idxi");
@@ -432,7 +437,7 @@ void PairPOD::allocate_tempmemory_fastpod(int nmem)
   memory->create(tmpmem, nmem, "fastpod::tmpmem");
 }
 
-void PairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map,
+void PairPOD::lammpsNeighListOPOD(double **x, int **firstneigh, int *atomtypes, int *map,
                                int *numneigh, double rcutsq, int gi)
 {
   nij = 0;
@@ -462,7 +467,7 @@ void PairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int
   numneighsum[1] = nij;
 }
 
-void PairPOD::lammpsNeighborList(double **x, int **firstneigh, int *atomtypes, int *map,
+void PairPOD::lammpsNeighListFPOD(double **x, int **firstneigh, int *atomtypes, int *map,
                                int *numneigh, double rcutsq, int gi)
 {
   nij = 0;
@@ -478,6 +483,37 @@ void PairPOD::lammpsNeighborList(double **x, int **firstneigh, int *atomtypes, i
       rij[nij * 3 + 0] = delx;
       rij[nij * 3 + 1] = dely;
       rij[nij * 3 + 2] = delz;
+      ai[nij] = gi;
+      aj[nij] = gj;
+      ti[nij] = itype;
+      tj[nij] = map[atomtypes[gj]] + 1;
+      nij++;
+    }
+  }
+}
+
+void PairPOD::lammpsNeighListFPOD(double **x, int **firstneigh, int *atomtypes, int *map,
+                               int *numneigh, double *rinvec, double *rcutvec, int gi)
+{
+  nij = 0;
+  int itype = map[atomtypes[gi]] + 1;
+  int m = numneigh[gi];
+  for (int l = 0; l < m; l++) {           // loop over each atom around atom i
+    int gj = firstneigh[gi][l];           // atom j
+    double delx = x[gj][0] - x[gi][0];    // xj - xi
+    double dely = x[gj][1] - x[gi][1];    // xj - xi
+    double delz = x[gj][2] - x[gi][2];    // xj - xi
+    double rsq = delx * delx + dely * dely + delz * delz;
+    int jtype = map[atomtypes[gj]] + 1;
+    double rcut = rcutvec[(itype-1)*nelements + jtype-1];
+    double rin = rinvec[(itype-1)*nelements + jtype-1];
+    double rcutsq = rcut*rcut;
+    if (rsq < rcutsq && rsq > 1e-20) {
+      rij[nij * 3 + 0] = delx;
+      rij[nij * 3 + 1] = dely;
+      rij[nij * 3 + 2] = delz;
+      rcutij[nij] = rcut;
+      rinij[nij] = rin;      
       ai[nij] = gi;
       aj[nij] = gj;
       ti[nij] = itype;

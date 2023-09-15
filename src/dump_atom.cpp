@@ -334,13 +334,14 @@ void DumpAtom::header_binary_triclinic_general(bigint ndump)
 
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
-  int general_tri = 2;
-  fwrite(&general_tri,sizeof(int),1,fp);
+  int triclinic_general_flag = 2;
+  fwrite(&triclinic_general_flag,sizeof(int),1,fp);
   fwrite(&domain->boundary[0][0],6*sizeof(int),1,fp);
   fwrite(domain->avec,3*sizeof(double),1,fp);
   fwrite(domain->bvec,3*sizeof(double),1,fp);
   fwrite(domain->cvec,3*sizeof(double),1,fp);
   fwrite(domain->boxlo,3*sizeof(double),1,fp);
+  fwrite(&size_one,sizeof(int),1,fp);
 
   header_unit_style_binary();
   header_time_binary();

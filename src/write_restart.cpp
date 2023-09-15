@@ -450,8 +450,8 @@ void WriteRestart::header()
 
   write_int(TRICLINIC_GENERAL,domain->triclinic_general);
   if (domain->triclinic_general) {
-    write_double_vec(ROTATE_G2R,9,&domain->rotate_g2r[0][0]);
-    write_double_vec(ROTATE_R2G,9,&domain->rotate_r2g[0][0]);
+    write_int(TRICLINIC_GENERAL_FLIP,domain->triclinic_general_flip);
+    write_double_vec(QUAT_G2R,4,domain->quat_g2r);
   }
   
   write_double_vec(SPECIAL_LJ,3,&force->special_lj[1]);

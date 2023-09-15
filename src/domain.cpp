@@ -580,13 +580,18 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
     error->all(FLERR,"General triclinic box edge vector C invalid for 2d system");
 
   // error check for co-planar A,B,C
+  // if A x B is in C direction, only a rotation to restricted tri is needed
+  //   since restricted tri box will obey right-hand rule
+  // if not, an inversion (flip) of C vector is also needed
 
   double abcross[3];
   MathExtra::cross3(avec,bvec,abcross);
   double dot = MathExtra::dot3(abcross,cvec);
   if (dot == 0.0)
     error->all(FLERR,"General triclinic box edge vectors are co-planar");
-
+  if (dot > 0.0) triclinic_general_flip = 0;
+  else triclinic_general_flip = 1;
+  
   // quat1 = convert A into A' along +x-axis
   // rot1 = unit vector to rotate A around
   // theta1 = angle of rotation calculated from
@@ -627,18 +632,19 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   if (bvec1[2] > 0.0) theta2 = -theta2;
   MathExtra::axisangle_to_quat(xaxis,theta2,quat2);
 
-  // quat_g2r = transformation via single quat = quat2 * quat1
-  // rotate_g2r = general to restricted transformation matrix
-  // if dot < 0.0 (A x B not in C direction)
-  //   flip sign of z component of transform,
-  //   by flipping sign of 3rd row of rotate_g2r matrix
-  // rotate_r2g = restricted to general transformation matrix
+  // quat_g2r = rotation via single quat = quat2 * quat1
+  // quat_r2g = rotation from restricted to general
+  // rotate_g2r = general to restricted rotation matrix
+  //   include flip of C vector if needed to obey right-hand rule
+  // rotate_r2g = restricted to general rotation matrix
   //   simply a transpose of rotate_g2r since orthonormal
 
   MathExtra::quatquat(quat2,quat1,quat_g2r);
+  MathExtra::qconjugate(quat_g2r,quat_r2g);
+
   MathExtra::quat_to_mat(quat_g2r,rotate_g2r);
 
-  if (dot < 0.0) {
+  if (triclinic_general_flip) {
     rotate_g2r[2][0] = -rotate_g2r[2][0];
     rotate_g2r[2][1] = -rotate_g2r[2][1];
     rotate_g2r[2][2] = -rotate_g2r[2][2];
@@ -646,7 +652,7 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   
   MathExtra::transpose3(rotate_g2r,rotate_r2g);
 
-  // transform general ABC to restricted triclinic A'B'C'
+  // rotate general ABC to restricted triclinic A'B'C'
 
   double aprime[3],bprime[3],cprime[3];
   MathExtra::matvec(rotate_g2r,avec,aprime);

@@ -586,11 +586,11 @@ void AtomVecBody::write_data_restricted_to_general()
 {
   AtomVec::write_data_restricted_to_general();
 
-  double quat[4],quat_r2g[4];
+  double quat[4];
   double *bquat;
-  
+  double *quat_r2g = domain->quat_r2g;
+    
   memory->create(quat_hold,nlocal_bonus,4,"atomvec:quat_hold");
-  MathExtra::qconjugate(domain->quat_g2r,quat_r2g);
   
   for (int i = 0; i < nlocal_bonus; i++) {
     bquat = bonus[i].quat;

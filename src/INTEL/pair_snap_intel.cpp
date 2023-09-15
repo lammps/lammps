@@ -336,6 +336,8 @@ void PairSNAPIntel::settings(int narg, char ** /* arg */)
 {
   if (narg > 0)
     error->all(FLERR,"Illegal pair_style command");
+  if ((comm->me == 0) && (comm->nthreads > 1))
+    error->warning(FLERR, "Pair style snap/intel does not use OpenMP threads");
 }
 
 /* ----------------------------------------------------------------------

@@ -528,6 +528,13 @@ General Settings:
   log) of the application can be set.
 - *Select Text Font:* Opens a font selection dialog where the type and
   size for the text editor and log font of the application can be set.
+- *GUI update interval:* Allows to set the time interval between GUI
+  and data updates during a LAMMPS run in milliseconds. The default is
+  to update the GUI every 100 milliseconds. This is good for most cases.
+  For LAMMPS runs that run very fast, however, data may be missed and
+  through lowering this interval, this can be corrected. However, this
+  will make the GUI use more resources, which may be a problem on some
+  computers with slower CPUs. The default value is 100 milliseconds.
 
 Accelerators:
 ^^^^^^^^^^^^^

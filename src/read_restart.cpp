@@ -137,21 +137,6 @@ void ReadRestart::command(int narg, char **arg)
   atom->avec->grow(n);
   n = atom->nmax;
 
-  // setup simulation box
-  // for general triclinic, need to generate additional info which
-  //   Domain::define_general_triclinic() would have created
-
-  if (domain->triclinic_general) {
-    MathExtra::qconjugate(domain->quat_g2r,domain->quat_r2g);
-    MathExtra::quat_to_mat(domain->quat_g2r,domain->rotate_g2r);
-    if (domain->triclinic_general_flip) {
-      domain->rotate_g2r[2][0] = -domain->rotate_g2r[2][0];
-      domain->rotate_g2r[2][1] = -domain->rotate_g2r[2][1];
-      domain->rotate_g2r[2][2] = -domain->rotate_g2r[2][2];
-    }
-    MathExtra::transpose3(domain->rotate_g2r,domain->rotate_r2g);
-  }
-  
   domain->print_box("  ");
   domain->set_initial_box(0);
   domain->set_global_box();
@@ -803,8 +788,9 @@ void ReadRestart::header()
       domain->triclinic_general = read_int();
     } else if (flag == TRICLINIC_GENERAL_FLIP) {
       domain->triclinic_general_flip = read_int();
-    } else if (flag == QUAT_G2R) {
-      read_double_vec(4,domain->quat_g2r);
+    } else if (flag == ROTATE_G2R) {
+      read_double_vec(9,&domain->rotate_g2r[0][0]);
+      MathExtra::transpose3(domain->rotate_g2r,domain->rotate_r2g);
 
     } else if (flag == SPECIAL_LJ) {
       read_int();

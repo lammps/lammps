@@ -510,8 +510,18 @@ void AtomVecTri::data_atom_bonus(int m, const std::vector<std::string> &values)
   MathExtra::sub3(c3, c1, c3mc1);
   double size = MAX(MathExtra::len3(c2mc1), MathExtra::len3(c3mc1));
 
+  // convert c1,c2,c3 from general to restricted triclniic
+  // x is already restricted triclinic
+  
+  if (domain->triclinic_general) {
+    domain->general_to_restricted_coords(c1);
+    domain->general_to_restricted_coords(c2);
+    domain->general_to_restricted_coords(c3);
+  }
+  
   // centroid = 1/3 of sum of vertices
-
+  // error if centroid is not within EPSILON of Atoms section coord
+  
   double centroid[3];
   centroid[0] = (c1[0] + c2[0] + c3[0]) / 3.0;
   centroid[1] = (c1[1] + c2[1] + c3[1]) / 3.0;
@@ -660,90 +670,6 @@ void AtomVecTri::data_atom_post(int ilocal)
 }
 
 /* ----------------------------------------------------------------------
-   convert read_data file info from general to restricted triclinic
-   parent class operates on data from Velocities section of data file
-   child class operates on bonus quat
-------------------------------------------------------------------------- */
-
-void AtomVecTri::read_data_general_to_restricted(int nlocal_previous, int nlocal)
-{
-  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
-
-  double quat[4];
-  double *bquat;
-  
-  for (int i = nlocal_previous; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    bquat = bonus[tri[i]].quat;
-    MathExtra::quatquat(domain->quat_g2r,bquat,quat);
-    bquat[0] = quat[0];
-    bquat[1] = quat[1];
-    bquat[2] = quat[2];
-    bquat[3] = quat[3];
-    MathExtra::qnormalize(bquat);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   convert info output by write_data from restricted to general triclinic
-   parent class operates on x and data from Velocities section of data file
-   child class operates on bonus quat
-------------------------------------------------------------------------- */
-
-void AtomVecTri::write_data_restricted_to_general()
-{
-  AtomVec::write_data_restricted_to_general();
-
-  double quat[4];
-  double *bquat;
-  double *quat_r2g = domain->quat_r2g;
-  
-  memory->create(quat_hold,nlocal_bonus,4,"atomvec:quat_hold");
-  
-  for (int i = 0; i < nlocal_bonus; i++) {
-    bquat = bonus[i].quat;
-    quat_hold[i][0] = bquat[0];
-    quat_hold[i][1] = bquat[1];
-    quat_hold[i][2] = bquat[2];
-    quat_hold[i][3] = bquat[3];
-
-    MathExtra::quatquat(quat_r2g,bquat,quat);
-    bquat[0] = quat[0];
-    bquat[1] = quat[1];
-    bquat[2] = quat[2];
-    bquat[3] = quat[3];
-    MathExtra::qnormalize(bquat);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   restore info output by write_data to restricted triclinic
-   original data is in "hold" arrays
-   parent class operates on x and data from Velocities section of data file
-   child class operates on bonus quat
-------------------------------------------------------------------------- */
-
-void AtomVecTri::write_data_restore_restricted()
-{
-  AtomVec::write_data_restore_restricted();
-
-  if (!quat_hold) return;
-
-  double *bquat;
-  
-  for (int i = 0; i < nlocal_bonus; i++) {
-    bquat = bonus[i].quat;
-    bquat[0] = quat_hold[i][0];
-    bquat[1] = quat_hold[i][1];
-    bquat[2] = quat_hold[i][2];
-    bquat[3] = quat_hold[i][3];
-  }
-  
-  memory->destroy(quat_hold);
-  quat_hold = nullptr;
-}
-
-/* ----------------------------------------------------------------------
    modify values for AtomVec::pack_data() to pack
 ------------------------------------------------------------------------- */
 
@@ -792,7 +718,12 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
   double dc1[3], dc2[3], dc3[3];
   double p[3][3];
 
-  double **x = atom->x;
+  int triclinic_general = domain->triclinic_general;
+
+  double **x_bonus;
+  if (triclinic_general) x_bonus = x_hold;
+  else x_bonus = x;
+    
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
@@ -806,9 +737,10 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
       MathExtra::matvec(p, bonus[j].c1, dc1);
       MathExtra::matvec(p, bonus[j].c2, dc2);
       MathExtra::matvec(p, bonus[j].c3, dc3);
-      xc = x[i][0];
-      yc = x[i][1];
-      zc = x[i][2];
+
+      xc = x_bonus[i][0];
+      yc = x_bonus[i][1];
+      zc = x_bonus[i][2];
       buf[m++] = xc + dc1[0];
       buf[m++] = yc + dc1[1];
       buf[m++] = zc + dc1[2];
@@ -818,6 +750,17 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
       buf[m++] = xc + dc3[0];
       buf[m++] = yc + dc3[1];
       buf[m++] = zc + dc3[2];
+
+      // if triclinic_general:
+      // rotate 9 buf values from restricted to general triclinic
+      // output by write_data_bonus() as c1,c2,c3
+      
+      if (triclinic_general) {
+        domain->restricted_to_general_coords(&buf[m-9]);
+        domain->restricted_to_general_coords(&buf[m-6]);
+        domain->restricted_to_general_coords(&buf[m-3]);
+      }
+
     } else
       m += size_data_bonus;
   }

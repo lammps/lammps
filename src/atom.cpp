@@ -1190,7 +1190,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         xdata[2] = 0.0;
       }
       
-      // convert atom coords from general triclinic to restricted triclinic
+      // convert atom coords from general to restricted triclinic
       // so can decide which proc owns the atom
       
       if (triclinic_general) domain->general_to_restricted_coords(xdata);

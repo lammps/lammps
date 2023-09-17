@@ -173,7 +173,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     if (help_index.open(QIODevice::ReadOnly | QIODevice::Text)) {
         while (!help_index.atEnd()) {
             auto line  = QString(help_index.readLine());
-            auto words = line.trimmed().split(' ');
+            auto words = line.trimmed().replace('\t', ' ').split(' ');
             if (words.size() > 2) {
                 if (words.at(1) == "pair_style") {
                     pair_map[words.at(2)] = words.at(0);
@@ -396,8 +396,8 @@ void CodeEditor::setGroupList()
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(groupcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
-        if ((words.size() > 1) && !groups.contains(words[1])) groups << words[1];
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
+        if ((words.size() > 1) && !groups.contains(words[1].c_str())) groups << words[1].c_str();
     }
     groups.sort();
     groups.prepend(QStringLiteral("all"));
@@ -426,13 +426,13 @@ void CodeEditor::setVarNameList()
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(varcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
         if ((words.size() > 1)) {
-            QString w = QString("$%1").arg(words[1]);
+            QString w = QString("$%1").arg(words[1].c_str());
             if ((words[1].size() == 1) && !vars.contains(w)) vars << w;
-            w = QString("${%1}").arg(words[1]);
+            w = QString("${%1}").arg(words[1].c_str());
             if (!vars.contains(w)) vars << w;
-            w = QString("v_%1").arg(words[1]);
+            w = QString("v_%1").arg(words[1].c_str());
             if (!vars.contains(w)) vars << w;
         }
     }
@@ -452,11 +452,11 @@ void CodeEditor::setComputeIDList()
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(compcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
         if ((words.size() > 1)) {
-            QString w = QString("c_%1").arg(words[1]);
+            QString w = QString("c_%1").arg(words[1].c_str());
             if (!compid.contains(w)) compid << w;
-            w = QString("C_%1").arg(words[1]);
+            w = QString("C_%1").arg(words[1].c_str());
             if (!compid.contains(w)) compid << w;
         }
     }
@@ -476,11 +476,11 @@ void CodeEditor::setFixIDList()
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(fixcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
         if ((words.size() > 1)) {
-            QString w = QString("f_%1").arg(words[1]);
+            QString w = QString("f_%1").arg(words[1].c_str());
             if (!fixid.contains(w)) fixid << w;
-            w = QString("F_%1").arg(words[1]);
+            w = QString("F_%1").arg(words[1].c_str());
             if (!fixid.contains(w)) fixid << w;
         }
     }

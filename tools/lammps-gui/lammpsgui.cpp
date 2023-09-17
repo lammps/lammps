@@ -528,7 +528,7 @@ void LammpsGui::update_recents(const QString &filename)
 
 void LammpsGui::update_variables()
 {
-    const auto doc = ui->textEdit->toPlainText().split('\n');
+    const auto doc = ui->textEdit->toPlainText().replace('\t', ' ').split('\n');
     QStringList known;
     QRegularExpression indexvar("^\\s*variable\\s+(\\w+)\\s+index\\s+(.*)");
     QRegularExpression anyvar("^\\s*variable\\s+(\\w+)\\s+(\\w+)\\s+(.*)");

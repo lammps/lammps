@@ -138,7 +138,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
 
     // set up completer class (without a model currently)
 #define COMPLETER_SETUP(completer)                                                            \
-    completer->setCompletionMode(QCompleter::PopupCompletion);                                \
+    completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);                      \
     completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);                     \
     completer->setWidget(this);                                                               \
     completer->setMaxVisibleItems(16);                                                        \
@@ -940,10 +940,8 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     auto *completer = qobject_cast<QCompleter *>(sender());
     if (completer->widget() != this) return;
     auto cursor = textCursor();
-    int extra   = completion.length() - completer->completionPrefix().length();
-    cursor.movePosition(QTextCursor::Left);
-    cursor.movePosition(QTextCursor::EndOfWord);
-    cursor.insertText(completion.right(extra));
+    cursor.movePosition(QTextCursor::StartOfWord, QTextCursor::KeepAnchor);
+    cursor.insertText(completion);
     setTextCursor(cursor);
 }
 

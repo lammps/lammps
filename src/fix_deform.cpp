@@ -1302,6 +1302,7 @@ void FixDeform::set_volume()
         double p2 = pressure->vector[fixed];
         double p1i = set[i].prior_pressure;
         double p2i = set[fixed].prior_pressure;
+        double denominator;
 
         if (e3 == 0) {
           e1 = 0.0;
@@ -1314,7 +1315,12 @@ void FixDeform::set_volume()
           if (!linked_pressure) {
             // Calculate first strain rate by expanding stress to linear order, p1(t+dt) = p2(t+dt)
             // Calculate second strain rate to preserve volume
-            e1 = -e3 / (1 + e3 * dt) * (p2 - p2i) - e2i * (p1 - p2) / (p2 - p2i + (p1 - p1i) / e1i * e2i);
+            denominator = (p2 - p2i + (p1 - p1i) / e1i * e2i);
+            if (denominator != 0.0 && e1i != 0.0) {
+              e1 = (-e3 / (1 + e3 * dt) * (p2 - p2i) - e2i * (p1 - p2)) / denominator;
+            } else {
+              e1 = e2i;
+            }
             e2 = (1.0 - (1 + e3 * dt) * (1 + e1 * dt)) / ((1 + e3 * dt) * (1 + e1 * dt) * dt);
 
             shift = 0.5 * L1i * (1.0 + e1 * dt);

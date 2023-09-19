@@ -77,6 +77,7 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
 
   //read in file with CG coefficients or c_tilde coefficients
   auto potential_file_name = utils::get_potential_file_path(arg[3]);
+  delete acecimpl -> basis_set;
   acecimpl -> basis_set = new ACECTildeBasisSet(potential_file_name);
   double cut = acecimpl -> basis_set->cutoffmax;
   cutmax = acecimpl -> basis_set->cutoffmax;
@@ -138,6 +139,7 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePACE::~ComputePACE()
 {
+  delete acecimpl;
   memory->destroy(pace);
   memory->destroy(paceall);
   memory->destroy(cutsq);
@@ -244,10 +246,6 @@ void ComputePACE::compute_array()
   NS_TYPE *ns;
   LS_TYPE *ls;
 
-  int n_r1, n_rp = 0;
-  n_r1 = acecimpl -> basis_set->total_basis_size_rank1[0];
-  n_rp = acecimpl -> basis_set->total_basis_size[0];
-
   const int inum = list->inum;
   const int* const ilist = list->ilist;
   const int* const numneigh = list->numneigh;
@@ -285,15 +283,18 @@ void ComputePACE::compute_array()
       const int typeoffset_local = ndims_peratom*nvalues*(itype-1);
       const int typeoffset_global = nvalues*(itype-1);
 
+      delete acecimpl -> ace;
       acecimpl -> ace = new ACECTildeEvaluator(*acecimpl -> basis_set);
+      acecimpl -> ace->compute_projections = 1;
+      acecimpl -> ace->compute_b_grad = 1;
       int n_r1, n_rp = 0;
-      n_r1 = basis_set->total_basis_size_rank1[0];
-      n_rp = basis_set->total_basis_size[0];
+      n_r1 = acecimpl -> basis_set->total_basis_size_rank1[0];
+      n_rp = acecimpl -> basis_set->total_basis_size[0];
 
       int ncoeff = n_r1 + n_rp;
       acecimpl -> ace->element_type_mapping.init(ntypes+1);
       for (int ik = 1; ik <= ntypes; ik++) {
-        for(int mu = 0; mu < basis_set->nelements; mu++){
+        for(int mu = 0; mu < acecimpl -> basis_set ->nelements; mu++){
           if (mu != -1) {
             if (mu == ik - 1) {
               map[ik] = mu;
@@ -336,7 +337,7 @@ void ComputePACE::compute_array()
       // resize the neighbor cache after setting the basis
       acecimpl -> ace->resize_neighbours_cache(max_jnum);
       acecimpl -> ace->compute_atom(i, atom->x, atom->type, list->numneigh[i], list->firstneigh[i]);
-      Array1D<DOUBLE_TYPE> Bs =ace->B_all;
+      Array1D<DOUBLE_TYPE> Bs = acecimpl -> ace -> projections;
 
       for (int jj = 0; jj < jnum; jj++) {
         const int j = jlist[jj];
@@ -345,14 +346,13 @@ void ComputePACE::compute_array()
           double *pacedi = pace_peratom[i]+typeoffset_local;
           double *pacedj = pace_peratom[j]+typeoffset_local;
 
-          Array3D<DOUBLE_TYPE> fs = acecimpl -> ace->neighbours_dB;
           //force array in (func_ind,neighbour_ind,xyz_ind) format
           // dimension: (n_descriptors,max_jnum,3)
           //example to access entries for neighbour jj after running compute_atom for atom i:
           for (int func_ind =0; func_ind < n_r1 + n_rp; func_ind++){
-            DOUBLE_TYPE fx_dB = fs(func_ind,jj,0);
-            DOUBLE_TYPE fy_dB = fs(func_ind,jj,1);
-            DOUBLE_TYPE fz_dB = fs(func_ind,jj,2);
+            DOUBLE_TYPE fx_dB = acecimpl -> ace -> neighbours_dB(func_ind,jj,0);
+            DOUBLE_TYPE fy_dB = acecimpl -> ace -> neighbours_dB(func_ind,jj,1);
+            DOUBLE_TYPE fz_dB = acecimpl -> ace -> neighbours_dB(func_ind,jj,2);
             pacedi[func_ind] += fx_dB;
             pacedi[func_ind+yoffset] += fy_dB;
             pacedi[func_ind+zoffset] += fz_dB;
@@ -362,15 +362,14 @@ void ComputePACE::compute_array()
             }
          } else {
             //printf("inside dBi/dRj logical : ncoeff = %d \n", ncoeff);
-            Array3D<DOUBLE_TYPE> fs = acecimpl -> ace->neighbours_dB;
             for (int iicoeff = 0; iicoeff < ncoeff; iicoeff++) {
 
               // add to pace array for this proc
               //printf("inside dBi/dRj loop\n");
               // dBi/dRj
-              DOUBLE_TYPE fx_dB = fs(iicoeff,jj,0);
-              DOUBLE_TYPE fy_dB = fs(iicoeff,jj,1);
-              DOUBLE_TYPE fz_dB = fs(iicoeff,jj,2);
+              DOUBLE_TYPE fx_dB = acecimpl -> ace -> neighbours_dB(iicoeff,jj,0);
+              DOUBLE_TYPE fy_dB = acecimpl -> ace -> neighbours_dB(iicoeff,jj,1);
+              DOUBLE_TYPE fz_dB = acecimpl -> ace -> neighbours_dB(iicoeff,jj,2);
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][iicoeff+3] -= fx_dB;
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][iicoeff+3] -= fy_dB;
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][iicoeff+3] -= fz_dB;
@@ -395,10 +394,8 @@ void ComputePACE::compute_array()
           pace[irow][k++] += Bs(icoeff);
         }
       }
-    delete acecimpl -> ace;
     } //group bit
   } // for ii loop
-  delete acecimpl -> basis_set;
   // accumulate force contributions to global array
   if (!dgradflag){
     for (int itype = 0; itype < atom->ntypes; itype++) {

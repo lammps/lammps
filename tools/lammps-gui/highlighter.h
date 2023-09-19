@@ -28,23 +28,27 @@ protected:
     void highlightBlock(const QString &text) override;
 
 private:
-    struct HighlightingRule {
-        QRegularExpression pattern;
-        QTextCharFormat format;
-    };
-    QVector<HighlightingRule> highlightingRules;
+    QRegularExpression isLattice1, isLattice2, isLattice3;
+    QRegularExpression isOutput1, isOutput2, isRead;
+    QTextCharFormat formatOutput, formatRead, formatLattice, formatSetup;
+    QRegularExpression isStyle, isForce, isDefine, isUndo;
+    QRegularExpression isParticle, isSetup, isSetup1, isRun;
+    QTextCharFormat formatParticle, formatRun, formatDefine;
+    QRegularExpression isVariable, isReference;
+    QTextCharFormat formatVariable;
+    QRegularExpression isNumber1, isNumber2, isNumber3, isNumber4;
+    QTextCharFormat formatNumber;
+    QRegularExpression isSpecial, isContinue;
+    QTextCharFormat formatSpecial;
+    QRegularExpression isComment;
+    QRegularExpression isQuotedComment;
+    QTextCharFormat formatComment;
+    QRegularExpression isTriple;
+    QRegularExpression isString;
+    QTextCharFormat formatString;
 
-    QTextCharFormat outputFormat;
-    QTextCharFormat readFormat;
-    QTextCharFormat latticeFormat;
-    QTextCharFormat particleFormat;
-    QTextCharFormat setupFormat;
-    QTextCharFormat runFormat;
-    QTextCharFormat defineFormat;
-
-    QTextCharFormat numberFormat;
-    QTextCharFormat stringFormat;
-    QTextCharFormat commentFormat;
+    int in_triple;
+    int startIndex;
 };
 #endif
 // Local Variables:

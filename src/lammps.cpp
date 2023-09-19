@@ -738,7 +738,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
  * and files and MPI communicators in sub-partitions ("universes"). Then it
  * deletes the fundamental class instances and copies of data inside the class.
  */
-LAMMPS::~LAMMPS()
+LAMMPS::~LAMMPS() noexcept(false)
 {
   const int me = comm->me;
 

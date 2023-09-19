@@ -1848,7 +1848,7 @@ void FixMDIQMMM::request_qm_energy()
   // QM energy = <PE + <KE_ELEC or <ENERGY, depending on engine options
 
   if (pe_exists && keelec_exists) {
-    int pe_energy, keelec_energy;
+    double pe_energy, keelec_energy;
 
     ierr = MDI_Send_command("<PE", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <PE command");

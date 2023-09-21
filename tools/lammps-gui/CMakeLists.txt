@@ -169,9 +169,17 @@ if(APPLE)
     COMMENT "Copying additional files into macOS app bundle tree"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
+  if(FFMPEG_EXECUTABLE)
+    add_custom_target(copy-ffmpeg
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/
+      COMMENT "Copying FFMpeg into macOS app bundle tree"
+      DEPENDS complete-bundle
+    )
+    set(FFMPEG_TARGET copy-ffmpeg)
+  endif()
   add_custom_target(dmg
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build_macos_dmg.sh
-    DEPENDS complete-bundle
+    DEPENDS complete-bundle ${FFMPEG_TARGET}
     COMMENT "Create Drag-n-Drop installer disk image from app bundle"
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

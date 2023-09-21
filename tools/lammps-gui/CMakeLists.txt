@@ -132,12 +132,6 @@ if(BUILD_OMP)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
 endif()
-if(WITH_JPEG)
-  target_link_libraries(lammps-gui PRIVATE JPEG::JPEG)
-endif()
-if(WITH_PNG)
- target_link_libraries(lammps-gui PRIVATE PNG::PNG ZLIB::ZLIB)
-endif()
 
 # when compiling on macOS, create an "app bundle"
 if(APPLE)

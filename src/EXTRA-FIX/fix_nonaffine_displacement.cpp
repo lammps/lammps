@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "math_extra.h"
@@ -63,7 +64,7 @@ static const char cite_nonaffine_d2min[] =
 /* ---------------------------------------------------------------------- */
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), new_fix_id(nullptr), X(nullptr), Y(nullptr), F(nullptr), norm(nullptr)
+  Fix(lmp, narg, arg), id_fix(nullptr), X(nullptr), Y(nullptr), F(nullptr), norm(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nonaffine/displacement command");
 
@@ -140,8 +141,8 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
 
 FixNonaffineDisplacement::~FixNonaffineDisplacement()
 {
-  if (new_fix_id && modify->nfix) modify->delete_fix(new_fix_id);
-  delete[] new_fix_id;
+  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  delete[] id_fix;
 
   if (nad_style == D2MIN) {
     memory->destroy(X);
@@ -167,18 +168,14 @@ void FixNonaffineDisplacement::post_constructor()
 {
   // Create persistent peratom storage for either an integrated velocity or reference position
   // Ghost atoms need reference coordinates for D2min
-  std::string ghost_status = "no";
-  if (nad_style == D2MIN) ghost_status = "yes";
+  std::string ghost_status = "0";
+  if (nad_style == D2MIN) ghost_status = "1";
 
-  new_fix_id = utils::strdup(id + std::string("_FIX_PA"));
-  modify->add_fix(fmt::format("{} {} property/atom d2_nad 3 ghost {}", new_fix_id, group->names[igroup], ghost_status));
-  int tmp1, tmp2;
-  nad_index = atom->find_custom("nad", tmp1, tmp2);
+  id_fix = utils::strdup(id + std::string("_FIX_PA"));
+  fix = dynamic_cast<FixStoreAtom *>(modify->add_fix(fmt::format("{} {} STORE/ATOM 3 0 {} 1", id_fix, group->names[igroup], ghost_status)));
 
-  if (nad_style == INTEGRATED) {
-    double **nad = atom->darray[nad_index];
-    array_atom = nad;
-  }
+  if (nad_style == INTEGRATED)
+    array_atom = fix->astore;
 
   if (nad_style == D2MIN)
     grow_arrays(atom->nmax);
@@ -294,12 +291,11 @@ void FixNonaffineDisplacement::integrate_velocity()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double **nad = atom->darray[nad_index];
 
   for (int m = 0; m < 3; m++) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        nad[i][m] += dtv * v[i][m];
+        array_atom[i][m] += dtv * v[i][m];
       }
     }
   }
@@ -315,18 +311,17 @@ void FixNonaffineDisplacement::save_reference_state()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  double **nad = atom->darray[nad_index];
 
   if (nad_style == D2MIN) {
     for (int m = 0; m < 3; m++) {
       for (int i = 0; i < nall; i++) {
-        if (mask[i] & groupbit)  nad[i][m] = x[i][m];
+        if (mask[i] & groupbit)  array_atom[i][m] = x[i][m];
       }
     }
   } else {
     for (int m = 0; m < 3; m++) {
       for (int i = 0; i < nall; i++) {
-        if (mask[i] & groupbit)  nad[i][m] = 0.0;
+        if (mask[i] & groupbit)  array_atom[i][m] = 0.0;
       }
     }
   }
@@ -364,7 +359,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double **x = atom->x;
-  double **x0 = atom->darray[nad_index];
+  double **x0 = array_atom;
   double *radius = atom->radius;
   tagint *tag = atom->tag;
   int *type = atom->type;
@@ -730,12 +725,10 @@ void FixNonaffineDisplacement::minimum_image0(double *delta)
 void FixNonaffineDisplacement::grow_arrays(int nmax_new)
 {
   nmax = nmax_new;
-  memory->destroy(array_atom);
   memory->destroy(X);
   memory->destroy(Y);
   memory->destroy(F);
   memory->destroy(norm);
-  memory->create(array_atom, nmax, 3, "fix_nonaffine_displacement:array_atom");
   memory->create(X, nmax, 3, 3, "fix_nonaffine_displacement:X");
   memory->create(Y, nmax, 3, 3, "fix_nonaffine_displacement:Y");
   memory->create(F, nmax, 3, 3, "fix_nonaffine_displacement:F");

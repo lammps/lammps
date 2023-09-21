@@ -16,7 +16,7 @@
    Contributing authors: Joel Clemmer (SNL), Ishan Srivastava (LBNL)
 ------------------------------------------------------------------------- */
 
-#include "compute_rattlers.h"
+#include "compute_rattlers_atom.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -38,20 +38,20 @@ enum { TYPE, RADIUS };
 
 /* ---------------------------------------------------------------------- */
 
-ComputeRattlers::ComputeRattlers(LAMMPS *lmp, int narg, char **arg) :
+ComputeRattlersAtom::ComputeRattlersAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), ncontacts(nullptr), rattler(nullptr)
 {
-  if (narg != 6) error->all(FLERR, "Illegal compute fabric command");
+  if (narg != 6) error->all(FLERR, "Illegal compute rattlers/atom command");
 
   if (strcmp(arg[3], "type") == 0)
     cutstyle = TYPE;
   else if (strcmp(arg[3], "radius") == 0)
     cutstyle = RADIUS;
   else
-    error->all(FLERR, "Illegal compute fabric command");
+    error->all(FLERR, "Illegal compute rattlers/atom command");
 
   if (cutstyle == RADIUS && !atom->radius_flag)
-    error->all(FLERR, "Compute fabric radius style requires atom attribute radius");
+    error->all(FLERR, "Compute rattlers/atom radius style requires atom attribute radius");
 
   ncontacts_rattler = utils::inumeric(FLERR, arg[4], false, lmp);
   max_tries = utils::inumeric(FLERR, arg[5], false, lmp);
@@ -69,7 +69,7 @@ ComputeRattlers::ComputeRattlers(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeRattlers::~ComputeRattlers()
+ComputeRattlersAtom::~ComputeRattlersAtom()
 {
   memory->destroy(ncontacts);
   memory->destroy(rattler);
@@ -77,7 +77,7 @@ ComputeRattlers::~ComputeRattlers()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRattlers::init()
+void ComputeRattlersAtom::init()
 {
   if (force->pair == nullptr) error->all(FLERR, "No pair style is defined for compute rattlers");
 
@@ -98,14 +98,14 @@ void ComputeRattlers::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRattlers::init_list(int /*id*/, NeighList *ptr)
+void ComputeRattlersAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRattlers::compute_peratom()
+void ComputeRattlersAtom::compute_peratom()
 {
   if (invoked_peratom == update->ntimestep) return;
   invoked_peratom = update->ntimestep;
@@ -236,7 +236,7 @@ void ComputeRattlers::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRattlers::compute_scalar()
+double ComputeRattlersAtom::compute_scalar()
 {
   if (invoked_peratom != update->ntimestep)
     compute_peratom();
@@ -257,7 +257,7 @@ double ComputeRattlers::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeRattlers::pack_reverse_comm(int n, int first, double *buf)
+int ComputeRattlersAtom::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m, last;
 
@@ -271,7 +271,7 @@ int ComputeRattlers::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRattlers::unpack_reverse_comm(int n, int *list, double *buf)
+void ComputeRattlersAtom::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i, j, m;
 
@@ -284,7 +284,7 @@ void ComputeRattlers::unpack_reverse_comm(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeRattlers::pack_forward_comm(int n, int *list, double *buf,
+int ComputeRattlersAtom::pack_forward_comm(int n, int *list, double *buf,
                                           int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, m;
@@ -300,7 +300,7 @@ int ComputeRattlers::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRattlers::unpack_forward_comm(int n, int first, double *buf)
+void ComputeRattlersAtom::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m, last;
 

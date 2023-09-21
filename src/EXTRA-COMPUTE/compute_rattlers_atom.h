@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(rattlers,ComputeRattlers);
+ComputeStyle(rattlers/atom,ComputeRattlersAtom);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_RATTLERS_H
-#define LMP_COMPUTE_RATTLERS_H
+#ifndef LMP_COMPUTE_RATTLERS_ATOM_H
+#define LMP_COMPUTE_RATTLERS_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeRattlers : public Compute {
+class ComputeRattlersAtom : public Compute {
  public:
-  ComputeRattlers(class LAMMPS *, int, char **);
-  ~ComputeRattlers() override;
+  ComputeRattlersAtom(class LAMMPS *, int, char **);
+  ~ComputeRattlersAtom() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;

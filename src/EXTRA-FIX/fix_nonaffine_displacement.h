@@ -43,8 +43,9 @@ class FixNonaffineDisplacement : public Fix {
 
  private:
   double dtv;
-  char *new_fix_id;
-  int nad_index, nmax, comm_flag;
+  char *id_fix;
+  class FixStoreAtom *fix;
+  int nmax, comm_flag;
   int nad_style, cut_style;
   int reference_style, offset_timestep, reference_timestep, update_timestep;
   int reference_saved;

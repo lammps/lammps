@@ -165,7 +165,7 @@ if(APPLE)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/
     COMMAND ${CMAKE_COMMAND} -E create_symlink lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/lmp.1
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/msi2lmp.1 ${APP_CONTENTS}/share/lammps/man/man1
-    DEPENDS lammps-gui lammps
+    DEPENDS lammps-gui lammps lmp binary2txt stl_bin2txt msi2lmp phana
     COMMENT "Copying additional files into macOS app bundle tree"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )

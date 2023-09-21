@@ -88,6 +88,7 @@ class FixDeform : public Fix {
   void set_volume();
   void set_iso();
   void couple();
+  void adjust_linked_rates(double&, double&, double, double, double);
 };
 
 }    // namespace LAMMPS_NS

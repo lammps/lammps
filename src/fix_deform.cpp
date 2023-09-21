@@ -1297,6 +1297,8 @@ void FixDeform::set_volume()
         double L2i = domain->boxhi[fixed] - domain->boxlo[fixed];
         double L3i = domain->boxhi[dynamic1] - domain->boxlo[dynamic1];
         double L3 = (set[dynamic1].hi_target - set[dynamic1].lo_target);
+        double Vi = L1i * L2i * L3i;
+        double V = L3 * L1i * L2i;
         double e3 = (L3 / L3i - 1.0) / dt;
         double p1 = pressure->vector[i];
         double p2 = pressure->vector[fixed];
@@ -1315,13 +1317,22 @@ void FixDeform::set_volume()
           if (!linked_pressure) {
             // Calculate first strain rate by expanding stress to linear order, p1(t+dt) = p2(t+dt)
             // Calculate second strain rate to preserve volume
-            denominator = (p2 - p2i + (p1 - p1i) / e1i * e2i);
+            denominator = p2 - p2i + e2i * ((p1 - p1i) / e1i);
             if (denominator != 0.0 && e1i != 0.0) {
-              e1 = (-e3 / (1 + e3 * dt) * (p2 - p2i) - e2i * (p1 - p2)) / denominator;
+              e1 = (((p2 - p2i) * (Vi - V) / (V * dt)) - e2i * (p1 - p2)) / denominator;
             } else {
               e1 = e2i;
             }
-            e2 = (1.0 - (1 + e3 * dt) * (1 + e1 * dt)) / ((1 + e3 * dt) * (1 + e1 * dt) * dt);
+            e2 = (Vi - V * (1 + e1 * dt)) / (V * (1 + e1 * dt) * dt);
+
+            // If strain rate exceeds limit in either dimension, cap it at the maximum compatible rate
+            if (max_h_rate != 0)
+              if (fabs(e1) > max_h_rate || fabs(e2) > max_h_rate)
+                if (fabs(e1) > fabs(e2))
+                  adjust_linked_rates(e1, e2, e3, Vi, V);
+                else
+                  adjust_linked_rates(e2, e1, e3, Vi, V);
+
 
             shift = 0.5 * L1i * (1.0 + e1 * dt);
             linked_pressure = 1;
@@ -1338,6 +1349,37 @@ void FixDeform::set_volume()
 
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
     set[i].hi_target = 0.5 * (set[i].lo_start + set[i].hi_start) + shift;
+  }
+}
+
+
+/* ----------------------------------------------------------------------
+   Rescale volume preserving strain rates to enforce max rate
+------------------------------------------------------------------------- */
+
+void FixDeform::adjust_linked_rates(double &e_larger, double &e_smaller, double e3, double Vi, double V)
+{
+  double dt = update->dt;
+  double e_lim_positive = (Vi - V * (1 + max_h_rate * dt)) / (V * (1 + max_h_rate * dt) * dt);
+  double e_lim_negative = (Vi - V * (1 - max_h_rate * dt)) / (V * (1 - max_h_rate * dt) * dt);
+  if ((e_larger * e3) >= 0) {
+    if (e_larger > 0.0) {
+      // Same sign as primary strain rate, cap third dimension
+      e_smaller = -max_h_rate;
+      e_larger = e_lim_negative;
+    } else {
+      e_smaller = max_h_rate;
+      e_larger = e_lim_positive;
+    }
+  } else {
+    // Opposite sign, set to maxrate.
+    if (e_larger > 0.0) {
+      e_larger = max_h_rate;
+      e_smaller = e_lim_positive;
+    } else {
+      e_larger = -max_h_rate;
+      e_smaller = e_lim_negative;
+    }
   }
 }
 

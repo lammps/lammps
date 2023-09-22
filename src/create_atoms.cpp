@@ -1055,6 +1055,9 @@ void CreateAtoms::add_mesh(const char *filename)
       throw TokenizerException("Invalid STL mesh file format", "");
 
     line += 6;
+    if (utils::strmatch(line, "^binary"))
+      throw TokenizerException("Invalid STL mesh file format", "");
+
     if (comm->me == 0)
       utils::logmesg(lmp, "Reading STL object {} from text file {}\n", utils::trim(line), filename);
 

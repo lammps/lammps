@@ -10,7 +10,7 @@ Accelerator Variants: *qeq/reaxff/kk*, *qeq/reaxff/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID qeq/reaxff Nevery cutlo cuthi tolerance params args
 

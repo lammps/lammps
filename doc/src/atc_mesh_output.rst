@@ -6,7 +6,7 @@ fix_modify AtC mesh output command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> mesh output <file_prefix>
 

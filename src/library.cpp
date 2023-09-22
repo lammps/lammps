@@ -18,6 +18,7 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
+#include <algorithm>
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
@@ -27,6 +28,7 @@
 #include "domain.h"
 #include "dump.h"
 #include "error.h"
+#include "exceptions.h"
 #include "fix.h"
 #include "fix_external.h"
 #include "force.h"
@@ -47,19 +49,19 @@
 #include "respa.h"
 #include "thermo.h"
 #include "timer.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
 
 #include <cstring>
 
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
-#endif
-
 #if defined(LMP_PYTHON)
 #include <Python.h>
 #endif
+
+/// string buffer for error messages of global errors
+static std::string lammps_last_global_errormessage;
 
 using namespace LAMMPS_NS;
 
@@ -93,7 +95,6 @@ static void ptr_argument_warning()
    END_CAPTURE
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_EXCEPTIONS
 #define BEGIN_CAPTURE \
   Error *error = lmp->error; \
   try
@@ -101,20 +102,16 @@ static void ptr_argument_warning()
 #define END_CAPTURE \
   catch(LAMMPSAbortException &ae) { \
     int nprocs = 0; \
-    MPI_Comm_size(ae.universe, &nprocs ); \
+    MPI_Comm_size(ae.get_universe(), &nprocs ); \
     \
     if (nprocs > 1) { \
-      error->set_last_error(ae.message, ERROR_ABORT); \
+      error->set_last_error(ae.what(), ERROR_ABORT); \
     } else { \
-      error->set_last_error(ae.message, ERROR_NORMAL); \
+      error->set_last_error(ae.what(), ERROR_NORMAL); \
     } \
   } catch(LAMMPSException &e) { \
-    error->set_last_error(e.message, ERROR_NORMAL); \
+    error->set_last_error(e.what(), ERROR_NORMAL); \
   }
-#else
-#define BEGIN_CAPTURE
-#define END_CAPTURE
-#endif
 
 // ----------------------------------------------------------------------
 // Library functions to create/destroy an instance of LAMMPS
@@ -176,20 +173,20 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   lammps_mpi_init();
   if (ptr) ptr_argument_warning();
 
-#ifdef LAMMPS_EXCEPTIONS
-  try
-  {
+  try {
+    lammps_last_global_errormessage.clear();
     lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
-  }
-  catch(LAMMPSException &e) {
-    fmt::print(stderr, "LAMMPS Exception: {}", e.message);
+  } catch (fmt::format_error &fe) {
+    lammps_last_global_errormessage = fe.what();
+    fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+    if (ptr) *ptr = nullptr;
+  } catch(LAMMPSException &e) {
+    lammps_last_global_errormessage = e.what();
+
+    fmt::print(stderr, "LAMMPS Exception: {}", e.what());
     if (ptr) *ptr = nullptr;
   }
-#else
-  lmp = new LAMMPS(argc, argv, comm);
-  if (ptr) *ptr = (void *) lmp;
-#endif
   return (void *) lmp;
 }
 
@@ -484,7 +481,6 @@ void lammps_error(void *handle, int error_type, const char *error_text)
   }
   END_CAPTURE
 
-#if defined(LAMMPS_EXCEPTIONS)
     // with enabled exceptions the above code will simply throw an
     // exception and record the error message. So we have to explicitly
     // stop here like we do in main.cpp
@@ -500,7 +496,6 @@ void lammps_error(void *handle, int error_type, const char *error_text)
       exit(1);
     }
   }
-#endif
 }
 
 // ----------------------------------------------------------------------
@@ -622,10 +617,10 @@ combined by removing the '&' and the following newline character.  After
 this processing the string is handed to LAMMPS for parsing and
 executing.
 
-.. note::
+.. versionadded:: TBD
 
-   Multi-line commands enabled by triple quotes will NOT work with
-   this function.
+   The command is now able to process long strings with triple quotes and
+   loops using :doc:`jump SELF \<label\> <jump>`.
 
 \endverbatim
  *
@@ -634,17 +629,14 @@ executing.
 
 void lammps_commands_string(void *handle, const char *str)
 {
+  if (!handle) return;
+
   auto lmp = (LAMMPS *) handle;
-
-  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
-  int n = strlen(str);
-  char *ptr, *copy = new char[n+1];
-
-  for (ptr = copy; *str != '\0'; ++str) {
-    if ((str[0] == '\r') && (str[1] == '\n')) continue;
-    *ptr++ = *str;
-  }
-  *ptr = '\0';
+  std::string cmd, line, buffer;
+  bool append = false;
+  bool triple = false;
+  if (str) buffer = str;
+  buffer += '\n';
 
   BEGIN_CAPTURE
   {
@@ -652,27 +644,69 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    n = strlen(copy);
-    ptr = copy;
-    for (int i=0; i < n; ++i) {
+    std::size_t cursor = 0;
+    int nline = -1;
+    std::string label;
 
-      // handle continuation character as last character in line or string
-      if ((copy[i] == '&') && (copy[i+1] == '\n'))
-        copy[i+1] = copy[i] = ' ';
-      else if ((copy[i] == '&') && (copy[i+1] == '\0'))
-        copy[i] = ' ';
+    // split buffer into lines, set line number, process continuation characters, and here docs
 
-      if (copy[i] == '\n') {
-        copy[i] = '\0';
-        lmp->input->one(ptr);
-        ptr = copy + i+1;
-      } else if (copy[i+1] == '\0')
-        lmp->input->one(ptr);
+    while (cursor < buffer.size()) {
+      ++nline;
+      std::size_t start = cursor;
+      cursor = buffer.find('\n', start);
+      if (cursor != std::string::npos) {
+        line = buffer.substr(start, cursor-start);
+        auto start_erase = std::remove(line.begin(), line.end(), '\r');
+        line.erase(start_erase, line.end());
+        ++cursor;
+        lmp->output->thermo->set_line(nline);
+      } else {
+        line = buffer;
+      }
+
+      if (append || triple)
+        cmd += line;
+      else
+        cmd = line;
+
+      if (utils::strmatch(line, "\"\"\".*\"\"\"")) {
+        triple = false;
+      } else if (utils::strmatch(line, "\"\"\"")) {
+        triple = !triple;
+      }
+      if (triple) cmd += '\n';
+
+      if (!triple && utils::strmatch(cmd, "&$")) {
+        append = true;
+        cmd.back() = ' ';
+      } else append = false;
+
+      auto words = Tokenizer(cmd).as_vector();
+      if (!label.empty()) {
+        // skip lines until label command found
+        if ((words.size() == 2) && (words[0] == "label") && (words[1] == label)) {
+          label.clear();
+        } else continue;
+      }
+
+      if (!append && !triple) {
+        // need to handle jump command here
+        if ((words.size() == 3) && (words[0] == "jump")) {
+          if (words[1] != "SELF")
+            lmp->error->all(FLERR, "May only use jump SELF with command string buffer ");
+          // emulate jump command unless with need to skip it
+          if (!lmp->input->get_jump_skip()) {
+            label = words[2];
+            cursor = 0;
+            nline = -1;
+            continue;
+          }
+        }
+        lmp->input->one(cmd.c_str());
+      }
     }
   }
   END_CAPTURE
-
-  delete[] copy;
 }
 
 // -----------------------------------------------------------------------
@@ -780,6 +814,18 @@ argument string.
      - Description of return value
      - Data type
      - Uses index
+   * - setup
+     - 1 if setup is not completed and thus thermo data invalid, 0 otherwise
+     - pointer to int
+     - no
+   * - line
+     - line number (0-based) of current line in current file or buffer
+     - pointer to int
+     - no
+   * - imagename
+     - file name of the last :doc:`dump image <dump_image>` file written
+     - pointer to 0-terminated const char array
+     - no
    * - step
      - timestep when the last thermo output was generated or -1
      - pointer to bigint
@@ -818,7 +864,16 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
 
   BEGIN_CAPTURE
   {
-    if (strcmp(what, "step") == 0) {
+    if (strcmp(what, "setup") == 0) {
+      val = (void *) &lmp->update->setupflag;
+
+    } else if (strcmp(what, "line") == 0) {
+      val = (void *) th->get_line();
+
+    } else if (strcmp(what, "imagename") == 0) {
+      val = (void *) th->get_image_fname();
+
+    } else if (strcmp(what, "step") == 0) {
       val = (void *) th->get_timestep();
 
     } else if (strcmp(what, "num") == 0) {
@@ -2328,7 +2383,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     } else if (lmp->input->variable->vectorstyle(ivar)) {
       double *values = nullptr;
       int nvector = lmp->input->variable->compute_vector(ivar, &values);
-      if ( group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0 ) {
+      if (group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0) {
           int* nvecptr = (int *) malloc(sizeof(int));
           *nvecptr = nvector;
           return (void *) nvecptr;
@@ -2339,9 +2394,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     }
   }
   END_CAPTURE
-#if defined(LAMMPS_EXCEPTIONS)
   return nullptr;
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2372,7 +2425,7 @@ int lammps_extract_variable_datatype(void *handle, const char *name)
   BEGIN_CAPTURE
   {
     int ivar = lmp->input->variable->find(name);
-    if ( ivar < 0 ) return -1;
+    if (ivar < 0) return -1;
 
     if (lmp->input->variable->equalstyle(ivar))
       return LMP_VAR_EQUAL;
@@ -2412,6 +2465,46 @@ int lammps_set_variable(void *handle, char *name, char *str)
   END_CAPTURE
 
   return err;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+/** Retrieve informational string for a variable.
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function copies a string with human readable information about
+a defined variable: name, style, current value(s) into the provided
+C-style string buffer.  That is the same info as produced by the
+:doc:`info variables <info>` command. The length of the buffer must
+be provided as *buf_size* argument.  If the info exceeds the length
+of the buffer, it will be truncated accordingly.  If the index is
+out of range, the function returns 0 and *buffer* is set to an empty
+string, otherwise 1.
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx      index of the variable (0 <= idx < nvar)
+ * \param buffer   string buffer to copy the info to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0  */
+
+int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
+  auto lmp = (LAMMPS *) handle;
+  Info info(lmp);
+
+  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+    auto varinfo = info.get_variable_info(idx);
+    strncpy(buffer, varinfo.c_str(), buf_size);
+    return 1;
+  }
+
+  buffer[0] = '\0';
+  return 0;
 }
 
 // ----------------------------------------------------------------------
@@ -5199,7 +5292,7 @@ int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int n
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList *list = lmp->neighbor->lists[i];
-      if ( (list->requestor_type == NeighList::PAIR)
+      if ((list->requestor_type == NeighList::PAIR)
            && (pair == list->requestor)
            && (list->id == reqid) ) return i;
     }
@@ -5229,7 +5322,7 @@ int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList *list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::FIX)
+    if ((list->requestor_type == NeighList::FIX)
          && (fix == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5258,7 +5351,7 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList * list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::COMPUTE)
+    if ((list->requestor_type == NeighList::COMPUTE)
          && (compute == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5477,6 +5570,13 @@ int lammps_config_has_ffmpeg_support() {
 /** Check whether LAMMPS errors will throw C++ exceptions.
  *
 \verbatim embed:rst
+
+.. deprecated:: TBD
+
+   LAMMPS has now exceptions always enabled, so this function
+   will now always return 1 and can be removed from applications
+   using the library interface.
+
 In case of an error, LAMMPS will either abort or throw a C++ exception.
 The latter has to be :ref:`enabled at compile time <exceptions>`.
 This function checks if exceptions were enabled.
@@ -5709,7 +5809,7 @@ int lammps_style_name(void *handle, const char *category, int idx,
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
-  if ((idx >=0) && (idx < (int) styles.size())) {
+  if ((idx >= 0) && (idx < (int) styles.size())) {
     strncpy(buffer, styles[idx].c_str(), buf_size);
     return 1;
   }
@@ -5844,23 +5944,23 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"group") == 0) {
-    if ((idx >=0) && (idx < lmp->group->ngroup)) {
+    if ((idx >= 0) && (idx < lmp->group->ngroup)) {
       strncpy(buffer, lmp->group->names[idx], buf_size);
       return 1;
     }
   } else if (strcmp(category,"molecule") == 0) {
-    if ((idx >=0) && (idx < lmp->atom->nmolecule)) {
+    if ((idx >= 0) && (idx < lmp->atom->nmolecule)) {
       strncpy(buffer, lmp->atom->molecules[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"region") == 0) {
     auto regions = lmp->domain->get_region_list();
-    if ((idx >=0) && (idx < (int) regions.size())) {
+    if ((idx >= 0) && (idx < (int) regions.size())) {
       strncpy(buffer, regions[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >=0) && (idx < lmp->input->variable->nvar)) {
+    if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
       strncpy(buffer, lmp->input->variable->names[idx], buf_size);
       return 1;
     }
@@ -6490,6 +6590,16 @@ has thrown a :ref:`C++ exception <exceptions>`.
 
 .. note::
 
+   .. versionchanged: 2Aug2023
+
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error status inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+.. note::
+
    This function will always report "no error" when the LAMMPS library
    has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
    errors aborting LAMMPS into C++ exceptions. You can use the library
@@ -6497,17 +6607,18 @@ has thrown a :ref:`C++ exception <exceptions>`.
    the case.
 \endverbatim
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *`` or NULL
  * \return 0 on no error, 1 on error.
  */
-int lammps_has_error(void *handle) {
-#ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  return (error->get_last_error().empty()) ? 0 : 1;
-#else
-  return 0;
-#endif
+int lammps_has_error(void *handle)
+{
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    return (error->get_last_error().empty()) ? 0 : 1;
+  } else {
+    return lammps_last_global_errormessage.empty() ? 0 : 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -6519,12 +6630,28 @@ This function can be used to retrieve the error message that was set
 in the event of an error inside of LAMMPS which resulted in a
 :ref:`C++ exception <exceptions>`.  A suitable buffer for a C-style
 string has to be provided and its length.  If the internally stored
-error message is longer, it will be truncated accordingly.  The return
+error message is longer, it will be truncated accordingly.  If the
+buffer is a NULL pointer, then nothing will be copied.  The return
 value of the function corresponds to the kind of error: a "1" indicates
 an error that occurred on all MPI ranks and is often recoverable, while
 a "2" indicates an abort that would happen only in a single MPI rank
 and thus may not be recoverable, as other MPI ranks may be waiting on
 the failing MPI ranks to send messages.
+
+.. note::
+
+   .. versionchanged: 2Aug2023
+
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error buffer inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+   .. versionchanged: TBD
+
+   The *buffer* pointer may be ``NULL``.  This will clear any error
+   status without copying the error message.
 
 .. note::
 
@@ -6534,24 +6661,33 @@ the failing MPI ranks to send messages.
    :cpp:func:`lammps_config_has_exceptions` to check whether this is the case.
 \endverbatim
  *
- * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param  buffer    string buffer to copy the error message to
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.
+ * \param  buffer    string buffer to copy the error message to, may be NULL
  * \param  buf_size  size of the provided string buffer
  * \return           1 when all ranks had the error, 2 on a single rank error. */
 
-int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
-#ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  buffer[0] = buffer[buf_size-1] = '\0';
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size)
+{
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
 
-  if (!error->get_last_error().empty()) {
-    int error_type = error->get_last_error_type();
-    strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
-    error->set_last_error("", ERROR_NONE);
-    return error_type;
+    if (!error->get_last_error().empty()) {
+      int error_type = error->get_last_error_type();
+      if (buffer) strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
+      error->set_last_error("", ERROR_NONE);
+      return error_type;
+    }
+  } else {
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
+
+    if (!lammps_last_global_errormessage.empty()) {
+      if (buffer) strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
+      lammps_last_global_errormessage.clear();
+      return 1;
+    }
   }
-#endif
   return 0;
 }
 

@@ -53,6 +53,7 @@ class Info : public Command {
 
   void get_memory_info(double *);
   char **get_variable_names(int &num);
+  std::string get_variable_info(int num);
 
  private:
   void available_styles(FILE *out, int flags);

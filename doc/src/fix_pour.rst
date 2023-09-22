@@ -6,7 +6,7 @@ fix pour command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID pour N type seed keyword values ...
 

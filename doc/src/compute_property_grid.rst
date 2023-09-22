@@ -6,7 +6,7 @@ compute property/grid command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID property/grid Nx Ny Nz input1 input2 ...
 
@@ -19,6 +19,7 @@ Syntax
 
        attributes = id, ix, iy, iz, x, y, z, xs, ys, zs, xc, yc, zc, xsc, ysc, zsc
          id = ID of grid cell, x fastest, y next, z slowest
+         proc = processor ID (0 to Nprocs-1) which owns the grid cell
          ix,iy,iz = grid indices in each dimension (1 to N inclusive)
          x,y,z = coords of lower left corner of grid cell
          xs,ys,zs = scaled coords of lower left corner of grid cell (0.0 to 1.0)
@@ -30,8 +31,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all property/grid id ix iy iz
-   compute 1 all property/grid id xc yc zc
+   compute 1 all property/grid 10 10 20 id ix iy iz
+   compute 1 all property/grid 100 100 1 id xc yc zc
 
 Description
 """""""""""
@@ -53,12 +54,19 @@ to output per-grid values from other computes of fixes, the grid size
 specified for this command must be consistent with the grid sizes
 used by the other commands.
 
-The *id* attribute stores the grid ID for each grid cell.  For a
-global grid of size Nx by Ny by Nz (in 3d simulations) the grid IDs
-range from 1 to Nx*Ny*Nz.  They are ordered with the X index of the 3d
-grid varying fastest, then Y, then Z slowest.  For 2d grids (in 2d
+The *id* attribute is the grid ID for each grid cell.  For a global
+grid of size Nx by Ny by Nz (in 3d simulations) the grid IDs range
+from 1 to Nx*Ny*Nz.  They are ordered with the X index of the 3d grid
+varying fastest, then Y, then Z slowest.  For 2d grids (in 2d
 simulations), the grid IDs range from 1 to Nx*Ny, with X varying
 fastest and Y slowest.
+
+.. versionadded:: TBD
+
+The *proc* attribute is the ID of the processor which owns the grid
+cell.  Processor IDs range from 0 to Nprocs - 1, where Nprocs is the
+number of processors the simulation is running on.  Each grid cell is
+owned by a single processor.
 
 The *ix*, *iy*, *iz* attributes are the indices of a grid cell in
 each dimension.  They range from 1 to Nx inclusive in the X dimension,

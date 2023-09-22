@@ -6,7 +6,7 @@ fix python/invoke command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID python/invoke N callback function_name
 

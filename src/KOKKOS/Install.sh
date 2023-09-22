@@ -96,6 +96,8 @@ action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
 action compute_erotate_sphere_kokkos.cpp
 action compute_erotate_sphere_kokkos.h
+action compute_composition_atom_kokkos.cpp compute_composition_atom.cpp
+action compute_composition_atom_kokkos.h compute_composition_atom.h
 action compute_orientorder_atom_kokkos.cpp
 action compute_orientorder_atom_kokkos.h
 action compute_temp_deform_kokkos.cpp

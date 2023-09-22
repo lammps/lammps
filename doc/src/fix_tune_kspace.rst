@@ -6,7 +6,7 @@ fix tune/kspace command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID tune/kspace N
 

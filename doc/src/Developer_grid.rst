@@ -92,8 +92,8 @@ Arguments for these methods can be values returned by the
 *setup_grid()* method (described below), which define the extent of
 the grid cells (owned+ghost) the processor owns.  These 4 methods
 allocate memory for 2d (first two) and 3d (second two) grid data.  The
-two methods that end in "_one" allocate an array which stores a single
-value per grid cell.  The two that end in "_multi" allocate an array
+two methods that end in "_offset" allocate an array which stores a single
+value per grid cell.  The two that end in "_last" allocate an array
 which stores *Nvalues* per grid cell.
 
 .. code-block:: c++

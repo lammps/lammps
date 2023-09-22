@@ -10,7 +10,7 @@ fix tdpd/source command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID edpd/source keyword values ...
    fix ID group-ID tdpd/source cc_index keyword values ...

@@ -6,7 +6,7 @@ fix meso/move command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID meso/move style args keyword values ...
 

@@ -1,3 +1,19 @@
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
+// the U.S. Government retains certain rights in this software.
+//
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//@HEADER
+
 #ifndef KOKKOS_SYCL_MDRANGEPOLICY_HPP_
 #define KOKKOS_SYCL_MDRANGEPOLICY_HPP_
 
@@ -32,6 +48,12 @@ inline TileSizeProperties get_tile_size_properties<Kokkos::Experimental::SYCL>(
   return properties;
 }
 
-}  // Namespace Impl
+// Settings for TeamMDRangePolicy
+template <typename Rank, TeamMDRangeThreadAndVector ThreadAndVector>
+struct ThreadAndVectorNestLevel<Rank, Kokkos::Experimental::SYCL,
+                                ThreadAndVector>
+    : AcceleratorBasedNestLevel<Rank, ThreadAndVector> {};
+
+}  // namespace Impl
 }  // Namespace Kokkos
 #endif

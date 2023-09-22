@@ -198,8 +198,7 @@ PairKIM::~PairKIM()
 void PairKIM::set_contributing()
 {
   int const nall = atom->nlocal + atom->nghost;
-  for (int i = 0; i < nall; ++i)
-    kim_particleContributing[i] = ( (i < atom->nlocal) ? 1 : 0 );
+  for (int i = 0; i < nall; ++i) kim_particleContributing[i] = (i < atom->nlocal) ? 1 : 0;
 }
 
 /* ---------------------------------------------------------------------- */

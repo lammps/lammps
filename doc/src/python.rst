@@ -6,7 +6,7 @@ python command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    python mode keyword args ...
 

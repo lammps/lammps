@@ -328,9 +328,10 @@ int DumpLocal::count()
   // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->first_update == 0)
-      error->all(FLERR,"Dump compute cannot be invoked before first run");
     for (i = 0; i < ncompute; i++) {
+      if (!compute[i]->is_initialized())
+        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
+          compute[i]->id);
       if (!(compute[i]->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute[i]->compute_local();
         compute[i]->invoked_flag |= Compute::INVOKED_LOCAL;

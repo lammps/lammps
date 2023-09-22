@@ -1153,6 +1153,7 @@ void CreateAtoms::add_mesh(const char *filename)
       utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle added in {} mode\n",
                      ntriangle, ratio, mesh_name[mesh_style]);
   }
+  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

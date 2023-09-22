@@ -358,7 +358,7 @@ void CreateAtoms::command(int narg, char **arg)
   //   lattice to box, but not consistent with other uses of units=lattice
   // triclinic remapping occurs in add_single()
 
-  if ((style == BOX) || (style == REGION) || (style == MESH)) {
+  if ((style == BOX) || (style == REGION)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
   } else if (scaleflag == 1) {
     xone[0] *= domain->lattice->xlattice;

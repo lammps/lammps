@@ -32,6 +32,7 @@ public:
     void clear();
 
 private slots:
+    void movie();
     void first();
     void last();
     void next();

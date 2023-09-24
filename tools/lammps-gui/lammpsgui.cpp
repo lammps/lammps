@@ -858,6 +858,7 @@ void LammpsGui::logupdate()
                 slideshow->hide();
         } else {
             slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + current_file);
+            if (QSettings().value("viewslide", true).toBool()) slideshow->show();
         }
         slideshow->add_image(imagefile);
     }

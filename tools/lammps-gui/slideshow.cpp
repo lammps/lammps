@@ -13,7 +13,11 @@
 
 #include "slideshow.h"
 
+#include "helpers.h"
+
 #include <QDialogButtonBox>
+#include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -21,11 +25,13 @@
 #include <QImageReader>
 #include <QLabel>
 #include <QPalette>
+#include <QProcess>
 #include <QPushButton>
 #include <QScreen>
 #include <QSettings>
 #include <QShortcut>
 #include <QSpacerItem>
+#include <QTemporaryFile>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -58,6 +64,10 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
 
+    auto *tomovie = new QPushButton(QIcon(":/export-movie.png"), "");
+    tomovie->setToolTip("Export to movie file");
+    tomovie->setEnabled(has_exe("ffmpeg"));
+
     auto *gofirst = new QPushButton(QIcon(":/go-first.png"), "");
     gofirst->setToolTip("Go to first Image");
     auto *goprev = new QPushButton(QIcon(":/go-previous-2.png"), "");
@@ -83,6 +93,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     auto *normal = new QPushButton(QIcon(":/gtk-zoom-fit.png"), "");
     normal->setToolTip("Reset zoom to normal");
 
+    connect(tomovie, &QPushButton::released, this, &SlideShow::movie);
     connect(gofirst, &QPushButton::released, this, &SlideShow::first);
     connect(goprev, &QPushButton::released, this, &SlideShow::prev);
     connect(goplay, &QPushButton::released, this, &SlideShow::play);
@@ -96,6 +107,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
 
     navLayout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum));
     navLayout->addWidget(dummy);
+    navLayout->addWidget(tomovie);
     navLayout->addWidget(gofirst);
     navLayout->addWidget(goprev);
     navLayout->addWidget(goplay);
@@ -176,6 +188,46 @@ void SlideShow::loadImage(int idx)
             break;
         }
     } while (idx >= 0);
+}
+
+void SlideShow::movie()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Export to Movie File", ".",
+                                                    "Movie Files (*.mpg *.mp4 *.mkv *.avi *.mpeg)");
+    if (fileName.isEmpty()) return;
+
+    QDir curdir(".");
+    QTemporaryFile concatfile;
+    concatfile.open();
+    for (auto image : imagefiles) {
+        concatfile.write("file '");
+        concatfile.write(curdir.absoluteFilePath(image).toLocal8Bit());
+        concatfile.write("'\n");
+    }
+    concatfile.close();
+
+    QStringList args;
+    args << "-y";
+    args << "-safe"
+         << "0";
+    args << "-r"
+         << "10";
+    args << "-f"
+         << "concat";
+    args << "-i" << concatfile.fileName();
+    if (scaleFactor != 1.0) {
+        args << "-vf" << QString("scale=iw*%1:-1").arg(scaleFactor);
+    }
+    args << "-b:v"
+         << "2000k";
+    args << "-r"
+         << "24";
+    args << fileName;
+
+    auto *ffmpeg = new QProcess(this);
+    ffmpeg->start("ffmpeg", args);
+    ffmpeg->waitForFinished(-1);
+    delete ffmpeg;
 }
 
 void SlideShow::first()

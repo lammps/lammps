@@ -225,11 +225,13 @@ displays the images created by LAMMPS as they are written.
    :align: center
    :scale: 50%
 
-The various buttons at the bottom right of the window allow either
-single stepping through the sequence of images or playing an animation
-(as a continuous loop or once from first to last).  It is also possible
-to zoom in or zoom out of the displayed images.  The slide show window
-will be closed when a new file is loaded.
+The various buttons at the bottom right of the window allow single
+stepping through the sequence of images or playing an animation (as a
+continuous loop or once from first to last).  It is also possible to
+zoom in or zoom out of the displayed images, and to export the slide
+show animation to a movie file, if `ffmpeg <https://ffmpeg.org/>`_ is
+installed.  The slide show window will be closed when a new file is
+loaded.
 
 Variable Info
 -------------

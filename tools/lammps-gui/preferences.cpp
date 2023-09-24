@@ -13,6 +13,7 @@
 
 #include "preferences.h"
 
+#include "helpers.h"
 #include "lammpsgui.h"
 #include "lammpswrapper.h"
 #include "ui_lammpsgui.h"
@@ -54,14 +55,6 @@
 #else
 #include <unistd.h>
 #endif
-
-// duplicate string
-static char *mystrdup(const std::string &text)
-{
-    auto tmp = new char[text.size() + 1];
-    memcpy(tmp, text.c_str(), text.size() + 1);
-    return tmp;
-}
 
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), tabWidget(new QTabWidget),
@@ -176,8 +169,8 @@ void Preferences::accept()
                                 "LAMMPS-GUI must be relaunched."),
                         QMessageBox::Ok);
         msg.exec();
-        const char *path = mystrdup(QCoreApplication::applicationFilePath().toStdString());
-        const char *arg0 = mystrdup(QCoreApplication::arguments().at(0).toStdString());
+        const char *path = mystrdup(QCoreApplication::applicationFilePath());
+        const char *arg0 = mystrdup(QCoreApplication::arguments().at(0));
         execl(path, arg0, (char *)NULL);
     }
 
@@ -258,8 +251,8 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
     auto *freqlayout = new QHBoxLayout;
-    auto *freqlabel = new QLabel("GUI update interval (ms)");
-    auto *freqval  = new QSpinBox;
+    auto *freqlabel  = new QLabel("GUI update interval (ms)");
+    auto *freqval    = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
     freqval->setValue(settings->value("updfreq", "100").toInt());

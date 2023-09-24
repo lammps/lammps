@@ -14,6 +14,7 @@
 #include "lammpsgui.h"
 
 #include "chartviewer.h"
+#include "helpers.h"
 #include "highlighter.h"
 #include "imageviewer.h"
 #include "lammpsrunner.h"
@@ -58,42 +59,6 @@
 static const QString blank(" ");
 static constexpr int MAXRECENT = 5;
 static constexpr int BUFLEN    = 128;
-
-// duplicate string
-static char *mystrdup(const std::string &text)
-{
-    auto tmp = new char[text.size() + 1];
-    memcpy(tmp, text.c_str(), text.size() + 1);
-    return tmp;
-}
-
-// find if executable is in path
-// https://stackoverflow.com/a/51041497
-
-static bool has_exe(const QString &exe)
-{
-    QProcess findProcess;
-    QStringList arguments;
-    arguments << exe;
-#if defined(_WIN32)
-    findProcess.start("where", arguments);
-#else
-    findProcess.start("which", arguments);
-#endif
-    findProcess.setReadChannel(QProcess::ProcessChannel::StandardOutput);
-
-    if (!findProcess.waitForFinished()) return false; // Not found or which does not work
-
-    QString retStr(findProcess.readAll());
-    retStr = retStr.trimmed();
-
-    QFile file(retStr);
-    QFileInfo check_file(file);
-    if (check_file.exists() && check_file.isFile())
-        return true; // Found!
-    else
-        return false; // Not found!
-}
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
@@ -1025,11 +990,11 @@ void LammpsGui::do_run(bool use_buffer)
     runner     = new LammpsRunner(this);
     is_running = true;
     if (use_buffer) {
-        // always add final newline since the text edit widget does not
-        char *input = mystrdup(ui->textEdit->toPlainText().toStdString() + "\n");
+        // always add final newline since the text edit widget does not do it
+        char *input = mystrdup(ui->textEdit->toPlainText() + "\n");
         runner->setup_run(&lammps, input, nullptr);
     } else {
-        char *fname = mystrdup(current_file.toStdString());
+        char *fname = mystrdup(current_file);
         runner->setup_run(&lammps, nullptr, fname);
     }
 
@@ -1418,9 +1383,9 @@ void LammpsGui::start_lammps()
         QString value = var.second;
         if (!name.isEmpty() && !value.isEmpty()) {
             lammps_args.push_back(mystrdup("-var"));
-            lammps_args.push_back(mystrdup(name.toStdString()));
+            lammps_args.push_back(mystrdup(name));
             for (const auto &v : value.split(' '))
-                lammps_args.push_back(mystrdup(v.toStdString()));
+                lammps_args.push_back(mystrdup(v));
         }
     }
 

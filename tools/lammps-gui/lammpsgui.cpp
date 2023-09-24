@@ -305,6 +305,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     style_list.sort();
     ui->textEdit->setUnitsList(style_list);
 
+    ui->textEdit->setFileList();
+
 #define ADD_STYLES(keyword, Type)                                                              \
     style_list.clear();                                                                        \
     if ((std::string(#keyword) == "pair") || (std::string(#keyword) == "bond") ||              \
@@ -596,6 +598,7 @@ void LammpsGui::open_file(const QString &fileName)
     ui->textEdit->setVarNameList();
     ui->textEdit->setComputeIDList();
     ui->textEdit->setFixIDList();
+    ui->textEdit->setFileList();
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
     status->setText("Ready.");
@@ -938,6 +941,7 @@ void LammpsGui::run_done()
                               QString("Error running LAMMPS:\n\n") + errorbuf);
     }
     ui->textEdit->setCursor(nline);
+    ui->textEdit->setFileList();
     progress->hide();
     dirstatus->show();
 }

@@ -79,7 +79,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     QSettings settings;
 
     vdwfactor = 0.5;
-    auto pix  = QPixmap(":/emblem-photos.png");
+    auto pix  = QPixmap(":/icons/emblem-photos.png");
 
     auto *renderstatus = new QLabel(QString());
     renderstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
@@ -107,39 +107,39 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
 
-    auto *dossao = new QPushButton(QIcon(":/hd-img.png"), "");
+    auto *dossao = new QPushButton(QIcon(":/icons/hd-img.png"), "");
     dossao->setCheckable(true);
     dossao->setToolTip("Toggle SSAO rendering");
     dossao->setObjectName("ssao");
-    auto *doanti = new QPushButton(QIcon(":/antialias.png"), "");
+    auto *doanti = new QPushButton(QIcon(":/icons/antialias.png"), "");
     doanti->setCheckable(true);
     doanti->setToolTip("Toggle anti-aliasing");
     doanti->setObjectName("antialias");
-    auto *dovdw = new QPushButton(QIcon(":/vdw-style.png"), "");
+    auto *dovdw = new QPushButton(QIcon(":/icons/vdw-style.png"), "");
     dovdw->setCheckable(true);
     dovdw->setToolTip("Toggle VDW style representation");
     dovdw->setObjectName("vdw");
-    auto *dobox = new QPushButton(QIcon(":/system-box.png"), "");
+    auto *dobox = new QPushButton(QIcon(":/icons/system-box.png"), "");
     dobox->setCheckable(true);
     dobox->setToolTip("Toggle displaying box");
     dobox->setObjectName("box");
-    auto *doaxes = new QPushButton(QIcon(":/axes-img.png"), "");
+    auto *doaxes = new QPushButton(QIcon(":/icons/axes-img.png"), "");
     doaxes->setCheckable(true);
     doaxes->setToolTip("Toggle displaying axes");
     doaxes->setObjectName("axes");
-    auto *zoomin = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
+    auto *zoomin = new QPushButton(QIcon(":/icons/gtk-zoom-in.png"), "");
     zoomin->setToolTip("Zoom in by 10 percent");
-    auto *zoomout = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
+    auto *zoomout = new QPushButton(QIcon(":/icons/gtk-zoom-out.png"), "");
     zoomout->setToolTip("Zoom out by 10 percent");
-    auto *rotleft = new QPushButton(QIcon(":/object-rotate-left.png"), "");
+    auto *rotleft = new QPushButton(QIcon(":/icons/object-rotate-left.png"), "");
     rotleft->setToolTip("Rotate left by 15 degrees");
-    auto *rotright = new QPushButton(QIcon(":/object-rotate-right.png"), "");
+    auto *rotright = new QPushButton(QIcon(":/icons/object-rotate-right.png"), "");
     rotright->setToolTip("Rotate right by 15 degrees");
-    auto *rotup = new QPushButton(QIcon(":/gtk-go-up.png"), "");
+    auto *rotup = new QPushButton(QIcon(":/icons/gtk-go-up.png"), "");
     rotup->setToolTip("Rotate up by 15 degrees");
-    auto *rotdown = new QPushButton(QIcon(":/gtk-go-down.png"), "");
+    auto *rotdown = new QPushButton(QIcon(":/icons/gtk-go-down.png"), "");
     rotdown->setToolTip("Rotate down by 15 degrees");
-    auto *reset = new QPushButton(QIcon(":/gtk-zoom-fit.png"), "");
+    auto *reset = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     reset->setToolTip("Reset view to defaults");
     auto *combo = new QComboBox;
     combo->setObjectName("group");
@@ -192,7 +192,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     mainLayout->addWidget(buttonBox);
-    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).fileName());
     createActions();
 
@@ -475,16 +475,16 @@ void ImageViewer::createActions()
     QMenu *fileMenu = menuBar->addMenu("&File");
 
     saveAsAct = fileMenu->addAction("&Save As...", this, &ImageViewer::saveAs);
-    saveAsAct->setIcon(QIcon(":/document-save-as.png"));
+    saveAsAct->setIcon(QIcon(":/icons/document-save-as.png"));
     saveAsAct->setEnabled(false);
     fileMenu->addSeparator();
     copyAct = fileMenu->addAction("&Copy", this, &ImageViewer::copy);
-    copyAct->setIcon(QIcon(":/edit-copy.png"));
+    copyAct->setIcon(QIcon(":/icons/edit-copy.png"));
     copyAct->setShortcut(QKeySequence::Copy);
     copyAct->setEnabled(false);
     fileMenu->addSeparator();
     QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
-    exitAct->setIcon(QIcon(":/window-close.png"));
+    exitAct->setIcon(QIcon(":/icons/window-close.png"));
     exitAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
 }
 

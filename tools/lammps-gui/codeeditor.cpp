@@ -657,18 +657,18 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     auto *menu = createStandardContextMenu();
     menu->addSeparator();
     auto action = menu->addAction(QString("Display available completions for '%1'").arg(help));
-    action->setIcon(QIcon(":/expand-text.png"));
+    action->setIcon(QIcon(":/icons/expand-text.png"));
     connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
 
     if (!page.isEmpty()) {
         menu->addSeparator();
         action = menu->addAction(QString("Reformat '%1' command").arg(help));
-        action->setIcon(QIcon(":/format-indent-less-3.png"));
+        action->setIcon(QIcon(":/icons/format-indent-less-3.png"));
         connect(action, &QAction::triggered, this, &CodeEditor::reformatCurrentLine);
 
         menu->addSeparator();
         action = menu->addAction(QString("View Documentation for '%1'").arg(help));
-        action->setIcon(QIcon(":/system-help.png"));
+        action->setIcon(QIcon(":/icons/system-help.png"));
         action->setData(page);
         connect(action, &QAction::triggered, this, &CodeEditor::open_help);
         // if we link to help with specific styles (fix, compute, pair, bond, ...)
@@ -679,13 +679,13 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             page = words.at(0);
             page += ".html";
             auto action2 = menu->addAction(QString("View Documentation for '%1'").arg(help));
-            action2->setIcon(QIcon(":/system-help.png"));
+            action2->setIcon(QIcon(":/icons/system-help.png"));
             action2->setData(page);
             connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
         }
     }
     auto action3 = menu->addAction(QString("LAMMPS Manual"));
-    action3->setIcon(QIcon(":/help-browser.png"));
+    action3->setIcon(QIcon(":/icons/help-browser.png"));
     action3->setData(QString());
     connect(action3, &QAction::triggered, this, &CodeEditor::open_help);
 

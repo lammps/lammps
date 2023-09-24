@@ -64,33 +64,33 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
 
-    auto *tomovie = new QPushButton(QIcon(":/export-movie.png"), "");
+    auto *tomovie = new QPushButton(QIcon(":/icons/export-movie.png"), "");
     tomovie->setToolTip("Export to movie file");
     tomovie->setEnabled(has_exe("ffmpeg"));
 
-    auto *gofirst = new QPushButton(QIcon(":/go-first.png"), "");
+    auto *gofirst = new QPushButton(QIcon(":/icons/go-first.png"), "");
     gofirst->setToolTip("Go to first Image");
-    auto *goprev = new QPushButton(QIcon(":/go-previous-2.png"), "");
+    auto *goprev = new QPushButton(QIcon(":/icons/go-previous-2.png"), "");
     goprev->setToolTip("Go to previous Image");
-    auto *goplay = new QPushButton(QIcon(":/media-playback-start-2.png"), "");
+    auto *goplay = new QPushButton(QIcon(":/icons/media-playback-start-2.png"), "");
     goplay->setToolTip("Play animation");
     goplay->setCheckable(true);
     goplay->setChecked(playtimer);
     goplay->setObjectName("play");
-    auto *gonext = new QPushButton(QIcon(":/go-next-2.png"), "");
+    auto *gonext = new QPushButton(QIcon(":/icons/go-next-2.png"), "");
     gonext->setToolTip("Go to next Image");
-    auto *golast = new QPushButton(QIcon(":/go-last.png"), "");
+    auto *golast = new QPushButton(QIcon(":/icons/go-last.png"), "");
     golast->setToolTip("Go to last Image");
-    auto *goloop = new QPushButton(QIcon(":/media-playlist-repeat.png"), "");
+    auto *goloop = new QPushButton(QIcon(":/icons/media-playlist-repeat.png"), "");
     goloop->setToolTip("Loop animation");
     goloop->setCheckable(true);
     goloop->setChecked(do_loop);
 
-    auto *zoomin = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
+    auto *zoomin = new QPushButton(QIcon(":/icons/gtk-zoom-in.png"), "");
     zoomin->setToolTip("Zoom in by 10 percent");
-    auto *zoomout = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
+    auto *zoomout = new QPushButton(QIcon(":/icons/gtk-zoom-out.png"), "");
     zoomout->setToolTip("Zoom out by 10 percent");
-    auto *normal = new QPushButton(QIcon(":/gtk-zoom-fit.png"), "");
+    auto *normal = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     normal->setToolTip("Reset zoom to normal");
 
     connect(tomovie, &QPushButton::released, this, &SlideShow::movie);
@@ -127,7 +127,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     botLayout->setStretch(0, 3);
     mainLayout->addLayout(botLayout);
 
-    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + QFileInfo(fileName).fileName());
 
     imagefiles.clear();

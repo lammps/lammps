@@ -146,7 +146,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammps_args.push_back(mystrdup("-log"));
     lammps_args.push_back(mystrdup("none"));
 
-    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
 
     QFont all_font("Arial", -1);
     all_font.setStyleHint(QFont::SansSerif, QFont::PreferOutline);
@@ -163,7 +163,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
     varwindow = new QLabel(QString());
     varwindow->setWindowTitle("LAMMPS-GUI - Current Variables:");
-    varwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    varwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     varwindow->setMinimumSize(100, 50);
     varwindow->setText("(none)");
     varwindow->setFont(text_font);
@@ -226,15 +226,15 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #endif
 
     lammpsstatus = new QLabel(QString());
-    auto pix     = QPixmap(":/lammps-icon-128x128.png");
+    auto pix     = QPixmap(":/icons/lammps-icon-128x128.png");
     lammpsstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
     ui->statusbar->addWidget(lammpsstatus);
     lammpsstatus->setToolTip("LAMMPS instance is active");
     lammpsstatus->hide();
 
-    auto *lammpsrun   = new QPushButton(QIcon(":/system-run.png"), "");
-    auto *lammpsstop  = new QPushButton(QIcon(":/process-stop.png"), "");
-    auto *lammpsimage = new QPushButton(QIcon(":/emblem-photos.png"), "");
+    auto *lammpsrun   = new QPushButton(QIcon(":/icons/system-run.png"), "");
+    auto *lammpsstop  = new QPushButton(QIcon(":/icons/process-stop.png"), "");
+    auto *lammpsimage = new QPushButton(QIcon(":/icons/emblem-photos.png"), "");
     lammpsrun->setToolTip("Run LAMMPS on input");
     lammpsstop->setToolTip("Stop LAMMPS");
     lammpsimage->setToolTip("Create snapshot image");
@@ -1015,7 +1015,7 @@ void LammpsGui::do_run(bool use_buffer)
     else
         logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on file - " +
                                   current_file);
-    logwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    logwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     QFont text_font;
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
     logwindow->document()->setDefaultFont(text_font);
@@ -1039,7 +1039,7 @@ void LammpsGui::do_run(bool use_buffer)
     else
         chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on file - " +
                                     current_file);
-    chartwindow->setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    chartwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     chartwindow->setMinimumSize(400, 300);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), chartwindow);
     QObject::connect(shortcut, &QShortcut::activated, chartwindow, &ChartWindow::close);
@@ -1202,10 +1202,10 @@ void LammpsGui::about()
 
     QMessageBox msg;
     msg.setWindowTitle("About LAMMPS");
-    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    msg.setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
-    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
+    msg.setIconPixmap(QPixmap(":/icons/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Close);
     QFont font;
     font.setPointSizeF(font.pointSizeF() * 0.75);
@@ -1222,7 +1222,7 @@ void LammpsGui::help()
 {
     QMessageBox msg;
     msg.setWindowTitle("LAMMPS-GUI Quick Help");
-    msg.setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    msg.setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
     msg.setInformativeText("<p>LAMMPS GUI is a graphical text editor that is linked to the LAMMPS "
                            "library and thus can run LAMMPS directly using the contents of the "
@@ -1262,7 +1262,7 @@ void LammpsGui::help()
                            "accelerator packages and number of OpenMP threads. Due to its nature "
                            "as a graphical application, it is <b>not</b> possible to use the "
                            "LAMMPS GUI in parallel with MPI.</p>");
-    msg.setIconPixmap(QPixmap(":/lammps-icon-128x128.png").scaled(64, 64));
+    msg.setIconPixmap(QPixmap(":/icons/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Close);
     msg.exec();
 }

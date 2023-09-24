@@ -73,7 +73,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     layout->addWidget(tabWidget);
     layout->addWidget(buttonBox);
     setLayout(layout);
-    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle("LAMMPS-GUI - Preferences");
     resize(600, 450);
 }
@@ -242,9 +242,9 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 
     auto *fontlayout = new QHBoxLayout;
     auto *getallfont =
-        new QPushButton(QIcon(":/preferences-desktop-font.png"), "Select Default Font...");
+        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Default Font...");
     auto *gettextfont =
-        new QPushButton(QIcon(":/preferences-desktop-font.png"), "Select Text Font...");
+        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Text Font...");
     fontlayout->addWidget(getallfont);
     fontlayout->addWidget(gettextfont);
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);

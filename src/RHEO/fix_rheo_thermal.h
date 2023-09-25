@@ -30,12 +30,15 @@ class FixRHEOThermal : public Fix {
   ~FixRHEOThermal() override;
   int setmask() override;
   void init() override;
+  void init_list(int, class NeighList *) override;
   void setup_pre_force(int) override;
   void initial_integrate(int) override;
   void post_integrate() override;
   void post_neighbor() override;
   void pre_force(int) override;
   void final_integrate() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   void reset_dt() override;
   double calc_cv(int);
 
@@ -44,15 +47,22 @@ class FixRHEOThermal : public Fix {
   double *Tc_type, Tc;
   double *kappa_type, kappa;
   double dtf, dtv;
+  double cut_bond;
   int Tc_style;
   int cv_style;
   int conductivity_style;
+  class NeighList *list;
+
+  int n_histories;
+  const std::vector<Fix *> histories;
 
   class FixRHEO *fix_rheo;
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOVShift *compute_vshift;
 
   void grow_array(int);
+  void break_bonds(int);
+  void create_bonds(int);
 };
 
 }    // namespace LAMMPS_NS

@@ -86,7 +86,8 @@ namespace RHEO_NS {
     // Temporary status options - reset in preforce
     STATUS_NO_SHIFT = 1 << 6,
     STATUS_NO_INTEGRATION = 1 << 7,
-    STATUS_FREEZING = 1 << 8
+    STATUS_FREEZING = 1 << 8,
+    STATUS_MELTING = 1 << 9
   };
 
   // Masks and their inverses

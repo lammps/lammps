@@ -530,6 +530,8 @@ void LammpsGui::open_file(const QString &fileName)
     update_variables();
 }
 
+// write file and update CWD to its folder
+
 void LammpsGui::write_file(const QString &fileName)
 {
     QFileInfo path(fileName);
@@ -542,6 +544,7 @@ void LammpsGui::write_file(const QString &fileName)
         return;
     }
     setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+    QDir::setCurrent(current_dir);
 
     update_recents(path.absoluteFilePath());
 

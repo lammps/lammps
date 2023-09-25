@@ -22,8 +22,8 @@
 using namespace QtCharts;
 
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
-    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")),
-    filename(_filename), active_chart(-1)
+    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), filename(_filename),
+    active_chart(-1)
 {
     auto *top = new QHBoxLayout;
     menu->addMenu(file);

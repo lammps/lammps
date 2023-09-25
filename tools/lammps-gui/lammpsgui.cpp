@@ -836,7 +836,7 @@ void LammpsGui::logupdate()
 
             for (int i = 0; i < ncols; ++i) {
                 int datatype = *(int *)lammps.last_thermo("type", i);
-                double data = 0.0;
+                double data  = 0.0;
                 if (datatype == 0) // int
                     data = *(int *)lammps.last_thermo("data", i);
                 else if (datatype == 2) // double
@@ -906,7 +906,7 @@ void LammpsGui::run_done()
                     chartwindow->add_chart(label, i);
                 }
                 int datatype = *(int *)lammps.last_thermo("type", i);
-                double data = 0.0;
+                double data  = 0.0;
                 if (datatype == 0) // int
                     data = *(int *)lammps.last_thermo("data", i);
                 else if (datatype == 2) // double

@@ -1084,8 +1084,8 @@ void LammpsGui::preferences()
     QSettings settings;
     int oldthreads = settings.value("nthreads", 1).toInt();
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
-    bool oldecho    = settings.value("echo", 0).toBool();
-    bool oldcite    = settings.value("cite", 0).toBool();
+    bool oldecho   = settings.value("echo", 0).toBool();
+    bool oldcite   = settings.value("cite", 0).toBool();
 
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {

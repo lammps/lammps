@@ -725,6 +725,9 @@ void CodeEditor::reformatCurrentLine()
 
 void CodeEditor::runCompletion()
 {
+    QAbstractItemView *popup = nullptr;
+    if (current_comp) popup = current_comp->popup();
+
     auto cursor = textCursor();
     auto line   = cursor.block().text().trimmed();
     // no completion possible on empty lines
@@ -751,7 +754,8 @@ void CodeEditor::runCompletion()
     if (selected.startsWith("$")) {
         current_comp = varname_comp;
         current_comp->setCompletionPrefix(selected);
-        auto popup = current_comp->popup();
+        if (popup && (popup != current_comp->popup())) popup->hide();
+        popup = current_comp->popup();
         // if the command is already a complete command, remove existing popup
         if (selected == current_comp->currentCompletion()) {
             if (popup->isVisible()) {
@@ -772,7 +776,8 @@ void CodeEditor::runCompletion()
 
         current_comp = command_comp;
         current_comp->setCompletionPrefix(words[0].c_str());
-        auto popup = current_comp->popup();
+        if (popup && (popup != current_comp->popup())) popup->hide();
+        popup = current_comp->popup();
         // if the command is already a complete command, remove existing popup
         if (words[0] == current_comp->currentCompletion().toStdString()) {
             if (popup->isVisible()) {
@@ -817,9 +822,12 @@ void CodeEditor::runCompletion()
             current_comp = group_comp;
         else if ((words[0] == "fitpod") || (words[0] == "include") || (words[0] == "ndx2group") ||
                  (words[0] == "read_data") || (words[0] == "read_dump") ||
-                 (words[0] == "read_restart") || (words[0] == "rerun"))
-            current_comp = file_comp;
-        else if (selected.startsWith("v_"))
+                 (words[0] == "read_restart") || (words[0] == "rerun")) {
+            if (selected.contains('/')) {
+                if (popup && popup->isVisible()) popup->hide();
+            } else
+                current_comp = file_comp;
+        } else if (selected.startsWith("v_"))
             current_comp = varname_comp;
         else if (selected.startsWith("c_"))
             current_comp = compid_comp;
@@ -832,7 +840,8 @@ void CodeEditor::runCompletion()
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[1].c_str());
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (words[1] == current_comp->currentCompletion().toStdString()) {
                 if (popup->isVisible()) popup->hide();
@@ -870,12 +879,16 @@ void CodeEditor::runCompletion()
             current_comp = fixid_comp;
         else if (selected.startsWith("F_"))
             current_comp = fixid_comp;
-        else if ((words[0] == "fitpod") || (words[0] == "molecule"))
-            current_comp = file_comp;
-
+        else if ((words[0] == "fitpod") || (words[0] == "molecule")) {
+            if (selected.contains('/')) {
+                if (popup && popup->isVisible()) popup->hide();
+            } else
+                current_comp = file_comp;
+        }
         if (current_comp) {
             current_comp->setCompletionPrefix(words[2].c_str());
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (words[2] == current_comp->currentCompletion().toStdString()) {
                 if (popup->isVisible()) popup->hide();
@@ -899,9 +912,12 @@ void CodeEditor::runCompletion()
             current_comp = compute_comp;
         else if (words[0] == "dump")
             current_comp = dump_comp;
-        else if ((words[0] == "pair_coeff") && (words[1] == "*") && (words[2] == "*"))
-            current_comp = file_comp;
-        else if (selected.startsWith("v_"))
+        else if ((words[0] == "pair_coeff") && (words[1] == "*") && (words[2] == "*")) {
+            if (selected.contains('/')) {
+                if (popup && popup->isVisible()) popup->hide();
+            } else
+                current_comp = file_comp;
+        } else if (selected.startsWith("v_"))
             current_comp = varname_comp;
         else if (selected.startsWith("c_"))
             current_comp = compid_comp;
@@ -914,7 +930,8 @@ void CodeEditor::runCompletion()
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[3].c_str());
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (words[3] == current_comp->currentCompletion().toStdString()) {
                 if (popup->isVisible()) popup->hide();
@@ -942,7 +959,8 @@ void CodeEditor::runCompletion()
 
         if (current_comp) {
             current_comp->setCompletionPrefix(selected);
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (selected == current_comp->currentCompletion()) {
                 if (popup->isVisible()) popup->hide();

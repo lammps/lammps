@@ -29,6 +29,7 @@ public:
 
     void force_timeout();
 
+    int version();
     int extract_setting(const char *keyword);
     void *extract_global(const char *keyword);
     void *extract_atom(const char *keyword);

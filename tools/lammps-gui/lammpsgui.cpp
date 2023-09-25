@@ -1398,6 +1398,15 @@ void LammpsGui::start_lammps()
     lammps.open(narg, args);
     lammpsstatus->show();
 
+    // must have at least 2 August 2023 version of LAMMPS
+    // TODO: must update this check before next feature release
+    if (lammps.version() < 20230802) {
+        QMessageBox::critical(this, "Incompatible LAMMPS Version",
+                              "LAMMPS-GUI version " LAMMPS_GUI_VERSION " requires\n"
+                              "LAMMPS version 2 August 2023 or later");
+        exit(1);
+    }
+
     // delete additional arguments again (3 were there initially
     while ((int)lammps_args.size() > initial_narg) {
         delete lammps_args.back();

@@ -36,6 +36,19 @@ void LammpsWrapper::open(int narg, char **args)
 #endif
 }
 
+int LammpsWrapper::version()
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->version(lammps_handle);
+#else
+        val = lammps_version(lammps_handle);
+#endif
+    }
+    return val;
+}
+
 int LammpsWrapper::extract_setting(const char *keyword)
 {
     int val = 0;

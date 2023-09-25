@@ -97,14 +97,16 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg + 1], "coordination")) {
         surface_style = COORDINATION;
         zmin_surface = utils::inumeric(FLERR,arg[iarg + 2],false,lmp);
+        zmin_splash = utils::inumeric(FLERR,arg[iarg + 3],false,lmp);
       } else if (strcmp(arg[iarg + 1], "divergence")) {
         surface_style = DIVR;
         divr_surface = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
+        zmin_splash = utils::inumeric(FLERR,arg[iarg + 3],false,lmp);
       } else {
         error->all(FLERR,"Illegal surface/detection option in fix rheo, {}", arg[iarg + 1]);
       }
 
-      iarg += 2;
+      iarg += 3;
     } else if (strcmp(arg[iarg],"interface/reconstruct") == 0) {
       interface_flag = 1;
     } else if (strcmp(arg[iarg],"rho/sum") == 0) {
@@ -154,7 +156,7 @@ void FixRHEO::post_constructor()
 
   if (rhosum_flag) {
     compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(
-      "rheo_rho_sum all RHEO/RHO/SUM"));
+      "rheo_rhosum all RHEO/RHO/SUM"));
     compute_rhosum->fix_rheo = this;
   }
 

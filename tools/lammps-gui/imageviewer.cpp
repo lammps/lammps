@@ -57,7 +57,7 @@ static int get_pte_from_mass(double mass)
 static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
-    QDialog(parent), imageLabel(new QLabel), scrollArea(new QScrollArea), menuBar(new QMenuBar),
+    QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
     lammps(_lammps), group("all"), filename(fileName), useelements(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
@@ -348,7 +348,7 @@ void ImageViewer::do_rot_up()
     createImage();
 }
 
-void ImageViewer::change_group(int idx)
+void ImageViewer::change_group(int)
 {
     QComboBox *box = findChild<QComboBox *>("group");
     if (box) group = box->currentText();

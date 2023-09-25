@@ -57,7 +57,9 @@ public:
 
 private:
     void *lammps_handle;
+#if defined(LAMMPS_GUI_USE_PLUGIN)
     void *plugin_handle;
+#endif
 };
 #endif
 

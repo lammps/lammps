@@ -323,7 +323,7 @@ QString CodeEditor::reformatLine(const QString &line)
         }
 
         // append remaining words with just a single blank added.
-        for (int i = 1; i < words.size(); ++i) {
+        for (std::size_t i = 1; i < words.size(); ++i) {
             newtext += ' ';
             newtext += words[i].c_str();
 
@@ -552,7 +552,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     }
 
     // automatically reformat when hitting the return or enter key
-    if (reformat_on_return && (key == Qt::Key_Return) || (key == Qt::Key_Enter)) {
+    if (reformat_on_return && ((key == Qt::Key_Return) || (key == Qt::Key_Enter))) {
         reformatCurrentLine();
     }
 

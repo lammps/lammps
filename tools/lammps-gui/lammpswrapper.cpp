@@ -19,7 +19,11 @@
 #include "library.h"
 #endif
 
-LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr), plugin_handle(nullptr) {}
+LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    plugin_handle = nullptr;
+#endif
+}
 
 void LammpsWrapper::open(int narg, char **args)
 {

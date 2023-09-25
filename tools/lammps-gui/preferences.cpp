@@ -57,9 +57,9 @@
 #endif
 
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
-    QDialog(parent), tabWidget(new QTabWidget),
+    QDialog(parent), need_relaunch(false), tabWidget(new QTabWidget),
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
-    settings(new QSettings), lammps(_lammps), need_relaunch(false)
+    settings(new QSettings), lammps(_lammps)
 {
     tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");

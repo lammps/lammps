@@ -57,8 +57,7 @@
 #endif
 
 static const QString blank(" ");
-static constexpr int MAXRECENT = 5;
-static constexpr int BUFLEN    = 128;
+static constexpr int BUFLEN = 128;
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
@@ -837,7 +836,7 @@ void LammpsGui::logupdate()
 
             for (int i = 0; i < ncols; ++i) {
                 int datatype = *(int *)lammps.last_thermo("type", i);
-                double data;
+                double data = 0.0;
                 if (datatype == 0) // int
                     data = *(int *)lammps.last_thermo("data", i);
                 else if (datatype == 2) // double
@@ -907,7 +906,7 @@ void LammpsGui::run_done()
                     chartwindow->add_chart(label, i);
                 }
                 int datatype = *(int *)lammps.last_thermo("type", i);
-                double data;
+                double data = 0.0;
                 if (datatype == 0) // int
                     data = *(int *)lammps.last_thermo("data", i);
                 else if (datatype == 2) // double
@@ -1400,7 +1399,7 @@ void LammpsGui::start_lammps()
     lammpsstatus->show();
 
     // delete additional arguments again (3 were there initially
-    while (lammps_args.size() > initial_narg) {
+    while ((int)lammps_args.size() > initial_narg) {
         delete lammps_args.back();
         lammps_args.pop_back();
     }

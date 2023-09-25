@@ -22,8 +22,8 @@
 using namespace QtCharts;
 
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
-    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), active_chart(-1),
-    filename(_filename)
+    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")),
+    filename(_filename), active_chart(-1)
 {
     auto *top = new QHBoxLayout;
     menu->addMenu(file);
@@ -175,7 +175,7 @@ void ChartWindow::exportCsv()
     }
 }
 
-void ChartWindow::change_chart(int index)
+void ChartWindow::change_chart(int)
 {
     int choice = columns->currentData().toInt();
     for (auto &c : charts) {

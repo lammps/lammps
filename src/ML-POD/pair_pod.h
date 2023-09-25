@@ -54,21 +54,16 @@ class PairPOD : public Pair {
   void allocate_tempmemory_fastpod(int nmem);
 
   int query_pod(std::string pod_file);
-  void lammpsNeighListOPOD(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
+  void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
                         double rcutsq, int i);
-  void lammpsNeighListFPOD(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
+  void lammpsNeighborList(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
                         double rcutsq, int i);
-  void lammpsNeighListOPOD(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
-                        double *rcutvecsq, int i);
-  void lammpsNeighListFPOD(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
-                        double *rinvec, double *rcutvec, int i);
   void tallyforce(double **force, double *fij,  int *ai, int *aj, int N);
  protected:
   int nablockmax;    // maximum number of atoms per computation block
   int nij;           //  number of atom pairs
   int nijmax;        // maximum number of atom pairs
   int szd;           // size of tmpmem
-  int nelements;
 
   class MLPOD *podptr;
   class FASTPOD *fastpodptr;
@@ -79,10 +74,7 @@ class PairPOD : public Pair {
   int *typeai;         // types of atoms I only
   int *numneighsum;    // cumulative sum for an array of numbers of neighbors
   double *rij;         // (xj - xi) for all pairs (I, J)
-  double *rcutij;      // cutoff radius for all pairs (I, J)
-  double *rinij;       // inner cutoff radius for all pairs (I, J)
   double *fij;         // force for all pairs (I, J)
-  double rcutsqvec[100];  // cutoff radii square
   int *idxi;           // storing linear indices for all pairs (I, J)
   int *ai;             // IDs of atoms I for all pairs (I, J)
   int *aj;             // IDs of atoms J for all pairs (I, J)

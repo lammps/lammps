@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(fitpod,FitPOD);
@@ -21,7 +22,6 @@ CommandStyle(fitpod,FitPOD);
 #define LMP_FITPOD_COMMAND_H
 
 #include "command.h"
-#include <unordered_map>
 
 namespace LAMMPS_NS {
 
@@ -35,11 +35,9 @@ private:
     std::string file_format = "extxyz";
     std::string file_extension = "xyz";
     std::string data_path;
-    std::vector<std::string> data_files; // sorted file names
-    std::vector<std::string> group_names; // sorted group names
+    std::vector<std::string> data_files;
     std::vector<std::string> filenames;
     std::string filenametag = "pod";
-    std::string group_weight_type = "global";
 
     std::vector<int> num_atom;
     std::vector<int> num_atom_cumsum;
@@ -57,9 +55,6 @@ private:
     double *position=nullptr;
     double *force=nullptr;
     int *atomtype=nullptr;
-    // Group weights will have same size as energy.
-    double *we=nullptr;
-    double *wf=nullptr;
 
     int training = 1;
     int normalizeenergy = 1;
@@ -68,16 +63,12 @@ private:
     int training_calculation = 0;
     int test_calculation = 0;
     int randomize = 1;
-    int precision = 8;
+    int precision = 8;    
     double fraction = 1.0;
-
-    std::unordered_map<std::string, double> we_map;
-    std::unordered_map<std::string, double> wf_map;
 
     double fitting_weights[12] = {100.0, 1.0, 0.0, 1, 1, 0, 0, 1, 1, 1, 1, 1e-10};
 
-    void copydatainfo(datastruct &data) const
-    {
+    void copydatainfo(datastruct &data) {
       data.data_path = data_path;
       data.file_format = file_format;
       data.file_extension = file_extension;
@@ -95,8 +86,6 @@ private:
       data.normalizeenergy = normalizeenergy;
       for (int i = 0; i < 12; i++)
         data.fitting_weights[i] = fitting_weights[i];
-      data.we_map = we_map;
-      data.wf_map = wf_map;
     }
   };
 
@@ -165,31 +154,22 @@ private:
 
   int query_pod(std::string pod_file);
   int read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
-    std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file, std::string &group_weight_type,
-    std::unordered_map<std::string, double> &we_map, std::unordered_map<std::string, double> &wf_map);
-  void get_exyz_files(std::vector<std::string> &, std::vector<std::string> &, const std::string &, const std::string &);
+    std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file);
+  void get_exyz_files(std::vector<std::string> &, const std::string &, const std::string &);
   int get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file);
   int get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files);
-  void read_exyz_file(double *lattice, double *stress, double *energy, double *we, double *wf, double *pos, double *forces,
-    int *atomtype, std::string file, std::vector<std::string> species, double we_group, double wf_group);
-  void get_data(datastruct &data, const std::vector<std::string> &species);
+  void read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
+    int *atomtype, std::string file, std::vector<std::string> species);
+  void get_data(datastruct &data, std::vector<std::string> species);
   std::vector<int> linspace(int start_in, int end_in, int num_in);
   std::vector<int> shuffle(int start_in, int end_in, int num_in);
   std::vector<int> select(int n, double fraction, int randomize);
-  void select_data(datastruct &newdata, const datastruct &data);
-  void read_data_files(const std::string& data_file, const std::vector<std::string>& species);
-  int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3,
-                    double rcut, int *pbc, int nx);
-  int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N,
-                      int dim);
+  void select_data(datastruct &newdata, datastruct data);
+  void read_data_files(std::string data_file, std::vector<std::string> species);
+  int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
+  int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
-    double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-  
-//   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N,
-//                       int dim);
-  int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
-    double *x, double *a1, double *a2, double *a3, double *rcutvec, double rcutmax, int *pbc, int nx);
-  
+    double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);  
   void estimate_memory_neighborstruct(const datastruct &data, int *pbc, double rcut, int nelements);
   void allocate_memory_neighborstruct();
   void estimate_memory_descriptorstruct(const datastruct &data);
@@ -200,10 +180,9 @@ private:
   void linear_descriptors(const datastruct &data, int ci);
   void linear_descriptors_fastpod(const datastruct &data, int ci);
   void quadratic_descriptors(const datastruct &data, int ci);
-  void cubic_descriptors(const datastruct &data, int ci); 
+  void cubic_descriptors(const datastruct &data, int ci);
   void least_squares_matrix(const datastruct &data, int ci);
-  void least_squares_fit(const datastruct &data);  
-  void descriptors_calculation(const datastruct &data);
+  void least_squares_fit(const datastruct &data);
   void print_analysis(const datastruct &data, double *outarray, double *errors);
   void error_analysis(const datastruct &data, double *coeff);
   double energyforce_calculation(double *force, double *coeff, const datastruct &data, int ci);
@@ -211,7 +190,8 @@ private:
   void energyforce_calculation(const datastruct &data, double *coeff);
 };
 
-}    // namespace LAMMPS_NS
+}  // namespace LAMMPS_NS
 
 #endif
 #endif
+

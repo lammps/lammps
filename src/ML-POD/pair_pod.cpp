@@ -17,17 +17,21 @@
 
 #include "pair_pod.h"
 
-#include "fastpod.h"
 #include "mlpod.h"
-#include "tokenizer.h"
+#include "fastpod.h"
 
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -53,7 +57,6 @@ PairPOD::PairPOD(LAMMPS *lmp) :
   nij = 0;
   nijmax = 0;
   szd = 0;
-  nelements = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,17 +102,14 @@ void PairPOD::compute(int eflag, int vflag)
   int inum = list->inum;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-   
+
   // initialize global descriptors to zero
 
-  if (descriptormethod == 0) {
-    nelements = podptr->pod.nelements;
-    
+  if (descriptormethod == 0) {    
     int nd1234 = podptr->pod.nd1234;
     podptr->podArraySetValue(gd, 0.0, nd1234);
 
     double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
-            
 
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
@@ -127,7 +127,7 @@ void PairPOD::compute(int eflag, int vflag)
 
       // get neighbor pairs for atom i
 
-      lammpsNeighListOPOD(x, firstneigh, type, map, numneigh, rcutsq, i);
+      lammpsNeighPairs(x, firstneigh, type, map, numneigh, rcutsq, i);
 
       // compute global POD descriptors for atom i
 
@@ -153,55 +153,54 @@ void PairPOD::compute(int eflag, int vflag)
     // compute energy and effective coefficients
     //eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
     podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
-
+    
     double evdwl = 0.0;
-
+    
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
 
       // get neighbor pairs for atom i
 
-      lammpsNeighListOPOD(x, firstneigh, type, map, numneigh, rcutsq, i);
+      lammpsNeighPairs(x, firstneigh, type, map, numneigh, rcutsq, i);
 
       // compute atomic force for atom i
 
 //       podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum, typeai, idxi,
 //               ai, aj, ti, tj, 1, nij);
-
+      
       evdwl = podptr->calculate_energyforce(fij, energycoeff, forcecoeff, rij, tmpmem, numneighsum, typeai, idxi,
               ai, aj, ti, tj, 1, nij);
-
+      
       // tally atomic energy to global energy
 
       ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
-
+      
       // tally atomic force to global force
 
       tallyforce(f, fij, ai, aj, nij);
-
-      // tally atomic stress
-
+      
+      // tally atomic stress 
+      
       if (vflag) {
         for (int jj = 0; jj < nij; jj++) {
           int j = aj[jj];
           ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
                      fij[0 + 3*jj],fij[1 + 3*jj],fij[2 + 3*jj],
-                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);
+                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);      
         }
       }
-
+      
     }
   }
   else if (descriptormethod == 1) {
-    nelements = fastpodptr->nelements;
-  
+
     double rcutsq = fastpodptr->rcut*fastpodptr->rcut;
     double evdwl = 0.0;
 
 //     fastpodptr->timing = 1;
 //     if (fastpodptr->timing == 1)
 //       for (int i=0; i<20; i++) fastpodptr->comptime[i] = 0;
-
+              
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
       int jnum = numneigh[i];
@@ -218,7 +217,7 @@ void PairPOD::compute(int eflag, int vflag)
 
       // get neighbor list for atom i
 
-      lammpsNeighListFPOD(x, firstneigh, type, map, numneigh, rcutsq, i);
+      lammpsNeighborList(x, firstneigh, type, map, numneigh, rcutsq, i);
 
       // compute atomic energy and force for atom i
 
@@ -231,15 +230,15 @@ void PairPOD::compute(int eflag, int vflag)
       // tally atomic force to global force
 
       tallyforce(f, fij, ai, aj, nij);
-
-      // tally atomic stress
-
+      
+      // tally atomic stress 
+      
       if (vflag) {
         for (int jj = 0; jj < nij; jj++) {
           int j = aj[jj];
           ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
                      fij[0 + 3*jj],fij[1 + 3*jj],fij[2 + 3*jj],
-                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);
+                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);      
         }
       }
     }
@@ -249,7 +248,7 @@ void PairPOD::compute(int eflag, int vflag)
 //     for (int i=0; i<20; i++) printf("%g  ", fastpodptr->comptime[i]);
 //     printf("\n");
 //   }
-
+  
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -377,7 +376,7 @@ void PairPOD::free_tempmemory()
 }
 
 void PairPOD::allocate_tempmemory()
-{  
+{
   memory->create(rij, dim * nijmax, "pair:rij");
   memory->create(fij, dim * nijmax, "pair:fij");
   memory->create(idxi, nijmax, "pair:idxi");
@@ -437,7 +436,7 @@ void PairPOD::allocate_tempmemory_fastpod(int nmem)
   memory->create(tmpmem, nmem, "fastpod::tmpmem");
 }
 
-void PairPOD::lammpsNeighListOPOD(double **x, int **firstneigh, int *atomtypes, int *map,
+void PairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map,
                                int *numneigh, double rcutsq, int gi)
 {
   nij = 0;
@@ -467,7 +466,7 @@ void PairPOD::lammpsNeighListOPOD(double **x, int **firstneigh, int *atomtypes, 
   numneighsum[1] = nij;
 }
 
-void PairPOD::lammpsNeighListFPOD(double **x, int **firstneigh, int *atomtypes, int *map,
+void PairPOD::lammpsNeighborList(double **x, int **firstneigh, int *atomtypes, int *map,
                                int *numneigh, double rcutsq, int gi)
 {
   nij = 0;
@@ -483,37 +482,6 @@ void PairPOD::lammpsNeighListFPOD(double **x, int **firstneigh, int *atomtypes, 
       rij[nij * 3 + 0] = delx;
       rij[nij * 3 + 1] = dely;
       rij[nij * 3 + 2] = delz;
-      ai[nij] = gi;
-      aj[nij] = gj;
-      ti[nij] = itype;
-      tj[nij] = map[atomtypes[gj]] + 1;
-      nij++;
-    }
-  }
-}
-
-void PairPOD::lammpsNeighListFPOD(double **x, int **firstneigh, int *atomtypes, int *map,
-                               int *numneigh, double *rinvec, double *rcutvec, int gi)
-{
-  nij = 0;
-  int itype = map[atomtypes[gi]] + 1;
-  int m = numneigh[gi];
-  for (int l = 0; l < m; l++) {           // loop over each atom around atom i
-    int gj = firstneigh[gi][l];           // atom j
-    double delx = x[gj][0] - x[gi][0];    // xj - xi
-    double dely = x[gj][1] - x[gi][1];    // xj - xi
-    double delz = x[gj][2] - x[gi][2];    // xj - xi
-    double rsq = delx * delx + dely * dely + delz * delz;
-    int jtype = map[atomtypes[gj]] + 1;
-    double rcut = rcutvec[(itype-1)*nelements + jtype-1];
-    double rin = rinvec[(itype-1)*nelements + jtype-1];
-    double rcutsq = rcut*rcut;
-    if (rsq < rcutsq && rsq > 1e-20) {
-      rij[nij * 3 + 0] = delx;
-      rij[nij * 3 + 1] = dely;
-      rij[nij * 3 + 2] = delz;
-      rcutij[nij] = rcut;
-      rinij[nij] = rin;      
       ai[nij] = gi;
       aj[nij] = gj;
       ti[nij] = itype;

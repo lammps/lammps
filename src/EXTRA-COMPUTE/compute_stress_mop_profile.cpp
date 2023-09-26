@@ -49,6 +49,7 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   if (narg < 7) utils::missing_cmd_args(FLERR, "compute stress/mop/profile", error);
 
   bondflag = 0;
+  angleflag = 0;
 
   // set compute mode and direction of plane(s) for pressure calculation
 

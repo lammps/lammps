@@ -25,6 +25,8 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
+#include "fix_bond_history.h"
+#include "fix_update_special_bonds.h"
 #include "force.h"
 #include "math_extra.h"
 #include "memory.h"
@@ -42,7 +44,7 @@ enum {NONE, CONSTANT, TYPE};
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), fix_rheo(nullptr), compute_grad(nullptr), compute_vshift(nullptr),
-  Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr)
+  Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr), fix_update_special_bonds(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -188,9 +190,12 @@ void FixRHEOThermal::init()
     if (!force->bond) error->all(FLERR,"Must define a bond style to use reactive bond generation with fix rheo/thermal");
     if (!atom->avec->bonds_allow) error->all(FLERR, "Reactive bond generation in fix rheo/thermal requires atom bonds");
 
-    // all special weights must be 1.0, RHEO pair styles filter by status
-    if (force->special_lj[0] != 1.0 || force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
-    error->all(FLERR, "Reactive bond generation in fix rheo/thermal requires special weights of 1.0");
+    // all special weights must be 1.0 (no special neighbors) or there must be an instance of fix update/special/bonds
+    if (force->special_lj[0] != 1.0 || force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0) {
+      auto fixes = modify->get_fix_by_style("UPDATE_SPECIAL_BONDS");
+      if (fixes.size == 0) error->all(FLERR, "Without fix update/special/bonds, reactive bond generation in fix rheo/thermal requires special weights of 1.0");
+      fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(fixes[0]);
+    }
 
     // need a half neighbor list, built only when particles freeze
     auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
@@ -379,20 +384,40 @@ void FixRHEOThermal::reset_dt()
 
 void FixRHEOThermal::break_bonds(int i)
 {
-  int m, k, j;
+  int m, n, nmax, j;
 
+  tagint *tag = atom->tag;
   int *status = atom->status;
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
 
   for (m = 0; m < num_bond[i]; m++) {
-    j = bond_atom[i][k];
+    j = bond_atom[i][m];
     if (n_histories > 0)
       for (auto &ihistory: histories)
         dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,num_bond[i]-1);
 
-    Search for bond in js list and delete
+    if (fix_update_special_bonds) fix_update_special_bonds->add_broken_bond(i,j);
+
+    if (j >= atom->nlocal) continue;
+
+    for (n = 0; n < num_bond[j]; n++) {
+      if (bond_atom[j][n] == tag[i]) {
+        bond_type[j][n] = 0;
+        nmax = num_bond[j] - 1;
+        bond_type[j][n] = bond_type[j][nmax];
+        bond_atom[j][n] = bond_atom[j][nmax];
+        if (n_histories > 0) {
+          for (auto &ihistory: histories) {
+            dynamic_cast<FixBondHistory *>(ihistory)->shift_history(j, n, nmax);
+            dynamic_cast<FixBondHistory *>(ihistory)->delete_history(j, nmax);
+          }
+        }
+        num_bond[j]--;
+        break;
+      }
+    }
   }
 
   num_bond[i] = 0;
@@ -402,7 +427,50 @@ void FixRHEOThermal::break_bonds(int i)
 
 void FixRHEOThermal::create_bonds(int i)
 {
+  int i1, i2, j, jj, jnum;
+  int *jlist, *numneigh, **firstneigh;
+  double rsq;
 
+  int nlocal = atom->nlocal;
+
+  tagint *tag = atom->tag;
+  double *x = atom->x;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  int *status = atom->status;
+  int **bond_type = atom->bond_type;
+  tagint **bond_atom = atom->bond_atom;
+  int *num_bond = atom->num_bond;
+
+  double xtmp = x[i][0];
+  double ytmp = x[i][1];
+  double ztmp = x[i][2];
+  double delx, dely, delz;
+
+  // Loop through atoms of owned atoms
+  jlist = firstneigh[i];
+  jnum = numneigh[i];
+  for (jj = 0; jj < jnum; jj++) {
+    j = jlist[jj];
+    j &= SPECIALMASK;
+    if (status[j] & STATUS_SOLID) {
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx * delx + dely * dely + delz * delz;
+      if (rsq > cut_bond) continue;
+
+      if (!newton_bond || tag[i] < tag[j]) {
+        if (num_bond[i] == atom->bond_per_atom)
+          error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/thermal");
+        if (fix_update_special_bonds) fix_update_special_bonds->add_created_bond(i,j);
+        bond_type[i][num_bond[i]] = btype;
+        bond_atom[i][num_bond[i]] = tag[j];
+        num_bond[i]++;
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

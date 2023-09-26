@@ -59,6 +59,7 @@ class FixRHEOThermal : public Fix {
   class FixRHEO *fix_rheo;
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOVShift *compute_vshift;
+  class FixUpdateSpecialBonds *fix_update_special_bonds;
 
   void grow_array(int);
   void break_bonds(int);

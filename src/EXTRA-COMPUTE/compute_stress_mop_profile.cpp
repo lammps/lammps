@@ -324,7 +324,7 @@ void ComputeStressMopProfile::compute_array()
       }
     }
   }
-   
+
   for (int ibin = 0; ibin < nbins; ibin++) {
     array[ibin][0] = coord[ibin];
 
@@ -540,7 +540,7 @@ void ComputeStressMopProfile::compute_pairs()
               vcross[0] = vi[0] - fi[0] * iterm;
               vcross[1] = vi[1] - fi[1] * iterm;
               vcross[2] = vi[2] - fi[2] * iterm;
-              
+
               values_local[ibin][m] += imass * vcross[0] * sgn / dt / area * nktv2p / ftm2v;
               values_local[ibin][m + 1] += imass * vcross[1] * sgn / dt / area * nktv2p / ftm2v;
               values_local[ibin][m + 2] += imass * vcross[2] * sgn / dt / area * nktv2p / ftm2v;

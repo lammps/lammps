@@ -18,7 +18,7 @@ Syntax
 * style = *stress/mop* or *stress/mop/profile*
 * dir = *x* or *y* or *z* is the direction normal to the plane
 * args = argument specific to the compute style
-* keywords = *kin* or *conf* or *total* or *pair* or *bond* or *angle* (one or more can be specified)
+* keywords = *kin* or *conf* or *total* or *pair* or *bond* or *angle* or *dihedral* (one or more can be specified)
 
 .. parsed-literal::
 
@@ -68,13 +68,13 @@ Verlet algorithm.
 
 .. versionadded:: 15Jun2023
 
-   contributions from bond and angle potentials
+   contributions from bond, angle and dihedral potentials
 
-Between one and six keywords can be used to indicate which contributions
+Between one and seven keywords can be used to indicate which contributions
 to the stress must be computed: total stress (total), kinetic stress
 (kin), configurational stress (conf), stress due to bond stretching
-(bond), stress due to angle bending (angle) and/or due to pairwise
-non-bonded interactions (pair).
+(bond), stress due to angle bending (angle), stress due to dihedral terms (dihedral)
+and/or due to pairwise non-bonded interactions (pair).
 
 NOTE 1: The configurational stress is computed considering all pairs of
 atoms where at least one atom belongs to group group-ID.
@@ -134,7 +134,7 @@ requires the class method ``Pair::single()`` to be implemented, which is
 not possible for manybody potentials.  In particular, compute
 *stress/mop/profile* does not work with more than two-body pair
 interactions, long range (kspace) interactions and
-dihedral/improper intramolecular interactions. Similarly, compute
+improper intramolecular interactions. Similarly, compute
 *stress/mop* does not work with more than two-body pair interactions,
 long range (kspace) interactions and dihedral/improper intramolecular
 interactions but works with all bond interactions with the class method

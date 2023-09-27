@@ -335,8 +335,7 @@ namespace ReaxFF {
 
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 8)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(7);
 
           if ((j < ntypes) && (k < ntypes)) {
             tbp[j][k].p_be2 = tbp[k][j].p_be2 = values.next_double();
@@ -345,7 +344,11 @@ namespace ReaxFF {
             values.skip();
             tbp[j][k].p_bo1 = tbp[k][j].p_bo1 = values.next_double();
             tbp[j][k].p_bo2 = tbp[k][j].p_bo2 = values.next_double();
-            tbp[j][k].ovc   = tbp[k][j].ovc   = values.next_double();
+            // if the 8th value is missing use 0.0
+            if (values.has_next())
+              tbp[j][k].ovc   = tbp[k][j].ovc   = values.next_double();
+            else
+              tbp[j][k].ovc   = tbp[k][j].ovc   = 0.0;
           }
         }
 

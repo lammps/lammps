@@ -71,8 +71,8 @@ namespace ReaxFF {
     if (control->me == 0) {
       FILE *fp = LAMMPS_NS::utils::open_potential(filename, lmp, nullptr);
       if (!fp)
-        error->one(FLERR,fmt::format("The ReaxFF parameter file {} cannot be opened: {}",
-                                     filename, getsyserror()));
+        error->one(FLERR,"The ReaxFF parameter file {} cannot be opened: {}",
+                   filename, getsyserror());
       LAMMPS_NS::TextFileReader reader(fp, "ReaxFF parameter");
       reader.ignore_comments = false;
 
@@ -241,27 +241,24 @@ namespace ReaxFF {
             // Shielding van der Waals?
             if (sbp[i].gamma_w > 0.5) {
               if (gp.vdw_type != 0 && gp.vdw_type != 3) {
-                const auto errmsg
-                  = fmt::format("Van der Waals parameters for element {} "
-                                "indicate inner wall+shielding, but earlier "
-                                "atoms indicate a different van der Waals "
-                                "method. This may cause division-by-zero "
-                                "errors. Keeping van der Waals setting for "
-                                "earlier atoms.",sbp[i].name);
-                error->warning(FLERR,errmsg);
+                error->warning(FLERR, "Van der Waals parameters for element {} "
+                               "indicate inner wall+shielding, but earlier "
+                               "atoms indicate a different van der Waals "
+                               "method. This may cause division-by-zero "
+                               "errors. Keeping van der Waals setting for "
+                               "earlier atoms.",sbp[i].name);
+
               } else {
                 gp.vdw_type = 3;
               }
             } else {  // No shielding van der Waals parameters present
               if ((gp.vdw_type != 0) && (gp.vdw_type != 2)) {
-                const auto errmsg
-                  = fmt::format("Van der Waals parameters for element {} "
-                                "indicate inner wall withou shielding, but "
-                                "earlier atoms indicate a different van der "
-                                "Waals-method. This may cause division-by-"
-                                "zero errors. Keeping van der Waals setting "
-                                "for earlier atoms.", sbp[i].name);
-                error->warning(FLERR,errmsg);
+                error->warning(FLERR, "Van der Waals parameters for element {} "
+                               "indicate inner wall withou shielding, but "
+                               "earlier atoms indicate a different van der "
+                               "Waals-method. This may cause division-by-"
+                               "zero errors. Keeping van der Waals setting "
+                               "for earlier atoms.", sbp[i].name);
               } else {
                 gp.vdw_type = 2;
               }
@@ -269,22 +266,18 @@ namespace ReaxFF {
           } else { // No Inner wall parameters present
             if (sbp[i].gamma_w > 0.5) { // Shielding vdWaals
               if ((gp.vdw_type != 0) && (gp.vdw_type != 1)) {
-                const auto errmsg
-                  = fmt::format("Van der Waals parameters for element {} "
-                                "indicate shielding without inner wall, but "
-                                "earlier elements indicate a different van der "
-                                "Waals method. This may cause division-by-zero "
-                                "errors. Keeping van der Waals setting for "
-                                "earlier atoms.", sbp[i].name);
-                error->warning(FLERR,errmsg);
+                error->warning(FLERR, "Van der Waals parameters for element {} "
+                               "indicate shielding without inner wall, but "
+                               "earlier elements indicate a different van der "
+                               "Waals method. This may cause division-by-zero "
+                               "errors. Keeping van der Waals setting for "
+                               "earlier atoms.", sbp[i].name);
               } else {
                 gp.vdw_type = 1;
               }
             } else {
-              error->one(FLERR,fmt::format("Inconsistent van der Waals "
-                                           "parameters: No shielding or inner "
-                                           "wall set for element {}",
-                                           sbp[i].name));
+              error->one(FLERR, "Inconsistent van der Waals parameters: "
+                         "No shielding or inner wall set for element {}", sbp[i].name);
             }
           }
         }
@@ -293,8 +286,7 @@ namespace ReaxFF {
         for (i = 0; i < ntypes; i++) {
           if ((sbp[i].mass < 21) &&
               (sbp[i].valency_val != sbp[i].valency_boc)) {
-            error->warning(FLERR,fmt::format("Changed valency_val to valency"
-                                             "_boc for {}", sbp[i].name));
+            error->warning(FLERR, "Changed valency_val to valency_boc for {}", sbp[i].name);
             sbp[i].valency_val = sbp[i].valency_boc;
           }
         }

@@ -60,8 +60,13 @@ namespace ReaxFF {
 
     // read and parse the force field only on rank 0
 
-#define THROW_ERROR(txt)                                                \
-    throw ffield_parser_error(fmt::format("{}:{}: {}",filename,lineno,txt))
+#define THROW_ERROR(txt) throw ffield_parser_error(fmt::format("{}:{}: {}", filename, lineno, txt))
+
+#define CHECK_COLUMNS(want)                                                          \
+  if (values.count() < static_cast<std::size_t>(want))                               \
+    throw ffield_parser_error(fmt::format("{}:{}: Invalid force field file format: " \
+                                          " expected {} columns but found {}",       \
+                                          filename, lineno, want, values.count()))
 
     if (control->me == 0) {
       FILE *fp = LAMMPS_NS::utils::open_potential(filename, lmp, nullptr);
@@ -158,8 +163,7 @@ namespace ReaxFF {
 
           if ((values.count() < 8) && !lgflag)
             THROW_ERROR("This force field file requires using 'lgvdw yes'");
-          if (values.count() < 9)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(9);
 
           // copy element symbol in uppercase and truncate stored element symbol if necessary
           auto element = uppercase(values.next_string());
@@ -180,8 +184,7 @@ namespace ReaxFF {
 
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 8)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(8);
 
           sbp[i].alpha      = values.next_double();
           sbp[i].gamma_w    = values.next_double();
@@ -196,8 +199,7 @@ namespace ReaxFF {
 
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 8)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(8);
 
           sbp[i].r_pi_pi    = values.next_double();
           sbp[i].p_lp2      = values.next_double();
@@ -211,8 +213,7 @@ namespace ReaxFF {
 
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 8)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(8);
 
           sbp[i].p_ovun2    = values.next_double();
           sbp[i].p_val3     = values.next_double();
@@ -228,8 +229,7 @@ namespace ReaxFF {
           if (lgflag) {
             values = reader.next_values(0);
             ++lineno;
-            if (values.count() < 2)
-              THROW_ERROR("Invalid force field file format");
+            CHECK_COLUMNS(2);
             sbp[i].lgcij    = values.next_double();
             sbp[i].lgre     = values.next_double();
           } else sbp[i].lgcij = sbp[i].lgre = 0.0;
@@ -312,8 +312,7 @@ namespace ReaxFF {
 
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 10)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(10);
 
           j = values.next_int() - 1;
           k = values.next_int() - 1;
@@ -387,8 +386,7 @@ namespace ReaxFF {
         for (i = 0; i < n; ++i) {
           values = reader.next_values(0);
           ++lineno;
-          if ((int)values.count() < 8 + lgflag)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(8 + lgflag);
 
           j = values.next_int() - 1;
           k = values.next_int() - 1;
@@ -432,8 +430,7 @@ namespace ReaxFF {
         for (i = 0; i < n; ++i) {
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 10)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(10);
 
           j = values.next_int() - 1;
           k = values.next_int() - 1;
@@ -487,8 +484,7 @@ namespace ReaxFF {
         for (i = 0; i < n; ++i) {
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 9)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(9);
 
           j = values.next_int() - 1;
           k = values.next_int() - 1;
@@ -561,8 +557,7 @@ namespace ReaxFF {
         for (i = 0; i < n; ++i) {
           values = reader.next_values(0);
           ++lineno;
-          if (values.count() < 7)
-            THROW_ERROR("Invalid force field file format");
+          CHECK_COLUMNS(7);
 
           j = values.next_int() - 1;
           k = values.next_int() - 1;
@@ -616,4 +611,5 @@ namespace ReaxFF {
     control->nonb_cut  = reax->gp.l[12];
   }
 #undef THROW_ERROR
+#undef CHECK_COLUMNS
 }

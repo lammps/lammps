@@ -308,12 +308,12 @@ contents to a file.
 Context Specific Word Completion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, LAMMPS GUI will display a small popup frame with possible
+By default, LAMMPS GUI will display a small pop-up frame with possible
 completions for LAMMPS input script commands or styles after 2
 characters of a word have been typed. The word can then be completed
 through selecting an entry by scrolling down with the cursor keys and
 selecting with the 'Enter' key or by clicking on the entry with the
-mouse.  The automatic completion popup can be disabled in the
+mouse.  The automatic completion pop-up can be disabled in the
 ``Preferences`` dialog, but the completion can still be requested
 manually by either hitting the 'Shift-TAB' key or by right-clicking with
 the mouse and selecting the option from the context menu.  Most of the
@@ -576,7 +576,7 @@ the range between 1 and 32.
 
 The two settings which follow enable or disable the automatic
 reformatting when hitting the 'Enter' key and the automatic display of
-the completion popup window.
+the completion pop-up window.
 
 -----------
 

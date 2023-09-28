@@ -722,9 +722,10 @@ This list was last updated for version 4.0.1 of the Kokkos library.
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,
       ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``,
       ``kokkos-hip.cmake``, and ``kokkos-sycl.cmake``.  They will enable
-      the KOKKOS package and enable some hardware choice.  So to compile
-      with CUDA device parallelization (for GPUs with CC 5.0 and up)
-      with some common packages enabled, you can do the following:
+      the KOKKOS package and enable some hardware choices.  For GPU
+      support those preset files must be customized to match the
+      hardware used. So to compile with CUDA device parallelization with
+      some common packages enabled, you can do the following:
 
       .. code-block:: bash
 

@@ -358,7 +358,7 @@ void CreateAtoms::command(int narg, char **arg)
   //   lattice to box, but not consistent with other uses of units=lattice
   // triclinic remapping occurs in add_single()
 
-  if ((style == BOX) || (style == REGION) || (style == MESH)) {
+  if ((style == BOX) || (style == REGION)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
   } else if (scaleflag == 1) {
     xone[0] *= domain->lattice->xlattice;
@@ -1055,6 +1055,9 @@ void CreateAtoms::add_mesh(const char *filename)
       throw TokenizerException("Invalid STL mesh file format", "");
 
     line += 6;
+    if (utils::strmatch(line, "^binary"))
+      throw TokenizerException("Invalid STL mesh file format", "");
+
     if (comm->me == 0)
       utils::logmesg(lmp, "Reading STL object {} from text file {}\n", utils::trim(line), filename);
 
@@ -1153,6 +1156,7 @@ void CreateAtoms::add_mesh(const char *filename)
       utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle added in {} mode\n",
                      ntriangle, ratio, mesh_name[mesh_style]);
   }
+  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

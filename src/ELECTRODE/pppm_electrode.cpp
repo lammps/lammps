@@ -136,7 +136,7 @@ void PPPMElectrode::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR, fmt::format("PPPM/electrode order cannot be < 2 or > {}", MAXORDER));
+    error->all(FLERR, "PPPM/electrode order cannot be < 2 or > {}", MAXORDER);
 
   // compute two charge force
 
@@ -816,7 +816,7 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, d
   memory->destroy(rho1d_j);
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("Single step time: {:.4g} s\n", MPI_Wtime() - step1_time));
+    utils::logmesg(lmp, "Single step time: {:.4g} s\n", MPI_Wtime() - step1_time);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -917,7 +917,7 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
   }
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time));
+    utils::logmesg(lmp, "step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time);
 
   // nested loop over electrode atoms i and j and stencil of i
   // in theory could reuse make_rho1d_j here -- but this step is already
@@ -958,7 +958,7 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
   MPI_Barrier(world);
   memory->destroy(gw);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time));
+    utils::logmesg(lmp, "step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time);
 }
 
 /* ----------------------------------------------------------------------

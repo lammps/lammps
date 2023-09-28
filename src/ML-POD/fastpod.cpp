@@ -217,7 +217,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
 //   if (nrbf2 < nrbf3) error->all(FLERR,"number of three-body radial basis functions must be equal or less than number of two-body radial basis functions");
   if (nrbf3 < nrbf4) error->all(FLERR,"number of four-body radial basis functions must be equal or less than number of three-body radial basis functions");
   if (nrbf4 < nrbf33) error->all(FLERR,"number of five-body radial basis functions must be equal or less than number of four-body radial basis functions");
-  if (nrbf33 < nrbf34) error->all(FLERR,"number of six-body radial basis functions must be equal or less than number of five-body radial basis functions");
+  //if (nrbf33 < nrbf34) error->all(FLERR,"number of six-body radial basis functions must be equal or less than number of five-body radial basis functions");
   if (nrbf34 < nrbf44) error->all(FLERR,"number of seven-body radial basis functions must be equal or less than number of six-body radial basis functions");
   nrbfmax = (nrbf2 < nrbf3) ? nrbf3 : nrbf2;
   nrbfmax = (nrbfmax < nrbf4) ? nrbf4 : nrbfmax;
@@ -227,7 +227,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
  
   if (P3 < P4) error->all(FLERR,"four-body angular degree must be equal or less than three-body angular degree");
   if (P4 < P33) error->all(FLERR,"five-body angular degree must be equal or less than four-body angular degree");
-  if (P33 < P34) error->all(FLERR,"six-body angular degree must be equal or less than five-body angular degree");
+  //if (P33 < P34) error->all(FLERR,"six-body angular degree must be equal or less than five-body angular degree");
   if (P34 < P44) error->all(FLERR,"seven-body angular degree must be equal or less than six-body angular degree");
 
   if (P3 > 12) error->all(FLERR,"three-body angular degree must be equal or less than 12");

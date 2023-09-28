@@ -23,6 +23,7 @@
 #include "atom_vec.h"
 #include "bond.h"
 #include "comm.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -38,8 +39,10 @@
 
 using namespace LAMMPS_NS;
 
+#define SMALL     0.001
+
 enum { X, Y, Z };
-enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE };
+enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE, DIHEDRAL };
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,6 +52,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
 
   bondflag = 0;
   angleflag = 0;
+  dihedralflag = 0;
 
   // set compute mode and direction of plane(s) for pressure calculation
 
@@ -129,6 +133,11 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
         which[nvalues] = ANGLE;
         nvalues++;
       }
+    } else if (strcmp(arg[iarg],"dihedral") == 0) {
+      for (i=0; i<3; i++) {
+        which[nvalues] = DIHEDRAL;
+        nvalues++;
+      }
     } else
       error->all(FLERR, "Illegal compute stress/mop command");    //break;
 
@@ -152,6 +161,8 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
   bond_global = nullptr;
   angle_local = nullptr;
   angle_global = nullptr;
+  dihedral_local = nullptr;
+  dihedral_global = nullptr;
 
   // this fix produces a global vector
 
@@ -162,6 +173,8 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
   memory->create(bond_global, nvalues, "stress/mop:bond_global");
   memory->create(angle_local, nvalues, "stress/mop:angle_local");
   memory->create(angle_global, nvalues, "stress/mop:angle_global");
+  memory->create(dihedral_local,nvalues,"stress/mop:dihedral_local");
+  memory->create(dihedral_global,nvalues,"stress/mop:dihedral_global");
   size_vector = nvalues;
 
   vector_flag = 1;
@@ -180,6 +193,8 @@ ComputeStressMop::~ComputeStressMop()
   memory->destroy(bond_global);
   memory->destroy(angle_local);
   memory->destroy(angle_global);
+  memory->destroy(dihedral_local);
+  memory->destroy(dihedral_global);
   memory->destroy(vector);
 }
 
@@ -233,9 +248,13 @@ void ComputeStressMop::init()
       }
     }
     if (force->dihedral) {
-      if ((strcmp(force->dihedral_style, "zero") != 0) &&
-          (strcmp(force->dihedral_style, "none") != 0))
-        error->all(FLERR, "compute stress/mop does not account for dihedral potentials");
+      if (force->dihedral->born_matrix_enable == 0) {
+        if ((strcmp(force->dihedral_style, "zero") != 0) &&
+            (strcmp(force->dihedral_style, "none") != 0))
+          error->all(FLERR, "compute stress/mop does not account for dihedral potentials");
+      } else {
+        dihedralflag = 1;
+      }
     }
     if (force->improper) {
       if ((strcmp(force->improper_style, "zero") != 0) &&
@@ -297,8 +316,18 @@ void ComputeStressMop::compute_vector()
 
   MPI_Allreduce(angle_local, angle_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
 
+  if (dihedralflag) {
+    //Compute dihedral contribution on separate procs
+    compute_dihedrals();
+  } else {
+    for (int i=0; i<nvalues; i++) dihedral_local[i] = 0.0;
+  }
+
+  // sum dihedral contribution over all procs
+  MPI_Allreduce(dihedral_local,dihedral_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
+   
   for (int m = 0; m < nvalues; m++) {
-    vector[m] = values_global[m] + bond_global[m] + angle_global[m];
+    vector[m] = values_global[m] + bond_global[m] + angle_global[m] + dihedral_global[m];
   }
 }
 
@@ -788,4 +817,12 @@ void ComputeStressMop::compute_angles()
     }
     m += 3;
   }
+}
+
+/*------------------------------------------------------------------------
+  compute dihedral contribution to pressure of local proc
+  -------------------------------------------------------------------------*/
+
+void ComputeStressMop::compute_dihedrals()
+{
 }

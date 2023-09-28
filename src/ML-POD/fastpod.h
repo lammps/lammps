@@ -111,6 +111,7 @@ public:
 
   double rin;
   double rcut;
+  int true4BodyDesc;
 
   int nelements;
   int pbc[3];

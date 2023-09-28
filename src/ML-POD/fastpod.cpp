@@ -51,6 +51,7 @@ FASTPOD::FASTPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &c
   besseldegree = 4;
   inversedegree = 8;
   nbesselpars = 3;
+  true4BodyDesc = 0;
   ns = nbesselpars*besseldegree + inversedegree;
   Njmax = 100;
   nrbf2 = 6;
@@ -197,6 +198,8 @@ void FASTPOD::read_pod_file(std::string pod_file)
         nrbf4 = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "fourbody_angular_degree")
         P4 = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "true4BodyDesc")
+        true4BodyDesc = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "fivebody_number_radial_basis_functions")
         nrbf33 = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "fivebody_angular_degree")
@@ -247,18 +250,30 @@ void FASTPOD::read_pod_file(std::string pod_file)
 
   // five-body potential
   if ((nrbf33 > 0) && (nrbf34 == 0)) {
-    nrbf23 = nrbf4;
-    P23 = P4;
-    nrbf4 = 0;
-    P4 = 0;
+    if (true4BodyDesc == 1) {
+      nrbf23 = 0;
+      P23 = 0;
+    }
+    else {
+      nrbf23 = nrbf4;
+      P23 = P4;
+      nrbf4 = 0;
+      P4 = 0;
+    }
   }
 
   // six-body potential or seven-body potential
   if (nrbf34 > 0) {
-    nrbf23 = nrbf4;
-    P23 = P4;
-    nrbf4 = nrbf34;
-    P4 = P34;
+    if (true4BodyDesc == 1) {
+      nrbf23 = 0;
+      P23 = 0;
+    }
+    else {
+      nrbf23 = nrbf4;
+      P23 = P4;
+      nrbf4 = nrbf34;
+      P4 = P34;
+    }
   }
 
   int Ne = nelements;

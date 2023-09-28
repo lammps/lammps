@@ -325,6 +325,9 @@ void ComputeStressMopProfile::compute_array()
     }
   }
 
+  // sum dihedral contribution over all procs
+  MPI_Allreduce(&dihedral_local[0][0],&dihedral_global[0][0],nbins*nvalues,MPI_DOUBLE,MPI_SUM,world);
+
   for (int ibin = 0; ibin < nbins; ibin++) {
     array[ibin][0] = coord[ibin];
 

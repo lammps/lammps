@@ -433,7 +433,7 @@ void ComputeStressMop::compute_pairs()
           xi[dir] -= pos;
           domain->minimum_image(xi[0], xi[1], xi[2]);
           xi[dir] += pos;
-           
+
           //velocities at t
 
           vi[0] = atom->v[i][0];

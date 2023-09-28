@@ -243,8 +243,17 @@ void FASTPOD::read_pod_file(std::string pod_file)
       P4 = 0;
     }
     else {
-      nrbf23 = 0;
-      P23 = 0;
+      if (true4BodyDesc == 1) {
+        nrbf23 = 0;
+        P23 = 0;
+      }
+      else {
+        nrbf23 = nrbf4;
+        P23 = P4;
+        nrbf4 = 0;
+        P4 = 0;
+      }
+      
     }
   }
 

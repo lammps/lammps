@@ -325,7 +325,7 @@ void ComputeStressMop::compute_vector()
 
   // sum dihedral contribution over all procs
   MPI_Allreduce(dihedral_local,dihedral_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
-   
+
   for (int m = 0; m < nvalues; m++) {
     vector[m] = values_global[m] + bond_global[m] + angle_global[m] + dihedral_global[m];
   }

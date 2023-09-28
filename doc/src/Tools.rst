@@ -706,7 +706,7 @@ required.  The LAMMPS GUI has been successfully compiled and tested on:
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
 
-.. _lammps-gui-install:
+.. _lammps_gui_install:
 
 
 Pre-compiled executables

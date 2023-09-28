@@ -26,7 +26,7 @@ Here are suggestions on how to perform these tasks:
   written in Python or C/C++ that run LAMMPS and visualize or plot its
   output.  Examples of this are provided in the python directory and
   described on the :doc:`Python <Python_head>` doc page.  As of version
-  2 August 2023 :ref:`a GUI tool <lammps-gui>` is included in LAMMPS.
+  2 August 2023 :ref:`a GUI tool <lammps_gui>` is included in LAMMPS.
   Also, there are several external wrappers or GUI front ends.
 * **Builder:** Several pre-processing tools are packaged with LAMMPS.
   Some of them convert input files in formats produced by other MD codes

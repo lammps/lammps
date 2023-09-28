@@ -16,7 +16,7 @@ adapted in multiple ways specifically for editing LAMMPS input files.
    Pre-compiled, ready-to-use LAMMPS GUI executables for Linux (Ubuntu
    20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
    later), and Windows (version 10 or later) :ref:`are available
-   <lammps-gui-install>` for download.  The executables are linked to
+   <lammps_gui_install>` for download.  The executables are linked to
    a current version of LAMMPS as well.  The source code for the
    LAMMPS GUI is included in the ``tools/lammps-gui`` folder of the
    LAMMPS distribution and it can be compiled alongside LAMMPS with

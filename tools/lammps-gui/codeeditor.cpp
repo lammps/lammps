@@ -417,6 +417,11 @@ void CodeEditor::setGroupList()
 void CodeEditor::setVarNameList()
 {
     QStringList vars;
+
+    // variable "gui_run" is always defined by LAMMPS GUI
+    vars << QString("${gui_run}");
+    vars << QString("v_gui_run");
+
     LammpsWrapper *lammps = &qobject_cast<LammpsGui *>(parent())->lammps;
     int nvar              = lammps->id_count("variable");
     char buffer[200];

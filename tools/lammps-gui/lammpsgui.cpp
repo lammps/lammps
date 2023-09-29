@@ -1002,6 +1002,10 @@ void LammpsGui::do_run(bool use_buffer)
     runner     = new LammpsRunner(this);
     is_running = true;
     ++run_counter;
+
+    // define "gui_run" variable set to run_counter value
+    lammps.command("variable gui_run delete");
+    lammps.command(std::string("variable gui_run index " + std::to_string(run_counter)).c_str());
     if (use_buffer) {
         // always add final newline since the text edit widget does not do it
         char *input = mystrdup(ui->textEdit->toPlainText() + "\n");

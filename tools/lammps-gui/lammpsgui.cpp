@@ -1016,7 +1016,7 @@ void LammpsGui::do_run(bool use_buffer)
     runner->start();
 
     // if configured, delete old log window before opening new one
-    if (settings.value("logreplace", false).toBool()) delete logwindow;
+    if (settings.value("logreplace", true).toBool()) delete logwindow;
     logwindow = new LogWindow();
     logwindow->setReadOnly(true);
     logwindow->setCenterOnScroll(true);
@@ -1042,7 +1042,7 @@ void LammpsGui::do_run(bool use_buffer)
         logwindow->hide();
 
     // if configured, delete old log window before opening new one
-    if (settings.value("chartreplace", false).toBool()) delete chartwindow;
+    if (settings.value("chartreplace", true).toBool()) delete chartwindow;
     chartwindow = new ChartWindow(current_file);
     chartwindow->setWindowTitle(
         QString("LAMMPS-GUI - Thermo charts from running LAMMPS on %1 - %2 - Run  %3")
@@ -1107,7 +1107,7 @@ void LammpsGui::render_image()
             }
         }
         // if configured, delete old image window before opening new one
-        if (QSettings().value("imagereplace", false).toBool()) delete imagewindow;
+        if (QSettings().value("imagereplace", true).toBool()) delete imagewindow;
         imagewindow = new ImageViewer(current_file, &lammps);
     } else {
         QMessageBox::warning(this, "ImageViewer Error",

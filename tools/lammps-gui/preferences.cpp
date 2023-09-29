@@ -216,16 +216,15 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *logr = new QCheckBox("Replace log window on new run");
     logr->setObjectName("logreplace");
-    logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
-                                                                      : Qt::Unchecked);
+    logr->setCheckState(settings->value("logreplace", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *imgr = new QCheckBox("Replace image window on new render");
     imgr->setObjectName("imagereplace");
-    imgr->setCheckState(settings->value("imagereplace", false).toBool() ? Qt::Checked
-                                                                        : Qt::Unchecked);
+    imgr->setCheckState(settings->value("imagereplace", true).toBool() ? Qt::Checked
+                                                                       : Qt::Unchecked);
     auto *pltr = new QCheckBox("Replace chart window on new run");
     pltr->setObjectName("chartreplace");
-    pltr->setCheckState(settings->value("chartreplace", false).toBool() ? Qt::Checked
-                                                                        : Qt::Unchecked);
+    pltr->setCheckState(settings->value("chartreplace", true).toBool() ? Qt::Checked
+                                                                       : Qt::Unchecked);
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     auto *pluginlabel = new QLabel("Path to LAMMPS Shared Library File:");

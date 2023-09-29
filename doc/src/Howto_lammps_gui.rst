@@ -172,17 +172,19 @@ be seen in the command line window, as shown below.
 LAMMPS GUI captures the screen output as it is generated and updates
 the log window regularly during a run.
 
-By default, there will be a new window for each run, so that it is
-possible to visually compare outputs from different runs.  It is also
-possible to change the behavior of LAMMPS GUI in the preferences dialog
-to *replace* an existing log window for a new run or to not show the log
-window by default.  It is also possible to show or hide the current log
-window from the ``View`` menu.
+By default, the log window will be replaced each time a run is started.
+The runs are counted and the run number for the current run is displayed
+in the window title.  It is possible to change the behavior of LAMMPS
+GUI in the preferences dialog to create a *new* log window for every run
+or to not show the current log window.  It is also possible to show or
+hide the *current* log window from the ``View`` menu.
 
 The text in the log window is read-only and cannot be modified, but
-editor commands to select and copy all or parts of the text can be used.
-The "Select All" and "Copy" functions are also available via a context
-menu by clicking with the right mouse button.
+editor hotkeys to select and copy all or parts of the text can be used
+to transfer text to another editor program. The "Select All" and "Copy"
+functions, as well as a "Save Log to File" option are also available via
+a context menu by clicking with the right mouse button into the log
+window text area.
 
 Chart Window
 ------------
@@ -199,10 +201,16 @@ The drop down menu on the top right allows selection of different
 properties that are computed and written to thermo output.  Only one
 property can be shown at a time.  The plots will be updated with new
 data as the run progresses, so they can be used to visually monitor the
-evolution of available properties.  From the ``File`` menu on the top
-left, it is possible to save an image of the currently displayed plot or
-export the data in either plain text columns (for use by plotting tools
-like `gnuplot <http://www.gnuplot.info/>`_ or `grace
+evolution of available properties.  The window title will show the
+current run number that this chart window corresponds to.  Same as
+explained for the log window above, by default, the chart window will
+be replaced on each new run, but the behavior can be changed in the
+preferences dialog.
+
+From the ``File`` menu on the top left, it is possible to save an image
+of the currently displayed plot or export the data in either plain text
+columns (for use by plotting tools like `gnuplot
+<http://www.gnuplot.info/>`_ or `grace
 <https://plasma-gate.weizmann.ac.il/Grace/>`_), or as CSV data which can
 be imported for further processing with Microsoft Excel or `pandas
 <https://pandas.pydata.org/>`_
@@ -230,8 +238,7 @@ stepping through the sequence of images or playing an animation (as a
 continuous loop or once from first to last).  It is also possible to
 zoom in or zoom out of the displayed images, and to export the slide
 show animation to a movie file, if `ffmpeg <https://ffmpeg.org/>`_ is
-installed.  The slide show window will be closed when a new file is
-loaded.
+installed.
 
 Variable Info
 -------------
@@ -252,6 +259,17 @@ during a run.  It will show "(none)" if there are no variables
 defined.  Note that it is also possible to *set* :doc:`index style
 variables <variable>`, that would normally be set via command line
 flags, via the "Set Variables..." dialog from the ``Run`` menu.
+LAMMPS GUI will automatically set the variable "gui_run" to the
+current value of the run counter.  That way it would be possible
+to automatically record a log for each run attempt by using the
+command
+
+.. code-block:: LAMMPS
+
+   log logfile-${gui_run}.txt
+
+at the beginning of an input file. That would record logs to files
+``logfile-1.txt``, ``logfile-2.txt``, and so on for successive runs.
 
 Viewing Snapshot Images
 -----------------------
@@ -518,7 +536,7 @@ General Settings:
 - *Replace image window on new render:* when checked, an existing
   chart window will be replaced when a new snapshot image is requested,
   otherwise each command will create a new image window.
-- *Path to LAMMPS Shared Library File:* this options is only available
+- *Path to LAMMPS Shared Library File:* this option is only visible
   when LAMMPS GUI was compiled to load the LAMMPS library at run time
   instead of being linked to it directly.  With the ``Browse..`` button
   or by changing the text, a different shared library file with a

@@ -63,7 +63,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
     slideshow(nullptr), logupdater(nullptr), dirstatus(nullptr), progress(nullptr),
-    prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr)
+    prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr), runner(nullptr),
+    is_running(false), run_counter(0)
 {
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
@@ -373,6 +374,7 @@ void LammpsGui::new_document()
     lammps.close();
     lammpsstatus->hide();
     setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
+    run_counter = 0;
 }
 
 void LammpsGui::open()
@@ -588,6 +590,7 @@ void LammpsGui::open_file(const QString &fileName)
         return;
     }
     setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+    run_counter = 0;
     QTextStream in(&file);
     QString text = in.readAll();
     ui->textEdit->document()->setPlainText(text);
@@ -862,7 +865,8 @@ void LammpsGui::logupdate()
             else
                 slideshow->hide();
         } else {
-            slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + current_file);
+            slideshow->setWindowTitle(
+                QString("LAMMPS-GUI - Slide Show: %1 - Run %2").arg(current_file).arg(run_counter));
             if (QSettings().value("viewslide", true).toBool()) slideshow->show();
         }
         slideshow->add_image(imagefile);
@@ -980,6 +984,7 @@ void LammpsGui::do_run(bool use_buffer)
     progress->setValue(0);
     dirstatus->hide();
     progress->show();
+
     int nthreads = settings.value("nthreads", 1).toInt();
     int accel    = settings.value("accelerator", AcceleratorTab::None).toInt();
     if ((accel != AcceleratorTab::OpenMP) && (accel != AcceleratorTab::Intel) &&
@@ -996,6 +1001,7 @@ void LammpsGui::do_run(bool use_buffer)
 
     runner     = new LammpsRunner(this);
     is_running = true;
+    ++run_counter;
     if (use_buffer) {
         // always add final newline since the text edit widget does not do it
         char *input = mystrdup(ui->textEdit->toPlainText() + "\n");
@@ -1015,12 +1021,11 @@ void LammpsGui::do_run(bool use_buffer)
     logwindow->setReadOnly(true);
     logwindow->setCenterOnScroll(true);
     logwindow->moveCursor(QTextCursor::End);
-    if (use_buffer)
-        logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on buffer - " +
-                                  current_file);
-    else
-        logwindow->setWindowTitle("LAMMPS-GUI - Output from running LAMMPS on file - " +
-                                  current_file);
+    logwindow->setWindowTitle(
+        QString("LAMMPS-GUI - Output from running LAMMPS on %1 - %2 - Run  %3")
+            .arg(use_buffer ? "buffer" : "file")
+            .arg(current_file)
+            .arg(run_counter));
     logwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     QFont text_font;
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
@@ -1039,12 +1044,11 @@ void LammpsGui::do_run(bool use_buffer)
     // if configured, delete old log window before opening new one
     if (settings.value("chartreplace", false).toBool()) delete chartwindow;
     chartwindow = new ChartWindow(current_file);
-    if (use_buffer)
-        chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on buffer - " +
-                                    current_file);
-    else
-        chartwindow->setWindowTitle("LAMMPS-GUI - Thermo charts from running LAMMPS on file - " +
-                                    current_file);
+    chartwindow->setWindowTitle(
+        QString("LAMMPS-GUI - Thermo charts from running LAMMPS on %1 - %2 - Run  %3")
+            .arg(use_buffer ? "buffer" : "file")
+            .arg(current_file)
+            .arg(run_counter));
     chartwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     chartwindow->setMinimumSize(400, 300);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), chartwindow);

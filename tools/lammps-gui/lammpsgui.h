@@ -126,6 +126,7 @@ private:
     LammpsRunner *runner;
     std::string plugin_path;
     bool is_running;
+    int run_counter;
     std::vector<char *> lammps_args;
 };
 #endif // LAMMPSGUI_H

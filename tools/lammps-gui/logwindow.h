@@ -22,8 +22,12 @@ class LogWindow : public QPlainTextEdit {
 public:
     LogWindow(QWidget *parent = nullptr);
 
+private slots:
+    void save_as();
+
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 };
 
 #endif

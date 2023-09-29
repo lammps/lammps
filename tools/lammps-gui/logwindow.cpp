@@ -12,7 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "logwindow.h"
+
+#include <QAction>
+#include <QDir>
+#include <QFile>
+#include <QFileDialog>
+#include <QIcon>
+#include <QMenu>
+#include <QMessageBox>
 #include <QSettings>
+#include <QString>
+#include <QTextStream>
 
 LogWindow::LogWindow(QWidget *parent) : QPlainTextEdit(parent)
 {
@@ -28,6 +38,38 @@ void LogWindow::closeEvent(QCloseEvent *event)
         settings.setValue("logy", height());
     }
     QPlainTextEdit::closeEvent(event);
+}
+
+void LogWindow::save_as()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Log to File");
+    if (fileName.isEmpty()) return;
+
+    QFileInfo path(fileName);
+    QFile file(path.absoluteFilePath());
+
+    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
+        return;
+    }
+
+    QTextStream out(&file);
+    QString text = toPlainText();
+    out << text;
+    if (text.back().toLatin1() != '\n') out << "\n"; // add final newline if missing
+    file.close();
+}
+
+void LogWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    // show augmented context menu
+    auto *menu = createStandardContextMenu();
+    menu->addSeparator();
+    auto action = menu->addAction(QString("Save Log to File ..."));
+    action->setIcon(QIcon(":/icons/document-save-as.png"));
+    connect(action, &QAction::triggered, this, &LogWindow::save_as);
+    menu->exec(event->globalPos());
+    delete menu;
 }
 
 // Local Variables:

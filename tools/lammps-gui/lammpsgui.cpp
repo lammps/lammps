@@ -176,7 +176,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
     update_recents();
 
-    // check if we have OVITO and VMD installed and deacivate actions if not
+    // check if we have OVITO and VMD installed and deactivate actions if not
     ui->actionView_in_OVITO->setEnabled(has_exe("ovito"));
     ui->actionView_in_OVITO->setData("ovito");
     ui->actionView_in_VMD->setEnabled(has_exe("vmd"));

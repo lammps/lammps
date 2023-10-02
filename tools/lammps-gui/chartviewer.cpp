@@ -22,8 +22,7 @@
 using namespace QtCharts;
 
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
-    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), filename(_filename),
-    active_chart(-1)
+    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), filename(_filename)
 {
     auto *top = new QHBoxLayout;
     menu->addMenu(file);
@@ -74,7 +73,6 @@ void ChartWindow::reset_charts()
     }
     charts.clear();
     columns->clear();
-    active_chart = 0;
 }
 
 void ChartWindow::add_chart(const QString &title, int index)
@@ -86,7 +84,6 @@ void ChartWindow::add_chart(const QString &title, int index)
     // hide all but the first chart added
     if (charts.size() > 0) chart->hide();
     charts.append(chart);
-    active_chart = 0;
 }
 
 void ChartWindow::add_data(int step, double data, int index)
@@ -97,22 +94,21 @@ void ChartWindow::add_data(int step, double data, int index)
 
 void ChartWindow::saveAs()
 {
-    if (charts.empty() || (active_chart < 0)) return;
+    if (charts.empty()) return;
     QString defaultname = filename + "." + columns->currentText() + ".png";
     if (filename.isEmpty()) defaultname = columns->currentText() + ".png";
     QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as Image", defaultname,
                                                     "Image Files (*.jpg *.png *.bmp *.ppm)");
     if (!fileName.isEmpty()) {
         int choice = columns->currentData().toInt();
-        for (auto &c : charts) {
+        for (auto &c : charts)
             if (choice == c->get_index()) c->grab().save(fileName);
-        }
     }
 }
 
 void ChartWindow::exportDat()
 {
-    if (charts.empty() || (active_chart < 0)) return;
+    if (charts.empty()) return;
     QString defaultname = filename + ".dat";
     if (filename.isEmpty()) defaultname = "lammpsdata.dat";
     QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as Gnuplot data", defaultname,
@@ -147,7 +143,7 @@ void ChartWindow::exportDat()
 
 void ChartWindow::exportCsv()
 {
-    if (charts.empty() || (active_chart < 0)) return;
+    if (charts.empty()) return;
     QString defaultname = filename + ".csv";
     if (filename.isEmpty()) defaultname = "lammpsdata.csv";
     QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as CSV data", defaultname,

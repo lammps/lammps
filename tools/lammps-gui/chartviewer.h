@@ -61,7 +61,6 @@ private:
     QAction *closeAct;
 
     QString filename;
-    int active_chart;
     QList<ChartViewer *> charts;
 };
 

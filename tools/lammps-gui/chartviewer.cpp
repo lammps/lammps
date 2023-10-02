@@ -103,7 +103,10 @@ void ChartWindow::saveAs()
     QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as Image", defaultname,
                                                     "Image Files (*.jpg *.png *.bmp *.ppm)");
     if (!fileName.isEmpty()) {
-        charts[active_chart]->grab().save(fileName);
+        int choice = columns->currentData().toInt();
+        for (auto &c : charts) {
+            if (choice == c->get_index()) c->grab().save(fileName);
+        }
     }
 }
 

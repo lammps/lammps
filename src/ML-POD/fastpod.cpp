@@ -217,8 +217,8 @@ void FASTPOD::read_pod_file(std::string pod_file)
 //   if (nrbf2 < nrbf3) error->all(FLERR,"number of three-body radial basis functions must be equal or less than number of two-body radial basis functions");
   if (nrbf3 < nrbf4) error->all(FLERR,"number of four-body radial basis functions must be equal or less than number of three-body radial basis functions");
   if (nrbf4 < nrbf33) error->all(FLERR,"number of five-body radial basis functions must be equal or less than number of four-body radial basis functions");
-  //if (nrbf33 < nrbf34) error->all(FLERR,"number of six-body radial basis functions must be equal or less than number of five-body radial basis functions");
-  if (nrbf34 < nrbf44) error->all(FLERR,"number of seven-body radial basis functions must be equal or less than number of six-body radial basis functions");
+  if (nrbf4 < nrbf34) error->all(FLERR,"number of six-body radial basis functions must be equal or less than number of four-body radial basis functions");
+  if (nrbf4 < nrbf44) error->all(FLERR,"number of seven-body radial basis functions must be equal or less than number of four-body radial basis functions");
   nrbfmax = (nrbf2 < nrbf3) ? nrbf3 : nrbf2;
   nrbfmax = (nrbfmax < nrbf4) ? nrbf4 : nrbfmax;
   nrbfmax = (nrbfmax < nrbf33) ? nrbf33 : nrbfmax;
@@ -227,12 +227,12 @@ void FASTPOD::read_pod_file(std::string pod_file)
  
   if (P3 < P4) error->all(FLERR,"four-body angular degree must be equal or less than three-body angular degree");
   if (P4 < P33) error->all(FLERR,"five-body angular degree must be equal or less than four-body angular degree");
-  //if (P33 < P34) error->all(FLERR,"six-body angular degree must be equal or less than five-body angular degree");
-  if (P34 < P44) error->all(FLERR,"seven-body angular degree must be equal or less than six-body angular degree");
+  if (P4 < P34) error->all(FLERR,"six-body angular degree must be equal or less than four-body angular degree");
+  if (P4 < P44) error->all(FLERR,"seven-body angular degree must be equal or less than four-body angular degree");
 
   if (P3 > 12) error->all(FLERR,"three-body angular degree must be equal or less than 12");
-  if (P34 > 6) error->all(FLERR,"six-body angular degree must be equal or less than 6");
-  if (P44 > 6) error->all(FLERR,"seven-body angular degree must be equal or less than 6");
+  //if (P34 > 6) error->all(FLERR,"six-body angular degree must be equal or less than 6");
+  //if (P44 > 6) error->all(FLERR,"seven-body angular degree must be equal or less than 6");
 
   // four-body potential
   if ((nrbf4 > 0) && (nrbf33 == 0)) {
@@ -252,8 +252,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
         P23 = P4;
         nrbf4 = 0;
         P4 = 0;
-      }
-      
+      }      
     }
   }
 
@@ -327,7 +326,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
   n34 = nabf34*nrbf34*Ne*(Ne+1)/2;
   n43 = nabf43*nrbf34*Ne*(Ne+1)*(Ne+2)/6;
   n44 = nabf44*nrbf44*Ne*(Ne+1)*(Ne+2)/6;
-
+  
   nl23 = n23*n32;
   nl34 = n34*n43;
   nl33 = n33*(n33+1)/2;
@@ -338,16 +337,13 @@ void FASTPOD::read_pod_file(std::string pod_file)
   nd34 = nl34*Ne;
   nd44 = nl44*Ne;
 
-  nl = nl1 + nl2 + nl3 + nl4 + nl23 + nl33 + nl34 + nl44;
-  nd = nd1 + nd2 + nd3 + nd4 + nd23 + nd33 + nd34 + nd44;
-
   memory->create(ind23, n23, "ind23");
   memory->create(ind32, n32, "ind32");
   memory->create(ind33, n33, "ind33");
   memory->create(ind34, n34, "ind34");
   memory->create(ind43, n43, "ind43");
   memory->create(ind44, n44, "ind44");
-
+  
   indexmap3(ind23, 1, nrbf23, Ne, 1, nrbf2);
   indexmap3(ind32, nabf23, nrbf23, Ne*(Ne+1)/2, nabf3, nrbf3);
   indexmap3(ind33, nabf33, nrbf33, Ne*(Ne+1)/2, nabf3, nrbf3);
@@ -355,6 +351,45 @@ void FASTPOD::read_pod_file(std::string pod_file)
   indexmap3(ind43, nabf43, nrbf34, Ne*(Ne+1)*(Ne+2)/6, nabf4, nrbf4);
   indexmap3(ind44, nabf44, nrbf44, Ne*(Ne+1)*(Ne+2)/6, nabf4, nrbf4);
 
+  nld33 = 0;
+  nld34 = 0;
+  nld44 = 0;
+  int nebf3 = Ne*(Ne+1)/2;
+  int nebf4 = Ne*(Ne+1)*(Ne+2)/6;
+  int dabf3[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  int dabf4[] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6};  
+  if (nrbf33>0) {    
+    nld33 = crossindices(dabf3, nabf3, nrbf3, nebf3, dabf3, nabf3, nrbf3, nebf3, P33, nrbf33);          
+    memory->create(ind33l, nld33, "ind33l");
+    memory->create(ind33r, nld33, "ind33r");
+    crossindices(ind33l, ind33r, dabf3, nabf3, nrbf3, nebf3, dabf3, nabf3, nrbf3, nebf3, P33, nrbf33);      
+    printf("nld33 %d\n", nld33);
+  }
+  if (nrbf34>0) {
+    nld34 = crossindices(dabf3, nabf3, nrbf3, nebf3, dabf4, nabf4, nrbf4, nebf4, P34, nrbf34);
+    memory->create(ind34l, nld34, "ind34l");
+    memory->create(ind34r, nld34, "ind34r");  
+    crossindices(ind34l, ind34r, dabf3, nabf3, nrbf3, nebf3, dabf4, nabf4, nrbf4, nebf4, P34, nrbf34);
+  }
+  if (nrbf44>0) {
+    nld44 = crossindices(dabf4, nabf4, nrbf4, nebf4, dabf4, nabf4, nrbf4, nebf4, P44, nrbf44);
+    memory->create(ind44l, nld44, "ind44l");
+    memory->create(ind44r, nld44, "ind44r");  
+    crossindices(ind44l, ind44r, dabf4, nabf4, nrbf4, nebf4, dabf4, nabf4, nrbf4, nebf4, P44, nrbf44);
+  }  
+  ngd33 = nld33*Ne;
+  ngd34 = nld34*Ne;
+  ngd44 = nld44*Ne;
+  nl33 = nld33; 
+  nl34 = nld34; 
+  nl44 = nld44; 
+  nd33 = ngd33; 
+  nd34 = ngd34; 
+  nd44 = ngd44; 
+  
+  nl = nl1 + nl2 + nl3 + nl4 + nl23 + nl33 + nl34 + nl44;
+  nd = nd1 + nd2 + nd3 + nd4 + nd23 + nd33 + nd34 + nd44;
+  
   estimate_memory(Njmax);
   memory->create(tmpmem, 2*ndblmem, "tmpmem");
   memory->create(tmpint, 2*nintmem, "tmpint");
@@ -642,11 +677,14 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
     if ((nd33>0) && (Nj>3)) {      
       //begin = std::chrono::high_resolution_clock::now();
       
+//       double *d33 = &temp[0];
+//       fivebodydesc33(d33, d3);
+//       e33 = dotproduct(&coeff33[nl33*t0], d33, nl33);
+//       fivebodyfij33(fij, temp, &coeff33[nl33*t0], d3, dd3, 3*Nj);      
       double *d33 = &temp[0];
-      fivebodydesc33(d33, d3);
+      crossdesc(d33, d3, d3, ind33l, ind33r, nl33);
       e33 = dotproduct(&coeff33[nl33*t0], d33, nl33);
-      fivebodyfij33(fij, temp, &coeff33[nl33*t0], d3, dd3, 3*Nj);
-      
+      crossdescfij(fij, &coeff33[nl33*t0], d3, d3, dd3, dd3, ind33l, ind33r, nl33, 3*Nj);  
       //end = std::chrono::high_resolution_clock::now();   
       //comptime[10] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
     }
@@ -688,17 +726,25 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
       //comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
       
       if ((nd34>0) && (Nj>4)) {
+//         double *d34 = &temp[0];
+//         sixbodydesc34(d34, d3, d4);
+//         e34 = dotproduct(&coeff34[nl34*t0], d34, nl34);
+//         sixbodyfij34(fij, temp, &coeff34[nl34*t0], d3, d4, dd3, dd4, 3*Nj);
         double *d34 = &temp[0];
-        sixbodydesc34(d34, d3, d4);
+        crossdesc(d34, d3, d4, ind34l, ind34r, nl34);
         e34 = dotproduct(&coeff34[nl34*t0], d34, nl34);
-        sixbodyfij34(fij, temp, &coeff34[nl34*t0], d3, d4, dd3, dd4, 3*Nj);
+        crossdescfij(fij, &coeff34[nl34*t0], d3, d4, dd3, dd4, ind34l, ind34r, nl34, 3*Nj);          
       }
 
       if ((nd44>0) && (Nj>5)) {
+//         double *d44 = &temp[0];
+//         sevenbodydesc44(d44, d4);
+//         e44 = dotproduct(&coeff44[nl44*t0], d44, nl44);
+//         sevenbodyfij44(fij, temp, &coeff44[nl44*t0], d4, dd4, 3*Nj);
         double *d44 = &temp[0];
-        sevenbodydesc44(d44, d4);
+        crossdesc(d44, d4, d4, ind44l, ind44r, nl44);
         e44 = dotproduct(&coeff44[nl44*t0], d44, nl44);
-        sevenbodyfij44(fij, temp, &coeff44[nl44*t0], d4, dd4, 3*Nj);
+        crossdescfij(fij, &coeff44[nl44*t0], d4, d4, dd4, dd4, ind44l, ind44r, nl44, 3*Nj);                  
       }
     }
   }
@@ -839,18 +885,24 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
 
     double *d33 = &tmpmem[nld];
     double *dd33 = &tmpmem[nld + nl33];
-    if ((nd33>0) && (Nj>3)) fivebodydescriptors33(gd33, gdd33, d33, dd33, d3, dd3,
-            ai, aj, ti, tj, Nj, natom);
-
+//     if ((nd33>0) && (Nj>3)) fivebodydescriptors33(gd33, gdd33, d33, dd33, d3, dd3,
+//             ai, aj, ti, tj, Nj, natom);
+    if ((nd33>0) && (Nj>3)) crossdescriptors(gd33, gdd33, d33, dd33, d3, d3, dd3, dd3, 
+            ind33l, ind33r, ai, aj, ti, tj, nl33, Nj, natom);
+        
     double *d34 = &tmpmem[nld];
     double *dd34 = &tmpmem[nld + nl34];
-    if ((nd34>0) && (Nj>4)) sixbodydescriptors34(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4,
-            ai, aj, ti, tj, Nj, natom);
+//     if ((nd34>0) && (Nj>4)) sixbodydescriptors34(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4,
+//             ai, aj, ti, tj, Nj, natom);
+    if ((nd34>0) && (Nj>4)) crossdescriptors(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4, 
+            ind34l, ind34r, ai, aj, ti, tj, nl34, Nj, natom);
 
     double *d44 = &tmpmem[nld];
     double *dd44 = &tmpmem[nld + nl44];
-    if ((nd44>0) && (Nj>5))  sevenbodydescriptors44(gd44, gdd44, d44, dd44, d4, dd4,
-            ai, aj, ti, tj, Nj, natom);
+//     if ((nd44>0) && (Nj>5))  sevenbodydescriptors44(gd44, gdd44, d44, dd44, d4, dd4,
+//             ai, aj, ti, tj, Nj, natom);
+    if ((nd44>0) && (Nj>5)) crossdescriptors(gd44, gdd44, d44, dd44, d4, d4, dd4, dd4, 
+           ind44l, ind44r, ai, aj, ti, tj, nl44, Nj, natom);    
   }
   }
 }
@@ -1072,6 +1124,38 @@ void FASTPOD::sevenbodydescriptors44(double *gd44, double *gdd44, double *d44, d
   sevenbodydescderiv44(dd44, d4, dd4,  3*Nj);
   tallyglobdesc(gd44, d44, nl44, ti[0]-1);
   tallyglobdescderiv(gdd44, dd44,  ai, aj, natom, Nj, nl44, ti[0]-1);
+}
+
+void FASTPOD::crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, int n12)
+{
+  for (int i = 0; i<n12; i++)
+    d12[i] = d1[ind1[i]]*d2[ind2[i]];
+}
+
+void FASTPOD::crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2, 
+        int *ind1, int *ind2, int n12, int N)
+{  
+  for (int i = 0; i<n12; i++)
+    for (int n=0; n<N; n++)
+      dd12[n + N*i] = d1[ind1[i]]*dd2[n + N*ind2[i]] + dd1[n + N*ind1[i]]*d2[ind2[i]];
+}
+
+void FASTPOD::crossdescfij(double *fij, double *coeff12, double *d1, double *d2,
+        double *dd1, double *dd2, int *ind1, int *ind2, int n12, int N)
+{
+  for (int i = 0; i<n12; i++)
+    for (int n=0; n<N; n++)
+      fij[n] += coeff12[i]*(d1[ind1[i]]*dd2[n + N*ind2[i]] + dd1[n + N*ind1[i]]*d2[ind2[i]]);  
+}
+
+void FASTPOD::crossdescriptors(double *gd12, double *gdd12, double *d12, double *dd12,
+        double* d1, double *d2, double* dd1, double *dd2, int *ind1, int *ind2,
+        int *ai, int *aj, int *ti, int *tj, int n12, int Nj, int natom)
+{
+  crossdesc(d12, d1, d2, ind1, ind2, n12);
+  crossdescderiv(dd12, d1, d2, dd1, dd2, ind1, ind2, n12, 3*Nj);
+  tallyglobdesc(gd12, d12, n12, ti[0]-1);
+  tallyglobdescderiv(gdd12, dd12,  ai, aj, natom, Nj, n12, ti[0]-1);  
 }
 
 void FASTPOD::myneighbors(double *rij, double *x, int *ai, int *aj, int *ti, int *tj,
@@ -2342,6 +2426,58 @@ int FASTPOD::indexmap3(int *indx, int n1, int n2, int n3, int N1, int N2)
       }
 
   return k;
+}
+
+int FASTPOD::crossindices(int *dabf1, int nabf1, int nrbf1, int nebf1, 
+         int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12)
+{
+  int n = 0;
+  
+  for (int i1=0; i1<nebf1; i1++)
+    for (int j1=0; j1<nrbf1; j1++)
+      for (int k1=0; k1<nabf1; k1++) {
+        int m1 = k1 + j1*nabf1;
+        int a1 = dabf1[k1];        
+        for (int i2=0; i2<nebf2; i2++)
+          for (int j2=0; j2<nrbf2; j2++)
+            for (int k2=0; k2<nabf2; k2++) {
+              int m2 = k2 + j2*nabf2;           
+              int a2 = dabf2[k2];
+              if ((m2 >= m1) && (i2 >= i1) && (a1 + a2 <= dabf12) && (j1+j2 < nrbf12)) {
+                n += 1;
+              }
+            }
+      }
+        
+  return n;
+}
+
+int FASTPOD::crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1, int nebf1, 
+         int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12)
+{
+  int n = 0;
+  
+  for (int i1=0; i1<nebf1; i1++)
+    for (int j1=0; j1<nrbf1; j1++)
+      for (int k1=0; k1<nabf1; k1++) {
+        int m1 = k1 + j1*nabf1;
+        int n1 = m1 + i1*nabf1*nrbf1;      
+        int a1 = dabf1[k1];        
+        for (int i2=0; i2<nebf2; i2++)
+          for (int j2=0; j2<nrbf2; j2++)
+            for (int k2=0; k2<nabf2; k2++) {
+              int m2 = k2 + j2*nabf2;           
+              int n2 = m2 + i2*nabf2*nrbf2;
+              int a2 = dabf2[k2];
+              if ((m2 >= m1) && (i2 >= i1) && (a1 + a2 <= dabf12) && (j1+j2 < nrbf12)) {
+                ind1[n] = n1;
+                ind2[n] = n2;
+                n += 1;
+              }
+            }
+      }
+        
+  return n;
 }
 
 void FASTPOD::print_matrix(const char* desc, int m, int n, int* a, int lda )

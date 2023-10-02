@@ -30,7 +30,11 @@ namespace LAMMPS_NS {
 class FASTPOD : protected Pointers {
 private:
   int indexmap3(int *indx, int n1, int n2, int n3, int N1, int N2);
-
+  int crossindices(int *dabf1, int nabf1, int nrbf1, int nebf1, 
+         int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12);
+  int crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1, int nebf1, 
+         int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12);
+  
   void init3bodyarray(int *np, int *pq, int *pc, int Pa3);
 
   void init4bodyarray(int *pa4, int *pb4, int *pc4, int Pa4);
@@ -158,6 +162,8 @@ public:
   // seven-body descriptors
   int *ind44, nrbf44, nabf44, P44, n44, nl44, nd44;
 
+  int nld33, nld34, nld44, ngd33, ngd34, ngd44;
+  int *ind33l, *ind33r, *ind34l, *ind34r, *ind44l, *ind44r;
 
   FASTPOD(LAMMPS *, const std::string &pod_file, const std::string &coeff_file);
 
@@ -251,6 +257,15 @@ public:
         int Nj, int natom);
   void sevenbodydescriptors44(double *gd44, double *gdd44, double *d44, double *dd44,
         double *d4, double *dd4, int *ai, int *aj, int *ti, int *tj, int Nj, int natom);
+  
+  void crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, int n12);
+  void crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2, 
+        int *ind1, int *ind2, int n12, int N);
+  void crossdescfij(double *fij, double *coeff12, double *d1, double *d2,
+        double *dd1, double *dd2, int *ind1, int *ind2, int n12, int N);  
+  void crossdescriptors(double *gd12, double *gdd12, double *d12, double *dd12,
+        double* d1, double *d2, double* dd1, double *dd2, int *ind1, int *ind2,
+        int *ai, int *aj, int *ti, int *tj, int n12, int Nj, int natom);  
 };
 
 }    // namespace LAMMPS_NS

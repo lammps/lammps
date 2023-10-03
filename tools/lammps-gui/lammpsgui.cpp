@@ -508,6 +508,8 @@ void LammpsGui::update_variables()
 
     for (const auto &line : doc) {
 
+        if (line.isEmpty()) continue;
+
         // first find variable definitions.
         // index variables are special since they can be overridden from the command line
         auto index = indexvar.match(line);

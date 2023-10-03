@@ -150,23 +150,21 @@ void ChartWindow::exportCsv()
     if (!fileName.isEmpty()) {
         QFile file(fileName);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out.setRealNumberPrecision(8);
 
-            file.write("Step");
-            for (auto &c : charts) {
-                file.write(",");
-                file.write(c->get_title());
-            }
-            file.write("\n");
+            out << "Step";
+            for (auto &c : charts)
+                out << ',' << c->get_title();
+            out << '\n';
 
             int lines = charts[0]->get_count();
             for (int i = 0; i < lines; ++i) {
                 // timestep
-                file.write(QString::number(charts[0]->get_step(i)).toLocal8Bit());
-                for (auto &c : charts) {
-                    file.write(",");
-                    file.write(QString::number(c->get_data(i)).toLocal8Bit());
-                }
-                file.write("\n");
+                out << charts[0]->get_step(i);
+                for (auto &c : charts)
+                    out << ',' << c->get_data(i);
+                out << '\n';
             }
             file.close();
         }

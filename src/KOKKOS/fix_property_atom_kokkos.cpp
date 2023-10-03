@@ -33,6 +33,30 @@ FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) 
   grow_arrays(atom->nmax);
 }
 
+/* ---------------------------------------------------------------------- */
+
+FixPropertyAtomKokkos::~FixPropertyAtomKokkos()
+{
+  // deallocate per-atom vectors in Atom class
+  // set ptrs to a null pointer, so they no longer exist for Atom class
+
+  for (int nv = 0; nv < nvalue; nv++) {
+    if (styles[nv] == MOLECULE) {
+      atom->molecule_flag = 0;
+      memoryKK->destroy_kokkos(atomKK->k_molecule,atom->molecule);
+      atom->molecule = nullptr;
+    } else if (styles[nv] == CHARGE) {
+      atom->q_flag = 0;
+      memoryKK->destroy_kokkos(atomKK->k_q,atom->q);
+      atom->q = nullptr;
+    } else if (styles[nv] == RMASS) {
+      atom->rmass_flag = 0;
+      memoryKK->destroy_kokkos(atomKK->k_rmass,atom->rmass);
+      atom->rmass = nullptr;
+    }
+  }
+}
+
 /* ----------------------------------------------------------------------
    allocate atom-based arrays
    initialize new values to 0,
@@ -44,17 +68,19 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
 {
   for (int nv = 0; nv < nvalue; nv++) {
     if (styles[nv] == MOLECULE) {
-      memory->grow(atom->molecule,nmax,"atom:molecule");
+      atomKK->sync(Device,MOLECULE_MASK);
+      memoryKK->grow_kokkos(atomKK->k_molecule,atomKK->molecule,nmax,"atom:molecule");
       size_t nbytes = (nmax-nmax_old) * sizeof(tagint);
-      memset(&atom->molecule[nmax_old],0,nbytes);
+      atomKK->modified(Device,MOLECULE_MASK);
     } else if (styles[nv] == CHARGE) {
-      memory->grow(atom->q,nmax,"atom:q");
+      atomKK->sync(Device,Q_MASK);
+      memoryKK->grow_kokkos(atomKK->k_q,atomKK->q,nmax,"atom:q");
       size_t nbytes = (nmax-nmax_old) * sizeof(double);
-      memset(&atom->q[nmax_old],0,nbytes);
+      atomKK->modified(Device,Q_MASK);
     } else if (styles[nv] == RMASS) {
-      memory->grow(atom->rmass,nmax,"atom:rmass");
-      size_t nbytes = (nmax-nmax_old) * sizeof(double);
-      memset(&atom->rmass[nmax_old],0,nbytes);
+      atomKK->sync(Device,MOLECULE_MASK);
+      memoryKK->grow_kokkos(atomKK->k_rmass,atomKK->rmass,nmax,"atom:rmass");
+      atomKK->modified(Device,RMASS_MASK);
     } else if (styles[nv] == TEMPERATURE) {
       memory->grow(atom->temperature, nmax, "atom:temperature");
       size_t nbytes = (nmax - nmax_old) * sizeof(double);

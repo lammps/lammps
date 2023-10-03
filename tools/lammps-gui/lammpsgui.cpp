@@ -1422,7 +1422,7 @@ void LammpsGui::start_lammps()
 
     // delete additional arguments again (3 were there initially
     while ((int)lammps_args.size() > initial_narg) {
-        delete lammps_args.back();
+        delete[] lammps_args.back();
         lammps_args.pop_back();
     }
 

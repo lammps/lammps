@@ -116,25 +116,24 @@ void ChartWindow::exportDat()
     if (!fileName.isEmpty()) {
         QFile file(fileName);
         if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            constexpr int fw = 16;
+            out.setFieldAlignment(QTextStream::AlignRight);
+            out.setRealNumberPrecision(8);
 
-            file.write("# Thermodynamic data from ");
-            file.write(filename.toLocal8Bit());
-            file.write("\n# Columns:");
-            for (auto &c : charts) {
-                file.write(" ");
-                file.write(c->get_title());
-            }
-            file.write("\n");
+            out << "# Thermodynamic data from " << filename << "\n";
+            out << "#          Step";
+            for (auto &c : charts)
+                out << qSetFieldWidth(0) << ' ' << qSetFieldWidth(fw) << c->get_title();
+            out << qSetFieldWidth(0) << '\n';
 
             int lines = charts[0]->get_count();
             for (int i = 0; i < lines; ++i) {
                 // timestep
-                file.write(QString::number(charts[0]->get_step(i)).toLocal8Bit());
-                for (auto &c : charts) {
-                    file.write(" ");
-                    file.write(QString::number(c->get_data(i)).toLocal8Bit());
-                }
-                file.write("\n");
+                out << qSetFieldWidth(0) << ' ' << qSetFieldWidth(fw) << charts[0]->get_step(i);
+                for (auto &c : charts)
+                    out << qSetFieldWidth(0) << ' ' << qSetFieldWidth(fw) << c->get_data(i);
+                out << qSetFieldWidth(0) << '\n';
             }
             file.close();
         }

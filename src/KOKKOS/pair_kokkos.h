@@ -138,9 +138,9 @@ struct PairComputeFunctor  {
     F_FLOAT fztmp = 0.0;
 
     if (NEIGHFLAG == FULL) {
-      f(i,0) = 0.0;
-      f(i,1) = 0.0;
-      f(i,2) = 0.0;
+      a_f(i,0) -= f(i,0);
+      a_f(i,1) -= f(i,1);
+      a_f(i,2) -= f(i,2);
     }
 
     for (int jj = 0; jj < jnum; jj++) {
@@ -212,9 +212,9 @@ struct PairComputeFunctor  {
     F_FLOAT fztmp = 0.0;
 
     if (NEIGHFLAG == FULL) {
-      f(i,0) = 0.0;
-      f(i,1) = 0.0;
-      f(i,2) = 0.0;
+      a_f(i,0) -= f(i,0);
+      a_f(i,1) -= f(i,1);
+      a_f(i,2) -= f(i,2);
     }
 
     for (int jj = 0; jj < jnum; jj++) {

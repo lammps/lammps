@@ -41,6 +41,7 @@
 #include <QSpinBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <QThread>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -400,11 +401,11 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
 
     int maxthreads = 1;
 #if defined(_OPENMP)
-    maxthreads = omp_get_max_threads();
+    maxthreads = QThread::idealThreadCount();
 #endif
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
-    auto *ntlabel      = new QLabel("Number of threads:");
+    auto *ntlabel      = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
     auto *ntchoice     = new QLineEdit(settings->value("nthreads", maxthreads).toString());
     auto *intval       = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);

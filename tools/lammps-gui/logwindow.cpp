@@ -18,13 +18,15 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QIcon>
+#include <QKeySequence>
 #include <QMenu>
 #include <QMessageBox>
 #include <QSettings>
 #include <QString>
 #include <QTextStream>
 
-LogWindow::LogWindow(QWidget *parent) : QPlainTextEdit(parent)
+LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
+    QPlainTextEdit(parent), filename(_filename)
 {
     QSettings settings;
     resize(settings.value("logx", 500).toInt(), settings.value("logy", 320).toInt());
@@ -42,10 +44,13 @@ void LogWindow::closeEvent(QCloseEvent *event)
 
 void LogWindow::save_as()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Save Log to File");
-    if (fileName.isEmpty()) return;
+    QString defaultname = filename + ".log";
+    if (filename.isEmpty()) defaultname = "lammps.log";
+    QString logFileName = QFileDialog::getSaveFileName(this, "Save Log to File", defaultname,
+        "Log files (*.log *.out *.txt)");
+    if (logFileName.isEmpty()) return;
 
-    QFileInfo path(fileName);
+    QFileInfo path(logFileName);
     QFile file(path.absoluteFilePath());
 
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
@@ -68,6 +73,9 @@ void LogWindow::contextMenuEvent(QContextMenuEvent *event)
     auto action = menu->addAction(QString("Save Log to File ..."));
     action->setIcon(QIcon(":/icons/document-save-as.png"));
     connect(action, &QAction::triggered, this, &LogWindow::save_as);
+    action = menu->addAction("&Close Window", this, &QWidget::close);
+    action->setIcon(QIcon(":/icons/window-close.png"));
+    action->setShortcut(QKeySequence::fromString("Ctrl+W"));
     menu->exec(event->globalPos());
     delete menu;
 }

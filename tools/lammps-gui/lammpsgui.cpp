@@ -1021,7 +1021,7 @@ void LammpsGui::do_run(bool use_buffer)
 
     // if configured, delete old log window before opening new one
     if (settings.value("logreplace", true).toBool()) delete logwindow;
-    logwindow = new LogWindow();
+    logwindow = new LogWindow(current_file);
     logwindow->setReadOnly(true);
     logwindow->setCenterOnScroll(true);
     logwindow->moveCursor(QTextCursor::End);

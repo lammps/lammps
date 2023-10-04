@@ -190,8 +190,8 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
     double b_r = b - cutoff;
     double c_r = c - cutoff;
     double delx_r = b_r * c_r * (x[0] - xc);
-    double dely_r = a_r * c_r * (x[1] - xc);
-    double delz_r = a_r * b_r * (x[2] - xc);
+    double dely_r = a_r * c_r * (x[1] - yc);
+    double delz_r = a_r * b_r * (x[2] - zc);
     double r_r = delx_r * delx_r + dely_r * dely_r + delz_r * delz_r;
     double rc_r = a_r * a_r * b_r * b_r * c_r * c_r;
 
@@ -217,9 +217,9 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
       contact[0].r = DistancePointEllipsoid(
           axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]],
           coords[sorting[1]], coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
-      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
-      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
-      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
+      contact[0].delx = x[0] - (copysign(x0[0], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[1], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[2], x[2] - zc) + zc);
       //      contact[0].radius = -radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -236,7 +236,7 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
     double a_r = a - cutoff;
     double b_r = b - cutoff;
     double delx_r = b_r * (x[0] - xc);
-    double dely_r = a_r * (x[1] - xc);
+    double dely_r = a_r * (x[1] - yc);
     double r_r = delx_r * delx_r + dely_r * dely_r;
     double rc_r = a_r * a_r * b_r * b_r;
 
@@ -281,8 +281,8 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
     double b_r = b + cutoff;
     double c_r = c + cutoff;
     double delx_r = b_r * c_r * (x[0] - xc);
-    double dely_r = a_r * c_r * (x[1] - xc);
-    double delz_r = a_r * b_r * (x[2] - xc);
+    double dely_r = a_r * c_r * (x[1] - yc);
+    double delz_r = a_r * b_r * (x[2] - zc);
     double r_r = delx_r * delx_r + dely_r * dely_r + delz_r * delz_r;
     double rc_r = a_r * a_r * b_r * b_r * c_r * c_r;
 
@@ -308,9 +308,9 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
       contact[0].r = DistancePointEllipsoid(
           axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]],
           coords[sorting[1]], coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
-      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
-      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
-      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
+      contact[0].delx = x[0] - (copysign(x0[0], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[1], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[2], x[2] - zc) + zc);
       //      contact[0].radius = radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -327,7 +327,7 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
     double a_r = a + cutoff;
     double b_r = b + cutoff;
     double delx_r = b_r * (x[0] - xc);
-    double dely_r = a_r * (x[1] - xc);
+    double dely_r = a_r * (x[1] - yc);
     double r_r = delx_r * delx_r + dely_r * dely_r;
     double rc_r = a_r * a_r * b_r * b_r;
 

@@ -1185,14 +1185,15 @@ void LammpsGui::view_variables()
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
+    version += " using Qt version " QT_VERSION_STR "\n";
     if (lammps.has_plugin()) {
-        version += " - LAMMPS library loaded as plugin";
+        version += "LAMMPS library loaded as plugin";
         if (!plugin_path.empty()) {
             version += " from file ";
             version += plugin_path;
         }
     } else {
-        version += " - LAMMPS library linked to executable";
+        version += "LAMMPS library linked to executable";
     }
 
     QString to_clipboard(version.c_str());

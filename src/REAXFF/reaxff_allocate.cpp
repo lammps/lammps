@@ -253,8 +253,8 @@ namespace ReaxFF {
 
     if (Nflag || wsr->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
       if (wsr->num_far > far_nbrs->num_intrs)
-        error->one(FLERR,fmt::format("step{}: ran out of space on far_nbrs: top={}, max={}",
-                                   data->step, wsr->num_far, far_nbrs->num_intrs));
+        error->one(FLERR, "step{}: ran out of space on far_nbrs: top={}, max={}",
+                   data->step, wsr->num_far, far_nbrs->num_intrs);
 
       newsize = static_cast<int>
         (MAX(wsr->num_far*safezone, mincap*REAX_MIN_NBRS));

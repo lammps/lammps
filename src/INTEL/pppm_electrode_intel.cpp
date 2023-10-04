@@ -719,7 +719,7 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, double *greens_re
   MPI_Barrier(world);
   memory->destroy(rho1d_j);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("Single step time: {:.4g} s\n", MPI_Wtime() - step1_time));
+    utils::logmesg(lmp, "Single step time: {:.4g} s\n", MPI_Wtime() - step1_time);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -844,7 +844,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
   }
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time));
+    utils::logmesg(lmp, "step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time);
 
   // nested loop over electrode atoms i and j and stencil of i
   double step2_time = MPI_Wtime();
@@ -914,7 +914,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
   }
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time));
+    utils::logmesg(lmp, "step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time);
 }
 
 template <class flt_t, class acc_t, int use_table>

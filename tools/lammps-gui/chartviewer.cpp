@@ -13,6 +13,8 @@
 
 #include "chartviewer.h"
 
+#include "lammpsgui.h"
+
 #include <QHBoxLayout>
 #include <QLineSeries>
 #include <QSettings>
@@ -40,8 +42,14 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     exportDatAct = file->addAction("Export data to &Gnuplot...", this, &ChartWindow::exportDat);
     exportDatAct->setIcon(QIcon(":/icons/application-plot.png"));
     file->addSeparator();
+    stopAct = file->addAction("Stop &Run", this, &ChartWindow::stop_run);
+    stopAct->setIcon(QIcon(":/icons/process-stop.png"));
+    stopAct->setShortcut(QKeySequence(Qt::Key_Slash, Qt::CTRL));
     closeAct = file->addAction("&Close", this, &QWidget::close);
     closeAct->setIcon(QIcon(":/icons/window-close.png"));
+    quitAct = file->addAction("&Quit", this, &ChartWindow::quit);
+    quitAct->setIcon(QIcon(":/icons/application-exit.png"));
+    quitAct->setShortcut(QKeySequence::fromString("Ctrl+Q"));
     auto *layout = new QVBoxLayout;
     layout->addLayout(top);
     setLayout(layout);
@@ -90,6 +98,22 @@ void ChartWindow::add_data(int step, double data, int index)
 {
     for (auto &c : charts)
         if (c->get_index() == index) c->add_data(step, data);
+}
+
+void ChartWindow::quit()
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    main->quit();
+}
+
+void ChartWindow::stop_run()
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    main->stop_run();
 }
 
 void ChartWindow::saveAs()

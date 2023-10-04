@@ -42,6 +42,9 @@ public:
     void add_data(int step, double data, int index);
 
 private slots:
+    void quit();
+    void stop_run();
+
     void saveAs();
     void exportDat();
     void exportCsv();
@@ -55,10 +58,8 @@ private:
     QMenuBar *menu;
     QMenu *file;
     QComboBox *columns;
-    QAction *saveAsAct;
-    QAction *exportCsvAct;
-    QAction *exportDatAct;
-    QAction *closeAct;
+    QAction *saveAsAct, *exportCsvAct, *exportDatAct;
+    QAction *closeAct, *stopAct, *quitAct;
 
     QString filename;
     QList<ChartViewer *> charts;

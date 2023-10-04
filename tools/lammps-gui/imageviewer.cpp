@@ -12,9 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "imageviewer.h"
+
+#include "lammpsgui.h"
 #include "lammpswrapper.h"
 
 #include <QAction>
+#include <QApplication>
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFileDialog>
@@ -510,14 +513,10 @@ void ImageViewer::createImage()
     QImageReader reader(dumpfile.fileName());
     reader.setAutoTransform(true);
     const QImage newImage = reader.read();
-
-    if (newImage.isNull()) {
-        QMessageBox::warning(
-            this, QGuiApplication::applicationDisplayName(),
-            QString("Cannot load %1: %2").arg(dumpfile.fileName(), reader.errorString()));
-        return;
-    }
     dumpfile.remove();
+
+    // read of new image failed. Don't try to scale and load it.
+    if (newImage.isNull()) return;
 
     // scale back to achieve antialiasing
     image = newImage.scaled(xsize, ysize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
@@ -535,6 +534,14 @@ void ImageViewer::saveAs()
 }
 
 void ImageViewer::copy() {}
+
+void ImageViewer::quit()
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    main->quit();
+}
 
 void ImageViewer::saveFile(const QString &fileName)
 {
@@ -557,6 +564,9 @@ void ImageViewer::createActions()
     QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
     exitAct->setIcon(QIcon(":/icons/window-close.png"));
     exitAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
+    QAction *quitAct = fileMenu->addAction("&Quit", this, &ImageViewer::quit);
+    quitAct->setIcon(QIcon(":/icons/application-exit.png"));
+    quitAct->setShortcut(QKeySequence::fromString("Ctrl+Q"));
 }
 
 void ImageViewer::updateActions()

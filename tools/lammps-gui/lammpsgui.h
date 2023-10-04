@@ -66,6 +66,10 @@ protected:
     void start_lammps();
     void run_done();
 
+public slots:
+    void quit();
+    void stop_run();
+
 private slots:
     void new_document();
     void open();
@@ -73,7 +77,6 @@ private slots:
     void start_exe();
     void save();
     void save_as();
-    void quit();
     void copy();
     void cut();
     void paste();
@@ -82,7 +85,6 @@ private slots:
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
 
-    void stop_run();
     void edit_variables();
     void render_image();
     void view_slides();

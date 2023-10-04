@@ -13,7 +13,10 @@
 
 #include "logwindow.h"
 
+#include "lammpsgui.h"
+
 #include <QAction>
+#include <QApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -32,8 +35,12 @@ LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
     QSettings settings;
     resize(settings.value("logx", 500).toInt(), settings.value("logy", 320).toInt());
 
-    auto action = new QShortcut(QKeySequence("Ctrl+S"), this);
+    auto action = new QShortcut(QKeySequence::fromString("Ctrl+S"), this);
     connect(action, &QShortcut::activated, this, &LogWindow::save_as);
+    action = new QShortcut(QKeySequence::fromString("Ctrl+Q"), this);
+    connect(action, &QShortcut::activated, this, &LogWindow::quit);
+    action = new QShortcut(QKeySequence(Qt::Key_Slash, Qt::CTRL), this);
+    connect(action, &QShortcut::activated, this, &LogWindow::stop_run);
 }
 
 void LogWindow::closeEvent(QCloseEvent *event)
@@ -44,6 +51,22 @@ void LogWindow::closeEvent(QCloseEvent *event)
         settings.setValue("logy", height());
     }
     QPlainTextEdit::closeEvent(event);
+}
+
+void LogWindow::quit()
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    main->quit();
+}
+
+void LogWindow::stop_run()
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    main->stop_run();
 }
 
 void LogWindow::save_as()

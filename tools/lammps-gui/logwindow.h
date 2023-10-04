@@ -23,7 +23,9 @@ public:
     LogWindow(const QString &filename, QWidget *parent = nullptr);
 
 private slots:
+    void quit();
     void save_as();
+    void stop_run();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

@@ -17,6 +17,7 @@
 
 #include <QHBoxLayout>
 #include <QLineSeries>
+#include <QPushButton>
 #include <QSettings>
 #include <QSpacerItem>
 #include <QVBoxLayout>
@@ -30,9 +31,17 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     menu->addMenu(file);
     menu->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
 
+    // workaround for incorrect highlight bug on macOS
+    auto *dummy = new QPushButton(QIcon(), "");
+    dummy->hide();
+    auto *normal = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
+    normal->setToolTip("Reset zoom to normal");
+
     columns = new QComboBox;
     top->addWidget(menu);
     top->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum));
+    top->addWidget(dummy);
+    top->addWidget(normal);
     top->addWidget(new QLabel("Select data:"));
     top->addWidget(columns);
     saveAsAct = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
@@ -44,15 +53,18 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     file->addSeparator();
     stopAct = file->addAction("Stop &Run", this, &ChartWindow::stop_run);
     stopAct->setIcon(QIcon(":/icons/process-stop.png"));
-    stopAct->setShortcut(QKeySequence(Qt::Key_Slash, Qt::CTRL));
+    stopAct->setShortcut(QKeySequence::fromString("Ctrl+/"));
     closeAct = file->addAction("&Close", this, &QWidget::close);
     closeAct->setIcon(QIcon(":/icons/window-close.png"));
+    closeAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
     quitAct = file->addAction("&Quit", this, &ChartWindow::quit);
     quitAct->setIcon(QIcon(":/icons/application-exit.png"));
     quitAct->setShortcut(QKeySequence::fromString("Ctrl+Q"));
     auto *layout = new QVBoxLayout;
     layout->addLayout(top);
     setLayout(layout);
+
+    connect(normal, &QPushButton::released, this, &ChartWindow::reset_zoom);
 
     connect(columns, SIGNAL(currentIndexChanged(int)), this, SLOT(change_chart(int)));
     QSettings settings;
@@ -106,6 +118,12 @@ void ChartWindow::quit()
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
     main->quit();
+}
+
+void ChartWindow::reset_zoom()
+{
+    int choice = columns->currentData().toInt();
+    charts[choice]->reset_zoom();
 }
 
 void ChartWindow::stop_run()
@@ -264,6 +282,26 @@ void ChartViewer::add_data(int step, double data)
         xaxis->setRange(xmin, xmax);
         yaxis->setRange(ymin, ymax);
     }
+}
+
+/* -------------------------------------------------------------------- */
+
+void ChartViewer::reset_zoom()
+{
+    auto points = series->pointsVector();
+
+    qreal xmin = 1.0e100;
+    qreal xmax = -1.0e100;
+    qreal ymin = 1.0e100;
+    qreal ymax = -1.0e100;
+    for (auto &p : points) {
+        xmin = qMin(xmin, p.x());
+        xmax = qMax(xmax, p.x());
+        ymin = qMin(ymin, p.y());
+        ymax = qMax(ymax, p.y());
+    }
+    xaxis->setRange(xmin, xmax);
+    yaxis->setRange(ymin, ymax);
 }
 
 // Local Variables:

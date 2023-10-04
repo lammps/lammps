@@ -43,6 +43,7 @@ public:
 
 private slots:
     void quit();
+    void reset_zoom();
     void stop_run();
 
     void saveAs();
@@ -74,6 +75,8 @@ public:
     explicit ChartViewer(const QString &title, int index, QWidget *parent = nullptr);
 
     void add_data(int step, double data);
+    void reset_zoom();
+
     int get_index() const { return index; };
     int get_count() const { return series->count(); }
     const char *get_title() const { return series->name().toLocal8Bit(); }

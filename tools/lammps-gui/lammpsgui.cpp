@@ -1095,9 +1095,9 @@ void LammpsGui::preferences()
         // must delete LAMMPS instance after preferences have changed that require
         // using different command line flags when creating the LAMMPS instance like
         // suffixes or package commands
+        int newthreads = settings.value("nthreads", 1).toInt();
         if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
-            (oldthreads != settings.value("nthreads", 1).toInt()) ||
-            (oldecho != settings.value("echo", 0).toBool()) ||
+            (oldthreads != newthreads) || (oldecho != settings.value("echo", 0).toBool()) ||
             (oldcite != settings.value("cite", 0).toBool())) {
             if (lammps.is_running()) {
                 stop_run();
@@ -1106,6 +1106,10 @@ void LammpsGui::preferences()
             }
             lammps.close();
             lammpsstatus->hide();
+#if defined(_OPENMP)
+            qputenv("OMP_NUM_THREADS", std::to_string(newthreads).c_str());
+            omp_set_num_threads(newthreads);
+#endif
         }
         if (imagewindow) imagewindow->createImage();
     }

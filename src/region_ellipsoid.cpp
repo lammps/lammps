@@ -25,6 +25,14 @@ using namespace LAMMPS_NS;
 
 enum { CONSTANT, VARIABLE };
 
+static double GetRoot2D(double r0, double z0, double z1, double g);
+static double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g);
+
+static double DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0,
+                                   double &x1);
+static double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1,
+                                     double y2, double &x0, double &x1, double &x2);
+
 /* ---------------------------------------------------------------------- */
 
 RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
@@ -439,7 +447,7 @@ void RegEllipsoid::variable_check()
    functions for the 2D case
 ------------------------------------------------------------------------- */
 
-double RegEllipsoid::GetRoot2D(double r0, double z0, double z1, double g)
+double GetRoot2D(double r0, double z0, double z1, double g)
 {
   int maxIterations =
       std::numeric_limits<double>::digits - std::numeric_limits<double>::min_exponent;
@@ -464,8 +472,7 @@ double RegEllipsoid::GetRoot2D(double r0, double z0, double z1, double g)
   return s;
 }
 
-double RegEllipsoid::DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0,
-                                          double &x1)
+double DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0, double &x1)
 {
   double distance;
   if (y1 > 0) {
@@ -510,7 +517,7 @@ double RegEllipsoid::DistancePointEllipse(double e0, double e1, double y0, doubl
    functions for the 3D case
 ------------------------------------------------------------------------- */
 
-double RegEllipsoid::GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g)
+double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g)
 {
   int maxIterations =
       std::numeric_limits<double>::digits - std::numeric_limits<double>::min_exponent;
@@ -537,8 +544,8 @@ double RegEllipsoid::GetRoot3D(double r0, double r1, double z0, double z1, doubl
   return s;
 }
 
-double RegEllipsoid::DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1,
-                                            double y2, double &x0, double &x1, double &x2)
+double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1, double y2,
+                              double &x0, double &x1, double &x2)
 {
   double distance;
   if (y2 > 0) {

@@ -65,8 +65,9 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     setLayout(layout);
 
     connect(normal, &QPushButton::released, this, &ChartWindow::reset_zoom);
-
     connect(columns, SIGNAL(currentIndexChanged(int)), this, SLOT(change_chart(int)));
+    installEventFilter(this);
+
     QSettings settings;
     resize(settings.value("chartx", 500).toInt(), settings.value("charty", 320).toInt());
 }
@@ -232,6 +233,26 @@ void ChartWindow::closeEvent(QCloseEvent *event)
         settings.setValue("charty", height());
     }
     QWidget::closeEvent(event);
+}
+
+// event filter to handle "Ambiguous shortcut override" issues
+bool ChartWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QEvent::ShortcutOverride) {
+        QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
+        if (!keyEvent) return QWidget::eventFilter(watched, event);
+        if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && keyEvent->key() == '/') {
+            stop_run();
+            event->accept();
+            return true;
+        }
+        if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && keyEvent->key() == 'W') {
+            close();
+            event->accept();
+            return true;
+        }
+    }
+    return QWidget::eventFilter(watched, event);
 }
 
 /* -------------------------------------------------------------------- */

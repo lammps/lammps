@@ -65,19 +65,19 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   pre_exchange_flag = 0;
   flipflag = 1;
 
-  // Piston mass
-  p_mass = 1e-3;
+  p_ltime = 1000.;
+  p_fric = 1./p_ltime;
 
   // Target temperature
   t_start = t_stop = t_target = 0.0;
 
   for (int i = 0; i < 6; i++) {
-    // Pressure and pistons period tau_p
+    // Pressure and pistons period
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
-    // p_mass[i] = 1e-3;
+    p_alpha[i] = 0;
 
-    p_fric[i] = 0.;
+    p_mass[i] = 0.;
 
     // Pistons coordinates derivative V
     p_deriv[i] = 0.0;
@@ -216,11 +216,11 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix press/langevin command");
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"mass") == 0) {
+    } else if (strcmp(arg[iarg],"friction") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix press/langevin command");
-      p_mass = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (p_mass <= 0.0)
+      p_ltime = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (p_ltime < 0.0)
         error->all(FLERR,"Illegal fix press/langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
@@ -365,10 +365,18 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   // p_fric is alpha coeff from GJF
   // with alpha = Q/p_period
   // similar to fix_langevin formalism
+  double kt = force->boltz * t_start;
+  double nkt = (atom->natoms + 1) * kt;
+  if (p_ltime == 0) {
+    p_fric = 0;
+  } else {
+    p_fric = 1./p_ltime;
+  }
   for (int i = 0; i < 6; i++) {
-    // p_mass[i] = p_period[i]; // force->boltz*t_start*(atom->natoms + 1)*p_period[i]*p_period[i];
-    gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
-    gjfb[i] = 1./(1.0 + update->dt / 2.0 / p_period[i]);
+    p_mass[i] = nkt*p_period[i]*p_period[i];
+    p_alpha[i] = p_mass[i] * p_fric;
+    gjfa[i] = (1.0 - p_alpha[i]*update->dt / 2.0 / p_mass[i]) / (1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
+    gjfb[i] = 1./(1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
   }
 
   nrigid = 0;
@@ -396,6 +404,7 @@ int FixPressLangevin::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
+  mask |= POST_INTEGRATE;
   mask |= POST_FORCE;
   mask |= END_OF_STEP;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
@@ -444,6 +453,14 @@ void FixPressLangevin::init()
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
   }
+
+  // Nullifies piston derivatives and forces so that it is not integrated at
+  // the start of a second run.
+  for (int i = 0; i < 6; i++) {
+    p_deriv[i] = 0.0;
+    dilation[i] = 0.0;
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -471,8 +488,6 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
   // Compute new random term on pistons dynamics
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
   t_target = t_start + delta * (t_stop-t_start);
-  // for (int i = 0; i < 6; i++)
-  //   p_mass[i] = force->boltz*t_target*(atom->natoms + 1)*p_period[i]*p_period[i];
   couple_beta(t_target);
 
   dt = update->dt;
@@ -481,17 +496,19 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
     if (p_flag[i]) {
       // See equation 13
       displacement = dt*p_deriv[i]*gjfb[i];
-      displacement += 0.5*dt*dt*f_piston[i]*gjfb[i]/p_mass;
-      displacement += 0.5*dt*fran[i]*gjfb[i]/p_mass;
+      displacement += 0.5*dt*dt*f_piston[i]*gjfb[i]/p_mass[i];
+      displacement += 0.5*dt*fran[i]*gjfb[i]/p_mass[i];
       dl = domain->boxhi[i] - domain->boxlo[i];
       if (i < 3) dilation[i] = (dl + displacement)/dl;
       else dilation[i] = displacement;
     }
   }
+}
 
+void FixPressLangevin::post_integrate()
+{
   // remap simulation box and atoms
   // redo KSpace coeffs since volume has changed
-
   remap();
   if (kspace_flag) force->kspace->setup();
 
@@ -540,8 +557,8 @@ void FixPressLangevin::end_of_step()
   for (int i = 0; i < 6; i++) {
     if (p_flag[i]) {
       p_deriv[i] *= gjfa[i];
-      p_deriv[i] += 0.5*dt*(gjfa[i]*f_old_piston[i]+f_piston[i])/p_mass;
-      p_deriv[i] += fran[i]*gjfb[i]/p_mass;
+      p_deriv[i] += 0.5*dt*(gjfa[i]*f_old_piston[i]+f_piston[i])/p_mass[i];
+      p_deriv[i] += fran[i]*gjfb[i]/p_mass[i];
     }
   }
 
@@ -584,12 +601,14 @@ void FixPressLangevin::couple_pressure()
 void FixPressLangevin::couple_kinetic(double t_target)
 {
   double Pk, volume;
+  nktv2p = force->nktv2p;
 
   // Kinetic part
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
   else volume = domain->xprd * domain->yprd;
 
   Pk = atom->natoms*force->boltz*t_target/volume;
+  Pk *= nktv2p;
 
   p_current[0] += Pk;
   p_current[1] += Pk;
@@ -604,7 +623,7 @@ void FixPressLangevin::couple_beta(double t_target)
   int me = comm->me;
 
   for (int i=0; i<6; i++)
-    gamma[i] = sqrt(2.0*p_mass*force->boltz*update->dt/p_period[i]*t_target);
+    gamma[i] = sqrt(2.0*p_fric*force->boltz*update->dt*t_target);
 
   fran[0] = fran[1] = fran[2] = 0.0;
   fran[3] = fran[4] = fran[5] = 0.0;
@@ -810,7 +829,7 @@ int FixPressLangevin::modify_param(int narg, char **arg)
 void FixPressLangevin::reset_dt()
 {
   for (int i=0; i<6; i++) {
-    gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
-    gjfb[i] = sqrt(1.0 + update->dt / 2.0 / p_period[i]);
+    gjfa[i] = (1.0 - p_alpha[i]*update->dt / 2.0 / p_mass[i]) / (1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
+    gjfb[i] = 1./(1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
     }
 }

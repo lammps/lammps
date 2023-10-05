@@ -66,10 +66,10 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   FixACKS2ReaxFFKokkos(class LAMMPS *, int, char **);
   ~FixACKS2ReaxFFKokkos();
 
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
   void cleanup_copy();
-  void init();
-  void setup_pre_force(int);
-  void pre_force(int);
 
   DAT::tdual_ffloat_1d get_s() {return k_s;}
 
@@ -235,11 +235,11 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 
   void init_shielding_k();
   void init_hist();
-  void allocate_matrix();
+  void allocate_matrix() override;
   void allocate_array();
   void deallocate_array();
   int bicgstab_solve();
-  void calculate_Q();
+  void calculate_Q() override;
 
   int neighflag;
   int nlocal,nall,nmax,newton_pair;
@@ -251,13 +251,13 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void get_chi_field();
-  double memory_usage();
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void get_chi_field() override;
+  double memory_usage() override;
 
   void sparse_matvec_acks2(typename AT::t_ffloat_1d &, typename AT::t_ffloat_1d &);
 };

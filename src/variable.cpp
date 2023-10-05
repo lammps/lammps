@@ -224,7 +224,7 @@ void Variable::set(int narg, char **arg)
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
         pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
-    } else error->all(FLERR,"Illegal variable loop command: too much arguments");
+    } else error->all(FLERR,"Illegal variable loop command: too many arguments");
     num[nvar] = nlast;
     which[nvar] = nfirst-1;
     data[nvar] = new char*[1];
@@ -1052,7 +1052,7 @@ char *Variable::retrieve(const char *name)
     if (vecs[ivar].dynamic || vecs[ivar].currentstep != update->ntimestep) {
       eval_in_progress[ivar] = 0;
       double *result;
-      int nvec = compute_vector(ivar,&result);
+      compute_vector(ivar,&result);
       delete[] data[ivar][1];
       std::vector <double> vectmp(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
       std::string str = fmt::format("[{}]", fmt::join(vectmp,","));
@@ -1505,8 +1505,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         if (nbracket == 0 && compute->scalar_flag && lowercase) {
 
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
             compute->invoked_flag |= Compute::INVOKED_SCALAR;
@@ -1527,8 +1528,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (index1 > compute->size_vector &&
               compute->size_vector_variable == 0)
             print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
             compute->invoked_flag |= Compute::INVOKED_VECTOR;
@@ -1553,8 +1555,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
           if (index2 > compute->size_array_cols)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
             compute->invoked_flag |= Compute::INVOKED_ARRAY;
@@ -1580,8 +1583,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
           if (compute->size_vector == 0)
             print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
             compute->invoked_flag |= Compute::INVOKED_VECTOR;
@@ -1604,8 +1608,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
           if (compute->size_array_rows == 0)
             print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
             compute->invoked_flag |= Compute::INVOKED_ARRAY;
@@ -1623,8 +1628,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else if (nbracket == 1 && compute->peratom_flag &&
                    compute->size_peratom_cols == 0) {
 
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1640,8 +1646,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (index2 > compute->size_peratom_cols)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1663,8 +1670,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Per-atom compute in equal-style variable formula",ivar);
           if (treetype == VECTOR)
             print_var_error(FLERR,"Per-atom compute in vector-style variable formula",ivar);
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1687,8 +1695,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Per-atom compute in vector-style variable formula",ivar);
           if (index1 > compute->size_peratom_cols)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-          if (update->first_update == 0)
-            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!compute->is_initialized())
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                            "initialization by a run",ivar);
           if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -2726,7 +2735,7 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
-    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0)
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
     else {
@@ -3097,7 +3106,7 @@ double Variable::eval_tree(Tree *tree, int i)
     auto  ivalue1 = static_cast<bigint> (eval_tree(tree->first,i));
     auto  ivalue2 = static_cast<bigint> (eval_tree(tree->second,i));
     auto  ivalue3 = static_cast<bigint> (eval_tree(tree->extra[0],i));
-    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0)
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) arg = ivalue1;
     else {
@@ -3628,7 +3637,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       auto  ivalue1 = static_cast<bigint> (value1);
       auto  ivalue2 = static_cast<bigint> (value2);
       auto  ivalue3 = static_cast<bigint> (values[0]);
-      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0)
         print_var_error(FLERR,"Invalid math function in variable formula",ivar);
       double value;
       if (update->ntimestep < ivalue1) value = ivalue1;
@@ -3658,7 +3667,6 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
         print_var_error(FLERR,"Invalid math function in variable formula",ivar);
       double value;
       if (update->ntimestep < ivalue1) value = ivalue1;
-      //else if (update->ntimestep <= ivalue3) {
       else {
         value = ivalue1;
         double logsp = ivalue1;
@@ -4040,8 +4048,8 @@ Region *Variable::region_function(char *id, int ivar)
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
      sum(x),min(x),max(x),ave(x),trap(x),slope(x),
-     gmask(x),rmask(x),grmask(x,y),next(x),
-     is_file(x),is_ox(x),extract_setting(x),label2type(x,y)
+     gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_ox(x),
+     extract_setting(x),label2type(x,y),is_typelabel(x,y)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree, Tree **treestack,
@@ -4056,20 +4064,28 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       strcmp(word,"ave") != 0 && strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 &&
       strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 && strcmp(word,"grmask") != 0 &&
       strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 && strcmp(word,"is_os") != 0 &&
-      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
+      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0 &&
+      strcmp(word,"is_typelabel") != 0)
     return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
 
-  if (strcmp(word,"label2type") == 0) {
+  if (strcmp(word,"label2type") == 0 || strcmp(word,"is_typelabel") == 0) {
     if (!atom->labelmapflag)
-      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+      print_var_error(FLERR,fmt::format("Cannot use {}() function without a labelmap",word),ivar);
 
     std::string contents_copy(contents);
     auto pos = contents_copy.find_first_of(',');
-    if (pos == std::string::npos)
-      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
-                                         contents_copy), ivar);
+    if (pos == std::string::npos) {
+      if (strcmp(word,"label2type") == 0) {
+        print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                           contents_copy), ivar);
+      } else {
+        print_var_error(FLERR, fmt::format("Invalid is_typelabel({}) function in variable formula",
+                                           contents_copy), ivar);
+      }
+    }
+
     std::string typestr = contents_copy.substr(pos+1);
     std::string kind = contents_copy.substr(0, pos);
 
@@ -4085,12 +4101,14 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else if (kind == "improper") {
       value = atom->lmap->find(typestr,Atom::IMPROPER);
     } else {
-      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() in variable",kind),ivar);
+      print_var_error(FLERR, fmt::format("Invalid kind {} in {}() in variable", kind, word),ivar);
     }
 
-    if (value == -1)
-      print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
-                                         kind, typestr), ivar);
+    if (strcmp(word,"label2type") == 0) {
+      if (value == -1)
+        print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
+                                           kind, typestr), ivar);
+    } else value = (value == -1) ? 0.0 : 1.0;
 
     // save value in tree or on argstack
 
@@ -4154,8 +4172,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
         print_var_error(FLERR,mesg,ivar);
       }
       if (index == 0 && compute->vector_flag) {
-        if (update->first_update == 0)
-          print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+        if (!compute->is_initialized())
+          print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                          "initialization by a run",ivar);
         if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
           compute->invoked_flag |= Compute::INVOKED_VECTOR;
@@ -4165,8 +4184,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       } else if (index && compute->array_flag) {
         if (index > compute->size_array_cols)
           print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-        if (update->first_update == 0)
-          print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+        if (!compute->is_initialized())
+          print_var_error(FLERR,"Variable formula compute cannot be invoked before "
+                          "initialization by a run",ivar);
         if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
           compute->invoked_flag |= Compute::INVOKED_ARRAY;

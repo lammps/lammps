@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <cstdio>
 #include <sstream>
@@ -655,8 +627,9 @@ struct TestLambdaSharedTeam {
 
     Kokkos::TeamPolicy<ScheduleType, ExecSpace> team_exec(8192 / team_size,
                                                           team_size);
-    team_exec = team_exec.set_scratch_size(
-        0, Kokkos::PerTeam(SHARED_COUNT * 2 * sizeof(int)));
+
+    int scratch_size = shared_int_array_type::shmem_size(SHARED_COUNT) * 2;
+    team_exec = team_exec.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
 
     typename Functor::value_type error_count = 0;
 
@@ -1025,8 +998,8 @@ struct ClassNoShmemSizeFunction {
 #else
     int team_size      = 8;
 #endif
-    if (team_size > ExecSpace::concurrency())
-      team_size = ExecSpace::concurrency();
+    int const concurrency = ExecSpace().concurrency();
+    if (team_size > concurrency) team_size = concurrency;
     {
       Kokkos::TeamPolicy<TagFor, ExecSpace, ScheduleType> policy(10, team_size,
                                                                  16);
@@ -1098,8 +1071,9 @@ struct ClassWithShmemSizeFunction {
                      Kokkos::MemoryTraits<Kokkos::Unmanaged>>::shmem_size(1600);
 
     int team_size = 8;
-    if (team_size > ExecSpace::concurrency())
-      team_size = ExecSpace::concurrency();
+
+    int const concurrency = ExecSpace().concurrency();
+    if (team_size > concurrency) team_size = concurrency;
 
     {
       Kokkos::TeamPolicy<TagFor, ExecSpace, ScheduleType> policy(10, team_size,
@@ -1173,8 +1147,8 @@ void test_team_mulit_level_scratch_test_lambda() {
 #else
   int team_size = 8;
 #endif
-  if (team_size > ExecSpace::concurrency())
-    team_size = ExecSpace::concurrency();
+  int const concurrency = ExecSpace().concurrency();
+  if (team_size > concurrency) team_size = concurrency;
 
   Kokkos::TeamPolicy<ExecSpace, ScheduleType> policy(10, team_size, 16);
 
@@ -1551,15 +1525,18 @@ struct TestScratchAlignment {
     double x, y, z;
   };
   TestScratchAlignment() {
-    test(true);
-    test(false);
+    test_view(true);
+    test_view(false);
+    test_minimal();
+    test_raw();
   }
   using ScratchView =
       Kokkos::View<TestScalar *, typename ExecSpace::scratch_memory_space>;
   using ScratchViewInt =
       Kokkos::View<int *, typename ExecSpace::scratch_memory_space>;
-  void test(bool allocate_small) {
+  void test_view(bool allocate_small) {
     int shmem_size = ScratchView::shmem_size(11);
+    // FIXME_OPENMPTARGET temporary restriction for team size to be at least 32
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
     int team_size =
         std::is_same<ExecSpace, Kokkos::Experimental::OpenMPTarget>::value ? 32
@@ -1580,12 +1557,106 @@ struct TestScratchAlignment {
         });
     Kokkos::fence();
   }
+
+  // test really small size of scratch space, produced error before
+  void test_minimal() {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+    // FIXME_OPENMPTARGET temporary restriction for team size to be at least 32
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    int team_size =
+        std::is_same<ExecSpace, Kokkos::Experimental::OpenMPTarget>::value ? 32
+                                                                           : 1;
+#else
+    int team_size      = 1;
+#endif
+    Kokkos::TeamPolicy<ExecSpace> policy(1, team_size);
+    size_t scratch_size = sizeof(int);
+    Kokkos::View<int, ExecSpace> flag("Flag");
+
+    Kokkos::parallel_for(
+        policy.set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
+        KOKKOS_LAMBDA(const member_type &team) {
+          int *scratch_ptr = (int *)team.team_shmem().get_shmem(scratch_size);
+          if (scratch_ptr == nullptr) flag() = 1;
+        });
+    Kokkos::fence();
+    int minimal_scratch_allocation_failed = 0;
+    Kokkos::deep_copy(minimal_scratch_allocation_failed, flag);
+    ASSERT_EQ(minimal_scratch_allocation_failed, 0);
+  }
+
+  // test alignment of successive allocations
+  void test_raw() {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    int team_size =
+        std::is_same<ExecSpace, Kokkos::Experimental::OpenMPTarget>::value ? 32
+                                                                           : 1;
+#else
+    int team_size      = 1;
+#endif
+    Kokkos::TeamPolicy<ExecSpace> policy(1, team_size);
+    Kokkos::View<int, ExecSpace> flag("Flag");
+
+    Kokkos::parallel_for(
+        policy.set_scratch_size(0, Kokkos::PerTeam(1024)),
+        KOKKOS_LAMBDA(const member_type &team) {
+          // first get some unaligned allocations, should give back
+          // exactly the requested number of bytes
+          auto scratch_ptr1 =
+              reinterpret_cast<intptr_t>(team.team_shmem().get_shmem(24));
+          auto scratch_ptr2 =
+              reinterpret_cast<intptr_t>(team.team_shmem().get_shmem(32));
+          auto scratch_ptr3 =
+              reinterpret_cast<intptr_t>(team.team_shmem().get_shmem(12));
+
+          if (((scratch_ptr2 - scratch_ptr1) != 24) ||
+              ((scratch_ptr3 - scratch_ptr2) != 32))
+            flag() = 1;
+
+          // Now request aligned memory such that the allocation after
+          // scratch_ptr2 would be unaligned if it doesn't pad correctly.
+          // Depending on scratch_ptr3 being 4 or 8 byte aligned
+          // we need to request a different amount of memory.
+          if ((scratch_ptr3 + 12) % 8 == 4)
+            scratch_ptr1 = reinterpret_cast<intptr_t>(
+                team.team_shmem().get_shmem_aligned(24, 4));
+          else {
+            scratch_ptr1 = reinterpret_cast<intptr_t>(
+                team.team_shmem().get_shmem_aligned(12, 4));
+          }
+          scratch_ptr2 = reinterpret_cast<intptr_t>(
+              team.team_shmem().get_shmem_aligned(32, 8));
+          scratch_ptr3 = reinterpret_cast<intptr_t>(
+              team.team_shmem().get_shmem_aligned(8, 4));
+
+          // The difference between scratch_ptr2 and scratch_ptr1 should be 4
+          // bytes larger than what we requested in either case.
+          if (((scratch_ptr2 - scratch_ptr1) != 28) &&
+              ((scratch_ptr2 - scratch_ptr1) != 16))
+            flag() = 1;
+          // Check that there wasn't unneccessary padding happening. Since
+          // scratch_ptr2 was allocated with a 32 byte request and scratch_ptr3
+          // is then already aligned, its difference should match 32 bytes.
+          if ((scratch_ptr3 - scratch_ptr2) != 32) flag() = 1;
+
+          // check actually alignment of ptrs is as requested
+          // cast to int here to avoid failure with icpx in mixed integer type
+          // comparison
+          if ((int(scratch_ptr1 % 4) != 0) || (int(scratch_ptr2 % 8) != 0) ||
+              (int(scratch_ptr3 % 4) != 0))
+            flag() = 1;
+        });
+    Kokkos::fence();
+    int raw_get_shmem_alignment_failed = 0;
+    Kokkos::deep_copy(raw_get_shmem_alignment_failed, flag);
+    ASSERT_EQ(raw_get_shmem_alignment_failed, 0);
+  }
 };
 
 }  // namespace
 
 namespace {
-
 template <class ExecSpace>
 struct TestTeamPolicyHandleByValue {
   using scalar     = double;
@@ -1626,7 +1697,7 @@ struct TestRepeatedTeamReduce {
       const {
     // non-divisible by power of two to make triggering problems easier
     constexpr int nlev = 129;
-    constexpr auto pi  = Kokkos::Experimental::pi_v<double>;
+    constexpr auto pi  = Kokkos::numbers::pi;
     double b           = 0.;
     for (int ri = 0; ri < 10; ++ri) {
       // The contributions here must be sufficiently complex, simply adding ones

@@ -590,7 +590,7 @@ TEST_F(VariableTest, NextCommand)
                  command("next five four"););
 }
 
-TEST_F(VariableTest, Label2TypeAtomic)
+TEST_F(VariableTest, LabelMapAtomic)
 {
     BEGIN_HIDE_OUTPUT();
     command("region box block 0 2 0 2 0 2");
@@ -608,14 +608,20 @@ TEST_F(VariableTest, Label2TypeAtomic)
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,N1)"), 2.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,O1)"), 3.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,H1)"), 4.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,N1)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,N2)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,O)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,H1)"), 1.0);
 
     TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in label2type.. in variable.*",
                  command("print \"${t1}\""););
-    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in label2type.. in variable.*",
-                 variable->compute_equal("label2type(bond,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid kind xxx in label2type.. in variable.*",
+                 variable->compute_equal("label2type(xxx,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid kind xxx in is_typelabel.. in variable.*",
+                 variable->compute_equal("is_typelabel(xxx,H1)"););
 }
 
-TEST_F(VariableTest, Label2TypeMolecular)
+TEST_F(VariableTest, LabelMapMolecular)
 {
     if (!info->has_style("atom", "full")) GTEST_SKIP();
 
@@ -637,6 +643,14 @@ TEST_F(VariableTest, Label2TypeMolecular)
     command("variable a2 equal \"\"\"label2type(angle,N2'-C1\"-N2')\"\"\"");
     command("variable d1 equal label2type(dihedral,C1-N2-C1-N2)");
     command("variable i1 equal label2type(improper,C1-N2-C1-N2)");
+
+    command("variable l1 equal is_typelabel(atom,C2)+is_typelabel(bond,C2-N1)"
+            "+is_typelabel(bond,[X1][Y1])+is_typelabel(angle,C1-C2-N1)"
+            "+is_typelabel(dihedral,N2-C1-C1-N2)+is_typelabel(improper,N2-C1-C1-N2)");
+    command("variable l2 equal is_typelabel(atom,C1)+is_typelabel(bond,C1-N2)"
+            "+is_typelabel(bond,[C1][C1])+is_typelabel(angle,C1-N2-C1)"
+            "+is_typelabel(dihedral,C1-N2-C1-N2)+is_typelabel(improper,C1-N2-C1-N2)");
+
     END_HIDE_OUTPUT();
 
     ASSERT_THAT(variable->retrieve("t1"), StrEq("1"));
@@ -647,6 +661,30 @@ TEST_F(VariableTest, Label2TypeMolecular)
     ASSERT_THAT(variable->retrieve("a2"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("d1"), StrEq("1"));
     ASSERT_THAT(variable->retrieve("i1"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("l1"), StrEq("0"));
+    ASSERT_THAT(variable->retrieve("l2"), StrEq("6"));
+
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,N2')"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,\"N2'\")"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,C1-N2)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,C2-N1)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,[C1][C1])"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(bond,[X1][Y1])"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(angle,C1-C2-N1)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(angle,C1-N2-C1)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(dihedral,C1-N2-C1-N2)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(dihedral,N2-C1-C1-N2)"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(improper,C1-N2-C1-N2)"), 1.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(improper,N2-C1-C1-N2)"), 0.0);
+
+    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(bond,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid angle type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(angle,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid dihedral type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(dihedral,H1)"););
+    TEST_FAILURE(".*ERROR: Invalid improper type label H1 in label2type.. in variable.*",
+                 variable->compute_equal("label2type(improper,H1)"););
 }
 
 TEST_F(VariableTest, Format)
@@ -735,9 +773,6 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

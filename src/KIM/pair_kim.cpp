@@ -198,8 +198,7 @@ PairKIM::~PairKIM()
 void PairKIM::set_contributing()
 {
   int const nall = atom->nlocal + atom->nghost;
-  for (int i = 0; i < nall; ++i)
-    kim_particleContributing[i] = ( (i < atom->nlocal) ? 1 : 0 );
+  for (int i = 0; i < nall; ++i) kim_particleContributing[i] = (i < atom->nlocal) ? 1 : 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -596,7 +595,7 @@ void PairKIM::init_style()
     if (kim_cutoff_values[i] <= neighbor->skin)
       error->all(FLERR,"Illegal neighbor request (force cutoff {:.3} <= skin {:.3})",
                  kim_cutoff_values[i], neighbor->skin);
-    req->set_cutoff(kim_cutoff_values[i] + neighbor->skin);
+    req->set_cutoff(kim_cutoff_values[i]);
   }
   // increment instance_me in case of need to change the neighbor list
   // request settings

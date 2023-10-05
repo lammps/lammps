@@ -6,7 +6,7 @@ fix pair command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID pair N pstyle name flag ...
 
@@ -85,7 +85,7 @@ columns 4-6 will store the "uinp" values.
 .. code-block:: LAMMPS
 
    pair_style amoeba
-   fix ex all pair amoeba 10 uind 0 uinp 0
+   fix ex all pair 10 amoeba uind 0 uinp 0
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

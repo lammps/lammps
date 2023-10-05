@@ -6,7 +6,7 @@ compute saed command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID saed lambda type1 type2 ... typeN keyword value ...
 

@@ -6,7 +6,7 @@ fix cmap command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID cmap filename
 

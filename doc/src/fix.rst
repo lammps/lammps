@@ -268,7 +268,6 @@ accelerated styles exist.
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms
 * :doc:`move <fix_move>` - move atoms in a prescribed fashion
-* :doc:`mscg <fix_mscg>` - apply MSCG method for force-matching to generate coarse grain models
 * :doc:`msst <fix_msst>` - multi-scale shock technique (MSST) integration
 * :doc:`mvv/dpd <fix_mvv_dpd>` - DPD using the modified velocity-Verlet integration algorithm
 * :doc:`mvv/edpd <fix_mvv_dpd>` - constant energy DPD using the modified velocity-Verlet algorithm
@@ -323,7 +322,8 @@ accelerated styles exist.
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
 * :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
-* :doc:`pimd/nvt <fix_pimd>` - Feynman path integral molecular dynamics with Nose-Hoover thermostat
+* :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
+* :doc:`pimd/nvt <fix_pimd>` - Feynman path-integral molecular dynamics with Nose-Hoover thermostat
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies

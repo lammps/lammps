@@ -132,6 +132,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   num_ver = utils::date2num(version);
   restart_ver = -1;
 
+  // append git descriptor info to update string when compiling development or maintenance version
+
+  std::string update_string = UPDATE_STRING;
+  if (has_git_info() && ((update_string == " - Development") || (update_string == " - Maintenance")))
+    update_string += fmt::format(" - {}", git_descriptor());
+
   external_comm = 0;
   mdicomm = nullptr;
 
@@ -524,7 +530,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (infile == nullptr)
         error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
       if (!helpflag)
-        utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
+        utils::logmesg(this,"LAMMPS ({}{})\n", version, update_string);
 
      // warn against using I/O redirection in parallel runs
       if ((inflag == 0) && (universe->nprocs > 1))
@@ -620,8 +626,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     }
 
     if ((me == 0) && (!helpflag))
-      utils::logmesg(this,fmt::format("LAMMPS ({})\nProcessor partition = {}\n",
-                                      version, universe->iworld));
+      utils::logmesg(this,"LAMMPS ({})\nProcessor partition = {}\n", version, universe->iworld);
   }
 
   // check consistency of datatype settings in lmptype.h
@@ -732,7 +737,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
  * and files and MPI communicators in sub-partitions ("universes"). Then it
  * deletes the fundamental class instances and copies of data inside the class.
  */
-LAMMPS::~LAMMPS()
+LAMMPS::~LAMMPS() noexcept(false)
 {
   const int me = comm->me;
 
@@ -756,8 +761,7 @@ LAMMPS::~LAMMPS()
     totalclock  = (totalclock - seconds) / 60.0;
     int minutes = fmod(totalclock,60.0);
     int hours = (totalclock - minutes) / 60.0;
-    utils::logmesg(this,fmt::format("Total wall time: {}:{:02d}:{:02d}\n",
-                                    hours, minutes, seconds));
+    utils::logmesg(this, "Total wall time: {}:{:02d}:{:02d}\n", hours, minutes, seconds);
   }
 
   if (universe->nworlds == 1) {
@@ -1431,7 +1435,6 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
   if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
-  if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
 #if defined(LAMMPS_BIGBIG)
   fputs("-DLAMMPS_BIGBIG\n",fp);
 #elif defined(LAMMPS_SMALLBIG)

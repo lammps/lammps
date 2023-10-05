@@ -6,7 +6,7 @@ fix press/berendsen command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID press/berendsen keyword value ...
 

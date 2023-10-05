@@ -980,7 +980,10 @@ void CommKokkos::borders()
   } else {
     atomKK->sync(Host,ALL_MASK);
     k_sendlist.sync<LMPHostType>();
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    lmp->kokkos->auto_sync = 1;
     CommBrick::borders();
+    lmp->kokkos->auto_sync = prev_auto_sync;
     k_sendlist.modify<LMPHostType>();
     atomKK->modified(Host,ALL_MASK);
   }

@@ -18,6 +18,7 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
+#include <algorithm>
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
@@ -27,6 +28,7 @@
 #include "domain.h"
 #include "dump.h"
 #include "error.h"
+#include "exceptions.h"
 #include "fix.h"
 #include "fix_external.h"
 #include "force.h"
@@ -47,19 +49,19 @@
 #include "respa.h"
 #include "thermo.h"
 #include "timer.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
 
 #include <cstring>
 
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
-#endif
-
 #if defined(LMP_PYTHON)
 #include <Python.h>
 #endif
+
+/// string buffer for error messages of global errors
+static std::string lammps_last_global_errormessage;
 
 using namespace LAMMPS_NS;
 
@@ -93,7 +95,6 @@ static void ptr_argument_warning()
    END_CAPTURE
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_EXCEPTIONS
 #define BEGIN_CAPTURE \
   Error *error = lmp->error; \
   try
@@ -101,20 +102,16 @@ static void ptr_argument_warning()
 #define END_CAPTURE \
   catch(LAMMPSAbortException &ae) { \
     int nprocs = 0; \
-    MPI_Comm_size(ae.universe, &nprocs ); \
+    MPI_Comm_size(ae.get_universe(), &nprocs ); \
     \
     if (nprocs > 1) { \
-      error->set_last_error(ae.message, ERROR_ABORT); \
+      error->set_last_error(ae.what(), ERROR_ABORT); \
     } else { \
-      error->set_last_error(ae.message, ERROR_NORMAL); \
+      error->set_last_error(ae.what(), ERROR_NORMAL); \
     } \
   } catch(LAMMPSException &e) { \
-    error->set_last_error(e.message, ERROR_NORMAL); \
+    error->set_last_error(e.what(), ERROR_NORMAL); \
   }
-#else
-#define BEGIN_CAPTURE
-#define END_CAPTURE
-#endif
 
 // ----------------------------------------------------------------------
 // Library functions to create/destroy an instance of LAMMPS
@@ -176,20 +173,20 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
   lammps_mpi_init();
   if (ptr) ptr_argument_warning();
 
-#ifdef LAMMPS_EXCEPTIONS
-  try
-  {
+  try {
+    lammps_last_global_errormessage.clear();
     lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
-  }
-  catch(LAMMPSException &e) {
-    fmt::print(stderr, "LAMMPS Exception: {}", e.message);
+  } catch (fmt::format_error &fe) {
+    lammps_last_global_errormessage = fe.what();
+    fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+    if (ptr) *ptr = nullptr;
+  } catch(LAMMPSException &e) {
+    lammps_last_global_errormessage = e.what();
+
+    fmt::print(stderr, "LAMMPS Exception: {}", e.what());
     if (ptr) *ptr = nullptr;
   }
-#else
-  lmp = new LAMMPS(argc, argv, comm);
-  if (ptr) *ptr = (void *) lmp;
-#endif
   return (void *) lmp;
 }
 
@@ -247,6 +244,8 @@ void *lammps_open_no_mpi(int argc, char **argv, void **ptr)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function is a version of :cpp:func:`lammps_open`, that uses an
 integer for the MPI communicator as the MPI Fortran interface does.  It
 is used in the :f:func:`lammps` constructor of the LAMMPS Fortran
@@ -256,8 +255,6 @@ communicator with ``MPI_Comm_f2c()`` and then calls
 
 If for some reason the creation or initialization of the LAMMPS instance
 fails a null pointer is returned.
-
-.. versionadded:: 18Sep2020
 
 *See also*
    :cpp:func:`lammps_open_fortran`, :cpp:func:`lammps_open_no_mpi`
@@ -304,12 +301,12 @@ void lammps_close(void *handle)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 The MPI standard requires that any MPI application must call
 ``MPI_Init()`` exactly once before performing any other MPI function
 calls.  This function checks, whether MPI is already initialized and
 calls ``MPI_Init()`` in case it is not.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim */
 
@@ -333,6 +330,8 @@ void lammps_mpi_init()
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 The MPI standard requires that any MPI application calls
 ``MPI_Finalize()`` before exiting.  Even if a calling program does not
 do any MPI calls, MPI is still initialized internally to avoid errors
@@ -340,8 +339,6 @@ accessing any MPI functions.  This function should then be called right
 before exiting the program to wait until all (parallel) tasks are
 completed and then MPI is cleanly shut down.  After calling this
 function no more MPI calls may be made.
-
-.. versionadded:: 18Sep2020
 
 *See also*
    :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_python_finalize`
@@ -366,14 +363,14 @@ void lammps_mpi_finalize()
  *
 \verbatim embed:rst
 
+.. versionadded:: 2Jul2021
+
 The Kokkos library may only be initialized once during the execution of
 a process.  This is done automatically the first time Kokkos
 functionality is used.  This requires that the Kokkos environment
 must be explicitly shut down after any LAMMPS instance using it is
 closed (to release associated resources).
 After calling this function no Kokkos functionality may be used.
-
-.. versionadded:: 2Jul2021
 
 *See also*
    :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_python_finalize`
@@ -389,6 +386,8 @@ void lammps_kokkos_finalize()
 /** Clear the embedded Python environment
  *
 \verbatim embed:rst
+
+.. versionadded:: 20Sep2021
 
 This function resets and clears an embedded Python environment
 by calling the `Py_Finalize() function
@@ -409,8 +408,6 @@ after calling Py_Finalize().
 This function can be called to explicitly clear the Python
 environment in case it is safe to do so.
 
-.. versionadded:: 20Sep2021
-
 *See also*
    :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`
 \endverbatim */
@@ -427,6 +424,8 @@ void lammps_python_finalize()
  *
 \verbatim embed:rst
 
+.. versionadded:: 3Nov2022
+
 This function is a wrapper around functions in the ``Error`` to print an
 error message and then stop LAMMPS.
 
@@ -434,8 +433,6 @@ The *error_type* parameter selects which function to call.  It is a sum
 of constants from :cpp:enum:`_LMP_ERROR_CONST`.  If the value does not
 match any valid combination of constants a warning is printed and the
 function returns.
-
-.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -484,7 +481,6 @@ void lammps_error(void *handle, int error_type, const char *error_text)
   }
   END_CAPTURE
 
-#if defined(LAMMPS_EXCEPTIONS)
     // with enabled exceptions the above code will simply throw an
     // exception and record the error message. So we have to explicitly
     // stop here like we do in main.cpp
@@ -500,7 +496,6 @@ void lammps_error(void *handle, int error_type, const char *error_text)
       exit(1);
     }
   }
-#endif
 }
 
 // ----------------------------------------------------------------------
@@ -622,10 +617,10 @@ combined by removing the '&' and the following newline character.  After
 this processing the string is handed to LAMMPS for parsing and
 executing.
 
-.. note::
+.. versionadded:: TBD
 
-   Multi-line commands enabled by triple quotes will NOT work with
-   this function.
+   The command is now able to process long strings with triple quotes and
+   loops using :doc:`jump SELF \<label\> <jump>`.
 
 \endverbatim
  *
@@ -634,17 +629,14 @@ executing.
 
 void lammps_commands_string(void *handle, const char *str)
 {
+  if (!handle) return;
+
   auto lmp = (LAMMPS *) handle;
-
-  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
-  int n = strlen(str);
-  char *ptr, *copy = new char[n+1];
-
-  for (ptr = copy; *str != '\0'; ++str) {
-    if ((str[0] == '\r') && (str[1] == '\n')) continue;
-    *ptr++ = *str;
-  }
-  *ptr = '\0';
+  std::string cmd, line, buffer;
+  bool append = false;
+  bool triple = false;
+  if (str) buffer = str;
+  buffer += '\n';
 
   BEGIN_CAPTURE
   {
@@ -652,27 +644,69 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    n = strlen(copy);
-    ptr = copy;
-    for (int i=0; i < n; ++i) {
+    std::size_t cursor = 0;
+    int nline = -1;
+    std::string label;
 
-      // handle continuation character as last character in line or string
-      if ((copy[i] == '&') && (copy[i+1] == '\n'))
-        copy[i+1] = copy[i] = ' ';
-      else if ((copy[i] == '&') && (copy[i+1] == '\0'))
-        copy[i] = ' ';
+    // split buffer into lines, set line number, process continuation characters, and here docs
 
-      if (copy[i] == '\n') {
-        copy[i] = '\0';
-        lmp->input->one(ptr);
-        ptr = copy + i+1;
-      } else if (copy[i+1] == '\0')
-        lmp->input->one(ptr);
+    while (cursor < buffer.size()) {
+      ++nline;
+      std::size_t start = cursor;
+      cursor = buffer.find('\n', start);
+      if (cursor != std::string::npos) {
+        line = buffer.substr(start, cursor-start);
+        auto start_erase = std::remove(line.begin(), line.end(), '\r');
+        line.erase(start_erase, line.end());
+        ++cursor;
+        lmp->output->thermo->set_line(nline);
+      } else {
+        line = buffer;
+      }
+
+      if (append || triple)
+        cmd += line;
+      else
+        cmd = line;
+
+      if (utils::strmatch(line, "\"\"\".*\"\"\"")) {
+        triple = false;
+      } else if (utils::strmatch(line, "\"\"\"")) {
+        triple = !triple;
+      }
+      if (triple) cmd += '\n';
+
+      if (!triple && utils::strmatch(cmd, "&$")) {
+        append = true;
+        cmd.back() = ' ';
+      } else append = false;
+
+      auto words = Tokenizer(cmd).as_vector();
+      if (!label.empty()) {
+        // skip lines until label command found
+        if ((words.size() == 2) && (words[0] == "label") && (words[1] == label)) {
+          label.clear();
+        } else continue;
+      }
+
+      if (!append && !triple) {
+        // need to handle jump command here
+        if ((words.size() == 3) && (words[0] == "jump")) {
+          if (words[1] != "SELF")
+            lmp->error->all(FLERR, "May only use jump SELF with command string buffer ");
+          // emulate jump command unless with need to skip it
+          if (!lmp->input->get_jump_skip()) {
+            label = words[2];
+            cursor = 0;
+            nline = -1;
+            continue;
+          }
+        }
+        lmp->input->one(cmd.c_str());
+      }
     }
   }
   END_CAPTURE
-
-  delete[] copy;
 }
 
 // -----------------------------------------------------------------------
@@ -719,14 +753,16 @@ double lammps_get_natoms(void *handle)
 
 /* ---------------------------------------------------------------------- */
 
-/** Get current value of a thermo keyword.
+/** Evaluate a thermo keyword.
  *
 \verbatim embed:rst
 
-This function returns the current value of a :doc:`thermo keyword
-<thermo_style>`.  Unlike :cpp:func:`lammps_extract_global` it does not
-give access to the storage of the desired data but returns its value as
-a ``double``, so it can also return information that is computed on-the-fly.
+This function returns the current value of a :doc:`thermo keyword <thermo_style>`.
+Unlike :cpp:func:`lammps_extract_global` it does not give access to the
+storage of the desired data but returns its value as a ``double``, so it
+can also return information that is computed on-the-fly.
+Use :cpp:func:`lammps_last_thermo` to get access to the cached data from
+the last thermo output.
 
 \endverbatim
  *
@@ -746,6 +782,127 @@ double lammps_get_thermo(void *handle, const char *keyword)
   END_CAPTURE
 
   return dval;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Access cached data from last thermo output
+ *
+\verbatim embed:rst
+
+.. versionadded:: 15Jun2023
+
+This function provides access to cached data from the last thermo output.
+This differs from :cpp:func:`lammps_get_thermo` in that it does not trigger
+an evaluation.  Instead it provides direct access to a read-only location
+of the last thermo output data and the corresponding keyword strings.
+The how to handle the return value depends on the value of the *what*
+argument string.
+
+.. note::
+
+   The *type* property points to a static location that is reassigned
+   with every call, so the returned pointer should be recast,
+   dereferenced, and assigned immediately. Otherwise, its value may be
+   changed with the next invocation of the function.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Value of *what*
+     - Description of return value
+     - Data type
+     - Uses index
+   * - setup
+     - 1 if setup is not completed and thus thermo data invalid, 0 otherwise
+     - pointer to int
+     - no
+   * - line
+     - line number (0-based) of current line in current file or buffer
+     - pointer to int
+     - no
+   * - imagename
+     - file name of the last :doc:`dump image <dump_image>` file written
+     - pointer to 0-terminated const char array
+     - no
+   * - step
+     - timestep when the last thermo output was generated or -1
+     - pointer to bigint
+     - no
+   * - num
+     - number of fields in thermo output
+     - pointer to int
+     - no
+   * - keyword
+     - column keyword for thermo output
+     - pointer to 0-terminated const char array
+     - yes
+   * - type
+     - data type of thermo output column; see :cpp:enum:`_LMP_DATATYPE_CONST`
+     - pointer to int
+     - yes
+   * - data
+     - actual field data for column
+     - pointer to int, int64_t or double
+     - yes
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  what     string with the kind of data requested
+ * \param  index    integer with index into data arrays, ignored for scalar data
+ * \return          pointer to location of requested data cast to void or NULL */
+
+void *lammps_last_thermo(void *handle, const char *what, int index)
+{
+  auto lmp = (LAMMPS *) handle;
+  void *val = nullptr;
+  Thermo *th = lmp->output->thermo;
+  if (!th) return nullptr;
+  const int nfield = *th->get_nfield();
+
+  BEGIN_CAPTURE
+  {
+    if (strcmp(what, "setup") == 0) {
+      val = (void *) &lmp->update->setupflag;
+
+    } else if (strcmp(what, "line") == 0) {
+      val = (void *) th->get_line();
+
+    } else if (strcmp(what, "imagename") == 0) {
+      val = (void *) th->get_image_fname();
+
+    } else if (strcmp(what, "step") == 0) {
+      val = (void *) th->get_timestep();
+
+    } else if (strcmp(what, "num") == 0) {
+      val = (void *) th->get_nfield();
+
+    } else if (strcmp(what, "keyword") == 0) {
+      if ((index < 0) || (index >= nfield)) return nullptr;
+      const auto &keywords = th->get_keywords();
+      val = (void *) keywords[index].c_str();
+
+    } else if (strcmp(what, "type") == 0) {
+      if ((index < 0) || (index >= nfield)) return nullptr;
+      const auto &field = th->get_fields()[index];
+      val = (void *) &field.type;
+    } else if (strcmp(what, "data") == 0) {
+      if ((index < 0) || (index >= nfield)) return nullptr;
+      const auto &field = th->get_fields()[index];
+      if (field.type == multitype::LAMMPS_INT) {
+        val = (void *) &field.data.i;
+      } else if (field.type == multitype::LAMMPS_INT64) {
+        val = (void *) &field.data.b;
+      } else if (field.type == multitype::LAMMPS_DOUBLE) {
+        val = (void *) &field.data.d;
+      }
+
+    } else val = nullptr;
+  }
+  END_CAPTURE
+  return val;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -877,6 +1034,8 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function will retrieve memory usage information for the current
 LAMMPS instance or process.  The *meminfo* buffer will be filled with
 3 different numbers (if supported by the operating system).  The first
@@ -888,8 +1047,6 @@ as returned by a memory allocation reporting in the system library.  The
 third number is the maximum amount of RAM (not swap) used by the process
 so far. If any of the two latter parameters is not supported by the operating
 system it will be set to zero.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -910,6 +1067,8 @@ void lammps_memory_usage(void *handle, double *meminfo)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This will take the LAMMPS "world" communicator and convert it to an
 integer using ``MPI_Comm_c2f()``, so it is equivalent to the
 corresponding MPI communicator in Fortran. This way it can be safely
@@ -917,8 +1076,6 @@ passed around between different programming languages.  To convert it
 to the C language representation use ``MPI_Comm_f2c()``.
 
 If LAMMPS was compiled with MPI_STUBS, this function returns -1.
-
-.. versionadded:: 18Sep2020
 
 *See also*
    :cpp:func:`lammps_open_fortran`
@@ -1182,12 +1339,12 @@ int lammps_extract_setting(void *handle, const char *keyword)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function returns an integer that encodes the data type of the global
 property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
 values. Callers of :cpp:func:`lammps_extract_global` can use this information
 to then decide how to cast the ``void *`` pointer and access the data.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -1238,6 +1395,13 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"units") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"atom_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"pair_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"bond_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"angle_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"dihedral_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"improper_style") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"kspace_style") == 0) return LAMMPS_STRING;
   if (strcmp(name,"boltz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"hplanck") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"mvv2e") == 0) return LAMMPS_DOUBLE;
@@ -1484,6 +1648,34 @@ report the "native" data type.  The following tables are provided:
      - int
      - 1
      - **deprecated**. Use :cpp:func:`lammps_extract_setting` instead.
+   * - atom_style
+     - char \*
+     - 1
+     - string with the current atom style.
+   * - pair_style
+     - char \*
+     - 1
+     - string with the current pair style.
+   * - bond_style
+     - char \*
+     - 1
+     - string with the current bond style.
+   * - angle_style
+     - char \*
+     - 1
+     - string with the current angle style.
+   * - dihedral_style
+     - char \*
+     - 1
+     - string with the current dihedral style.
+   * - improper_style
+     - char \*
+     - 1
+     - string with the current improper style.
+   * - kspace_style
+     - char \*
+     - 1
+     - string with the current KSpace style.
 
 .. _extract_unit_settings:
 
@@ -1590,6 +1782,13 @@ void *lammps_extract_global(void *handle, const char *name)
   auto lmp = (LAMMPS *) handle;
 
   if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
+  if (strcmp(name,"atom_style") == 0) return (void *) lmp->atom->atom_style;
+  if (strcmp(name,"pair_style") == 0) return (void *) lmp->force->pair_style;
+  if (strcmp(name,"bond_style") == 0) return (void *) lmp->force->bond_style;
+  if (strcmp(name,"angle_style") == 0) return (void *) lmp->force->angle_style;
+  if (strcmp(name,"dihedral_style") == 0) return (void *) lmp->force->dihedral_style;
+  if (strcmp(name,"improper_style") == 0) return (void *) lmp->force->improper_style;
+  if (strcmp(name,"kspace_style") == 0) return (void *) lmp->force->kspace_style;
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
   // update->atime can be referenced as a pointer
@@ -1671,12 +1870,12 @@ void *lammps_extract_global(void *handle, const char *name)
  *
 \verbatim embed:rst
 
+.. versionadded:: 18Sep2020
+
 This function returns an integer that encodes the data type of the per-atom
 property with the specified name. See :cpp:enum:`_LMP_DATATYPE_CONST` for valid
 values. Callers of :cpp:func:`lammps_extract_atom` can use this information
 to then decide how to cast the ``void *`` pointer and access the data.
-
-.. versionadded:: 18Sep2020
 
 \endverbatim
  *
@@ -2184,7 +2383,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     } else if (lmp->input->variable->vectorstyle(ivar)) {
       double *values = nullptr;
       int nvector = lmp->input->variable->compute_vector(ivar, &values);
-      if ( group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0 ) {
+      if (group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0) {
           int* nvecptr = (int *) malloc(sizeof(int));
           *nvecptr = nvector;
           return (void *) nvecptr;
@@ -2195,9 +2394,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     }
   }
   END_CAPTURE
-#if defined(LAMMPS_EXCEPTIONS)
   return nullptr;
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2206,12 +2403,12 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
  *
 \verbatim embed:rst
 
+.. versionadded:: 3Nov2022
+
 This function returns an integer that encodes the data type of the variable
 with the specified name. See :cpp:enum:`_LMP_VAR_CONST` for valid values.
 Callers of :cpp:func:`lammps_extract_variable` can use this information to
 decide how to cast the ``void *`` pointer and access the data.
-
-.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -2228,7 +2425,7 @@ int lammps_extract_variable_datatype(void *handle, const char *name)
   BEGIN_CAPTURE
   {
     int ivar = lmp->input->variable->find(name);
-    if ( ivar < 0 ) return -1;
+    if (ivar < 0) return -1;
 
     if (lmp->input->variable->equalstyle(ivar))
       return LMP_VAR_EQUAL;
@@ -2268,6 +2465,46 @@ int lammps_set_variable(void *handle, char *name, char *str)
   END_CAPTURE
 
   return err;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+/** Retrieve informational string for a variable.
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function copies a string with human readable information about
+a defined variable: name, style, current value(s) into the provided
+C-style string buffer.  That is the same info as produced by the
+:doc:`info variables <info>` command. The length of the buffer must
+be provided as *buf_size* argument.  If the info exceeds the length
+of the buffer, it will be truncated accordingly.  If the index is
+out of range, the function returns 0 and *buffer* is set to an empty
+string, otherwise 1.
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx      index of the variable (0 <= idx < nvar)
+ * \param buffer   string buffer to copy the info to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0  */
+
+int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
+  auto lmp = (LAMMPS *) handle;
+  Info info(lmp);
+
+  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+    auto varinfo = info.get_variable_info(idx);
+    strncpy(buffer, varinfo.c_str(), buf_size);
+    return 1;
+  }
+
+  buffer[0] = '\0';
+  return 0;
 }
 
 // ----------------------------------------------------------------------
@@ -3064,6 +3301,8 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int type,
  *
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This function copies the list of all bonds into a buffer provided by
 the calling code. The buffer will be filled with bond type, bond atom 1,
 bond atom 2 for each bond. Thus the buffer has to be allocated to the
@@ -3077,8 +3316,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** bonds
 in the system.
-
-.. versionadded:: 28Jul2021
 
 Below is a brief C code demonstrating accessing this collected bond information.
 
@@ -3159,7 +3396,8 @@ void lammps_gather_bonds(void *handle, void *data)
     }
 
     tagint **bonds;
-    lmp->memory->create(bonds, localbonds, 3, "library:gather_bonds:localbonds");
+    // add 1 to localbonds, so "bonds" does not become a NULL pointer
+    lmp->memory->create(bonds, localbonds+1, 3, "library:gather_bonds:localbonds");
     lmp->atom->avec->pack_bond(bonds);
     MPI_Allgatherv(&bonds[0][0], 3*localbonds, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);
@@ -3174,6 +3412,8 @@ void lammps_gather_bonds(void *handle, void *data)
  *
 \verbatim embed:rst
 
+.. versionadded:: 8Feb2023
+
 This function copies the list of all angles into a buffer provided by
 the calling code. The buffer will be filled with angle type, angle atom 1,
 angle atom 2, angle atom 3 for each angle. Thus the buffer has to be allocated to the
@@ -3187,8 +3427,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** angles
 in the system.
-
-.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected angle information.
 
@@ -3269,7 +3507,8 @@ void lammps_gather_angles(void *handle, void *data)
     }
 
     tagint **angles;
-    lmp->memory->create(angles, localangles, 4, "library:gather_angles:localangles");
+    // add 1 to localangles, so "angles" does not become a NULL pointer
+    lmp->memory->create(angles, localangles+1, 4, "library:gather_angles:localangles");
     lmp->atom->avec->pack_angle(angles);
     MPI_Allgatherv(&angles[0][0], 4*localangles, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);
@@ -3283,6 +3522,8 @@ void lammps_gather_angles(void *handle, void *data)
 /** Gather type and constituent atom info for all dihedrals
  *
 \verbatim embed:rst
+
+.. versionadded:: 8Feb2023
 
 This function copies the list of all dihedrals into a buffer provided by
 the calling code. The buffer will be filled with dihedral type, dihedral atom 1,
@@ -3298,8 +3539,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** dihedrals
 in the system.
-
-.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected dihedral information.
 
@@ -3380,7 +3619,8 @@ void lammps_gather_dihedrals(void *handle, void *data)
     }
 
     tagint **dihedrals;
-    lmp->memory->create(dihedrals, localdihedrals, 5, "library:gather_dihedrals:localdihedrals");
+    // add 1 to localdihedrals, so "dihedrals" does not become a NULL pointer
+    lmp->memory->create(dihedrals, localdihedrals+1, 5, "library:gather_dihedrals:localdihedrals");
     lmp->atom->avec->pack_dihedral(dihedrals);
     MPI_Allgatherv(&dihedrals[0][0], 5*localdihedrals, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);
@@ -3394,6 +3634,8 @@ void lammps_gather_dihedrals(void *handle, void *data)
 /** Gather type and constituent atom info for all impropers
  *
 \verbatim embed:rst
+
+.. versionadded:: 8Feb2023
 
 This function copies the list of all impropers into a buffer provided by
 the calling code. The buffer will be filled with improper type, improper atom 1,
@@ -3409,8 +3651,6 @@ the LAMMPS library and can be queried by calling
 When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** impropers
 in the system.
-
-.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected improper information.
 
@@ -3491,7 +3731,8 @@ void lammps_gather_impropers(void *handle, void *data)
     }
 
     tagint **impropers;
-    lmp->memory->create(impropers, localimpropers, 5, "library:gather_impropers:localimpropers");
+    // add 1 to localimpropers, so "impropers" does not become a NULL pointer
+    lmp->memory->create(impropers, localimpropers+1, 5, "library:gather_impropers:localimpropers");
     lmp->atom->avec->pack_improper(impropers);
     MPI_Allgatherv(&impropers[0][0], 5*localimpropers, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);
@@ -5051,7 +5292,7 @@ int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int n
     // find neigh list
     for (int i = 0; i < lmp->neighbor->nlist; i++) {
       NeighList *list = lmp->neighbor->lists[i];
-      if ( (list->requestor_type == NeighList::PAIR)
+      if ((list->requestor_type == NeighList::PAIR)
            && (pair == list->requestor)
            && (list->id == reqid) ) return i;
     }
@@ -5081,7 +5322,7 @@ int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList *list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::FIX)
+    if ((list->requestor_type == NeighList::FIX)
          && (fix == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5110,7 +5351,7 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   // find neigh list
   for (int i = 0; i < lmp->neighbor->nlist; i++) {
     NeighList * list = lmp->neighbor->lists[i];
-    if ( (list->requestor_type == NeighList::COMPUTE)
+    if ((list->requestor_type == NeighList::COMPUTE)
          && (compute == list->requestor)
          && (list->id == reqid) ) return i;
   }
@@ -5204,6 +5445,8 @@ int lammps_version(void *handle)
  *
 \verbatim embed:rst
 
+.. versionadded:: 9Oct2020
+
 The :cpp:func:`lammps_get_os_info` function can be used to retrieve
 detailed information about the hosting operating system and
 compiler/runtime.
@@ -5211,8 +5454,6 @@ compiler/runtime.
 A suitable buffer for a C-style string has to be provided and its length.
 The assembled text will be truncated to not overflow this buffer. The
 string is typically a few hundred bytes long.
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5329,6 +5570,13 @@ int lammps_config_has_ffmpeg_support() {
 /** Check whether LAMMPS errors will throw C++ exceptions.
  *
 \verbatim embed:rst
+
+.. deprecated:: TBD
+
+   LAMMPS has now exceptions always enabled, so this function
+   will now always return 1 and can be removed from applications
+   using the library interface.
+
 In case of an error, LAMMPS will either abort or throw a C++ exception.
 The latter has to be :ref:`enabled at compile time <exceptions>`.
 This function checks if exceptions were enabled.
@@ -5442,6 +5690,8 @@ int lammps_config_accelerator(const char *package,
  *
 \verbatim embed:rst
 
+.. versionadded:: 14May2021
+
 The :cpp:func:`lammps_has_gpu_device` function checks at runtime if
 an accelerator device is present that can be used with the
 :doc:`GPU package <Speed_gpu>`. If at least one suitable device is
@@ -5450,8 +5700,6 @@ present the function will return 1, otherwise 0.
 More detailed information about the available device or devices can
 be obtained by calling the
 :cpp:func:`lammps_get_gpu_device_info` function.
-
-.. versionadded:: 14May2021
 
 \endverbatim
  *
@@ -5466,6 +5714,8 @@ int lammps_has_gpu_device()
  *
 \verbatim embed:rst
 
+.. versionadded:: 14May2021
+
 The :cpp:func:`lammps_get_gpu_device_info` function can be used to retrieve
 detailed information about any accelerator devices that are viable for use
 with the :doc:`GPU package <Speed_gpu>`.  It will produce a string that is
@@ -5476,8 +5726,6 @@ package is enabled.
 A suitable buffer for a C-style string has to be provided and its length.
 The assembled text will be truncated to not overflow this buffer.  This
 string can be several kilobytes long, if multiple devices are present.
-
-.. versionadded:: 14May2021
 
 \endverbatim
  *
@@ -5561,7 +5809,7 @@ int lammps_style_name(void *handle, const char *category, int idx,
   Info info(lmp);
   auto styles = info.get_available_styles(category);
 
-  if ((idx >=0) && (idx < (int) styles.size())) {
+  if ((idx >= 0) && (idx < (int) styles.size())) {
     strncpy(buffer, styles[idx].c_str(), buf_size);
     return 1;
   }
@@ -5575,11 +5823,12 @@ int lammps_style_name(void *handle, const char *category, int idx,
 /** Check if a specific ID exists in the current LAMMPS instance
  *
 \verbatim embed:rst
+
+.. versionadded:: 9Oct2020
+
 This function checks if the current LAMMPS instance a *category* ID of
 the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
 *fix*\ , *group*\ , *molecule*\ , *region*\ , and *variable*\ .
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5614,12 +5863,13 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
 /** Count the number of IDs of a category.
  *
 \verbatim embed:rst
+
+.. versionadded:: 9Oct2020
+
 This function counts how many IDs in the provided *category*
 are defined in the current LAMMPS instance.
 Please see :cpp:func:`lammps_has_id` for a list of valid
 categories.
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5652,14 +5902,15 @@ int lammps_id_count(void *handle, const char *category) {
 /** Look up the name of an ID by index in the list of IDs of a given category.
  *
 \verbatim embed:rst
+
+.. versionadded:: 9Oct2020
+
 This function copies the name of the *category* ID with the index
 *idx* into the provided C-style string buffer.  The length of the buffer
 must be provided as *buf_size* argument.  If the name of the style
 exceeds the length of the buffer, it will be truncated accordingly.
 If the index is out of range, the function returns 0 and *buffer* is
 set to an empty string, otherwise 1.
-
-.. versionadded:: 9Oct2020
 
 \endverbatim
  *
@@ -5693,23 +5944,23 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"group") == 0) {
-    if ((idx >=0) && (idx < lmp->group->ngroup)) {
+    if ((idx >= 0) && (idx < lmp->group->ngroup)) {
       strncpy(buffer, lmp->group->names[idx], buf_size);
       return 1;
     }
   } else if (strcmp(category,"molecule") == 0) {
-    if ((idx >=0) && (idx < lmp->atom->nmolecule)) {
+    if ((idx >= 0) && (idx < lmp->atom->nmolecule)) {
       strncpy(buffer, lmp->atom->molecules[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"region") == 0) {
     auto regions = lmp->domain->get_region_list();
-    if ((idx >=0) && (idx < (int) regions.size())) {
+    if ((idx >= 0) && (idx < (int) regions.size())) {
       strncpy(buffer, regions[idx]->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >=0) && (idx < lmp->input->variable->nvar)) {
+    if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
       strncpy(buffer, lmp->input->variable->names[idx], buf_size);
       return 1;
     }
@@ -5723,9 +5974,10 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
 /** Count the number of loaded plugins
  *
 \verbatim embed:rst
-This function counts how many plugins are currently loaded.
 
 .. versionadded:: 10Mar2021
+
+This function counts how many plugins are currently loaded.
 
 \endverbatim
  *
@@ -5745,14 +5997,15 @@ int lammps_plugin_count()
 /** Look up the info of a loaded plugin by its index in the list of plugins
  *
 \verbatim embed:rst
+
+.. versionadded:: 10Mar2021
+
 This function copies the name of the *style* plugin with the index
 *idx* into the provided C-style string buffer.  The length of the buffer
 must be provided as *buf_size* argument.  If the name of the style
 exceeds the length of the buffer, it will be truncated accordingly.
 If the index is out of range, the function returns 0 and *buffer* is
 set to an empty string, otherwise 1.
-
-.. versionadded:: 10Mar2021
 
 \endverbatim
  *
@@ -5912,9 +6165,11 @@ void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalF
 
 \verbatim embed:rst
 
-Fix :doc:`external <fix_external>` allows programs that are running LAMMPS through
-its library interface to add or modify certain LAMMPS properties on specific
-timesteps, similar to the way other fixes do.
+.. versionadded:: 28Jul2021
+
+Fix :doc:`external <fix_external>` allows programs that are running
+LAMMPS through its library interface to add or modify certain LAMMPS
+properties on specific timesteps, similar to the way other fixes do.
 
 This function provides access to the per-atom force storage in a fix
 external instance with the given fix-ID to be added to the individual
@@ -5927,12 +6182,12 @@ data structures can change as well as the order of atom as they migrate
 between MPI processes because of the domain decomposition
 parallelization, this function should be always called immediately
 before the forces are going to be set to get an up-to-date pointer.
-You can use, for example, :cpp:func:`lammps_extract_setting` to obtain the
-number of local atoms `nlocal` and then assume the dimensions of the returned
-force array as ``double force[nlocal][3]``.
+You can use, for example, :cpp:func:`lammps_extract_setting` to obtain
+the number of local atoms `nlocal` and then assume the dimensions of
+the returned force array as ``double force[nlocal][3]``.
 
-This is an alternative to the callback mechanism in fix external set up by
-:cpp:func:`lammps_set_fix_external_callback`. The main difference is
+This is an alternative to the callback mechanism in fix external set up
+by :cpp:func:`lammps_set_fix_external_callback`. The main difference is
 that this mechanism can be used when forces are be pre-computed and the
 control alternates between LAMMPS and the external code, while the
 callback mechanism can call the external code to compute the force when
@@ -5941,8 +6196,6 @@ the fix is triggered and needs them.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -5974,6 +6227,8 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to also set the contribution
 to the global energy from the external code.  The value of the *eng*
@@ -5989,8 +6244,6 @@ variables.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6020,6 +6273,8 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
 and :cpp:func:`lammps_fix_external_get_force` to set the contribution to
 the global virial from the external code.
@@ -6037,8 +6292,6 @@ be added by fix external.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6068,6 +6321,8 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
 to set the per-atom energy contribution due to the fix from the external code
 as part of the callback function.  For this to work, the handle to the
@@ -6085,8 +6340,6 @@ callback function.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6116,6 +6369,8 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback`
 to set the per-atom virial contribution due to the fix from the external code
 as part of the callback function.  For this to work, the handle to the
@@ -6136,8 +6391,6 @@ dimensions of the per-atom virial array is ``double virial[nlocal][6]``.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6167,6 +6420,8 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to set the length of a global vector of
 properties that will be stored with the fix via
@@ -6180,8 +6435,6 @@ processes and with the same length parameter.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6211,6 +6464,8 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
 
 \verbatim embed:rst
 
+.. versionadded:: 28Jul2021
+
 This is a companion function to :cpp:func:`lammps_set_fix_external_callback` and
 :cpp:func:`lammps_fix_external_get_force` to set the values of a global vector of
 properties that will be stored with the fix.  And can be accessed from
@@ -6233,8 +6488,6 @@ is assumed to be extensive.
 Please see the documentation for :doc:`fix external <fix_external>` for
 more information about how to use the fix and how to couple it with an
 external code.
-
-.. versionadded:: 28Jul2021
 
 \endverbatim
  *
@@ -6337,6 +6590,16 @@ has thrown a :ref:`C++ exception <exceptions>`.
 
 .. note::
 
+   .. versionchanged: 2Aug2023
+
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error status inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+.. note::
+
    This function will always report "no error" when the LAMMPS library
    has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
    errors aborting LAMMPS into C++ exceptions. You can use the library
@@ -6344,17 +6607,18 @@ has thrown a :ref:`C++ exception <exceptions>`.
    the case.
 \endverbatim
  *
- * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *`` or NULL
  * \return 0 on no error, 1 on error.
  */
-int lammps_has_error(void *handle) {
-#ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  return (error->get_last_error().empty()) ? 0 : 1;
-#else
-  return 0;
-#endif
+int lammps_has_error(void *handle)
+{
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    return (error->get_last_error().empty()) ? 0 : 1;
+  } else {
+    return lammps_last_global_errormessage.empty() ? 0 : 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -6366,12 +6630,28 @@ This function can be used to retrieve the error message that was set
 in the event of an error inside of LAMMPS which resulted in a
 :ref:`C++ exception <exceptions>`.  A suitable buffer for a C-style
 string has to be provided and its length.  If the internally stored
-error message is longer, it will be truncated accordingly.  The return
+error message is longer, it will be truncated accordingly.  If the
+buffer is a NULL pointer, then nothing will be copied.  The return
 value of the function corresponds to the kind of error: a "1" indicates
 an error that occurred on all MPI ranks and is often recoverable, while
 a "2" indicates an abort that would happen only in a single MPI rank
 and thus may not be recoverable, as other MPI ranks may be waiting on
 the failing MPI ranks to send messages.
+
+.. note::
+
+   .. versionchanged: 2Aug2023
+
+   The *handle* pointer may be ``NULL`` for this function, as would be
+   the case when a call to create a LAMMPS instance has failed.  Then
+   this function will not check the error buffer inside the LAMMPS
+   instance, but instead would check the global error buffer of the
+   library interface.
+
+   .. versionchanged: TBD
+
+   The *buffer* pointer may be ``NULL``.  This will clear any error
+   status without copying the error message.
 
 .. note::
 
@@ -6381,24 +6661,33 @@ the failing MPI ranks to send messages.
    :cpp:func:`lammps_config_has_exceptions` to check whether this is the case.
 \endverbatim
  *
- * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
- * \param  buffer    string buffer to copy the error message to
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.
+ * \param  buffer    string buffer to copy the error message to, may be NULL
  * \param  buf_size  size of the provided string buffer
  * \return           1 when all ranks had the error, 2 on a single rank error. */
 
-int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
-#ifdef LAMMPS_EXCEPTIONS
-  LAMMPS *lmp = (LAMMPS *) handle;
-  Error *error = lmp->error;
-  buffer[0] = buffer[buf_size-1] = '\0';
+int lammps_get_last_error_message(void *handle, char *buffer, int buf_size)
+{
+  if (handle) {
+    LAMMPS *lmp = (LAMMPS *) handle;
+    Error *error = lmp->error;
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
 
-  if (!error->get_last_error().empty()) {
-    int error_type = error->get_last_error_type();
-    strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
-    error->set_last_error("", ERROR_NONE);
-    return error_type;
+    if (!error->get_last_error().empty()) {
+      int error_type = error->get_last_error_type();
+      if (buffer) strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
+      error->set_last_error("", ERROR_NONE);
+      return error_type;
+    }
+  } else {
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
+
+    if (!lammps_last_global_errormessage.empty()) {
+      if (buffer) strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
+      lammps_last_global_errormessage.clear();
+      return 1;
+    }
   }
-#endif
   return 0;
 }
 
@@ -6407,11 +6696,12 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 /** Return API version of embedded Python interpreter
 
 \verbatim embed:rst
+
+.. versionadded:: 3Nov2022
+
 This function is used by the ML-IAP python code (mliappy) to verify
 the API version of the embedded python interpreter of the PYTHON
 package.  It returns -1 if the PYTHON package is not enabled.
-
-.. versionadded:: 3Nov2022
 
 \endverbatim
  *

@@ -104,8 +104,6 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | min         | energy minimization of 2d LJ melt                                |
 +-------------+------------------------------------------------------------------+
-| mscg        | parameterize a multi-scale coarse-graining (MSCG) model          |
-+-------------+------------------------------------------------------------------+
 | msst        | MSST shock dynamics                                              |
 +-------------+------------------------------------------------------------------+
 | multi       | multi neighboring for systems with large interaction disparities |

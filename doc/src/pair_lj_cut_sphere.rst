@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 The *lj/cut/sphere* style compute the standard 12/6 Lennard-Jones potential,
 given by

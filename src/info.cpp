@@ -298,7 +298,6 @@ void Info::command(int narg, char **arg)
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
-    if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
 
 #if defined(LAMMPS_BIGBIG)
     fputs("-DLAMMPS_BIGBIG\n",out);
@@ -602,23 +601,10 @@ void Info::command(int narg, char **arg)
 
   if (flags & VARIABLES) {
     int nvar = input->variable->nvar;
-    int *style = input->variable->style;
-    char **names = input->variable->names;
-    char ***data = input->variable->data;
     fputs("\nVariable information:\n",out);
     for (int i=0; i < nvar; ++i) {
-      int ndata = 1;
-      fmt::print(out,"Variable[{:3d}]: {:16}  style = {:16}  def =",
-                 i,std::string(names[i])+',',std::string(varstyles[style[i]])+',');
-      if (style[i] == Variable::INTERNAL) {
-        fmt::print(out,"{:.8}\n",input->variable->dvalue[i]);
-        continue;
-      }
-      if ((style[i] != Variable::LOOP) && (style[i] != Variable::ULOOP))
-        ndata = input->variable->num[i];
-      for (int j=0; j < ndata; ++j)
-        if (data[i][j]) fmt::print(out," {}",data[i][j]);
-      fputs("\n",out);
+      auto vinfo = get_variable_info(i);
+      fmt::print(out, get_variable_info(i));
     }
   }
 
@@ -1096,11 +1082,7 @@ bool Info::has_fft_single_support() {
 }
 
 bool Info::has_exceptions() {
-#ifdef LAMMPS_EXCEPTIONS
   return true;
-#else
-  return false;
-#endif
 }
 
 bool Info::has_package(const std::string &package_name) {
@@ -1320,4 +1302,30 @@ void Info::get_memory_info(double *meminfo)
 char **Info::get_variable_names(int &num) {
   num = input->variable->nvar;
   return input->variable->names;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_variable_info(int num) {
+  int *style = input->variable->style;
+  char **names = input->variable->names;
+  char ***data = input->variable->data;
+  std::string text;
+  int ndata = 1;
+  text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
+                     std::string(names[num]) + ',', std::string(varstyles[style[num]]) + ',');
+  if (style[num] == Variable::INTERNAL) {
+    text += fmt::format("{:.8}\n",input->variable->dvalue[num]);
+    return text;
+  }
+
+  if ((style[num] != Variable::LOOP) && (style[num] != Variable::ULOOP))
+    ndata = input->variable->num[num];
+  else
+    input->variable->retrieve(names[num]);
+
+  for (int j=0; j < ndata; ++j)
+    if (data[num][j]) text += fmt::format(" {}",data[num][j]);
+  text += "\n";
+  return text;
 }

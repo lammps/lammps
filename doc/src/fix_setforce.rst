@@ -13,7 +13,7 @@ fix setforce/spin command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID setforce fx fy fz keyword value ...
 

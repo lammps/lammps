@@ -245,6 +245,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`composition/atom <compute_composition_atom>` - local composition for each atom
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
@@ -307,11 +308,11 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`sph/t/atom <compute_sph_t_atom>` - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms
 * :doc:`spin <compute_spin>` - magnetic quantities for a system of atoms having spins
 * :doc:`stress/atom <compute_stress_atom>` - stress tensor for each atom
-* :doc:`stress/cartesian <compute_stress_profile>` - stress tensor in cartesian coordinates
-* :doc:`stress/cylinder <compute_stress_profile>` - stress tensor in cylindrical coordinates
+* :doc:`stress/cartesian <compute_stress_cartesian>` - stress tensor in cartesian coordinates
+* :doc:`stress/cylinder <compute_stress_curvilinear>` - stress tensor in cylindrical coordinates
 * :doc:`stress/mop <compute_stress_mop>` - normal components of the local stress tensor using the method of planes
 * :doc:`stress/mop/profile <compute_stress_mop>` - profile of the normal components of the local stress tensor using the method of planes
-* :doc:`stress/spherical <compute_stress_profile>` - stress tensor in spherical coordinates
+* :doc:`stress/spherical <compute_stress_curvilinear>` - stress tensor in spherical coordinates
 * :doc:`stress/tally <compute_tally>` - stress between two groups of atoms via the tally callback mechanism
 * :doc:`tdpd/cc/atom <compute_tdpd_cc_atom>` - per-atom chemical concentration of a specified species for each tDPD particle
 * :doc:`temp <compute_temp>` - temperature of group of atoms

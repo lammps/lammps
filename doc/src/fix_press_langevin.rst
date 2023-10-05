@@ -25,7 +25,7 @@ Syntax
          Pdamp = pressure damping parameter
        *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
-       *mass* value = Mass of the barostat fictious particle
+       *friction* value = Friction coefficient for the barostat
        *temp* values = Tstart, Tstop, seed
        Tstart, Tstop = target temperature used for the barostat at start/end of run
        seed = seed of the random number generator
@@ -68,7 +68,7 @@ two first terms on the righthand side of the first equation are the virial
 expression of the canonical pressure. It is to be noted that the temperature
 used to compute the pressure is not the velocity of the atom but the canonical
 target temperature directly. This temperature is specified using the *temp*
-keyword parameter and should be close to the current target temperature of the
+keyword parameter and should be close to the expected target temperature of the
 system.
 
 Regardless of what atoms are in the fix group, a global pressure is
@@ -115,9 +115,13 @@ will change.  A box dimension will not change if that component is not
 specified, although you have the option to change that dimension via the
 :doc:`fix deform <fix_deform>` command.
 
-For all barostat keywords, the *Pdamp* parameter determines the "friction
-parameter" :math:`\alpha` of the pseudo particle acting as a barostat. The
-relation is such that :math:`\alpha = \frac{Q}{P_{damp}}` where Q is the mass.
+The *Pdamp* parameter can be seen in the same way as a Nosé-Hoover parameter as
+it is used to compute the mass of the fictitious particle. Without friction,
+the barostat can be compared to a single particle Nosé-Hoover barostat and as
+such should follow a similar decay in time. As such the mass of the barostat is
+also linked to *Pdamp* by the relation
+:math:`Q=(N_{at}+1)\cdot{}k_BT_{target}\cdot{}P_{damp}^2`. Note that *Pdamp*
+should be expressed in time units.
 
 .. note::
 
@@ -212,16 +216,16 @@ error.
 
 ----------
 
-The *mass* keyword sets the mass parameter :math:`Q` in the
-equations of movement of the barostat. All the barostat use the same value.
-
-.. note::
-
-   The same recommandation with regard to the bulk modulus of a berendsen
-   barostat applies to a Langevin barostat mass. It is however important to
-   note that not only the absolute value used for the mass is important, but
-   also its ratio with Pdamp values which defines the friction coeffiction
-   value.
+The *friction* keyword sets the friction parameter :math:`\alpha` in the
+equations of movement of the barostat. For each barostat, the value of
+:math:`\alpha` depends on both *Pdamp* and *friction*. The value given as a
+parameter is the Langevin characteristic time :math:`\tau_{L}
+=\frac{Q}{\alpha}` in time units. The langevin time can be understood as a
+decorrelation time for the pressure. A long langevin time value will make the
+barostat act as an underdamped oscillator while a short value will make it
+act as an overdamped oscillator. The ideal configuration would be to find
+the critical parameter of the barostat. Such a value is empirically found
+so that :math:`\tau_{L}\approx{}P_{damp}/2.`.
 
 ----------
 

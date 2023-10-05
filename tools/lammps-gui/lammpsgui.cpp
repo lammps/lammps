@@ -1098,7 +1098,7 @@ void LammpsGui::render_image()
                 cursor.movePosition(QTextCursor::EndOfLine);
                 cursor.movePosition(QTextCursor::Start, QTextCursor::KeepAnchor);
                 auto selection = cursor.selectedText().replace(QChar(0x2029), '\n');
-                selection += "run 0 pre yes post no";
+                selection += "\nrun 0 pre yes post no";
                 ui->textEdit->setTextCursor(saved);
                 lammps.command("clear");
                 lammps.commands_string(selection.toStdString().c_str());

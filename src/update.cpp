@@ -396,7 +396,7 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
 
 void Update::create_minimize(int narg, char **arg, int trysuffix)
 {
-  if (narg < 1) error->all(FLERR, "Illegal run_style command");
+  if (narg < 1) error->all(FLERR, "Illegal minimize_style command");
 
   delete[] minimize_style;
   delete minimize;

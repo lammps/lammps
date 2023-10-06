@@ -19,13 +19,13 @@ Syntax
      keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *modulus* or *temp* or *flip*
        *iso* or *aniso* or *tri* values = Pstart Pstop Pdamp
          Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
-         Pdamp = pressure damping parameter
+         Pdamp = pressure damping parameter (time units)
        *x* or *y* or *z* or *xy* or *xz* or *yz* values = Pstart Pstop Pdamp
          Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
          Pdamp = pressure damping parameter
        *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
-       *friction* value = Friction coefficient for the barostat
+       *friction* value = Friction coefficient for the barostat (time units)
        *temp* values = Tstart, Tstop, seed
        Tstart, Tstop = target temperature used for the barostat at start/end of run
        seed = seed of the random number generator
@@ -42,8 +42,8 @@ Examples
 Description
 """""""""""
 
-Reset the pressure of the system by using a Langevin stochastic barostat
-:ref:`(Grønbech) <Grønbech>`, which rescales the system volume and
+Adjust the pressure of the system by using a Langevin stochastic barostat
+:ref:`(Gronbech) <Gronbech>`, which rescales the system volume and
 (optionally) the atoms coordinates within the simulation box every
 timestep.
 
@@ -64,9 +64,10 @@ Where :math:`dt` is the timestep :math:`\dot{L}` and :math:`\ddot{L}` the first
 and second derivatives of the coupled direction with regard to time,
 :math:`\alpha` is a friction coefficient, :math:`\beta` is a random gaussian
 variable and :math:`Q` the effective mass of the coupled pseudoparticle. The
-two first terms on the righthand side of the first equation are the virial
+two first terms on the right-hand side of the first equation are the virial
 expression of the canonical pressure. It is to be noted that the temperature
-used to compute the pressure is not the velocity of the atom but the canonical
+used to compute the pressure is not based on the atom velocities but rather on
+the canonical
 target temperature directly. This temperature is specified using the *temp*
 keyword parameter and should be close to the expected target temperature of the
 system.
@@ -82,7 +83,7 @@ unchanged and controlling the pressure of a surrounding fluid.
 .. note::
 
    Unlike the :doc:`fix npt <fix_nh>` or :doc:`fix nph <fix_nh>` commands which
-   perform Nose/Hoover barostatting AND time integration, this fix does NOT
+   perform Nose-Hoover barostatting AND time integration, this fix does NOT
    perform time integration of the atoms but only of the barostat coupled
    coordinate. It then only modifies the box size and atom coordinates to
    effect barostatting. Thus you must use a separate time integration fix,
@@ -115,11 +116,11 @@ will change.  A box dimension will not change if that component is not
 specified, although you have the option to change that dimension via the
 :doc:`fix deform <fix_deform>` command.
 
-The *Pdamp* parameter can be seen in the same way as a Nosé-Hoover parameter as
+The *Pdamp* parameter can be seen in the same way as a Nose-Hoover parameter as
 it is used to compute the mass of the fictitious particle. Without friction,
-the barostat can be compared to a single particle Nosé-Hoover barostat and as
-such should follow a similar decay in time. As such the mass of the barostat is
-also linked to *Pdamp* by the relation
+the barostat can be compared to a single particle Nose-Hoover barostat and
+should follow a similar decay in time. The mass of the barostat is
+linked to *Pdamp* by the relation
 :math:`Q=(N_{at}+1)\cdot{}k_BT_{target}\cdot{}P_{damp}^2`. Note that *Pdamp*
 should be expressed in time units.
 
@@ -139,7 +140,7 @@ The *temp* keyword sets the temperature to use in the equation of motion of the
 barostat. This value is used to compute the value of the force :math:`f_P` in
 the equation of motion. It is important to note that this value is not the
 instantaneous temperature but a target temperature that ramps from *Tstart* to
-*Tstop*. Also the required argument *seed* also sets the seed for the random
+*Tstop*. Also the required argument *seed* sets the seed for the random
 number generator used in the generation of the random forces.
 
 ----------
@@ -217,15 +218,16 @@ error.
 ----------
 
 The *friction* keyword sets the friction parameter :math:`\alpha` in the
-equations of movement of the barostat. For each barostat, the value of
+equations of motion of the barostat. For each barostat direction, the value of
 :math:`\alpha` depends on both *Pdamp* and *friction*. The value given as a
-parameter is the Langevin characteristic time :math:`\tau_{L}
-=\frac{Q}{\alpha}` in time units. The langevin time can be understood as a
-decorrelation time for the pressure. A long langevin time value will make the
+parameter is the Langevin characteristic time
+:math:`\tau_{L}=\frac{Q}{\alpha}` in time units. The langevin time can be understood as a
+decorrelation time for the pressure. A long Langevin time value will make the
 barostat act as an underdamped oscillator while a short value will make it
 act as an overdamped oscillator. The ideal configuration would be to find
-the critical parameter of the barostat. Such a value is empirically found
-so that :math:`\tau_{L}\approx{}P_{damp}/2.`.
+the critical parameter of the barostat. Empirically this is observed to
+occur for :math:`\tau_{L}\approx{}P_{damp}`.  For this reason, if the *friction*
+keyword is not used, the default value *Pdamp* is used for each barostat direction.
 
 ----------
 
@@ -270,7 +272,7 @@ This fix can ramp its target pressure and temperature over multiple runs, using
 the *start* and *stop* keywords of the :doc:`run <run>` command.  See the
 :doc:`run <run>` command for details of how to do this. It is recommended that
 the ramped temperature is the same as the effective temperature of the
-thermalised system. That is, if the system's temperature is ramped by other
+thermostatted system. That is, if the system's temperature is ramped by other
 commands, it is recommended to do the same with this pressure control.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
@@ -290,11 +292,10 @@ Related commands
 Default
 """""""
 
-The keyword defaults are dilate = all and mass = 0.001 in units of mass for
-whatever :doc:`units <units>` defined.
+The keyword defaults are *dilate* = all, *flip* = yes, and *friction* = *Pdamp*.
 
 ----------
 
-.. _Grønbech:
+.. _Gronbech:
 
-**(Grønbech)** Grønbech-Jensen, Farago, J Chem Phys, 141, 194108 (2014).
+**(Gronbech)** Gronbech-Jensen, Farago, J Chem Phys, 141, 194108 (2014).

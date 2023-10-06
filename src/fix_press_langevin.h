@@ -41,12 +41,11 @@ class FixPressLangevin : public Fix {
 
  protected:
   int dimension, which;
-
   int pstyle, pcouple, allremap;
   int p_flag[6];    // 1 if control P on this dim, 0 if not
   double nktv2p;
   double t_start, t_stop, t_target;
-  double p_fric, p_ltime; // Friction and Langevin charac. time
+  double p_fric[6], p_ltime; // Friction and Langevin charac. time
   double p_alpha[6];
   double p_start[6], p_stop[6], p_period[6];
   double p_mass[6], p_target[6], p_current[6];

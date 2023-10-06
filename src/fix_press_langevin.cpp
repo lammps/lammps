@@ -54,7 +54,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   // Langevin barostat applied every step
   // For details on the equations of motion see:
-  // Grønbech-Jensen & Farago J. Chem. Phys. 141 194108 (2014)
+  // Gronbech-Jensen & Farago J. Chem. Phys. 141 194108 (2014)
 
   nevery = 1;
 
@@ -65,28 +65,33 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   pre_exchange_flag = 0;
   flipflag = 1;
 
-  p_ltime = 1000.;
-  p_fric = 1./p_ltime;
+  p_ltime = 0.0;
 
-  // Target temperature
+  // target temperature
+  
   t_start = t_stop = t_target = 0.0;
 
   for (int i = 0; i < 6; i++) {
-    // Pressure and pistons period
+    
+    // pressure and pistons period
+
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
     p_alpha[i] = 0;
 
     p_mass[i] = 0.;
 
-    // Pistons coordinates derivative V
+    // pistons coordinates derivative V
+    
     p_deriv[i] = 0.0;
 
     // a and b values for each piston
+    
     gjfa[i] = 0.0;
     gjfb[i] = 0.0;
 
-    // Random value for each piston
+    // random value for each piston
+    
     fran[i] = 0.0;
     f_piston[i] = 0.0;
     dilation[i] = 0.0;
@@ -220,7 +225,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix press/langevin command");
       p_ltime = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (p_ltime < 0.0)
+      if (p_ltime <= 0.0)
         error->all(FLERR,"Illegal fix press/langevin command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
@@ -327,7 +332,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
 
-    // pre_exchange only required if flips can occur due to shape changes
+  // pre_exchange only required if flips can occur due to shape changes
 
   if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
     pre_exchange_flag = pre_exchange_migrate = 1;
@@ -338,25 +343,12 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (pre_exchange_flag) irregular = new Irregular(lmp);
   else irregular = nullptr;
 
-  // C1
   // Langevin GJF dynamics does NOT need a temperature compute
   // This is stated explicitely in their paper.
   // The temperature used for the pressure is NkT/V on purpose.
 
-  // id = fix-ID + temp
-  // compute group = all since pressure is always global (group all)
-  //   and thus its KE/temperature contribution should use group all
-
-  // id_temp = utils::strdup(std::string(id) + "_temp");
-  // modify->add_compute(fmt::format("{} all temp",id_temp));
-  // tflag = 1;
-
-  // C2
-  // Following C1, the compute must use the virial pressure
+  // For this reason, the compute must use the virial pressure
   // Kinetic contribution will be added by the fix style
-  // create a new compute pressure style
-  // id = fix-ID + press, compute group = all
-  // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id) + "_press");
   modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
@@ -365,17 +357,19 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   // p_fric is alpha coeff from GJF
   // with alpha = Q/p_period
   // similar to fix_langevin formalism
+
   double kt = force->boltz * t_start;
   double nkt = (atom->natoms + 1) * kt;
-  if (p_ltime == 0) {
-    p_fric = 0;
-  } else {
-    p_fric = 1./p_ltime;
+  for (int i = 0; i < 6; i++) {
+    if (p_ltime > 0.0) p_fric[i] = p_ltime;
+    else p_fric[i] = p_period[i];
   }
+
   for (int i = 0; i < 6; i++) {
     p_mass[i] = nkt*p_period[i]*p_period[i];
-    p_alpha[i] = p_mass[i] * p_fric;
-    gjfa[i] = (1.0 - p_alpha[i]*update->dt / 2.0 / p_mass[i]) / (1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
+    p_alpha[i] = p_mass[i] * p_fric[i];
+    gjfa[i] = (1.0 - p_alpha[i]*update->dt / 2.0 / p_mass[i]) /
+      (1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
     gjfb[i] = 1./(1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
   }
 
@@ -431,7 +425,8 @@ void FixPressLangevin::init()
 
   pressure = modify->get_compute_by_id(id_press);
   if (!pressure)
-    error->all(FLERR, "Pressure compute ID {} for fix press/langevin does not exist", id_press);
+    error->all(FLERR, "Pressure compute ID {} for fix press/langevin does not exist",
+	       id_press);
 
   // Kspace setting
 
@@ -485,7 +480,8 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
   double displacement;
   double delta = update->ntimestep - update->beginstep;
 
-  // Compute new random term on pistons dynamics
+  // compute new random term on pistons dynamics
+
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
   t_target = t_start + delta * (t_stop-t_start);
   couple_beta(t_target);
@@ -509,6 +505,7 @@ void FixPressLangevin::post_integrate()
 {
   // remap simulation box and atoms
   // redo KSpace coeffs since volume has changed
+
   remap();
   if (kspace_flag) force->kspace->setup();
 
@@ -522,7 +519,8 @@ void FixPressLangevin::post_force(int /*vflag*/)
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
-  // Compute current pressure tensor and add kinetic term
+  // compute current pressure tensor and add kinetic term
+  
   if (pstyle == ISO) {
     pressure->compute_scalar();
   } else {
@@ -600,19 +598,20 @@ void FixPressLangevin::couple_pressure()
 
 void FixPressLangevin::couple_kinetic(double t_target)
 {
-  double Pk, volume;
+  double pk, volume;
   nktv2p = force->nktv2p;
 
-  // Kinetic part
+  // kinetic part
+  
   if (dimension == 3) volume = domain->xprd * domain->yprd * domain->zprd;
   else volume = domain->xprd * domain->yprd;
 
-  Pk = atom->natoms*force->boltz*t_target/volume;
-  Pk *= nktv2p;
+  pk = atom->natoms*force->boltz*t_target/volume;
+  pk *= nktv2p;
 
-  p_current[0] += Pk;
-  p_current[1] += Pk;
-  if (dimension == 3) p_current[2] += Pk;
+  p_current[0] += pk;
+  p_current[1] += pk;
+  if (dimension == 3) p_current[2] += pk;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -622,8 +621,8 @@ void FixPressLangevin::couple_beta(double t_target)
   double gamma[6];
   int me = comm->me;
 
-  for (int i=0; i<6; i++)
-    gamma[i] = sqrt(2.0*p_fric*force->boltz*update->dt*t_target);
+  for (int i = 0; i < 6; i++)
+    gamma[i] = sqrt(2.0*p_fric[i]*force->boltz*update->dt*t_target);
 
   fran[0] = fran[1] = fran[2] = 0.0;
   fran[3] = fran[4] = fran[5] = 0.0;
@@ -816,9 +815,11 @@ int FixPressLangevin::modify_param(int narg, char **arg)
     id_press = utils::strdup(arg[1]);
 
     pressure = modify->get_compute_by_id(arg[1]);
-    if (pressure) error->all(FLERR,"Could not find fix_modify pressure compute ID: {}", arg[1]);
+    if (pressure) error->all(FLERR, "Could not find fix_modify pressure compute ID: {}",
+			     arg[1]);
     if (pressure->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure compute {} does not compute pressure", arg[1]);
+      error->all(FLERR, "Fix_modify pressure compute {} does not compute pressure",
+		 arg[1]);
     return 2;
   }
   return 0;
@@ -828,8 +829,9 @@ int FixPressLangevin::modify_param(int narg, char **arg)
 
 void FixPressLangevin::reset_dt()
 {
-  for (int i=0; i<6; i++) {
-    gjfa[i] = (1.0 - p_alpha[i]*update->dt / 2.0 / p_mass[i]) / (1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
+  for (int i = 0; i < 6; i++) {
+    gjfa[i] = (1.0 - p_alpha[i]*update->dt / 2.0 / p_mass[i]) /
+      (1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
     gjfb[i] = 1./(1.0 + p_alpha[i]*update->dt / 2.0 / p_mass[i]);
-    }
+  }
 }

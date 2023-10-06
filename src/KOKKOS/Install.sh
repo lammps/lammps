@@ -187,6 +187,8 @@ action fix_temp_rescale_kokkos.cpp
 action fix_temp_rescale_kokkos.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
+action fix_wall_flow_kokkos.cpp fix_wall_flow.cpp
+action fix_wall_flow_kokkos.h fix_wall_flow.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
 action fix_wall_gran_kokkos.h fix_wall_gran.h
 action fix_wall_gran_old.cpp fix_wall_gran.cpp

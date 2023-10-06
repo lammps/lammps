@@ -237,6 +237,9 @@ void PairPACEKokkos<DeviceType>::copy_splines()
 
   ACERadialFunctions* radial_functions = dynamic_cast<ACERadialFunctions*>(basis_set->radial_functions);
 
+  if (radial_functions == nullptr)
+    error->all(FLERR,"Chosen radial basis style not supported by pair style pace/kk");
+
   for (int i = 0; i < nelements; i++) {
     for (int j = 0; j < nelements; j++) {
       k_splines_gk.h_view(i, j) = radial_functions->splines_gk(i, j);

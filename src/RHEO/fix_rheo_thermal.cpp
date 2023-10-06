@@ -19,6 +19,7 @@
 #include "fix_rheo_thermal.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "compute_rheo_grad.h"
 #include "compute_rheo_vshift.h"
@@ -31,7 +32,9 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "pair.h"
 #include "update.h"
 
@@ -121,11 +124,13 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal fix command, {}", arg[iarg + 1]);
       }
     } else if (strcmp(arg[iarg],"react") == 0) {
-      if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for react option");
+      if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for react option");
       cut_bond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      btype = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       comm_forward = 1;
-      if (cut_bond <= 0.0) error->all(FLERR, "Illegal value for bond lengths");
-      iarg += 1;
+      if (cut_bond <= 0.0) error->all(FLERR, "Illegal value for bond lengths");\
+      if (btype < 1 || btype > atom->nbondtypes) error->all(FLERR, "Illegal value for bond type");
+      iarg += 2;
     } else {
       error->all(FLERR,"Illegal fix command, {}", arg[iarg]);
     }
@@ -193,7 +198,7 @@ void FixRHEOThermal::init()
     // all special weights must be 1.0 (no special neighbors) or there must be an instance of fix update/special/bonds
     if (force->special_lj[0] != 1.0 || force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0) {
       auto fixes = modify->get_fix_by_style("UPDATE_SPECIAL_BONDS");
-      if (fixes.size == 0) error->all(FLERR, "Without fix update/special/bonds, reactive bond generation in fix rheo/thermal requires special weights of 1.0");
+      if (fixes.size() == 0) error->all(FLERR, "Without fix update/special/bonds, reactive bond generation in fix rheo/thermal requires special weights of 1.0");
       fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(fixes[0]);
     }
 
@@ -314,7 +319,7 @@ void FixRHEOThermal::post_integrate()
     comm->forward_comm(this);
 
     for (int i = 0; i < atom->nlocal; i++) {
-      if (status[i] & STATUS_MELTING) delete_bonds(i);
+      if (status[i] & STATUS_MELTING) break_bonds(i);
       if (status[i] & STATUS_FREEZING) create_bonds(i);
     }
   }
@@ -434,7 +439,7 @@ void FixRHEOThermal::create_bonds(int i)
   int nlocal = atom->nlocal;
 
   tagint *tag = atom->tag;
-  double *x = atom->x;
+  double **x = atom->x;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
@@ -442,6 +447,7 @@ void FixRHEOThermal::create_bonds(int i)
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
+  int newton_bond = force->newton_bond;
 
   double xtmp = x[i][0];
   double ytmp = x[i][1];
@@ -511,6 +517,6 @@ void FixRHEOThermal::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    status[i] = (int) ubuf(buf[m++]).i
+    status[i] = (int) ubuf(buf[m++]).i;
   }
 }

@@ -22,6 +22,8 @@ FixStyle(rheo/thermal,FixRHEOThermal)
 
 #include "fix.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class FixRHEOThermal : public Fix {
@@ -48,13 +50,13 @@ class FixRHEOThermal : public Fix {
   double *kappa_type, kappa;
   double dtf, dtv;
   double cut_bond;
-  int Tc_style;
-  int cv_style;
+  int Tc_style, cv_style;
+  int btype;
   int conductivity_style;
   class NeighList *list;
 
   int n_histories;
-  const std::vector<Fix *> histories;
+  std::vector<Fix *> histories;
 
   class FixRHEO *fix_rheo;
   class ComputeRHEOGrad *compute_grad;

@@ -588,22 +588,23 @@ void LammpsGui::open_file(const QString &fileName)
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning",
                              "Cannot open file " + path.absoluteFilePath() + ": " +
-                                 file.errorString());
-        return;
+                                 file.errorString() + ".\nWill create new file on saving editor buffer.");
+        ui->textEdit->document()->setPlainText(QString());
+    } else {
+        QTextStream in(&file);
+        QString text = in.readAll();
+        ui->textEdit->document()->setPlainText(text);
+        ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
+        file.close();
     }
     setWindowTitle(QString("LAMMPS-GUI - " + current_file));
     run_counter = 0;
-    QTextStream in(&file);
-    QString text = in.readAll();
-    ui->textEdit->document()->setPlainText(text);
-    ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     ui->textEdit->document()->setModified(false);
     ui->textEdit->setGroupList();
     ui->textEdit->setVarNameList();
     ui->textEdit->setComputeIDList();
     ui->textEdit->setFixIDList();
     ui->textEdit->setFileList();
-    file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
     status->setText("Ready.");
 

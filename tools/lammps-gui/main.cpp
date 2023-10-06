@@ -32,11 +32,6 @@ int main(int argc, char *argv[])
             printf("Usage: %s [-h|-help|<inputfile>]\n", argv[0]);
             return 1;
         }
-        if (!QFileInfo::exists(infile)) {
-            printf("Input file %s does not exist\n", infile);
-            printf("Usage: %s [-h|-help|<inputfile>]\n", argv[0]);
-            return 2;
-        }
     }
 
     LammpsGui w(nullptr, infile);

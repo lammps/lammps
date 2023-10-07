@@ -54,7 +54,7 @@ class FixPressLangevin : public Fix {
   double gjfa[6], gjfb[6], fran[6];
   int kspace_flag;    // 1 if KSpace invoked, 0 if not
   int nrigid;         // number of rigid fixes
-  int *rfix;          // indices of rigid fixes
+  class Fix **rfix;    // list of rigid fixes
 
   char *id_temp, *id_press;
   class Compute *temperature, *pressure;

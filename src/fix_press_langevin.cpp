@@ -411,14 +411,14 @@ void FixPressLangevin::init()
 {
   // ensure no conflict with fix deform
 
-  for (const auto &ifix : modify->get_fix_list())
-    if (strcmp(ifix->style, "^deform") == 0) {
-      int *dimflag = static_cast<FixDeform *>(ifix)->dimflag;
-      if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
-          (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
-          (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
-        error->all(FLERR,"Cannot use fix press/langevin and "
-                   "fix deform on same component of stress tensor");
+  for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+    int *dimflag = static_cast<FixDeform *>(ifix)->dimflag;
+    if (!dimflag) continue;
+    if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
+        (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
+        (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
+      error->all(FLERR,
+                 "Cannot use fix press/langevin and fix deform on same component of stress tensor");
     }
 
   // set pressure ptr
@@ -440,13 +440,13 @@ void FixPressLangevin::init()
   nrigid = 0;
   rfix = nullptr;
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) nrigid++;
   if (nrigid > 0) {
-    rfix = new int[nrigid];
+    rfix = new Fix*[nrigid];
     nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->rigid_flag) rfix[nrigid++] = ifix;
   }
 
   // Nullifies piston derivatives and forces so that it is not integrated at
@@ -678,7 +678,7 @@ void FixPressLangevin::remap()
 
   if (nrigid)
     for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+      rfix[i]->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -719,7 +719,7 @@ void FixPressLangevin::remap()
 
   if (nrigid)
     for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+      rfix[i]->deform(1);
 }
 
 /* ----------------------------------------------------------------------

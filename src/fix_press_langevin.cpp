@@ -50,7 +50,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   id_press(nullptr), pflag(0), random(nullptr), irregular(nullptr)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix press/langevin command");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix press/langevin", error);
 
   // Langevin barostat applied every step
   // For details on the equations of motion see:
@@ -105,8 +105,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+4 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin iso", error);
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -118,8 +117,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
     } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin aniso", error);
       pcouple = NONE;
       p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -131,8 +129,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
     } else if (strcmp(arg[iarg],"tri") == 0) {
-      if (iarg+4 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin tri", error);
       pcouple = NONE;
       p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -153,6 +150,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
     } else if (strcmp(arg[iarg],"x") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin tri", error);
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/langevin command");
       p_start[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -161,43 +159,43 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       p_flag[0] = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+4 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin y", error);
       p_start[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[1] = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin z", error);
       p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[2] = 1;
       iarg += 4;
       if (dimension == 2)
-        error->all(FLERR,"Invalid fix press/langevin for a 2d simulation");
+        error->all(FLERR,"Fix press/langevin z option not allowed for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} yz", style), error);
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin yz", error);
       p_start[3] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[3] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[3] = 1;
       iarg += 4;
-      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
+      if (dimension == 2)
+        error->all(FLERR,"Fix press/langevin yz option not allowed for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"xz") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xz", style), error);
-      p_start[4] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin xz", error);
+       p_start[4] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[4] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[4] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[4] = 1;
       iarg += 4;
-      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
+      if (dimension == 2)
+        error->all(FLERR,"Fix press/langevin zz option not allowed for a 2d simulation");
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xy", style), error);
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin xy", error);
       p_start[5] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_stop[5] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       p_period[5] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -206,47 +204,41 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
 
     } else if (strcmp(arg[iarg],"flip") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} flip", style), error);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin flip", error);
       flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin couple", error);
       if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
       else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
       else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
       else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
       else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
-      else error->all(FLERR,"Illegal fix press/langevin command");
+      else error->all(FLERR,"Unknown fix press/langevin couple option: {}", arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"friction") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin friction", error);
       p_ltime = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (p_ltime <= 0.0)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (p_ltime <= 0.0) error->all(FLERR,"Fix press/langevin friction value must be > 0");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin dilate", error);
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else if (strcmp(arg[iarg+1],"partial") == 0) allremap = 0;
-      else error->all(FLERR,"Illegal fix press/langevin command");
+      else error->all(FLERR,"Unknown fix press/langevin dilate option: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "temp") == 0) {
-      if (iarg+4 > narg)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin temp", error);
       t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       seed = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (seed <= 0.0)
-        error->all(FLERR,"Illegal fix press/langevin command");
+      if (seed <= 0.0) error->all(FLERR,"Fix press/langevin temp seed must be > 0");
       iarg += 4;
     }
 
-    else error->all(FLERR,"Illegal fix press/langevin command");
+    else error->all(FLERR,"Unknown fix press/langevin keyword: {}", arg[iarg]);
   }
 
   if (allremap == 0) restart_pbc = 1;
@@ -272,14 +264,11 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Invalid fix press/langevin pressure settings");
 
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix press/langevin on a non-periodic dimension");
+    error->all(FLERR, "Cannot use fix press/langevin on a non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix press/langevin on a non-periodic dimension");
+    error->all(FLERR, "Cannot use fix press/langevin on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix press/langevin on a non-periodic dimension");
+    error->all(FLERR, "Cannot use fix press/langevin on a non-periodic dimension");
 
   // require periodicity in 2nd dim of off-diagonal tilt component
 
@@ -336,8 +325,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
     pre_exchange_flag = pre_exchange_migrate = 1;
-  if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 ||
-                   domain->xy != 0.0))
+  if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 || domain->xy != 0.0))
     pre_exchange_flag = pre_exchange_migrate = 1;
 
   if (pre_exchange_flag) irregular = new Irregular(lmp);
@@ -425,8 +413,7 @@ void FixPressLangevin::init()
 
   pressure = modify->get_compute_by_id(id_press);
   if (!pressure)
-    error->all(FLERR, "Pressure compute ID {} for fix press/langevin does not exist",
-	       id_press);
+    error->all(FLERR, "Pressure compute ID {} for fix press/langevin does not exist", id_press);
 
   // Kspace setting
 
@@ -806,7 +793,7 @@ void FixPressLangevin::pre_exchange()
 int FixPressLangevin::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"press") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR,"fix_modify press", error);
     if (pflag) {
       modify->delete_compute(id_press);
       pflag = 0;
@@ -815,11 +802,9 @@ int FixPressLangevin::modify_param(int narg, char **arg)
     id_press = utils::strdup(arg[1]);
 
     pressure = modify->get_compute_by_id(arg[1]);
-    if (pressure) error->all(FLERR, "Could not find fix_modify pressure compute ID: {}",
-			     arg[1]);
+    if (pressure) error->all(FLERR, "Could not find fix_modify pressure compute ID: {}", arg[1]);
     if (pressure->pressflag == 0)
-      error->all(FLERR, "Fix_modify pressure compute {} does not compute pressure",
-		 arg[1]);
+      error->all(FLERR, "Fix_modify pressure compute {} does not compute pressure", arg[1]);
     return 2;
   }
   return 0;

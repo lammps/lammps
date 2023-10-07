@@ -274,7 +274,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     doanti->setChecked(antialias);
 
     scaleFactor = 1.0;
-    resize(image.width() + 20, image.height() + 50);
+    resize(image.width() + 20, image.height() + 75);
 
     scrollArea->setVisible(true);
     updateActions();

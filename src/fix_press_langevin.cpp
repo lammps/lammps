@@ -312,6 +312,13 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[4] && p_period[4] <= 0.0) || (p_flag[5] && p_period[5] <= 0.0))
     error->all(FLERR, "Fix press/langevin damping parameters must be > 0.0");
 
+  if (p_flag[0]) box_change |= BOX_CHANGE_X;
+  if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+  if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+  if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
+  if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
+  if (p_flag[5]) box_change |= BOX_CHANGE_XY;
+
   // pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
   // else pstyle = ANISO -> 3 dof
 

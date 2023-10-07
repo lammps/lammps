@@ -1112,6 +1112,7 @@ void LammpsGui::render_image()
                                      "Cannot create snapshot image without a system box");
                 return;
             }
+            ui->textEdit->setTextCursor(saved);
         }
         // if configured, delete old image window before opening new one
         if (QSettings().value("imagereplace", true).toBool()) delete imagewindow;

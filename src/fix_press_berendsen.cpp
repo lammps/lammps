@@ -269,14 +269,13 @@ void FixPressBerendsen::init()
 
   // ensure no conflict with fix deform
 
-  for (const auto &ifix : modify->get_fix_list())
-    if (strcmp(ifix->style, "^deform") == 0) {
-      int *dimflag = static_cast<FixDeform *>(ifix)->dimflag;
-      if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
-          (p_flag[2] && dimflag[2]))
-        error->all(FLERR,"Cannot use fix press/berendsen and "
+  for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+    int *dimflag = static_cast<FixDeform *>(ifix)->dimflag;
+    if (!dimflag) continue;
+    if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || (p_flag[2] && dimflag[2]))
+      error->all(FLERR,"Cannot use fix press/berendsen and "
                    "fix deform on same component of stress tensor");
-    }
+  }
 
   // set temperature and pressure ptrs
 
@@ -303,13 +302,13 @@ void FixPressBerendsen::init()
   nrigid = 0;
   rfix = nullptr;
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) nrigid++;
   if (nrigid > 0) {
-    rfix = new int[nrigid];
+    rfix = new Fix *[nrigid];
     nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->rigid_flag) rfix[nrigid++] = ifix;
   }
 }
 
@@ -418,7 +417,7 @@ void FixPressBerendsen::remap()
 
   if (nrigid)
     for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+      rfix[i]->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -446,7 +445,7 @@ void FixPressBerendsen::remap()
 
   if (nrigid)
     for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+      rfix[i]->deform(1);
 }
 
 /* ---------------------------------------------------------------------- */

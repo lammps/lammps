@@ -18,7 +18,6 @@
 
 #include <QAction>
 #include <QApplication>
-#include <QDialogButtonBox>
 #include <QDir>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -143,11 +142,6 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     scrollArea->setWidget(imageLabel);
     scrollArea->setVisible(false);
 
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
     QSettings settings;
@@ -265,7 +259,6 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
-    mainLayout->addWidget(buttonBox);
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).fileName());
     createActions();

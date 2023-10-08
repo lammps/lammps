@@ -907,6 +907,155 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
   }
 }
 
+void FASTPOD::descriptors(double *gd, double *gdd, double *peratomdesc, double *x, 
+        int *atomtype, int *alist, int *jlist, int *pairnumsum, int natom)
+{
+  for (int i=0; i<nd; i++) gd[i] = 0.0;
+  for (int i=0; i<3*natom*nd; i++) gdd[i] = 0.0;    
+  for (int i=0; i<natom*nl; i++) peratomdesc[i] = 0.0;
+  
+  double *gd1 = &gd[0];
+  double *gd2 = &gd[nd1];
+  double *gd3 = &gd[nd1+nd2];
+  double *gd4 = &gd[nd1+nd2+nd3];
+  double *gd23 = &gd[nd1+nd2+nd3+nd4];
+  double *gd33 = &gd[nd1+nd2+nd3+nd4+nd23];
+  double *gd34 = &gd[nd1+nd2+nd3+nd4+nd23+nd33];
+  double *gd44 = &gd[nd1+nd2+nd3+nd4+nd23+nd33+nd34];
+
+  int N = 3*natom;
+  double *gdd1 = &gdd[0];
+  double *gdd2 = &gdd[N*(nd1)];
+  double *gdd3 = &gdd[N*(nd1+nd2)];
+  double *gdd4 = &gdd[N*(nd1+nd2+nd3)];
+  double *gdd23 = &gdd[N*(nd1+nd2+nd3+nd4)];
+  double *gdd33 = &gdd[N*(nd1+nd2+nd3+nd4+nd23)];
+  double *gdd34 = &gdd[N*(nd1+nd2+nd3+nd4+nd23+nd33)];
+  double *gdd44 = &gdd[N*(nd1+nd2+nd3+nd4+nd23+nd33+nd34)];
+
+  double *ld2 = &peratomdesc[natom*(nl1)];
+  double *ld3 = &peratomdesc[natom*(nl1+nl2)];
+  double *ld4 = &peratomdesc[natom*(nl1+nl2+nl3)];
+  double *ld23 = &peratomdesc[natom*(nl1+nl2+nl3+nl4)];
+  double *ld33 = &peratomdesc[natom*(nl1+nl2+nl3+nl4+nl23)];
+  double *ld34 = &peratomdesc[natom*(nl1+nl2+nl3+nl4+nl23+nl33)];
+  double *ld44 = &peratomdesc[natom*(nl1+nl2+nl3+nl4+nl23+nl33+nl34)];
+  
+  for (int i=0; i<natom; i++) {
+    int Nj = pairnumsum[i+1] - pairnumsum[i]; // # neighbors around atom i
+
+    if (Nj==0) {
+      printf("Zero neighbors detected...\n");
+      if (nd1>0) {
+        onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);           
+        peratomdesc[i] = 1.0;
+      }
+    }
+    else
+    {    
+    // reallocate temporary memory
+    if (Nj>Njmax) {      
+      Njmax = Nj;
+      int nmem = estimate_memory(Njmax);
+      memory->destroy(tmpmem);
+      memory->destroy(tmpint);
+      memory->create(tmpmem, nmem, "tmpmem");
+      memory->create(tmpint, 4*Njmax, "tmpint");
+      printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
+    }
+    
+    double *rij = &tmpmem[0]; // 3*Nj
+    int *ai = &tmpint[0];     // Nj
+    int *aj = &tmpint[Nj];   // Nj
+    int *ti = &tmpint[2*Nj]; // Nj
+    int *tj = &tmpint[3*Nj]; // Nj
+    
+    myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
+
+    if (nd1>0) {
+      onebodydescriptors(gd1, gdd1, ti, natom, i);
+      peratomdesc[i] = 1.0;
+    }
+
+    double *d2= &tmpmem[3*Nj];
+    double *dd2= &tmpmem[3*Nj + nl2];
+    double *tmp = &tmpmem[3*Nj + nl2 + 3*Nj*nl2];
+
+    for (int j=0; j<nl2; j++) d2[j] = 0.0;
+    for (int j=0; j<3*Nj*nl2; j++) dd2[j] = 0.0;
+
+    if ((nd2>0) && (Nj>0)) {
+      twobodydescriptors(gd2, gdd2, d2, dd2, rij, tmp, ai, aj, ti, tj, Nj, natom);
+      for (int j=0; j<nl2; j++) ld2[i + natom*j] = d2[j];
+    }
+
+    double *d3= &tmpmem[3*Nj + nl2 + 3*Nj*nl2];
+    double *dd3= &tmpmem[3*Nj + nl2 + 3*Nj*nl2 + nl3];
+    tmp = &tmpmem[3*Nj + nl2 + 3*Nj*nl2 + nl3 + 3*Nj*nl3];
+
+    for (int j=0; j<nl3; j++) d3[j] = 0.0;
+    for (int j=0; j<3*Nj*nl3; j++) dd3[j] = 0.0;
+
+    if ((nd3>0)  && (Nj>1)) {
+      threebodydescriptors(gd3, gdd3, d3, dd3, rij, tmp, ai, aj, ti, tj, Nj, natom);
+      for (int j=0; j<nl3; j++) ld3[i + natom*j] = d3[j];
+    }
+
+    double *d4= &tmpmem[3*Nj + nl2 + 3*Nj*nl2 + nl3 + 3*Nj*nl3];
+    double *dd4= &tmpmem[3*Nj + nl2 + 3*Nj*nl2 + nl3 + 3*Nj*nl3 + nl4];
+    tmp = &tmpmem[3*Nj + nl2 + 3*Nj*nl2 + nl3 + 3*Nj*nl3 + nl4 + 3*Nj*nl4];
+
+    for (int j=0; j<nl4; j++) d4[j] = 0.0;
+    for (int j=0; j<3*Nj*nl4; j++) dd4[j] = 0.0;
+
+    if ((nd4>0) && (Nj>2)) {
+      fourbodydescriptors(gd4, gdd4, d4, dd4, rij, tmp, ai, aj, ti, tj, Nj, natom);
+      for (int j=0; j<nl4; j++) ld4[i + natom*j] = d4[j];
+    }
+
+    int nld = 3*Nj + nl2 + 3*Nj*nl2 + nl3 + 3*Nj*nl3 + nl4 + 3*Nj*nl4;
+
+    double *d23 = &tmpmem[nld];
+    double *dd23 = &tmpmem[nld + nl23];
+    if ((nd23>0) && (Nj>2)) {
+      fourbodydescriptors23(gd23, gdd23, d23, dd23, d2, d3, dd2, dd3,
+            ai, aj, ti, tj, Nj, natom);
+      for (int j=0; j<nl23; j++) ld23[i + natom*j] = d23[j];
+    }
+
+    double *d33 = &tmpmem[nld];
+    double *dd33 = &tmpmem[nld + nl33];
+//     if ((nd33>0) && (Nj>3)) fivebodydescriptors33(gd33, gdd33, d33, dd33, d3, dd3,
+//             ai, aj, ti, tj, Nj, natom);
+    if ((nd33>0) && (Nj>3)) {
+      crossdescriptors(gd33, gdd33, d33, dd33, d3, d3, dd3, dd3, 
+            ind33l, ind33r, ai, aj, ti, tj, nl33, Nj, natom);
+      for (int j=0; j<nl33; j++) ld33[i + natom*j] = d33[j];
+    }
+        
+    double *d34 = &tmpmem[nld];
+    double *dd34 = &tmpmem[nld + nl34];
+//     if ((nd34>0) && (Nj>4)) sixbodydescriptors34(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4,
+//             ai, aj, ti, tj, Nj, natom);
+    if ((nd34>0) && (Nj>4)) {
+      crossdescriptors(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4, 
+            ind34l, ind34r, ai, aj, ti, tj, nl34, Nj, natom);      
+      for (int j=0; j<nl34; j++) ld34[i + natom*j] = d34[j];
+    }
+
+    double *d44 = &tmpmem[nld];
+    double *dd44 = &tmpmem[nld + nl44];
+//     if ((nd44>0) && (Nj>5))  sevenbodydescriptors44(gd44, gdd44, d44, dd44, d4, dd4,
+//             ai, aj, ti, tj, Nj, natom);
+    if ((nd44>0) && (Nj>5)) {
+      crossdescriptors(gd44, gdd44, d44, dd44, d4, d4, dd4, dd4, 
+           ind44l, ind44r, ai, aj, ti, tj, nl44, Nj, natom);    
+      for (int j=0; j<nl44; j++) ld44[i + natom*j] = d44[j];
+    }
+  }
+  }
+}
+
 void FASTPOD::fourbodydesc23(double *d23, double *d2, double *d3)
 {
   for (int j = 0; j<n32; j++)

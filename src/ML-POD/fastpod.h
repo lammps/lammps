@@ -222,6 +222,9 @@ public:
   void descriptors(double *gd, double *gdd, double *x, int *atomtype, int *alist,
           int *jlist, int *pairnumsum, int natom);
 
+  void descriptors(double *gd, double *gdd, double *peratomdesc, double *x, int *atomtype, int *alist,
+          int *jlist, int *pairnumsum, int natom);
+  
   double localenergyforce(double *fij, double *rij, double *tempmem, int *ti, int *tj, int Nj);
 
   double atomicenergyforce(double *fij, double *rij, double *tempmem, int *ti, int *tj, int Nj);

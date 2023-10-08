@@ -492,7 +492,7 @@ void ImageViewer::createImage()
     if (showaxes)
         dumpcmd += " axes yes 0.5 0.025";
     else
-        dumpcmd += QString(" axes no 0.0 0.0");
+        dumpcmd += " axes no 0.0 0.0";
 
     dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
     dumpcmd += " backcolor " + settings.value("background", "black").toString();

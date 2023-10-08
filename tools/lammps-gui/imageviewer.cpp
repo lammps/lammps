@@ -435,9 +435,6 @@ void ImageViewer::createImage()
     dumpcmd += "'" + dumpfile.fileName() + "'";
 
     settings.beginGroup("snapshot");
-    int aa       = antialias ? 2 : 1;
-    int tmpxsize = xsize * aa;
-    int tmpysize = ysize * aa;
     int hhrot    = (hrot > 180) ? 360 - hrot : hrot;
 
     // determine elements from masses and set their covalent radii
@@ -473,9 +470,10 @@ void ImageViewer::createImage()
     else
         dumpcmd += blank + settings.value("color", "type").toString();
     dumpcmd += blank + settings.value("diameter", "type").toString();
-    dumpcmd += QString(" size ") + QString::number(tmpxsize) + blank + QString::number(tmpysize);
-    dumpcmd += QString(" zoom ") + QString::number(zoom);
+    dumpcmd += QString(" size %1 %2").arg(xsize).arg(ysize);
+    dumpcmd += QString(" zoom %1").arg(zoom);
     dumpcmd += " shiny 0.5 ";
+    dumpcmd += QString(" fsaa %1").arg(antialias ? "yes" : "no");
     if (nbondtypes > 0) {
         if (vdwfactor > 1.0)
             dumpcmd += " bond none none ";
@@ -483,16 +481,16 @@ void ImageViewer::createImage()
             dumpcmd += " bond atom 0.5 ";
     }
     if (lammps->extract_setting("dimension") == 3) {
-        dumpcmd += QString(" view ") + QString::number(hhrot) + blank + QString::number(vrot);
+        dumpcmd += QString(" view %1 %2").arg(hhrot).arg(vrot);
     }
-    if (usessao) dumpcmd += QString(" ssao yes 453983 0.75");
+    if (usessao) dumpcmd += " ssao yes 453983 0.75";
     if (showbox)
-        dumpcmd += QString(" box yes 0.025");
+        dumpcmd += " box yes 0.025";
     else
-        dumpcmd += QString(" box no 0.0");
+        dumpcmd += " box no 0.0";
 
     if (showaxes)
-        dumpcmd += QString(" axes yes 0.5 0.025");
+        dumpcmd += " axes yes 0.5 0.025";
     else
         dumpcmd += QString(" axes no 0.0 0.0");
 
@@ -512,7 +510,7 @@ void ImageViewer::createImage()
     if (newImage.isNull()) return;
 
     // scale back to achieve antialiasing
-    image = newImage.scaled(xsize, ysize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    image = newImage;
     imageLabel->setPixmap(QPixmap::fromImage(image));
     imageLabel->adjustSize();
     if (renderstatus) renderstatus->setEnabled(false);

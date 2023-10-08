@@ -205,7 +205,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 {
     auto *layout = new QVBoxLayout;
 
-    auto *echo = new QCheckBox("Echo input to log");
+    auto *echo = new QCheckBox("Echo input to output buffer");
     echo->setObjectName("echo");
     echo->setCheckState(settings->value("echo", false).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *cite = new QCheckBox("Include citation details");

@@ -25,7 +25,7 @@
 #include "force.h"
 
 #include <iostream>
-//#include "comm.h
+
 // clang-format off
 
 using namespace LAMMPS_NS;

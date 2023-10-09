@@ -22,6 +22,7 @@ FixStyle(property/atom/kk,FixPropertyAtomKokkos);
 #define LMP_FIX_PROPERTY_ATOM_KOKKOS_H
 
 #include "fix_property_atom.h"
+#include "atom_vec_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -31,6 +32,15 @@ class FixPropertyAtomKokkos : public FixPropertyAtom {
   ~FixPropertyAtomKokkos() override;
 
   void grow_arrays(int) override;
+
+  void sync(ExecutionSpace space, unsigned int mask);
+  void modified(ExecutionSpace space, unsigned int mask);
+  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
+
+  int atom_init_flag;
+
+ private:
+  int dvector_flag;
 };
 
 }

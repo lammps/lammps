@@ -5,11 +5,14 @@ This document describes **LAMMPS GUI version 1.5**.
 
 -----
 
-LAMMPS GUI is a graphical text editor that is linked to the :ref:`LAMMPS
-library <lammps_c_api>` and thus can run LAMMPS directly using the
-contents of the editor's text buffer as input.  It can retrieve and
-display information from LAMMPS while it is running and is adapted in
-multiple ways specifically for editing LAMMPS input files.
+LAMMPS GUI is a graphical text editor customized for editing LAMMPS
+input files that is linked to the :ref:`LAMMPS library <lammps_c_api>`
+and thus can run LAMMPS directly using the contents of the editor's text
+buffer as input.  It can retrieve and display information from LAMMPS
+while it is running, display visualizations created with the :doc:`dump
+image command <dump_image>`, and is adapted specifically for editing
+LAMMPS input files through text completion and reformatting, and linking
+to the online LAMMPS documentation for known LAMMPS commands and styles.
 
 .. note::
 

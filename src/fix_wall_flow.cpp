@@ -1,5 +1,5 @@
 // clang-format off
- /* ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -12,8 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_wall_flow.h"
+/* ----------------------------------------------------------------------
+   Contributing authors: Vladislav Galigerov (HSE),
+                         Daniil Pavlov (MIPT)
+------------------------------------------------------------------------- */
 
+#include "fix_wall_flow.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

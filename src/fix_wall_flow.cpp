@@ -19,6 +19,7 @@
 
 #include "fix_wall_flow.h"
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -43,7 +44,16 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-// fix name groupId wall/flow vel temp dim N coords...
+static const char cite_fix_wall_flow_c[] =
+  "fix wall/flow command: doi:{tba}\n\n"
+  "@Article{Pavlov-etal-IJHPCA-2023,\n"
+  " author = {Daniil Pavlov and Vladislav Galigerov and Daniil Kolotinskii and Vsevolod Nikolskiy and Vladimir Stegailov},\n"
+  " title = {GPU-based Molecular Dynamics of Fluid Flows: Reaching for Turbulence},\n"
+  " journal = {International Journal of High Performance Computing Applications},\n"
+  " year =    2023,\n"
+  " volume =  {tba},\n"
+  " pages =   {tba}\n”
+  "}\n\n";
 
 FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
@@ -53,6 +63,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   rndseed(0),
   current_segment(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_wall_flow_c);
   if (narg < 9) utils::missing_cmd_args(FLERR, "fix wall/flow", error);
 
   dynamic_group_allow = 1;

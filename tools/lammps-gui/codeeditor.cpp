@@ -668,7 +668,9 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
 {
-    // reposition the cursor here?
+    // reposition the cursor here, but only if there is no active selection
+    if (!textCursor().hasSelection()) setTextCursor(cursorForPosition(event->pos()));
+
     QString page, help;
     find_help(page, help);
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.5.4 LANGUAGES CXX)
+project(lammps-gui VERSION 1.5.9 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -84,6 +84,7 @@ set(PROJECT_SOURCES
   chartviewer.h
   codeeditor.cpp
   codeeditor.h
+  helpers.cpp
   highlighter.cpp
   highlighter.h
   imageviewer.cpp
@@ -165,13 +166,21 @@ if(APPLE)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/
     COMMAND ${CMAKE_COMMAND} -E create_symlink lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/lmp.1
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/msi2lmp.1 ${APP_CONTENTS}/share/lammps/man/man1
-    DEPENDS lammps-gui lammps
+    DEPENDS lammps-gui lammps lmp binary2txt stl_bin2txt msi2lmp phana
     COMMENT "Copying additional files into macOS app bundle tree"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
+  if(FFMPEG_EXECUTABLE)
+    add_custom_target(copy-ffmpeg
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/
+      COMMENT "Copying FFMpeg into macOS app bundle tree"
+      DEPENDS complete-bundle
+    )
+    set(FFMPEG_TARGET copy-ffmpeg)
+  endif()
   add_custom_target(dmg
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build_macos_dmg.sh
-    DEPENDS complete-bundle
+    DEPENDS complete-bundle ${FFMPEG_TARGET}
     COMMENT "Create Drag-n-Drop installer disk image from app bundle"
     BYPRODUCT LAMMPS-macOS-multiarch.dmg
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

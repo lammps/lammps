@@ -20,10 +20,19 @@ class LogWindow : public QPlainTextEdit {
     Q_OBJECT
 
 public:
-    LogWindow(QWidget *parent = nullptr);
+    LogWindow(const QString &filename, QWidget *parent = nullptr);
+
+private slots:
+    void quit();
+    void save_as();
+    void stop_run();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
+private:
+    QString filename;
 };
 
 #endif

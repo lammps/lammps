@@ -42,6 +42,10 @@ public:
     void add_data(int step, double data, int index);
 
 private slots:
+    void quit();
+    void reset_zoom();
+    void stop_run();
+
     void saveAs();
     void exportDat();
     void exportCsv();
@@ -50,18 +54,16 @@ private slots:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     QMenuBar *menu;
     QMenu *file;
     QComboBox *columns;
-    QAction *saveAsAct;
-    QAction *exportCsvAct;
-    QAction *exportDatAct;
-    QAction *closeAct;
+    QAction *saveAsAct, *exportCsvAct, *exportDatAct;
+    QAction *closeAct, *stopAct, *quitAct;
 
     QString filename;
-    int active_chart;
     QList<ChartViewer *> charts;
 };
 
@@ -74,6 +76,8 @@ public:
     explicit ChartViewer(const QString &title, int index, QWidget *parent = nullptr);
 
     void add_data(int step, double data);
+    void reset_zoom();
+
     int get_index() const { return index; };
     int get_count() const { return series->count(); }
     const char *get_title() const { return series->name().toLocal8Bit(); }

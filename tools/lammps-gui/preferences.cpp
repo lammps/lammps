@@ -13,6 +13,7 @@
 
 #include "preferences.h"
 
+#include "helpers.h"
 #include "lammpsgui.h"
 #include "lammpswrapper.h"
 #include "ui_lammpsgui.h"
@@ -39,6 +40,7 @@
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QTabWidget>
+#include <QThread>
 #include <QVBoxLayout>
 
 #if defined(_OPENMP)
@@ -55,18 +57,10 @@
 #include <unistd.h>
 #endif
 
-// duplicate string
-static char *mystrdup(const std::string &text)
-{
-    auto tmp = new char[text.size() + 1];
-    memcpy(tmp, text.c_str(), text.size() + 1);
-    return tmp;
-}
-
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
-    QDialog(parent), tabWidget(new QTabWidget),
+    QDialog(parent), need_relaunch(false), tabWidget(new QTabWidget),
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
-    settings(new QSettings), lammps(_lammps), need_relaunch(false)
+    settings(new QSettings), lammps(_lammps)
 {
     tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
@@ -80,7 +74,7 @@ Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     layout->addWidget(tabWidget);
     layout->addWidget(buttonBox);
     setLayout(layout);
-    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle("LAMMPS-GUI - Preferences");
     resize(600, 450);
 }
@@ -116,10 +110,15 @@ void Preferences::accept()
         }
     }
 
-    // store number of threads
+    // store number of threads, reset to 1 for "None" and "Opt" settings
     QLineEdit *field = tabWidget->findChild<QLineEdit *>("nthreads");
-    if (field)
-        if (field->hasAcceptableInput()) settings->setValue("nthreads", field->text());
+    if (field) {
+        int accel = settings->value("accelerator", AcceleratorTab::None).toInt();
+        if ((accel == AcceleratorTab::None) || (accel == AcceleratorTab::Opt))
+            settings->setValue("nthreads", 1);
+        else if (field->hasAcceptableInput())
+            settings->setValue("nthreads", field->text());
+    }
 
     // store image width, height, zoom, and rendering settings
 
@@ -176,8 +175,8 @@ void Preferences::accept()
                                 "LAMMPS-GUI must be relaunched."),
                         QMessageBox::Ok);
         msg.exec();
-        const char *path = mystrdup(QCoreApplication::applicationFilePath().toStdString());
-        const char *arg0 = mystrdup(QCoreApplication::arguments().at(0).toStdString());
+        const char *path = mystrdup(QCoreApplication::applicationFilePath());
+        const char *arg0 = mystrdup(QCoreApplication::arguments().at(0));
         execl(path, arg0, (char *)NULL);
     }
 
@@ -206,7 +205,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 {
     auto *layout = new QVBoxLayout;
 
-    auto *echo = new QCheckBox("Echo input to log");
+    auto *echo = new QCheckBox("Echo input to output buffer");
     echo->setObjectName("echo");
     echo->setCheckState(settings->value("echo", false).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *cite = new QCheckBox("Include citation details");
@@ -223,16 +222,15 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *logr = new QCheckBox("Replace log window on new run");
     logr->setObjectName("logreplace");
-    logr->setCheckState(settings->value("logreplace", false).toBool() ? Qt::Checked
-                                                                      : Qt::Unchecked);
+    logr->setCheckState(settings->value("logreplace", true).toBool() ? Qt::Checked : Qt::Unchecked);
     auto *imgr = new QCheckBox("Replace image window on new render");
     imgr->setObjectName("imagereplace");
-    imgr->setCheckState(settings->value("imagereplace", false).toBool() ? Qt::Checked
-                                                                        : Qt::Unchecked);
+    imgr->setCheckState(settings->value("imagereplace", true).toBool() ? Qt::Checked
+                                                                       : Qt::Unchecked);
     auto *pltr = new QCheckBox("Replace chart window on new run");
     pltr->setObjectName("chartreplace");
-    pltr->setCheckState(settings->value("chartreplace", false).toBool() ? Qt::Checked
-                                                                        : Qt::Unchecked);
+    pltr->setCheckState(settings->value("chartreplace", true).toBool() ? Qt::Checked
+                                                                       : Qt::Unchecked);
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     auto *pluginlabel = new QLabel("Path to LAMMPS Shared Library File:");
@@ -249,17 +247,17 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 
     auto *fontlayout = new QHBoxLayout;
     auto *getallfont =
-        new QPushButton(QIcon(":/preferences-desktop-font.png"), "Select Default Font...");
+        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Default Font...");
     auto *gettextfont =
-        new QPushButton(QIcon(":/preferences-desktop-font.png"), "Select Text Font...");
+        new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Text Font...");
     fontlayout->addWidget(getallfont);
     fontlayout->addWidget(gettextfont);
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
     auto *freqlayout = new QHBoxLayout;
-    auto *freqlabel = new QLabel("GUI update interval (ms)");
-    auto *freqval  = new QSpinBox;
+    auto *freqlabel  = new QLabel("GUI update interval (ms)");
+    auto *freqval    = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
     freqval->setValue(settings->value("updfreq", "100").toInt());
@@ -408,11 +406,11 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
 
     int maxthreads = 1;
 #if defined(_OPENMP)
-    maxthreads = omp_get_max_threads();
+    maxthreads = QThread::idealThreadCount();
 #endif
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
-    auto *ntlabel      = new QLabel("Number of threads:");
+    auto *ntlabel      = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
     auto *ntchoice     = new QLineEdit(settings->value("nthreads", maxthreads).toString());
     auto *intval       = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);

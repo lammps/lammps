@@ -11,31 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef STDCAPTURE_H
-#define STDCAPTURE_H
+#ifndef HELPERS_H
+#define HELPERS_H
 
+#include <QString>
 #include <string>
 
-class StdCapture {
-public:
-    StdCapture();
-    virtual ~StdCapture();
+// duplicate string
+extern char *mystrdup(const std::string &text);
+extern char *mystrdup(const char *text);
+extern char *mystrdup(const QString &text);
 
-    void BeginCapture();
-    bool EndCapture();
-    std::string GetCapture();
-    std::string GetChunk();
-
-private:
-    enum PIPES { READ, WRITE };
-    int m_pipe[2];
-    int m_oldStdOut;
-    bool m_capturing;
-    std::string m_captured;
-
-    static constexpr int bufSize = 1025;
-    char buf[bufSize];
-};
+// find if executable is in path
+extern bool has_exe(const QString &exe);
 
 #endif
 // Local Variables:

@@ -19,8 +19,10 @@
 #include <QAction>
 #include <QCompleter>
 #include <QDesktopServices>
+#include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QFileInfo>
 #include <QIcon>
 #include <QKeySequence>
 #include <QMenu>
@@ -131,14 +133,14 @@ CodeEditor::CodeEditor(QWidget *parent) :
     minimize_comp(new QCompleter(this)), variable_comp(new QCompleter(this)),
     units_comp(new QCompleter(this)), group_comp(new QCompleter(this)),
     varname_comp(new QCompleter(this)), fixid_comp(new QCompleter(this)),
-    compid_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
+    compid_comp(new QCompleter(this)), file_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
 
     // set up completer class (without a model currently)
 #define COMPLETER_SETUP(completer)                                                            \
-    completer->setCompletionMode(QCompleter::PopupCompletion);                                \
+    completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);                      \
     completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);                     \
     completer->setWidget(this);                                                               \
     completer->setMaxVisibleItems(16);                                                        \
@@ -166,6 +168,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     COMPLETER_SETUP(varname_comp);
     COMPLETER_SETUP(fixid_comp);
     COMPLETER_SETUP(compid_comp);
+    COMPLETER_SETUP(file_comp);
 #undef COMPLETER_SETUP
 
     // initialize help system
@@ -173,7 +176,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     if (help_index.open(QIODevice::ReadOnly | QIODevice::Text)) {
         while (!help_index.atEnd()) {
             auto line  = QString(help_index.readLine());
-            auto words = line.trimmed().split(' ');
+            auto words = line.trimmed().replace('\t', ' ').split(' ');
             if (words.size() > 2) {
                 if (words.at(1) == "pair_style") {
                     pair_map[words.at(2)] = words.at(0);
@@ -233,6 +236,7 @@ CodeEditor::~CodeEditor()
     delete varname_comp;
     delete fixid_comp;
     delete compid_comp;
+    delete file_comp;
 }
 
 int CodeEditor::lineNumberAreaWidth()
@@ -319,7 +323,7 @@ QString CodeEditor::reformatLine(const QString &line)
         }
 
         // append remaining words with just a single blank added.
-        for (int i = 1; i < words.size(); ++i) {
+        for (std::size_t i = 1; i < words.size(); ++i) {
             newtext += ' ';
             newtext += words[i].c_str();
 
@@ -389,15 +393,19 @@ COMPLETER_INIT_FUNC(units, Units)
 void CodeEditor::setGroupList()
 {
     QStringList groups;
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+    QRegExp groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
+#else
     QRegularExpression groupcmd(QStringLiteral("^\\s*group\\s+(\\S+)(\\s+|$)"));
+#endif
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(groupcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
-        if ((words.size() > 1) && !groups.contains(words[1])) groups << words[1];
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
+        if ((words.size() > 1) && !groups.contains(words[1].c_str())) groups << words[1].c_str();
     }
     groups.sort();
     groups.prepend(QStringLiteral("all"));
@@ -409,6 +417,11 @@ void CodeEditor::setGroupList()
 void CodeEditor::setVarNameList()
 {
     QStringList vars;
+
+    // variable "gui_run" is always defined by LAMMPS GUI
+    vars << QString("${gui_run}");
+    vars << QString("v_gui_run");
+
     LammpsWrapper *lammps = &qobject_cast<LammpsGui *>(parent())->lammps;
     int nvar              = lammps->id_count("variable");
     char buffer[200];
@@ -419,20 +432,24 @@ void CodeEditor::setVarNameList()
         vars << QString("v_%1").arg(buffer);
     }
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+    QRegExp varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
+#else
     QRegularExpression varcmd(QStringLiteral("^\\s*variable\\s+(\\S+)(\\s+|$)"));
+#endif
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(varcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
         if ((words.size() > 1)) {
-            QString w = QString("$%1").arg(words[1]);
+            QString w = QString("$%1").arg(words[1].c_str());
             if ((words[1].size() == 1) && !vars.contains(w)) vars << w;
-            w = QString("${%1}").arg(words[1]);
+            w = QString("${%1}").arg(words[1].c_str());
             if (!vars.contains(w)) vars << w;
-            w = QString("v_%1").arg(words[1]);
+            w = QString("v_%1").arg(words[1].c_str());
             if (!vars.contains(w)) vars << w;
         }
     }
@@ -445,18 +462,22 @@ void CodeEditor::setVarNameList()
 void CodeEditor::setComputeIDList()
 {
     QStringList compid;
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+    QRegExp compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
+#else
     QRegularExpression compcmd(QStringLiteral("^\\s*compute\\s+(\\S+)\\s+"));
+#endif
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(compcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
         if ((words.size() > 1)) {
-            QString w = QString("c_%1").arg(words[1]);
+            QString w = QString("c_%1").arg(words[1].c_str());
             if (!compid.contains(w)) compid << w;
-            w = QString("C_%1").arg(words[1]);
+            w = QString("C_%1").arg(words[1].c_str());
             if (!compid.contains(w)) compid << w;
         }
     }
@@ -469,18 +490,22 @@ void CodeEditor::setComputeIDList()
 void CodeEditor::setFixIDList()
 {
     QStringList fixid;
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+    QRegExp fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
+#else
     QRegularExpression fixcmd(QStringLiteral("^\\s*fix\\s+(\\S+)\\s+"));
+#endif
     auto saved = textCursor();
     // reposition cursor to beginning of text and search for group commands
     auto cursor = textCursor();
     cursor.movePosition(QTextCursor::Start);
     setTextCursor(cursor);
     while (find(fixcmd)) {
-        auto words = textCursor().block().text().replace('\t', ' ').split(' ', Qt::SkipEmptyParts);
+        auto words = split_line(textCursor().block().text().replace('\t', ' ').toStdString());
         if ((words.size() > 1)) {
-            QString w = QString("f_%1").arg(words[1]);
+            QString w = QString("f_%1").arg(words[1].c_str());
             if (!fixid.contains(w)) fixid << w;
-            w = QString("F_%1").arg(words[1]);
+            w = QString("F_%1").arg(words[1].c_str());
             if (!fixid.contains(w)) fixid << w;
         }
     }
@@ -488,6 +513,16 @@ void CodeEditor::setFixIDList()
 
     setTextCursor(saved);
     fixid_comp->setModel(new QStringListModel(fixid, fixid_comp));
+}
+
+void CodeEditor::setFileList()
+{
+    QStringList files;
+    QDir dir(".");
+    for (const auto &file : dir.entryInfoList(QDir::Files))
+        files << file.fileName();
+    files.sort();
+    file_comp->setModel(new QStringListModel(files, file_comp));
 }
 
 void CodeEditor::keyPressEvent(QKeyEvent *event)
@@ -522,7 +557,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     }
 
     // automatically reformat when hitting the return or enter key
-    if (reformat_on_return && (key == Qt::Key_Return) || (key == Qt::Key_Enter)) {
+    if (reformat_on_return && ((key == Qt::Key_Return) || (key == Qt::Key_Enter))) {
         reformatCurrentLine();
     }
 
@@ -542,6 +577,10 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
             --begin;
         }
         if (((cursor.positionInBlock() - begin) > 2) || (line[begin + 1] == '$')) runCompletion();
+        if (current_comp && current_comp->popup()->isVisible() &&
+            ((cursor.positionInBlock() - begin) < 2)) {
+            current_comp->popup()->hide();
+        }
     }
 }
 
@@ -633,7 +672,9 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
 void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
 {
-    // reposition the cursor here?
+    // reposition the cursor here, but only if there is no active selection
+    if (!textCursor().hasSelection()) setTextCursor(cursorForPosition(event->pos()));
+
     QString page, help;
     find_help(page, help);
 
@@ -641,18 +682,18 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     auto *menu = createStandardContextMenu();
     menu->addSeparator();
     auto action = menu->addAction(QString("Display available completions for '%1'").arg(help));
-    action->setIcon(QIcon(":/expand-text.png"));
+    action->setIcon(QIcon(":/icons/expand-text.png"));
     connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
 
     if (!page.isEmpty()) {
         menu->addSeparator();
         action = menu->addAction(QString("Reformat '%1' command").arg(help));
-        action->setIcon(QIcon(":/format-indent-less-3.png"));
+        action->setIcon(QIcon(":/icons/format-indent-less-3.png"));
         connect(action, &QAction::triggered, this, &CodeEditor::reformatCurrentLine);
 
         menu->addSeparator();
         action = menu->addAction(QString("View Documentation for '%1'").arg(help));
-        action->setIcon(QIcon(":/system-help.png"));
+        action->setIcon(QIcon(":/icons/system-help.png"));
         action->setData(page);
         connect(action, &QAction::triggered, this, &CodeEditor::open_help);
         // if we link to help with specific styles (fix, compute, pair, bond, ...)
@@ -663,13 +704,13 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             page = words.at(0);
             page += ".html";
             auto action2 = menu->addAction(QString("View Documentation for '%1'").arg(help));
-            action2->setIcon(QIcon(":/system-help.png"));
+            action2->setIcon(QIcon(":/icons/system-help.png"));
             action2->setData(page);
             connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
         }
     }
     auto action3 = menu->addAction(QString("LAMMPS Manual"));
-    action3->setIcon(QIcon(":/help-browser.png"));
+    action3->setIcon(QIcon(":/icons/help-browser.png"));
     action3->setData(QString());
     connect(action3, &QAction::triggered, this, &CodeEditor::open_help);
 
@@ -695,6 +736,9 @@ void CodeEditor::reformatCurrentLine()
 
 void CodeEditor::runCompletion()
 {
+    QAbstractItemView *popup = nullptr;
+    if (current_comp) popup = current_comp->popup();
+
     auto cursor = textCursor();
     auto line   = cursor.block().text().trimmed();
     // no completion possible on empty lines
@@ -721,7 +765,8 @@ void CodeEditor::runCompletion()
     if (selected.startsWith("$")) {
         current_comp = varname_comp;
         current_comp->setCompletionPrefix(selected);
-        auto popup = current_comp->popup();
+        if (popup && (popup != current_comp->popup())) popup->hide();
+        popup = current_comp->popup();
         // if the command is already a complete command, remove existing popup
         if (selected == current_comp->currentCompletion()) {
             if (popup->isVisible()) {
@@ -742,7 +787,8 @@ void CodeEditor::runCompletion()
 
         current_comp = command_comp;
         current_comp->setCompletionPrefix(words[0].c_str());
-        auto popup = current_comp->popup();
+        if (popup && (popup != current_comp->popup())) popup->hide();
+        popup = current_comp->popup();
         // if the command is already a complete command, remove existing popup
         if (words[0] == current_comp->currentCompletion().toStdString()) {
             if (popup->isVisible()) {
@@ -785,7 +831,14 @@ void CodeEditor::runCompletion()
         else if ((words[0] == "change_box") || (words[0] == "displace_atoms") ||
                  (words[0] == "velocity") || (words[0] == "write_dump"))
             current_comp = group_comp;
-        else if (selected.startsWith("v_"))
+        else if ((words[0] == "fitpod") || (words[0] == "include") || (words[0] == "ndx2group") ||
+                 (words[0] == "read_data") || (words[0] == "read_dump") ||
+                 (words[0] == "read_restart") || (words[0] == "rerun")) {
+            if (selected.contains('/')) {
+                if (popup && popup->isVisible()) popup->hide();
+            } else
+                current_comp = file_comp;
+        } else if (selected.startsWith("v_"))
             current_comp = varname_comp;
         else if (selected.startsWith("c_"))
             current_comp = compid_comp;
@@ -798,7 +851,8 @@ void CodeEditor::runCompletion()
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[1].c_str());
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (words[1] == current_comp->currentCompletion().toStdString()) {
                 if (popup->isVisible()) popup->hide();
@@ -836,10 +890,16 @@ void CodeEditor::runCompletion()
             current_comp = fixid_comp;
         else if (selected.startsWith("F_"))
             current_comp = fixid_comp;
-
+        else if ((words[0] == "fitpod") || (words[0] == "molecule")) {
+            if (selected.contains('/')) {
+                if (popup && popup->isVisible()) popup->hide();
+            } else
+                current_comp = file_comp;
+        }
         if (current_comp) {
             current_comp->setCompletionPrefix(words[2].c_str());
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (words[2] == current_comp->currentCompletion().toStdString()) {
                 if (popup->isVisible()) popup->hide();
@@ -863,7 +923,12 @@ void CodeEditor::runCompletion()
             current_comp = compute_comp;
         else if (words[0] == "dump")
             current_comp = dump_comp;
-        else if (selected.startsWith("v_"))
+        else if ((words[0] == "pair_coeff") && (words[1] == "*") && (words[2] == "*")) {
+            if (selected.contains('/')) {
+                if (popup && popup->isVisible()) popup->hide();
+            } else
+                current_comp = file_comp;
+        } else if (selected.startsWith("v_"))
             current_comp = varname_comp;
         else if (selected.startsWith("c_"))
             current_comp = compid_comp;
@@ -876,7 +941,8 @@ void CodeEditor::runCompletion()
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[3].c_str());
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (words[3] == current_comp->currentCompletion().toStdString()) {
                 if (popup->isVisible()) popup->hide();
@@ -904,7 +970,8 @@ void CodeEditor::runCompletion()
 
         if (current_comp) {
             current_comp->setCompletionPrefix(selected);
-            auto popup = current_comp->popup();
+            if (popup && (popup != current_comp->popup())) popup->hide();
+            popup = current_comp->popup();
             // if the command is already a complete command, remove existing popup
             if (selected == current_comp->currentCompletion()) {
                 if (popup->isVisible()) popup->hide();
@@ -924,10 +991,8 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     auto *completer = qobject_cast<QCompleter *>(sender());
     if (completer->widget() != this) return;
     auto cursor = textCursor();
-    int extra   = completion.length() - completer->completionPrefix().length();
-    cursor.movePosition(QTextCursor::Left);
-    cursor.movePosition(QTextCursor::EndOfWord);
-    cursor.insertText(completion.right(extra));
+    cursor.movePosition(QTextCursor::StartOfWord, QTextCursor::KeepAnchor);
+    cursor.insertText(completion);
     setTextCursor(cursor);
 }
 

@@ -577,6 +577,10 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
             --begin;
         }
         if (((cursor.positionInBlock() - begin) > 2) || (line[begin + 1] == '$')) runCompletion();
+        if (current_comp && current_comp->popup()->isVisible() &&
+            ((cursor.positionInBlock() - begin) < 2)) {
+            current_comp->popup()->hide();
+        }
     }
 }
 

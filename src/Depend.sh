@@ -185,6 +185,7 @@ fi
 if (test $1 = "ML-SNAP") then
   depend ML-IAP
   depend KOKKOS
+  depend INTEL
 fi
 
 if (test $1 = "CG-SPICA") then

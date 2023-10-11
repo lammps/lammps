@@ -1009,7 +1009,7 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     }
 
     cursor.setPosition(cursor.position() - cursor.positionInBlock() + begin + 1);
-    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, end - begin);
+    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, end - begin - 1);
     cursor.insertText(completion);
     setTextCursor(cursor);
 }

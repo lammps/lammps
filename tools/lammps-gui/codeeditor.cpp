@@ -564,7 +564,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     // process key event in parent class
     QPlainTextEdit::keyPressEvent(event);
 
-    // if enabled, try pop up completion automatically after 3 characters
+    // if enabled, try pop up completion automatically after 2 characters
     if (automatic_completion) {
         auto cursor = textCursor();
         auto line   = cursor.block().text();
@@ -990,8 +990,26 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
 {
     auto *completer = qobject_cast<QCompleter *>(sender());
     if (completer->widget() != this) return;
+
+    // select the entire word (non-space text) under the cursor
+    // we need to do it in this compicated way, since QTextCursor does not recognize
+    // special characters as part of a word.
     auto cursor = textCursor();
-    cursor.movePosition(QTextCursor::StartOfWord, QTextCursor::KeepAnchor);
+    auto line   = cursor.block().text();
+    int begin   = cursor.positionInBlock();
+    do {
+        if (line[begin].isSpace()) break;
+        --begin;
+    } while (begin >= 0);
+
+    int end = begin + 1;
+    while (end < line.length()) {
+        if (line[end].isSpace()) break;
+        ++end;
+    }
+
+    cursor.setPosition(cursor.position() - cursor.positionInBlock() + begin + 1);
+    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, end - begin);
     cursor.insertText(completion);
     setTextCursor(cursor);
 }

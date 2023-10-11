@@ -333,6 +333,7 @@ accelerated styles exist.
 * :doc:`pour <fix_pour>` - pour new atoms/molecules into a granular simulation domain
 * :doc:`precession/spin <fix_precession_spin>` - apply a precession torque to each magnetic spin
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by Berendsen barostat
+* :doc:`press/langevin <fix_press_langevin>` - pressure control by Langevin barostat
 * :doc:`print <fix_print>` - print text and variables during a simulation
 * :doc:`propel/self <fix_propel_self>` - model self-propelled particles
 * :doc:`property/atom <fix_property_atom>` - add customized per-atom values

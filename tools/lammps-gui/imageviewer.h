@@ -40,6 +40,7 @@ public:
 private slots:
     void saveAs();
     void copy();
+    void quit();
 
     void edit_size();
     void reset_view();

@@ -645,9 +645,14 @@ LAMMPS GUI
 Overview
 ^^^^^^^^
 
-LAMMPS GUI is a simple graphical text editor that is linked to the
-:ref:`LAMMPS C-library interface <lammps_c_api>` and thus can run LAMMPS
-directly using the contents of the editor's text buffer as input.
+LAMMPS GUI is a graphical text editor customized for editing LAMMPS
+input files that is linked to the :ref:`LAMMPS C-library <lammps_c_api>`
+and thus can run LAMMPS directly using the contents of the editor's text
+buffer as input.  It can retrieve and display information from LAMMPS
+while it is running, display visualizations created with the :doc:`dump
+image command <dump_image>`, and is adapted specifically for editing
+LAMMPS input files through text completion and reformatting, and linking
+to the online LAMMPS documentation for known LAMMPS commands and styles.
 
 This is similar to what people traditionally would do to run LAMMPS:
 using a regular text editor to edit the input and run the necessary
@@ -656,9 +661,9 @@ terminal window.  This similarity is a design goal. While making it easy
 for beginners to start with LAMMPS, it is also the intention to simplify
 the transition to workflows like most experienced LAMMPS users do.
 
-All features have been extensively exposed to hotkeys, so that there is
-also appeal for experienced LAMMPS users, too, especially for
-prototyping and testing simulations setups.
+All features have been extensively exposed to keyboard shortcuts, so
+that there is also appeal for experienced LAMMPS users for prototyping
+and testing simulations setups.
 
 Features
 ^^^^^^^^
@@ -706,7 +711,7 @@ required.  The LAMMPS GUI has been successfully compiled and tested on:
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
 
-.. _lammps-gui-install:
+.. _lammps_gui_install:
 
 
 Pre-compiled executables

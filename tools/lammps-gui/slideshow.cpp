@@ -13,7 +13,13 @@
 
 #include "slideshow.h"
 
+#include "helpers.h"
+#include "lammpsgui.h"
+
+#include <QApplication>
 #include <QDialogButtonBox>
+#include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -21,11 +27,13 @@
 #include <QImageReader>
 #include <QLabel>
 #include <QPalette>
+#include <QProcess>
 #include <QPushButton>
 #include <QScreen>
 #include <QSettings>
 #include <QShortcut>
 #include <QSpacerItem>
+#include <QTemporaryFile>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -42,8 +50,12 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     imageName->setAlignment(Qt::AlignCenter);
     imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), this);
-    QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::close);
+    auto *shortcut = new QShortcut(QKeySequence::fromString("Ctrl+W"), this);
+    QObject::connect(shortcut, &QShortcut::activated, this, &QWidget::close);
+    shortcut = new QShortcut(QKeySequence::fromString("Ctrl+/"), this);
+    QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::stop_run);
+    shortcut = new QShortcut(QKeySequence::fromString("Ctrl+Q"), this);
+    QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::quit);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -58,31 +70,36 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
 
-    auto *gofirst = new QPushButton(QIcon(":/go-first.png"), "");
+    auto *tomovie = new QPushButton(QIcon(":/icons/export-movie.png"), "");
+    tomovie->setToolTip("Export to movie file");
+    tomovie->setEnabled(has_exe("ffmpeg"));
+
+    auto *gofirst = new QPushButton(QIcon(":/icons/go-first.png"), "");
     gofirst->setToolTip("Go to first Image");
-    auto *goprev = new QPushButton(QIcon(":/go-previous-2.png"), "");
+    auto *goprev = new QPushButton(QIcon(":/icons/go-previous-2.png"), "");
     goprev->setToolTip("Go to previous Image");
-    auto *goplay = new QPushButton(QIcon(":/media-playback-start-2.png"), "");
+    auto *goplay = new QPushButton(QIcon(":/icons/media-playback-start-2.png"), "");
     goplay->setToolTip("Play animation");
     goplay->setCheckable(true);
     goplay->setChecked(playtimer);
     goplay->setObjectName("play");
-    auto *gonext = new QPushButton(QIcon(":/go-next-2.png"), "");
+    auto *gonext = new QPushButton(QIcon(":/icons/go-next-2.png"), "");
     gonext->setToolTip("Go to next Image");
-    auto *golast = new QPushButton(QIcon(":/go-last.png"), "");
+    auto *golast = new QPushButton(QIcon(":/icons/go-last.png"), "");
     golast->setToolTip("Go to last Image");
-    auto *goloop = new QPushButton(QIcon(":/media-playlist-repeat.png"), "");
+    auto *goloop = new QPushButton(QIcon(":/icons/media-playlist-repeat.png"), "");
     goloop->setToolTip("Loop animation");
     goloop->setCheckable(true);
     goloop->setChecked(do_loop);
 
-    auto *zoomin = new QPushButton(QIcon(":/gtk-zoom-in.png"), "");
+    auto *zoomin = new QPushButton(QIcon(":/icons/gtk-zoom-in.png"), "");
     zoomin->setToolTip("Zoom in by 10 percent");
-    auto *zoomout = new QPushButton(QIcon(":/gtk-zoom-out.png"), "");
+    auto *zoomout = new QPushButton(QIcon(":/icons/gtk-zoom-out.png"), "");
     zoomout->setToolTip("Zoom out by 10 percent");
-    auto *normal = new QPushButton(QIcon(":/gtk-zoom-fit.png"), "");
+    auto *normal = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     normal->setToolTip("Reset zoom to normal");
 
+    connect(tomovie, &QPushButton::released, this, &SlideShow::movie);
     connect(gofirst, &QPushButton::released, this, &SlideShow::first);
     connect(goprev, &QPushButton::released, this, &SlideShow::prev);
     connect(goplay, &QPushButton::released, this, &SlideShow::play);
@@ -96,6 +113,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
 
     navLayout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum));
     navLayout->addWidget(dummy);
+    navLayout->addWidget(tomovie);
     navLayout->addWidget(gofirst);
     navLayout->addWidget(goprev);
     navLayout->addWidget(goplay);
@@ -115,7 +133,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     botLayout->setStretch(0, 3);
     mainLayout->addLayout(botLayout);
 
-    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle(QString("LAMMPS-GUI - Slide Show: ") + QFileInfo(fileName).fileName());
 
     imagefiles.clear();
@@ -176,6 +194,62 @@ void SlideShow::loadImage(int idx)
             break;
         }
     } while (idx >= 0);
+}
+
+void SlideShow::quit()
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    main->quit();
+}
+
+void SlideShow::stop_run()
+{
+    LammpsGui *main;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
+    main->stop_run();
+}
+
+void SlideShow::movie()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Export to Movie File", ".",
+                                                    "Movie Files (*.mpg *.mp4 *.mkv *.avi *.mpeg)");
+    if (fileName.isEmpty()) return;
+
+    QDir curdir(".");
+    QTemporaryFile concatfile;
+    concatfile.open();
+    for (auto image : imagefiles) {
+        concatfile.write("file '");
+        concatfile.write(curdir.absoluteFilePath(image).toLocal8Bit());
+        concatfile.write("'\n");
+    }
+    concatfile.close();
+
+    QStringList args;
+    args << "-y";
+    args << "-safe"
+         << "0";
+    args << "-r"
+         << "10";
+    args << "-f"
+         << "concat";
+    args << "-i" << concatfile.fileName();
+    if (scaleFactor != 1.0) {
+        args << "-vf" << QString("scale=iw*%1:-1").arg(scaleFactor);
+    }
+    args << "-b:v"
+         << "2000k";
+    args << "-r"
+         << "24";
+    args << fileName;
+
+    auto *ffmpeg = new QProcess(this);
+    ffmpeg->start("ffmpeg", args);
+    ffmpeg->waitForFinished(-1);
+    delete ffmpeg;
 }
 
 void SlideShow::first()

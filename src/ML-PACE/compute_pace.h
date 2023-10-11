@@ -58,25 +58,3 @@ class ComputePACE : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute pace requires a pair style be defined
-
-Self-explanatory.
-
-E: Compute pace cutoff is longer than pairwise cutoff
-
-UNDOCUMENTED
-
-W: More than one compute pace/atom
-
-Self-explanatory.
-
-*/

@@ -132,6 +132,12 @@ per-type polydispersity is allowed.  This means all particles of the
 same type must have the same diameter.  Each type can have a different
 diameter.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Related commands
 """"""""""""""""
 

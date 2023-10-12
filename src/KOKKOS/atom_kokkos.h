@@ -148,6 +148,7 @@ class AtomKokkos : public Atom {
   }
 
   void init() override;
+  void update_property_atom();
   void allocate_type_arrays() override;
   void sync(const ExecutionSpace space, unsigned int mask);
   void modified(const ExecutionSpace space, unsigned int mask);

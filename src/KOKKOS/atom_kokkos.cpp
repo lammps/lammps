@@ -126,7 +126,12 @@ void AtomKokkos::init()
   Atom::init();
 
   sort_classic = lmp->kokkos->sort_classic;
+}
 
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::update_property_atom()
+{
   nprop_atom = 0;
   for (int ifix = 0; ifix < modify->nfix; ifix++) {
     if (modify->fix[ifix] && utils::strmatch(modify->fix[ifix]->style, "^property/atom")) {
@@ -142,11 +147,8 @@ void AtomKokkos::init()
   delete [] fix_prop_atom;
   fix_prop_atom = new FixPropertyAtomKokkos*[nprop_atom];
 
-  printf("HERE %i\n",nprop_atom);
-
   for (int n = 0; n < nprop_atom; n++) {
     auto fix_n = dynamic_cast<FixPropertyAtomKokkos*>(modify->fix[prop_atom[n]]);
-    fix_n->atom_init_flag = 1;
     fix_prop_atom[n] = fix_n;
   }
 

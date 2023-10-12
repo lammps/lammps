@@ -29,15 +29,13 @@ namespace LAMMPS_NS {
 class FixPropertyAtomKokkos : public FixPropertyAtom {
  public:
   FixPropertyAtomKokkos(class LAMMPS *, int, char **);
+  void post_constructor() override;
   ~FixPropertyAtomKokkos() override;
-
   void grow_arrays(int) override;
 
   void sync(ExecutionSpace space, unsigned int mask);
   void modified(ExecutionSpace space, unsigned int mask);
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
-
-  int atom_init_flag;
 
  private:
   int dvector_flag;

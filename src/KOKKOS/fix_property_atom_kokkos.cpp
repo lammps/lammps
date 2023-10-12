@@ -35,8 +35,15 @@ FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) 
   dvector_flag = 0;
   for (int nv = 0; nv < nvalue; nv++)
     if (styles[nv] == DVEC) dvector_flag = 1;
+}
 
-  atom_init_flag = 0;
+/* ---------------------------------------------------------------------- */
+
+void FixPropertyAtomKokkos::post_constructor()
+{
+  atomKK->update_property_atom();
+
+  FixPropertyAtom::post_constructor();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,6 +68,8 @@ FixPropertyAtomKokkos::~FixPropertyAtomKokkos()
       atom->rmass = nullptr;
     }
   }
+
+  atomKK->update_property_atom();
 }
 
 /* ----------------------------------------------------------------------
@@ -74,20 +83,17 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
 {
   for (int nv = 0; nv < nvalue; nv++) {
     if (styles[nv] == MOLECULE) {
-      if (!atom_init_flag) this->modified(Host,MOLECULE_MASK);
-      else atomKK->sync(Device,MOLECULE_MASK);
+      atomKK->sync(Device,MOLECULE_MASK);
       memoryKK->grow_kokkos(atomKK->k_molecule,atom->molecule,nmax,"atom:molecule");
-      if (atom_init_flag) atomKK->modified(Device,MOLECULE_MASK);
+      atomKK->modified(Device,MOLECULE_MASK);
     } else if (styles[nv] == CHARGE) {
-      if (!atom_init_flag) this->modified(Host,Q_MASK);
-      else atomKK->sync(Device,Q_MASK);
+      atomKK->sync(Device,Q_MASK);
       memoryKK->grow_kokkos(atomKK->k_q,atom->q,nmax,"atom:q");
-      if (atom_init_flag) atomKK->modified(Device,Q_MASK);
+      atomKK->modified(Device,Q_MASK);
     } else if (styles[nv] == RMASS) {
-      if (!atom_init_flag) this->modified(Host,RMASS_MASK);
-      else atomKK->sync(Device,RMASS_MASK);
+      atomKK->sync(Device,RMASS_MASK);
       memoryKK->grow_kokkos(atomKK->k_rmass,atom->rmass,nmax,"atom:rmass");
-      if (atom_init_flag) atomKK->modified(Device,RMASS_MASK);
+      atomKK->modified(Device,RMASS_MASK);
     } else if (styles[nv] == TEMPERATURE) {
       memory->grow(atom->temperature, nmax, "atom:temperature");
       size_t nbytes = (nmax - nmax_old) * sizeof(double);
@@ -101,11 +107,10 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
       memset(&atom->ivector[index[nv]][nmax_old],0,nbytes);
     } else if (styles[nv] == DVEC) {
-      if (!atom_init_flag) this->modified(Host,DVECTOR_MASK);
-      else atomKK->sync(Device,DVECTOR_MASK);
+      atomKK->sync(Device,DVECTOR_MASK);
       memoryKK->grow_kokkos(atomKK->k_dvector,atom->dvector,atomKK->k_dvector.extent(0),nmax,
                           "atom:dvector");
-      if (atom_init_flag) atomKK->modified(Device,DVECTOR_MASK);
+      atomKK->modified(Device,DVECTOR_MASK);
     } else if (styles[nv] == IARRAY) {
       memory->grow(atom->iarray[index[nv]], nmax, cols[nv], "atom:iarray");
       size_t nbytes = (size_t) (nmax - nmax_old) * cols[nv] * sizeof(int);
@@ -124,7 +129,6 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
 void FixPropertyAtomKokkos::sync(ExecutionSpace space, unsigned int mask)
 {
   if (space == Device) {
-
     if (molecule_flag && (mask & MOLECULE_MASK)) atomKK->k_molecule.sync<LMPDeviceType>();
     if (q_flag && (mask & Q_MASK)) atomKK->k_q.sync<LMPDeviceType>();
     if (rmass_flag && (mask & RMASS_MASK)) {atomKK->k_rmass.sync<LMPDeviceType>();}

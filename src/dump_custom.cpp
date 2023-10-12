@@ -1354,20 +1354,14 @@ int DumpCustom::parse_fields(int narg, char **arg)
       else pack_choice[iarg] = &DumpCustom::pack_z;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xs") == 0) {
-      if (triclinic_general)
-        error->all(FLERR,"Dump custom xs property not supported for general triclinic");
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_xs_triclinic;
       else pack_choice[iarg] = &DumpCustom::pack_xs;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"ys") == 0) {
-      if (triclinic_general)
-        error->all(FLERR,"Dump custom ys property not supported for general triclinic");
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_ys_triclinic;
       else pack_choice[iarg] = &DumpCustom::pack_ys;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"zs") == 0) {
-      if (triclinic_general)
-        error->all(FLERR,"Dump custom zs property not supported for general triclinic");
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_zs_triclinic;
       else pack_choice[iarg] = &DumpCustom::pack_zs;
       vtype[iarg] = Dump::DOUBLE;
@@ -1387,20 +1381,14 @@ int DumpCustom::parse_fields(int narg, char **arg)
       else pack_choice[iarg] = &DumpCustom::pack_zu;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xsu") == 0) {
-      if (triclinic_general)
-        error->all(FLERR,"Dump custom xsu property not supported for general triclinic");
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_xsu_triclinic;
       else pack_choice[iarg] = &DumpCustom::pack_xsu;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"ysu") == 0) {
-      if (triclinic_general)
-        error->all(FLERR,"Dump custom ysu property not supported for general triclinic");
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_ysu_triclinic;
       else pack_choice[iarg] = &DumpCustom::pack_ysu;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"zsu") == 0) {
-      if (triclinic_general)
-        error->all(FLERR,"Dump custom zsu property not supported for general triclinic");
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_zsu_triclinic;
       else pack_choice[iarg] = &DumpCustom::pack_zsu;
       vtype[iarg] = Dump::DOUBLE;

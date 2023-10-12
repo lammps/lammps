@@ -49,8 +49,6 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = nullptr;
 
-  quat_hold = nullptr;
-  
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
@@ -458,90 +456,6 @@ void AtomVecEllipsoid::data_atom_post(int ilocal)
   angmom[ilocal][0] = 0.0;
   angmom[ilocal][1] = 0.0;
   angmom[ilocal][2] = 0.0;
-}
-
-/* ----------------------------------------------------------------------
-   convert read_data file info from general to restricted triclinic
-   parent class operates on data from Velocities section of data file
-   child class operates on bonus quat
-------------------------------------------------------------------------- */
-
-void AtomVecEllipsoid::read_data_general_to_restricted(int nlocal_previous, int nlocal)
-{
-  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
-
-  double quat[4];
-  double *bquat;
-  
-  for (int i = nlocal_previous; i < nlocal; i++) {
-    if (ellipsoid[i] < 0) continue;
-    bquat = bonus[ellipsoid[i]].quat;
-    MathExtra::quatquat(domain->quat_g2r,bquat,quat);
-    bquat[0] = quat[0];
-    bquat[1] = quat[1];
-    bquat[2] = quat[2];
-    bquat[3] = quat[3];
-    MathExtra::qnormalize(bquat);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   convert info output by write_data from restricted to general triclinic
-   parent class operates on x and data from Velocities section of data file
-   child class operates on bonus quat
-------------------------------------------------------------------------- */
-
-void AtomVecEllipsoid::write_data_restricted_to_general()
-{
-  AtomVec::write_data_restricted_to_general();
-
-  double quat[4];
-  double *bquat;
-  double *quat_r2g = domain->quat_r2g;
-
-  memory->create(quat_hold,nlocal_bonus,4,"atomvec:quat_hold");
-  
-  for (int i = 0; i < nlocal_bonus; i++) {
-    bquat = bonus[i].quat;
-    quat_hold[i][0] = bquat[0];
-    quat_hold[i][1] = bquat[1];
-    quat_hold[i][2] = bquat[2];
-    quat_hold[i][3] = bquat[3];
-
-    MathExtra::quatquat(quat_r2g,bquat,quat);
-    bquat[0] = quat[0];
-    bquat[1] = quat[1];
-    bquat[2] = quat[2];
-    bquat[3] = quat[3];
-    MathExtra::qnormalize(bquat);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   restore info output by write_data to restricted triclinic
-   original data is in "hold" arrays
-   parent class operates on x and data from Velocities section of data file
-   child class operates on bonus quat
-------------------------------------------------------------------------- */
-
-void AtomVecEllipsoid::write_data_restore_restricted()
-{
-  AtomVec::write_data_restore_restricted();
-
-  if (!quat_hold) return;
-
-  double *bquat;
-  
-  for (int i = 0; i < nlocal_bonus; i++) {
-    bquat = bonus[i].quat;
-    bquat[0] = quat_hold[i][0];
-    bquat[1] = quat_hold[i][1];
-    bquat[2] = quat_hold[i][2];
-    bquat[3] = quat_hold[i][3];
-  }
-  
-  memory->destroy(quat_hold);
-  quat_hold = nullptr;
 }
 
 /* ----------------------------------------------------------------------

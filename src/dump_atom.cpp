@@ -91,9 +91,6 @@ void DumpAtom::init_style()
 
   // setup function ptrs
 
-  if (scale_flag && triclinic_general)
-    error->all(FLERR,"Dump atom cannot use scale and triclinic/general settings");
-
   if (binary && domain->triclinic == 0)
     header_choice = &DumpAtom::header_binary;
   else if (binary && triclinic_general == 1)
@@ -107,26 +104,36 @@ void DumpAtom::init_style()
   else if (!binary && domain->triclinic == 1)
     header_choice = &DumpAtom::header_item_triclinic;
 
-  if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 0)
-    pack_choice = &DumpAtom::pack_scale_noimage;
-  else if (scale_flag == 1 && image_flag == 1 && domain->triclinic == 0)
-    pack_choice = &DumpAtom::pack_scale_image;
+  if (scale_flag == 0) {
+    if (image_flag == 0) {
+      if (triclinic_general == 1) {
+        pack_choice = &DumpAtom::pack_noscale_noimage_triclinic_general;
+      } else {
+        pack_choice = &DumpAtom::pack_noscale_noimage;
+      }
+    } else if (image_flag == 1) {
+      if (triclinic_general == 1) {
+        pack_choice = &DumpAtom::pack_noscale_image_triclinic_general;
+      } else {
+        pack_choice = &DumpAtom::pack_noscale_image;
+      }
+    }
+  } else if (scale_flag == 1) {
+    if (image_flag == 0) {
+      if (domain->triclinic == 0) {
+        pack_choice = &DumpAtom::pack_scale_noimage;
+      } else {
+        pack_choice = &DumpAtom::pack_scale_noimage_triclinic;
+      }
+    } else if (image_flag == 1) {
+      if (domain->triclinic == 0) {
+        pack_choice = &DumpAtom::pack_scale_image;
+      } else {
+        pack_choice = &DumpAtom::pack_scale_image_triclinic;
+      }
+    }
+  }
   
-  else if (scale_flag == 0 && image_flag == 0 && triclinic_general == 1)
-    pack_choice = &DumpAtom::pack_noscale_noimage_triclinic_general;
-  else if (scale_flag == 0 && image_flag == 1 && triclinic_general == 1)
-    pack_choice = &DumpAtom::pack_noscale_image_triclinic_general;
-  
-  else if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 1)
-    pack_choice = &DumpAtom::pack_scale_noimage_triclinic;
-  else if (scale_flag == 1 && image_flag == 1 && domain->triclinic == 1)
-    pack_choice = &DumpAtom::pack_scale_image_triclinic;
-  
-  else if (scale_flag == 0 && image_flag == 0)
-    pack_choice = &DumpAtom::pack_noscale_noimage;
-  else if (scale_flag == 0 && image_flag == 1)
-    pack_choice = &DumpAtom::pack_noscale_image;
-
   if (image_flag == 0) convert_choice = &DumpAtom::convert_noimage;
   else convert_choice = &DumpAtom::convert_image;
 

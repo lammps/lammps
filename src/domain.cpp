@@ -632,17 +632,17 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   if (bvec1[2] > 0.0) theta2 = -theta2;
   MathExtra::axisangle_to_quat(xaxis,theta2,quat2);
 
-  // quat_g2r = rotation via single quat = quat2 * quat1
+  // quat_single = rotation via single quat = quat2 * quat1
   // quat_r2g = rotation from restricted to general
   // rotate_g2r = general to restricted rotation matrix
   //   include flip of C vector if needed to obey right-hand rule
   // rotate_r2g = restricted to general rotation matrix
   //   simply a transpose of rotate_g2r since orthonormal
 
-  MathExtra::quatquat(quat2,quat1,quat_g2r);
-  MathExtra::qconjugate(quat_g2r,quat_r2g);
+  double quat_single[4];
+  MathExtra::quatquat(quat2,quat1,quat_single);
 
-  MathExtra::quat_to_mat(quat_g2r,rotate_g2r);
+  MathExtra::quat_to_mat(quat_single,rotate_g2r);
 
   if (triclinic_general_flip) {
     rotate_g2r[2][0] = -rotate_g2r[2][0];
@@ -675,11 +675,13 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   printf("Rotvec1: %g %g %g\n",rot1[0],rot1[1],rot1[2]);
   printf("Theta2: %g\n",theta2);
   printf("Rotvec2: %g %g %g\n",xaxis[0],xaxis[1],xaxis[2]);
-  printf("Quat: %g %g %g %g\n",quat_g2r[0],quat_g2r[1],quat_g2r[2],quat_g2r[3]);
-  double angle = 2.0*acos(quat_g2r[0]);
+  printf("Quat: %g %g %g %g\n",
+         quat_single[0],quat_single[1],quat_single[2],quat_single[3]);
+  double angle = 2.0*acos(quat_single[0]);
   printf("Theta: %g\n",angle);
-  printf("Rotvec: %g %g %g\n",quat_g2r[1]/sin(0.5*angle),quat_g2r[2]/sin(0.5*angle),
-         quat_g2r[3]/sin(0.5*angle));
+  printf("Rotvec: %g %g %g\n",
+         quat_single[1]/sin(0.5*angle),quat_single[2]/sin(0.5*angle),
+         quat_single[3]/sin(0.5*angle));
   printf("Aprime: %g %g %g\n",aprime[0],aprime[1],aprime[2]);
   printf("Bprime: %g %g %g\n",bprime[0],bprime[1],bprime[2]);
   printf("Cprime: %g %g %g\n",cprime[0],cprime[1],cprime[2]);

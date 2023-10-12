@@ -1,5 +1,4 @@
 SHELL = /bin/sh
-CMAKE= cmake
 
 # ------ FILES ------
 
@@ -36,7 +35,7 @@ lib: $(OBJ) lib-yaml-cpp
 
 
 lib-yaml-cpp:
-	cd $(YAML_CPP_PATH) && $(CMAKE) . && $(MAKE) all
+	cd $(YAML_CPP_PATH) && $(MAKE) lib
 
 # ------ COMPILE RULES ------
 
@@ -46,8 +45,9 @@ lib-yaml-cpp:
 # ------ CLEAN ------
 clean-all:
 	-rm -f *~ $(OBJ) $(LIB)
-	cd $(YAML_CPP_PATH) && $(MAKE) clean
+	cd $(YAML_CPP_PATH) && $(MAKE) clean-all
 
 clean-build:
 	-rm -f *~ $(OBJ)
+	cd $(YAML_CPP_PATH) && $(MAKE) clean-build
 

@@ -27,7 +27,6 @@ class AtomKokkos : public Atom {
  public:
   bool sort_classic;
   int nprop_atom;
-  int* prop_atom;
   FixPropertyAtomKokkos** fix_prop_atom;
 
   DAT::tdual_tagint_1d k_tag;

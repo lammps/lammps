@@ -14,16 +14,17 @@
 #ifndef CHARTVIEWER_H
 #define CHARTVIEWER_H
 
+#include <QComboBox>
 #include <QList>
 #include <QString>
 #include <QWidget>
-#include <QtCharts>
 
 class QAction;
 class QMenuBar;
 class QMenu;
-class QComboBox;
+namespace QtCharts {
 class ChartViewer;
+}
 
 class ChartWindow : public QWidget {
     Q_OBJECT
@@ -64,12 +65,18 @@ private:
     QAction *closeAct, *stopAct, *quitAct;
 
     QString filename;
-    QList<ChartViewer *> charts;
+    QList<QtCharts::ChartViewer *> charts;
 };
 
 /* -------------------------------------------------------------------- */
 
-class ChartViewer : public QtCharts::QChartView {
+#include <QChart>
+#include <QChartView>
+#include <QLineSeries>
+#include <QValueAxis>
+
+namespace QtCharts {
+class ChartViewer : public QChartView {
     Q_OBJECT
 
 public:
@@ -86,11 +93,12 @@ public:
 
 private:
     int last_step, index;
-    QtCharts::QChart *chart;
-    QtCharts::QLineSeries *series;
-    QtCharts::QValueAxis *xaxis;
-    QtCharts::QValueAxis *yaxis;
+    QChart *chart;
+    QLineSeries *series;
+    QValueAxis *xaxis;
+    QValueAxis *yaxis;
 };
+} // namespace QtCharts
 #endif
 
 // Local Variables:

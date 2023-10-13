@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
 mark_as_advanced(LAMMPS_GUI_USE_PLUGIN)
+option(LAMMPS_GUI_USE_QT5 "Prefer using Qt5 over Qt6" OFF)
 
 # checks
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
@@ -73,7 +74,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif()
 
 # we require Qt 5 and at least version 5.12 at that.
-find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
+if(NOT LAMMPS_GUI_USE_QT5)
+  find_package(Qt6 6.2 COMPONENTS Widgets Charts)
+endif()
+if(NOT Qt6_FOUND)
+  find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
+  set(QT_VERSION_MAJOR "5")
+else()
+  set(QT_VERSION_MAJOR "6")
+endif()
 
 set(PROJECT_SOURCES
   main.cpp
@@ -105,7 +114,11 @@ set(PROJECT_SOURCES
   ${PLUGIN_LOADER_SRC}
   ${ICON_RC_FILE}
 )
-qt5_add_resources(PROJECT_SOURCES lammpsgui.qrc)
+if(QT_VERSION_MAJOR EQUAL 6)
+  qt6_add_resources(PROJECT_SOURCES lammpsgui.qrc)
+else()
+  qt5_add_resources(PROJECT_SOURCES lammpsgui.qrc)
+endif()
 
 if(APPLE)
   set(MACOSX_ICON_FILE ${LAMMPS_DIR}/cmake/packaging/lammps.icns)
@@ -113,10 +126,22 @@ if(APPLE)
   set(MACOSX_BACKGROUND_FILE ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png)
 endif()
 
-add_executable(lammps-gui
-  ${MACOSX_ICON_FILE}
-  ${PROJECT_SOURCES}
-)
+if(QT_VERSION_MAJOR EQUAL 6)
+  qt_add_executable(lammps-gui
+    MANUAL_FINALIZATION
+    ${MACOSX_ICON_FILE}
+    ${PROJECT_SOURCES}
+  )
+else()
+  add_executable(lammps-gui
+    ${MACOSX_ICON_FILE}
+    ${PROJECT_SOURCES}
+  )
+endif()
+
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt_finalize_executable(lammps-gui)
+endif()
 
 # compilation settings
 if(LAMMPS_GUI_USE_PLUGIN)
@@ -128,7 +153,7 @@ else()
 endif()
 target_include_directories(lammps-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
-target_link_libraries(lammps-gui PRIVATE Qt5::Widgets Qt5::Charts)
+target_link_libraries(lammps-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${VERSION_MAJOR}::Charts)
 if(BUILD_OMP)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
@@ -209,7 +234,7 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     COMMENT "Create zip file with windows binaries"
     BYPRODUCT LAMMPS-Win10-amd64.zip
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND NOT LAMMPS_GUI_USE_PLUGIN)
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-gui.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications/)
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-input.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/packages/)

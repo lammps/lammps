@@ -15,11 +15,19 @@
 
 #include "lammpsgui.h"
 
+#include <QAction>
+#include <QApplication>
+#include <QFileDialog>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QLayout>
 #include <QLineSeries>
+#include <QMenu>
+#include <QMenuBar>
 #include <QPushButton>
 #include <QSettings>
 #include <QSpacerItem>
+#include <QTextStream>
 #include <QVBoxLayout>
 
 using namespace QtCharts;
@@ -288,7 +296,7 @@ void ChartViewer::add_data(int step, double data)
     if (last_step < step) {
         last_step = step;
         series->append(step, data);
-        auto points = series->pointsVector();
+        auto points = series->points();
 
         qreal xmin = 1.0e100;
         qreal xmax = -1.0e100;
@@ -309,7 +317,7 @@ void ChartViewer::add_data(int step, double data)
 
 void ChartViewer::reset_zoom()
 {
-    auto points = series->pointsVector();
+    auto points = series->points();
 
     qreal xmin = 1.0e100;
     qreal xmax = -1.0e100;

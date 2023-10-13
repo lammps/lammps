@@ -96,19 +96,21 @@ class PairYukawaColloidKokkos : public PairYukawaColloid {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,FULL,void>(
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,FULL,0>(PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,FULL,1>(PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,HALF>(
     PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,HALF,void>(
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,HALFTHREAD>(
     PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,HALFTHREAD,void>(
-    PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairYukawaColloidKokkos,void>(
+  friend EV_FLOAT pair_compute<PairYukawaColloidKokkos>(
     PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairYukawaColloidKokkos>(PairYukawaColloidKokkos*);
 

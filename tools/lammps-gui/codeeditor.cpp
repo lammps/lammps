@@ -572,7 +572,8 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
 
         // QTextCursor::WordUnderCursor is unusable here since recognizes '/' as word boundary.
         // Work around it by manually searching for the location of the beginning of the word.
-        int begin = cursor.positionInBlock();
+        int begin = qMin(cursor.positionInBlock(), line.length() - 1);
+
         while (begin >= 0) {
             if (line[begin].isSpace()) break;
             --begin;
@@ -749,7 +750,7 @@ void CodeEditor::runCompletion()
     // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word boundary.
     // Work around it by manually searching for the beginning and end position of the word
     // under the cursor and then using that substring.
-    int begin = cursor.positionInBlock();
+    int begin = qMin(cursor.positionInBlock(), line.length() - 1);
     line      = cursor.block().text();
     while (begin >= 0) {
         if (line[begin].isSpace()) break;

@@ -568,6 +568,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     if (automatic_completion) {
         auto cursor = textCursor();
         auto line   = cursor.block().text();
+        if (line.isEmpty()) return;
 
         // QTextCursor::WordUnderCursor is unusable here since recognizes '/' as word boundary.
         // Work around it by manually searching for the location of the beginning of the word.

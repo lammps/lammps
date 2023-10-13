@@ -13,6 +13,41 @@ option(LAMMPS_GUI_USE_PLUGIN "Load LAMMPS library dynamically at runtime" OFF)
 mark_as_advanced(LAMMPS_GUI_USE_PLUGIN)
 option(LAMMPS_GUI_USE_QT5 "Prefer using Qt5 over Qt6" OFF)
 
+include(CheckIncludeFileCXX)
+# helper function to check for usable omp.h header
+function(check_omp_h_include)
+  find_package(OpenMP COMPONENTS CXX QUIET)
+  if(OpenMP_CXX_FOUND)
+    set(CMAKE_REQUIRED_FLAGS ${OpenMP_CXX_FLAGS})
+    set(CMAKE_REQUIRED_INCLUDES ${OpenMP_CXX_INCLUDE_DIRS})
+    set(CMAKE_REQUIRED_LINK_OPTIONS ${OpenMP_CXX_FLAGS})
+    set(CMAKE_REQUIRED_LIBRARIES ${OpenMP_CXX_LIBRARIES})
+    check_include_file_cxx(omp.h _have_omp_h)
+  else()
+    set(_have_omp_h FALSE)
+  endif()
+  set(HAVE_OMP_H_INCLUDE ${_have_omp_h} PARENT_SCOPE)
+endfunction()
+
+# detect if we may enable OpenMP support by default
+set(BUILD_OMP_DEFAULT OFF)
+find_package(OpenMP COMPONENTS CXX QUIET)
+if(OpenMP_CXX_FOUND)
+  check_omp_h_include()
+  if(HAVE_OMP_H_INCLUDE)
+    set(BUILD_OMP_DEFAULT ON)
+  endif()
+endif()
+
+option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
+if(BUILD_OMP)
+  find_package(OpenMP COMPONENTS CXX REQUIRED)
+  check_omp_h_include()
+  if(NOT HAVE_OMP_H_INCLUDE)
+    message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
+  endif()
+endif()
+
 # checks
 # when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
 if(LAMMPS_DIR)

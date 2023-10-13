@@ -286,12 +286,12 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 
 void GeneralTab::updatefonts(const QFont &all, const QFont &text)
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
 
     QApplication::setFont(all);
-    main->ui->textEdit->document()->setDefaultFont(text);
+    if (main) main->ui->textEdit->document()->setDefaultFont(text);
 }
 
 void GeneralTab::newallfont()
@@ -410,11 +410,19 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
 #endif
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
+#if defined(_OPENMP)
     auto *ntlabel      = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
     auto *ntchoice     = new QLineEdit(settings->value("nthreads", maxthreads).toString());
+#else
+    auto *ntlabel      = new QLabel(QString("Number of threads (OpenMP not available):"));
+    auto *ntchoice     = new QLineEdit("1");
+#endif
     auto *intval       = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);
     ntchoice->setObjectName("nthreads");
+#if !defined(_OPENMP)
+    ntchoice->setEnabled(false);
+#endif
 
     choiceLayout->addWidget(ntlabel);
     choiceLayout->addWidget(ntchoice);

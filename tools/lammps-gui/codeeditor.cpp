@@ -564,14 +564,16 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
     // process key event in parent class
     QPlainTextEdit::keyPressEvent(event);
 
-    // if enabled, try pop up completion automatically after 3 characters
+    // if enabled, try pop up completion automatically after 2 characters
     if (automatic_completion) {
         auto cursor = textCursor();
         auto line   = cursor.block().text();
+        if (line.isEmpty()) return;
 
         // QTextCursor::WordUnderCursor is unusable here since recognizes '/' as word boundary.
         // Work around it by manually searching for the location of the beginning of the word.
-        int begin = cursor.positionInBlock();
+        int begin = qMin(cursor.positionInBlock(), line.length() - 1);
+
         while (begin >= 0) {
             if (line[begin].isSpace()) break;
             --begin;
@@ -748,7 +750,7 @@ void CodeEditor::runCompletion()
     // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word boundary.
     // Work around it by manually searching for the beginning and end position of the word
     // under the cursor and then using that substring.
-    int begin = cursor.positionInBlock();
+    int begin = qMin(cursor.positionInBlock(), line.length() - 1);
     line      = cursor.block().text();
     while (begin >= 0) {
         if (line[begin].isSpace()) break;
@@ -990,8 +992,26 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
 {
     auto *completer = qobject_cast<QCompleter *>(sender());
     if (completer->widget() != this) return;
+
+    // select the entire word (non-space text) under the cursor
+    // we need to do it in this compicated way, since QTextCursor does not recognize
+    // special characters as part of a word.
     auto cursor = textCursor();
-    cursor.movePosition(QTextCursor::StartOfWord, QTextCursor::KeepAnchor);
+    auto line   = cursor.block().text();
+    int begin   = cursor.positionInBlock();
+    do {
+        if (line[begin].isSpace()) break;
+        --begin;
+    } while (begin >= 0);
+
+    int end = begin + 1;
+    while (end < line.length()) {
+        if (line[end].isSpace()) break;
+        ++end;
+    }
+
+    cursor.setPosition(cursor.position() - cursor.positionInBlock() + begin + 1);
+    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, end - begin - 1);
     cursor.insertText(completion);
     setTextCursor(cursor);
 }

@@ -23,6 +23,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QImageReader>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenuBar>
@@ -131,7 +132,7 @@ static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
-    lammps(_lammps), group("all"), filename(fileName), useelements(false)
+    lammps(_lammps), group("all"), filename(fileName), useelements(false), usediameter(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -268,7 +269,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     // properties directly since lookup in reset_view() will have failed
     dobox->setChecked(showbox);
     dovdw->setChecked(vdwfactor > 1.0);
-    dovdw->setEnabled(useelements);
+    dovdw->setEnabled(useelements || usediameter);
     doaxes->setChecked(showaxes);
     dossao->setChecked(usessao);
     doanti->setChecked(antialias);
@@ -435,7 +436,7 @@ void ImageViewer::createImage()
     dumpcmd += "'" + dumpfile.fileName() + "'";
 
     settings.beginGroup("snapshot");
-    int hhrot    = (hrot > 180) ? 360 - hrot : hrot;
+    int hhrot = (hrot > 180) ? 360 - hrot : hrot;
 
     // determine elements from masses and set their covalent radii
     int ntypes       = lammps->extract_setting("ntypes");
@@ -454,9 +455,10 @@ void ImageViewer::createImage()
             adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * pte_vdw_radius[idx]);
         }
     }
+    usediameter = lammps->extract_setting("radius_flag") != 0;
 
     // adjust pushbutton state and clear adiams string to disable VDW display, if needed
-    if (useelements) {
+    if (useelements || usediameter) {
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(true);
     } else {
@@ -469,7 +471,10 @@ void ImageViewer::createImage()
         dumpcmd += blank + "element";
     else
         dumpcmd += blank + settings.value("color", "type").toString();
-    dumpcmd += blank + settings.value("diameter", "type").toString();
+    if (usediameter && (vdwfactor > 1.0))
+        dumpcmd += blank + "diameter";
+    else
+        dumpcmd += blank + settings.value("diameter", "type").toString();
     dumpcmd += QString(" size %1 %2").arg(xsize).arg(ysize);
     dumpcmd += QString(" zoom %1").arg(zoom);
     dumpcmd += " shiny 0.5 ";
@@ -528,10 +533,10 @@ void ImageViewer::copy() {}
 
 void ImageViewer::quit()
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-    main->quit();
+    if (main) main->quit();
 }
 
 void ImageViewer::saveFile(const QString &fileName)
@@ -554,10 +559,10 @@ void ImageViewer::createActions()
     fileMenu->addSeparator();
     QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
     exitAct->setIcon(QIcon(":/icons/window-close.png"));
-    exitAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
+    exitAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));
     QAction *quitAct = fileMenu->addAction("&Quit", this, &ImageViewer::quit);
     quitAct->setIcon(QIcon(":/icons/application-exit.png"));
-    quitAct->setShortcut(QKeySequence::fromString("Ctrl+Q"));
+    quitAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
 }
 
 void ImageViewer::updateActions()

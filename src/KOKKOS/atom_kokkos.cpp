@@ -46,7 +46,6 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
   h_tag_max = Kokkos::subview(h_tag_min_max,1);
 
   nprop_atom = 0;
-  prop_atom = nullptr;
   fix_prop_atom = nullptr;
 }
 
@@ -132,16 +131,18 @@ void AtomKokkos::init()
 
 void AtomKokkos::update_property_atom()
 {
+  nprop_atom = 0;
   std::vector<Fix *> prop_atom_fixes;
   for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
     if (!ifix->kokkosable)
       error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
 
+    ++nprop_atom;
     prop_atom_fixes.push_back(ifix);
   }
 
   delete[] fix_prop_atom;
-  fix_prop_atom = new FixPropertyAtomKokkos *[prop_atom_fixes.size()];
+  fix_prop_atom = new FixPropertyAtomKokkos *[nprop_atom];
 
   int n = 0;
   for (auto &ifix : prop_atom_fixes)

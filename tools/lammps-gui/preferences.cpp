@@ -286,12 +286,12 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
 
 void GeneralTab::updatefonts(const QFont &all, const QFont &text)
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
 
     QApplication::setFont(all);
-    main->ui->textEdit->document()->setDefaultFont(text);
+    if (main) main->ui->textEdit->document()->setDefaultFont(text);
 }
 
 void GeneralTab::newallfont()

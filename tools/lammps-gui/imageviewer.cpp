@@ -533,10 +533,10 @@ void ImageViewer::copy() {}
 
 void ImageViewer::quit()
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-    main->quit();
+    if (main) main->quit();
 }
 
 void ImageViewer::saveFile(const QString &fileName)

@@ -23,6 +23,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QImageReader>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenuBar>
@@ -558,10 +559,10 @@ void ImageViewer::createActions()
     fileMenu->addSeparator();
     QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
     exitAct->setIcon(QIcon(":/icons/window-close.png"));
-    exitAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
+    exitAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));
     QAction *quitAct = fileMenu->addAction("&Quit", this, &ImageViewer::quit);
     quitAct->setIcon(QIcon(":/icons/application-exit.png"));
-    quitAct->setShortcut(QKeySequence::fromString("Ctrl+Q"));
+    quitAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
 }
 
 void ImageViewer::updateActions()

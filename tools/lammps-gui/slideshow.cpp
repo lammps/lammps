@@ -25,6 +25,7 @@
 #include <QHBoxLayout>
 #include <QImage>
 #include <QImageReader>
+#include <QKeySequence>
 #include <QLabel>
 #include <QPalette>
 #include <QProcess>
@@ -50,11 +51,11 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     imageName->setAlignment(Qt::AlignCenter);
     imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    auto *shortcut = new QShortcut(QKeySequence::fromString("Ctrl+W"), this);
+    auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), this);
     QObject::connect(shortcut, &QShortcut::activated, this, &QWidget::close);
-    shortcut = new QShortcut(QKeySequence::fromString("Ctrl+/"), this);
+    shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this);
     QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::stop_run);
-    shortcut = new QShortcut(QKeySequence::fromString("Ctrl+Q"), this);
+    shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
     QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::quit);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);

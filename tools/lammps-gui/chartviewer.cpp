@@ -19,6 +19,7 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QHBoxLayout>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLayout>
 #include <QLineSeries>
@@ -61,13 +62,13 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     file->addSeparator();
     stopAct = file->addAction("Stop &Run", this, &ChartWindow::stop_run);
     stopAct->setIcon(QIcon(":/icons/process-stop.png"));
-    stopAct->setShortcut(QKeySequence::fromString("Ctrl+/"));
+    stopAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash));
     closeAct = file->addAction("&Close", this, &QWidget::close);
     closeAct->setIcon(QIcon(":/icons/window-close.png"));
-    closeAct->setShortcut(QKeySequence::fromString("Ctrl+W"));
+    closeAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));
     quitAct = file->addAction("&Quit", this, &ChartWindow::quit);
     quitAct->setIcon(QIcon(":/icons/application-exit.png"));
-    quitAct->setShortcut(QKeySequence::fromString("Ctrl+Q"));
+    quitAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
     auto *layout = new QVBoxLayout;
     layout->addLayout(top);
     setLayout(layout);

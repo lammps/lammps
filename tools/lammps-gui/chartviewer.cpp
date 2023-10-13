@@ -85,7 +85,10 @@ int ChartWindow::get_step() const
 {
     if (charts.size() > 0) {
         auto *v = charts[0];
-        return (int)v->get_step(v->get_count() - 1);
+        if (v)
+          return (int)v->get_step(v->get_count() - 1);
+        else
+          return -1;
     } else {
         return -1;
     }

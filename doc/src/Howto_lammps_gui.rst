@@ -5,47 +5,60 @@ This document describes **LAMMPS GUI version 1.5**.
 
 -----
 
-LAMMPS GUI is a simple graphical text editor that is linked to the
-:ref:`LAMMPS library <lammps_c_api>` and thus can run LAMMPS directly
-using the contents of the editor's text buffer as input.  It can
-retrieve and display information from LAMMPS while it is running and is
-adapted in multiple ways specifically for editing LAMMPS input files.
+LAMMPS GUI is a graphical text editor customized for editing LAMMPS
+input files that is linked to the :ref:`LAMMPS library <lammps_c_api>`
+and thus can run LAMMPS directly using the contents of the editor's text
+buffer as input.  It can retrieve and display information from LAMMPS
+while it is running, display visualizations created with the :doc:`dump
+image command <dump_image>`, and is adapted specifically for editing
+LAMMPS input files through text completion and reformatting, and linking
+to the online LAMMPS documentation for known LAMMPS commands and styles.
 
 .. note::
 
    Pre-compiled, ready-to-use LAMMPS GUI executables for Linux (Ubuntu
    20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
    later), and Windows (version 10 or later) :ref:`are available
-   <lammps-gui-install>` for download.  The executables are linked to
-   a current version of LAMMPS as well.  The source code for the
-   LAMMPS GUI is included in the ``tools/lammps-gui`` folder of the
-   LAMMPS distribution and it can be compiled alongside LAMMPS with
-   CMake.
+   <lammps_gui_install>` for download.  They may be linked to a
+   development version of LAMMPS in case they need features not yet
+   available in a released version. Serial LAMMPS executables of the
+   same LAMMPS version are included as well.  The source code for the
+   LAMMPS GUI is included in the LAMMPS source code and can be found in
+   the ``tools/lammps-gui`` folder.  It can be compiled alongside LAMMPS
+   when :doc:`compiling with CMake <Build_cmake>`.
 
-LAMMPS GUI tries to be similar to what people traditionally would do
-to run LAMMPS using a command line window: editing inputs with a text
-editor, run LAMMPS on the input with selected command line flags, and
-then extract data from the created files and view them.  That
-procedure is quite effective and often required when running LAMMPS on
-high-performance computing facilities, or for people proficient in
-using the command line, as that allows them to use tools for the
-individual steps which they are most comfortable with.
+LAMMPS GUI tries to provide an experience similar to what people
+traditionally would do to run LAMMPS using a command line window:
 
-The main benefit of a GUI application is that many basic tasks can be
-done directly from the GUI without switching to a text console or
-requiring external programs, let alone scripts to extract data from
-the generated output.  It also integrates well with graphical desktop
-environments.
+- editing inputs with a text editor
+- run LAMMPS on the input with selected command line flags
+- and then use or extract data from the created files and visualize it
+
+That procedure is quite effective for people proficient in using the
+command line, as that allows them to use tools for the individual steps
+which they are most comfortable with.  It is often required when running
+LAMMPS on high-performance computing facilities.
+
+The main benefit of using the LAMMPS GUI application instead is that
+many basic tasks can be done directly from the GUI without switching to
+a text console window or using external programs, let alone writing
+scripts to extract data from the generated output.  It also integrates
+well with graphical desktop environments.
 
 LAMMPS GUI thus makes it easier for beginners to get started running
-simple LAMMPS simulations.  It is very suitable for tutorials on
-LAMMPS since you only need to learn how to use a single program.  It
-is also designed to keep the barrier low when you decide to switch to
-a full featured, standalone programming editor and more sophisticated
+simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
+since you only need to learn how to use a single program for most tasks
+and thus time can be saved and people can focus on learning LAMMPS.  It
+is also designed to keep the barrier low when you decide to switch to a
+full featured, standalone programming editor and more sophisticated
 visualization and analysis tools and run LAMMPS from a command line.
 
 The following text provides a detailed tour of the features and
 functionality of the LAMMPS GUI.
+
+Suggestions for new features and reports of bugs are always welcome.
+You can use the :doc:`the same channels as for LAMMPS itself
+<Errors_bugs>` for that purpose.
 
 -----
 
@@ -86,9 +99,9 @@ save them.
 Running LAMMPS
 ^^^^^^^^^^^^^^
 
-From within the LAMMPS GUI main window LAMMPS can be started either
-from the ``Run`` menu using the ``Run LAMMPS from Editor Buffer``
-entry, by the hotkey `Ctrl-Enter` (`Command-Enter` on macOS), or by
+From within the LAMMPS GUI main window LAMMPS can be started either from
+the ``Run`` menu using the ``Run LAMMPS from Editor Buffer`` entry, by
+the keyboard shortcut `Ctrl-Enter` (`Command-Enter` on macOS), or by
 clicking on the green "Run" button in the status bar.  All of these
 operations will cause LAMMPS to process the entire input script, which
 may contain multiple :doc:`run <run>` or :doc:`minimize <minimize>`
@@ -147,10 +160,10 @@ More information on those windows and how to adjust their behavior and
 contents is given below.
 
 An active LAMMPS run can be stopped cleanly by using either the ``Stop
-LAMMPS`` entry in the ``Run`` menu, the hotkey `Ctrl-/` (`Command-/`
-on macOS), or by clicking on the red button in the status bar.  This
-will cause the running LAMMPS process to complete the current timestep
-(or iteration for energy minimization) and then complete the
+LAMMPS`` entry in the ``Run`` menu, the keyboard shortcut `Ctrl-/`
+(`Command-/` on macOS), or by clicking on the red button in the status
+bar.  This will cause the running LAMMPS process to complete the current
+timestep (or iteration for energy minimization) and then complete the
 processing of the buffer while skipping all run or minimize commands.
 This is equivalent to the input script command :doc:`timer timeout 0
 <timer>` and is implemented by calling the
@@ -172,17 +185,20 @@ be seen in the command line window, as shown below.
 LAMMPS GUI captures the screen output as it is generated and updates
 the log window regularly during a run.
 
-By default, there will be a new window for each run, so that it is
-possible to visually compare outputs from different runs.  It is also
-possible to change the behavior of LAMMPS GUI in the preferences dialog
-to *replace* an existing log window for a new run or to not show the log
-window by default.  It is also possible to show or hide the current log
-window from the ``View`` menu.
+By default, the log window will be replaced each time a run is started.
+The runs are counted and the run number for the current run is displayed
+in the window title.  It is possible to change the behavior of LAMMPS
+GUI in the preferences dialog to create a *new* log window for every run
+or to not show the current log window.  It is also possible to show or
+hide the *current* log window from the ``View`` menu.
 
 The text in the log window is read-only and cannot be modified, but
-editor commands to select and copy all or parts of the text can be used.
-The "Select All" and "Copy" functions are also available via a context
-menu by clicking with the right mouse button.
+keyboard shortcuts to select and copy all or parts of the text can be
+used to transfer text to another program. Also, the keyboard shortcut
+`Ctrl-S` (`Command-S` on macOS) is available to save the log buffer to a
+file.  The "Select All" and "Copy" functions, as well as a "Save Log to
+File" option are also available from a context menu by clicking with the
+right mouse button into the log window text area.
 
 Chart Window
 ------------
@@ -199,10 +215,16 @@ The drop down menu on the top right allows selection of different
 properties that are computed and written to thermo output.  Only one
 property can be shown at a time.  The plots will be updated with new
 data as the run progresses, so they can be used to visually monitor the
-evolution of available properties.  From the ``File`` menu on the top
-left, it is possible to save an image of the currently displayed plot or
-export the data in either plain text columns (for use by plotting tools
-like `gnuplot <http://www.gnuplot.info/>`_ or `grace
+evolution of available properties.  The window title will show the
+current run number that this chart window corresponds to.  Same as
+explained for the log window above, by default, the chart window will
+be replaced on each new run, but the behavior can be changed in the
+preferences dialog.
+
+From the ``File`` menu on the top left, it is possible to save an image
+of the currently displayed plot or export the data in either plain text
+columns (for use by plotting tools like `gnuplot
+<http://www.gnuplot.info/>`_ or `grace
 <https://plasma-gate.weizmann.ac.il/Grace/>`_), or as CSV data which can
 be imported for further processing with Microsoft Excel or `pandas
 <https://pandas.pydata.org/>`_
@@ -225,19 +247,20 @@ displays the images created by LAMMPS as they are written.
    :align: center
    :scale: 50%
 
-The various buttons at the bottom right of the window allow either
-single stepping through the sequence of images or playing an animation
-(as a continuous loop or once from first to last).  It is also possible
-to zoom in or zoom out of the displayed images.  The slide show window
-will be closed when a new file is loaded.
+The various buttons at the bottom right of the window allow single
+stepping through the sequence of images or playing an animation (as a
+continuous loop or once from first to last).  It is also possible to
+zoom in or zoom out of the displayed images, and to export the slide
+show animation to a movie file, if `ffmpeg <https://ffmpeg.org/>`_ is
+installed.
 
 Variable Info
 -------------
 
-During a run, it may be of interest to monitor the value of input
-script variables, for example to monitor the progress of loops.  This
-can be done by enabling the "Variables Window" in the ``View`` menu or
-by using the `Ctrl-Shift-W` hotkey.  This will show info similar to
+During a run, it may be of interest to monitor the value of input script
+variables, for example to monitor the progress of loops.  This can be
+done by enabling the "Variables Window" in the ``View`` menu or by using
+the `Ctrl-Shift-W` keyboard shortcut.  This will show info similar to
 the :doc:`info variables <info>` command in a separate window as shown
 below.
 
@@ -250,16 +273,27 @@ during a run.  It will show "(none)" if there are no variables
 defined.  Note that it is also possible to *set* :doc:`index style
 variables <variable>`, that would normally be set via command line
 flags, via the "Set Variables..." dialog from the ``Run`` menu.
+LAMMPS GUI will automatically set the variable "gui_run" to the
+current value of the run counter.  That way it would be possible
+to automatically record a log for each run attempt by using the
+command
+
+.. code-block:: LAMMPS
+
+   log logfile-${gui_run}.txt
+
+at the beginning of an input file. That would record logs to files
+``logfile-1.txt``, ``logfile-2.txt``, and so on for successive runs.
 
 Viewing Snapshot Images
 -----------------------
 
 By selecting the ``Create Image`` entry in the ``Run`` menu, or by
-hitting the `Ctrl-I` (`Command-I` on macOS) hotkey, or by clicking on
-the "palette" button in the status bar, LAMMPS GUI will send a custom
-:doc:`write_dump image <dump_image>` command to LAMMPS and read the
-resulting snapshot image with the current state of the system into an
-image viewer window.  This functionality is not available *during* an
+hitting the `Ctrl-I` (`Command-I` on macOS) keyboard shortcut, or by
+clicking on the "palette" button in the status bar, LAMMPS GUI will send
+a custom :doc:`write_dump image <dump_image>` command to LAMMPS and read
+the resulting snapshot image with the current state of the system into
+an image viewer window.  This functionality is not available *during* an
 ongoing run.  When LAMMPS is not yet initialized, LAMMPS GUI will try to
 identify the line with the first run or minimize command and execute all
 command up to that line from the input buffer and then add a "run 0"
@@ -306,34 +340,41 @@ contents to a file.
 Context Specific Word Completion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, LAMMPS GUI will display a small popup frame with possible
-completions for LAMMPS input script commands or styles after 2
-characters of a word have been typed. The word can then be completed
-through selecting an entry by scrolling down with the cursor keys and
-selecting with the 'Enter' key or by clicking on the entry with the
-mouse.  The automatic completion popup can be disabled in the
-``Preferences`` dialog, but the completion can still be requested
-manually by either hitting the 'Shift-TAB' key or by right-clicking with
-the mouse and selecting the option from the context menu.  Most of the
-completion information is taken from the LAMMPS instance and thus it
-will be adjusted to only show options available that have been enabled
-while compiling LAMMPS, however that excludes accelerated styles and
-commands, only non-suffix versions are shown.
+By default, LAMMPS GUI will display a small pop-up frame with possible
+choices for LAMMPS input script commands or styles after 2 characters of
+a word have been typed.
+
+.. image:: JPG/lammps-gui-complete.png
+   :align: center
+   :scale: 75%
+
+The word can then be completed through selecting an entry by scrolling
+up and down with the cursor keys and selecting with the 'Enter' key or
+by clicking on the entry with the mouse.  The automatic completion
+pop-up can be disabled in the ``Preferences`` dialog, but the completion
+can still be requested manually by either hitting the 'Shift-TAB' key or
+by right-clicking with the mouse and selecting the option from the
+context menu.  Most of the completion information is taken from the
+LAMMPS instance and thus it will be adjusted to only show available
+options that have been enabled while compiling LAMMPS. That, however,
+excludes accelerated styles and commands; for improved clarity, only the
+non-suffix version of styles are shown.
 
 Line Reformatting
 ^^^^^^^^^^^^^^^^^
 
-The editor supports reformatting lines according to the syntax in
-order to have consistently aligned lines.  This primarily means adding
-space padding to commands, type specifiers, IDs and names.  This
+The editor supports reformatting lines according to the syntax in order
+to have consistently aligned lines.  This primarily means adding
+whitespace padding to commands, type specifiers, IDs and names.  This
 reformatting is performed by default when hitting the 'Enter' key to
-start a new line.  This feature can be turned off in the
+start a new line.  This feature can be turned on or off in the
 ``Preferences`` dialog, but it can still be manually performed by
-hitting the 'TAB' key.
+hitting the 'TAB' key.  The amount of padding can also be changed in the
+``Preferences`` dialog.
 
 Internally this functionality is achieved by splitting the line into
 "words" and then putting it back together with padding added where the
-context can be detected; otherwise a single space is used.
+context can be detected; otherwise a single space is used between words.
 
 Context Specific Help
 ^^^^^^^^^^^^^^^^^^^^^
@@ -343,23 +384,23 @@ Context Specific Help
    :scale: 50%
 
 A unique feature of the LAMMPS GUI is the option to look up the
-documentation for the command in the current line.  This can be done
-by either clicking the right mouse button or by using the `Ctrl-?`
-hotkey.  When clicking the mouse there are additional entries in the
-context menu that will open the corresponding documentation page in
-the online LAMMPS documentation.  When using the hotkey, the first of
+documentation for the command in the current line.  This can be done by
+either clicking the right mouse button or by using the `Ctrl-?` keyboard
+shortcut.  When clicking the mouse there are additional entries in the
+context menu that will open the corresponding documentation page in the
+online LAMMPS documentation.  When using the keyboard, the first of
 those entries will be chosen directly.
 
 Menu
 ----
 
 The menu bar has entries ``File``, ``Edit``, ``Run``, ``View``, and
-``About``.  Instead of using the mouse to click on them, the
-individual menus can also be activated by hitting the `Alt` key
-together with the corresponding underlined letter, that is `Alt-F`
-will activate the ``File`` menu.  For the corresponding activated
-sub-menus, the underlined letter together with the `Alt` key can again
-be used to select entries instead of using the mouse.
+``About``.  Instead of using the mouse to click on them, the individual
+menus can also be activated by hitting the `Alt` key together with the
+corresponding underlined letter, that is `Alt-F` will activate the
+``File`` menu.  For the corresponding activated sub-menus, the key
+corresponding the underlined letters can again be used to select entries
+instead of using the mouse.
 
 File
 ^^^^
@@ -385,8 +426,8 @@ Edit
 
 The ``Edit`` menu offers the usual editor functions like ``Undo``,
 ``Redo``, ``Cut``, ``Copy``, ``Paste``.  It can also open a
-``Preferences`` dialog (hotkey `Ctrl-P`) and allows deletion of all
-stored preferences so they will be reset to default values.
+``Preferences`` dialog (keyboard shortcut `Ctrl-P`) and allows deletion
+of all stored preferences so they will be reset to default values.
 
 Run
 ^^^
@@ -516,7 +557,7 @@ General Settings:
 - *Replace image window on new render:* when checked, an existing
   chart window will be replaced when a new snapshot image is requested,
   otherwise each command will create a new image window.
-- *Path to LAMMPS Shared Library File:* this options is only available
+- *Path to LAMMPS Shared Library File:* this option is only visible
   when LAMMPS GUI was compiled to load the LAMMPS library at run time
   instead of being linked to it directly.  With the ``Browse..`` button
   or by changing the text, a different shared library file with a
@@ -574,26 +615,26 @@ the range between 1 and 32.
 
 The two settings which follow enable or disable the automatic
 reformatting when hitting the 'Enter' key and the automatic display of
-the completion popup window.
+the completion pop-up window.
 
 -----------
 
-Hotkeys
--------
+Keyboard Shortcuts
+------------------
 
-Almost all functionality is accessible from the menu or via hotkeys.
-The following hotkeys are available (On macOS use the Command key
-instead of Ctrl/Control).
+Almost all functionality is accessible from the menu of the editor
+window or through keyboard shortcuts.  The following shortcuts are
+available (On macOS use the Command key instead of Ctrl/Control).
 
 .. list-table::
    :header-rows: 1
    :widths: auto
 
-   * - Hotkey
+   * - Shortcut
      - Function
-     - Hotkey
+     - Shortcut
      - Function
-     - Hotkey
+     - Shortcut
      - Function
    * - Ctrl+N
      - New File
@@ -620,7 +661,7 @@ instead of Ctrl/Control).
      - Ctrl+I
      - Snapshot Image
    * - Ctrl+Q
-     - Quit
+     - Quit Application
      - Ctrl+V
      - Paste text
      - Ctrl+L
@@ -653,3 +694,7 @@ instead of Ctrl/Control).
 Further editing keybindings `are documented with the Qt documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In
 case of conflicts the list above takes precedence.
+
+All other windows only support a subset of keyboard shortcuts listed
+above.  Typically, the shortcuts `Ctrl-/` (Stop Run), `Ctrl-W` (Close
+Window), and `Ctrl-Q` (Quit Application) are supported.

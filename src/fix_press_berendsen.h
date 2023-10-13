@@ -44,9 +44,9 @@ class FixPressBerendsen : public Fix {
   double p_period[3], p_target[3];
   double p_current[3], dilation[3];
   double factor[3];
-  int kspace_flag;    // 1 if KSpace invoked, 0 if not
-  int nrigid;         // number of rigid fixes
-  int *rfix;          // indices of rigid fixes
+  int kspace_flag;     // 1 if KSpace invoked, 0 if not
+  int nrigid;          // number of rigid fixes
+  class Fix **rfix;    // indices of rigid fixes
 
   char *id_temp, *id_press;
   class Compute *temperature, *pressure;

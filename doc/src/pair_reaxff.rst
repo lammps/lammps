@@ -43,22 +43,22 @@ Examples
 Description
 """""""""""
 
-Style *reaxff* computes the ReaxFF potential of van Duin, Goddard and
-co-workers.  ReaxFF uses distance-dependent bond-order functions to
+Pair style *reaxff* computes the ReaxFF potential of van Duin, Goddard
+and co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
-energy. There is more than one version of ReaxFF. The version
+energy.  There is more than one version of ReaxFF.  The version
 implemented in LAMMPS uses the functional forms documented in the
 supplemental information of the following paper:
-:ref:`(Chenoweth et al., 2008) <Chenoweth_20082>`.  The version integrated
-into LAMMPS matches the version of ReaxFF From Summer 2010.  For more
-technical details about the pair reaxff implementation of ReaxFF, see
-the :ref:`(Aktulga) <Aktulga>` paper. The *reaxff* style was initially
-implemented as a stand-alone C code and is now converted to C++ and
-integrated into LAMMPS as a package.
+:ref:`(Chenoweth et al., 2008) <Chenoweth_20082>` and matches the
+version of the reference ReaxFF implementation from Summer 2010.  For
+more technical details about the implementation of ReaxFF in pair style
+*reaxff*, see the :ref:`(Aktulga) <Aktulga>` paper. The *reaxff* style
+was initially implemented as a stand-alone C code and is now converted
+to C++ and integrated into LAMMPS as a package.
 
 The *reaxff/kk* style is a Kokkos version of the ReaxFF potential that
-is derived from the *reaxff* style. The Kokkos version can run on GPUs
-and can also use OpenMP multithreading. For more information about the
+is derived from the *reaxff* style.  The Kokkos version can run on GPUs
+and can also use OpenMP multithreading.  For more information about the
 Kokkos package, see :doc:`Packages details <Packages_details>` and
 :doc:`Speed kokkos <Speed_kokkos>` doc pages.  One important
 consideration when using the *reaxff/kk* style is the choice of either

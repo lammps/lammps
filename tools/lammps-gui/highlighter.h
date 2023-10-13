@@ -32,7 +32,7 @@ private:
     QRegularExpression isOutput1, isOutput2, isRead;
     QTextCharFormat formatOutput, formatRead, formatLattice, formatSetup;
     QRegularExpression isStyle, isForce, isDefine, isUndo;
-    QRegularExpression isParticle, isSetup, isSetup1, isRun;
+    QRegularExpression isParticle, isRun, isSetup, isSetup1;
     QTextCharFormat formatParticle, formatRun, formatDefine;
     QRegularExpression isVariable, isReference;
     QTextCharFormat formatVariable;

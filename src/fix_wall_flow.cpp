@@ -52,7 +52,7 @@ static const char cite_fix_wall_flow_c[] =
   " journal = {International Journal of High Performance Computing Applications},\n"
   " year =    2023,\n"
   " volume =  {tba},\n"
-  " pages =   {tba}\n”
+  " pages =   {tba}\n"
   "}\n\n";
 
 FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :

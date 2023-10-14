@@ -139,7 +139,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   {
     error->all(FLERR, "Wrong fix wall/flow wall ordering or some walls are outside simulation domain");
   }
-  std::cout << "Walls:\n"
+  std::cout << "Walls:\n";
   for (auto w : walls)
   {
     std::cout << w << " ";

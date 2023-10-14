@@ -82,7 +82,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   if (flowvel == 0.0) error->all(FLERR,"Illegal fix wall/flow argument: velocity cannot be 0");
   if (flowvel > 0.0) flowdir = 1;
   else flowdir = -1;
-  if(flowdir < 0) error->all(FLERR, "Negative direction is not supported yet");
+  if(flowdir < 0) error->all(FLERR, "Illegal fix wall/flow argument: negative direction is not supported yet");
 
   ++iarg;
   // parsing temperature
@@ -92,29 +92,59 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   ++iarg;
   // parsing seed
   rndseed = utils::inumeric(FLERR, arg[iarg],do_abort,lmp);
-  if(rndseed <= 0) error->all(FLERR, "Random seed must be positive!");
+  if(rndseed <= 0) error->all(FLERR, "Illegal fix wall/flow argument: random seed must be positive integer");
 
   ++iarg;
   // parsing wall count
   int wallcount = utils::inumeric(FLERR,arg[iarg],do_abort,lmp);
-  if(wallcount <= 0) error->all(FLERR,"Illegal fix wall/flow argument: wall count must be positive");
+  if(wallcount <= 0) error->all(FLERR,"Illegal fix wall/flow argument: wall count must be positive integer");
   
   ++iarg;
   // parsing walls
-  if(narg - iarg != wallcount) error->all(FLERR, "Wrong fix wall/flow wall count {},"
-                                                     " must be {}",
-                                                     wallcount, narg - iarg);
+  if(narg - iarg != wallcount && narg - iarg != wallcount + 2) error->all(FLERR, "Wrong fix wall/flow wall count");
+  auto getscale = [&]() -> double {
+      switch (flowax)
+      {
+        case FlowAxis::AX_X:
+          return domain->lattice->xlattice;
+        case FlowAxis::AX_Y:
+          return domain->lattice->ylattice;
+        case FlowAxis::AX_Z:
+          return domain->lattice->zlattice;
+        default: return 0.0;
+      }
+      return 0.0;
+  };
+  double scale = getscale();
+
+  if (narg - iarg == wallcount + 2)
+  {
+    if(strcmp(arg[narg - 2], "units") != 0) error->all(FLERR, "Wrong fix wall/flow units command");
+    if (strcmp(arg[narg - 1], "box") == 0) scale = 1.0;
+    else if (strcmp(arg[narg - 1], "lattice") == 0)
+    {
+      scale = getscale();
+    }
+    else error->all(FLERR, "Wrong fix wall/flow units command");
+  }
+
   walls.resize(wallcount + 2);
   walls.front() = domain->boxlo[flowax];
   for (size_t w = 1; w <= wallcount; ++w, ++iarg)
   {
-    walls[w] = utils::numeric(FLERR,arg[iarg],do_abort,lmp);
+    walls[w] = utils::numeric(FLERR,arg[iarg],do_abort,lmp) * scale;
   }
   walls.back() = domain->boxhi[flowax];
   if (!std::is_sorted(walls.begin(), walls.end(), std::less_equal<double>()))
   {
     error->all(FLERR, "Wrong fix wall/flow wall ordering or some walls are outside simulation domain");
   }
+  std::cout << "Walls:\n"
+  for (auto w : walls)
+  {
+    std::cout << w << " ";
+  }
+  std::cout << std::endl;
 
   memory->grow(current_segment, atom->nmax, "WallFlow::current_segment");
   atom->add_callback(Atom::GROW);

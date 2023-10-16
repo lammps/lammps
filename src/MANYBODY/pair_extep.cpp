@@ -51,7 +51,6 @@ PairExTeP::PairExTeP(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
-  trim_flag = 0; // workaround
 
   params = nullptr;
 

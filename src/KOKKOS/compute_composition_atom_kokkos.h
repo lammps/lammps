@@ -13,37 +13,37 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(local/comp/atom/kk,ComputeLocalCompAtomKokkos<LMPDeviceType>);
-ComputeStyle(local/comp/atom/kk/device,ComputeLocalCompAtomKokkos<LMPDeviceType>);
-ComputeStyle(local/comp/atom/kk/host,ComputeLocalCompAtomKokkos<LMPHostType>);
+ComputeStyle(composition/atom/kk,ComputeCompositionAtomKokkos<LMPDeviceType>);
+ComputeStyle(composition/atom/kk/device,ComputeCompositionAtomKokkos<LMPDeviceType>);
+ComputeStyle(composition/atom/kk/host,ComputeCompositionAtomKokkos<LMPHostType>);
 // clang-format on
 
 #else
 
-#ifndef LMP_COMPUTE_LOCAL_COMP_ATOM_KOKKOS_H
-#define LMP_COMPUTE_LOCAL_COMP_ATOM_KOKKOS_H
+#ifndef LMP_COMPUTE_COMPOSITION_ATOM_KOKKOS_H
+#define LMP_COMPUTE_COMPOSITION_ATOM_KOKKOS_H
 
-#include "compute_local_comp_atom.h"
+#include "compute_composition_atom.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
 // clang-format off
-struct TagComputeLocalCompAtom {};
+struct TagComputeCompositionAtom {};
 // clang-format on
 
-template <class DeviceType> class ComputeLocalCompAtomKokkos : public ComputeLocalCompAtom {
+template <class DeviceType> class ComputeCompositionAtomKokkos : public ComputeCompositionAtom {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
-  ComputeLocalCompAtomKokkos(class LAMMPS *, int, char **);
-  ~ComputeLocalCompAtomKokkos() override;
+  ComputeCompositionAtomKokkos(class LAMMPS *, int, char **);
+  ~ComputeCompositionAtomKokkos() override;
   void init() override;
   void compute_peratom() override;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputeLocalCompAtom, const int &) const;
+  void operator()(TagComputeCompositionAtom, const int &) const;
 
  private:
 

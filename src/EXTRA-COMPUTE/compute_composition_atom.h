@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(local/comp/atom,ComputeLocalCompAtom);
+ComputeStyle(composition/atom,ComputeCompositionAtom);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_LOCAL_COMP_ATOM_H
-#define LMP_COMPUTE_LOCAL_COMP_ATOM_H
+#ifndef LMP_COMPUTE_COMPOSITION_ATOM_H
+#define LMP_COMPUTE_COMPOSITION_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeLocalCompAtom : public Compute {
+class ComputeCompositionAtom : public Compute {
  public:
-  ComputeLocalCompAtom(class LAMMPS *, int, char **);
-  ~ComputeLocalCompAtom() override;
+  ComputeCompositionAtom(class LAMMPS *, int, char **);
+  ~ComputeCompositionAtom() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;

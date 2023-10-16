@@ -18,6 +18,7 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
+#include <algorithm>
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
@@ -48,6 +49,7 @@
 #include "respa.h"
 #include "thermo.h"
 #include "timer.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
@@ -615,10 +617,10 @@ combined by removing the '&' and the following newline character.  After
 this processing the string is handed to LAMMPS for parsing and
 executing.
 
-.. note::
+.. versionadded:: TBD
 
-   Multi-line commands enabled by triple quotes will NOT work with
-   this function.
+   The command is now able to process long strings with triple quotes and
+   loops using :doc:`jump SELF \<label\> <jump>`.
 
 \endverbatim
  *
@@ -627,17 +629,14 @@ executing.
 
 void lammps_commands_string(void *handle, const char *str)
 {
+  if (!handle) return;
+
   auto lmp = (LAMMPS *) handle;
-
-  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
-  int n = strlen(str);
-  char *ptr, *copy = new char[n+1];
-
-  for (ptr = copy; *str != '\0'; ++str) {
-    if ((str[0] == '\r') && (str[1] == '\n')) continue;
-    *ptr++ = *str;
-  }
-  *ptr = '\0';
+  std::string cmd, line, buffer;
+  bool append = false;
+  bool triple = false;
+  if (str) buffer = str;
+  buffer += '\n';
 
   BEGIN_CAPTURE
   {
@@ -645,27 +644,69 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    n = strlen(copy);
-    ptr = copy;
-    for (int i=0; i < n; ++i) {
+    std::size_t cursor = 0;
+    int nline = -1;
+    std::string label;
 
-      // handle continuation character as last character in line or string
-      if ((copy[i] == '&') && (copy[i+1] == '\n'))
-        copy[i+1] = copy[i] = ' ';
-      else if ((copy[i] == '&') && (copy[i+1] == '\0'))
-        copy[i] = ' ';
+    // split buffer into lines, set line number, process continuation characters, and here docs
 
-      if (copy[i] == '\n') {
-        copy[i] = '\0';
-        lmp->input->one(ptr);
-        ptr = copy + i+1;
-      } else if (copy[i+1] == '\0')
-        lmp->input->one(ptr);
+    while (cursor < buffer.size()) {
+      ++nline;
+      std::size_t start = cursor;
+      cursor = buffer.find('\n', start);
+      if (cursor != std::string::npos) {
+        line = buffer.substr(start, cursor-start);
+        auto start_erase = std::remove(line.begin(), line.end(), '\r');
+        line.erase(start_erase, line.end());
+        ++cursor;
+        lmp->output->thermo->set_line(nline);
+      } else {
+        line = buffer;
+      }
+
+      if (append || triple)
+        cmd += line;
+      else
+        cmd = line;
+
+      if (utils::strmatch(line, "\"\"\".*\"\"\"")) {
+        triple = false;
+      } else if (utils::strmatch(line, "\"\"\"")) {
+        triple = !triple;
+      }
+      if (triple) cmd += '\n';
+
+      if (!triple && utils::strmatch(cmd, "&$")) {
+        append = true;
+        cmd.back() = ' ';
+      } else append = false;
+
+      auto words = Tokenizer(cmd).as_vector();
+      if (!label.empty()) {
+        // skip lines until label command found
+        if ((words.size() == 2) && (words[0] == "label") && (words[1] == label)) {
+          label.clear();
+        } else continue;
+      }
+
+      if (!append && !triple) {
+        // need to handle jump command here
+        if ((words.size() == 3) && (words[0] == "jump")) {
+          if (words[1] != "SELF")
+            lmp->error->all(FLERR, "May only use jump SELF with command string buffer ");
+          // emulate jump command unless with need to skip it
+          if (!lmp->input->get_jump_skip()) {
+            label = words[2];
+            cursor = 0;
+            nline = -1;
+            continue;
+          }
+        }
+        lmp->input->one(cmd.c_str());
+      }
     }
   }
   END_CAPTURE
-
-  delete[] copy;
 }
 
 // -----------------------------------------------------------------------
@@ -777,6 +818,14 @@ argument string.
      - 1 if setup is not completed and thus thermo data invalid, 0 otherwise
      - pointer to int
      - no
+   * - line
+     - line number (0-based) of current line in current file or buffer
+     - pointer to int
+     - no
+   * - imagename
+     - file name of the last :doc:`dump image <dump_image>` file written
+     - pointer to 0-terminated const char array
+     - no
    * - step
      - timestep when the last thermo output was generated or -1
      - pointer to bigint
@@ -809,14 +858,23 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
 {
   auto lmp = (LAMMPS *) handle;
   void *val = nullptr;
+
+  if (!lmp->output) return val;
   Thermo *th = lmp->output->thermo;
-  if (!th) return nullptr;
+  if (!th) return val;
   const int nfield = *th->get_nfield();
 
   BEGIN_CAPTURE
   {
     if (strcmp(what, "setup") == 0) {
-      val = (void *) &lmp->update->setupflag;
+      if (lmp->update)
+        val = (void *) &lmp->update->setupflag;
+
+    } else if (strcmp(what, "line") == 0) {
+      val = (void *) th->get_line();
+
+    } else if (strcmp(what, "imagename") == 0) {
+      val = (void *) th->get_image_fname();
 
     } else if (strcmp(what, "step") == 0) {
       val = (void *) th->get_timestep();
@@ -2410,6 +2468,46 @@ int lammps_set_variable(void *handle, char *name, char *str)
   END_CAPTURE
 
   return err;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+/** Retrieve informational string for a variable.
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function copies a string with human readable information about
+a defined variable: name, style, current value(s) into the provided
+C-style string buffer.  That is the same info as produced by the
+:doc:`info variables <info>` command. The length of the buffer must
+be provided as *buf_size* argument.  If the info exceeds the length
+of the buffer, it will be truncated accordingly.  If the index is
+out of range, the function returns 0 and *buffer* is set to an empty
+string, otherwise 1.
+
+\endverbatim
+
+ * \param handle   pointer to a previously created LAMMPS instance cast to ``void *``.
+ * \param idx      index of the variable (0 <= idx < nvar)
+ * \param buffer   string buffer to copy the info to
+ * \param buf_size size of the provided string buffer
+ * \return 1 if successful, otherwise 0  */
+
+int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
+  auto lmp = (LAMMPS *) handle;
+  Info info(lmp);
+
+  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+    auto varinfo = info.get_variable_info(idx);
+    strncpy(buffer, varinfo.c_str(), buf_size);
+    return 1;
+  }
+
+  buffer[0] = '\0';
+  return 0;
 }
 
 // ----------------------------------------------------------------------
@@ -6535,7 +6633,8 @@ This function can be used to retrieve the error message that was set
 in the event of an error inside of LAMMPS which resulted in a
 :ref:`C++ exception <exceptions>`.  A suitable buffer for a C-style
 string has to be provided and its length.  If the internally stored
-error message is longer, it will be truncated accordingly.  The return
+error message is longer, it will be truncated accordingly.  If the
+buffer is a NULL pointer, then nothing will be copied.  The return
 value of the function corresponds to the kind of error: a "1" indicates
 an error that occurred on all MPI ranks and is often recoverable, while
 a "2" indicates an abort that would happen only in a single MPI rank
@@ -6552,6 +6651,11 @@ the failing MPI ranks to send messages.
    instance, but instead would check the global error buffer of the
    library interface.
 
+   .. versionchanged: TBD
+
+   The *buffer* pointer may be ``NULL``.  This will clear any error
+   status without copying the error message.
+
 .. note::
 
    This function will do nothing when the LAMMPS library has been
@@ -6561,7 +6665,7 @@ the failing MPI ranks to send messages.
 \endverbatim
  *
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.
- * \param  buffer    string buffer to copy the error message to
+ * \param  buffer    string buffer to copy the error message to, may be NULL
  * \param  buf_size  size of the provided string buffer
  * \return           1 when all ranks had the error, 2 on a single rank error. */
 
@@ -6570,19 +6674,19 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size)
   if (handle) {
     LAMMPS *lmp = (LAMMPS *) handle;
     Error *error = lmp->error;
-    buffer[0] = buffer[buf_size-1] = '\0';
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
 
     if (!error->get_last_error().empty()) {
       int error_type = error->get_last_error_type();
-      strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
+      if (buffer) strncpy(buffer, error->get_last_error().c_str(), buf_size-1);
       error->set_last_error("", ERROR_NONE);
       return error_type;
     }
   } else {
-    buffer[0] = buffer[buf_size-1] = '\0';
+    if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
 
     if (!lammps_last_global_errormessage.empty()) {
-      strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
+      if (buffer) strncpy(buffer, lammps_last_global_errormessage.c_str(), buf_size-1);
       lammps_last_global_errormessage.clear();
       return 1;
     }

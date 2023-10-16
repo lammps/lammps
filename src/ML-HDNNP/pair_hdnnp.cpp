@@ -200,7 +200,7 @@ void PairHDNNP::coeff(int narg, char **arg)
   emap = "";
   for (int i = 2; i < narg; i++) {
     if (strcmp(arg[i], "NULL") != 0) {
-      if (i != 2) emap += ",";
+      if (!emap.empty()) emap += ",";
       emap += std::to_string(i - 1) + ":" + arg[i];
       map[i - 1] = 1;
     }

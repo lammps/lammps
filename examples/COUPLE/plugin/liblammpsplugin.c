@@ -110,6 +110,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(extract_variable);
   ADDSYM(extract_variable_datatype);
   ADDSYM(set_variable);
+  ADDSYM(variable_info);
 
   ADDSYM(gather_atoms);
   ADDSYM(gather_atoms_concat);

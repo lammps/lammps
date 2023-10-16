@@ -5,7 +5,7 @@ LAMMPS is designed to be a fast, parallel engine for molecular
 dynamics (MD) simulations.  It provides only a modest amount of
 functionality for setting up simulations and analyzing their output.
 
-Specifically, LAMMPS was not conceived and designed for:
+Originally, LAMMPS was not conceived and designed for:
 
 * being run through a GUI
 * building molecular systems, or building molecular topologies
@@ -14,9 +14,10 @@ Specifically, LAMMPS was not conceived and designed for:
 * visualize your MD simulation interactively
 * plot your output data
 
-Over the years some of these limitations have been reduced or
-removed, through features added to LAMMPS or external tools
-that either closely interface with LAMMPS or extend LAMMPS.
+Over the years many of these limitations have been reduced or
+removed. In part through features added to LAMMPS and in part
+through external tools that either closely interface with LAMMPS
+or extend LAMMPS.
 
 Here are suggestions on how to perform these tasks:
 
@@ -24,8 +25,9 @@ Here are suggestions on how to perform these tasks:
   wraps the library interface is provided.  Thus, GUI interfaces can be
   written in Python or C/C++ that run LAMMPS and visualize or plot its
   output.  Examples of this are provided in the python directory and
-  described on the :doc:`Python <Python_head>` doc page.  Also, there
-  are several external wrappers or GUI front ends.
+  described on the :doc:`Python <Python_head>` doc page.  As of version
+  2 August 2023 :ref:`a GUI tool <lammps_gui>` is included in LAMMPS.
+  Also, there are several external wrappers or GUI front ends.
 * **Builder:** Several pre-processing tools are packaged with LAMMPS.
   Some of them convert input files in formats produced by other MD codes
   such as CHARMM, AMBER, or Insight into LAMMPS input formats.  Some of

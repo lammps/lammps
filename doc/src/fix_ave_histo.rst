@@ -79,9 +79,10 @@ Description
 
 Use one or more values as inputs every few timesteps to create a
 single histogram.  The histogram can then be averaged over longer
-timescales.  The resulting histogram can be used by other :doc:`output commands <Howto_output>`, and can also be written to a file.  The
-fix ave/histo/weight command has identical syntax to fix ave/histo,
-except that exactly two values must be specified.  See details below.
+timescales.  The resulting histogram can be used by other :doc:`output
+commands <Howto_output>`, and can also be written to a file.  The fix
+ave/histo/weight command has identical syntax to fix ave/histo, except
+that exactly two values must be specified.  See details below.
 
 The group specified with this command is ignored for global and local
 input values.  For per-atom input values, only atoms in the group
@@ -96,14 +97,18 @@ different ways; see the discussion of the *beyond* keyword below.
 
 Each input value can be an atom attribute (position, velocity, force
 component) or can be the result of a :doc:`compute <compute>` or
-:doc:`fix <fix>` or the evaluation of an equal-style or vector-style or
-atom-style :doc:`variable <variable>`.  The set of input values can be
-either all global, all per-atom, or all local quantities.  Inputs of
-different kinds (e.g. global and per-atom) cannot be mixed.  Atom
-attributes are per-atom vector values.  See the page for
-individual "compute" and "fix" commands to see what kinds of
-quantities they generate.  See the optional *kind* keyword below for
-how to force the fix ave/histo command to disambiguate if necessary.
+:doc:`fix <fix>` or the evaluation of an equal-style or vector-style
+or atom-style :doc:`variable <variable>`.  The set of input values can
+be either all global, all per-atom, or all local quantities.  Inputs
+of different kinds (e.g. global and per-atom) cannot be mixed.  Atom
+attributes are per-atom vector values.  See the page for individual
+"compute" and "fix" commands to see what kinds of quantities they
+generate.
+
+Note that a compute or fix can produce multiple kinds of data (global,
+per-atom, local).  If LAMMPS cannot unambiguosly determine which kind
+of data to use, the optional *kind* keyword discussed below can force
+the desired disambiguation.
 
 Note that the output of this command is a single histogram for all
 input values combined together, not one histogram per input value.
@@ -258,13 +263,14 @@ keyword is set to *vector*, then all input values must be global or
 per-atom or local vectors, or columns of global or per-atom or local
 arrays.
 
-The *kind* keyword only needs to be set if a compute or fix produces
-more than one kind of output (global, per-atom, local).  If this is
-not the case, then LAMMPS will determine what kind of input is
-provided and whether all the input arguments are consistent.  If a
-compute or fix produces more than one kind of output, the *kind*
-keyword should be used to specify which output will be used.  The
-remaining input arguments must still be consistent.
+The *kind* keyword only needs to be used if any of the specfied input
+computes or fixes produce more than one kind of output (global,
+per-atom, local).  If not, LAMMPS will determine the kind of data all
+the inputs produce and verify it is all the same kind.  If not, an
+error will be triggered.  If a compute or fix produces more than one
+kind of output, the *kind* keyword should be used to specify which
+output will be used.  The other input arguments must still be
+consistent.
 
 The *beyond* keyword determines how input values that fall outside the
 *lo* to *hi* bounds are treated.  Values such that *lo* :math:`\le` value

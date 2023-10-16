@@ -87,7 +87,7 @@ compute 	mygridlocal all sna/grid/local grid ${ngridx} ${ngridy} ${ngridz} &
 
 # define output
 
-variable	B5atom equal c_b[7][5]
+variable	B5atom equal C_b[7][5]
 variable	B5grid equal c_mygrid[13][8]
 
 # do not compare x,y,z because assignment of ids

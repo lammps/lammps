@@ -69,6 +69,7 @@ PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_Grh
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
+  trim_flag = 0; // workaround
 
   if (lmp->citeme) lmp->citeme->add(cite_ilp);
 

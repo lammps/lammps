@@ -57,6 +57,7 @@ PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
+  trim_flag = 0; // workaround
 
   nmax = 0;
   NCo = nullptr;

@@ -90,6 +90,7 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   ghostneigh = 1;
   allocated = 0;
+  trim_flag = 0; // workaround
 
   pairParameters = nullptr;
   tripletParameters = nullptr;

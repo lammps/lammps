@@ -4291,6 +4291,61 @@ void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bo
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+void PairReaxFFKokkos<DeviceType>::PackBondInfo(DAT::tdual_float_2d k_alocal)
+{
+  d_alocal = k_alocal.view<DeviceType>();
+  k_params_sing.template sync<DeviceType>();
+  atomKK->sync(execution_space,TAG_MASK|TYPE_MASK|Q_MASK|MOLECULE_MASK);
+
+  tag = atomKK->k_tag.view<DeviceType>();
+  type = atomKK->k_type.view<DeviceType>();
+  q = atomKK->k_q.view<DeviceType>();
+  if (atom->molecule)
+    molecule = atomKK->k_molecule.view<DeviceType>();
+
+  copymode = 1;
+  nlocal = atomKK->nlocal;
+  PairReaxKokkosPackBondInfoFunctor<DeviceType> pack_bond_info_functor(this);
+  Kokkos::parallel_for(nlocal, pack_bond_info_functor);
+  copymode = 0;
+
+  k_alocal.modify<DeviceType>();
+  k_alocal.sync<LMPHostType>();
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxFFKokkos<DeviceType>::pack_bond_info_item(const int i) const
+{
+  const int numbonds = d_numneigh_bonds[i];
+  d_alocal(i,0) = tag[i];
+  d_alocal(i,1) = type[i];
+  d_alocal(i,2) = numbonds;
+
+  int j = 3;
+
+  for (int k = 0; k < numbonds; k++) {
+    d_alocal(i,j++) = d_neighid(i,k);
+  }
+
+  d_alocal(i,j++) = molecule.data() ? molecule[i] : 0.0;
+
+  for (int k = 0; k < numbonds; k++) {
+    d_alocal(i,j++) = d_abo(i,k);
+  }
+
+  d_alocal(i,j++) = d_total_bo[i];
+  d_alocal(i,j++) = paramssing(type[i]).nlp_opt - d_Delta_lp[i];
+  d_alocal(i,j++) = q[i];
+
+  for(; j < d_alocal.extent(1); ++j) {
+    d_alocal(i,j) = 0.0;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 void PairReaxFFKokkos<DeviceType>::FindBondSpecies()
 {
 

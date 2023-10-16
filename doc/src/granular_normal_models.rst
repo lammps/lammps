@@ -1,7 +1,10 @@
 Models for normal contact in granular interactions
 ==================================================
 
-
+The normal force acts along the vector connecting the center of two particles,
+i.e. normal to the plane of contact between particles.
+In all cases, the normal forces is modeled as a function of overlap :math:`delta`. 
+The following quantities are common to all the normal models currently available:
 
 :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle overlap, 
 :math:`R_i, R_j` are the particle radii, 
@@ -15,15 +18,12 @@ positive for repulsion), and
 `hooke` model
 ---------------
 
-For the *hooke* model, the normal, elastic component of force acting
+For the *hooke* model, the normal component of force acting
 on particle *i* due to contact with particle *j* is given by:
 
 .. math::
 
    \mathbf{F}_{ne, Hooke} = k_n \delta_{ij} \mathbf{n}
-
-Where 
-
 
 The units of the spring constant :math:`k_n` are
 *force*\ /\ *distance*, or equivalently *mass*\ /*time\^2*.
@@ -31,9 +31,9 @@ The units of the spring constant :math:`k_n` are
 .. _hertz_normal_model:
 
 `hertz` model
------------
+-------------
 
-For the *hertz* model, the normal component of force is given by:
+For the *hertz* model, the normal force is given by:
 
 .. math::
 
@@ -47,7 +47,7 @@ equivalently *pressure*\ .
 `hertz/material` model
 ----------------------
 
-For the *hertz/material* model, the force is given by:
+For the *hertz/material* model, the normal force is given by:
 
 .. math::
 
@@ -101,3 +101,68 @@ initially will not experience force until they come into contact
 :math:`\delta \geq 0`; as they move apart and (:math:`\delta < 0`), they
 experience a tensile force up to :math:`3\pi\gamma R`, at which point they
 lose contact.
+
+
+.. _epa_linear_normal_model:
+
+`epa_linear` model
+----------------------
+
+The *epa_linear* model is the linear elastic-plastic-adhesive model proposed
+by :ref:`(Luding) <Luding2008>` model, where the force is computed according to:
+
+.. math::
+
+   \mathbf{F}_{ne, luding} = \left(\frac{4Ea^3}{3R} - 2\pi a^2\sqrt{\frac{4\gamma E}{\pi a}}\right)\mathbf{n}
+
+Here, :math:`a` is the radius of the contact zone, related to the overlap
+:math:`\delta` according to:
+
+.. math::
+
+   \delta = a^2/R - 2\sqrt{\pi \gamma a/E}
+
+
+.. _epa_nonlinear_normal_model:
+
+`epa_nonlinear` model
+----------------------
+
+The *epa_nonlinear* model is very similar to the nonlinear elastic-plastic-adhesive model proposed
+by :ref:`(Thankur et al) <Thakur2014>` model, where the force is computed according to:
+
+.. math::
+
+   \mathbf{F}_{ne, luding} = \left(\frac{4Ea^3}{3R} - 2\pi a^2\sqrt{\frac{4\gamma E}{\pi a}}\right)\mathbf{n}
+
+Here, :math:`a` is the radius of the contact zone, related to the overlap
+:math:`\delta` according to:
+
+.. math::
+
+   \delta = a^2/R - 2\sqrt{\pi \gamma a/E}
+
+References
+""""""""""
+
+.. _JKR1971:
+
+**(Johnson et al, 1971)** Johnson, K. L., Kendall, K., & Roberts,
+A. D. (1971).  Surface energy and the contact of elastic
+solids. Proc. R. Soc. Lond. A, 324(1558), 301-313.
+
+.. _DMT1975:
+
+**(Derjaguin et al, 1975)** Derjaguin, B. V., Muller, V. M., & Toporov,
+Y. P. (1975). Effect of contact deformations on the adhesion of
+particles. Journal of Colloid and interface science, 53(2), 314-326.
+
+.. _Luding2008:
+
+**(Luding, 2008)** Luding, S. (2008). Cohesive, frictional powders:
+contact models for tension. Granular matter, 10(4), 235.
+
+**(Thakur et al, 2014)** Thakur, Subhash C., et al. (2014). 
+Micromechanical analysis of cohesive granular materials using 
+the discrete element method with an adhesive  elasto-plastic contact 
+model. Granular Matter 16, 383-400.

@@ -1,4 +1,4 @@
-Models for tangential contact in granular interactions
+Models for tangential friction in granular interactions
 ======================================================
 
 .. _linear_nohistory:

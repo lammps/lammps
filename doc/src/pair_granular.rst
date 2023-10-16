@@ -55,7 +55,9 @@ two granular particles. This expands on the options offered by the
 :doc:`pair gran/\* <pair_gran>` pair styles. The total computed forces
 and torques are the sum of various models selected for the 
 :doc:`normal <granular_normal_models>`,
-tangential, rolling and twisting modes of motion.
+:doc:`tangential <granular_tangential_models>`, 
+:doc:`rolling <granular_rolling_models>`, and 
+:doc:`twisting <granular_twisting_models>` modes of motion.
 
 All model choices and parameters are entered in the :doc:`pair_coeff
 <pair_coeff>` command, as described below.  Unlike e.g. :doc:`pair
@@ -79,8 +81,12 @@ command, otherwise an error would result.
 
 ----------
 
+Normal contact models
+----------------------
 The first required keyword for the *pair_coeff* command is the normal
-contact model.  Currently supported options for normal contact models
+contact model, i.e. the force-displacement relation associated with
+motion of particles along the normal direction of the contact plane. 
+Currently supported options for normal contact models
 and their required arguments are:
 
 1. :ref:`hooke </hooke_model>` : :math:`k_n`, :math:`\eta_{n0}` (or :math:`e`)
@@ -331,6 +337,9 @@ to properly detect existing contacts.
 
 ----------
 
+Damping models
+--------------
+
 In addition, the normal force is augmented by a damping term of the
 following general form:
 
@@ -358,6 +367,10 @@ The options for the damping model currently supported are:
 4. *tsuji*
 5. *coeff_restitution*
 6. *mdr* (class) : :math:`d_{type}`
+1. :ref: `velocity <velocity_damping_model>`
+2. :ref: `mass_velocity <mass_velocity_damping_model>`
+3. :ref: `viscoelastic <viscoelastic_damping_model>`
+4. :ref: `tsuji <tsuji_damping_model>`
 
 If the *damping* keyword is not specified, the *viscoelastic* model is
 used by default.
@@ -496,21 +509,24 @@ components:
 
 .. math::
 
-   \mathbf{F}_n = \mathbf{F}_{ne} + \mathbf{F}_{n,damp}
+   \mathbf{F}_n = \mathbf{F}_{n,e} + \mathbf{F}_{n,damp}
 
 ----------
 
-The *pair_coeff* command also requires specification of the tangential
-contact model.  The required keyword *tangential* is expected, followed
-by the model choice and associated parameters.  Currently supported
+Tangential models
+------------------
+The *pair_coeff* command requires specification of the tangential
+contact model. The required keyword *tangential* is required, followed
+by the model choice and associated parameters. Currently supported
 tangential model choices and their expected parameters are as follows:
 
-1. *linear_nohistory* : :math:`x_{\gamma,t}`, :math:`\mu_s`
-2. *linear_history* : :math:`k_t`, :math:`x_{\gamma,t}`, :math:`\mu_s`
-3. *mindlin* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
-4. *mindlin/force* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
-5. *mindlin_rescale* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
-6. *mindlin_rescale/force* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_s`
+* :ref:`linear_nohistory <linear_nohistory>*` : :math:`x_{\gamma,t}`, :math:`\mu_t`
+* :ref:`linear_history <linear_history>*` : :math:`k_t`, :math:`x_{\gamma,t}`, :math:`\mu_t`
+* :ref:`linear_history <linear_history_static>*`*linear_history_static* : :math:`k_t`, :math:`x_{\gamma,t}`, :math:`\mu_{t,static}`, :math:`\mu_{t,dynamic}`
+* *mindlin/static* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_{t,static}`, :math:`\mu_{t,dynamic}`
+* *mindlin/force* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_t`
+* *mindlin_rescale* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_t`
+* *mindlin_rescale/force* : :math:`k_t` or NULL, :math:`x_{\gamma,t}`, :math:`\mu_t`
 
 Here, :math:`x_{\gamma,t}` is a dimensionless multiplier for the normal
 damping :math:`\eta_n` that determines the magnitude of the tangential
@@ -763,11 +779,14 @@ associated discussion, and :ref:`Agnolin and Roux, 2007
 
 ----------
 
+Rolling friction models
+------------------------
+
 The optional *rolling* keyword enables rolling friction, which resists
 pure rolling motion of particles.  The options currently supported are:
 
-1. *none*
-2. *sds* : :math:`k_{roll}`, :math:`\gamma_{roll}`, :math:`\mu_{roll}`
+* *none*
+* *sds* : :math:`k_{roll}`, :math:`\gamma_{roll}`, :math:`\mu_{roll}`
 
 If the *rolling* keyword is not specified, the model defaults to *none*\
 .
@@ -825,11 +844,17 @@ opposite torque on each particle, according to:
 
 ----------
 
+Twisting friction models
+------------------------
+
+Twisting friction models
+------------------------
+
 The optional *twisting* keyword enables twisting friction, which resists
 rotation of two contacting particles about the vector :math:`\mathbf{n}`
 that connects their centers.  The options currently supported are:
 
-1. *none*
+* *none*
 2. *sds* : :math:`k_{twist}`, :math:`\gamma_{twist}`, :math:`\mu_{twist}`
 3. *marshall*
 
@@ -1110,18 +1135,8 @@ For the *pair_coeff* settings: *damping viscoelastic*, *rolling none*,
 References
 """"""""""
 
-.. _Brill1996_1:
 
-**(Brilliantov et al, 1996)** Brilliantov, N. V., Spahn, F., Hertzsch,
-J. M., & Poschel, T. (1996).  Model for collisions in granular
-gases. Physical review E, 53(5), 5382.
 
-.. _Tsuji1992_1:
-
-**(Tsuji et al, 1992)** Tsuji, Y., Tanaka, T., & Ishida,
-T. (1992). Lagrangian numerical simulation of plug flow of
-cohesionless particles in a horizontal pipe. Powder technology, 71(3),
-239-250.
 
 .. _JKR1971:
 

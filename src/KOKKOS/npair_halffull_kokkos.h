@@ -257,8 +257,8 @@ class NPairHalffullKokkos : public NPair {
   void operator()(TagNPairHalffullCompute, const int&) const;
 
  private:
-  int nlocal;
-  double cutsq_custom;
+  int nlocal,triclinic;
+  double cutsq_custom,delta;
 
   typename AT::t_x_array_randomread x;
 

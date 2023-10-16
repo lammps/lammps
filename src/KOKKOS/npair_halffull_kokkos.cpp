@@ -18,6 +18,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "domain.h"
+#include "force.h"
 #include "neigh_list_kokkos.h"
 
 #include <cmath>
@@ -66,6 +67,9 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::build(NeighList *list)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
 
+  delta = 0.01 * force->angstrom;
+  triclinic = domain->triclinic;
+
   // loop over parent full list
 
   copymode = 1;
@@ -92,6 +96,11 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::operator()(TagNPairHalffullCom
   }
 
   // loop over full neighbor list
+  // use i < j < nlocal to eliminate half the local/local interactions
+  // for triclinic, must use delta to eliminate half the local/ghost interactions
+  // cannot use I/J exact coord comparision as for orthog
+  //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+  //   with an added PBC offset can shift all 3 coords by epsilon
 
   const int jnum = d_numneigh_full(i);
   const AtomNeighbors neighbors_i = AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
@@ -103,6 +112,14 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::operator()(TagNPairHalffullCom
     if (NEWTON) {
       if (j < nlocal) {
         if (i > j) continue;
+      } else if (triclinic) {
+        if (fabs(x(j,2)-ztmp) > delta) {
+          if (x(j,2) < ztmp) continue;
+        } else if (fabs(x(j,1)-ytmp) > delta) {
+          if (x(j,1) < ytmp) continue;
+        } else {
+          if (x(j,0) < xtmp) continue;
+        }
       } else {
         if (x(j,2) < ztmp) continue;
         if (x(j,2) == ztmp) {

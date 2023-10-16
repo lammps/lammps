@@ -333,11 +333,6 @@ whether an extra library is needed to build and use the package:
      - :doc:`dump molfile <dump_molfile>`
      - n/a
      - ext
-   * - :ref:`MPIIO <PKG-MPIIO>`
-     - MPI parallel I/O dump and restart
-     - :doc:`dump <dump>`
-     - n/a
-     - no
    * - :ref:`NETCDF <PKG-NETCDF>`
      - dump output via NetCDF
      - :doc:`dump netcdf <dump_netcdf>`

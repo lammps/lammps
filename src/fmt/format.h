@@ -83,7 +83,8 @@
 #  if FMT_CPLUSPLUS >= 202002L
 #    if FMT_HAS_CPP_ATTRIBUTE(no_unique_address)
 #      define FMT_NO_UNIQUE_ADDRESS [[no_unique_address]]
-#    elif FMT_MSC_VERSION >= 1929  // VS2019 v16.10 and later
+// VS2019 v16.10 and later except clang-cl (https://reviews.llvm.org/D110485)
+#    elif (FMT_MSC_VERSION >= 1929) && !FMT_CLANG_VERSION
 #      define FMT_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #    endif
 #  endif
@@ -367,8 +368,6 @@ inline auto is_big_endian() -> bool {
 class uint128_fallback {
  private:
   uint64_t lo_, hi_;
-
-  friend uint128_fallback umul128(uint64_t x, uint64_t y) noexcept;
 
  public:
   constexpr uint128_fallback(uint64_t hi, uint64_t lo) : lo_(lo), hi_(hi) {}
@@ -920,7 +919,7 @@ class basic_memory_buffer final : public detail::buffer<T> {
  private:
   T store_[SIZE];
 
-  // Don't inherit from Allocator avoid generating type_info for it.
+  // Don't inherit from Allocator to avoid generating type_info for it.
   FMT_NO_UNIQUE_ADDRESS Allocator alloc_;
 
   // Deallocate memory allocated by the buffer.
@@ -1038,6 +1037,7 @@ namespace detail {
 FMT_API bool write_console(std::FILE* f, string_view text);
 FMT_API void print(std::FILE*, string_view);
 }  // namespace detail
+
 FMT_BEGIN_EXPORT
 
 // Suppress a misleading warning in older versions of clang.
@@ -1387,8 +1387,8 @@ FMT_CONSTEXPR auto format_uint(Char* buffer, UInt value, int num_digits,
 }
 
 template <unsigned BASE_BITS, typename Char, typename It, typename UInt>
-inline auto format_uint(It out, UInt value, int num_digits, bool upper = false)
-    -> It {
+FMT_CONSTEXPR inline auto format_uint(It out, UInt value, int num_digits,
+                                      bool upper = false) -> It {
   if (auto ptr = to_pointer<Char>(out, to_unsigned(num_digits))) {
     format_uint<BASE_BITS>(ptr, value, num_digits, upper);
     return out;
@@ -1453,7 +1453,7 @@ template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
         ++p;
         if (p == s.end() || (c & 0xfc00) != 0xd800 || (*p & 0xfc00) != 0xdc00) {
           if (policy == to_utf8_error_policy::abort) return false;
-          buf.append(string_view("�"));
+          buf.append(string_view("\xEF\xBF\xBD"));
           --p;
         } else {
           c = (c << 10) + static_cast<uint32_t>(*p) - 0x35fdc00;
@@ -1486,9 +1486,9 @@ inline uint128_fallback umul128(uint64_t x, uint64_t y) noexcept {
   auto p = static_cast<uint128_opt>(x) * static_cast<uint128_opt>(y);
   return {static_cast<uint64_t>(p >> 64), static_cast<uint64_t>(p)};
 #elif defined(_MSC_VER) && defined(_M_X64)
-  auto result = uint128_fallback();
-  result.lo_ = _umul128(x, y, &result.hi_);
-  return result;
+  auto hi = uint64_t();
+  auto lo = _umul128(x, y, &hi);
+  return {hi, lo};
 #else
   const uint64_t mask = static_cast<uint64_t>(max_value<uint32_t>());
 
@@ -3178,7 +3178,8 @@ FMT_CONSTEXPR20 inline void format_dragon(basic_fp<uint128_t> value,
       }
       if (buf[0] == overflow) {
         buf[0] = '1';
-        ++exp10;
+        if ((flags & dragon::fixed) != 0) buf.push_back('0');
+        else ++exp10;
       }
       return;
     }
@@ -4286,7 +4287,8 @@ auto join(Range&& range, string_view sep)
     std::string answer = fmt::to_string(42);
   \endrst
  */
-template <typename T, FMT_ENABLE_IF(!std::is_integral<T>::value)>
+template <typename T, FMT_ENABLE_IF(!std::is_integral<T>::value &&
+                                    !detail::has_format_as<T>::value)>
 inline auto to_string(const T& value) -> std::string {
   auto buffer = memory_buffer();
   detail::write<char>(appender(buffer), value);
@@ -4310,6 +4312,14 @@ FMT_NODISCARD auto to_string(const basic_memory_buffer<Char, SIZE>& buf)
   detail::assume(size < std::basic_string<Char>().max_size());
   return std::basic_string<Char>(buf.data(), size);
 }
+
+template <typename T, FMT_ENABLE_IF(!std::is_integral<T>::value &&
+                                    detail::has_format_as<T>::value)>
+inline auto to_string(const T& value) -> std::string {
+  return to_string(format_as(value));
+}
+
+FMT_END_EXPORT
 
 namespace detail {
 
@@ -4381,6 +4391,8 @@ void vformat_to(buffer<Char>& buf, basic_string_view<Char> fmt,
   };
   detail::parse_format_string<false>(fmt, format_handler(out, fmt, args, loc));
 }
+
+FMT_BEGIN_EXPORT
 
 #ifndef FMT_HEADER_ONLY
 extern template FMT_API void vformat_to(buffer<char>&, string_view,

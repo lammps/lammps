@@ -240,7 +240,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       break;
 
     } else
-      error->all(FLERR, fmt::format("MDI engine exited with invalid command: {}", mdicmd));
+      error->all(FLERR, "MDI engine exited with invalid command: {}", mdicmd);
   }
 
   // clean up

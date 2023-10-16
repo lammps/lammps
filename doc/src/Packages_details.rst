@@ -87,7 +87,6 @@ page gives those details.
    * :ref:`MOFFF <PKG-MOFFF>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MOLFILE <PKG-MOLFILE>`
-   * :ref:`MPIIO <PKG-MPIIO>`
    * :ref:`NETCDF <PKG-NETCDF>`
    * :ref:`OPENMP <PKG-OPENMP>`
    * :ref:`OPT <PKG-OPT>`
@@ -2030,38 +2029,6 @@ This package has :ref:`specific installation instructions <molfile>` on the :doc
 * src/MOLFILE/README
 * lib/molfile/README
 * :doc:`dump molfile <dump_molfile>`
-
-----------
-
-.. _PKG-MPIIO:
-
-MPIIO package
--------------
-
-**Contents:**
-
-Support for parallel output/input of dump and restart files via the
-MPIIO library.  It adds :doc:`dump styles <dump>` with a "mpiio" in
-their style name.  Restart files with an ".mpiio" suffix are also
-written and read in parallel.
-
-.. warning::
-
-   The MPIIO package is currently unmaintained and has become
-   unreliable. Use with caution.
-
-
-**Install:**
-
-The MPIIO package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
-
-**Supporting info:**
-
-* src/MPIIO: filenames -> commands
-* :doc:`dump <dump>`
-* :doc:`restart <restart>`
-* :doc:`write_restart <write_restart>`
-* :doc:`read_restart <read_restart>`
 
 ----------
 

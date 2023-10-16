@@ -265,7 +265,7 @@ OPT.
    * :doc:`smd/tri_surface <pair_smd_triangulated_surface>`
    * :doc:`smd/ulsph <pair_smd_ulsph>`
    * :doc:`smtbq <pair_smtbq>`
-   * :doc:`snap (k) <pair_snap>`
+   * :doc:`snap (ik) <pair_snap>`
    * :doc:`soft (go) <pair_soft>`
    * :doc:`sph/heatconduction <pair_sph_heatconduction>`
    * :doc:`sph/idealgas <pair_sph_idealgas>`
@@ -305,5 +305,5 @@ OPT.
    * :doc:`wf/cut <pair_wf_cut>`
    * :doc:`ylz <pair_ylz>`
    * :doc:`yukawa (gko) <pair_yukawa>`
-   * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
+   * :doc:`yukawa/colloid (gko) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

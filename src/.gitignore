@@ -580,6 +580,8 @@
 /compute_ke_eff.h
 /compute_ke_rigid.cpp
 /compute_ke_rigid.h
+/compute_composition_atom.cpp
+/compute_composition_atom.h
 /compute_meso_e_atom.cpp
 /compute_meso_e_atom.h
 /compute_meso_rho_atom.cpp
@@ -669,20 +671,14 @@
 /dump_atom_gz.h
 /dump_atom_zstd.cpp
 /dump_atom_zstd.h
-/dump_atom_mpiio.cpp
-/dump_atom_mpiio.h
 /dump_cfg_gz.cpp
 /dump_cfg_gz.h
-/dump_cfg_mpiio.cpp
-/dump_cfg_mpiio.h
 /dump_cfg_zstd.cpp
 /dump_cfg_zstd.h
 /dump_custom_adios.cpp
 /dump_custom_adios.h
 /dump_custom_gz.cpp
 /dump_custom_gz.h
-/dump_custom_mpiio.cpp
-/dump_custom_mpiio.h
 /dump_custom_zstd.cpp
 /dump_custom_zstd.h
 /dump_h5md.cpp
@@ -701,8 +697,6 @@
 /dump_xtc.h
 /dump_xyz_gz.cpp
 /dump_xyz_gz.h
-/dump_xyz_mpiio.cpp
-/dump_xyz_mpiio.h
 /dump_xyz_zstd.cpp
 /dump_xyz_zstd.h
 /dump_yaml.cpp
@@ -1453,8 +1447,6 @@
 /remap.h
 /remap_wrap.cpp
 /remap_wrap.h
-/restart_mpiio.cpp
-/restart_mpiio.h
 /rigid_const.h
 /scafacos.cpp
 /scafacos.h

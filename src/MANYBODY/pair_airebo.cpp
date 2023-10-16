@@ -59,6 +59,7 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp)
   nextra = 3;
   pvector = new double[nextra];
 
+  trim_flag = 0; // workaround
   maxlocal = 0;
   REBO_numneigh = nullptr;
   REBO_firstneigh = nullptr;

@@ -36,6 +36,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
+#include "output.h"
+#include "thermo.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
@@ -77,18 +79,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // set filetype based on filename suffix
 
-  int n = strlen(filename);
-  if (strlen(filename) > 4 && strcmp(&filename[n-4],".jpg") == 0)
+  if (utils::strmatch(filename, "\\.jpg$") || utils::strmatch(filename, "\\.JPG$")
+      || utils::strmatch(filename, "\\.jpeg$") || utils::strmatch(filename, "\\.JPEG$"))
     filetype = JPG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".JPG") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".jpeg") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".JPEG") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".png") == 0)
-    filetype = PNG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".PNG") == 0)
+  else if  (utils::strmatch(filename, "\\.png$") || utils::strmatch(filename, "\\.PNG$"))
     filetype = PNG;
   else filetype = PPM;
 
@@ -248,10 +242,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       int width = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       int height = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (width <= 0 || height <= 0)
-        error->all(FLERR,"Illegal dump image command");
-      image->width = width;
-      image->height = height;
+      if (width <= 0 || height <= 0) error->all(FLERR,"Illegal dump image command");
+      if (image->fsaa) {
+        image->width = width*2;
+        image->height = height*2;
+      } else {
+        image->width = width;
+        image->height = height;
+      }
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"view") == 0) {
@@ -343,6 +341,23 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (shiny < 0.0 || shiny > 1.0)
         error->all(FLERR,"Illegal dump image command");
       image->shiny = shiny;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"fsaa") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      int aa = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      if (aa) {
+        if (!image->fsaa) {
+          image->width = image->width*2;
+          image->height = image->height*2;
+        }
+      } else {
+        if (image->fsaa) {
+          image->width = image->width/2;
+          image->height = image->height/2;
+        }
+      }
+      image->fsaa = aa;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"ssao") == 0) {
@@ -460,6 +475,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 DumpImage::~DumpImage()
 {
   delete image;
+  output->thermo->set_image_fname("");
 
   delete[] diamtype;
   delete[] diamelement;
@@ -771,6 +787,12 @@ void DumpImage::write()
     if (multifile) {
       fclose(fp);
       fp = nullptr;
+
+      // cache last dump image filename for access through library interface.
+      // update only *after* the file has been written so there will be no invalid read.
+      // have to recreate the substitution done within openfile().
+
+      output->thermo->set_image_fname(utils::star_subst(filename, update->ntimestep, padflag));
     }
   }
 }

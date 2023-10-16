@@ -17,41 +17,40 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(reaxff/bonds/local,ComputeReaxFFBondsLocal);
+ComputeStyle(reaxff/bonds,ComputeReaxFFBonds);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_REAXFF_BONDS_LOCAL_H
-#define LMP_COMPUTE_REAXFF_BONDS_LOCAL_H
+#ifndef LMP_COMPUTE_REAXFF_BONDS_H
+#define LMP_COMPUTE_REAXFF_BONDS_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeReaxFFBondsLocal : public Compute {
+class ComputeReaxFFBonds : public Compute {
  public:
-  ComputeReaxFFBondsLocal(class LAMMPS *, int, char **);
-  ~ComputeReaxFFBondsLocal() override;
+  ComputeReaxFFBonds(class LAMMPS *, int, char **);
+  ~ComputeReaxFFBonds() override;
   void init() override;
   void compute_local() override;
+  void compute_peratom() override;
+  virtual void compute_bonds();
   double memory_usage() override;
 
- private:
+ protected:
+  bigint invoked_bonds;     // last timestep on which compute_bonds() was invoked
   int nlocal;
-  int nvalues;
-  int prev_nvalues;
+  int nbonds;
+  int prev_nbonds;
 
-  double **alocal;
   tagint **neighid;
   double **abo;
   int *numneigh;
   class PairReaxFF *reaxff;
 
+ private:
   int FindBond();
-
-  void allocate(int);
-  void destroy();
-  void reallocate();
 };
 
 }    // namespace LAMMPS_NS

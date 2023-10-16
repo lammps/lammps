@@ -614,6 +614,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
     X_FLOAT ytmp;
     X_FLOAT ztmp;
     int itype;
+    tagint itag;
     const int index = (i >= 0 && i < nlocal) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
@@ -623,6 +624,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
       ytmp = x(i, 1);
       ztmp = x(i, 2);
       itype = type(i);
+      itag = tag(i);
       other_x[MY_II] = xtmp;
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
@@ -970,6 +972,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
     X_FLOAT ytmp;
     X_FLOAT ztmp;
     int itype;
+    tagint itag;
     const int index = (i >= 0 && i < nall) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
@@ -979,6 +982,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
       ytmp = x(i, 1);
       ztmp = x(i, 2);
       itype = type(i);
+      itag = tag(i);
       other_x[MY_II] = xtmp;
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
@@ -1331,6 +1335,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     X_FLOAT ztmp;
     X_FLOAT radi;
     int itype;
+    tagint itag;
     const int index = (i >= 0 && i < nlocal) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
@@ -1342,6 +1347,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       ztmp = x(i, 2);
       radi = radius(i);
       itype = type(i);
+      itag = tag(i);
       other_x[MY_II] = xtmp;
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;

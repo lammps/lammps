@@ -50,7 +50,6 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) :
   one_coeff = 1;
   manybody_flag = 1;
   is_child = false;
-  trim_flag = 0; // workaround
   centroidstressflag = CENTROID_NOTAVAIL;
   model=nullptr;
   descriptor=nullptr;

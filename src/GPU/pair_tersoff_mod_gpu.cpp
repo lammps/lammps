@@ -63,7 +63,6 @@ PairTersoffMODGPU::PairTersoffMODGPU(LAMMPS *lmp) : PairTersoffMOD(lmp), gpu_mod
   cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
-  trim_flag = 0; // workaround
 
   cutghost = nullptr;
   ghostneigh = 1;

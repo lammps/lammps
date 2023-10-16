@@ -60,7 +60,6 @@ PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
   reinitflag = 0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
-  trim_flag = 0; // workaround
 
   cutghost = nullptr;
   ghostneigh = 1;

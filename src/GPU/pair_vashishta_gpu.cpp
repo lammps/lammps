@@ -62,7 +62,6 @@ PairVashishtaGPU::PairVashishtaGPU(LAMMPS *lmp) : PairVashishta(lmp), gpu_mode(G
   gpu_allocated = false;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
-  trim_flag = 0; // workaround
 
   cutghost = nullptr;
   ghostneigh = 1;

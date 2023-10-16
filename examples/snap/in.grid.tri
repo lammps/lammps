@@ -94,11 +94,11 @@ variable	B5grid equal c_mygrid[13][8]
 # to atoms is not unnique for different processor grids
 
 variable	rmse_global equal "sqrt(    &
-	 (c_mygrid[13][4] - c_b[7][1])^2 + &
-	 (c_mygrid[13][5] - c_b[7][2])^2 + &
-	 (c_mygrid[13][6] - c_b[7][3])^2 + &
-	 (c_mygrid[13][7] - c_b[7][4])^2 + &
-	 (c_mygrid[13][8] - c_b[7][5])^2   &
+	 (c_mygrid[13][4] - C_b[7][1])^2 + &
+	 (c_mygrid[13][5] - C_b[7][2])^2 + &
+	 (c_mygrid[13][6] - C_b[7][3])^2 + &
+	 (c_mygrid[13][7] - C_b[7][4])^2 + &
+	 (c_mygrid[13][8] - C_b[7][5])^2   &
 	 )"
 
 thermo_style	custom step v_B5atom v_B5grid v_rmse_global

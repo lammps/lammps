@@ -50,11 +50,6 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::build(NeighList *list)
     atomKK->sync(execution_space,X_MASK);
   }
 
-  if (TRI) {
-    tag = atomKK->k_tag.view<DeviceType>();
-    atomKK->sync(execution_space,TAG_MASK);
-  }
-
   nlocal = atom->nlocal;
 
   cutsq_custom = cutoff_custom*cutoff_custom;

@@ -17,41 +17,39 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(reaxff/bonds/local/kk,ComputeReaxFFBondsLocalKokkos<LMPDeviceType>);
-ComputeStyle(reaxff/bonds/local/kk/device,ComputeReaxFFBondsLocalKokkos<LMPDeviceType>);
-ComputeStyle(reaxff/bonds/local/kk/host,ComputeReaxFFBondsLocalKokkos<LMPHostType>);
+ComputeStyle(reaxff/bonds/kk,ComputeReaxFFBondsKokkos<LMPDeviceType>);
+ComputeStyle(reaxff/bonds/kk/device,ComputeReaxFFBondsKokkos<LMPDeviceType>);
+ComputeStyle(reaxff/bonds/kk/host,ComputeReaxFFBondsKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_REAXFF_BONDS_LOCAL_KOKKOS_H
-#define LMP_COMPUTE_REAXFF_BONDS_LOCAL_KOKKOS_H
+#ifndef LMP_COMPUTE_REAXFF_BONDS_KOKKOS_H
+#define LMP_COMPUTE_REAXFF_BONDS_KOKKOS_H
 
-#include "compute_reaxff_bonds_local.h"
+#include "compute_reaxff_bonds.h"
 #include "pair_reaxff_kokkos.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class ComputeReaxFFBondsLocalKokkos : public Compute {
+class ComputeReaxFFBondsKokkos : public ComputeReaxFFBonds {
  public:
   using device_type = DeviceType;
   using AT = ArrayTypes<DeviceType>;
 
-  ComputeReaxFFBondsLocalKokkos(class LAMMPS *, int, char **);
-  ~ComputeReaxFFBondsLocalKokkos() override;
+  ComputeReaxFFBondsKokkos(class LAMMPS *, int, char **);
+  ~ComputeReaxFFBondsKokkos() override;
   void init() override;
   void compute_local() override;
+  void compute_peratom() override;
+  void compute_bonds() override;
   double memory_usage() override;
 
  private:
-  int nlocal;
-  int nvalues;
-  int prev_nvalues;
-
-  double **alocal;
-  typename AT::tdual_float_2d k_alocal;
-  PairReaxFF *reaxff;
+  int nbuf;
+  double *buf;
+  typename AT::tdual_float_1d k_buf;
 
   auto device_pair() {
     return dynamic_cast<PairReaxFFKokkos<LMPDeviceType>*>(reaxff);

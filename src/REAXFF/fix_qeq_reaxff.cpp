@@ -697,8 +697,8 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,fmt::format("Fix qeq/reaxff H matrix size has been "
-                                 "exceeded: m_fill={} H.m={}\n", m_fill, H.m));
+    error->all(FLERR,"Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -772,9 +772,8 @@ int FixQEqReaxFF::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff CG convergence failed "
-                                     "after {} iterations at step {}",
-                                     i,update->ntimestep));
+    error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
+                   i,update->ntimestep);
   return i;
 }
 

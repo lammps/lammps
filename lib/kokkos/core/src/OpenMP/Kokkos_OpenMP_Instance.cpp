@@ -1,57 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
-
-#include <cstdio>
-#include <cstdlib>
-
-#include <limits>
-#include <iostream>
-#include <vector>
 
 #include <Kokkos_Core.hpp>
 
@@ -60,14 +25,27 @@
 #include <impl/Kokkos_Tools.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
 
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <thread>
+
 namespace Kokkos {
 namespace Impl {
 
-int g_openmp_hardware_max_threads = 1;
+void OpenMPInternal::acquire_lock() {
+  while (1 == desul::atomic_compare_exchange(&m_pool_mutex, 0, 1,
+                                             desul::MemoryOrderAcquire(),
+                                             desul::MemoryScopeDevice())) {
+    // do nothing
+  }
+}
 
-thread_local int t_openmp_hardware_id = 0;
-// FIXME_OPENMP we can remove this after we remove partition_master
-thread_local OpenMPInternal *t_openmp_instance = nullptr;
+void OpenMPInternal::release_lock() {
+  desul::atomic_store(&m_pool_mutex, 0, desul::MemoryOrderRelease(),
+                      desul::MemoryScopeDevice());
+}
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 void OpenMPInternal::validate_partition_impl(const int nthreads,
@@ -196,10 +174,7 @@ void OpenMPInternal::resize_thread_data(size_t pool_reduce_bytes,
 
     memory_fence();
 
-#pragma omp parallel num_threads(m_pool_size)
-    {
-      const int rank = omp_get_thread_num();
-
+    for (int rank = 0; rank < m_pool_size; ++rank) {
       if (nullptr != m_pool[rank]) {
         m_pool[rank]->disband_pool();
 
@@ -220,10 +195,7 @@ void OpenMPInternal::resize_thread_data(size_t pool_reduce_bytes,
       m_pool[rank]->scratch_assign(((char *)ptr) + member_bytes, alloc_bytes,
                                    pool_reduce_bytes, team_reduce_bytes,
                                    team_shared_bytes, thread_local_bytes);
-
-      memory_fence();
     }
-    /* END #pragma omp parallel */
 
     HostThreadTeamData::organize_pool(m_pool, m_pool_size);
   }
@@ -269,15 +241,19 @@ void OpenMPInternal::initialize(int thread_count) {
   }
 
   {
-    if (Kokkos::show_warnings() && nullptr == std::getenv("OMP_PROC_BIND")) {
-      printf(
-          "Kokkos::OpenMP::initialize WARNING: OMP_PROC_BIND environment "
-          "variable not set\n");
-      printf(
-          "  In general, for best performance with OpenMP 4.0 or better set "
-          "OMP_PROC_BIND=spread and OMP_PLACES=threads\n");
-      printf("  For best performance with OpenMP 3.1 set OMP_PROC_BIND=true\n");
-      printf("  For unit testing set OMP_PROC_BIND=false\n");
+    if (Kokkos::show_warnings() && !std::getenv("OMP_PROC_BIND")) {
+      std::cerr
+          << R"WARNING(Kokkos::OpenMP::initialize WARNING: OMP_PROC_BIND environment variable not set
+  In general, for best performance with OpenMP 4.0 or better set OMP_PROC_BIND=spread and OMP_PLACES=threads
+  For best performance with OpenMP 3.1 set OMP_PROC_BIND=true
+  For unit testing set OMP_PROC_BIND=false
+)WARNING" << std::endl;
+
+      if (mpi_detected()) {
+        std::cerr
+            << R"WARNING(MPI detected: For OpenMP binding to work as intended, MPI ranks must be bound to exclusive CPU sets.
+)WARNING" << std::endl;
+      }
     }
 
     OpenMP::memory_space space;
@@ -308,11 +284,12 @@ void OpenMPInternal::initialize(int thread_count) {
       }
     } else {
       if (Kokkos::show_warnings() && thread_count > process_num_threads) {
-        printf(
-            "Kokkos::OpenMP::initialize WARNING: You are likely "
-            "oversubscribing your CPU cores.\n");
-        printf("  process threads available : %3d,  requested thread : %3d\n",
-               process_num_threads, thread_count);
+        std::cerr << "Kokkos::OpenMP::initialize WARNING: You are likely "
+                     "oversubscribing your CPU cores.\n"
+                  << "  process threads available : " << std::setw(3)
+                  << process_num_threads
+                  << ",  requested thread : " << std::setw(3) << thread_count
+                  << std::endl;
       }
       Impl::g_openmp_hardware_max_threads = thread_count;
       omp_set_num_threads(Impl::g_openmp_hardware_max_threads);
@@ -320,10 +297,7 @@ void OpenMPInternal::initialize(int thread_count) {
 
 // setup thread local
 #pragma omp parallel num_threads(Impl::g_openmp_hardware_max_threads)
-    {
-      Impl::t_openmp_hardware_id = omp_get_thread_num();
-      Impl::SharedAllocationRecord<void, void>::tracking_enable();
-    }
+    { Impl::SharedAllocationRecord<void, void>::tracking_enable(); }
 
     auto &instance       = OpenMPInternal::singleton();
     instance.m_pool_size = Impl::g_openmp_hardware_max_threads;
@@ -341,22 +315,21 @@ void OpenMPInternal::initialize(int thread_count) {
   }
 
   // Check for over-subscription
+  auto const reported_ranks = mpi_ranks_per_node();
+  auto const mpi_local_size = reported_ranks < 0 ? 1 : reported_ranks;
+  int const procs_per_node  = std::thread::hardware_concurrency();
   if (Kokkos::show_warnings() &&
-      (Impl::mpi_ranks_per_node() * long(thread_count) >
-       Impl::processors_per_node())) {
+      (mpi_local_size * long(thread_count) > procs_per_node)) {
     std::cerr << "Kokkos::OpenMP::initialize WARNING: You are likely "
                  "oversubscribing your CPU cores."
               << std::endl;
     std::cerr << "                                    Detected: "
-              << Impl::processors_per_node() << " cores per node." << std::endl;
+              << procs_per_node << " cores per node." << std::endl;
     std::cerr << "                                    Detected: "
-              << Impl::mpi_ranks_per_node() << " MPI_ranks per node."
-              << std::endl;
+              << mpi_local_size << " MPI_ranks per node." << std::endl;
     std::cerr << "                                    Requested: "
               << thread_count << " threads per process." << std::endl;
   }
-  // Init the array for used for arbitrarily sized atomics
-  init_lock_array_host_space();
 
   m_initialized = true;
 }
@@ -379,10 +352,7 @@ void OpenMPInternal::finalize() {
     (void)nthreads;
 
 #pragma omp parallel num_threads(nthreads)
-    {
-      Impl::t_openmp_hardware_id = 0;
-      Impl::SharedAllocationRecord<void, void>::tracking_disable();
-    }
+    { Impl::SharedAllocationRecord<void, void>::tracking_disable(); }
 
     // allow main thread to track
     Impl::SharedAllocationRecord<void, void>::tracking_enable();
@@ -418,75 +388,4 @@ bool OpenMPInternal::verify_is_initialized(const char *const label) const {
   return m_initialized;
 }
 }  // namespace Impl
-
-//----------------------------------------------------------------------------
-
-OpenMP::OpenMP()
-#ifdef KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
-    : m_space_instance(&Impl::OpenMPInternal::singleton()) {
-}
-#else
-    : m_space_instance(&Impl::OpenMPInternal::singleton(),
-                       [](Impl::OpenMPInternal *) {}) {
-  Impl::OpenMPInternal::singleton().verify_is_initialized(
-      "OpenMP instance constructor");
-}
-#endif
-
-int OpenMP::impl_get_current_max_threads() noexcept {
-  return Impl::OpenMPInternal::get_current_max_threads();
-}
-
-void OpenMP::impl_initialize(InitializationSettings const &settings) {
-  Impl::OpenMPInternal::singleton().initialize(
-      settings.has_num_threads() ? settings.get_num_threads() : -1);
-}
-
-void OpenMP::impl_finalize() { Impl::OpenMPInternal::singleton().finalize(); }
-
-void OpenMP::print_configuration(std::ostream &os, bool /*verbose*/) const {
-  os << "Host Parallel Execution Space:\n";
-  os << "  KOKKOS_ENABLE_OPENMP: yes\n";
-
-  os << "OpenMP Atomics:\n";
-  os << "  KOKKOS_ENABLE_OPENMP_ATOMICS: ";
-#ifdef KOKKOS_ENABLE_OPENMP_ATOMICS
-  os << "yes\n";
-#else
-  os << "no\n";
-#endif
-
-  os << "\nOpenMP Runtime Configuration:\n";
-
-  m_space_instance->print_configuration(os);
-}
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-std::vector<OpenMP> OpenMP::partition(...) { return std::vector<OpenMP>(1); }
-
-OpenMP OpenMP::create_instance(...) { return OpenMP(); }
-#endif
-
-int OpenMP::concurrency() { return Impl::g_openmp_hardware_max_threads; }
-
-void OpenMP::fence(const std::string &name) const {
-  Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::OpenMP>(
-      name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1}, []() {});
-}
-
-namespace Impl {
-
-int g_openmp_space_factory_initialized =
-    initialize_space_factory<OpenMP>("050_OpenMP");
-
-}  // namespace Impl
-
-#ifdef KOKKOS_ENABLE_CXX14
-namespace Tools {
-namespace Experimental {
-constexpr DeviceType DeviceTypeTraits<OpenMP>::id;
-}
-}  // namespace Tools
-#endif
-
 }  // namespace Kokkos

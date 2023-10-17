@@ -96,6 +96,8 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
 
 FixSpringSelf::~FixSpringSelf()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);

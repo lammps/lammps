@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 // Experimental unified task-data parallel manycore LDRD
 
@@ -58,7 +30,7 @@
 #include <impl/Kokkos_LinkedListNode.hpp>  // KOKKOS_EXPECTS
 
 #include <Kokkos_Atomic.hpp>  // atomic_compare_exchange, atomic_fence
-#include "Kokkos_LIFO.hpp"
+#include <impl/Kokkos_LIFO.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -200,7 +172,8 @@ struct ChaseLevDeque {
         }
 #else
         if (!Impl::atomic_compare_exchange_strong(
-                &m_top, t, t + 1, memory_order_seq_cst, memory_order_relaxed)) {
+                &m_top, t, t + 1, desul::MemoryOrderSeqCst(),
+                desul::MemoryOrderRelaxed())) {
           /* failed race, someone else stole it */
           return_value = nullptr;
         }
@@ -223,7 +196,7 @@ struct ChaseLevDeque {
   KOKKOS_INLINE_FUNCTION
   bool push(node_type& node) {
     auto b  = m_bottom;  // memory order relaxed
-    auto t  = Impl::atomic_load(&m_top, memory_order_acquire);
+    auto t  = Impl::atomic_load(&m_top, desul::MemoryOrderAcquire());
     auto& a = m_array;
     if (b - t > a.size() - 1) {
       /* queue is full, resize */
@@ -232,7 +205,7 @@ struct ChaseLevDeque {
       return false;
     }
     a[b] = &node;  // relaxed
-    Impl::atomic_store(&m_bottom, b + 1, memory_order_release);
+    Impl::atomic_store(&m_bottom, b + 1, desul::MemoryOrderRelease());
     return true;
   }
 
@@ -241,7 +214,7 @@ struct ChaseLevDeque {
     auto t = m_top;  // TODO @tasking @memory_order DSH: atomic load acquire
     Kokkos::memory_fence();  // seq_cst fence, so why does the above need to be
                              // acquire?
-    auto b = Impl::atomic_load(&m_bottom, memory_order_acquire);
+    auto b = Impl::atomic_load(&m_bottom, desul::MemoryOrderAcquire());
     OptionalRef<T> return_value;
     if (t < b) {
       /* Non-empty queue */
@@ -259,8 +232,9 @@ struct ChaseLevDeque {
         return_value = nullptr;
       }
 #else
-      if (!Impl::atomic_compare_exchange_strong(
-              &m_top, t, t + 1, memory_order_seq_cst, memory_order_relaxed)) {
+      if (!Impl::atomic_compare_exchange_strong(&m_top, t, t + 1,
+                                                desul::MemoryOrderSeqCst(),
+                                                desul::MemoryOrderRelaxed())) {
         return_value = nullptr;
       }
 #endif
@@ -275,7 +249,7 @@ struct ChaseLevDeque {
       // essentially using the memory order in this version as a fence, which
       // may be unnecessary
       auto buffer_ptr = (node_type***)&m_array.buffer;
-      auto a = Impl::atomic_load(buffer_ptr, memory_order_acquire); //
+      auto a = Impl::atomic_load(buffer_ptr, desul::MemoryOrderAcquire()); //
    technically consume ordered, but acquire should be fine return_value =
    *static_cast<T*>(a[t % m_array->size]); // relaxed; we'd have to replace the
    m_array->size if we ever allow growth

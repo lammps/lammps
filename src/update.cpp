@@ -362,7 +362,7 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
-      sflag = 1 + 2*lmp->pair_only_flag;
+      sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
       if (integrate_map->find(estyle) != integrate_map->end()) {
         IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
@@ -396,7 +396,7 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
 
 void Update::create_minimize(int narg, char **arg, int trysuffix)
 {
-  if (narg < 1) error->all(FLERR, "Illegal run_style command");
+  if (narg < 1) error->all(FLERR, "Illegal minimize_style command");
 
   delete[] minimize_style;
   delete minimize;
@@ -428,7 +428,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
 {
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
-      sflag = 1 + 2*lmp->pair_only_flag;
+      sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
       if (minimize_map->find(estyle) != minimize_map->end()) {
         MinimizeCreator &minimize_creator = (*minimize_map)[estyle];

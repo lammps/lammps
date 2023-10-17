@@ -589,8 +589,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           double *e_s,double *e_p,double *e_t,double *e_q,
                           int evflag,int newton_pair) {
   Hash<bond_data,Doublet> bond_hash(100000);
-  int i,j,k,m,ix,jx,kx,mx,itag,jtag,p;
-
+  int i,j,k,m,ix,jx,kx,mx,p;
   double e_single,e_pair,e_triplet,e_triplet_c,e_quad;
   double volvir2;
 

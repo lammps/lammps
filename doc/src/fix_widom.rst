@@ -6,7 +6,7 @@ fix widom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID widom N M type seed T keyword values ...
 

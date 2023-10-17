@@ -62,7 +62,7 @@ class Compute : protected Pointers {
   int size_local_rows;    // rows in local vector or array
   int size_local_cols;    // 0 = vector, N = columns in local array
 
-  int pergrid_flag;       // 0/1 if compute_pergrid() function exists
+  int pergrid_flag;    // 0/1 if compute_pergrid() function exists
 
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
@@ -88,6 +88,7 @@ class Compute : protected Pointers {
   int maxtime;      // max # of entries time list can hold
   bigint *tlist;    // list of timesteps the Compute is called on
 
+  int initialized_flag;      // 1 if compute is initialized, 0 if not
   int invoked_flag;          // non-zero if invoked or accessed this step, 0 if not
   bigint invoked_scalar;     // last timestep on which compute_scalar() was invoked
   bigint invoked_vector;     // ditto for compute_vector()
@@ -114,6 +115,7 @@ class Compute : protected Pointers {
   void modify_params(int, char **);
   virtual void reset_extra_dof();
 
+  void init_flags();
   virtual void init() = 0;
   virtual void init_list(int, class NeighList *) {}
   virtual void setup() {}
@@ -160,6 +162,8 @@ class Compute : protected Pointers {
   void addstep(bigint);
   int matchstep(bigint);
   void clearstep();
+
+  bool is_initialized() const { return initialized_flag == 1; }
 
   virtual double memory_usage() { return 0.0; }
 

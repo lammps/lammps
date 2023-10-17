@@ -73,16 +73,14 @@ TEST_F(LeptonUtilsTest, substitute)
     lmp->update->reset_timestep(100LL, false);
     ASSERT_THAT(LeptonUtils::substitute("(2.5/v_pre)", lmp), StrEq("(2.5/0.1)"));
 
-    if (LAMMPS_NS::Info::has_exceptions()) {
-        bool caught = false;
-        try {
-            LeptonUtils::substitute("v_none", lmp);
-        } catch (std::exception &e) {
-            ASSERT_THAT(e.what(), StrEq("Variable none in expression v_none does not exist"));
-            caught = true;
-        }
-        ASSERT_TRUE(caught);
+    bool caught = false;
+    try {
+        LeptonUtils::substitute("v_none", lmp);
+    } catch (std::exception &e) {
+        ASSERT_THAT(e.what(), StrEq("Variable none in expression v_none does not exist"));
+        caught = true;
     }
+    ASSERT_TRUE(caught);
 }
 
 // zbl() custom function

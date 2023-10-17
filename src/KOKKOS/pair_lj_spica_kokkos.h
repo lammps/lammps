@@ -97,16 +97,19 @@ class PairLJSPICAKokkos : public PairLJSPICA {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairLJSPICAKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJSPICAKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairLJSPICAKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairLJSPICAKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairLJSPICAKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,FULL,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,HALF,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,HALFTHREAD,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJSPICAKokkos,void>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,FULL,0>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,FULL,1>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,HALF>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICAKokkos,HALFTHREAD>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJSPICAKokkos>(PairLJSPICAKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJSPICAKokkos>(PairLJSPICAKokkos*);
 };
 

@@ -9,7 +9,7 @@ Accelerator Variants: *rx/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID rx file localTemp matrix solver minSteps ...
 

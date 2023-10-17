@@ -477,8 +477,8 @@ double PairBuckCoulCut::single(int i, int j, int itype, int jtype, double rsq, d
 /* ---------------------------------------------------------------------- */
 
 void PairBuckCoulCut::born_matrix(int i, int j, int itype, int jtype, double rsq,
-                            double factor_coul, double factor_lj, double &dupair,
-                            double &du2pair)
+                                  double factor_coul, double factor_lj, double &dupair,
+                                  double &du2pair)
 {
   double rinv, r2inv, r3inv, r6inv, r7inv, r8inv, r, rexp;
   double du_lj, du2_lj, du_coul, du2_coul;
@@ -487,7 +487,7 @@ void PairBuckCoulCut::born_matrix(int i, int j, int itype, int jtype, double rsq
   double qqrd2e = force->qqrd2e;
 
   r = sqrt(rsq);
-  rexp = exp(-r*rhoinv[itype][jtype]);
+  rexp = exp(-r * rhoinv[itype][jtype]);
 
   r2inv = 1.0 / rsq;
   rinv = sqrt(r2inv);

@@ -31,6 +31,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+static constexpr double SMALL = 1.0e-100;
+
 /* ---------------------------------------------------------------------- */
 
 AngleDipole::AngleDipole(LAMMPS *lmp) : Angle(lmp)
@@ -72,7 +74,7 @@ void AngleDipole::compute(int eflag, int vflag)
 
   double **f = atom->f;
   double delTx, delTy, delTz;
-  double fx, fy, fz, fmod, fmod_sqrtff;
+  double fx, fy, fz, fmod, fmod_len, len;
 
   if (!newton_bond) error->all(FLERR, "'newton' flag for bonded interactions must be 'on'");
 
@@ -87,6 +89,7 @@ void AngleDipole::compute(int eflag, int vflag)
     delz = x[iRef][2] - x[iDip][2];
 
     r = sqrt(delx * delx + dely * dely + delz * delz);
+    if (r < SMALL) continue;
 
     rmu = r * mu[iDip][3];
     cosGamma = (mu[iDip][0] * delx + mu[iDip][1] * dely + mu[iDip][2] * delz) / rmu;
@@ -111,11 +114,13 @@ void AngleDipole::compute(int eflag, int vflag)
     fz = delx * delTy - dely * delTx;
 
     fmod = sqrt(delTx * delTx + delTy * delTy + delTz * delTz) / r;    // magnitude
-    fmod_sqrtff = fmod / sqrt(fx * fx + fy * fy + fz * fz);
+    len = sqrt(fx * fx + fy * fy + fz * fz);
+    if (len < SMALL) continue;
+    fmod_len = fmod / len;
 
-    fi[0] = fx * fmod_sqrtff;
-    fi[1] = fy * fmod_sqrtff;
-    fi[2] = fz * fmod_sqrtff;
+    fi[0] = fx * fmod_len;
+    fi[1] = fy * fmod_len;
+    fi[2] = fz * fmod_len;
 
     fj[0] = -fi[0];
     fj[1] = -fi[1];
@@ -249,6 +254,8 @@ double AngleDipole::single(int type, int iRef, int iDip, int /*iDummy*/)
   domain->minimum_image(delx, dely, delz);
 
   double r = sqrt(delx * delx + dely * dely + delz * delz);
+  if (r < SMALL) return 0.0;
+
   double rmu = r * mu[iDip][3];
   double cosGamma = (mu[iDip][0] * delx + mu[iDip][1] * dely + mu[iDip][2] * delz) / rmu;
   double deltaGamma = cosGamma - cos(gamma0[type]);

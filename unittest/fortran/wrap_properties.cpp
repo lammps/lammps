@@ -123,9 +123,6 @@ TEST_F(LAMMPS_properties, extract_setting)
 
 TEST_F(LAMMPS_properties, has_error)
 {
-    // need errors to throw exceptions to be able to intercept them.
-    if (!lammps_config_has_exceptions()) GTEST_SKIP();
-
     EXPECT_EQ(f_lammps_has_error(), lammps_has_error(lmp));
     EXPECT_EQ(f_lammps_has_error(), 0);
 

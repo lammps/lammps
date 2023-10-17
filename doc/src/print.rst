@@ -6,7 +6,7 @@ print command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    print string keyword value
 

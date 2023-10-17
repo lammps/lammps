@@ -91,7 +91,7 @@ void FixNVTSllodKokkos<DeviceType>::init()
   if (deform.size() < 1)
     this->error->all(FLERR,"Using fix nvt/sllod/kk with no fix deform defined");
 
-  for (auto ifix : deform) {
+  for (auto &ifix : deform) {
     auto f = dynamic_cast<FixDeform *>(ifix);
     if (f && (f->remapflag != Domain::V_REMAP))
       this->error->all(FLERR,"Using fix ntv/sllod/kk with inconsistent fix deform remap option");

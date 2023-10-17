@@ -297,9 +297,10 @@ int DumpVTK::count()
   // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->first_update == 0)
-      error->all(FLERR,"Dump compute cannot be invoked before first run");
     for (i = 0; i < ncompute; i++) {
+      if (!compute[i]->is_initialized())
+        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
+          compute[i]->id);
       if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute[i]->compute_peratom();
         compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1933,7 +1934,7 @@ void DumpVTK::identify_vectors()
     // assume components are grouped together and in correct order
     if (name.count(it->first + 1) && name.count(it->first + 2)) { // more attributes?
       if (it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
-         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0 )
+         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0)
       {
         it->second.erase(it->second.length()-1);
         std::ostringstream oss;

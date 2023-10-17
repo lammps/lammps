@@ -143,7 +143,8 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 FixQEq::~FixQEq()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,Atom::GROW);
+
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -809,8 +810,7 @@ void FixQEq::read_file(char *file)
 
     for (int n=1; n <= ntypes; ++n)
       if (setflag[n] == 0)
-        error->one(FLERR,fmt::format("Parameters for atom type {} missing in "
-                                     "qeq parameter file", n));
+        error->one(FLERR,"Parameters for atom type {} missing in qeq parameter file", n);
     delete[] setflag;
   }
 

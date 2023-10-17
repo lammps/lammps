@@ -11,7 +11,7 @@
  *
  *      $RCSfile: vmdplugin.h,v $
  *      $Author: johns $       $Locker:  $             $State: Exp $
- *      $Revision: 1.34 $       $Date: 2018/05/02 03:12:56 $
+ *      $Revision: 1.35 $       $Date: 2020/10/16 07:50:56 $
  *
  ***************************************************************************/
 
@@ -58,8 +58,8 @@
 /*@}*/
 
 
-/** "WIN32" is defined on both WIN32 and WIN64 platforms... */
-#if (defined(WIN32))
+/** Detect compilations targeting Windows x86 and x64 platforms */
+#if (defined(WIN32) || defined(WIN64) || defined(_MSC_VER))
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 

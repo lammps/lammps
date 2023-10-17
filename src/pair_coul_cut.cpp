@@ -331,8 +331,8 @@ double PairCoulCut::single(int i, int j, int /*itype*/, int /*jtype*/, double rs
 /* ---------------------------------------------------------------------- */
 
 void PairCoulCut::born_matrix(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
-                            double factor_coul, double /*factor_lj*/, double &dupair,
-                            double &du2pair)
+                              double factor_coul, double /*factor_lj*/, double &dupair,
+                              double &du2pair)
 {
   double rinv, r2inv, r3inv;
   double du_coul, du2_coul;

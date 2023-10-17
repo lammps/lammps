@@ -203,7 +203,7 @@ class BaseAmoeba {
   virtual void update_fieldp(void **fieldp_ptr) {
     *fieldp_ptr=_fieldp.host.begin();
      // _fieldp store both arrays, one after another
-    _fieldp.update_host(_max_fieldp_size*8,false);
+    _fieldp.update_host(_max_fieldp_size*6,false);
   }
 
   /// setup a plan for FFT, where size is the number of elements

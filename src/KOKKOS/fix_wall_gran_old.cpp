@@ -1470,7 +1470,7 @@ void FixWallGranOld::granular(double rsq, double dx, double dy, double dz,
   if (twist_model != TWIST_NONE) {
     magtwist = relrot1*nx + relrot2*ny + relrot3*nz; //Omega_T (eq 29 of Marshall)
     if (twist_model == TWIST_MARSHALL) {
-      k_twist = 0.5*k_tangential*a*a;; // eq 32 of Marshall paper
+      k_twist = 0.5*k_tangential*a*a; // eq 32 of Marshall paper
       damp_twist = 0.5*damp_tangential*a*a;
       mu_twist = TWOTHIRDS*a*tangential_coeffs[2];
     }

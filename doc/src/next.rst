@@ -6,7 +6,7 @@ next command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    next variables
 

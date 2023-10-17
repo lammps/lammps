@@ -266,18 +266,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #ifdef KOKKOS_ENABLE_CUDA
   gpu_aware_flag = 1;
 #elif defined(KOKKOS_ENABLE_HIP) && defined(OMPI_HAVE_MPI_EXT_ROCM) && OMPI_HAVE_MPI_EXT_ROCM
-  if(have_gpu_aware == 1)
-  {
+  if (have_gpu_aware == 1)
     gpu_aware_flag = MPIX_Query_rocm_support();
-    if(gpu_aware_flag && me == 0)
-    {
-      error->warning(FLERR,"ROCm-aware OpenMPI is supported and enabled (debug msg, remove it later)");
-    }
-  }
   else
-  {
     gpu_aware_flag = 0;
-  }
 #else
   gpu_aware_flag = 0;
 #endif

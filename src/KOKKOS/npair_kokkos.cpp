@@ -1353,11 +1353,11 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
+      other_x[MY_II + 4 * atoms_per_bin] = radi;
       if (HalfNeigh && Newton && Tri) { 
         itag = tag(i);
-        other_x[MY_II + 4 * atoms_per_bin] = itag;
+        other_x[MY_II + 5 * atoms_per_bin] = itag;
       }
-      other_x[MY_II + 5 * atoms_per_bin] = radi;
     }
     other_id[MY_II] = i;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
@@ -1392,7 +1392,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
         const X_FLOAT dely = ytmp - other_x[m + atoms_per_bin];
         const X_FLOAT delz = ztmp - other_x[m + 2 * atoms_per_bin];
         const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-        const X_FLOAT radsum = radi + other_x[m + 5 * atoms_per_bin];
+        const X_FLOAT radsum = radi + other_x[m + 4 * atoms_per_bin];
         const X_FLOAT cutsq = (radsum + skin) * (radsum + skin);
 
         if (rsq <= cutsq) {
@@ -1449,9 +1449,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
+        other_x[MY_II + 4 * atoms_per_bin] = radius(j);
         if (HalfNeigh && Newton && Tri)
-          other_x[MY_II + 4 * atoms_per_bin] = tag(j);
-        other_x[MY_II + 5 * atoms_per_bin] = radius(j);
+          other_x[MY_II + 5 * atoms_per_bin] = tag(j);
       }
 
       other_id[MY_II] = j;
@@ -1475,7 +1475,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
           if (HalfNeigh && Newton && Tri) {
             if (j <= i) continue;
             if (j >= nlocal) {
-              const tagint jtag = other_x[m + 4 * atoms_per_bin];
+              const tagint jtag = other_x[m + 5 * atoms_per_bin];
               if (itag > jtag) {
                 if ((itag+jtag) % 2 == 0) continue;
               } else if (itag < jtag) {
@@ -1499,7 +1499,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
           const X_FLOAT dely = ytmp - other_x[m + atoms_per_bin];
           const X_FLOAT delz = ztmp - other_x[m + 2 * atoms_per_bin];
           const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-          const X_FLOAT radsum = radi + other_x[m + 5 * atoms_per_bin];
+          const X_FLOAT radsum = radi + other_x[m + 4 * atoms_per_bin];
           const X_FLOAT cutsq = (radsum + skin) * (radsum + skin);
 
           if (rsq <= cutsq) {

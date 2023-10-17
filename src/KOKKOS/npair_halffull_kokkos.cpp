@@ -27,8 +27,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int NEWTON, int TRIM>
-NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::NPairHalffullKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<class DeviceType, int NEWTON, int TRI, int TRIM>
+NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::NPairHalffullKokkos(LAMMPS *lmp) : NPair(lmp) {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 }
@@ -42,13 +42,19 @@ NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::NPairHalffullKokkos(LAMMPS *lmp) : 
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, int NEWTON, int TRIM>
-void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::build(NeighList *list)
+template<class DeviceType, int NEWTON, int TRI, int TRIM>
+void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::build(NeighList *list)
 {
   if (NEWTON || TRIM) {
     x = atomKK->k_x.view<DeviceType>();
     atomKK->sync(execution_space,X_MASK);
   }
+
+  if (TRI) {
+    tag = atomKK->k_tag.view<DeviceType>();
+    atomKK->sync(execution_space,TAG_MASK);
+  }
+
   nlocal = atom->nlocal;
 
   cutsq_custom = cutoff_custom*cutoff_custom;
@@ -68,7 +74,6 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::build(NeighList *list)
   d_neighbors = k_list->d_neighbors;
 
   delta = 0.01 * force->angstrom;
-  triclinic = domain->triclinic;
 
   // loop over parent full list
 
@@ -82,9 +87,9 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::build(NeighList *list)
   k_list->k_ilist.template modify<DeviceType>();
 }
 
-template<class DeviceType, int NEWTON, int TRIM>
+template<class DeviceType, int NEWTON, int TRI, int TRIM>
 KOKKOS_INLINE_FUNCTION
-void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::operator()(TagNPairHalffullCompute, const int &ii) const {
+void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::operator()(TagNPairHalffullCompute, const int &ii) const {
   int n = 0;
 
   const int i = d_ilist_full(ii);
@@ -112,7 +117,7 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::operator()(TagNPairHalffullCom
     if (NEWTON) {
       if (j < nlocal) {
         if (i > j) continue;
-      } else if (triclinic) {
+      } else if (TRI) {
         if (fabs(x(j,2)-ztmp) > delta) {
           if (x(j,2) < ztmp) continue;
         } else if (fabs(x(j,1)-ytmp) > delta) {
@@ -158,14 +163,18 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::operator()(TagNPairHalffullCom
 }
 
 namespace LAMMPS_NS {
-template class NPairHalffullKokkos<LMPDeviceType,0,0>;
-template class NPairHalffullKokkos<LMPDeviceType,0,1>;
-template class NPairHalffullKokkos<LMPDeviceType,1,0>;
-template class NPairHalffullKokkos<LMPDeviceType,1,1>;
+template class NPairHalffullKokkos<LMPDeviceType,0,0,0>;
+template class NPairHalffullKokkos<LMPDeviceType,0,0,1>;
+template class NPairHalffullKokkos<LMPDeviceType,1,0,0>;
+template class NPairHalffullKokkos<LMPDeviceType,1,0,1>;
+template class NPairHalffullKokkos<LMPDeviceType,1,1,0>;
+template class NPairHalffullKokkos<LMPDeviceType,1,1,1>;
 #ifdef LMP_KOKKOS_GPU
-template class NPairHalffullKokkos<LMPHostType,0,0>;
-template class NPairHalffullKokkos<LMPHostType,0,1>;
-template class NPairHalffullKokkos<LMPHostType,1,0>;
-template class NPairHalffullKokkos<LMPHostType,1,1>;
+template class NPairHalffullKokkos<LMPHostType,0,0,0>;
+template class NPairHalffullKokkos<LMPHostType,0,0,1>;
+template class NPairHalffullKokkos<LMPHostType,1,0,0>;
+template class NPairHalffullKokkos<LMPHostType,1,0,1>;
+template class NPairHalffullKokkos<LMPHostType,1,1,0>;
+template class NPairHalffullKokkos<LMPHostType,1,1,1>;
 #endif
 }

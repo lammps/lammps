@@ -219,6 +219,8 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
       atomKK->sync(Device,X_MASK|RADIUS_MASK|TYPE_MASK);
   }
 
+  if (HALF && NEWTON && TRI) atomKK->sync(Device,TAG_MASK);
+
   data.special_flag[0] = special_flag[0];
   data.special_flag[1] = special_flag[1];
   data.special_flag[2] = special_flag[2];
@@ -241,7 +243,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
     if (GHOST) {
       // assumes newton off
 
-      NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);
+      NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 
 // temporarily disable team policy for ghost due to known bug
 
@@ -416,7 +418,8 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
   const int itype = type(i);
-  const tagint itag = tag(i);
+  tagint itag;
+  if (HalfNeigh && Newton && Tri) itag = tag(i);
 
   const int ibin = c_atom2bin(i);
 
@@ -624,12 +627,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
       ytmp = x(i, 1);
       ztmp = x(i, 2);
       itype = type(i);
-      itag = tag(i);
       other_x[MY_II] = xtmp;
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
-      other_x[MY_II + 4 * atoms_per_bin] = itag;
+      if (HalfNeigh && Newton && Tri) {
+        itag = tag(i);
+        other_x[MY_II + 4 * atoms_per_bin] = itag;
+      }
     }
     other_id[MY_II] = i;
 
@@ -717,7 +722,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
-        other_x[MY_II + 4 * atoms_per_bin] = tag(j);
+        if (HalfNeigh && Newton && Tri)
+          other_x[MY_II + 4 * atoms_per_bin] = tag(j);
       }
 
       other_id[MY_II] = j;
@@ -833,7 +839,6 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
   const int itype = type(i);
-  const tagint itag = tag(i);
 
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
     = d_stencil;
@@ -957,8 +962,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
 
   if (ibin >= mbins) return;
 
-  X_FLOAT* other_x = sharedmem + 6*atoms_per_bin*MY_BIN;
-  int* other_id = (int*) &other_x[5 * atoms_per_bin];
+  X_FLOAT* other_x = sharedmem + 5*atoms_per_bin*MY_BIN;
+  int* other_id = (int*) &other_x[4 * atoms_per_bin];
 
   int bincount_current = c_bincount[ibin];
 
@@ -972,7 +977,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
     X_FLOAT ytmp;
     X_FLOAT ztmp;
     int itype;
-    tagint itag;
     const int index = (i >= 0 && i < nall) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
@@ -982,12 +986,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
       ytmp = x(i, 1);
       ztmp = x(i, 2);
       itype = type(i);
-      itag = tag(i);
       other_x[MY_II] = xtmp;
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
-      other_x[MY_II + 4 * atoms_per_bin] = itag;
     }
     other_id[MY_II] = i;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
@@ -1043,7 +1045,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
-        other_x[MY_II + 4 * atoms_per_bin] = tag(j);
       }
 
       other_id[MY_II] = j;
@@ -1129,7 +1130,8 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ztmp = x(i, 2);
   const X_FLOAT radi = radius(i);
   const int itype = type(i);
-  const tagint itag = tag(i);
+  tagint itag;
+  if (HalfNeigh && Newton && Tri) itag = tag(i);
 
   const int ibin = c_atom2bin(i);
 
@@ -1347,12 +1349,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       ztmp = x(i, 2);
       radi = radius(i);
       itype = type(i);
-      itag = tag(i);
       other_x[MY_II] = xtmp;
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
-      other_x[MY_II + 4 * atoms_per_bin] = itag;
+      if (HalfNeigh && Newton && Tri) { 
+        itag = tag(i);
+        other_x[MY_II + 4 * atoms_per_bin] = itag;
+      }
       other_x[MY_II + 5 * atoms_per_bin] = radi;
     }
     other_id[MY_II] = i;
@@ -1445,7 +1449,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
-        other_x[MY_II + 4 * atoms_per_bin] = tag(j);
+        if (HalfNeigh && Newton && Tri)
+          other_x[MY_II + 4 * atoms_per_bin] = tag(j);
         other_x[MY_II + 5 * atoms_per_bin] = radius(j);
       }
 

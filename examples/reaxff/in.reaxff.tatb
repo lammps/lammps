@@ -35,7 +35,7 @@ compute         bonds all reaxff/bonds
 variable nqeq   equal f_2
 
 # dumps out the local bond information
-dump 1 all local 5 bonds_compute.reaxff c_bonds[1] c_bonds[2] c_bonds[3]
+dump 1 all local 5 bonds_local.reaxff c_bonds[1] c_bonds[2] c_bonds[3]
 
 # dumps out the peratom bond information
 dump 2 all custom 5 bonds_atom.reaxff c_bonds[*]
@@ -57,6 +57,6 @@ timestep        0.0625
 #               axes yes 0.8 0.02 view 60 -30
 #dump_modify    3 pad 3
 
-#fix             3 all reaxff/species 1 5 5 species.tatb
+fix             3 all reaxff/species 1 5 5 species.tatb
 
 run             25

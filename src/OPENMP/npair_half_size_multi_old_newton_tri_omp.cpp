@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "molecule.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -32,7 +33,6 @@ NPairHalfSizeMultiOldNewtonTriOmp::NPairHalfSizeMultiOldNewtonTriOmp(LAMMPS *lmp
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   size particles
    binned neighbor list construction with Newton's 3rd law for triclinic
    each owned atom i checks its own bin and other bins in triclinic stencil
    multi-type stencil is itype dependent and is distance checked
@@ -46,6 +46,7 @@ void NPairHalfSizeMultiOldNewtonTriOmp::build(NeighList *list)
   const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
   const int history = list->history;
   const int mask_history = 1 << HISTBITS;
+  const double delta = 0.01 * force->angstrom;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -54,7 +55,7 @@ void NPairHalfSizeMultiOldNewtonTriOmp::build(NeighList *list)
   NPAIR_OMP_SETUP(nlocal);
 
   int i,j,jh,k,n,itype,jtype,ibin,ns,which,imol,iatom;
-  tagint tagprev;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
@@ -97,13 +98,12 @@ void NPairHalfSizeMultiOldNewtonTriOmp::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
-    // loop over all atoms in bins, including self, in stencil
-    // skip if i,j neighbor cutoff is less than bin distance
-    // bins below self are excluded from stencil
-    // pairs for atoms j "below" i are excluded
-    // below = lower z or (equal z and lower y) or (equal zy and lower x)
-    //         (equal zyx and j <= i)
-    // latter excludes self-self interaction but allows superposed atoms
+    // loop over all atoms in bins in stencil
+    // for triclinic, bin stencil is full in all 3 dims
+    // must use itag/jtag to eliminate half the I/J interactions
+    // cannot use I/J exact coord comparision
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     ibin = atom2bin[i];
     s = stencil_multi_old[itype];
@@ -114,12 +114,22 @@ void NPairHalfSizeMultiOldNewtonTriOmp::build(NeighList *list)
       for (j = binhead[ibin+s[k]]; j >= 0; j = bins[j]) {
         jtype = type[j];
         if (cutsq[jtype] < distsq[k]) continue;
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp) {
-          if (x[j][1] < ytmp) continue;
-          if (x[j][1] == ytmp) {
-            if (x[j][0] < xtmp) continue;
-            if (x[j][0] == xtmp && j <= i) continue;
+
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          jtag = tag[j];
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (fabs(x[j][2]-ztmp) > delta) {
+              if (x[j][2] < ztmp) continue;
+            } else if (fabs(x[j][1]-ytmp) > delta) {
+              if (x[j][1] < ytmp) continue;
+            } else {
+              if (x[j][0] < xtmp) continue;
+            }
           }
         }
 

@@ -37,7 +37,7 @@
 
 // for detecting GPU-aware MPI support:
 // the variable int have_gpu_aware
-// - is  1 if GPU-aware MPI support is available
+// - is  1 if GPU-aware MPI support is potentially available
 // - is  0 if GPU-aware MPI support is unavailable
 // - is -1 if GPU-aware MPI support is unknown
 
@@ -48,24 +48,20 @@ GPU_AWARE_UNKNOWN
 #elif defined(KOKKOS_ENABLE_CUDA)
 
 // OpenMPI supports detecting GPU-aware MPI as of version 2.0.0
-
 #if (OPEN_MPI)
 #if (OMPI_MAJOR_VERSION >= 2)
-
 #include <mpi-ext.h>
-
 #if defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT
+// May have CUDA-aware enabled: below we will check dynamically with MPIX_Query_cuda_support()
 static int have_gpu_aware = 1;
 #elif defined(MPIX_CUDA_AWARE_SUPPORT) && !MPIX_CUDA_AWARE_SUPPORT
 static int have_gpu_aware = 0;
 #else
 GPU_AWARE_UNKNOWN
 #endif // defined(MPIX_CUDA_AWARE_SUPPORT)
-
 #else // old OpenMPI
 GPU_AWARE_UNKNOWN
 #endif // (OMPI_MAJOR_VERSION >=2)
-
 #else // unknown MPI library
 GPU_AWARE_UNKNOWN
 #endif // OPEN_MPI
@@ -76,10 +72,10 @@ GPU_AWARE_UNKNOWN
 #if (OPEN_MPI)
 #if (OMPI_MAJOR_VERSION >= 5)
 #include <mpi-ext.h>
-#if defined(OMPI_HAVE_MPI_EXT_ROCM) && OMPI_HAVE_MPI_EXT_ROCM
-// May have rocm enabled: below we will check dynamically with MPIX_Query_rocm_support()
+#if defined(MPIX_ROCM_AWARE_SUPPORT ) && MPIX_ROCM_AWARE_SUPPORT 
+// May have ROCm-aware enabled: below we will check dynamically with MPIX_Query_rocm_support()
 static int have_gpu_aware = 1;
-#elif defined(OMPI_HAVE_MPI_EXT_ROCM) && !OMPI_HAVE_MPI_EXT_ROCM
+#elif defined(MPIX_ROCM_AWARE_SUPPORT) && !MPIX_ROCM_AWARE_SUPPORT
 static int have_gpu_aware = 0;
 #else
 GPU_AWARE_UNKNOWN
@@ -263,13 +259,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // default settings for package kokkos command
 
   binsize = 0.0;
-#ifdef KOKKOS_ENABLE_CUDA
-  gpu_aware_flag = 1;
-#elif defined(KOKKOS_ENABLE_HIP) && defined(OMPI_HAVE_MPI_EXT_ROCM) && OMPI_HAVE_MPI_EXT_ROCM
-  if (have_gpu_aware == 1)
-    gpu_aware_flag = MPIX_Query_rocm_support();
-  else
-    gpu_aware_flag = 0;
+#if defined(KOKKOS_ENABLE_CUDA) && defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT
+  gpu_aware_flag = MPIX_Query_cuda_support();
+#elif defined(KOKKOS_ENABLE_HIP) && defined(MPIX_ROCM_AWARE_SUPPORT) && MPIX_ROCM_AWARE_SUPPORT
+  gpu_aware_flag = MPIX_Query_rocm_support();
 #else
   gpu_aware_flag = 0;
 #endif

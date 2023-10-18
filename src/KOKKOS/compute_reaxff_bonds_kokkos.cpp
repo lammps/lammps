@@ -39,6 +39,7 @@ ComputeReaxFFBondsKokkos<DeviceType>::ComputeReaxFFBondsKokkos(LAMMPS *lmp, int 
   ComputeReaxFFBonds(lmp, narg, arg),
   nbuf(-1), buf(nullptr)
 {
+  kokkosable = 1;
 }
 
 
@@ -113,9 +114,8 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_local()
 {
   invoked_local = update->ntimestep;
 
-  if(invoked_bonds < update->ntimestep) {
+  if(invoked_bonds < update->ntimestep)
     compute_bonds();
-  }
 
   if(nbonds > prev_nbonds) {
     // grow array_local
@@ -151,9 +151,8 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
-  if(invoked_bonds < update->ntimestep) {
+  if(invoked_bonds < update->ntimestep)
     compute_bonds();
-  }
 
   // extract peratom bond information from buffer
   int j = 1;

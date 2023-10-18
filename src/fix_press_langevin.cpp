@@ -46,7 +46,8 @@ enum { ISO, ANISO, TRICLINIC };
 /* ---------------------------------------------------------------------- */
 
 FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_press(nullptr), pflag(0), random(nullptr), irregular(nullptr)
+    Fix(lmp, narg, arg), id_temp(nullptr), id_press(nullptr), temperature(nullptr),
+    pressure(nullptr), irregular(nullptr), random(nullptr)
 {
   if (narg < 5) utils::missing_cmd_args(FLERR, "fix press/langevin", error);
 
@@ -62,6 +63,9 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   allremap = 1;
   pre_exchange_flag = 0;
   flipflag = 1;
+  seed = 111111;
+  pflag = 0;
+  kspace_flag = 0;
 
   p_ltime = 0.0;
 
@@ -239,7 +243,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       t_start = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       t_stop = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       seed = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-      if (seed <= 0.0) error->all(FLERR, "Fix press/langevin temp seed must be > 0");
+      if (seed <= 0) error->all(FLERR, "Fix press/langevin temp seed must be > 0");
       iarg += 4;
     }
 
@@ -349,7 +353,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   // Kinetic contribution will be added by the fix style
 
   id_press = utils::strdup(std::string(id) + "_press");
-  modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
+  pressure = modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
   pflag = 1;
 
   // p_fric is alpha coeff from GJF
@@ -482,7 +486,7 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
 
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
   t_target = t_start + delta * (t_stop - t_start);
-  couple_beta(t_target);
+  couple_beta();
 
   dt = update->dt;
 
@@ -492,11 +496,12 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
       displacement = dt * p_deriv[i] * gjfb[i];
       displacement += 0.5 * dt * dt * f_piston[i] * gjfb[i] / p_mass[i];
       displacement += 0.5 * dt * fran[i] * gjfb[i] / p_mass[i];
-      dl = domain->boxhi[i] - domain->boxlo[i];
-      if (i < 3)
+      if (i < 3) {
+        dl = domain->boxhi[i] - domain->boxlo[i];
         dilation[i] = (dl + displacement) / dl;
-      else
+      } else {
         dilation[i] = displacement;
+      }
     }
   }
 }
@@ -527,7 +532,7 @@ void FixPressLangevin::post_force(int /*vflag*/)
   }
 
   couple_pressure();
-  couple_kinetic(t_target);
+  couple_kinetic();
 
   for (int i = 0; i < 6; i++) {
     if (p_flag[i]) {
@@ -594,10 +599,9 @@ void FixPressLangevin::couple_pressure()
 }
 /* ---------------------------------------------------------------------- */
 
-void FixPressLangevin::couple_kinetic(double t_target)
+void FixPressLangevin::couple_kinetic()
 {
   double pk, volume;
-  nktv2p = force->nktv2p;
 
   // kinetic part
 
@@ -607,7 +611,7 @@ void FixPressLangevin::couple_kinetic(double t_target)
     volume = domain->xprd * domain->yprd;
 
   pk = atom->natoms * force->boltz * t_target / volume;
-  pk *= nktv2p;
+  pk *= force->nktv2p;
 
   p_current[0] += pk;
   p_current[1] += pk;
@@ -616,7 +620,7 @@ void FixPressLangevin::couple_kinetic(double t_target)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPressLangevin::couple_beta(double t_target)
+void FixPressLangevin::couple_beta()
 {
   double gamma[6];
   int me = comm->me;
@@ -812,7 +816,7 @@ int FixPressLangevin::modify_param(int narg, char **arg)
     id_press = utils::strdup(arg[1]);
 
     pressure = modify->get_compute_by_id(arg[1]);
-    if (pressure) error->all(FLERR, "Could not find fix_modify pressure compute ID: {}", arg[1]);
+    if (!pressure) error->all(FLERR, "Could not find fix_modify pressure compute ID: {}", arg[1]);
     if (pressure->pressflag == 0)
       error->all(FLERR, "Fix_modify pressure compute {} does not compute pressure", arg[1]);
     return 2;

@@ -117,7 +117,7 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
 
   int nall = atom->nlocal + atom->nghost;
   std::cout << "nall value data: " << nall << std::endl;
-  int nlocalunified = atom->nlocal + 1;
+  int nlocalunified = atom->nlocal;
   std::cout << "nlocal value data: " << nlocalunified << std::endl;
   ntotal = nall;
 

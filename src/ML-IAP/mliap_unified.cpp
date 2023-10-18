@@ -28,6 +28,7 @@
 #include "pair_mliap.h"
 #include "python_compat.h"
 #include "utils.h"
+#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -194,6 +195,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
                                              char *coefffilename)
 {
   lmp->python->init();
+  std::cout << "nlocalunified at build_unified: " << data->nlocalunified << std::endl;
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   PyObject *pyMain = PyImport_AddModule("__main__");
@@ -267,15 +269,18 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 
 void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
 {
-  const auto nlistatoms = data->nlistatoms;
+  //Bugfix: need to account for Null atoms in local atoms
+  //const auto nlistatoms = data->nlistatoms;
+  const auto nlocalunified = data->nlocalunified;
   double **f = data->f;
+  std::cout << "nlocal value: " << data->nlocalunified << std::endl;
   for (int ii = 0; ii < data->npairs; ii++) {
     int ii3 = ii * 3;
     int i = data->pair_i[ii];
     int j = data->jatoms[ii];
 
     // must not count any contribution where i is not a local atom
-    if (i < nlistatoms) {
+    if (i < nlocalunified) {
       f[i][0] += fij[ii3];
       f[i][1] += fij[ii3 + 1];
       f[i][2] += fij[ii3 + 2];

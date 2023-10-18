@@ -54,6 +54,7 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
 
         int ntotal              # total number of owned and ghost atoms on this proc
         int nlistatoms          # current number of atoms in local atom lists
+        int nlocalunified
         int natomneigh          # current number of atoms and ghosts in atom neighbor arrays
         int * numneighs         # neighbors count for each atom
         int * iatoms            # index of each atom
@@ -144,7 +145,7 @@ cdef class MLIAPDataPy:
     def betas(self, value):
         if self.data.betas is NULL:
             raise ValueError("attempt to set NULL betas")
-        cdef double[:, :] betas_view = <double[:self.nlistatoms, :self.ndescriptors]> &self.data.betas[0][0]
+        cdef double[:, :] betas_view = <double[:self.nlocalunified, :self.ndescriptors]> &self.data.betas[0][0]
         cdef double[:, :] value_view = value
         betas_view[:] = value_view
 
@@ -152,7 +153,7 @@ cdef class MLIAPDataPy:
     def descriptors(self, value):
         if self.data.descriptors is NULL:
             raise ValueError("attempt to set NULL descriptors")
-        cdef double[:, :] descriptors_view = <double[:self.nlistatoms, :self.ndescriptors]> &self.data.descriptors[0][0]
+        cdef double[:, :] descriptors_view = <double[:self.nlocalunified, :self.ndescriptors]> &self.data.descriptors[0][0]
         cdef double[:, :] value_view = value
         descriptors_view[:] = value_view
 
@@ -160,7 +161,7 @@ cdef class MLIAPDataPy:
     def eatoms(self, value):
         if self.data.eatoms is NULL:
             raise ValueError("attempt to set NULL eatoms")
-        cdef double[:] eatoms_view = <double[:self.nlistatoms]> &self.data.eatoms[0]
+        cdef double[:] eatoms_view = <double[:self.nlocalunified]> &self.data.eatoms[0]
         cdef double[:] value_view = value
         eatoms_view[:] = value_view
 
@@ -190,19 +191,19 @@ cdef class MLIAPDataPy:
     def gamma(self):
         if self.data.gamma is NULL:
             return None
-        return np.asarray(<double[:self.nlistatoms, :self.gama_nnz]> &self.data.gamma[0][0])
+        return np.asarray(<double[:self.nlocalunified, :self.gama_nnz]> &self.data.gamma[0][0])
 
     @property
     def gamma_row_index(self):
         if self.data.gamma_row_index is NULL:
             return None
-        return np.asarray(<int[:self.nlistatoms, :self.gamma_nnz]> &self.data.gamma_row_index[0][0])
+        return np.asarray(<int[:self.nlocalunified, :self.gamma_nnz]> &self.data.gamma_row_index[0][0])
 
     @property
     def gamma_col_index(self):
         if self.data.gamma_col_index is NULL:
             return None
-        return np.asarray(<int[:self.nlistatoms, :self.gamma_nnz]> &self.data.gamma_col_index[0][0])
+        return np.asarray(<int[:self.nlocalunified, :self.gamma_nnz]> &self.data.gamma_col_index[0][0])
 
     @property
     def egradient(self):
@@ -226,6 +227,10 @@ cdef class MLIAPDataPy:
     @property
     def nlistatoms(self):
         return self.data.nlistatoms
+
+    @property
+    def nlocalunified(self):
+        return self.data.nlocalunified
     
     @property
     def natomneigh(self):

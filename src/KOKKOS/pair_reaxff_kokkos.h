@@ -135,6 +135,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   double memory_usage();
   void FindBond(int &);
   void PackBondBuffer(DAT::tdual_ffloat_1d, int &);
+  void PackReducedBondBuffer(DAT::tdual_ffloat_1d, int &);
   void FindBondSpecies();
 
   template<int NEIGHFLAG>
@@ -291,6 +292,9 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   KOKKOS_INLINE_FUNCTION
   void pack_bond_buffer_item(int, int&, const bool&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void pack_reduced_bond_buffer_item(int, int&, const bool&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxFindBondSpeciesZero, const int&) const;
@@ -546,6 +550,19 @@ struct PairReaxKokkosPackBondBufferFunctor  {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &j, const bool &final) const {
     c.pack_bond_buffer_item(ii,j,final);
+  }
+};
+
+template <class DeviceType>
+struct PairReaxKokkosPackReducedBondBufferFunctor  {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  PairReaxFFKokkos<DeviceType> c;
+  PairReaxKokkosPackReducedBondBufferFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, int &j, const bool &final) const {
+    c.pack_reduced_bond_buffer_item(ii,j,final);
   }
 };
 

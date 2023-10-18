@@ -46,7 +46,7 @@ class ComputeReaxFFBonds : public Compute {
 
   tagint **neighid;
   double **abo;
-  int *numneigh;
+  int *bondcount;
   class PairReaxFF *reaxff;
 
  private:

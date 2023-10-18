@@ -52,11 +52,11 @@ class ComputeReaxFFBondsKokkos : public ComputeReaxFFBonds {
   typename AT::tdual_float_1d k_buf;
 
   auto device_pair() {
-    return dynamic_cast<PairReaxFFKokkos<LMPDeviceType>*>(reaxff);
+    return static_cast<PairReaxFFKokkos<LMPDeviceType>*>(reaxff);
   }
 
   auto host_pair() {
-    return dynamic_cast<PairReaxFFKokkos<LMPHostType>*>(reaxff);
+    return static_cast<PairReaxFFKokkos<LMPHostType>*>(reaxff);
   }
 };
 

@@ -4247,6 +4247,30 @@ void PairReaxFFKokkos<DeviceType>::PackBondBuffer(DAT::tdual_ffloat_1d k_buf, in
   nbuf_local = k_nbuf_local.h_view();
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxFFKokkos<DeviceType>::PackReducedBondBuffer(DAT::tdual_ffloat_1d k_buf, int &nbuf_local)
+{
+  d_buf = k_buf.view<DeviceType>();
+  k_params_sing.template sync<DeviceType>();
+
+  copymode = 1;
+  nlocal = atomKK->nlocal;
+  PairReaxKokkosPackReducedBondBufferFunctor<DeviceType> pack_bond_buffer_functor(this);
+  Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+  k_nbuf_local.modify<DeviceType>();
+
+  k_buf.sync<LMPHostType>();
+  k_nbuf_local.sync<LMPHostType>();
+  nbuf_local = k_nbuf_local.h_view();
+}
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bool &final) const
@@ -4283,6 +4307,39 @@ void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bo
     }
   }
   j += (1+numbonds);
+
+  if (final && i == nlocal-1)
+    k_nbuf_local.view<DeviceType>()() = j - 1;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxFFKokkos<DeviceType>::pack_reduced_bond_buffer_item(int i, int &j, const bool &final) const
+{
+  const int numbonds = d_numneigh_bonds[i];
+  if (final) {
+    d_buf[j] = d_total_bo[i];
+    d_buf[j+1] = paramssing(type[i]).nlp_opt - d_Delta_lp[i];
+    d_buf[j+2] = numbonds;
+  }
+
+  j += 3;
+
+  if (final) {
+    for (int k = 0; k < numbonds; ++k) {
+      d_buf[j+k] = d_neighid(i,k);
+    }
+  }
+
+  j += numbonds;
+
+  if (final) {
+    for (int k = 0; k < numbonds; k++) {
+      d_buf[j+k] = d_abo(i,k);
+    }
+  }
+
+  j += numbonds;
 
   if (final && i == nlocal-1)
     k_nbuf_local.view<DeviceType>()() = j - 1;

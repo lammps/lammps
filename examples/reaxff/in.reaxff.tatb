@@ -38,7 +38,7 @@ variable nqeq   equal f_2
 dump 1 all local 5 bonds_local.reaxff c_bonds[1] c_bonds[2] c_bonds[3]
 
 # dumps out the peratom bond information
-dump 2 all custom 5 bonds_atom.reaxff c_bonds[*]
+dump 2 all custom 5 bonds_atom.reaxff id type q c_bonds[*]
 
 thermo          5
 thermo_style    custom step temp epair etotal press &

@@ -245,7 +245,8 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
 void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 {
   double e_total = 0.0;
-  const auto nlistatoms = data->nlistatoms;
+  //const auto nlistatoms = data->nlistatoms;
+  const auto nlocal = data->nlocal;
   for (int ii = 0; ii < nlistatoms; ii++) data->eatoms[ii] = 0;
 
   for (int ii = 0; ii < data->npairs; ii++) {
@@ -253,7 +254,7 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
     double e = 0.5 * eij[ii];
 
     // must not count any contribution where i is not a local atom
-    if (i < nlistatoms) {
+    if (i < nlocal) {
       data->eatoms[i] += e;
       e_total += e;
     }
@@ -269,9 +270,9 @@ void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
 {
   //Bugfix: need to account for Null atoms in local atoms
   //const auto nlistatoms = data->nlistatoms;
-  const auto nlocalunified = data->nlocal;
+  const auto nlocal = data->nlocal;
   double **f = data->f;
-  std::cout << "nlocal value: " << data->nlocalunified << std::endl;
+  std::cout << "nlocal value: " << nlocal << std::endl;
   for (int ii = 0; ii < data->npairs; ii++) {
     int ii3 = ii * 3;
     int i = data->pair_i[ii];

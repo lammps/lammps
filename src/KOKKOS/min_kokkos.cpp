@@ -59,6 +59,9 @@ void MinKokkos::init()
 {
   Min::init();
 
+  if (!fix_minimize->kokkosable)
+    error->all(FLERR,"KOKKOS package requires fix minimize/kk");
+
   fix_minimize_kk = (FixMinimizeKokkos*) fix_minimize;
 }
 

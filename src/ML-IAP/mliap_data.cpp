@@ -23,7 +23,6 @@
 #include "mliap_descriptor.h"
 #include "mliap_model.h"
 #include "neigh_list.h"
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -117,7 +116,6 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
 
   int nall = atom->nlocal + atom->nghost;
   nlocal = atom->nlocal;
-  std::cout << "nlocal value data: " << nlocal << std::endl;
   ntotal = nall;
 
   // grow nmax gradforce, elems arrays if necessary

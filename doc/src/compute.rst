@@ -254,6 +254,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`nbond/atom <compute_nbond_atom>` - calculates number of bonds per atom
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql
+* :doc:`pace <compute_pace>` - atomic cluster expansion descriptors and related quantities
 * :doc:`pair <compute_pair>` - values computed by a pair style
 * :doc:`pair/local <compute_pair_local>` - distance/energy/force of each pairwise interaction
 * :doc:`pe <compute_pe>` - potential energy

@@ -64,6 +64,7 @@ fi
 
 if (test $1 = "COLLOID") then
   depend GPU
+  depend KOKKOS
   depend OPENMP
 fi
 

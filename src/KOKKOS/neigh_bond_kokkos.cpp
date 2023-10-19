@@ -112,9 +112,8 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   int i,m;
   int bond_off = 0;
   int angle_off = 0;
-  for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0))
+  for (const auto &ifix : modify->get_fix_list())
+    if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle"))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 

@@ -30,6 +30,7 @@ private slots:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     QString filename;

@@ -16,8 +16,10 @@
 
 #include <QMainWindow>
 
+#include <QGridLayout>
 #include <QList>
 #include <QPair>
+#include <QSpacerItem>
 #include <QString>
 #include <vector>
 

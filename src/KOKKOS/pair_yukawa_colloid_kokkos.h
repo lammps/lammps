@@ -13,32 +13,32 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(yukawa/kk,PairYukawaKokkos<LMPDeviceType>);
-PairStyle(yukawa/kk/device,PairYukawaKokkos<LMPDeviceType>);
-PairStyle(yukawa/kk/host,PairYukawaKokkos<LMPHostType>);
+PairStyle(yukawa/colloid/kk,PairYukawaColloidKokkos<LMPDeviceType>);
+PairStyle(yukawa/colloid/kk/device,PairYukawaColloidKokkos<LMPDeviceType>);
+PairStyle(yukawa/colloid/kk/host,PairYukawaColloidKokkos<LMPHostType>);
 // clang-format on
 #else
 
 // clang-format off
-#ifndef LMP_PAIR_YUKAWA_KOKKOS_H
-#define LMP_PAIR_YUKAWA_KOKKOS_H
+#ifndef LMP_PAIR_YUKAWA_COLLOID_KOKKOS_H
+#define LMP_PAIR_YUKAWA_COLLOID_KOKKOS_H
 
 #include "pair_kokkos.h"
-#include "pair_yukawa.h"
+#include "pair_yukawa_colloid.h"
 #include "neigh_list_kokkos.h"
 
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class PairYukawaKokkos : public PairYukawa {
+class PairYukawaColloidKokkos : public PairYukawaColloid {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
-  PairYukawaKokkos(class LAMMPS *);
-  ~PairYukawaKokkos() override;
+  PairYukawaColloidKokkos(class LAMMPS *);
+  ~PairYukawaColloidKokkos() override;
 
   void compute(int, int) override;
   void init_style() override;
@@ -78,6 +78,7 @@ class PairYukawaKokkos : public PairYukawa {
   typename AT::t_x_array c_x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_float_1d_randomread radius;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
@@ -95,20 +96,23 @@ class PairYukawaKokkos : public PairYukawa {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true,0>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true,1>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,HALF,true>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,false,0>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,false,1>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,HALF,false>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,0>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,1>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALF>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALFTHREAD>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairYukawaKokkos,void>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend void pair_virial_fdotr_compute<PairYukawaKokkos>(PairYukawaKokkos*);
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,true,1>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,FULL,false,1>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairYukawaColloidKokkos,HALFTHREAD,false>;
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,FULL,0>(PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,FULL,1>(PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,HALF>(
+    PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaColloidKokkos,HALFTHREAD>(
+    PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairYukawaColloidKokkos>(
+    PairYukawaColloidKokkos*,NeighListKokkos<DeviceType>*);
+  friend void pair_virial_fdotr_compute<PairYukawaColloidKokkos>(PairYukawaColloidKokkos*);
 
 };
 

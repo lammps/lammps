@@ -25,6 +25,7 @@
 #include <QHBoxLayout>
 #include <QImage>
 #include <QImageReader>
+#include <QKeySequence>
 #include <QLabel>
 #include <QPalette>
 #include <QProcess>
@@ -50,11 +51,11 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     imageName->setAlignment(Qt::AlignCenter);
     imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    auto *shortcut = new QShortcut(QKeySequence::fromString("Ctrl+W"), this);
+    auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), this);
     QObject::connect(shortcut, &QShortcut::activated, this, &QWidget::close);
-    shortcut = new QShortcut(QKeySequence::fromString("Ctrl+/"), this);
+    shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this);
     QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::stop_run);
-    shortcut = new QShortcut(QKeySequence::fromString("Ctrl+Q"), this);
+    shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
     QObject::connect(shortcut, &QShortcut::activated, this, &SlideShow::quit);
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
@@ -198,18 +199,18 @@ void SlideShow::loadImage(int idx)
 
 void SlideShow::quit()
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-    main->quit();
+    if (main) main->quit();
 }
 
 void SlideShow::stop_run()
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-    main->stop_run();
+    if (main) main->stop_run();
 }
 
 void SlideShow::movie()

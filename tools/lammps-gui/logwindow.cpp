@@ -35,12 +35,14 @@ LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
     QSettings settings;
     resize(settings.value("logx", 500).toInt(), settings.value("logy", 320).toInt());
 
-    auto action = new QShortcut(QKeySequence::fromString("Ctrl+S"), this);
+    auto action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_S), this);
     connect(action, &QShortcut::activated, this, &LogWindow::save_as);
-    action = new QShortcut(QKeySequence::fromString("Ctrl+Q"), this);
+    action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
     connect(action, &QShortcut::activated, this, &LogWindow::quit);
-    action = new QShortcut(QKeySequence(Qt::Key_Slash, Qt::CTRL), this);
+    action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this);
     connect(action, &QShortcut::activated, this, &LogWindow::stop_run);
+
+    installEventFilter(this);
 }
 
 void LogWindow::closeEvent(QCloseEvent *event)
@@ -55,18 +57,18 @@ void LogWindow::closeEvent(QCloseEvent *event)
 
 void LogWindow::quit()
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-    main->quit();
+    if (main) main->quit();
 }
 
 void LogWindow::stop_run()
 {
-    LammpsGui *main;
+    LammpsGui *main = nullptr;
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-    main->stop_run();
+    if (main) main->stop_run();
 }
 
 void LogWindow::save_as()
@@ -99,13 +101,33 @@ void LogWindow::contextMenuEvent(QContextMenuEvent *event)
     menu->addSeparator();
     auto action = menu->addAction(QString("Save Log to File ..."));
     action->setIcon(QIcon(":/icons/document-save-as.png"));
-    action->setShortcut(QKeySequence::fromString("Ctrl+S"));
+    action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_S));
     connect(action, &QAction::triggered, this, &LogWindow::save_as);
     action = menu->addAction("&Close Window", this, &QWidget::close);
     action->setIcon(QIcon(":/icons/window-close.png"));
-    action->setShortcut(QKeySequence::fromString("Ctrl+W"));
+    action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));
     menu->exec(event->globalPos());
     delete menu;
+}
+
+// event filter to handle "Ambiguous shortcut override" issues
+bool LogWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QEvent::ShortcutOverride) {
+        QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
+        if (!keyEvent) return QWidget::eventFilter(watched, event);
+        if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && keyEvent->key() == '/') {
+            stop_run();
+            event->accept();
+            return true;
+        }
+        if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && keyEvent->key() == 'W') {
+            close();
+            event->accept();
+            return true;
+        }
+    }
+    return QWidget::eventFilter(watched, event);
 }
 
 // Local Variables:

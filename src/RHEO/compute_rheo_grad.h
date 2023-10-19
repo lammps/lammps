@@ -49,7 +49,7 @@ class ComputeRHEOGrad : public Compute {
   double cut, cutsq, rho0;
 
   int velocity_flag, temperature_flag, rho_flag, eta_flag;
-  int interface_flag;
+  int interface_flag, remap_v_flag;
 
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOInterface *compute_interface;

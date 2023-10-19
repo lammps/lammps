@@ -381,13 +381,13 @@ void FixRHEO::pre_force(int /*vflag*/)
   if (rhosum_flag)
     compute_rhosum->compute_peratom();
 
-  compute_grad->forward_fields(); // also forwards v and rho for chi
   compute_kernel->compute_peratom();
   if (interface_flag) {
     // Note on first setup, have no forces for pressure to reference
     compute_interface->compute_peratom();
   }
 
+  // No need to forward v, rho, or T for compute_grad since already done
   compute_grad->compute_peratom();
   compute_grad->forward_gradients();
 

@@ -63,10 +63,6 @@ PairSNAPKokkos<DeviceType, real_type, vector_length>::PairSNAPKokkos(LAMMPS *lmp
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  k_cutsq = tdual_fparams("PairSNAPKokkos::cutsq",atom->ntypes+1,atom->ntypes+1);
-  auto d_cutsq = k_cutsq.template view<DeviceType>();
-  rnd_cutsq = d_cutsq;
-
   host_flag = (execution_space == Host);
 }
 
@@ -100,6 +96,8 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
 
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
+
+
 
   // neighbor list request for KOKKOS
 
@@ -546,6 +544,9 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::allocate()
 
   int n = atom->ntypes;
   MemKK::realloc_kokkos(d_map,"PairSNAPKokkos::map",n+1);
+
+  MemKK::realloc_kokkos(k_cutsq,"PairSNAPKokkos::cutsq",n+1,n+1);
+  rnd_cutsq = k_cutsq.template view<DeviceType>();
 }
 
 

@@ -36,7 +36,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
-
+#include <iostream>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -120,6 +120,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
     map[i] = i-1;
 
   data = new MLIAPData(lmp, gradgradflag, map, model, descriptor);
+  std::cout << "nlocalunified in compute_mliap.cpp: " << data->nlocalunified << std::endl;
 
   size_array_rows = data->size_array_rows;
   size_array_cols = data->size_array_cols;

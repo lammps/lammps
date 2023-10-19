@@ -18,7 +18,7 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
     cdef cppclass MLIAPData:
         # Array shapes
         int nlistatoms
-        int nlocalunified
+        int nlocal
         int ndescriptors
 
         # Input data
@@ -104,8 +104,7 @@ cdef public void MLIAPPY_compute_gradients(MLIAPModelPython * c_model, MLIAPData
     model = retrieve(c_model)
 
     n_d = data.ndescriptors
-    #n_a = data.nlistatoms
-    n_a = data.nlocalunified
+    n_a = data.nlistatoms
 
     # Make numpy arrays from pointers
     beta_np = np.asarray(<double[:n_a,:n_d] > &data.betas[0][0])

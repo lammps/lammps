@@ -29,6 +29,8 @@
 #include "python_compat.h"
 #include "utils.h"
 
+#include <iostream>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -245,7 +247,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
 void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 {
   double e_total = 0.0;
-  //const auto nlistatoms = data->nlistatoms;
+  const auto nlistatoms = data->nlistatoms;
   const auto nlocal = data->nlocal;
   for (int ii = 0; ii < nlistatoms; ii++) data->eatoms[ii] = 0;
 

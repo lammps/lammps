@@ -37,7 +37,7 @@ void NStencilHalfMultiOld2dTri::create()
     s = stencil_multi_old[itype];
     distsq = distsq_multi_old[itype];
     n = 0;
-    for (j = 0; j <= sy; j++)
+    for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++) {
         rsq = bin_distance(i, j, 0);
         if (rsq < typesq) {

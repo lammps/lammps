@@ -44,6 +44,9 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 
   h_tag_min = Kokkos::subview(h_tag_min_max,0);
   h_tag_max = Kokkos::subview(h_tag_min_max,1);
+
+  nprop_atom = 0;
+  fix_prop_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,6 +115,7 @@ AtomKokkos::~AtomKokkos()
 
   memoryKK->destroy_kokkos(k_dvector, dvector);
   dvector = nullptr;
+  delete [] fix_prop_atom;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,11 +129,37 @@ void AtomKokkos::init()
 
 /* ---------------------------------------------------------------------- */
 
+void AtomKokkos::update_property_atom()
+{
+  nprop_atom = 0;
+  std::vector<Fix *> prop_atom_fixes;
+  for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
+    if (!ifix->kokkosable)
+      error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
+
+    ++nprop_atom;
+    prop_atom_fixes.push_back(ifix);
+  }
+
+  delete[] fix_prop_atom;
+  fix_prop_atom = new FixPropertyAtomKokkos *[nprop_atom];
+
+  int n = 0;
+  for (auto &ifix : prop_atom_fixes)
+    fix_prop_atom[n++] = dynamic_cast<FixPropertyAtomKokkos *>(ifix);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync) avecKK->modified(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) {
+    avecKK->modified(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(Host, mask);
+  }
 
   avecKK->sync(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(space, mask);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,13 +167,20 @@ void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
   avecKK->modified(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) avecKK->sync(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) {
+    avecKK->sync(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(Host, mask);
+  }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
 {
   avecKK->sync_overlapping_device(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_overlapping_device(space, mask);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -375,7 +412,7 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
   int hybrid_substyle_flag = (avec != nullptr);
 
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
-  if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
+  if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a Kokkos-enabled atom_style");
 
   if (!hybrid_substyle_flag)
     avecKK = dynamic_cast<AtomVecKokkos*>(avec);

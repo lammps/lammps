@@ -313,7 +313,10 @@ void Neighbor::init()
   triclinic = domain->triclinic;
   newton_pair = force->newton_pair;
 
-  // error check
+  // error checks
+
+  if (triclinic && atom->tag_enable == 0)
+    error->all(FLERR, "Cannot build triclinic neighbor lists unless atoms have IDs");
 
   if (delay > 0 && (delay % every) != 0)
     error->all(FLERR,"Neighbor delay must be 0 or multiple of every setting");

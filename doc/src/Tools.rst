@@ -702,11 +702,15 @@ Prerequisites and portability
 LAMMPS GUI is programmed in C++ based on the C++11 standard and using
 the `Qt GUI framework <https://www.qt.io/product/framework>`_.
 Currently, Qt version 5.12 or later is required; Qt 5.15LTS is
-recommended; Qt 6.x not (yet) supported.  Building LAMMPS with CMake is
-required.  The LAMMPS GUI has been successfully compiled and tested on:
+recommended; support for Qt version 6.x is under active development and
+thus far only tested with Qt 6.5LTS on Linux.  Building LAMMPS with
+CMake is required.
+
+The LAMMPS GUI has been successfully compiled and tested on:
 
 - Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
 - Fedora Linux 38 x86\_64 using GCC 13 and Clang 16, Qt version 5.15LTS
+- Fedora Linux 38 x86\_64 using GCC 13, Qt version 6.5LTS
 - Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
@@ -717,7 +721,7 @@ required.  The LAMMPS GUI has been successfully compiled and tested on:
 Pre-compiled executables
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Pre-compiled LAMMPS executables including the GUI are currently
+Pre-compiled LAMMPS executable packages that include the GUI are currently
 available from https://download.lammps.org/static or
 https://github.com/lammps/lammps/releases.  You can unpack the archives
 (or mount the macOS disk image) and run the GUI directly in place. The
@@ -742,7 +746,10 @@ stored in a location where CMake can find them without additional help.
 Otherwise, the location of the Qt library installation must be indicated
 by setting ``-D Qt5_DIR=/path/to/qt5/lib/cmake/Qt5``, which is a path to
 a folder inside the Qt installation that contains the file
-``Qt5Config.cmake``.
+``Qt5Config.cmake``. Similarly, for Qt6 the location of the Qt library
+installation can be indicated by setting ``-D Qt6_DIR=/path/to/qt6/lib/cmake/Qt6``,
+if necessary.  When both, Qt5 and Qt6 are available, Qt6 will be preferred
+unless ``-D LAMMPS_GUI_USE_QT5=yes`` is set.
 
 It should be possible to build the LAMMPS GUI as a standalone
 compilation (e.g. when LAMMPS has been compiled with traditional make),

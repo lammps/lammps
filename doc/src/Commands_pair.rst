@@ -305,5 +305,5 @@ OPT.
    * :doc:`wf/cut <pair_wf_cut>`
    * :doc:`ylz <pair_ylz>`
    * :doc:`yukawa (gko) <pair_yukawa>`
-   * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
+   * :doc:`yukawa/colloid (gko) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

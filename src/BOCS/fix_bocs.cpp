@@ -1024,7 +1024,10 @@ void FixBocs::final_integrate()
 
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -1961,6 +1964,7 @@ void FixBocs::nhc_press_integrate()
   int ich,i,pdof;
   double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
+  double lkt_press;
 
   // Update masses, to preserve initial freq, if flag set
 
@@ -2006,7 +2010,8 @@ void FixBocs::nhc_press_integrate()
     }
   }
 
-  double lkt_press = pdof * kt;
+  if (pstyle == ISO) lkt_press = kt;
+  else lkt_press = pdof * kt;
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
 
   double ncfac = 1.0/nc_pchain;

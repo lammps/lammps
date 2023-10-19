@@ -109,8 +109,8 @@ void PairRHEOTension::compute(int eflag, int vflag)
 
   int nmax = atom->nmax;
   if (nmax_store <= nmax) {
-    memory->grow(c_tension, nmax, "atom:rheo_c_tension");
-    memory->grow(n_tension, nmax, 3, "atom:rheo_n_tension");
+    memory->grow(ct, nmax, "atom:rheo_c_tension");
+    memory->grow(nnt_tension, nmax, 3, "atom:rheo_n_tension");
     nmax_store = atom->nmax;
   }
 
@@ -153,8 +153,6 @@ void PairRHEOTension::compute(int eflag, int vflag)
       dWij = compute_kernel->dWij;
       dWji = compute_kernel->dWji;
 
-
-
       f[i][0] += ft[0];
       f[i][1] += ft[1];
       f[i][2] += ft[2];
@@ -173,10 +171,8 @@ void PairRHEOTension::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 
-  if (compute_interface) {
-    comm->reverse_comm(this);
-    comm->forward_comm(this);
-  }
+  comm->reverse_comm(this);
+  comm->forward_comm(this);
 }
 
 /* ----------------------------------------------------------------------

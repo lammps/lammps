@@ -65,7 +65,7 @@ where the bracketed terms on the right-hand side are the combined functions
 with linear model parameters typically provided in the `<name>.yace` potential
 file for `pace pair_style`. When these bracketed terms are multiplied by the 
 products of the atomic base from :ref:`(Drautz) <Drautz19>`, 
-:math:`A_{i,\boldsymbol{\nu'}`, the ACE descriptors are recovered but they 
+:math:`A_{i,\boldsymbol{\nu'}}`, the ACE descriptors are recovered but they 
 are also scaled by linear model parameters. The generalized coupling coefficients,
 written in short-hand here as :math:`C(\boldsymbol{\nu}')`, are the generalized 
 Clebsch-Gordan or generalized Wigner symbols. It may be desirable to reverse the

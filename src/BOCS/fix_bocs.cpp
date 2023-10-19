@@ -1025,8 +1025,8 @@ void FixBocs::final_integrate()
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
     else {
-	    temperature->compute_vector();
-	    pressure->compute_vector();
+      temperature->compute_vector();
+      pressure->compute_vector();
     }
     couple();
     pressure->addstep(update->ntimestep+1);
@@ -1965,6 +1965,7 @@ void FixBocs::nhc_press_integrate()
   double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
   double lkt_press;
+
   // Update masses, to preserve initial freq, if flag set
 
   if (omega_mass_flag) {

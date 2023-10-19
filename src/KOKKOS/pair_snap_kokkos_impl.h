@@ -97,8 +97,6 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style SNAP requires newton pair on");
 
-
-
   // neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;

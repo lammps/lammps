@@ -756,7 +756,6 @@ void Domain::restricted_to_general_vector(double *v)
   v[2] = vnew[2];
 }
 
-
 void Domain::restricted_to_general_vector(double *v, double *vnew)
 {
   MathExtra::matvec(rotate_r2g,v,vnew);

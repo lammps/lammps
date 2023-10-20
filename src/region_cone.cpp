@@ -308,6 +308,12 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
 
 RegCone::~RegCone()
 {
+  delete[] c1str;
+  delete[] c2str;
+  delete[] rlostr;
+  delete[] rhistr;
+  delete[] lostr;
+  delete[] histr;
   delete[] contact;
 }
 

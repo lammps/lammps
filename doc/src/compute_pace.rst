@@ -12,15 +12,15 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pace = style name of this compute command
-* ace_potential_filename = file name (in the .yace or .ace format from :doc:`pace pair_style <pair_pace>`) including ACE hyperparameters, bonds, and generalized coupling coefficients 
+* ace_potential_filename = file name (in the .yace or .ace format from :doc:`pace pair_style <pair_pace>`) including ACE hyperparameters, bonds, and generalized coupling coefficients
 * keyword = *bikflag* or *dgradflag*
 
   .. parsed-literal::
 
-       *bikflag* value = *0* or *1* 
+       *bikflag* value = *0* or *1*
           *0* = descriptors are summed over atoms of each type
           *1* = descriptors are listed separately for each atom
-       *dgradflag* value = *0* or *1* 
+       *dgradflag* value = *0* or *1*
           *0* = descriptor gradients are summed over atoms of each type
           *1* = descriptor gradients are listed separately for each atom pair
 
@@ -36,55 +36,55 @@ Examples
 Description
 """""""""""
 
-This compute calculates a set of quantities related to the atomic cluster 
-expansion (ACE) descriptors of the atoms in a group. ACE descriptors are 
-a highly generalizable atomic descriptor, encoding the radial and angular 
-distribution of neighbor atoms, up to arbitrary bond order (rank). The 
-detailed mathematical definition is given in the paper by 
-:ref:`(Drautz) <Drautz19>`. These descriptors are used in the 
-:doc:`pace pair_style <pair_pace>`. Quantities obtained from `compute pace` 
-are related to those used in :doc:`pace pair_style <pair_pace>` to 
-evaluate atomic energies, forces, and stresses for linear ACE models. 
+This compute calculates a set of quantities related to the atomic cluster
+expansion (ACE) descriptors of the atoms in a group. ACE descriptors are
+a highly generalizable atomic descriptor, encoding the radial and angular
+distribution of neighbor atoms, up to arbitrary bond order (rank). The
+detailed mathematical definition is given in the paper by
+:ref:`(Drautz) <Drautz19>`. These descriptors are used in the
+:doc:`pace pair_style <pair_pace>`. Quantities obtained from `compute pace`
+are related to those used in :doc:`pace pair_style <pair_pace>` to
+evaluate atomic energies, forces, and stresses for linear ACE models.
 For example, the energy for a linear ACE model is calculated as:
 :math:`E=\sum_i^{N\_atoms} \sum_{\boldsymbol{\nu}} c_{\boldsymbol{\nu}}  B_{i,\boldsymbol{\boldsymbol{\nu}}}`.
-The ACE descriptors for atom `i` :math:`B_{i,\boldsymbol{\nu}}`, and 
+The ACE descriptors for atom `i` :math:`B_{i,\boldsymbol{\nu}}`, and
 :math:`c_{\nu}` are linear model parameters. The detailed definition
 and indexing convention for ACE descriptors is given in :ref:`(Drautz) <Drautz19>`.
-In short, body order :math:`N`, angular character, radial character, 
+In short, body order :math:`N`, angular character, radial character,
 and chemical elements in the *N-body* descriptor are encoded by :math:`\nu`.
-In the :doc:`pace pair_style <pair_pace>`, the linear model parameters 
+In the :doc:`pace pair_style <pair_pace>`, the linear model parameters
 and the ACE descriptors are combined for efficient evaluation of energies
-and forces. The details and benefits of this efficient implementation are 
+and forces. The details and benefits of this efficient implementation are
 given in :ref:`(Lysogorskiy) <Lysogorskiy21>`. et. al, but the combined
-descriptors and linear model parameters for the purposes of `compute pace` 
-may be expressed in terms of the ACE descriptors mentioned above. 
+descriptors and linear model parameters for the purposes of `compute pace`
+may be expressed in terms of the ACE descriptors mentioned above.
 
 :math:`c_{\boldsymbol{\nu}} B_{i,\boldsymbol{\nu}}= \sum_{\boldsymbol{\nu}' \in \boldsymbol{\nu} } \big[ c_{\boldsymbol{\nu}} C(\boldsymbol{\nu}') \big] A_{i,\boldsymbol{\nu}'}`
 
 where the bracketed terms on the right-hand side are the combined functions
 with linear model parameters typically provided in the `<name>.yace` potential
-file for `pace pair_style`. When these bracketed terms are multiplied by the 
-products of the atomic base from :ref:`(Drautz) <Drautz19>`, 
-:math:`A_{i,\boldsymbol{\nu'}}`, the ACE descriptors are recovered but they 
+file for `pace pair_style`. When these bracketed terms are multiplied by the
+products of the atomic base from :ref:`(Drautz) <Drautz19>`,
+:math:`A_{i,\boldsymbol{\nu'}}`, the ACE descriptors are recovered but they
 are also scaled by linear model parameters. The generalized coupling coefficients,
-written in short-hand here as :math:`C(\boldsymbol{\nu}')`, are the generalized 
+written in short-hand here as :math:`C(\boldsymbol{\nu}')`, are the generalized
 Clebsch-Gordan or generalized Wigner symbols. It may be desirable to reverse the
 combination of these descriptors and the linear model parameters so that the
-ACE descriptors themselves may be used. The ACE descriptors and their gradients 
-are often used when training ACE models, performing custom data analysis, 
+ACE descriptors themselves may be used. The ACE descriptors and their gradients
+are often used when training ACE models, performing custom data analysis,
 generalizing ACE model forms, and other tasks that involve direct computation of
-descriptors. The key utility of `compute pace` is that it can compute the ACE 
-descriptors and gradients so that these tasks can be performed during a LAMMPS 
-simulation or so that LAMMPS can be used as a driver for tasks like ACE model 
-parameterization. To see how this command can be used within a Python workflow 
-to train ACE potentials, see the examples in 
-`FitSNAP <https://github.com/FitSNAP/FitSNAP>`_. Examples on using outputs from 
+descriptors. The key utility of `compute pace` is that it can compute the ACE
+descriptors and gradients so that these tasks can be performed during a LAMMPS
+simulation or so that LAMMPS can be used as a driver for tasks like ACE model
+parameterization. To see how this command can be used within a Python workflow
+to train ACE potentials, see the examples in
+`FitSNAP <https://github.com/FitSNAP/FitSNAP>`_. Examples on using outputs from
 this compute to construct general ACE potential forms are demonstrated in
-:ref:`(Goff) <Goff23>`. The various keywords and inputs to `compute pace` 
-determine what ACE descriptors and related quantities are returned in a compute 
-array. 
+:ref:`(Goff) <Goff23>`. The various keywords and inputs to `compute pace`
+determine what ACE descriptors and related quantities are returned in a compute
+array.
 
-The coefficient file, `<name>.yace`, ultimately defines the number of ACE 
+The coefficient file, `<name>.yace`, ultimately defines the number of ACE
 descriptors to be computed, their maximum body-order, the degree of angular
 character they have, the degree of radial character they have, the chemical
 character (which element-element interactions are encoded by descriptors),
@@ -93,25 +93,25 @@ be modeled after the potential files in :doc:`pace pair_style <pair_pace>`,
 and have the same format. Details on how to generate the coefficient files
 to train ACE models may be found in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 
-The keyword *bikflag* determines whether or not to list the descriptors of 
-each atom separately, or sum them together and list in a single row. If 
-*bikflag* is set to *0* then a single descriptor row is used, which contains 
-the per-atom ACE descriptors :math:`B_{i,\boldsymbol{\nu}}` summed over all 
-atoms *i* to produce :math:`B_{\boldsymbol{\nu}}`. If *bikflag* is set to 
-*1* this is replaced by a separate per-atom ACE descriptor row for each atom. 
+The keyword *bikflag* determines whether or not to list the descriptors of
+each atom separately, or sum them together and list in a single row. If
+*bikflag* is set to *0* then a single descriptor row is used, which contains
+the per-atom ACE descriptors :math:`B_{i,\boldsymbol{\nu}}` summed over all
+atoms *i* to produce :math:`B_{\boldsymbol{\nu}}`. If *bikflag* is set to
+*1* this is replaced by a separate per-atom ACE descriptor row for each atom.
 In this case, the entries in the final column for these rows are set to zero.
 
 The keyword *dgradflag* determines whether to sum atom gradients or list
-them separately. If *dgradflag* is set to 0, the ACE 
+them separately. If *dgradflag* is set to 0, the ACE
 descriptor gradients w.r.t. atom *j* are summed over all atoms *i'*
 of, which may be useful when training linear ACE models on atomic forces.
 If *dgradflag* is set to 1, gradients are listed separately for each pair of atoms.
 Each row corresponds
 to a single term :math:`\frac{\partial {B_{i,\boldsymbol{\nu}}}}{\partial {r}^a_j}`
 where :math:`{r}^a_j` is the *a-th* position coordinate of the atom with global
-index *j*. This also changes the number of columns to be equal to the number of 
-ACE descriptors, with 3 additional columns representing the indices :math:`i`, 
-:math:`j`, and :math:`a`, as explained more in the Output info section below. 
+index *j*. This also changes the number of columns to be equal to the number of
+ACE descriptors, with 3 additional columns representing the indices :math:`i`,
+:math:`j`, and :math:`a`, as explained more in the Output info section below.
 The option *dgradflag=1* requires that *bikflag=1*.
 
 .. note::
@@ -122,17 +122,17 @@ The option *dgradflag=1* requires that *bikflag=1*.
     the value of the descriptor will not be returned in the `compute` array,
     but instead, the energy contribution from that descriptor will be returned.
     Do not do this unless it is the desired behavior.
-    *In short, you should not plug in a '.yace' for a pace potential into this 
-    compute to evaluate descriptors.* 
+    *In short, you should not plug in a '.yace' for a pace potential into this
+    compute to evaluate descriptors.*
 
 .. note::
 
-    *Generalized Clebsch-Gordan or Generalized Wigner symbols (with appropriate 
-    factors) must be used to evaluate ACE descriptors with this compute.* There 
+    *Generalized Clebsch-Gordan or Generalized Wigner symbols (with appropriate
+    factors) must be used to evaluate ACE descriptors with this compute.* There
     are multiple ways to define the generalized coupling coefficients. Because
-    of this, this compute will not revert your potential file to a coupling 
+    of this, this compute will not revert your potential file to a coupling
     coefficient file. Instead this compute allows the user to supply coupling
-    coefficients that follow any convention. 
+    coefficients that follow any convention.
 
 .. note::
 

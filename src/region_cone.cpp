@@ -141,7 +141,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
     } else {
       c1 = xscale * utils::numeric(FLERR, arg[3], false, lmp);
       c1style = CONSTANT;
-    }      
+    }
 
     if (utils::strmatch(arg[4], "^v_")) {
       c2str = utils::strdup(arg[4] + 2);

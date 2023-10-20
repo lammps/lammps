@@ -579,18 +579,17 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   if (dimension == 2 && (cvec[0] != 0.0 || cvec[1] != 0.0))
     error->all(FLERR,"General triclinic box edge vector C invalid for 2d system");
 
-  // error check for co-planar A,B,C
-  // if A x B is in C direction, only a rotation to restricted tri is needed
-  //   since restricted tri box will obey right-hand rule
-  // if not, an inversion (flip) of C vector is also needed
+  // error checks for 3d systems
+  // A,B,C cannot be co-planar
+  // A x B must point in C direction (right-handed)
 
   double abcross[3];
   MathExtra::cross3(avec,bvec,abcross);
   double dot = MathExtra::dot3(abcross,cvec);
   if (dot == 0.0)
     error->all(FLERR,"General triclinic box edge vectors are co-planar");
-  if (dot > 0.0) triclinic_general_flip = 0;
-  else triclinic_general_flip = 1;
+  if (dot < 0.0)
+    error->all(FLERR,"General triclinic box edge vectors must be right-handed");
   
   // quat1 = convert A into A' along +x-axis
   // rot1 = unit vector to rotate A around
@@ -641,15 +640,7 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
 
   double quat_single[4];
   MathExtra::quatquat(quat2,quat1,quat_single);
-
   MathExtra::quat_to_mat(quat_single,rotate_g2r);
-
-  if (triclinic_general_flip) {
-    rotate_g2r[2][0] = -rotate_g2r[2][0];
-    rotate_g2r[2][1] = -rotate_g2r[2][1];
-    rotate_g2r[2][2] = -rotate_g2r[2][2];
-  }
-  
   MathExtra::transpose3(rotate_g2r,rotate_r2g);
 
   // rotate general ABC to restricted triclinic A'B'C'

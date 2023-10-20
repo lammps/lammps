@@ -114,7 +114,10 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostbefore = warnbefore = 0;
   flushflag = 0;
   triclinic_general = 0;
+  firststep = 0;
   ntimestep = -1;
+  nline = -1;
+  image_fname.clear();
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords, including wildcard expansion

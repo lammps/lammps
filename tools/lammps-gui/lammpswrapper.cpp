@@ -19,7 +19,12 @@
 #include "library.h"
 #endif
 
-LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr), plugin_handle(nullptr) {}
+LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr)
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    plugin_handle = nullptr;
+#endif
+}
 
 void LammpsWrapper::open(int narg, char **args)
 {
@@ -30,6 +35,19 @@ void LammpsWrapper::open(int narg, char **args)
 #else
     lammps_handle = lammps_open_no_mpi(narg, args, nullptr);
 #endif
+}
+
+int LammpsWrapper::version()
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->version(lammps_handle);
+#else
+        val = lammps_version(lammps_handle);
+#endif
+    }
+    return val;
 }
 
 int LammpsWrapper::extract_setting(const char *keyword)
@@ -97,6 +115,46 @@ int LammpsWrapper::id_name(const char *keyword, int idx, char *buf, int len)
     return val;
 }
 
+int LammpsWrapper::style_count(const char *keyword)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->style_count(lammps_handle, keyword);
+#else
+        val = lammps_style_count(lammps_handle, keyword);
+#endif
+    }
+    return val;
+}
+
+int LammpsWrapper::style_name(const char *keyword, int idx, char *buf, int len)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val =
+            ((liblammpsplugin_t *)plugin_handle)->style_name(lammps_handle, keyword, idx, buf, len);
+#else
+        val = lammps_style_name(lammps_handle, keyword, idx, buf, len);
+#endif
+    }
+    return val;
+}
+
+int LammpsWrapper::variable_info(int idx, char *buf, int len)
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->variable_info(lammps_handle, idx, buf, len);
+#else
+        val = lammps_variable_info(lammps_handle, idx, buf, len);
+#endif
+    }
+    return val;
+}
+
 double LammpsWrapper::get_thermo(const char *keyword)
 {
     double val = 0.0;
@@ -143,6 +201,17 @@ void LammpsWrapper::command(const char *input)
         ((liblammpsplugin_t *)plugin_handle)->command(lammps_handle, input);
 #else
         lammps_command(lammps_handle, input);
+#endif
+    }
+}
+
+void LammpsWrapper::file(const char *filename)
+{
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        ((liblammpsplugin_t *)plugin_handle)->file(lammps_handle, filename);
+#else
+        lammps_file(lammps_handle, filename);
 #endif
     }
 }

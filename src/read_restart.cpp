@@ -786,8 +786,6 @@ void ReadRestart::header()
 
     } else if (flag == TRICLINIC_GENERAL) {
       domain->triclinic_general = read_int();
-    } else if (flag == TRICLINIC_GENERAL_FLIP) {
-      domain->triclinic_general_flip = read_int();
     } else if (flag == ROTATE_G2R) {
       read_double_vec(9,&domain->rotate_g2r[0][0]);
       MathExtra::transpose3(domain->rotate_g2r,domain->rotate_r2g);
@@ -805,9 +803,12 @@ void ReadRestart::header()
     } else if (flag == ATOM_ID) {
       atom->tag_enable = read_int();
     } else if (flag == ATOM_MAP_STYLE) {
-      atom->map_style = read_int();
+      // we should be able to enable an atom map, even
+      // if the simulation in the restart didn't use one
+      int itmp = read_int();
+      if (atom->map_user == Atom::MAP_NONE) atom->map_style = itmp;
     } else if (flag == ATOM_MAP_USER) {
-      atom->map_user  = read_int();
+      read_int();  // ignored
     } else if (flag == ATOM_SORTFREQ) {
       atom->sortfreq = read_int();
     } else if (flag == ATOM_SORTBIN) {

@@ -41,7 +41,6 @@ class Domain : protected Pointers {
 
   int triclinic;          // 0 = orthog box, 1 = triclinic (restricted or general)
   int triclinic_general;  // 1 if mapping to/from general triclinic is stored, 0 if not
-  int triclinic_general_flip;  // 1 if general tri rotation needs to invert C edge vector
   
   // orthogonal box
 

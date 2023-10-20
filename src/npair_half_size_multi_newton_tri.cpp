@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "molecule.h"
 #include "my_page.h"
 #include "neighbor.h"
@@ -41,10 +42,12 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
 {
   int i,j,jh,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns,js;
   int which,imol,iatom,moltemplate;
-  tagint tagprev;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
+
+  const double delta = 0.01 * force->angstrom;
 
   int *collection = neighbor->collection;
   double **x = atom->x;
@@ -78,6 +81,8 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
   for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
+
+    itag = tag[i];
     itype = type[i];
     icollection = collection[i];
     xtmp = x[i][0];
@@ -93,11 +98,13 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
     ibin = atom2bin[i];
 
     // loop through stencils for all collections
+
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
       // if same collection use own bin
+
       if (icollection == jcollection) jbin = ibin;
-          else jbin = coord2bin(x[i], jcollection);
+      else jbin = coord2bin(x[i], jcollection);
 
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
@@ -108,21 +115,32 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
       //         (equal zyx and j <= i)
       // latter excludes self-self interaction but allows superposed atoms
 
-          s = stencil_multi[icollection][jcollection];
-          ns = nstencil_multi[icollection][jcollection];
+      s = stencil_multi[icollection][jcollection];
+      ns = nstencil_multi[icollection][jcollection];
 
-          for (k = 0; k < ns; k++) {
-            js = binhead_multi[jcollection][jbin + s[k]];
-            for (j = js; j >= 0; j = bins[j]) {
+      for (k = 0; k < ns; k++) {
+        js = binhead_multi[jcollection][jbin + s[k]];
+        for (j = js; j >= 0; j = bins[j]) {
 
-          // if same size (same collection), use half stencil
-          if (cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
-            if (x[j][2] < ztmp) continue;
-            if (x[j][2] == ztmp) {
-              if (x[j][1] < ytmp) continue;
-              if (x[j][1] == ytmp) {
-                if (x[j][0] < xtmp) continue;
-                if (x[j][0] == xtmp && j <= i) continue;
+          // if same size (same collection), exclude half of interactions
+
+          if (cutcollectionsq[icollection][icollection] ==
+              cutcollectionsq[jcollection][jcollection]) {
+            if (j <= i) continue;
+            if (j >= nlocal) {
+              jtag = tag[j];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x[j][2]-ztmp) > delta) {
+                  if (x[j][2] < ztmp) continue;
+                } else if (fabs(x[j][1]-ytmp) > delta) {
+                  if (x[j][1] < ytmp) continue;
+                } else {
+                  if (x[j][0] < xtmp) continue;
+                }
               }
             }
           }
@@ -130,34 +148,34 @@ void NPairHalfSizeMultiNewtonTri::build(NeighList *list)
           jtype = type[j];
           if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
 
-              delx = xtmp - x[j][0];
-              dely = ytmp - x[j][1];
-              delz = ztmp - x[j][2];
-              rsq = delx*delx + dely*dely + delz*delz;
-              radsum = radi + radius[j];
-              cutdistsq = (radsum+skin) * (radsum+skin);
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx*delx + dely*dely + delz*delz;
+          radsum = radi + radius[j];
+          cutdistsq = (radsum+skin) * (radsum+skin);
 
-              if (rsq <= cutdistsq) {
-                jh = j;
-                if (history && rsq < radsum*radsum)
-                  jh = jh ^ mask_history;
+          if (rsq <= cutdistsq) {
+            jh = j;
+            if (history && rsq < radsum*radsum)
+              jh = jh ^ mask_history;
 
-                if (molecular != Atom::ATOMIC) {
-                  if (!moltemplate)
-                    which = find_special(special[i],nspecial[i],tag[j]);
-                  else if (imol >= 0)
-                    which = find_special(onemols[imol]->special[iatom],
-                                         onemols[imol]->nspecial[iatom],
-                                         tag[j]-tagprev);
-                  else which = 0;
-                  if (which == 0) neighptr[n++] = jh;
-                  else if (domain->minimum_image_check(delx,dely,delz))
-                    neighptr[n++] = jh;
-                  else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
-                } else neighptr[n++] = jh;
-              }
-            }
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = jh;
+              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+            } else neighptr[n++] = jh;
           }
+        }
+      }
     }
 
     ilist[inum++] = i;

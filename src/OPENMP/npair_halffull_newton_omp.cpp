@@ -15,7 +15,9 @@
 #include "npair_halffull_newton_omp.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "my_page.h"
 #include "neigh_list.h"
 #include "npair_omp.h"
@@ -38,6 +40,8 @@ NPairHalffullNewtonOmp::NPairHalffullNewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
 void NPairHalffullNewtonOmp::build(NeighList *list)
 {
   const int inum_full = list->listfull->inum;
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -83,8 +87,17 @@ void NPairHalffullNewtonOmp::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
+
       if (j < nlocal) {
         if (i > j) continue;
+      } else if (triclinic) {
+        if (fabs(x[j][2]-ztmp) > delta) {
+          if (x[j][2] < ztmp) continue;
+        } else if (fabs(x[j][1]-ytmp) > delta) {
+          if (x[j][1] < ytmp) continue;
+        } else {
+          if (x[j][0] < xtmp) continue;
+        }
       } else {
         if (x[j][2] < ztmp) continue;
         if (x[j][2] == ztmp) {

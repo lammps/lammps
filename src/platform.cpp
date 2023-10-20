@@ -239,6 +239,8 @@ std::string platform::os_info()
     buf = "Windows 11 21H2";
   } else if (build == "22621") {
     buf = "Windows 11 22H2";
+  } else if (build == "22631") {
+    buf = "Windows 11 23H2";
   } else {
     const char *entry = "ProductName";
     RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,

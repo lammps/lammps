@@ -85,7 +85,7 @@ class LAMMPS {
   static const char *git_descriptor();
 
   LAMMPS(int, char **, MPI_Comm);
-  ~LAMMPS();
+  ~LAMMPS() noexcept(false);
   void create();
   void post_create();
   void init();

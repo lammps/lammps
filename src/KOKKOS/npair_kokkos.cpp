@@ -1354,7 +1354,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
       other_x[MY_II + 4 * atoms_per_bin] = radi;
-      if (HalfNeigh && Newton && Tri) { 
+      if (HalfNeigh && Newton && Tri) {
         itag = tag(i);
         other_x[MY_II + 5 * atoms_per_bin] = itag;
       }

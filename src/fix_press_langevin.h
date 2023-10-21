@@ -40,10 +40,9 @@ class FixPressLangevin : public Fix {
   int modify_param(int, char **) override;
 
  protected:
-  int dimension, which;
+  int dimension;
   int pstyle, pcouple, allremap;
   int p_flag[6];    // 1 if control P on this dim, 0 if not
-  double nktv2p;
   double t_start, t_stop, t_target;
   double p_fric[6], p_ltime;    // Friction and Langevin charac. time
   double p_alpha[6];
@@ -68,8 +67,8 @@ class FixPressLangevin : public Fix {
   int seed;
 
   void couple_pressure();
-  void couple_kinetic(double);
-  void couple_beta(double);
+  void couple_kinetic();
+  void couple_beta();
   void remap();
 };
 

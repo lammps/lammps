@@ -442,7 +442,7 @@ equal-style and vector-style variables can be referenced; the latter
 requires a bracketed term to specify the Ith element of the vector
 calculated by the variable.  However, an equal-style variable can use
 an atom-style variable in its formula indexed by the ID of an
-individual atom.  This is a way to output a speciic atom's per-atom
+individual atom.  This is a way to output a specific atom's per-atom
 coordinates or other per-atom properties in thermo output.  See the
 :doc:`variable <variable>` command for details.  Note that variables
 of style *equal* and *vector* and *atom* define a formula which can

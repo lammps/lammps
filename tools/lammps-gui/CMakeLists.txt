@@ -110,14 +110,15 @@ endif()
 
 # we require Qt 5 and at least version 5.12 at that.
 if(NOT LAMMPS_GUI_USE_QT5)
-  find_package(Qt6 6.2 COMPONENTS Widgets Charts)
+  find_package(Qt6 6.2 QUIET COMPONENTS Widgets Charts)
 endif()
 if(NOT Qt6_FOUND)
   find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets Charts)
-  set(QT_VERSION_MAJOR "5")
+  set(QT_VERSION_MAJOR 5)
 else()
-  set(QT_VERSION_MAJOR "6")
+  set(QT_VERSION_MAJOR 6)
 endif()
+message(STATUS "Using Qt version ${Qt${QT_VERSION_MAJOR}_VERSION} for LAMMPS GUI")
 
 set(PROJECT_SOURCES
   main.cpp
@@ -188,7 +189,7 @@ else()
 endif()
 target_include_directories(lammps-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(lammps-gui PRIVATE LAMMPS_GUI_VERSION="${PROJECT_VERSION}")
-target_link_libraries(lammps-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${VERSION_MAJOR}::Charts)
+target_link_libraries(lammps-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts)
 if(BUILD_OMP)
   find_package(OpenMP COMPONENTS CXX REQUIRED)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)

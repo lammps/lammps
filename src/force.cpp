@@ -336,6 +336,8 @@ void Force::create_bond(const std::string &style, int trysuffix)
 {
   delete[] bond_style;
   if (bond) delete bond;
+  bond_style = nullptr;
+  bond = nullptr;
 
   int sflag;
   bond = new_bond(style, trysuffix, sflag);
@@ -404,6 +406,8 @@ void Force::create_angle(const std::string &style, int trysuffix)
 {
   delete[] angle_style;
   if (angle) delete angle;
+  angle_style = nullptr;
+  angle = nullptr;
 
   int sflag;
   angle = new_angle(style, trysuffix, sflag);
@@ -472,6 +476,8 @@ void Force::create_dihedral(const std::string &style, int trysuffix)
 {
   delete[] dihedral_style;
   if (dihedral) delete dihedral;
+  dihedral_style = nullptr;
+  dihedral = nullptr;
 
   int sflag;
   dihedral = new_dihedral(style, trysuffix, sflag);
@@ -540,6 +546,8 @@ void Force::create_improper(const std::string &style, int trysuffix)
 {
   delete[] improper_style;
   if (improper) delete improper;
+  improper_style = nullptr;
+  improper = nullptr;
 
   int sflag;
   improper = new_improper(style, trysuffix, sflag);
@@ -608,6 +616,8 @@ void Force::create_kspace(const std::string &style, int trysuffix)
 {
   delete[] kspace_style;
   if (kspace) delete kspace;
+  kspace_style = nullptr;
+  kspace = nullptr;
 
   int sflag;
   kspace = new_kspace(style, trysuffix, sflag);

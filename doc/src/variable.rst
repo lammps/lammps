@@ -1167,7 +1167,7 @@ variables), or global vectors of values.  The latter can also be a
 column of a global array.
 
 Atom-style variables can use scalar values (same as for equal-style
-varaibles), or per-atom vectors of values.  The latter can also be a
+variables), or per-atom vectors of values.  The latter can also be a
 column of a per-atom array.
 
 The various allowed compute references in the variable formulas for
@@ -1232,7 +1232,7 @@ variables), or global vectors of values.  The latter can also be a
 column of a global array.
 
 Atom-style variables can use scalar values (same as for equal-style
-varaibles), or per-atom vectors of values.  The latter can also be a
+variables), or per-atom vectors of values.  The latter can also be a
 column of a per-atom array.
 
 The allowed fix references in variable formulas for equal-, vector-,

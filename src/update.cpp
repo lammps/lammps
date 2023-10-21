@@ -46,7 +46,9 @@ template <typename T> static Min *minimize_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Update::Update(LAMMPS *lmp) : Pointers(lmp)
+Update::Update(LAMMPS *lmp) :
+    Pointers(lmp), unit_style(nullptr), integrate(nullptr), integrate_style(nullptr),
+    minimize(nullptr), minimize_style(nullptr), integrate_map(nullptr), minimize_map(nullptr)
 {
   char *str;
 
@@ -67,13 +69,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 
   dt_default = 1;
   dt = 0.0;
-  unit_style = nullptr;
   set_units("lj");
-
-  integrate_style = nullptr;
-  integrate = nullptr;
-  minimize_style = nullptr;
-  minimize = nullptr;
 
   integrate_map = new IntegrateCreatorMap();
 

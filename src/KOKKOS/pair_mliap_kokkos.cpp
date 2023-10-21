@@ -31,7 +31,6 @@
 #include "lammps.h"
 #include "kokkos.h"
 #include "pointers.h"
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -139,7 +138,7 @@ template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::allocate()
 {
   int n = atom->ntypes;
-  std::cout << "cutsq size: " << n+1 << std::endl;
+  
   memoryKK->destroy_kokkos(k_map, map);
   memoryKK->destroy_kokkos(k_cutsq, cutsq);
   memoryKK->destroy_kokkos(k_setflag, setflag);
@@ -273,8 +272,6 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   // set up model, descriptor, and mliap data structures
   model->init();
   descriptor->init();
-
-  std::cout << "atom ntypes: " << atom->ntypes << std::endl;
 
   auto h_cutsq=k_cutsq.template view<LMPHostType>();
   for (int itype=1; itype <= atom->ntypes; ++itype)

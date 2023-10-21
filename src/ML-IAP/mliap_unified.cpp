@@ -29,8 +29,6 @@
 #include "python_compat.h"
 #include "utils.h"
 
-#include <iostream>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -274,7 +272,6 @@ void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
   //const auto nlistatoms = data->nlistatoms;
   const auto nlocal = data->nlocal;
   double **f = data->f;
-  std::cout << "nlocal value: " << nlocal << std::endl;
   for (int ii = 0; ii < data->npairs; ii++) {
     int ii3 = ii * 3;
     int i = data->pair_i[ii];

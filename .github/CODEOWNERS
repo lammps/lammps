@@ -135,6 +135,7 @@ src/timer.*               @akohlmey
 src/utils.*               @akohlmey @rbberger
 src/verlet.*              @sjplimp @stanmoore1
 src/math_eigen_impl.h     @jewettaij
+src/fix_press_langevin.*  @Bibobu
 
 # tools
 tools/coding_standard/* @akohlmey @rbberger

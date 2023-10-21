@@ -16,7 +16,7 @@
 
 // Trim off
 
-// Newton, no triclinic 
+// Newton, no triclinic
 
 typedef NPairHalffullKokkos<LMPDeviceType,1,0,0> NPairKokkosHalffullNewtonDevice;
 NPairStyle(halffull/newton/kk/device,

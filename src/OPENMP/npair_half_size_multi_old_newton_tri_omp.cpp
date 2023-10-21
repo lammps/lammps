@@ -87,6 +87,7 @@ void NPairHalfSizeMultiOldNewtonTriOmp::build(NeighList *list)
     n = 0;
     neighptr = ipage.vget();
 
+    itag = tag[i];
     itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];

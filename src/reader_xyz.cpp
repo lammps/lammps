@@ -25,8 +25,6 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024        // max line length in dump file
 
-enum{ID,TYPE,X,Y,Z};
-
 /* ---------------------------------------------------------------------- */
 
 ReaderXYZ::ReaderXYZ(LAMMPS *lmp) : Reader(lmp)

@@ -35,11 +35,7 @@ using namespace LAMMPS_NS;
 
 #define CHUNK 16384
 
-// also in reader_native.cpp
-
-enum{ID,TYPE,X,Y,Z,VX,VY,VZ,Q,IX,IY,IZ,FX,FY,FZ};
-enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
-enum{NOADD,YESADD,KEEPADD};
+enum { NOADD, YESADD, KEEPADD };
 
 /* ---------------------------------------------------------------------- */
 
@@ -536,30 +532,30 @@ void ReadDump::header(int fieldinfo)
 
   int value = MAX(xflag,yflag);
   value = MAX(zflag,value);
-  if ((xflag != UNSET && xflag != value) ||
-      (yflag != UNSET && yflag != value) ||
-      (zflag != UNSET && zflag != value))
+  if ((xflag != Reader::UNSET && xflag != value) ||
+      (yflag != Reader::UNSET && yflag != value) ||
+      (zflag != Reader::UNSET && zflag != value))
     error->one(FLERR,
                "Read_dump xyz fields do not have consistent scaling/wrapping");
 
   // set scaled/wrapped based on xyz flags
 
-  value = UNSET;
-  if (xflag != UNSET) value = xflag;
-  if (yflag != UNSET) value = yflag;
-  if (zflag != UNSET) value = zflag;
+  value = Reader::UNSET;
+  if (xflag != Reader::UNSET) value = xflag;
+  if (yflag != Reader::UNSET) value = yflag;
+  if (zflag != Reader::UNSET) value = zflag;
 
-  if (value == UNSET) {
+  if (value == Reader::UNSET) {
     scaled = wrapped = 0;
-  } else if (value == NOSCALE_NOWRAP) {
+  } else if (value == Reader::NOSCALE_NOWRAP) {
     scaled = wrapped = 0;
-  } else if (value == NOSCALE_WRAP) {
+  } else if (value == Reader::NOSCALE_WRAP) {
     scaled = 0;
     wrapped = 1;
-  } else if (value == SCALE_NOWRAP) {
+  } else if (value == Reader::SCALE_NOWRAP) {
     scaled = 1;
     wrapped = 0;
-  } else if (value == SCALE_WRAP) {
+  } else if (value == Reader::SCALE_WRAP) {
     scaled = wrapped = 1;
   }
 
@@ -569,16 +565,16 @@ void ReadDump::header(int fieldinfo)
 
   if (scaled && triclinic == 1) {
     int flag = 0;
-    if (xflag == UNSET) flag = 1;
-    if (yflag == UNSET) flag = 1;
-    if (dimension == 3 && zflag == UNSET) flag = 1;
+    if (xflag == Reader::UNSET) flag = 1;
+    if (yflag == Reader::UNSET) flag = 1;
+    if (domain->dimension == 3 && zflag == Reader::UNSET) flag = 1;
     if (flag)
       error->one(FLERR,"All read_dump x,y,z fields must be specified for "
                  "scaled, triclinic coords");
 
     for (int i = 0; i < nfield; i++) {
-      if (fieldtype[i] == Y) yindex = i;
-      if (fieldtype[i] == Z) zindex = i;
+      if (fieldtype[i] == Reader::Y) yindex = i;
+      if (fieldtype[i] == Reader::Z) zindex = i;
     }
   }
 }
@@ -864,43 +860,43 @@ void ReadDump::process_atoms()
 
       for (ifield = 1; ifield < nfield; ifield++) {
         switch (fieldtype[ifield]) {
-        case X:
+        case Reader::X:
           x[m][0] = xfield(i,ifield);
           break;
-        case Y:
+        case Reader::Y:
           x[m][1] = yfield(i,ifield);
           break;
-        case Z:
+        case Reader::Z:
           x[m][2] = zfield(i,ifield);
           break;
-        case VX:
+        case Reader::VX:
           v[m][0] = fields[i][ifield];
           break;
-        case Q:
+        case Reader::Q:
           q[m] = fields[i][ifield];
           break;
-        case VY:
+        case Reader::VY:
           v[m][1] = fields[i][ifield];
           break;
-        case VZ:
+        case Reader::VZ:
           v[m][2] = fields[i][ifield];
           break;
-        case IX:
+        case Reader::IX:
           xbox = static_cast<int> (fields[i][ifield]);
           break;
-        case IY:
+        case Reader::IY:
           ybox = static_cast<int> (fields[i][ifield]);
           break;
-        case IZ:
+        case Reader::IZ:
           zbox = static_cast<int> (fields[i][ifield]);
           break;
-        case FX:
+        case Reader::FX:
           f[m][0] = fields[i][ifield];
           break;
-        case FY:
+        case Reader::FY:
           f[m][1] = fields[i][ifield];
           break;
-        case FZ:
+        case Reader::FZ:
           f[m][2] = fields[i][ifield];
           break;
         }
@@ -952,7 +948,7 @@ void ReadDump::process_atoms()
 
   int tflag = 0;
   for (ifield = 0; ifield < nfield; ifield++)
-    if (fieldtype[ifield] == TYPE) tflag = 1;
+    if (fieldtype[ifield] == Reader::TYPE) tflag = 1;
   if (!tflag)
     error->all(FLERR,"Cannot add atoms if dump file does not store atom type");
 
@@ -969,16 +965,16 @@ void ReadDump::process_atoms()
     one[0] = one[1] = one[2] = 0.0;
     for (ifield = 1; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
-      case TYPE:
+      case Reader::TYPE:
         itype = static_cast<int> (fields[i][ifield]);
         break;
-      case X:
+      case Reader::X:
         one[0] = xfield(i,ifield);
         break;
-      case Y:
+      case Reader::Y:
         one[1] = yfield(i,ifield);
         break;
-      case Z:
+      case Reader::Z:
         one[2] = zfield(i,ifield);
         break;
       }
@@ -1002,29 +998,29 @@ void ReadDump::process_atoms()
 
     for (ifield = 0; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
-      case ID:
+      case Reader::ID:
         if (addflag == KEEPADD)
           tag[m] = static_cast<tagint> (fields[i][ifield]);
         break;
-      case VX:
+      case Reader::VX:
         v[m][0] = fields[i][ifield];
         break;
-      case VY:
+      case Reader::VY:
         v[m][1] = fields[i][ifield];
         break;
-      case VZ:
+      case Reader::VZ:
         v[m][2] = fields[i][ifield];
         break;
-      case Q:
+      case Reader::Q:
         q[m] = fields[i][ifield];
         break;
-      case IX:
+      case Reader::IX:
         xbox = static_cast<int> (fields[i][ifield]);
         break;
-      case IY:
+      case Reader::IY:
         ybox = static_cast<int> (fields[i][ifield]);
         break;
-      case IZ:
+      case Reader::IZ:
         zbox = static_cast<int> (fields[i][ifield]);
         break;
       }
@@ -1166,8 +1162,11 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
                             strcmp(arg[iarg+1],"keep") == 0)) break;
 
   nfield = 0;
-  fieldtype[nfield++] = ID;
-  if (iarg < narg) fieldtype[nfield++] = TYPE;
+  fieldtype[nfield++] = Reader::ID;
+  if (iarg < narg) {
+    if (comm->me == 0) utils::logmesg(lmp, "Adding 'type' field to requested per-atom fields");
+    fieldtype[nfield++] = Reader::TYPE;
+  }
 
   // parse fields
 
@@ -1175,7 +1174,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   while (iarg < narg) {
     int type = whichtype(arg[iarg]);
     if (type < 0) break;
-    if (type == Q && !atom->q_flag)
+    if (type == Reader::Q && !atom->q_flag)
       error->all(FLERR,"Read dump of atom property that isn't allocated");
     fieldtype[nfield++] = type;
     iarg++;
@@ -1183,13 +1182,13 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   // check for no fields
 
-  if (fieldtype[nfield-1] == ID || fieldtype[nfield-1] == TYPE)
+  if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
     error->all(FLERR,"Illegal read_dump command");
 
   if (dimension == 2) {
     for (int i = 0; i < nfield; i++)
-      if (fieldtype[i] == Z || fieldtype[i] == VZ ||
-          fieldtype[i] == IZ || fieldtype[i] == FZ)
+      if (fieldtype[i] == Reader::Z || fieldtype[i] == Reader::VZ ||
+          fieldtype[i] == Reader::IZ || fieldtype[i] == Reader::FZ)
         error->all(FLERR,"Illegal read_dump command");
   }
 
@@ -1293,21 +1292,21 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 int ReadDump::whichtype(char *str)
 {
   int type = -1;
-  if (strcmp(str,"id") == 0) type = ID;
-  else if (strcmp(str,"type") == 0) type = TYPE;
-  else if (strcmp(str,"x") == 0) type = X;
-  else if (strcmp(str,"y") == 0) type = Y;
-  else if (strcmp(str,"z") == 0) type = Z;
-  else if (strcmp(str,"vx") == 0) type = VX;
-  else if (strcmp(str,"vy") == 0) type = VY;
-  else if (strcmp(str,"vz") == 0) type = VZ;
-  else if (strcmp(str,"q") == 0) type = Q;
-  else if (strcmp(str,"ix") == 0) type = IX;
-  else if (strcmp(str,"iy") == 0) type = IY;
-  else if (strcmp(str,"iz") == 0) type = IZ;
-  else if (strcmp(str,"fx") == 0) type = FX;
-  else if (strcmp(str,"fy") == 0) type = FY;
-  else if (strcmp(str,"fz") == 0) type = FZ;
+  if (strcmp(str,"id") == 0) type = Reader::ID;
+  else if (strcmp(str,"type") == 0) type = Reader::TYPE;
+  else if (strcmp(str,"x") == 0) type = Reader::X;
+  else if (strcmp(str,"y") == 0) type = Reader::Y;
+  else if (strcmp(str,"z") == 0) type = Reader::Z;
+  else if (strcmp(str,"vx") == 0) type = Reader::VX;
+  else if (strcmp(str,"vy") == 0) type = Reader::VY;
+  else if (strcmp(str,"vz") == 0) type = Reader::VZ;
+  else if (strcmp(str,"q") == 0) type = Reader::Q;
+  else if (strcmp(str,"ix") == 0) type = Reader::IX;
+  else if (strcmp(str,"iy") == 0) type = Reader::IY;
+  else if (strcmp(str,"iz") == 0) type = Reader::IZ;
+  else if (strcmp(str,"fx") == 0) type = Reader::FX;
+  else if (strcmp(str,"fy") == 0) type = Reader::FY;
+  else if (strcmp(str,"fz") == 0) type = Reader::FZ;
   return type;
 }
 

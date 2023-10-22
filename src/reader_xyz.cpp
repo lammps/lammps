@@ -38,7 +38,7 @@ ReaderXYZ::ReaderXYZ(LAMMPS *lmp) : Reader(lmp)
 
 ReaderXYZ::~ReaderXYZ()
 {
-  delete [] line;
+  delete[] line;
   memory->destroy(fieldindex);
 }
 

@@ -26,7 +26,7 @@
 #include "irregular.h"
 #include "memory.h"
 #include "reader.h"
-#include "style_reader.h"       // IWYU pragma: keep
+#include "style_reader.h"    // IWYU pragma: keep
 #include "update.h"
 
 #include <cstring>
@@ -39,29 +39,16 @@ enum { NOADD, YESADD, KEEPADD };
 
 /* ---------------------------------------------------------------------- */
 
-ReadDump::ReadDump(LAMMPS *lmp) : Command(lmp)
+ReadDump::ReadDump(LAMMPS *lmp) :
+    Command(lmp), files(nullptr), readerstyle(nullptr), fieldtype(nullptr), fieldlabel(nullptr),
+    fields(nullptr), buf(nullptr), nsnapatoms(nullptr), readers(nullptr)
 {
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
-  dimension = domain->dimension;
-  triclinic = domain->triclinic;
-
   nfile = 0;
-  files = nullptr;
-
   nnew = maxnew = 0;
   nfield = 0;
-  fieldtype = nullptr;
-  fieldlabel = nullptr;
-  fields = nullptr;
-  buf = nullptr;
-
   readerstyle = utils::strdup("native");
 
   nreader = 0;
-  readers = nullptr;
-  nsnapatoms = nullptr;
   clustercomm = MPI_COMM_NULL;
   filereader = 0;
   parallel = 0;
@@ -71,19 +58,19 @@ ReadDump::ReadDump(LAMMPS *lmp) : Command(lmp)
 
 ReadDump::~ReadDump()
 {
-  for (int i = 0; i < nfile; i++) delete [] files[i];
-  delete [] files;
-  for (int i = 0; i < nfield; i++) delete [] fieldlabel[i];
-  delete [] fieldlabel;
-  delete [] fieldtype;
-  delete [] readerstyle;
+  for (int i = 0; i < nfile; i++) delete[] files[i];
+  delete[] files;
+  for (int i = 0; i < nfield; i++) delete[] fieldlabel[i];
+  delete[] fieldlabel;
+  delete[] fieldtype;
+  delete[] readerstyle;
 
   memory->destroy(fields);
   memory->destroy(buf);
 
   for (int i = 0; i < nreader; i++) delete readers[i];
-  delete [] readers;
-  delete [] nsnapatoms;
+  delete[] readers;
+  delete[] nsnapatoms;
 
   MPI_Comm_free(&clustercomm);
 }
@@ -108,7 +95,7 @@ void ReadDump::command(int narg, char **arg)
 
   // find the snapshot and read/bcast/process header info
 
-  if (me == 0) utils::logmesg(lmp,"Scanning dump file ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Scanning dump file ...\n");
 
   bigint ntimestep = seek(nstep,1);
   if (ntimestep < 0)
@@ -123,7 +110,7 @@ void ReadDump::command(int narg, char **arg)
 
   // read in the snapshot and reset system
 
-  if (me == 0) utils::logmesg(lmp,"Reading snapshot from dump file ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Reading snapshot from dump file ...\n");
 
   bigint natoms_prev = atom->natoms;
   atoms();
@@ -153,7 +140,7 @@ void ReadDump::command(int narg, char **arg)
 
   domain->print_box("  ");
 
-  if (me == 0)
+  if (comm->me == 0)
     utils::logmesg(lmp,"  {} atoms before read\n"
                    "  {} atoms in snapshot\n"
                    "  {} atoms purged\n"
@@ -202,14 +189,14 @@ void ReadDump::setup_reader(int narg, char **arg)
     nreader = 1;
     firstfile = -1;
     MPI_Comm_dup(world,&clustercomm);
-  } else if (multiproc_nfile >= nprocs) {
-    firstfile = static_cast<int> ((bigint) me * multiproc_nfile/nprocs);
-    int lastfile = static_cast<int> ((bigint) (me+1) * multiproc_nfile/nprocs);
+  } else if (multiproc_nfile >= comm->nprocs) {
+    firstfile = static_cast<int> ((bigint) comm->me * multiproc_nfile/comm->nprocs);
+    int lastfile = static_cast<int> ((bigint) (comm->me+1) * multiproc_nfile/comm->nprocs);
     nreader = lastfile - firstfile;
-    MPI_Comm_split(world,me,0,&clustercomm);
-  } else if (multiproc_nfile < nprocs) {
+    MPI_Comm_split(world,comm->me,0,&clustercomm);
+  } else if (multiproc_nfile < comm->nprocs) {
     nreader = 1;
-    int icluster = static_cast<int> ((bigint) me * multiproc_nfile/nprocs);
+    int icluster = static_cast<int> ((bigint) comm->me * multiproc_nfile/comm->nprocs);
     firstfile = icluster;
     MPI_Comm_split(world,icluster,0,&clustercomm);
   }
@@ -272,7 +259,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0 || parallel) {
+  if (comm->me == 0 || parallel) {
 
     // exit file loop when dump timestep >= nrequest
     // or files exhausted
@@ -323,7 +310,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
   if (multiproc && filereader) {
     for (int i = 0; i < nreader; i++) {
-      if (me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
+      if (comm->me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
       std::string multiname = files[currentfile];
       multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
       readers[i]->open_file(multiname);
@@ -361,7 +348,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
   // proc 0 finds the timestep in its first reader
 
-  if (me == 0 || parallel) {
+  if (comm->me == 0 || parallel) {
 
     // exit file loop when dump timestep matches all criteria
     // or files exhausted
@@ -425,7 +412,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
   if (multiproc && filereader) {
     for (int i = 0; i < nreader; i++) {
-      if (me == 0 && i == 0) continue;
+      if (comm->me == 0 && i == 0) continue;
       std::string multiname = files[currentfile];
       multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
       readers[i]->open_file(multiname);
@@ -459,10 +446,9 @@ void ReadDump::header(int fieldinfo)
 
   if (filereader) {
     for (int i = 0; i < nreader; i++)
-      nsnapatoms[i] = readers[i]->read_header(box,boxinfo,triclinic_snap,fieldinfo,
-                                              nfield,fieldtype,fieldlabel,
-                                              scaleflag,wrapflag,fieldflag,
-                                              xflag,yflag,zflag);
+      nsnapatoms[i]
+        = readers[i]->read_header(box, boxinfo, triclinic_snap, fieldinfo, nfield, fieldtype,
+                                  fieldlabel, scaleflag, wrapflag, fieldflag, xflag, yflag, zflag);
   }
 
   if (!parallel) {
@@ -518,8 +504,8 @@ void ReadDump::header(int fieldinfo)
   if (boxflag) {
     if (!boxinfo)
       error->all(FLERR,"No box information in dump, must use 'box no'");
-    else if ((triclinic_snap && !triclinic) ||
-             (!triclinic_snap && triclinic))
+    else if ((triclinic_snap && !domain->triclinic) ||
+             (!triclinic_snap && domain->triclinic))
       error->one(FLERR,"Read_dump triclinic status does not match simulation");
   }
 
@@ -563,7 +549,7 @@ void ReadDump::header(int fieldinfo)
   // set yindex,zindex = column index of Y and Z fields in fields array
   // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
 
-  if (scaled && triclinic == 1) {
+  if (scaled && domain->triclinic == 1) {
     int flag = 0;
     if (xflag == Reader::UNSET) flag = 1;
     if (yflag == Reader::UNSET) flag = 1;
@@ -606,12 +592,12 @@ void ReadDump::atoms()
   // migrate old owned atoms to new procs based on atom IDs
   // not necessary if purged all old atoms or if only 1 proc
 
-  if (!purgeflag && nprocs > 1) migrate_old_atoms();
+  if (!purgeflag && comm->nprocs > 1) migrate_old_atoms();
 
   // migrate new snapshot atoms to same new procs based on atom IDs
   // not necessary if purged all old atoms or if only 1 proc
 
-  if (!purgeflag && nprocs > 1) migrate_new_atoms();
+  if (!purgeflag && comm->nprocs > 1) migrate_new_atoms();
 
   // must build map if not a molecular system
   // this will be needed to match new atoms to old atoms
@@ -653,13 +639,13 @@ void ReadDump::atoms()
     domain->boxhi[0] = xhi;
     domain->boxlo[1] = ylo;
     domain->boxhi[1] = yhi;
-    if (dimension == 3) {
+    if (domain->dimension == 3) {
       domain->boxlo[2] = zlo;
       domain->boxhi[2] = zhi;
     }
-    if (triclinic) {
+    if (domain->triclinic) {
       domain->xy = xy;
-      if (dimension == 3) {
+      if (domain->dimension == 3) {
         domain->xz = xz;
         domain->yz = yz;
       }
@@ -693,7 +679,7 @@ void ReadDump::read_atoms()
   // each reading proc reads one file and splits data across cluster
   // cluster can be all procs or a subset
 
-  if (!parallel && (!multiproc || multiproc_nfile < nprocs)) {
+  if (!parallel && (!multiproc || multiproc_nfile < comm->nprocs)) {
     nsnap = nsnapatoms[0];
 
     if (filereader) {
@@ -765,7 +751,7 @@ void ReadDump::read_atoms()
   // every proc is a filereader, reads one or more files
   // each proc keeps all data it reads, no communication required
 
-  } else if (multiproc_nfile >= nprocs || parallel) {
+  } else if (multiproc_nfile >= comm->nprocs || parallel) {
     bigint sum = 0;
     for (int i = 0; i < nreader; i++)
       sum += nsnapatoms[i];
@@ -1072,7 +1058,7 @@ void ReadDump::migrate_old_atoms()
   int *procassign;
   memory->create(procassign,nlocal,"read_dump:procassign");
   for (int i = 0; i < nlocal; i++)
-    procassign[i] = tag[i] % nprocs;
+    procassign[i] = tag[i] % comm->nprocs;
 
   auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1,1,procassign);
@@ -1094,7 +1080,7 @@ void ReadDump::migrate_new_atoms()
   memory->create(procassign,nnew,"read_dump:procassign");
   for (int i = 0; i < nnew; i++) {
     mtag = static_cast<tagint> (fields[i][0]);
-    procassign[i] = mtag % nprocs;
+    procassign[i] = mtag % comm->nprocs;
   }
 
   auto irregular = new Irregular(lmp);
@@ -1132,12 +1118,12 @@ void ReadDump::migrate_atoms_by_coords()
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
-  if (triclinic) domain->x2lamda(atom->nlocal);
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
   auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
-  if (triclinic) domain->lamda2x(atom->nlocal);
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -1164,7 +1150,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   nfield = 0;
   fieldtype[nfield++] = Reader::ID;
   if (iarg < narg) {
-    if (comm->me == 0) utils::logmesg(lmp, "Adding 'type' field to requested per-atom fields");
+    if (comm->me == 0) utils::logmesg(lmp, "Adding 'type' field to requested per-atom fields\n");
     fieldtype[nfield++] = Reader::TYPE;
   }
 
@@ -1185,7 +1171,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
     error->all(FLERR,"Illegal read_dump command");
 
-  if (dimension == 2) {
+  if (domain->dimension == 2) {
     for (int i = 0; i < nfield; i++)
       if (fieldtype[i] == Reader::Z || fieldtype[i] == Reader::VZ ||
           fieldtype[i] == Reader::IZ || fieldtype[i] == Reader::FZ)
@@ -1263,7 +1249,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      delete [] readerstyle;
+      delete[] readerstyle;
       readerstyle = utils::strdup(arg[iarg+1]);
       iarg += 2;
       break;
@@ -1319,8 +1305,8 @@ int ReadDump::whichtype(char *str)
 double ReadDump::xfield(int i, int j)
 {
   if (!scaled) return fields[i][j];
-  else if (!triclinic) return fields[i][j]*xprd + xlo;
-  else if (dimension == 2)
+  else if (!domain->triclinic) return fields[i][j]*xprd + xlo;
+  else if (domain->dimension == 2)
     return xprd*fields[i][j] + xy*fields[i][yindex] + xlo;
   return xprd*fields[i][j] + xy*fields[i][yindex] + xz*fields[i][zindex] + xlo;
 }
@@ -1328,8 +1314,8 @@ double ReadDump::xfield(int i, int j)
 double ReadDump::yfield(int i, int j)
 {
   if (!scaled) return fields[i][j];
-  else if (!triclinic) return fields[i][j]*yprd + ylo;
-  else if (dimension == 2) return yprd*fields[i][j] + ylo;
+  else if (!domain->triclinic) return fields[i][j]*yprd + ylo;
+  else if (domain->dimension == 2) return yprd*fields[i][j] + ylo;
   return yprd*fields[i][j] + yz*fields[i][zindex] + ylo;
 }
 

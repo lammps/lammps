@@ -82,7 +82,7 @@ void ReadDump::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Read_dump command before simulation box is defined");
 
-  if (narg < 2) error->all(FLERR,"Illegal read_dump command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "read_dump", error);
 
   store_files(1,&arg[0]);
   bigint nstep = utils::bnumeric(FLERR,arg[1],false,lmp);
@@ -512,7 +512,7 @@ void ReadDump::header(int fieldinfo)
   // error check on requested fields existing in dump file
 
   if (fieldflag < 0)
-    error->one(FLERR,"Read_dump field not found in dump file");
+    error->one(FLERR,"One of the requested read_dump per-atom fields not found in dump file");
 
   // all explicitly requested x,y,z must have consistent scaling & wrapping
 
@@ -1161,7 +1161,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     int type = whichtype(arg[iarg]);
     if (type < 0) break;
     if (type == Reader::Q && !atom->q_flag)
-      error->all(FLERR,"Read dump of atom property that isn't allocated");
+      error->all(FLERR,"Read dump of charge property that isn't supported by atom style");
     fieldtype[nfield++] = type;
     iarg++;
   }
@@ -1169,13 +1169,13 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   // check for no fields
 
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
-    error->all(FLERR,"Illegal read_dump command");
+    error->all(FLERR,"Read_dump must use at least either 'id' or 'type' field");
 
   if (domain->dimension == 2) {
     for (int i = 0; i < nfield; i++)
       if (fieldtype[i] == Reader::Z || fieldtype[i] == Reader::VZ ||
           fieldtype[i] == Reader::IZ || fieldtype[i] == Reader::FZ)
-        error->all(FLERR,"Illegal read_dump command");
+        error->all(FLERR,"Read_dump must not read z-dimension data with 2d system");
   }
 
   for (int i = 0; i < nfield; i++)
@@ -1198,40 +1198,40 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nfile") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump nfile", error);
       multiproc_nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"box") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump box", error);
       boxflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"timestep") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump timestep", error);
       timestepflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"replace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump replace", error);
       replaceflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"purge") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump purge", error);
       purgeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"trim") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump trim", error);
       trimflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"add") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump add", error);
       if (strcmp(arg[iarg+1],"yes") == 0) addflag = YESADD;
       else if (strcmp(arg[iarg+1],"no") == 0) addflag = NOADD;
       else if (strcmp(arg[iarg+1],"true") == 0) addflag = YESADD;
       else if (strcmp(arg[iarg+1],"false") == 0) addflag = NOADD;
       else if (strcmp(arg[iarg+1],"keep") == 0) addflag = KEEPADD;
-      else error->all(FLERR,"Illegal read_dump command");
+      else error->all(FLERR,"Unknown read_dump add keyword {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"label") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "read_dump label", error);
       int type = whichtype(arg[iarg+1]);
       int i;
       for (i = 0; i < nfield; i++)
@@ -1240,20 +1240,20 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       fieldlabel[i] = utils::strdup(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"scaled") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump scaled", error);
       scaleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"wrapped") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump wrapped", error);
       wrapflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump format", error);
       delete[] readerstyle;
       readerstyle = utils::strdup(arg[iarg+1]);
       iarg += 2;
       break;
-    } else error->all(FLERR,"Illegal read_dump command");
+    } else error->all(FLERR,"Unknown read_dump keyword: {}",arg[iarg]);
   }
 
   if (multiproc == 0 && multiproc_nfile)

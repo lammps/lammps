@@ -111,6 +111,8 @@ void ComputeRHEOGrad::init()
   compute_kernel = fix_rheo->compute_kernel;
   compute_interface = fix_rheo->compute_interface;
 
+  remap_v_flag = domain->deform_vremap;
+
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 }
 
@@ -301,13 +303,23 @@ void ComputeRHEOGrad::forward_fields()
 /* ---------------------------------------------------------------------- */
 
 int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
-                                        int /*pbc_flag*/, int * /*pbc*/)
+                                        int pbc_flag, int *pbc)
 {
   int i,j,k,m;
+  int *mask = atom->mask;
   double *rho = atom->rho;
   double *temperature = atom->temperature;
   double **v = atom->v;
   int dim = domain->dimension;
+  double *h_rate = domain->h_rate;
+  int deform_groupbit = domain->deform_groupbit;
+  double dv[3];
+
+  if (remap_v_flag) {
+    dv[0] = pbc[0] * h_rate[0] + pbc[5] * h_rate[5] + pbc[4] * h_rate[4];
+    dv[1] = pbc[1] * h_rate[1] + pbc[3] * h_rate[3];
+    dv[2] = pbc[2] * h_rate[2];
+  }
 
   m = 0;
 
@@ -333,9 +345,17 @@ int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
 
     } else if (comm_stage == COMMFIELD) {
 
-      if (velocity_flag)
-        for (k = 0; k < dim; k++)
-          buf[m++] = v[j][k];
+      if (velocity_flag) {
+        if (remap_v_flag & pbc_flag & (mask[j] & deform_groupbit)) {
+          for (k = 0; k < dim; k++)
+            buf[m++] = v[j][k] + dv[k];
+        } else {
+          for (k = 0; k < dim; k++)
+            buf[m++] = v[j][k];
+        }
+      }
+
+
 
       if (rho_flag)
         buf[m++] = rho[j];

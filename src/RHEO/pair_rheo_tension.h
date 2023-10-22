@@ -11,51 +11,43 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef PAIR_CLASS
 // clang-format off
-ComputeStyle(RHEO/GRAD,ComputeRHEOGrad)
+PairStyle(rheo/tension,PairRHEOTension)
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_RHEO_GRAD_H
-#define LMP_COMPUTE_RHEO_GRAD_H
+#ifndef LMP_PAIR_RHEO_TENSION_H
+#define LMP_PAIR_RHEO_TENSION_H
 
-#include "compute.h"
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class ComputeRHEOGrad : public Compute {
+class PairRHEOTension : public Pair {
  public:
-  ComputeRHEOGrad(class LAMMPS *, int, char **);
-  ~ComputeRHEOGrad() override;
-  void init() override;
-  void init_list(int, class NeighList *) override;
-  void compute_peratom() override;
+  PairRHEOTension(class LAMMPS *);
+  ~PairRHEOTension() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void setup() override;
+  void init_style() override;
+  double init_one(int, int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
-  double memory_usage() override;
-  void forward_gradients();
-  void forward_fields();
-  double **gradv;
-  double **gradr;
-  double **gradt;
-  double **gradn;
-  class FixRHEO *fix_rheo;
 
- private:
-  int comm_stage, ncomm_grad, ncomm_field, nmax_store;
-  double cut, cutsq, rho0;
+ protected:
+  int nmax_store;
+  double **nt, *ct;
+  double *alpha;
+  double hsq, hinv, hinv3;
 
-  int velocity_flag, temperature_flag, rho_flag, eta_flag;
-  int interface_flag, remap_v_flag;
+  void allocate();
 
   class ComputeRHEOKernel *compute_kernel;
-  class ComputeRHEOInterface *compute_interface;
-  class NeighList *list;
-
-  void grow_arrays(int);
+  class FixRHEO *fix_rheo;
 };
 
 }    // namespace LAMMPS_NS

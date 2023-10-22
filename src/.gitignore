@@ -217,6 +217,8 @@
 /fix_rheo.h
 /fix_rheo_pressure.cpp
 /fix_rheo_pressure.h
+/fix_rheo_stress.cpp
+/fix_rheo_stress.h
 /fix_rheo_thermal.cpp
 /fix_rheo_thermal.h
 /fix_rheo_viscosity.cpp
@@ -225,6 +227,8 @@
 /pair_rheo.h
 /pair_rheo_react.cpp
 /pair_rheo_react.h
+/pair_rheo_tension.cpp
+/pair_rheo_tension.h
 
 /compute_grid.cpp
 /compute_grid.h

@@ -389,7 +389,7 @@ This change is **required** or else the code will not compile.
 Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: TBD
+.. versionchanged:: 28Mar2023
 
 The available functionality of the internal fix to store per-atom
 properties was expanded to enable storing data with ghost atoms and to

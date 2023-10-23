@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,6 +15,7 @@
 
 #include "atom.h"
 #include "error.h"
+#include "force.h"
 #include "my_page.h"
 #include "neigh_list.h"
 
@@ -23,8 +23,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<int NEWTON, int TRIM>
-NPairHalffull<NEWTON, TRIM>::NPairHalffull(LAMMPS *lmp) : NPair(lmp) {}
+template<int NEWTON, int TRI, int TRIM>
+NPairHalffull<NEWTON, TRI, TRIM>::NPairHalffull(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build half list from full list
@@ -37,15 +37,22 @@ NPairHalffull<NEWTON, TRIM>::NPairHalffull(LAMMPS *lmp) : NPair(lmp) {}
      if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
    Newton:
      if j is ghost, only store if j coords are "above and to the right" of i
+     use i < j < nlocal to eliminate half the local/local interactions
+   Newton + Triclinic:
+     must use delta to eliminate half the local/ghost interactions
+     cannot use I/J exact coord comparision as for orthog
+       b/c transforming orthog -> lambda -> orthog for ghost atoms
+       with an added PBC offset can shift all 3 coords by epsilon
 ------------------------------------------------------------------------- */
 
-template<int NEWTON, int TRIM>
-void NPairHalffull<NEWTON, TRIM>::build(NeighList *list)
+template<int NEWTON, int TRI, int TRIM>
+void NPairHalffull<NEWTON, TRI, TRIM>::build(NeighList *list)
 {
-  int i,j,ii,jj,n,jnum,joriginal;
-  int *neighptr,*jlist;
-  double xtmp,ytmp,ztmp;
-  double delx,dely,delz,rsq;
+  int i, j, ii, jj, n, jnum, joriginal;
+  int *neighptr, *jlist;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+
+  const double delta = 0.01 * force->angstrom;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -86,9 +93,18 @@ void NPairHalffull<NEWTON, TRIM>::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
+
       if (NEWTON) {
         if (j < nlocal) {
           if (i > j) continue;
+        } else if (TRI) {
+          if (fabs(x[j][2]-ztmp) > delta) {
+            if (x[j][2] < ztmp) continue;
+          } else if (fabs(x[j][1]-ytmp) > delta) {
+            if (x[j][1] < ytmp) continue;
+          } else {
+            if (x[j][0] < xtmp) continue;
+          }
         } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
@@ -105,6 +121,7 @@ void NPairHalffull<NEWTON, TRIM>::build(NeighList *list)
 
           if (rsq > cutsq_custom) continue;
         }
+
         neighptr[n++] = joriginal;
       } else {
         if (j > i) {
@@ -116,6 +133,7 @@ void NPairHalffull<NEWTON, TRIM>::build(NeighList *list)
 
             if (rsq > cutsq_custom) continue;
           }
+
           neighptr[n++] = joriginal;
         }
       }
@@ -125,18 +143,18 @@ void NPairHalffull<NEWTON, TRIM>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
-
   list->inum = inum;
   if (!NEWTON)
     if (list->ghost) list->gnum = list->listfull->gnum;
 }
 
 namespace LAMMPS_NS {
-template class NPairHalffull<0,0>;
-template class NPairHalffull<1,0>;
-template class NPairHalffull<0,1>;
-template class NPairHalffull<1,1>;
+template class NPairHalffull<0,0,0>;
+template class NPairHalffull<1,0,0>;
+template class NPairHalffull<1,1,0>;
+template class NPairHalffull<0,0,1>;
+template class NPairHalffull<1,0,1>;
+template class NPairHalffull<1,1,1>;
 }

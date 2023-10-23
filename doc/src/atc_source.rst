@@ -6,7 +6,7 @@ fix_modify AtC source command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> source <field> <element_set> <value|function>
 

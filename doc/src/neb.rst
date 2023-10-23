@@ -6,7 +6,7 @@ neb command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neb etol ftol N1 N2 Nevery file-style arg keyword values
 

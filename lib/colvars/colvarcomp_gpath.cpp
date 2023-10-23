@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <limits>
+#include <fstream>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -426,9 +427,8 @@ colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
     std::string path_filename;
     get_keyval(conf, "pathFile", path_filename);
     cvm::log(std::string("Reading path file: ") + path_filename + std::string("\n"));
-    std::ifstream ifs_path(path_filename);
-    if (!ifs_path.is_open()) {
-        cvm::error("Error: failed to open path file.\n");
+    auto &ifs_path = cvm::main()->proxy->input_stream(path_filename);
+    if (!ifs_path) {
         return;
     }
     std::string line;
@@ -459,6 +459,7 @@ colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
             ++total_reference_frames;
         }
     }
+    cvm::main()->proxy->close_input_stream(path_filename);
     if (total_reference_frames <= 1) {
 	cvm::error("Error: there is only 1 or 0 reference frame, which doesn't constitute a path.\n");
         return;

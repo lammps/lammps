@@ -62,7 +62,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 8) utils::missing_cmd_args(FLERR, "fix widom", error);
 
   if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"Fix widom does not (yet) work with atom_style template");
+    error->all(FLERR, "Fix widom does not (yet) work with atom_style template");
 
   dynamic_group_allow = 1;
 
@@ -247,6 +247,36 @@ FixWidom::~FixWidom()
   memory->destroy(molq);
   memory->destroy(molimage);
 
+  // delete exclusion group created in init()
+  // delete molecule group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+
+  if (exclusion_group_bit && group) {
+    auto group_id = std::string("FixWidom:widom_exclusion_group:") + id;
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        fprintf(stderr, "Error deleting group %s: %s\n", group_id.c_str(), e.what());
+    }
+  }
+
+  if (molecule_group_bit && group) {
+    auto group_id = std::string("FixWidom:rotation_gas_atoms:") + id;
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        fprintf(stderr, "Error deleting group %s: %s\n", group_id.c_str(), e.what());
+    }
+  }
+
+  if (full_flag && group && neighbor) {
+    int igroupall = group->find("all");
+    neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -403,7 +433,8 @@ void FixWidom::init()
   // full_flag on molecules on more than one processor.
   // Print error if this is the current mode
   if (full_flag && (exchmode == EXCHMOL) && comm->nprocs > 1)
-    error->all(FLERR,"fix widom does currently not support full_energy option with molecules on more than 1 MPI process.");
+    error->all(FLERR,"fix widom does currently not support full_energy option with "
+               "molecules on more than 1 MPI process.");
 
 }
 
@@ -1019,13 +1050,7 @@ double FixWidom::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
-  // unlike Verlet, not performing a reverse_comm() or forces here
-  // b/c Widom does not care about forces
-  // don't think it will mess up energy due to any post_force() fixes
-  // but Modify::pre_reverse() is needed for INTEL
-
-  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->n_post_force_any) modify->post_force(vflag);
 
   // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force()

@@ -72,6 +72,7 @@ if (test $1 = "DIELECTRIC") then
 fi
 
 if (test $1 = "DIPOLE") then
+  depend KOKKOS
   depend OPENMP
 fi
 
@@ -149,6 +150,7 @@ if (test $1 = "MOLECULE") then
   depend GPU
   depend KOKKOS
   depend FEP
+  depend MESONT
   depend OPENMP
   depend INTEL
 fi
@@ -206,4 +208,8 @@ fi
 if (test $1 = "REAXFF") then
   depend KOKKOS
   depend OPENMP
+fi
+
+if (test $1 = "SPIN") then
+  depend KOKKOS
 fi

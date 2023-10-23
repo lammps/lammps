@@ -73,7 +73,7 @@ public:
   virtual int calc_forces(std::vector<colvarvalue> const *values);
 
   /// Send forces to the collective variables
-  void communicate_forces();
+  int communicate_forces();
 
   /// Carry out operations needed before next step is run
   virtual int end_of_step();

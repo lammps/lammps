@@ -46,7 +46,7 @@ class ThrOMP {
 
  public:
   ThrOMP(LAMMPS *, int);
-  virtual ~ThrOMP() = default;
+  virtual ~ThrOMP() noexcept(false) {}
 
   double memory_usage_thr();
 

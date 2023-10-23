@@ -114,6 +114,7 @@ accelerated styles exist.
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
+* :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`amoeba <pair_amoeba>` -
@@ -132,6 +133,7 @@ accelerated styles exist.
 * :doc:`born/coul/msm <pair_born>` - Born with long-range MSM Coulomb
 * :doc:`born/coul/wolf <pair_born>` - Born with Wolf potential for Coulomb
 * :doc:`born/coul/wolf/cs <pair_cs>` - Born with Wolf potential for Coulomb and core/shell model
+* :doc:`born/gauss <pair_born_gauss>` - Born-Mayer / Gaussian potential
 * :doc:`bpm/spring <pair_bpm_spring>` - repulsive harmonic force with damping
 * :doc:`brownian <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics
 * :doc:`brownian/poly <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics with polydispersity
@@ -214,6 +216,7 @@ accelerated styles exist.
 * :doc:`lennard/mdf <pair_mdf>` - LJ potential in A/B form with a taper function
 * :doc:`lepton <pair_lepton>` - pair potential from evaluating a string
 * :doc:`lepton/coul <pair_lepton>` - pair potential from evaluating a string with support for charges
+* :doc:`lepton/sphere <pair_lepton>` - pair potential from evaluating a string with support for radii
 * :doc:`line/lj <pair_line_lj>` - LJ potential between line segments
 * :doc:`list <pair_list>` - potential between pairs of atoms explicitly listed in an input file
 * :doc:`lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb
@@ -248,12 +251,14 @@ accelerated styles exist.
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
+* :doc:`lj/cut/sphere <pair_lj_cut_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj_cut_tip4p>` - LJ with cutoff Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long <pair_lj_cut_tip4p>` - LJ with long-range Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>` - LJ with cutoff Coulomb for TIP4P water with a soft core
 * :doc:`lj/expand <pair_lj_expand>` - Lennard-Jones for variable size particles
 * :doc:`lj/expand/coul/long <pair_lj_expand>` - Lennard-Jones for variable size particles with long-range Coulomb
+* :doc:`lj/expand/sphere <pair_lj_expand_sphere>` - Variable size LJ where per-atom radius is used as delta (size)
 * :doc:`lj/gromacs <pair_gromacs>` - GROMACS-style Lennard-Jones potential
 * :doc:`lj/gromacs/coul/gromacs <pair_gromacs>` - GROMACS-style LJ and Coulomb potential
 * :doc:`lj/long/coul/long <pair_lj_long>` - long-range LJ and long-range Coulomb

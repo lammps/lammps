@@ -75,15 +75,14 @@ class ComputeTempKokkos : public ComputeTemp {
   void operator()(TagComputeTempVector<RMASS>, const int&, CTEMP&) const;
 
  protected:
-  typename ArrayTypes<DeviceType>::t_v_array_randomread v;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread mask;
+  typename AT::t_v_array_randomread v;
+  typename AT::t_float_1d_randomread rmass;
+  typename AT::t_float_1d_randomread mass;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d_randomread mask;
 };
 
 }
 
 #endif
 #endif
-

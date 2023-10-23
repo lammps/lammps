@@ -104,7 +104,6 @@ OPT.
    * :doc:`langevin/drude <fix_langevin_drude>`
    * :doc:`langevin/eff <fix_langevin_eff>`
    * :doc:`langevin/spin <fix_langevin_spin>`
-   * :doc:`latte <fix_latte>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
    * :doc:`lb/viscous <fix_lb_viscous>`
@@ -117,7 +116,6 @@ OPT.
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
    * :doc:`move <fix_move>`
-   * :doc:`mscg <fix_mscg>`
    * :doc:`msst <fix_msst>`
    * :doc:`mvv/dpd <fix_mvv_dpd>`
    * :doc:`mvv/edpd <fix_mvv_dpd>`
@@ -172,6 +170,7 @@ OPT.
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
+   * :doc:`pimd/langevin <fix_pimd>`
    * :doc:`pimd/nvt <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
@@ -261,7 +260,7 @@ OPT.
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`
    * :doc:`wall/ees <fix_wall_ees>`
-   * :doc:`wall/gran <fix_wall_gran>`
+   * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
    * :doc:`wall/harmonic <fix_wall>`
    * :doc:`wall/lj1043 <fix_wall>`

@@ -162,7 +162,6 @@ class NPairKokkos : public NPair {
 
   DAT::tdual_int_1d k_ex1_type,k_ex2_type;
   DAT::tdual_int_2d k_ex_type;
-  DAT::tdual_int_1d k_ex1_group,k_ex2_group;
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
@@ -203,7 +202,6 @@ class NeighborKokkosExecute
   const typename AT::t_int_2d_const ex_type;
 
   const int nex_group;
-  const typename AT::t_int_1d_const ex1_group,ex2_group;
   const typename AT::t_int_1d_const ex1_bit,ex2_bit;
 
   const int nex_mol;
@@ -289,8 +287,6 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d_const & _ex2_type,
                         const typename AT::t_int_2d_const & _ex_type,
                         const int & _nex_group,
-                        const typename AT::t_int_1d_const & _ex1_group,
-                        const typename AT::t_int_1d_const & _ex2_group,
                         const typename AT::t_int_1d_const & _ex1_bit,
                         const typename AT::t_int_1d_const & _ex2_bit,
                         const int & _nex_mol,
@@ -307,8 +303,8 @@ class NeighborKokkosExecute
                         const typename ArrayTypes<LMPHostType>::t_int_scalar _h_new_maxneighs):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),exclude(_exclude),
     nex_type(_nex_type),ex1_type(_ex1_type),ex2_type(_ex2_type),
-    ex_type(_ex_type),nex_group(_nex_group),ex1_group(_ex1_group),
-    ex2_group(_ex2_group),ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),
+    ex_type(_ex_type),nex_group(_nex_group),
+    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),
     nex_mol(_nex_mol),ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
     ex_mol_intra(_ex_mol_intra),mbins(_mbins),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),

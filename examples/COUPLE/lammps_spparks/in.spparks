@@ -20,4 +20,8 @@ diag_style       energy
 temperature	 1.0
 
 stats            10.0
-dump             1 10.0 dump.mc
+dump             1 text 10.0 dump.mc id site x y
+
+dump 		 2 image 1000 image_spparks.*.ppm site site view 0 0 box no 0.1 &
+                 crange 1 100 drange 1 1 shape cube zoom 1.5 size 512 512
+dump_modify 	 2 pad 4

@@ -6,7 +6,7 @@ fix phonon command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ...
 

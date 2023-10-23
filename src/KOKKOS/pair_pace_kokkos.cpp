@@ -403,9 +403,9 @@ void PairPACEKokkos<DeviceType>::init_style()
   neighflag = lmp->kokkos->neighflag;
 
   auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair pace/kk");
 
@@ -584,6 +584,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::deep_copy(A, 0.0);
     Kokkos::deep_copy(A_rank1, 0.0);
     Kokkos::deep_copy(rhos, 0.0);
+    Kokkos::deep_copy(rho_core, 0.0);
 
     EV_FLOAT ev_tmp;
 
@@ -1152,8 +1153,8 @@ KOKKOS_INLINE_FUNCTION
 void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>, const int& ii, EV_FLOAT& ev) const
 {
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  const auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type(i);

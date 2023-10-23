@@ -13,77 +13,101 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairHalffull<0, 0> NPairHalffullNewtoff;
+typedef NPairHalffull<0, 0, 0> NPairHalffullNewtoff;
 NPairStyle(halffull/newtoff,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI);
 
-typedef NPairHalffull<0, 0> NPairHalffullNewtoff;
+typedef NPairHalffull<0, 0, 0> NPairHalffullNewtoff;
 NPairStyle(halffull/newtoff/skip,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP);
 
-typedef NPairHalffull<0, 0> NPairHalffullNewtoff;
+typedef NPairHalffull<0, 0, 0> NPairHalffullNewtoff;
 NPairStyle(halffull/newtoff/ghost,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_GHOST);
 
-typedef NPairHalffull<0, 0> NPairHalffullNewtoff;
+typedef NPairHalffull<0, 0, 0> NPairHalffullNewtoff;
 NPairStyle(halffull/newtoff/skip/ghost,
            NPairHalffullNewtoff,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST);
 
-typedef NPairHalffull<1, 0> NPairHalffullNewton;
+typedef NPairHalffull<1, 0, 0> NPairHalffullNewton;
 NPairStyle(halffull/newton,
            NPairHalffullNewton,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
-           NP_ORTHO | NP_TRI);
+           NP_ORTHO);
 
-typedef NPairHalffull<1, 0> NPairHalffullNewton;
+typedef NPairHalffull<1, 1, 0> NPairHalffullNewtonTri;
+NPairStyle(halffull/newton/tri,
+           NPairHalffullNewtonTri,
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_TRI);
+
+typedef NPairHalffull<1, 0, 0> NPairHalffullNewton;
 NPairStyle(halffull/newton/skip,
            NPairHalffullNewton,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
-           NP_ORTHO | NP_TRI | NP_SKIP);
+           NP_ORTHO | NP_SKIP);
 
-typedef NPairHalffull<0, 1> NPairHalffullNewtoffTrim;
+typedef NPairHalffull<1, 1, 0> NPairHalffullNewtonTri;
+NPairStyle(halffull/newton/skip/tri,
+           NPairHalffullNewtonTri,
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_TRI | NP_SKIP);
+
+typedef NPairHalffull<0, 0, 1> NPairHalffullNewtoffTrim;
 NPairStyle(halffull/newtoff/trim,
            NPairHalffullNewtoffTrim,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_TRIM);
 
-typedef NPairHalffull<0, 1> NPairHalffullNewtoffTrim;
+typedef NPairHalffull<0, 0, 1> NPairHalffullNewtoffTrim;
 NPairStyle(halffull/newtoff/skip/trim,
            NPairHalffullNewtoffTrim,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM);
 
-typedef NPairHalffull<0, 1> NPairHalffullNewtoffTrim;
+typedef NPairHalffull<0, 0, 1> NPairHalffullNewtoffTrim;
 NPairStyle(halffull/newtoff/ghost/trim,
            NPairHalffullNewtoffTrim,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM);
 
-typedef NPairHalffull<0, 1> NPairHalffullNewtoffTrim;
+typedef NPairHalffull<0, 0, 1> NPairHalffullNewtoffTrim;
 NPairStyle(halffull/newtoff/skip/ghost/trim,
            NPairHalffullNewtoffTrim,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_TRIM);
 
-typedef NPairHalffull<1, 1> NPairHalffullNewtonTrim;
+typedef NPairHalffull<1, 0, 1> NPairHalffullNewtonTrim;
 NPairStyle(halffull/newton/trim,
            NPairHalffullNewtonTrim,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
-           NP_ORTHO | NP_TRI | NP_TRIM);
+           NP_ORTHO | NP_TRIM);
 
-typedef NPairHalffull<1, 1> NPairHalffullNewtonTrim;
+typedef NPairHalffull<1, 1, 1> NPairHalffullNewtonTriTrim;
+NPairStyle(halffull/newton/tri/trim,
+           NPairHalffullNewtonTriTrim,
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_TRI | NP_TRIM);
+
+typedef NPairHalffull<1, 0, 1> NPairHalffullNewtonTrim;
 NPairStyle(halffull/newton/skip/trim,
            NPairHalffullNewtonTrim,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM);
+           NP_ORTHO | NP_SKIP | NP_TRIM);
+
+typedef NPairHalffull<1, 1, 1> NPairHalffullNewtonTriTrim;
+NPairStyle(halffull/newton/tri/skip/trim,
+           NPairHalffullNewtonTriTrim,
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_TRI | NP_SKIP | NP_TRIM);
 // clang-format on
 #else
 
@@ -94,7 +118,7 @@ NPairStyle(halffull/newton/skip/trim,
 
 namespace LAMMPS_NS {
 
-template<int NEWTON, int TRIM>
+template<int NEWTON, int TRI, int TRIM>
 class NPairHalffull : public NPair {
  public:
   NPairHalffull(class LAMMPS *);

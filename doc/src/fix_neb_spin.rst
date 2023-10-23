@@ -6,7 +6,7 @@ fix neb/spin command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID neb/spin Kspring
 

@@ -571,9 +571,11 @@ void DomainKokkos::lamda2x(int n)
 
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_lamda2x, const int &i) const {
-  x(i,0) = h[0]*x(i,0) + h[5]*x(i,1) + h[4]*x(i,2) + boxlo[0];
-  x(i,1) = h[1]*x(i,1) + h[3]*x(i,2) + boxlo[1];
-  x(i,2) = h[2]*x(i,2) + boxlo[2];
+  const double xi1 = x(i,1);
+  const double xi2 = x(i,2);
+  x(i,0) = h[0]*x(i,0) + h[5]*xi1 + h[4]*xi2 + boxlo[0];
+  x(i,1) = h[1]*xi1 + h[3]*xi2 + boxlo[1];
+  x(i,2) = h[2]*xi2 + boxlo[2];
 }
 
 /* ----------------------------------------------------------------------

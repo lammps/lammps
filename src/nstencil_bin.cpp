@@ -30,10 +30,17 @@ void NStencilBin<HALF, DIM_3D, TRI>::create()
   int i, j, k;
 
   // For half stencils, only the upper plane is needed
+  // for triclinic, need to use full stencil in all dims
+  //   not a half stencil in y
+  // b/c transforming orthog -> lambda -> orthog for ghost atoms
+  //   with an added PBC offset can shift both coords by epsilon
+  // thus for an I/J owned/ghost pair, the xy coords
+  //   and bin assignments can be different on I proc vs J proc
+
   int sy_min = sy;
   int sz_min = sz;
-  if (HALF && (!DIM_3D)) sy_min = 0;
-  if (HALF && DIM_3D) sz_min = 0;
+  if ((!TRI) && HALF && (!DIM_3D)) sy_min = 0;
+  if ((!TRI) && HALF && DIM_3D) sz_min = 0;
 
   nstencil = 0;
 

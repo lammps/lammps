@@ -13,15 +13,20 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairRespaNsqOmp<0> NPairHalfRespaNsqNewtoffOmp;
+typedef NPairRespaNsqOmp<0,0> NPairHalfRespaNsqNewtoffOmp;
 NPairStyle(half/respa/nsq/newtoff/omp,
            NPairHalfRespaNsqNewtoff,
            NP_HALF | NP_RESPA | NP_NSQ | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairRespaNsqOmp<1> NPairHalfRespaNsqNewtonOmp;
+typedef NPairRespaNsqOmp<1,0> NPairHalfRespaNsqNewtonOmp;
 NPairStyle(half/respa/nsq/newton/omp,
            NPairHalfRespaNsqNewtonOmp,
-           NP_HALF | NP_RESPA | NP_NSQ | NP_OMP | NP_NEWTON | NP_ORTHO | NP_TRI);
+           NP_HALF | NP_RESPA | NP_NSQ | NP_OMP | NP_NEWTON | NP_ORTHO);
+
+typedef NPairRespaNsqOmp<1,1> NPairHalfRespaNsqNewtonTriOmp;
+NPairStyle(half/respa/nsq/newton/tri/omp,
+           NPairHalfRespaNsqNewtonTriOmp,
+           NP_HALF | NP_RESPA | NP_NSQ | NP_OMP | NP_NEWTON | NP_TRI);
 // clang-format on
 #else
 
@@ -32,7 +37,7 @@ NPairStyle(half/respa/nsq/newton/omp,
 
 namespace LAMMPS_NS {
 
-template<int NEWTON>
+template<int NEWTON, int TRI>
 class NPairRespaNsqOmp : public NPair {
  public:
   NPairRespaNsqOmp(class LAMMPS *);

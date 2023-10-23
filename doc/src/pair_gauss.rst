@@ -170,7 +170,7 @@ The *gauss* and *gauss/cut* styles are part of the EXTRA-PAIR package.
 They are only enabled if LAMMPS is build with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
-.. versionchanged:: TBD
+.. versionchanged:: 28Mar2023
 
 Prior to this version, the *gauss* pair style did not apply
 :doc:`special_bonds <special_bonds>` factors.

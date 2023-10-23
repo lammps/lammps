@@ -13,14 +13,14 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_bin_atomonly_omp.h"
+#include "npair_omp.h"
+#include "omp_compat.h"
 
 #include "atom.h"
 #include "error.h"
+#include "force.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "npair_omp.h"
-
-#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 
@@ -48,6 +48,7 @@ template<int HALF, int NEWTON, int TRI, int SIZE>
 void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const double delta = 0.01 * force->angstrom;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -55,15 +56,16 @@ void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,jh,k,n,itype,jtype,ibin,bin_start;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double radsum,cut,cutsq;
+  int i, j, jh, k, n, itype, jtype, ibin, bin_start;
+  tagint itag, jtag;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum, cut, cutsq;
   int *neighptr;
 
   double **x = atom->x;
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
+  tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
 
   int history = list->history;
@@ -113,16 +115,26 @@ void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           if (j <= i) continue;
         } else if (TRI) {
           // Half neighbor list, newton on, triclinic
-          // pairs for atoms j "below" i are excluded
-          // below = lower z or (equal z and lower y) or (equal zy and lower x)
-          //         (equal zyx and j <= i)
-          // latter excludes self-self interaction but allows superposed atoms
-          if (x[j][2] < ztmp) continue;
-          if (x[j][2] == ztmp) {
-            if (x[j][1] < ytmp) continue;
-            if (x[j][1] == ytmp) {
-              if (x[j][0] < xtmp) continue;
-              if (x[j][0] == xtmp && j <= i) continue;
+          // for triclinic, bin stencil is full in all 3 dims
+          // must use itag/jtag to eliminate half the I/J interactions
+          // cannot use I/J exact coord comparision
+          //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+          //   with an added PBC offset can shift all 3 coords by epsilon
+          if (j <= i) continue;
+          if (j >= nlocal) {
+            jtag = tag[j];
+            if (itag > jtag) {
+              if ((itag + jtag) % 2 == 0) continue;
+            } else if (itag < jtag) {
+              if ((itag + jtag) % 2 == 1) continue;
+            } else {
+              if (fabs(x[j][2] - ztmp) > delta) {
+                if (x[j][2] < ztmp) continue;
+              } else if (fabs(x[j][1] - ytmp) > delta) {
+                if (x[j][1] < ytmp) continue;
+              } else {
+                if (x[j][0] < xtmp) continue;
+              }
             }
           }
         } else {
@@ -143,12 +155,12 @@ void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         }
 
         jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
 
         if (SIZE) {
           radsum = radius[i] + radius[j];
@@ -171,8 +183,7 @@ void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;

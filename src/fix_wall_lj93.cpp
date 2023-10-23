@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,16 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_lj93.h"
-#include <cmath>
+
 #include "atom.h"
 #include "error.h"
+#include "math_special.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
-FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg)
+FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, narg, arg)
 {
   dynamic_group_allow = 1;
 }
@@ -31,15 +33,15 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) :
 
 void FixWallLJ93::precompute(int m)
 {
-  coeff1[m] = 6.0/5.0 * epsilon[m] * pow(sigma[m],9.0);
-  coeff2[m] = 3.0 * epsilon[m] * pow(sigma[m],3.0);
-  coeff3[m] = 2.0/15.0 * epsilon[m] * pow(sigma[m],9.0);
-  coeff4[m] = epsilon[m] * pow(sigma[m],3.0);
+  coeff1[m] = 6.0 / 5.0 * epsilon[m] * powint(sigma[m], 9);
+  coeff2[m] = 3.0 * epsilon[m] * powint(sigma[m], 3);
+  coeff3[m] = 2.0 / 15.0 * epsilon[m] * powint(sigma[m], 9);
+  coeff4[m] = epsilon[m] * powint(sigma[m], 3);
 
-  double rinv = 1.0/cutoff[m];
-  double r2inv = rinv*rinv;
-  double r4inv = r2inv*r2inv;
-  offset[m] = coeff3[m]*r4inv*r4inv*rinv - coeff4[m]*r2inv*rinv;
+  double rinv = 1.0 / cutoff[m];
+  double r2inv = rinv * rinv;
+  double r4inv = r2inv * r2inv;
+  offset[m] = coeff3[m] * r4inv * r4inv * rinv - coeff4[m] * r2inv * rinv;
 }
 
 /* ----------------------------------------------------------------------
@@ -51,7 +53,7 @@ void FixWallLJ93::precompute(int m)
 
 void FixWallLJ93::wall_particle(int m, int which, double coord)
 {
-  double delta,rinv,r2inv,r4inv,r10inv,fwall;
+  double delta, rinv, r2inv, r4inv, r10inv, fwall;
   double vn;
 
   double **x = atom->x;
@@ -67,29 +69,32 @@ void FixWallLJ93::wall_particle(int m, int which, double coord)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (side < 0) delta = x[i][dim] - coord;
-      else delta = coord - x[i][dim];
+      if (side < 0)
+        delta = x[i][dim] - coord;
+      else
+        delta = coord - x[i][dim];
       if (delta >= cutoff[m]) continue;
       if (delta <= 0.0) {
         onflag = 1;
         continue;
       }
-      rinv = 1.0/delta;
-      r2inv = rinv*rinv;
-      r4inv = r2inv*r2inv;
-      r10inv = r4inv*r4inv*r2inv;
-      fwall = side * (coeff1[m]*r10inv - coeff2[m]*r4inv);
+      rinv = 1.0 / delta;
+      r2inv = rinv * rinv;
+      r4inv = r2inv * r2inv;
+      r10inv = r4inv * r4inv * r2inv;
+      fwall = side * (coeff1[m] * r10inv - coeff2[m] * r4inv);
       f[i][dim] -= fwall;
-      ewall[0] += coeff3[m]*r4inv*r4inv*rinv -
-        coeff4[m]*r2inv*rinv - offset[m];
-      ewall[m+1] += fwall;
+      ewall[0] += coeff3[m] * r4inv * r4inv * rinv - coeff4[m] * r2inv * rinv - offset[m];
+      ewall[m + 1] += fwall;
 
       if (evflag) {
-        if (side < 0) vn = -fwall*delta;
-        else vn = fwall*delta;
+        if (side < 0)
+          vn = -fwall * delta;
+        else
+          vn = fwall * delta;
         v_tally(dim, i, vn);
       }
     }
 
-  if (onflag) error->one(FLERR,"Particle on or inside fix wall surface");
+  if (onflag) error->one(FLERR, "Particle on or inside fix wall surface");
 }

@@ -1,0 +1,61 @@
+<!-- -*- xml -*- -->
+<RCC>
+  <qresource prefix="/">
+    <file>lammps-icon-128x128.png</file>
+    <file>help_index.table</file>
+    <!-- This file is updated with: grep 'mycmd ==' ../../src/input.cpp | sed -e 's/^.*mycmd == "\(.*\)".*$/\1/' > lammps_internal_commands.txt -->
+    <file>lammps_internal_commands.txt</file>
+    <file>antialias.png</file>
+    <file>application-calc.png</file>
+    <file>application-exit.png</file>
+    <file>application-plot.png</file>
+    <file>axes-img.png</file>
+    <file>document-new.png</file>
+    <file>document-open-recent.png</file>
+    <file>document-open.png</file>
+    <file>document-revert.png</file>
+    <file>document-save-as.png</file>
+    <file>document-save.png</file>
+    <file>edit-copy.png</file>
+    <file>edit-cut.png</file>
+    <file>edit-delete.png</file>
+    <file>edit-paste.png</file>
+    <file>edit-redo.png</file>
+    <file>edit-undo.png</file>
+    <file>emblem-photos.png</file>
+    <file>expand-text.png</file>
+    <file>format-indent-less-3.png</file>
+    <file>go-first.png</file>
+    <file>go-last.png</file>
+    <file>go-next-2.png</file>
+    <file>go-previous-2.png</file>
+    <file>gtk-go-down.png</file>
+    <file>gtk-go-up.png</file>
+    <file>gtk-zoom-fit.png</file>
+    <file>gtk-zoom-in.png</file>
+    <file>gtk-zoom-out.png</file>
+    <file>hd-img.png</file>
+    <file>help-about.png</file>
+    <file>help-browser.png</file>
+    <file>help-faq.png</file>
+    <file>image-x-generic.png</file>
+    <file>media-playback-start-2.png</file>
+    <file>media-playlist-repeat.png</file>
+    <file>object-rotate-left.png</file>
+    <file>object-rotate-right.png</file>
+    <file>ovito.png</file>
+    <file>preferences-desktop-font.png</file>
+    <file>preferences-desktop-personal.png</file>
+    <file>preferences-desktop.png</file>
+    <file>process-stop.png</file>
+    <file>run-file.png</file>
+    <file>system-box.png</file>
+    <file>system-help.png</file>
+    <file>system-run.png</file>
+    <file>utilities-terminal.png</file>
+    <file>vdw-style.png</file>
+    <file>vmd.png</file>
+    <file>window-close.png</file>
+    <file>x-office-drawing.png</file>
+  </qresource>
+</RCC>

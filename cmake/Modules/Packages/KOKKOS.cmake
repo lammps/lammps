@@ -1,7 +1,8 @@
 ########################################################################
-# As of version 3.3.0 Kokkos requires C++14
-if(CMAKE_CXX_STANDARD LESS 14)
-  message(FATAL_ERROR "The KOKKOS package requires the C++ standard to be set to at least C++14")
+# As of version 4.0.0 Kokkos requires C++17
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(FATAL_ERROR "The KOKKOS package requires the C++ standard to
+be set to at least C++17")
 endif()
 
 ########################################################################
@@ -16,8 +17,8 @@ if(Kokkos_ENABLE_OPENMP)
   if(NOT BUILD_OMP)
     message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
   else()
-    # NVHPC does not seem to provide a detectable OpenMP version, but is far beyond version 3.1
-    if((OpenMP_CXX_VERSION VERSION_LESS 3.1) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC"))
+    # NVHPC/(AMD)Clang does not seem to provide a detectable OpenMP version, but is far beyond version 3.1
+    if((OpenMP_CXX_VERSION VERSION_LESS 3.1) AND NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")))
       message(FATAL_ERROR "Compiler must support OpenMP 3.1 or later with Kokkos_ENABLE_OPENMP")
     endif()
   endif()
@@ -49,8 +50,8 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.7.01.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "f140e02b826223b1045207d9bc10d404" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/4.1.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "a5f096bd8ad01b97fdc7a32583b17a33" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
   GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
@@ -75,7 +76,7 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3.7.01 REQUIRED CONFIG)
+  find_package(Kokkos 4.1.00 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
@@ -88,7 +89,7 @@ else()
   if(CMAKE_REQUEST_PIC)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   endif()
-  add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
+  add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR} EXCLUDE_FROM_ALL)
 
   set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
                           ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
@@ -121,6 +122,11 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
+# fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
+if(PKG_GRANULAR)
+  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_wall_gran_old.cpp)
+endif()
+
 if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/grid3d_kokkos.cpp
@@ -132,8 +138,10 @@ if(PKG_KSPACE)
     endif()
   elseif(Kokkos_ENABLE_HIP)
     if(NOT (FFT STREQUAL "KISS"))
+      include(DetectHIPInstallation)
+      find_package(hipfft REQUIRED)
       target_compile_definitions(lammps PRIVATE -DFFT_HIPFFT)
-      target_link_libraries(lammps PRIVATE hipfft)
+      target_link_libraries(lammps PRIVATE hip::hipfft)
     endif()
   endif()
 endif()
@@ -148,7 +156,7 @@ if(PKG_ML-IAP)
 
   # Add KOKKOS version of ML-IAP Python coupling if non-KOKKOS version is included
   if(MLIAP_ENABLE_PYTHON AND Cythonize_EXECUTABLE)
-    file(GLOB MLIAP_KOKKOS_CYTHON_SRC ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/KOKKOS/*.pyx)
+    file(GLOB MLIAP_KOKKOS_CYTHON_SRC CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/KOKKOS/*.pyx)
     foreach(MLIAP_CYTHON_FILE ${MLIAP_KOKKOS_CYTHON_SRC})
       get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_FILE} NAME_WE)
       add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h

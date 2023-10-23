@@ -37,6 +37,7 @@ void NStencilMulti<HALF, DIM_3D, TRI>::set_stencil_properties()
   // smaller -> larger => use full stencil in larger bin
   // larger -> smaller => no nstencil required
   // If cut offs are same, use half stencil
+  // If triclinic, need full stencil
 
   for (i = 0; i < n; i++) {
     for (j = 0; j < n; j++) {
@@ -45,11 +46,13 @@ void NStencilMulti<HALF, DIM_3D, TRI>::set_stencil_properties()
 
       flag_skip_multi[i][j] = false;
       flag_half_multi[i][j] = false;
+      flag_same_multi[i][j] = false;
       bin_collection_multi[i][j] = j;
 
       if (HALF) {
         if (cutcollectionsq[i][i] == cutcollectionsq[j][j]) {
-          flag_half_multi[i][j] = true;
+          if (!TRI) flag_half_multi[i][j] = true;
+          flag_same_multi[i][j] = true;
           bin_collection_multi[i][j] = i;
         }
       }

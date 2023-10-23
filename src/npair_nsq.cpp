@@ -1,5 +1,4 @@
-// clang-format off
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -13,23 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_nsq.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "molecule.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int SIZE>
-NPairNsq<HALF, NEWTON, SIZE>::NPairNsq(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI, int SIZE>
+NPairNsq<HALF, NEWTON, TRI, SIZE>::NPairNsq(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    Full:
@@ -42,17 +43,24 @@ NPairNsq<HALF, NEWTON, SIZE>::NPairNsq(LAMMPS *lmp) : NPair(lmp) {}
    Half + Newton:
      N^2 / 2 search for neighbor pairs with full Newton's 3rd law
      every pair stored exactly once by some processor
-     decision on ghost atoms based on itag,jtag tests
+     decision on ghost atoms based on itag, jtag tests
+   Half + Newton + Tri:
+     use itag/jtap comparision to eliminate half the interactions
+     for triclinic, must use delta to eliminate half the I/J interactions
+     cannot use I/J exact coord comparision as for orthog
+     b/c transforming orthog -> lambda -> orthog for ghost atoms
+     with an added PBC offset can shift all 3 coords by epsilon
 ------------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int SIZE>
-void NPairNsq<HALF, NEWTON, SIZE>::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI, int SIZE>
+void NPairNsq<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
-  int i,j,jh,jstart,n,itype,jtype,which,bitmask,imol,iatom,moltemplate;
-  tagint itag,jtag,tagprev;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double radsum,cut,cutsq;
+  int i, j, jh, jstart, n, itype, jtype, which, bitmask, imol, iatom, moltemplate;
+  tagint itag, jtag, tagprev;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum, cut, cutsq;
   int *neighptr;
+
+  const double delta = 0.01 * force->angstrom;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -72,8 +80,10 @@ void NPairNsq<HALF, NEWTON, SIZE>::build(NeighList *list)
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
+  if (molecular == Atom::TEMPLATE)
+    moltemplate = 1;
+  else
+    moltemplate = 0;
 
   int history = list->history;
   int mask_history = 1 << HISTBITS;
@@ -120,9 +130,17 @@ void NPairNsq<HALF, NEWTON, SIZE>::build(NeighList *list)
         if (j >= nlocal) {
           jtag = tag[j];
           if (itag > jtag) {
-            if ((itag+jtag) % 2 == 0) continue;
+            if ((itag + jtag) % 2 == 0) continue;
           } else if (itag < jtag) {
-            if ((itag+jtag) % 2 == 1) continue;
+            if ((itag + jtag) % 2 == 1) continue;
+          } else if (TRI) {
+            if (fabs(x[j][2] - ztmp) > delta) {
+              if (x[j][2] < ztmp) continue;
+            } else if (fabs(x[j][1] - ytmp) > delta) {
+              if (x[j][1] < ytmp) continue;
+            } else {
+              if (x[j][0] < xtmp) continue;
+            }
           } else {
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
@@ -134,7 +152,7 @@ void NPairNsq<HALF, NEWTON, SIZE>::build(NeighList *list)
       }
 
       jtype = type[j];
-      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+      if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -148,38 +166,43 @@ void NPairNsq<HALF, NEWTON, SIZE>::build(NeighList *list)
 
         if (rsq <= cutsq) {
           jh = j;
-          if (history && rsq < radsum * radsum)
-            jh = jh ^ mask_history;
+          if (history && rsq < radsum * radsum) jh = jh ^ mask_history;
 
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
+              which = find_special(special[i], nspecial[i], tag[j]);
             else if (imol >= 0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) neighptr[n++] = jh;
-            else if (domain->minimum_image_check(delx,dely,delz))
+              which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                   tag[j] - tagprev);
+            else
+              which = 0;
+            if (which == 0)
               neighptr[n++] = jh;
-            else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
-          } else neighptr[n++] = jh;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = jh;
+            else if (which > 0)
+              neighptr[n++] = jh ^ (which << SBBITS);
+          } else
+            neighptr[n++] = jh;
         }
       } else {
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
+              which = find_special(special[i], nspecial[i], tag[j]);
             else if (imol >= 0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) neighptr[n++] = j;
-            else if (domain->minimum_image_check(delx,dely,delz))
+              which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                   tag[j] - tagprev);
+            else
+              which = 0;
+            if (which == 0)
               neighptr[n++] = j;
-            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-          } else neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j;
+            else if (which > 0)
+              neighptr[n++] = j ^ (which << SBBITS);
+          } else
+            neighptr[n++] = j;
         }
       }
     }
@@ -188,8 +211,7 @@ void NPairNsq<HALF, NEWTON, SIZE>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;
@@ -197,10 +219,12 @@ void NPairNsq<HALF, NEWTON, SIZE>::build(NeighList *list)
 }
 
 namespace LAMMPS_NS {
-template class NPairNsq<0,1,0>;
-template class NPairNsq<1,0,0>;
-template class NPairNsq<1,1,0>;
-template class NPairNsq<0,1,1>;
-template class NPairNsq<1,0,1>;
-template class NPairNsq<1,1,1>;
+template class NPairNsq<0,1,0,0>;
+template class NPairNsq<1,0,0,0>;
+template class NPairNsq<1,1,0,0>;
+template class NPairNsq<1,1,1,0>;
+template class NPairNsq<0,1,0,1>;
+template class NPairNsq<1,0,0,1>;
+template class NPairNsq<1,1,0,1>;
+template class NPairNsq<1,1,1,1>;
 }

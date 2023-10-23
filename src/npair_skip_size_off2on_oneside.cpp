@@ -36,8 +36,8 @@ NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
 
 void NPairSkipSizeOff2onOneside::build(NeighList *list)
 {
-  int i,j,ii,jj,n,itype,jnum,joriginal,flip,tmp;
-  int *surf,*jlist;
+  int i, j, ii, jj, itype, jnum, joriginal, flip, tmp;
+  int *surf, *jlist;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -76,8 +76,6 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
-    n = 0;
-
     // loop over parent non-skip size list
 
     jlist = firstneigh_skip[i];
@@ -108,10 +106,8 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
 
   for (i = 0; i < nlocal; i++) {
     if (numneigh[i] == 0) continue;
-    n = numneigh[i];
-    firstneigh[i] = ipage->get(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    firstneigh[i] = ipage->get(numneigh[i]);
+    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   // second loop over atoms in other list to store neighbors

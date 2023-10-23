@@ -13,21 +13,23 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_respa_nsq.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<int NEWTON>
-NPairRespaNsq<NEWTON>::NPairRespaNsq(LAMMPS *lmp) : NPair(lmp) {}
+template<int NEWTON, int TRI>
+NPairRespaNsq<NEWTON, TRI>::NPairRespaNsq(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    multiple respa lists
@@ -40,15 +42,25 @@ NPairRespaNsq<NEWTON>::NPairRespaNsq(LAMMPS *lmp) : NPair(lmp) {}
      pair added to list if atoms i and j are both owned and i < j
      if j is ghost only me or other proc adds pair
      decision based on itag,jtag tests
+     use itag/jtag comparision to eliminate half the interactions
+     itag = jtag is possible for long cutoffs that include images of self
+  Newton + Triclinic:
+     for triclinic, must use delta to eliminate half the I/J interactions
+     cannot use I/J exact coord comparision as for orthog
+     b/c transforming orthog -> lambda -> orthog for ghost atoms
+     with an added PBC offset can shift all 3 coords by epsilon
+
 ------------------------------------------------------------------------- */
 
-template<int NEWTON>
-void NPairRespaNsq<NEWTON>::build(NeighList *list)
+template<int NEWTON, int TRI>
+void NPairRespaNsq<NEWTON, TRI>::build(NeighList *list)
 {
-  int i,j,n,itype,jtype,n_inner,n_middle,bitmask,imol,iatom,moltemplate;
-  tagint itag,jtag,tagprev;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr,*neighptr_inner,*neighptr_middle;
+  int i, j, n, itype, jtype, n_inner, n_middle, bitmask, imol, iatom, moltemplate;
+  tagint itag, jtag, tagprev;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int *neighptr, *neighptr_inner, *neighptr_middle;
+
+  const double delta = 0.01 * force->angstrom;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -128,7 +140,15 @@ void NPairRespaNsq<NEWTON>::build(NeighList *list)
           if (itag > jtag) {
             if ((itag + jtag) % 2 == 0) continue;
           } else if (itag < jtag) {
-            if ((itag+jtag) % 2 == 1) continue;
+            if ((itag + jtag) % 2 == 1) continue;
+          } else if (TRI) {
+            if (fabs(x[j][2] - ztmp) > delta) {
+              if (x[j][2] < ztmp) continue;
+            } else if (fabs(x[j][1] - ytmp) > delta) {
+              if (x[j][1] < ytmp) continue;
+            } else {
+              if (x[j][0] < xtmp) continue;
+            }
           } else {
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
@@ -140,37 +160,45 @@ void NPairRespaNsq<NEWTON>::build(NeighList *list)
       }
 
       jtype = type[j];
-      if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+      if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
         if (molecular != Atom::ATOMIC) {
           if (!moltemplate)
-            which = find_special(special[i],nspecial[i],tag[j]);
+            which = find_special(special[i], nspecial[i], tag[j]);
           else if (imol >= 0)
-            which = find_special(onemols[imol]->special[iatom],
-                                 onemols[imol]->nspecial[iatom],
-                                 tag[j]-tagprev);
-          else which = 0;
-          if (which == 0) neighptr[n++] = j;
-          else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
+            which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                 tag[j] - tagprev);
+          else
+            which = 0;
+          if (which == 0)
             neighptr[n++] = j;
-          else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-        } else neighptr[n++] = j;
+          else if ((minchange = domain->minimum_image_check(delx, dely, delz)))
+            neighptr[n++] = j;
+          else if (which > 0)
+            neighptr[n++] = j ^ (which << SBBITS);
+        } else
+          neighptr[n++] = j;
 
         if (rsq < cut_inner_sq) {
-          if (which == 0) neighptr_inner[n_inner++] = j;
-          else if (minchange) neighptr_inner[n_inner++] = j;
-          else if (which > 0) neighptr_inner[n_inner++] = j ^ (which << SBBITS);
+          if (which == 0)
+            neighptr_inner[n_inner++] = j;
+          else if (minchange)
+            neighptr_inner[n_inner++] = j;
+          else if (which > 0)
+            neighptr_inner[n_inner++] = j ^ (which << SBBITS);
         }
 
-        if (respamiddle && rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
-          if (which == 0) neighptr_middle[n_middle++] = j;
-          else if (minchange) neighptr_middle[n_middle++] = j;
+        if (respamiddle && (rsq < cut_middle_sq) && (rsq > cut_middle_inside_sq)) {
+          if (which == 0)
+            neighptr_middle[n_middle++] = j;
+          else if (minchange)
+            neighptr_middle[n_middle++] = j;
           else if (which > 0)
             neighptr_middle[n_middle++] = j ^ (which << SBBITS);
         }
@@ -181,23 +209,20 @@ void NPairRespaNsq<NEWTON>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     ipage_inner->vgot(n_inner);
-    if (ipage_inner->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage_inner->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n_middle);
-      if (ipage_middle->status())
-        error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+      if (ipage_middle->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
     inum++;
@@ -209,6 +234,7 @@ void NPairRespaNsq<NEWTON>::build(NeighList *list)
 }
 
 namespace LAMMPS_NS {
-template class NPairRespaNsq<0>;
-template class NPairRespaNsq<1>;
+template class NPairRespaNsq<0,0>;
+template class NPairRespaNsq<1,0>;
+template class NPairRespaNsq<1,1>;
 }

@@ -732,8 +732,8 @@ public:
 
   /// \brief Return the value suitable for output purposes (so that it
   /// may be rescaled or manipulated without changing it permanently)
-  virtual inline T value_output(std::vector<int> const &ix,
-                                size_t const &imult = 0) const
+  virtual T value_output(std::vector<int> const &ix,
+                         size_t const &imult = 0) const
   {
     return value(ix, imult);
   }
@@ -741,10 +741,10 @@ public:
   /// \brief Get the value from a formatted output and transform it
   /// into the internal representation (the two may be different,
   /// e.g. when using colvar_grid_count)
-  virtual inline void value_input(std::vector<int> const &ix,
-                                  T const &t,
-                                  size_t const &imult = 0,
-                                  bool add = false)
+  virtual void value_input(std::vector<int> const &ix,
+                           T const &t,
+                           size_t const &imult = 0,
+                           bool add = false)
   {
     if ( add )
       data[address(ix) + imult] += t;
@@ -803,7 +803,7 @@ public:
     }
   }
 
-  /// \brief Write the grid parameters (number of colvars, boundaries, width and number of points)
+  /// Write the grid parameters (number of colvars, boundaries, width and number of points)
   std::ostream & write_params(std::ostream &os)
   {
     size_t i;
@@ -1028,188 +1028,27 @@ public:
     return is;
   }
 
-  /// \brief Write the grid in a format which is both human readable
-  /// and suitable for visualization e.g. with gnuplot
-  void write_multicol(std::ostream &os) const
-  {
-    std::streamsize const w = os.width();
-    std::streamsize const p = os.precision();
+  /// Read a grid written by write_multicol(), incrementing if add is true
+  std::istream & read_multicol(std::istream &is, bool add = false);
 
-    // Data in the header: nColvars, then for each
-    // xiMin, dXi, nPoints, periodic
+  /// Read a grid written by write_multicol(), incrementing if add is true
+  int read_multicol(std::string const &filename,
+                    std::string description = "grid file",
+                    bool add = false);
 
-    os << std::setw(2) << "# " << nd << "\n";
-    for (size_t i = 0; i < nd; i++) {
-      os << "# "
-         << std::setw(10) << lower_boundaries[i]
-         << std::setw(10) << widths[i]
-         << std::setw(10) << nx[i] << "  "
-         << periodic[i] << "\n";
-    }
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  std::ostream & write_multicol(std::ostream &os) const;
 
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  int write_multicol(std::string const &filename,
+                     std::string description = "grid file") const;
 
-    for (std::vector<int> ix = new_index(); index_ok(ix); incr(ix) ) {
+  /// Write the grid data without labels, as they are represented in memory
+  std::ostream & write_opendx(std::ostream &os) const;
 
-      if (ix.back() == 0) {
-        // if the last index is 0, add a new line to mark the new record
-        os << "\n";
-      }
-
-      for (size_t i = 0; i < nd; i++) {
-        os << " "
-           << std::setw(w) << std::setprecision(p)
-           << bin_to_value_scalar(ix[i], i);
-      }
-      os << " ";
-      for (size_t imult = 0; imult < mult; imult++) {
-        os << " "
-           << std::setw(w) << std::setprecision(p)
-           << value_output(ix, imult);
-      }
-      os << "\n";
-    }
-  }
-
-  /// \brief Read a grid written by colvar_grid::write_multicol()
-  /// Adding data if add is true, replacing if false
-  std::istream & read_multicol(std::istream &is, bool add = false)
-  {
-    // Data in the header: nColvars, then for each
-    // xiMin, dXi, nPoints, periodic flag
-
-    std::string   hash;
-    cvm::real     lower, width, x;
-    size_t        n, periodic_flag;
-    bool          remap;
-    std::vector<T>        new_value;
-    std::vector<int>      nx_read;
-    std::vector<int>      bin;
-
-    if ( cv.size() > 0 && cv.size() != nd ) {
-      cvm::error("Cannot read grid file: number of variables in file differs from number referenced by grid.\n");
-      return is;
-    }
-
-    if ( !(is >> hash) || (hash != "#") ) {
-      cvm::error("Error reading grid at position "+
-                 cvm::to_str(static_cast<size_t>(is.tellg()))+
-                 " in stream(read \"" + hash + "\")\n");
-      return is;
-    }
-
-    is >> n;
-    if ( n != nd ) {
-      cvm::error("Error reading grid: wrong number of collective variables.\n");
-      return is;
-    }
-
-    nx_read.resize(n);
-    bin.resize(n);
-    new_value.resize(mult);
-
-    if (this->has_parent_data && add) {
-      new_data.resize(data.size());
-    }
-
-    remap = false;
-    for (size_t i = 0; i < nd; i++ ) {
-      if ( !(is >> hash) || (hash != "#") ) {
-        cvm::error("Error reading grid at position "+
-                   cvm::to_str(static_cast<size_t>(is.tellg()))+
-                   " in stream(read \"" + hash + "\")\n");
-        return is;
-      }
-
-      is >> lower >> width >> nx_read[i] >> periodic_flag;
-
-
-      if ( (cvm::fabs(lower - lower_boundaries[i].real_value) > 1.0e-10) ||
-           (cvm::fabs(width - widths[i] ) > 1.0e-10) ||
-           (nx_read[i] != nx[i]) ) {
-        cvm::log("Warning: reading from different grid definition (colvar "
-                 + cvm::to_str(i+1) + "); remapping data on new grid.\n");
-        remap = true;
-      }
-    }
-
-    if ( remap ) {
-      // re-grid data
-      while (is.good()) {
-        bool end_of_file = false;
-
-        for (size_t i = 0; i < nd; i++ ) {
-          if ( !(is >> x) ) end_of_file = true;
-          bin[i] = value_to_bin_scalar(x, i);
-        }
-        if (end_of_file) break;
-
-        for (size_t imult = 0; imult < mult; imult++) {
-          is >> new_value[imult];
-        }
-
-        if ( index_ok(bin) ) {
-          for (size_t imult = 0; imult < mult; imult++) {
-            value_input(bin, new_value[imult], imult, add);
-          }
-        }
-      }
-    } else {
-      // do not re-grid the data but assume the same grid is used
-      for (std::vector<int> ix = new_index(); index_ok(ix); incr(ix) ) {
-        for (size_t i = 0; i < nd; i++ ) {
-          is >> x;
-        }
-        for (size_t imult = 0; imult < mult; imult++) {
-          is >> new_value[imult];
-          value_input(ix, new_value[imult], imult, add);
-        }
-      }
-    }
-    has_data = true;
-    return is;
-  }
-
-  /// \brief Write the grid data without labels, as they are
-  /// represented in memory
-  std::ostream & write_opendx(std::ostream &os) const
-  {
-    // write the header
-    os << "object 1 class gridpositions counts";
-    size_t icv;
-    for (icv = 0; icv < num_variables(); icv++) {
-      os << " " << number_of_points(icv);
-    }
-    os << "\n";
-
-    os << "origin";
-    for (icv = 0; icv < num_variables(); icv++) {
-      os << " " << (lower_boundaries[icv].real_value + 0.5 * widths[icv]);
-    }
-    os << "\n";
-
-    for (icv = 0; icv < num_variables(); icv++) {
-      os << "delta";
-      for (size_t icv2 = 0; icv2 < num_variables(); icv2++) {
-        if (icv == icv2) os << " " << widths[icv];
-        else os << " " << 0.0;
-      }
-      os << "\n";
-    }
-
-    os << "object 2 class gridconnections counts";
-    for (icv = 0; icv < num_variables(); icv++) {
-      os << " " << number_of_points(icv);
-    }
-    os << "\n";
-
-    os << "object 3 class array type double rank 0 items "
-       << number_of_points() << " data follows\n";
-
-    write_raw(os);
-
-    os << "object \"collective variables scalar field\" class field\n";
-    return os;
-  }
+  /// Write the grid data without labels, as they are represented in memory
+  int write_opendx(std::string const &filename,
+                   std::string description = "grid file") const;
 };
 
 
@@ -1224,7 +1063,7 @@ public:
   colvar_grid_count();
 
   /// Destructor
-  virtual inline ~colvar_grid_count()
+  virtual ~colvar_grid_count()
   {}
 
   /// Constructor
@@ -1249,13 +1088,33 @@ public:
     return new_data[address(ix) + imult];
   }
 
-  /// \brief Get the value from a formatted output and transform it
-  /// into the internal representation (it may have been rescaled or
-  /// manipulated)
-  virtual inline void value_input(std::vector<int> const &ix,
-                                  size_t const &t,
-                                  size_t const &imult = 0,
-                                  bool add = false)
+  /// Read a grid written by write_multicol(), incrementin if data is true
+  std::istream & read_multicol(std::istream &is, bool add = false);
+
+  /// Read a grid written by write_multicol(), incrementin if data is true
+  int read_multicol(std::string const &filename,
+                            std::string description = "grid file",
+                            bool add = false);
+
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  std::ostream & write_multicol(std::ostream &os) const;
+
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  int write_multicol(std::string const &filename,
+                     std::string description = "grid file") const;
+
+  /// Write the grid data without labels, as they are represented in memory
+  std::ostream & write_opendx(std::ostream &os) const;
+
+  /// Write the grid data without labels, as they are represented in memory
+  int write_opendx(std::string const &filename,
+                   std::string description = "grid file") const;
+
+  /// Enter or add a value, but also handle parent grid
+  virtual void value_input(std::vector<int> const &ix,
+                           size_t const &t,
+                           size_t const &imult = 0,
+                           bool add = false)
   {
     (void) imult;
     if (add) {
@@ -1322,7 +1181,7 @@ public:
   /// \brief Return the gradient of discrete count from finite differences
   /// on the *same* grid for dimension n
   inline cvm::real gradient_finite_diff(const std::vector<int> &ix0,
-                                            int n = 0)
+                                        int n = 0)
   {
     cvm::real A0, A1, A2;
     std::vector<int> ix = ix0;
@@ -1380,7 +1239,7 @@ public:
   colvar_grid_scalar(colvar_grid_scalar const &g);
 
   /// Destructor
-  ~colvar_grid_scalar();
+  virtual ~colvar_grid_scalar();
 
   /// Constructor from specific sizes arrays
   colvar_grid_scalar(std::vector<int> const &nx_i);
@@ -1401,6 +1260,28 @@ public:
       samples->incr_count(ix);
     has_data = true;
   }
+
+  /// Read a grid written by write_multicol(), incrementin if data is true
+  std::istream & read_multicol(std::istream &is, bool add = false);
+
+  /// Read a grid written by write_multicol(), incrementin if data is true
+  int read_multicol(std::string const &filename,
+                    std::string description = "grid file",
+                    bool add = false);
+
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  std::ostream & write_multicol(std::ostream &os) const;
+
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  int write_multicol(std::string const &filename,
+                     std::string description = "grid file") const;
+
+  /// Write the grid data without labels, as they are represented in memory
+  std::ostream & write_opendx(std::ostream &os) const;
+
+  /// Write the grid data without labels, as they are represented in memory
+  int write_opendx(std::string const &filename,
+                   std::string description = "grid file") const;
 
   /// \brief Return the gradient of the scalar field from finite differences
   /// Input coordinates are those of gradient grid, shifted wrt scalar grid
@@ -1458,7 +1339,7 @@ public:
   /// \brief Return the gradient of discrete count from finite differences
   /// on the *same* grid for dimension n
   inline cvm::real gradient_finite_diff(const std::vector<int> &ix0,
-                                            int n = 0)
+                                        int n = 0)
   {
     cvm::real A0, A1, A2;
     std::vector<int> ix = ix0;
@@ -1517,9 +1398,7 @@ public:
     }
   }
 
-  /// \brief Get the value from a formatted output and transform it
-  /// into the internal representation (it may have been rescaled or
-  /// manipulated)
+  /// Enter or add value but also deal with count grid
   virtual void value_input(std::vector<int> const &ix,
                            cvm::real const &new_value,
                            size_t const &imult = 0,
@@ -1580,7 +1459,7 @@ public:
   colvar_grid_gradient();
 
   /// Destructor
-  virtual inline ~colvar_grid_gradient()
+  virtual ~colvar_grid_gradient()
   {}
 
   /// Constructor from specific sizes arrays
@@ -1591,6 +1470,28 @@ public:
 
   /// Constructor from a multicol file
   colvar_grid_gradient(std::string &filename);
+
+  /// Read a grid written by write_multicol(), incrementin if data is true
+  virtual std::istream & read_multicol(std::istream &is, bool add = false);
+
+  /// Read a grid written by write_multicol(), incrementin if data is true
+  virtual int read_multicol(std::string const &filename,
+                            std::string description = "grid file",
+                            bool add = false);
+
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  virtual std::ostream & write_multicol(std::ostream &os) const;
+
+  /// Write grid in a format which is both human-readable and gnuplot-friendly
+  virtual int write_multicol(std::string const &filename,
+                             std::string description = "grid file") const;
+
+  /// Write the grid data without labels, as they are represented in memory
+  virtual std::ostream & write_opendx(std::ostream &os) const;
+
+  /// Write the grid data without labels, as they are represented in memory
+  virtual int write_opendx(std::string const &filename,
+                           std::string description = "grid file") const;
 
   /// \brief Get a vector with the binned value(s) indexed by ix, normalized if applicable
   inline void vector_value(std::vector<int> const &ix, std::vector<cvm::real> &v) const
@@ -1647,8 +1548,8 @@ public:
 
   /// \brief Return the value of the function at ix divided by its
   /// number of samples (if the count grid is defined)
-  virtual inline cvm::real value_output(std::vector<int> const &ix,
-                                        size_t const &imult = 0) const
+  virtual cvm::real value_output(std::vector<int> const &ix,
+                                 size_t const &imult = 0) const
   {
     if (samples)
       return (samples->value(ix) > 0) ?
@@ -1661,10 +1562,10 @@ public:
   /// \brief Get the value from a formatted output and transform it
   /// into the internal representation (it may have been rescaled or
   /// manipulated)
-  virtual inline void value_input(std::vector<int> const &ix,
-                                  cvm::real const &new_value,
-                                  size_t const &imult = 0,
-                                  bool add = false)
+  virtual void value_input(std::vector<int> const &ix,
+                           cvm::real const &new_value,
+                           size_t const &imult = 0,
+                           bool add = false)
   {
     if (add) {
       if (samples)

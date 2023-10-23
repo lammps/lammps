@@ -12,16 +12,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
+
 #include "npair_nsq_ghost_omp.h"
 #include "npair_omp.h"
-#include "neigh_list.h"
+#include "omp_compat.h"
+
 #include "atom.h"
+#include "domain.h"
+#include "error.h"
 #include "atom_vec.h"
 #include "molecule.h"
-#include "domain.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -57,9 +59,9 @@ void NPairNsqGhostOmp<HALF>::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nall);
 
-  int i,j,jstart,n,itype,jtype,which,imol,iatom;
+  int i, j, jstart, n, itype, jtype, which, imol, iatom;
   tagint tagprev;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *neighptr;
 
   double **x = atom->x;
@@ -119,26 +121,29 @@ void NPairNsqGhostOmp<HALF>::build(NeighList *list)
         }
 
         jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >=0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) neighptr[n++] = j;
-            else if (domain->minimum_image_check(delx,dely,delz))
+              which = find_special(special[i], nspecial[i], tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                   tag[j] - tagprev);
+            else
+              which = 0;
+            if (which == 0)
               neighptr[n++] = j;
-            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-          } else neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j;
+            else if (which > 0)
+              neighptr[n++] = j ^ (which << SBBITS);
+          } else
+            neighptr[n++] = j;
         }
       }
     } else {
@@ -148,12 +153,12 @@ void NPairNsqGhostOmp<HALF>::build(NeighList *list)
         }
 
         jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
 
         if (HALF) {
           if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
@@ -167,8 +172,7 @@ void NPairNsqGhostOmp<HALF>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;

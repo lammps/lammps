@@ -1,11 +1,11 @@
 # This test evaluates Hardy fields for a small block of LJ material
-# that's undergoing translation in the x-direction through the 
+# that's undergoing translation in the x-direction through the
 # periodic boundary.
 echo both
-log            log.flying_cube 
+log            log.flying_cube
 units          real
 atom_style     atomic
-variable       lattice_constant equal 5.256227487 
+variable       lattice_constant equal 5.256227487
 variable       c equal 6
 variable       L equal (${lattice_constant}*$c)
 variable       V equal $L*$L*$L
@@ -23,15 +23,15 @@ create_box     1 box
 create_atoms   1 region box
 mass           1 $m
 group          all region box
-pair_style     lj/cut 13.5  
-pair_coeff     1 1 0.238 3.405 
+pair_style     lj/cut 13.5
+pair_coeff     1 1 0.238 3.405
 # define region
 neighbor       1.0 bin
 neigh_modify   delay 0 every 200 check no
 # neigh_modify   delay 0 every $n
 reset_timestep 0
 thermo         $s
-compute_modify thermo_temp extra 0
+compute_modify thermo_temp extra/dof 0
 thermo_style   custom step temp pxx pyy pzz etotal lx ly lz
 timestep       ${dt}
 min_modify     line quadratic
@@ -46,10 +46,10 @@ variable       zHI equal zhi
 # region         BOX block ${xLO} ${xHI} ${yLO} ${yHI} ${zLO} ${zHI} units box
 region         BOX block ${xLO} ${xHI} -0.5 31.7 -0.5 31.7 units box
 fix            ATC all atc field
-fix_modify     ATC mesh create 1 1 1 box p p p 
+fix_modify     ATC mesh create 1 1 1 box p p p
 fix_modify     ATC  fields add stress velocity displacement
 fix_modify     ATC  fields add temperature kinetic_temperature
-fix_modify     ATC  fields add internal_energy energy 
+fix_modify     ATC  fields add internal_energy energy
 fix_modify     ATC  output flying_cubeFE $s text binary tensor_components
 # fix_modify     ATC  atomic_output flying_cubeMD $m text binary tensor_components
 dump           dumpfc all atom $s flying_cube.dmp

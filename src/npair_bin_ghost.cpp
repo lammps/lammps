@@ -13,14 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_bin_ghost.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "neighbor.h"
 #include "domain.h"
-#include "my_page.h"
 #include "error.h"
+#include "molecule.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;
@@ -47,10 +48,10 @@ NPairBinGhost<HALF>::NPairBinGhost(LAMMPS *lmp) : NPair(lmp) {}
 template<int HALF>
 void NPairBinGhost<HALF>::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,bin_start,which,imol,iatom,moltemplate;
+  int i, j, k, n, itype, jtype, ibin, bin_start, which, imol, iatom, moltemplate;
   tagint tagprev;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int xbin,ybin,zbin,xbin2,ybin2,zbin2;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  int xbin, ybin, zbin, xbin2, ybin2, zbin2;
   int *neighptr;
 
   double **x = atom->x;
@@ -67,8 +68,10 @@ void NPairBinGhost<HALF>::build(NeighList *list)
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
+  if (molecular == Atom::TEMPLATE)
+    moltemplate = 1;
+  else
+    moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -100,7 +103,7 @@ void NPairBinGhost<HALF>::build(NeighList *list)
       // when i is a ghost atom, must check if stencil bin is out of bounds
       // no molecular test when i = ghost atom
       for (k = 0; k < nstencil; k++) {
-        bin_start = binhead[ibin+stencil[k]];
+        bin_start = binhead[ibin + stencil[k]];
         for (j = bin_start; j >= 0; j = bins[j]) {
           if (HALF) {
             // Half neighbor list, newton off
@@ -116,7 +119,7 @@ void NPairBinGhost<HALF>::build(NeighList *list)
           }
 
           jtype = type[j];
-          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
@@ -126,22 +129,25 @@ void NPairBinGhost<HALF>::build(NeighList *list)
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
-                which = find_special(special[i],nspecial[i],tag[j]);
+                which = find_special(special[i], nspecial[i], tag[j]);
               else if (imol >= 0)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom],
-                                     tag[j]-tagprev);
-              else which = 0;
-              if (which == 0) neighptr[n++] = j;
-              else if (domain->minimum_image_check(delx,dely,delz))
+                which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                     tag[j] - tagprev);
+              else
+                which = 0;
+              if (which == 0)
                 neighptr[n++] = j;
-              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-            } else neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx, dely, delz))
+                neighptr[n++] = j;
+              else if (which > 0)
+                neighptr[n++] = j ^ (which << SBBITS);
+            } else
+              neighptr[n++] = j;
           }
         }
       }
     } else {
-      ibin = coord2bin(x[i],xbin,ybin,zbin);
+      ibin = coord2bin(x[i], xbin, ybin, zbin);
       for (k = 0; k < nstencil; k++) {
         xbin2 = xbin + stencilxyz[k][0];
         ybin2 = ybin + stencilxyz[k][1];
@@ -157,12 +163,12 @@ void NPairBinGhost<HALF>::build(NeighList *list)
           }
 
           jtype = type[j];
-          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
-          rsq = delx*delx + dely*dely + delz*delz;
+          rsq = delx * delx + dely * dely + delz * delz;
 
           if (rsq <= cutneighghostsq[itype][jtype]) neighptr[n++] = j;
         }
@@ -173,8 +179,7 @@ void NPairBinGhost<HALF>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = atom->nlocal;

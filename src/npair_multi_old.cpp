@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "molecule.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -51,12 +52,13 @@ NPairMultiOld<HALF, NEWTON, TRI, SIZE>::NPairMultiOld(LAMMPS *lmp) : NPair(lmp) 
 template<int HALF, int NEWTON, int TRI, int SIZE>
 void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
-  int i,j,jh,k,n,itype,jtype,ibin,bin_start,which,ns,imol,iatom,moltemplate;
-  tagint tagprev;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double radsum,cut,cutsq;
-  int *neighptr,*s;
-  double *cutnsq,*distsq;
+  int i, j, jh, k, n, itype, jtype, ibin, bin_start, which, ns, imol, iatom, moltemplate;
+  tagint itag, jtag, tagprev;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum, cut, cutsq;
+  int *neighptr, *s;
+  double *cutnsq, *distsq;
+
+  const double delta = 0.01 * force->angstrom;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -72,8 +74,10 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
+  if (molecular == Atom::TEMPLATE)
+    moltemplate = 1;
+  else
+    moltemplate = 0;
 
   int history = list->history;
   int mask_history = 1 << HISTBITS;
@@ -90,6 +94,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     n = 0;
     neighptr = ipage->vget();
 
+    itag = tag[i];
     itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -128,16 +133,26 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           if (j <= i) continue;
         } else if (TRI) {
           // Half neighbor list, newton on, triclinic
-          // pairs for atoms j "below" i are excluded
-          // below = lower z or (equal z and lower y) or (equal zy and lower x)
-          //         (equal zyx and j <= i)
-          // latter excludes self-self interaction but allows superposed atoms
-          if (x[j][2] < ztmp) continue;
-          if (x[j][2] == ztmp) {
-            if (x[j][1] < ytmp) continue;
-            if (x[j][1] == ytmp) {
-              if (x[j][0] < xtmp) continue;
-              if (x[j][0] == xtmp && j <= i) continue;
+          // for triclinic, bin stencil is full in all 3 dims
+          // must use itag/jtag to eliminate half the I/J interactions
+          // cannot use I/J exact coord comparision
+          //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+          //   with an added PBC offset can shift all 3 coords by epsilon
+          if (j <= i) continue;
+          if (j >= nlocal) {
+            jtag = tag[j];
+            if (itag > jtag) {
+              if ((itag + jtag) % 2 == 0) continue;
+            } else if (itag < jtag) {
+              if ((itag + jtag) % 2 == 1) continue;
+            } else {
+              if (fabs(x[j][2] - ztmp) > delta) {
+                if (x[j][2] < ztmp) continue;
+              } else if (fabs(x[j][1] - ytmp) > delta) {
+                if (x[j][1] < ytmp) continue;
+              } else {
+                if (x[j][0] < xtmp) continue;
+              }
             }
           }
         } else {
@@ -160,12 +175,12 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         jtype = type[j];
         if (cutnsq[jtype] < distsq[k]) continue;
 
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
 
         if (SIZE) {
           radsum = radius[i] + radius[j];
@@ -179,33 +194,39 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 
             if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
-                which = find_special(special[i],nspecial[i],tag[j]);
+                which = find_special(special[i], nspecial[i], tag[j]);
               else if (imol >= 0)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom],
-                                     tag[j]-tagprev);
-              else which = 0;
-              if (which == 0) neighptr[n++] = jh;
-              else if (domain->minimum_image_check(delx,dely,delz))
+                which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                     tag[j] - tagprev);
+              else
+                which = 0;
+              if (which == 0)
                 neighptr[n++] = jh;
-              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
-            } else neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx, dely, delz))
+                neighptr[n++] = jh;
+              else if (which > 0)
+                neighptr[n++] = jh ^ (which << SBBITS);
+            } else
+              neighptr[n++] = jh;
           }
         } else {
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
-                which = find_special(special[i],nspecial[i],tag[j]);
+                which = find_special(special[i], nspecial[i], tag[j]);
               else if (imol >= 0)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom],
-                                     tag[j]-tagprev);
-              else which = 0;
-              if (which == 0) neighptr[n++] = j;
-              else if (domain->minimum_image_check(delx,dely,delz))
+                which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                     tag[j] - tagprev);
+              else
+                which = 0;
+              if (which == 0)
                 neighptr[n++] = j;
-              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-            } else neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx, dely, delz))
+                neighptr[n++] = j;
+              else if (which > 0)
+                neighptr[n++] = j ^ (which << SBBITS);
+            } else
+              neighptr[n++] = j;
           }
         }
       }
@@ -215,8 +236,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;

@@ -1,5 +1,4 @@
-// clang-format off
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -46,9 +45,9 @@ NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::NPairBinAtomonly(LAMMPS *lmp) : NPair
 template<int HALF, int NEWTON, int TRI, int SIZE>
 void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
-  int i,j,jh,k,n,itype,jtype,ibin,bin_start;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double radsum,cut,cutsq;
+  int i, j, jh, k, n, itype, jtype, ibin, bin_start;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  double radsum, cut, cutsq;
   int *neighptr;
 
   double **x = atom->x;
@@ -134,7 +133,7 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         }
 
         jtype = type[j];
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
@@ -148,7 +147,7 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 
           if (rsq <= cutsq) {
             jh = j;
-            if (history && rsq < radsum * radsum)
+            if (history && rsq < (radsum * radsum))
               jh = jh ^ mask_history;
             neighptr[n++] = jh;
           }
@@ -162,8 +161,7 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;

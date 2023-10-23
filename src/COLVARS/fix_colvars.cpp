@@ -324,7 +324,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   if (!out_name) out_name = utils::strdup("out");
 
   /* initialize various state variables. */
-  tstat_id = -1;
+  tstat_fix = nullptr;
   energy = 0.0;
   nlevels_respa = 0;
   init_flag = 0;
@@ -432,17 +432,20 @@ void FixColvars::one_time_init()
     double t_target = 0.0;
     if (tmp_name) {
       if (strcmp(tmp_name,"NULL") == 0) {
-        tstat_id = -1;
+        tstat_fix = nullptr;
       } else {
-        tstat_id = modify->find_fix(tmp_name);
-        if (tstat_id < 0) error->one(FLERR,"Could not find tstat fix ID");
-        double *tt = (double*)modify->fix[tstat_id]->extract("t_target",tmp);
+        tstat_fix = modify->get_fix_by_id(tmp_name);
+        if (!tstat_fix) error->one(FLERR, "Could not find thermostat fix ID {}", tmp_name);
+        double *tt = (double*) tstat_fix->extract("t_target", tmp);
         if (tt) t_target = *tt;
+        else error->one(FLERR, "Fix ID {} is not a thermostat fix", tmp_name);
       }
     }
 
     proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target,root2root);
-    proxy->init(conf_file);
+    proxy->init();
+    proxy->add_config("configfile", conf_file);
+    proxy->parse_module_config();
 
     num_coords = (proxy->modify_atom_positions()->size());
   }
@@ -675,17 +678,17 @@ void FixColvars::post_force(int /*vflag*/)
     if (proxy->want_exit())
       error->one(FLERR,"Run aborted on request from colvars module.\n");
 
-    if (tstat_id < 0) {
-      proxy->set_temperature(0.0);
+    if (!tstat_fix) {
+      proxy->set_target_temperature(0.0);
     } else {
       int tmp;
       // get thermostat target temperature from corresponding fix,
       // if the fix supports extraction.
-      double *tt = (double *) modify->fix[tstat_id]->extract("t_target",tmp);
+      double *tt = (double *) tstat_fix->extract("t_target", tmp);
       if (tt)
-        proxy->set_temperature(*tt);
+        proxy->set_target_temperature(*tt);
       else
-        proxy->set_temperature(0.0);
+        proxy->set_target_temperature(0.0);
     }
   }
 

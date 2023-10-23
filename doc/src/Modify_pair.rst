@@ -2,11 +2,11 @@ Pair styles
 ===========
 
 Classes that compute pairwise non-bonded interactions are derived from
-the Pair class.  In LAMMPS, pairwise calculation include many-body
-potentials such as EAM, Tersoff, or ReaxFF where particles interact
-without an explicit bond topology but include interactions beyond
-pairwise non-bonded contributions.  New styles can be created to add
-support for additional pair potentials to LAMMPS.  When the
+the ``Pair`` class.  In LAMMPS, pairwise force calculations include
+many-body potentials such as EAM, Tersoff, or ReaxFF where particles
+interact without an explicit bond topology but include interactions
+beyond pairwise non-bonded contributions.  New styles can be created to
+add support for additional pair potentials to LAMMPS.  When the
 modifications are small, sometimes it is more effective to derive from
 an existing pair style class.  This latter approach is also used by
 :doc:`Accelerator packages <Speed_packages>` where the accelerated style
@@ -15,10 +15,13 @@ names differ from their base classes by an appended suffix.
 The file ``src/pair_lj_cut.cpp`` is an example of a Pair class with a
 very simple potential function.  It includes several optional methods to
 enable its use with :doc:`run_style respa <run_style>` and :doc:`compute
-group/group <compute_group_group>`.
+group/group <compute_group_group>`.  :doc:`Developer_write_pair` contains
+a detailed discussion of writing new pair styles from scratch, and how
+simple and more complex pair styles can be implemented with examples
+from existing pair styles.
 
 Here is a brief list of some the class methods in the Pair class that
-*must* be or *may* be overridden in a derived class.
+*must* be or *may* be overridden in a derived class for a new pair style.
 
 +---------------------------------+---------------------------------------------------------------------+
 | Required                        | "pure" methods that *must* be overridden in a derived class         |

@@ -212,7 +212,7 @@ void FixAveHistoWeight::end_of_step()
         weights = val.val.f->vector_atom;
         stride = 1;
       } else if (val.val.f->array_atom) {
-        weights = val.val.f->array_atom[j-1];
+        weights = &val.val.f->array_atom[0][j-1];
         stride = val.val.f->size_peratom_cols;
       }
     } else if (kind == LOCAL) {
@@ -339,7 +339,7 @@ void FixAveHistoWeight::end_of_step()
       if (j == 0)
         bin_atoms_weights(val.val.f->vector_atom,1,weights,stride);
       else if (val.val.f->array_atom)
-        bin_atoms_weights(val.val.f->array_atom[j-1],val.val.f->size_peratom_cols,
+        bin_atoms_weights(&val.val.f->array_atom[0][j-1],val.val.f->size_peratom_cols,
                           weights,stride);
 
 

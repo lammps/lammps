@@ -32,8 +32,8 @@ void NStencilBinIntel<HALF, DIM_3D, TRI>::create()
   // For half stencils, only the upper plane is needed
   int sy_min = sy;
   int sz_min = sz;
-  if (HALF && (!DIM_3D)) sy_min = 0;
-  if (HALF && DIM_3D) sz_min = 0;
+  if ((!TRI) && HALF && (!DIM_3D)) sy_min = 0;
+  if ((!TRI) && HALF && DIM_3D) sz_min = 0;
 
   nstencil = 0;
 

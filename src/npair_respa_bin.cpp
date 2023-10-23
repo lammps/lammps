@@ -122,8 +122,8 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
 
     for (k = 0; k < nstencil; k++) {
       bin_start = binhead[ibin+stencil[k]];
-      if (stencil[k] == 0) {
-        if (NEWTON && (!TRI)) {
+      if (NEWTON && (!TRI)) {
+        if (stencil[k] == 0) {
           // Half neighbor list, newton on, orthonormal
           // loop over rest of atoms in i's bin, ghosts are at end of linked list
           bin_start = bins[i];

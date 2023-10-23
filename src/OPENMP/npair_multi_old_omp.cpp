@@ -118,8 +118,8 @@ void NPairMultiOldOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     cutnsq = cutneighsq[itype];
     ns = nstencil_multi_old[itype];
     for (k = 0; k < ns; k++) {
-      bin_start = binhead[ibin+stencil[k]];
-      if (stencil[k] == 0) {
+      bin_start = binhead[ibin+s[k]];
+      if (s[k] == 0) {
         if (HALF && NEWTON && (!TRI)) {
           // Half neighbor list, newton on, orthonormal
           // loop over rest of atoms in i's bin, ghosts are at end of linked list

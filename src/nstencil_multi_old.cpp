@@ -69,7 +69,7 @@ void NStencilMultiOld<HALF, DIM_3D, TRI>::create()
           if (HALF && DIM_3D && (!TRI))
             if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
 
-          rsq = bin_distance(i, j, 0);
+          rsq = bin_distance(i, j, k);
           if (rsq < typesq) {
             distsq[n] = rsq;
             s[n++] = k * mbiny * mbinx + j * mbinx + i;

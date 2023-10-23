@@ -159,7 +159,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           // Half neighbor list, newton on, orthonormal
           // store every pair for every bin in stencil,except for i's bin
 
-          if (stencil[k] == 0) {
+          if (s[k] == 0) {
             // if j is owned atom, store it, since j is beyond i in linked list
             // if j is ghost, only store if j coords are "above and to the "right" of i
             if (j >= nlocal) {

@@ -55,6 +55,12 @@ NPairStyle(half/size/bin/newton/tri,
            NPairHalfSizeBinNewtonTri,
            NP_HALF | NP_SIZE | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_TRI);
 
+typedef NPairBin<0, 1, 0, 0, 1> NPairFullBinAtomonly;
+NPairStyle(full/bin/atomonly,
+           NPairFullBinAtomonly,
+           NP_FULL | NP_BIN | NP_ATOMONLY |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
 typedef NPairBin<1, 0, 0, 0, 1> NPairHalfBinAtomonlyNewtoff;
 NPairStyle(half/bin/atomonly/newtoff,
            NPairHalfBinAtomonlyNewtoff,

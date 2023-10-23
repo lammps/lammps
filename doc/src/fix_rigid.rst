@@ -843,7 +843,7 @@ stress/atom <compute_stress_atom>` commands.  The former can be
 accessed by :doc:`thermodynamic output <thermo_style>`.  The default
 setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
-All of the *rigid* styles (not the *rigid/small* styles) compute a
+All of the *rigid* styles (but not the *rigid/small* styles) compute a
 global array of values which can be accessed by various :doc:`output
 commands <Howto_output>`.  Similar information about the bodies
 defined by the *rigid/small* styles can be accessed via the
@@ -887,7 +887,8 @@ Restrictions
 """"""""""""
 
 These fixes are all part of the RIGID package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Assigning a temperature via the :doc:`velocity create <velocity>`
 command to a system with :doc:`rigid bodies <fix_rigid>` may not have

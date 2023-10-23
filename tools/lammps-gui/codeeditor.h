@@ -60,6 +60,7 @@ public:
     void setVarNameList();
     void setComputeIDList();
     void setFixIDList();
+    void setFileList();
 
     static constexpr int NO_HIGHLIGHT = 1 << 30;
 
@@ -87,7 +88,7 @@ private:
     QCompleter *current_comp, *command_comp, *fix_comp, *compute_comp, *dump_comp, *atom_comp,
         *pair_comp, *bond_comp, *angle_comp, *dihedral_comp, *improper_comp, *kspace_comp,
         *region_comp, *integrate_comp, *minimize_comp, *variable_comp, *units_comp, *group_comp,
-        *varname_comp, *fixid_comp, *compid_comp;
+        *varname_comp, *fixid_comp, *compid_comp, *file_comp;
 
     int highlight;
     bool reformat_on_return;

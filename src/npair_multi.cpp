@@ -92,6 +92,8 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
   for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
+
+    itag = tag[i];
     itype = type[i];
     icollection = collection[i];
     xtmp = x[i][0];

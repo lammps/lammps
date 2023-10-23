@@ -95,6 +95,8 @@ void NStencilMulti<HALF, DIM_3D, TRI>::create()
       // Half and ortho stencils include central bin first
       // This preserves the historical order of the neighbor list
       // as the old npair classes used to separately parse the central bin first
+      // This !TRI condition (and the one below) are now unnecessary
+      // since triclinic only uses full stencils - kept the flags for clarity
       if (HALF && (!TRI))
         if (half_flag) stencil_multi[icollection][jcollection][ns++] = 0;
 
@@ -119,7 +121,7 @@ void NStencilMulti<HALF, DIM_3D, TRI>::create()
                 }
               }
             }
-            if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
+            if (bin_distance_multi(i, j, k, bin_collection) < cutsq)
               stencil_multi[icollection][jcollection][ns++] = k * mbiny * mbinx + j * mbinx + i;
           }
         }

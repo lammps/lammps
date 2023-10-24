@@ -39,6 +39,12 @@ if args.package:
     sys.exit(1)
   else:
     args.package = os.path.abspath(args.package)
+    if ((os.path.basename(args.package) != "lammps")
+        and ((os.path.basename(os.path.dirname(args.package)) != "python"))):
+             print("\nERROR: LAMMPS package folder path %s does not end in %s\n"
+                   % (args.package, os.path.join("python", "lammps")))
+             parser.print_help()
+             sys.exit(1)
 
 if args.lib:
   if not os.path.exists(args.lib):

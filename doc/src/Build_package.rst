@@ -182,6 +182,7 @@ make a copy of one of them and modify it to suit your needs.
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
     mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross-compilers
+    cmake -C ../cmake/presets/macos-multiarch.cmake [OPTIONS] ../cmake # compile serial multi-arch binaries on macOS
 
 Presets that have names starting with "windows" are specifically for
 compiling LAMMPS :doc:`natively on Windows <Build_windows>` and

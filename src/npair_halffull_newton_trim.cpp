@@ -14,7 +14,9 @@
 #include "npair_halffull_newton_trim.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "my_page.h"
 #include "neigh_list.h"
 
@@ -37,6 +39,9 @@ void NPairHalffullNewtonTrim::build(NeighList *list)
   int *neighptr, *jlist;
   double xtmp, ytmp, ztmp;
   double delx, dely, delz, rsq;
+
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -68,6 +73,11 @@ void NPairHalffullNewtonTrim::build(NeighList *list)
     ztmp = x[i][2];
 
     // loop over full neighbor list
+    // use i < j < nlocal to eliminate half the local/local interactions
+    // for triclinic, must use delta to eliminate half the local/ghost interactions
+    // cannot use I/J exact coord comparision as for orthog
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     jlist = firstneigh_full[i];
     jnum = numneigh_full[i];
@@ -75,8 +85,17 @@ void NPairHalffullNewtonTrim::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
+
       if (j < nlocal) {
         if (i > j) continue;
+      } else if (triclinic) {
+        if (fabs(x[j][2]-ztmp) > delta) {
+          if (x[j][2] < ztmp) continue;
+        } else if (fabs(x[j][1]-ytmp) > delta) {
+          if (x[j][1] < ytmp) continue;
+        } else {
+          if (x[j][0] < xtmp) continue;
+        }
       } else {
         if (x[j][2] < ztmp) continue;
         if (x[j][2] == ztmp) {

@@ -20,7 +20,9 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "modify.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -56,6 +58,9 @@ void NPairHalffullNewtonIntel::build_t(NeighList *list,
   const int * _noalias const numneigh_full = list->listfull->numneigh;
   const int ** _noalias const firstneigh_full = (const int ** const)list->listfull->firstneigh;  // NOLINT
 
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
+
   #if defined(_OPENMP)
   #pragma omp parallel
   #endif
@@ -82,25 +87,50 @@ void NPairHalffullNewtonIntel::build_t(NeighList *list,
       const int * _noalias const jlist = firstneigh_full[i];
       const int jnum = numneigh_full[i];
 
-      #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned
-      #pragma ivdep
-      #endif
-      for (int jj = 0; jj < jnum; jj++) {
-        const int joriginal = jlist[jj];
-        const int j = joriginal & NEIGHMASK;
-        int addme = 1;
-        if (j < nlocal) {
-          if (i > j) addme = 0;
-        } else {
-          if (x[j].z < ztmp) addme = 0;
-          if (x[j].z == ztmp) {
-            if (x[j].y < ytmp) addme = 0;
-            if (x[j].y == ytmp && x[j].x < xtmp) addme = 0;
+      if (!triclinic) {
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma ivdep
+        #endif
+        for (int jj = 0; jj < jnum; jj++) {
+          const int joriginal = jlist[jj];
+          const int j = joriginal & NEIGHMASK;
+          int addme = 1;
+          if (j < nlocal) {
+            if (i > j) addme = 0;
+          } else {
+            if (x[j].z < ztmp) addme = 0;
+            if (x[j].z == ztmp) {
+              if (x[j].y < ytmp) addme = 0;
+              if (x[j].y == ytmp && x[j].x < xtmp) addme = 0;
+            }
           }
+          if (addme)
+            neighptr[n++] = joriginal;
         }
-        if (addme)
-          neighptr[n++] = joriginal;
+      } else {
+        #if defined(LMP_SIMD_COMPILER)
+        #pragma vector aligned
+        #pragma ivdep
+        #endif
+        for (int jj = 0; jj < jnum; jj++) {
+          const int joriginal = jlist[jj];
+          const int j = joriginal & NEIGHMASK;
+          int addme = 1;
+          if (j < nlocal) {
+            if (i > j) addme = 0;
+          } else {
+            if (fabs(x[j].z-ztmp) > delta) {
+              if (x[j].z < ztmp) addme = 0;
+            } else if (fabs(x[j].y-ytmp) > delta) {
+              if (x[j].y < ytmp) addme = 0;
+            } else {
+              if (x[j].x < xtmp) addme = 0;
+            }
+          }
+          if (addme)
+            neighptr[n++] = joriginal;
+        }
       }
 
       ilist[ii] = i;
@@ -203,7 +233,7 @@ void NPairHalffullNewtonIntel::build_t3(NeighList *list, int *numhalf)
 
 void NPairHalffullNewtonIntel::build(NeighList *list)
 {
-  if (_fix->three_body_neighbor() == 0) {
+  if (_fix->three_body_neighbor() == 0 || domain->triclinic) {
     if (_fix->precision() == FixIntel::PREC_MODE_MIXED)
       build_t(list, _fix->get_mixed_buffers());
     else if (_fix->precision() == FixIntel::PREC_MODE_DOUBLE)

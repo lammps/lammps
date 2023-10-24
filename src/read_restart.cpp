@@ -801,7 +801,7 @@ void ReadRestart::header()
       int itmp = read_int();
       if (atom->map_user == Atom::MAP_NONE) atom->map_style = itmp;
     } else if (flag == ATOM_MAP_USER) {
-      int itmp = read_int();  // ignored
+      read_int();  // ignored
     } else if (flag == ATOM_SORTFREQ) {
       atom->sortfreq = read_int();
     } else if (flag == ATOM_SORTBIN) {

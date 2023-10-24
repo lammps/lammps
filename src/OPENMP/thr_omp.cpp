@@ -34,6 +34,10 @@
 
 #include <cstring>
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+
 using namespace LAMMPS_NS;
 using MathConst::THIRD;
 
@@ -44,6 +48,9 @@ ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(nullptr), thr_style(style
   // register fix omp with this class
   fix = static_cast<FixOMP *>(lmp->modify->get_fix_by_id("package_omp"));
   if (!fix) lmp->error->all(FLERR, "The 'package omp' command is required for /omp styles");
+#if defined(_OPENMP)
+  omp_set_num_threads(lmp->comm->nthreads);
+#endif
 }
 
 // clang-format off

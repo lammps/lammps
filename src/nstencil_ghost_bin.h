@@ -13,35 +13,15 @@
 
 #ifdef NSTENCIL_CLASS
 // clang-format off
-typedef NStencilGhostBin<0, 0, 0> NStencilFullGhostBin2d;
+typedef NStencilGhostBin<0> NStencilFullGhostBin2d;
 NStencilStyle(full/ghost/bin/2d,
               NStencilFullGhostBin2d,
               NS_FULL | NS_GHOST | NS_BIN | NS_2D | NS_ORTHO | NS_TRI);
 
-typedef NStencilGhostBin<0, 1, 0> NStencilFullGhostBin3d;
+typedef NStencilGhostBin<1> NStencilFullGhostBin3d;
 NStencilStyle(full/ghost/bin/3d,
               NStencilFullGhostBin3d,
               NS_FULL | NS_GHOST | NS_BIN | NS_3D | NS_ORTHO | NS_TRI);
-
-typedef NStencilGhostBin<1, 0, 0> NStencilHalfGhostBin2d;
-NStencilStyle(half/ghost/bin/2d,
-              NStencilHalfGhostBin2d,
-              NS_HALF | NS_GHOST | NS_BIN | NS_2D | NS_ORTHO);
-
-typedef NStencilGhostBin<1, 0, 1> NStencilHalfGhostBin2dTri;
-NStencilStyle(half/ghost/bin/2d/tri,
-              NStencilHalfGhostBin2dTri,
-              NS_HALF | NS_GHOST | NS_BIN | NS_2D | NS_TRI);
-
-typedef NStencilGhostBin<1, 1, 0> NStencilHalfGhostBin3d;
-NStencilStyle(half/ghost/bin/3d,
-              NStencilHalfGhostBin3d,
-              NS_HALF | NS_GHOST | NS_BIN | NS_3D | NS_ORTHO);
-
-typedef NStencilGhostBin<1, 1, 1> NStencilHalfGhostBin3dTri;
-NStencilStyle(half/ghost/bin/3d/tri,
-              NStencilHalfGhostBin3dTri,
-              NS_HALF | NS_GHOST | NS_BIN | NS_3D | NS_TRI);
 // clang-format on
 #else
 
@@ -52,7 +32,7 @@ NStencilStyle(half/ghost/bin/3d/tri,
 
 namespace LAMMPS_NS {
 
-template<int HALF, int DIM_3D, int TRI>
+template<int DIM_3D>
 class NStencilGhostBin : public NStencil {
  public:
   NStencilGhostBin(class LAMMPS *);

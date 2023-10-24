@@ -53,7 +53,7 @@ void NStencilBinIntel<HALF, DIM_3D, TRI>::create()
         if (HALF && DIM_3D && (!TRI))
           if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
 
-        if (bin_distance(i,j,k) < cutneighmaxsq)
+        if (bin_distance(i, j, k) < cutneighmaxsq)
           stencil[nstencil++] = k * mbiny * mbinx + j * mbinx + i;
       }
     }

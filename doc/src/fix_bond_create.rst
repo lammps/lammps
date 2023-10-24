@@ -78,7 +78,7 @@ and effectively create and destroy bonds and higher-order many-body
 interactions from time step to time step as the atoms move.
 
 A check for possible new bonds is performed every *Nevery* time steps.
-If two atoms :math:`i` and :math:`j` are within a maximum distance 
+If two atoms :math:`i` and :math:`j` are within a maximum distance
 *Rmin* of each other, and within a minimum distance *Rmax* of each other,
 atom :math:`i` is of type *itype*, atom :math:`j` is of type *jtype*,
 and both :math:`i` and :math:`j` are in the specified fix group, then if a bond
@@ -124,11 +124,11 @@ actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number is less than *fraction*.
 
-You can use the keyword *maxnr* to limit the total number of bonds created 
+You can use the keyword *maxnr* to limit the total number of bonds created
 in each invocation of this command (i.e, *Nevery* steps).
 Use a fix, variable or compute that returns a scalar here.
-For example, you could use this in conjunction with 
-:doc:`fix bond/break <fix_bond_break>` in order to relocate bonds, 
+For example, you could use this in conjunction with
+:doc:`fix bond/break <fix_bond_break>` in order to relocate bonds,
 while keeping the number of bonds constant.
 
 The *aconstrain* keyword is only available with the fix

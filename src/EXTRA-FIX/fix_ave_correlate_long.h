@@ -74,7 +74,7 @@ class FixAveCorrelateLong : public Fix {
   bigint nvalid, nvalid_last, last_accumulated_step;
   FILE *fp;
 
-  int type, startstep, overwrite;
+  int type, startstep, overwrite, msd;
   bigint filepos;
 
   int npair;    // number of correlation pairs to calculate

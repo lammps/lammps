@@ -113,6 +113,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
   startstep = 0;
   fp = nullptr;
   overwrite = 0;
+  msd = 0;
   numcorrelators = 20;
   p = 16;
   m = 2;
@@ -164,6 +165,9 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "overwrite") == 0) {
       overwrite = 1;
+      iarg += 1;
+    }else if (strcmp(arg[iarg], "msd") == 0) {
+      msd = 0;
       iarg += 1;
     } else if (strcmp(arg[iarg], "title1") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long title1", error);

@@ -19,7 +19,7 @@ Syntax
 * hicutoff = max distance at which the new bond will be considered (distance units)
 * fraction = fraction of group atoms to consider for relocating its bonds of type *relocateBondType*
 * seed = random # seed (positive integer)
-* decidingFunctionality = the number of bonds of type *decidingBondType* 
+* decidingFunctionality = the number of bonds of type *decidingBondType*
       on an atom needed to consider relocation of bonds of type *relocateBondType*
 
 

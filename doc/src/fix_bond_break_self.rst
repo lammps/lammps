@@ -35,8 +35,8 @@ Description
 """""""""""
 
 Break bonds between the atom with itself as a simulation runs according to
-specified criteria.  This can be used to compensate for bonds having been 
-moved on top of each with :doc:`fix bond/mcmove <fix_bond_mcmove>`.  
+specified criteria.  This can be used to compensate for bonds having been
+moved on top of each with :doc:`fix bond/mcmove <fix_bond_mcmove>`.
 In this context, a bond means an interaction between a
 pair of atoms computed by the :doc:`bond_style <bond_style>` command.
 Once the bond is broken it will be permanently deleted, as will all
@@ -49,8 +49,8 @@ and effectively creates and destroys bonds and higher-order many-body
 interactions from timestep to timestep as atoms move.
 
 A check for possible bond breakage is performed every *Nevery*
-timesteps.  If two bonded atoms :math:`i` and :math:`j` are equal, 
-the bond is of type *bondtype*, and :math:`i` is in the specified fix group, 
+timesteps.  If two bonded atoms :math:`i` and :math:`j` are equal,
+the bond is of type *bondtype*, and :math:`i` is in the specified fix group,
 then the bond between is labeled as a "possible" bond to break.
 
 If several bonds involving an atom are stretched, it may have multiple

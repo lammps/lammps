@@ -271,8 +271,8 @@ void LAMMPS_NS::update_pair_energy(MLIAPDataKokkosDevice *data, double *eij)
 {
   auto d_eatoms = data->eatoms;
   auto d_pair_i= data->pair_i;
-  const auto nlistatoms = data->nlistatoms;
-  Kokkos::parallel_for(nlistatoms, KOKKOS_LAMBDA(int ii){
+  const auto nlocal = data->nlocal;
+  Kokkos::parallel_for(nlocal, KOKKOS_LAMBDA(int ii){
     d_eatoms[ii] = 0;
   });
 
@@ -281,7 +281,7 @@ void LAMMPS_NS::update_pair_energy(MLIAPDataKokkosDevice *data, double *eij)
     double e = 0.5 * eij[ii];
 
     // must not count any contribution where i is not a local atom
-    if (i < nlistatoms) {
+    if (i < nlocal) {
       Kokkos::atomic_add(&d_eatoms[i], e);
       local_sum += e;
     }

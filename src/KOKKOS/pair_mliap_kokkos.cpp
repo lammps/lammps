@@ -138,7 +138,7 @@ template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::allocate()
 {
   int n = atom->ntypes;
-  
+
   memoryKK->destroy_kokkos(k_map, map);
   memoryKK->destroy_kokkos(k_cutsq, cutsq);
   memoryKK->destroy_kokkos(k_setflag, setflag);

@@ -300,20 +300,7 @@ void ChartViewer::add_data(int step, double data)
     if (last_step < step) {
         last_step = step;
         series->append(step, data);
-        auto points = series->points();
-
-        qreal xmin = 1.0e100;
-        qreal xmax = -1.0e100;
-        qreal ymin = 1.0e100;
-        qreal ymax = -1.0e100;
-        for (auto &p : points) {
-            xmin = qMin(xmin, p.x());
-            xmax = qMax(xmax, p.x());
-            ymin = qMin(ymin, p.y());
-            ymax = qMax(ymax, p.y());
-        }
-        xaxis->setRange(xmin, xmax);
-        yaxis->setRange(ymin, ymax);
+        reset_zoom();
     }
 }
 

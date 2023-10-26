@@ -541,10 +541,10 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, `fix
-:doc:ave/histo <fix_ave_histo>`, :doc:`fix ave/time <fix_ave_time>`,
-:doc:`variable <variable>`, :doc:`fix ave/correlate
-:doc:<fix_ave_correlate>`, `fix ave/atogrid <fix_ave_grid>`
+:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`,
+:doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/time <fix_ave_time>`,
+:doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`,
+:doc:`fix ave/grid <fix_ave_grid>`
 
 
 Default

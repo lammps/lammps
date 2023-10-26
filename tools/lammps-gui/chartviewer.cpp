@@ -31,6 +31,8 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
+#include <cmath>
+
 using namespace QtCharts;
 
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
@@ -86,9 +88,9 @@ int ChartWindow::get_step() const
     if (charts.size() > 0) {
         auto *v = charts[0];
         if (v)
-          return (int)v->get_step(v->get_count() - 1);
+            return (int)v->get_step(v->get_count() - 1);
         else
-          return -1;
+            return -1;
     } else {
         return -1;
     }
@@ -320,6 +322,20 @@ void ChartViewer::reset_zoom()
         ymin = qMin(ymin, p.y());
         ymax = qMax(ymax, p.y());
     }
+
+    // avoid (nearly) empty ranges
+    double deltax = fabs((xmax - xmin) / ((xmax == 0.0) ? 1.0 : xmax));
+    if (deltax  < 1.0e-10) {
+        xmin -= 100.0*deltax;
+        xmax += 100.0*deltax;
+    }
+
+    double deltay = fabs((ymax - ymin) / ((ymax == 0.0) ? 1.0 : ymax));
+    if (deltay < 1.0e-10) {
+        ymin -= 100.0*deltay;
+        ymax += 100.0*deltay;
+    }
+
     xaxis->setRange(xmin, xmax);
     yaxis->setRange(ymin, ymax);
 }

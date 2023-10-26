@@ -17,16 +17,18 @@
 #include "fft3d.h"    // IWYU pragma: export
 #include "pointers.h"
 
-#ifdef HEFFTE
+#ifdef LMP_HEFFTE
 #include "heffte.h"
 // select the backend
-#if defined(FFT_FFTW3)
+#if defined(HEFFTE_FFTW)
 using heffte_backend = heffte::backend::fftw;
-#elif defined(FFT_MKL)
+#elif defined(HEFFTE_MKL)
 using heffte_backend = heffte::backend::mkl;
+#elif defined(HEFFTE_)
+using heffte_backend = heffte::backend::stock;
 #endif
 
-#endif // HEFFTE
+#endif // LMP_HEFFTE
 
 namespace LAMMPS_NS {
 
@@ -41,7 +43,7 @@ class FFT3d : protected Pointers {
   void timing1d(FFT_SCALAR *, int, int);
 
  private:
-  #ifdef HEFFTE
+  #ifdef LMP_HEFFTE
   // the heFFTe plan supersedes the internal fft_plan_3d
   std::unique_ptr<heffte::fft3d<heffte_backend>> heffte_plan;
   std::vector<std::complex<FFT_SCALAR>> heffte_workspace;

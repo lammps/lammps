@@ -46,17 +46,21 @@ else()
   target_compile_definitions(lammps PRIVATE -DFFT_KISS)
 endif()
 
-option(FFT_HEFFTE  "Use heFFTe as the distributed FFT engine."  OFF)
-if(FFT_HEFFTE)
+option(LMP_HEFFTE  "Use heFFTe as the distributed FFT engine, supersedes the FFT option."  OFF)
+if(LMP_HEFFTE)
   # if FFT_HEFFTE is enabled, switch the builtin FFT engine with Heffte
-  if(FFT STREQUAL "FFTW3") # respect the backend choice, FFTW or MKL
+  set(HEFFTE_BACKEND_VALUES FFTW MKL)
+  set(HEFFTE_BACKEND "" CACHE STRING "Select heFFTe backend, e.g., FFTW or MKL")
+  set_property(CACHE HEFFTE_BACKEND PROPERTY STRINGS ${HEFFTE_BACKEND_VALUES})
+
+  if(HEFFTE_BACKEND STREQUAL "FFTW") # respect the backend choice, FFTW or MKL
     set(HEFFTE_COMPONENTS "FFTW")
     set(Heffte_ENABLE_FFTW "ON" CACHE BOOL "Enables FFTW backend for heFFTe")
-  elseif(FFT STREQUAL "MKL")
+  elseif(HEFFTE_BACKEND STREQUAL "MKL")
     set(HEFFTE_COMPONENTS "MKL")
     set(Heffte_ENABLE_MKL "ON" CACHE BOOL "Enables MKL backend for heFFTe")
   else()
-    message(FATAL_ERROR "Using -DFFT_HEFFTE=ON, requires FFT either FFTW or MKL")
+    message(WARNING "HEFFTE_BACKEND not selected, defaulting to 'stock' backend, which is not intended for production")
   endif()
 
   find_package(Heffte 2.3.0 QUIET COMPONENTS ${HEFFTE_COMPONENTS})
@@ -72,7 +76,7 @@ if(FFT_HEFFTE)
     set_target_properties(lammps PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
   endif()
 
-  target_compile_definitions(lammps PRIVATE -DHEFFTE)
+  target_compile_definitions(lammps PRIVATE -DLMP_HEFFTE "-DHEFFTE_${HEFFTE_BACKEND}")
   target_link_libraries(lammps PRIVATE Heffte::Heffte)
 endif()
 

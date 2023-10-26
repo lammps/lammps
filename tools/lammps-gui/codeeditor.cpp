@@ -424,12 +424,15 @@ void CodeEditor::setVarNameList()
 
     LammpsWrapper *lammps = &qobject_cast<LammpsGui *>(parent())->lammps;
     int nvar              = lammps->id_count("variable");
-    char buffer[200];
+    constexpr int BUFLEN = 256;
+    char buffer[BUFLEN];
     for (int i = 0; i < nvar; ++i) {
-        lammps->variable_info(i, buffer, 200);
-        if (strlen(buffer) == 1) vars << QString("$%1").arg(buffer);
-        vars << QString("${%1}").arg(buffer);
-        vars << QString("v_%1").arg(buffer);
+        memset(buffer, 0, BUFLEN);
+        if (lammps->variable_info(i, buffer, BUFLEN)) {
+            if (strlen(buffer) == 1) vars << QString("$%1").arg(buffer);
+            vars << QString("${%1}").arg(buffer);
+            vars << QString("v_%1").arg(buffer);
+        }
     }
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)

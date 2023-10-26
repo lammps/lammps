@@ -277,7 +277,7 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   for (int itype=1; itype <= atom->ntypes; ++itype)
     for (int jtype=1; jtype <= atom->ntypes; ++jtype)
       // do not set cuts for NULL atoms
-      if (map[itype] >= 0 && map[jtype] >=0) {
+      if (map[itype] >= 0 && map[jtype] >= 0) {
         h_cutsq(itype,jtype) = descriptor->cutsq[map[itype]][map[jtype]];
       }
   k_cutsq.modify<LMPHostType>();

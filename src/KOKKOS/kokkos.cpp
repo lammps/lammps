@@ -254,7 +254,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     int have_gpu_aware = -1;
 
     // OpenMPI
-    
+
 #if (OPEN_MPI)
     have_gpu_aware = 0;
 #if (OMPI_MAJOR_VERSION >= 2)

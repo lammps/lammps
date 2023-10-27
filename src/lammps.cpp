@@ -16,6 +16,7 @@
 
 #include "style_angle.h"     // IWYU pragma: keep
 #include "style_atom.h"      // IWYU pragma: keep
+#include "style_body.h"      // IWYU pragma: keep
 #include "style_bond.h"      // IWYU pragma: keep
 #include "style_command.h"   // IWYU pragma: keep
 #include "style_compute.h"   // IWYU pragma: keep
@@ -27,6 +28,7 @@
 #include "style_kspace.h"    // IWYU pragma: keep
 #include "style_minimize.h"  // IWYU pragma: keep
 #include "style_pair.h"      // IWYU pragma: keep
+#include "style_reader.h"    // IWYU pragma: keep
 #include "style_region.h"    // IWYU pragma: keep
 
 #include "accelerator_kokkos.h"
@@ -1150,9 +1152,9 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   check_for_match(bond,style,name);
   check_for_match(command,style,name);
   check_for_match(compute,style,name);
+  check_for_match(dihedral,style,name);
   check_for_match(dump,style,name);
   check_for_match(fix,style,name);
-  check_for_match(compute,style,name);
   check_for_match(improper,style,name);
   check_for_match(integrate,style,name);
   check_for_match(kspace,style,name);
@@ -1162,6 +1164,8 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   check_for_match(region,style,name);
   return nullptr;
 }
+
+#undef check_for_match
 
 /** \brief  Return suffix for non-pair styles depending on pair_only_flag
  *

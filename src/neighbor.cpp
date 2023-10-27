@@ -496,17 +496,17 @@ void Neighbor::init()
   }
 
   restart_check = 0;
-  if (output->restart_flag) restart_check = 1;
+  if (output->restart_flag) must_check = restart_check = 1;
 
   // fixchecklist = other classes that can induce reneighboring in decide()
 
   fixchecklist.clear();
-  fix_check = 0;
-  for (auto &ifix : modify->get_fix_list())
-    if (ifix->force_reneighbor) fixchecklist.push_back(ifix);
-
-  must_check = 0;
-  if (restart_check || fix_check) must_check = 1;
+  for (auto &ifix : modify->get_fix_list()) {
+    if (ifix->force_reneighbor) {
+      fixchecklist.push_back(ifix);
+      must_check = 1;
+    }
+  }
 
   // set special_flag for 1-2, 1-3, 1-4 neighbors
   // flag[0] is not used, flag[1] = 1-2, flag[2] = 1-3, flag[3] = 1-4
@@ -2292,8 +2292,11 @@ int Neighbor::decide()
   if (must_check) {
     bigint n = update->ntimestep;
     if (restart_check && n == output->next_restart) return 1;
-    for (auto &ifix : fixchecklist)
+    fprintf(stderr, "step %ld  num fixes: %d\n", update->ntimestep, fixchecklist.size());
+    for (auto &ifix : fixchecklist) {
+      fprintf(stderr, " fix: %s %s next %ld\n", ifix->id, ifix->style, ifix->next_reneighbor);
       if (n == ifix->next_reneighbor) return 1;
+    }
   }
 
   ago++;

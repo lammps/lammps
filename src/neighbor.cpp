@@ -143,7 +143,6 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
   cutneighghostsq = nullptr;
   cuttype = nullptr;
   cuttypesq = nullptr;
-  fixchecklist = nullptr;
 
   // pairwise neighbor lists and associated data structs
 
@@ -242,7 +241,6 @@ Neighbor::~Neighbor()
   memory->destroy(cutneighghostsq);
   delete[] cuttype;
   delete[] cuttypesq;
-  delete[] fixchecklist;
 
   for (int i = 0; i < nlist; i++) delete lists[i];
   for (int i = 0; i < nbin; i++) delete neigh_bin[i];
@@ -497,19 +495,15 @@ void Neighbor::init()
     if (cut_respa[0]-skin < 0) cut_middle_inside_sq = 0.0;
   }
 
-  // fixchecklist = other classes that can induce reneighboring in decide()
-
   restart_check = 0;
   if (output->restart_flag) restart_check = 1;
 
-  delete[] fixchecklist;
-  fixchecklist = nullptr;
-  fixchecklist = new int[modify->nfix];
+  // fixchecklist = other classes that can induce reneighboring in decide()
 
+  fixchecklist.clear();
   fix_check = 0;
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->force_reneighbor)
-      fixchecklist[fix_check++] = i;
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->force_reneighbor) fixchecklist.push_back(ifix);
 
   must_check = 0;
   if (restart_check || fix_check) must_check = 1;
@@ -2298,8 +2292,8 @@ int Neighbor::decide()
   if (must_check) {
     bigint n = update->ntimestep;
     if (restart_check && n == output->next_restart) return 1;
-    for (int i = 0; i < fix_check; i++)
-      if (n == modify->fix[fixchecklist[i]]->next_reneighbor) return 1;
+    for (auto &ifix : fixchecklist)
+      if (n == ifix->next_reneighbor) return 1;
   }
 
   ago++;

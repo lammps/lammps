@@ -33,6 +33,12 @@
 #include <unistd.h>             // for getpid()
 #endif
 
+#ifdef LMP_KOKKOS_GPU
+#if (OPEN_MPI) && (OMPI_MAJOR_VERSION >= 2)
+#include <mpi-ext.h>
+#endif
+#endif
+
 using namespace LAMMPS_NS;
 
 int KokkosLMP::is_finalized = 0;
@@ -256,15 +262,23 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     // OpenMPI
 
 #if (OPEN_MPI)
-    have_gpu_aware = 0;
 #if (OMPI_MAJOR_VERSION >= 2)
-#include <mpi-ext.h>
+
 #if defined(KOKKOS_ENABLE_CUDA)
     have_gpu_aware = MPIX_Query_cuda_support();
-#elif (OMPI_MAJOR_VERSION >= 5) && defined(KOKKOS_ENABLE_HIP)
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+#if (OMPI_MAJOR_VERSION >= 5)
     have_gpu_aware = MPIX_Query_rocm_support();
+#else
+    have_gpu_aware = 0;
 #endif
 #endif
+
+#else
+    have_gpu_aware = 0;
+#endif // OMPI_MAJOR_VERSION >= 2
 
     if (gpu_aware_flag == 1 && have_gpu_aware == 0) {
       if (me == 0)
@@ -272,7 +286,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                        "use '-pk kokkos gpu/aware on' to override");
       gpu_aware_flag = 0;
     }
-#endif
+
+#endif // OPEN_MPI
 
     // IBM Spectrum MPI
 

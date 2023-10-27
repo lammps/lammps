@@ -324,16 +324,26 @@ void ChartViewer::reset_zoom()
     }
 
     // avoid (nearly) empty ranges
-    double deltax = fabs((xmax - xmin) / ((xmax == 0.0) ? 1.0 : xmax));
-    if (deltax  < 1.0e-10) {
-        xmin -= 100.0*deltax;
-        xmax += 100.0*deltax;
+    double deltax = xmax - xmin;
+    if ((deltax / ((xmax == 0.0) ? 1.0 : xmax)) < 1.0e-10) {
+        if ((xmin == 0.0) || (xmax == 0.0)) {
+            xmin = -0.025;
+            xmax = 0.025;
+        } else {
+            xmin -= 0.025 * fabs(xmin);
+            xmax += 0.025 * fabs(xmax);
+        }
     }
 
-    double deltay = fabs((ymax - ymin) / ((ymax == 0.0) ? 1.0 : ymax));
-    if (deltay < 1.0e-10) {
-        ymin -= 100.0*deltay;
-        ymax += 100.0*deltay;
+    double deltay = ymax - ymin;
+    if ((deltay / ((ymax == 0.0) ? 1.0 : ymax)) < 1.0e-10) {
+        if ((ymin == 0.0) || (ymax == 0.0)) {
+            ymin = -0.025;
+            ymax = 0.025;
+        } else {
+            ymin -= 0.025 * fabs(ymin);
+            ymax += 0.025 * fabs(ymax);
+        }
     }
 
     xaxis->setRange(xmin, xmax);

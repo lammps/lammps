@@ -686,13 +686,15 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     // print augmented context menu if an entry was found
     auto *menu = createStandardContextMenu();
     menu->addSeparator();
-    auto action = menu->addAction(QString("Display available completions for '%1'").arg(help));
-    action->setIcon(QIcon(":/icons/expand-text.png"));
-    connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
+    if (!help.isEmpty()) {
+        auto action = menu->addAction(QString("Display available completions for '%1'").arg(help));
+        action->setIcon(QIcon(":/icons/expand-text.png"));
+        connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
+    }
 
     if (!page.isEmpty()) {
         menu->addSeparator();
-        action = menu->addAction(QString("Reformat '%1' command").arg(help));
+        auto action = menu->addAction(QString("Reformat '%1' command").arg(help));
         action->setIcon(QIcon(":/icons/format-indent-less-3.png"));
         connect(action, &QAction::triggered, this, &CodeEditor::reformatCurrentLine);
 
@@ -714,10 +716,10 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
         }
     }
-    auto action3 = menu->addAction(QString("LAMMPS Manual"));
-    action3->setIcon(QIcon(":/icons/help-browser.png"));
-    action3->setData(QString());
-    connect(action3, &QAction::triggered, this, &CodeEditor::open_help);
+    auto action = menu->addAction(QString("LAMMPS Manual"));
+    action->setIcon(QIcon(":/icons/help-browser.png"));
+    action->setData(QString());
+    connect(action, &QAction::triggered, this, &CodeEditor::open_help);
 
     menu->exec(event->globalPos());
     delete menu;

@@ -25,6 +25,7 @@ cdef extern from "mliap_data_kokkos.h" namespace "LAMMPS_NS":
     cdef cppclass MLIAPDataKokkosDevice:
         # Array shapes
         int nlistatoms
+        int nlocal
         int ndescriptors
 
         # Input data

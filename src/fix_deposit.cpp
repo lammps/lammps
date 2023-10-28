@@ -817,6 +817,10 @@ void FixDeposit::options(int narg, char **arg)
   }
 }
 
+/* ----------------------------------------------------------------------
+   output number of successful insertions
+------------------------------------------------------------------------- */
+
 double FixDeposit::compute_scalar()
 {
   return ninserted;

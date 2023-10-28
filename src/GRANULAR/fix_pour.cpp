@@ -57,7 +57,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 6) error->all(FLERR, "Illegal fix pour command");
 
   if (lmp->kokkos) error->all(FLERR, "Cannot yet use fix pour with the KOKKOS package");
-  
+
   scalar_flag = 1;
   time_depend = 1;
 

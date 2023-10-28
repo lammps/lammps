@@ -289,10 +289,11 @@ operation of the fix continues in an uninterrupted fashion.
    The fix will try to detect it and stop with an error.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
-of this fix can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+fix.  This fix computes a global scalar, which can be accessed by various
+output commands.  The scalar is the cumulative number of insertions.  The
+scalar value calculated by this fix is “intensive”.  No parameter of this
+fix can be used with the *start/stop* keywords of the :doc:`run <run>`
+command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

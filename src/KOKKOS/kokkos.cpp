@@ -265,13 +265,15 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #if (OMPI_MAJOR_VERSION >= 2)
 
 #if defined(KOKKOS_ENABLE_CUDA)
+#if defined(OMPI_HAVE_MPI_EXT_CUDA) && OMPI_HAVE_MPI_EXT_CUDA
     have_gpu_aware = MPIX_Query_cuda_support();
+#endif
 #endif
 
 #if defined(KOKKOS_ENABLE_HIP)
-#if (OMPI_MAJOR_VERSION >= 5)
+#if defined(OMPI_HAVE_MPI_EXT_ROCM) && OMPI_HAVE_MPI_EXT_ROCM
     have_gpu_aware = MPIX_Query_rocm_support();
-#else
+#elif (OMPI_MAJOR_VERSION < 5)
     have_gpu_aware = 0;
 #endif
 #endif

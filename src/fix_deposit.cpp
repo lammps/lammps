@@ -707,13 +707,13 @@ void FixDeposit::options(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "var") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_atoms var", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deposit var", error);
       delete[] vstr;
       vstr = utils::strdup(arg[iarg + 1]);
       varflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "set") == 0) {
-      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms set", error);
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deposit set", error);
       if (strcmp(arg[iarg + 1], "x") == 0) {
         delete[] xstr;
         xstr = utils::strdup(arg[iarg + 2]);
@@ -724,7 +724,7 @@ void FixDeposit::options(int narg, char **arg)
         delete[] zstr;
         zstr = utils::strdup(arg[iarg + 2]);
       } else
-        error->all(FLERR, "Unknown create_atoms set option {}", arg[iarg + 2]);
+        error->all(FLERR, "Unknown fix deposit set option {}", arg[iarg + 2]);
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
@@ -853,33 +853,33 @@ void FixDeposit::options(int narg, char **arg)
   // error check and further setup for variable test
 
   if (!vstr && (xstr || ystr || zstr))
-    error->all(FLERR, "Incomplete use of variables in create_atoms command");
+    error->all(FLERR, "Incomplete use of variables in fix deposit command");
   if (vstr && (!xstr && !ystr && !zstr))
-    error->all(FLERR, "Incomplete use of variables in create_atoms command");
+    error->all(FLERR, "Incomplete use of variables in fix deposit command");
 
   if (varflag) {
     vvar = input->variable->find(vstr);
-    if (vvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", vstr);
+    if (vvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", vstr);
     if (!input->variable->equalstyle(vvar))
-      error->all(FLERR, "Variable for create_atoms is invalid style");
+      error->all(FLERR, "Variable for fix deposit is invalid style");
 
     if (xstr) {
       xvar = input->variable->find(xstr);
-      if (xvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", xstr);
+      if (xvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", xstr);
       if (!input->variable->internalstyle(xvar))
-        error->all(FLERR, "Variable for create_atoms is invalid style");
+        error->all(FLERR, "Variable for fix deposit is invalid style");
     }
     if (ystr) {
       yvar = input->variable->find(ystr);
-      if (yvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", ystr);
+      if (yvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", ystr);
       if (!input->variable->internalstyle(yvar))
-        error->all(FLERR, "Variable for create_atoms is invalid style");
+        error->all(FLERR, "Variable for fix deposit is invalid style");
     }
     if (zstr) {
       zvar = input->variable->find(zstr);
-      if (zvar < 0) error->all(FLERR, "Variable {} for create_atoms does not exist", zstr);
+      if (zvar < 0) error->all(FLERR, "Variable {} for fix deposit does not exist", zstr);
       if (!input->variable->internalstyle(zvar))
-        error->all(FLERR, "Variable for create_atoms is invalid style");
+        error->all(FLERR, "Variable for fix deposit is invalid style");
     }
   }
 }

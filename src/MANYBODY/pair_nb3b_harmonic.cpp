@@ -37,7 +37,7 @@ using MathConst::MY_PI;
 #define DELTA 4
 #define SMALL 0.001
 
-static const char *substyle[] = { "nb3n/harmonic", "nb3b/screened" };
+static const char *substyle[] = {"nb3n/harmonic", "nb3b/screened"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -271,10 +271,14 @@ void PairNb3bHarmonic::read_file(char *file)
         params[nparams].kelement = kelement;
         params[nparams].k_theta = values.next_double();
         params[nparams].theta0 = values.next_double();
-        if (variant == SCREENED)
-          params[nparams].rho = values.next_double();
-        else
-          params[nparams].rho = 1.0; // dummy value
+        params[nparams].invrho = 1.0;    // dummy value
+        if (variant == SCREENED) {
+          double rho = values.next_double();
+          if (rho > 0.0)
+            params[nparams].invrho = 1.0 / rho;
+          else
+            throw TokenizerException("Incorrect value for potential parameter", "rho");
+        }
         params[nparams].cutoff = values.next_double();
 
         if (unit_convert) params[nparams].k_theta *= conversion_factor;
@@ -283,7 +287,7 @@ void PairNb3bHarmonic::read_file(char *file)
       }
 
       if ((params[nparams].k_theta < 0.0) || (params[nparams].theta0 < 0.0) ||
-          (params[nparams].cutoff < 0.0) || (params[nparams].rho <= 0.0))
+          (params[nparams].cutoff < 0.0))
         error->one(FLERR, "Illegal {} parameter", substyle[variant]);
 
       nparams++;

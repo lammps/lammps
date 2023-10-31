@@ -40,7 +40,7 @@ class PairNb3bHarmonic : public Pair {
  protected:
   struct Param {
     double k_theta, theta0, cutoff;
-    double rho;    // added for screened harmonic style
+    double invrho;    // for screened harmonic style
     double cut, cutsq;
     int ielement, jelement, kelement;
   };

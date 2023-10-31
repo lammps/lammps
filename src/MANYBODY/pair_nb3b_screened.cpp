@@ -63,8 +63,8 @@ void PairNb3bScreened::threebody(Param *paramij, Param *paramik, Param *paramijk
   //
   // Uijk=k/2(theta-theta0)**2 * exp[-(rij/rhoij+rik/rhoik)]
   //
-  rho1inv = paramij->rho;
-  rho2inv = paramik->rho;
+  rho1inv = paramij->invrho;
+  rho2inv = paramik->invrho;
   scr = exp(-r1 * rho1inv - r2 * rho2inv);
 
   dtheta = acos(c) - paramijk->theta0;

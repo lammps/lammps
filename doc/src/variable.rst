@@ -1167,7 +1167,7 @@ variables), or global vectors of values.  The latter can also be a
 column of a global array.
 
 Atom-style variables can use scalar values (same as for equal-style
-varaibles), or per-atom vectors of values.  The latter can also be a
+variables), or per-atom vectors of values.  The latter can also be a
 column of a per-atom array.
 
 The various allowed compute references in the variable formulas for
@@ -1183,7 +1183,7 @@ table:
 +--------+------------+------------------------------------------+
 | vector | c_ID       | global vector                            |
 | vector | c_ID[I]    | column of global array                   |
----------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
 | atom   | c_ID       | per-atom vector                          |
 | atom   | c_ID[I]    | column of per-atom array                 |
 +--------+------------+------------------------------------------+
@@ -1232,7 +1232,7 @@ variables), or global vectors of values.  The latter can also be a
 column of a global array.
 
 Atom-style variables can use scalar values (same as for equal-style
-varaibles), or per-atom vectors of values.  The latter can also be a
+variables), or per-atom vectors of values.  The latter can also be a
 column of a per-atom array.
 
 The allowed fix references in variable formulas for equal-, vector-,
@@ -1247,7 +1247,7 @@ and atom-style variables are listed in the following table:
 +--------+------------+------------------------------------------+
 | vector | f_ID       | global vector                            |
 | vector | f_ID[I]    | column of global array                   |
----------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
 | atom   | f_ID       | per-atom vector                          |
 | atom   | f_ID[I]    | column of per-atom array                 |
 +--------+------------+------------------------------------------+

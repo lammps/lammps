@@ -53,7 +53,8 @@ cdef extern from "mliap_data.h" namespace "LAMMPS_NS":
         # only neighbors strictly inside descriptor cutoff
 
         int ntotal              # total number of owned and ghost atoms on this proc
-        int nlistatoms          # current number of atoms in local atom lists
+        int nlistatoms          # current number of non-NULL atoms in local atom lists
+        int nlocal              # current number of NULL and normal atoms in local atom lists
         int natomneigh          # current number of atoms and ghosts in atom neighbor arrays
         int * numneighs         # neighbors count for each atom
         int * iatoms            # index of each atom
@@ -226,6 +227,10 @@ cdef class MLIAPDataPy:
     @property
     def nlistatoms(self):
         return self.data.nlistatoms
+
+    @property
+    def nlocal(self):
+        return self.data.nlocal
     
     @property
     def natomneigh(self):

@@ -51,6 +51,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
+  scalar_flag = 1;
   restart_global = 1;
   time_depend = 1;
 
@@ -814,6 +815,15 @@ void FixDeposit::options(int narg, char **arg)
       iarg += 4;
     } else error->all(FLERR,"Illegal fix deposit command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   output number of successful insertions
+------------------------------------------------------------------------- */
+
+double FixDeposit::compute_scalar()
+{
+  return ninserted;
 }
 
 /* ----------------------------------------------------------------------

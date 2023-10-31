@@ -44,10 +44,11 @@ require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS, but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 Alternatively, LAMMPS can use the
-`heFFTe <https://mkstoyanov.bitbucket.io/heffte/>`_
+`heFFTe <https://icl-utk-edu.github.io/heffte/>`_
 library for the MPI communication algorithms,
-currently heFFTe can be build only with CMake
-and the value of FFT should be FFTW3 or MKL.
+which comes with many optimizations for special cases,
+e.g., leveraging 2D or 3D backend transforms or
+better pipelining for packing and communication.
 
 .. tabs::
 
@@ -58,7 +59,7 @@ and the value of FFT should be FFTW3 or MKL.
          -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
          -D FFT_SINGLE=value       # yes or no (default), no = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
-         -D FFT_HEFFTE=value       # yes or no (default), yes links to heFFTe
+         -D LMP_HEFFTE=value       # yes or no (default), yes links to heFFTe
 
       .. note::
 
@@ -82,6 +83,7 @@ and the value of FFT should be FFTW3 or MKL.
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
+         -D HEFFTE_BACKEND=value     # FFTW or MKL or empty/undefined for the stock backend
          -D Heffte_ROOT=path         # path to an existing heFFTe installation
 
 
@@ -118,6 +120,22 @@ and the value of FFT should be FFTW3 or MKL.
       ``FFT_PATH``, if the compiler can find the FFT header and library
       files in its default search path.  You must specify ``FFT_LIB``
       with the appropriate FFT libraries to include in the link.
+
+      Traditional make can also link to heFFTe using an existing installation
+
+      .. code-block:: make
+
+         include <path-to-heffte-installation>/share/heffte/HeffteMakefile.in
+         FFT_INC = -DLMP_HEFFTE -DHEFFTE_FFTW $(heffte_include)
+         FFT_PATH =
+         FFT_LIB = $(heffte_link) $(heffte_libs)
+
+      The heFFTe install path will contain `HeffteMakefile.in`.
+      which will define the `heffte_` include variables needed to link to heFFTe from
+      an external project using traditional make.
+      The `-DLMP_HEFFTE` is required to switch to using heFFTe, while the optional `-DHEFFTE_FFTW`
+      selects the desired heFFTe backend, e.g., `-DHEFFTE_FFTW` or `-DHEFFTE_MKL`,
+      omitting the variable will default to the `stock` backend.
 
 The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
 included in the LAMMPS distribution.  It is portable across all

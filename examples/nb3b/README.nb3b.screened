@@ -27,11 +27,11 @@ parameters for Si permutations appear but they are not employed in
 the current case.
 
 # i  j  k   K     theta0   rho  cutoff
-O   P   P    65.0  109.47   1.0   3.3
-O   P   Si  120.0  109.47   1.0   0.000
+O   P   P    32.5  109.47   1.0   3.3
+O   P   Si   60.0  109.47   1.0   0.000
 O   P   O   0.000  0.000    1.0   0.000
-O   Si  P   120.0  109.47   1.0   0.000
-O   Si  Si   25.0  109.47   1.0   3.3
+O   Si  P    60.0  109.47   1.0   0.000
+O   Si  Si   12.5  109.47   1.0   3.3
 (...)
 
 The rho value must be always higher than 0.0. Cutoff and rho are extracted

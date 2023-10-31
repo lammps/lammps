@@ -60,8 +60,8 @@ PairRHEOReact::PairRHEOReact(LAMMPS *lmp) : Pair(lmp),
   int tmp1, tmp2;
   int index = atom->find_custom("react_nbond", tmp1, tmp2);
   if (index == -1) {
-    id_fix_pa = utils::strdup("pair_rheo_react_fix_property_atom");
-    modify->add_fix(fmt::format("{} all property/atom i_react_nbond", id_fix_pa));
+    id_fix = utils::strdup("pair_rheo_react_fix_property_atom");
+    modify->add_fix(fmt::format("{} all property/atom i_react_nbond", id_fix));
     index = atom->find_custom("nbond", tmp1, tmp2);
   }
   nbond = atom->ivector[index];
@@ -125,11 +125,9 @@ void PairRHEOReact::compute(int eflag, int vflag)
   double **v = atom->v;
   double **f = atom->f;
   int *type = atom->type;
-  int *phase = atom->phase;
+  int *status = atom->status;
   int *mask = atom->mask;
   int *nbond = atom->ivector[index_nb];
-  int *surface = atom->surface;
-  double *rsurf = atom->dvector[index_rsurf];
 
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -151,7 +149,7 @@ void PairRHEOReact::compute(int eflag, int vflag)
   for(i = 0; i < nmax; i++) {
     dbond[i] = 0;
   }
-
+/*
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -167,23 +165,25 @@ void PairRHEOReact::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = type[j];
       data = &alldata[2*jj];
 
+
       // If not bonded and there's an internal fluid particle, unsave any data and skip
       if (!(saved[jj] == 1 && data[0] > 0)) {
-        if ((phase[i] <= FixRHEO::FLUID_MAX && rsurf[i] > rlimit[itype][jtype]) || (phase[j] <= FixRHEO::FLUID_MAX && rsurf[j] > rlimit[itype][jtype])) {
+        if ((status[i] <= FixRHEO::FLUID_MAX && rsurf[i] > rlimit[itype][jtype]) || (status[j] <= FixRHEO::FLUID_MAX && rsurf[j] > rlimit[itype][jtype])) {
           saved[jj] = 0;
           continue;
         }
       }
 
       // If both are solid, unbond and skip
-      if ((phase[i] == FixRHEO::SOLID || phase[i] == FixRHEO::FREEZING) &&
-          (phase[j] == FixRHEO::SOLID || phase[j] == FixRHEO::FREEZING)) {
+      if ((status[i] == FixRHEO::SOLID || status[i] == FixRHEO::FREEZING) &&
+          (status[j] == FixRHEO::SOLID || status[j] == FixRHEO::FREEZING)) {
         //If bonded, deincrement
         if (saved[jj] == 1 && data[0] > 0) {
           dbond[i] --;
@@ -245,7 +245,7 @@ void PairRHEOReact::compute(int eflag, int vflag)
 
       if (data[0] <= 0) {
         // Skip if either is fluid (only include r+s or r+r since already skipped s+s)
-        if (phase[i] <= FixRHEO::FLUID_MAX || phase[j] <= FixRHEO::FLUID_MAX) continue;
+        if (status[i] <= FixRHEO::FLUID_MAX || status[j] <= FixRHEO::FLUID_MAX) continue;
 
         // Skip if out of contact
         if (rsq > sigma[itype][jtype]*sigma[itype][jtype]) continue;
@@ -315,10 +315,11 @@ void PairRHEOReact::compute(int eflag, int vflag)
     // If it has bonds it is reactive (no shifting)
     // If a reactive particle breaks all bonds, return to fluid
     // Keep it non-shifting for this timestep to be safe
-    if (nbond[i] != 0 && phase[i] <= FixRHEO::FLUID_MAX) phase[i] = FixRHEO::FLUID_NO_SHIFT;
+    if (nbond[i] != 0 && status[i] <= FixRHEO::FLUID_MAX) status[i] = FixRHEO::FLUID_NO_SHIFT;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -410,7 +411,7 @@ void PairRHEOReact::coeff(int narg, char **arg)
 void PairRHEOReact::init_style()
 {
   int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->history = 1;
+  //neighbor->requests[irequest]->history = 1;
 
   if (fix_history == nullptr) {
 
@@ -432,10 +433,10 @@ void PairRHEOReact::init_style()
     fix_dummy = nullptr;
   }
 
-  int temp_flag;
-  index_rsurf = atom->find_custom("rsurf", temp_flag);
-  if ((index_rsurf < 0) || (temp_flag != 1))
-      error->all(FLERR, "Pair rheo/react can't find fix property/atom rsurf");
+  //int temp_flag;
+  //index_rsurf = atom->find_custom("rsurf", temp_flag);
+  //if ((index_rsurf < 0) || (temp_flag != 1))
+  //    error->all(FLERR, "Pair rheo/react can't find fix property/atom rsurf");
 }
 
 /* ----------------------------------------------------------------------
@@ -443,6 +444,7 @@ void PairRHEOReact::init_style()
  ------------------------------------------------------------------------- */
 
 void PairRHEOReact::setup() {
+  /*
   int ifix = modify->find_fix_by_style("rheo");
   if (ifix == -1) error->all(FLERR, "Using pair rheo/react without fix rheo");
   fix_rheo = ((FixRHEO *) modify->fix[ifix]);
@@ -452,6 +454,7 @@ void PairRHEOReact::setup() {
 
   if (force->newton_pair == 0) error->all(FLERR,
       "Pair rheo/react needs newton pair on for bond changes to be consistent");
+  */
 }
 
 /* ----------------------------------------------------------------------

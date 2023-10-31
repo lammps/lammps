@@ -29,6 +29,7 @@ class PairRHEOTension : public Pair {
   PairRHEOTension(class LAMMPS *);
   ~PairRHEOTension() override;
   void compute(int, int) override;
+  void settings(int, char **) override;
   void coeff(int, char **) override;
   void setup() override;
   void init_style() override;
@@ -41,8 +42,8 @@ class PairRHEOTension : public Pair {
  protected:
   int nmax_store;
   double **nt, *ct;
-  double *alpha;
-  double hsq, hinv, hinv3;
+  double **alpha;
+  double h, hsq, hinv, hinv3;
 
   void allocate();
 

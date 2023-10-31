@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairRHEOReact : public Pair {
  public:
   PairRHEOReact(class LAMMPS *);
-  virtual ~PairRHEOReact() override;
-  virtual void compute(int, int) override;
+  ~PairRHEOReact() override;
+  void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
   void init_style() override;
@@ -48,6 +48,9 @@ class PairRHEOReact : public Pair {
   int size_history, nmax_store;
   int *dbond, *nbond;
   double dt;
+
+  int index_nb, nmax;
+  char *id_fix;
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;

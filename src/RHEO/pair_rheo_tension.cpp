@@ -106,7 +106,7 @@ void PairRHEOTension::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
+/*
   int nmax = atom->nmax;
   if (nmax_store <= nmax) {
     memory->grow(ct, nmax, "atom:rheo_c_tension");
@@ -173,6 +173,7 @@ void PairRHEOTension::compute(int eflag, int vflag)
 
   comm->reverse_comm(this);
   comm->forward_comm(this);
+*/
 }
 
 /* ----------------------------------------------------------------------
@@ -194,6 +195,14 @@ void PairRHEOTension::allocate()
 }
 
 /* ----------------------------------------------------------------------
+ global settings
+ ------------------------------------------------------------------------- */
+
+void PairRHEOTension::settings(int narg, char **arg)
+{
+}
+
+/* ----------------------------------------------------------------------
  set coeffs for one or more type pairs
  ------------------------------------------------------------------------- */
 
@@ -208,7 +217,7 @@ void PairRHEOTension::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi,error);
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi,error);
 
-  alpha_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double alpha_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -232,7 +241,7 @@ void PairRHEOTension::setup()
   auto fixes = modify->get_fix_by_style("rheo");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use pair rheo");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
-
+  /*
   compute_kernel = fix_rheo->compute_kernel;
   compute_grad = fix_rheo->compute_grad;
   compute_interface = fix_rheo->compute_interface;
@@ -243,6 +252,7 @@ void PairRHEOTension::setup()
   hsq = h * h;
   hinv = 1.0 / h;
   hinv3 = hinv * 3.0;
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -291,6 +301,7 @@ double PairRHEOTension::init_one(int i, int j)
 
 int PairRHEOTension::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
+  /*
   int i,j,k,m;
   m = 0;
   double *rho = atom->rho;
@@ -307,12 +318,14 @@ int PairRHEOTension::pack_forward_comm(int n, int *list, double *buf, int /*pbc_
     }
   }
   return m;
+  */
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairRHEOTension::unpack_forward_comm(int n, int first, double *buf)
 {
+  /*
   int i, k, m, last;
   double *rho = atom->rho;
   m = 0;
@@ -327,6 +340,7 @@ void PairRHEOTension::unpack_forward_comm(int n, int first, double *buf)
       rho[i] = buf[m++];
     }
   }
+  */
 }
 
 
@@ -334,6 +348,7 @@ void PairRHEOTension::unpack_forward_comm(int n, int first, double *buf)
 
 int PairRHEOTension::pack_reverse_comm(int n, int first, double *buf)
 {
+  /*
   int i, k, m, last;
   double **fp_store = compute_interface->fp_store;
 
@@ -346,12 +361,14 @@ int PairRHEOTension::pack_reverse_comm(int n, int first, double *buf)
   }
 
   return m;
+  */
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairRHEOTension::unpack_reverse_comm(int n, int *list, double *buf)
 {
+  /*
   int i, j, k, m;
   double **fp_store = compute_interface->fp_store;
 
@@ -362,4 +379,5 @@ void PairRHEOTension::unpack_reverse_comm(int n, int *list, double *buf)
     fp_store[j][1] += buf[m++];
     fp_store[j][2] += buf[m++];
   }
+  */
 }

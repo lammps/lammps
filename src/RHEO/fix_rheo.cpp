@@ -94,11 +94,11 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"surface/detection") == 0) {
       surface_flag = 1;
       if(iarg + 2 >= narg) error->all(FLERR,"Illegal surface/detection option in fix rheo");
-      if (strcmp(arg[iarg + 1], "coordination")) {
+      if (strcmp(arg[iarg + 1], "coordination") == 0) {
         surface_style = COORDINATION;
         zmin_surface = utils::inumeric(FLERR,arg[iarg + 2],false,lmp);
         zmin_splash = utils::inumeric(FLERR,arg[iarg + 3],false,lmp);
-      } else if (strcmp(arg[iarg + 1], "divergence")) {
+      } else if (strcmp(arg[iarg + 1], "divergence") == 0) {
         surface_style = DIVR;
         divr_surface = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
         zmin_splash = utils::inumeric(FLERR,arg[iarg + 3],false,lmp);

@@ -429,7 +429,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   comm->forward_comm(this);
 
   // output FF settings to screen and logfile
-  // delay until here because force RMS accuracy is computed based on rpole
+  //   delay until here because RMS force accuracy is computed based on rpole
 
   if (first_flag_compute && (comm->me == 0)) print_settings();
   first_flag_compute = 0;
@@ -984,8 +984,8 @@ void PairAmoeba::init_style()
     for (int i = 0; i < nlocal; i++) pval[i] = 0.0;
   }
 
-  // output FF settings to screen and logfile
-
+  // output FF settings to screen and logfile:
+  //   delay until rpole are available for RMS force accuracy estimate
   //if (first_flag && (comm->me == 0)) print_settings();
 
   // all done with one-time initializations

@@ -30,8 +30,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 using MathSpecial::square;
-using MathSpecial::powint;
-using MathSpecial::powsinxx;
 
 enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
@@ -1006,6 +1004,7 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
 
 /* ----------------------------------------------------------------------
    estimate the accuracy of m_kspace solver based on the monopoles
+   based on Ewald
 ------------------------------------------------------------------------- */
 
 double PairAmoeba::final_accuracy_mpole()

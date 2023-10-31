@@ -225,6 +225,8 @@
 /fix_rheo_viscosity.h
 /pair_rheo.cpp
 /pair_rheo.h
+/pair_rheo_react.cpp
+/pair_rheo_react.h
 /pair_rheo_tension.cpp
 /pair_rheo_tension.h
 

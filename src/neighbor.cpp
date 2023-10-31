@@ -2292,9 +2292,7 @@ int Neighbor::decide()
   if (must_check) {
     bigint n = update->ntimestep;
     if (restart_check && n == output->next_restart) return 1;
-    fprintf(stderr, "step %ld  num fixes: %d\n", update->ntimestep, fixchecklist.size());
     for (auto &ifix : fixchecklist) {
-      fprintf(stderr, " fix: %s %s next %ld\n", ifix->id, ifix->style, ifix->next_reneighbor);
       if (n == ifix->next_reneighbor) return 1;
     }
   }

@@ -113,7 +113,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     for (k = 0; k < ns; k++) {
       bin_start = binhead[ibin + s[k]];
       if (HALF && NEWTON && (!TRI)) {
-        if (s[k] == 0) {
+        if (k == 0) {
           // Half neighbor list, newton on, orthonormal
           // loop over rest of atoms in i's bin, ghosts are at end of linked list
           bin_start = bins[i];
@@ -159,7 +159,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           // Half neighbor list, newton on, orthonormal
           // store every pair for every bin in stencil,except for i's bin
 
-          if (s[k] == 0) {
+          if (k == 0) {
             // if j is owned atom, store it, since j is beyond i in linked list
             // if j is ghost, only store if j coords are "above and to the "right" of i
             if (j >= nlocal) {
@@ -236,7 +236,7 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;

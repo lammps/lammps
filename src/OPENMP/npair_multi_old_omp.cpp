@@ -119,7 +119,7 @@ void NPairMultiOldOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     ns = nstencil_multi_old[itype];
     for (k = 0; k < ns; k++) {
       bin_start = binhead[ibin+s[k]];
-      if (s[k] == 0) {
+      if (k == 0) {
         if (HALF && NEWTON && (!TRI)) {
           // Half neighbor list, newton on, orthonormal
           // loop over rest of atoms in i's bin, ghosts are at end of linked list
@@ -166,7 +166,7 @@ void NPairMultiOldOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           // Half neighbor list, newton on, orthonormal
           // store every pair for every bin in stencil,except for i's bin
 
-          if (s[k] == 0) {
+          if (k == 0) {
             // if j is owned atom, store it, since j is beyond i in linked list
             // if j is ghost, only store if j coords are "above and to the "right" of i
             if (j >= nlocal) {

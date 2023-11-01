@@ -99,7 +99,7 @@ void NPairRespaNsqOmp<NEWTON, TRI>::build(NeighList *list)
   int *numneigh_inner = list->numneigh_inner;
   int **firstneigh_inner = list->firstneigh_inner;
 
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  int *ilist_middle, *numneigh_middle, **firstneigh_middle;
   if (respamiddle) {
     ilist_middle = list->ilist_middle;
     numneigh_middle = list->numneigh_middle;
@@ -222,20 +222,20 @@ void NPairRespaNsqOmp<NEWTON, TRI>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     ipage.vgot(n_inner);
-    if (ipage_inner.status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage_inner.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n_middle);
-      if (ipage_middle->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+      if (ipage_middle->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
     }
   }
   NPAIR_OMP_CLOSE;

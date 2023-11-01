@@ -117,7 +117,7 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     for (k = 0; k < nstencil; k++) {
       bin_start = binhead[ibin + stencil[k]];
       if (HALF && NEWTON && (!TRI)) {
-        if (stencil[k] == 0) {
+        if (k == 0) {
           // Half neighbor list, newton on, orthonormal
           // loop over rest of atoms in i's bin, ghosts are at end of linked list
           bin_start = bins[i];
@@ -163,7 +163,7 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
           // Half neighbor list, newton on, orthonormal
           // store every pair for every bin in stencil, except for i's bin
 
-          if (stencil[k] == 0) {
+          if (k == 0) {
             // if j is owned atom, store it, since j is beyond i in linked list
             // if j is ghost, only store if j coords are "above and to the "right" of i
             if (j >= nlocal) {
@@ -229,7 +229,7 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                 if (!moltemplate)
                   which = find_special(special[i], nspecial[i], tag[j]);
                 else if (imol >= 0)
-                  which = find_special(onemols[imol]->special[iatom], onemols[imol]  ->nspecial[iatom],
+                  which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
                                        tag[j] - tagprev);
                 else which = 0;
                 if (which == 0)
@@ -250,7 +250,7 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;

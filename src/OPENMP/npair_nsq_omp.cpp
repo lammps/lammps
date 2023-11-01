@@ -137,9 +137,9 @@ void NPairNsqOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         if (j >= nlocal) {
           jtag = tag[j];
           if (itag > jtag) {
-            if ((itag+jtag) % 2 == 0) continue;
+            if ((itag + jtag) % 2 == 0) continue;
           } else if (itag < jtag) {
-            if ((itag+jtag) % 2 == 1) continue;
+            if ((itag + jtag) % 2 == 1) continue;
           } else if (TRI) {
             if (fabs(x[j][2] - ztmp) > delta) {
               if (x[j][2] < ztmp) continue;
@@ -219,7 +219,7 @@ void NPairNsqOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;

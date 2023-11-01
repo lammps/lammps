@@ -81,7 +81,7 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
   int **firstneigh_inner = list->firstneigh_inner;
   MyPage<int> *ipage_inner = list->ipage_inner;
 
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
+  int *ilist_middle, *numneigh_middle, **firstneigh_middle;
   MyPage<int> *ipage_middle;
   int respamiddle = list->respamiddle;
   if (respamiddle) {
@@ -123,7 +123,7 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
     for (k = 0; k < nstencil; k++) {
       bin_start = binhead[ibin+stencil[k]];
       if (NEWTON && (!TRI)) {
-        if (stencil[k] == 0) {
+        if (k == 0) {
           // Half neighbor list, newton on, orthonormal
           // loop over rest of atoms in i's bin, ghosts are at end of linked list
           bin_start = bins[i];
@@ -165,7 +165,7 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
           // Half neighbor list, newton on, orthonormal
           // store every pair for every bin in stencil,except for i's bin
 
-          if (stencil[k] == 0) {
+          if (k == 0) {
             // if j is owned atom, store it, since j is beyond i in linked list
             // if j is ghost, only store if j coords are "above and to the "right" of i
             if (j >= nlocal) {
@@ -230,20 +230,20 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
 
     ilist_inner[inum] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     ipage_inner->vgot(n_inner);
-    if (ipage_inner->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage_inner->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
       ilist_middle[inum] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n_middle);
-      if (ipage_middle->status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+      if (ipage_middle->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
     }
 
     inum++;

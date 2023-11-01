@@ -131,7 +131,7 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 
         // own-bin for half stencil
         if (HALF && !TRI)
-          if (flag_half_multi[icollection][jcollection] && s[k] == 0) js = bins[i];
+          if (k == 0 && flag_half_multi[icollection][jcollection]) js = bins[i];
 
         for (j = js; j >= 0; j = bins[j]) {
           if (!HALF) {
@@ -180,24 +180,22 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
           } else {
             // Half neighbor list, newton on, orthonormal
             // if same size: uses half stencil so includes a check of the central bin
-            if (flag_half_multi[icollection][jcollection]){
-              if (s[k] == 0) {
-                // if same collection,
-                //   if j is owned atom, store it, since j is beyond i in linked list
-                //   if j is ghost, only store if j coords are "above and to the right" of i
+            if (k == 0 && flag_half_multi[icollection][jcollection]) {
+              // if same collection,
+              //   if j is owned atom, store it, since j is beyond i in linked list
+              //   if j is ghost, only store if j coords are "above and to the right" of i
 
-                // if different collections,
-                //   if j is owned atom, store it if j > i
-                //   if j is ghost, only store if j coords are "above and to the right" of i
+              // if different collections,
+              //   if j is owned atom, store it if j > i
+              //   if j is ghost, only store if j coords are "above and to the right" of i
 
-                if ((icollection != jcollection) && (j < i)) continue;
+              if ((icollection != jcollection) && (j < i)) continue;
 
-                if (j >= nlocal) {
-                  if (x[j][2] < ztmp) continue;
-                  if (x[j][2] == ztmp) {
-                    if (x[j][1] < ytmp) continue;
-                    if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
-                  }
+              if (j >= nlocal) {
+                if (x[j][2] < ztmp) continue;
+                if (x[j][2] == ztmp) {
+                  if (x[j][1] < ytmp) continue;
+                  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
                 }
               }
             }
@@ -233,7 +231,7 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                   if (!moltemplate)
                     which = find_special(special[i], nspecial[i], tag[j]);
                   else if (imol >= 0)
-                    which = find_special(onemols[imol]->special[iatom], onemols  [imol]->nspecial[iatom],
+                    which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
                                          tag[j] - tagprev);
                   else
                     which = 0;
@@ -256,7 +254,7 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                   if (!moltemplate)
                     which = find_special(special[i], nspecial[i], tag[j]);
                   else if (imol >= 0)
-                    which = find_special(onemols[imol]->special[iatom], onemols  [imol]->nspecial[iatom],
+                    which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
                                          tag[j] - tagprev);
                   else
                     which = 0;
@@ -279,7 +277,7 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status()) error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
   NPAIR_OMP_CLOSE;
   list->inum = nlocal;

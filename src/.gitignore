@@ -1297,6 +1297,8 @@
 /pair_morse_soft.h
 /pair_nb3b_harmonic.cpp
 /pair_nb3b_harmonic.h
+/pair_nb3b_screened.cpp
+/pair_nb3b_screened.h
 /pair_nm_cut.cpp
 /pair_nm_cut.h
 /pair_nm_cut_coul_cut.cpp

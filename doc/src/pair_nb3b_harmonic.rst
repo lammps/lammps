@@ -1,6 +1,10 @@
 .. index:: pair_style nb3b/harmonic
+.. index:: pair_style nb3b/screened
 
 pair_style nb3b/harmonic command
+================================
+
+pair_style nb3b/screened command
 ================================
 
 Syntax
@@ -8,7 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style nb3b/harmonic
+   pair_style style
+
+* style = *nb3b/harmonic* or *nb3b/screened*
 
 Examples
 """"""""
@@ -18,10 +24,14 @@ Examples
    pair_style nb3b/harmonic
    pair_coeff * * MgOH.nb3bharmonic Mg O H
 
+   pair_style nb3b/screened
+   pair_coeff * * PO.nb3b.screened P NULL O
+   pair_coeff * * SiOH.nb3b.screened Si O H
+
 Description
 """""""""""
 
-This pair style computes a non-bonded 3-body harmonic potential for the
+The pair style *nb3b/harmonic* computes a non-bonded 3-body harmonic potential for the
 energy E of a system of atoms as
 
 .. math::
@@ -33,7 +43,17 @@ prefactor. Note that the usual 1/2 factor is included in *K*\ . The form
 of the potential is identical to that used in angle_style *harmonic*,
 but in this case, the atoms do not need to be explicitly bonded.
 
-Only a single pair_coeff command is used with this style which
+Style *nb3b/screened* adds an additional exponentially decaying factor to
+the harmonic term, given by
+
+.. math::
+
+   E = K (\theta - \theta_0)^2 \exp \left(- \frac{r_{ij}}{\rho_{ij}} - \frac{r_{ik}}{\rho_{ik}} \right)
+
+where :math:`\rho_ij` and :math:`\rho_ik` are the screening factors along
+the two bonds. Note that the usual 1/2 factor is included in *K*.
+
+Only a single pair_coeff command is used with these styles which
 specifies a potential file with parameters for specified elements.
 These are mapped to LAMMPS atom types by specifying N additional
 arguments after the filename in the pair_coeff command, where N is the
@@ -61,8 +81,8 @@ type 4 to the C element in the potential file.  If a mapping value is
 specified as NULL, the mapping is not performed.  This can be used
 when the potential is used as part of the *hybrid* pair style.  The
 NULL values are placeholders for atom types that will be used with
-other potentials. An example of a pair_coeff command for use with the
-*hybrid* pair style is:
+other potentials. Two examples of pair_coeff command for use with the
+*hybrid* pair style are:
 
 .. code-block:: LAMMPS
 

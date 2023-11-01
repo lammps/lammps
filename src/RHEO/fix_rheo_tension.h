@@ -11,44 +11,45 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef FIX_CLASS
 // clang-format off
-PairStyle(rheo/tension,PairRHEOTension)
+FixStyle(rheo/tension,FixRHEOTension)
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_RHEO_TENSION_H
-#define LMP_PAIR_RHEO_TENSION_H
+#ifndef LMP_FIX_RHEO_TENSION_H
+#define LMP_FIX_RHEO_TENSION_H
 
-#include "pair.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class PairRHEOTension : public Pair {
+class FixRHEOTension : public Fix {
  public:
-  PairRHEOTension(class LAMMPS *);
-  ~PairRHEOTension() override;
-  void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  void setup() override;
-  void init_style() override;
-  double init_one(int, int) override;
+  FixRHEOTension(class LAMMPS *, int, char **);
+  ~FixRHEOTension() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  void grow_arrays(int) override;
 
- protected:
-  int nmax_store;
-  double **nt, *ct;
-  double **alpha;
-  double h, hsq, hinv, hinv3;
+ private:
+  int nmax_store, comm_stage, interface_flag;
+  int index_nt, index_cgradt, index_divnt;
 
-  void allocate();
+  double **nt, **cgradt, *divnt, *norm;
+  double alpha, h, hsq, hinv, hinv3, rho0;
 
   class ComputeRHEOKernel *compute_kernel;
+  class ComputeRHEOInterface *compute_interface;
   class FixRHEO *fix_rheo;
+  class NeighList *list;
 };
 
 }    // namespace LAMMPS_NS

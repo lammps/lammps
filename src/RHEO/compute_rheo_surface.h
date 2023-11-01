@@ -40,14 +40,18 @@ class ComputeRHEOSurface : public Compute {
   class FixRHEO *fix_rheo;
 
  private:
-  double cut, cutsq, rho0, threshold_divr;
   int surface_style, nmax_store, threshold_z, threshold_splash, interface_flag;
-  double **B, **gradC;
   int threshold_style, comm_stage;
+  int index_divr, index_rsurf, index_nsurf;
+
+  double cut, cutsq, rho0, threshold_divr;
+  double **B, **gradC;
 
   class NeighList *list;
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOInterface *compute_interface;
+
+  void grow_arrays(int);
 };
 
 }    // namespace LAMMPS_NS

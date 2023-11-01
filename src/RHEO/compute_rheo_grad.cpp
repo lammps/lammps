@@ -355,8 +355,6 @@ int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
         }
       }
 
-
-
       if (rho_flag)
         buf[m++] = rho[j];
 

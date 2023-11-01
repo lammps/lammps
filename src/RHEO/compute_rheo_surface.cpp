@@ -87,27 +87,26 @@ void ComputeRHEOSurface::init()
 
   cutsq = cut * cut;
 
-  // Create rsurface, divr, nsurface arrays if they don't already exist
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_store exceeded
+  // Create rsurface, divr, nsurface arrays as custom atom properties,
+  //   can print with compute property/atom
+  //   no grow callback as there's no reason to copy/exchange data, manually grow
   // For B and gradC, create a local array since they are unlikely to be printed
 
+  int dim = domain->dimension;
   int tmp1, tmp2;
-  int index = atom->find_custom("rheo_divr", tmp1, tmp2);
-  if (index == -1)  index = atom->add_custom("rheo_divr", 1, 0);
-  divr = atom->dvector[index];
+  index_divr = atom->find_custom("rheo_divr", tmp1, tmp2);
+  if (index_divr == -1) index_divr = atom->add_custom("rheo_divr", 1, 0);
+  divr = atom->dvector[index_divr];
 
-  index = atom->find_custom("rheo_rsurface", tmp1, tmp2);
-  if (index == -1)  index = atom->add_custom("rheo_rsurface", 1, 0);
-  rsurface = atom->dvector[index];
+  index_rsurf = atom->find_custom("rheo_rsurface", tmp1, tmp2);
+  if (index_rsurf == -1) index_rsurf = atom->add_custom("rheo_rsurface", 1, 0);
+  rsurface = atom->dvector[index_rsurf];
 
-  index = atom->find_custom("rheo_nsurface", tmp1, tmp2);
-  if (index == -1)  index = atom->add_custom("rheo_nsurface", 1, 3);
-  nsurface = atom->darray[index];
+  index_nsurf = atom->find_custom("rheo_nsurface", tmp1, tmp2);
+  if (index_nsurf == -1) index_nsurf = atom->add_custom("rheo_nsurface", 1, dim);
+  nsurface = atom->darray[index_nsurf];
 
   nmax_store = atom->nmax;
-  int dim = domain->dimension;
   memory->create(B, nmax_store, dim * dim, "rheo/surface:B");
   memory->create(gradC, nmax_store, dim * dim, "rheo/surface:gradC");
 
@@ -148,32 +147,21 @@ void ComputeRHEOSurface::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  int nmax = atom->nmax;
-  if (nmax_store <= nmax) {
-    memory->grow(divr, nmax, "atom:rheo_divr");
-    memory->grow(rsurface, nmax, "atom:rheo_rsurface");
-    memory->grow(nsurface, nmax, 3, "atom:rheo_nsurface");
+  // Grow and zero arrays
+  if (nmax_store <= atom->nmax)
+    grow_arrays(atom->nmax);
 
-    memory->grow(B, nmax, dim * dim, "rheo/surface:B");
-    memory->grow(gradC, nmax, dim * dim, "rheo/surface:gradC");
+  size_t nbytes = nmax_store * sizeof(double);
+  memset(&divr, 0, nbytes);
+  memset(&rsurface, 0, nbytes);
+  memset(&nsurface, 0, 3 * nbytes);
+  memset(&gradC, 0, 3 * 3 * nbytes);
+  memset(&B, 0, 3 * 3 * nbytes);
 
-    nmax_store = atom->nmax;
-  }
-
+  // Remove surface settings
   int nall = nlocal + atom->nghost;
-  for (i = 0; i < nall; i++) {
-    for (a = 0; a < dim; a++) {
-      for (b = 0; b < dim; b++) {
-        B[i][a * dim + b] = 0.0;
-        gradC[i][a * dim + b] = 0.0;
-      }
-      nsurface[i][a] = 0.0;
-    }
-    divr[i] = 0.0;
-
-    // Remove surface settings
+  for (i = 0; i < nall; i++)
     status[i] &= SURFACEMASK;
-  }
 
   // loop over neighbors to calculate the average orientation of neighbors
   for (ii = 0; ii < inum; ii++) {
@@ -423,4 +411,26 @@ void ComputeRHEOSurface::unpack_forward_comm(int n, int first, double *buf)
       rsurface[i] = buf[m++];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeRHEOSurface::grow_arrays(int nmax)
+{
+  int dim = domain->dimension;
+
+  // Grow atom variables and reassign pointers
+  memory->grow(atom->dvector[index_divr], nmax, "atom:rheo_divr");
+  memory->grow(atom->dvector[index_rsurf], nmax, "atom:rheo_rsurface");
+  memory->grow(atom->darray[index_nsurf], nmax, dim, "atom:rheo_nsurface");
+
+  divr = atom->dvector[index_divr];
+  rsurface = atom->dvector[index_rsurf];
+  nsurface = atom->darray[index_nsurf];
+
+  // Grow local variables
+  memory->grow(B, nmax, dim * dim, "rheo/surface:B");
+  memory->grow(gradC, nmax, dim * dim, "rheo/surface:gradC");
+
+  nmax_store = atom->nmax;
 }

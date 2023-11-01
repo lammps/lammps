@@ -199,6 +199,8 @@
 
 /atom_vec_rheo.cpp
 /atom_vec_rheo.h
+/atom_vec_rheo_thermal.cpp
+/atom_vec_rheo_thermal.h
 /compute_rheo_grad.cpp
 /compute_rheo_grad.h
 /compute_rheo_interface.cpp

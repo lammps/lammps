@@ -35,6 +35,7 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr int MAXLOOP = 100;
 /* ---------------------------------------------------------------------- */
 
 ComputeAggregateAtom::ComputeAggregateAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -163,8 +164,11 @@ void ComputeAggregateAtom::compute_peratom()
 
   int change, done, anychange;
 
-  while (true) {
+  int counter = 0;
+  // stop after MAXLOOP iterations
+  while (counter < MAXLOOP) {
     comm->forward_comm(this);
+    ++counter;
 
     // reverse communication when bonds are not stored on every processor
 
@@ -223,6 +227,8 @@ void ComputeAggregateAtom::compute_peratom()
     MPI_Allreduce(&change, &anychange, 1, MPI_INT, MPI_MAX, world);
     if (!anychange) break;
   }
+  if ((comm->me == 0) && (counter >= MAXLOOP))
+    error->warning(FLERR, "Compute aggregate/atom did not converge after {} iterations", MAXLOOP);
 }
 
 /* ---------------------------------------------------------------------- */

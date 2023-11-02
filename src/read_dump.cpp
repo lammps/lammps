@@ -324,8 +324,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       }
 
       if (eofflag)
-        error->one(FLERR,"Read dump parallel files "
-                   "do not all have same timestep");
+        error->one(FLERR,"Read dump parallel files do not all have same timestep");
     }
   }
 
@@ -426,8 +425,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       }
 
       if (eofflag)
-        error->one(FLERR,"Read dump parallel files "
-                   "do not all have same timestep");
+        error->one(FLERR,"Read dump parallel files do not all have same timestep");
     }
   }
 

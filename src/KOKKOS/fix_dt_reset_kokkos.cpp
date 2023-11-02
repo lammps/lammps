@@ -85,8 +85,6 @@ void FixDtResetKokkos<DeviceType>::end_of_step()
 
   MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, world);
 
-  atomKK->modified(execution_space, F_MASK);
-
   if (minbound) dt = MAX(dt, tmin);
   if (maxbound) dt = MIN(dt, tmax);
 

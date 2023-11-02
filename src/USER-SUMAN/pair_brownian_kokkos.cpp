@@ -67,11 +67,7 @@ PairBrownianKokkos<DeviceType>::~PairBrownianKokkos()
   if (copymode) return;
 
   if (allocated) {
-    memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    //    eatom = nullptr;
-    //    vatom = nullptr;
-    
     memoryKK->destroy_kokkos(k_cut_inner,cut_inner);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
   }
@@ -185,11 +181,6 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   
   // reallocate per-atom arrays if necessary
 
-  if (eflag_atom) {
-    memoryKK->destroy_kokkos(k_eatom,eatom);
-    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-    d_eatom = k_eatom.view<DeviceType>();
-  }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
@@ -275,11 +266,6 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   printf(" -- finished\n");
   
-  if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
-  }
-  
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -288,7 +274,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[4] += ev.v[4];
     virial[5] += ev.v[5];
   }
-  
+    
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
@@ -461,7 +447,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
    	fy_i -= fy;
    	fz_i -= fz;
   	
-   	if (NEWTON_PAIR || j < nlocal) {
+   	if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
    	  a_f(j,0) += fx;
    	  a_f(j,1) += fy;
    	  a_f(j,2) += fz;
@@ -489,7 +475,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	  torquey_i -= ty;
 	  torquez_i -= tz;
 	  
-	  if (NEWTON_PAIR || j < nlocal) {
+	  if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
 	    a_torque(j,0) -= tx;
 	    a_torque(j,1) -= ty;
 	    a_torque(j,2) -= tz;
@@ -523,7 +509,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	  torquey_i -= ty;
 	  torquez_i -= tz;
 	  
-	  if (NEWTON_PAIR || j < nlocal) {
+	  if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
 	    a_torque(j,0) += tx;
 	    a_torque(j,1) += ty;
 	    a_torque(j,2) += tz;

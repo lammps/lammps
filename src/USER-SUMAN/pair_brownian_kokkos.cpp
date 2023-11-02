@@ -103,9 +103,7 @@ void PairBrownianKokkos<DeviceType>::init_style()
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  //if (neighflag == FULL) request->enable_full();
-  if (neighflag == FULL)
-    error->all(FLERR,"Must use half neighbor list with brownian/kk");
+  if (neighflag == FULL) request->enable_full();
 
   printf("PairBrownianKokkos::init_style()  flagdeform= %i  flagwall= %i  flaglog= %i  R0= %f  RT0= %f\n",flagdeform,flagwall,flaglog,R0,RT0);  
 }
@@ -224,92 +222,54 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
 
-  printf(" -- starting parallel_for()  neighflag= %i  HALF= %i  newton_pair= %i  vflag_atom= %i  flagfld= %i  vflag_global= %i\n",
-	 neighflag, HALF, force->newton_pair, vflag_atom, flagfld, vflag_global);
-  if (neighflag == HALF) {
-    if (force->newton_pair) {
-      if (vflag_atom) {
-        if (flagfld) {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,2,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,2,0>>(0,inum),*this);
-        }
-      } else if (vflag_global) {
-        if (flagfld) {
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,1,1>>(0,inum),*this, ev);
-        } else {
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,1,0>>(0,inum),*this, ev);
-        }
-      } else {
-        if (flagfld) {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,0,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,0,0>>(0,inum),*this);
-        }
+  printf(" -- starting parallel_for()  neighflag= %i  HALF= %i  newton_pair= %i  vflag_either= %i  vflag_atom= %i  flagfld= %i  vflag_global= %i\n",
+	 neighflag, HALF, newton_pair, vflag_either, vflag_atom, flagfld, vflag_global);
+  if (flagfld) { // FLAGFLD == 1
+    if (vflag_either) { // VFLAG == 1
+      if (neighflag == HALF) {
+        if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,1,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,1,1> >(0,inum),*this,ev);
+      } else if (neighflag == HALFTHREAD) {
+        if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,1,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,1,1> >(0,inum),*this,ev);
+      } else if (neighflag == FULL) {
+        if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,1,1,1> >(0,inum),*this,ev);
+        else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,0,1,1> >(0,inum),*this,ev);
       }
-    } else {
-      if (vflag_atom) {
-        if (flagfld) {
-	  printf("Step 0\n");
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,2,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,2,0>>(0,inum),*this);
-        }
-      } else if (vflag_global) {
-        if (flagfld) {
-	  printf(" -- Step N\n");
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,1,1>>(0,inum),*this, ev);
-        } else {
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,1,0>>(0,inum),*this, ev);
-        }
-      } else {
-        if (flagfld) {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,0,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,0,0>>(0,inum),*this);
-        }
+    } else {  // VFLAG==0
+      if (neighflag == HALF) {
+        if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,0,1> >(0,inum),*this);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,0,1> >(0,inum),*this);
+      } else if (neighflag == HALFTHREAD) {
+        if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,0,1> >(0,inum),*this);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,0,1> >(0,inum),*this);
+      } else if (neighflag == FULL) {
+        if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,1,0,1> >(0,inum),*this);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,0,0,1> >(0,inum),*this);
       }
     }
-  } else { // HALFTHREAD
-    if (force->newton_pair) {
-      if (vflag_atom) {
-        if (flagfld) {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,2,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,2,0>>(0,inum),*this);
-        }
-      } else if (vflag_global) {
-        if (flagfld) {
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,1,1>>(0,inum),*this, ev);
-        } else {
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,1,0>>(0,inum),*this, ev);
-        }
-      } else {
-        if (flagfld) {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,0,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,0,0>>(0,inum),*this);
-        }
+  } else { // FLAGFLD == 0
+    if (evflag) { // VFLAG== 1
+      if (neighflag == HALF) {
+        if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,1,0> >(0,inum),*this,ev);
+        else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,1,0> >(0,inum),*this,ev);
+      } else if (neighflag == HALFTHREAD) {
+        if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,1,0> >(0,inum),*this,ev);
+        else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,1,0> >(0,inum),*this,ev);
+      } else if (neighflag == FULL) {
+        if (newton_pair) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,1,1,0> >(0,inum),*this,ev);
+        else Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,0,1,0> >(0,inum),*this,ev);
       }
-    } else {
-      if (vflag_atom) {
-        if (flagfld) {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,2,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,2,0>>(0,inum),*this);
-        }
-      } else if (vflag_global) {
-        if (flagfld) {
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,1,1>>(0,inum),*this, ev);
-        } else {
-          Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,1,0>>(0,inum),*this, ev);
-        }
-      } else {
-        if (flagfld) {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,0,1>>(0,inum),*this);
-        } else {
-          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,0,0>>(0,inum),*this);
-        }
+    } else { // VFLAG == 0
+      if (neighflag == HALF) {
+        if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,1,0,0> >(0,inum),*this);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALF,0,0,0> >(0,inum),*this);
+      } else if (neighflag == HALFTHREAD) {
+        if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,1,0,0> >(0,inum),*this);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<HALFTHREAD,0,0,0> >(0,inum),*this);
+      } else if (neighflag == FULL) {
+        if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,1,0,0> >(0,inum),*this);
+        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBrownianCompute<FULL,0,0,0> >(0,inum),*this);
       }
     }
   }
@@ -344,9 +304,9 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int FLAGFLD>
+template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
 KOKKOS_INLINE_FUNCTION
-void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,FLAGFLD>, const int ii, EV_FLOAT &ev) const {
+void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int ii, EV_FLOAT &ev) const {
 
   //  printf("Inside TagPairBrownianCompute<>()  ii= %i\n",ii);
   
@@ -570,10 +530,8 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	  }
 	}
 	
-   	if (EVFLAG == 2)
-	  ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, -fx, -fy, -fz, delx, dely, delz);
-	if (EVFLAG == 1)
-	  ev_tally_xyz<NEWTON_PAIR>(ev, i, j, -fx, -fy, -fz, delx, dely, delz);
+	if (VFLAG)
+	  ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, -fx, -fy, -fz, delx, dely, delz);
       }
     }
     
@@ -597,89 +555,87 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int FLAGFLD>
+template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
 KOKKOS_INLINE_FUNCTION
-void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,FLAGFLD>, const int ii) const {
+void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int ii) const {
   EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG,FLAGFLD>(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,FLAGFLD>(), ii, ev);
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>(), ii, ev);
 }
 
-template<class DeviceType>
-template<int NEWTON_PAIR>
-KOKKOS_INLINE_FUNCTION
-void PairBrownianKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j,
-                                                          F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                                                          X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
-{
-  F_FLOAT v[6];
 
-  v[0] = delx*fx;
-  v[1] = dely*fy;
-  v[2] = delz*fz;
-  v[3] = delx*fy;
-  v[4] = delx*fz;
-  v[5] = dely*fz;
-
-  if (NEWTON_PAIR) {
-    ev.v[0] += v[0];
-    ev.v[1] += v[1];
-    ev.v[2] += v[2];
-    ev.v[3] += v[3];
-    ev.v[4] += v[4];
-    ev.v[5] += v[5];
-  } else {
-    if (i < nlocal) {
-      ev.v[0] += 0.5*v[0];
-      ev.v[1] += 0.5*v[1];
-      ev.v[2] += 0.5*v[2];
-      ev.v[3] += 0.5*v[3];
-      ev.v[4] += 0.5*v[4];
-      ev.v[5] += 0.5*v[5];
-    }
-    if (j < nlocal) {
-      ev.v[0] += 0.5*v[0];
-      ev.v[1] += 0.5*v[1];
-      ev.v[2] += 0.5*v[2];
-      ev.v[3] += 0.5*v[3];
-      ev.v[4] += 0.5*v[4];
-      ev.v[5] += 0.5*v[5];
-    }
-  }
-}
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-void PairBrownianKokkos<DeviceType>::ev_tally_xyz_atom(EV_FLOAT & /*ev*/, int i, int j,
-                                                               F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                                                               X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
+void PairBrownianKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, int j,
+                                                        F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
+                                                        X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {
   Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
-  F_FLOAT v[6];
-
-  v[0] = delx*fx;
-  v[1] = dely*fy;
-  v[2] = delz*fz;
-  v[3] = delx*fy;
-  v[4] = delx*fz;
-  v[5] = dely*fz;
-
-  if (NEWTON_PAIR || i < nlocal) {
-    v_vatom(i,0) += 0.5*v[0];
-    v_vatom(i,1) += 0.5*v[1];
-    v_vatom(i,2) += 0.5*v[2];
-    v_vatom(i,3) += 0.5*v[3];
-    v_vatom(i,4) += 0.5*v[4];
-    v_vatom(i,5) += 0.5*v[5];
+  const F_FLOAT v0 = delx*fx;
+  const F_FLOAT v1 = dely*fy;
+  const F_FLOAT v2 = delz*fz;
+  const F_FLOAT v3 = delx*fy;
+  const F_FLOAT v4 = delx*fz;
+  const F_FLOAT v5 = dely*fz;
+  
+  if (vflag_global) {
+    if (NEIGHFLAG != FULL) {
+      if (NEWTON_PAIR) { // neigh half, newton on
+	ev.v[0] += v0;
+	ev.v[1] += v1;
+	ev.v[2] += v2;
+	ev.v[3] += v3;
+	ev.v[4] += v4;
+	ev.v[5] += v5;
+      } else { // neigh half, newton off
+	if (i < nlocal) {
+	  ev.v[0] += 0.5*v0;
+	  ev.v[1] += 0.5*v1;
+	  ev.v[2] += 0.5*v2;
+	  ev.v[3] += 0.5*v3;
+	  ev.v[4] += 0.5*v4;
+	  ev.v[5] += 0.5*v5;
+	}
+	if (j < nlocal) {
+	  ev.v[0] += 0.5*v0;
+	  ev.v[1] += 0.5*v1;
+	  ev.v[2] += 0.5*v2;
+	  ev.v[3] += 0.5*v3;
+	  ev.v[4] += 0.5*v4;
+	  ev.v[5] += 0.5*v5;
+	}
+      }
+    } else { //neigh full
+      ev.v[0] += 0.5*v0;
+      ev.v[1] += 0.5*v1;
+      ev.v[2] += 0.5*v2;
+      ev.v[3] += 0.5*v3;
+      ev.v[4] += 0.5*v4;
+      ev.v[5] += 0.5*v5;
+    }
   }
-  if (NEWTON_PAIR || j < nlocal) {
-    v_vatom(j,0) += 0.5*v[0];
-    v_vatom(j,1) += 0.5*v[1];
-    v_vatom(j,2) += 0.5*v[2];
-    v_vatom(j,3) += 0.5*v[3];
-    v_vatom(j,4) += 0.5*v[4];
-    v_vatom(j,5) += 0.5*v[5];
+  
+  if (vflag_atom) {
+    
+    if (NEIGHFLAG == FULL || NEWTON_PAIR || i < nlocal) {
+      v_vatom(i,0) += 0.5*v0;
+      v_vatom(i,1) += 0.5*v1;
+      v_vatom(i,2) += 0.5*v2;
+      v_vatom(i,3) += 0.5*v3;
+      v_vatom(i,4) += 0.5*v4;
+      v_vatom(i,5) += 0.5*v5;
+    }
+    if (NEIGHFLAG != FULL && (NEWTON_PAIR || j < nlocal)) {
+      v_vatom(j,0) += 0.5*v0;
+      v_vatom(j,1) += 0.5*v1;
+      v_vatom(j,2) += 0.5*v2;
+      v_vatom(j,3) += 0.5*v3;
+      v_vatom(j,4) += 0.5*v4;
+      v_vatom(j,5) += 0.5*v5;
+    }
   }
 }
 

@@ -32,12 +32,13 @@ PairStyle(brownian/kk/host,PairBrownianKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int FLAGFLD>
+template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
 struct TagPairBrownianCompute {};
   
 template<class DeviceType>
 class PairBrownianKokkos : public PairBrownian, public KokkosBase {
  public:
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
@@ -49,23 +50,18 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
   void settings(int, char **) override;
   void init_style() override;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int FLAGFLD>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,FLAGFLD>, const int, EV_FLOAT &ev) const;
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int FLAGFLD>
+  void operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int, EV_FLOAT &ev) const;
+  template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,FLAGFLD>, const int) const;
+  void operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int) const;
 
-  template<int NEWTON_PAIR>
+  template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
                     F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                     X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
-  template<int NEIGHFLAG, int NEWTON_PAIR>
-  KOKKOS_INLINE_FUNCTION
-  void ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
-                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
 
  protected:
   typename AT::t_x_array_randomread x;

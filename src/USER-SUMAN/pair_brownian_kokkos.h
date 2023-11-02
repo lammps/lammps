@@ -49,6 +49,7 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
   void coeff(int, char **) override;
   void settings(int, char **) override;
   void init_style() override;
+  double init_one(int, int) override;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
   KOKKOS_INLINE_FUNCTION

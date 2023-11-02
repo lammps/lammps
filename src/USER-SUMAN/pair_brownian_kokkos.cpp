@@ -105,6 +105,25 @@ void PairBrownianKokkos<DeviceType>::init_style()
 }
 
 /* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairBrownianKokkos<DeviceType>::init_one(int i, int j)
+{
+  double cutone = PairBrownian::init_one(i,j);
+  double cutinnerm = cut_inner[i][j];
+
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
+  k_cutsq.template modify<LMPHostType>();
+  
+  k_cut_inner.h_view(i,j) = k_cut_inner.h_view(j,i) = cutinnerm;
+  k_cut_inner.template modify<LMPHostType>();
+
+  return cutone;
+}
+
+/* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
@@ -635,16 +654,13 @@ void PairBrownianKokkos<DeviceType>::allocate()
   PairBrownian::allocate();
 
   int n = atom->ntypes;
-  memory->destroy(cutsq);
-  //  memory->destroy(cut);
-  memory->destroy(cut_inner);
   
+  memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
   
-  //  memoryKK->create_kokkos(k_cut,cut,n+1,n+1,"pair:cut");
+  memory->destroy(cut_inner);
   memoryKK->create_kokkos(k_cut_inner,cut_inner,n+1,n+1,"pair:cut_inner");
-  //  d_cut = k_cut.template view<DeviceType>();
   d_cut_inner = k_cut_inner.template view<DeviceType>();
 }
 

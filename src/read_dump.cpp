@@ -48,19 +48,6 @@ ReadDump::ReadDump(LAMMPS *lmp) :
   nfield = 0;
   readerstyle = utils::strdup("native");
 
-  scaled = wrapped = 0;
-
-  boxgeom = UNKNOWN;
-  if (domain->triclinic)
-    boxgeom |= TRICLINIC;
-  else
-    boxgeom |= ORTHOGONAL;
-
-  if (domain->dimension == 2)
-    boxgeom |= TWO_D;
-  else
-    boxgeom |= THREE_D;
-
   nreader = 0;
   clustercomm = MPI_COMM_NULL;
   filereader = 0;
@@ -518,8 +505,8 @@ void ReadDump::header(int fieldinfo)
   if (boxflag) {
     if (!boxinfo)
       error->all(FLERR,"No box information in dump, must use 'box no'");
-    else if ((triclinic_snap &&  (boxgeom & ORTHOGONAL)) ||
-             (!triclinic_snap && (boxgeom & TRICLINIC)))
+    else if ((triclinic_snap && !domain->triclinic) ||
+             (!triclinic_snap && domain->triclinic))
       error->one(FLERR,"Read_dump triclinic status does not match simulation");
   }
 
@@ -563,11 +550,11 @@ void ReadDump::header(int fieldinfo)
   // set yindex,zindex = column index of Y and Z fields in fields array
   // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
 
-  if (scaled && (boxgeom & TRICLINIC)) {
+  if (scaled && domain->triclinic == 1) {
     int flag = 0;
     if (xflag == Reader::UNSET) flag = 1;
     if (yflag == Reader::UNSET) flag = 1;
-    if ((boxgeom & THREE_D) && zflag == Reader::UNSET) flag = 1;
+    if (domain->dimension == 3 && zflag == Reader::UNSET) flag = 1;
     if (flag)
       error->one(FLERR,"All read_dump x,y,z fields must be specified for "
                  "scaled, triclinic coords");
@@ -653,13 +640,13 @@ void ReadDump::atoms()
     domain->boxhi[0] = xhi;
     domain->boxlo[1] = ylo;
     domain->boxhi[1] = yhi;
-    if (boxgeom & THREE_D) {
+    if (domain->dimension == 3) {
       domain->boxlo[2] = zlo;
       domain->boxhi[2] = zhi;
     }
-    if (boxgeom & TRICLINIC) {
+    if (domain->triclinic) {
       domain->xy = xy;
-      if (boxgeom & THREE_D) {
+      if (domain->dimension == 3) {
         domain->xz = xz;
         domain->yz = yz;
       }
@@ -1132,12 +1119,12 @@ void ReadDump::migrate_atoms_by_coords()
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
-  if (boxgeom & TRICLINIC) domain->x2lamda(atom->nlocal);
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
   auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
-  if (boxgeom & TRICLINIC) domain->lamda2x(atom->nlocal);
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -1185,7 +1172,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
     error->all(FLERR,"Read_dump must use at least either 'id' or 'type' field");
 
-  if (boxgeom & TWO_D) {
+  if (domain->dimension == 2) {
     for (int i = 0; i < nfield; i++)
       if (fieldtype[i] == Reader::Z || fieldtype[i] == Reader::VZ ||
           fieldtype[i] == Reader::IZ || fieldtype[i] == Reader::FZ)
@@ -1319,8 +1306,8 @@ int ReadDump::whichtype(char *str)
 double ReadDump::xfield(int i, int j)
 {
   if (!scaled) return fields[i][j];
-  else if (boxgeom & ORTHOGONAL) return fields[i][j]*xprd + xlo;
-  else if (boxgeom & TWO_D)
+  else if (!domain->triclinic) return fields[i][j]*xprd + xlo;
+  else if (domain->dimension == 2)
     return xprd*fields[i][j] + xy*fields[i][yindex] + xlo;
   return xprd*fields[i][j] + xy*fields[i][yindex] + xz*fields[i][zindex] + xlo;
 }
@@ -1328,8 +1315,8 @@ double ReadDump::xfield(int i, int j)
 double ReadDump::yfield(int i, int j)
 {
   if (!scaled) return fields[i][j];
-  else if (boxgeom & ORTHOGONAL) return fields[i][j]*yprd + ylo;
-  else if (boxgeom & TWO_D) return yprd*fields[i][j] + ylo;
+  else if (!domain->triclinic) return fields[i][j]*yprd + ylo;
+  else if (domain->dimension == 2) return yprd*fields[i][j] + ylo;
   return yprd*fields[i][j] + yz*fields[i][zindex] + ylo;
 }
 

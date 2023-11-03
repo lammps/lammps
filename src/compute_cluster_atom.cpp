@@ -99,6 +99,11 @@ void ComputeClusterAtom::compute_peratom()
     vector_atom = clusterID;
   }
 
+  // communicate coords for ghost atoms if box can change, e.g. fix deform
+  // this ensures ghost atom coords are current
+
+  comm->forward_comm();
+
   // invoke full neighbor list (will copy or build if necessary)
   // on the first step of a run, set preflag to one in neighbor->build_one(...)
 

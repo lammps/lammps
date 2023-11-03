@@ -70,6 +70,10 @@ FixRHEOTension::FixRHEOTension(LAMMPS *lmp, int narg, char **arg) :
   if (index_divnt == -1) index_divnt = atom->add_custom("divn_rheo_tension", 1, 0);
   divnt = atom->dvector[index_divnt];
 
+  index_ft = atom->find_custom("f_rheo_tension", tmp1, tmp2);
+  if (index_ft == -1)  index_ft = atom->add_custom("f_rheo_tension", 1, 3);
+  ft = atom->darray[index_ft];
+
   norm = nullptr;
   nmax_store = 0;
 }
@@ -89,6 +93,9 @@ FixRHEOTension::~FixRHEOTension()
 
   index = atom->find_custom("divn_rheo_tension", tmp1, tmp2);
   if (index != -1) atom->remove_custom(index, 1, 0);
+
+  index = atom->find_custom("f_rheo_tension", tmp1, tmp2);
+  if (index != -1) atom->remove_custom(index, 1, 3);
 
   memory->destroy(norm);
 }
@@ -148,7 +155,7 @@ void FixRHEOTension::post_force(int vflag)
   double xtmp, ytmp, ztmp, w, wp, c;
   double rhoi, rhoj, Voli, Volj;
   double *dWij, *dWji;
-  double dx[3], ft[3];
+  double dx[3];
 
   int *ilist, *jlist, *numneigh, **firstneigh;
   double imass, jmass, rsq, r, rinv;
@@ -234,7 +241,7 @@ void FixRHEOTension::post_force(int vflag)
       dWji = compute_kernel->dWji;
 
       c = 0;
-      if (itype == jtype) c += rhoi;
+      if (itype != jtype) c += rhoi;
       c /= (rhoi + rhoj);
 
       for (a = 0; a < 3; a++) {
@@ -252,7 +259,9 @@ void FixRHEOTension::post_force(int vflag)
   // Calculate normal direction
   double minv;
   for (i = 0; i < nlocal; i++) {
-    minv = 1.0 / sqrt(cgradt[i][0] * cgradt[i][0] + cgradt[i][1] * cgradt[i][1] + cgradt[i][2] * cgradt[i][2]);
+    minv = sqrt(cgradt[i][0] * cgradt[i][0] + cgradt[i][1] * cgradt[i][1] + cgradt[i][2] * cgradt[i][2]);
+
+    if (minv != 0) minv = 1 / minv;
 
     for (a = 0; a < 3; a++)
       nt[i][a] = cgradt[i][a] * minv;
@@ -310,11 +319,13 @@ void FixRHEOTension::post_force(int vflag)
       dWij = compute_kernel->dWij;
       dWji = compute_kernel->dWji;
 
+      if (itype != jtype) continue; // have to think about this...
+
       for (a = 0; a < 3; a++) {
-        divnt[i] -= nt[i][a] * Volj * dWij[a];
+        divnt[i] -= (nt[i][a]-nt[j][a]) * Volj * dWij[a];
         norm[i] -= dx[a] * Volj * dWij[a];
         if (newton || j < nlocal) {
-          divnt[j] -= nt[j][a] * Voli * dWji[a];
+          divnt[j] += (nt[i][a]-nt[j][a]) * Voli * dWji[a];
           norm[j] += dx[a] * Voli * dWji[a];
         }
       }
@@ -329,17 +340,23 @@ void FixRHEOTension::post_force(int vflag)
   if (update->setupflag) return;
 
   // apply force
-  int prefactor;
+  double prefactor;
   double unwrap[3];
   double v[6];
   for (i = 0; i < nlocal; i++) {
     itype = type[i];
-    divnt[i] /= norm[i];
 
-    prefactor *= -alpha * divnt[i] / mass[itype];
+    if (norm[i] != 0)
+      divnt[i] /= norm[i];
+    else
+      divnt[i] = 0.0;
 
-    for (a = 0; a < 3; a++)
+    prefactor = -alpha * divnt[i];
+
+    for (a = 0; a < 3; a++) {
       f[i][a] += prefactor * cgradt[i][a];
+      ft[i][a] = prefactor * cgradt[i][a];
+    }
 
     if (evflag) {
       domain->unmap(x[i], image[i], unwrap);
@@ -352,13 +369,6 @@ void FixRHEOTension::post_force(int vflag)
       v_tally(i, v);
     }
   }
-
-
-
-  if (evflag) {
-
-        }
-
 }
 
 
@@ -440,10 +450,12 @@ void FixRHEOTension::grow_arrays(int nmax)
   memory->grow(atom->darray[index_cgradt], nmax, 3, "atom:rheo_cgradt");
   memory->grow(atom->darray[index_nt], nmax, 3, "atom:rheo_nt");
   memory->grow(atom->dvector[index_divnt], nmax, "atom:rheo_divnt");
+  memory->grow(atom->darray[index_ft], nmax, 3, "atom:rheo_ft");
 
   cgradt = atom->darray[index_cgradt];
   nt = atom->darray[index_nt];
   divnt = atom->dvector[index_divnt];
+  ft = atom->darray[index_ft];
 
   // Grow local variables
   memory->grow(norm, nmax, "rheo/tension:norm");

@@ -40,21 +40,21 @@ class PairRHEOReact : public Pair {
   void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
-  double **cut,**cutbond,**cutbsq, **k, **eps, **gamma, **t_form, **rlimit, **sigma, **krepel;
+  double **cut, **cutbond, **cutbsq, **k, **eps, **gamma, **t_form, **rlimit;
 
   void allocate();
   void transfer_history(double*, double*);
 
-  int size_history, nmax_store;
+  int size_history;
   int *dbond, *nbond;
-  double dt;
 
-  int index_nb, nmax;
+  int index_nb, nmax_store;
   char *id_fix;
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
   class FixRHEO *fix_rheo;
+  class ComputeRHEOSurface *compute_surface;
 };
 
 }    // namespace LAMMPS_NS

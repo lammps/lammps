@@ -537,6 +537,83 @@ void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag
 }
 
 /* ----------------------------------------------------------------------
+   convert read_data file info from general to restricted triclinic
+   parent class operates on data from Velocities section of data file
+   child class operates on ellipsoid quaternion
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::read_data_general_to_restricted(int nlocal_previous, int nlocal)
+{
+  int j;
+  
+  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
+
+  // quat_g2r = quat that rotates from general to restricted triclinic
+  // quat_new = ellipsoid quat converted to restricted triclinic
+  
+  double quat_g2r[4],quat_new[4];
+  MathExtra::mat_to_quat(domain->rotate_g2r,quat_g2r);
+  
+  for (int i = nlocal_previous; i < nlocal; i++) {
+    if (ellipsoid[i] < 0) continue;
+    j = ellipsoid[i];
+    MathExtra::quatquat(quat_g2r,bonus[j].quat,quat_new);
+    bonus[j].quat[0] = quat_new[0];
+    bonus[j].quat[1] = quat_new[1];
+    bonus[j].quat[2] = quat_new[2];
+    bonus[j].quat[3] = quat_new[3];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   convert info output by write_data from restricted to general triclinic
+   parent class operates on x and data from Velocities section of data file
+   child class operates on ellipsoid quaternion
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::write_data_restricted_to_general()
+{
+  AtomVec::write_data_restricted_to_general();
+
+  memory->create(quat_hold,nlocal_bonus,4,"atomvec:quat_hold");
+
+  for (int i = 0; i < nlocal_bonus; i++)
+    memcpy(quat_hold[i],bonus[i].quat,4*sizeof(double));
+
+  // quat_r2g = quat that rotates from restricted to general triclinic
+  // quat_new = ellipsoid quat converted to general triclinic
+  
+  double quat_r2g[4],quat_new[4];
+  MathExtra::mat_to_quat(domain->rotate_r2g,quat_r2g);
+
+  for (int i = 0; i < nlocal_bonus; i++) {
+    MathExtra::quatquat(quat_r2g,bonus[i].quat,quat_new);
+    bonus[i].quat[0] = quat_new[0];
+    bonus[i].quat[1] = quat_new[1];
+    bonus[i].quat[2] = quat_new[2];
+    bonus[i].quat[3] = quat_new[3];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   restore info output by write_data to restricted triclinic
+   original data is in "hold" arrays
+   parent class operates on x and data from Velocities section of data file
+   child class operates on ellipsoid quaternion
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::write_data_restore_restricted()
+{
+  AtomVec::write_data_restore_restricted();
+
+  for (int i = 0; i < nlocal_bonus; i++)
+    memcpy(bonus[i].quat,quat_hold[i],4*sizeof(double));
+
+  memory->destroy(quat_hold);
+  quat_hold = nullptr;
+}
+
+/* ----------------------------------------------------------------------
    set shape values in bonus data for particle I
    oriented aligned with xyz axes
    this may create or delete entry in bonus data

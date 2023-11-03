@@ -59,6 +59,10 @@ class AtomVecEllipsoid : public AtomVec {
   int pack_data_bonus(double *, int) override;
   void write_data_bonus(FILE *, int, double *, int) override;
 
+  void read_data_general_to_restricted(int, int);
+  void write_data_restricted_to_general();
+  void write_data_restore_restricted();
+
   // unique to AtomVecEllipsoid
 
   void set_shape(int, double, double, double);
@@ -69,7 +73,8 @@ class AtomVecEllipsoid : public AtomVec {
   int *ellipsoid;
   double *rmass;
   double **angmom;
-
+  double **quat_hold;
+  
   int nghost_bonus, nmax_bonus;
   int ellipsoid_flag;
   double rmass_one;

@@ -307,7 +307,7 @@ void Domain::set_global_box()
     cprime[1] = yz;
     cprime[2] = boxhi[2] - boxlo[2];
 
-    // transform restricted A'B'C' to general triclinic A,B,C
+    // transform restricted A'B'C' to general triclinic ABC
     
     MathExtra::matvec(rotate_r2g,aprime,avec);
     MathExtra::matvec(rotate_r2g,bprime,bvec);

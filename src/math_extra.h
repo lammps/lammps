@@ -100,6 +100,7 @@ void angmom_to_omega(double *m, double *ex, double *ey, double *ez, double *idia
 void omega_to_angmom(double *w, double *ex, double *ey, double *ez, double *idiag, double *m);
 void mq_to_omega(double *m, double *q, double *moments, double *w);
 void exyz_to_q(double *ex, double *ey, double *ez, double *q);
+void mat_to_quat(double mat[3][3], double *quat);
 void q_to_exyz(double *q, double *ex, double *ey, double *ez);
 void quat_to_mat(const double *quat, double mat[3][3]);
 void quat_to_mat_trans(const double *quat, double mat[3][3]);

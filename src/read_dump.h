@@ -40,6 +40,8 @@ class ReadDump : public Command {
   void atoms();
   int fields_and_keywords(int, char **);
 
+  enum { UNKNOWN = 0, ORTHOGONAL = 1 << 0, TRICLINIC = 1 << 1, TWO_D = 1 << 2, THREE_D = 1 << 3 };
+
  private:
   char **files;       // list of input dump files to process
   int nfile;          // # of dump files to process (each may be parallel)
@@ -76,6 +78,7 @@ class ReadDump : public Command {
 
   int scaled;     // 0/1 if dump file coords are unscaled/scaled
   int wrapped;    // 0/1 if dump file coords are unwrapped/wrapped
+  int boxgeom;    // indicate whether box is orthogonal/triclinic and 2d/3d
 
   double box[3][3];                                   // dump file box parameters
   double xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz;    // dump snapshot box params

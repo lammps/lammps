@@ -48,6 +48,19 @@ ReadDump::ReadDump(LAMMPS *lmp) :
   nfield = 0;
   readerstyle = utils::strdup("native");
 
+  scaled = wrapped = 0;
+
+  boxgeom = UNKNOWN;
+  if (domain->triclinic)
+    boxgeom |= TRICLINIC;
+  else
+    boxgeom |= ORTHOGONAL;
+
+  if (domain->dimension == 2)
+    boxgeom |= TWO_D;
+  else
+    boxgeom |= THREE_D;
+
   nreader = 0;
   clustercomm = MPI_COMM_NULL;
   filereader = 0;
@@ -185,24 +198,27 @@ void ReadDump::setup_reader(int narg, char **arg)
   // multiproc_nfile < nprocs: multiproc_nfile readers, create clusters
   // see read_dump.h for explanation of these variables
 
+  const auto &me = comm->me;
+  const auto &nprocs = comm->nprocs;
+
   if (multiproc == 0) {
     nreader = 1;
     firstfile = -1;
-    MPI_Comm_dup(world,&clustercomm);
-  } else if (multiproc_nfile >= comm->nprocs) {
-    firstfile = static_cast<int> ((bigint) comm->me * multiproc_nfile/comm->nprocs);
-    int lastfile = static_cast<int> ((bigint) (comm->me+1) * multiproc_nfile/comm->nprocs);
+    MPI_Comm_dup(world, &clustercomm);
+  } else if (multiproc_nfile >= nprocs) {
+    firstfile = static_cast<int> ((bigint) me * multiproc_nfile/nprocs);
+    int lastfile = static_cast<int> ((bigint) (me+1) * multiproc_nfile/nprocs);
     nreader = lastfile - firstfile;
-    MPI_Comm_split(world,comm->me,0,&clustercomm);
-  } else if (multiproc_nfile < comm->nprocs) {
+    MPI_Comm_split(world, me, 0, &clustercomm);
+  } else if (multiproc_nfile < nprocs) {
     nreader = 1;
-    int icluster = static_cast<int> ((bigint) comm->me * multiproc_nfile/comm->nprocs);
+    int icluster = static_cast<int> ((bigint) me * multiproc_nfile/nprocs);
     firstfile = icluster;
-    MPI_Comm_split(world,icluster,0,&clustercomm);
+    MPI_Comm_split(world, icluster, 0, &clustercomm);
   }
 
-  MPI_Comm_rank(clustercomm,&me_cluster);
-  MPI_Comm_size(clustercomm,&nprocs_cluster);
+  MPI_Comm_rank(clustercomm, &me_cluster);
+  MPI_Comm_size(clustercomm, &nprocs_cluster);
   if (me_cluster == 0) filereader = 1;
   else filereader = 0;
 
@@ -230,9 +246,9 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   // unrecognized style
 
-  } else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
+  } else error->all(FLERR, utils::check_packages_for_style("reader", readerstyle, lmp));
 
-  if (utils::strmatch(readerstyle,"^adios")) {
+  if (utils::strmatch(readerstyle, "^adios")) {
       // everyone is a reader with adios
       parallel = 1;
       filereader = 1;
@@ -242,7 +258,7 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   if (narg > 0 && filereader)
     for (int i = 0; i < nreader; i++)
-      readers[i]->settings(narg,arg);
+      readers[i]->settings(narg, arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -502,8 +518,8 @@ void ReadDump::header(int fieldinfo)
   if (boxflag) {
     if (!boxinfo)
       error->all(FLERR,"No box information in dump, must use 'box no'");
-    else if ((triclinic_snap && !domain->triclinic) ||
-             (!triclinic_snap && domain->triclinic))
+    else if ((triclinic_snap &&  (boxgeom & ORTHOGONAL)) ||
+             (!triclinic_snap && (boxgeom & TRICLINIC)))
       error->one(FLERR,"Read_dump triclinic status does not match simulation");
   }
 
@@ -547,11 +563,11 @@ void ReadDump::header(int fieldinfo)
   // set yindex,zindex = column index of Y and Z fields in fields array
   // needed for unscaling to absolute coords in xfield(), yfield(), zfield()
 
-  if (scaled && domain->triclinic == 1) {
+  if (scaled && (boxgeom & TRICLINIC)) {
     int flag = 0;
     if (xflag == Reader::UNSET) flag = 1;
     if (yflag == Reader::UNSET) flag = 1;
-    if (domain->dimension == 3 && zflag == Reader::UNSET) flag = 1;
+    if ((boxgeom & THREE_D) && zflag == Reader::UNSET) flag = 1;
     if (flag)
       error->one(FLERR,"All read_dump x,y,z fields must be specified for "
                  "scaled, triclinic coords");
@@ -637,13 +653,13 @@ void ReadDump::atoms()
     domain->boxhi[0] = xhi;
     domain->boxlo[1] = ylo;
     domain->boxhi[1] = yhi;
-    if (domain->dimension == 3) {
+    if (boxgeom & THREE_D) {
       domain->boxlo[2] = zlo;
       domain->boxhi[2] = zhi;
     }
-    if (domain->triclinic) {
+    if (boxgeom & TRICLINIC) {
       domain->xy = xy;
-      if (domain->dimension == 3) {
+      if (boxgeom & THREE_D) {
         domain->xz = xz;
         domain->yz = yz;
       }
@@ -1116,12 +1132,12 @@ void ReadDump::migrate_atoms_by_coords()
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
 
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (boxgeom & TRICLINIC) domain->x2lamda(atom->nlocal);
   domain->reset_box();
   auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+  if (boxgeom & TRICLINIC) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -1169,7 +1185,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
     error->all(FLERR,"Read_dump must use at least either 'id' or 'type' field");
 
-  if (domain->dimension == 2) {
+  if (boxgeom & TWO_D) {
     for (int i = 0; i < nfield; i++)
       if (fieldtype[i] == Reader::Z || fieldtype[i] == Reader::VZ ||
           fieldtype[i] == Reader::IZ || fieldtype[i] == Reader::FZ)
@@ -1303,8 +1319,8 @@ int ReadDump::whichtype(char *str)
 double ReadDump::xfield(int i, int j)
 {
   if (!scaled) return fields[i][j];
-  else if (!domain->triclinic) return fields[i][j]*xprd + xlo;
-  else if (domain->dimension == 2)
+  else if (boxgeom & ORTHOGONAL) return fields[i][j]*xprd + xlo;
+  else if (boxgeom & TWO_D)
     return xprd*fields[i][j] + xy*fields[i][yindex] + xlo;
   return xprd*fields[i][j] + xy*fields[i][yindex] + xz*fields[i][zindex] + xlo;
 }
@@ -1312,8 +1328,8 @@ double ReadDump::xfield(int i, int j)
 double ReadDump::yfield(int i, int j)
 {
   if (!scaled) return fields[i][j];
-  else if (!domain->triclinic) return fields[i][j]*yprd + ylo;
-  else if (domain->dimension == 2) return yprd*fields[i][j] + ylo;
+  else if (boxgeom & ORTHOGONAL) return fields[i][j]*yprd + ylo;
+  else if (boxgeom & TWO_D) return yprd*fields[i][j] + ylo;
   return yprd*fields[i][j] + yz*fields[i][zindex] + ylo;
 }
 

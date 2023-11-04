@@ -220,8 +220,8 @@ OPT.
    * :doc:`morse/soft <pair_fep_soft>`
    * :doc:`multi/lucy <pair_multi_lucy>`
    * :doc:`multi/lucy/rx (k) <pair_multi_lucy_rx>`
-   * :doc:`nb3b/harmonic <pair_nb3b_harmonic>`
-   * :doc:`nb3b/screened <pair_nb3b_screened>`
+   * :doc:`nb3b/harmonic <pair_nb3b>`
+   * :doc:`nb3b/screened <pair_nb3b>`
    * :doc:`nm/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/long (o) <pair_nm>`

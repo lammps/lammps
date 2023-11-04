@@ -232,6 +232,8 @@ int FixDeposit::setmask()
 
 void FixDeposit::init()
 {
+  warnflag = 1;
+
   // set index and check validity of region
 
   iregion = domain->get_region_by_id(idregion);

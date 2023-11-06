@@ -86,6 +86,26 @@ def extract_thermo(yamlFileName):
   return thermo
 
 '''
+  return the list of installed packages
+'''
+def get_installed_packages(lmp_binary):
+  cmd_str = lmp_binary + " -h"
+  p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+  output = p.stdout.split('\n')
+  reading = False
+  row = 0
+  for l in output:
+    if l != "":
+      if l == "Installed packages:":
+        reading = True
+        n = row
+      if reading == True and row > n:
+        packages = l.strip()
+        break
+    row += 1
+  return packages.split(" ")
+
+'''
   launch LAMMPS using the configuration defined in the dictionary config with an input file
   TODO:
     - generate new reference values if needed
@@ -116,7 +136,7 @@ if __name__ == "__main__":
   # read in the configuration of the tests
   with open("config.yaml", 'r') as f:
     config = yaml.load(f, Loader=Loader)
-    print(config)
+    print(f"Configuration: {config}")
  
   # check if lmp_binary is specified in the config yaml
   if lmp_binary == "":
@@ -125,7 +145,10 @@ if __name__ == "__main__":
        exit
     else:
        lmp_binary = config['lmp_binary']
-  
+
+  packages = get_installed_packages(lmp_binary)
+  print(f"List of installed packages: {packages}")
+
   # iterative over the input scripts
   for input in input_list:
     input_test=input + '.test'

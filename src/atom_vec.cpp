@@ -1659,7 +1659,6 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
 {
   int m, n, datatype, cols;
   void *pdata;
-  double vector[3];
 
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -2227,7 +2226,8 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 
 /* ----------------------------------------------------------------------
    convert info input by read_data from general to restricted triclinic
-   parent class only operates on data from Velocities section of data file
+   atom coords are converted in Atom::data_atoms()
+   parent class operates on data from Velocities section of data file
    child classes operate on all other data: Atoms, Ellipsoids, Lines, Triangles, etc
 ------------------------------------------------------------------------- */
 
@@ -2256,6 +2256,7 @@ void AtomVec::read_data_general_to_restricted(int nlocal_previous, int nlocal)
 
 /* ----------------------------------------------------------------------
    convert info output by write_data from restricted to general triclinic
+   create "hold" copy of original restricted data to restore after data file is written
    parent class only operates on x and data from Velocities section of data file
    child classes operate on all other data: Atoms, Ellipsoids, Lines, Triangles, etc
 ------------------------------------------------------------------------- */

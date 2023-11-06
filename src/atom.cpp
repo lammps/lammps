@@ -1038,7 +1038,7 @@ void Atom::deallocate_topology()
 
 /* ----------------------------------------------------------------------
    unpack N lines from Atom section of data file
-   call style-specific routine to parse line
+   call atom-style specific method to parse each line
    triclinic_general = 1 if data file defines a general triclinic box
 ------------------------------------------------------------------------- */
 
@@ -1217,6 +1217,8 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
           coord[1] >= sublo[1] && coord[1] < subhi[1] &&
           coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+
+        // atom-style specific method parses single line
         
         avec->data_atom(xdata,imagedata,values,typestr);
         typestr = utils::utf8_subst(typestr);

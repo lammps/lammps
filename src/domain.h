@@ -40,7 +40,7 @@ class Domain : protected Pointers {
                          // 3 = shrink-wrap non-per w/ min
 
   int triclinic;          // 0 = orthog box, 1 = triclinic (restricted or general)
-  int triclinic_general;  // 1 if mapping to/from general triclinic is stored, 0 if not
+  int triclinic_general;  // 1 if general <-> restricted tri mapping is stored, 0 if not
   
   // orthogonal box
 
@@ -50,7 +50,7 @@ class Domain : protected Pointers {
   double prd_half[3];                        // array form of half dimensions
 
   // restricted triclinic box
-  // xyzprd,xyzprd_half and prd,prd_half = same as if not tilted
+  // xyz prd,xyz prd_half and prd,prd_half = same as if not tilted
 
   double prd_lamda[3];         // lamda box = (1,1,1)
   double prd_half_lamda[3];    // lamda half box = (0.5,0.5,0.5)

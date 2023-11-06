@@ -576,7 +576,7 @@ void ReadData::command(int narg, char **arg)
 
       if (!triclinic_general) {
 
-        // orthongal box
+        // orthogonal or restricted triclinic box
         
         domain->boxlo[0] = boxlo[0];
         domain->boxhi[0] = boxhi[0];
@@ -605,8 +605,6 @@ void ReadData::command(int narg, char **arg)
 
     // change simulation box to be union of existing box and new box + shift
     // only done if firstpass and not first data file
-    // for restricted triclinic, new tilt factors not allowed
-    // for general triclinic, different new box and shift not allowed
 
     if (firstpass && addflag != NONE) {
 
@@ -670,7 +668,7 @@ void ReadData::command(int narg, char **arg)
         int flag_all;
         MPI_Allreduce(&iflag, &flag_all, 1, MPI_INT, MPI_SUM, world);
         if ((flag_all > 0) && (comm->me == 0))
-          error->warning(FLERR, "Non-zero image flags with growing box leads to bad coordinates");
+          error->warning(FLERR, "Non-zero image flags with growing box can produce bad coordinates");
       }
     }
 
@@ -689,6 +687,7 @@ void ReadData::command(int narg, char **arg)
       lmap = new LabelMap(lmp, ntypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes);
     }
 
+    // -------------------------------------------------------------------------------------
     // rest of data file is Sections
     // read in any order, except where error checks
     // customize for new sections
@@ -1391,10 +1390,9 @@ void ReadData::header(int firstpass)
       if (addflag == NONE) atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
     // these settings only used by first data file
-    // also, these are obsolescent. we parse them to maintain backward
-    // compatibility, but the recommended way is to set them via keywords
-    // in the LAMMPS input file. In case these flags are set in both,
-    // the input and the data file, we use the larger of the two.
+    // NOTEL these are now obsolete, we parse them to maintain backward compatibility
+    //   the recommended way is to set them via command keywords in the input script
+    //   if these flags are set both ways, the larger of the two values is used
 
     } else if (strstr(line, "extra bond per atom")) {
       if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);

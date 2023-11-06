@@ -83,10 +83,10 @@ See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 description of both general and restricted triclinic boxes and how to
 define them.  General triclinic boxes (arbitrary edge vectors **A**,
 **B**, and **C**) are converted internally to restricted triclinic
-boxes with tilt factors (xy,xz,yz) added to skew an otherwise
-orthogonal box.
+boxes with tilt factors (xy,xz,yz) which skew an otherwise orthogonal
+box.
 
-The boundary <boundary> command settings expalined above for the 6
+The boundary <boundary> command settings explained above for the 6
 faces of an orthogonal box also apply in similar manner to the 6 faces
 of a restricted triclinix box (and thus to the corresponding 6 faces
 of a general triclinic box), with the following context.

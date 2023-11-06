@@ -292,12 +292,13 @@ void Domain::set_global_box()
   }
 
   // update general triclinic box if defined
-  // reset ABC edge vectors from restricted triclinic box
-  // boxlo = lower left corner of general triclinic box
+  // reset general tri ABC edge vectors from restricted tri box
   
   if (triclinic_general) {
     double aprime[3],bprime[3],cprime[3];
 
+    // A'B'C' = edge vectors of restricted triclinic box
+    
     aprime[0] = boxhi[0] - boxlo[0];
     aprime[1] = aprime[2] = 0.0;
     bprime[0] = xy;

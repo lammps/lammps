@@ -30,11 +30,11 @@ namespace LAMMPS_NS {
 class FASTPOD : protected Pointers {
 private:
   int indexmap3(int *indx, int n1, int n2, int n3, int N1, int N2);
-  int crossindices(int *dabf1, int nabf1, int nrbf1, int nebf1, 
+  int crossindices(int *dabf1, int nabf1, int nrbf1, int nebf1,
          int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12);
-  int crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1, int nebf1, 
+  int crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1, int nebf1,
          int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12);
-  
+
   void init3bodyarray(int *np, int *pq, int *pc, int Pa3);
 
   void init4bodyarray(int *pa4, int *pb4, int *pc4, int Pa4);
@@ -224,7 +224,7 @@ public:
 
   void descriptors(double *gd, double *gdd, double *peratomdesc, double *x, int *atomtype, int *alist,
           int *jlist, int *pairnumsum, int natom);
-  
+
   double localenergyforce(double *fij, double *rij, double *tempmem, int *ti, int *tj, int Nj);
 
   double atomicenergyforce(double *fij, double *rij, double *tempmem, int *ti, int *tj, int Nj);
@@ -260,15 +260,15 @@ public:
         int Nj, int natom);
   void sevenbodydescriptors44(double *gd44, double *gdd44, double *d44, double *dd44,
         double *d4, double *dd4, int *ai, int *aj, int *ti, int *tj, int Nj, int natom);
-  
+
   void crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, int n12);
-  void crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2, 
+  void crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2,
         int *ind1, int *ind2, int n12, int N);
   void crossdescfij(double *fij, double *coeff12, double *d1, double *d2,
-        double *dd1, double *dd2, int *ind1, int *ind2, int n12, int N);  
+        double *dd1, double *dd2, int *ind1, int *ind2, int n12, int N);
   void crossdescriptors(double *gd12, double *gdd12, double *d12, double *dd12,
         double* d1, double *d2, double* dd1, double *dd2, int *ind1, int *ind2,
-        int *ai, int *aj, int *ti, int *tj, int n12, int Nj, int natom);  
+        int *ai, int *aj, int *ti, int *tj, int n12, int Nj, int natom);
 };
 
 }    // namespace LAMMPS_NS

@@ -51,7 +51,7 @@ FASTPOD::FASTPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &c
   besseldegree = 4;
   inversedegree = 8;
   nbesselpars = 3;
-  true4BodyDesc = 0;
+  true4BodyDesc = 1;
   ns = nbesselpars*besseldegree + inversedegree;
   Njmax = 100;
   nrbf2 = 6;
@@ -214,7 +214,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
         P44 = utils::inumeric(FLERR,words[1],false,lmp);
     }
   }
-//   if (nrbf2 < nrbf3) error->all(FLERR,"number of three-body radial basis functions must be equal or less than number of two-body radial basis functions");
+  // if (nrbf2 < nrbf3) error->all(FLERR,"number of three-body radial basis functions must be equal or less than number of two-body radial basis functions");
   if (nrbf3 < nrbf4) error->all(FLERR,"number of four-body radial basis functions must be equal or less than number of three-body radial basis functions");
   if (nrbf4 < nrbf33) error->all(FLERR,"number of five-body radial basis functions must be equal or less than number of four-body radial basis functions");
   if (nrbf4 < nrbf34) error->all(FLERR,"number of six-body radial basis functions must be equal or less than number of four-body radial basis functions");
@@ -224,7 +224,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
   nrbfmax = (nrbfmax < nrbf33) ? nrbf33 : nrbfmax;
   nrbfmax = (nrbfmax < nrbf34) ? nrbf34 : nrbfmax;
   nrbfmax = (nrbfmax < nrbf44) ? nrbf44 : nrbfmax;
- 
+
   if (P3 < P4) error->all(FLERR,"four-body angular degree must be equal or less than three-body angular degree");
   if (P4 < P33) error->all(FLERR,"five-body angular degree must be equal or less than four-body angular degree");
   if (P4 < P34) error->all(FLERR,"six-body angular degree must be equal or less than four-body angular degree");
@@ -252,7 +252,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
         P23 = P4;
         nrbf4 = 0;
         P4 = 0;
-      }      
+      }
     }
   }
 
@@ -326,7 +326,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
   n34 = nabf34*nrbf34*Ne*(Ne+1)/2;
   n43 = nabf43*nrbf34*Ne*(Ne+1)*(Ne+2)/6;
   n44 = nabf44*nrbf44*Ne*(Ne+1)*(Ne+2)/6;
-  
+
   nl23 = n23*n32;
   nl34 = n34*n43;
   nl33 = n33*(n33+1)/2;
@@ -343,7 +343,7 @@ void FASTPOD::read_pod_file(std::string pod_file)
   memory->create(ind34, n34, "ind34");
   memory->create(ind43, n43, "ind43");
   memory->create(ind44, n44, "ind44");
-  
+
   indexmap3(ind23, 1, nrbf23, Ne, 1, nrbf2);
   indexmap3(ind32, nabf23, nrbf23, Ne*(Ne+1)/2, nabf3, nrbf3);
   indexmap3(ind33, nabf33, nrbf33, Ne*(Ne+1)/2, nabf3, nrbf3);
@@ -357,39 +357,38 @@ void FASTPOD::read_pod_file(std::string pod_file)
   int nebf3 = Ne*(Ne+1)/2;
   int nebf4 = Ne*(Ne+1)*(Ne+2)/6;
   int dabf3[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-  int dabf4[] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6};  
-  if (nrbf33>0) {    
-    nld33 = crossindices(dabf3, nabf3, nrbf3, nebf3, dabf3, nabf3, nrbf3, nebf3, P33, nrbf33);          
+  int dabf4[] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6};
+  if (nrbf33>0) {
+    nld33 = crossindices(dabf3, nabf3, nrbf3, nebf3, dabf3, nabf3, nrbf3, nebf3, P33, nrbf33);
     memory->create(ind33l, nld33, "ind33l");
     memory->create(ind33r, nld33, "ind33r");
-    crossindices(ind33l, ind33r, dabf3, nabf3, nrbf3, nebf3, dabf3, nabf3, nrbf3, nebf3, P33, nrbf33);      
-    printf("nld33 %d\n", nld33);
+    crossindices(ind33l, ind33r, dabf3, nabf3, nrbf3, nebf3, dabf3, nabf3, nrbf3, nebf3, P33, nrbf33);
   }
   if (nrbf34>0) {
     nld34 = crossindices(dabf3, nabf3, nrbf3, nebf3, dabf4, nabf4, nrbf4, nebf4, P34, nrbf34);
     memory->create(ind34l, nld34, "ind34l");
-    memory->create(ind34r, nld34, "ind34r");  
+    memory->create(ind34r, nld34, "ind34r");
     crossindices(ind34l, ind34r, dabf3, nabf3, nrbf3, nebf3, dabf4, nabf4, nrbf4, nebf4, P34, nrbf34);
   }
   if (nrbf44>0) {
     nld44 = crossindices(dabf4, nabf4, nrbf4, nebf4, dabf4, nabf4, nrbf4, nebf4, P44, nrbf44);
     memory->create(ind44l, nld44, "ind44l");
-    memory->create(ind44r, nld44, "ind44r");  
+    memory->create(ind44r, nld44, "ind44r");
     crossindices(ind44l, ind44r, dabf4, nabf4, nrbf4, nebf4, dabf4, nabf4, nrbf4, nebf4, P44, nrbf44);
-  }  
+  }
   ngd33 = nld33*Ne;
   ngd34 = nld34*Ne;
   ngd44 = nld44*Ne;
-  nl33 = nld33; 
-  nl34 = nld34; 
-  nl44 = nld44; 
-  nd33 = ngd33; 
-  nd34 = ngd34; 
-  nd44 = ngd44; 
-  
+  nl33 = nld33;
+  nl34 = nld34;
+  nl44 = nld44;
+  nd33 = ngd33;
+  nd34 = ngd34;
+  nd44 = ngd44;
+
   nl = nl1 + nl2 + nl3 + nl4 + nl23 + nl33 + nl34 + nl44;
   nd = nd1 + nd2 + nd3 + nd4 + nd23 + nd33 + nd34 + nd44;
-  
+
   estimate_memory(Njmax);
   memory->create(tmpmem, 2*ndblmem, "tmpmem");
   memory->create(tmpint, 2*nintmem, "tmpint");
@@ -537,11 +536,11 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
   double *coeff34 = &newcoeff[(nl1 + nl2 + nl3 + nl4 + nl23 + nl33)*nelements];
   double *coeff44 = &newcoeff[(nl1 + nl2 + nl3 + nl4 + nl23 + nl33 + nl34)*nelements];
 
-  if (Nj==0) {      
+  if (Nj==0) {
     for (int j=0; j<3*Nj; j++) fij[j] = 0.0;
-    return newcoeff[ti[0]-1];            
+    return newcoeff[ti[0]-1];
   }
-  
+
   int t0 = ti[0]-1;
   int n1 = Nj*K3*nrbf3;
   int n2 = Nj*nrbfmax;
@@ -566,41 +565,41 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
   double *rbfzt = &temp[4*n1 + n5 + 4*n2 + 3*n3]; // Nj*ns
 
   // orthogonal radial basis functions
-  
-  //auto begin = std::chrono::high_resolution_clock::now(); 
+
+  //auto begin = std::chrono::high_resolution_clock::now();
   //auto end = std::chrono::high_resolution_clock::now();
-  
-  //begin = std::chrono::high_resolution_clock::now(); 
-  
+
+  //begin = std::chrono::high_resolution_clock::now();
+
   radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nj);
 
-  //end = std::chrono::high_resolution_clock::now();   
-  //comptime[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-  
+  //end = std::chrono::high_resolution_clock::now();
+  //comptime[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
   //begin = std::chrono::high_resolution_clock::now();
-      
+
   char chn = 'N';
   double alpha = 1.0, beta = 0.0;
   DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbft, &Nj, Phi, &ns, &beta, rbf, &Nj);
   DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfxt, &Nj, Phi, &ns, &beta, rbfx, &Nj);
   DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfyt, &Nj, Phi, &ns, &beta, rbfy, &Nj);
-  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfzt, &Nj, Phi, &ns, &beta, rbfz, &Nj);    
-  
-  //end = std::chrono::high_resolution_clock::now();   
-  //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-  
+  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfzt, &Nj, Phi, &ns, &beta, rbfz, &Nj);
+
+  //end = std::chrono::high_resolution_clock::now();
+  //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
   for (int j=0; j<3*Nj; j++) fij[j] = 0.0;
 
   double e1=0, e2=0, e3=0, e4=0, e23=0, e33=0, e34=0, e44=0;
 
   //begin = std::chrono::high_resolution_clock::now();
-  
+
   e1 = coeff1[t0];
   e2 = tallytwobodylocalforce(fij, &coeff2[nl2*t0], rbf, rbfx, rbfy, rbfz, tj, nrbf2, Nj);
 
-  //end = std::chrono::high_resolution_clock::now();   
-  //comptime[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-  
+  //end = std::chrono::high_resolution_clock::now();
+  //comptime[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
   if ((nd3 > 0) && (Nj>1)) {
     double *abf = &temp[4*n1 + n5 + 4*n2]; // Nj*K3
     double *abfx = &temp[4*n1 + n5 + 4*n2 + n4]; // Nj*K3
@@ -608,29 +607,29 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
     double *abfz = &temp[4*n1 + n5 + 4*n2 + 3*n4]; // Nj*K3
     double *tm = &temp[4*n1 + n5 + 4*n2 + 4*n4]; // 4*K3
 
-    //begin = std::chrono::high_resolution_clock::now(); 
-    
+    //begin = std::chrono::high_resolution_clock::now();
+
     angularbasis(abf, abfx, abfy, abfz, rij, tm, pq3, Nj, K3);
 
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[2] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
-    //begin = std::chrono::high_resolution_clock::now(); 
-    
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[2] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
+    //begin = std::chrono::high_resolution_clock::now();
+
     //radialangularbasis(U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, Nj, K3, nrbf3);
-    radialangularbasis(sumU, U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, 
+    radialangularbasis(sumU, U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz,
             abf, abfx, abfy, abfz, tm, tj, Nj, K3, nrbf3, nelements);
-    
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
 //     //begin = std::chrono::high_resolution_clock::now();
-//     
+//
 //     sumradialangularfunctions(sumU, U, tj, Nj, K3, nrbf3, nelements);
-// 
-//     //end = std::chrono::high_resolution_clock::now();   
-//     //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+//
+//     //end = std::chrono::high_resolution_clock::now();
+//     //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
     double *d2 =  &temp[4*n1 + n5 + 4*n2]; // nl2
     double *dd2 = &temp[4*n1 + n5 + 4*n2 + nl2]; // 3*Nj*nl2
     double *d3 =  &temp[4*n1 + n5 + 4*n2 + nl2 + 3*Nj*nl2]; // nl3
@@ -644,29 +643,29 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
 
     if ((nd23>0) || (nd33>0) || (nd34>0)) {
       //begin = std::chrono::high_resolution_clock::now();
-      
+
       threebodydesc(d3, sumU, Nj);
       threebodydescderiv(dd3, sumU, Ux, Uy, Uz, tj, Nj);
-      
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
+
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
     }
 
     //begin = std::chrono::high_resolution_clock::now();
-    
+
     double *cU = &temp[4*n1 + n5 + 4*n2 + nl2 + 3*Nj*nl2 + nl3 + 3*Nj*nl3 + nl4 + 3*Nj*nl4];
     e3 = threebodycoeff(cU, &coeff3[nl3*t0], sumU, Nj);
-    
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[5] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[5] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
     //begin = std::chrono::high_resolution_clock::now();
-    
+
     tallylocalforce(fij, cU, Ux, Uy, Uz, tj, Nj, K3, nrbf3, nelements);
 
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[6] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-    
+    //end = std::chrono::high_resolution_clock::now();
+    //comptime[6] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
     if ((nd23>0) && (Nj>2)) {
       double *d23 = &temp[0];
       fourbodydesc23(d23, d2, d3);
@@ -674,22 +673,22 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
       fourbodyfij23(fij, temp, &coeff23[nl23*t0], d2, d3, dd2, dd3, 3*Nj);
     }
 
-    if ((nd33>0) && (Nj>3)) {      
+    if ((nd33>0) && (Nj>3)) {
       //begin = std::chrono::high_resolution_clock::now();
-      
+
 //       double *d33 = &temp[0];
 //       fivebodydesc33(d33, d3);
 //       e33 = dotproduct(&coeff33[nl33*t0], d33, nl33);
-//       fivebodyfij33(fij, temp, &coeff33[nl33*t0], d3, dd3, 3*Nj);      
+//       fivebodyfij33(fij, temp, &coeff33[nl33*t0], d3, dd3, 3*Nj);
       double *d33 = &temp[0];
       crossdesc(d33, d3, d3, ind33l, ind33r, nl33);
       e33 = dotproduct(&coeff33[nl33*t0], d33, nl33);
-      crossdescfij(fij, &coeff33[nl33*t0], d3, d3, dd3, dd3, ind33l, ind33r, nl33, 3*Nj);  
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[10] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
+      crossdescfij(fij, &coeff33[nl33*t0], d3, d3, dd3, dd3, ind33l, ind33r, nl33, 3*Nj);
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[10] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
     }
 
-    if ((nd4 > 0) && (Nj>2)) {      
+    if ((nd4 > 0) && (Nj>2)) {
       if (K4 < K3) {
         for (int m=0; m<nrbf4; m++)
           for (int k=0; k<K4; k++)
@@ -712,19 +711,19 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
       }
 
       //begin = std::chrono::high_resolution_clock::now();
-      
+
       e4 = fourbodycoeff(cU, sumU, &coeff4[nl4*t0], Nj);
-      
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-      
+
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
       //begin = std::chrono::high_resolution_clock::now();
-      
+
       tallylocalforce(fij, cU, Ux, Uy, Uz, tj, Nj, K4, nrbf4, nelements);
 
-      //end = std::chrono::high_resolution_clock::now();   
-      //comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
-      
+      //end = std::chrono::high_resolution_clock::now();
+      //comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
+
       if ((nd34>0) && (Nj>4)) {
 //         double *d34 = &temp[0];
 //         sixbodydesc34(d34, d3, d4);
@@ -733,7 +732,7 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
         double *d34 = &temp[0];
         crossdesc(d34, d3, d4, ind34l, ind34r, nl34);
         e34 = dotproduct(&coeff34[nl34*t0], d34, nl34);
-        crossdescfij(fij, &coeff34[nl34*t0], d3, d4, dd3, dd4, ind34l, ind34r, nl34, 3*Nj);          
+        crossdescfij(fij, &coeff34[nl34*t0], d3, d4, dd3, dd4, ind34l, ind34r, nl34, 3*Nj);
       }
 
       if ((nd44>0) && (Nj>5)) {
@@ -744,7 +743,7 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
         double *d44 = &temp[0];
         crossdesc(d44, d4, d4, ind44l, ind44r, nl44);
         e44 = dotproduct(&coeff44[nl44*t0], d44, nl44);
-        crossdescfij(fij, &coeff44[nl44*t0], d4, d4, dd4, dd4, ind44l, ind44r, nl44, 3*Nj);                  
+        crossdescfij(fij, &coeff44[nl44*t0], d4, d4, dd4, dd4, ind44l, ind44r, nl44, 3*Nj);
       }
     }
   }
@@ -761,8 +760,8 @@ double FASTPOD::energyforce(double *force, double *x, int *atomtype, int *alist,
   for (int i=0; i<natom; i++) {
     int Nj = pairnumsum[i+1] - pairnumsum[i]; // # neighbors around atom i
 
-    if (Nj==0) {      
-      etot += newcoeff[atomtype[i]-1];      
+    if (Nj==0) {
+      etot += newcoeff[atomtype[i]-1];
     }
     else
     {
@@ -824,12 +823,12 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
 
     if (Nj==0) {
       printf("Zero neighbors detected...\n");
-      if (nd1>0) onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);           
+      if (nd1>0) onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);
     }
     else
-    {    
+    {
     // reallocate temporary memory
-    if (Nj>Njmax) {      
+    if (Nj>Njmax) {
       Njmax = Nj;
       int nmem = estimate_memory(Njmax);
       memory->destroy(tmpmem);
@@ -838,13 +837,13 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
       memory->create(tmpint, 4*Njmax, "tmpint");
       printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
     }
-    
+
     double *rij = &tmpmem[0]; // 3*Nj
     int *ai = &tmpint[0];     // Nj
     int *aj = &tmpint[Nj];   // Nj
     int *ti = &tmpint[2*Nj]; // Nj
     int *tj = &tmpint[3*Nj]; // Nj
-    
+
     myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
 
     if (nd1>0) onebodydescriptors(gd1, gdd1, ti, natom, i);
@@ -887,33 +886,33 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
     double *dd33 = &tmpmem[nld + nl33];
 //     if ((nd33>0) && (Nj>3)) fivebodydescriptors33(gd33, gdd33, d33, dd33, d3, dd3,
 //             ai, aj, ti, tj, Nj, natom);
-    if ((nd33>0) && (Nj>3)) crossdescriptors(gd33, gdd33, d33, dd33, d3, d3, dd3, dd3, 
+    if ((nd33>0) && (Nj>3)) crossdescriptors(gd33, gdd33, d33, dd33, d3, d3, dd3, dd3,
             ind33l, ind33r, ai, aj, ti, tj, nl33, Nj, natom);
-        
+
     double *d34 = &tmpmem[nld];
     double *dd34 = &tmpmem[nld + nl34];
 //     if ((nd34>0) && (Nj>4)) sixbodydescriptors34(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4,
 //             ai, aj, ti, tj, Nj, natom);
-    if ((nd34>0) && (Nj>4)) crossdescriptors(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4, 
+    if ((nd34>0) && (Nj>4)) crossdescriptors(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4,
             ind34l, ind34r, ai, aj, ti, tj, nl34, Nj, natom);
 
     double *d44 = &tmpmem[nld];
     double *dd44 = &tmpmem[nld + nl44];
 //     if ((nd44>0) && (Nj>5))  sevenbodydescriptors44(gd44, gdd44, d44, dd44, d4, dd4,
 //             ai, aj, ti, tj, Nj, natom);
-    if ((nd44>0) && (Nj>5)) crossdescriptors(gd44, gdd44, d44, dd44, d4, d4, dd4, dd4, 
-           ind44l, ind44r, ai, aj, ti, tj, nl44, Nj, natom);    
+    if ((nd44>0) && (Nj>5)) crossdescriptors(gd44, gdd44, d44, dd44, d4, d4, dd4, dd4,
+           ind44l, ind44r, ai, aj, ti, tj, nl44, Nj, natom);
   }
   }
 }
 
-void FASTPOD::descriptors(double *gd, double *gdd, double *peratomdesc, double *x, 
+void FASTPOD::descriptors(double *gd, double *gdd, double *peratomdesc, double *x,
         int *atomtype, int *alist, int *jlist, int *pairnumsum, int natom)
 {
   for (int i=0; i<nd; i++) gd[i] = 0.0;
-  for (int i=0; i<3*natom*nd; i++) gdd[i] = 0.0;    
+  for (int i=0; i<3*natom*nd; i++) gdd[i] = 0.0;
   for (int i=0; i<natom*nl; i++) peratomdesc[i] = 0.0;
-  
+
   double *gd1 = &gd[0];
   double *gd2 = &gd[nd1];
   double *gd3 = &gd[nd1+nd2];
@@ -940,21 +939,21 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *peratomdesc, double *
   double *ld33 = &peratomdesc[natom*(nl1+nl2+nl3+nl4+nl23)];
   double *ld34 = &peratomdesc[natom*(nl1+nl2+nl3+nl4+nl23+nl33)];
   double *ld44 = &peratomdesc[natom*(nl1+nl2+nl3+nl4+nl23+nl33+nl34)];
-  
+
   for (int i=0; i<natom; i++) {
     int Nj = pairnumsum[i+1] - pairnumsum[i]; // # neighbors around atom i
 
     if (Nj==0) {
       printf("Zero neighbors detected...\n");
       if (nd1>0) {
-        onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);           
+        onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);
         peratomdesc[i] = 1.0;
       }
     }
     else
-    {    
+    {
     // reallocate temporary memory
-    if (Nj>Njmax) {      
+    if (Nj>Njmax) {
       Njmax = Nj;
       int nmem = estimate_memory(Njmax);
       memory->destroy(tmpmem);
@@ -963,13 +962,13 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *peratomdesc, double *
       memory->create(tmpint, 4*Njmax, "tmpint");
       printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
     }
-    
+
     double *rij = &tmpmem[0]; // 3*Nj
     int *ai = &tmpint[0];     // Nj
     int *aj = &tmpint[Nj];   // Nj
     int *ti = &tmpint[2*Nj]; // Nj
     int *tj = &tmpint[3*Nj]; // Nj
-    
+
     myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
 
     if (nd1>0) {
@@ -1028,18 +1027,18 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *peratomdesc, double *
 //     if ((nd33>0) && (Nj>3)) fivebodydescriptors33(gd33, gdd33, d33, dd33, d3, dd3,
 //             ai, aj, ti, tj, Nj, natom);
     if ((nd33>0) && (Nj>3)) {
-      crossdescriptors(gd33, gdd33, d33, dd33, d3, d3, dd3, dd3, 
+      crossdescriptors(gd33, gdd33, d33, dd33, d3, d3, dd3, dd3,
             ind33l, ind33r, ai, aj, ti, tj, nl33, Nj, natom);
       for (int j=0; j<nl33; j++) ld33[i + natom*j] = d33[j];
     }
-        
+
     double *d34 = &tmpmem[nld];
     double *dd34 = &tmpmem[nld + nl34];
 //     if ((nd34>0) && (Nj>4)) sixbodydescriptors34(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4,
 //             ai, aj, ti, tj, Nj, natom);
     if ((nd34>0) && (Nj>4)) {
-      crossdescriptors(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4, 
-            ind34l, ind34r, ai, aj, ti, tj, nl34, Nj, natom);      
+      crossdescriptors(gd34, gdd34, d34, dd34, d3, d4, dd3, dd4,
+            ind34l, ind34r, ai, aj, ti, tj, nl34, Nj, natom);
       for (int j=0; j<nl34; j++) ld34[i + natom*j] = d34[j];
     }
 
@@ -1048,8 +1047,8 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *peratomdesc, double *
 //     if ((nd44>0) && (Nj>5))  sevenbodydescriptors44(gd44, gdd44, d44, dd44, d4, dd4,
 //             ai, aj, ti, tj, Nj, natom);
     if ((nd44>0) && (Nj>5)) {
-      crossdescriptors(gd44, gdd44, d44, dd44, d4, d4, dd4, dd4, 
-           ind44l, ind44r, ai, aj, ti, tj, nl44, Nj, natom);    
+      crossdescriptors(gd44, gdd44, d44, dd44, d4, d4, dd4, dd4,
+           ind44l, ind44r, ai, aj, ti, tj, nl44, Nj, natom);
       for (int j=0; j<nl44; j++) ld44[i + natom*j] = d44[j];
     }
   }
@@ -1281,9 +1280,9 @@ void FASTPOD::crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind
     d12[i] = d1[ind1[i]]*d2[ind2[i]];
 }
 
-void FASTPOD::crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2, 
+void FASTPOD::crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2,
         int *ind1, int *ind2, int n12, int N)
-{  
+{
   for (int i = 0; i<n12; i++)
     for (int n=0; n<N; n++)
       dd12[n + N*i] = d1[ind1[i]]*dd2[n + N*ind2[i]] + dd1[n + N*ind1[i]]*d2[ind2[i]];
@@ -1294,7 +1293,7 @@ void FASTPOD::crossdescfij(double *fij, double *coeff12, double *d1, double *d2,
 {
   for (int i = 0; i<n12; i++)
     for (int n=0; n<N; n++)
-      fij[n] += coeff12[i]*(d1[ind1[i]]*dd2[n + N*ind2[i]] + dd1[n + N*ind1[i]]*d2[ind2[i]]);  
+      fij[n] += coeff12[i]*(d1[ind1[i]]*dd2[n + N*ind2[i]] + dd1[n + N*ind1[i]]*d2[ind2[i]]);
 }
 
 void FASTPOD::crossdescriptors(double *gd12, double *gdd12, double *d12, double *dd12,
@@ -1304,7 +1303,7 @@ void FASTPOD::crossdescriptors(double *gd12, double *gdd12, double *d12, double 
   crossdesc(d12, d1, d2, ind1, ind2, n12);
   crossdescderiv(dd12, d1, d2, dd1, dd2, ind1, ind2, n12, 3*Nj);
   tallyglobdesc(gd12, d12, n12, ti[0]-1);
-  tallyglobdescderiv(gdd12, dd12,  ai, aj, natom, Nj, n12, ti[0]-1);  
+  tallyglobdescderiv(gdd12, dd12,  ai, aj, natom, Nj, n12, ti[0]-1);
 }
 
 void FASTPOD::myneighbors(double *rij, double *x, int *ai, int *aj, int *ti, int *tj,
@@ -1336,7 +1335,7 @@ void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *U
     dd4[m] = 0.0;
 
   int Q = pa4[nabf4];
-  
+
   if (nelements==1) {
     for (int m=0; m<nrbf4; m++)
       for (int p=0; p<nabf4; p++) {
@@ -1361,7 +1360,7 @@ void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *U
             int jj = j + N*j3 + N*K4*m;
             dd4[0 + 3*j + ii] += t12*Ux[jj];
             dd4[1 + 3*j + ii] += t12*Uy[jj];
-            dd4[2 + 3*j + ii] += t12*Uz[jj];            
+            dd4[2 + 3*j + ii] += t12*Uz[jj];
             jj = j + N*j2 + N*K4*m;
             dd4[0 + 3*j + ii] += t13*Ux[jj];
             dd4[1 + 3*j + ii] += t13*Uy[jj];
@@ -1369,10 +1368,10 @@ void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *U
             jj = j + N*j1 + N*K4*m;
             dd4[0 + 3*j + ii] += t23*Ux[jj];
             dd4[1 + 3*j + ii] += t23*Uy[jj];
-            dd4[2 + 3*j + ii] += t23*Uz[jj];            
+            dd4[2 + 3*j + ii] += t23*Uz[jj];
           }
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf4; m++)
@@ -1497,7 +1496,7 @@ double FASTPOD::fourbodycoeff(double *cU, double *sumU, double *coeff4, int N)
           cU[j2 + K4*m] += c6*c1;
           cU[j1 + K4*m] += c6*c2;
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf4; m++)
@@ -1549,9 +1548,9 @@ void FASTPOD::threebodydesc(double *d3, double *sumU, int N)
         int nn = n2 - n1;
         for (int q=0; q<nn; q++) {
           double t1 = pc3[n1+q]*sumU[(n1+q) + K3*m];
-          d3[p + nabf3*m] += t1*sumU[(n1+q) + K3*m];                      
+          d3[p + nabf3*m] += t1*sumU[(n1+q) + K3*m];
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf3; m++)
@@ -1595,9 +1594,9 @@ void FASTPOD::threebodydescderiv(double *dd3, double *sumU, double *Ux, double *
             dd3[0 + ii] += f*Ux[jj];
             dd3[1 + ii] += f*Uy[jj];
             dd3[2 + ii] += f*Uz[jj];
-          }          
+          }
         }
-      }    
+      }
   }
   else {
     for (int m=0; m<nrbf3; m++)
@@ -1717,50 +1716,117 @@ void FASTPOD::twobodydescderiv(double *d2, double *dd2, double *rbf, double *rbf
   }
 }
 
+/**
+ * @brief Calculates the two-body descriptors for a given set of atoms.
+ *
+ * @param d2   Pointer to the array of two-body descriptors.
+ * @param dd2  Pointer to the array of two-body descriptor derivatives.
+ * @param rij  Pointer to the array of interatomic distances.
+ * @param temp Pointer to the temporary array used for calculations.
+ * @param tj   Pointer to the array of atom types of neighboring atoms.
+ * @param Nj   Number of neighboring atoms.
+ */
 void FASTPOD::twobodydescriptors(double *d2, double *dd2, double *rij, double *temp, int *tj, int Nj)
 {
+  // Calculate the orthogonal radial basis functions
   orthogonalradialbasis(temp, rij, Phi, besselparams, rin, rcut-rin,
-          pdegree[0], pdegree[1], nbesselpars, nrbf2, Nj);
+    pdegree[0], pdegree[1], nbesselpars, nrbf2, Nj);
 
+  // Calculate the two-body descriptor derivatives
   int n2 = Nj*nrbf2;
   twobodydescderiv(d2, dd2, temp, &temp[n2], &temp[2*n2], &temp[3*n2], tj, Nj);
 }
 
+/**
+ * @brief Calculates the two-body global descriptors and their derivatives for a given set of atoms.
+ *
+ * @param gd2    Pointer to the array of global two-body descriptors.
+ * @param gdd2   Pointer to the array of global two-body descriptor derivatives.
+ * @param d2     Pointer to the array of two-body descriptors.
+ * @param dd2    Pointer to the array of two-body descriptor derivatives.
+ * @param rij    Pointer to the array of interatomic distances.
+ * @param temp   Pointer to the temporary array used for calculations.
+ * @param ai     Pointer to the array of atom indices.
+ * @param aj     Pointer to the array of neighbor atom indices.
+ * @param ti     Pointer to the array of atom types.
+ * @param tj     Pointer to the array of neighbor atom types.
+ * @param Nj     Number of neighbor atoms.
+ * @param natom  Number of atoms.
+ */
 void FASTPOD::twobodydescriptors(double *gd2, double *gdd2, double *d2, double *dd2, double *rij,
-        double *temp, int *ai, int *aj, int *ti, int *tj, int Nj, int natom)
+  double *temp, int *ai, int *aj, int *ti, int *tj, int Nj, int natom)
 {
+  // Calculate the orthogonal radial basis functions
   orthogonalradialbasis(temp, rij, Phi, besselparams, rin, rcut-rin,
-          pdegree[0], pdegree[1], nbesselpars, nrbf2, Nj);
+    pdegree[0], pdegree[1], nbesselpars, nrbf2, Nj);
 
+  // Calculate the two-body descriptor derivatives
   int n2 = Nj*nrbf2;
   twobodydescderiv(d2, dd2, temp, &temp[n2], &temp[2*n2], &temp[3*n2], tj, Nj);
 
+  // Calculate the global two-body descriptors
   tallytwobodyglobdesc(gd2, d2, elemindex, nrbf2, nelements, ti[0]-1);
 
+  // Calculate the global two-body descriptor derivatives
   tallytwobodyglobdescderiv(gdd2, dd2, ai, aj, ti, tj, elemindex, nrbf2, nelements, natom, Nj);
 }
 
-
+/**
+ * @brief Calculates the one-body global descriptors for a given atom.
+ *
+ * @param gd1  Pointer to the array of global one-body descriptors.
+ * @param gdd1 Pointer to the array of global one-body descriptor derivatives.
+ * @param ti   Pointer to the array of atom types.
+ * @param natom Number of atoms.
+ * @param i    Index of the atom for which to calculate the one-body descriptors.
+ */
 void FASTPOD::onebodydescriptors(double *gd1, double *gdd1, int *ti, int natom, int i)
 {
+  // Loop over all elements
   for (int m=0; m<nelements; m++) {
+    // Calculate one-hot encoding for the current element
     double onehot = (ti[0] == (m+1)) ? 1.0 : 0.0;
+    // Add one-hot encoding to the global one-body descriptors
     gd1[m] += onehot;
+    // Set the derivative of the one-body descriptor to zero
     gdd1[0 + 3*(i + natom*m)] = 0.0;
     gdd1[1 + 3*(i + natom*m)] = 0.0;
     gdd1[2 + 3*(i + natom*m)] = 0.0;
   }
 }
 
+/**
+ * @brief Calculates the one-body energy for a given atom type.
+ *
+ * @param coeff1 Pointer to the array of one-body coefficients.
+ * @param ti     Pointer to the array of atom types.
+ *
+ * @return The one-body energy for the given atom.
+ */
 double FASTPOD::onebodyenergy(double *coeff1, int *ti)
 {
   double e1 = 0.0;
+  // Loop over all elements
   for (int m=0; m<nelements; m++)
+    // Add the one-body coefficient for the current element if the atom type matches
     e1 += (ti[0] == (m+1)) ? coeff1[m] : 0.0;
 
   return e1;
 }
 
+/**
+ * @brief Calculates the radial basis functions.
+ *
+ * @param rbf           Pointer to the array of radial basis functions.
+ * @param rij           Pointer to the relative positions of neighboring atoms and atom i.
+ * @param besselparams  Pointer to the array of Bessel function parameters.
+ * @param rin           Minimum distance for radial basis functions.
+ * @param rmax          Maximum distance for radial basis functions.
+ * @param besseldegree  Degree of Bessel functions.
+ * @param inversedegree Degree of inverse distance functions.
+ * @param nbesselpars   Number of Bessel function parameters.
+ * @param N             Number of neighboring atoms.
+ */
 void FASTPOD::radialfunctions(double *rbf, double *rij, double *besselparams, double rin,
         double rmax, int besseldegree, int inversedegree, int nbesselpars, int N)
 {
@@ -1769,22 +1835,41 @@ void FASTPOD::radialfunctions(double *rbf, double *rij, double *besselparams, do
     double rij2 = rij[1+3*n];
     double rij3 = rij[2+3*n];
 
-    double dij = pow(rij1*rij1 + rij2*rij2 + rij3*rij3, 0.5);
+    // Calculate the distance between two particles using the Pythagorean theorem
+    double dij = sqrt(rij1*rij1 + rij2*rij2 + rij3*rij3);
+
+    // Calculate the difference between the distance and the cutoff distance
     double r = dij - rin;
+
+    // Calculate the ratio of the difference to the maximum distance
     double y = r/rmax;
+
+    // Calculate y squared
     double y2 = y*y;
+
+    // Calculate 1 - y^3
     double y3 = 1.0 - y2*y;
+
+    // Calculate (1 - y^3)^2 + 1e-6
     double y4 = y3*y3 + 1e-6;
-    double y5 = pow(y4, 0.5);
+
+    // Calculate the square root of y4
+    double y5 = sqrt(y4);
+
+    // Calculate exp(-1/y5)
     double y6 = exp(-1.0/y5);
+
+    // Calculate the final cutoff function as y6/exp(-1)
     double fcut = y6/exp(-1.0);
 
+    // Calculate Bessel functions
     for (int j=0; j<nbesselpars; j++) {
       double x =  (1.0 - exp(-besselparams[j]*r/rmax))/(1.0-exp(-besselparams[j]));
       for (int i=0; i<besseldegree; i++)
         rbf[n + N*i + N*besseldegree*j] = ((sqrt(2.0/(rmax))/(i+1)))*fcut*sin((i+1)*M_PI*x)/r;
     }
 
+    // Calculate inverse distance functions
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
       double a = pow(dij, (double) (i+1.0));
@@ -1793,9 +1878,27 @@ void FASTPOD::radialfunctions(double *rbf, double *rij, double *besselparams, do
   }
 }
 
+
+/**
+ * @brief Calculates the radial basis functions and their derivatives.
+ *
+ * @param rbf           Pointer to the array of radial basis functions.
+ * @param rbfx          Pointer to the array of derivatives of radial basis functions with respect to x.
+ * @param rbfy          Pointer to the array of derivatives of radial basis functions with respect to y.
+ * @param rbfz          Pointer to the array of derivatives of radial basis functions with respect to z.
+ * @param rij           Pointer to the relative positions of neighboring atoms and atom i.
+ * @param besselparams  Pointer to the array of Bessel function parameters.
+ * @param rin           Minimum distance for radial basis functions.
+ * @param rmax          Maximum distance for radial basis functions.
+ * @param besseldegree  Degree of Bessel functions.
+ * @param inversedegree Degree of inverse distance functions.
+ * @param nbesselpars   Number of Bessel function parameters.
+ * @param N             Number of neighboring atoms.
+ */
 void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, double *rij, double *besselparams, double rin,
         double rmax, int besseldegree, int inversedegree, int nbesselpars, int N)
 {
+  // Loop over all neighboring atoms
   for (int n=0; n<N; n++) {
     double xij1 = rij[0+3*n];
     double xij2 = rij[1+3*n];
@@ -1809,17 +1912,33 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
     double r = dij - rin;
     double y = r/rmax;
     double y2 = y*y;
+
+    // Calculate 1 - y^3
     double y3 = 1.0 - y2*y;
+
+    // Calculate (1 - y^3)^2 + 1e-6
     double y4 = y3*y3 + 1e-6;
+
+    // Calculate the square root of y4
     double y5 = sqrt(y4);
+
+    // Calculate exp(-1/y5)
     double y6 = exp(-1.0/y5);
+
+    // Calculate y4^(3/2)
     double y7 = y4*sqrt(y4);
+
+    // Calculate the final cutoff function as y6/exp(-1)
     double fcut = y6/exp(-1.0);
+
+    // Calculate the derivative of the final cutoff function
     double dfcut = ((3.0/(rmax*exp(-1.0)))*(y2)*y6*(y*y2 - 1.0))/y7;
+
+    // Calculate fcut/r, fcut/r^2, and dfcut/r
     double f1 = fcut/r;
     double f2 = f1/r;
     double df1 = dfcut/r;
-    
+
     double alpha = besselparams[0];
     double t1 = (1.0-exp(-alpha));
     double t2 = exp(-alpha*r/rmax);
@@ -1827,178 +1946,294 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
     double dx0 = (alpha/rmax)*t2/t1;
 
     if (nbesselpars==1) {
-      for (int i=0; i<besseldegree; i++) {      
+      for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
-        int nij = n + N*i;        
+        int nij = n + N*i;
+
+        // Calculate radial basis function
         rbf[nij] = b*f1*sinax;
+
+        // Calculate derivative of radial basis function with respect to x
         double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
         rbfx[nij] = drbfdr*dr1;
+
+        // Calculate derivative of radial basis function with respect to y
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;              
-      }      
+
+        // Calculate derivative of radial basis function with respect to z
+        rbfz[nij] = drbfdr*dr3;
+      }
     }
     else if (nbesselpars==2) {
       alpha = besselparams[1];
       t1 = (1.0-exp(-alpha));
       t2 = exp(-alpha*r/rmax);
       double x1 =  (1.0 - t2)/t1;
-      double dx1 = (alpha/rmax)*t2/t1;      
-      for (int i=0; i<besseldegree; i++) {      
+      double dx1 = (alpha/rmax)*t2/t1;
+      for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
-        int nij = n + N*i;        
+        int nij = n + N*i;
+
+        // Calculate radial basis function
         rbf[nij] = b*f1*sinax;
+
+        // Calculate derivative of radial basis function with respect to x
         double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
         rbfx[nij] = drbfdr*dr1;
+
+        // Calculate derivative of radial basis function with respect to y
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
+
+        // Calculate derivative of radial basis function with respect to z
+        rbfz[nij] = drbfdr*dr3;
 
         sinax = sin(a*x1);
-        nij = n + N*i + N*besseldegree*1;        
+        nij = n + N*i + N*besseldegree*1;
+
+        // Calculate radial basis function
         rbf[nij] = b*f1*sinax;
+
+        // Calculate derivative of radial basis function with respect to x
         drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
         rbfx[nij] = drbfdr*dr1;
+
+        // Calculate derivative of radial basis function with respect to y
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
-      }      
+
+        // Calculate derivative of radial basis function with respect to z
+        rbfz[nij] = drbfdr*dr3;
+      }
     }
     else if (nbesselpars==3) {
       alpha = besselparams[1];
       t1 = (1.0-exp(-alpha));
       t2 = exp(-alpha*r/rmax);
       double x1 =  (1.0 - t2)/t1;
-      double dx1 = (alpha/rmax)*t2/t1;      
-      
+      double dx1 = (alpha/rmax)*t2/t1;
+
       alpha = besselparams[2];
       t1 = (1.0-exp(-alpha));
       t2 = exp(-alpha*r/rmax);
       double x2 =  (1.0 - t2)/t1;
-      double dx2 = (alpha/rmax)*t2/t1;      
-      for (int i=0; i<besseldegree; i++) {      
+      double dx2 = (alpha/rmax)*t2/t1;
+      for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
-        int nij = n + N*i;        
+        int nij = n + N*i;
+
+        // Calculate radial basis function
         rbf[nij] = b*f1*sinax;
+
+        // Calculate derivative of radial basis function with respect to x
         double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
         rbfx[nij] = drbfdr*dr1;
+
+        // Calculate derivative of radial basis function with respect to y
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
+
+        // Calculate derivative of radial basis function with respect to z
+        rbfz[nij] = drbfdr*dr3;
 
         sinax = sin(a*x1);
-        nij = n + N*i + N*besseldegree*1;        
+        nij = n + N*i + N*besseldegree*1;
+
+        // Calculate radial basis function
         rbf[nij] = b*f1*sinax;
+
+        // Calculate derivative of radial basis function with respect to x
         drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
         rbfx[nij] = drbfdr*dr1;
+
+        // Calculate derivative of radial basis function with respect to y
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
+
+        // Calculate derivative of radial basis function with respect to z
+        rbfz[nij] = drbfdr*dr3;
 
         sinax = sin(a*x2);
-        nij = n + N*i + N*besseldegree*2;        
+        nij = n + N*i + N*besseldegree*2;
+
+        // Calculate radial basis function
         rbf[nij] = b*f1*sinax;
+
+        // Calculate derivative of radial basis function with respect to x
         drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x2)*dx2);
         rbfx[nij] = drbfdr*dr1;
+
+        // Calculate derivative of radial basis function with respect to y
         rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;        
-      }         
+
+        // Calculate derivative of radial basis function with respect to z
+        rbfz[nij] = drbfdr*dr3;
+      }
     }
-            
+
+    // Calculate fcut/dij and dfcut/dij
     f1 = fcut/dij;
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
       int nij = n + N*p;
-      double a = powint(dij, i+1);
+      double a = pow(dij, (double) (i+1.0));
+
+      // Calculate inverse distance function
       rbf[nij] = fcut/a;
+
+      // Calculate derivative of inverse distance function with respect to x
       double drbfdr = (dfcut - (i+1.0)*f1)/a;
       rbfx[nij] = drbfdr*dr1;
+
+      // Calculate derivative of inverse distance function with respect to y
       rbfy[nij] = drbfdr*dr2;
+
+      // Calculate derivative of inverse distance function with respect to z
       rbfz[nij] = drbfdr*dr3;
     }
   }
-}  
+}
 
+/**
+ * @brief Calculates the orthogonal radial basis functions and their derivatives.
+ *
+ * @param orthorbf      Pointer to the array of orthogonal radial basis functions and their derivatives.
+ * @param rij           Pointer to the relative positions of neighboring atoms and atom i.
+ * @param Phi           Pointer to the array of eigenvectors.
+ * @param besselparams  Pointer to the array of Bessel function parameters.
+ * @param rin           Minimum distance for radial basis functions.
+ * @param rmax          Maximum distance for radial basis functions.
+ * @param besseldegree  Degree of Bessel functions.
+ * @param inversedegree Degree of inverse distance functions.
+ * @param nbesselpars   Number of Bessel function parameters.
+ * @param nrbf2         Number of radial basis functions.
+ * @param N             Number of neighboring atoms.
+ */
 void FASTPOD::orthogonalradialbasis(double *orthorbf, double *rij, double *Phi, double *besselparams,
-        double rin, double rmax, int besseldegree, int inversedegree, int nbesselpars, int nrbf2, int N)
+  double rin, double rmax, int besseldegree, int inversedegree, int nbesselpars, int nrbf2, int N)
 {
   int ns = besseldegree*nbesselpars + inversedegree;
   int n2 = N*nrbf2;
   int n3 = N*ns;
 
+  // Pointers to the arrays of orthogonal radial basis functions and their derivatives
   double *rbf = &orthorbf[0]; // Nj*nrbf2
   double *rbfx = &orthorbf[n2]; // Nj*nrbf2
   double *rbfy = &orthorbf[2*n2]; // Nj*nrbf2
   double *rbfz = &orthorbf[3*n2]; // Nj*nrbf2
 
+  // Pointers to the arrays of temporary radial basis functions and their derivatives
   double *rbft = &orthorbf[4*n2]; // Nj*ns
   double *rbfxt = &orthorbf[4*n2 + n3]; // Nj*ns
   double *rbfyt = &orthorbf[4*n2 + 2*n3]; // Nj*ns
   double *rbfzt = &orthorbf[4*n2 + 3*n3]; // Nj*ns
 
-  // orthogonal radial basis functions
+  // Calculate the radial basis functions and their derivatives
   radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rmax,
-          besseldegree, inversedegree, nbesselpars, N);
+    besseldegree, inversedegree, nbesselpars, N);
+
+  // Multiply the radial basis functions with Phi to obtain the orthogonal radial basis functions
   MatMul(rbf, rbft, Phi, N, ns, nrbf2);
   MatMul(rbfx, rbfxt, Phi, N, ns, nrbf2);
   MatMul(rbfy, rbfyt, Phi, N, ns, nrbf2);
   MatMul(rbfz, rbfzt, Phi, N, ns, nrbf2);
 }
 
+/**
+ * @brief Calculates the angular basis functions.
+ *
+ * @param abf   Pointer to the angular basis functions.
+ * @param rij   Pointer to the relative positions of neighboring atoms and atom i.
+ * @param tm    Pointer to temporary array.
+ * @param pq    Pointer to array of indices for angular basis functions.
+ * @param N     Number of neighboring atoms.
+ * @param K     Number of angular basis functions.
+ */
 void FASTPOD::angularfunctions(double *abf, double *rij, double *tm, int *pq, int N, int K)
 {
+  // Initialize the first element of the temporary array to 1.0
   tm[0] = 1.0;
+
+  // Loop over all neighboring atoms
   for (int j=0; j<N; j++) {
+    // Extract the x, y, and z coordinates of the relative position vector
     double x = rij[0+3*j];
     double y = rij[1+3*j];
     double z = rij[2+3*j];
 
-    double xx = x*x;
-    double yy = y*y;
-    double zz = z*z;
+    // Calculate the magnitude of the relative position vector
+    double dij = sqrt(x*x + y*y + z*z);
 
-    double dij = sqrt(xx + yy + zz);
+    // Calculate the unit vector in the direction of the relative position vector
     double u = x/dij;
     double v = y/dij;
     double w = z/dij;
 
+    // The first element of the angular basis function is always 1.0
     abf[j] = tm[0];
+
+    // Loop over all angular basis functions
     for (int n=1; n<K; n++) {
+      // Extract the indices for the current angular basis function
       int m = pq[n]-1;
       int d = pq[n + K];
+
+      // Calculate the value of the current term in the temporary array using the recursion relation
       if (d==1)
         tm[n] = tm[m]*u;
       else if (d==2)
         tm[n] = tm[m]*v;
       else if (d==3)
         tm[n] = tm[m]*w;
+
+      // Store the value of the current angular basis function
       abf[j + N*n] = tm[n];
     }
   }
 }
 
+/**
+ * @brief Calculates the angular basis functions and their derivatives.
+ *
+ * @param abf   Pointer to the angular basis functions.
+ * @param abfx  Pointer to the derivative of the angular basis functions w.r.t. x.
+ * @param abfy  Pointer to the derivative of the angular basis functions w.r.t. y.
+ * @param abfz  Pointer to the derivative of the angular basis functions w.r.t. z.
+ * @param rij   Pointer to the relative positions of neighboring atoms and atom i.
+ * @param tm    Pointer to temporary array.
+ * @param pq    Pointer to array of indices for angular basis functions.
+ * @param N     Number of neighboring atoms.
+ * @param K     Number of angular basis functions.
+ */
 void FASTPOD::angularbasis(double *abf, double *abfx, double *abfy, double *abfz, double *rij, double *tm, int *pq, int N, int K)
 {
+  // Initialize temporary arrays
   double *tmu = &tm[K];
   double *tmv = &tm[2*K];
   double *tmw = &tm[3*K];
 
+  // Initialize first angular basis function and its derivatives
   tm[0] = 1.0;
   tmu[0] = 0.0;
   tmv[0] = 0.0;
   tmw[0] = 0.0;
+
+  // Loop over all neighboring atoms
   for (int j=0; j<N; j++) {
+    // Calculate relative positions of neighboring atoms and atom i
     double x = rij[0+3*j];
     double y = rij[1+3*j];
     double z = rij[2+3*j];
 
+    // Calculate various terms for derivatives
     double xx = x*x;
     double yy = y*y;
     double zz = z*z;
@@ -2006,11 +2241,13 @@ void FASTPOD::angularbasis(double *abf, double *abfx, double *abfy, double *abfz
     double xz = x*z;
     double yz = y*z;
 
+    // Calculate distance between neighboring atoms and unit vectors
     double dij = sqrt(xx + yy + zz);
     double u = x/dij;
     double v = y/dij;
     double w = z/dij;
 
+    // Calculate derivatives of unit vectors
     double dij3 = dij*dij*dij;
     double dudx = (yy+zz)/dij3;
     double dudy = -xy/dij3;
@@ -2024,13 +2261,19 @@ void FASTPOD::angularbasis(double *abf, double *abfx, double *abfy, double *abfz
     double dwdy = -yz/dij3;
     double dwdz = (xx+yy)/dij3;
 
+    // Initialize first angular basis function and its derivatives
     abf[j] = tm[0];
     abfx[j] = 0.0;
     abfy[j] = 0.0;
     abfz[j] = 0.0;
+
+    // Loop over all angular basis functions
     for (int n=1; n<K; n++) {
+      // Get indices for angular basis function
       int m = pq[n]-1;
       int d = pq[n + K];
+
+      // Calculate angular basis function and its derivatives using recursion relation
       if (d==1) {
         tm[n] = tm[m]*u;
         tmu[n] = tmu[m]*u + tm[m];
@@ -2057,29 +2300,62 @@ void FASTPOD::angularbasis(double *abf, double *abfx, double *abfy, double *abfz
   }
 }
 
+/**
+ * @brief Calculates the radial-angular basis functions.
+ *
+ * @param U     Pointer to the radial-angular basis functions.
+ * @param rbf   Pointer to the radial basis functions.
+ * @param abf   Pointer to the angular basis functions.
+ * @param N     Number of neighboring atoms.
+ * @param K     Number of angular basis functions.
+ * @param M     Number of radial basis functions.
+ */
 void FASTPOD::radialangularfunctions(double *U, double *rbf, double *abf, int N, int K, int M)
 {
-  for (int m=0; m<M; m++)
-    for (int k=0; k<K; k++)
-      for (int n=0; n<N; n++)
-        U[n + N*k + N*K*m] = abf[n + N*k]*rbf[n + N*m];
-  
-//   for (int n=0; n<N; n++)
-//     for (int m=0; m<M; m++)
-//       for (int k=0; k<K; k++)      
-//         U[n + N*k + N*K*m] = abf[n + N*k]*rbf[n + N*m];  
+  // Loop over all radial, angular basis functions, and neighboring atoms
+  for (int m = 0; m < M; m++) {
+    for (int k = 0; k < K; k++) {
+      for (int n = 0; n < N; n++) {
+        // Calculate the radial-angular basis function by multiplying the radial and angular basis functions
+        U[n + N * k + N * K * m] = abf[n + N * k] * rbf[n + N * m];
+      }
+    }
+  }
 }
 
+/**
+ * @brief Calculates the radial-angular basis functions and their derivatives.
+ *
+ * @param U     Pointer to the radial-angular basis functions.
+ * @param Ux    Pointer to the derivative of the radial-angular basis functions with respect to x.
+ * @param Uy    Pointer to the derivative of the radial-angular basis functions with respect to y.
+ * @param Uz    Pointer to the derivative of the radial-angular basis functions with respect to z.
+ * @param rbf   Pointer to the radial basis functions.
+ * @param rbfx  Pointer to the derivative of the radial basis functions with respect to x.
+ * @param rbfy  Pointer to the derivative of the radial basis functions with respect to y.
+ * @param rbfz  Pointer to the derivative of the radial basis functions with respect to z.
+ * @param abf   Pointer to the angular basis functions.
+ * @param abfx  Pointer to the derivative of the angular basis functions with respect to x.
+ * @param abfy  Pointer to the derivative of the angular basis functions with respect to y.
+ * @param abfz  Pointer to the derivative of the angular basis functions with respect to z.
+ * @param N     Number of neighboring atoms.
+ * @param K     Number of angular basis functions.
+ * @param M     Number of radial basis functions.
+ */
 void FASTPOD::radialangularbasis(double *U, double *Ux, double *Uy, double *Uz,
         double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf,
         double *abfx, double *abfy, double *abfz, int N, int K, int M)
 {
-  for (int m=0; m<M; m++)
-    for (int k=0; k<K; k++)
-      for (int n=0; n<N; n++) {
+  // Loop over all radial, angular basis functions, and neighboring atoms
+  for (int m = 0; m < M; m++) {
+    for (int k = 0; k < K; k++) {
+      for (int n = 0; n < N; n++) {
+        // Calculate the indices of the current basis functions in U, Ux, Uy, and Uz
         int ia = n + N*k;
         int ib = n + N*m;
         int ii = ia + N*K*m;
+
+        // Calculate the radial-angular basis function and its derivatives
         double c1 = rbf[ib];
         double c2 = abf[ia];
         U[ii] = c1*c2;
@@ -2087,79 +2363,154 @@ void FASTPOD::radialangularbasis(double *U, double *Ux, double *Uy, double *Uz,
         Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
         Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];
       }
-//   for (int n=0; n<N; n++)
-//     for (int m=0; m<M; m++)
-//       for (int k=0; k<K; k++) {
-//         int ia = n + N*k;
-//         int ib = n + N*m;
-//         int ii = ia + N*K*m;
-//         double c1 = rbf[ib];
-//         double c2 = abf[ia];
-//         U[ii] = c1*c2;
-//         Ux[ii] = abfx[ia]*c1 + c2*rbfx[ib];
-//         Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
-//         Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];
-//       }  
+    }
+  }
 }
 
+/**
+ * @brief Sums the radial-angular basis functions for each atom type.
+ *
+ * @param sumU      Pointer to the array to store the sum of the basis functions.
+ * @param U         Pointer to the radial-angular basis functions.
+ * @param atomtype  Pointer to the array of atom types.
+ * @param N         Number of neighboring atoms.
+ * @param K         Number of angular basis functions.
+ * @param M         Number of radial basis functions.
+ * @param Ne        Number of elements.
+ */
 void FASTPOD::sumradialangularfunctions(double *sumU, double *U, int *atomtype, int N, int K, int M, int Ne)
 {
-  for (int m=0; m<Ne*K*M; m++)
-    sumU[m] = 0.0;
+  // Initialize sumU to zero
+  std::fill(sumU, sumU + Ne*K*M, 0.0);
 
-  for (int m=0; m<M; m++)
-    for (int k=0; k<K; k++)
-      for (int n=0; n<N; n++)
-        sumU[atomtype[n]-1 + Ne*k + Ne*K*m] += U[n + N*k + N*K*m];
+  // Loop over all radial, angular basis functions, and neighboring atoms
+  for (int m = 0; m < M; m++) {
+    for (int k = 0; k < K; k++) {
+      for (int n = 0; n < N; n++) {
+        // Get the atom type of the current atom
+        int atom_type = atomtype[n] - 1;
 
+        // Calculate the index of the current basis function in sumU
+        int index = atom_type + Ne*k + Ne*K*m;
+
+        // Add the current basis function to the sum for the current atom type
+        sumU[index] += U[n + N*k + N*K*m];
+      }
+    }
+  }
 }
 
+/**
+ * @brief Calculates the radial-angular basis functions and their derivatives.
+ *
+ * @param sumU  Pointer to the array to store the sum of the basis functions.
+ * @param U     Pointer to the array to store the radial-angular basis functions.
+ * @param Ux    Pointer to the array to store the derivative of U with respect to x.
+ * @param Uy    Pointer to the array to store the derivative of U with respect to y.
+ * @param Uz    Pointer to the array to store the derivative of U with respect to z.
+ * @param rbf   Pointer to the radial basis function array.
+ * @param rbfx  Pointer to the derivative of rbf with respect to x.
+ * @param rbfy  Pointer to the derivative of rbf with respect to y.
+ * @param rbfz  Pointer to the derivative of rbf with respect to z.
+ * @param abf   Pointer to the angular basis function array.
+ * @param abfx  Pointer to the derivative of abf with respect to x.
+ * @param abfy  Pointer to the derivative of abf with respect to y.
+ * @param abfz  Pointer to the derivative of abf with respect to z.
+ * @param tm    Pointer to the temporary memory array .
+ * @param atomtype  Pointer to the array of atom types.
+ * @param N     Number of neighboring atoms.
+ * @param K     Number of angular basis functions.
+ * @param M     Number of radial basis functions.
+ * @param Ne    Number of elements.
+ */
 void FASTPOD::radialangularbasis(double *sumU, double *U, double *Ux, double *Uy, double *Uz,
-        double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf, double *abfx, 
-        double *abfy, double *abfz, double *tm, int *atomtype, int N, int K, int M, int Ne)
+                 double *rbf, double *rbfx, double *rbfy, double *rbfz,
+                 double *abf, double *abfx, double *abfy, double *abfz,
+                 double *tm, int *atomtype, int N, int K, int M, int Ne)
 {
-  for (int m=0; m<Ne*K*M; m++)
-    sumU[m] = 0.0;
-  
-  if (Ne==1) {
-    for (int m=0; m<M; m++)
-      for (int k=0; k<K; k++) {
+  // Initialize sumU to zero
+  std::fill(sumU, sumU + Ne * K * M, 0.0);
+
+  // Calculate radial-angular basis functions
+  if (Ne == 1) { // Case when Ne is 1
+    // Case when Ne is not 1
+    for (int m = 0; m < M; m++) {
+      for (int k = 0; k < K; k++) {
         double sum = 0.0;
-        for (int n=0; n<N; n++) {
-          int ia = n + N*k;
-          int ib = n + N*m;
-          int ii = ia + N*K*m;
+        for (int n = 0; n < N; n++) {
+          int ia = n + N * k;
+          int ib = n + N * m;
+          int ii = ia + N * K * m;
+
+          // Calculate c1 and c2
           double c1 = rbf[ib];
           double c2 = abf[ia];
-          U[ii] = c1*c2;
-          Ux[ii] = abfx[ia]*c1 + c2*rbfx[ib];
-          Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
-          Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];          
-          sum += c1*c2;
+
+          // Calculate U, Ux, Uy, Uz
+          U[ii] = c1 * c2;
+          Ux[ii] = abfx[ia] * c1 + c2 * rbfx[ib];
+          Uy[ii] = abfy[ia] * c1 + c2 * rbfy[ib];
+          Uz[ii] = abfz[ia] * c1 + c2 * rbfz[ib];
+
+          // Update sum
+          sum += c1 * c2;
         }
-        sumU[k + K*m] += sum;
-      }    
-  }
-  else {
-    for (int m=0; m<M; m++)
-      for (int k=0; k<K; k++) {
-        for (int n=0; n<N; n++) {
-          int ia = n + N*k;
-          int ib = n + N*m;
-          int ii = ia + N*K*m;
+        // Update sumU
+        sumU[k + K * m] += sum;
+      }
+    }
+  } else { // Case when Ne is not 1
+    // Loop over all radial, angular basis functions, and neighboring atoms
+    for (int m = 0; m < M; m++) {
+      for (int k = 0; k < K; k++) {
+        for (int n = 0; n < N; n++) {
+          int ia = n + N * k;
+          int ib = n + N * m;
+          int ii = ia + N * K * m;
+
+          // Calculate c1 and c2
           double c1 = rbf[ib];
           double c2 = abf[ia];
-          U[ii] = c1*c2;
-          Ux[ii] = abfx[ia]*c1 + c2*rbfx[ib];
-          Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
-          Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];
-          int in = atomtype[n]-1;
-          sumU[in + Ne*k + Ne*K*m] += c1*c2;
+
+          // Calculate U, Ux, Uy, Uz
+          U[ii] = c1 * c2;
+          Ux[ii] = abfx[ia] * c1 + c2 * rbfx[ib];
+          Uy[ii] = abfy[ia] * c1 + c2 * rbfy[ib];
+          Uz[ii] = abfz[ia] * c1 + c2 * rbfz[ib];
+
+          // Update sumU with atomtype adjustment
+          int tn = atomtype[n] - 1; // offset the atom type by 1, since atomtype is 1-based
+          sumU[tn + Ne * k + Ne * K * m] += c1 * c2;
         }
       }
+    }
   }
 }
 
+
+/**
+ * @brief Computes the unified basis functions and their derivatives for the FastPOD algorithm.
+ *
+ * @param U Pointer to the output array for the radial-angular basis functions.
+ * @param Ux Pointer to the output array for the x-component of the gradient of the radial-angular basis functions.
+ * @param Uy Pointer to the output array for the y-component of the gradient of the radial-angular basis functions.
+ * @param Uz Pointer to the output array for the z-component of the gradient of the radial-angular basis functions.
+ * @param sumU Pointer to the output array for the sum of the radial-angular basis functions.
+ * @param rij Pointer to the array of interatomic distances.
+ * @param Phi Pointer to the array of eigenvectors.
+ * @param besselparams Pointer to the array of Bessel function parameters.
+ * @param tmpmem Pointer to the temporary memory array.
+ * @param rin Minimum interatomic distance.
+ * @param rcut Cutoff interatomic distance.
+ * @param pdegree Pointer to the array of polynomial degree for the radial basis functions.
+ * @param tj Pointer to the array of element types for neighboring atoms of atom i.
+ * @param pq Pointer to the array of indices for the angular basis functions.
+ * @param nbesselpars Number of Bessel function parameters.
+ * @param nrbf Number of radial basis functions.
+ * @param K Number of angular basis functions.
+ * @param nelements Number of elements.
+ * @param Nj Number of neighboring atoms.
+ */
 void FASTPOD::unifiedbasis(double *U, double *Ux, double *Uy, double *Uz, double *sumU, double *rij,
         double *Phi, double *besselparams, double *tmpmem, double rin, double rcut, int *pdegree,
         int *tj, int *pq, int nbesselpars, int nrbf, int K, int nelements, int Nj)
@@ -2170,56 +2521,100 @@ void FASTPOD::unifiedbasis(double *U, double *Ux, double *Uy, double *Uz, double
   int n3 = Nj*ns;
   int n4 = Nj*K;
 
+  // Allocate memory for radial basis functions and their derivatives
   double *rbf = &tmpmem[4*n1]; // Nj*nrbf
   double *rbfx = &tmpmem[4*n1 + n2]; // Nj*nrbf
   double *rbfy = &tmpmem[4*n1 + 2*n2]; // Nj*nrbf
   double *rbfz = &tmpmem[4*n1 + 3*n2]; // Nj*nrbf
 
+  // Allocate memory for orthogonal radial basis functions and their derivatives
   double *rbft = &tmpmem[4*n1 + 4*n2]; // Nj*ns
   double *rbfxt = &tmpmem[4*n1 + 4*n2 + n3]; // Nj*ns
   double *rbfyt = &tmpmem[4*n1 + 4*n2 + 2*n3]; // Nj*ns
   double *rbfzt = &tmpmem[4*n1 + 4*n2 + 3*n3]; // Nj*ns
 
-  // orthogonal radial basis functions
+  // Compute radial basis functions and their derivatives
   radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nj);
+
+  // Compute orthogonal radial basis functions and their derivatives using POD
   MatMul(rbf, rbft, Phi, Nj, ns, nrbf);
   MatMul(rbfx, rbfxt, Phi, Nj, ns, nrbf);
   MatMul(rbfy, rbfyt, Phi, Nj, ns, nrbf);
   MatMul(rbfz, rbfzt, Phi, Nj, ns, nrbf);
 
+  // Allocate memory for angular basis functions and their derivatives
   double *abf = &tmpmem[4*n1 + 4*n2]; // Nj*K
   double *abfx = &tmpmem[4*n1 + 4*n2 + n4]; // Nj*K
   double *abfy = &tmpmem[4*n1 + 4*n2 + 2*n4]; // Nj*K
   double *abfz = &tmpmem[4*n1 + 4*n2 + 3*n4]; // Nj*K
   double *tm = &tmpmem[4*n1 + 4*n2 + 4*n4]; // 4*K
 
+  // Compute angular basis functions and their derivatives
   angularbasis(abf, abfx, abfy, abfz, rij, tm, pq, Nj, K);
 
+  // Compute radial-angular basis functions and their derivatives
   radialangularbasis(U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, Nj, K, nrbf);
 
+  // Compute the sum of the radial-angular basis functions
   sumradialangularfunctions(sumU, U, tj, Nj, K, nrbf, nelements);
 }
 
+/**
+ * @brief Tally the two-body global descriptor for a given element type.
+ *
+ * @param gd Pointer to the output array for the global descriptors.
+ * @param d Pointer to the input array for the two-body local descriptors.
+ * @param elemindex Pointer to the array of element indices.
+ * @param nrbf Number of radial basis functions.
+ * @param nelements Number of elements.
+ * @param ti element type for atom i
+ */
 void FASTPOD::tallytwobodyglobdesc(double *gd, double *d, int *elemindex, int nrbf, int nelements, int ti)
 {
-  for (int m = 0; m<nelements; m++) {
-    int i1 = nrbf*elemindex[m + nelements*ti];
-    int i2 = nrbf*m;
-    for (int k = 0; k<nrbf; k++)
+  // Loop over all elements of the given type
+  for (int m = 0; m < nelements; m++) {
+    // Compute the indices for the output and input arrays
+    int i1 = nrbf * elemindex[m + nelements * ti]; // Output index for the global descriptor
+    int i2 = nrbf * m; // Input index for the local descriptor
+
+    // Loop over all radial basis functions
+    for (int k = 0; k < nrbf; k++) {
+      // Tally the two-body descriptor for the current radial basis function
       gd[k + i1] += d[k + i2];
+    }
   }
 }
 
+
+/**
+ * Tally the derivative of the two-body global descriptor for each radial basis function.
+ *
+ * @param gdd Output array for the derivative of the two-body global descriptor.
+ * @param dd Input array for the two-body descriptor derivative.
+ * @param ai Array of atom indices.
+ * @param aj Array of neighboring atom indices.
+ * @param ti Array of atom types.
+ * @param tj Array of neighboring atom types.
+ * @param elemindex Array of element indices.
+ * @param nrbf Number of radial basis functions.
+ * @param nelements Number of elements.
+ * @param natom Number of atoms.
+ * @param N Number of neighboring atoms.
+ */
 void FASTPOD::tallytwobodyglobdescderiv(double *gdd, double *dd, int *ai, int *aj, int *ti, int *tj,
         int *elemindex, int nrbf, int nelements, int natom, int N)
 {
-    for (int k = 0; k<nrbf; k++)
+    // Loop over all radial basis functions and neighboring atoms
+    for (int k = 0; k<nrbf; k++) {
       for (int n=0; n<N; n++) {
-        int i1 = nrbf*elemindex[(tj[n]-1) + nelements*(ti[n]-1)];
-        int i2 = nrbf*(tj[n]-1);
-        int im =  3*ai[n] + 3*natom*(k+i1);
-        int jm =  3*aj[n] + 3*natom*(k+i1);
-        int nm = 3*n + 3*N*(k+i2);
+        // Compute the indices for the output and input arrays
+        int i1 = nrbf*elemindex[(tj[n]-1) + nelements*(ti[n]-1)]; // Output index
+        int i2 = nrbf*(tj[n]-1); // Input index
+        int im =  3*ai[n] + 3*natom*(k+i1); // Output index for atom i
+        int jm =  3*aj[n] + 3*natom*(k+i1); // Output index for neighboring atom j
+        int nm = 3*n + 3*N*(k+i2); // Input index for the local descriptor derivative
+
+        // Tally the derivative of the two-body descriptor for the current radial basis function
         gdd[0 + im] += dd[0 + nm];
         gdd[1 + im] += dd[1 + nm];
         gdd[2 + im] += dd[2 + nm];
@@ -2227,24 +2622,55 @@ void FASTPOD::tallytwobodyglobdescderiv(double *gdd, double *dd, int *ai, int *a
         gdd[1 + jm] -= dd[1 + nm];
         gdd[2 + jm] -= dd[2 + nm];
       }
+    }
 }
 
+/**
+ * @brief Tally the global descriptor for a given element type.
+ *
+ * @param gd Pointer to the output array for the global descriptors.
+ * @param d Pointer to the input array for the local descriptors.
+ * @param ndesc Number of descriptors.
+ * @param ti Element type for atom i.
+ */
 void FASTPOD::tallyglobdesc(double *gd, double *d, int ndesc, int ti)
 {
+  // Compute the index for the output array
   int k = ndesc*ti;
-  for (int n = 0; n<ndesc; n++)
+
+  // Loop over all descriptors
+  for (int n = 0; n<ndesc; n++) {
+    // Tally the descriptor for the current element type
     gd[n + k] += d[n];
+  }
 }
 
+/**
+ * @brief Tally the derivative of the global descriptor for a given element type.
+ *
+ * @param gdd Pointer to the output array for the global descriptor derivative.
+ * @param dd Pointer to the input array for the local descriptor derivative.
+ * @param ai Pointer to the array of atom indices.
+ * @param aj Pointer to the array of neighboring atom indices.
+ * @param natom Number of atoms.
+ * @param N Number of neighboring atoms.
+ * @param ndesc Number of descriptors.
+ * @param ti Element type for atom i.
+ */
 void FASTPOD::tallyglobdescderiv(double *gdd, double *dd,  int *ai, int *aj, int natom, int N, int ndesc, int ti)
 {
+  // Compute the index for the output array
   int k = 3*natom*ndesc*ti;
-  for (int m=0; m<ndesc; m++)
-    for (int n=0; n<N; n++)
-    {
-      int im =  3*ai[n] + 3*natom*m + k;
-      int jm =  3*aj[n] + 3*natom*m + k;
-      int nm = 3*n + 3*N*m;
+
+  // Loop over all descriptors and neighboring atoms
+  for (int m=0; m<ndesc; m++) {
+    for (int n=0; n<N; n++) {
+      // Compute the indices for the output and input arrays
+      int im =  3*ai[n] + 3*natom*m + k; // Output index for atom i
+      int jm =  3*aj[n] + 3*natom*m + k; // Output index for neighboring atom j
+      int nm = 3*n + 3*N*m; // Input index for the local descriptor derivative
+
+      // Tally the derivative of the global descriptor for the current element type
       gdd[0 + im] += dd[0 + nm];
       gdd[1 + im] += dd[1 + nm];
       gdd[2 + im] += dd[2 + nm];
@@ -2252,49 +2678,89 @@ void FASTPOD::tallyglobdescderiv(double *gdd, double *dd,  int *ai, int *aj, int
       gdd[1 + jm] -= dd[1 + nm];
       gdd[2 + jm] -= dd[2 + nm];
     }
+  }
 }
 
+/**
+ * @brief Tally the two-body local force for each atom i.
+ *
+ * @param fij Pointer to the output array for the two-body local force at atom i.
+ * @param coeff2 Pointer to the array of two-body coefficients.
+ * @param rbf Pointer to the array of radial basis functions.
+ * @param rbfx Pointer to the array of x-component of radial basis function derivatives.
+ * @param rbfy Pointer to the array of y-component of radial basis function derivatives.
+ * @param rbfz Pointer to the array of z-component of radial basis function derivatives.
+ * @param tj Pointer to the array of neighboring atom types.
+ * @param nbf Number of radial basis functions.
+ * @param N Number of neighboring atoms.
+ * @return double The energy of the two-body local force.
+ */
 double FASTPOD::tallytwobodylocalforce(double *fij, double *coeff2,  double *rbf, double *rbfx,
         double *rbfy, double *rbfz, int *tj, int nbf, int N)
 {
   double e = 0.0;
-  for (int m=0; m<nbf; m++)
+  // Loop over all radial basis functions and neighboring atoms
+  for (int m=0; m<nbf; m++) {
     for (int n=0; n<N; n++) {
-      int nm = n + N*m;
+      int nm = n + N*m; // Input index for the radial basis function derivatives
+      // Compute the coefficient for the current radial basis function and neighboring atom type
       double c = coeff2[m + nbf*(tj[n]-1)];
+      // Tally the energy and force for the current atom and neighboring atom
       e += c*rbf[nm];
       fij[0 + 3*n] += c*rbfx[nm];
       fij[1 + 3*n] += c*rbfy[nm];
       fij[2 + 3*n] += c*rbfz[nm];
     }
+  }
   return e;
 }
 
+/**
+ * @brief Tally the local force for each atom i.
+ *
+ * @param fij Pointer to the output array for the local force at atom i.
+ * @param cU Pointer to the array of coefficients for radial-angular basis functions.
+ * @param Ux Pointer to the array of x-component of radial-angular basis function derivatives.
+ * @param Uy Pointer to the array of y-component of radial-angular basis function derivatives.
+ * @param Uz Pointer to the array of z-component of radial-angular basis function derivatives.
+ * @param atomtype Pointer to the array of atom types.
+ * @param N Number of neighboring atoms.
+ * @param K Number of angular basis functions.
+ * @param M Number of radial basis functions.
+ * @param Ne Number of element types.
+ */
 void FASTPOD::tallylocalforce(double *fij, double *cU, double *Ux, double *Uy, double *Uz,
         int *atomtype, int N, int K, int M, int Ne)
 {
+  // If there is only one element type
   if (Ne==1) {
+    // Loop over all radial, angular basis functions
     for (int m=0; m<M; m++)
       for (int k=0; k<K; k++) {
-        int kk = k + K*m;
+        int kk = k + K*m; // Input index for the coefficients for radial-angular basis functions
         double c = cU[kk];
-        for (int j=0; j<N; j++) {          
-          int ii = 3*j;
-          int jj = j + N*k + N*K*m;          
+        // Loop over all neighboring atoms
+        for (int j=0; j<N; j++) {
+          int ii = 3*j; // Output index for the local force
+          int jj = j + N*k + N*K*m; // Input index for the radial-angular basis function derivatives
+          // Tally the local force for the current neighboring atom
           fij[0 + ii] += c*Ux[jj];
           fij[1 + ii] += c*Uy[jj];
           fij[2 + ii] += c*Uz[jj];
         }
       }
   }
-  else { 
+  // If there are multiple element types
+  else {
+    // Loop over all radial, angular basis functions, and neighboring atoms
     for (int m=0; m<M; m++)
       for (int k=0; k<K; k++)
-        for (int j=0; j<N; j++) {
-          int i2 = atomtype[j]-1;
-          int ii = 3*j;
-          int jj = j + N*k + N*K*m;
+        for (int j=0; j<N; j++) { // Loop over all neighboring atoms
+          int i2 = atomtype[j]-1; // atomtype is 1-based, so offset by 1
+          int ii = 3*j; // Output index for the local force
+          int jj = j + N*k + N*K*m; // Input index for the radial-angular basis function derivatives
           double c = cU[i2 + Ne*k + Ne*K*m];
+          // Tally the local force for the current neighboring atom
           fij[0 + ii] += c*Ux[jj];
           fij[1 + ii] += c*Uy[jj];
           fij[2 + ii] += c*Uz[jj];
@@ -2302,139 +2768,222 @@ void FASTPOD::tallylocalforce(double *fij, double *cU, double *Ux, double *Uy, d
   }
 }
 
+/**
+ * @brief Tally the force on each atom i and its neighboring atoms.
+ *
+ * @param force Pointer to the output array for the global force
+ * @param fij Pointer to the array of forces between each pair of neighboring atoms.
+ * @param ai Pointer to the array of atom indices for each pair of neighboring atoms.
+ * @param aj Pointer to the array of neighboring atom indices for each pair of neighboring atoms.
+ * @param N Number of neighboring atom pairs.
+ */
 void FASTPOD::tallyforce(double *force, double *fij,  int *ai, int *aj, int N)
 {
+  // Loop over all neighboring atoms
   for (int n=0; n<N; n++) {
-    int im =  3*ai[n];
-    int jm =  3*aj[n];
-    int nm = 3*n;
-    force[0 + im] += fij[0 + nm];
-    force[1 + im] += fij[1 + nm];
-    force[2 + im] += fij[2 + nm];
-    force[0 + jm] -= fij[0 + nm];
-    force[1 + jm] -= fij[1 + nm];
-    force[2 + jm] -= fij[2 + nm];
+    int im =  3*ai[n]; // Output index for the force on atom i
+    int jm =  3*aj[n]; // Output index for the force on atom j
+    int nm = 3*n; // Input index for the force between atom i and j
+    force[0 + im] += fij[0 + nm]; // Tally the x-component of the force on atom i
+    force[1 + im] += fij[1 + nm]; // Tally the y-component of the force on atom i
+    force[2 + im] += fij[2 + nm]; // Tally the z-component of the force on atom i
+    force[0 + jm] -= fij[0 + nm]; // Tally the x-component of the force on atom j
+    force[1 + jm] -= fij[1 + nm]; // Tally the y-component of the force on atom j
+    force[2 + jm] -= fij[2 + nm]; // Tally the z-component of the force on atom j
   }
 }
 
+/**
+ * @brief Tally the force on each atom i and its neighboring atoms.
+ *
+ * @param force Pointer to the output array for the global force
+ * @param fij Pointer to the array of forces between each pair of neighboring atoms.
+ * @param ai Pointer to the array of atom indices for each pair of neighboring atoms.
+ * @param aj Pointer to the array of neighboring atom indices for each pair of neighboring atoms.
+ * @param N Number of neighboring atom pairs.
+ */
 void FASTPOD::tallyforce(double **force, double *fij,  int *ai, int *aj, int N)
 {
+  // Loop over all neighboring atoms
   for (int n=0; n<N; n++) {
-    int im =  ai[n];
-    int jm =  aj[n];
-    int nm = 3*n;
-    force[im][0] += fij[0 + nm];
-    force[im][1] += fij[1 + nm];
-    force[im][2] += fij[2 + nm];
-    force[jm][0] -= fij[0 + nm];
-    force[jm][1] -= fij[1 + nm];
-    force[jm][2] -= fij[2 + nm];
+    int im =  ai[n]; // Output index for the force on atom i
+    int jm =  aj[n]; // Output index for the force on atom j
+    int nm = 3*n; // Input index for the force between atom i and j
+    force[im][0] += fij[0 + nm]; // Tally the x-component of the force on atom i
+    force[im][1] += fij[1 + nm]; // Tally the y-component of the force on atom i
+    force[im][2] += fij[2 + nm]; // Tally the z-component of the force on atom i
+    force[jm][0] -= fij[0 + nm]; // Tally the x-component of the force on atom j
+    force[jm][1] -= fij[1 + nm]; // Tally the y-component of the force on atom j
+    force[jm][2] -= fij[2 + nm]; // Tally the z-component of the force on atom j
   }
 }
 
+/**
+ * @brief Compute the two-body coefficients from the given coefficients.
+ *
+ * @param newcoeff2 Pointer to the output array for the new two-body coefficients.
+ * @param coeff2 Pointer to the input array of original two-body coefficients.
+ */
 void FASTPOD::twobodycoeff(double *newcoeff2, double *coeff2)
 {
+  // Loop over all element pairs
   for (int i=0; i<nelements; i++)
     for (int j=0; j<nelements; j++)
+      // Loop over all radial basis functions
       for (int m=0; m<nrbf2; m++)
+        // Compute the new two-body coefficients
         newcoeff2[m + nrbf2*j + nrbf2*nelements*i] = coeff2[m + nrbf2*elemindex[i + nelements*j]];
 }
 
+/**
+ * @brief Create new coefficients for the local descriptors.
+ *
+ * @param None
+ */
 void FASTPOD::mknewcoeff()
 {
+  // Allocate memory for the new coefficients
   memory->create(newcoeff, nl*nelements, "newcoeff");
 
+  // Copy the one-body coefficients
   for (int n=0; n<nd1; n++)
     newcoeff[n] = coeff[n];
 
+  // Compute the two-body coefficients if there are any
   if (nd2>0) twobodycoeff(&newcoeff[nd1], &coeff[nd1]);
 
+  // Copy the remaining coefficients for the many-body descriptors
   for (int n=0; n<(nd3+nd4+nd23+nd33+nd34+nd44); n++)
     newcoeff[(nl1 + nl2)*nelements + n] = coeff[nd1+nd2+n];
 }
 
+/**
+ * @brief Create new coefficients for the local descriptors.
+ *
+ * @param c Pointer to the input array of original coefficients for the global descriptors.
+ */
 void FASTPOD::mknewcoeff(double *c)
 {
+  // Allocate memory for the new coefficients
   memory->create(newcoeff, nl*nelements, "newcoeff");
 
+  // Copy the one-body coefficients
   for (int n=0; n<nd1; n++)
     newcoeff[n] = c[n];
 
+  // Compute the two-body coefficients if there are any
   if (nd2>0) twobodycoeff(&newcoeff[nd1], &c[nd1]);
 
+  // Copy the remaining coefficients for the many-body descriptors
   for (int n=0; n<(nd3+nd4+nd23+nd33+nd34+nd44); n++)
     newcoeff[(nl1 + nl2)*nelements + n] = c[nd1+nd2+n];
 }
 
+
+/**
+ * @brief Compute the radial basis function (RBF) for each atom.
+ *
+ * @param rbf Pointer to the output array for the RBF.
+ * @param xij Pointer to the array of distances between each pair of atoms.
+ * @param N Number of points in the interval [rin, rcut].
+ */
 void FASTPOD::snapshots(double *rbf, double *xij, int N)
 {
+  // Compute the maximum distance between two atoms
   double rmax = rcut-rin;
+
+  // Loop over all atoms
   for (int n=0; n<N; n++) {
     double dij = xij[n];
 
+    // Compute the distance between two atoms
     double r = dij - rin;
+
+    // Compute the normalized distance
     double y = r/rmax;
     double y2 = y*y;
     double y3 = 1.0 - y2*y;
     double y4 = y3*y3 + 1e-6;
     double y5 = pow(y4, 0.5);
     double y6 = exp(-1.0/y5);
+
+    // Compute the cutoff function
     double fcut = y6/exp(-1.0);
 
+    // Loop over all Bessel parameters
     for (int j=0; j<nbesselpars; j++) {
       double alpha = besselparams[j];
       if (fabs(alpha) <= 1.0e-6) alpha = 1e-3;
       double x =  (1.0 - exp(-alpha*r/rmax))/(1.0-exp(-alpha));
 
+      // Loop over all Bessel degrees
       for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*M_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         int nij = n + N*i + N*besseldegree*j;
+
+        // Compute the RBF
         rbf[nij] = b*fcut*sin(a*x)/r;
       }
     }
 
+    // Loop over all polynomial degrees of the radial inverse functions
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
       int nij = n + N*p;
       double a = pow(dij, (double) (i+1.0));
+
+      // Compute the RBF
       rbf[nij] = fcut/a;
     }
   }
 }
 
+
+/**
+ * @brief Perform eigenvalue decomposition of the snapshots matrix S and return the eigenvectors and eigenvalues.
+ *
+ * @param Phi Pointer to the output array for the eigenvectors.
+ * @param Lambda Pointer to the output array for the eigenvalues.
+ * @param N Number of points in the interval [rin, rcut].
+ */
 void FASTPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
 {
   int ns = besseldegree*nbesselpars + inversedegree;
 
+  // Allocate memory for temporary arrays
   double *xij = (double *) malloc(N*sizeof(double));
   double *S = (double *) malloc(N*ns*sizeof(double));
   double *Q = (double *) malloc(N*ns*sizeof(double));
   double *A = (double *) malloc(ns*ns*sizeof(double));
   double *b = (double *) malloc(ns*sizeof(double));
 
+  // Generate the xij array
   for (int i=0; i<N; i++)
     xij[i] = (rin+1e-6) + (rcut-rin-1e-6)*(i*1.0/(N-1));
 
+  // Compute the snapshots matrix S
   snapshots(S, xij, N);
 
+  // Compute the matrix A = S^T * S
   char chn = 'N';
   char cht = 'T';
-  char chv = 'V';
-  char chu = 'U';
   double alpha = 1.0, beta = 0.0;
   DGEMM(&cht, &chn, &ns, &ns, &N, &alpha, S, &N, S, &N, &beta, A, &ns);
 
+  // Normalize the matrix A by dividing by N
   for (int i=0; i<ns*ns; i++)
     A[i] = A[i]*(1.0/N);
 
+  // Compute the eigenvectors and eigenvalues of A
   int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
   double work[ns*ns];
+  char chv = 'V';
+  char chu = 'U';
   DSYEV(&chv, &chu, &ns, A, &ns, b, work, &lwork, &info);
 
-  // order eigenvalues and eigenvectors from largest to smallest
-
+  // Order eigenvalues and eigenvectors from largest to smallest
   for (int j=0; j<ns; j++)
     for (int i=0; i<ns; i++)
       Phi[i + ns*(ns-j-1)] = A[i + ns*j];
@@ -2442,7 +2991,10 @@ void FASTPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   for (int i=0; i<ns; i++)
     Lambda[(ns-i-1)] = b[i];
 
+  // Compute the matrix Q = S * Phi
   DGEMM(&chn, &chn, &N, &ns, &ns, &alpha, S, &N, Phi, &ns, &beta, Q, &N);
+
+  // Compute the area of each snapshot and normalize the eigenvectors
   for (int i=0; i<(N-1); i++)
     xij[i] = xij[i+1] - xij[i];
   double area;
@@ -2454,80 +3006,130 @@ void FASTPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
       Phi[i + ns*m] = Phi[i + ns*m]/sqrt(area);
   }
 
-  // enforce consistent signs for the eigenvectors
-  
-  for (int m=0; m<ns; m++) {    
+  // Enforce consistent signs for the eigenvectors
+  for (int m=0; m<ns; m++) {
     if (Phi[m + ns*m] < 0.0) {
       for (int i=0; i<ns; i++)
-        Phi[i + ns*m] = -Phi[i + ns*m];      
+        Phi[i + ns*m] = -Phi[i + ns*m];
     }
   }
-  
+
+  // Free temporary arrays
   free(xij); free(S); free(A); free(b); free(Q);
 }
 
+/**
+ * @brief Initialize the two-body coefficients.
+ *
+ * @param None
+ */
 void FASTPOD::init2body()
 {
+  // Set the degree of the Bessel function and the inverse distance function
   pdegree[0] = besseldegree;
   pdegree[1] = inversedegree;
-  ns = nbesselpars*pdegree[0] + pdegree[1];
 
-  memory->create(Phi, ns*ns, "Phi");
+  // Compute the total number of snapshots
+  ns = nbesselpars * pdegree[0] + pdegree[1];
+
+  // Allocate memory for the eigenvectors and eigenvalues
+  memory->create(Phi, ns * ns, "Phi");
   memory->create(Lambda, ns, "Lambda");
 
+  // Perform eigenvalue decomposition of the snapshots matrix S and store the eigenvectors and eigenvalues
   eigenvaluedecomposition(Phi, Lambda, 2000);
 }
 
+/**
+ * @brief Initialize arrays for the three-body descriptors.
+ *
+ * @param Pa3 The degree of the angular basis functions of the three-body descriptors.
+ */
 void FASTPOD::init3body(int Pa3)
 {
+  // Define the number of monomials for each degree
   int npa[] = {0, 1, 4, 10, 20, 35, 56, 84, 120, 165, 220, 286, 364, 455};
 
-  nabf3 = Pa3+1;
-  K3 = npa[nabf3];
-  P3 = nabf3-1;
+  // Set the number of coefficients, the number of basis functions, and the degree of the Bessel function
+  nabf3 = Pa3+1;    // Number of angular basis functions
+  K3 = npa[nabf3];  // number of monimials
+  P3 = nabf3-1;     // the degree of angular basis functions of the three-body descriptors
 
-  memory->create(pn3, nabf3+1, "pn3");
-  memory->create(pq3, K3*2, "pq3");
-  memory->create(pc3, K3, "pc3");
+  // Allocate memory for the coefficients, the basis functions, and the cutoff function
+  memory->create(pn3, nabf3+1, "pn3"); // array stores the number of monomials for each degree
+  memory->create(pq3, K3*2, "pq3"); // array needed for the recursive computation of the angular basis functions
+  memory->create(pc3, K3, "pc3");   // array needed for the computation of the three-body descriptors
 
+  // Initialize the arrays
   init3bodyarray(pn3, pq3, pc3, nabf3-1);
 }
 
+/**
+ * @brief Initialize arrays for the four-body descriptors.
+ *
+ * @param Pa4 The degree of the angular basis functions of the four-body descriptors.
+ */
 void FASTPOD::init4body(int Pa4)
 {
+  // Define the number of monomials for each degree
   int npa[] = {0, 1, 4, 10, 20, 35, 56, 84, 120, 165, 220, 286, 364, 455};
+
+  // Define the number of angular basis functions for each degree
   int nb[] = {1,     2,     4,     7,    11,    16,    23};
+
+  // Define the number of terms needed to compute angular basis functions
   int ns[] = {0, 1, 4, 10, 19, 29, 47, 74, 89, 119, 155, 209, 230, 275, 335, 425, 533, 561, 624, 714, 849, 949, 1129, 1345};
 
+  // Set the degree of the angular basis functions of the four-body descriptors
   P4 = Pa4;
+
+  // Set the number of monomials for the angular basis functions of the four-body descriptors
   K4 = npa[Pa4+1];
 
+  // Allocate memory for the output arrays
   int *pn4, *tm4;
-  memory->create(pn4, Pa4+2, "pn4");
-  memory->create(pq4, K4*2, "pq4");
+  memory->create(pn4, Pa4+2, "pn4"); // array stores the number of monomials for each degree
+  memory->create(pq4, K4*2, "pq4");  // array needed for the recursive computation of the angular basis functions
   memory->create(tm4, K4, "tm4");
 
+  // Initialize the arrays
   init3bodyarray(pn4, pq4, tm4, Pa4);
 
+  // Set the number of angular basis functions for the four-body descriptors
   nabf4 = nb[Pa4];
-  Q4 = ns[nabf4];
-  memory->create(pa4, nabf4+1, "pa4");
-  memory->create(pb4, Q4*3, "pb4");
-  memory->create(pc4, Q4, "pc4");
 
+  // the size of the array pc4
+  Q4 = ns[nabf4];
+
+  // Allocate memory for the coefficients, the basis functions, and the cutoff function
+  memory->create(pa4, nabf4+1, "pa4"); // this array is a subset of the array ns
+  memory->create(pb4, Q4*3, "pb4"); // array stores the indices of the monomials needed for the computation of the angular basis functions
+  memory->create(pc4, Q4, "pc4");   // array of monomial coefficients needed for the computation of the four-body descriptors
+
+  // Initialize the arrays
   init4bodyarray(pa4, pb4, pc4, Pa4);
 
+  // Deallocate memory
   memory->destroy(pn4);
   memory->destroy(tm4);
 }
 
+
+/**
+ * @brief Estimate the amount of memory needed for the computation.
+ *
+ * @param Nj Number of neighboring atoms.
+ * @return int The estimated amount of memory needed.
+ */
 int FASTPOD::estimate_memory(int Nj)
 {
+  // Determine the maximum number of radial basis functions and angular basis functions
   int Kmax = (K3 > K4) ? K3 : K4;
   int nrbf34 = (nrbf3 > nrbf4) ? nrbf3 : nrbf4;
   int nrbfmax = (nrbf2 > nrbf34) ? nrbf2 : nrbf34;
   int Knrbf34 = (K3*nrbf3 > K4*nrbf4) ? K3*nrbf3 : K4*nrbf4;
 
+  // Determine the maximum number of local descriptors
   int nld = (nl23 > nl33) ? nl23 : nl33;
   nld = (nld > nl34) ? nld : nl34;
   nld = (nld > nl44) ? nld : nl44;
@@ -2550,74 +3152,130 @@ int FASTPOD::estimate_memory(int Nj)
   // abf, abfx, abfy, abfz
   int nmax6 = 4*(Nj+1)*Kmax;
 
-  // U, Ux, Uy, Uz, sumU, cU, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz
+  // Determine the maximum amount of memory needed for U, Ux, Uy, Uz, sumU, cU, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz
   int nmax7 = (nmax5 > nmax6) ? nmax5 : nmax6;
   int nmax8 = nmax2 + nmax3 + nmax4 + nmax7;
 
-  // all double memory
+  // Determine the total amount of memory needed for all double memory
   ndblmem = (nmax1 + nmax8);
 
-  // ai, aj, ti, tj
+  // Determine the total amount of memory needed for all integer memory
   nintmem = 4*Nj;
 
+  // Return the estimated amount of memory needed
   return ndblmem;
 }
 
+/**
+ * @brief Map a 3D index to a 1D index.
+ *
+ * @param indx The 1D index array.
+ * @param n1 The size of the first dimension.
+ * @param n2 The size of the second dimension.
+ * @param n3 The size of the third dimension.
+ * @param N1 The stride of the first dimension.
+ * @param N2 The stride of the second dimension.
+ * @return int The total number of elements in the 1D index array.
+ */
 int FASTPOD::indexmap3(int *indx, int n1, int n2, int n3, int N1, int N2)
 {
   int k = 0;
   for (int i3=0; i3<n3; i3++)
     for (int i2=0; i2<n2; i2++)
       for (int i1=0; i1<n1; i1++)
-       {
+      {
+        // Map the 3D index to a 1D index
         indx[k] = i1 + N1*i2 + N1*N2*i3;
         k += 1;
       }
 
+  // Return the total number of elements in the 1D index array
   return k;
 }
 
-int FASTPOD::crossindices(int *dabf1, int nabf1, int nrbf1, int nebf1, 
+
+/**
+ * @brief Calculate the number of cross descriptors between two sets of descriptors.
+ *
+ * @param dabf1 Pointer to the array of degrees of angular basis functions of the first set of descriptors.
+ * @param nabf1 Number of angular basis functions in the first set of descriptors.
+ * @param nrbf1 Number of radial basis functions in the first set of descriptors.
+ * @param nebf1 Number of element interactions in the first set of descriptors.
+ * @param dabf2 Pointer to the array of degrees of angular basis functions of the second set of descriptors.
+ * @param nabf2 Number of angular basis functions in the second set of descriptors.
+ * @param nrbf2 Number of radial basis functions in the second set of descriptors.
+ * @param nebf2 Number of element interactions in the second set descriptors.
+ * @param dabf12 degree of angular basis functions for the cross descriptors
+ * @param nrbf12 number of radial basis functions for the cross descriptors
+ * @return int The number of cross descriptors between two sets of descriptors.
+ */
+int FASTPOD::crossindices(int *dabf1, int nabf1, int nrbf1, int nebf1,
          int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12)
 {
   int n = 0;
-  
+
+  // Loop over the first set of descriptors
   for (int i1=0; i1<nebf1; i1++)
     for (int j1=0; j1<nrbf1; j1++)
       for (int k1=0; k1<nabf1; k1++) {
         int m1 = k1 + j1*nabf1;
-        int a1 = dabf1[k1];        
+        int a1 = dabf1[k1];
+        // Loop over the second set of descriptors
         for (int i2=0; i2<nebf2; i2++)
           for (int j2=0; j2<nrbf2; j2++)
             for (int k2=0; k2<nabf2; k2++) {
-              int m2 = k2 + j2*nabf2;           
+              int m2 = k2 + j2*nabf2;
               int a2 = dabf2[k2];
+              // Check if the sum of the angular degrees is less than or equal to dabf12,
+              // the number of radial basis functions is less than nrbf12, and the indices are in the correct order
               if ((m2 >= m1) && (i2 >= i1) && (a1 + a2 <= dabf12) && (j1+j2 < nrbf12)) {
                 n += 1;
               }
             }
       }
-        
+
   return n;
 }
 
-int FASTPOD::crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1, int nebf1, 
+
+/**
+ * @brief Calculate the number of cross descriptors between two sets of descriptors and store the indices in two arrays.
+ *
+ * @param ind1 Pointer to the array of indices of the first set of descriptors.
+ * @param ind2 Pointer to the array of indices of the second set of descriptors.
+ * @param dabf1 Pointer to the array of degrees of angular basis functions of the first set of descriptors.
+ * @param nabf1 Number of angular basis functions in the first set of descriptors.
+ * @param nrbf1 Number of radial basis functions in the first set of descriptors.
+ * @param nebf1 Number of element interactions in the first set of descriptors.
+ * @param dabf2 Pointer to the array of degrees of angular basis functions of the second set of descriptors.
+ * @param nabf2 Number of angular basis functions in the second set of descriptors.
+ * @param nrbf2 Number of radial basis functions in the second set of descriptors.
+ * @param nebf2 Number of element interactions in the second set descriptors.
+ * @param dabf12 degree of angular basis functions for the cross descriptors
+ * @param nrbf12 number of radial basis functions for the cross descriptors
+ * @return int The number of cross descriptors between two sets of descriptors.
+ */
+int FASTPOD::crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1, int nebf1,
          int *dabf2, int nabf2, int nrbf2, int nebf2, int dabf12, int nrbf12)
 {
   int n = 0;
-  
+
+  // Loop over the first set of descriptors
   for (int i1=0; i1<nebf1; i1++)
     for (int j1=0; j1<nrbf1; j1++)
       for (int k1=0; k1<nabf1; k1++) {
         int m1 = k1 + j1*nabf1;
-        int n1 = m1 + i1*nabf1*nrbf1;      
-        int a1 = dabf1[k1];        
+        int n1 = m1 + i1*nabf1*nrbf1;
+        int a1 = dabf1[k1];
+        // Loop over the second set of descriptors
         for (int i2=0; i2<nebf2; i2++)
           for (int j2=0; j2<nrbf2; j2++)
             for (int k2=0; k2<nabf2; k2++) {
-              int m2 = k2 + j2*nabf2;           
+              int m2 = k2 + j2*nabf2;
               int n2 = m2 + i2*nabf2*nrbf2;
               int a2 = dabf2[k2];
+              // Check if the sum of the angular degrees is less than or equal to dabf12,
+              // the number of radial basis functions is less than nrbf12, and the indices are in the correct order
               if ((m2 >= m1) && (i2 >= i1) && (a1 + a2 <= dabf12) && (j1+j2 < nrbf12)) {
                 ind1[n] = n1;
                 ind2[n] = n2;
@@ -2625,7 +3283,7 @@ int FASTPOD::crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1
               }
             }
       }
-        
+
   return n;
 }
 

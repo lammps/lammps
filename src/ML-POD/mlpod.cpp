@@ -47,11 +47,11 @@ MLPOD::podstruct::podstruct() :
   snaptwojmax = 0;
   snapchemflag = 0;
   snaprfac0 = 0.99363;
-  
+
   for (int i=0; i<10; i++) {
     snapelementradius[i] = 0.5;
     snapelementweight[i] = 1.0;
-  }        
+  }
 }
 
 MLPOD::podstruct::~podstruct()
@@ -259,14 +259,14 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
   }
 
   // enforce consistent signs for the eigenvectors
-  
-  for (int m=0; m<ns; m++) {    
+
+  for (int m=0; m<ns; m++) {
     if (Phi[m + ns*m] < 0.0) {
       for (int i=0; i<ns; i++)
-        Phi[i + ns*m] = -Phi[i + ns*m];      
+        Phi[i + ns*m] = -Phi[i + ns*m];
     }
   }
-  
+
   memory->destroy(xij);
   memory->destroy(S);
   memory->destroy(A);
@@ -3718,8 +3718,8 @@ void MLPOD::calculate_force(double **force, double *effectivecoeff, double *rij,
 }
 
 
-double MLPOD::pod2body_force(double *fij, double *e2ij, double *f2ij, double *energycoeff2, 
-                           double *forcecoeff2, int *ai, int *aj, int *ti, int *tj, 
+double MLPOD::pod2body_force(double *fij, double *e2ij, double *f2ij, double *energycoeff2,
+                           double *forcecoeff2, int *ai, int *aj, int *ti, int *tj,
                            int *elemindex, int nelements, int nbf, int /*natom*/, int N)
 {
     int nelements2 = nelements*(nelements+1)/2;
@@ -3730,13 +3730,13 @@ double MLPOD::pod2body_force(double *fij, double *e2ij, double *f2ij, double *en
         int typei = ti[n]-1;
         int typej = tj[n]-1;
         for (int m=0; m<nbf; m++) {
-            int nm = n + N*m;            
+            int nm = n + N*m;
             int km = (elemindex[typei + typej*nelements] - 1) + nelements2*m;
-            e2 += e2ij[nm]*energycoeff2[km];            
+            e2 += e2ij[nm]*energycoeff2[km];
             double ce = forcecoeff2[km];
             fij[0+3*n] += f2ij[0 + 3*nm]*ce;
             fij[1+3*n] += f2ij[1 + 3*nm]*ce;
-            fij[2+3*n] += f2ij[2 + 3*nm]*ce;            
+            fij[2+3*n] += f2ij[2 + 3*nm]*ce;
 //             force[i1][0] += f2ij[0 + 3*nm]*ce;
 //             force[i1][1] += f2ij[1 + 3*nm]*ce;
 //             force[i1][2] += f2ij[2 + 3*nm]*ce;
@@ -3745,12 +3745,12 @@ double MLPOD::pod2body_force(double *fij, double *e2ij, double *f2ij, double *en
 //             force[j1][2] -= f2ij[2 + 3*nm]*ce;
         }
     }
-    
+
     return e2;
 }
 
-double MLPOD::pod3body_force(double *fij, double *yij, double *e2ij, double *f2ij, 
-             double *energycoeff3, double *coeff3, double *tmpmem, int *elemindex, 
+double MLPOD::pod3body_force(double *fij, double *yij, double *e2ij, double *f2ij,
+             double *energycoeff3, double *coeff3, double *tmpmem, int *elemindex,
              int *pairnumsum, int *ai, int *aj, int *ti, int *tj, int nrbf, int nabf,
              int nelements, int natom, int Nij)
 {
@@ -3858,8 +3858,8 @@ double MLPOD::pod3body_force(double *fij, double *yij, double *e2ij, double *f2i
                         n = p + (nabf1)*m;
                         c = (elemindex[typej + typek*nelements] - 1) + nelements2*typei + nelements2*nelements*n;
                         e3 += rbf*tm*energycoeff3[c];
-                        
-                        tm = coeff3[c];                        
+
+                        tm = coeff3[c];
                         fjx += fj1*tm;
                         fjy += fj2*tm;
                         fjz += fj3*tm;
@@ -3878,7 +3878,7 @@ double MLPOD::pod3body_force(double *fij, double *yij, double *e2ij, double *f2i
 //                 fixtmp += fjx+fkx;
 //                 fiytmp += fjy+fky;
 //                 fiztmp += fjz+fkz;
-                fij[0+3*lk] += fkx; 
+                fij[0+3*lk] += fkx;
                 fij[1+3*lk] += fky;
                 fij[2+3*lk] += fkz;
             }
@@ -3890,12 +3890,12 @@ double MLPOD::pod3body_force(double *fij, double *yij, double *e2ij, double *f2i
 //             force[nijk3][0] += fixtmp;
 //             force[nijk3][1] += fiytmp;
 //             force[nijk3][2] += fiztmp;
-            fij[0+3*lj] += fjxtmp; 
+            fij[0+3*lj] += fjxtmp;
             fij[1+3*lj] += fjytmp;
             fij[2+3*lj] += fjztmp;
         }
     }
-    
+
     return e3;
 }
 
@@ -3920,7 +3920,7 @@ void snapTallyForceIJ(double *fij, double *dbdr, double *coeff4,
         fij[0+3*ijnum] += bix*ce;
         fij[1+3*ijnum] += biy*ce;
         fij[2+3*ijnum] += biz*ce;
-        
+
 //         force[i][0] += bix*ce;
 //         force[i][1] += biy*ce;
 //         force[i][2] += biz*ce;
@@ -3981,7 +3981,7 @@ double MLPOD::pod4body_energyforce(double *fij, double *rij, double *coeff4, dou
     double *Utoti = &tmpmem[ne];
     ne += idxu_max*nelements*natom;
     double *blist = &tmpmem[ne];
-    
+
     snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
          rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
 
@@ -3995,16 +3995,16 @@ double MLPOD::pod4body_energyforce(double *fij, double *rij, double *coeff4, dou
 
     snapComputeBi1(blist, Zr, Zi, Utotr, Utoti, idxb, idxu_block, idxz_block, twojmax, idxb_max,
       idxu_max, idxz_max, nelem, natom);
-    
+
     double e4 = 0.0;
     for (int i=0; i<ncoeff; i++)
       e4 += blist[i] * coeff4[i + ncoeff*(ti[0]-1)];
-    
+
     snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
             twojmax, idxb_max, idxu_max, idxz_max, nelements, bnormflag, chemflag, natom, Nij);
 
     snapTallyForceIJ(fij, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
-    
+
     return e4;
 }
 
@@ -4031,7 +4031,7 @@ double MLPOD::calculate_energyforce(double *fij, double *energycoeff, double *fo
     double *ecoeff2 = &energycoeff[nd1];
     double *ecoeff3 = &energycoeff[nd1+nd2];
     double *ecoeff4 = &energycoeff[nd1+nd2+nd3];
-    
+
     // effective POD coefficients for calculating force
 
     double *coeff2 = &forcecoeff[nd1];
@@ -4050,18 +4050,18 @@ double MLPOD::calculate_energyforce(double *fij, double *energycoeff, double *fo
     podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
     podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
     podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
-    
+
     for (int j=0; j<3*Nij; j++) fij[j] = 0.0;
-    
+
     double ei = ecoeff1[ti[0]-1];
     ei += pod2body_force(fij, e2ij, f2ij, ecoeff2, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
-    ei += pod3body_force(fij, rij, e2ij, f2ij, ecoeff3, coeff3, &tmpmem[4*Nij*nrbf], elemindex, 
+    ei += pod3body_force(fij, rij, e2ij, f2ij, ecoeff3, coeff3, &tmpmem[4*Nij*nrbf], elemindex,
             pairnumsum, ai, aj, ti, tj, nrbf3, nabf3, nelements, natom, Nij);
 
     if (pod.snaptwojmax > 0)
         ei += pod4body_energyforce(fij, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
-    
+
     return ei;
 }
 

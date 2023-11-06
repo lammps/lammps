@@ -278,28 +278,28 @@ lammps/examples/PACKAGES/pod and the Github repo https://github.com/cesmix-mit/p
 Loss Function Group Weights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``group_weights`` keyword in the ``data.pod`` file is responsible for weighting certain groups 
+The ``group_weights`` keyword in the ``data.pod`` file is responsible for weighting certain groups
 of configurations in the loss function. For example:
 
 .. code-block:: LAMMPS
 
-    group_weights table 
+    group_weights table
     Displaced_A15 100.0 1.0
-    Displaced_BCC 100.0 1.0 
-    Displaced_FCC 100.0 1.0 
-    Elastic_BCC   100.0 1.0 
-    Elastic_FCC   100.0 1.0 
-    GSF_110       100.0 1.0 
-    GSF_112       100.0 1.0 
-    Liquid        100.0 1.0  
-    Surface       100.0 1.0  
-    Volume_A15    100.0 1.0  
-    Volume_BCC    100.0 1.0 
-    Volume_FCC    100.0 1.0 
+    Displaced_BCC 100.0 1.0
+    Displaced_FCC 100.0 1.0
+    Elastic_BCC   100.0 1.0
+    Elastic_FCC   100.0 1.0
+    GSF_110       100.0 1.0
+    GSF_112       100.0 1.0
+    Liquid        100.0 1.0
+    Surface       100.0 1.0
+    Volume_A15    100.0 1.0
+    Volume_BCC    100.0 1.0
+    Volume_FCC    100.0 1.0
 
-This will apply an energy weight of ``100.0`` and a force weight of ``1.0`` for all groups in the 
-``Ta`` example. The groups are named by their respecive filename. If certain groups are left out of 
-this table, then the globally defined weights from the ``fitting_weight_energy`` and 
+This will apply an energy weight of ``100.0`` and a force weight of ``1.0`` for all groups in the
+``Ta`` example. The groups are named by their respecive filename. If certain groups are left out of
+this table, then the globally defined weights from the ``fitting_weight_energy`` and
 ``fitting_weight_force`` keywords will be used.
 
 Parameterized Potential Energy Surface
@@ -377,7 +377,7 @@ Proper Orthogonal Descriptors
 
 Proper orthogonal descriptors are finger prints characterizing the
 radial and angular distribution of a system of atoms. The detailed
-mathematical definition is given in the paper by 
+mathematical definition is given in the paper by
 :ref:`(Nguyen and Rohskopf) <Nguyen20222>`.
 
 The descriptors for the one-body interaction are used to capture energy
@@ -630,39 +630,39 @@ Fast Proper Orthogonal Descriptors
 """"""""""""""""""""""""""""""""""
 
 Fast Proper orthogonal descriptors are finger prints characterizing the
-radial and angular distribution of a system of atoms via the atomic density representation. 
+radial and angular distribution of a system of atoms via the atomic density representation.
 The detailed mathematical definition is given in the paper by Nguyen
-:ref:`(Nguyen) <Nguyen20232>`. The atomic basis functions are computed as 
-the sum over all neighbors of atom :math:`i` of the products of radial basis functions and angular monomials  
+:ref:`(Nguyen) <Nguyen20232>`. The atomic basis functions are computed as
+the sum over all neighbors of atom :math:`i` of the products of radial basis functions and angular monomials
 
 .. math::
 
     B_{imn \ell}  = \sum_{j=1}^{N_i} R_m(r_{ij})  A_{n \ell}(\hat{\mathbf{r}}_{ij}) .
 
-These atomic basis functions are used to define the descriptors as follows. The two-body descriptors are computed as 
+These atomic basis functions are used to define the descriptors as follows. The two-body descriptors are computed as
 
 .. math::
 
-    D^{(2)}_{im} =  B_{im00} .      
+    D^{(2)}_{im} =  B_{im00} .
 
 The three-body descriptors are expressed as
 
 .. math::
 
-    D^{(3)}_{imn} =  \sum_{\ell=0}^{L} c_{n \ell} B^2_{imn \ell}   
+    D^{(3)}_{imn} =  \sum_{\ell=0}^{L} c_{n \ell} B^2_{imn \ell}
 
-where :math:`L = (n+1)(n+2)/2-1` and :math:`c_{n\ell}` correspond to the multinomial coefficients of the expansion of :math:`(x+y+z)^n`. 
+where :math:`L = (n+1)(n+2)/2-1` and :math:`c_{n\ell}` correspond to the multinomial coefficients of the expansion of :math:`(x+y+z)^n`.
 The four-body descriptors are
 
 .. math::
 
-    {D}^{(4)}_{imp} =  \sum_{q=0}^{L} \sum_{s=0}^{L} \sum_{t=0}^{L} c_{a q} c_{b s} c_{c t} B_{im a' q'} B_{im b' s'} B_{im c' t'} 
+    {D}^{(4)}_{imp} =  \sum_{q=0}^{L} \sum_{s=0}^{L} \sum_{t=0}^{L} c_{a q} c_{b s} c_{c t} B_{im a' q'} B_{im b' s'} B_{im c' t'}
 
-It is possible to extend the method to arbitrary body orders. 
-For instance, the five-body descriptors can be constructed from four distance 
-coordinates :math:`r_{ij}, r_{ik}, r_{il}, r_{im}` and six angle coordinates 
-:math:`w_{ijk}, w_{ijl}, w_{ijm}, w_{ikl}, w_{ikm}, w_{ilm}` in a similar way as the four-body descriptors. 
-In general, the :math:`q`-body descriptors can be constructed from :math:`(q-1)` distance coordinates 
+It is possible to extend the method to arbitrary body orders.
+For instance, the five-body descriptors can be constructed from four distance
+coordinates :math:`r_{ij}, r_{ik}, r_{il}, r_{im}` and six angle coordinates
+:math:`w_{ijk}, w_{ijl}, w_{ijm}, w_{ikl}, w_{ikm}, w_{ilm}` in a similar way as the four-body descriptors.
+In general, the :math:`q`-body descriptors can be constructed from :math:`(q-1)` distance coordinates
 and :math:`(q-2)(q-1)/2` angle coordinates. Therefore, the method can construct a complete set of descriptors for any body orders.
 
 
@@ -835,14 +835,14 @@ As a result, the quadratic  POD potential does not increase the computational co
 Fast Proper Orthogonal Descriptor Potentials
 """"""""""""""""""""""""""""""""""""""""""""
 
-Fast POD (FPOD) potentials use basis functions containing explicit radial and angular parts, summed over neighbors 
+Fast POD (FPOD) potentials use basis functions containing explicit radial and angular parts, summed over neighbors
 :math:`j` of atom :math:`i`:
 
 .. math::
 
     B_{imnl} = \sum_j^{N_i} R_m(r_{ij})A_{nl}(\hat{\boldsymbol r}_{ij})
 
-where :math:`R_m(r_{ij})` and :math:`A_{nl}(\hat{\boldsymbol r}_{ij})` are parameterized radial and angular functions. 
+where :math:`R_m(r_{ij})` and :math:`A_{nl}(\hat{\boldsymbol r}_{ij})` are parameterized radial and angular functions.
 More details on this formalism are described in :ref:`(Nguyen) <Nguyen20232>`.
 
 Training
@@ -918,8 +918,8 @@ The keyword defaults are also given in the description of the input files.
 
 .. _Nguyen20222:
 
-**(Nguyen and Rohskopf)** Nguyen and Rohskopf, Journal of Computational Physics, 480, 112030, (2023). 
+**(Nguyen and Rohskopf)** Nguyen and Rohskopf, Journal of Computational Physics, 480, 112030, (2023).
 
 .. _Nguyen20232:
 
-**(Nguyen)** Nguyen, Physical Review B, 107(14), 144103, (2023). 
+**(Nguyen)** Nguyen, Physical Review B, 107(14), 144103, (2023).

@@ -197,9 +197,9 @@ private:
   void linear_descriptors_fastpod(const datastruct &data, int ci);
   void local_descriptors_fastpod(const datastruct &data, int ci);
   void quadratic_descriptors(const datastruct &data, int ci);
-  void cubic_descriptors(const datastruct &data, int ci); 
+  void cubic_descriptors(const datastruct &data, int ci);
   void least_squares_matrix(const datastruct &data, int ci);
-  void least_squares_fit(const datastruct &data);  
+  void least_squares_fit(const datastruct &data);
   void descriptors_calculation(const datastruct &data);
   void print_analysis(const datastruct &data, double *outarray, double *errors);
   void error_analysis(const datastruct &data, double *coeff);

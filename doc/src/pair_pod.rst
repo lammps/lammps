@@ -94,9 +94,9 @@ none
 
 .. _Nguyen20231:
 
-**(Nguyen and Rohskopf)** Nguyen and Rohskopf, Journal of Computational Physics, 480, 112030, (2023). 
+**(Nguyen and Rohskopf)** Nguyen and Rohskopf, Journal of Computational Physics, 480, 112030, (2023).
 
 .. _Nguyen20233:
 
-**(Nguyen)** Nguyen, Physical Review B, 107(14), 144103, (2023). 
+**(Nguyen)** Nguyen, Physical Review B, 107(14), 144103, (2023).
 

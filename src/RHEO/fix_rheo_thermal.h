@@ -49,7 +49,7 @@ class FixRHEOThermal : public Fix {
   double *Tc_type, Tc;
   double *kappa_type, kappa;
   double dtf, dtv;
-  double cut_bond;
+  double cut_kernel, cut_bond, cutsq_bond;
   int Tc_style, cv_style;
   int btype;
   int conductivity_style;
@@ -64,8 +64,8 @@ class FixRHEOThermal : public Fix {
   class FixUpdateSpecialBonds *fix_update_special_bonds;
 
   void grow_array(int);
-  void break_bonds(int);
-  void create_bonds(int);
+  void break_bonds();
+  void create_bonds();
 };
 
 }    // namespace LAMMPS_NS

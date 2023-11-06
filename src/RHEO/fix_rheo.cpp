@@ -150,7 +150,7 @@ void FixRHEO::post_constructor()
   compute_kernel->fix_rheo = this;
 
   std::string cmd = "rheo_grad all RHEO/GRAD velocity rho viscosity";
-  if (thermal_flag) cmd += "temperature";
+  if (thermal_flag) cmd += " temperature";
   compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(cmd));
   compute_grad->fix_rheo = this;
 
@@ -254,7 +254,7 @@ void FixRHEO::setup(int /*vflag*/)
       covered = 0;
       for (auto fix : therm_fixes)
         if (mask[i] & fix->groupbit) covered = 1;
-      if (!covered) v_coverage_flag = 0;
+      if (!covered) t_coverage_flag = 0;
     }
   }
 

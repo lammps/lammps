@@ -133,7 +133,7 @@ FixRHEO::~FixRHEO()
   if (compute_kernel) modify->delete_compute("rheo_kernel");
   if (compute_grad) modify->delete_compute("rheo_grad");
   if (compute_interface) modify->delete_compute("rheo_interface");
-  if (compute_surface) modify->delete_compute("compute_surface");
+  if (compute_surface) modify->delete_compute("rheo_surface");
   if (compute_rhosum) modify->delete_compute("rheo_rhosum");
   if (compute_vshift) modify->delete_compute("rheo_vshift");
 }
@@ -211,7 +211,10 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
     error->all(FLERR, "Fix RHEO must be defined before all other RHEO fixes");
 
   // Calculate surfaces
-  if (surface_flag) compute_surface->compute_peratom();
+  if (surface_flag) {
+    compute_kernel->compute_coordination();
+    compute_surface->compute_peratom();
+  }
 
   pre_force(0);
 }

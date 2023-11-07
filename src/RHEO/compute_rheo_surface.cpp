@@ -152,16 +152,12 @@ void ComputeRHEOSurface::compute_peratom()
     grow_arrays(atom->nmax);
 
   size_t nbytes = nmax_store * sizeof(double);
-  memset(&divr, 0, nbytes);
-  memset(&rsurface, 0, nbytes);
-  memset(&nsurface, 0, 3 * nbytes);
-  memset(&gradC, 0, 3 * 3 * nbytes);
-  memset(&B, 0, 3 * 3 * nbytes);
+  memset(&divr[0], 0, nbytes);
+  memset(&rsurface[0], 0, nbytes);
+  memset(&nsurface[0][0], 0, dim * nbytes);
+  memset(&gradC[0][0], 0, dim * dim * nbytes);
+  memset(&B[0][0], 0, dim * dim * nbytes);
 
-  // Remove surface settings
-  int nall = nlocal + atom->nghost;
-  for (i = 0; i < nall; i++)
-    status[i] &= SURFACEMASK;
 
   // loop over neighbors to calculate the average orientation of neighbors
   for (ii = 0; ii < inum; ii++) {
@@ -208,7 +204,7 @@ void ComputeRHEOSurface::compute_peratom()
 
         wp = compute_kernel->calc_dw_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq), dWij, dWji);
 
-        for (a = 0; a < dim; a++){
+        for (a = 0; a < dim; a++) {
           divr[i] -= dWij[a] * dx[a] * Volj;
           gradC[i][a] += dWij[a] * Volj;
         }
@@ -245,34 +241,31 @@ void ComputeRHEOSurface::compute_peratom()
     }
   }
 
-  // Find the free-surface
-  if (threshold_style == DIVR) {
-    for (i = 0; i < nall; i++) {
-      if (mask[i] & groupbit) {
+  // Remove surface settings and assign new values
+  int nall = nlocal + atom->nghost;
+  int test;
+
+  for (i = 0; i < nall; i++) {
+    status[i] &= SURFACEMASK;
+    if (mask[i] & groupbit) {
+      if (threshold_style == DIVR)
+        test = divr[i] < threshold_divr;
+      else
+        test = coordination[i] < threshold_z;
+
+      if (test) {
+        if (coordination[i] < threshold_splash)
+          status[i] |= STATUS_SPLASH;
+        else
+          status[i] |= STATUS_SURFACE;
+        rsurface[i] = 0.0;
+      } else {
         status[i] |= STATUS_BULK;
         rsurface[i] = cut;
-        if (divr[i] < threshold_divr) {
-          status[i] |= STATUS_SURFACE;
-          rsurface[i] = 0.0;
-          if (coordination[i] < threshold_splash)
-            status[i] |= STATUS_SPLASH;
-        }
-      }
-    }
-  } else {
-    for (i = 0; i < nall; i++) {
-      if (mask[i] & groupbit) {
-        status[i] |= STATUS_BULK;
-        rsurface[i] = cut;
-        if (coordination[i] < threshold_z) {
-          status[i] |= STATUS_SURFACE;
-          rsurface[i] = 0.0;
-          if (coordination[i] < threshold_splash)
-            status[i] |= STATUS_SPLASH;
-        }
       }
     }
   }
+
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -297,7 +290,8 @@ void ComputeRHEOSurface::compute_peratom()
           status[i] |= STATUS_LAYER;
         }
 
-        if (status[j] & STATUS_SURFACE) rsurface[i] = MIN(rsurface[i], sqrt(rsq));
+        if (status[j] & STATUS_SURFACE)
+          rsurface[i] = MIN(rsurface[i], sqrt(rsq));
 
 
         if (j < nlocal || newton) {
@@ -306,7 +300,8 @@ void ComputeRHEOSurface::compute_peratom()
             status[j] |= STATUS_LAYER;
           }
 
-          if (status[i] & STATUS_SURFACE) rsurface[j] = MIN(rsurface[j], sqrt(rsq));
+          if (status[i] & STATUS_SURFACE)
+            rsurface[j] = MIN(rsurface[j], sqrt(rsq));
         }
       }
     }
@@ -351,7 +346,8 @@ void ComputeRHEOSurface::unpack_reverse_comm(int n, int *list, double *buf)
   int i,a,b,k,j,m;
   int dim = domain->dimension;
   int *status = atom->status;
-  int temp;
+  int tmp1;
+  double tmp2;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -362,12 +358,13 @@ void ComputeRHEOSurface::unpack_reverse_comm(int n, int *list, double *buf)
         for (b = 0; b < dim; b ++)
           gradC[j][a * dim + b] += buf[m++];
     } else if (comm_stage == 1) {
-
-      temp = (int) buf[m++];
-      if ((status[j] & STATUS_BULK) && (temp & STATUS_LAYER))
-        status[j] = temp;
-
-      rsurface[j] = MIN(rsurface[j], buf[m++]);
+      tmp1 = (int) buf[m++];
+      if ((status[j] & STATUS_BULK) && (tmp1 & STATUS_LAYER)) {
+        status[j] &= SURFACEMASK;
+        status[j] |= STATUS_LAYER;
+      }
+      tmp2 = buf[m++];
+      rsurface[j] = MIN(rsurface[j], tmp2);
     }
   }
 }

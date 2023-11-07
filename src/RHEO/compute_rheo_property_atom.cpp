@@ -103,7 +103,7 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
       if (avec_index[i] < 0)
         error->all(FLERR,
                    "Invalid keyword {} for atom style {} in compute rheo/property/atom command ",
-                   atom->get_style(), arg[iarg]);
+                   arg[iarg], atom->get_style());
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_atom_style;
 
       if (strcmp(arg[iarg],"temperature") == 0) thermal_flag = 1;

@@ -61,13 +61,13 @@ PairRHEOReact::PairRHEOReact(LAMMPS *lmp) : Pair(lmp),
   // between timesteps (fix property atom will handle callbacks)
 
   int tmp1, tmp2;
-  int index = atom->find_custom("react_nbond", tmp1, tmp2);
-  if (index == -1) {
+  index_nb = atom->find_custom("react_nbond", tmp1, tmp2);
+  if (index_nb == -1) {
     id_fix = utils::strdup("pair_rheo_react_fix_property_atom");
     modify->add_fix(fmt::format("{} all property/atom i_react_nbond", id_fix));
-    index = atom->find_custom("nbond", tmp1, tmp2);
+    index_nb = atom->find_custom("react_nbond", tmp1, tmp2);
   }
-  nbond = atom->ivector[index];
+  nbond = atom->ivector[index_nb];
 
   //Store non-persistent per atom quantities, intermediate
 
@@ -79,9 +79,10 @@ PairRHEOReact::PairRHEOReact(LAMMPS *lmp) : Pair(lmp),
 
 PairRHEOReact::~PairRHEOReact()
 {
-  if (modify->nfix && fix_history) modify->delete_fix("NEIGH_HISTORY_RHEO_REACT");
-  if (modify->nfix && fix_dummy) modify->delete_fix("NEIGH_HISTORY_RHEO_REACT_DUMMY");
-  if (modify->nfix) modify->delete_fix("PROPERTY_ATOM_RHEO_REACT");
+  if (modify->nfix && fix_history) modify->delete_fix("NEIGH_HISTORY_RHEO_REACT" + std::to_string(instance_me));
+  if (modify->nfix && fix_dummy) modify->delete_fix("NEIGH_HISTORY_RHEO_REACT_DUMMY" + std::to_string(instance_me));
+  if (modify->nfix) modify->delete_fix(id_fix);
+  delete[] id_fix;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -146,7 +147,7 @@ void PairRHEOReact::compute(int eflag, int vflag)
   }
 
   size_t nbytes = nmax_store * sizeof(int);
-  memset(&dbond, 0, nbytes);
+  memset(&dbond[0], 0, nbytes);
 
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
@@ -368,11 +369,11 @@ void PairRHEOReact::coeff(int narg, char **arg)
 
 void PairRHEOReact::init_style()
 {
-  int irequest = neighbor->request(this,instance_me);
+  int irequest = neighbor->request(this, instance_me);
   //neighbor->requests[irequest]->history = 1;
 
   if (fix_history == nullptr) {
-    auto cmd = fmt::format("NEIGH_HISTORY_RHEO_REACT {} all NEIGH_HISTORY {}", instance_me, size_history);
+    auto cmd = fmt::format("NEIGH_HISTORY_RHEO_REACT{} all NEIGH_HISTORY {}", instance_me, size_history);
     fix_history = dynamic_cast<FixNeighHistory *>(
         modify->replace_fix("NEIGH_HISTORY_RHEO_REACT_DUMMY" + std::to_string(instance_me), cmd, 1));
     fix_history->pair = this;

@@ -323,12 +323,16 @@ void FixRHEOThermal::post_integrate()
     }
   }
 
-  if (cut_bond > 0 && (n_melt || n_freeze)) {
+  int n_melt_all, n_freeze_all;
+  MPI_Allreduce(&n_melt, &n_melt_all, 1, MPI_INT, MPI_SUM, world);
+  MPI_Allreduce(&n_freeze, &n_freeze_all, 1, MPI_INT, MPI_SUM, world);
+
+  if (cut_bond > 0 && (n_melt_all || n_freeze_all)) {
     // Forward status then delete/create bonds
     comm->forward_comm(this);
 
-    if (n_freeze) create_bonds();
-    if (n_melt) break_bonds();
+    if (n_freeze_all) create_bonds();
+    if (n_melt_all) break_bonds();
 
     next_reneighbor = update->ntimestep;
   }
@@ -409,10 +413,10 @@ void FixRHEOThermal::break_bonds()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (!(status[i] & STATUS_MELTING)) continue;
-
     for (m = 0; m < num_bond[i]; m++) {
       j = atom->map(bond_atom[i][m]);
+      if (!(status[i] & STATUS_MELTING) && !(status[j] & STATUS_MELTING)) continue;
+
       if (n_histories > 0)
         for (auto &ihistory: histories)
           dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i, num_bond[i] - 1);
@@ -461,7 +465,6 @@ void FixRHEOThermal::create_bonds()
   double **x = atom->x;
 
   neighbor->build_one(list, 1);
-
 
   inum = list->inum;
   ilist = list->ilist;

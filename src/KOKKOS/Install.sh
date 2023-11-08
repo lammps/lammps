@@ -165,6 +165,8 @@ action fix_qeq_reaxff_kokkos.cpp fix_qeq_reaxff.cpp
 action fix_qeq_reaxff_kokkos.h fix_qeq_reaxff.h
 action fix_reaxff_bonds_kokkos.cpp fix_reaxff_bonds.cpp
 action fix_reaxff_bonds_kokkos.h fix_reaxff_bonds.h
+action compute_reaxff_bonds_kokkos.cpp compute_reaxff_bonds.cpp
+action compute_reaxff_bonds_kokkos.h compute_reaxff_bonds.h
 action fix_reaxff_species_kokkos.cpp fix_reaxff_species.cpp
 action fix_reaxff_species_kokkos.h fix_reaxff_species.h
 action fix_rx_kokkos.cpp fix_rx.cpp

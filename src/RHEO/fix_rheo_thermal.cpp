@@ -65,67 +65,67 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"conductivity") == 0) {
       // Conductivity arguments
-      if (iarg + 1 >= narg) error->all(FLERR,"Insufficient arguments for conductivity option");
-      if (strcmp(arg[iarg + 1],"constant") == 0) {
-        if (iarg + 2 >= narg) error->all(FLERR,"Insufficient arguments for conductivity option");
+      if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for conductivity option");
+      if (strcmp(arg[iarg + 1], "constant") == 0) {
+        if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for conductivity option");
         conductivity_style = CONSTANT;
-        kappa = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
-        if (kappa < 0.0) error->all(FLERR,"The conductivity must be positive");
+        kappa = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        if (kappa < 0.0) error->all(FLERR, "The conductivity must be positive");
         iarg += 2;
-      } else if (strcmp(arg[iarg + 1],"type") == 0) {
-        if (iarg + 1 + ntypes >= narg) error->all(FLERR,"Insufficient arguments for conductivity option");
+      } else if (strcmp(arg[iarg + 1], "type") == 0) {
+        if (iarg + 1 + ntypes >= narg) error->all(FLERR, "Insufficient arguments for conductivity option");
         conductivity_style = TYPE;
-        memory->create(kappa_type,ntypes+1,"rheo_thermal:kappa_type");
+        memory->create(kappa_type, ntypes+1, "rheo_thermal:kappa_type");
         for (int i = 1; i <= ntypes; i++) {
-          kappa_type[i] = utils::numeric(FLERR,arg[iarg + 1 + i],false,lmp);
-          if (kappa_type[i] < 0.0) error->all(FLERR,"The conductivity must be positive");
+          kappa_type[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
+          if (kappa_type[i] < 0.0) error->all(FLERR, "The conductivity must be positive");
         }
         iarg += 1 + ntypes;
       } else {
         error->all(FLERR,"Illegal fix command, {}", arg[iarg + 1]);
       }
-    } else if (strcmp(arg[iarg],"specific/heat") == 0) {
+    } else if (strcmp(arg[iarg], "specific/heat") == 0) {
       // Cv arguments
-      if (iarg + 1 >= narg) error->all(FLERR,"Insufficient arguments for cv option");
-      if (strcmp(arg[iarg + 1],"constant") == 0) {
-        if (iarg + 2 >= narg) error->all(FLERR,"Insufficient arguments for cv option");
+      if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for cv option");
+      if (strcmp(arg[iarg + 1], "constant") == 0) {
+        if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for cv option");
         cv_style = CONSTANT;
-        cv = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
-        if (cv < 0.0) error->all(FLERR,"The specific heat must be positive");
+        cv = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        if (cv < 0.0) error->all(FLERR, "The specific heat must be positive");
         iarg += 2;
-      } else if (strcmp(arg[iarg + 1],"type") == 0) {
-        if (iarg + 1 + ntypes >= narg) error->all(FLERR,"Insufficient arguments for cv option");
+      } else if (strcmp(arg[iarg + 1], "type") == 0) {
+        if (iarg + 1 + ntypes >= narg) error->all(FLERR, "Insufficient arguments for cv option");
         cv_style = TYPE;
-        memory->create(cv_type,ntypes + 1,"rheo_thermal:cv_type");
+        memory->create(cv_type,ntypes + 1, "rheo_thermal:cv_type");
         for (int i = 1; i <= ntypes; i++) {
-          cv_type[i] = utils::numeric(FLERR,arg[iarg + 1 + i],false,lmp);
-          if (cv_type[i] < 0.0) error->all(FLERR,"The specific heat must be positive");
+          cv_type[i] = utils::numeric(FLERR, arg[iarg + 1 + i], false, lmp);
+          if (cv_type[i] < 0.0) error->all(FLERR, "The specific heat must be positive");
         }
         iarg += 1 + ntypes;
       } else {
         error->all(FLERR,"Illegal fix command, {}", arg[iarg + 1]);
       }
-    } else if (strcmp(arg[iarg],"Tfreeze") == 0) {
+    } else if (strcmp(arg[iarg], "Tfreeze") == 0) {
       // T freeze arguments
-      if (iarg + 1 >= narg) error->all(FLERR,"Insufficient arguments for Tfreeze option");
-      if (strcmp(arg[iarg + 1],"constant") == 0) {
-        if (iarg + 2 >= narg) error->all(FLERR,"Insufficient arguments for Tfreeze option");
+      if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for Tfreeze option");
+      if (strcmp(arg[iarg + 1], "constant") == 0) {
+        if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for Tfreeze option");
         Tc_style = CONSTANT;
-        Tc = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
+        Tc = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 2;
-      } else if (strcmp(arg[iarg + 1],"type") == 0) {
-        if (iarg + 1 + ntypes >= narg) error->all(FLERR,"Insufficient arguments for Tfreeze option");
+      } else if (strcmp(arg[iarg + 1], "type") == 0) {
+        if (iarg + 1 + ntypes >= narg) error->all(FLERR, "Insufficient arguments for Tfreeze option");
         Tc_style = TYPE;
         memory->create(Tc_type, ntypes + 1, "rheo_thermal:Tc_type");
         for (int i = 1; i <= ntypes; i++) {
-          Tc_type[i] = utils::numeric(FLERR,arg[iarg + 1 + i],false,lmp);
-          if (Tc_type[i] < 0.0) error->all(FLERR,"The melting temperature must be positive");
+          Tc_type[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
+          if (Tc_type[i] < 0.0) error->all(FLERR, "The melting temperature must be positive");
         }
         iarg += 1 + ntypes;
       } else {
-        error->all(FLERR,"Illegal fix command, {}", arg[iarg + 1]);
+        error->all(FLERR, "Illegal fix command, {}", arg[iarg + 1]);
       }
-    } else if (strcmp(arg[iarg],"react") == 0) {
+    } else if (strcmp(arg[iarg], "react") == 0) {
       if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for react option");
       cut_bond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       btype = utils::numeric(FLERR, arg[iarg + 2], false, lmp);

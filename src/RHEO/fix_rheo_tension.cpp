@@ -46,8 +46,10 @@ using namespace FixConst;
 FixRHEOTension::FixRHEOTension(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), compute_kernel(nullptr), compute_interface(nullptr), fix_rheo(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix command");
-  alpha = utils::numeric(FLERR,arg[3],false,lmp);
+  if (narg != 6) error->all(FLERR,"Illegal fix command");
+  alpha = utils::numeric(FLERR, arg[3], false, lmp);
+  alpha = utils::numeric(FLERR, arg[4], false, lmp);
+  wmin = utils::numeric(FLERR, arg[5], false, lmp);
 
   comm_forward = 3;
   comm_reverse = 3;
@@ -75,6 +77,7 @@ FixRHEOTension::FixRHEOTension(LAMMPS *lmp, int narg, char **arg) :
   ft = atom->darray[index_ft];
 
   norm = nullptr;
+  wsame = nullptr;
   nmax_store = 0;
 }
 
@@ -98,6 +101,7 @@ FixRHEOTension::~FixRHEOTension()
   if (index != -1) atom->remove_custom(index, 1, 3);
 
   memory->destroy(norm);
+  memory->destroy(wsame);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,13 +186,11 @@ void FixRHEOTension::post_force(int vflag)
   if (nmax_store <= atom->nmax)
     grow_arrays(atom->nmax);
 
-  for (i = 0; i < nlocal+atom->nghost; i++) {
-    cgradt[i][0] = 0.0;
-    cgradt[i][1] = 0.0;
-    cgradt[i][2] = 0.0;
-    norm[i] = 0.0;
-    divnt[i] = 0.0;
-  }
+  size_t nbytes = nmax_store * sizeof(double);
+  memset(&norm[0], 0, nbytes);
+  memset(&wsame[0], 0, nbytes);
+  memset(&divnt[0], 0, nbytes);
+  memset(&cgradt[0][0], 0, 3 * nbytes);
 
   // Calculate color gradient
   for (ii = 0; ii < inum; ii++) {
@@ -315,17 +317,26 @@ void FixRHEOTension::post_force(int vflag)
       Voli = mass[itype] / rhoi;
       Volj = mass[jtype] / rhoj;
 
+      w = compute_kernel->calc_w(i, j, dx[0], dx[1], dx[2],r);
       wp = compute_kernel->calc_dw(i, j, dx[0], dx[1], dx[2],r);
       dWij = compute_kernel->dWij;
       dWji = compute_kernel->dWji;
 
-      if (itype != jtype) continue; // have to think about this...
-
       for (a = 0; a < 3; a++) {
-        divnt[i] -= (nt[i][a]-nt[j][a]) * Volj * dWij[a];
+        if (itype != jtype)
+          divnt[i] -= (nt[i][a]+nt[j][a]) * Volj * dWij[a];
+        else {
+          divnt[i] -= (nt[i][a]-nt[j][a]) * Volj * dWij[a];
+          wsame[i] += w;
+        }
         norm[i] -= dx[a] * Volj * dWij[a];
         if (newton || j < nlocal) {
-          divnt[j] += (nt[i][a]-nt[j][a]) * Voli * dWji[a];
+          if (itype != jtype)
+            divnt[j] -= (nt[j][a]+nt[i][a]) * Voli * dWji[a];
+          else {
+            divnt[j] -= (nt[j][a]-nt[i][a]) * Voli * dWji[a];
+            wsame[j] += w;
+          }
           norm[j] += dx[a] * Voli * dWji[a];
         }
       }
@@ -333,26 +344,28 @@ void FixRHEOTension::post_force(int vflag)
   }
 
   comm_stage = 1;
-  comm_reverse = 2;
+  comm_reverse = 3;
   if (newton) comm->reverse_comm(this);
 
   // Skip forces if it's setup
   if (update->setupflag) return;
 
   // apply force
-  double prefactor;
-  double unwrap[3];
-  double v[6];
+  double weight, prefactor, unwrap[3], v[6];
+  double wmin_inv = 1.0 / wmin;
   for (i = 0; i < nlocal; i++) {
+
+    weight = MAX(1.0, (wsame[i] - wmin) * wmin_inv);
+    //if (wsame[i] < wmin) continue;
+
     itype = type[i];
 
     if (norm[i] != 0)
-      divnt[i] /= norm[i];
+      divnt[i] *= dim * norm[i];
     else
       divnt[i] = 0.0;
 
-    prefactor = -alpha * divnt[i];
-
+    prefactor = -alpha * divnt[i] * weight;
     for (a = 0; a < 3; a++) {
       f[i][a] += prefactor * cgradt[i][a];
       ft[i][a] = prefactor * cgradt[i][a];
@@ -367,6 +380,62 @@ void FixRHEOTension::post_force(int vflag)
       v[4] = prefactor * cgradt[i][0] * unwrap[2];
       v[5] = prefactor * cgradt[i][1] * unwrap[2];
       v_tally(i, v);
+    }
+  }
+
+  // If there is no lower limit, apply optional pairwise forces
+  if (wmin == 0 || beta == 0.0) return;
+
+  double fpair, wi, wj;
+  double cut_two_thirds = 2.0 * h / 3.0;
+  double h_third_squared = (h / 3.0) * (h / 3.0);
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    imass = mass[itype];
+
+    wi = MIN(1.0, (wsame[i] - wmin) * wmin_inv);
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      if (wsame[i] >= wmin && wsame[j] >= wmin) continue;
+
+      dx[0] = xtmp - x[j][0];
+      dx[1] = ytmp - x[j][1];
+      dx[2] = ztmp - x[j][2];
+      rsq = lensq3(dx);
+
+      if (rsq > hsq) continue;
+
+      wj = MIN(1.0, (wsame[j] - wmin) * wmin_inv);
+      r = sqrt(rsq);
+      rinv = 1.0 / r;
+
+      fpair = (r - cut_two_thirds);
+      fpair *= fpair;
+      fpair -= h_third_squared;
+      fpair *= wi * wj * beta * rinv;
+
+      f[i][0] += dx[0] * fpair;
+      f[i][1] += dx[1] * fpair;
+      f[i][2] += dx[2] * fpair;
+
+      if (newton || j < nlocal) {
+        f[j][0] -= dx[0] * fpair;
+        f[j][1] -= dx[1] * fpair;
+        f[j][2] -= dx[2] * fpair;
+      }
+
+      if (evflag) {
+        // In progress
+      }
     }
   }
 }
@@ -417,6 +486,7 @@ int FixRHEOTension::pack_reverse_comm(int n, int first, double *buf)
     for (i = first; i < last; i++) {
       buf[m++] = norm[i];
       buf[m++] = divnt[i];
+      buf[m++] = wsame[i];
     }
   return m;
 }
@@ -439,6 +509,7 @@ void FixRHEOTension::unpack_reverse_comm(int n, int *list, double *buf)
       j = list[i];
       norm[j] += buf[m++];
       divnt[j] += buf[m++];
+      wsame[j] += buf[m++];
     }
 }
 
@@ -459,6 +530,7 @@ void FixRHEOTension::grow_arrays(int nmax)
 
   // Grow local variables
   memory->grow(norm, nmax, "rheo/tension:norm");
+  memory->grow(wsame, nmax, "rheo/tension:wsame");
 
   nmax_store = atom->nmax;
 }

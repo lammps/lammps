@@ -51,14 +51,14 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
 
   int ntypes = atom->ntypes;
   int iarg = 3;
-  if (strcmp(arg[iarg],"linear") == 0) {
+  if (strcmp(arg[iarg], "linear") == 0) {
     pressure_style = LINEAR;
-  } else if (strcmp(arg[iarg],"taitwater") == 0) {
+  } else if (strcmp(arg[iarg], "taitwater") == 0) {
     pressure_style = TAITWATER;
-  } else if (strcmp(arg[iarg],"cubic") == 0) {
+  } else if (strcmp(arg[iarg], "cubic") == 0) {
     pressure_style = CUBIC;
-    if (iarg + 1 >= narg) error->all(FLERR,"Insufficient arguments for pressure option");
-    c_cubic = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
+    if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for pressure option");
+    c_cubic = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
   } else {
     error->all(FLERR,"Illegal fix command, {}", arg[iarg]);
   }
@@ -96,7 +96,7 @@ void FixRHEOPressure::init()
 
   // Cannot define multiple as pair rheo cannot currently distinguish
   if (modify->get_fix_by_style("rheo/pressure").size() > 1)
-    error->all(FLERR,"Can only specify one instance of fix rheo/pressure");
+    error->all(FLERR, "Can only specify one instance of fix rheo/pressure");
 }
 
 /* ---------------------------------------------------------------------- */

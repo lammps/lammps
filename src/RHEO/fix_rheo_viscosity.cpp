@@ -58,7 +58,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
     viscosity_style = TYPE;
     memory->create(eta_type, ntypes + 1, "rheo_thermal:eta_type");
     for (int i = 1; i <= ntypes; i++) {
-      eta_type[i] = utils::numeric(FLERR,arg[iarg + 1 + i], false, lmp);
+      eta_type[i] = utils::numeric(FLERR,arg[iarg + i], false, lmp);
       if (eta_type[i] < 0.0) error->all(FLERR,"The viscosity must be positive");
     }
     iarg += ntypes;

@@ -232,7 +232,7 @@ void ComputeRHEOVShift::correct_surfaces()
   int nlocal = atom->nlocal;
   int dim = domain->dimension;
 
-  double nx,ny,nz,vx,vy,vz;
+  double nx, ny, nz, vx, vy, vz;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if ((status[i] & STATUS_SURFACE) || (status[i] & STATUS_LAYER)) {

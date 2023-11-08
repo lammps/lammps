@@ -43,8 +43,8 @@ class FixRHEOTension : public Fix {
   int nmax_store, comm_stage, interface_flag;
   int index_nt, index_cgradt, index_divnt, index_ft;
 
-  double **nt, **cgradt, *divnt, *norm, **ft;
-  double alpha, h, hsq, hinv, hinv3, rho0;
+  double **nt, **cgradt, *divnt, *norm, **ft, *wsame;
+  double alpha, beta, wmin, h, hsq, hinv, hinv3, rho0;
 
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOInterface *compute_interface;

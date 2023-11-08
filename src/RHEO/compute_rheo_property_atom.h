@@ -43,6 +43,7 @@ class ComputeRHEOPropertyAtom : public Compute {
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_phase(int);
+  void pack_rho(int);
   void pack_chi(int);
   void pack_surface(int);
   void pack_surface_r(int);

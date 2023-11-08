@@ -232,7 +232,7 @@ void ComputeRHEOVShift::correct_surfaces()
   int nlocal = atom->nlocal;
   int dim = domain->dimension;
 
-  double nx, ny, nz, vx, vy, vz;
+  double nx, ny, nz, vx, vy, vz, dot;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if ((status[i] & STATUS_SURFACE) || (status[i] & STATUS_LAYER)) {
@@ -240,11 +240,20 @@ void ComputeRHEOVShift::correct_surfaces()
         ny = nsurface[i][1];
         vx = vshift[i][0];
         vy = vshift[i][1];
-        vz = vshift[i][2];
+
+        dot = nx * vx + ny * vy;
+        if (dim == 3) {
+          nz = nsurface[i][2];
+          vz = vshift[i][2];
+          dot += nz * vz;
+        }
+
+        // Allowing shifting into the bulk
+        if (dot < 0.0) continue;
+
         vshift[i][0] = (1 - nx * nx) * vx - nx * ny * vy;
         vshift[i][1] = (1 - ny * ny) * vy - nx * ny * vx;
-        if (dim > 2) {
-          nz = nsurface[i][2];
+        if (dim == 3) {
           vshift[i][0] -= nx * nz * vz;
           vshift[i][1] -= ny * nz * vz;
           vshift[i][2] = (1 - nz * nz) * vz - nz * ny * vy - nx * nz * vx;

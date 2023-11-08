@@ -70,6 +70,8 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
 
     if (strcmp(arg[iarg],"phase") == 0) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_phase;
+    } else if (strcmp(arg[iarg],"rho") == 0) {
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_rho;
     } else if (strcmp(arg[iarg],"chi") == 0) {
       interface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_chi;
@@ -82,7 +84,7 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     } else if (strcmp(arg[iarg],"surface/divr") == 0) {
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_divr;
-    } else if (strcmp(arg[iarg],"^surface/n") == 0) {
+    } else if (utils::strmatch(arg[iarg], "^surface/n")) {
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_n;
       col_index[i] = get_vector_index(arg[iarg]);
@@ -91,11 +93,11 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     } else if (strcmp(arg[iarg],"cv") == 0) {
       thermal_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_cv;
-    } else if (strcmp(arg[iarg],"^shift/v") == 0) {
+    } else if (utils::strmatch(arg[iarg], "^shift/v")) {
       shift_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_shift_v;
       col_index[i] = get_vector_index(arg[iarg]);
-    } else if (utils::strmatch(arg[iarg],"^gradv")) {
+    } else if (utils::strmatch(arg[iarg], "^grad/v")) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_gradv;
       col_index[i] = get_tensor_index(arg[iarg]);
     } else {
@@ -167,10 +169,10 @@ void ComputeRHEOPropertyAtom::compute_peratom()
     nmax = atom->nmax;
     if (nvalues == 1) {
       memory->destroy(vector_atom);
-      memory->create(vector_atom,nmax,"rheo/property/atom:vector");
+      memory->create(vector_atom, nmax, "rheo/property/atom:vector");
     } else {
       memory->destroy(array_atom);
-      memory->create(array_atom,nmax,nvalues,"rheo/property/atom:array");
+      memory->create(array_atom, nmax, nvalues, "rheo/property/atom:array");
     }
   }
 
@@ -213,6 +215,21 @@ void ComputeRHEOPropertyAtom::pack_phase(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = (status[i] & PHASECHECK);
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeRHEOPropertyAtom::pack_rho(int n)
+{
+  double *rho = atom->rho;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = rho[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -370,29 +387,29 @@ int ComputeRHEOPropertyAtom::get_tensor_index(char* option)
   int dim = domain->dimension;
   int dim_error = 0;
 
-  if (utils::strmatch(option,"xx$")) {
+  if (utils::strmatch(option, "xx$")) {
     index = 0;
-  } else if (utils::strmatch(option,"xy$")) {
+  } else if (utils::strmatch(option, "xy$")) {
     index = 1;
-  } else if (utils::strmatch(option,"xz$")) {
+  } else if (utils::strmatch(option, "xz$")) {
     index = 2;
     if (dim == 2) dim_error = 1;
-  } else if (utils::strmatch(option,"yx$")) {
+  } else if (utils::strmatch(option, "yx$")) {
     if (dim == 2) index = 2;
     else index = 3;
-  } else if (utils::strmatch(option,"yy$")) {
+  } else if (utils::strmatch(option, "yy$")) {
     if (dim == 2) index = 3;
     else index = 4;
-  } else if (utils::strmatch(option,"yz$")) {
+  } else if (utils::strmatch(option, "yz$")) {
     index = 5;
     if (dim == 2) dim_error = 1;
-  } else if (utils::strmatch(option,"zx$")) {
+  } else if (utils::strmatch(option, "zx$")) {
     index = 6;
     if (dim == 2) dim_error = 1;
-  } else if (utils::strmatch(option,"zy$")) {
+  } else if (utils::strmatch(option, "zy$")) {
     index = 7;
     if (dim == 2) dim_error = 1;
-  } else if (utils::strmatch(option,"zz$")) {
+  } else if (utils::strmatch(option, "zz$")) {
     index = 8;
     if (dim == 2) dim_error = 1;
   } else {

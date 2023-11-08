@@ -221,7 +221,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   suffix = suffix2 = nullptr;
   suffix_enable = 0;
   pair_only_flag = 0;
-  if (arg) exename = arg[0];
+  if (arg) exename = utils::strdup(arg[0]);
   else exename = nullptr;
   packargs = nullptr;
   num_package = 0;
@@ -813,6 +813,7 @@ LAMMPS::~LAMMPS()
   delete memory;
 
   delete pkg_lists;
+  delete[] exename;
 }
 
 /* ----------------------------------------------------------------------

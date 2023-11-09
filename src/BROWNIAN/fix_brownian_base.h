@@ -44,6 +44,7 @@ class FixBrownianBase : public Fix {
 
   int dipole_flag;        // set if dipole is used for asphere
   double *dipole_body;    // direction dipole is slaved to in body frame
+  double lambda;          // strength of soft constraint on dipole magnitude for brownian/dipole
 
   int noise_flag;             // 0/1 for noise off/on
   int gaussian_noise_flag;    // 0/1 for uniform/gaussian noise

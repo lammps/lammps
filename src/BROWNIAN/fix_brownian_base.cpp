@@ -37,7 +37,8 @@ using namespace FixConst;
 FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   time_integrate = 1;
-
+  dynamic_group_allow = 1;
+  
   noise_flag = 1;
   gaussian_noise_flag = 0;
   gamma_t_flag = gamma_r_flag = 0;
@@ -46,6 +47,7 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
   rot_temp_flag = 0;
   planar_rot_flag = 0;
   g2 = 0.0;
+  lambda = 100.0;
 
   if (narg < 5) error->all(FLERR, "Illegal fix brownian command.");
 
@@ -171,6 +173,11 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
         error->all(FLERR, "The planar_rotation keyword is not allowed for 2D simulations");
       iarg = iarg + 1;
 
+    } else if (strcmp(arg[iarg], "lambda") == 0) {
+
+      lambda = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (lambda <= 0) error->all(FLERR, "Fix brownian lambda must be > 0.");
+      iarg = iarg + 2;
     } else {
       error->all(FLERR, "Illegal fix brownian command.");
     }

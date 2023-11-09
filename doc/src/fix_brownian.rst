@@ -1,7 +1,8 @@
 .. index:: fix brownian
 .. index:: fix brownian/sphere
 .. index:: fix brownian/asphere
-
+.. index:: fix brownian/dipole
+	   
 fix brownian command
 ===========================
 
@@ -9,6 +10,9 @@ fix brownian/sphere command
 ===========================
 
 fix brownian/asphere command
+============================
+
+fix brownian/dipole command
 ============================
 
 Syntax
@@ -19,11 +23,11 @@ Syntax
    fix ID group-ID style_name temp seed keyword args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style_name = *brownian* or *brownian/sphere* or *brownian/asphere*
+* style_name = *brownian* or *brownian/sphere* or *brownian/asphere* or *brownian/dipole*
 * temp = temperature
 * seed = random number generator seed
 * one or more keyword/value pairs may be appended
-* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t* or *rotation_temp* or *planar_rotation*
+* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t* or *rotation_temp* or *planar_rotation* or *lambda*
 
   .. parsed-literal::
 
@@ -44,6 +48,8 @@ Syntax
      *rotation_temp* values = *T* for *brownian/sphere* and *brownian/asphere*
         *T* = rotation temperature, which can be different then *temp* when out of equilibrium
      *planar_rotation* values = none (constrains rotational diffusion to be in xy plane if in 3D)
+     *lambda* value = *lam* for *brownian/dipole*
+        *lam* = strength of the soft constraint on maintaining constant dipole length
 
 Examples
 """"""""
@@ -56,7 +62,7 @@ Examples
    fix 1 all brownian/sphere 1.0 19581092 gamma_t 1.0 gamma_r 0.3  rng none
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 rng gaussian
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 dipole 1.0 0.0 0.0
-
+   fix 1 all brownian/dipole 1.0 1294019 gamma_t 5.0 gamma_r 0.7 rng gaussian
 
 Description
 """""""""""
@@ -130,6 +136,21 @@ where :math:`\boldsymbol{\Psi}` has rows :math:`(-q_1,-q_2,-q_3)`,
 friction tensor is diagonal.  See :ref:`(Delong) <Delong1>` for more details of
 a similar algorithm.
 
+For the style *brownian/dipole*, the center of mass positions are updated as
+in the *brownian* case, but the dipole moment is updated using a soft
+constraint to keep it near unit magnitude via
+
+.. math::
+   d\boldsymbol{\mu} = (\lambda \boldsymbol{\mu}(1-|\boldsymbol{\mu}|^2) +
+   \frac{\mathbf{T}}{\gamma_r})dt
+   + \sqrt{2k_B T/\gamma_r}d\mathbf{W}_t,
+
+where :math:`\lambda` is the value specified by *lambda* and sets the energetic
+penalty for having non unit magnitude.
+
+
+
+
 
 ---------
 
@@ -175,11 +196,11 @@ If the *rng* keyword is used with the *none* value, then the noise
 terms are set to zero.
 
 The *gamma_t* keyword sets the (isotropic) translational viscous damping.
-Required for (and only compatible with) *brownian* and *brownian/sphere*.
-The units of *gamma_t* are mass/time.
+Required for (and only compatible with) *brownian*, *brownian/sphere*
+and *brownian/dipole*. The units of *gamma_t* are mass/time.
 
 The *gamma_r* keyword sets the (isotropic) rotational viscous damping.
-Required for (and only compatible with) *brownian/sphere*.
+Required for (and only compatible with) *brownian/sphere* and *brownian/dipole*.
 The units of *gamma_r* are mass*length**2/time.
 
 The *gamma_r_eigen*, and *gamma_t_eigen* keywords are the eigenvalues of
@@ -195,11 +216,11 @@ are updated as described above. Only compatible with *brownian/asphere*
 
 If the *rotation_temp* keyword is used, then the rotational diffusion
 will be occur at this prescribed temperature instead of *temp*. Only
-compatible with *brownian/sphere* and *brownian/asphere*.
+compatible with *brownian/sphere*, *brownian/asphere* and *brownian/dipole*.
 
 If the *planar_rotation* keyword is used, then rotation is constrained
-to the *x*\ -- *y* plane in a 3D simulation. Only compatible with
-*brownian/sphere* and *brownian/asphere* in 3D.
+to the *x*\ -- *y* plane in a 3D simulation. Only compatible in 3D with
+*brownian/sphere*, *brownian/asphere* or *brownian/dipole*.
 
 ----------
 
@@ -224,13 +245,14 @@ the :doc:`run <run>` command.  This fix is not invoked during
 Restrictions
 """"""""""""
 
-The style *brownian/sphere* fix requires that atoms store torque and
+The style *brownian/sphere* and *brownian/dipole* fixes requires that atoms store torque and
 angular velocity (omega) as defined by the :doc:`atom_style sphere
 <atom_style>` command.  The style *brownian/asphere* fix requires that
 atoms store torque and quaternions as defined by the :doc:`atom_style
 ellipsoid <atom_style>` command.  If the *dipole* keyword is used, they
 must also store a dipole moment as defined by the :doc:`atom_style
-dipole <atom_style>` command.
+dipole <atom_style>` command. The style *brownian/dipole* fix
+additionally requires that a dipole exists.
 
 This fix is part of the BROWNIAN package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
@@ -246,7 +268,8 @@ Default
 """""""
 
 The default for *rng* is *uniform*. The default for the rotational and
-translational friction tensors are the identity tensor.
+translational friction tensors are the identity tensor. The default for
+*lambda* (only revelant for *brownian/dipole*) is 100.0.
 
 ----------
 

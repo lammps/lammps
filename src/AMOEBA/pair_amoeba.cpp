@@ -347,8 +347,6 @@ void PairAmoeba::compute(int eflag, int vflag)
     }
   }
 
-//  first_flag_compute = 0;
-
   // -------------------------------------------------------------------
   // end of one-time initializations
   // -------------------------------------------------------------------
@@ -983,10 +981,6 @@ void PairAmoeba::init_style()
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) pval[i] = 0.0;
   }
-
-  // output FF settings to screen and logfile:
-  //   delay until rpole are available for RMS force accuracy estimate
-  //if (first_flag && (comm->me == 0)) print_settings();
 
   // all done with one-time initializations
 

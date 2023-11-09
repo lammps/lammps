@@ -1036,7 +1036,7 @@ double PairAmoeba::final_accuracy_mpole()
   double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
   double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
   double spr = 2.0 *q2_over_sqrt * exp(-aeewald*aeewald*cutoff*cutoff);
-  double tpr = 0; //estimate_table_accuracy(q2_over_sqrt,spr);
+  double tpr = 0;
   double estimated_accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
 
   two_charge_force = force->qqr2e *

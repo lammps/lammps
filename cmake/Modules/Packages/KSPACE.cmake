@@ -46,7 +46,7 @@ else()
   target_compile_definitions(lammps PRIVATE -DFFT_KISS)
 endif()
 
-option(LMP_HEFFTE  "Use heFFTe as the distributed FFT engine, supersedes the FFT option."  OFF)
+option(LMP_HEFFTE  "Use heFFTe as the distributed FFT engine, overrides the FFT option."  OFF)
 if(LMP_HEFFTE)
   # if FFT_HEFFTE is enabled, switch the builtin FFT engine with Heffte
   set(HEFFTE_BACKEND_VALUES FFTW MKL)
@@ -60,20 +60,22 @@ if(LMP_HEFFTE)
     set(HEFFTE_COMPONENTS "MKL")
     set(Heffte_ENABLE_MKL "ON" CACHE BOOL "Enables MKL backend for heFFTe")
   else()
-    message(WARNING "HEFFTE_BACKEND not selected, defaulting to 'stock' backend, which is not intended for production")
+    message(WARNING "HEFFTE_BACKEND not selected, defaulting to the builtin 'stock' backend, which is intended for testing and is not optimized for production runs")
   endif()
 
-  find_package(Heffte 2.3.0 QUIET COMPONENTS ${HEFFTE_COMPONENTS})
+  find_package(Heffte 2.4.0 QUIET COMPONENTS ${HEFFTE_COMPONENTS})
   if (NOT Heffte_FOUND) # download and build
     include(FetchContent)
-    FetchContent_Declare(HEFFTE_PROJECT # using v2.3.0
-      URL  "https://bitbucket.org/icl/heffte/get/f49e25969bd7abbcb09e338db9a5e59550c8a05a.tar.gz"
-      URL_HASH SHA256=27c0a8da8f7bc91c8715ecb640721ab7e0454e22f6e3f521fe5acc45c28d60a9
+    FetchContent_Declare(HEFFTE_PROJECT # using v2.4.0
+      URL  "https://github.com/icl-utk-edu/heffte/archive/refs/tags/v2.4.0.tar.gz"
+      URL_HASH SHA256=02310fb4f9688df02f7181667e61c3adb7e38baf79611d80919d47452ff7881d
       )
     FetchContent_Populate(HEFFTE_PROJECT)
     add_subdirectory(${heffte_project_SOURCE_DIR} ${heffte_project_BINARY_DIR})
     set_target_properties(lmp PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
     set_target_properties(lammps PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    add_library(Heffte::Heffte INTERFACE IMPORTED GLOBAL)
+    target_link_libraries(Heffte::Heffte INTERFACE Heffte)
   endif()
 
   target_compile_definitions(lammps PRIVATE -DLMP_HEFFTE "-DHEFFTE_${HEFFTE_BACKEND}")

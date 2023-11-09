@@ -47,7 +47,7 @@ Alternatively, LAMMPS can use the
 `heFFTe <https://icl-utk-edu.github.io/heffte/>`_
 library for the MPI communication algorithms,
 which comes with many optimizations for special cases,
-e.g., leveraging 2D or 3D backend transforms or
+e.g., leveraging 2D and 3D backend transforms and
 better pipelining for packing and communication.
 
 .. tabs::

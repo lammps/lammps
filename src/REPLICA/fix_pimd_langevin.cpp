@@ -847,6 +847,17 @@ void FixPIMDLangevin::q_step()
 {
   // used for PIMD
   // evolve all beads
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  double **v = atom->v;
+
+  if (!pstat_flag) {
+    for (int i = 0; i < nlocal; i++) {
+      x[i][0] += dtv * v[i][0];
+      x[i][1] += dtv * v[i][1];
+      x[i][2] += dtv * v[i][2];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

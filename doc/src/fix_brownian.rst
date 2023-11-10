@@ -92,7 +92,7 @@ For the style *brownian*, only the positions of the particles are
 updated. This is therefore suitable for point particle simulations.
 
 For the style *brownian/sphere*, the positions of the particles are
-updated, and a dipole slaved to the spherical orientation is also
+updated, and a dipole following the spherical orientation is also
 updated. This style therefore requires the hybrid atom style
 :doc:`atom_style dipole <atom_style>` and :doc:`atom_style sphere
 <atom_style>`. The equation of motion for the dipole is
@@ -136,6 +136,8 @@ where :math:`\boldsymbol{\Psi}` has rows :math:`(-q_1,-q_2,-q_3)`,
 friction tensor is diagonal.  See :ref:`(Delong) <Delong1>` for more details of
 a similar algorithm.
 
+..versionadded:: TBD
+
 For the style *brownian/dipole*, the center of mass positions are updated as
 in the *brownian* case, but the dipole moment is updated using a soft
 constraint to keep it near unit magnitude via
@@ -147,10 +149,6 @@ constraint to keep it near unit magnitude via
 
 where :math:`\lambda` is the value specified by *lambda* and sets the energetic
 penalty for having non unit magnitude.
-
-
-
-
 
 ---------
 

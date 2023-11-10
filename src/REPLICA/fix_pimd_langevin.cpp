@@ -50,7 +50,7 @@ using namespace FixConst;
 using MathConst::MY_PI;
 using MathConst::THIRD;
 
-enum { NMPIMD };
+enum { PIMD, NMPIMD };
 enum { PHYSICAL, NORMAL };
 enum { BAOAB, OBABO };
 enum { ISO, ANISO, TRICLINIC };
@@ -121,6 +121,8 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[i], "method") == 0) {
       if (strcmp(arg[i + 1], "nmpimd") == 0)
         method = NMPIMD;
+      elif (strcmp(arg[i + 1], "pimd") == 0)
+        method = PIMD;
       else
         error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin");
     } else if (strcmp(arg[i], "integrator") == 0) {
@@ -159,7 +161,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         error->universe_all(FLERR, "Invalid fmass value for fix pimd/langevin");
     } else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd/nvt");
+      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd/langevin");
     } else if (strcmp(arg[i], "fmmode") == 0) {
       if (strcmp(arg[i + 1], "physical") == 0)
         fmmode = PHYSICAL;
@@ -170,9 +172,11 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
                             "Unknown fictitious mass mode for fix pimd/langevin. Only physical "
                             "mass and normal mode mass are supported!");
     } else if (strcmp(arg[i], "scale") == 0) {
+      if (method == PIMD)
+        error->universe_all(FLERR, "The scale parameter of the PILE_L thermostat is not supported for method pimd. Delete scale parameter if you do want to use method pimd.");
       pilescale = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (pilescale < 0.0)
-        error->universe_all(FLERR, "Invalid pile scale value for fix pimd/langevin");
+        error->universe_all(FLERR, "Invalid PILE_L scale value for fix pimd/langevin");
     } else if (strcmp(arg[i], "temp") == 0) {
       temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd/langevin");
@@ -244,6 +248,12 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (!pstat_flag && pdim)
     error->universe_all(
         FLERR, fmt::format("Must not use pressure coupling with {} ensemble", Ensembles[ensemble]));
+
+  if (method == PIMD && pstat_flag)
+    error->universe_all(FLERR, "Pressure control has not been supported for method pimd yet. Please set method to nmpimd.");
+
+  if (method == PIMD && fmmode == NORMAL)
+    error->universe_all(FLERR, "Normal mode mass is not supported for method pimd. Please set method to nmpimd.");
 
   /* Initiation */
 
@@ -890,20 +900,22 @@ void FixPIMDLangevin::langevin_init()
   _omega_k = new double[np];
   Lan_c = new double[np];
   Lan_s = new double[np];
-  if (fmmode == PHYSICAL) {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = _omega_np * sqrt(lam[i]) / sqrt(fmass);
-      Lan_c[i] = cos(sqrt(lam[i]) * _omega_np_dt_half);
-      Lan_s[i] = sin(sqrt(lam[i]) * _omega_np_dt_half);
+  if (method == NMPIMD) {
+    if (fmmode == PHYSICAL) {
+      for (int i = 0; i < np; i++) {
+        _omega_k[i] = _omega_np * sqrt(lam[i]) / sqrt(fmass);
+        Lan_c[i] = cos(sqrt(lam[i]) * _omega_np_dt_half);
+        Lan_s[i] = sin(sqrt(lam[i]) * _omega_np_dt_half);
+      }
+    } else if (fmmode == NORMAL) {
+      for (int i = 0; i < np; i++) {
+        _omega_k[i] = _omega_np / sqrt(fmass);
+        Lan_c[i] = cos(_omega_np_dt_half);
+        Lan_s[i] = sin(_omega_np_dt_half);
+      }
+    } else {
+      error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
     }
-  } else if (fmmode == NORMAL) {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = _omega_np / sqrt(fmass);
-      Lan_c[i] = cos(_omega_np_dt_half);
-      Lan_s[i] = sin(_omega_np_dt_half);
-    }
-  } else {
-    error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
   }
 
   if (tau > 0)
@@ -925,27 +937,35 @@ void FixPIMDLangevin::langevin_init()
   if (thermostat == PILE_L) {
     std::string out = "\nInitializing PI Langevin equation thermostat...\n";
     out += "Bead ID    |    omega    |    tau    |    c1    |    c2\n";
-    tau_k = new double[np];
-    c1_k = new double[np];
-    c2_k = new double[np];
-    tau_k[0] = tau;
-    c1_k[0] = c1;
-    c2_k[0] = c2;
-    for (int i = 1; i < np; i++) {
-      tau_k[i] = 0.5 / pilescale / _omega_k[i];
-      if (integrator == OBABO)
-        c1_k[i] = exp(-0.5 * update->dt / tau_k[i]);
-      else if (integrator == BAOAB)
-        c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
-      else
-        error->universe_all(FLERR,
-                            "Unknown integrator parameter for fix pimd/langevin. Only obabo and "
-                            "baoab integrators are supported!");
-      c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
-    }
-    for (int i = 0; i < np; i++) {
-      out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i],
-                         c1_k[i], c2_k[i]);
+    if (method == NMPIMD) {
+      tau_k = new double[np];
+      c1_k = new double[np];
+      c2_k = new double[np];
+      tau_k[0] = tau;
+      c1_k[0] = c1;
+      c2_k[0] = c2;
+      for (int i = 1; i < np; i++) {
+        tau_k[i] = 0.5 / pilescale / _omega_k[i];
+        if (integrator == OBABO)
+          c1_k[i] = exp(-0.5 * update->dt / tau_k[i]);
+        else if (integrator == BAOAB)
+          c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
+        else
+          error->universe_all(FLERR,
+                              "Unknown integrator parameter for fix pimd/langevin. Only obabo and "
+                              "baoab integrators are supported!");
+        c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
+      }
+      for (int i = 0; i < np; i++) {
+        out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i],
+                          c1_k[i], c2_k[i]);
+      }
+      }
+    else if (method == PIMD) {
+      for (int i = 0; i < np; i++) {
+        out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_np / sqrt(fmass), tau,
+                          c1, c2);
+      }
     }
     if (thermostat == PILE_L) out += "PILE_L thermostat successfully initialized!\n";
     out += "\n";
@@ -961,13 +981,25 @@ void FixPIMDLangevin::o_step()
   int *type = atom->type;
   double beta_np = 1.0 / force->boltz / Lan_temp * inverse_np * force->mvv2e;
   if (thermostat == PILE_L) {
-    for (int i = 0; i < nlocal; i++) {
-      atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] +
-          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
-      atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] +
-          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
-      atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] +
-          c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+    if (method == NMPIMD) {
+      for (int i = 0; i < nlocal; i++) {
+        atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] +
+            c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+        atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] +
+            c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+        atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] +
+            c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+      }
+    }
+    else if (method == PIMD) {
+      for (int i = 0; i < nlocal; i++) {
+        atom->v[i][0] = c1 * atom->v[i][0] +
+            c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+        atom->v[i][1] = c1 * atom->v[i][1] +
+            c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+        atom->v[i][2] = c1 * atom->v[i][2] +
+            c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+      }
     }
   }
 }

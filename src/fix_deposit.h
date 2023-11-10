@@ -40,7 +40,8 @@ class FixDeposit : public Fix {
  private:
   int ninsert, ntype, nfreq, seed;
   int globalflag, localflag, maxattempt, rateflag, scaleflag, targetflag;
-  int mode, rigidflag, shakeflag, idnext, distflag, orientflag;
+  int mode, rigidflag, shakeflag, idnext, distflag, orientflag, warnflag;
+  int varflag, vvar, xvar, yvar, zvar;
   double lo, hi, deltasq, nearsq, rate, sigma;
   double vxlo, vxhi, vylo, vyhi, vzlo, vzhi;
   double xlo, xhi, ylo, yhi, zlo, zhi, xmid, ymid, zmid;
@@ -48,6 +49,8 @@ class FixDeposit : public Fix {
   class Region *iregion;
   char *idregion;
   char *idrigid, *idshake;
+  char *vstr, *xstr, *ystr, *zstr;
+  char *xstr_copy, *ystr_copy, *zstr_copy;
 
   class Molecule **onemols;
   int nmol, natom_max;
@@ -64,6 +67,7 @@ class FixDeposit : public Fix {
 
   void find_maxid();
   void options(int, char **);
+  int vartest(double, double, double); // evaluate a variable with new atom position
 };
 
 }    // namespace LAMMPS_NS

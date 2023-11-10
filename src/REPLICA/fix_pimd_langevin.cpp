@@ -538,11 +538,18 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
         nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
       else if (cmode == MULTI_PROC)
         nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
+      qc_step();
+      a_step();
+      qc_step();
+      a_step();
     }
-    qc_step();
-    a_step();
-    qc_step();
-    a_step();
+    else if (method == PIMD) {
+      q_step();
+      q_step();
+    }
+    else {
+      error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+    }
   } else if (integrator == BAOAB) {
     if (pstat_flag) {
       compute_totke();
@@ -556,18 +563,32 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
         nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
       else if (cmode == MULTI_PROC)
         nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
+      qc_step();
+      a_step();
     }
-    qc_step();
-    a_step();
+    else if (method == PIMD) {
+      q_step();
+    }
+    else {
+      error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+    }
     if (tstat_flag) {
       o_step();
       if (removecomflag) remove_com_motion();
       if (pstat_flag) press_o_step();
     }
-    qc_step();
-    a_step();
+    if (method == NMPIMD) {
+      qc_step();
+      a_step();
+    }
+    else if (method == PIMD) {
+      q_step();
+    }
+    else {
+      error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+    }
   } else {
-    error->universe_all(FLERR, "Unknown integrator parameter for fix pimd/langevin");
+    error->universe_all(FLERR, "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab integrators are supported!");
   }
   collect_xc();
   compute_spring_energy();
@@ -614,6 +635,7 @@ void FixPIMDLangevin::final_integrate()
 
 void FixPIMDLangevin::post_force(int /*flag*/)
 {
+  if (method == NMPIMD) {
   if (atom->nmax > maxunwrap) reallocate_x_unwrap();
   if (atom->nmax > maxxc) reallocate_xc();
   int nlocal = atom->nlocal;
@@ -638,6 +660,7 @@ void FixPIMDLangevin::post_force(int /*flag*/)
   compute_vir();
   compute_cvir();
   compute_t_vir();
+  }
   compute_pote();
   if (method == NMPIMD) {
     inter_replica_comm(f);
@@ -645,6 +668,12 @@ void FixPIMDLangevin::post_force(int /*flag*/)
       nmpimd_transform(bufsortedall, f, M_x2xp[universe->iworld]);
     else if (cmode == MULTI_PROC)
       nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
+  }
+  else if (method == PIMD) {
+    spring_force();
+  }
+  else {
+    error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
   }
   c_pe->addstep(update->ntimestep + 1);
   c_press->addstep(update->ntimestep + 1);
@@ -659,6 +688,8 @@ void FixPIMDLangevin::end_of_step()
   compute_tote();
   if (pstat_flag) compute_totenthalpy();
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixPIMDLangevin::collect_xc()
 {
@@ -693,7 +724,9 @@ void FixPIMDLangevin::collect_xc()
 
 void FixPIMDLangevin::b_step()
 {
-
+  // used for both NMPIMD and PIMD
+  // For NMPIMD, force only includes the contribution of external potential.
+  // For PIMD, force includes the contributions of external potential and spring force.
   int n = atom->nlocal;
   int *type = atom->type;
   double **v = atom->v;
@@ -711,6 +744,8 @@ void FixPIMDLangevin::b_step()
 
 void FixPIMDLangevin::qc_step()
 {
+  // used for NMPIMD
+  // evolve the centroid mode
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
@@ -775,6 +810,8 @@ void FixPIMDLangevin::qc_step()
 
 void FixPIMDLangevin::a_step()
 {
+  // used for NMPIMD
+  // use analytical solution of harmonic oscillator to evolve the non-centroid modes
   int n = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
@@ -802,6 +839,14 @@ void FixPIMDLangevin::a_step()
           Lan_c[universe->iworld] * v2;
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::q_step()
+{
+  // used for PIMD
+  // evolve all beads
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1086,6 +1131,12 @@ void FixPIMDLangevin::nmpimd_transform(double **src, double **des, double *vecto
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::spring_force()
+{
+}
+
 /* ----------------------------------------------------------------------
    Comm operations
    ------------------------------------------------------------------------- */
@@ -1111,6 +1162,9 @@ void FixPIMDLangevin::comm_init()
     planrecv[i] = universe->root_proc[irecv];
     modeindex[i] = irecv;
   }
+
+  x_next = (universe->iworld + 1 + universe->nworlds) % (universe->nworlds);
+  x_last = (universe->iworld - 1 + universe->nworlds) % (universe->nworlds);
 }
 
 /* ---------------------------------------------------------------------- */

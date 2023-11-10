@@ -111,6 +111,15 @@ using namespace LAMMPS_NS;
 
 /** Create a LAMMPS simulation instance
  *
+ * \param args list of arguments
+ * \param communicator MPI communicator used by this LAMMPS instance
+ */
+LAMMPS::LAMMPS(argv & args, MPI_Comm communicator) :
+  LAMMPS(args.size(), argv_pointers(args).data(), communicator) {
+}
+
+/** Create a LAMMPS simulation instance
+ *
  * The LAMMPS constructor starts up a simulation by allocating all
  * fundamental classes in the necessary order, parses input switches
  * and their arguments, initializes communicators, screen and logfile
@@ -212,7 +221,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   suffix = suffix2 = nullptr;
   suffix_enable = 0;
   pair_only_flag = 0;
-  if (arg) exename = arg[0];
+  if (arg) exename = utils::strdup(arg[0]);
   else exename = nullptr;
   packargs = nullptr;
   num_package = 0;
@@ -802,6 +811,7 @@ LAMMPS::~LAMMPS() noexcept(false)
   delete memory;
 
   delete pkg_lists;
+  delete[] exename;
 }
 
 /* ----------------------------------------------------------------------
@@ -1467,4 +1477,18 @@ void LAMMPS::print_config(FILE *fp)
     ncline += ncword + 1;
   }
   fputs("\n\n",fp);
+}
+
+/** Create vector of argv string pointers including terminating nullptr element
+ *
+ * \param args list of arguments
+ */
+std::vector<char*> LAMMPS::argv_pointers(argv & args){
+  std::vector<char*> r;
+  r.reserve(args.size()+1);
+  for(auto & a : args) {
+    r.push_back((char*)a.data());
+  }
+  r.push_back(nullptr);
+  return r;
 }

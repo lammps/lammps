@@ -202,8 +202,10 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
     // jnum(0) = 50
     // jlist(neigh ind of 0-atom) = [1,2,10,7,99,25, .. 50 element in total]
     try {
-      if (flag_compute_extrapolation_grade)
+      if (flag_compute_extrapolation_grade) {
+        aceimpl->ace->compute_projections = true;
         aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
+      }
       else
         aceimpl->rec_ace->compute_atom(i, x, type, jnum, jlist);
     } catch (std::exception &e) {

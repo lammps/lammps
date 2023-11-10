@@ -2,7 +2,7 @@
 .. index:: fix brownian/sphere
 .. index:: fix brownian/asphere
 .. index:: fix brownian/dipole
-	   
+
 fix brownian command
 ===========================
 

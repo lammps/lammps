@@ -110,12 +110,12 @@ void FixBrownianDipole::initial_integrate_templated()
     if (mask[i] & groupbit) {
       if (Tp_2D) {
         dz = 0;
-	wz = 0;
+        wz = 0;
         if (Tp_UNIFORM) {
           dx = dt * (g1 * f[i][0] + g2 * (rng->uniform() - 0.5));
           dy = dt * (g1 * f[i][1] + g2 * (rng->uniform() - 0.5));
-	  wx = (rng->uniform() - 0.5) * g4;
-	  wy = (rng->uniform() - 0.5) * g4;
+          wx = (rng->uniform() - 0.5) * g4;
+          wy = (rng->uniform() - 0.5) * g4;
 
         } else if (Tp_GAUSS) {
           dx = dt * (g1 * f[i][0] + g2 * rng->gaussian());
@@ -126,7 +126,7 @@ void FixBrownianDipole::initial_integrate_templated()
           dx = dt * g1 * f[i][0];
           dy = dt * g1 * f[i][1];
           wx = 0;
-	  wy = 0;
+          wy = 0;
         }
       } else if (Tp_2Drot) {
         wz = 0;
@@ -191,7 +191,7 @@ void FixBrownianDipole::initial_integrate_templated()
       mu[i][1] += (mu[i][1]*lambda*(1-mulensq) + wy)*dt;
       mu[i][2] += (mu[i][2]*lambda*(1-mulensq) + wz)*dt;
 
-      
+
     }
   }
 }

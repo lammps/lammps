@@ -38,7 +38,7 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
 {
   time_integrate = 1;
   dynamic_group_allow = 1;
-  
+
   noise_flag = 1;
   gaussian_noise_flag = 0;
   gamma_t_flag = gamma_r_flag = 0;

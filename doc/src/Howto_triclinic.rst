@@ -56,9 +56,9 @@ at (xlo,ylo,zhi) and 3 edge vectors **A** = (ax,ay,az), **B** =
 (bx,by,bz), **C** = (cx,cy,cz) which can be arbitrary vectors, so long
 as they are non-zero, distinct, and not co-planar.  In addition, they
 must define a right-handed system, such that (**A** cross **B**)
-points in the direction of **C**.  Note that a left-handed system can
-be converted to a right-handed system by simply swapping the order of
-any two of the **A**, **B**, **C** vectors.
+points in the direction of **C**.  A left-handed system can be
+converted to a right-handed system by simply swapping the order of any
+pair of the **A**, **B**, **C** vectors.
 
 The 4 commands listed above for defining orthogonal simulation boxes
 have triclinic options which allow for specification of the origin and
@@ -151,12 +151,12 @@ This means 4 things which are important to understand:
   should be inside the general triclinic simulation box defined by the
   edge vectors **A**, **B**, **C** and its origin.  Likewise per-atom
   velocities should be in directions consistent with the general
-  triclinic box orientation.  I.e. a velocity vector that will be in
+  triclinic box orientation.  E.g. a velocity vector which will be in
   the +x direction once LAMMPS converts from a general to restricted
   triclinic box, should be specified in the data file in the direction
   of the **A** edge vector.  See the :doc:`read_data <read_data>` doc
-  page for info on all the per-atom vector quantities this rule
-  affects when the data file for a general triclinic box is input.
+  page for info on all the per-atom vector quantities to which this
+  rule applies when a data file for a general triclinic box is input.
 * If commands such as :doc:`write_data <write_data>` or :doc:`dump
   custom <dump>` are used to output general triclinic information, it
   is effectively the inverse of the operation described in the
@@ -332,16 +332,18 @@ will become non-orthogonal, e.g. due to use of the :doc:`fix npt
 you can use the :doc:`change_box <change_box>` command to convert a
 simulation box from orthogonal to restricted triclinic and vice versa.
 
-Highly tilted restricted triclinic simulation boxes can be
-computationally inefficient.  This is due to the large volume of
-communication needed to acquire ghost atoms around a processor's
-irregular-shaped subdomain.  For extreme values of tilt, LAMMPS may
-also lose atoms and generate an error.
+.. note::
+
+   Highly tilted restricted triclinic simulation boxes can be
+   computationally inefficient.  This is due to the large volume of
+   communication needed to acquire ghost atoms around a processor's
+   irregular-shaped subdomain.  For extreme values of tilt, LAMMPS may
+   also lose atoms and generate an error.
 
 LAMMPS will issue a warning if you define a restricted triclinic box
 with a tilt factor which skews the box more than half the distance of
 the parallel box length, which is the first dimension in the tilt
-factor (x for xz).
+factor (e.g. x for xz).
 
 For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
 the xy tilt factor should be between -5 and 5 to avoid the warning.
@@ -361,8 +363,8 @@ occur using the :doc:`fix deform <fix_deform>` or :doc:`fix npt
 either of the commands.
 
 One exception to box flipping is if the first dimension in the tilt
-factor (x for xy) is non-periodic.  In that case, the limits on the
-tilt factor are not enforced, since flipping the box in that dimension
-would not change the atom positions due to non-periodicity.  In this
-mode, if the system tilts to large angles, the simulation will simply
-become inefficient, due to the highly skewed simulation box.
+factor (e.g. x for xy) is non-periodic.  In that case, the limits on
+the tilt factor are not enforced, since flipping the box in that
+dimension would not change the atom positions due to non-periodicity.
+In this mode, if the system tilts to large angles, the simulation will
+simply become inefficient, due to the highly skewed simulation box.

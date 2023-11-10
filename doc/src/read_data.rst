@@ -63,11 +63,16 @@ Description
 
 Read in a data file containing information LAMMPS needs to run a
 simulation.  The file can be ASCII text or a gzipped text file
-(detected by a .gz suffix).  This is one of 3 ways to specify initial
-atom coordinates; see the :doc:`read_restart <read_restart>` and
-:doc:`create_atoms <create_atoms>` commands for alternative methods.
-Also see the explanation of the :doc:`-restart command-line switch
-<Run_options>` which can convert a restart file to a data file.
+(detected by a .gz suffix).
+
+This is one of 3 ways to specify the simulation box: see the
+:doc:`create_box <create_box>` and :doc:`read_restart <read_restart>`
+and commands for alternative methods.  It is also one of 3 ways to
+specify initial atom coordinates: see the :doc:`create_atoms
+<create_atoms>` and :doc:`read_restart <read_restart>` and commands
+for alternative methods.  Also see the explanation of the
+:doc:`-restart command-line switch <Run_options>` which can convert a
+restart file to a data file.
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the *add*, *offset*, and
@@ -133,6 +138,17 @@ keyword must be used.
    will separate the atoms in the bond, which can lead to "lost" bond
    atoms or bad dynamics.
 
+.. note::
+
+   If the first read_data command defined a restricted or general
+   triclinic simulation box (see the sub-section below on header
+   keywords), then subsequent data files have restrictions.  For a
+   restricted triclinic box, the 3 tilt factors ("xy xz yz" keyword)
+   must have the same values in subsequent data files.  For a general
+   triclinic box, the avec, bvec, cvec, and "abc origin" keywords must
+   have the same values in subsequent data files.  Also the *shift*
+   keyword cannot be used in subsequent read_data commands.
+   
 The three choices for the *add* argument affect how the atom IDs and
 molecule IDs of atoms in the data file are treated.  If *append* is
 specified, atoms in the data file are added to the current system,
@@ -372,8 +388,8 @@ For a restricted triclinic box, the *xy xz yz* keyword is used in
 addition to the *xlo xhi*, *ylo yhi*, *zlo zhi* keywords.  The three
 *xy,xz,yz* values can be 0.0 or positive or negative, and are called
 "tilt factors" because they are the amount of displacement applied to
-faces of an orthogonal box to transform it into a restricted triclinic
-parallelepiped.
+edges of faces of an orthogonal box to transform it into a restricted
+triclinic parallelepiped.
 
 The :doc:`Howto_triclinic <Howto_triclinic>` doc page discusses the
 tilt factors in detail and explains that the resulting edge vectors of
@@ -383,11 +399,11 @@ a restricted triclinic box are:
 * **B** = (xy,yhi-ylo,0)
 * **C** = (xz,yz,zhi-zlo)
 
-This restricted form of edge vectors means that **A** is along the
-x-axis, **B** is in the xy plane with a y-component in the +y
-direction, and **C** has a z-component in the +z direction.  The
-origin (lower left corner) of the restricted triclinic box is at
-(xlo,ylo,zlo).
+This restricted form of edge vectors requires that **A** be in the
+direction of the x-axis, **B** be in the xy plane with its y-component
+in the +y direction, and **C** have its z-component in the +z
+direction.  The origin (lower left corner) of the restricted triclinic
+box is at (xlo,ylo,zlo).
 
 For a 2d simulation, the zlo and zhi values must straddle zero.  The
 default zlo/zhi values do this, so that keyword is not needed in 2d.
@@ -433,16 +449,19 @@ origin* keywords are used.  The *xlo xhi*, *ylo yhi*, *zlo zhi*, and
 *xy xz yz* keywords are not used.  The first 3 keywords define the 3
 edge vectors **A**, **B**, **C** of a general triclinic box.  They can
 be arbitrary vectors so long as they are distinct, non-zero, and not
-co-planar.  There is no "right-hand rule" requirement that (**A** x
-**B**) point in the direction of **C**.  The origin of the box (origin
-of the 3 edge vectors) is set by the *abc origin* keyword.
+co-planar.  They must also define a right-handed system requirement
+such that (**A** x **B**) points in the direction of **C**.  A
+left-handed system can be converted to a right-handed system by simply
+swapping the order of any pair of the **A**, **B**, **C** vectors.
+The origin of the box (origin of the 3 edge vectors) is set by the
+*abc origin* keyword.
 
 The default values for these 4 keywords are as follows:
 
 * avec = (1,0,0)
 * bvec = (0,1,0)
 * cvec = (0,0,1)
-* *abc origin = (0,0,0) for 3d, (0,0,-0.5) for 2d
+* abc origin = (0,0,0) for 3d, (0,0,-0.5) for 2d
 
 For 2d simulations, *cvec* = (0,0,1) is required, and the 3rd value of
 *abc origin* must be -0.5.  These are the default values, so the
@@ -452,18 +471,18 @@ For 2d simulations, *cvec* = (0,0,1) is required, and the 3rd value of
 
    LAMMPS allows specification of general triclinic simulation boxes
    as a convenience for users who may be converting data from
-   solid-state crystallograhic representations or ftom DFT codes for
+   solid-state crystallograhic representations or from DFT codes for
    input to LAMMPS.  However, as explained on the
-   :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally
+   :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
    the box and per-atom information (e.g. coordinates, velocities) in
    the data file are converted from general to restricted triclinic
-   form as soon as the file is read.  This means other sections of the
-   data file must specify their per-atom data appropriately.  This
-   requirement is explained below for the relevant sections.  The
-   :doc:`Howto_triclinic <Howto_triclinic>` doc page also discusses
-   other LAMMPS commands which can input/output general triclinic
-   representations of the simulation box and per-atom data.
+   form when the file is read.  Other sections of the data file must
+   also list their per-atom data appropriately if vector quantities
+   are specified. This requirement is explained below for the relevant
+   sections.  The :doc:`Howto_triclinic <Howto_triclinic>` doc page
+   also discusses other LAMMPS commands which can input/output general
+   triclinic representations of the simulation box and per-atom data.
 
 The following explanations apply to all 3 kinds of simulation boxes:
 orthogonal, restricted triclinic, and general triclinic.
@@ -509,24 +528,25 @@ needed, so that the image flag would be zero.
 
 .. note::
 
-   If the system is non-periodic (in a dimension), then all atoms in the
-   data file must have coordinates (in that dimension) that are "greater
-   than or equal to" the lo value and "less than or equal to" the hi
-   value.  If the non-periodic dimension is of style "fixed" (see the
-   :doc:`boundary <boundary>` command), then the atom coords must be
-   strictly "less than" the hi value, due to the way LAMMPS assign atoms
-   to processors.  Note that you should not make the lo/hi values
-   radically smaller/larger than the extent of the atoms.  For example,
-   if your atoms extend from 0 to 50, you should not specify the box
-   bounds as -10000 and 10000 unless you also use the :doc:`processors
-   command <processors>`.  This is because LAMMPS uses the specified box
-   size to layout the 3d grid of processors.  A huge (mostly empty) box
-   will be sub-optimal for performance when using "fixed" boundary
-   conditions (see the :doc:`boundary <boundary>` command).  When using
-   "shrink-wrap" boundary conditions (see the :doc:`boundary <boundary>`
-   command), a huge (mostly empty) box may cause a parallel simulation
-   to lose atoms when LAMMPS shrink-wraps the box around the atoms.  The
-   read_data command will generate an error in this case.
+   If the system is non-periodic (in a dimension), then all atoms in
+   the data file must have coordinates (in that dimension) that are
+   "greater than or equal to" the lo value and "less than or equal to"
+   the hi value.  If the non-periodic dimension is of style "fixed"
+   (see the :doc:`boundary <boundary>` command), then the atom coords
+   must be strictly "less than" the hi value, due to the way LAMMPS
+   assign atoms to processors.  Note that you should not make the
+   lo/hi values radically smaller/larger than the extent of the atoms.
+   For example, if atoms extend from 0 to 50, you should not specify
+   the box bounds as -10000 and 10000 unless you also use the
+   :doc:`processors command <processors>`.  This is because LAMMPS
+   uses the specified box size to layout the 3d grid of processors.  A
+   huge (mostly empty) box will be sub-optimal for performance when
+   using "fixed" boundary conditions (see the :doc:`boundary
+   <boundary>` command).  When using "shrink-wrap" boundary conditions
+   (see the :doc:`boundary <boundary>` command), a huge (mostly empty)
+   box may cause a parallel simulation to lose atoms when LAMMPS
+   shrink-wraps the box around the atoms.  The read_data command will
+   generate an error in this case.
 
 ----------
 
@@ -557,12 +577,12 @@ and :doc:`molecule <molecule>` doc pages for more discussion of
 
 .. note::
 
-   All of the "extra" settings are only applied in the first data
-   file read and when no simulation box has yet been created; as soon as
+   All of the "extra" settings are only applied in the first data file
+   read and when no simulation box has yet been created; as soon as
    the simulation box is created (and read_data implies that), these
    settings are *locked* and cannot be changed anymore. Please see the
-   description of the *add* keyword above for reading multiple data files.
-   If they appear in later data files, they are ignored.
+   description of the *add* keyword above for reading multiple data
+   files.  If they appear in later data files, they are ignored.
 
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
 only used with :doc:`atom_style ellipsoid or line or tri or body
@@ -575,14 +595,14 @@ below.  See the discussion of bodyflag and the *Bodies* section below.
 
 .. note::
 
-   For :doc:`atom_style template <atom_style>`, the molecular
-   topology (bonds,angles,etc) is contained in the molecule templates
-   read-in by the :doc:`molecule <molecule>` command.  This means you
-   cannot set the *bonds*, *angles*, etc header keywords in the data
-   file, nor can you define *Bonds*, *Angles*, etc sections as discussed
+   For :doc:`atom_style template <atom_style>`, the molecular topology
+   (bonds,angles,etc) is contained in the molecule templates read-in
+   by the :doc:`molecule <molecule>` command.  This means you cannot
+   set the *bonds*, *angles*, etc header keywords in the data file,
+   nor can you define *Bonds*, *Angles*, etc sections as discussed
    below.  You can set the *bond types*, *angle types*, etc header
-   keywords, though it is not necessary.  If specified, they must match
-   the maximum values defined in any of the template molecules.
+   keywords, though it is not necessary.  If specified, they must
+   match the maximum values defined in any of the template molecules.
 
 ----------
 
@@ -780,13 +800,13 @@ of analysis.
    For orthogonal and restricted and general triclinic simulation
    boxes, the atom coordinates (x,y,z) listed in this section should
    be inside the corresponding simulation box.  For restricted
-   triclinic boxes that means the parallelepiped defined by the by the
-   *xlo xhi*, *ylo yhi*, *zlo zhi*, and *xy xz yz*, keywords.  For
-   general triclinic boxes that means the parallelepiped defined by
-   the 3 edge vectors and origin specified by the *avec*, *bvec*,
-   *cvec*, and *abc origin* header keywords.  See the discussion in
-   the header section above about how atom coordinates outside the
-   simulation box are (or are not) remapped to be inside the box.
+   triclinic boxes that means the parallelepiped defined by the *xlo
+   xhi*, *ylo yhi*, *zlo zhi*, and *xy xz yz*, keywords.  For general
+   triclinic boxes that means the parallelepiped defined by the 3 edge
+   vectors and origin specified by the *avec*, *bvec*, *cvec*, and
+   *abc origin* header keywords.  See the discussion in the header
+   section above about how atom coordinates outside the simulation box
+   are (or are not) remapped to be inside the box.
 
 .. list-table::
 
@@ -865,13 +885,13 @@ The per-atom values have these meanings and units, listed alphabetically:
 * lineflag = 1 for line segment particles, 0 for point or spherical particles
 * mass = mass of particle (mass units)
 * molecule-ID = integer ID of molecule the atom belongs to
-* mux,muy,muz = components of dipole moment of atom (dipole units) (see general triclinic comment below)
+* mux,muy,muz = components of dipole moment of atom (dipole units) (see general triclinic note below)
 * normx,normy,normz = components of dielectric dipole moment of atom (dipole
-  units) (see general triclinic comment below)
+  units) (see general triclinic note below)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles
 * sp = magnitude of magnetic spin of atom (Bohr magnetons)
-* spx,spy,spz = components of magnetic spin of atom (unit vector) (see general triclinic comment below)
+* spx,spy,spz = components of magnetic spin of atom (unit vector) (see general triclinic note below)
 * template-atom = which atom within a template molecule the atom is
 * template-index = which molecule within the molecule template the atom is part of
 * theta = internal temperature of a DPD particle
@@ -879,29 +899,31 @@ The per-atom values have these meanings and units, listed alphabetically:
 * volume = volume of Peridynamic particle (distance\^3 units)
 * x,y,z = coordinates of atom (distance units)
 * x0,y0,z0 = original (strain-free) coordinates of atom (distance
-  units) (see general triclinic comment below)
+  units) (see general triclinic note below)
 
 The units for these quantities depend on the unit style; see the
 :doc:`units <units>` command for details.
 
-For 2d simulations, z must be specified as 0.0.  If the data file is
-created by another program, then z values for a 2d simulation can be
-within epsilon of 0.0, and LAMMPS will force them to zero.
+For 2d simulations, the atom coordinate z must be specified as 0.0.
+If the data file is created by another program, then z values for a 2d
+simulation can be within epsilon of 0.0, and LAMMPS will force them to
+zero.
 
-If the data file defines a general triclinic box, then the following
-per-atom values in the list above are per-atom vectors: (mux,muy,muz),
-(normx,normy,normz), (spx,spy,spz).  They should be specified with
-values for the rotated coordinate axes of the general triclinic box.
-Likewise, (x0,y0,z0) are per-atom coordinates and should be values
-inside the general triclinic box, the same as explained for (x,y,z)
-above.  See the :doc:`Howto triclinic <Howto_triclininc>` doc page for
-more details.
+.. note::
 
-If the data file defines a general triclinic box, then each of the 3
-vectors (translational velocity, angular momentum, angule velocity)
-sholld be specified for the rotated coordinate axes of the general
-triclinic box.  See the :doc:`Howto triclinic <Howto_triclininc>` doc
-page for more details.
+   If the data file defines a general triclinic box, then the
+   following per-atom values in the list above are per-atom vectors
+   which imply an orientation: (mux,muy,muz), (normx,normy,normz),
+   (spx,spy,spz).  This menas they should be specified consistent with
+   the general triclinic box and its orientation relative to the
+   standard x,y,z coordinate axes.  For example a dipole moment vector
+   which will be in the +x direction once LAMMPS converts from a
+   general to restricted triclinic box, should be specified in the
+   data file in the direction of the **A** edge vector.  Likewise the
+   (x0,y0,z0) per-atom strain-free coordinates should be inside the
+   general triclinic simulation box as explained in the note above.
+   See the :doc:`Howto triclinic <Howto_triclininc>` doc page for more
+   details.
 
 The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for
@@ -1049,9 +1071,8 @@ that use unwrapped coordinates internally are as follows:
 
 Atom velocities and other atom quantities not defined above are set to
 0.0 when the *Atoms* section is read.  Velocities can be set later by
-a *Velocities* section in the data file or by a
-:doc:`velocity <velocity>` or :doc:`set <set>` command in the input
-script.
+a *Velocities* section in the data file or by a :doc:`velocity
+<velocity>` or :doc:`set <set>` command in the input script.
 
 ----------
 
@@ -1329,11 +1350,10 @@ LAMMPS normalizes each atom's quaternion in case (a,b,c) is not
 specified as a unit vector.
 
 If the data file defines a general triclinic box, then the quaternion
-for each ellipsoid should be specified for its orientation in the
-general triclinic system with respect to the standard xyz axes (not
-the rotated coordinate axes of the general triclinic system).  When
-the general triclinic box is transformed to a restricted triclinic
-box, the ellipsoid quaternions will be altered appropriately.
+for each ellipsoid should be specified for its orientation relative to
+the standard x,y,z coordinate axes.  When the system is converted to a
+restricted triclinic box, the ellipsoid quaternions will be altered
+appropriately.
 
 The *Ellipsoids* section must appear after the *Atoms* section.
 
@@ -1457,6 +1477,12 @@ the line segment with a unit vector in the +z direction, gives an
 "outward" normal vector perpendicular to the line segment.
 I.e. normal = (c2-c1) x (0,0,1).  This orientation may be important
 for defining some interactions.
+
+If the data file defines a general triclinic box, then the quaternion
+for each ellipsoid should be specified for its orientation relative to
+the standard x,y,z coordinate axes.  When the system is converted to a
+restricted triclinic box, the ellipsoid quaternions will be altered
+appropriately.
 
 If the data file defines a general triclinic box, the (x1,y1) and
 (x2,y2) values should be within (or near) its parallelogram area,

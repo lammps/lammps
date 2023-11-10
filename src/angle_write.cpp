@@ -123,11 +123,9 @@ void AngleWrite::command(int narg, char **arg)
 
   if (comm->me == 0) {
     // set up new LAMMPS instance with dummy system to evaluate angle potential
-    const char *args[] = {"AngleWrite", "-nocite", "-echo",   "none",
-                          "-log",       "none",    "-screen", "none"};
-    char **argv = (char **) args;
-    int argc = sizeof(args) / sizeof(char *);
-    LAMMPS *writer = new LAMMPS(argc, argv, singlecomm);
+    LAMMPS::argv args = {"AngleWrite", "-nocite", "-echo",   "none",
+                         "-log",       "none",    "-screen", "none"};
+    LAMMPS *writer = new LAMMPS(args, singlecomm);
 
     // create dummy system replicating angle style settings
     writer->input->one(fmt::format("units {}", update->unit_style));

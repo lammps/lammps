@@ -124,12 +124,8 @@ void DihedralWrite::command(int narg, char **arg)
 
   if (comm->me == 0) {
     // set up new LAMMPS instance with dummy system to evaluate dihedral potential
-    //    const char *args[] = {"DihedralWrite", "-nocite", "-echo",   "none",
-    //                          "-log",          "none",    "-screen", "none"};
-    const char *args[] = {"DihedralWrite", "-nocite", "-echo", "screen", "-log", "none"};
-    char **argv = (char **) args;
-    int argc = sizeof(args) / sizeof(char *);
-    LAMMPS *writer = new LAMMPS(argc, argv, singlecomm);
+    LAMMPS::argv args = {"DihedralWrite", "-nocite", "-echo", "screen", "-log", "none"};
+    LAMMPS *writer = new LAMMPS(args, singlecomm);
 
     // create dummy system replicating dihedral style settings
     writer->input->one(fmt::format("units {}", update->unit_style));

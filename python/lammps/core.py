@@ -379,8 +379,9 @@ class lammps(object):
           for i in range(narg):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*narg)(*cmdargs)
-          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, MPI_Comm, c_void_p]
+          cargs = (c_char_p*(narg+1))(*cmdargs)
+          cargs[narg] = None
+          self.lib.lammps_open.argtypes = [c_int, c_char_p*(narg+1), MPI_Comm, c_void_p]
         else:
           self.lib.lammps_open.argtypes = [c_int, c_char_p, MPI_Comm, c_void_p]
 
@@ -399,8 +400,9 @@ class lammps(object):
           for i in range(narg):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*narg)(*cmdargs)
-          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*narg, c_void_p]
+          cargs = (c_char_p*(narg+1))(*cmdargs)
+          cargs[narg] = None
+          self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*(narg+1), c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))
         else:
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p, c_void_p]

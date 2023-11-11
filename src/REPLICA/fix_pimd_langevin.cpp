@@ -173,7 +173,10 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
                             "mass and normal mode mass are supported!");
     } else if (strcmp(arg[i], "scale") == 0) {
       if (method == PIMD)
-        error->universe_all(FLERR, "The scale parameter of the PILE_L thermostat is not supported for method pimd. Delete scale parameter if you do want to use method pimd.");
+        error->universe_all(
+            FLERR,
+            "The scale parameter of the PILE_L thermostat is not supported for method pimd. Delete "
+            "scale parameter if you do want to use method pimd.");
       pilescale = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (pilescale < 0.0)
         error->universe_all(FLERR, "Invalid PILE_L scale value for fix pimd/langevin");
@@ -250,10 +253,13 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         FLERR, fmt::format("Must not use pressure coupling with {} ensemble", Ensembles[ensemble]));
 
   if (method == PIMD && pstat_flag)
-    error->universe_all(FLERR, "Pressure control has not been supported for method pimd yet. Please set method to nmpimd.");
+    error->universe_all(FLERR,
+                        "Pressure control has not been supported for method pimd yet. Please set "
+                        "method to nmpimd.");
 
   if (method == PIMD && fmmode == NORMAL)
-    error->universe_all(FLERR, "Normal mode mass is not supported for method pimd. Please set method to nmpimd.");
+    error->universe_all(
+        FLERR, "Normal mode mass is not supported for method pimd. Please set method to nmpimd.");
 
   /* Initiation */
 
@@ -487,13 +493,13 @@ void FixPIMDLangevin::setup(int vflag)
       nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
     else if (cmode == MULTI_PROC)
       nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
-  }
-  else if (method == PIMD) {
+  } else if (method == PIMD) {
     inter_replica_comm(x);
     spring_force();
-  }
-  else {
-    error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+  } else {
+    error->universe_all(
+        FLERR,
+        "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
   }
   collect_xc();
   compute_spring_energy();
@@ -549,13 +555,13 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
       a_step();
       qc_step();
       a_step();
-    }
-    else if (method == PIMD) {
+    } else if (method == PIMD) {
       q_step();
       q_step();
-    }
-    else {
-      error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+    } else {
+      error->universe_all(
+          FLERR,
+          "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
     }
   } else if (integrator == BAOAB) {
     if (pstat_flag) {
@@ -572,12 +578,12 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
         nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
       qc_step();
       a_step();
-    }
-    else if (method == PIMD) {
+    } else if (method == PIMD) {
       q_step();
-    }
-    else {
-      error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+    } else {
+      error->universe_all(
+          FLERR,
+          "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
     }
     if (tstat_flag) {
       o_step();
@@ -587,15 +593,17 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     if (method == NMPIMD) {
       qc_step();
       a_step();
-    }
-    else if (method == PIMD) {
+    } else if (method == PIMD) {
       q_step();
-    }
-    else {
-      error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+    } else {
+      error->universe_all(
+          FLERR,
+          "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
     }
   } else {
-    error->universe_all(FLERR, "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab integrators are supported!");
+    error->universe_all(FLERR,
+                        "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab "
+                        "integrators are supported!");
   }
   collect_xc();
 
@@ -652,25 +660,25 @@ void FixPIMDLangevin::post_force(int /*flag*/)
   tagint *tag = atom->tag;
 
   if (method == NMPIMD) {
-  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-  if (atom->nmax > maxxc) reallocate_xc();
-  for (int i = 0; i < nlocal; i++) {
-    x_unwrap[i][0] = x[i][0];
-    x_unwrap[i][1] = x[i][1];
-    x_unwrap[i][2] = x[i][2];
-  }
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) { domain->unmap(x_unwrap[i], image[i]); }
-  }
-  for (int i = 0; i < nlocal; i++) {
-    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
-    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
-    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
-  }
+    if (atom->nmax > maxunwrap) reallocate_x_unwrap();
+    if (atom->nmax > maxxc) reallocate_xc();
+    for (int i = 0; i < nlocal; i++) {
+      x_unwrap[i][0] = x[i][0];
+      x_unwrap[i][1] = x[i][1];
+      x_unwrap[i][2] = x[i][2];
+    }
+    if (mapflag) {
+      for (int i = 0; i < nlocal; i++) { domain->unmap(x_unwrap[i], image[i]); }
+    }
+    for (int i = 0; i < nlocal; i++) {
+      xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
+      xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
+      xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
+    }
 
-  compute_vir();
-  compute_cvir();
-  compute_t_vir();
+    compute_vir();
+    compute_cvir();
+    compute_t_vir();
   }
 
   if (method == PIMD) {
@@ -1032,13 +1040,12 @@ void FixPIMDLangevin::langevin_init()
       }
       for (int i = 0; i < np; i++) {
         out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i],
-                          c1_k[i], c2_k[i]);
+                           c1_k[i], c2_k[i]);
       }
-      }
-    else if (method == PIMD) {
+    } else if (method == PIMD) {
       for (int i = 0; i < np; i++) {
-        out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_np / sqrt(fmass), tau,
-                          c1, c2);
+        out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_np / sqrt(fmass),
+                           tau, c1, c2);
       }
     }
     if (thermostat == PILE_L) out += "PILE_L thermostat successfully initialized!\n";
@@ -1064,15 +1071,14 @@ void FixPIMDLangevin::o_step()
         atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] +
             c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
       }
-    }
-    else if (method == PIMD) {
+    } else if (method == PIMD) {
       for (int i = 0; i < nlocal; i++) {
-        atom->v[i][0] = c1 * atom->v[i][0] +
-            c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
-        atom->v[i][1] = c1 * atom->v[i][1] +
-            c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
-        atom->v[i][2] = c1 * atom->v[i][2] +
-            c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+        atom->v[i][0] =
+            c1 * atom->v[i][0] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+        atom->v[i][1] =
+            c1 * atom->v[i][1] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
+        atom->v[i][2] =
+            c1 * atom->v[i][2] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * random->gaussian();
       }
     }
   }
@@ -1168,39 +1174,38 @@ void FixPIMDLangevin::spring_force()
 
   double **x = atom->x;
   double **f = atom->f;
-  double* _mass = atom->mass;
-  int* type = atom->type;
+  double *_mass = atom->mass;
+  int *type = atom->type;
   int nlocal = atom->nlocal;
-  tagint* tagtmp = atom->tag;
+  tagint *tagtmp = atom->tag;
 
   // printf("iworld = %d, x_last = %d, x_next = %d\n", universe->iworld, x_last, x_next);
   int *mask = atom->mask;
 
   // int idx_tmp = atom->map(1);
 
-  for (int i=0; i<nlocal; i++)
-  {
-    if (mask[i] & groupbit){
-        double delx1 = bufsortedall[x_last * nlocal + tagtmp[i]-1][0] - x[i][0];
-        double dely1 = bufsortedall[x_last * nlocal + tagtmp[i]-1][1] - x[i][1];
-        double delz1 = bufsortedall[x_last * nlocal + tagtmp[i]-1][2] - x[i][2];
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      double delx1 = bufsortedall[x_last * nlocal + tagtmp[i] - 1][0] - x[i][0];
+      double dely1 = bufsortedall[x_last * nlocal + tagtmp[i] - 1][1] - x[i][1];
+      double delz1 = bufsortedall[x_last * nlocal + tagtmp[i] - 1][2] - x[i][2];
 
-        double delx2 = bufsortedall[x_next * nlocal + tagtmp[i]-1][0] - x[i][0];
-        double dely2 = bufsortedall[x_next * nlocal + tagtmp[i]-1][1] - x[i][1];
-        double delz2 = bufsortedall[x_next * nlocal + tagtmp[i]-1][2] - x[i][2];
+      double delx2 = bufsortedall[x_next * nlocal + tagtmp[i] - 1][0] - x[i][0];
+      double dely2 = bufsortedall[x_next * nlocal + tagtmp[i] - 1][1] - x[i][1];
+      double delz2 = bufsortedall[x_next * nlocal + tagtmp[i] - 1][2] - x[i][2];
 
-        double ff = fbond * _mass[type[i]];
-        // double ff = 0;
+      double ff = fbond * _mass[type[i]];
+      // double ff = 0;
 
-        double dx = delx1+delx2;
-        double dy = dely1+dely2;
-        double dz = delz1+delz2;
+      double dx = delx1 + delx2;
+      double dy = dely1 + dely2;
+      double dz = delz1 + delz2;
 
-        f[i][0] += (dx) * ff;
-        f[i][1] += (dy) * ff;
-        f[i][2] += (dz) * ff;
+      f[i][0] += (dx) *ff;
+      f[i][1] += (dy) *ff;
+      f[i][2] += (dz) *ff;
 
-        spring_energy += 0.5 * ff * (delx2*delx2+dely2*dely2+delz2*delz2);
+      spring_energy += 0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
     }
   }
 }
@@ -1462,30 +1467,30 @@ void FixPIMDLangevin::compute_totke()
 void FixPIMDLangevin::compute_spring_energy()
 {
   if (method == NMPIMD) {
-  spring_energy = 0.0;
-  total_spring_energy = se_bead = 0.0;
+    spring_energy = 0.0;
+    total_spring_energy = se_bead = 0.0;
 
-  double **x = atom->x;
-  double *_mass = atom->mass;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
+    double **x = atom->x;
+    double *_mass = atom->mass;
+    int *type = atom->type;
+    int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] *
-        (x[i][0] * x[i][0] + x[i][1] * x[i][1] + x[i][2] * x[i][2]);
-  }
-  MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  total_spring_energy /= universe->procs_per_world[universe->iworld];
-  }
-  else if (method == PIMD) {
+    for (int i = 0; i < nlocal; i++) {
+      spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] *
+          (x[i][0] * x[i][0] + x[i][1] * x[i][1] + x[i][2] * x[i][2]);
+    }
+    MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+    total_spring_energy /= universe->procs_per_world[universe->iworld];
+  } else if (method == PIMD) {
     total_spring_energy = se_bead = 0.0;
     MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
     MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  total_spring_energy /= universe->procs_per_world[universe->iworld];
-  }
-  else {
-    error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+    total_spring_energy /= universe->procs_per_world[universe->iworld];
+  } else {
+    error->universe_all(
+        FLERR,
+        "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
   }
 }
 

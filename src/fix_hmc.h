@@ -21,6 +21,7 @@ FixStyle(hmc,FixHMC)
 #define LMP_FIX_HMC_H
 
 #include "fix.h"
+#include "atom.h"
 
 namespace LAMMPS_NS {
 
@@ -60,6 +61,9 @@ class FixHMC : public Fix {
   void rigid_body_restore_orientations();
   void rigid_body_restore_forces();
   void rigid_body_random_velocities();
+  
+  //std::vector<LAMMPS_NS::PerAtom> old_peratom;
+  //std::vector<LAMMPS_NS::PerAtom> current_peratom;
 
   int tune_flag;
 

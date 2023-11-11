@@ -54,17 +54,17 @@ enum{ ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),random_equal(NULL)
 {
-  if (narg < 7) error->all(FLERR,"Illegal fix hmc command");
+  if (narg < 7) error->all(FLERR, "Illegal fix hmc command");
 
   // Retrieve user-defined options:
-  nevery = force->numeric(FLERR,arg[3]);        // Number of MD steps per MC step
-  int seed = force->numeric(FLERR,arg[4]);      // Seed for random number generation
-  double temp = force->numeric(FLERR,arg[5]);   // System temperature
+  nevery = utils::numeric(FLERR, arg[3], false, lmp);    // Number of MD steps per MC step
+  int seed = utils::numeric(FLERR, arg[4], false, lmp);    // Seed for random number generation
+  double temp = utils::numeric(FLERR, arg[5], false, lmp);    // System temperature
 
   // Retrieve the molecular dynamics integrator type:
   mdi = arg[6];
   if ( strcmp(mdi,"rigid") != 0 && strcmp(mdi,"flexible") != 0 )
-    error->all(FLERR,"Illegal fix hmc command");
+    error->all(FLERR, "Illegal fix hmc command");
 
   KT = force->boltz * temp / force->mvv2e;      // K*T in mvv units
   mbeta = -1.0/(force->boltz * temp);           // -1/(K*T) in energy units
@@ -177,13 +177,39 @@ void FixHMC::setup_arrays_and_pointers()
   // Per-atom scalar properties to be saved and restored:
   nscal = 0;
   if (atom->erforce_flag) nscal++;
-  if (atom->e_flag) nscal++;
+  //if (atom->e_flag) nscal++;
   if (atom->rho_flag) nscal++;
   scalptr = new double**[nscal];
   m = 0;
   if (atom->erforce_flag) scalptr[m++] = &atom->erforce;
-  if (atom->e_flag) scalptr[m++] = &atom->de;
+  //if (atom->e_flag) scalptr[m++] = &atom->de;
   if (atom->rho_flag) scalptr[m++] = &atom->drho;
+  
+  //current_peratom = atom->peratom;
+  
+  //// make a copy of all peratom data
+  //for (auto peratom_member = current_peratom.begin(); peratom_member != current_peratom.end();
+  //     peratom_member++) {
+  //  LAMMPS_NS::PerAtom old_peratom_member = *peratom_member;
+  //  switch (peratom_member->datatype) {
+  //    case (atom->INT):
+  //      old_peratom_member.address = new int[peratom_member->cols];
+  //      memcpy(old_peratom_member.address, peratom_member->address,
+  //             peratom_member.cols * sizeof(int));
+  //      break;
+  //    case (atom->DOUBLE):
+  //      old_peratom_member.address = new double[peratom_member->cols];
+  //      memcpy(old_peratom_member.address, peratom_member->address,
+  //             peratom_member.cols * sizeof(double));
+  //      break;
+  //    case (atom->BIGINT):
+  //      old_peratom_member.address = new bigint[peratom_member->cols];
+  //      memcpy(old_peratom_member.address, peratom_member->address,
+  //             peratom_member.cols * sizeof(bigint));
+  //      break;
+  //      old_peratom.push_back(old_peratom_member);
+  //  }
+  //}
 
   // Per-atom vector properties to be saved and restored:
   nvec = 2;
@@ -221,7 +247,7 @@ void FixHMC::setup_arrays_and_pointers()
   // Initialize arrays for managing global virial terms:
   nv = ne;
   for (j = 0; j < modify->nfix; j++)
-    if (modify->fix[j]->virial_flag) nv++;
+    if (modify->fix[j]->virial_global_flag) nv++;
   memory->create(vglobal,nv,6,"fix_hmc:vglobal");
   vglobalptr = new double**[nv];
   for (m = 0; m < nv; m++) vglobalptr[m] = new double*[6];
@@ -234,7 +260,7 @@ void FixHMC::setup_arrays_and_pointers()
     if (improper_flag) vglobalptr[m++][i] = &force->improper->virial[i];
     if (kspace_flag) vglobalptr[m++][i] = &force->kspace->virial[i];
     for (j = 0; j < modify->nfix; j++)
-      if (modify->fix[j]->virial_flag)
+      if (modify->fix[j]->virial_global_flag)
         vglobalptr[m++][i] = &modify->fix[j]->virial[i];
   }
 
@@ -269,7 +295,7 @@ void FixHMC::setup_arrays_and_pointers()
   if (improper_flag) vatomptr[m++] = &force->improper->vatom;
   if (kspace_flag) vatomptr[m++] = &force->kspace->vatom;
   for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->virial_flag)
+    if (modify->fix[i]->virial_peratom_flag)
       vatomptr[m++] = &modify->fix[i]->vatom;
 
   // Determine the maximum and the actual numbers of per-atom variables in reverse
@@ -391,7 +417,7 @@ void FixHMC::init()
 
   // Check whether there is any fixes that change box size and/or shape:
   for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->box_change_size || modify->fix[i]->box_change_shape)
+    if (modify->fix[i]->box_change)
       error->all(FLERR,"fix hmc is incompatible with fixes that change box size or shape");
   }
 
@@ -399,7 +425,7 @@ void FixHMC::init()
   int first = modify->find_fix(this->id) + 1;
   if (rigid_flag) first++;
   for (int i = first; i < modify->nfix; i++)
-    if (modify->fix[i]->virial_flag) {
+    if (modify->fix[i]->virial_peratom_flag || modify->fix[i]->virial_global_flag) {
       if (comm->me == 0)
         printf("Fix %s defined after fix hmc.\n",modify->fix[i]->style);
       error->all(FLERR,"fix hmc cannot precede fixes that modify the system pressure");
@@ -438,8 +464,9 @@ void FixHMC::init()
 void FixHMC::setup(int vflag)
 {
   if (rigid_flag)
-    if (fix_rigid->extended)
-      error->all(FLERR,"fix hmc does not support extended particles");
+      error->all(FLERR, "fix hmc does not yet support rigid");
+      //if (fix_rigid->extended)
+      //error->all(FLERR,"fix hmc does not support extended particles");
 
   // Compute properties of the initial state:
   nattempts = 0;
@@ -637,7 +664,7 @@ void FixHMC::save_current_state()
   // Perform reverse communication to incorporate ghost atoms info:
   if (comm_reverse && (peatom_flag || pressatom_flag)) {
     comm_flag = ATOMS;
-    comm->reverse_comm_fix(this,ncommrev);
+    comm->reverse_comm(this, ncommrev);
   }
 }
 
@@ -760,32 +787,32 @@ void FixHMC::random_velocities()
   Compute the unwrapped positions of atoms in a system with rigid bodies
 ------------------------------------------------------------------------- */
 
-void FixHMC::rigid_body_atom_positions(double **xu)
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  tagint *image = atom->image;
-  FixRigidSmall::Body *body = fix_rigid->body;
-  int *atom2body = fix_rigid->atom2body;
-  double **displace = fix_rigid->displace;
-
-  int ibody;
-  double delta[3];
-  FixRigidSmall::Body *b;
-  for (int i = 0; i < nlocal; i++) {
-    ibody = atom2body[i];
-    if (ibody < 0)
-      domain->unmap( x[i], image[i], xu[i] );
-    else {
-      b = &body[ibody];
-      domain->unmap(b->xcm,b->image,xu[i]);
-      MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,displace[i],delta);
-      xu[i][0] += delta[0];
-      xu[i][1] += delta[1];
-      xu[i][2] += delta[2];
-    }
-  }
-}
+//void FixHMC::rigid_body_atom_positions(double **xu)
+//{
+//  int nlocal = atom->nlocal;
+//  double **x = atom->x;
+//  tagint *image = atom->image;
+//  FixRigidSmall::Body *body = fix_rigid->body;
+//  int *atom2body = fix_rigid->atom2body;
+//  double **displace = fix_rigid->displace;
+//
+//  int ibody;
+//  double delta[3];
+//  FixRigidSmall::Body *b;
+//  for (int i = 0; i < nlocal; i++) {
+//    ibody = atom2body[i];
+//    if (ibody < 0)
+//      domain->unmap( x[i], image[i], xu[i] );
+//    else {
+//      b = &body[ibody];
+//      domain->unmap(b->xcm,b->image,xu[i]);
+//      MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,displace[i],delta);
+//      xu[i][0] += delta[0];
+//      xu[i][1] += delta[1];
+//      xu[i][2] += delta[2];
+//    }
+//  }
+//}
 
 /* ----------------------------------------------------------------------
   Restore the positions of rigid bodies whose atoms have 
@@ -793,58 +820,58 @@ void FixHMC::rigid_body_atom_positions(double **xu)
 
 void FixHMC::rigid_body_restore_positions(double **deltax)
 {
-  int i,  ibody;
-  int nlocal = atom->nlocal;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
-  double massone;
-
-  int nlocal_body = fix_rigid->nlocal_body;
-  int ntotal_body = nlocal_body + fix_rigid->nghost_body;
-  int *atom2body = fix_rigid->atom2body;
-  FixRigidSmall::Body *body = fix_rigid->body;
-
-  FixRigidSmall::Body *b;
-
-  // Multiply xcm by mass for each local body and zero xcm of each ghost body:
-  for (ibody = 0; ibody < ntotal_body; ibody++) {
-    b = &body[ibody];
-    if (ibody < nlocal_body) {
-      b->xcm[0] *= b->mass;
-      b->xcm[1] *= b->mass;
-      b->xcm[2] *= b->mass;
-    }
-    else
-      b->xcm[0] = b->xcm[1] = b->xcm[2] = 0.0;
-  }
-
-  // Each atom's displacement contributes to the displacement of its containing body:
-  for (i = 0; i < nlocal; i++) {
-    ibody = atom2body[i];
-    if (ibody >= 0) {
-      b = &body[ibody];
-      massone = rmass ? rmass[i] : mass[type[i]];
-      b->xcm[0] -= massone * deltax[i][0];
-      b->xcm[1] -= massone * deltax[i][1];
-      b->xcm[2] -= massone * deltax[i][2];
-    }
-  }
-
-  // Reverse communicate sum(mass*xcm) from ghost to local bodies:
-  comm_flag = XCM;
-  comm->reverse_comm_fix(this,3);
-
-  // For each rigid body, divide xcm by mass:
-  for (ibody = 0; ibody < nlocal_body; ibody++) {
-    b = &body[ibody];
-    b->xcm[0] /= b->mass;
-    b->xcm[1] /= b->mass;
-    b->xcm[2] /= b->mass;
-  }
-
-  // Forward communicate xcm from local to ghost bodies:
-  comm->forward_comm_fix(this,3);
+//  int i,  ibody;
+//  int nlocal = atom->nlocal;
+//  double *rmass = atom->rmass;
+//  double *mass = atom->mass;
+//  int *type = atom->type;
+//  double massone;
+//
+//  int nlocal_body = fix_rigid->nlocal_body;
+//  int ntotal_body = nlocal_body + fix_rigid->nghost_body;
+//  int *atom2body = fix_rigid->atom2body;
+//  FixRigidSmall::Body *body = fix_rigid->body;
+//
+//  FixRigidSmall::Body *b;
+//
+//  // Multiply xcm by mass for each local body and zero xcm of each ghost body:
+//  for (ibody = 0; ibody < ntotal_body; ibody++) {
+//    b = &body[ibody];
+//    if (ibody < nlocal_body) {
+//      b->xcm[0] *= b->mass;
+//      b->xcm[1] *= b->mass;
+//      b->xcm[2] *= b->mass;
+//    }
+//    else
+//      b->xcm[0] = b->xcm[1] = b->xcm[2] = 0.0;
+//  }
+//
+//  // Each atom's displacement contributes to the displacement of its containing body:
+//  for (i = 0; i < nlocal; i++) {
+//    ibody = atom2body[i];
+//    if (ibody >= 0) {
+//      b = &body[ibody];
+//      massone = rmass ? rmass[i] : mass[type[i]];
+//      b->xcm[0] -= massone * deltax[i][0];
+//      b->xcm[1] -= massone * deltax[i][1];
+//      b->xcm[2] -= massone * deltax[i][2];
+//    }
+//  }
+//
+//  // Reverse communicate sum(mass*xcm) from ghost to local bodies:
+//  comm_flag = XCM;
+//  comm->reverse_comm_fix(this,3);
+//
+//  // For each rigid body, divide xcm by mass:
+//  for (ibody = 0; ibody < nlocal_body; ibody++) {
+//    b = &body[ibody];
+//    b->xcm[0] /= b->mass;
+//    b->xcm[1] /= b->mass;
+//    b->xcm[2] /= b->mass;
+//  }
+//
+//  // Forward communicate xcm from local to ghost bodies:
+//  comm->forward_comm_fix(this,3);
 }
 
 /* ----------------------------------------------------------------------
@@ -853,105 +880,105 @@ void FixHMC::rigid_body_restore_positions(double **deltax)
 
 void FixHMC::rigid_body_restore_orientations()
 {
-  double **x = atom->x;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
-  imageint *image = atom->image;
-  int nlocal = atom->nlocal;
-
-  int nlocal_body = fix_rigid->nlocal_body;
-  int ntotal_body = nlocal_body + fix_rigid->nghost_body;
-  int *atom2body = fix_rigid->atom2body;
-  double **displace = fix_rigid->displace;
-  FixRigidSmall::Body *body = fix_rigid->body;
-  imageint *xcmimage = fix_rigid->xcmimage;
-  int ibody;
-  double *it;
-  itensor = new double[ntotal_body][6];
-  for (ibody = 0; ibody < ntotal_body; ibody++) {
-    it = itensor[ibody];
-    it[0] = it[1] = it[2] = it[3] = it[4] = it[5] = 0.0;
-  }
-
-  // Compute moments of inertia in Cartesian reference frame:
-  int i;
-  double massone;
-  double unwrap[3];
-  double dx, dy, dz;
-  double *inertia;
-  FixRigidSmall::Body *b;
-  for (i = 0; i < nlocal; i++) {
-    ibody = atom2body[i];
-    if (ibody >= 0) {
-      b = &body[ibody];
-      domain->unmap(x[i],xcmimage[i],unwrap);
-      dx = unwrap[0] - b->xcm[0];
-      dy = unwrap[1] - b->xcm[1];
-      dz = unwrap[2] - b->xcm[2];
-      massone = rmass ? rmass[i] : mass[type[i]];
-      inertia = itensor[ibody];
-      inertia[0] += massone * (dy*dy + dz*dz);
-      inertia[1] += massone * (dx*dx + dz*dz);
-      inertia[2] += massone * (dx*dx + dy*dy);
-      inertia[3] -= massone * dy*dz;
-      inertia[4] -= massone * dx*dz;
-      inertia[5] -= massone * dx*dy;
-    }
-  }
-
-  // Reverse communicate inertia tensors:
-  comm_flag = ITENSOR;
-  comm->reverse_comm_fix(this,6);
-
-  // Diagonalize inertia tensor for each body via Jacobi rotations:
-  int ierror;
-  double tol;
-  double cross[3], tensor[3][3], evectors[3][3];
-  for (ibody = 0; ibody < nlocal_body; ibody++) {
-    inertia = itensor[ibody];
-    tensor[0][0] = inertia[0];
-    tensor[1][1] = inertia[1];
-    tensor[2][2] = inertia[2];
-    tensor[1][2] = tensor[2][1] = inertia[3];
-    tensor[0][2] = tensor[2][0] = inertia[4];
-    tensor[0][1] = tensor[1][0] = inertia[5];
-    b = &body[ibody];
-    ierror = MathExtra::jacobi(tensor,b->inertia,evectors);
-    if (ierror) error->all(FLERR,"Insufficient Jacobi rotations for rigid body");
-    tol = EPSILON*MAX(MAX(b->inertia[0],b->inertia[1]),b->inertia[2]);
-    for (int j = 0; j < 3; j++) {
-      b->ex_space[j] = evectors[j][0];
-      b->ey_space[j] = evectors[j][1];
-      b->ez_space[j] = evectors[j][2];
-      if (b->inertia[j] < tol) b->inertia[j] = 0.0;
-    }
-    MathExtra::cross3(b->ex_space,b->ey_space,cross);
-    if (MathExtra::dot3(cross,b->ez_space) < 0.0)
-      MathExtra::negate3(b->ez_space);
-    MathExtra::exyz_to_q(b->ex_space,b->ey_space,b->ez_space,b->quat);
-  }
-
-  delete [] itensor;
-
-  // Forward communicate body orientations:
-  comm_flag = ROTATION;
-  comm->forward_comm_fix(this,12);
-
-  // Compute atom coordinates in internal body reference frames:
-  double delta[3];
-  for (i = 0; i < nlocal; i++)
-    if (atom2body[i] < 0)
-      displace[i][0] = displace[i][1] = displace[i][2] = 0.0;
-    else {
-      b = &body[atom2body[i]];
-      domain->unmap(x[i],xcmimage[i],unwrap);
-      delta[0] = unwrap[0] - b->xcm[0];
-      delta[1] = unwrap[1] - b->xcm[1];
-      delta[2] = unwrap[2] - b->xcm[2];
-      MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
-                                  delta,displace[i]);
-    }
+//  double **x = atom->x;
+//  double *rmass = atom->rmass;
+//  double *mass = atom->mass;
+//  int *type = atom->type;
+//  imageint *image = atom->image;
+//  int nlocal = atom->nlocal;
+//
+//  int nlocal_body = fix_rigid->nlocal_body;
+//  int ntotal_body = nlocal_body + fix_rigid->nghost_body;
+//  int *atom2body = fix_rigid->atom2body;
+//  double **displace = fix_rigid->displace;
+//  FixRigidSmall::Body *body = fix_rigid->body;
+//  imageint *xcmimage = fix_rigid->xcmimage;
+//  int ibody;
+//  double *it;
+//  itensor = new double[ntotal_body][6];
+//  for (ibody = 0; ibody < ntotal_body; ibody++) {
+//    it = itensor[ibody];
+//    it[0] = it[1] = it[2] = it[3] = it[4] = it[5] = 0.0;
+//  }
+//
+//  // Compute moments of inertia in Cartesian reference frame:
+//  int i;
+//  double massone;
+//  double unwrap[3];
+//  double dx, dy, dz;
+//  double *inertia;
+//  FixRigidSmall::Body *b;
+//  for (i = 0; i < nlocal; i++) {
+//    ibody = atom2body[i];
+//    if (ibody >= 0) {
+//      b = &body[ibody];
+//      domain->unmap(x[i],xcmimage[i],unwrap);
+//      dx = unwrap[0] - b->xcm[0];
+//      dy = unwrap[1] - b->xcm[1];
+//      dz = unwrap[2] - b->xcm[2];
+//      massone = rmass ? rmass[i] : mass[type[i]];
+//      inertia = itensor[ibody];
+//      inertia[0] += massone * (dy*dy + dz*dz);
+//      inertia[1] += massone * (dx*dx + dz*dz);
+//      inertia[2] += massone * (dx*dx + dy*dy);
+//      inertia[3] -= massone * dy*dz;
+//      inertia[4] -= massone * dx*dz;
+//      inertia[5] -= massone * dx*dy;
+//    }
+//  }
+//
+//  // Reverse communicate inertia tensors:
+//  comm_flag = ITENSOR;
+//  comm->reverse_comm_fix(this,6);
+//
+//  // Diagonalize inertia tensor for each body via Jacobi rotations:
+//  int ierror;
+//  double tol;
+//  double cross[3], tensor[3][3], evectors[3][3];
+//  for (ibody = 0; ibody < nlocal_body; ibody++) {
+//    inertia = itensor[ibody];
+//    tensor[0][0] = inertia[0];
+//    tensor[1][1] = inertia[1];
+//    tensor[2][2] = inertia[2];
+//    tensor[1][2] = tensor[2][1] = inertia[3];
+//    tensor[0][2] = tensor[2][0] = inertia[4];
+//    tensor[0][1] = tensor[1][0] = inertia[5];
+//    b = &body[ibody];
+//    ierror = MathExtra::jacobi(tensor,b->inertia,evectors);
+//    if (ierror) error->all(FLERR,"Insufficient Jacobi rotations for rigid body");
+//    tol = EPSILON*MAX(MAX(b->inertia[0],b->inertia[1]),b->inertia[2]);
+//    for (int j = 0; j < 3; j++) {
+//      b->ex_space[j] = evectors[j][0];
+//      b->ey_space[j] = evectors[j][1];
+//      b->ez_space[j] = evectors[j][2];
+//      if (b->inertia[j] < tol) b->inertia[j] = 0.0;
+//    }
+//    MathExtra::cross3(b->ex_space,b->ey_space,cross);
+//    if (MathExtra::dot3(cross,b->ez_space) < 0.0)
+//      MathExtra::negate3(b->ez_space);
+//    MathExtra::exyz_to_q(b->ex_space,b->ey_space,b->ez_space,b->quat);
+//  }
+//
+//  delete [] itensor;
+//
+//  // Forward communicate body orientations:
+//  comm_flag = ROTATION;
+//  comm->forward_comm_fix(this,12);
+//
+//  // Compute atom coordinates in internal body reference frames:
+//  double delta[3];
+//  for (i = 0; i < nlocal; i++)
+//    if (atom2body[i] < 0)
+//      displace[i][0] = displace[i][1] = displace[i][2] = 0.0;
+//    else {
+//      b = &body[atom2body[i]];
+//      domain->unmap(x[i],xcmimage[i],unwrap);
+//      delta[0] = unwrap[0] - b->xcm[0];
+//      delta[1] = unwrap[1] - b->xcm[1];
+//      delta[2] = unwrap[2] - b->xcm[2];
+//      MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
+//                                  delta,displace[i]);
+//    }
 }
 
 /* ----------------------------------------------------------------------
@@ -960,55 +987,55 @@ void FixHMC::rigid_body_restore_orientations()
 
 void FixHMC::rigid_body_restore_forces()
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  double **f = atom->f;
-  tagint *image = atom->image;
-  int ntotal_body = fix_rigid->nlocal_body + fix_rigid->nghost_body;
-  int *atom2body = fix_rigid->atom2body;
-  FixRigidSmall::Body *body = fix_rigid->body;
-  imageint *xcmimage = fix_rigid->xcmimage;
-  int i, ibody;
-  double lx, ly, lz;
-  double fx, fy, fz;
-  double unwrap[3];
-  FixRigidSmall::Body *b;
-
-  // Zero forces and torques on local and ghost bodies:
-  for (ibody = 0; ibody < ntotal_body; ibody++) {
-    b = &body[ibody];
-    b->fcm[0] = b->fcm[1] = b->fcm[2] = 0.0;
-    b->torque[0] = b->torque[1] = b->torque[2] = 0.0;
-  }
-
-  // The force on each atom contributes to the force and torque on a body:
-  for (i = 0; i < nlocal; i++) {
-    ibody = atom2body[i];
-    if (ibody >= 0) {
-      b = &body[atom2body[i]];
-
-      fx = f[i][0];
-      fy = f[i][1];
-      fz = f[i][2];
-
-      b->fcm[0] += fx;
-      b->fcm[1] += fy;
-      b->fcm[2] += fz;
-
-      domain->unmap(x[i],xcmimage[i],unwrap);
-      lx = unwrap[0] - b->xcm[0];
-      ly = unwrap[1] - b->xcm[1];
-      lz = unwrap[2] - b->xcm[2];
-
-      b->torque[0] += ly*fz - lz*fy;
-      b->torque[1] += lz*fx - lx*fz;
-      b->torque[2] += lx*fy - ly*fx;
-    }
-  }
-
-  // Reverse communicate fcm and torque of all bodies:
-  comm_flag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+//  int nlocal = atom->nlocal;
+//  double **x = atom->x;
+//  double **f = atom->f;
+//  tagint *image = atom->image;
+//  int ntotal_body = fix_rigid->nlocal_body + fix_rigid->nghost_body;
+//  int *atom2body = fix_rigid->atom2body;
+//  FixRigidSmall::Body *body = fix_rigid->body;
+//  imageint *xcmimage = fix_rigid->xcmimage;
+//  int i, ibody;
+//  double lx, ly, lz;
+//  double fx, fy, fz;
+//  double unwrap[3];
+//  FixRigidSmall::Body *b;
+//
+//  // Zero forces and torques on local and ghost bodies:
+//  for (ibody = 0; ibody < ntotal_body; ibody++) {
+//    b = &body[ibody];
+//    b->fcm[0] = b->fcm[1] = b->fcm[2] = 0.0;
+//    b->torque[0] = b->torque[1] = b->torque[2] = 0.0;
+//  }
+//
+//  // The force on each atom contributes to the force and torque on a body:
+//  for (i = 0; i < nlocal; i++) {
+//    ibody = atom2body[i];
+//    if (ibody >= 0) {
+//      b = &body[atom2body[i]];
+//
+//      fx = f[i][0];
+//      fy = f[i][1];
+//      fz = f[i][2];
+//
+//      b->fcm[0] += fx;
+//      b->fcm[1] += fy;
+//      b->fcm[2] += fz;
+//
+//      domain->unmap(x[i],xcmimage[i],unwrap);
+//      lx = unwrap[0] - b->xcm[0];
+//      ly = unwrap[1] - b->xcm[1];
+//      lz = unwrap[2] - b->xcm[2];
+//
+//      b->torque[0] += ly*fz - lz*fy;
+//      b->torque[1] += lz*fx - lx*fz;
+//      b->torque[2] += lx*fy - ly*fx;
+//    }
+//  }
+//
+//  // Reverse communicate fcm and torque of all bodies:
+//  comm_flag = FORCE_TORQUE;
+//  comm->reverse_comm_fix(this,6);
 }
 
 /* ----------------------------------------------------------------------
@@ -1017,46 +1044,46 @@ void FixHMC::rigid_body_restore_forces()
 
 void FixHMC::rigid_body_random_velocities()
 {
-  FixRigidSmall::Body *body = fix_rigid->body;
-  int nlocal = fix_rigid->nlocal_body;
-  int ntotal = nlocal + fix_rigid->nghost_body;
-
-  double stdev, wbody[3], mbody[3];
-  FixRigidSmall::Body *b;
-
-  for (int ibody = 0; ibody < nlocal; ibody++) {
-    b = &body[ibody];
-    stdev = sqrt(KT/b->mass);
-    for (int j = 0; j < 3; j++) {
-      b->vcm[j] = stdev*random->gaussian();
-      if (b->inertia[j] > 0.0)
-        wbody[j] = sqrt(KT/b->inertia[j])*random->gaussian();
-      else
-        wbody[j] = 0.0;
-    }
-    MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,wbody,b->omega);
-  }
-
-  // Forward communicate vcm and omega to ghost bodies:
-  comm_flag = VCM_OMEGA;
-  comm->forward_comm_fix(this,6);
-
-  // Compute angular momenta of rigid bodies:
-  for (int ibody = 0; ibody < ntotal; ibody++) {
-    b = &body[ibody];
-    MathExtra::omega_to_angmom(b->omega,b->ex_space,b->ey_space,b->ez_space,
-                               b->inertia,b->angmom);
-    MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
-                                b->angmom,mbody);
-    MathExtra::quatvec(b->quat,mbody,b->conjqm);
-    b->conjqm[0] *= 2.0;
-    b->conjqm[1] *= 2.0;
-    b->conjqm[2] *= 2.0;
-    b->conjqm[3] *= 2.0;
-  }
-
-  // Compute velocities of individual atoms:
-  fix_rigid->set_v();
+//  FixRigidSmall::Body *body = fix_rigid->body;
+//  int nlocal = fix_rigid->nlocal_body;
+//  int ntotal = nlocal + fix_rigid->nghost_body;
+//
+//  double stdev, wbody[3], mbody[3];
+//  FixRigidSmall::Body *b;
+//
+//  for (int ibody = 0; ibody < nlocal; ibody++) {
+//    b = &body[ibody];
+//    stdev = sqrt(KT/b->mass);
+//    for (int j = 0; j < 3; j++) {
+//      b->vcm[j] = stdev*random->gaussian();
+//      if (b->inertia[j] > 0.0)
+//        wbody[j] = sqrt(KT/b->inertia[j])*random->gaussian();
+//      else
+//        wbody[j] = 0.0;
+//    }
+//    MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,wbody,b->omega);
+//  }
+//
+//  // Forward communicate vcm and omega to ghost bodies:
+//  comm_flag = VCM_OMEGA;
+//  comm->forward_comm_fix(this,6);
+//
+//  // Compute angular momenta of rigid bodies:
+//  for (int ibody = 0; ibody < ntotal; ibody++) {
+//    b = &body[ibody];
+//    MathExtra::omega_to_angmom(b->omega,b->ex_space,b->ey_space,b->ez_space,
+//                               b->inertia,b->angmom);
+//    MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
+//                                b->angmom,mbody);
+//    MathExtra::quatvec(b->quat,mbody,b->conjqm);
+//    b->conjqm[0] *= 2.0;
+//    b->conjqm[1] *= 2.0;
+//    b->conjqm[2] *= 2.0;
+//    b->conjqm[3] *= 2.0;
+//  }
+//
+//  // Compute velocities of individual atoms:
+//  fix_rigid->set_v();
 }
 
 /* ----------------------------------------------------------------------
@@ -1065,35 +1092,36 @@ void FixHMC::rigid_body_random_velocities()
 
 int FixHMC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
-  int *bodyown = fix_rigid->bodyown;
-  FixRigidSmall::Body *body = fix_rigid->body;
+  //int *bodyown = fix_rigid->bodyown;
+  //FixRigidSmall::Body *body = fix_rigid->body;
 
   int i, m, ibody;
-  FixRigidSmall::Body *b;
-
   m = 0;
-  for (i = 0; i < n; i++) {
-    ibody = bodyown[list[i]];
-    if (ibody >= 0) {
-      b = &body[ibody];
-      if (comm_flag == VCM_OMEGA) {
-        memcpy( &buf[m], b->vcm, three );
-        memcpy( &buf[m+3], b->omega, three );
-        m += 6;
-      }
-      else if (comm_flag == XCM) {
-        memcpy( &buf[m], b->xcm, three );
-        m += 3;
-      }
-      else if (comm_flag == ROTATION) {
-        memcpy( &buf[m], b->ex_space, three );
-        memcpy( &buf[m+3], b->ey_space, three );
-        memcpy( &buf[m+6], b->ez_space, three );
-        memcpy( &buf[m+9], b->quat, four );
-        m += 12;
-      }
-    }
-  }
+  //FixRigidSmall::Body *b;
+
+  //m = 0;
+  //for (i = 0; i < n; i++) {
+  //  ibody = bodyown[list[i]];
+  //  if (ibody >= 0) {
+  //    b = &body[ibody];
+  //    if (comm_flag == VCM_OMEGA) {
+  //      memcpy( &buf[m], b->vcm, three );
+  //      memcpy( &buf[m+3], b->omega, three );
+  //      m += 6;
+  //    }
+  //    else if (comm_flag == XCM) {
+  //      memcpy( &buf[m], b->xcm, three );
+  //      m += 3;
+  //    }
+  //    else if (comm_flag == ROTATION) {
+  //      memcpy( &buf[m], b->ex_space, three );
+  //      memcpy( &buf[m+3], b->ey_space, three );
+  //      memcpy( &buf[m+6], b->ez_space, three );
+  //      memcpy( &buf[m+9], b->quat, four );
+  //      m += 12;
+  //    }
+  //  }
+  //}
   return m;
 }
 
@@ -1103,34 +1131,34 @@ int FixHMC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *
 
 void FixHMC::unpack_forward_comm(int n, int first, double *buf)
 {
-  int *bodyown = fix_rigid->bodyown;
-  FixRigidSmall::Body *body = fix_rigid->body;
+  //int *bodyown = fix_rigid->bodyown;
+  //FixRigidSmall::Body *body = fix_rigid->body;
 
   int i, m, last;
-  FixRigidSmall::Body *b;
+  //FixRigidSmall::Body *b;
 
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++)
-    if (bodyown[i] >= 0) {
-      b = &body[bodyown[i]];
-      if (comm_flag == VCM_OMEGA) {
-        memcpy( b->vcm, &buf[m], three );
-        memcpy( b->omega, &buf[m+3], three );
-        m += 6;
-      }
-      else if (comm_flag == XCM) {
-        memcpy( b->xcm, &buf[m], three );
-        m += 3;
-      }
-      else if (comm_flag == ROTATION) {
-        memcpy( b->ex_space, &buf[m], three );
-        memcpy( b->ey_space, &buf[m+3], three );
-        memcpy( b->ez_space, &buf[m+6], three );
-        memcpy( b->quat, &buf[m+9], four );
-        m += 12;
-      }
-    }
+  //m = 0;
+  //last = first + n;
+  //for (i = first; i < last; i++)
+  //  if (bodyown[i] >= 0) {
+  //    b = &body[bodyown[i]];
+  //    if (comm_flag == VCM_OMEGA) {
+  //      memcpy( b->vcm, &buf[m], three );
+  //      memcpy( b->omega, &buf[m+3], three );
+  //      m += 6;
+  //    }
+  //    else if (comm_flag == XCM) {
+  //      memcpy( b->xcm, &buf[m], three );
+  //      m += 3;
+  //    }
+  //    else if (comm_flag == ROTATION) {
+  //      memcpy( b->ex_space, &buf[m], three );
+  //      memcpy( b->ey_space, &buf[m+3], three );
+  //      memcpy( b->ez_space, &buf[m+6], three );
+  //      memcpy( b->quat, &buf[m+9], four );
+  //      m += 12;
+  //    }
+  //  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1156,40 +1184,41 @@ int FixHMC::pack_reverse_comm(int n, int first, double *buf)
             m += 6;
           }
         }
-  }
-  else {
-    int *bodyown = fix_rigid->bodyown;
-    FixRigidSmall::Body *body = fix_rigid->body;
+  } else {
+    //int *bodyown = fix_rigid->bodyown;
+    //FixRigidSmall::Body *body = fix_rigid->body;
 
-    FixRigidSmall::Body *b;
+    //FixRigidSmall::Body *b;
 
-   if (comm_flag == ITENSOR) {
-      for (i = first; i < last; i++)
-        if (bodyown[i] >= 0) {
-          memcpy( &buf[m], itensor[bodyown[i]], six );
-          m += 6;
-        }
-    }
-    else if (comm_flag == XCM) {
-      for (i = first; i < last; i++)
-        if (bodyown[i] >= 0) {
-          b = &body[bodyown[i]];
-          memcpy( &buf[m], b->xcm, three );
-          m += 3;
-        }
-    }
-    else if (comm_flag == FORCE_TORQUE) {
-      for (i = first; i < last; i++)
-        if (bodyown[i] >= 0) {
-          b = &body[bodyown[i]];
-          memcpy( &buf[m], b->fcm, three );
-          memcpy( &buf[m+3], b->torque, three );
-          m += 6;
-        }
-    }
+    // if (comm_flag == ITENSOR) {
+    //    for (i = first; i < last; i++)
+    //      if (bodyown[i] >= 0) {
+    //        memcpy( &buf[m], itensor[bodyown[i]], six );
+    //        m += 6;
+    //      }
+    //  }
+    //  else if (comm_flag == XCM) {
+    //    for (i = first; i < last; i++)
+    //      if (bodyown[i] >= 0) {
+    //        b = &body[bodyown[i]];
+    //        memcpy( &buf[m], b->xcm, three );
+    //        m += 3;
+    //      }
+    //  }
+    //  else if (comm_flag == FORCE_TORQUE) {
+    //    for (i = first; i < last; i++)
+    //      if (bodyown[i] >= 0) {
+    //        b = &body[bodyown[i]];
+    //        memcpy( &buf[m], b->fcm, three );
+    //        memcpy( &buf[m+3], b->torque, three );
+    //        m += 6;
+    //      }
+    //  }
+    //}
+    //return m;
   }
-  return m;
-}
+    return 0;
+  }
 
 /* ----------------------------------------------------------------------
    Unpack per-atom energies and/or virials or
@@ -1219,50 +1248,50 @@ void FixHMC::unpack_reverse_comm(int n, int *list, double *buf)
     }
   }
   else {
-    int *bodyown = fix_rigid->bodyown;
-    FixRigidSmall::Body *body = fix_rigid->body;
+    //int *bodyown = fix_rigid->bodyown;
+    //FixRigidSmall::Body *body = fix_rigid->body;
 
-    int ibody;
-    FixRigidSmall::Body *b;
+    //int ibody;
+    //FixRigidSmall::Body *b;
 
-  if (comm_flag == ITENSOR) {
-      for (i = 0; i < n; i++) {
-        ibody = bodyown[list[i]];
-        if (ibody >= 0) {
-          itensor[ibody][0] += buf[m++];
-          itensor[ibody][1] += buf[m++];
-          itensor[ibody][2] += buf[m++];
-          itensor[ibody][3] += buf[m++];
-          itensor[ibody][4] += buf[m++];
-          itensor[ibody][5] += buf[m++];
-        }
-      }
-    }
-    else if (comm_flag == XCM) {
-      for (i = 0; i < n; i++) {
-        ibody = bodyown[list[i]];
-        if (ibody >= 0) {
-          b = &body[ibody];
-          b->xcm[0] += buf[m++];
-          b->xcm[1] += buf[m++];
-          b->xcm[2] += buf[m++];
-        }
-      }
-    }
-    else if (comm_flag == FORCE_TORQUE) {
-      for (i = 0; i < n; i++) {
-        ibody = bodyown[list[i]];
-        if (ibody >= 0) {
-          b = &body[ibody];
-          b->fcm[0] += buf[m++];
-          b->fcm[1] += buf[m++];
-          b->fcm[2] += buf[m++];
-          b->torque[0] += buf[m++];
-          b->torque[1] += buf[m++];
-          b->torque[2] += buf[m++];
-        }
-      }
-    }
+  //if (comm_flag == ITENSOR) {
+  //    for (i = 0; i < n; i++) {
+  //      ibody = bodyown[list[i]];
+  //      if (ibody >= 0) {
+  //        itensor[ibody][0] += buf[m++];
+  //        itensor[ibody][1] += buf[m++];
+  //        itensor[ibody][2] += buf[m++];
+  //        itensor[ibody][3] += buf[m++];
+  //        itensor[ibody][4] += buf[m++];
+  //        itensor[ibody][5] += buf[m++];
+  //      }
+  //    }
+  //  }
+  //  else if (comm_flag == XCM) {
+  //    for (i = 0; i < n; i++) {
+  //      ibody = bodyown[list[i]];
+  //      if (ibody >= 0) {
+  //        b = &body[ibody];
+  //        b->xcm[0] += buf[m++];
+  //        b->xcm[1] += buf[m++];
+  //        b->xcm[2] += buf[m++];
+  //      }
+  //    }
+  //  }
+  //  else if (comm_flag == FORCE_TORQUE) {
+  //    for (i = 0; i < n; i++) {
+  //      ibody = bodyown[list[i]];
+  //      if (ibody >= 0) {
+  //        b = &body[ibody];
+  //        b->fcm[0] += buf[m++];
+  //        b->fcm[1] += buf[m++];
+  //        b->fcm[2] += buf[m++];
+  //        b->torque[0] += buf[m++];
+  //        b->torque[1] += buf[m++];
+  //        b->torque[2] += buf[m++];
+  //      }
+  //    }
+  //  }
   }
 }
 

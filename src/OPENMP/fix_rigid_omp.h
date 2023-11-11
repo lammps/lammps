@@ -32,7 +32,7 @@ class FixRigidOMP : public FixRigid {
   void final_integrate() override;
 
  protected:
-  virtual void compute_forces_and_torques();
+  void compute_forces_and_torques() override;
 
  private:
   template <int, int, int> void set_xv_thr();

@@ -145,7 +145,7 @@ class FixRigid : public Fix {
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
-  void compute_forces_and_torques();
+  virtual void compute_forces_and_torques();
   void enforce2d();
   void readfile(int, double *, double **, double **, double **, imageint *, int *);
 };

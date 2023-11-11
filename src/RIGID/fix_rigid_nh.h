@@ -70,7 +70,7 @@ class FixRigidNH : public FixRigid {
   int tcomputeflag, pcomputeflag;    // 1 = compute was created by fix. 0 = external
 
   void couple();
-  void remap();
+  virtual void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();
 

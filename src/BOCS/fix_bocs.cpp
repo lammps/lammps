@@ -69,12 +69,9 @@ const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction 
  ---------------------------------------------------------------------- */
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
-  id_temp(nullptr), id_press(nullptr),
-  eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
-  eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
-  etap_mass(nullptr)
+    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr),
+    id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr),
+    etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
@@ -379,9 +376,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     if (deviatoric_flag) size_vector += 1;
   }
 
-  nrigid = 0;
-  rfix = nullptr;
-
   if (pre_exchange_flag) irregular = new Irregular(lmp);
   else irregular = nullptr;
 
@@ -424,31 +418,29 @@ FixBocs::~FixBocs()
 {
   if (copymode) return;
 
-  delete [] id_dilate;
-  delete [] rfix;
-
+  delete[] id_dilate;
   delete irregular;
 
   // delete temperature and pressure if fix created them
 
   if (tcomputeflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   if (tstat_flag) {
-    delete [] eta;
-    delete [] eta_dot;
-    delete [] eta_dotdot;
-    delete [] eta_mass;
+    delete[] eta;
+    delete[] eta_dot;
+    delete[] eta_dotdot;
+    delete[] eta_mass;
   }
 
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
-    delete [] id_press;
+    delete[] id_press;
     if (mpchain) {
-      delete [] etap;
-      delete [] etap_dot;
-      delete [] etap_dotdot;
-      delete [] etap_mass;
+      delete[] etap;
+      delete[] etap_dot;
+      delete[] etap_dotdot;
+      delete[] etap_mass;
     }
   }
   if (p_match_coeffs) free(p_match_coeffs);
@@ -596,20 +588,10 @@ void FixBocs::init()
   }
 
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
-  // rfix[] = indices to each fix rigid
 
-  delete [] rfix;
-  nrigid = 0;
-  rfix = nullptr;
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
-  if (nrigid) {
-    rfix = new int[nrigid];
-    nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
-  }
+  rfix.clear();
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
 // NJD MRD 2 functions
@@ -1204,9 +1186,7 @@ void FixBocs::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -1351,9 +1331,7 @@ void FixBocs::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1512,7 +1490,7 @@ int FixBocs::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tcomputeflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
@@ -1544,29 +1522,23 @@ int FixBocs::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pcomputeflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure ID {}", id_press);
+    if (!pressure->pressflag)
+      error->all(FLERR, "Fix_modify pressure ID {} does not compute pressure", id_press);
 
-    if (p_match_flag) // NJD MRD
-    {
-      if (p_basis_type == BASIS_ANALYTIC)
-      {
-        (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type, N_p_match,
-                                                   p_match_coeffs, N_mol, vavg);
+    if (p_match_flag) {
+      auto bocspress = dynamic_cast<ComputePressureBocs *>(pressure);
+      if (bocspress) {
+        if (p_basis_type == BASIS_ANALYTIC) {
+          bocspress->send_cg_info(p_basis_type, N_p_match, p_match_coeffs, N_mol, vavg);
+        } else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE) {
+          bocspress->send_cg_info(p_basis_type, splines, spline_length);
+        }
       }
-      else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
-      {
-        (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type, splines, spline_length );
-      }
-    }
-
-    if (pressure->pressflag == 0)
-    {
-      error->all(FLERR, "Fix_modify pressure ID does not compute pressure");
     }
     return 2;
   }

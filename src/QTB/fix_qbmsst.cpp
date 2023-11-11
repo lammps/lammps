@@ -228,7 +228,6 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   pressure = nullptr;
   pe = nullptr;
   old_velocity = nullptr;
-  rfix = nullptr;
   gfactor = nullptr;
   random = nullptr;
   omega_H = nullptr;
@@ -263,17 +262,16 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixQBMSST::~FixQBMSST()
 {
-  delete [] rfix;
-  delete [] gfactor;
+  delete[] gfactor;
   delete random;
 
   // delete temperature and pressure if fix created them
   if (tflag) modify->delete_compute(id_temp);
   if (pflag) modify->delete_compute(id_press);
   if (peflag) modify->delete_compute(id_pe);
-  delete [] id_temp;
-  delete [] id_press;
-  delete [] id_pe;
+  delete[] id_temp;
+  delete[] id_press;
+  delete[] id_pe;
 
   memory->destroy(old_velocity);
   memory->destroy(fran);
@@ -385,18 +383,10 @@ void FixQBMSST::init()
   else kspace_flag = 0;
 
   // detect if any fix rigid exist so rigid bodies move when box is dilated
-  // rfix[] = indices to each fix rigid
-  nrigid = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
-        (strcmp(modify->fix[i]->style,"poems") == 0)) nrigid++;
-  if (nrigid > 0) {
-    rfix = new int[nrigid];
-    nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
-          (strcmp(modify->fix[i]->style,"poems") == 0)) rfix[nrigid++] = i;
-  }
+
+   rfix.clear();
+   for (auto &ifix : modify->get_fix_list())
+     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
 /* ----------------------------------------------------------------------
@@ -787,9 +777,7 @@ void FixQBMSST::remap(int flag)
 
   domain->x2lamda(n);
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -810,9 +798,7 @@ void FixQBMSST::remap(int flag)
 
   domain->lamda2x(n);
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 
   for (i = 0; i < n; i++) {
     v[i][direction] = v[i][direction] *
@@ -868,7 +854,7 @@ int FixQBMSST::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
@@ -888,7 +874,7 @@ int FixQBMSST::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_press);

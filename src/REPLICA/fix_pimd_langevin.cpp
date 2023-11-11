@@ -1177,25 +1177,25 @@ void FixPIMDLangevin::spring_force()
   int *mask = atom->mask;
 
   // int idx_tmp = atom->map(1);
-  
+
   for (int i=0; i<nlocal; i++)
   {
     if (mask[i] & groupbit){
         double delx1 = bufsortedall[x_last * nlocal + tagtmp[i]-1][0] - x[i][0];
         double dely1 = bufsortedall[x_last * nlocal + tagtmp[i]-1][1] - x[i][1];
         double delz1 = bufsortedall[x_last * nlocal + tagtmp[i]-1][2] - x[i][2];
-    
+
         double delx2 = bufsortedall[x_next * nlocal + tagtmp[i]-1][0] - x[i][0];
         double dely2 = bufsortedall[x_next * nlocal + tagtmp[i]-1][1] - x[i][1];
         double delz2 = bufsortedall[x_next * nlocal + tagtmp[i]-1][2] - x[i][2];
-    
+
         double ff = fbond * _mass[type[i]];
         // double ff = 0;
-    
+
         double dx = delx1+delx2;
         double dy = dely1+dely2;
         double dz = delz1+delz2;
-   
+
         f[i][0] += (dx) * ff;
         f[i][1] += (dy) * ff;
         f[i][2] += (dz) * ff;

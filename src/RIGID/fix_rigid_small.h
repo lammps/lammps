@@ -67,11 +67,9 @@ class FixRigidSmall : public Fix {
   double memory_usage() override;
 
  protected:
-  int me, nprocs;
   double dtv, dtf, dtq;
   double *step_respa;
   int triclinic;
-  int dimension;
 
   char *inpfile;       // file to read rigid body attributes from
   int setupflag;       // 1 if body properties are setup, else 0

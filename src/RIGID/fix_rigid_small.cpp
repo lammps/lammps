@@ -75,13 +75,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   stores_ids = 1;
   centroidstressflag = CENTROID_AVAIL;
 
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  dimension = domain->dimension;
   extended = orientflag = dorientflag = customflag = 0;
   bodyown = nullptr;
   bodytag = nullptr;
@@ -257,7 +253,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
 
-      if (dimension == 2) {
+      if (domain->dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
@@ -272,7 +268,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       p_period[0] = p_period[1] = p_period[2] =
         utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      if (dimension == 2) {
+      if (domain->dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
@@ -381,7 +377,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   for (i = 0; i < 3; i++)
     if (p_flag[i]) pstat_flag = 1;
 
-  if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
+  if (pcouple == XYZ || (domain->dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
 
   // create rigid bodies based on molecule or custom ID
@@ -450,7 +446,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   bigint atomall;
   MPI_Allreduce(&atomone,&atomall,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
-  if (me == 0) {
+  if (comm->me == 0) {
     utils::logmesg(lmp,"  {} rigid bodies with {} atoms\n"
                    "  {:.8} = max distance from body owner to body atom\n",
                    nbody,atomall,maxextent);
@@ -529,7 +525,8 @@ void FixRigidSmall::init()
   int count = 0;
   for (auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) count++;
-  if (count > 1 && me == 0) error->warning(FLERR, "More than one fix rigid command");
+  if (count > 1 && comm->me == 0)
+    error->warning(FLERR, "More than one fix rigid command");
 
   if (earlyflag) {
     bool rflag = false;
@@ -690,7 +687,7 @@ void FixRigidSmall::setup(int vflag)
 
   // enforce 2d body forces and torques
 
-  if (dimension == 2) enforce2d();
+  if (domain->dimension == 2) enforce2d();
 
   // reverse communicate fcm, torque of all bodies
 
@@ -841,7 +838,7 @@ void FixRigidSmall::final_integrate()
   // if 2d model, enforce2d() on body forces/torques
 
   if (!earlyflag) compute_forces_and_torques();
-  if (dimension == 2) enforce2d();
+  if (domain->dimension == 2) enforce2d();
 
   // update vcm and angmom, recompute omega
 
@@ -1182,7 +1179,7 @@ int FixRigidSmall::dof(int tgroup)
   }
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
-  if (flagall && me == 0)
+  if (flagall && comm->me == 0)
     error->warning(FLERR,"Computing temperature of portions of rigid bodies");
 
   // remove appropriate DOFs for each rigid body wholly in temperature group
@@ -1200,7 +1197,7 @@ int FixRigidSmall::dof(int tgroup)
 
   int n = 0;
   nlinear = 0;
-  if (dimension == 3) {
+  if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
       if (counts[ibody][0]+counts[ibody][1] == counts[ibody][2]) {
         n += 3*counts[ibody][0] + 6*counts[ibody][1] - 6;
@@ -1211,7 +1208,7 @@ int FixRigidSmall::dof(int tgroup)
         }
       }
     }
-  } else if (dimension == 2) {
+  } else if (domain->dimension == 2) {
     for (int ibody = 0; ibody < nlocal_body; ibody++)
       if (counts[ibody][0]+counts[ibody][1] == counts[ibody][2])
         n += 2*counts[ibody][0] + 3*counts[ibody][1] - 3;
@@ -1305,7 +1302,7 @@ void FixRigidSmall::set_xv()
     v[i][1] = b->omega[2]*x[i][0] - b->omega[0]*x[i][2] + b->vcm[1];
     v[i][2] = b->omega[0]*x[i][1] - b->omega[1]*x[i][0] + b->vcm[2];
 
-    if (dimension == 2) {
+    if (domain->dimension == 2) {
       x[i][2] = 0.0;
       v[i][2] = 0.0;
     }
@@ -1476,7 +1473,7 @@ void FixRigidSmall::set_v()
     v[i][1] = b->omega[2]*delta[0] - b->omega[0]*delta[2] + b->vcm[1];
     v[i][2] = b->omega[0]*delta[1] - b->omega[1]*delta[0] + b->vcm[2];
 
-    if (dimension == 2) v[i][2] = 0.0;
+    if (domain->dimension == 2) v[i][2] = 0.0;
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
@@ -1595,6 +1592,8 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
   double **x = atom->x;
   tagint *tag = atom->tag;
   imageint *image = atom->image;
+  int me = comm->me;
+  int nprocs = comm->nprocs;
 
   m = 0;
   for (i = 0; i < nlocal; i++) {
@@ -2485,7 +2484,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   // open file and read header
 
-  if (me == 0) {
+  if (comm->me == 0) {
     fp = fopen(inpfile,"r");
     if (fp == nullptr)
       error->one(FLERR,"Cannot open fix {} file {}: {}", style, inpfile, utils::getsyserror());
@@ -2510,6 +2509,8 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   auto buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
+  int me = comm->me;
+
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
@@ -2583,7 +2584,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     nread += nchunk;
   }
 
-  if (me == 0) fclose(fp);
+  if (comm->me == 0) fclose(fp);
   delete[] buffer;
 }
 
@@ -2603,7 +2604,7 @@ void FixRigidSmall::write_restart_file(const char *file)
 
   // proc 0 opens file and writes header
 
-  if (me == 0) {
+  if (comm->me == 0) {
     auto outfile = std::string(file) + ".rigid";
     fp = fopen(outfile.c_str(),"w");
     if (fp == nullptr)
@@ -2625,7 +2626,7 @@ void FixRigidSmall::write_restart_file(const char *file)
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
   double **buf;
-  if (me == 0) memory->create(buf,MAX(1,maxrow),ncol,"rigid/small:buf");
+  if (comm->me == 0) memory->create(buf,MAX(1,maxrow),ncol,"rigid/small:buf");
   else memory->create(buf,MAX(1,sendrow),ncol,"rigid/small:buf");
 
   // pack my rigid body info into buf
@@ -2668,10 +2669,10 @@ void FixRigidSmall::write_restart_file(const char *file)
 
   int tmp,recvrow;
 
-  if (me == 0) {
+  if (comm->me == 0) {
     MPI_Status status;
     MPI_Request request;
-    for (int iproc = 0; iproc < nprocs; iproc++) {
+    for (int iproc = 0; iproc < comm->nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
@@ -2703,7 +2704,7 @@ void FixRigidSmall::write_restart_file(const char *file)
   // clean up and close file
 
   memory->destroy(buf);
-  if (me == 0) fclose(fp);
+  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

@@ -98,7 +98,8 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
-  if (dimension == 2) {
+#if defined(_OPENMP)
+  if (domain->dimension == 2) {
     if (triclinic) {
       if (evflag)
         set_xv_thr<1,1,2>();
@@ -124,6 +125,9 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
         set_xv_thr<0,0,3>();
     }
   }
+#else
+  set_xv();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,7 +138,6 @@ void FixRigidSmallOMP::compute_forces_and_torques()
   const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
   const int nlocal = atom->nlocal;
-  const int nthreads=comm->nthreads;
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
@@ -152,7 +155,10 @@ void FixRigidSmallOMP::compute_forces_and_torques()
   // and then each thread only processes some bodies.
 
 #if defined(_OPENMP)
+  const int nthreads=comm->nthreads;
 #pragma omp parallel LMP_DEFAULT_NONE
+#else
+  const int nthreads=1;
 #endif
   {
 #if defined(_OPENMP)
@@ -238,7 +244,7 @@ void FixRigidSmallOMP::compute_forces_and_torques()
 void FixRigidSmallOMP::final_integrate()
 {
   if (!earlyflag) compute_forces_and_torques();
-  if (dimension == 2) enforce2d();
+  if (domain->dimension == 2) enforce2d();
 
   // update vcm and angmom, recompute omega
 
@@ -274,7 +280,7 @@ void FixRigidSmallOMP::final_integrate()
   // virial is already setup from initial_integrate
   // triclinic only matters for virial calculation.
 
-  if (dimension == 2) {
+  if (domain->dimension == 2) {
     if (evflag) {
       if (triclinic)
         set_v_thr<1,1,2>();

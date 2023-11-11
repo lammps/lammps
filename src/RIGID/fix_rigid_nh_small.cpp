@@ -57,14 +57,14 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (dimension == 2 && p_flag[2])
+  if (domain->dimension == 2 && p_flag[2])
     error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
-  if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
+  if (domain->dimension == 2 && (pcouple == YZ || pcouple == XZ))
     error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all(FLERR,"Invalid fix {} command pressure settings", style);
-  if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
+  if (pcouple == XYZ && domain->dimension == 3 && p_flag[2] == 0)
     error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all(FLERR,"Invalid fix {} command pressure settings", style);
@@ -82,12 +82,12 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
 
-  if (pcouple == XYZ && dimension == 3 &&
+  if (pcouple == XYZ && domain->dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
     error->all(FLERR, "Invalid fix {} command pressure settings", style);
-  if (pcouple == XYZ && dimension == 2 &&
+  if (pcouple == XYZ && domain->dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
     error->all(FLERR, "Invalid fix {} command pressure settings", style);
@@ -264,7 +264,7 @@ void FixRigidNHSmall::init()
 
     pdim = p_flag[0] + p_flag[1] + p_flag[2];
     if (vol0 == 0.0) {
-      if (dimension == 2) vol0 = domain->xprd * domain->yprd;
+      if (domain->dimension == 2) vol0 = domain->xprd * domain->yprd;
       else vol0 = domain->xprd * domain->yprd * domain->zprd;
     }
 
@@ -382,6 +382,7 @@ void FixRigidNHSmall::setup(int vflag)
   }
 
   // initial forces on barostat thermostat variables
+  int dimension = domain->dimension;
 
   if (pstat_flag) {
     for (int i = 0; i < 3; i++)
@@ -832,7 +833,8 @@ void FixRigidNHSmall::nhc_press_integrate()
   double lkt_press = kt;
 
   // update thermostat masses
-
+  
+  int dimension = domain->dimension;
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
   for (i = 1; i < p_chain; i++) {
@@ -989,7 +991,7 @@ double FixRigidNHSmall::compute_scalar()
     energy += e*(0.5/pdim);
 
     double vol;
-    if (dimension == 2) vol = domain->xprd * domain->yprd;
+    if (domain->dimension == 2) vol = domain->xprd * domain->yprd;
     else vol = domain->xprd * domain->yprd * domain->zprd;
 
     double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
@@ -1133,7 +1135,7 @@ void FixRigidNHSmall::nh_epsilon_dot()
   int i;
   double volume,scale,f_epsilon;
 
-  if (dimension == 2) volume = domain->xprd*domain->yprd;
+  if (domain->dimension == 2) volume = domain->xprd*domain->yprd;
   else volume = domain->xprd*domain->yprd*domain->zprd;
 
   // MTK terms
@@ -1161,6 +1163,7 @@ void FixRigidNHSmall::nh_epsilon_dot()
 void FixRigidNHSmall::compute_dof()
 {
   // total translational and rotational degrees of freedom
+  int dimension = domain->dimension;
 
   nf_t = dimension * nlocal_body;
   if (dimension == 3) {

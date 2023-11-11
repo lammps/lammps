@@ -92,7 +92,7 @@ void FixRigidOMP::initial_integrate(int vflag)
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega
 
-  if (dimension == 2) {
+  if (domain->dimension == 2) {
     if (triclinic) {
       if (evflag)
         set_xv_thr<1,1,2>();
@@ -212,11 +212,13 @@ void FixRigidOMP::compute_forces_and_torques()
      // a few atoms each. so we loop over all atoms for all threads
      // and then each thread only processes some bodies.
 
-     const int nthreads=comm->nthreads;
      memset(&sum[0][0],0,6*nbody*sizeof(double));
 
 #if defined(_OPENMP)
+     const int nthreads=comm->nthreads;
 #pragma omp parallel LMP_DEFAULT_NONE
+#else
+     const int nthreads=1;
 #endif
      {
 #if defined(_OPENMP)
@@ -293,7 +295,7 @@ void FixRigidOMP::compute_forces_and_torques()
 void FixRigidOMP::final_integrate()
 {
   if (!earlyflag) compute_forces_and_torques();
-  if (dimension == 2) enforce2d();
+  if (domain->dimension == 2) enforce2d();
 
   // update vcm and angmom
 
@@ -323,23 +325,27 @@ void FixRigidOMP::final_integrate()
   // virial is already setup from initial_integrate
   // triclinic only matters for virial calculation.
 
-  if (dimension == 2) {
-  if (evflag)
-    if (triclinic)
-      set_v_thr<1,1,2>();
+#if defined(_OPENMP)
+  if (domain->dimension == 2) {
+    if (evflag)
+      if (triclinic)
+        set_v_thr<1,1,2>();
+      else
+        set_v_thr<0,1,2>();
     else
-      set_v_thr<0,1,2>();
-  else
-    set_v_thr<0,0,2>();
+      set_v_thr<0,0,2>();
   } else {
-  if (evflag)
-    if (triclinic)
-      set_v_thr<1,1,3>();
+    if (evflag)
+      if (triclinic)
+        set_v_thr<1,1,3>();
+      else
+        set_v_thr<0,1,3>();
     else
-      set_v_thr<0,1,3>();
-  else
-    set_v_thr<0,0,3>();
+      set_v_thr<0,0,3>();
   }
+#else
+  set_v();
+#endif
 }
 
 /* ----------------------------------------------------------------------

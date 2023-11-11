@@ -60,7 +60,6 @@ class FixRigid : public Fix {
   double compute_array(int, int) override;
 
  protected:
-  int me, nprocs;
   double dtv, dtf, dtq;
   double *step_respa;
   int triclinic;
@@ -71,7 +70,6 @@ class FixRigid : public Fix {
   int setupflag;    // 1 if body properties are setup, else 0
   int earlyflag;    // 1 if forces/torques computed at post_force()
 
-  int dimension;    // # of dimensions
   int nbody;        // # of rigid bodies
   int nlinear;      // # of linear rigid bodies
   int *nrigid;      // # of atoms in each rigid body

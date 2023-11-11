@@ -61,14 +61,14 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[2] == 1 && p_period[2] <= 0.0))
     error->all(FLERR,"Fix rigid npt/nph period must be > 0.0");
 
-  if (dimension == 2 && p_flag[2])
+  if (domain->dimension == 2 && p_flag[2])
     error->all(FLERR,"Invalid fix rigid npt/nph command for a 2d simulation");
-  if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
+  if (domain->dimension == 2 && (pcouple == YZ || pcouple == XZ))
     error->all(FLERR,"Invalid fix rigid npt/nph command for a 2d simulation");
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
-  if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
+  if (pcouple == XYZ && domain->dimension == 3 && p_flag[2] == 0)
     error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
@@ -89,12 +89,12 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,
                "Cannot use fix rigid npt/nph on a non-periodic dimension");
 
-  if (pcouple == XYZ && dimension == 3 &&
+  if (pcouple == XYZ && domain->dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
-  if (pcouple == XYZ && dimension == 2 &&
+  if (pcouple == XYZ && domain->dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
     error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
@@ -224,6 +224,7 @@ void FixRigidNH::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
+  int dimension = domain->dimension;
   nf_t = dimension * nbody;
   if (dimension == 3) {
     nf_r = dimension * nbody;
@@ -391,6 +392,7 @@ void FixRigidNH::setup(int vflag)
 
   // initial forces on barostat thermostat variables
 
+  int dimension = domain->dimension;
   if (pstat_flag) {
     for (int i = 0; i < 3; i++)
       if (p_flag[i]) {
@@ -821,6 +823,7 @@ void FixRigidNH::nhc_press_integrate()
 
   // update thermostat masses
 
+  int dimension = domain->dimension;
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
   for (i = 1; i < p_chain; i++) {
@@ -927,7 +930,7 @@ double FixRigidNH::compute_scalar()
     energy += e*(0.5/pdim);
 
     double vol;
-    if (dimension == 2) vol = domain->xprd * domain->yprd;
+    if (domain->dimension == 2) vol = domain->xprd * domain->yprd;
     else vol = domain->xprd * domain->yprd * domain->zprd;
 
     double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
@@ -1071,7 +1074,7 @@ void FixRigidNH::nh_epsilon_dot()
   int i;
   double volume,scale,f_epsilon;
 
-  if (dimension == 2) volume = domain->xprd*domain->yprd;
+  if (domain->dimension == 2) volume = domain->xprd*domain->yprd;
   else volume = domain->xprd*domain->yprd*domain->zprd;
 
   // MTK terms

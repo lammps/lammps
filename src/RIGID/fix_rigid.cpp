@@ -67,13 +67,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   dof_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
-  MPI_Comm_rank(world, &me);
-  MPI_Comm_size(world, &nprocs);
-
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  dimension = domain->dimension;
   extended = orientflag = dorientflag = 0;
   body = nullptr;
   xcmimage = nullptr;
@@ -300,7 +296,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (i = 0; i < nbody; i++) {
     fflag[i][0] = fflag[i][1] = fflag[i][2] = 1.0;
     tflag[i][0] = tflag[i][1] = tflag[i][2] = 1.0;
-    if (dimension == 2) fflag[i][2] = tflag[i][0] = tflag[i][1] = 0.0;
+    if (domain->dimension == 2) fflag[i][2] = tflag[i][0] = tflag[i][1] = 0.0;
   }
 
   // number of linear rigid bodies is counted later
@@ -361,7 +357,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       else
         error->all(FLERR, "Illegal fix {} command", style);
 
-      if ((dimension == 2) && (zflag == 1.0))
+      if ((domain->dimension == 2) && (zflag == 1.0))
         error->all(FLERR, "Fix rigid z force cannot be on for 2d simulation");
 
       int count = 0;
@@ -401,7 +397,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       else
         error->all(FLERR, "Illegal fix {} command", style);
 
-      if (dimension == 2 && (xflag == 1.0 || yflag == 1.0))
+      if (domain->dimension == 2 && (xflag == 1.0 || yflag == 1.0))
         error->all(FLERR, "Fix rigid xy torque cannot be on for 2d simulation");
 
       int count = 0;
@@ -446,7 +442,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      if (dimension == 2) {
+      if (domain->dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
@@ -459,7 +455,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      if (dimension == 2) {
+      if (domain->dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
@@ -576,12 +572,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (i = 0; i < 3; i++)
     if (p_flag[i]) pstat_flag = 1;
 
-  if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
+  if (pcouple == XYZ || (domain->dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (langflag) random = new RanMars(lmp,seed + me);
+  if (langflag) random = new RanMars(lmp, seed + comm->me);
   else random = nullptr;
 
   // initialize vector output quantities in case accessed before run
@@ -623,7 +619,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   int nsum = 0;
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
 
-  if (me == 0)
+  if (comm->me == 0)
     utils::logmesg(lmp,"  {} rigid bodies with {} atoms\n",nbody,nsum);
 }
 
@@ -709,14 +705,15 @@ void FixRigid::init()
   int count = 0;
   for (auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) count++;
-  if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
+  if (count > 1 && comm->me == 0)
+    error->warning(FLERR,"More than one fix rigid");
 
   if (earlyflag) {
     bool rflag = false;
     for (auto &ifix : modify->get_fix_list()) {
       if (ifix->rigid_flag) rflag = true;
       if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
-        error->warning(FLERR,"Fix {} with ID {} alters forces after fix rigid",
+        error->warning(FLERR, "Fix {} with ID {} alters forces after fix rigid",
                        ifix->style, ifix->id);
     }
   }
@@ -881,7 +878,7 @@ void FixRigid::setup(int vflag)
 
   // enforce 2d body forces and torques
 
-  if (dimension == 2) enforce2d();
+  if (domain->dimension == 2) enforce2d();
 
   // zero langextra in case Langevin thermostat not used
   // no point to calling post_force() here since langextra
@@ -1006,7 +1003,7 @@ void FixRigid::final_integrate()
   // if 2d model, enforce2d() on body forces/torques
 
   if (!earlyflag) compute_forces_and_torques();
-  if (dimension == 2) enforce2d();
+  if (domain->dimension == 2) enforce2d();
 
   // update vcm and angmom
   // fflag,tflag = 0 for some dimensions in 2d
@@ -1097,7 +1094,7 @@ void FixRigid::image_shift()
 
 void FixRigid::apply_langevin_thermostat()
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     double gamma1,gamma2;
     double wbody[3],tbody[3];
     double delta = update->ntimestep - update->beginstep;
@@ -1295,7 +1292,7 @@ int FixRigid::dof(int tgroup)
     if (nall[ibody]+mall[ibody] > 0 &&
         nall[ibody]+mall[ibody] != nrigid[ibody]) flag = 1;
   }
-  if (flag && me == 0)
+  if (flag && (comm->me == 0))
     error->warning(FLERR,"Computing temperature of portions of rigid bodies");
 
   // remove appropriate DOFs for each rigid body wholly in temperature group
@@ -1311,7 +1308,7 @@ int FixRigid::dof(int tgroup)
 
   int n = 0;
   nlinear = 0;
-  if (dimension == 3) {
+  if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nbody; ibody++)
       if (nall[ibody]+mall[ibody] == nrigid[ibody]) {
         n += 3*nall[ibody] + 6*mall[ibody] - 6;
@@ -1321,7 +1318,7 @@ int FixRigid::dof(int tgroup)
           nlinear++;
         }
       }
-  } else if (dimension == 2) {
+  } else if (domain->dimension == 2) {
     for (int ibody = 0; ibody < nbody; ibody++)
       if (nall[ibody]+mall[ibody] == nrigid[ibody])
         n += 2*nall[ibody] + 3*mall[ibody] - 3;
@@ -1422,7 +1419,7 @@ void FixRigid::set_xv()
     v[i][1] = omega[ibody][2]*x[i][0] - omega[ibody][0]*x[i][2] + vcm[ibody][1];
     v[i][2] = omega[ibody][0]*x[i][1] - omega[ibody][1]*x[i][0] + vcm[ibody][2];
 
-    if (dimension == 2) {
+    if (domain->dimension == 2) {
       x[i][2] = 0.0;
       v[i][2] = 0.0;
     }
@@ -1585,7 +1582,7 @@ void FixRigid::set_v()
     v[i][1] = omega[ibody][2]*delta[0] - omega[ibody][0]*delta[2] + vcm[ibody][1];
     v[i][2] = omega[ibody][0]*delta[1] - omega[ibody][1]*delta[0] + vcm[ibody][2];
 
-    if (dimension == 2) v[i][2] = 0.0;
+    if (domain->dimension == 2) v[i][2] = 0.0;
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
@@ -1798,8 +1795,7 @@ void FixRigid::setup_bodies_static()
 
     if ((xbox && !periodicity[0]) || (ybox && !periodicity[1]) ||
         (zbox && !periodicity[2]))
-      error->one(FLERR,"Fix rigid atom has non-zero image flag "
-                 "in a non-periodic dimension");
+      error->one(FLERR,"Fix rigid atom has non-zero image flag in a non-periodic dimension");
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -2307,7 +2303,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
   char line[MAXLINE];
 
   // open file and read and parse first non-empty, non-comment line containing the number of bodies
-  if (me == 0) {
+  if (comm->me == 0) {
     fp = fopen(inpfile,"r");
     if (fp == nullptr)
       error->one(FLERR,"Cannot open fix rigid infile {}: {}", inpfile, utils::getsyserror());
@@ -2332,6 +2328,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
 
   auto buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
+  int me = comm->me;
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
@@ -2406,7 +2403,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
     nread += nchunk;
   }
 
-  if (me == 0) fclose(fp);
+  if (comm->me == 0) fclose(fp);
   delete[] buffer;
 }
 

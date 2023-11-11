@@ -232,26 +232,26 @@ void FixRigidNHSmall::init()
 
   int icompute;
   if (tcomputeflag) {
-    icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
       error->all(FLERR,"Temperature ID {} for fix {} does not exist", id_temp, style);
-    temperature = modify->compute[icompute];
   }
 
   if (pstat_flag) {
     if (domain->triclinic)
-      error->all(FLERR,"Fix rigid npt/nph does not yet allow triclinic box");
+      error->all(FLERR,"Fix {} does not yet allow triclinic box", style);
 
     // ensure no conflict with fix deform
 
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
+    for (auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto deform = dynamic_cast<FixDeform *>(ifix);
+      if (deform) {
+        int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
-          error->all(FLERR, "Cannot use fix {} and fix deform on the same stress tensor component",
-                     style);
+          error->all(FLERR,"Cannot use fix {} and fix deform on same component of stress tensor", style);
       }
+    }
 
     // set frequency
 
@@ -270,10 +270,8 @@ void FixRigidNHSmall::init()
 
     // set pressure compute ptr
 
-    icompute = modify->find_compute(id_press);
-    if (icompute < 0)
-      error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
 
     // detect if any rigid fixes exist so rigid bodies move on remap
     // rfix[] = indices to each fix rigid
@@ -833,7 +831,7 @@ void FixRigidNHSmall::nhc_press_integrate()
   double lkt_press = kt;
 
   // update thermostat masses
-  
+
   int dimension = domain->dimension;
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
@@ -1311,9 +1309,9 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      auto icompute = modify->get_compute_by_id(id_press);
-      if (!icompute) error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
-      icompute->reset_extra_compute_fix(id_temp);
+      pressure = modify->get_compute_by_id(id_press);
+      if (!pressure) error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
+      pressure->reset_extra_compute_fix(id_temp);
     }
 
     return 2;

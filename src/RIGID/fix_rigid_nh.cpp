@@ -175,13 +175,13 @@ FixRigidNH::~FixRigidNH()
   delete[] rfix;
 
   if (tcomputeflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   // delete pressure if fix created it
 
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
-    delete [] id_press;
+    delete[] id_press;
   }
 }
 
@@ -255,28 +255,27 @@ void FixRigidNH::init()
     }
   }
 
-  int icompute;
   if (tcomputeflag) {
-    icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Temperature ID for fix rigid nvt/npt/nph does not exist");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR,"Temperature ID {} for fix {} does not exist", id_temp, style);
   }
 
   if (pstat_flag) {
     if (domain->triclinic)
-      error->all(FLERR,"Fix rigid npt/nph does not yet allow triclinic box");
+      error->all(FLERR,"Fix {} does not yet allow triclinic box", style);
 
     // ensure no conflict with fix deform
 
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
+    for (auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto deform = dynamic_cast<FixDeform *>(ifix);
+      if (deform) {
+        int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
-          error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
-                     "same component of stress tensor");
+          error->all(FLERR,"Cannot use fix {} and fix deform on same component of stress tensor", style);
       }
+    }
 
     // set frequency
 
@@ -295,10 +294,8 @@ void FixRigidNH::init()
 
     // set pressure compute ptr
 
-    icompute = modify->find_compute(id_press);
-    if (icompute < 0)
-      error->all(FLERR,"Pressure ID for fix rigid npt/nph does not exist");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
 
     // detect if any rigid fixes exist so rigid bodies move on remap
     // rfix[] = indices to each fix rigid
@@ -1209,13 +1206,11 @@ int FixRigidNH::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tcomputeflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temperature ID {}", id_temp);
 
     if (temperature->tempflag == 0)
       error->all(FLERR,
@@ -1226,10 +1221,9 @@ int FixRigidNH::modify_param(int narg, char **arg)
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      icompute = modify->find_compute(id_press);
-      if (icompute < 0)
-        error->all(FLERR,"Pressure ID for fix modify does not exist");
-      modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+      pressure = modify->get_compute_by_id(id_press);
+      if (!pressure) error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
+      pressure->reset_extra_compute_fix(id_temp);
     }
 
     return 2;
@@ -1241,15 +1235,13 @@ int FixRigidNH::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pcomputeflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
-
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure ID {}", id_press);
 
     if (pressure->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify pressure ID {} does not compute pressure", id_press);
     return 2;
   }
 
@@ -1301,21 +1293,21 @@ void FixRigidNH::allocate_order()
 void FixRigidNH::deallocate_chain()
 {
   if (tstat_flag) {
-    delete [] q_t;
-    delete [] q_r;
-    delete [] eta_t;
-    delete [] eta_r;
-    delete [] eta_dot_t;
-    delete [] eta_dot_r;
-    delete [] f_eta_t;
-    delete [] f_eta_r;
+    delete[] q_t;
+    delete[] q_r;
+    delete[] eta_t;
+    delete[] eta_r;
+    delete[] eta_dot_t;
+    delete[] eta_dot_r;
+    delete[] f_eta_t;
+    delete[] f_eta_r;
   }
 
   if (pstat_flag) {
-    delete [] q_b;
-    delete [] eta_b;
-    delete [] eta_dot_b;
-    delete [] f_eta_b;
+    delete[] q_b;
+    delete[] eta_b;
+    delete[] eta_dot_b;
+    delete[] f_eta_b;
   }
 }
 
@@ -1323,8 +1315,8 @@ void FixRigidNH::deallocate_chain()
 
 void FixRigidNH::deallocate_order()
 {
-  delete [] w;
-  delete [] wdti1;
-  delete [] wdti2;
-  delete [] wdti4;
+  delete[] w;
+  delete[] wdti1;
+  delete[] wdti2;
+  delete[] wdti4;
 }

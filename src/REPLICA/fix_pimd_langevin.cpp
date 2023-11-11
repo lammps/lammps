@@ -598,11 +598,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     error->universe_all(FLERR, "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab integrators are supported!");
   }
   collect_xc();
-  if (method == PIMD) {
-    inter_replica_comm(x);
-    spring_force();
-    compute_spring_energy();
-  }
+
   if (method == NMPIMD) {
     compute_spring_energy();
     compute_t_prim();
@@ -675,6 +671,18 @@ void FixPIMDLangevin::post_force(int /*flag*/)
   compute_vir();
   compute_cvir();
   compute_t_vir();
+  }
+
+  if (method == PIMD) {
+    if (mapflag) {
+      for (int i = 0; i < nlocal; i++) { domain->unmap(x[i], image[i]); }
+    }
+    inter_replica_comm(x);
+    spring_force();
+    compute_spring_energy();
+    if (mapflag) {
+      for (int i = 0; i < nlocal; i++) { domain->unmap_inv(x[i], image[i]); }
+    }
   }
   compute_pote();
   if (method == NMPIMD) {
@@ -1165,7 +1173,10 @@ void FixPIMDLangevin::spring_force()
   int nlocal = atom->nlocal;
   tagint* tagtmp = atom->tag;
 
+  // printf("iworld = %d, x_last = %d, x_next = %d\n", universe->iworld, x_last, x_next);
   int *mask = atom->mask;
+
+  // int idx_tmp = atom->map(1);
   
   for (int i=0; i<nlocal; i++)
   {
@@ -1179,14 +1190,15 @@ void FixPIMDLangevin::spring_force()
         double delz2 = bufsortedall[x_next * nlocal + tagtmp[i]-1][2] - x[i][2];
     
         double ff = fbond * _mass[type[i]];
+        // double ff = 0;
     
         double dx = delx1+delx2;
         double dy = dely1+dely2;
         double dz = delz1+delz2;
    
-        f[i][0] -= (dx) * ff;
-        f[i][1] -= (dy) * ff;
-        f[i][2] -= (dz) * ff;
+        f[i][0] += (dx) * ff;
+        f[i][1] += (dy) * ff;
+        f[i][2] += (dz) * ff;
 
         spring_energy += 0.5 * ff * (delx2*delx2+dely2*dely2+delz2*delz2);
     }

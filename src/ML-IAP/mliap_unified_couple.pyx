@@ -114,11 +114,11 @@ cdef class MLIAPDataPy:
 
     def __cinit__(self):
         self.data = NULL
- 
+
     def update_pair_energy(self, eij):
         cdef double[:] eij_arr = eij
         update_pair_energy(self.data, &eij_arr[0])
-    
+
     def update_pair_forces(self, fij):
         cdef double[:, ::1] fij_arr = fij
         update_pair_forces(self.data, &fij_arr[0][0])
@@ -128,11 +128,11 @@ cdef class MLIAPDataPy:
         if self.data.f is NULL:
             return None
         return np.asarray(<double[:self.ntotal, :3]> &self.data.f[0][0])
-    
+
     @property
     def size_gradforce(self):
         return self.data.size_gradforce
- 
+
     @write_only_property
     def gradforce(self, value):
         if self.data.gradforce is NULL:
@@ -140,7 +140,7 @@ cdef class MLIAPDataPy:
         cdef double[:, :] gradforce_view = <double[:self.ntotal, :self.size_gradforce]> &self.data.gradforce[0][0]
         cdef double[:, :] value_view = value
         gradforce_view[:] = value_view
- 
+
     @write_only_property
     def betas(self, value):
         if self.data.betas is NULL:
@@ -217,7 +217,7 @@ cdef class MLIAPDataPy:
     @property
     def ntotal(self):
         return self.data.ntotal
-    
+
     @property
     def elems(self):
         if self.data.elems is NULL:
@@ -231,7 +231,7 @@ cdef class MLIAPDataPy:
     @property
     def nlocal(self):
         return self.data.nlocal
-    
+
     @property
     def natomneigh(self):
         return self.data.natomneigh
@@ -247,13 +247,13 @@ cdef class MLIAPDataPy:
         if self.data.iatoms is NULL:
             return None
         return np.asarray(<int[:self.natomneigh]> &self.data.iatoms[0])
-    
+
     @property
     def ielems(self):
         if self.data.ielems is NULL:
             return None
         return np.asarray(<int[:self.natomneigh]> &self.data.ielems[0])
-    
+
     @property
     def npairs(self):
         return self.data.npairs
@@ -263,7 +263,7 @@ cdef class MLIAPDataPy:
         if self.data.pair_i is NULL:
             return None
         return np.asarray(<int[:self.npairs]> &self.data.pair_i[0])
-    
+
     @property
     def pair_j(self):
         return self.jatoms
@@ -273,7 +273,7 @@ cdef class MLIAPDataPy:
         if self.data.jatoms is NULL:
             return None
         return np.asarray(<int[:self.npairs]> &self.data.jatoms[0])
-    
+
     @property
     def jelems(self):
         if self.data.jelems is NULL:
@@ -323,13 +323,13 @@ cdef class MLIAPUnifiedInterface:
         self.model = NULL
         self.descriptor = NULL
         self.unified_impl = unified_impl
-    
+
     def compute_gradients(self, data):
         self.unified_impl.compute_gradients(data)
-    
+
     def compute_descriptors(self, data):
         self.unified_impl.compute_descriptors(data)
-    
+
     def compute_forces(self, data):
         self.unified_impl.compute_forces(data)
 
@@ -384,7 +384,7 @@ cdef public object mliap_unified_connect(char *fname, MLIAPDummyModel * model,
 
     if unified.element_types is None:
         raise ValueError("no element type set")
-    
+
     cdef int nelements = <int>len(unified.element_types)
     cdef char **elements = <char**>malloc(nelements * sizeof(char*))
 

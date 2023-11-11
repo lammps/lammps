@@ -159,17 +159,20 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-# set path to python interpreter and thus enforcing python version when
-# in a virtual environment and PYTHON_EXECUTABLE is not set on command line
-if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
-  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
-  else()
-    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
-  endif()
+# backward compatibility with CMake before 3.12 and older LAMMPS documentation
+if (PYTHON_EXECUTABLE)
   set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
+endif()
+# set path to python interpreter and thus enforcing python version when
+# in a virtual environment and Python_EXECUTABLE is not set on command line
+if(DEFINED ENV{VIRTUAL_ENV} AND NOT Python_EXECUTABLE)
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
+  else()
+    set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
+  endif()
   message(STATUS "Running in virtual environment: $ENV{VIRTUAL_ENV}\n"
-    "   Setting Python interpreter to: ${PYTHON_EXECUTABLE}")
+    "   Setting Python interpreter to: ${Python_EXECUTABLE}")
 endif()
 
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary (WON'T enable any features automatically")
@@ -794,9 +797,6 @@ install(
 ###############################################################################
 if(BUILD_SHARED_LIBS)
   # backward compatibility
-  if(PYTHON_EXECUTABLE)
-    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-  endif()
   find_package(Python COMPONENTS Interpreter)
   if(BUILD_IS_MULTI_CONFIG)
     set(MY_BUILD_DIR ${CMAKE_BINARY_DIR}/$<CONFIG>)

@@ -101,13 +101,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
       int set_flag = 0;
       char *str;
-      if (str = getenv("SLURM_LOCALID")) {
+      if ((str = getenv("SLURM_LOCALID"))) {
         int local_rank = atoi(str);
         device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
         set_flag = 1;
       }
-      if (str = getenv("FLUX_TASK_LOCAL_ID")) {
+      if ((str = getenv("FLUX_TASK_LOCAL_ID"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -115,7 +115,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("MPT_LRANK")) {
+      if ((str = getenv("MPT_LRANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -123,7 +123,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("MV2_COMM_WORLD_LOCAL_RANK")) {
+      if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -131,7 +131,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("OMPI_COMM_WORLD_LOCAL_RANK")) {
+      if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -139,7 +139,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("PMI_LOCAL_RANK")) {
+      if ((str = getenv("PMI_LOCAL_RANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;

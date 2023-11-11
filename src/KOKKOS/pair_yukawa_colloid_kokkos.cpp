@@ -255,7 +255,6 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
                                      : params(itype,jtype).offset;
 
   // U   = a * exp(-kappa*(r-(radi+radj))) / kappa
-  const F_FLOAT rinv = 1.0 / rr;
   const F_FLOAT screening = exp(-kappa*(rr-(radi+radj)));
 
   return aa / kappa * screening - offset;

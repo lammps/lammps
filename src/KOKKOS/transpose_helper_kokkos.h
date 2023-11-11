@@ -33,8 +33,8 @@ struct TransposeHelperKokkos {
   using t_view_src = t_view_src_;
 
   static_assert(std::is_same_v<typename t_view_dst::value_type, typename t_view_src::value_type>, "Value types do not match");
-  static_assert(t_view_dst::Rank == 2, "Destination view rank != 2");
-  static_assert(t_view_src::Rank == 2, "Source view rank != 2");
+  static_assert(t_view_dst::rank == 2, "Destination view rank != 2");
+  static_assert(t_view_src::rank == 2, "Source view rank != 2");
 
   using dst_layout = typename t_view_dst::traits::array_layout;
   using src_layout = typename t_view_src::traits::array_layout;

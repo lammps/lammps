@@ -30,11 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-// also in read_dump.cpp
-
-enum { ID, TYPE, X, Y, Z, VX, VY, VZ, Q, IX, IY, IZ, FX, FY, FZ };
-enum { UNSET, NOSCALE_NOWRAP, NOSCALE_WRAP, SCALE_NOWRAP, SCALE_WRAP };
-
 #define SMALL 1.0e-6
 
 namespace LAMMPS_NS {

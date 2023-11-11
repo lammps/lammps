@@ -702,6 +702,13 @@ void lammps_commands_string(void *handle, const char *str)
             continue;
           }
         }
+        // stop processing when quit command is found
+        if (words.size() && (words[0] == "quit")) {
+          if (lmp->comm->me == 0)
+            utils::logmesg(lmp, "Encountered a 'quit' command. Stopping ...\n");
+          break;
+        }
+
         lmp->input->one(cmd.c_str());
       }
     }
@@ -858,14 +865,17 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
 {
   auto lmp = (LAMMPS *) handle;
   void *val = nullptr;
+
+  if (!lmp->output) return val;
   Thermo *th = lmp->output->thermo;
-  if (!th) return nullptr;
+  if (!th) return val;
   const int nfield = *th->get_nfield();
 
   BEGIN_CAPTURE
   {
     if (strcmp(what, "setup") == 0) {
-      val = (void *) &lmp->update->setupflag;
+      if (lmp->update)
+        val = (void *) &lmp->update->setupflag;
 
     } else if (strcmp(what, "line") == 0) {
       val = (void *) th->get_line();

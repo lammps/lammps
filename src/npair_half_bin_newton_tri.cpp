@@ -13,13 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_bin_newton_tri.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "domain.h"
-#include "my_page.h"
 #include "error.h"
+#include "force.h"
+#include "molecule.h"
+#include "my_page.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,9 +38,11 @@ NPairHalfBinNewtonTri::NPairHalfBinNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 void NPairHalfBinNewtonTri::build(NeighList *list)
 {
   int i,j,k,n,itype,jtype,ibin,which,imol,iatom,moltemplate;
-  tagint tagprev;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
+
+  const double delta = 0.01 * force->angstrom;
 
   double **x = atom->x;
   int *type = atom->type;
@@ -68,6 +72,7 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     n = 0;
     neighptr = ipage->vget();
 
+    itag = tag[i];
     itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -79,20 +84,31 @@ void NPairHalfBinNewtonTri::build(NeighList *list)
     }
 
     // loop over all atoms in bins in stencil
-    // pairs for atoms j "below" i are excluded
-    // below = lower z or (equal z and lower y) or (equal zy and lower x)
-    //         (equal zyx and j <= i)
-    // latter excludes self-self interaction but allows superposed atoms
+    // for triclinic, bin stencil is full in all 3 dims
+    // must use itag/jtag to eliminate half the I/J interactions
+    // cannot use I/J exact coord comparision
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     ibin = atom2bin[i];
     for (k = 0; k < nstencil; k++) {
       for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
-        if (x[j][2] < ztmp) continue;
-        if (x[j][2] == ztmp) {
-          if (x[j][1] < ytmp) continue;
-          if (x[j][1] == ytmp) {
-            if (x[j][0] < xtmp) continue;
-            if (x[j][0] == xtmp && j <= i) continue;
+
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          jtag = tag[j];
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (fabs(x[j][2]-ztmp) > delta) {
+              if (x[j][2] < ztmp) continue;
+            } else if (fabs(x[j][1]-ytmp) > delta) {
+              if (x[j][1] < ytmp) continue;
+            } else {
+              if (x[j][0] < xtmp) continue;
+            }
           }
         }
 

@@ -196,6 +196,8 @@ compute_cluster_atom.html compute fragment/atom
 compute_cna_atom.html compute cna/atom
 compute_cnp_atom.html compute cnp/atom
 compute_com_chunk.html compute com/chunk
+compute_composition_atom.html compute composition/atom
+compute_composition_atom.html compute composition/atom/kk
 compute_com.html compute com
 compute_contact_atom.html compute contact/atom
 compute_coord_atom.html compute coord/atom
@@ -242,8 +244,6 @@ compute_ke_atom.html compute ke/atom
 compute_ke_eff.html compute ke/eff
 compute_ke_rigid.html compute ke/rigid
 compute_ke.html compute ke
-compute_local_comp_atom.html compute local/comp/atom
-compute_local_comp_atom.html compute local/comp/atom/kk
 compute_mliap.html compute mliap
 compute_modify.html compute_modify
 compute_momentum.html compute momentum
@@ -409,15 +409,12 @@ dump_netcdf.html dump netcdf/mpiio
 dump.html dump
 dump.html dump atom
 dump.html dump atom/gz
-dump.html dump atom/mpiio
 dump.html dump atom/zstd
 dump.html dump cfg
 dump.html dump cfg/gz
-dump.html dump cfg/mpiio
 dump.html dump cfg/zstd
 dump.html dump custom
 dump.html dump custom/gz
-dump.html dump custom/mpiio
 dump.html dump custom/zstd
 dump.html dump dcd
 dump.html dump grid
@@ -428,7 +425,6 @@ dump.html dump local/zstd
 dump.html dump xtc
 dump.html dump xyz
 dump.html dump xyz/gz
-dump.html dump xyz/mpiio
 dump.html dump xyz/zstd
 dump.html dump yaml
 dump_vtk.html dump vtk

@@ -14,13 +14,25 @@
 #include "lammpsgui.h"
 
 #include <QApplication>
+#include <QFileInfo>
+
+#include <cstdio>
+#include <cstring>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
     const char *infile = nullptr;
-    if (argc > 1) infile = argv[1];
+    if (argc > 1) {
+        infile = argv[1];
+        if ((strcmp(infile, "-help") == 0) || (strcmp(infile, "-h") == 0)) {
+            printf("This is LAMMPS-GUI version " LAMMPS_GUI_VERSION
+                   " using Qt version " QT_VERSION_STR "\n");
+            printf("Usage: %s [-h|-help|<inputfile>]\n", argv[0]);
+            return 1;
+        }
+    }
 
     LammpsGui w(nullptr, infile);
     w.show();

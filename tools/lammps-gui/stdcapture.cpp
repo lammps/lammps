@@ -77,6 +77,7 @@ bool StdCapture::EndCapture()
 
     int bytesRead;
     bool fd_blocked;
+    int maxwait = 100;
 
     do {
         bytesRead  = 0;
@@ -93,9 +94,10 @@ bool StdCapture::EndCapture()
             buf[bytesRead] = 0;
             m_captured += buf;
         } else if (bytesRead < 0) {
-            fd_blocked = ((errno == EAGAIN) || (errno == EWOULDBLOCK) || (errno == EINTR));
+            fd_blocked = ((errno == EAGAIN) || (errno == EWOULDBLOCK) || (errno == EINTR)) && (maxwait > 0);
 
             if (fd_blocked) std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            --maxwait;
         }
     } while (fd_blocked || (bytesRead == (bufSize - 1)));
     m_capturing = false;

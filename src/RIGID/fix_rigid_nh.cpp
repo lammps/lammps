@@ -45,12 +45,11 @@ using namespace RigidConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg), conjqm(nullptr), w(nullptr),
-  wdti1(nullptr), wdti2(nullptr), wdti4(nullptr), q_t(nullptr), q_r(nullptr),
-  eta_t(nullptr), eta_r(nullptr), eta_dot_t(nullptr), eta_dot_r(nullptr),
-  f_eta_t(nullptr), f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr),
-  eta_dot_b(nullptr), f_eta_b(nullptr), rfix(nullptr), id_temp(nullptr),
-  id_press(nullptr), temperature(nullptr), pressure(nullptr)
+    FixRigid(lmp, narg, arg), conjqm(nullptr), w(nullptr), wdti1(nullptr), wdti2(nullptr),
+    wdti4(nullptr), q_t(nullptr), q_r(nullptr), eta_t(nullptr), eta_r(nullptr), eta_dot_t(nullptr),
+    eta_dot_r(nullptr), f_eta_t(nullptr), f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr),
+    eta_dot_b(nullptr), f_eta_b(nullptr), id_temp(nullptr), id_press(nullptr),
+    temperature(nullptr), pressure(nullptr)
 {
   if (tstat_flag || pstat_flag) ecouple_flag = 1;
 
@@ -59,57 +58,54 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
   if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||
       (p_flag[1] == 1 && p_period[1] <= 0.0) ||
       (p_flag[2] == 1 && p_period[2] <= 0.0))
-    error->all(FLERR,"Fix rigid npt/nph period must be > 0.0");
+    error->all(FLERR,"Fix {} period must be > 0.0", style);
 
   if (domain->dimension == 2 && p_flag[2])
-    error->all(FLERR,"Invalid fix rigid npt/nph command for a 2d simulation");
+    error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
   if (domain->dimension == 2 && (pcouple == YZ || pcouple == XZ))
-    error->all(FLERR,"Invalid fix rigid npt/nph command for a 2d simulation");
+    error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XYZ && domain->dimension == 3 && p_flag[2] == 0)
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
 
   // require periodicity in tensile dimension
 
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid npt/nph on a non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid npt/nph on a non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid npt/nph on a non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
 
   if (pcouple == XYZ && domain->dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XYZ && domain->dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XY &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == YZ &&
       (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
        p_period[1] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XZ &&
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
 
   if (p_flag[0]) box_change |= BOX_CHANGE_X;
   if (p_flag[1]) box_change |= BOX_CHANGE_Y;
@@ -119,7 +115,7 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||
       (p_flag[2] && p_period[2] <= 0.0))
-    error->all(FLERR,"Fix rigid nvt/npt/nph damping parameters must be > 0.0");
+    error->all(FLERR,"Fix {} damping parameters must be > 0.0", style);
 
   // memory allocation and initialization
 
@@ -147,11 +143,6 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
       eta_b[i] = eta_dot_b[i] = 0.0;
   }
 
-  // rigid body pointers
-
-  nrigidfix = 0;
-  rfix = nullptr;
-
   vol0 = 0.0;
   t0 = 1.0;
 
@@ -171,8 +162,6 @@ FixRigidNH::~FixRigidNH()
     deallocate_chain();
     deallocate_order();
   }
-
-  delete[] rfix;
 
   if (tcomputeflag) modify->delete_compute(id_temp);
   delete[] id_temp;
@@ -205,7 +194,7 @@ void FixRigidNH::init()
   if (allremap == 0) {
     int idilate = group->find(id_dilate);
     if (idilate == -1)
-      error->all(FLERR,"Fix rigid npt/nph dilate group ID does not exist");
+      error->all(FLERR,"Fix {} dilate group ID does not exist", style);
     dilate_group_bit = group->bitmask[idilate];
   }
 
@@ -298,21 +287,11 @@ void FixRigidNH::init()
     if (!pressure) error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
 
     // detect if any rigid fixes exist so rigid bodies move on remap
-    // rfix[] = indices to each fix rigid
     // this will include self
 
-    delete[] rfix;
-    nrigidfix = 0;
-    rfix = nullptr;
-
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) nrigidfix++;
-    if (nrigidfix) {
-      rfix = new int[nrigidfix];
-      nrigidfix = 0;
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->rigid_flag) rfix[nrigidfix++] = i;
-    }
+    rfix.clear();
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->rigid_flag) rfix.push_back(ifix);
   }
 }
 
@@ -996,9 +975,7 @@ void FixRigidNH::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigidfix)
-    for (i = 0; i < nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -1025,9 +1002,7 @@ void FixRigidNH::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigidfix)
-    for (i = 0; i< nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ----------------------------------------------------------------------

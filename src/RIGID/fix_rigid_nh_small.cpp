@@ -46,12 +46,11 @@ using namespace RigidConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg), w(nullptr), wdti1(nullptr),
-  wdti2(nullptr), wdti4(nullptr), q_t(nullptr), q_r(nullptr), eta_t(nullptr),
-  eta_r(nullptr), eta_dot_t(nullptr), eta_dot_r(nullptr), f_eta_t(nullptr),
-  f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr), eta_dot_b(nullptr),
-  f_eta_b(nullptr), rfix(nullptr), id_temp(nullptr), id_press(nullptr),
-  temperature(nullptr), pressure(nullptr)
+    FixRigidSmall(lmp, narg, arg), w(nullptr), wdti1(nullptr), wdti2(nullptr), wdti4(nullptr),
+    q_t(nullptr), q_r(nullptr), eta_t(nullptr), eta_r(nullptr), eta_dot_t(nullptr),
+    eta_dot_r(nullptr), f_eta_t(nullptr), f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr),
+    eta_dot_b(nullptr), f_eta_b(nullptr), id_temp(nullptr), id_press(nullptr),
+    temperature(nullptr), pressure(nullptr)
 {
   if (tstat_flag || pstat_flag) ecouple_flag = 1;
 
@@ -139,19 +138,11 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       eta_b[i] = eta_dot_b[i] = 0.0;
   }
 
-  // rigid body pointers
-
-  nrigidfix = 0;
-  rfix = nullptr;
-
   vol0 = 0.0;
   t0 = 1.0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-
-  id_temp = nullptr;
-  id_press = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,16 +154,14 @@ FixRigidNHSmall::~FixRigidNHSmall()
     deallocate_order();
   }
 
-  delete[] rfix;
-
   if (tcomputeflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   // delete pressure if fix created it
 
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
-    delete [] id_press;
+    delete[] id_press;
   }
 }
 
@@ -274,21 +263,11 @@ void FixRigidNHSmall::init()
     if (!pressure) error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
 
     // detect if any rigid fixes exist so rigid bodies move on remap
-    // rfix[] = indices to each fix rigid
     // this will include self
 
-    delete[] rfix;
-    nrigidfix = 0;
-    rfix = nullptr;
-
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) nrigidfix++;
-    if (nrigidfix) {
-      rfix = new int[nrigidfix];
-      nrigidfix = 0;
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->rigid_flag) rfix[nrigidfix++] = i;
-    }
+    rfix.clear();
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->rigid_flag) rfix.push_back(ifix);
   }
 }
 
@@ -1058,9 +1037,7 @@ void FixRigidNHSmall::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigidfix)
-    for (i = 0; i < nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -1087,9 +1064,7 @@ void FixRigidNHSmall::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigidfix)
-    for (i = 0; i< nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1382,21 +1357,21 @@ void FixRigidNHSmall::allocate_order()
 void FixRigidNHSmall::deallocate_chain()
 {
   if (tstat_flag) {
-    delete [] q_t;
-    delete [] q_r;
-    delete [] eta_t;
-    delete [] eta_r;
-    delete [] eta_dot_t;
-    delete [] eta_dot_r;
-    delete [] f_eta_t;
-    delete [] f_eta_r;
+    delete[] q_t;
+    delete[] q_r;
+    delete[] eta_t;
+    delete[] eta_r;
+    delete[] eta_dot_t;
+    delete[] eta_dot_r;
+    delete[] f_eta_t;
+    delete[] f_eta_r;
   }
 
   if (pstat_flag) {
-    delete [] q_b;
-    delete [] eta_b;
-    delete [] eta_dot_b;
-    delete [] f_eta_b;
+    delete[] q_b;
+    delete[] eta_b;
+    delete[] eta_dot_b;
+    delete[] f_eta_b;
   }
 }
 
@@ -1404,8 +1379,8 @@ void FixRigidNHSmall::deallocate_chain()
 
 void FixRigidNHSmall::deallocate_order()
 {
-  delete [] w;
-  delete [] wdti1;
-  delete [] wdti2;
-  delete [] wdti4;
+  delete[] w;
+  delete[] wdti1;
+  delete[] wdti2;
+  delete[] wdti4;
 }

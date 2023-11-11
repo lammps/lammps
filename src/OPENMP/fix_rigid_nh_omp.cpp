@@ -585,9 +585,7 @@ void FixRigidNHOMP::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (int i = 0; i < nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -617,9 +615,7 @@ void FixRigidNHOMP::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (int i = 0; i< nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ----------------------------------------------------------------------

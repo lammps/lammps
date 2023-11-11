@@ -167,16 +167,16 @@ void Info::command(int narg, char **arg)
       if ((out != screen) && (out != logfile)) fclose(out);
       out = fopen(arg[idx+2],"w");
       idx += 3;
-    } else if (strncmp(arg[idx],"communication",5) == 0) {
+    } else if (strncmp(arg[idx],"communication",4) == 0) {
       flags |= COMM;
       ++idx;
-    } else if (strncmp(arg[idx],"computes",5) == 0) {
+    } else if (strncmp(arg[idx],"computes",4) == 0) {
       flags |= COMPUTES;
       ++idx;
-    } else if (strncmp(arg[idx],"dumps",5) == 0) {
+    } else if (strncmp(arg[idx],"dumps",3) == 0) {
       flags |= DUMPS;
       ++idx;
-    } else if (strncmp(arg[idx],"fixes",5) == 0) {
+    } else if (strncmp(arg[idx],"fixes",3) == 0) {
       flags |= FIXES;
       ++idx;
     } else if (strncmp(arg[idx],"groups",3) == 0) {

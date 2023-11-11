@@ -31,7 +31,7 @@ Syntax
 
   .. parsed-literal::
        *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj*
-       *method* value = *nmpimd*
+       *method* value = *nmpimd* (default) or *pimd*
        *integrator* value = *obabo* or *baoab*
        *fmmode* value = *physical* or *normal*
        *fmass* value = scaling factor on mass
@@ -137,9 +137,6 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    the real particle.
 
 .. note::
-   Fix pimd/langevin only supports *method* value *nmpimd*. This should be enough
-   for most PIMD applications for quantum thermodynamics purpose.
-
    Motion of the centroid can be effectively uncoupled from the other
    normal modes by scaling the fictitious masses to achieve a partial
    adiabatic separation.  This is called a Centroid Molecular Dynamics
@@ -150,6 +147,10 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    The CMD method also uses normal modes to evolve the system, except
    only the k > 0 modes are thermostatted, not the centroid degrees of
    freedom.
+
+Fix pimd/langevin supports *method* value *nmpimd* and *pimd*. The default value is *nmpimd*.
+If *method* is *nmpimd*, the normal mode representation is used to integrate the equations of motion. The exact solution of harmonic oscillator is used to propagate the free ring polymer part of the Hamiltonian.
+If *method* is *pimd*, the Cartesian representation is used to integrate the equations of motion. The harmonic force is added to the total force of the system, and the numerical integrator is used to propagate the Hamiltonian.
 
 The keyword *integrator* specifies the Trotter splitting method used by *fix pimd/langevin*.
 See :ref:`(Liu) <Liu>` for a discussion on the OBABO and BAOAB splitting schemes. Typically

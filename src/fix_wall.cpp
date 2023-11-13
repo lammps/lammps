@@ -344,7 +344,7 @@ void FixWall::post_force(int vflag)
   v_init(vflag);
 
   // energy intialize.
-  // eflag is used to track whether wall energies have been communitcated.
+  // eflag is used to track whether wall energies have been communicated.
 
   eflag = 0;
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;

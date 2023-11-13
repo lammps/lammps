@@ -81,6 +81,10 @@ private slots:
     void reformatCurrentLine();
     void runCompletion();
     void insertCompletedCommand(const QString &completion);
+    void comment_selection();
+    void uncomment_selection();
+    void comment_line();
+    void uncomment_line();
 
 private:
     QWidget *lineNumberArea;

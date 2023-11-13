@@ -29,6 +29,7 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr int MAXLOOP = 100;
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -99,6 +100,11 @@ void ComputeClusterAtom::compute_peratom()
     vector_atom = clusterID;
   }
 
+  // communicate coords for ghost atoms if box can change, e.g. fix deform
+  // this ensures ghost atom coords are current
+
+  comm->forward_comm();
+
   // invoke full neighbor list (will copy or build if necessary)
   // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
@@ -136,9 +142,11 @@ void ComputeClusterAtom::compute_peratom()
 
   int change, done, anychange;
 
-  while (true) {
+  int counter = 0;
+  // stop after MAXLOOP iterations
+  while (counter < MAXLOOP) {
     comm->forward_comm(this);
-
+    ++counter;
     change = 0;
     while (true) {
       done = 1;
@@ -177,6 +185,8 @@ void ComputeClusterAtom::compute_peratom()
     MPI_Allreduce(&change, &anychange, 1, MPI_INT, MPI_MAX, world);
     if (!anychange) break;
   }
+  if ((comm->me == 0) && (counter >= MAXLOOP))
+    error->warning(FLERR, "Compute cluster/atom did not converge after {} iterations", MAXLOOP);
 }
 
 /* ---------------------------------------------------------------------- */

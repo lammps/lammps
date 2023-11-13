@@ -26,10 +26,11 @@ protected:
     void SetUp() override
     {
         const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite",
-                              "-var",        "x",    "2",    "-var",  "zpos",   "1.5"};
+                              "-var",        "x",    "2",    "-var",  "zpos",   "1.5",
+                              nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
         lmp                = lammps_open_no_mpi(argc, argv, nullptr);

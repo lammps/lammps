@@ -59,11 +59,11 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete lmp;
 }
 
-LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool newton = true)
+LAMMPS *init_lammps(LAMMPS::argv & args, const TestConfig &cfg, const bool newton = true)
 {
     LAMMPS *lmp;
 
-    lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    lmp = new LAMMPS(args, MPI_COMM_WORLD);
 
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
@@ -211,11 +211,9 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
-    const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
-    LAMMPS *lmp = init_lammps(argc, argv, config);
+    LAMMPS *lmp = init_lammps(args, config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -297,13 +295,10 @@ TEST(ImproperStyle, plain)
 {
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    LAMMPS *lmp = init_lammps(args, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -352,7 +347,7 @@ TEST(ImproperStyle, plain)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
+    lmp = init_lammps(args, test_config, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -418,14 +413,11 @@ TEST(ImproperStyle, omp)
     if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
-                          "-pk",           "omp",  "4",    "-sf",   "omp"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",           "omp",  "4",    "-sf",   "omp"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    LAMMPS *lmp = init_lammps(args, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -479,7 +471,7 @@ TEST(ImproperStyle, omp)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
+    lmp = init_lammps(args, test_config, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on

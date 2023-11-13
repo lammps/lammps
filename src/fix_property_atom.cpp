@@ -966,3 +966,5 @@ int FixPropertyAtom::get_index(int n) {
     error->all(FLERR, "Invalid fix property/atom index request");
   return index[n];
 }
+
+int FixPropertyAtom::get_border() { return border; }

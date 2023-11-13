@@ -56,6 +56,7 @@ class FixPropertyAtom : public Fix {
   int get_nvalue();    // utility getters to list
   int get_style(int);  // which variables are managed
   int get_index(int);  // by a fix property/atom
+  int get_border();    // and if it communicates to ghosts
 
  protected:
   int nvalue, border;

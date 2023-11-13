@@ -32,6 +32,7 @@ Original plan: using the LAMMPS Python module
 '''
 
 #from lammps import lammps
+import os
 import sys
 import re, yaml
 import subprocess
@@ -76,14 +77,14 @@ def processing_markers(inputFileName, outputFileName):
     of output and the inner list the values of the columns matching the header keywords for that step.
 '''
 def extract_thermo(yamlFileName):
-  docs = ""
+  docs = ""  
   with open(yamlFileName) as f:
-      for line in f:
-          m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
-          if m: docs += m.group(0) + '\n'
+    for line in f:
+        m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
+        if m: docs += m.group(0) + '\n'
+    thermo = list(yaml.load_all(docs, Loader=Loader))
+    return thermo
 
-  thermo = list(yaml.load_all(docs, Loader=Loader))
-  return thermo
 
 '''
   return the list of installed packages
@@ -119,42 +120,17 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
   output = p.stdout.split('\n')
 
 '''
-  TODO:
-    - process "lmp -h" to get the list of installed packages
-    - automate tagging the example input scripts of the installed packages
+  Iterate over a list of input files
 '''
-if __name__ == "__main__":
-
-  lmp_binary = ""
-  # if lmp binary is specified in the command line
-  if len(sys.argv) >= 2:
-    lmp_binary = sys.argv[1]
-
-  # list of input scripts with markers #REG:SUB and #REG:ADD
-  input_list=['in.lj', 'in.rhodo']
-
-  # read in the configuration of the tests
-  with open("config.yaml", 'r') as f:
-    config = yaml.load(f, Loader=Loader)
-    print(f"Configuration: {config}")
- 
-  # check if lmp_binary is specified in the config yaml
-  if lmp_binary == "":
-    if config['lmp_binary'] == "":
-       print("Needs a valid LAMMPS binary")
-       exit
-    else:
-       lmp_binary = config['lmp_binary']
-
-  packages = get_installed_packages(lmp_binary)
-  print(f"List of installed packages: {packages}")
-
+def iterate(input_list):
+  num_tests = len(input_list)
+  test_id = 0
   # iterative over the input scripts
   for input in input_list:
     input_test=input + '.test'
     processing_markers(input, input_test)
-    
-    str_t = "Running " + input_test
+
+    str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
     print(str_t)
     print(f"-"*len(str_t))
 
@@ -175,21 +151,59 @@ if __name__ == "__main__":
 
     print(f"Number of runs: {num_runs}")
 
-    # read in the thermo yaml output  
+    # read in the thermo yaml output
     thermo_ref_file = 'thermo.' + input + '.yaml'
-    thermo_ref = extract_thermo(thermo_ref_file)
+    file_exist = os.path.isfile(thermo_ref_file)
+    if file_exist == True:
+        thermo_ref = extract_thermo(thermo_ref_file)
+        # comparing output vs reference values
+        width = 20
+        print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Absolute Diff.".center(width))
+        irun = 0
+        num_fields = len(thermo[irun]['keywords'])
+        for i in range(num_fields):
+          val = thermo[irun]['data'][2][i]
+          ref = thermo_ref[0]['data'][2][i]
+          diff = abs(float(val) - float(ref))
+          print(f"{thermo[0]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {str(diff).rjust(20)}")
+        print("-"*(4*width+3))
+    else:
+      print(f"{thermo_ref_file} does not exist")
 
-    # comparing output vs reference values
-    width = 20
-    print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Diff.".center(width))
-    irun = 0
-    num_fields = len(thermo[irun]['keywords'])
-    for i in range(num_fields):
-       val = thermo[irun]['data'][2][i]
-       ref = thermo[0]['data'][2][i]
-       diff = float(val) - float(ref)
-       print(f"{thermo[0]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {str(diff).rjust(20)}")
-    print("-"*(4*width+3))
+    test_id = test_id + 1
 
+'''
+  TODO:
+    - automate tagging the example input scripts of the installed packages
+'''
+if __name__ == "__main__":
+
+  lmp_binary = ""
+  # if lmp binary is specified in the command line
+  if len(sys.argv) >= 2:
+    lmp_binary = sys.argv[1]
+
+  # read in the configuration of the tests
+  with open("config.yaml", 'r') as f:
+    config = yaml.load(f, Loader=Loader)
+    print(f"Using configuration (config.yaml): {config}")
+ 
+  # check if lmp_binary is specified in the config yaml
+  if lmp_binary == "":
+    if config['lmp_binary'] == "":
+       print("Needs a valid LAMMPS binary")
+       quit()
+    else:
+       lmp_binary = config['lmp_binary']
+
+  packages = get_installed_packages(lmp_binary)
+  print(f"List of installed packages: {packages}")
+
+  # list of input scripts with markers #REG:SUB and #REG:ADD
+  input_list=['in.lj', 'in.rhodo', 'in.eam']
+  iterate(input_list)
+
+
+  
 
 

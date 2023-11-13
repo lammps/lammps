@@ -138,6 +138,8 @@ class FixElectrodeConp : public Fix {
   int get_top_group();    // used by ffield
   int top_group;          // used by ffield
   bool tfflag;
+  int eta_index;    // index of atom property for eta
+  bool etaflag;     // eta specified as atom property
   bool timer_flag;
   std::map<int, double> tf_types;
   // cg

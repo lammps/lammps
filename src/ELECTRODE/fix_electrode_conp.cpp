@@ -97,6 +97,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   top_group = 0;
   intelflag = false;
   tfflag = false;
+  etaflag = false;
   timer_flag = false;
 
   update_time = 0;
@@ -211,6 +212,19 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         qtotal = utils::numeric(FLERR, arg[iarg], false, lmp);
         qtotal_var_style = VarStyle::CONST;
       }
+    } else if ((strcmp(arg[iarg], "eta") == 0)) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need two arguments after eta command");
+      etaflag = true;
+      int is_double, cols;
+      eta_index = atom->find_custom(arg[++iarg] + 2, is_double, cols);
+      if (eta_index == -1)
+        error->all(FLERR, "eta keyword requires name of previously defined property");
+      if (!is_double) error->all(FLERR, "eta keyword requires double-valued property/atom vector");
+      if (cols != 0) error->all(FLERR, "eta keyword requires property/atom vector not an array");
+      if (!atom->nextra_border)
+        error->all(FLERR,
+                   "There is no fix with ghost on, but the eta keyword requires a property/atom "
+                   "fix with ghost on");
       // toggle parameters
     } else if ((strcmp(arg[iarg], "etypes") == 0)) {
       etypes_neighlists = utils::logical(FLERR, arg[++iarg], false, lmp);
@@ -520,8 +534,10 @@ void FixElectrodeConp::setup_post_neighbor()
 
   evscale = force->qe2f / force->qqrd2e;
   elyt_vector->setup(pair, vec_neighlist, timer_flag);
+  if (etaflag) elyt_vector->setup_eta(eta_index);
   if (need_elec_vector) {
     elec_vector->setup(pair, mat_neighlist, timer_flag);
+    if (etaflag) elec_vector->setup_eta(eta_index);
     if (tfflag) elec_vector->setup_tf(tf_types);
   }
 
@@ -556,7 +572,8 @@ void FixElectrodeConp::setup_post_neighbor()
       if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
       auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
       array_compute->setup(tag_to_iele, pair, mat_neighlist);
-      if (tfflag) { array_compute->setup_tf(tf_types); }
+      if (etaflag) array_compute->setup_eta(eta_index);
+      if (tfflag) array_compute->setup_tf(tf_types);
       array_compute->compute_array(elastance, timer_flag);
     }    // write_mat before proceeding
     if (comm->me == 0 && write_mat) {
@@ -1186,7 +1203,7 @@ double FixElectrodeConp::self_energy(int eflag)
   // corrections to energy due to self interaction
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
-  double const pre = eta / sqrt(MY_2PI) * qqrd2e;
+  double const pre = 1. / sqrt(MY_2PI) * qqrd2e;
   int *mask = atom->mask;
   int *type = atom->type;
   double *q = atom->q;
@@ -1194,7 +1211,8 @@ double FixElectrodeConp::self_energy(int eflag)
   for (int i = 0; i < nlocal; i++) {
     if (groupbit & mask[i]) {
       double const q2 = q[i] * q[i];
-      double e = pre * q2;
+      double ieta = etaflag ? atom->dvector[eta_index][i] : eta;
+      double e = ieta * pre * q2;
       if (tfflag && (groupbit & mask[i])) e += 0.5 * qqrd2e * q2 * tf_types[type[i]];
       energy += e;
       if (eflag) {
@@ -1234,6 +1252,7 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
     double xtmp = x[i][0];
     double ytmp = x[i][1];
     double ztmp = x[i][2];
+    double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     int itype = type[i];
     int *jlist = firstneigh[i];
     int jnum = numneigh[i];
@@ -1242,7 +1261,6 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
       int const j = jlist[jj] & NEIGHMASK;
       bool j_in_ele = groupbit & mask[j];
       if (!(i_in_ele || j_in_ele)) continue;
-      double eta_ij = (i_in_ele && j_in_ele) ? eta / MY_SQRT2 : eta;
 
       double delx = xtmp - x[j][0];
       double dely = ytmp - x[j][1];
@@ -1251,6 +1269,16 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
       int jtype = type[j];
 
       if (rsq < force->pair->cutsq[itype][jtype]) {
+        double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
+        double eta_ij;
+        if (i_in_ele && j_in_ele)
+          eta_ij = eta_i * eta_j / sqrt(eta_i * eta_i + eta_j * eta_j);
+        else if (i_in_ele)
+          eta_ij = eta_i;
+        else {
+          assert(j_in_ele);
+          eta_ij = eta_j;
+        }
         double r2inv = 1.0 / rsq;
         double r = sqrt(rsq);
         double erfc_etar = 0.;

@@ -1,7 +1,7 @@
 #!/usr/env/python3
 
-import sys
 import os.path as op
+import sys
 
 
 def rel_error(out, ref):
@@ -49,5 +49,5 @@ for label, ref, out in out_lines:
     error = rel_error(out, ref)
     lines.append(f"{label}: {out:.5f}, {error:.5f}\n")
 
-with open("madelung.txt", 'a') as f:
+with open("madelung.txt", "a") as f:
     f.writelines(lines)

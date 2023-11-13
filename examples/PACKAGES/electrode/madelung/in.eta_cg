@@ -1,0 +1,17 @@
+atom_style full
+units real
+boundary p p f
+
+kspace_style ewald/electrode 1.0e-8
+kspace_modify slab 8.0 # ew3dc
+pair_style lj/cut/coul/long 12
+
+fix feta all property/atom d_eta ghost yes
+read_data data.eta_mix fix feta NULL ETA
+
+include "settings_eta.mod"
+
+fix conp bot electrode/conp 0 2 couple top 1 symm on algo cg 1e-6 eta d_eta
+
+run 0
+

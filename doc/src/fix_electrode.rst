@@ -70,6 +70,8 @@ Syntax
         filename = file from which to read inverted matrix
     *qtotal* value = number or *v_* equal-style variable
         add overall potential so that all electrode charges add up to *qtotal*
+    *eta* value = d_propname
+        d_propname = a custom double vector defined via fix property/atom
 
 Examples
 """"""""
@@ -263,6 +265,11 @@ electroneutral. Since *fix electrode/conq* constrains the total charges of
 individual electrodes, and since *symm on* constrains the total charge of all
 electrodes to be zero, either option is incompatible with the *qtotal* keyword
 (even if *qtotal* is set to zero).
+
+The keyword *eta* takes the name of a custom double vector defined via fix
+property/atom.  The values will be used instead of the standard eta value.  The
+property/atom fix must be for vector of double values and use the *ghost on*
+option.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

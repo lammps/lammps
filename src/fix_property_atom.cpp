@@ -948,3 +948,21 @@ int FixPropertyAtom::size_restart(int /*nlocal*/)
 {
   return values_peratom + 1;
 }
+
+/* ----------------------------------------------------------------------
+   utility getters
+------------------------------------------------------------------------- */
+
+int FixPropertyAtom::get_nvalue() { return nvalue; }
+
+int FixPropertyAtom::get_style(int n) {
+  if (n >= nvalue)
+    error->all(FLERR, "Invalid fix property/atom style request");
+  return styles[n];
+}
+
+int FixPropertyAtom::get_index(int n) {
+  if (n >= nvalue)
+    error->all(FLERR, "Invalid fix property/atom index request");
+  return index[n];
+}

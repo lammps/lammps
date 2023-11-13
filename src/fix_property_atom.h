@@ -53,6 +53,10 @@ class FixPropertyAtom : public Fix {
   int maxsize_restart() override;
   double memory_usage() override;
 
+  int get_nvalue();    // utility getters to list
+  int get_style(int);  // which variables are managed
+  int get_index(int);  // by a fix property/atom
+
  protected:
   int nvalue, border;
   int molecule_flag, q_flag, rmass_flag;    // flags for specific fields

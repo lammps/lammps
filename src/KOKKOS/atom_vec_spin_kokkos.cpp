@@ -594,7 +594,7 @@ int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int n
 
 void AtomVecSpinKokkos::force_clear(int n, size_t nbytes)
 {
-  int nzero = nbytes/sizeof(double);
+  int nzero = (double)nbytes/sizeof(double);
 
   if (nzero) {
     atomKK->k_fm.clear_sync_state(); // will be cleared below

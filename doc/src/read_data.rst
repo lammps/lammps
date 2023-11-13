@@ -914,7 +914,7 @@ zero.
    If the data file defines a general triclinic box, then the
    following per-atom values in the list above are per-atom vectors
    which imply an orientation: (mux,muy,muz), (normx,normy,normz),
-   (spx,spy,spz).  This menas they should be specified consistent with
+   (spx,spy,spz).  This means they should be specified consistent with
    the general triclinic box and its orientation relative to the
    standard x,y,z coordinate axes.  For example a dipole moment vector
    which will be in the +x direction once LAMMPS converts from a
@@ -1352,8 +1352,8 @@ specified as a unit vector.
 If the data file defines a general triclinic box, then the quaternion
 for each ellipsoid should be specified for its orientation relative to
 the standard x,y,z coordinate axes.  When the system is converted to a
-restricted triclinic box, the ellipsoid quaternions will be altered
-appropriately.
+restricted triclinic box, the ellipsoid quaternions will be altered to
+reflect the new orientation of the ellipsoid.
 
 The *Ellipsoids* section must appear after the *Atoms* section.
 
@@ -1471,24 +1471,23 @@ is used and any atoms are listed in the *Atoms* section with a
 lineflag = 1.  The number of lines should be specified in the header
 section via the "lines" keyword.
 
-The 2 end points are the end points of the line segment.  The ordering
-of the 2 points should be such that using a right-hand rule to cross
-the line segment with a unit vector in the +z direction, gives an
-"outward" normal vector perpendicular to the line segment.
+The 2 end points are the end points of the line segment.  They should
+be values close to the center point of the line segment specified in
+the Atoms section of the data file, even if individual end points are
+outside the simulation box.
+
+The ordering of the 2 points should be such that using a right-hand
+rule to cross the line segment with a unit vector in the +z direction,
+gives an "outward" normal vector perpendicular to the line segment.
 I.e. normal = (c2-c1) x (0,0,1).  This orientation may be important
 for defining some interactions.
 
-If the data file defines a general triclinic box, then the quaternion
-for each ellipsoid should be specified for its orientation relative to
-the standard x,y,z coordinate axes.  When the system is converted to a
-restricted triclinic box, the ellipsoid quaternions will be altered
-appropriately.
-
-If the data file defines a general triclinic box, the (x1,y1) and
-(x2,y2) values should be within (or near) its parallelogram area,
-i.e. near the x,y coordinates of the line segment as defined in the
-Atoms section.  See the :doc:`Howto triclinic <Howto_triclininc>` doc
-page for more details.
+If the data file defines a general triclinic box, then the x1,y1 and
+x2,y2 values for each line segment should be specified for its
+orientation relative to the standard x,y,z coordinate axes.  When the
+system is converted to a restricted triclinic box, the x1,y1,x2,y2
+values will be altered to reflect the new orientation of the line
+segment.
 
 The *Lines* section must appear after the *Atoms* section.
 
@@ -1616,17 +1615,22 @@ The *Triangles* section must appear if :doc:`atom_style tri
 with a triangleflag = 1.  The number of lines should be specified in
 the header section via the "triangles" keyword.
 
-The 3 corner points are the corner points of the triangle.  The
-ordering of the 3 points should be such that using a right-hand rule
-to go from point1 to point2 to point3 gives an "outward" normal vector
-to the face of the triangle.  I.e. normal = (c2-c1) x (c3-c1).  This
-orientation may be important for defining some interactions.
+The 3 corner points are the corner points of the triangle.  They
+should be values close to the center point of the triangle specified
+in the Atoms section of the data file, even if individual corner
+points are outside the simulation box.
 
-If the data file defines a general triclinic box, the (x1,y1,z1),
-(x2,y2,z2), (x3,y3,z3) corner points should be within (or near) its
-parallelepiped volume, i.e. near the x,y,z coordinates of the triangle
-as defined in the Atoms section.  See the :doc:`Howto triclinic
-<Howto_triclininc>` doc page for more details.
+The ordering of the 3 points should be such that using a right-hand
+rule to go from point1 to point2 to point3 gives an "outward" normal
+vector to the face of the triangle.  I.e. normal = (c2-c1) x (c3-c1).
+This orientation may be important for defining some interactions.
+
+If the data file defines a general triclinic box, then the x1,y1,z1
+and x2,y2,z2 and x3,y3,z3 values for each triangle should be specified
+for its orientation relative to the standard x,y,z coordinate axes.
+When the system is converted to a restricted triclinic box, the
+x1,y1,z1,x2,y2,z2,x3,y3,z3 values will be altered to reflect the new
+orientation of the triangle.
 
 The *Triangles* section must appear after the *Atoms* section.
 

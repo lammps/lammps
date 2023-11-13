@@ -102,8 +102,8 @@ particles of different styles
 | :doc:`dump image <dump_image>`                 | output body particle attributes as an image         |
 +------------------------------------------------+-----------------------------------------------------+
 
-The pair styles defined for use with specific body styles are listed
-in the sections below.
+The pair styles currently defined for use with specific body styles
+are listed in the sections below.
 
 ----------
 

@@ -90,7 +90,7 @@ void AtomVecDipole::read_data_general_to_restricted(int nlocal_previous, int nlo
 /* ----------------------------------------------------------------------
    convert info output by write_data from restricted to general triclinic
    parent class operates on x and data from Velocities section of data file
-   child class operates on dipole momemt mu
+   child class operates on dipole momemt mu which has 4 values per atom
 ------------------------------------------------------------------------- */
 
 void AtomVecDipole::write_data_restricted_to_general()
@@ -99,16 +99,17 @@ void AtomVecDipole::write_data_restricted_to_general()
 
   int nlocal = atom->nlocal;
   memory->create(mu_hold,nlocal,3,"atomvec:mu_hold");
-  if (nlocal) memcpy(&mu_hold[0][0],&mu[0][0],3*nlocal*sizeof(double));
-  for (int i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++) {
+    memcpy(&mu_hold[i],&mu[i],3*sizeof(double));
     domain->restricted_to_general_vector(mu[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
    restore info output by write_data to restricted triclinic
    original data is in "hold" arrays
    parent class operates on x and data from Velocities section of data file
-   child class operates on dipole moment mu
+   child class operates on dipole moment mu which has 4 values per atom
 ------------------------------------------------------------------------- */
 
 void AtomVecDipole::write_data_restore_restricted()
@@ -118,7 +119,8 @@ void AtomVecDipole::write_data_restore_restricted()
   if (!mu_hold) return;
   
   int nlocal = atom->nlocal;
-  memcpy(&mu[0][0],&mu_hold[0][0],3*nlocal*sizeof(double));
+  for (int i = 0; i < nlocal; i++)
+    memcpy(&mu[i],&mu_hold[i],3*sizeof(double));
   memory->destroy(mu_hold);
   mu_hold = nullptr;
 }

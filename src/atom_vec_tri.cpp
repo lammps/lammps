@@ -52,8 +52,6 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = nullptr;
 
-  double **quat_hold = nullptr;
-  
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
@@ -518,9 +516,17 @@ void AtomVecTri::data_atom_bonus(int m, const std::vector<std::string> &values)
     domain->general_to_restricted_coords(c2);
     domain->general_to_restricted_coords(c3);
   }
+
+  // remap corner points to be near x
+  // necessary if atom x was remapped into periodic box
+
+  domain->remap_near(c1,x[m]);
+  domain->remap_near(c2,x[m]);
+  domain->remap_near(c3,x[m]);
   
   // centroid = 1/3 of sum of vertices
-  // error if centroid is not within EPSILON of Atoms section coord
+  // error if centroid is not within EPSILON of atom x
+  // reset atom x to centroid
   
   double centroid[3];
   centroid[0] = (c1[0] + c2[0] + c3[0]) / 3.0;

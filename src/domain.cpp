@@ -1361,7 +1361,7 @@ int Domain::closest_image(const double * const pos, int j)
 /* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
-   called by ServerMD class and LammpsInterface in lib/atc.
+   called by ServerMD class and LammpsInterface in lib/atc
 ------------------------------------------------------------------------- */
 
 void Domain::closest_image(const double * const xi, const double * const xj, double * const xjimage)

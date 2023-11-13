@@ -98,6 +98,9 @@ void WriteData::command(int narg, char **arg)
       fixflag = 0;
       iarg++;
     } else if (strcmp(arg[iarg],"triclinic/general") == 0) {
+      if (!domain->triclinic_general)
+        error->all(FLERR,"Write_data triclinic/general for system "
+                   "that is not general triclinic");
       triclinic_general = 1;
       iarg++;
     } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
@@ -213,10 +216,10 @@ void WriteData::write(const std::string &file)
     if (coeffflag) force_fields();
   }
 
-  // if general triclinic:
+  // if general triclinic requested:
   // reset internal per-atom data that needs rotation
 
-  atom->avec->write_data_restricted_to_general();
+  if (triclinic_general) atom->avec->write_data_restricted_to_general();
   
   // per atom info in Atoms and Velocities sections
   
@@ -247,10 +250,10 @@ void WriteData::write(const std::string &file)
       if (ifix->wd_section)
         for (int m = 0; m < ifix->wd_section; m++) fix(ifix,m);
 
-  // if general triclinic:
+  // if general triclinic requested:
   // restore internal per-atom data that was rotated
 
-  atom->avec->write_data_restore_restricted();
+  if (triclinic_general) atom->avec->write_data_restore_restricted();
   
   // close data file
 

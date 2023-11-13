@@ -120,7 +120,7 @@ void AtomVecSpin::read_data_general_to_restricted(int nlocal_previous, int nloca
 /* ----------------------------------------------------------------------
    convert info output by write_data from restricted to general triclinic
    parent class operates on x and data from Velocities section of data file
-   child class operates on spin vector sp
+   child class operates on spin vector sp which has 4 values per atom
 ------------------------------------------------------------------------- */
 
 void AtomVecSpin::write_data_restricted_to_general()
@@ -129,16 +129,17 @@ void AtomVecSpin::write_data_restricted_to_general()
 
   int nlocal = atom->nlocal;
   memory->create(sp_hold,nlocal,3,"atomvec:sp_hold");
-  if (nlocal) memcpy(&sp_hold[0][0],&sp[0][0],3*nlocal*sizeof(double));
-  for (int i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++) {
+    memcpy(&sp_hold[i],&sp[i],3*sizeof(double));
     domain->restricted_to_general_vector(sp[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
    restore info output by write_data to restricted triclinic
    original data is in "hold" arrays
    parent class operates on x and data from Velocities section of data file
-   child class operates on spin vector sp
+   child class operates on spin vector sp which has 4 values per atom
 ------------------------------------------------------------------------- */
 
 void AtomVecSpin::write_data_restore_restricted()
@@ -148,7 +149,8 @@ void AtomVecSpin::write_data_restore_restricted()
   if (!sp_hold) return;
   
   int nlocal = atom->nlocal;
-  memcpy(&sp[0][0],&sp_hold[0][0],3*nlocal*sizeof(double));
+  for (int i = 0; i < nlocal; i++)
+    memcpy(&sp[i],&sp_hold[i],3*sizeof(double));
   memory->destroy(sp_hold);
   sp_hold = nullptr;
 }

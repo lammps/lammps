@@ -355,9 +355,10 @@ void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
 
   // convert x1/y1 and x2/y2 from general to restricted triclniic
   // x is already restricted triclinic
-  
+
+  double coords[3];
+
   if (domain->triclinic_general) {
-    double coords[3];
     coords[0] = x1; coords[1] = y1; coords[2] = 0.0;
     domain->general_to_restricted_coords(coords);
     x1 = coords[0]; y1 = coords[1];
@@ -366,8 +367,20 @@ void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
     x2 = coords[0]; y2 = coords[1];
   }
 
+  // remap end points to be near x
+  // necessary if atom x was remapped into periodic box
+
+  coords[0] = x1; coords[1] = y1; coords[2] = 0.0;
+  domain->remap_near(coords,x[m]);
+  x1 = coords[0]; y1 = coords[1];
+  coords[0] = x2; coords[1] = y2; coords[2] = 0.0;
+  domain->remap_near(c2,x[m]);
+  x2 = coords[0]; y2 = coords[1];
+
   // calculate length and theta
-  
+  // error if segment center is not within EPSILON of atom x
+  // reset atom x to center point
+
   double dx = x2 - x1;
   double dy = y2 - y1;
   double length = sqrt(dx * dx + dy * dy);

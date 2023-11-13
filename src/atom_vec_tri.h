@@ -72,8 +72,6 @@ class AtomVecTri : public AtomVec {
   double *radius, *rmass;
   double **omega, **angmom;
 
-  double **quat_hold;
-
   int nghost_bonus, nmax_bonus;
   int tri_flag;
   double rmass_one;

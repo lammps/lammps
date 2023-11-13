@@ -3,7 +3,7 @@ UPDATE: Oct 25, 2023:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml)
   this way we can launch LAMMPS with mpirun with more flexibility. Also it simplifies the build configuration.
 
-  python3 run_tests.py /path/to/lmp_binary
+  python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=config.yaml --gen-ref=False
 
 Original plan: using the LAMMPS Python module
   The following steps are for setting up regression tests with the LAMMPS Python module
@@ -36,6 +36,9 @@ import os
 import sys
 import re, yaml
 import subprocess
+
+import optparse, sys
+from optparse import OptionParser
 
 try:
     from yaml import CSafeLoader as Loader
@@ -184,15 +187,30 @@ def iterate(input_list):
 '''
 if __name__ == "__main__":
 
+  # default values
   lmp_binary = ""
-  # if lmp binary is specified in the command line
-  if len(sys.argv) >= 2:
-    lmp_binary = sys.argv[1]
+  configFileName = "config.yaml"
+  genref = False
 
+  # parse the arguments
+  parser = OptionParser()
+  parser.add_option("--lmp-bin", dest="lmp_binary", type = "string", default="",
+                    help="LAMMPS binary")
+  parser.add_option("--config-file", dest="config_file", type = "string", default="config.yaml",
+                    help="Configuration YAML file")
+  parser.add_option("--gen-ref",dest="genref", default=False,
+                    help="Generating reference data")
+
+  (options, args) = parser.parse_args()
+
+  lmp_binary = options.lmp_binary
+  config_file= options.config_file
+  genref = options.genref
+  
   # read in the configuration of the tests
-  with open("config.yaml", 'r') as f:
+  with open(configFileName, 'r') as f:
     config = yaml.load(f, Loader=Loader)
-    print(f"Using configuration (config.yaml): {config}")
+    print(f"Using configuration {configFileName}: {config}")
  
   # check if lmp_binary is specified in the config yaml
   if lmp_binary == "":

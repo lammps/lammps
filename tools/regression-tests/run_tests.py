@@ -161,9 +161,15 @@ def iterate(input_list):
         print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Absolute Diff.".center(width))
         irun = 0
         num_fields = len(thermo[irun]['keywords'])
+        
+        # get the total number of the thermo output lines
+        nthermo_steps = len(thermo[irun]['data'])
+        # get the output at thelast timestep
+        thermo_step = nthermo_steps - 1
+        print(f"nthermo_steps = {nthermo_steps}")
         for i in range(num_fields):
-          val = thermo[irun]['data'][2][i]
-          ref = thermo_ref[0]['data'][2][i]
+          val = thermo[irun]['data'][thermo_step][i]
+          ref = thermo_ref[0]['data'][thermo_step][i]
           diff = abs(float(val) - float(ref))
           print(f"{thermo[0]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {str(diff).rjust(20)}")
         print("-"*(4*width+3))

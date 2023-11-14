@@ -332,12 +332,14 @@ void FixHMC::add_new_computes()
   newarg[2] = (char *) "ke";
   modify->add_compute(3,newarg);
   ke = modify->compute[modify->ncompute-1];
+  //ke = modify->compute[modify->find_compute("thermo_ke")];
 
   // Potential energy:
   newarg[0] = (char *) "hmc_pe";
   newarg[2] = (char *) "pe";
   modify->add_compute(3,newarg);
   pe = modify->compute[modify->ncompute-1];
+  //pe = modify->compute[modify->find_compute("thermo_pe")];
 
   // Per-atom potential energy:
   newarg[0] = (char *) "hmc_peatom";
@@ -437,9 +439,9 @@ void FixHMC::init()
   pressatom_flag = 0;
   for (int i = 0; i < modify->ncompute; i++)
     if (strncmp(modify->compute[i]->id,"hmc_",4) != 0) {
-      peatom_flag = peatom_flag || modify->compute[i]->peatomflag;
-      press_flag = press_flag || modify->compute[i]->pressflag;
-      pressatom_flag = pressatom_flag || modify->compute[i]->pressatomflag;
+      peatom_flag = peatom_flag | modify->compute[i]->peatomflag;
+      press_flag = press_flag | modify->compute[i]->pressflag;
+      pressatom_flag = pressatom_flag | modify->compute[i]->pressatomflag;
     }
 
   // Count per-atom properties to be exchanged:
@@ -451,7 +453,7 @@ void FixHMC::init()
   grow_arrays(atom->nmax);
 
   // Activate potential energy and other necessary calculations at setup:
-  pe->addstep(ntimestep);
+  //pe->addstep(ntimestep);
   if (peatom_flag) peatom->addstep(ntimestep);
   if (press_flag) press->addstep(ntimestep);
   if (pressatom_flag) pressatom->addstep(ntimestep);
@@ -482,6 +484,7 @@ void FixHMC::setup(int vflag)
   }
   for (int i = 0; i < atom->nlocal; i++)
     deltax[i][0] = deltax[i][1] = deltax[i][2] = 0.0;
+  update->eflag_global = update->ntimestep;
   PE = pe->compute_scalar();
   KE = ke->compute_scalar();
   save_current_state();
@@ -519,6 +522,7 @@ void FixHMC::end_of_step()
   }
 
   // Compute potential and kinetic energy variations:
+  update->eflag_global = update->ntimestep;
   double newPE = pe->compute_scalar();
   double newKE = ke->compute_scalar();
   DeltaPE = newPE - PE;

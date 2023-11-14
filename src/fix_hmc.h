@@ -62,8 +62,8 @@ class FixHMC : public Fix {
   void rigid_body_restore_forces();
   void rigid_body_random_velocities();
   
-  //std::vector<LAMMPS_NS::PerAtom> old_peratom;
-  //std::vector<LAMMPS_NS::PerAtom> current_peratom;
+  std::vector<LAMMPS_NS::Atom::PerAtom> old_peratom;
+  std::vector<LAMMPS_NS::Atom::PerAtom> current_peratom;
 
   int tune_flag;
 

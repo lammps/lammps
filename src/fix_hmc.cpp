@@ -473,6 +473,8 @@ void FixHMC::setup(int vflag)
   // Compute properties of the initial state:
   nattempts = 0;
   naccepts = 0;
+  DeltaPE = 0;
+  DeltaKE = 0;
   if (rigid_flag) {
     //rigid_body_atom_positions(xu);
     atom_positions(xu);
@@ -530,7 +532,7 @@ void FixHMC::end_of_step()
 
   // Apply the Metropolis criterion:
   double DeltaE = DeltaPE + DeltaKE;
-  int accept = DeltaE < 0.0; // wait shouldn't this be exp(DeltaE/kt)?
+  int accept = DeltaE < 0.0;
   if (~accept) {
     accept = random_equal->uniform() <= exp(mbeta*DeltaE);
     MPI_Bcast(&accept,1,MPI_INT,0,world);

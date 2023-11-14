@@ -25,6 +25,7 @@
 #include "error.h"
 #include "force.h"
 #include "fix_rheo.h"
+#include "fix_rheo_pressure.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -42,7 +43,7 @@ static constexpr double EPSILON = 1e-1;
 
 ComputeRHEOInterface::ComputeRHEOInterface(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), fix_rheo(nullptr), compute_kernel(nullptr), fp_store(nullptr),
-  norm(nullptr), normwf(nullptr), chi(nullptr), id_fix_pa(nullptr)
+  rho0(nullptr), norm(nullptr), normwf(nullptr), chi(nullptr), id_fix_pa(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute rheo/interface command");
 
@@ -86,10 +87,11 @@ void ComputeRHEOInterface::init()
   compute_kernel = fix_rheo->compute_kernel;
   rho0 = fix_rheo->rho0;
   cut = fix_rheo->cut;
-  csq = fix_rheo->csq;
-  csq_inv = 1.0 / csq;
   cutsq = cut * cut;
   wall_max = sqrt(3.0) / 12.0 * cut;
+
+  auto fixes = modify->get_fix_by_style("rheo/pressure");
+  fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
 
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 }
@@ -174,7 +176,7 @@ void ComputeRHEOInterface::compute_peratom()
             dot += (-fp_store[j][1] + fp_store[i][1]) * dely;
             dot += (-fp_store[j][2] + fp_store[i][2]) * delz;
 
-            rho[i] += w * (csq * (rho[j] - rho0) - rho[j] * dot);
+            rho[i] += w * (fix_pressure->calc_pressure(rho[j], jtype) - rho[j] * dot);
             normwf[i] += w;
           }
         }
@@ -189,7 +191,7 @@ void ComputeRHEOInterface::compute_peratom()
               dot += (-fp_store[i][1] + fp_store[j][1]) * dely;
               dot += (-fp_store[i][2] + fp_store[j][2]) * delz;
 
-              rho[j] += w * (csq * (rho[i] - rho0) + rho[i] * dot);
+              rho[j] += w * (fix_pressure->calc_pressure(rho[i], itype) + rho[i] * dot);
               normwf[j] += w;
             }
           }
@@ -207,9 +209,9 @@ void ComputeRHEOInterface::compute_peratom()
     if (status[i] & PHASECHECK) {
       if (normwf[i] != 0.0) {
         // Stores rho for solid particles 1+Pw in Adami Adams 2012
-        rho[i] = MAX(EPSILON, rho0 + (rho[i] / normwf[i]) * csq_inv);
+        rho[i] = MAX(EPSILON, fix_pressure->calc_rho(rho[i] / normwf[i], type[i]));
       } else {
-        rho[i] = rho0;
+        rho[i] = rho0[itype];
       }
     }
   }

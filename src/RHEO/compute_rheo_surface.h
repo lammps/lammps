@@ -44,7 +44,7 @@ class ComputeRHEOSurface : public Compute {
   int threshold_style, comm_stage;
   int index_divr, index_rsurf, index_nsurf;
 
-  double cut, cutsq, rho0, threshold_divr;
+  double cut, cutsq, *rho0, threshold_divr;
   double **B, **gradC;
 
   class NeighList *list;

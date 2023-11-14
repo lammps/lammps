@@ -46,7 +46,7 @@ class ComputeRHEOGrad : public Compute {
 
  private:
   int comm_stage, ncomm_grad, ncomm_field, nmax_store;
-  double cut, cutsq, rho0;
+  double cut, cutsq, *rho0;
 
   int velocity_flag, temperature_flag, rho_flag, eta_flag;
   int interface_flag, remap_v_flag;

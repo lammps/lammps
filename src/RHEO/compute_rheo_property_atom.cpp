@@ -330,11 +330,12 @@ void ComputeRHEOPropertyAtom::pack_coordination(int n)
 
 void ComputeRHEOPropertyAtom::pack_cv(int n)
 {
+  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = fix_thermal->calc_cv(i);
+    if (mask[i] & groupbit) buf[n] = fix_thermal->calc_cv(i, type[i]);
     else buf[n] = 0.0;
     n += nvalues;
   }

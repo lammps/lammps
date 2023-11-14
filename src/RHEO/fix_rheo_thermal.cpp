@@ -41,108 +41,124 @@
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
 using namespace FixConst;
-enum {NONE, CONSTANT, TYPE};
+enum {NONE, CONSTANT};
 
 /* ---------------------------------------------------------------------- */
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), fix_rheo(nullptr), compute_grad(nullptr), compute_vshift(nullptr),
-  Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr), fix_update_special_bonds(nullptr)
+  Tc(nullptr), kappa(nullptr), cv(nullptr), Tc_style(nullptr), kappa_style(nullptr), cv_style(nullptr),
+  fix_update_special_bonds(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
   force_reneighbor = 1;
   next_reneighbor = -1;
-
-  Tc_style = NONE;
-  cv_style = NONE;
-  conductivity_style = NONE;
   cut_bond = 0;
   comm_forward = 0;
 
-  int ntypes = atom->ntypes;
+  if (igroup != 0)
+    error->all(FLERR,"fix rheo/thermal command requires group all");
+
+  int i, nlo, nhi;
+  int n = atom->ntypes;
+  memory->create(Tc_style, n + 1, "rheo:Tc_style");
+  memory->create(kappa_style, n + 1, "rheo:kappa_style");
+  memory->create(cv_style, n + 1, "rheo:cv_style");
+  for (i = 1; i <= n; i++) {
+    Tc_style[i] = NONE;
+    kappa_style[i] = NONE;
+    cv_style[i] = NONE;
+  }
+
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"conductivity") == 0) {
+      if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal conductivity", error);
+      utils::bounds(FLERR, arg[iarg + 1], 1, n, nlo, nhi, error);
+
       // Conductivity arguments
-      if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for conductivity option");
-      if (strcmp(arg[iarg + 1], "constant") == 0) {
-        if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for conductivity option");
-        conductivity_style = CONSTANT;
-        kappa = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-        if (kappa < 0.0) error->all(FLERR, "The conductivity must be positive");
-        iarg += 2;
-      } else if (strcmp(arg[iarg + 1], "type") == 0) {
-        if (iarg + 1 + ntypes >= narg) error->all(FLERR, "Insufficient arguments for conductivity option");
-        conductivity_style = TYPE;
-        memory->create(kappa_type, ntypes+1, "rheo_thermal:kappa_type");
-        for (int i = 1; i <= ntypes; i++) {
-          kappa_type[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
-          if (kappa_type[i] < 0.0) error->all(FLERR, "The conductivity must be positive");
+      if (strcmp(arg[iarg + 2], "constant") == 0) {
+        if (iarg + 3 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal conductivity constant", error);
+
+        double kappa_one = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        if (kappa_one < 0.0) error->all(FLERR, "The conductivity must be positive");
+        iarg += 1;
+
+        for (i = nlo; i <= nhi; i++) {
+          kappa_style[i] = CONSTANT;
+          kappa[i] = kappa_one;
         }
-        iarg += 1 + ntypes;
       } else {
-        error->all(FLERR,"Illegal fix command, {}", arg[iarg + 1]);
+        error->all(FLERR,"Illegal fix command, {}", arg[iarg + 2]);
       }
+
+      iarg += 2;
     } else if (strcmp(arg[iarg], "specific/heat") == 0) {
+      if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal specific/heat", error);
+      utils::bounds(FLERR, arg[iarg + 1], 1, n, nlo, nhi, error);
+
       // Cv arguments
-      if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for cv option");
-      if (strcmp(arg[iarg + 1], "constant") == 0) {
-        if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for cv option");
-        cv_style = CONSTANT;
-        cv = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-        if (cv < 0.0) error->all(FLERR, "The specific heat must be positive");
-        iarg += 2;
-      } else if (strcmp(arg[iarg + 1], "type") == 0) {
-        if (iarg + 1 + ntypes >= narg) error->all(FLERR, "Insufficient arguments for cv option");
-        cv_style = TYPE;
-        memory->create(cv_type,ntypes + 1, "rheo_thermal:cv_type");
-        for (int i = 1; i <= ntypes; i++) {
-          cv_type[i] = utils::numeric(FLERR, arg[iarg + 1 + i], false, lmp);
-          if (cv_type[i] < 0.0) error->all(FLERR, "The specific heat must be positive");
+      if (strcmp(arg[iarg + 2], "constant") == 0) {
+        if (iarg + 3 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal specific/heat constant", error);
+
+        double cv_one = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        if (cv_one < 0.0) error->all(FLERR, "The specific heat must be positive");
+        iarg += 1;
+
+        for (i = nlo; i <= nhi; i++) {
+          cv_style[i] = CONSTANT;
+          cv[i] = cv_one;
         }
-        iarg += 1 + ntypes;
+
       } else {
-        error->all(FLERR,"Illegal fix command, {}", arg[iarg + 1]);
+        error->all(FLERR,"Illegal fix command, {}", arg[iarg + 2]);
       }
+
+      iarg += 2;
     } else if (strcmp(arg[iarg], "Tfreeze") == 0) {
+      if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal Tfreeze", error);
+      utils::bounds(FLERR, arg[iarg + 1], 1, n, nlo, nhi, error);
+
       // T freeze arguments
-      if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for Tfreeze option");
-      if (strcmp(arg[iarg + 1], "constant") == 0) {
-        if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for Tfreeze option");
-        Tc_style = CONSTANT;
-        Tc = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-        iarg += 2;
-      } else if (strcmp(arg[iarg + 1], "type") == 0) {
-        if (iarg + 1 + ntypes >= narg) error->all(FLERR, "Insufficient arguments for Tfreeze option");
-        Tc_style = TYPE;
-        memory->create(Tc_type, ntypes + 1, "rheo_thermal:Tc_type");
-        for (int i = 1; i <= ntypes; i++) {
-          Tc_type[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
-          if (Tc_type[i] < 0.0) error->all(FLERR, "The melting temperature must be positive");
+      if (strcmp(arg[iarg + 2], "constant") == 0) {
+        if (iarg + 3 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal Tfreeze constant", error);
+
+        double Tc_one = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        iarg += 1;
+
+        for (i = nlo; i <= nhi; i++) {
+          Tc_style[i] = CONSTANT;
+          Tc[i] = Tc_one;
         }
-        iarg += 1 + ntypes;
+
       } else {
-        error->all(FLERR, "Illegal fix command, {}", arg[iarg + 1]);
+        error->all(FLERR, "Illegal fix command, {}", arg[iarg + 2]);
       }
+
+      iarg += 2;
     } else if (strcmp(arg[iarg], "react") == 0) {
-      if (iarg + 2 >= narg) error->all(FLERR, "Insufficient arguments for react option");
+      if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal react", error);
       cut_bond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       btype = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       comm_forward = 1;
-      if (cut_bond <= 0.0) error->all(FLERR, "Illegal value for bond lengths");\
+      if (cut_bond <= 0.0) error->all(FLERR, "Illegal max bond length must be greater than zero");\
       if (btype < 1 || btype > atom->nbondtypes) error->all(FLERR, "Illegal value for bond type");
 
       cutsq_bond = cut_bond * cut_bond;
-      iarg += 2;
+      iarg += 3;
     } else {
       error->all(FLERR,"Illegal fix command, {}", arg[iarg]);
     }
-    iarg += 1;
   }
 
-  if (cv_style == NONE || conductivity_style == NONE)
-    error->all(FLERR, "Must specify specific heat and conductivity styles\n");
+
+  for (i = 1; i <= n; i++) {
+    if (cv_style[i] == NONE)
+      error->all(FLERR,"Must specify specific/heat for atom type {} in fix/rheo/thermal", i);
+    if (kappa_style[i] == NONE)
+      error->all(FLERR,"Must specify conductivity for atom type {} in fix/rheo/thermal", i);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,9 +170,12 @@ FixRHEOThermal::~FixRHEOThermal()
   index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
   if (index != -1) atom->remove_custom(index, 1, 0);
 
-  memory->destroy(cv_type);
-  memory->destroy(Tc_type);
-  memory->destroy(kappa_type);
+  memory->destroy(cv_style);
+  memory->destroy(Tc_style);
+  memory->destroy(kappa_style);
+  memory->destroy(cv);
+  memory->destroy(Tc);
+  memory->destroy(kappa);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,7 +216,6 @@ void FixRHEOThermal::init()
     error->all(FLERR,"fix rheo/thermal command requires atom property heatflow");
   if (atom->conductivity_flag != 1)
     error->all(FLERR,"fix rheo/thermal command requires atom property conductivity");
-
 
   if (cut_bond > 0.0) {
     if (!force->bond) error->all(FLERR,"Must define a bond style to use reactive bond generation with fix rheo/thermal");
@@ -249,7 +267,6 @@ void FixRHEOThermal::initial_integrate(int /*vflag*/)
   int i, a;
 
   int *status = atom->status;
-  int *mask = atom->mask;
   double *temperature = atom->temperature;
   double **gradt = compute_grad->gradt;
   double **vshift = compute_vshift->array_atom;
@@ -263,11 +280,8 @@ void FixRHEOThermal::initial_integrate(int /*vflag*/)
   for (i = 0; i < nlocal; i++) {
     if (status[i] & STATUS_NO_SHIFT) continue;
 
-    if (mask[i] & groupbit) {
-      for (a = 0; a < dim; a++) {
-        temperature[i] += dtv * vshift[i][a] * gradt[i][a];
-      }
-    }
+    for (a = 0; a < dim; a++)
+      temperature[i] += dtv * vshift[i][a] * gradt[i][a];
   }
 }
 
@@ -275,52 +289,50 @@ void FixRHEOThermal::initial_integrate(int /*vflag*/)
 
 void FixRHEOThermal::post_integrate()
 {
+  int i, itype;
+  double cvi, Tci, Ti;
+
   int *status = atom->status;
   double *temperature = atom->temperature;
   double *heatflow = atom->heatflow;
   double *rho = atom->rho;
-  int *mask = atom->mask;
   int *type = atom->type;
-
-  double cvi, Tci, Ti;
 
   int n_melt = 0;
   int n_freeze = 0;
 
   //Integrate temperature and check status
-  for (int i = 0; i < atom->nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (status[i] & STATUS_NO_INTEGRATION) continue;
+  for (i = 0; i < atom->nlocal; i++) {
+    if (status[i] & STATUS_NO_INTEGRATION) continue;
 
-      cvi = calc_cv(i);
-      temperature[i] += dtf * heatflow[i] / cvi;
+    itype = type[i];
+    cvi = calc_cv(i, type[i]);
+    temperature[i] += dtf * heatflow[i] / cvi;
 
-      if (Tc_style != NONE) {
-        Ti = temperature[i];
-        if (Tc_style == CONSTANT) {
-          Tci = Tc;
-        } else if (Tc_style == TYPE) {
-          Tci = Tc_type[type[i]];
+    if (Tc_style[itype] != NONE) {
+      Ti = temperature[i];
+      if (Tc_style[itype] == CONSTANT) {
+        Tci = Tc[itype];
+      }
+
+      if (Ti > Tci) {
+        // If solid, melt
+        if (status[i] & STATUS_SOLID) {
+          status[i] &= PHASEMASK;
+          status[i] |= STATUS_MELTING;
+          n_melt += 1;
         }
-
-        if (Ti > Tci) {
-          // If solid, melt
-          if (status[i] & STATUS_SOLID) {
-            status[i] &= PHASEMASK;
-            status[i] |= STATUS_MELTING;
-            n_melt += 1;
-          }
-        } else {
-          // If fluid, freeze
-          if (!(status[i] & STATUS_SOLID)) {
-            status[i] &= PHASEMASK;
-            status[i] |= STATUS_SOLID;
-            status[i] |= STATUS_FREEZING;
-            n_freeze += 1;
-          }
+      } else {
+        // If fluid, freeze
+        if (!(status[i] & STATUS_SOLID)) {
+          status[i] &= PHASEMASK;
+          status[i] |= STATUS_SOLID;
+          status[i] |= STATUS_FREEZING;
+          n_freeze += 1;
         }
       }
     }
+
   }
 
   int n_melt_all, n_freeze_all;
@@ -344,19 +356,16 @@ void FixRHEOThermal::post_integrate()
 
 void FixRHEOThermal::post_neighbor()
 {
-  int i;
+  int i, itype;
   int *type = atom->type;
-  int *mask = atom->mask;
   double *conductivity = atom->conductivity;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (conductivity_style == CONSTANT) {
-    for (i = 0; i < nall; i++)
-      if (mask[i] & groupbit) conductivity[i] = kappa;
-  } else if (conductivity_style == TYPE) {
-    for (i = 0; i < nall; i++)
-      if (mask[i] & groupbit) conductivity[i] = kappa_type[type[i]];
+  for (i = 0; i < nall; i++) {
+    itype = type[i];
+    if (kappa_style[itype] == CONSTANT)
+      conductivity[i] = kappa[itype];
   }
 }
 
@@ -372,21 +381,18 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
 
 void FixRHEOThermal::final_integrate()
 {
+  int *status = atom->status;
+  int *type = atom->type;
   double *temperature = atom->temperature;
   double *heatflow = atom->heatflow;
-  int *status = atom->status;
-  int *mask = atom->mask;
-
   double cvi;
 
   //Integrate temperature and check status
   for (int i = 0; i < atom->nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (status[i] & STATUS_NO_INTEGRATION) continue;
+    if (status[i] & STATUS_NO_INTEGRATION) continue;
 
-      cvi = calc_cv(i);
-      temperature[i] += dtf * heatflow[i] / cvi;
-    }
+    cvi = calc_cv(i, type[i]);
+    temperature[i] += dtf * heatflow[i] / cvi;
   }
 }
 
@@ -522,12 +528,10 @@ void FixRHEOThermal::create_bonds()
 
 /* ---------------------------------------------------------------------- */
 
-double FixRHEOThermal::calc_cv(int i)
+double FixRHEOThermal::calc_cv(int i, int itype)
 {
-  if (cv_style == CONSTANT) {
-    return cv;
-  } else if (cv_style == TYPE) {
-    return(cv_type[atom->type[i]]);
+  if (cv_style[itype] == CONSTANT) {
+    return cv[itype];
   }
 }
 

@@ -38,39 +38,62 @@ static constexpr double SEVENTH = 1.0 / 7.0;
 /* ---------------------------------------------------------------------- */
 
 FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fix_rheo(nullptr)
+  Fix(lmp, narg, arg), fix_rheo(nullptr), rho0(nullptr), csq(nullptr), rho0inv(nullptr), csqinv(nullptr), c_cubic(nullptr), pressure_style(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
-  pressure_style = NONE;
   comm_forward = 1;
 
   // Currently can only have one instance of fix rheo/pressure
   if (igroup != 0)
     error->all(FLERR,"fix rheo/pressure command requires group all");
 
-  int ntypes = atom->ntypes;
+  int i, nlo, nhi;
+  int n = atom->ntypes;
+  memory->create(pressure_style, n + 1, "rheo:pressure_style");
+  for (i = 1; i <= n; i++) pressure_style[i] = NONE;
+
   int iarg = 3;
-  if (strcmp(arg[iarg], "linear") == 0) {
-    pressure_style = LINEAR;
-  } else if (strcmp(arg[iarg], "taitwater") == 0) {
-    pressure_style = TAITWATER;
-  } else if (strcmp(arg[iarg], "cubic") == 0) {
-    pressure_style = CUBIC;
-    if (iarg + 1 >= narg) error->all(FLERR, "Insufficient arguments for pressure option");
-    c_cubic = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-  } else {
-    error->all(FLERR,"Illegal fix command, {}", arg[iarg]);
+  while (iarg < narg) {
+    utils::bounds(FLERR, arg[iarg], 1, n, nlo, nhi, error);
+
+    if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/pressure", error);
+
+    if (strcmp(arg[iarg + 1], "linear") == 0) {
+      for (i = nlo; i <= nhi; i++)
+        pressure_style[i] = LINEAR;
+    } else if (strcmp(arg[iarg + 1], "taitwater") == 0) {
+      for (i = nlo; i <= nhi; i++)
+        pressure_style[i] = TAITWATER;
+    } else if (strcmp(arg[iarg + 1], "cubic") == 0) {
+      if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/pressure cubic", error);
+
+      double c_cubic_one = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      iarg += 1;
+
+      for (i = nlo; i <= nhi; i++) {
+        pressure_style[i] = CUBIC;
+        c_cubic[i] = c_cubic_one;
+      }
+    } else {
+      error->all(FLERR,"Illegal fix command, {}", arg[iarg]);
+    }
+    iarg += 2;
   }
 
-  if (pressure_style == NONE)
-    error->all(FLERR,"Must specify pressure style for fix/rheo/pressure");
+  for (i = 1; i <= n; i++)
+    if (pressure_style[i] == NONE)
+      error->all(FLERR,"Must specify pressure for atom type {} in fix/rheo/pressure", i);
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixRHEOPressure::~FixRHEOPressure()
 {
+  memory->destroy(pressure_style);
+  memory->destroy(csqinv);
+  memory->destroy(rho0inv);
+  memory->destroy(c_cubic);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,9 +115,15 @@ void FixRHEOPressure::init()
 
   csq = fix_rheo->csq;
   rho0 = fix_rheo->rho0;
-  rho0inv = 1.0 / rho0;
 
-  // Cannot define multiple as pair rheo cannot currently distinguish
+  int n = atom->ntypes;
+  memory->create(csqinv, n + 1, "rheo:rho0inv");
+  memory->create(rho0inv, n + 1, "rheo:rho0inv");
+  for (int i = 0; i <= n; i++) {
+    csqinv[i] = 1.0 / csq[i];
+    rho0inv[i] = 1.0 / rho0[i];
+  }
+
   if (modify->get_fix_by_style("rheo/pressure").size() > 1)
     error->all(FLERR, "Can only specify one instance of fix rheo/pressure");
 }
@@ -117,6 +146,7 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
   double dr, rr3, rho_ratio;
 
   int *mask = atom->mask;
+  int *type = atom->type;
   double *rho = atom->rho;
   double *pressure = atom->pressure;
 
@@ -124,7 +154,7 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      pressure[i] = calc_pressure(rho[i]);
+      pressure[i] = calc_pressure(rho[i], type[i]);
 
   if (comm_forward) comm->forward_comm(this);
 }
@@ -161,19 +191,37 @@ void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double FixRHEOPressure::calc_pressure(double rho)
+double FixRHEOPressure::calc_pressure(double rho, int type)
 {
   double p, dr, rr3, rho_ratio;
 
-  if (pressure_style == LINEAR) {
-    p = csq * (rho - rho0);
-  } else if (pressure_style == CUBIC) {
-    dr = rho - rho0;
-    p = csq * (dr + c_cubic * dr * dr * dr);
-  } else if (pressure_style == TAITWATER) {
-    rho_ratio = rho / rho0inv;
+  if (pressure_style[type] == LINEAR) {
+    p = csq[type] * (rho - rho0[type]);
+  } else if (pressure_style[type] == CUBIC) {
+    dr = rho - rho0[type];
+    p = csq[type] * (dr + c_cubic[type] * dr * dr * dr);
+  } else if (pressure_style[type] == TAITWATER) {
+    rho_ratio = rho * rho0inv[type];
     rr3 = rho_ratio * rho_ratio * rho_ratio;
-    p = csq * rho0 * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
+    p = csq[type] * rho0[type] * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
   }
   return p;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixRHEOPressure::calc_rho(double p, int type)
+{
+  double rho, dr, rr3, rho_ratio;
+
+  if (pressure_style[type] == LINEAR) {
+    rho = csqinv[type] * p + rho0[type];
+  } else if (pressure_style[type] == CUBIC) {
+    error->one(FLERR, "Rho calculation from pressure not yet supported for cubic pressure equation");
+  } else if (pressure_style[type] == TAITWATER) {
+    rho = pow(7.0 * p + csq[type] * rho0[type], SEVENTH);
+    rho *= pow(rho0[type], 6.0 * SEVENTH);
+    rho *= pow(csq[type], -SEVENTH);
+  }
+  return rho;
 }

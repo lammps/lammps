@@ -296,20 +296,20 @@ void PairRHEOReact::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  memory->create(setflag, n+1, n+1,"pair:setflag");
+  memory->create(setflag, n + 1, n + 1, "pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cut, n+1, n+1,"pair:cut");
-  memory->create(cutbond, n+1, n+1,"pair:cutbond");
-  memory->create(cutsq, n+1, n+1,"pair:cutsq");
-  memory->create(cutbsq, n+1, n+1,"pair:cutbsq");
-  memory->create(k, n+1, n+1,"pair:k");
-  memory->create(eps, n+1, n+1,"pair:eps");
-  memory->create(gamma, n+1, n+1,"pair:gamma");
-  memory->create(t_form, n+1, n+1,"pair:t_form");
-  memory->create(rlimit, n+1, n+1,"pair:rlimit");
+  memory->create(cut, n + 1, n + 1, "pair:cut");
+  memory->create(cutbond, n + 1, n + 1, "pair:cutbond");
+  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
+  memory->create(cutbsq, n + 1, n + 1, "pair:cutbsq");
+  memory->create(k, n + 1, n + 1, "pair:k");
+  memory->create(eps, n + 1, n + 1, "pair:eps");
+  memory->create(gamma, n + 1, n + 1, "pair:gamma");
+  memory->create(t_form, n + 1, n + 1, "pair:t_form");
+  memory->create(rlimit, n + 1, n + 1, "pair:rlimit");
 }
 
 /* ----------------------------------------------------------------------
@@ -326,7 +326,7 @@ void PairRHEOReact::settings(int narg, char **arg)
 
 void PairRHEOReact::coeff(int narg, char **arg)
 {
-  if (narg != 9) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 9) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -343,7 +343,7 @@ void PairRHEOReact::coeff(int narg, char **arg)
 
   if (k_one < 0.0 || eps_one < 0.0 ||
    t_form_one < 0.0 || (1.0 + eps_one) * cutb_one > cut_one)
-     error->all(FLERR,"Illegal pair_style command");
+     error->all(FLERR, "Illegal pair_style command");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -360,7 +360,7 @@ void PairRHEOReact::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -406,7 +406,7 @@ void PairRHEOReact::setup()
 
 double PairRHEOReact::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0)  error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0)  error->all(FLERR, "All pair coeffs are not set");
 
   cutbsq[i][j] = cutbond[i][j] * cutbond[i][j];
 

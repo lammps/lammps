@@ -42,7 +42,7 @@ static constexpr double EPSILON = 1e-10;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOSurface::ComputeRHEOSurface(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), compute_kernel(nullptr), compute_interface(nullptr),
+  Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), rho0(nullptr), compute_kernel(nullptr), compute_interface(nullptr),
   B(nullptr), gradC(nullptr), nsurface(nullptr), divr(nullptr), rsurface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute RHEO/SURFACE command");
@@ -194,8 +194,8 @@ void ComputeRHEOSurface::compute_peratom()
           } else if ((!fluidi) && fluidj) {
             rhoi = compute_interface->correct_rho(i, j);
           } else if ((!fluidi) && (!fluidj)) {
-            rhoi = rho0;
-            rhoj = rho0;
+            rhoi = rho0[itype];
+            rhoj = rho0[jtype];
           }
         }
 

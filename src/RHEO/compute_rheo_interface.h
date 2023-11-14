@@ -45,13 +45,14 @@ class ComputeRHEOInterface : public Compute {
 
  private:
   int nmax_store, comm_stage;
-  double rho0, cut, cutsq, csq, csq_inv, wall_max;
+  double *rho0, cut, cutsq, wall_max;
   double *norm, *normwf;
 
   char *id_fix_pa;
 
   class NeighList *list;
   class ComputeRHEOKernel *compute_kernel;
+  class FixRHEOPressure *fix_pressure;
 };
 
 }    // namespace LAMMPS_NS

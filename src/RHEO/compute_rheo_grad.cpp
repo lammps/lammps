@@ -41,7 +41,7 @@ enum{COMMGRAD, COMMFIELD};
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
+  Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), rho0(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
   gradv(nullptr), gradr(nullptr), gradt(nullptr), gradn(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute rheo/grad command");
@@ -221,8 +221,8 @@ void ComputeRHEOGrad::compute_peratom()
             //compute_interface->correct_v(vi, vj, i, j);
             rhoi = compute_interface->correct_rho(i, j);
           } else if ((!fluidi) && (!fluidj)) {
-            rhoi = rho0;
-            rhoj = rho0;
+            rhoi = rho0[itype];
+            rhoj = rho0[jtype];
           }
         }
 

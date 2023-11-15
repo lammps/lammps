@@ -83,7 +83,7 @@ better pipelining for packing and communication.
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
-         -D HEFFTE_BACKEND=value     # FFTW or MKL or empty/undefined for the stock backend
+         -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock backend
          -D Heffte_ROOT=path         # path to an existing heFFTe installation
 
 
@@ -126,15 +126,15 @@ better pipelining for packing and communication.
       .. code-block:: make
 
          include <path-to-heffte-installation>/share/heffte/HeffteMakefile.in
-         FFT_INC = -DLMP_HEFFTE -DHEFFTE_FFTW $(heffte_include)
+         FFT_INC = -DFFT_HEFFTE -DFFT_HEFFTE_FFTW $(heffte_include)
          FFT_PATH =
          FFT_LIB = $(heffte_link) $(heffte_libs)
 
       The heFFTe install path will contain `HeffteMakefile.in`.
       which will define the `heffte_` include variables needed to link to heFFTe from
       an external project using traditional make.
-      The `-DLMP_HEFFTE` is required to switch to using heFFTe, while the optional `-DHEFFTE_FFTW`
-      selects the desired heFFTe backend, e.g., `-DHEFFTE_FFTW` or `-DHEFFTE_MKL`,
+      The `-DFFT_HEFFTE` is required to switch to using heFFTe, while the optional `-DFFT_HEFFTE_FFTW`
+      selects the desired heFFTe backend, e.g., `-DFFT_HEFFTE_FFTW` or `-DFFT_HEFFTE_MKL`,
       omitting the variable will default to the `stock` backend.
 
 The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is

@@ -49,18 +49,18 @@ endif()
 option(FFT_USE_HEFFTE  "Use heFFTe as the distributed FFT engine, overrides the FFT option."  OFF)
 if(FFT_USE_HEFFTE)
   # if FFT_HEFFTE is enabled, switch the builtin FFT engine with Heffte
-  set(HEFFTE_BACKEND_VALUES FFTW MKL)
-  set(HEFFTE_BACKEND "" CACHE STRING "Select heFFTe backend, e.g., FFTW or MKL")
-  set_property(CACHE HEFFTE_BACKEND PROPERTY STRINGS ${HEFFTE_BACKEND_VALUES})
+  set(FFT_HEFFTE_BACKEND_VALUES FFTW MKL)
+  set(FFT_HEFFTE_BACKEND "" CACHE STRING "Select heFFTe backend, e.g., FFTW or MKL")
+  set_property(CACHE FFT_HEFFTE_BACKEND PROPERTY STRINGS ${FFT_HEFFTE_BACKEND_VALUES})
 
-  if(HEFFTE_BACKEND STREQUAL "FFTW") # respect the backend choice, FFTW or MKL
+  if(FFT_HEFFTE_BACKEND STREQUAL "FFTW") # respect the backend choice, FFTW or MKL
     set(HEFFTE_COMPONENTS "FFTW")
     set(Heffte_ENABLE_FFTW "ON" CACHE BOOL "Enables FFTW backend for heFFTe")
-  elseif(HEFFTE_BACKEND STREQUAL "MKL")
+  elseif(FFT_HEFFTE_BACKEND STREQUAL "MKL")
     set(HEFFTE_COMPONENTS "MKL")
     set(Heffte_ENABLE_MKL "ON" CACHE BOOL "Enables MKL backend for heFFTe")
   else()
-    message(WARNING "HEFFTE_BACKEND not selected, defaulting to the builtin 'stock' backend, which is intended for testing and is not optimized for production runs")
+    message(WARNING "FFT_HEFFTE_BACKEND not selected, defaulting to the builtin 'stock' backend, which is intended for testing and is not optimized for production runs")
   endif()
 
   find_package(Heffte 2.4.0 QUIET COMPONENTS ${HEFFTE_COMPONENTS})
@@ -78,7 +78,7 @@ if(FFT_USE_HEFFTE)
     target_link_libraries(Heffte::Heffte INTERFACE Heffte)
   endif()
 
-  target_compile_definitions(lammps PRIVATE -DLMP_HEFFTE "-DHEFFTE_${HEFFTE_BACKEND}")
+  target_compile_definitions(lammps PRIVATE -DFFT_HEFFTE "-DFFT_HEFFTE_${FFT_HEFFTE_BACKEND}")
   target_link_libraries(lammps PRIVATE Heffte::Heffte)
 endif()
 

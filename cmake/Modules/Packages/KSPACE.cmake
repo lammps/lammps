@@ -46,8 +46,8 @@ else()
   target_compile_definitions(lammps PRIVATE -DFFT_KISS)
 endif()
 
-option(LMP_HEFFTE  "Use heFFTe as the distributed FFT engine, overrides the FFT option."  OFF)
-if(LMP_HEFFTE)
+option(FFT_USE_HEFFTE  "Use heFFTe as the distributed FFT engine, overrides the FFT option."  OFF)
+if(FFT_USE_HEFFTE)
   # if FFT_HEFFTE is enabled, switch the builtin FFT engine with Heffte
   set(HEFFTE_BACKEND_VALUES FFTW MKL)
   set(HEFFTE_BACKEND "" CACHE STRING "Select heFFTe backend, e.g., FFTW or MKL")

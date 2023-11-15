@@ -59,7 +59,7 @@ better pipelining for packing and communication.
          -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
          -D FFT_SINGLE=value       # yes or no (default), no = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
-         -D LMP_HEFFTE=value       # yes or no (default), yes links to heFFTe
+         -D FFT_USE_HEFFTE=value   # yes or no (default), yes links to heFFTe
 
       .. note::
 

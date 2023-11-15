@@ -220,6 +220,8 @@ rotated configuration of the molecule.
    existing particle.  LAMMPS will issue a warning if R is smaller than
    this value, based on the radii of existing and inserted particles.
 
+.. versionadded:: TBD
+
 The *var* and *set* keywords can be used together to provide a criterion
 for accepting or rejecting the addition of an individual atom, based on its
 coordinates.  The *name* specified for the *var* keyword is the name of an
@@ -236,7 +238,7 @@ created atom, one for *y*, and one for *z*.  When an atom is created, its
 is defined.  The *var* variable is then evaluated.  If the returned value
 is 0.0, the atom is not created.  If it is non-zero, the atom is created.
 For an example of how to use these keywords, see the
-:doc:`create_atoms <create_atoms>`command.
+:doc:`create_atoms <create_atoms>` command.
 
 The *rate* option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables particles to be inserted from a

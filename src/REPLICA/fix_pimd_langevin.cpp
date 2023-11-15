@@ -1347,7 +1347,7 @@ void FixPIMDLangevin::compute_tote()
 
 void FixPIMDLangevin::compute_t_prim()
 {
-  t_prim = 1.5 * atom->natoms * np * force->boltz * temp - total_spring_energy;
+  t_prim = 1.5 * atom->natoms * np * force->boltz * temp - total_spring_energy * inverse_np;
 }
 
 /* ---------------------------------------------------------------------- */

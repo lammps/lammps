@@ -232,4 +232,4 @@ Related commands
 Default
 """""""
 
-The default for the neighobrs keyword is no.
+The default for the neighbors keyword is no.

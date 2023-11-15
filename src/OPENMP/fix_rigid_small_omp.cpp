@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,31 +15,36 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_rigid_small_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "comm.h"
 #include "domain.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "rigid_const.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-
-#include "math_extra.h"
-#include "math_const.h"
-#include "rigid_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-typedef struct { double x,y,z; } dbl3_t;
+typedef struct {
+  double x, y, z;
+} dbl3_t;
 
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 void FixRigidSmallOMP::initial_integrate(int vflag)
@@ -94,16 +98,36 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
-  if (triclinic)
-    if (evflag)
-      set_xv_thr<1,1>();
-    else
-      set_xv_thr<1,0>();
-  else
-    if (evflag)
-      set_xv_thr<0,1>();
-    else
-      set_xv_thr<0,0>();
+#if defined(_OPENMP)
+  if (domain->dimension == 2) {
+    if (triclinic) {
+      if (evflag)
+        set_xv_thr<1,1,2>();
+      else
+        set_xv_thr<1,0,2>();
+    } else {
+
+      if (evflag)
+        set_xv_thr<0,1,2>();
+      else
+        set_xv_thr<0,0,2>();
+    }
+  } else {
+    if (triclinic) {
+      if (evflag)
+        set_xv_thr<1,1,3>();
+      else
+        set_xv_thr<1,0,3>();
+    } else {
+      if (evflag)
+        set_xv_thr<0,1,3>();
+      else
+        set_xv_thr<0,0,3>();
+    }
+  }
+#else
+  set_xv();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,7 +138,6 @@ void FixRigidSmallOMP::compute_forces_and_torques()
   const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
   const int nlocal = atom->nlocal;
-  const int nthreads=comm->nthreads;
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
@@ -132,7 +155,10 @@ void FixRigidSmallOMP::compute_forces_and_torques()
   // and then each thread only processes some bodies.
 
 #if defined(_OPENMP)
+  const int nthreads=comm->nthreads;
 #pragma omp parallel LMP_DEFAULT_NONE
+#else
+  const int nthreads=1;
 #endif
   {
 #if defined(_OPENMP)
@@ -218,6 +244,7 @@ void FixRigidSmallOMP::compute_forces_and_torques()
 void FixRigidSmallOMP::final_integrate()
 {
   if (!earlyflag) compute_forces_and_torques();
+  if (domain->dimension == 2) enforce2d();
 
   // update vcm and angmom, recompute omega
 
@@ -253,24 +280,34 @@ void FixRigidSmallOMP::final_integrate()
   // virial is already setup from initial_integrate
   // triclinic only matters for virial calculation.
 
-  if (evflag)
-    if (triclinic)
-      set_v_thr<1,1>();
+  if (domain->dimension == 2) {
+    if (evflag) {
+      if (triclinic)
+        set_v_thr<1,1,2>();
+      else
+        set_v_thr<0,1,2>();
+    } else {
+      set_v_thr<0,0,2>();
+    }
+  } else {
+    if (evflag)
+      if (triclinic)
+        set_v_thr<1,1,3>();
+      else
+        set_v_thr<0,1,3>();
     else
-      set_v_thr<0,1>();
-  else
-    set_v_thr<0,0>();
+      set_v_thr<0,0,3>();
+  }
 }
-
 
 /* ----------------------------------------------------------------------
    set space-frame coords and velocity of each atom in each rigid body
    set orientation and rotation of extended particles
    x = Q displace + Xcm, mapped back to periodic box
    v = Vcm + (W cross (x - Xcm))
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
-template <int TRICLINIC, int EVFLAG>
+template <int TRICLINIC, int EVFLAG, int DIMENSION>
 void FixRigidSmallOMP::set_xv_thr()
 {
   auto * _noalias const x = (dbl3_t *) atom->x[0];
@@ -328,6 +365,8 @@ void FixRigidSmallOMP::set_xv_thr()
     v[i].x = b.omega[1]*x[i].z - b.omega[2]*x[i].y + b.vcm[0];
     v[i].y = b.omega[2]*x[i].x - b.omega[0]*x[i].z + b.vcm[1];
     v[i].z = b.omega[0]*x[i].y - b.omega[1]*x[i].x + b.vcm[2];
+
+    if (DIMENSION == 2) x[i].z = v[i].z = 0.0;
 
     // add center of mass to displacement
     // map back into periodic box via xbox,ybox,zbox
@@ -463,9 +502,9 @@ void FixRigidSmallOMP::set_xv_thr()
    set space-frame velocity of each atom in a rigid body
    set omega and angmom of extended particles
    v = Vcm + (W cross (x - Xcm))
-------------------------------------------------------------------------- */
+   ------------------------------------------------------------------------- */
 
-template <int TRICLINIC, int EVFLAG>
+template <int TRICLINIC, int EVFLAG, int DIMENSION>
 void FixRigidSmallOMP::set_v_thr()
 {
   auto * _noalias const x = (dbl3_t *) atom->x[0];
@@ -511,6 +550,8 @@ void FixRigidSmallOMP::set_v_thr()
     v[i].x = b.omega[1]*delta[2] - b.omega[2]*delta[1] + b.vcm[0];
     v[i].y = b.omega[2]*delta[0] - b.omega[0]*delta[2] + b.vcm[1];
     v[i].z = b.omega[0]*delta[1] - b.omega[1]*delta[0] + b.vcm[2];
+
+    if (DIMENSION == 2) v[i].z = 0.0;
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
@@ -564,8 +605,8 @@ void FixRigidSmallOMP::set_v_thr()
     }
   } // end of parallel for
 
-  // second part of thread safe virial accumulation
-  // add global virial component after it was reduced across all threads
+    // second part of thread safe virial accumulation
+    // add global virial component after it was reduced across all threads
   if (EVFLAG) {
     if (vflag_global) {
       virial[0] += v0;
@@ -624,4 +665,3 @@ void FixRigidSmallOMP::set_v_thr()
     }
   }
 }
-

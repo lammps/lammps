@@ -46,6 +46,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   rmass_flag = 0;
   temperature_flag = 0;
   heatflow_flag = 0;
+  nmax_old = 0;
 
   nvalue = 0;
   values_peratom = 0;
@@ -212,7 +213,6 @@ void FixPropertyAtom::post_constructor()
 {
   // perform initial allocation of atom-based array
 
-  nmax_old = 0;
   grow_arrays(atom->nmax);
 }
 

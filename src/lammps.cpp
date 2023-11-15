@@ -16,6 +16,7 @@
 
 #include "style_angle.h"     // IWYU pragma: keep
 #include "style_atom.h"      // IWYU pragma: keep
+#include "style_body.h"      // IWYU pragma: keep
 #include "style_bond.h"      // IWYU pragma: keep
 #include "style_command.h"   // IWYU pragma: keep
 #include "style_compute.h"   // IWYU pragma: keep
@@ -27,6 +28,7 @@
 #include "style_kspace.h"    // IWYU pragma: keep
 #include "style_minimize.h"  // IWYU pragma: keep
 #include "style_pair.h"      // IWYU pragma: keep
+#include "style_reader.h"    // IWYU pragma: keep
 #include "style_region.h"    // IWYU pragma: keep
 
 #include "accelerator_kokkos.h"
@@ -106,6 +108,15 @@ using namespace LAMMPS_NS;
  * processing command line flags, and providing access to some global properties.
  * The specifics of setting up and running a simulation are handled by the
  * individual component class instances. */
+
+/** Create a LAMMPS simulation instance
+ *
+ * \param args list of arguments
+ * \param communicator MPI communicator used by this LAMMPS instance
+ */
+LAMMPS::LAMMPS(argv & args, MPI_Comm communicator) :
+  LAMMPS(args.size(), argv_pointers(args).data(), communicator) {
+}
 
 /** Create a LAMMPS simulation instance
  *
@@ -210,7 +221,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   suffix = suffix2 = nullptr;
   suffix_enable = 0;
   pair_only_flag = 0;
-  if (arg) exename = arg[0];
+  if (arg) exename = utils::strdup(arg[0]);
   else exename = nullptr;
   packargs = nullptr;
   num_package = 0;
@@ -800,6 +811,7 @@ LAMMPS::~LAMMPS() noexcept(false)
   delete memory;
 
   delete pkg_lists;
+  delete[] exename;
 }
 
 /* ----------------------------------------------------------------------
@@ -1150,9 +1162,9 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   check_for_match(bond,style,name);
   check_for_match(command,style,name);
   check_for_match(compute,style,name);
+  check_for_match(dihedral,style,name);
   check_for_match(dump,style,name);
   check_for_match(fix,style,name);
-  check_for_match(compute,style,name);
   check_for_match(improper,style,name);
   check_for_match(integrate,style,name);
   check_for_match(kspace,style,name);
@@ -1162,6 +1174,8 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   check_for_match(region,style,name);
   return nullptr;
 }
+
+#undef check_for_match
 
 /** \brief  Return suffix for non-pair styles depending on pair_only_flag
  *
@@ -1463,4 +1477,18 @@ void LAMMPS::print_config(FILE *fp)
     ncline += ncword + 1;
   }
   fputs("\n\n",fp);
+}
+
+/** Create vector of argv string pointers including terminating nullptr element
+ *
+ * \param args list of arguments
+ */
+std::vector<char*> LAMMPS::argv_pointers(argv & args){
+  std::vector<char*> r;
+  r.reserve(args.size()+1);
+  for(auto & a : args) {
+    r.push_back((char*)a.data());
+  }
+  r.push_back(nullptr);
+  return r;
 }

@@ -74,7 +74,7 @@ Global, per-atom, local, and per-grid quantities can also be of three
 for each atom, each local entity, or each grid cell.
 
 Note that a single compute can produce any combination of global,
-per-atom, local, or per-grid values.  Likewise it can prouduce any
+per-atom, local, or per-grid values.  Likewise it can produce any
 combination of scalar, vector, or array output for each style.  The
 exception is that for per-atom, local, and per-grid output, either a
 vector or array can be produced, but not both.  The doc page for each

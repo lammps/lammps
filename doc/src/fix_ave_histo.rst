@@ -106,7 +106,7 @@ attributes are per-atom vector values.  See the page for individual
 generate.
 
 Note that a compute or fix can produce multiple kinds of data (global,
-per-atom, local).  If LAMMPS cannot unambiguosly determine which kind
+per-atom, local).  If LAMMPS cannot unambiguously determine which kind
 of data to use, the optional *kind* keyword discussed below can force
 the desired disambiguation.
 
@@ -263,7 +263,7 @@ keyword is set to *vector*, then all input values must be global or
 per-atom or local vectors, or columns of global or per-atom or local
 arrays.
 
-The *kind* keyword only needs to be used if any of the specfied input
+The *kind* keyword only needs to be used if any of the specified input
 computes or fixes produce more than one kind of output (global,
 per-atom, local).  If not, LAMMPS will determine the kind of data all
 the inputs produce and verify it is all the same kind.  If not, an

@@ -36,6 +36,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 This compute calculates a set of quantities related to the atomic cluster
 expansion (ACE) descriptors of the atoms in a group. ACE descriptors are
 a highly generalizable atomic descriptor, encoding the radial and angular

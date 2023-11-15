@@ -455,7 +455,12 @@ void FixPIMDLangevin::init()
   langevin_init();
 
   c_pe = modify->get_compute_by_id(id_pe);
+  if (!c_pe)
+    error->universe_all(FLERR, fmt::format("Could not find fix {} potential energy compute ID {}", style, id_pe));
+
   c_press = modify->get_compute_by_id(id_press);
+  if (!c_press)
+    error->universe_all(FLERR, fmt::format("Could not find fix {} pressure compute ID {}", style, id_press));
 
   t_prim = t_vir = t_cv = p_prim = p_vir = p_cv = p_md = 0.0;
 }

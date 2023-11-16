@@ -61,7 +61,7 @@ const T& first(const T& value, const Tail&...) {
   return value;
 }
 
-#if defined(__cpp_if_constexpr) && defined(__cpp_return_type_deduction)
+#if defined(__cpp_if_constexpr) && defined(__cpp_return_type_deduction) && FMT_CPLUSPLUS >= 201703L
 template <typename... Args> struct type_list {};
 
 // Returns a reference to the argument at index N from [first, rest...].

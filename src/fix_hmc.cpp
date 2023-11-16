@@ -138,6 +138,10 @@ FixHMC::~FixHMC()
   modify->delete_compute("hmc_peatom");
   modify->delete_compute("hmc_press");
   modify->delete_compute("hmc_pressatom");
+
+  for (LAMMPS_NS::Atom::PerAtom &old_peratom_member : stored_peratom) {
+    free(old_peratom_member.address);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -164,6 +168,41 @@ void FixHMC::post_constructor()
 
 /* ---------------------------------------------------------------------- */
 
+template <typename T>
+void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
+                         LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
+{
+  size_t offset;
+  int cols;
+  // free old memory if stored_peratom_member isn't a copy of current_peratom_member
+  if (stored_peratom_member.address != current_peratom_member.address) {
+    free(stored_peratom_member.address);
+    stored_peratom_member.address = NULL;
+  }
+  // peratom scalers
+  if (current_peratom_member.cols == 0) {
+    stored_peratom_member.address = malloc(sizeof(T) * nlocal);
+    memcpy(stored_peratom_member.address, current_peratom_member.address, nlocal * sizeof(T));
+  } else {
+    // peratom vectors
+    if (current_peratom_member.cols < 0) {
+        // variable column case
+      cols = *(current_peratom_member.address_maxcols);
+    } else {
+        // non-variable column case
+      cols = current_peratom_member.cols;
+    }
+    stored_peratom_member.address = malloc(sizeof(T) * nlocal * cols);
+    for (int i = 0; i < nlocal; i++) {
+      offset = i * cols * sizeof(T);
+      memcpy((T *) stored_peratom_member.address + i * cols,
+             reinterpret_cast<T *>(static_cast<char *>(current_peratom_member.address) + offset),
+             sizeof(T) * cols);
+    }
+  }
+}
+
+
 void FixHMC::setup_arrays_and_pointers()
 {
   int i, j, m;
@@ -185,31 +224,8 @@ void FixHMC::setup_arrays_and_pointers()
   //if (atom->e_flag) scalptr[m++] = &atom->de;
   if (atom->rho_flag) scalptr[m++] = &atom->drho;
   
-  //current_peratom = atom->peratom;
-  
-  //// make a copy of all peratom data
-  //for (auto peratom_member = current_peratom.begin(); peratom_member != current_peratom.end();
-  //     peratom_member++) {
-  //  LAMMPS_NS::PerAtom old_peratom_member = *peratom_member;
-  //  switch (peratom_member->datatype) {
-  //    case (atom->INT):
-  //      old_peratom_member.address = new int[peratom_member->cols];
-  //      memcpy(old_peratom_member.address, peratom_member->address,
-  //             peratom_member.cols * sizeof(int));
-  //      break;
-  //    case (atom->DOUBLE):
-  //      old_peratom_member.address = new double[peratom_member->cols];
-  //      memcpy(old_peratom_member.address, peratom_member->address,
-  //             peratom_member.cols * sizeof(double));
-  //      break;
-  //    case (atom->BIGINT):
-  //      old_peratom_member.address = new bigint[peratom_member->cols];
-  //      memcpy(old_peratom_member.address, peratom_member->address,
-  //             peratom_member.cols * sizeof(bigint));
-  //      break;
-  //      old_peratom.push_back(old_peratom_member);
-  //  }
-  //}
+  current_peratom = atom->peratom;
+  stored_nlocal = atom->nlocal;
 
   // Per-atom vector properties to be saved and restored:
   nvec = 2;
@@ -1336,6 +1352,23 @@ void FixHMC::copy_arrays(int i, int j, int delflag)
   if (pressatom_flag)
     for (m = 0; m < nv; m++)
       memcpy( vatom[m][j], vatom[m][i], six );
+
+    // make a copy of all peratom data
+  for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
+    LAMMPS_NS::Atom::PerAtom stored_peratom_member = current_peratom_member;
+    switch (current_peratom_member.datatype) {
+      case (Atom::INT):
+        store_peratom_member<int>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        break;
+      case (Atom::DOUBLE):
+        store_peratom_member<double>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        break;
+      case (Atom::BIGINT):
+        store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        break;
+    }
+    stored_peratom.push_back(stored_peratom_member);
+  }
 }
 
 /* ----------------------------------------------------------------------

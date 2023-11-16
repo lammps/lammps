@@ -1126,15 +1126,14 @@ int Neighbor::init_pair()
 }
 
 /* ----------------------------------------------------------------------
-   sort NeighRequests by cutoff distance
-    to find smallest list for trimming
+   sort NeighRequests by cutoff distance for trimming
 ------------------------------------------------------------------------- */
 
 void Neighbor::sort_requests()
 {
-  NeighRequest *jrq;
+  NeighRequest *irq,*jrq;
   int i,j,jmin;
-  double jcut;
+  double icut,jcut;
 
   delete[] j_sorted;
   j_sorted = new int[nrequest];
@@ -1142,20 +1141,24 @@ void Neighbor::sort_requests()
   for (i = 0; i < nrequest; i++)
     j_sorted[i] = i;
 
-  for (i = 0; i < nrequest; i++) {
-    double cutoff_min = cutneighmax;
+  for (i = 0; i < nrequest-1; i++) {
+    irq = requests[j_sorted[i]];
+    if (irq->cut) icut = irq->cutoff;
+    else icut = cutneighmax;
+    double cutoff_min = icut;
     jmin = i;
 
-    for (j = i; j < nrequest-1; j++) {
+    for (j = i+1; j < nrequest; j++) {
       jrq = requests[j_sorted[j]];
       if (jrq->cut) jcut = jrq->cutoff;
       else jcut = cutneighmax;
 
-      if (jcut <= cutoff_min) {
+      if (jcut < cutoff_min) {
         cutoff_min = jcut;
         jmin = j;
       }
     }
+
     int tmp = j_sorted[i];
     j_sorted[i] = j_sorted[jmin];
     j_sorted[jmin] = tmp;

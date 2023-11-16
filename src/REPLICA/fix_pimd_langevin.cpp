@@ -419,10 +419,10 @@ int FixPIMDLangevin::setmask()
 void FixPIMDLangevin::init()
 {
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR, "fix pimd/langevin requires an atom map, see atom_modify");
+    error->all(FLERR, "Fix pimd/langevin requires an atom map, see atom_modify");
 
   if (universe->me == 0 && universe->uscreen)
-    fprintf(universe->uscreen, "fix pimd/langevin initializing Path-Integral ...\n");
+    fprintf(universe->uscreen, "Fix pimd/langevin: initializing Path-Integral ...\n");
 
   // prepare the constants
 
@@ -446,7 +446,7 @@ void FixPIMDLangevin::init()
 
   if ((universe->me == 0) && (universe->uscreen))
     fprintf(universe->uscreen,
-            "fix pimd/langevin -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
+            "Fix pimd/langevin: -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
 
   if (integrator == OBABO) {
     dtf = 0.5 * update->dt * force->ftm2v;
@@ -899,8 +899,8 @@ void FixPIMDLangevin::baro_init()
   }
   Vcoeff = 1.0;
   std::string out = fmt::format("\nInitializing PIMD {:s} barostat...\n", Barostats[barostat]);
-  out += fmt::format("The barostat mass is W = {:.16e}\n", W);
-  utils::logmesg(lmp, out);
+  out += fmt::format("  The barostat mass is W = {:.16e}\n", W);
+  if (universe->me == 0) utils::logmesg(lmp, out);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1017,8 +1017,8 @@ void FixPIMDLangevin::langevin_init()
   c2 = sqrt(1.0 - c1 * c1);    // note that c1 and c2 here only works for the centroid mode.
 
   if (thermostat == PILE_L) {
-    std::string out = "\nInitializing PI Langevin equation thermostat...\n";
-    out += "Bead ID    |    omega    |    tau    |    c1    |    c2\n";
+    std::string out = "Initializing PI Langevin equation thermostat...\n";
+    out += "  Bead ID    |    omega    |    tau    |    c1    |    c2\n";
     if (method == NMPIMD) {
       tau_k = new double[np];
       c1_k = new double[np];
@@ -1039,18 +1039,18 @@ void FixPIMDLangevin::langevin_init()
         c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
       }
       for (int i = 0; i < np; i++) {
-        out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i],
-                           c1_k[i], c2_k[i]);
+        out += fmt::format("      {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i,
+                           _omega_k[i], tau_k[i], c1_k[i], c2_k[i]);
       }
     } else if (method == PIMD) {
       for (int i = 0; i < np; i++) {
-        out += fmt::format("    {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_np / sqrt(fmass),
-                           tau, c1, c2);
+        out += fmt::format("      {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i,
+                           _omega_np / sqrt(fmass), tau, c1, c2);
       }
     }
-    if (thermostat == PILE_L) out += "PILE_L thermostat successfully initialized!\n";
+    if (thermostat == PILE_L) out += "  PILE_L thermostat successfully initialized!\n";
     out += "\n";
-    utils::logmesg(lmp, out);
+    if (universe->me == 0) utils::logmesg(lmp, out);
   }
 }
 

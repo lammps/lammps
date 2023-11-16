@@ -449,8 +449,8 @@ origin* keywords are used.  The *xlo xhi*, *ylo yhi*, *zlo zhi*, and
 *xy xz yz* keywords are not used.  The first 3 keywords define the 3
 edge vectors **A**, **B**, **C** of a general triclinic box.  They can
 be arbitrary vectors so long as they are distinct, non-zero, and not
-co-planar.  They must also define a right-handed system requirement
-such that (**A** x **B**) points in the direction of **C**.  A
+co-planar.  They must also define a right-handed system such that
+(**A** x **B**) points in the direction of **C**.  Note that a
 left-handed system can be converted to a right-handed system by simply
 swapping the order of any pair of the **A**, **B**, **C** vectors.
 The origin of the box (origin of the 3 edge vectors) is set by the
@@ -818,6 +818,8 @@ of analysis.
      - atom-ID atom-type bodyflag mass x y z
    * - bond
      - atom-ID molecule-ID atom-type x y z
+   * - bpm/sphere
+     - atom-ID molecule-ID atom-type diameter density x y z
    * - charge
      - atom-ID atom-type q x y z
    * - dielectric
@@ -848,8 +850,6 @@ of analysis.
      - atom-ID atom-type rho esph cv x y z
    * - sphere
      - atom-ID atom-type diameter density x y z
-   * - bpm/sphere
-     - atom-ID molecule-ID atom-type diameter density x y z
    * - spin
      - atom-ID atom-type x y z spx spy spz sp
    * - tdpd

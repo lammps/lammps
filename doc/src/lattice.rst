@@ -131,8 +131,10 @@ so that they describe a tilted parallelepiped.  Via the *basis*
 keyword you add atoms, one at a time, to the unit cell.  Its arguments
 are fractional coordinates (0.0 <= x,y,z < 1.0).  The position vector
 x of a basis atom within the unit cell is thus a linear combination of
-the unit cell's 3 edge vectors, i.e. x = bx a1 + by a2 + bz a3,
-where bx,by,bz are the 3 values specified for the *basis* keyword.
+the unit cell's 3 edge vectors, i.e. x = bx a1 + by a2 + bz a3, where
+bx,by,bz are the 3 values specified for the *basis* keyword.  For 2d
+simulations, the fractional z coordinate for any basis atom must be
+0.0.
 
 ----------
 

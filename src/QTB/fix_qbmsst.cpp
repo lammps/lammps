@@ -228,7 +228,6 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   pressure = nullptr;
   pe = nullptr;
   old_velocity = nullptr;
-  rfix = nullptr;
   gfactor = nullptr;
   random = nullptr;
   omega_H = nullptr;
@@ -263,17 +262,16 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixQBMSST::~FixQBMSST()
 {
-  delete [] rfix;
-  delete [] gfactor;
+  delete[] gfactor;
   delete random;
 
   // delete temperature and pressure if fix created them
   if (tflag) modify->delete_compute(id_temp);
   if (pflag) modify->delete_compute(id_press);
   if (peflag) modify->delete_compute(id_pe);
-  delete [] id_temp;
-  delete [] id_press;
-  delete [] id_pe;
+  delete[] id_temp;
+  delete[] id_press;
+  delete[] id_pe;
 
   memory->destroy(old_velocity);
   memory->destroy(fran);
@@ -315,20 +313,20 @@ void FixQBMSST::init()
     error->all(FLERR,"Cannot use fix qbmsst without per-type mass defined");
 
   // set compute ptrs
-  int itemp = modify->find_compute(id_temp);
-  int ipress = modify->find_compute(id_press);
-  int ipe = modify->find_compute(id_pe);
-  if (itemp < 0 || ipress < 0|| ipe < 0)
-    error->all(FLERR,"Could not find fix qbmsst compute ID");
-  if (modify->compute[itemp]->tempflag == 0)
-    error->all(FLERR,"Fix qbmsst compute ID does not compute temperature");
-  if (modify->compute[ipress]->pressflag == 0)
-    error->all(FLERR,"Fix qbmsst compute ID does not compute pressure");
-  if (modify->compute[ipe]->peflag == 0)
-    error->all(FLERR,"Fix qbmsst compute ID does not compute potential energy");
-  temperature = modify->compute[itemp];
-  pressure = modify->compute[ipress];
-  pe = modify->compute[ipe];
+
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature)
+    error->all(FLERR, "Could not find fix qbmsst temperature compute ID {}", id_temp);
+  if (temperature->tempflag == 0)
+    error->all(FLERR, "Fix qbmsst compute ID {} does not compute temperature", id_temp);
+  pressure = modify->get_compute_by_id(id_press);
+  if (!pressure) error->all(FLERR, "Could not find fix qbmsst pressure compute ID {}", id_press);
+  if (pressure->pressflag == 0)
+    error->all(FLERR, "Fix qbmsst compute ID {} does not compute pressure", id_press);
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe) error->all(FLERR, "Could not find fix qbmsst pe compute ID {}", id_pe);
+  if (pe->peflag == 0)
+    error->all(FLERR, "Fix qbmsst compute ID {} does not compute potential energy", id_pe);
 
   // initiate the counter l and \mu
   counter_l=0;
@@ -385,18 +383,10 @@ void FixQBMSST::init()
   else kspace_flag = 0;
 
   // detect if any fix rigid exist so rigid bodies move when box is dilated
-  // rfix[] = indices to each fix rigid
-  nrigid = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
-        (strcmp(modify->fix[i]->style,"poems") == 0)) nrigid++;
-  if (nrigid > 0) {
-    rfix = new int[nrigid];
-    nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (utils::strmatch(modify->fix[i]->style,"^rigid") ||
-          (strcmp(modify->fix[i]->style,"poems") == 0)) rfix[nrigid++] = i;
-  }
+
+   rfix.clear();
+   for (auto &ifix : modify->get_fix_list())
+     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
 /* ----------------------------------------------------------------------
@@ -787,9 +777,7 @@ void FixQBMSST::remap(int flag)
 
   domain->x2lamda(n);
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -810,9 +798,7 @@ void FixQBMSST::remap(int flag)
 
   domain->lamda2x(n);
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 
   for (i = 0; i < n; i++) {
     v[i][direction] = v[i][direction] *
@@ -868,18 +854,15 @@ int FixQBMSST::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
-
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
-
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR, "Could not find fix_modify temperature ID {}", id_temp);
     if (temperature->tempflag == 0)
-      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID {} does not compute temperature", id_temp);
     if (temperature->igroup != 0 && comm->me == 0)
-      error->warning(FLERR,"Temperature for QBMSST is not for group all");
-
+      error->warning(FLERR, "Temperature for fix qbmsst is not for group all");
     return 2;
 
   } else if (strcmp(arg[0],"press") == 0) {
@@ -888,15 +871,14 @@ int FixQBMSST::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify compute pressure ID {}", id_press);
 
     if (pressure->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify compute pressure ID {} does not compute pressure", id_press);
     return 2;
   }
   return 0;

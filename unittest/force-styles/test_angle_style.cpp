@@ -26,6 +26,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "compute.h"
+#include "exceptions.h"
 #include "fmt/format.h"
 #include "force.h"
 #include "info.h"
@@ -59,7 +60,7 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete lmp;
 }
 
-LAMMPS *init_lammps(LAMMPS::argv & args, const TestConfig &cfg, const bool newton = true)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton = true)
 {
     LAMMPS *lmp;
 
@@ -90,7 +91,21 @@ LAMMPS *init_lammps(LAMMPS::argv & args, const TestConfig &cfg, const bool newto
 
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line);
+        try {
+            lmp->input->one(line);
+        } catch (LAMMPSAbortException &ae) {
+            fprintf(stderr, "LAMMPS Error: %s\n", ae.what());
+            exit(2);
+        } catch (LAMMPSException &e) {
+            fprintf(stderr, "LAMMPS Error: %s\n", e.what());
+            exit(3);
+        } catch (fmt::format_error &fe) {
+            fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+            exit(4);
+        } catch (std::exception &e) {
+            fprintf(stderr, "General exception: %s\n", e.what());
+            exit(5);
+        }
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());

@@ -170,10 +170,11 @@ void FixHMC::post_constructor()
 
 template <typename T>
 void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
-                         LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
+                          LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
-    printf("NONONONONONO\n");//error->all(FLERR, "fix hmc tried to store incorrect peratom data");
+    printf(
+        "NONONONONONO\n");    //error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   size_t offset;
   int cols;
@@ -193,25 +194,22 @@ void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
   } else {
     // peratom vectors
     if (current_peratom_member.cols < 0) {
-        // variable column case
+      // variable column case
       cols = *(current_peratom_member.address_maxcols);
+      stored_peratom_member.address_maxcols = (int *) malloc(sizeof(int));
+      *(stored_peratom_member.address_maxcols) = *(current_peratom_member.address_maxcols);
     } else {
-        // non-variable column case
+      // non-variable column case
       cols = current_peratom_member.cols;
     }
     stored_peratom_member.address = malloc(sizeof(T) * nlocal * cols);
     for (int i = 0; i < nlocal; i++) {
-      offset = i * cols * sizeof(T);
       memcpy((T *) stored_peratom_member.address + i * cols,
-             //reinterpret_cast<T *>(static_cast<char *>(current_peratom_member.address) + offset),
-             (T *) current_peratom_member.address + i * cols,
-             sizeof(T) * cols);
+             (T *) current_peratom_member.address + i * cols, sizeof(T) * cols);
     }
   }
   stored_peratom_member.cols = current_peratom_member.cols;
   stored_peratom_member.collength = current_peratom_member.collength;
-  stored_peratom_member.address_maxcols = (int*) malloc(sizeof(int));
-  *(stored_peratom_member.address_maxcols) = *(stored_peratom_member.address_maxcols);
 }
 
 
@@ -231,7 +229,8 @@ void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
     // peratom vectors
     if (stored_peratom_member.cols < 0) {
       // variable column case
-      cols = *(current_peratom_member.address_maxcols);
+      cols = *(stored_peratom_member.address_maxcols);
+      *(current_peratom_member.address_maxcols) = *(stored_peratom_member.address_maxcols);
     } else {
       // non-variable column case
       cols = stored_peratom_member.cols;
@@ -245,7 +244,6 @@ void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
   }
   current_peratom_member.cols = stored_peratom_member.cols;
   current_peratom_member.collength = stored_peratom_member.collength;
-  *(current_peratom_member.address_maxcols) = *(stored_peratom_member.address_maxcols);
 }
 
 
@@ -765,6 +763,7 @@ void FixHMC::restore_saved_state()
   double **x = atom->x;
   double *scalar, **vector, *energy, **stress;
 
+  if (nlocal != stored_nlocal) error->all(FLERR, "bonk");
   for (LAMMPS_NS::Atom::PerAtom &stored_peratom_member : stored_peratom) {
     for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
       if (stored_peratom_member.name.compare(current_peratom_member.name)) {
@@ -786,7 +785,6 @@ void FixHMC::restore_saved_state()
         break;
       }
     }
-    stored_peratom.push_back(stored_peratom_member);
   }
   //// Restore scalar properties:
   //for (m = 0; m < nscal; m++) {
@@ -1440,6 +1438,12 @@ void FixHMC::copy_arrays(int i, int j, int delflag)
       memcpy( vatom[m][j], vatom[m][i], six );
 
     // make a copy of all peratom data
+
+  for (LAMMPS_NS::Atom::PerAtom &stored_peratom_member : stored_peratom) {
+    free(stored_peratom_member.address);
+    if (stored_peratom_member.address_maxcols != NULL) free(stored_peratom_member.address_maxcols);
+  }
+  stored_peratom.clear();
   for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
     LAMMPS_NS::Atom::PerAtom stored_peratom_member = current_peratom_member;
     switch (current_peratom_member.datatype) {

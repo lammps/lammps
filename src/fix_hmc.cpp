@@ -196,7 +196,36 @@ void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
     for (int i = 0; i < nlocal; i++) {
       offset = i * cols * sizeof(T);
       memcpy((T *) stored_peratom_member.address + i * cols,
-             reinterpret_cast<T *>(static_cast<char *>(current_peratom_member.address) + offset),
+             //reinterpret_cast<T *>(static_cast<char *>(current_peratom_member.address) + offset),
+             (T *) current_peratom_member.address + i * cols,
+             sizeof(T) * cols);
+    }
+  }
+}
+
+
+template <typename T>
+void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
+                          LAMMPS_NS::Atom::PerAtom &current_peratom_member, int nlocal)
+{
+  size_t offset;
+  int cols;
+  // peratom scalers
+  if (stored_peratom_member.cols == 0) {
+    memcpy(current_peratom_member.address, stored_peratom_member.address, nlocal * sizeof(T));
+  } else {
+    // peratom vectors
+    if (stored_peratom_member.cols < 0) {
+      // variable column case
+      cols = *(current_peratom_member.address_maxcols);
+    } else {
+      // non-variable column case
+      cols = stored_peratom_member.cols;
+    }
+    for (int i = 0; i < nlocal; i++) {
+      offset = i * cols * sizeof(T);
+      memcpy(reinterpret_cast<T *>(static_cast<char *>(current_peratom_member.address) + offset),
+             (T *) stored_peratom_member.address + i * cols,
              sizeof(T) * cols);
     }
   }

@@ -18,20 +18,20 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-NPairStyle(halffull/newton/trim/intel,
-           NPairHalffullNewtonTrimIntel,
+NPairStyle(halffull/trim/newton/intel,
+           NPairHalffullTrimNewtonIntel,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI| NP_TRIM | NP_INTEL);
 
-NPairStyle(halffull/newton/skip/trim/intel,
-           NPairHalffullNewtonTrimIntel,
+NPairStyle(halffull/trim/newton/skip/intel,
+           NPairHalffullTrimNewtonIntel,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM | NP_INTEL);
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_HALFFULL_NEWTON_TRIM_INTEL_H
-#define LMP_NPAIR_HALFFULL_NEWTON_TRIM_INTEL_H
+#ifndef LMP_NPAIR_HALFFULL_TRIM_NEWTON_INTEL_H
+#define LMP_NPAIR_HALFFULL_TRIM_NEWTON_INTEL_H
 
 #include "fix_intel.h"
 #include "npair.h"
@@ -42,9 +42,9 @@ NPairStyle(halffull/newton/skip/trim/intel,
 
 namespace LAMMPS_NS {
 
-class NPairHalffullNewtonTrimIntel : public NPair {
+class NPairHalffullTrimNewtonIntel : public NPair {
  public:
-  NPairHalffullNewtonTrimIntel(class LAMMPS *);
+  NPairHalffullTrimNewtonIntel(class LAMMPS *);
   void build(class NeighList *) override;
 
  protected:

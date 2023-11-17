@@ -12,10 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_halffull_newton_trim_omp.h"
+#include "npair_halffull_trim_newton_omp.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "my_page.h"
 #include "neigh_list.h"
 #include "npair_omp.h"
@@ -26,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalffullNewtonTrimOmp::NPairHalffullNewtonTrimOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalffullTrimNewtonOmp::NPairHalffullTrimNewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build half list from full list and trim to shorter cutoff
@@ -35,7 +37,7 @@ NPairHalffullNewtonTrimOmp::NPairHalffullNewtonTrimOmp(LAMMPS *lmp) : NPair(lmp)
    works if full list is a skip list
 ------------------------------------------------------------------------- */
 
-void NPairHalffullNewtonTrimOmp::build(NeighList *list)
+void NPairHalffullTrimNewtonOmp::build(NeighList *list)
 {
   const int inum_full = list->listfull->inum;
   const double delta = 0.01 * force->angstrom;

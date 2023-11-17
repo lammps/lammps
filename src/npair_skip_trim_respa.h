@@ -13,23 +13,24 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-NPairStyle(skip/half/size/trim,
-           NPairSkipSizeTrim,
-           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+NPairStyle(skip/trim/half/respa,
+           NPairSkipTrimRespa,
+           NP_SKIP | NP_RESPA | NP_HALF | NP_FULL |
+           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_SKIP_SIZE_TRIM_H
-#define LMP_NPAIR_SKIP_SIZE_TRIM_H
+#ifndef LMP_NPAIR_SKIP_TRIM_RESPA_H
+#define LMP_NPAIR_SKIP_TRIM_RESPA_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairSkipSizeTrim : public NPair {
+class NPairSkipTrimRespa : public NPair {
  public:
-  NPairSkipSizeTrim(class LAMMPS *);
+  NPairSkipTrimRespa(class LAMMPS *);
   void build(class NeighList *) override;
 };
 

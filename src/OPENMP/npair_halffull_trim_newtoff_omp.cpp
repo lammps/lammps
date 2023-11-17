@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_halffull_newtoff_trim_omp.h"
+#include "npair_halffull_trim_newtoff_omp.h"
 
 #include "atom.h"
 #include "error.h"
@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalffullNewtoffTrimOmp::NPairHalffullNewtoffTrimOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalffullTrimNewtoffOmp::NPairHalffullTrimNewtoffOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build half list from full list and trim to shorter cutoff
@@ -35,7 +35,7 @@ NPairHalffullNewtoffTrimOmp::NPairHalffullNewtoffTrimOmp(LAMMPS *lmp) : NPair(lm
    works if full list is a skip list
 ------------------------------------------------------------------------- */
 
-void NPairHalffullNewtoffTrimOmp::build(NeighList *list)
+void NPairHalffullTrimNewtoffOmp::build(NeighList *list)
 {
   const int inum_full = list->listfull->inum;
 

@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_skip_respa_trim.h"
+#include "npair_skip_trim_respa.h"
 
 #include "atom.h"
 #include "error.h"
@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkipRespaTrim::NPairSkipRespaTrim(LAMMPS *lmp) : NPair(lmp) {}
+NPairSkipTrimRespa::NPairSkipTrimRespa(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
@@ -31,7 +31,7 @@ NPairSkipRespaTrim::NPairSkipRespaTrim(LAMMPS *lmp) : NPair(lmp) {}
    this is for respa lists, copy the inner/middle values from parent
 ------------------------------------------------------------------------- */
 
-void NPairSkipRespaTrim::build(NeighList *list)
+void NPairSkipTrimRespa::build(NeighList *list)
 {
   int i,j,ii,jj,n,itype,jnum,joriginal,n_inner,n_middle;
   int *neighptr,*jlist,*neighptr_inner,*neighptr_middle;

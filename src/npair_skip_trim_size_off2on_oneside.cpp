@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_skip_size_off2on_oneside_trim.h"
+#include "npair_skip_trim_size_off2on_oneside.h"
 
 #include "atom.h"
 #include "domain.h"
@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkipSizeOff2onOnesideTrim::NPairSkipSizeOff2onOnesideTrim(LAMMPS *lmp) :
+NPairSkipTrimSizeOff2onOneside::NPairSkipTrimSizeOff2onOneside(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -34,7 +34,7 @@ NPairSkipSizeOff2onOnesideTrim::NPairSkipSizeOff2onOnesideTrim(LAMMPS *lmp) :
      this skip list is newton on and onesided
 ------------------------------------------------------------------------- */
 
-void NPairSkipSizeOff2onOnesideTrim::build(NeighList *list)
+void NPairSkipTrimSizeOff2onOneside::build(NeighList *list)
 {
   int i,j,ii,jj,itype,jnum,joriginal,flip,tmp;
   int *surf,*jlist;

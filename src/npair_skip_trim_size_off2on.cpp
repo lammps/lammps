@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_skip_size_trim.h"
+#include "npair_skip_trim_size_off2on.h"
 
 #include "atom.h"
 #include "error.h"
@@ -22,19 +22,24 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkipSizeTrim::NPairSkipSizeTrim(LAMMPS *lmp) : NPair(lmp) {}
+NPairSkipTrimSizeOff2on::NPairSkipTrimSizeOff2on(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
    iskip and ijskip flag which atom types and type pairs to skip
+   parent non-skip list used newton off, this skip list is newton on
 ------------------------------------------------------------------------- */
 
-void NPairSkipSizeTrim::build(NeighList *list)
+void NPairSkipTrimSizeOff2on::build(NeighList *list)
 {
   int i, j, ii, jj, n, itype, jnum, joriginal;
+  tagint itag, jtag;
   int *neighptr, *jlist;
 
+  tagint *tag = atom->tag;
   int *type = atom->type;
+  int nlocal = atom->nlocal;
+
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
@@ -64,6 +69,7 @@ void NPairSkipSizeTrim::build(NeighList *list)
     i = ilist_skip[ii];
     itype = type[i];
     if (iskip[itype]) continue;
+    itag = tag[i];
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -72,7 +78,7 @@ void NPairSkipSizeTrim::build(NeighList *list)
     n = 0;
     neighptr = ipage->vget();
 
-    // loop over parent non-skip size list
+    // loop over parent non-skip size list and optionally its history info
 
     jlist = firstneigh_skip[i];
     jnum = numneigh_skip[i];
@@ -81,6 +87,11 @@ void NPairSkipSizeTrim::build(NeighList *list)
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
+
+      // only keep I,J when J = ghost if Itag < Jtag
+
+      jtag = tag[j];
+      if (j >= nlocal && jtag < itag) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -97,6 +108,5 @@ void NPairSkipSizeTrim::build(NeighList *list)
     ipage->vgot(n);
     if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
-
   list->inum = inum;
 }

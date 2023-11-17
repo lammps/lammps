@@ -31,7 +31,7 @@ Syntax
 
   .. parsed-literal::
        *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj*
-       *method* value = *nmpimd*
+       *method* value = *nmpimd* (default) or *pimd*
        *integrator* value = *obabo* or *baoab*
        *fmmode* value = *physical* or *normal*
        *fmass* value = scaling factor on mass
@@ -137,8 +137,6 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    the real particle.
 
 .. note::
-   Fix pimd/langevin only supports *method* value *nmpimd*. This should be enough
-   for most PIMD applications for quantum thermodynamics purpose.
 
    Motion of the centroid can be effectively uncoupled from the other
    normal modes by scaling the fictitious masses to achieve a partial
@@ -150,6 +148,16 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    The CMD method also uses normal modes to evolve the system, except
    only the k > 0 modes are thermostatted, not the centroid degrees of
    freedom.
+
+.. versionadded:: TBD
+
+   Mode *pimd* added to fix pimd/langevin.
+
+Fix pimd/langevin supports the *method* values *nmpimd* and *pimd*. The default value is *nmpimd*.
+If *method* is *nmpimd*, the normal mode representation is used to integrate the equations of motion.
+The exact solution of harmonic oscillator is used to propagate the free ring polymer part of the Hamiltonian.
+If *method* is *pimd*, the Cartesian representation is used to integrate the equations of motion.
+The harmonic force is added to the total force of the system, and the numerical integrator is used to propagate the Hamiltonian.
 
 The keyword *integrator* specifies the Trotter splitting method used by *fix pimd/langevin*.
 See :ref:`(Liu) <Liu>` for a discussion on the OBABO and BAOAB splitting schemes. Typically
@@ -207,6 +215,7 @@ The keyword *thermostat* reads *style* and *seed* of thermostat for fix style *p
 be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
 
 .. note::
+
    The fix style *pimd/langevin* uses the stochastic PILE_L thermostat to control temperature. This thermostat works on the normal modes
    of the ring polymer. The *tau* parameter controls the centroid mode, and the *scale* parameter controls the non-centroid modes.
 
@@ -269,6 +278,7 @@ related tasks for each of the partitions, e.g.
    read_restart system_${ibead}.restart2
 
 .. note::
+
    Fix *pimd/langevin* dumps the Cartesian coordinates, but dumps the velocities and
    forces in the normal mode representation. If the Cartesian velocities and forces are
    needed, it is easy to perform the transformation when doing post-processing.

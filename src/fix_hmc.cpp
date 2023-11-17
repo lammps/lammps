@@ -139,8 +139,8 @@ FixHMC::~FixHMC()
   modify->delete_compute("hmc_press");
   modify->delete_compute("hmc_pressatom");
 
-  for (LAMMPS_NS::Atom::PerAtom &old_peratom_member : stored_peratom) {
-    free(old_peratom_member.address);
+  for (LAMMPS_NS::Atom::PerAtom &stored_peratom_member : stored_peratom) {
+    free(stored_peratom_member.address);
   }
 }
 
@@ -172,12 +172,19 @@ template <typename T>
 void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
                          LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
 {
+  if (!strcmp(stored_peratom_member.name, current_peratom_member.name)) {
+        error->all(FLERR, "fix hmc tried to store incorrect peratom data");
+  }
   size_t offset;
   int cols;
   // free old memory if stored_peratom_member isn't a copy of current_peratom_member
   if (stored_peratom_member.address != current_peratom_member.address) {
     free(stored_peratom_member.address);
     stored_peratom_member.address = NULL;
+  }
+  if (stored_peratom_member.address_maxcols != current_peratom_member.address_maxcols) {
+    free(stored_peratom_member.address_maxcols);
+    stored_peratom_member.address_maxcols = NULL;
   }
   // peratom scalers
   if (current_peratom_member.cols == 0) {
@@ -201,6 +208,10 @@ void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
              sizeof(T) * cols);
     }
   }
+  stored_peratom_member.cols = current_peratom_member.cols;
+  stored_peratom_member.collength = current_peratom_member.collength;
+  stored_peratom_member.address_maxcols = (int*) malloc(sizeof(int));
+  *(stored_peratom_member.address_maxcols) = *(stored_peratom_member.address_maxcols);
 }
 
 
@@ -208,6 +219,9 @@ template <typename T>
 void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
                           LAMMPS_NS::Atom::PerAtom &current_peratom_member, int nlocal)
 {
+  if (!strcmp(stored_peratom_member.name, current_peratom_member.name)) {
+    error->all(FLERR, "fix hmc tried to restore incorrect peratom data");
+  }
   size_t offset;
   int cols;
   // peratom scalers
@@ -224,11 +238,14 @@ void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
     }
     for (int i = 0; i < nlocal; i++) {
       offset = i * cols * sizeof(T);
-      memcpy(reinterpret_cast<T *>(static_cast<char *>(current_peratom_member.address) + offset),
+      memcpy((T *) current_peratom_member.address + i * cols,
              (T *) stored_peratom_member.address + i * cols,
              sizeof(T) * cols);
     }
   }
+  current_peratom_member.cols = stored_peratom_member.cols;
+  current_peratom_member.collength = stored_peratom_member.collength;
+  *(current_peratom_member.maxcols) = *(stored_peratom_member.collength);
 }
 
 

@@ -697,13 +697,14 @@ void FitPOD::get_data(datastruct &data, const std::vector<std::string> &species)
   memory->create(data.lattice, 9*n, "fitpod:lattice");
   memory->create(data.stress, 9*n, "fitpod:stress");
   memory->create(data.energy, n, "fitpod:energy");
+  // Group weights have same size as energy.
+  memory->create(data.we, n, "fitpod:we");
+  memory->create(data.wf, n, "fitpod:wf");
+  
   n = data.num_atom_sum;
   memory->create(data.position, 3*n, "fitpod:position");
   memory->create(data.force, 3*n, "fitpod:force");
   memory->create(data.atomtype, n, "fitpod:atomtype");
-  // Group weights have same size as energy.
-  memory->create(data.we, n, "fitpod:we");
-  memory->create(data.wf, n, "fitpod:wf");
 
   double we_group, wf_group; // group weights
   int nfiles = data.data_files.size(); // number of files
@@ -872,11 +873,15 @@ void FitPOD::select_data(datastruct &newdata, const datastruct &data)
   podCumsum(&newdata.num_config_cumsum[0], &newdata.num_config[0], nfiles+1);
   newdata.num_config_sum = newdata.num_atom.size();
 
-  int n = data.num_config_sum;
+  int n = newdata.num_config_sum;
   memory->create(newdata.lattice, 9*n, "fitpod:newdata_lattice");
   memory->create(newdata.stress, 9*n, "fitpod:newdata_stress");
   memory->create(newdata.energy, n, "fitpod:newdata_energy");
-  n = data.num_atom_sum;
+  // Group weights have same size as energy.
+  memory->create(newdata.we, n, "fitpod:we");
+  memory->create(newdata.wf, n, "fitpod:wf");
+  
+  n = newdata.num_atom_sum;
   memory->create(newdata.position, 3*n, "fitpod:newdata_position");
   memory->create(newdata.force, 3*n, "fitpod:newdata_force");
   memory->create(newdata.atomtype, n, "fitpod:newdata_atomtype");
@@ -901,6 +906,8 @@ void FitPOD::select_data(datastruct &newdata, const datastruct &data)
       double *force = &data.force[dim*natom_cumsum];
 
       newdata.energy[cn] = data.energy[ci];
+      newdata.we[cn] = data.we[ci];
+      newdata.wf[cn] = data.wf[ci];
       for (int j=0; j<9; j++) {
         newdata.stress[j+9*cn] = data.stress[j+9*ci];
         newdata.lattice[j+9*cn] = data.lattice[j+9*ci];
@@ -1524,13 +1531,13 @@ void FitPOD::linear_descriptors_fastpod(const datastruct &data, int ci)
   double *a1 = &lattice[0];
   double *a2 = &lattice[3];
   double *a3 = &lattice[6];
-
+  
   // neighbor list
   podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum,
           position, a1, a2, a3, rcut, pbc, natom);
-
+  
   fastpodptr->descriptors(desc.gd, desc.gdd, nb.y, atomtype, nb.alist, nb.pairlist,
-          nb.pairnum_cumsum, natom);
+          nb.pairnum_cumsum, natom);  
 }
 
 void FitPOD::local_descriptors_fastpod(const datastruct &data, int ci)

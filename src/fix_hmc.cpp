@@ -172,8 +172,8 @@ template <typename T>
 void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
                          LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
 {
-  if (!strcmp(stored_peratom_member.name, current_peratom_member.name)) {
-        error->all(FLERR, "fix hmc tried to store incorrect peratom data");
+  if (stored_peratom_member.name.compare(current_peratom_member.name)) {
+    printf("NONONONONONO\n");//error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   size_t offset;
   int cols;
@@ -219,8 +219,8 @@ template <typename T>
 void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
                           LAMMPS_NS::Atom::PerAtom &current_peratom_member, int nlocal)
 {
-  if (!strcmp(stored_peratom_member.name, current_peratom_member.name)) {
-    error->all(FLERR, "fix hmc tried to restore incorrect peratom data");
+  if (stored_peratom_member.name.compare(current_peratom_member.name)) {
+    printf("NONONONONONO\n");    //error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   size_t offset;
   int cols;
@@ -245,7 +245,7 @@ void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
   }
   current_peratom_member.cols = stored_peratom_member.cols;
   current_peratom_member.collength = stored_peratom_member.collength;
-  *(current_peratom_member.maxcols) = *(stored_peratom_member.collength);
+  *(current_peratom_member.address_maxcols) = *(stored_peratom_member.address_maxcols);
 }
 
 
@@ -272,6 +272,23 @@ void FixHMC::setup_arrays_and_pointers()
   
   current_peratom = atom->peratom;
   stored_nlocal = atom->nlocal;
+
+    // make a copy of all peratom data
+  for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
+    LAMMPS_NS::Atom::PerAtom stored_peratom_member = current_peratom_member;
+    switch (current_peratom_member.datatype) {
+      case (Atom::INT):
+        store_peratom_member<int>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        break;
+      case (Atom::DOUBLE):
+        store_peratom_member<double>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        break;
+      case (Atom::BIGINT):
+        store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        break;
+    }
+    stored_peratom.push_back(stored_peratom_member);
+  }
 
   // Per-atom vector properties to be saved and restored:
   nvec = 2;
@@ -748,33 +765,56 @@ void FixHMC::restore_saved_state()
   double **x = atom->x;
   double *scalar, **vector, *energy, **stress;
 
-  // Restore scalar properties:
-  for (m = 0; m < nscal; m++) {
-    scalar = *scalptr[m];
-    for (i = 0; i < nlocal; i++)
-      scalar[i] = scal[m][i];
+  for (LAMMPS_NS::Atom::PerAtom &stored_peratom_member : stored_peratom) {
+    for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
+      if (stored_peratom_member.name.compare(current_peratom_member.name)) {
+        continue;
+      } else {
+        switch (current_peratom_member.datatype) {
+          case (Atom::INT):
+            restore_peratom_member<int>(stored_peratom_member, current_peratom_member, stored_nlocal);
+            break;
+          case (Atom::DOUBLE):
+            restore_peratom_member<double>(stored_peratom_member, current_peratom_member,
+                                         stored_nlocal);
+            break;
+          case (Atom::BIGINT):
+            restore_peratom_member<bigint>(stored_peratom_member, current_peratom_member,
+                                         stored_nlocal);
+            break;
+        }
+        break;
+      }
+    }
+    stored_peratom.push_back(stored_peratom_member);
   }
+  //// Restore scalar properties:
+  //for (m = 0; m < nscal; m++) {
+  //  scalar = *scalptr[m];
+  //  for (i = 0; i < nlocal; i++)
+  //    scalar[i] = scal[m][i];
+  //}
 
-  // Restore vector properties:
-  for (m = 0; m < nvec; m++) {
-    vector = *vecptr[m];
-    for (i = 0; i < nlocal; i++)
-      memcpy( vector[i], vec[m][i], three );
-  }
+  //// Restore vector properties:
+  //for (m = 0; m < nvec; m++) {
+  //  vector = *vecptr[m];
+  //  for (i = 0; i < nlocal; i++)
+  //    memcpy( vector[i], vec[m][i], three );
+  //}
 
-  // Relocate atoms:
-  for (i = 0; i < nlocal; i++) {
-    x[i][0] -= deltax[i][0];
-    x[i][1] -= deltax[i][1];
-    x[i][2] -= deltax[i][2];
-  }
+  //// Relocate atoms:
+  //for (i = 0; i < nlocal; i++) {
+  //  x[i][0] -= deltax[i][0];
+  //  x[i][1] -= deltax[i][1];
+  //  x[i][2] -= deltax[i][2];
+  //}
 
-  // Finish with relocation of rigid bodies:
-  if (rigid_flag) {
-    rigid_body_restore_positions(deltax);
-    rigid_body_restore_orientations();
-    rigid_body_restore_forces();
-  }
+  //// Finish with relocation of rigid bodies:
+  //if (rigid_flag) {
+  //  rigid_body_restore_positions(deltax);
+  //  rigid_body_restore_orientations();
+  //  rigid_body_restore_forces();
+  //}
 
   // Restore global energy terms:
   for (i = 0; i < neg; i++)
@@ -785,29 +825,29 @@ void FixHMC::restore_saved_state()
     for (i = 0; i < nv; i++)
       memcpy( *vglobalptr[i], vglobal[i], six );
 
-  // Restore per-atom energy terms for all local atoms,
-  // and zero those for ghost atoms when needed:
-  if (peatom_flag)
-    for (m = 0; m < ne; m++) {
-      energy = *eatomptr[m];
-      for (i = 0; i < nlocal; i++)
-        energy[i] = eatom[m][i];
-      if (rev_comm[m])
-        for (i = nlocal; i < ntotal; i++)
-          energy[i] = 0.0;
-    }
+  //// Restore per-atom energy terms for all local atoms,
+  //// and zero those for ghost atoms when needed:
+  //if (peatom_flag)
+  //  for (m = 0; m < ne; m++) {
+  //    energy = *eatomptr[m];
+  //    for (i = 0; i < nlocal; i++)
+  //      energy[i] = eatom[m][i];
+  //    if (rev_comm[m])
+  //      for (i = nlocal; i < ntotal; i++)
+  //        energy[i] = 0.0;
+  //  }
 
-  // Restore per-atom virial terms for all local atoms,
-  // and zero those for ghost atoms when needed:
-  if (pressatom_flag)
-    for (m = 0; m < nv; m++) {
-      stress = *vatomptr[m];
-      for (i = 0; i < nlocal; i++)
-        memcpy( stress[i], vatom[m][i], six );
-      if (rev_comm[m])
-        for (i = nlocal; i < ntotal; i++)
-          memset( stress[i], 0, six );
-    }
+  //// Restore per-atom virial terms for all local atoms,
+  //// and zero those for ghost atoms when needed:
+  //if (pressatom_flag)
+  //  for (m = 0; m < nv; m++) {
+  //    stress = *vatomptr[m];
+  //    for (i = 0; i < nlocal; i++)
+  //      memcpy( stress[i], vatom[m][i], six );
+  //    if (rev_comm[m])
+  //      for (i = nlocal; i < ntotal; i++)
+  //        memset( stress[i], 0, six );
+  //  }
 }
 
 

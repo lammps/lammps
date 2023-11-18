@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpicxx -cxx=icc -std=c++11 -diag-disable=10441 -diag-disable=2196
+CC =		mpicxx -cxx=icc -std=c++11 -diag-disable=10441 -diag-disable=2196 -diag-disable=11074 -diag-disable=11076
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
                 -qopt-zmm-usage=high
 CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \

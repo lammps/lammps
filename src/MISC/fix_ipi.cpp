@@ -98,7 +98,7 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
 
     // creates socket
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (sockfd < 0) error->one(FLERR, "Error opening socket");
+    if (sockfd < 0) error->one(FLERR, "Error creating socket for fix ipi");
 
     // makes connection
     if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0)
@@ -116,6 +116,7 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
 
     // creates the socket
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sockfd < 0) error->one(FLERR, "Error creating socket for fix ipi");
 
     // connects
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)

@@ -142,6 +142,9 @@ class Domain : protected Pointers {
   int ownatom(int, double *, imageint *, int);
 
   void define_general_triclinic(double *, double *, double *, double *);
+  void general_to_restricted_rotation(double *, double *, double *,
+                                      double [3][3],
+                                      double *, double *, double *);
   void general_to_restricted_coords(double *); 
   void restricted_to_general_coords(double *);
   void restricted_to_general_coords(double *, double *);

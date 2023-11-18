@@ -571,87 +571,23 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   cvec[1] = cvec_caller[1];
   cvec[2] = cvec_caller[2];
 
-  boxlo[0] = origin_caller[0];
-  boxlo[1] = origin_caller[1];
-  boxlo[2] = origin_caller[2];
-
   // error check on cvec for 2d systems
 
   if (dimension == 2 && (cvec[0] != 0.0 || cvec[1] != 0.0))
     error->all(FLERR,"General triclinic box edge vector C invalid for 2d system");
 
-  // error checks for 3d systems
-  // A,B,C cannot be co-planar
-  // A x B must point in C direction (right-handed)
-
-  double abcross[3];
-  MathExtra::cross3(avec,bvec,abcross);
-  double dot = MathExtra::dot3(abcross,cvec);
-  if (dot == 0.0)
-    error->all(FLERR,"General triclinic box edge vectors are co-planar");
-  if (dot < 0.0)
-    error->all(FLERR,"General triclinic box edge vectors must be right-handed");
-  
-  // quat1 = convert A into A' along +x-axis
-  // rot1 = unit vector to rotate A around
-  // theta1 = angle of rotation calculated from
-  //   A dot xunit = Ax = |A| cos(theta1)
-
-  double rot1[3],quat1[4];
-  double xaxis[3] = {1.0, 0.0, 0.0};
-
-  double avec_len = MathExtra::len3(avec);
-  MathExtra::cross3(avec,xaxis,rot1);
-  MathExtra::norm3(rot1);
-  double theta1 = acos(avec[0]/avec_len);
-  MathExtra::axisangle_to_quat(rot1,theta1,quat1);
-  
-  // rotmat1 = rotation matrix associated with quat1
-
-  double rotmat1[3][3];
-  MathExtra::quat_to_mat(quat1,rotmat1);
-
-  // B1 = rotation of B by quat1 rotation matrix
-
-  double bvec1[3];
-  MathExtra::matvec(rotmat1,bvec,bvec1);
-
-  // quat2 = rotation to convert B1 into B' in xy plane
-  // Byz1 = projection of B1 into yz plane
-  // +xaxis = unit vector to rotate B1 around
-  // theta2 = angle of rotation calculated from
-  //   Byz1 dot yunit = B1y = |Byz1| cos(theta2)
-  // theta2 via acos() is positive (0 to PI)
-  //   positive is valid if B1z < 0.0 else flip sign of theta2
-  
-  double byzvec1[3],quat2[4];
-  MathExtra::copy3(bvec1,byzvec1);
-  byzvec1[0] = 0.0;
-  double byzvec1_len = MathExtra::len3(byzvec1);
-  double theta2 = acos(bvec1[1]/byzvec1_len);
-  if (bvec1[2] > 0.0) theta2 = -theta2;
-  MathExtra::axisangle_to_quat(xaxis,theta2,quat2);
-
-  // quat_single = rotation via single quat = quat2 * quat1
-  // quat_r2g = rotation from restricted to general
-  // rotate_g2r = general to restricted rotation matrix
-  //   include flip of C vector if needed to obey right-hand rule
-  // rotate_r2g = restricted to general rotation matrix
-  //   simply a transpose of rotate_g2r since orthonormal
-
-  double quat_single[4];
-  MathExtra::quatquat(quat2,quat1,quat_single);
-  MathExtra::quat_to_mat(quat_single,rotate_g2r);
-  MathExtra::transpose3(rotate_g2r,rotate_r2g);
-
-  // rotate general ABC to restricted triclinic A'B'C'
+  // rotate_g2r = rotation matrix from general to restricted triclnic
+  // rotate_r2g = rotation matrix from restricted to general triclnic
 
   double aprime[3],bprime[3],cprime[3];
-  MathExtra::matvec(rotate_g2r,avec,aprime);
-  MathExtra::matvec(rotate_g2r,bvec,bprime);
-  MathExtra::matvec(rotate_g2r,cvec,cprime);
+  general_to_restricted_rotation(avec,bvec,cvec,rotate_g2r,aprime,bprime,cprime);
+  MathExtra::transpose3(rotate_g2r,rotate_r2g);
 
   // set restricted triclinic boxlo, boxhi, and tilt factors
+
+  boxlo[0] = origin_caller[0];
+  boxlo[1] = origin_caller[1];
+  boxlo[2] = origin_caller[2];
 
   boxhi[0] = boxlo[0] + aprime[0];
   boxhi[1] = boxlo[1] + bprime[1];
@@ -663,6 +599,7 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   
   // debug
 
+  /*
   printf("Theta1: %g\n",theta1);
   printf("Rotvec1: %g %g %g\n",rot1[0],rot1[1],rot1[2]);
   printf("Theta2: %g\n",theta2);
@@ -680,6 +617,85 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   printf("Length A: %g %g\n",MathExtra::len3(avec),MathExtra::len3(aprime));
   printf("Length B: %g %g\n",MathExtra::len3(bvec),MathExtra::len3(bprime));
   printf("Length C: %g %g\n",MathExtra::len3(cvec),MathExtra::len3(cprime));
+  */
+}
+
+/* ----------------------------------------------------------------------
+   compute rotation matrix to transform from general to restricted triclinic
+   ABC = 3 general triclinic edge vectors
+   rotmat = rotation matrix
+   A`B`C` = 3 restricited triclinic edge vectors
+------------------------------------------------------------------------- */
+
+void Domain::general_to_restricted_rotation(double *a, double *b, double *c,
+                                            double rotmat[3][3],
+                                            double *aprime, double *bprime, double *cprime)
+{
+  // error checks
+  // A,B,C cannot be co-planar
+  // A x B must point in C direction (right-handed)
+
+  double abcross[3];
+  MathExtra::cross3(a,b,abcross);
+  double dot = MathExtra::dot3(abcross,c);
+  if (dot == 0.0)
+    error->all(FLERR,"General triclinic edge vectors are co-planar");
+  if (dot < 0.0)
+    error->all(FLERR,"General triclinic edge vectors must be right-handed");
+
+  // quat1 = convert A into A' along +x-axis
+  // rot1 = unit vector to rotate A around
+  // theta1 = angle of rotation calculated from
+  //   A dot xunit = Ax = |A| cos(theta1)
+
+  double rot1[3],quat1[4];
+  double xaxis[3] = {1.0, 0.0, 0.0};
+
+  double alen = MathExtra::len3(a);
+  MathExtra::cross3(a,xaxis,rot1);
+  MathExtra::norm3(rot1);
+  double theta1 = acos(a[0]/alen);
+  MathExtra::axisangle_to_quat(rot1,theta1,quat1);
+  
+  // rotmat1 = rotation matrix associated with quat1
+
+  double rotmat1[3][3];
+  MathExtra::quat_to_mat(quat1,rotmat1);
+
+  // B1 = rotation of B by quat1 rotation matrix
+
+  double b1[3];
+  MathExtra::matvec(rotmat1,b,b1);
+
+  // quat2 = rotation to convert B1 into B' in xy plane
+  // Byz1 = projection of B1 into yz plane
+  // +xaxis = unit vector to rotate B1 around
+  // theta2 = angle of rotation calculated from
+  //   Byz1 dot yunit = B1y = |Byz1| cos(theta2)
+  // theta2 via acos() is positive (0 to PI)
+  //   positive is valid if B1z < 0.0 else flip sign of theta2
+  
+  double byzvec1[3],quat2[4];
+  MathExtra::copy3(b1,byzvec1);
+  byzvec1[0] = 0.0;
+  double byzvec1_len = MathExtra::len3(byzvec1);
+  double theta2 = acos(b1[1]/byzvec1_len);
+  if (b1[2] > 0.0) theta2 = -theta2;
+  MathExtra::axisangle_to_quat(xaxis,theta2,quat2);
+
+  // quat_single = rotation via single quat = quat2 * quat1
+  // quat_r2g = rotation from restricted to general
+  // rotmat = general to restricted rotation matrix
+
+  double quat_single[4];
+  MathExtra::quatquat(quat2,quat1,quat_single);
+  MathExtra::quat_to_mat(quat_single,rotmat);
+
+  // rotate general ABC to restricted triclinic A'B'C'
+
+  MathExtra::matvec(rotate_g2r,a,aprime);
+  MathExtra::matvec(rotate_g2r,b,bprime);
+  MathExtra::matvec(rotate_g2r,c,cprime);
 }
 
 /* ----------------------------------------------------------------------

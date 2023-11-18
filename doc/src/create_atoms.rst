@@ -86,25 +86,25 @@ Description
 """""""""""
 
 This command creates atoms (or molecules) within the simulation box,
-either on a lattice, or a single atom (or molecule), or on a surface
-defined by a triangulated mesh, or a random collection of atoms (or
-molecules).  It is an alternative to reading in atom coordinates
-explicitly via a :doc:`read_data <read_data>` or :doc:`read_restart
-<read_restart>` command.  A simulation box must already exist, which is
-typically created via the :doc:`create_box <create_box>` command.
-Before using this command, a lattice must also be defined using the
-:doc:`lattice <lattice>` command, unless you specify the *single* style
-with units = box or the *random* style.  For the remainder of this doc
-page, a created atom or molecule is referred to as a "particle".
+either on a lattice, or at a single specified location, or randomly,
+or on a surface defined by a triangulated mesh.  It is an alternative
+to reading in atom coordinates explicitly via a :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` command.  A
+simulation box must already exist, which is typically created via the
+:doc:`create_box <create_box>` command.  Before using this command, a
+lattice must typically also be defined using the :doc:`lattice
+<lattice>` command, unless you specify the *single* style with units =
+box or the *random* style.  For the remainder of this doc page, a
+created atom or molecule is referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
 keyword as discussed below.  If molecules are being created, the type
-of each atom in the created molecule is specified in the file read by
-the :doc:`molecule <molecule>` command, and those values are added to
-the specified atom *type* (e.g., if *type* = 2 and the file specifies
-atom types 1, 2, and 3, then each created molecule will have atom types
-3, 4, and 5).
+of each atom in the created molecule is specified in a specified file
+read by the :doc:`molecule <molecule>` command, and those values are
+added to the specified atom *type* (e.g., if *type* = 2 and the file
+specifies atom types 1, 2, and 3, then each created molecule will have
+atom types 3, 4, and 5).
 
 For the *box* style, the create_atoms command fills the entire
 simulation box with particles on the lattice.  If your simulation box
@@ -125,6 +125,69 @@ described above for the *box* style, to ensure exactly one particle at
 periodic boundaries.  If this is desired, you should either use the
 *box* style, or tweak the region size to get precisely the particles
 you want.
+
+
+------------------
+
+WORK on this
+
+
+If a general triclinic simulation box is defined ...
+
+
+
+As noted above, general triclinic boxes in LAMMPS allow for arbitrary
+edge vectors **A**, **B**, **C**.  The only restrictions are that the
+three vectors be distinct, non-zero, and not co-planar.  They must
+also define a right-handed system such that (**A** x **B**) points in
+the direction of **C**.  Note that a left-handed system can be
+converted to a right-handed system by simply swapping the order of any
+pair of the **A**, **B**, **C** vectors.
+
+To create a general triclinic boxes, the region is specified as NULL
+and the next 6 parameters (alo,ahi,blo,bhi,clo,chi) define the three
+edge vectors **A**, **B**, **C** using additional information
+previously defind by the :doc:`lattice <lattice>` command.
+
+The lattice must be of style *custom* and use its *triclinic/general*
+option.  This insures the lattice satisfies the restrictions listed
+above.  The *a1, *a2*, *a3* settings of the :doc:`lattice <lattice>`
+command define the edge vectors of a unit cell of the general
+triclinic lattice.  This command uses them to define the three edge
+vectors and origin of the general triclinic box as:
+
+
+explain region is applied after conversion to restricted triclinic atom coords
+
+explain general tri for box and region styles
+must use lattice triclinic/general
+paragraph about DFT motivation
+doc that single, random, mesh operate on restricted triclinic box
+
+------------------
+
+
+.. note::
+
+   LAMMPS allows specification of general triclinic simulation boxes
+   as a convenience for users who may be converting data from
+   solid-state crystallograhic representations or from DFT codes for
+   input to LAMMPS.  However, as explained on the
+   :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
+   LAMMPS only uses restricted triclinic simulation boxes.  This means
+   the box defined by this command and per-atom information
+   (e.g. coordinates, velocities) defined by the :doc:`create_atoms
+   <create_atoms>` command are converted from general to restricted
+   triclinic form when the two commands are invoked.  The
+   <Howto_triclinic>` doc page also discusses other LAMMPS commands
+   which can input/output general triclinic representations of the
+   simulation box and per-atom data.
+
+
+
+
+
+
 
 For the *single* style, a single particle is added to the system at
 the specified coordinates.  This can be useful for debugging purposes
@@ -463,12 +526,19 @@ on a single CPU core.
 -----
 
 The *units* keyword determines the meaning of the distance units used
-to specify the coordinates of the one particle created by the *single*
-style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
-*box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\AA` for
-units = *real* or *metal*\ .  A *lattice* value means the distance units are in
-lattice spacings.
+by parameters for various styles.  A *box* value selects standard
+distance units as defined by the :doc:`units <units>` command (e.g.,
+:math:`\AA` for units = *real* or *metal*\ .  A *lattice* value means
+the distance units are in lattice spacings.  These are affected settings:
+
+* for *single* style: coordinates of the particle created
+* for *random* style: overlap distance *Doverlap* by the *overlap* keyword
+* for *mesh* style: *bisect* threshold valeu for *meshmode* = *bisect*
+* for *mesh* style: *radthresh* value for *meshmode* = *bisect*
+* for *mesh* style: *density* value for *meshmode* = *qrand*
+
+Since *density* represents an area (distance ^2), the lattice spacing
+factor is also squared.
 
 ----------
 

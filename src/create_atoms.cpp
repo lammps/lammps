@@ -154,9 +154,10 @@ void CreateAtoms::command(int narg, char **arg)
   overlapflag = 0;
   maxtry = DEFAULT_MAXTRY;
   radscale = 1.0;
-  radthresh = domain->lattice->xlattice;
   mesh_style = BISECTION;
-  mesh_density = 1.0;
+  radthresh = domain->lattice->xlattice;    // NOTE to Axel - I think this should be 1.0 by default
+  mesh_density = 1.0;                       //   similar to how this setting is 1.0
+                                            // see rescaling of both below if units = lattice
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
   for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
@@ -354,19 +355,27 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
-  // demand non-none lattice be defined for BOX and REGION
-  // else setup scaling for SINGLE and RANDOM
-  // could use domain->lattice->lattice2box() to do conversion of
-  //   lattice to box, but not consistent with other uses of units=lattice
-  // triclinic remapping occurs in add_single()
-
+  // require non-none lattice be defined for BOX or REGION styles
+  
   if ((style == BOX) || (style == REGION)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
-  } else if (scaleflag == 1) {
+
+  // apply scaling factor for styles that use distance-dependent factors
+
+  if (scaleflag) {
+    if (style == SINGLE) {
     xone[0] *= domain->lattice->xlattice;
     xone[1] *= domain->lattice->ylattice;
     xone[2] *= domain->lattice->zlattice;
-    overlap *= domain->lattice->xlattice;
+    } else if (style == RANDOM) {
+      if (overlapflag) overlap *= domain->lattice->xlattice;
+    } else if (style == MESH) {     // NOTE to Axel - here is the rescaling of both params
+      if (mesh_style == BISECT) {   //   by lattice spacings if units = lattice, similar to xone,overlap
+        radthresh *= domain->lattice->xlattice;
+      } else if (mesh_style = QUASIRANDOM) {
+        mesh_density /= (domain->lattice->xlattice * domain->lattice->xlattice);
+      }
+    }
   }
 
   // set bounds for my proc in sublo[3] & subhi[3]
@@ -710,7 +719,7 @@ void CreateAtoms::add_single()
 
 void CreateAtoms::add_random()
 {
-  double xlo, ylo, zlo, xhi, yhi, zhi, zmid;
+  double xlo, ylo, zlo, xhi, yhi, zhi;
   double delx, dely, delz, distsq, odistsq;
   double lamda[3], *coord;
   double *boxlo, *boxhi;
@@ -729,7 +738,6 @@ void CreateAtoms::add_random()
   for (int ii = 0; ii < 30; ii++) random->uniform();
 
   // bounding box for atom creation
-  // in real units, even if triclinic
   // only limit bbox by region if its bboxflag is set (interior region)
 
   if (triclinic == 0) {
@@ -739,7 +747,6 @@ void CreateAtoms::add_random()
     yhi = domain->boxhi[1];
     zlo = domain->boxlo[2];
     zhi = domain->boxhi[2];
-    zmid = zlo + 0.5 * (zhi - zlo);
   } else {
     xlo = domain->boxlo_bound[0];
     xhi = domain->boxhi_bound[0];
@@ -747,7 +754,6 @@ void CreateAtoms::add_random()
     yhi = domain->boxhi_bound[1];
     zlo = domain->boxlo_bound[2];
     zhi = domain->boxhi_bound[2];
-    zmid = zlo + 0.5 * (zhi - zlo);
     boxlo = domain->boxlo_lamda;
     boxhi = domain->boxhi_lamda;
   }
@@ -783,7 +789,7 @@ void CreateAtoms::add_random()
       xone[0] = xlo + random->uniform() * (xhi - xlo);
       xone[1] = ylo + random->uniform() * (yhi - ylo);
       xone[2] = zlo + random->uniform() * (zhi - zlo);
-      if (domain->dimension == 2) xone[2] = zmid;
+      if (domain->dimension == 2) xone[2] = 0.0;
 
       if (region && (region->match(xone[0], xone[1], xone[2]) == 0)) continue;
       if (varflag && vartest(xone) == 0) continue;
@@ -1168,16 +1174,12 @@ void CreateAtoms::add_mesh(const char *filename)
 void CreateAtoms::add_lattice()
 {
   // add atoms on general triclinic lattice if Domain has setting for it
-  // verify lattice is valid for general triclinic
-
-  int triclinic_general = domain->triclinic_general;
+  // verify lattice was defined with triclinic/general option
   
-  if (triclinic_general) {
-    if (!domain->lattice->is_custom())
-      error->all(FLERR,"Create_atoms for general triclinic requires custom lattice");
-    if (domain->lattice->is_oriented())
-      error->all(FLERR,"Create_atoms for general triclinic requires lattice with default orientation");
-  }
+  if (!domain->triclinic_general && domain->lattice->is_general_triclinic())
+    error->all(FLERR,"Create_atoms for non general triclinic box cannot use triclinic/general lattice");
+  if (domain->triclinic_general && !domain->lattice->is_general_triclinic())
+    error->all(FLERR,"Create_atoms for general triclinic box requires triclnic/general lattice");
 
   // convert 8 corners of my subdomain from box coords to lattice coords
   // for orthogonal, use corner pts of my subbox
@@ -1224,7 +1226,7 @@ void CreateAtoms::add_lattice()
   // compute new bounding box (xyz min/max) in lattice coords
   // for orthogonal or restricted triclinic, use 8 corner points of bbox lo/hi
   
-  if (!triclinic_general) {
+  if (!domain->triclinic_general) {
     domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
     domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
     domain->lattice->bbox(1, bboxlo[0], bboxhi[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
@@ -1238,7 +1240,7 @@ void CreateAtoms::add_lattice()
   // new set of 8 points is no longer an orthogonal bounding box
   // instead invoke lattice->bbox() on each of 8 points
 
-  } else if (triclinic_general) {
+  } else if (domain->triclinic_general) {
     double point[3];
 
     point[0] = bboxlo[0]; point[1] = bboxlo[1]; point[2] = bboxlo[2];

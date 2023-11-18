@@ -19,7 +19,7 @@ Syntax
        scale = lattice constant in distance units (for all other units)
 
 * zero or more keyword/value pairs may be appended
-* keyword = *origin* or *orient* or *spacing* or *a1* or *a2* or *a3* or *basis*
+* keyword = *origin* or *orient* or *spacing* or *a1* or *a2* or *a3* or *basis* or *triclinic/general*
 
   .. parsed-literal::
 
@@ -34,6 +34,7 @@ Syntax
          x,y,z = primitive vector components that define unit cell
        *basis* values = x y z
          x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1)
+       *triclinic/general* values = no values, assume lattice tiles
 
 Examples
 """"""""
@@ -44,7 +45,7 @@ Examples
    lattice hex 0.85
    lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
    lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
-                       basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
+                       basis 0.0 0.0 0.0 basis 0.5 0.5 0.5 triclinic/general
    lattice none 2.0
 
 Description
@@ -196,6 +197,57 @@ the Z direction.
 
 ----------
 
+The *triclinic/general* option specifies that the defined lattice is
+for use with a general triclinic simulation box, as opposed to an
+orthogonal or restricted triclinic box.  The :doc:`Howto triclinic
+<Howto_triclnic>` doc page explains all 3 kinds of simluation boxes
+LAMMPS supports.
+
+If this option is specified, a *custom* lattice style must be used.
+The *a1*, *a2*, *a3* vectors should define the edge vectors of a
+single unit cell of the lattice with one or more basis atoms.  They
+edge vectors can be arbitrary so long as they are non-zero, distinct,
+and not co-planar.  In addition, they must define a right-handed
+system, such that (*a1* cross *a2*) points in the direction of *a3*.
+Note that a left-handed system can be converted to a right-handed
+system by simply swapping the order of any pair of the *a1*, *a2*,
+*a3* vectors.
+
+If this option is used, the *origin* and *orient* settings must have
+their default values.
+
+The :doc:`create_box <create_box>` command can be used to create a
+general triclinic box that replicates the *a1*, *a2*, *a3* unit cell
+vectors in each direction to create the 3 arbitrary edge vectors of
+the overall simulation box.  It requires a lattice with the
+*triclinic/general* option.
+
+Likewise, the :doc:`create_atoms <create_atoms>` command can be used
+to add atoms (or molecules) to a general triclinic box which lie on
+the lattice points defined by *a1*, *a2*, *a3* and the unit cell basis
+atoms.  To do this, it also requires a lattice with the
+*triclinic/general* option.
+
+.. note::
+
+   LAMMPS allows specification of general triclinic lattices and
+   simulation boxes as a convenience for users who may be converting
+   data from solid-state crystallograhic representations or from DFT
+   codes for input to LAMMPS.  However, as explained on the
+   :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
+   LAMMPS only uses restricted triclinic simulation boxes.  This means
+   the box and per-atom information (e.g. coordinates, velocities)
+   defined by the :doc:`create_box <create_box>` and
+   :doc:`create_atoms <create_atoms>` commands are converted from
+   general to restricted triclinic form when the two commands are
+   invoked.  It also means that any other commands which use lattice
+   spacings from this command (e.g. the region command), will be
+   operating on a restricted triclinic simulation box, even if the
+   *triclinic/general* option was used to define the lattice.  See the
+   next section for details.
+
+----------
+
 Several LAMMPS commands have the option to use distance units that are
 inferred from "lattice spacings" in the x,y,z box directions.
 E.g. the :doc:`region <region>` command can create a block of size
@@ -218,6 +270,18 @@ X is defined as the difference between the min/max extent of the x
 coordinates of the 8 corner points of the modified unit cell (4 in
 2d).  Similarly, the Y and Z lattice spacings are defined as the
 difference in the min/max of the y and z coordinates.
+
+.. note::
+
+   If the *triclinic/general* option is specified, the unit cell
+   defined by *a1*, *a2*, *a3* edge vectors is first converted to a
+   restricted triclinic orientation, which is a rotation operation.
+   The min/max extent of the 8 corner points is then determined, as
+   described in the preceeding paragraph, to set the lattice
+   spacings. As explained for the *triclinic/general* option above,
+   this is because any use of the lattice spacings by other commands
+   will be for a restricted triclinic simulation box, not a general
+   triclinic box.
 
 Note that if the unit cell is orthogonal with axis-aligned edges (no
 rotation via the *orient* keyword), then the lattice spacings in each

@@ -138,6 +138,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // process optional args
 
+  int triclinic_general = 0;
+  
   int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"origin") == 0) {
@@ -222,6 +224,11 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         error->all(FLERR, "Invalid lattice basis argument: {}", z);
       add_basis(x,y,z);
       iarg += 4;
+
+    } else if (strcmp(arg[iarg],"triclinic/general") == 0) {
+      triclinic_general = 1;
+      iarg++;
+      
     } else error->all(FLERR,"Unknown lattice keyword: {}", arg[iarg]);
   }
 
@@ -256,6 +263,26 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       error->all(FLERR,"Lattice spacings are invalid");
   }
 
+  // requirements for a general triclinic lattice
+  // right-handed requirement is checked by domain->general_to_restricted_rotation()
+  // a123 prime are used to compute lattice spacings
+  
+  if (triclinic_general) {
+    if (style != CUSTOM)
+      error->all(FLERR,"Lattice triclnic/general must be style = CUSTOM");
+    if (origin[0] != 0.0 || origin[1] != 0.0 || origin[2] != 0.0)
+      error->all(FLERR,"Lattice triclnic/general must have default origin");
+    int oriented = 0;
+    if (orientx[0] != 1 || orientx[1] != 0 || orientx[2] != 0) oriented = 1;
+    if (orienty[0] != 0 || orienty[1] != 1 || orienty[2] != 0) oriented = 1;
+    if (orientz[0] != 0 || orientz[1] != 0 || orientz[2] != 1) oriented = 1;
+    if (oriented)
+      error->all(FLERR,"Lattice triclnic/general must have default orientation");
+
+    double rotmat[3][3];
+    domain->general_to_restricted_rotation(a1,a2,a3,rotmat,a1_prime,a2_prime,a3_prime);
+  }
+  
   // reset scale for LJ units (input scale is rho*)
   // scale = (Nbasis/(Vprimitive * rho*)) ^ (1/dim)
   // use fabs() in case a1,a2,a3 are not right-handed for general triclinic
@@ -267,18 +294,11 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     scale = pow(nbasis/volume/scale,1.0/dimension);
   }
 
-  // set orientflag
-  // for general triclinic, create_box and create_atoms require orientflag = 0
-
-  oriented = 0;
-  if (orientx[0] != 1 || orientx[1] != 0 || orientx[2] != 0) oriented = 1;
-  if (orienty[0] != 0 || orienty[1] != 1 || orienty[2] != 0) oriented = 1;
-  if (orientz[0] != 0 || orientz[1] != 0 || orientz[2] != 1) oriented = 1;
-  
   // initialize lattice <-> box transformation matrices
 
-  setup_transform();
+  setup_transform(a1,a2,a3);
 
+  // automatic calculation of lattice spacings
   // convert 8 corners of primitive unit cell from lattice coords to box coords
   // min to max = bounding box around the pts in box space
   // xlattice,ylattice,zlattice = extent of bbox in box space
@@ -291,6 +311,14 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     xmax = ymax = zmax = -BIG;
     xlattice = ylattice = zlattice = 0.0;
 
+    // for general triclinic, bounding box is around unit cell
+    //   in restricted triclinic orientation, NOT general
+    // this enables lattice spacings to be used for other commands (e.g. region)
+    //   after create_box and create_atoms create the restricted triclnic system
+    // reset transform used by bbox() to be based on rotated a123 prime vectors
+
+    if (triclinic_general) setup_transform(a1_prime,a2_prime,a3_prime);
+    
     bbox(0,0.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
     bbox(0,1.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
     bbox(0,0.0,1.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
@@ -300,10 +328,16 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     bbox(0,0.0,1.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
     bbox(0,1.0,1.0,1.0,xmin,ymin,zmin,xmax,ymax,zmax);
 
+    // restore original general triclinic a123 transform
+
+    if (triclinic_general) setup_transform(a2,a2,a3);
+    
     xlattice = xmax - xmin;
     ylattice = ymax - ymin;
     zlattice = zmax - zmin;
 
+  // user-defined lattice spacings
+    
   } else {
     xlattice *= scale;
     ylattice *= scale;
@@ -325,24 +359,13 @@ Lattice::~Lattice()
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if style = CUSTOM, else 0
-   queried by create_box and create_atoms for general triclinic
+   return 1 if lattice is for a general triclinic simulation box
+   queried by create_box and create_atoms
 ------------------------------------------------------------------------- */
 
-int Lattice::is_custom()
+int Lattice::is_general_triclinic()
 {
-  if (style == CUSTOM) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   return 1 any orient vectors are non-default, else 0
-   queried by create_box and create_atoms for general triclinic
-------------------------------------------------------------------------- */
-
-int Lattice::is_oriented()
-{
-  if (oriented) return 1;
+  if (triclinic_general) return 1;
   return 0;
 }
 
@@ -395,21 +418,21 @@ int Lattice::collinear()
    initialize lattice <-> box transformation matrices
 ------------------------------------------------------------------------- */
 
-void Lattice::setup_transform()
+void Lattice::setup_transform(double *a, double *b, double *c)
 {
   double length;
 
   // primitive = 3x3 matrix with primitive vectors as columns
 
-  primitive[0][0] = a1[0];
-  primitive[1][0] = a1[1];
-  primitive[2][0] = a1[2];
-  primitive[0][1] = a2[0];
-  primitive[1][1] = a2[1];
-  primitive[2][1] = a2[2];
-  primitive[0][2] = a3[0];
-  primitive[1][2] = a3[1];
-  primitive[2][2] = a3[2];
+  primitive[0][0] = a[0];
+  primitive[1][0] = a[1];
+  primitive[2][0] = a[2];
+  primitive[0][1] = b[0];
+  primitive[1][1] = b[1];
+  primitive[2][1] = b[2];
+  primitive[0][2] = c[0];
+  primitive[1][2] = c[1];
+  primitive[2][2] = c[2];
 
   // priminv = inverse of primitive
 

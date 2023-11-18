@@ -374,7 +374,7 @@ void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
   domain->remap_near(coords,x[m]);
   x1 = coords[0]; y1 = coords[1];
   coords[0] = x2; coords[1] = y2; coords[2] = 0.0;
-  domain->remap_near(c2,x[m]);
+  domain->remap_near(coords,x[m]);
   x2 = coords[0]; y2 = coords[1];
 
   // calculate length and theta

@@ -56,9 +56,9 @@ at (xlo,ylo,zhi) and 3 edge vectors **A** = (ax,ay,az), **B** =
 (bx,by,bz), **C** = (cx,cy,cz) which can be arbitrary vectors, so long
 as they are non-zero, distinct, and not co-planar.  In addition, they
 must define a right-handed system, such that (**A** cross **B**)
-points in the direction of **C**.  A left-handed system can be
-converted to a right-handed system by simply swapping the order of any
-pair of the **A**, **B**, **C** vectors.
+points in the direction of **C**.  Note that a left-handed system can
+be converted to a right-handed system by simply swapping the order of
+any pair of the **A**, **B**, **C** vectors.
 
 The 4 commands listed above for defining orthogonal simulation boxes
 have triclinic options which allow for specification of the origin and

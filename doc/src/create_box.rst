@@ -91,14 +91,14 @@ parallelepiped has an "origin" at (xlo,ylo,zlo) and three edge vectors
 starting from the origin given by :math:`\vec a =
 (x_\text{hi}-x_\text{lo},0,0)`; :math:`\vec b =
 (xy,y_\text{hi}-y_\text{lo},0)`; and :math:`\vec c =
-(xz,yz,z_\text{hi}-z_\text{lo})`.  This is a restricted triclinic box
-because the three edge vectors cannot be defined in arbitrary
-(general) directions.  The parameters *xy*\ , *xz*\ , and *yz* can be
-0.0 or positive or negative values and are called "tilt factors"
-because they are the amount of displacement applied to faces of an
-originally orthogonal box to transform it into the parallelepiped.
-For a 2d simulation, the zlo and zhi values of the simulation box must
-straddle zero.
+(xz,yz,z_\text{hi}-z_\text{lo})`.  In LAMMPS lingo, this is a
+restricted triclinic box because the three edge vectors cannot be
+defined in arbitrary (general) directions.  The parameters *xy*\ ,
+*xz*\ , and *yz* can be 0.0 or positive or negative values and are
+called "tilt factors" because they are the amount of displacement
+applied to faces of an originally orthogonal box to transform it into
+the parallelepiped.  For a 2d simulation, the zlo and zhi values of
+the simulation box must straddle zero.
 
 Typically a *prism* region used with the create_box command should
 have tilt factors :math:`(xy,xz,yz)` that do not skew the box more
@@ -164,37 +164,35 @@ using the :doc:`change box <change_box>` command with its *ortho* and
 
 ----------
 
-As noted above, general triclinic boxes allow for arbitrary edge
-vectors **A**, **B**, **C*.  The only restrictions are that the three
-vectors be distinct, non-zero, and not co-planar.  They must also
-define a right-handed system such that (**A** x **B**) points in the
-direction of **C**.  Note that a left-handed system can be converted
-to a right-handed system by simply swapping the order of any pair of
-the **A**, **B**, **C** vectors.
+As noted above, general triclinic boxes in LAMMPS allow for arbitrary
+edge vectors **A**, **B**, **C**.  The only restrictions are that the
+three vectors be distinct, non-zero, and not co-planar.  They must
+also define a right-handed system such that (**A** x **B**) points in
+the direction of **C**.  Note that a left-handed system can be
+converted to a right-handed system by simply swapping the order of any
+pair of the **A**, **B**, **C** vectors.
 
 To create a general triclinic boxes, the region is specified as NULL
 and the next 6 parameters (alo,ahi,blo,bhi,clo,chi) define the three
 edge vectors **A**, **B**, **C** using additional information
-previousl set by the :doc:`lattice <lattice>` command.
+previously defind by the :doc:`lattice <lattice>` command.
 
-The lattice must be of style *custom* with a default orientation (no
-use of the *orient* keyword to change the default values).  The *a1,
-*a2*, *a3* settings of the :doc:`lattice <lattice>` command define the
-edge vectors of a unit cell of the lattice.  The three edge vectors of
-the general triclinic box are defined as
+The lattice must be of style *custom* and use its *triclinic/general*
+option.  This insures the lattice satisfies the restrictions listed
+above.  The *a1, *a2*, *a3* settings of the :doc:`lattice <lattice>`
+command define the edge vectors of a unit cell of the general
+triclinic lattice.  This command uses them to define the three edge
+vectors and origin of the general triclinic box as:
 
 * **A** = (ahi-alo) * *a1*
 * **B** = (bhi-blo) * *a2*
 * **C** = (chi-clo) * *a3*
+* origin = (alo*a1 + blo*a2 + clo*a3)
 
-The origin of the general triclinic box is at (alo*a1 + blo*a2 +
-clo*a3) with an additional offset due to the *origin* setting of the
-lattice command (zero vector by default).
-
-For 2d simulations, **C** = (0,0,1) is required, and the z-component
-of the simulation box origin must be -0.5.  The easy way to do this is
-to specify clo = -0.5 and chi = 0.5 with the :doc:`lattice <lattice>`
-command default of a3 = (0,0,1).
+For 2d general triclinic boxes, **C** = (0,0,1) is required, and the
+z-component of the simulation box origin must be -0.5.  The easy way
+to do this is to specify clo = -0.5 and chi = 0.5 and use the
+:doc:`lattice <lattice>` command default for a3 = (0,0,1).
 
 .. note::
 

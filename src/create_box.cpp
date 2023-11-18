@@ -106,10 +106,8 @@ void CreateBox::command(int narg, char **arg)
   //   ABC edge vectors + origin to restricted triclinic
 
   } else if (triclinic_general) {
-    if (!domain->lattice->is_custom())
-      error->all(FLERR,"Create_box with no region requires custom lattice");
-    if (domain->lattice->is_oriented())
-      error->all(FLERR,"Create_box with no region requires lattice with default orientation");
+    if (!domain->lattice->is_general_triclinic())
+      error->all(FLERR,"Create_box for general triclinic requires triclnic/general lattice");
     
     if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "create_box general triclinic", error);
 
@@ -154,11 +152,11 @@ void CreateBox::command(int narg, char **arg)
 
     if (domain->dimension == 2) {
       if (cvec[0] != 0.0 || cvec[1] != 0.0 || cvec[2] != 1.0 || origin[2] != -0.5)
-        error->all(FLERR,"Create_box C vector and/or origin is invalid "
+        error->all(FLERR,"Create_box C edge vector and/or origin is invalid "
                    "for 2d simulation with general triclinic box");
     }
 
-    // define general triclinic box within Domain
+    // define general triclinic box within Domain class
     
     domain->define_general_triclinic(avec,bvec,cvec,origin);
   }
@@ -247,7 +245,7 @@ void CreateBox::command(int narg, char **arg)
       error->all(FLERR, "Unknown create_box keyword: {}", arg[iarg]);
   }
 
-  // problem setup using info from header
+  // setup the simulation box and initial system
   // deallocate/grow ensures any extra settings are used for topology arrays
   // necessary in case no create_atoms is performed
 

@@ -36,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: 17Nov2023
+.. versionadded:: 21Nov2023
 
 Define a computation that calculates a local composition vector for each
 atom. For a central atom with :math:`M` neighbors within the neighbor cutoff sphere,

@@ -823,33 +823,6 @@ void FixHMC::restore_saved_state()
       }
     }
   }
-  //// Restore scalar properties:
-  //for (m = 0; m < nscal; m++) {
-  //  scalar = *scalptr[m];
-  //  for (i = 0; i < nlocal; i++)
-  //    scalar[i] = scal[m][i];
-  //}
-
-  //// Restore vector properties:
-  //for (m = 0; m < nvec; m++) {
-  //  vector = *vecptr[m];
-  //  for (i = 0; i < nlocal; i++)
-  //    memcpy( vector[i], vec[m][i], three );
-  //}
-
-  //// Relocate atoms:
-  //for (i = 0; i < nlocal; i++) {
-  //  x[i][0] -= deltax[i][0];
-  //  x[i][1] -= deltax[i][1];
-  //  x[i][2] -= deltax[i][2];
-  //}
-
-  //// Finish with relocation of rigid bodies:
-  //if (rigid_flag) {
-  //  rigid_body_restore_positions(deltax);
-  //  rigid_body_restore_orientations();
-  //  rigid_body_restore_forces();
-  //}
 
   // Restore global energy terms:
   for (i = 0; i < neg; i++)
@@ -859,30 +832,6 @@ void FixHMC::restore_saved_state()
   if (press_flag)
     for (i = 0; i < nv; i++)
       memcpy( *vglobalptr[i], vglobal[i], six );
-
-  //// Restore per-atom energy terms for all local atoms,
-  //// and zero those for ghost atoms when needed:
-  //if (peatom_flag)
-  //  for (m = 0; m < ne; m++) {
-  //    energy = *eatomptr[m];
-  //    for (i = 0; i < nlocal; i++)
-  //      energy[i] = eatom[m][i];
-  //    if (rev_comm[m])
-  //      for (i = nlocal; i < ntotal; i++)
-  //        energy[i] = 0.0;
-  //  }
-
-  //// Restore per-atom virial terms for all local atoms,
-  //// and zero those for ghost atoms when needed:
-  //if (pressatom_flag)
-  //  for (m = 0; m < nv; m++) {
-  //    stress = *vatomptr[m];
-  //    for (i = 0; i < nlocal; i++)
-  //      memcpy( stress[i], vatom[m][i], six );
-  //    if (rev_comm[m])
-  //      for (i = nlocal; i < ntotal; i++)
-  //        memset( stress[i], 0, six );
-  //  }
 }
 
 

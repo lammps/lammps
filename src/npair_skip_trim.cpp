@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_halffull_newtoff_trim.h"
+#include "npair_skip_trim.h"
 
 #include "atom.h"
 #include "error.h"
@@ -22,71 +22,79 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalffullNewtoffTrim::NPairHalffullNewtoffTrim(LAMMPS *lmp) : NPair(lmp) {}
+NPairSkipTrim::NPairSkipTrim(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   build half list from full list
-   pair stored once if i,j are both owned and i < j
-   pair stored by me if j is ghost (also stored by proc owning j)
-   works if full list is a skip list
+   build skip list for subset of types from parent list
+   works for half and full lists
    works for owned (non-ghost) list, also for ghost list
+   iskip and ijskip flag which atom types and type pairs to skip
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-void NPairHalffullNewtoffTrim::build(NeighList *list)
+void NPairSkipTrim::build(NeighList *list)
 {
-  int i, j, ii, jj, n, jnum, joriginal;
+  int i, j, ii, jj, n, itype, jnum, joriginal;
   int *neighptr, *jlist;
-  double xtmp, ytmp, ztmp;
-  double delx, dely, delz, rsq;
 
-  double **x = atom->x;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  int *ilist_full = list->listfull->ilist;
-  int *numneigh_full = list->listfull->numneigh;
-  int **firstneigh_full = list->listfull->firstneigh;
-  int inum_full = list->listfull->inum;
-  if (list->ghost) inum_full += list->listfull->gnum;
+  int *ilist_skip = list->listskip->ilist;
+  int *numneigh_skip = list->listskip->numneigh;
+  int **firstneigh_skip = list->listskip->firstneigh;
+  int num_skip = list->listskip->inum;
+  if (list->ghost) num_skip += list->listskip->gnum;
+
+  int *iskip = list->iskip;
+  int **ijskip = list->ijskip;
 
   int inum = 0;
   ipage->reset();
 
+  double **x = atom->x;
+  double xtmp, ytmp, ztmp;
+  double delx, dely, delz, rsq;
   double cutsq_custom = cutoff_custom * cutoff_custom;
 
-  // loop over atoms in full list
+  // loop over atoms in other list
+  // skip I atom entirely if iskip is set for type[I]
+  // skip I,J pair if ijskip is set for type[I],type[J]
 
-  for (ii = 0; ii < inum_full; ii++) {
-    n = 0;
-    neighptr = ipage->vget();
+  for (ii = 0; ii < num_skip; ii++) {
+    i = ilist_skip[ii];
+    itype = type[i];
+    if (iskip[itype]) continue;
 
-    // loop over parent full list
-
-    i = ilist_full[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    jlist = firstneigh_full[i];
-    jnum = numneigh_full[i];
+    n = 0;
+    neighptr = ipage->vget();
+
+    // loop over parent non-skip list
+
+    jlist = firstneigh_skip[i];
+    jnum = numneigh_skip[i];
 
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      if (j > i) {
-        delx = xtmp - x[j][0];
-        dely = ytmp - x[j][1];
-        delz = ztmp - x[j][2];
-        rsq = delx * delx + dely * dely + delz * delz;
+      if (ijskip[itype][type[j]]) continue;
 
-        if (rsq > cutsq_custom) continue;
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx * delx + dely * dely + delz * delz;
+      if (rsq > cutsq_custom) continue;
 
-        neighptr[n++] = joriginal;
-      }
+      neighptr[n++] = joriginal;
     }
 
     ilist[inum++] = i;
@@ -97,5 +105,14 @@ void NPairHalffullNewtoffTrim::build(NeighList *list)
   }
 
   list->inum = inum;
-  if (list->ghost) list->gnum = list->listfull->gnum;
+  if (list->ghost) {
+    int num = 0;
+    for (i = 0; i < inum; i++)
+      if (ilist[i] < nlocal)
+        num++;
+      else
+        break;
+    list->inum = num;
+    list->gnum = inum - num;
+  }
 }

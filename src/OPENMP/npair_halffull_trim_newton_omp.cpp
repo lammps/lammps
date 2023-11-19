@@ -12,10 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_halffull_newtoff_trim_omp.h"
+#include "npair_halffull_trim_newton_omp.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "my_page.h"
 #include "neigh_list.h"
 #include "npair_omp.h"
@@ -26,21 +28,22 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalffullNewtoffTrimOmp::NPairHalffullNewtoffTrimOmp(LAMMPS *lmp) : NPair(lmp) {}
+NPairHalffullTrimNewtonOmp::NPairHalffullTrimNewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build half list from full list and trim to shorter cutoff
    pair stored once if i,j are both owned and i < j
-   pair stored by me if j is ghost (also stored by proc owning j)
+   if j is ghost, only store if j coords are "above and to the right" of i
    works if full list is a skip list
 ------------------------------------------------------------------------- */
 
-void NPairHalffullNewtoffTrimOmp::build(NeighList *list)
+void NPairHalffullTrimNewtonOmp::build(NeighList *list)
 {
   const int inum_full = list->listfull->inum;
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
 
   NPAIR_OMP_INIT;
-
 #if defined(_OPENMP)
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
 #endif
@@ -52,6 +55,7 @@ void NPairHalffullNewtoffTrimOmp::build(NeighList *list)
   double delx,dely,delz,rsq;
 
   double **x = atom->x;
+  int nlocal = atom->nlocal;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -66,19 +70,19 @@ void NPairHalffullNewtoffTrimOmp::build(NeighList *list)
 
   double cutsq_custom = cutoff_custom * cutoff_custom;
 
-  // loop over atoms in full list
+  // loop over parent full list
 
   for (ii = ifrom; ii < ito; ii++) {
 
     n = 0;
     neighptr = ipage.vget();
 
-    // loop over parent full list
-
     i = ilist_full[ii];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+
+    // loop over full neighbor list
 
     jlist = firstneigh_full[i];
     jnum = numneigh_full[i];
@@ -86,6 +90,24 @@ void NPairHalffullNewtoffTrimOmp::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
+
+      if (j < nlocal) {
+        if (i > j) continue;
+      } else if (triclinic) {
+        if (fabs(x[j][2]-ztmp) > delta) {
+          if (x[j][2] < ztmp) continue;
+        } else if (fabs(x[j][1]-ytmp) > delta) {
+          if (x[j][1] < ytmp) continue;
+        } else {
+          if (x[j][0] < xtmp) continue;
+        }
+      } else {
+        if (x[j][2] < ztmp) continue;
+        if (x[j][2] == ztmp) {
+          if (x[j][1] < ytmp) continue;
+          if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        }
+      }
 
       // trim to shorter cutoff
 
@@ -96,7 +118,7 @@ void NPairHalffullNewtoffTrimOmp::build(NeighList *list)
 
       if (rsq > cutsq_custom) continue;
 
-      if (j > i) neighptr[n++] = joriginal;
+      neighptr[n++] = joriginal;
     }
 
     ilist[ii] = i;

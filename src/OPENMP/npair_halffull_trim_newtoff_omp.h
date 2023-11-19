@@ -13,38 +13,28 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-NPairStyle(halffull/newtoff/trim,
-           NPairHalffullNewtoffTrim,
+NPairStyle(halffull/trim/newtoff/omp,
+           NPairHalffullTrimNewtoffOmp,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_TRIM);
+           NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP);
 
-NPairStyle(halffull/newtoff/skip/trim,
-           NPairHalffullNewtoffTrim,
+NPairStyle(halffull/trim/newtoff/skip/omp,
+           NPairHalffullTrimNewtoffOmp,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM);
-
-NPairStyle(halffull/newtoff/ghost/trim,
-           NPairHalffullNewtoffTrim,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM);
-
-NPairStyle(halffull/newtoff/skip/ghost/trim,
-           NPairHalffullNewtoffTrim,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_TRIM);
+           NP_ORTHO | NP_TRI | NP_TRIM | NP_SKIP | NP_OMP);
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_HALFFULL_NEWTOFF_TRIM_H
-#define LMP_NPAIR_HALFFULL_NEWTOFF_TRIM_H
+#ifndef LMP_NPAIR_HALFFULL_TRIM_NEWTOFF_OMP_H
+#define LMP_NPAIR_HALFFULL_TRIM_NEWTOFF_OMP_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalffullNewtoffTrim : public NPair {
+class NPairHalffullTrimNewtoffOmp : public NPair {
  public:
-  NPairHalffullNewtoffTrim(class LAMMPS *);
+  NPairHalffullTrimNewtoffOmp(class LAMMPS *);
   void build(class NeighList *) override;
 };
 

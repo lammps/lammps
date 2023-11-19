@@ -13,28 +13,28 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-NPairStyle(halffull/newton/trim,
-           NPairHalffullNewtonTrim,
+NPairStyle(halffull/trim/newton,
+           NPairHalffullTrimNewton,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_ORTHO | NP_TRI | NP_TRIM);
 
-NPairStyle(halffull/newton/skip/trim,
-           NPairHalffullNewtonTrim,
+NPairStyle(halffull/trim/newton/skip,
+           NPairHalffullTrimNewton,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM);
+           NP_ORTHO | NP_TRI | NP_TRIM | NP_SKIP);
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_HALFFULL_NEWTON_TRIM_H
-#define LMP_NPAIR_HALFFULL_NEWTON_TRIM_H
+#ifndef LMP_NPAIR_HALFFULL_TRIM_NEWTON_H
+#define LMP_NPAIR_HALFFULL_TRIM_NEWTON_H
 
 #include "npair.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalffullNewtonTrim : public NPair {
+class NPairHalffullTrimNewton : public NPair {
  public:
-  NPairHalffullNewtonTrim(class LAMMPS *);
+  NPairHalffullTrimNewton(class LAMMPS *);
   void build(class NeighList *) override;
 };
 

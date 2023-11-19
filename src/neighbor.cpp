@@ -852,6 +852,7 @@ int Neighbor::init_pair()
 
   // morph requests in various ways
   // purpose is to avoid duplicate or inefficient builds
+  // also sort requests by cutoff distance for trimming
   // may add new requests if a needed request to derive from does not exist
   // methods:
   //   (1) unique = create unique lists if cutoff is explicitly set
@@ -868,15 +869,9 @@ int Neighbor::init_pair()
   int nrequest_original = nrequest;
 
   morph_unique();
+  sort_requests();
   morph_skip();
   morph_granular();     // this method can change flags set by requestor
-
-  // sort requests by cutoff distance for trimming, used by
-  //  morph_halffull and morph_copy_trim. Must come after
-  //  morph_skip() which change the number of requests
-
-  sort_requests();
-
   morph_halffull();
   morph_copy_trim();
 
@@ -1123,15 +1118,14 @@ int Neighbor::init_pair()
 }
 
 /* ----------------------------------------------------------------------
-   sort NeighRequests by cutoff distance
-    to find smallest list for trimming
+   sort NeighRequests by cutoff distance for trimming
 ------------------------------------------------------------------------- */
 
 void Neighbor::sort_requests()
 {
-  NeighRequest *jrq;
+  NeighRequest *irq,*jrq;
   int i,j,jmin;
-  double jcut;
+  double icut,jcut;
 
   delete[] j_sorted;
   j_sorted = new int[nrequest];
@@ -1139,20 +1133,24 @@ void Neighbor::sort_requests()
   for (i = 0; i < nrequest; i++)
     j_sorted[i] = i;
 
-  for (i = 0; i < nrequest; i++) {
-    double cutoff_min = cutneighmax;
+  for (i = 0; i < nrequest-1; i++) {
+    irq = requests[j_sorted[i]];
+    if (irq->cut) icut = irq->cutoff;
+    else icut = cutneighmax;
+    double cutoff_min = icut;
     jmin = i;
 
-    for (j = i; j < nrequest-1; j++) {
+    for (j = i+1; j < nrequest; j++) {
       jrq = requests[j_sorted[j]];
       if (jrq->cut) jcut = jrq->cutoff;
       else jcut = cutneighmax;
 
-      if (jcut <= cutoff_min) {
+      if (jcut < cutoff_min) {
         cutoff_min = jcut;
         jmin = j;
       }
     }
+
     int tmp = j_sorted[i];
     j_sorted[i] = j_sorted[jmin];
     j_sorted[jmin] = tmp;
@@ -1207,11 +1205,15 @@ void Neighbor::morph_unique()
 
 void Neighbor::morph_skip()
 {
-  int i,j,inewton,jnewton;
+  int i,j,jj,inewton,jnewton,icut,jcut;
   NeighRequest *irq,*jrq,*nrq;
 
-  for (i = 0; i < nrequest; i++) {
-    irq = requests[i];
+  // loop over irq from largest to smallest cutoff
+  //  to prevent adding unecessary neighbor lists
+
+  for (i = nrequest-1; i >= 0; i--) {
+    irq = requests[j_sorted[i]];
+    int trim_flag = irq->trim;
 
     // only processing skip lists
 
@@ -1226,7 +1228,9 @@ void Neighbor::morph_skip()
 
     // check all other lists
 
-    for (j = 0; j < nrequest; j++) {
+    for (jj = 0; jj < nrequest; jj++) {
+      j = j_sorted[jj];
+
       if (i == j) continue;
       jrq = requests[j];
 
@@ -1249,10 +1253,20 @@ void Neighbor::morph_skip()
       if (jnewton == 0) jnewton = force->newton_pair ? 1 : 2;
       if (inewton != jnewton) continue;
 
+      // trim a list with longer cutoff
+
+      if (irq->cut) icut = irq->cutoff;
+      else icut = cutneighmax;
+
+      if (jrq->cut) jcut = jrq->cutoff;
+      else jcut = cutneighmax;
+
+      if (icut > jcut) continue;
+      else if (icut != jcut) trim_flag = 1;
+
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // this includes custom cutoff set by requestor
       // NOTE: need check for 2 Kokkos flags?
 
       if (irq->ghost != jrq->ghost) continue;
@@ -1264,8 +1278,6 @@ void Neighbor::morph_skip()
       if (irq->kokkos_host != jrq->kokkos_host) continue;
       if (irq->kokkos_device != jrq->kokkos_device) continue;
       if (irq->ssa != jrq->ssa) continue;
-      if (irq->cut != jrq->cut) continue;
-      if (irq->cutoff != jrq->cutoff) continue;
 
       // 2 lists are a match
 
@@ -1279,8 +1291,10 @@ void Neighbor::morph_skip()
     // note: parents of skip lists do not have associated history
     //   b/c child skip lists have the associated history
 
-    if (j < nrequest) irq->skiplist = j;
-    else {
+    if (jj < nrequest) {
+      irq->skiplist = j;
+      irq->trim = trim_flag;
+    } else {
       int newrequest = request(this,-1);
       irq->skiplist = newrequest;
 
@@ -1290,6 +1304,8 @@ void Neighbor::morph_skip()
       nrq->neigh = 1;
       nrq->skip = 0;
       if (irq->unique) nrq->unique = 1;
+
+      sort_requests();
     }
   }
 }
@@ -1391,8 +1407,7 @@ void Neighbor::morph_halffull()
     // check all other lists
 
     for (jj = 0; jj < nrequest; jj++) {
-      if (irq->cut) j = j_sorted[jj];
-      else j = jj;
+      j = j_sorted[jj];
 
       jrq = requests[j];
 
@@ -1470,8 +1485,7 @@ void Neighbor::morph_copy_trim()
     // check all other lists
 
     for (jj = 0; jj < nrequest; jj++) {
-      if (irq->cut) j = j_sorted[jj];
-      else j = jj;
+      j = j_sorted[jj];
 
       if (i == j) continue;
       jrq = requests[j];
@@ -1783,7 +1797,10 @@ void Neighbor::print_pairwise_info()
       else
         out += fmt::format(", half/full from ({})",rq->halffulllist+1);
     else if (rq->skip)
-      out += fmt::format(", skip from ({})",rq->skiplist+1);
+      if (rq->trim)
+        out += fmt::format(", skip trim from ({})",rq->skiplist+1);
+      else
+        out += fmt::format(", skip from ({})",rq->skiplist+1);
     out += "\n";
 
     // list of neigh list attributes

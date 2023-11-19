@@ -16,7 +16,7 @@ timestep 0.001
 
 velocity all create 0.0 ${ibead}
 
-fix 1 all pimd/langevin ensemble npt integrator obabo thermostat PILE_L 1234 tau 1.0 temp 113.15 iso 1.0 barostat BZP taup 1.0 fixcom no
+fix 1 all pimd/langevin method nmpimd ensemble npt integrator obabo thermostat PILE_L 1234 tau 1.0 temp 113.15 iso 1.0 barostat BZP taup 1.0 fixcom no
 
 thermo_style custom step temp f_1[*] vol press
 thermo 100

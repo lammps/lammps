@@ -1499,9 +1499,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           }
         }
 
-        // equal-style variable is being evaluated
+        // equal-style or immediate variable is being evaluated
 
-        if (style[ivar] == EQUAL) {
+        if ((style[ivar] == EQUAL) || (ivar < 0)) {
 
           // c_ID = scalar from global scalar
 
@@ -1767,9 +1767,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           }
         }
 
-        // equal-style variable is being evaluated
+        // equal-style or immediate variable is being evaluated
 
-        if (style[ivar] == EQUAL) {
+        if ((style[ivar] == EQUAL) || (ivar < 0)) {
 
           // f_ID = scalar from global scalar
 

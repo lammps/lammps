@@ -86,16 +86,22 @@ Description
 """""""""""
 
 This command creates atoms (or molecules) within the simulation box,
-either on a lattice, or at a single specified location, or randomly,
-or on a surface defined by a triangulated mesh.  It is an alternative
-to reading in atom coordinates explicitly via a :doc:`read_data
-<read_data>` or :doc:`read_restart <read_restart>` command.  A
-simulation box must already exist, which is typically created via the
-:doc:`create_box <create_box>` command.  Before using this command, a
-lattice must typically also be defined using the :doc:`lattice
-<lattice>` command, unless you specify the *single* style with units =
-box or the *random* style.  For the remainder of this doc page, a
-created atom or molecule is referred to as a "particle".
+either on a lattice, or at random points, or on a surface defined by a
+triangulated mesh.  Or it creates a single atom (or molecule) at a
+specified point.  It is an alternative to reading in atom coordinates
+explicitly via a :doc:`read_data <read_data>` or :doc:`read_restart
+<read_restart>` command.
+
+To use this command a simulation box must already exist, which is
+typically created via the :doc:`create_box <create_box>` command.
+Before using this command, a lattice must typically also be defined
+using the :doc:`lattice <lattice>` command, unless you specify the
+*single* or *mesh* style with units = box or the *random* style.  To
+create atoms on a lattice for general triclinic boxes, see the
+disucssion below.
+
+For the remainder of this doc page, a created atom or molecule is
+referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
@@ -126,46 +132,21 @@ periodic boundaries.  If this is desired, you should either use the
 *box* style, or tweak the region size to get precisely the particles
 you want.
 
+----------
 
-------------------
-
-WORK on this
-
-
-If a general triclinic simulation box is defined ...
-
-
-
-As noted above, general triclinic boxes in LAMMPS allow for arbitrary
-edge vectors **A**, **B**, **C**.  The only restrictions are that the
-three vectors be distinct, non-zero, and not co-planar.  They must
-also define a right-handed system such that (**A** x **B**) points in
-the direction of **C**.  Note that a left-handed system can be
-converted to a right-handed system by simply swapping the order of any
-pair of the **A**, **B**, **C** vectors.
-
-To create a general triclinic boxes, the region is specified as NULL
-and the next 6 parameters (alo,ahi,blo,bhi,clo,chi) define the three
-edge vectors **A**, **B**, **C** using additional information
-previously defind by the :doc:`lattice <lattice>` command.
-
-The lattice must be of style *custom* and use its *triclinic/general*
-option.  This insures the lattice satisfies the restrictions listed
-above.  The *a1, *a2*, *a3* settings of the :doc:`lattice <lattice>`
+If the simulation box is formulated as a general triclinic box defined
+by arbitary edge vectors **A**, **B**, **C**, then the *box* and
+*region* styles will create atoms on a lattice commensurate with those
+edge vectors.  See the :doc:`Howto_triclinic <Howto_triclinic>` doc
+page for a detailed explanation of orthogonal, restricted triclinic,
+and general triclinic simulation boxes.  As with the :doc:`create_box
+<create_box>` command, the :doc:`lattice <lattice>` command used by
+this command must be of style *custom* and use its *triclinic/general*
+option.  The *a1, *a2*, *a3* settings of the :doc:`lattice <lattice>`
 command define the edge vectors of a unit cell of the general
-triclinic lattice.  This command uses them to define the three edge
-vectors and origin of the general triclinic box as:
-
-
-explain region is applied after conversion to restricted triclinic atom coords
-
-explain general tri for box and region styles
-must use lattice triclinic/general
-paragraph about DFT motivation
-doc that single, random, mesh operate on restricted triclinic box
-
-------------------
-
+triclinic lattice. The :doc:`create_box <create_box>` command creates
+a simulation box which replicates that unit cell along each of the
+**A**, **B**, **C** edge vectors.
 
 .. note::
 
@@ -175,19 +156,28 @@ doc that single, random, mesh operate on restricted triclinic box
    input to LAMMPS.  However, as explained on the
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
-   the box defined by this command and per-atom information
-   (e.g. coordinates, velocities) defined by the :doc:`create_atoms
-   <create_atoms>` command are converted from general to restricted
-   triclinic form when the two commands are invoked.  The
-   <Howto_triclinic>` doc page also discusses other LAMMPS commands
-   which can input/output general triclinic representations of the
-   simulation box and per-atom data.
+   the box created by the :doc:`create_box <create_box>` command and
+   the atoms with their per-atom information (e.g. coordinates,
+   velocities) created by this command are converted (rotated) from
+   general to restricted triclinic form when the two commands are
+   invoked.  The <Howto_triclinic>` doc page also discusses other
+   LAMMPS commands which can input/output general triclinic
+   representations of the simulation box and per-atom data.
 
+The *box* style will fill the entire general triclinic box with
+particles on the lattice, as explained above.  The *region* style also
+operates as explained above, but the check for particles inside the
+region is performed *after* the particle coordinates have been
+converted to the restricted triclinic box.  This means the region must
+also be defined with respect to the restricted triclinic box, not the
+general triclinic box.
 
+If the simulation box is general triclinic, the *single*, *random*,
+and *mesh* styles described next operate on the box after it has been
+converted to restricted triclinic.  So all the settings for those
+styles should be made in that context.
 
-
-
-
+----------
 
 For the *single* style, a single particle is added to the system at
 the specified coordinates.  This can be useful for debugging purposes

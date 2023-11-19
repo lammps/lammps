@@ -476,13 +476,14 @@ For 2d simulations, *cvec* = (0,0,1) is required, and the 3rd value of
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
    the box and per-atom information (e.g. coordinates, velocities) in
-   the data file are converted from general to restricted triclinic
-   form when the file is read.  Other sections of the data file must
-   also list their per-atom data appropriately if vector quantities
-   are specified. This requirement is explained below for the relevant
-   sections.  The :doc:`Howto_triclinic <Howto_triclinic>` doc page
-   also discusses other LAMMPS commands which can input/output general
-   triclinic representations of the simulation box and per-atom data.
+   the data file are converted (rotated) from general to restricted
+   triclinic form when the file is read.  Other sections of the data
+   file must also list their per-atom data appropriately if vector
+   quantities are specified. This requirement is explained below for
+   the relevant sections.  The :doc:`Howto_triclinic
+   <Howto_triclinic>` doc page also discusses other LAMMPS commands
+   which can input/output general triclinic representations of the
+   simulation box and per-atom data.
 
 The following explanations apply to all 3 kinds of simulation boxes:
 orthogonal, restricted triclinic, and general triclinic.

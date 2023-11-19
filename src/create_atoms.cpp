@@ -1179,7 +1179,7 @@ void CreateAtoms::add_lattice()
   if (!domain->triclinic_general && domain->lattice->is_general_triclinic())
     error->all(FLERR,"Create_atoms for non general triclinic box cannot use triclinic/general lattice");
   if (domain->triclinic_general && !domain->lattice->is_general_triclinic())
-    error->all(FLERR,"Create_atoms for general triclinic box requires triclnic/general lattice");
+    error->all(FLERR,"Create_atoms for general triclinic box requires triclinic/general lattice");
 
   // convert 8 corners of my subdomain from box coords to lattice coords
   // for orthogonal, use corner pts of my subbox

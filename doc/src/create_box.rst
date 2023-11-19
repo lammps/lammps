@@ -204,8 +204,8 @@ to do this is to specify clo = -0.5 and chi = 0.5 and use the
    LAMMPS only uses restricted triclinic simulation boxes.  This means
    the box defined by this command and per-atom information
    (e.g. coordinates, velocities) defined by the :doc:`create_atoms
-   <create_atoms>` command are converted from general to restricted
-   triclinic form when the two commands are invoked.  The
+   <create_atoms>` command are converted (rotated) from general to
+   restricted triclinic form when the two commands are invoked.  The
    <Howto_triclinic>` doc page also discusses other LAMMPS commands
    which can input/output general triclinic representations of the
    simulation box and per-atom data.

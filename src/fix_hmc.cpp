@@ -556,10 +556,6 @@ void FixHMC::init()
 
 void FixHMC::setup(int vflag)
 {
-  if (rigid_flag)
-      error->all(FLERR, "fix hmc does not yet support rigid");
-      //if (fix_rigid->extended)
-      //error->all(FLERR,"fix hmc does not support extended particles");
 
   // Compute properties of the initial state:
   nattempts = 0;

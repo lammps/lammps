@@ -175,7 +175,6 @@ void FixHMC::store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_membe
                           LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
-    printf(
         error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   int cols;

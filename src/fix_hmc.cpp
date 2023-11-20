@@ -171,12 +171,12 @@ void FixHMC::post_constructor()
 /* ---------------------------------------------------------------------- */
 
 template <typename T>
-void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
+void FixHMC::store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
                           LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
     printf(
-        "NONONONONONO\n");    //error->all(FLERR, "fix hmc tried to store incorrect peratom data");
+        error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   int cols;
   // free old memory if stored_peratom_member isn't a copy of current_peratom_member
@@ -225,11 +225,11 @@ void store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
 
 
 template <typename T>
-void restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
+void FixHMC::restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
                           LAMMPS_NS::Atom::PerAtom &current_peratom_member, int nlocal)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
-    printf("NONONONONONONONONONO\n");    //error->all(FLERR, "fix hmc tried to store incorrect peratom data");
+    error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   if (stored_peratom_member.address == NULL) return;
   int cols;
@@ -284,23 +284,6 @@ void FixHMC::setup_arrays_and_pointers()
   
   current_peratom = atom->peratom;
   stored_nlocal = atom->nlocal;
-
-    // make a copy of all peratom data
-  //for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
-  //  LAMMPS_NS::Atom::PerAtom stored_peratom_member = current_peratom_member;
-  //  switch (current_peratom_member.datatype) {
-  //    case (Atom::INT):
-  //      store_peratom_member<int>(stored_peratom_member, current_peratom_member, stored_nlocal);
-  //      break;
-  //    case (Atom::DOUBLE):
-  //      store_peratom_member<double>(stored_peratom_member, current_peratom_member, stored_nlocal);
-  //      break;
-  //    case (Atom::BIGINT):
-  //      store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, stored_nlocal);
-  //      break;
-  //  }
-  //  stored_peratom.push_back(stored_peratom_member);
-  //}
 
   // Per-atom vector properties to be saved and restored:
   nvec = 2;
@@ -703,7 +686,6 @@ double FixHMC::compute_vector(int item)
 /* ----------------------------------------------------------------------
    Save the system state for eventual restoration if move is rejected
 ------------------------------------------------------------------------- */
-
 void FixHMC::save_current_state()
 {
   int i, m, n;

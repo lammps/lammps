@@ -61,6 +61,10 @@ class FixHMC : public Fix {
   void rigid_body_restore_orientations();
   void rigid_body_restore_forces();
   void rigid_body_random_velocities();
+  template <typename T>
+  void store_peratom_member(LAMMPS_NS::Atom::PerAtom&, LAMMPS_NS::Atom::PerAtom, int);
+  template <typename T>
+  void restore_peratom_member(LAMMPS_NS::Atom::PerAtom, LAMMPS_NS::Atom::PerAtom &, int);
   std::vector<LAMMPS_NS::Atom::PerAtom> stored_peratom;
   std::vector<LAMMPS_NS::Atom::PerAtom> current_peratom;
   int stored_nlocal;

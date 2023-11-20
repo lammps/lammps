@@ -500,8 +500,8 @@ void DumpCustom::header_binary_triclinic_general(bigint ndump)
 
   fwrite(&update->ntimestep,sizeof(bigint),1,fp);
   fwrite(&ndump,sizeof(bigint),1,fp);
-  int general_tri = 2;
-  fwrite(&general_tri,sizeof(int),1,fp);
+  int triclinic_general_flag = 2;
+  fwrite(&triclinic_general_flag,sizeof(int),1,fp);
   fwrite(&domain->boundary[0][0],6*sizeof(int),1,fp);
   fwrite(domain->avec,3*sizeof(double),1,fp);
   fwrite(domain->bvec,3*sizeof(double),1,fp);
@@ -573,9 +573,7 @@ void DumpCustom::header_item_triclinic_general(bigint ndump)
   }
   if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
-             "ITEM: NUMBER OF ATOMS\n{}\n",
-             update->ntimestep, ndump);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\nITEM: NUMBER OF ATOMS\n{}\n", update->ntimestep, ndump);
 
   fmt::print(fp,"ITEM: BOX BOUNDS abc origin {}\n"
              "{:>1.16e} {:>1.16e} {:>1.16e} {:>1.16e}\n"
@@ -1788,6 +1786,14 @@ int DumpCustom::modify_param(int narg, char **arg)
     return 2;
   }
 
+  if (strcmp(arg[0],"triclinic/general") == 0) {
+    triclinic_general = 1;
+    if (triclinic_general && !domain->triclinic_general)
+      error->all(FLERR,"Dump_modify triclinic/general cannot be used "
+                 "if simulation box is not general triclinic");
+    return 1;
+  }
+  
   if (strcmp(arg[0],"triclinic/general") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     triclinic_general = utils::logical(FLERR,arg[1],false,lmp);
@@ -3350,11 +3356,11 @@ void DumpCustom::pack_tqz(int n)
 void DumpCustom::pack_tqx_triclinic_general(int n)
 {
   double **torque = atom->torque;
-  double torquetri[3];
+  double tqtri[3];
   
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_vector(torque[clist[i]],torquetri);
-    buf[n] = torquetri[0];
+    domain->restricted_to_general_vector(torque[clist[i]],tqtri);
+    buf[n] = tqtri[0];
     n += size_one;
   }
 }
@@ -3364,11 +3370,11 @@ void DumpCustom::pack_tqx_triclinic_general(int n)
 void DumpCustom::pack_tqy_triclinic_general(int n)
 {
   double **torque = atom->torque;
-  double torquetri[3];
+  double tqtri[3];
   
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_vector(torque[clist[i]],torquetri);
-    buf[n] = torquetri[1];
+    domain->restricted_to_general_vector(torque[clist[i]],tqtri);
+    buf[n] = tqtri[1];
     n += size_one;
   }
 }
@@ -3378,11 +3384,11 @@ void DumpCustom::pack_tqy_triclinic_general(int n)
 void DumpCustom::pack_tqz_triclinic_general(int n)
 {
   double **torque = atom->torque;
-  double torquetri[3];
+  double tqtri[3];
   
   for (int i = 0; i < nchoose; i++) {
-    domain->restricted_to_general_vector(torque[clist[i]],torquetri);
-    buf[n] = torquetri[2];
+    domain->restricted_to_general_vector(torque[clist[i]],tqtri);
+    buf[n] = tqtri[2];
     n += size_one;
   }
 }

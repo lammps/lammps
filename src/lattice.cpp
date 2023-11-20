@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "update.h"
 
@@ -24,6 +25,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define BIG 1.0e30
 
@@ -237,7 +239,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (nbasis == 0) error->all(FLERR,"No basis atoms in lattice");
   if (!orthogonal())
     error->all(FLERR,"Lattice orient vectors are not orthogonal");
-  if (!right_handed())
+  if (!right_handed_orientation())
     error->all(FLERR,"Lattice orient vectors are not right-handed");
   if (collinear())
     error->all(FLERR,"Lattice primitive vectors are collinear");
@@ -263,8 +265,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       error->all(FLERR,"Lattice spacings are invalid");
   }
 
-  // requirements for a general triclinic lattice
-  // right-handed requirement is checked by domain->general_to_restricted_rotation()
+  // additional requirements for a general triclinic lattice
   // a123 prime are used to compute lattice spacings
   
   if (triclinic_general) {
@@ -278,6 +279,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     if (orientz[0] != 0 || orientz[1] != 0 || orientz[2] != 1) oriented = 1;
     if (oriented)
       error->all(FLERR,"Lattice triclnic/general must have default orientation");
+    if (!right_handed_primitive())
+      error->all(FLERR,"Lattice triclnic/general a1,a2,a3 must be right-handed");
 
     double rotmat[3][3];
     domain->general_to_restricted_rotation(a1,a2,a3,rotmat,a1_prime,a2_prime,a3_prime);
@@ -289,8 +292,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   
   if (strcmp(update->unit_style,"lj") == 0) {
     double vec[3];
-    cross(a2,a3,vec);
-    double volume = fabs(dot(a1,vec));
+    MathExtra::cross3(a2,a3,vec);
+    double volume = fabs(MathExtra::dot3(a1,vec));
     scale = pow(nbasis/volume/scale,1.0/dimension);
   }
 
@@ -389,7 +392,7 @@ int Lattice::orthogonal()
    x cross y must be in same direction as z
 ------------------------------------------------------------------------- */
 
-int Lattice::right_handed()
+int Lattice::right_handed_orientation()
 {
   int xy0 = orientx[1]*orienty[2] - orientx[2]*orienty[1];
   int xy1 = orientx[2]*orienty[0] - orientx[0]*orienty[2];
@@ -399,18 +402,32 @@ int Lattice::right_handed()
 }
 
 /* ----------------------------------------------------------------------
+   check righthandedness of a1,a2,a3 primitive vectors
+   x cross y must be in same direction as z
+------------------------------------------------------------------------- */
+
+int Lattice::right_handed_primitive()
+{
+  double vec[3];
+  MathExtra::cross3(a1,a2,vec);
+  if (MathExtra::dot3(vec,a3) <= 0.0) return 0;
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
    check collinearity of each pair of primitive vectors
+   also checks if any primitive vector is zero-length
 ------------------------------------------------------------------------- */
 
 int Lattice::collinear()
 {
   double vec[3];
-  cross(a1,a2,vec);
-  if (dot(vec,vec) == 0.0) return 1;
-  cross(a2,a3,vec);
-  if (dot(vec,vec) == 0.0) return 1;
-  cross(a1,a3,vec);
-  if (dot(vec,vec) == 0.0) return 1;
+  MathExtra::cross3(a1,a2,vec);
+  if (MathExtra::len3(vec) == 0.0) return 1;
+  MathExtra::cross3(a2,a3,vec);
+  if (MathExtra::len3(vec) == 0.0) return 1;
+  MathExtra::cross3(a1,a3,vec);
+  if (MathExtra::len3(vec) == 0.0) return 1;
   return 0;
 }
 
@@ -587,26 +604,6 @@ void Lattice::add_basis(double x, double y, double z)
   basis[nbasis][1] = y;
   basis[nbasis][2] = z;
   nbasis++;
-}
-
-/* ----------------------------------------------------------------------
-   return x dot y
-------------------------------------------------------------------------- */
-
-double Lattice::dot(double *x, double *y)
-{
-  return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-}
-
-/* ----------------------------------------------------------------------
-   z = x cross y
-------------------------------------------------------------------------- */
-
-void Lattice::cross(double *x, double *y, double *z)
-{
-  z[0] = x[1]*y[2] - x[2]*y[1];
-  z[1] = x[2]*y[0] - x[0]*y[2];
-  z[2] = x[0]*y[1] - x[1]*y[0];
 }
 
 /* ----------------------------------------------------------------------

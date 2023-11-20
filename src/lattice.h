@@ -56,7 +56,8 @@ class Lattice : protected Pointers {
   double a3_prime[3];
   
   int orthogonal();
-  int right_handed();
+  int right_handed_orientation();
+  int right_handed_primitive();
   int collinear();
   void setup_transform(double *, double *, double *);
   void add_basis(double, double, double);

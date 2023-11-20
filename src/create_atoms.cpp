@@ -113,6 +113,8 @@ void CreateAtoms::command(int narg, char **arg)
     xone[0] = utils::numeric(FLERR, arg[2], false, lmp);
     xone[1] = utils::numeric(FLERR, arg[3], false, lmp);
     xone[2] = utils::numeric(FLERR, arg[4], false, lmp);
+    if (domain->dimension == 2 && xone[2] != 0.0)
+      error->all(FLERR,"Create_atoms single for 2d simulation requires z coord = 0.0");
     iarg = 5;
   } else if (strcmp(arg[1], "random") == 0) {
     style = RANDOM;
@@ -359,7 +361,8 @@ void CreateAtoms::command(int narg, char **arg)
   
   if ((style == BOX) || (style == REGION)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
-
+  }
+  
   // apply scaling factor for styles that use distance-dependent factors
 
   if (scaleflag) {
@@ -369,8 +372,8 @@ void CreateAtoms::command(int narg, char **arg)
     xone[2] *= domain->lattice->zlattice;
     } else if (style == RANDOM) {
       if (overlapflag) overlap *= domain->lattice->xlattice;
-    } else if (style == MESH) {     // NOTE to Axel - here is the rescaling of both params
-      if (mesh_style == BISECT) {   //   by lattice spacings if units = lattice, similar to xone,overlap
+    } else if (style == MESH) {         // NOTE to Axel - here is the rescaling of both params
+      if (mesh_style == BISECTION) {    //   by lattice spacings if units = lattice, similar to xone,overlap
         radthresh *= domain->lattice->xlattice;
       } else if (mesh_style = QUASIRANDOM) {
         mesh_density /= (domain->lattice->xlattice * domain->lattice->xlattice);

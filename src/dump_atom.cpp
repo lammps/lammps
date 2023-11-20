@@ -156,17 +156,21 @@ int DumpAtom::modify_param(int narg, char **arg)
     scale_flag = utils::logical(FLERR,arg[1],false,lmp);
     for (auto &item : keyword_user) item.clear();
     return 2;
-  } else if (strcmp(arg[0],"image") == 0) {
+  }
+  
+  if (strcmp(arg[0],"image") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     image_flag = utils::logical(FLERR,arg[1],false,lmp);
     for (auto &item : keyword_user) item.clear();
     return 2;
-  } else if (strcmp(arg[0],"triclinic/general") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    triclinic_general = utils::logical(FLERR,arg[1],false,lmp);
+  }
+  
+  if (strcmp(arg[0],"triclinic/general") == 0) {
+    triclinic_general = 1;
     if (triclinic_general && !domain->triclinic_general)
-      error->all(FLERR,"Dump_modify triclinic/general invalid b/c simulation box is not");
-    return 2;
+      error->all(FLERR,"Dump_modify triclinic/general cannot be used "
+                 "if simulation box is not general triclinic");
+    return 1;
   }
   
   return 0;
@@ -410,9 +414,7 @@ void DumpAtom::header_item_triclinic_general(bigint ndump)
   }
   if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
-             "ITEM: NUMBER OF ATOMS\n{}\n",
-             update->ntimestep, ndump);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\nITEM: NUMBER OF ATOMS\n{}\n", update->ntimestep, ndump);
 
   fmt::print(fp,"ITEM: BOX BOUNDS abc origin {}\n"
              "{:>1.16e} {:>1.16e} {:>1.16e} {:>1.16e}\n"

@@ -4250,15 +4250,21 @@ void PairReaxFFKokkos<DeviceType>::PackBondBuffer(DAT::tdual_ffloat_1d k_buf, in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::PackReducedBondBuffer(DAT::tdual_ffloat_1d k_buf, int &nbuf_local)
+void PairReaxFFKokkos<DeviceType>::PackReducedBondBuffer(DAT::tdual_ffloat_1d k_buf, int &nbuf_local, bool store_bonds)
 {
   d_buf = k_buf.view<DeviceType>();
   k_params_sing.template sync<DeviceType>();
 
   copymode = 1;
   nlocal = atomKK->nlocal;
-  PairReaxKokkosPackReducedBondBufferFunctor<DeviceType> pack_bond_buffer_functor(this);
-  Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  if(store_bonds) {
+    PairReaxKokkosPackReducedBondBufferFunctor<DeviceType, true> pack_bond_buffer_functor(this);
+    Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  } else {
+    PairReaxKokkosPackReducedBondBufferFunctor<DeviceType, false> pack_bond_buffer_functor(this);
+    Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  }
+
   copymode = 0;
 
   k_buf.modify<DeviceType>();
@@ -4313,6 +4319,7 @@ void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bo
 }
 
 template<class DeviceType>
+template<bool STORE_BONDS>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::pack_reduced_bond_buffer_item(int i, int &j, const bool &final) const
 {
@@ -4325,21 +4332,23 @@ void PairReaxFFKokkos<DeviceType>::pack_reduced_bond_buffer_item(int i, int &j, 
 
   j += 3;
 
-  if (final) {
-    for (int k = 0; k < numbonds; ++k) {
-      d_buf[j+k] = d_neighid(i,k);
+  if constexpr(STORE_BONDS) {
+    if (final) {
+      for (int k = 0; k < numbonds; ++k) {
+        d_buf[j+k] = d_neighid(i,k);
+      }
     }
-  }
 
-  j += numbonds;
+    j += numbonds;
 
-  if (final) {
-    for (int k = 0; k < numbonds; k++) {
-      d_buf[j+k] = d_abo(i,k);
+    if (final) {
+      for (int k = 0; k < numbonds; k++) {
+        d_buf[j+k] = d_abo(i,k);
+      }
     }
-  }
 
-  j += numbonds;
+    j += numbonds;
+  }
 
   if (final && i == nlocal-1)
     k_nbuf_local.view<DeviceType>()() = j - 1;

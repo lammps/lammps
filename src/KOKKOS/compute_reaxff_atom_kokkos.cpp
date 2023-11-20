@@ -16,7 +16,7 @@
    Contributing author: Richard Berger (LANL)
 ------------------------------------------------------------------------- */
 
-#include "compute_reaxff_bonds_kokkos.h"
+#include "compute_reaxff_atom_kokkos.h"
 #include "atom.h"
 #include "molecule.h"
 #include "update.h"
@@ -35,8 +35,8 @@ using namespace ReaxFF;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeReaxFFBondsKokkos<DeviceType>::ComputeReaxFFBondsKokkos(LAMMPS *lmp, int narg, char **arg) :
-  ComputeReaxFFBonds(lmp, narg, arg),
+ComputeReaxFFAtomKokkos<DeviceType>::ComputeReaxFFAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
+  ComputeReaxFFAtom(lmp, narg, arg),
   nbuf(-1), buf(nullptr)
 {
   kokkosable = 1;
@@ -46,7 +46,7 @@ ComputeReaxFFBondsKokkos<DeviceType>::ComputeReaxFFBondsKokkos(LAMMPS *lmp, int 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeReaxFFBondsKokkos<DeviceType>::~ComputeReaxFFBondsKokkos()
+ComputeReaxFFAtomKokkos<DeviceType>::~ComputeReaxFFAtomKokkos()
 {
   memoryKK->destroy_kokkos(k_buf, buf);
 }
@@ -54,21 +54,21 @@ ComputeReaxFFBondsKokkos<DeviceType>::~ComputeReaxFFBondsKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputeReaxFFBondsKokkos<DeviceType>::init()
+void ComputeReaxFFAtomKokkos<DeviceType>::init()
 {
   reaxff = dynamic_cast<PairReaxFF*>(force->pair_match("^reax../kk",0));
-  if (reaxff == nullptr) error->all(FLERR,"Cannot use compute reaxff/bonds without "
+  if (reaxff == nullptr) error->all(FLERR,"Cannot use compute reaxff/atom without "
                   "pair_style reaxff/kk");
 }
 
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>
-void ComputeReaxFFBondsKokkos<DeviceType>::compute_bonds()
+void ComputeReaxFFAtomKokkos<DeviceType>::compute_bonds()
 {
   if (atom->nlocal > nlocal) {
     memory->destroy(array_atom);
     nlocal = atom->nlocal;
-    memory->create(array_atom, nlocal, 3, "reaxff/bonds:array_atom");
+    memory->create(array_atom, nlocal, 3, "reaxff/atom:array_atom");
   }
 
   // retrieve bond information from kokkos pair style. the data potentially
@@ -83,20 +83,20 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_bonds()
   else
     host_pair()->FindBond(maxnumbonds);
 
-  nbuf = (maxnumbonds*2 + 3)*nlocal;
+  nbuf = ((store_bonds ? maxnumbonds*2 : 0) + 3)*nlocal;
 
   if(!buf || k_buf.extent(0) < nbuf) {
     memoryKK->destroy_kokkos(k_buf, buf);
-    memoryKK->create_kokkos(k_buf, buf, nbuf, "reaxff/bonds:buf");
+    memoryKK->create_kokkos(k_buf, buf, nbuf, "reaxff/atom:buf");
   }
 
   // Pass information to buffer, will sync to host
 
   int nbuf_local;
   if (reaxff->execution_space == Device)
-    device_pair()->PackReducedBondBuffer(k_buf, nbuf_local);
+    device_pair()->PackReducedBondBuffer(k_buf, nbuf_local, store_bonds);
   else
-    host_pair()->PackReducedBondBuffer(k_buf, nbuf_local);
+    host_pair()->PackReducedBondBuffer(k_buf, nbuf_local, store_bonds);
 
   // Extract number of bonds from buffer
 
@@ -105,14 +105,14 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_bonds()
   for (int i = 0; i < nlocal; i++) {
     int numbonds = static_cast<int>(buf[j+2]);
     nbonds += numbonds;
-    j += 2*numbonds + 3;
+    j += (store_bonds ? 2*numbonds : 0) + 3;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputeReaxFFBondsKokkos<DeviceType>::compute_local()
+void ComputeReaxFFAtomKokkos<DeviceType>::compute_local()
 {
   invoked_local = update->ntimestep;
 
@@ -122,7 +122,7 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_local()
   if(nbonds > prev_nbonds) {
     // grow array_local
     memory->destroy(array_local);
-    memory->create(array_local, nbonds, 3, "reaxff/bonds:array_local");
+    memory->create(array_local, nbonds, 3, "reaxff/atom:array_local");
     prev_nbonds = nbonds;
   }
 
@@ -150,7 +150,7 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_local()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputeReaxFFBondsKokkos<DeviceType>::compute_peratom()
+void ComputeReaxFFAtomKokkos<DeviceType>::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
@@ -166,7 +166,7 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_peratom()
     ptr[0] = buf[j]; // sbo
     ptr[1] = buf[j+1]; // nlp
     ptr[2] = numbonds;
-    j += 2*numbonds + 3;
+    j += (store_bonds ? 2*numbonds : 0) + 3;
   }
 }
 
@@ -175,16 +175,18 @@ void ComputeReaxFFBondsKokkos<DeviceType>::compute_peratom()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-double ComputeReaxFFBondsKokkos<DeviceType>::memory_usage()
+double ComputeReaxFFAtomKokkos<DeviceType>::memory_usage()
 {
-  double bytes = (double)(nbonds*3) * sizeof(double);
-  bytes += (double)(nlocal*3) * sizeof(double);
+  double bytes = (double)(nlocal*3) * sizeof(double);
+  if(store_bonds)
+    bytes += (double)(nbonds*3) * sizeof(double);
+  bytes += (double)(nbuf > 0 ? nbuf * sizeof(double) : 0);
   return bytes;
 }
 
 namespace LAMMPS_NS {
-template class ComputeReaxFFBondsKokkos<LMPDeviceType>;
+template class ComputeReaxFFAtomKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class ComputeReaxFFBondsKokkos<LMPHostType>;
+template class ComputeReaxFFAtomKokkos<LMPHostType>;
 #endif
 }

@@ -31,7 +31,7 @@ neigh_modify    delay 0 every 5 check no
 fix             1 all nve
 fix             2 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
 fix             4 all reaxff/bonds 5 bonds.reaxff
-compute         bonds all reaxff/bonds
+compute         bonds all reaxff/atom bonds yes
 variable nqeq   equal f_2
 
 # dumps out the local bond information

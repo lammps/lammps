@@ -617,7 +617,7 @@ combined by removing the '&' and the following newline character.  After
 this processing the string is handed to LAMMPS for parsing and
 executing.
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
    The command is now able to process long strings with triple quotes and
    loops using :doc:`jump SELF \<label\> <jump>`.
@@ -702,6 +702,13 @@ void lammps_commands_string(void *handle, const char *str)
             continue;
           }
         }
+        // stop processing when quit command is found
+        if (words.size() && (words[0] == "quit")) {
+          if (lmp->comm->me == 0)
+            utils::logmesg(lmp, "Encountered a 'quit' command. Stopping ...\n");
+          break;
+        }
+
         lmp->input->one(cmd.c_str());
       }
     }
@@ -2477,7 +2484,7 @@ int lammps_set_variable(void *handle, char *name, char *str)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
 This function copies a string with human readable information about
 a defined variable: name, style, current value(s) into the provided
@@ -5574,7 +5581,7 @@ int lammps_config_has_ffmpeg_support() {
  *
 \verbatim embed:rst
 
-.. deprecated:: TBD
+.. deprecated:: 21Nov2023
 
    LAMMPS has now exceptions always enabled, so this function
    will now always return 1 and can be removed from applications
@@ -6651,7 +6658,7 @@ the failing MPI ranks to send messages.
    instance, but instead would check the global error buffer of the
    library interface.
 
-   .. versionchanged: TBD
+   .. versionchanged: 21Nov2023
 
    The *buffer* pointer may be ``NULL``.  This will clear any error
    status without copying the error message.

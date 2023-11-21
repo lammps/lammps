@@ -247,7 +247,7 @@ appropriately.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  This fix computes a global scalar, which can be accessed by various
 output commands.  The scalar is the cumulative number of insertions.  The
-scalar value calculated by this fix is “intensive”.  No parameter
+scalar value calculated by this fix is "intensive".  No parameter
 of this fix can be used with the *start/stop* keywords of the
 :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 

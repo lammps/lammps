@@ -1499,9 +1499,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           }
         }
 
-        // equal-style variable is being evaluated
+        // equal-style or immediate variable is being evaluated
 
-        if (style[ivar] == EQUAL) {
+        if ((style[ivar] == EQUAL) || (ivar < 0)) {
 
           // c_ID = scalar from global scalar
 
@@ -1767,9 +1767,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           }
         }
 
-        // equal-style variable is being evaluated
+        // equal-style or immediate variable is being evaluated
 
-        if (style[ivar] == EQUAL) {
+        if ((style[ivar] == EQUAL) || (ivar < 0)) {
 
           // f_ID = scalar from global scalar
 
@@ -3397,18 +3397,18 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
     char *id = start+2;
     int ivar = find(id);
     if (ivar < 0)
-      error->all(FLERR,"Invalid variable name in variable formula");
+      error->all(FLERR,"Invalid variable name {} in variable formula", id);
 
     char *var = retrieve(id);
     if (var == nullptr)
-      error->all(FLERR,"Invalid variable evaluation in variable formula");
+      error->all(FLERR,"Invalid variable evaluation for variable {} in variable formula", id);
     index = static_cast<tagint> (atof(var));
 
   } else index = ATOTAGINT(start);
 
   *ptr = ']';
 
-  if (index == 0)
+  if (index <= 0)
     error->all(FLERR,"Index between variable brackets must be positive");
   return index;
 }

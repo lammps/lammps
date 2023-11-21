@@ -1,14 +1,6 @@
 Different parameterization of the ReaxFF potential have been used in
 different published works. A small number of these are provided in the
-LAMMPS potentials directory, in the form of ffield.reax.[label]
-files. These can be used with either the pair_styles reax and reax/c.
-
-For pair_style reax, the command should be as follows:
-
-# reax args: hbcut hbnewflag tripflag precision
-pair_style	reax 6.0 0 1 1.0e-6
-
-except where described below.
+LAMMPS potentials directory, in the form of ffield.reax.label files.
 
 The mapping from parameter files to publication is as follows:
 
@@ -25,8 +17,7 @@ J. Budzien, A. P. Thompson, and S. V. Zybin, "Reactive Molecular
 Dynamics Simulations of Shock Through a Single Crystal of
 Pentaerythritol Tetranitrate," J. Phys. Chem., 113 13142 (2009).
 
-ffield.reax.rdx: nitramines (RDX/HMX/TATB/PETN) 
-This version requires hbnewflag = 1
+ffield.reax.rdx: nitramines (RDX/HMX/TATB/PETN)
 
 Strachan, A.; et al. Phys. Rev. Lett. 2003, 91, 098301
 Zhang, L., van Duin, A.C.T., Zybin, S. and Goddard, W.A. (2009) Carbon
@@ -37,7 +28,6 @@ Reactive Molecular Dynamics Simulations, Journal of Physical Chemistry
 B 113, 10619-10640
 
 ffield.reax.cho: Reactive MD-force field c/h/o combustion force field
-This version requires tripflag = 0 and hbnewflag = 1
 
 "ReaxFF Reactive Force Field for Molecular Dynamics Simulations of
 Hydrocarbon Oxidation" Kimberly Chenoweth, Adri C. T. van Duin, and
@@ -58,8 +48,10 @@ M.; van Duin, A. C. T.; Kubicki, J. D. J. Phys. Chem. A 2010, 114,
 ffield.reax.V_O_C_H: Reactive MD-force field: V/O/C/H potential:
 Chenoweth, K.; et al. J. Phys. Chem. C, 2008, 112, 14645-14654.
 
-ffield.reax.ZnOH: Reactive MD-force field: water/zinc: Raymand, D.; 
-van Duin, A. C. T.; Spangberg, D.; Goddard, W. A.; Hermansson, K. 
+ffield.reax.ZnOH: Reactive MD-force field: water/zinc: Raymand, D.;
+van Duin, A. C. T.; Spangberg, D.; Goddard, W. A.; Hermansson, K.
 Surface Science 2010, 604, 9-10, 741-752.
 
-ffield.reax.lg: Reactive MD-force field: nitramines (RDX/HMX/TATB/PETN))+lg: L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal of Physical Chemistry A, 115, 11016-11022 (2011).
+ffield.reax.lg: Reactive MD-force field: nitramines (RDX/HMX/TATB/PETN))+lg:
+L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal of
+Physical Chemistry A, 115, 11016-11022 (2011).

@@ -1374,6 +1374,7 @@ void PPPMDisp::init_coeffs()
 
     if (nsplit == 1) {
       delete[] B;
+      B = nullptr;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1387,11 +1388,13 @@ void PPPMDisp::init_coeffs()
       //function[3] = 1;
       //function[2] = 0;
       delete[] B;   // remove this when un-comment previous 2 lines
+      B = nullptr;
    }
 
     if (function[2] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
       delete[] B;
+      B = nullptr;
     }
 
     if (function[3]) {

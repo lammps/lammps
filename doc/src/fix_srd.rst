@@ -81,10 +81,10 @@ used in conjunction with the SRD model.
 These 3 papers give more details on how the SRD model is implemented
 in LAMMPS.  :ref:`(Petersen) <Petersen1>` describes pure SRD fluid
 systems.  :ref:`(Bolintineanu1) <Bolintineanu1>` describes models
-where pure SRD fluids :ref:interact with boundary walls.
+where pure SRD fluids interact with boundary walls.
 :ref:`(Bolintineanu2) <Bolintineanu2>` describes mixture models where
 large colloidal particles are solvated by an SRD fluid.  See the
-``examples/srd`` :ref:directory for sample input scripts.
+``examples/srd`` directory for sample input scripts.
 
 This fix does two things:
 

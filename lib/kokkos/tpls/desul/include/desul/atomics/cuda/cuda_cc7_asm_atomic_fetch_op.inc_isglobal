@@ -164,38 +164,55 @@ inline __device__ ctype device_atomic_fetch_dec_mod(ctype* dest, ctype limit, __
   return result; \
 }
 
-// Group ops for integer ctypes
-#define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INTEGER_OP(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(ctype,asm_ctype,reg_ctype,reg_ret_ctype)
-
-#define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_UNSIGNED_OP(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(ctype,asm_ctype,reg_ctype,reg_ret_ctype)
-
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP() \
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_AND() \
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_OR() \
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_XOR()
 
-
 // Instantiate Functions
+
+// General comments:
+//  - float/double only support add
+//  - inc/dec only supported with uint32_t
+//  - int64_t does not support add
+
+// floating point types
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(float,".f32","f","=f")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(float,".f32","f","=f")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(double,".f64","d","=d")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(double,".f64","d","=d")
 
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_UNSIGNED_OP(uint32_t,".u32","r","=r")
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_UNSIGNED_OP(uint64_t,".u64","l","=l")
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INTEGER_OP(int32_t,".s32","r","=r")
-//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INTEGER_OP(int64_t,".s64","l","=l")
-
+// uint32_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(uint32_t,".u32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(uint32_t,".u32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(uint32_t,".u32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(uint32_t,".u32","r","=r")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(uint32_t,".u32","r","=r")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(uint32_t,".u32","r","=r")
+
+// uint64_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(uint64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(uint64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(uint64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(uint64_t,".u64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(uint64_t,".u64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(uint64_t,".u64","l","=l")
+
+// int32_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(int32_t,".s32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(int32_t,".s32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(int32_t,".s32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(int32_t,".s32","r","=r")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(int32_t,".s32","r","=r")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(int32_t,".s32","r","=r")
+
+// int64_t note: add/sub is using unsigned register
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(int64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(int64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(int64_t,".s64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(int64_t,".s64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(int64_t,".s64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(int64_t,".s64","l","=l")
 
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP()
 
@@ -205,4 +222,4 @@ __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP()
 #undef __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC
 #undef __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC
 #undef __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_AND
-
+#undef __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP

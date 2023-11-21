@@ -28,41 +28,47 @@ TARGETS =
 tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
   $(if $(filter Test$(device).cpp, $(shell ls Test$(device).cpp 2>/dev/null)),,\
      $(shell echo "\#include <Test"${device}"_Category.hpp>" > Test$(device).cpp); \
+     $(shell echo "\#include <TestRandom.hpp>" >> Test$(device).cpp); \
+     $(shell echo "\#include <TestSort.hpp>" >> Test$(device).cpp); \
+     $(shell echo "\#include <TestBinSortA.hpp>" >> Test$(device).cpp); \
+     $(shell echo "\#include <TestBinSortB.hpp>" >> Test$(device).cpp); \
+     $(shell echo "\#include <TestNestedSort.hpp>" >> Test$(device).cpp); \
+     $(shell echo "\#include <TestSortCustomComp.hpp>" >> Test$(device).cpp); \
    ) \
 )
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	OBJ_CUDA = TestCuda.o UnitTestMain.o gtest-all.o
+	OBJ_CUDA = TestCuda.o TestStdAlgorithmsCommon.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_Cuda
 	TEST_TARGETS += test-cuda
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
-	OBJ_HIP = TestHIP.o UnitTestMain.o gtest-all.o
+	OBJ_HIP = TestHIP.o TestStdAlgorithmsCommon.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_HIP
 	TEST_TARGETS += test-hip
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
-	OBJ_THREADS = TestThreads.o UnitTestMain.o gtest-all.o
+	OBJ_THREADS = TestThreads.o TestStdAlgorithmsCommon.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_Threads
 	TEST_TARGETS += test-threads
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
-	OBJ_OPENMP = TestOpenMP.o UnitTestMain.o gtest-all.o
+	OBJ_OPENMP = TestOpenMP.o TestStdAlgorithmsCommon.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_OpenMP
 	TEST_TARGETS += test-openmp
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
-	OBJ_HPX = TestHPX.o UnitTestMain.o gtest-all.o
+	OBJ_HPX = TestHPX.o TestStdAlgorithmsCommon.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_HPX
 	TEST_TARGETS += test-hpx
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
-	OBJ_SERIAL = TestSerial.o UnitTestMain.o gtest-all.o
+	OBJ_SERIAL = TestSerial.o TestStdAlgorithmsCommon.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_Serial
 	TEST_TARGETS += test-serial
 endif

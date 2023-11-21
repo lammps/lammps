@@ -202,6 +202,7 @@ void ComputeReaxFFAtom::compute_local()
   }
 
   size_local_rows = nbonds;
+  auto tag = atom->tag;
 
   int b = 0;
 
@@ -210,7 +211,7 @@ void ComputeReaxFFAtom::compute_local()
 
     for (int k = 0; k < numbonds; k++) {
       auto bond = array_local[b++];
-      bond[0] = i;
+      bond[0] = tag[i];
       bond[1] = neighid[i][k];
       bond[2] = abo[i][k];
     }

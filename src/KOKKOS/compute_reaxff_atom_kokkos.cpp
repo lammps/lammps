@@ -135,6 +135,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_local()
 
   int b = 0;
   int j = 0;
+  auto tag = atom->tag;
 
   for (int i = 0; i < nlocal; ++i) {
     const int numbonds = static_cast<int>(buf[j+2]);
@@ -142,7 +143,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_local()
     const int bo_offset = neigh_offset + numbonds;
     for (int k = 0; k < numbonds; k++) {
       auto bond = array_local[b++];
-      bond[0] = i;
+      bond[0] = tag[i];
       bond[1] = static_cast<tagint> (buf[neigh_offset+k]);
       bond[2] = buf[bo_offset+k];
     }

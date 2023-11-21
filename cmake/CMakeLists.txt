@@ -2,7 +2,6 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-# Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.10)
 ########################################
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it

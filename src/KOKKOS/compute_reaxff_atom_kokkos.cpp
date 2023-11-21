@@ -56,9 +56,12 @@ ComputeReaxFFAtomKokkos<DeviceType>::~ComputeReaxFFAtomKokkos()
 template<class DeviceType>
 void ComputeReaxFFAtomKokkos<DeviceType>::init()
 {
-  reaxff = dynamic_cast<PairReaxFF*>(force->pair_match("^reax../kk",0));
-  if (reaxff == nullptr) error->all(FLERR,"Cannot use compute reaxff/atom without "
-                  "pair_style reaxff/kk");
+  ComputeReaxFFAtom::init();
+
+  if(!reaxff || !reaxff->kokkosable) {
+    error->all(FLERR,"Cannot use compute reaxff/atom/kk without "
+                     "pair_style reaxff/kk");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

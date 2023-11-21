@@ -43,6 +43,7 @@ class ComputeReaxFFAtom : public Compute {
   int nlocal;
   int nbonds;
   int prev_nbonds;
+  int nsub;
   bool store_bonds;
 
   tagint **neighid;

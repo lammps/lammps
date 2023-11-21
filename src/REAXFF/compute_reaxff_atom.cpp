@@ -55,10 +55,21 @@ ComputeReaxFFAtom::ComputeReaxFFAtom(LAMMPS *lmp, int narg, char **arg) :
   invoked_bonds = -1;
 
   store_bonds = false;
+  nsub = 0;
 
   int iarg = 3;
   while (iarg<narg) {
-    if (strcmp(arg[iarg], "bonds") == 0) {
+    if (strcmp(arg[iarg], "pair") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "compute reaxff/atom pair", error);
+      ++iarg;
+
+      if (isdigit(arg[iarg][0])) {
+        nsub = utils::inumeric(FLERR, arg[iarg], false, lmp);
+        ++iarg;
+        if (nsub > 0) continue;
+      }
+      error->all(FLERR, "Illegal compute reaxff/atom command");
+    } else if (strcmp(arg[iarg], "bonds") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "compute reaxff/atom bonds", error);
       store_bonds = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
@@ -84,9 +95,20 @@ ComputeReaxFFAtom::~ComputeReaxFFAtom()
 
 void ComputeReaxFFAtom::init()
 {
-  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
-  if (reaxff == nullptr) error->all(FLERR,"Cannot use compute reaxff/atom without "
-                                          "pair_style reaxff, reaxff/kk, or reaxff/omp");
+  if (lmp->suffix_enable) {
+    if (lmp->suffix)
+      reaxff = dynamic_cast<PairReaxFF *>(force->pair_match(fmt::format("^reax../{}", lmp->suffix), 0, nsub));
+    if (!reaxff && lmp->suffix2)
+      reaxff = dynamic_cast<PairReaxFF *>(force->pair_match(fmt::format("^reax../{}", lmp->suffix2), 0, nsub));
+  }
+
+  if (!reaxff) reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..", 0, nsub));
+
+  if (!reaxff) error->all(FLERR,"Cannot use compute reaxff/atom without "
+                                "pair_style reaxff or reaxff/omp");
+
+  if(reaxff->kokkosable && !kokkosable)
+    error->all(FLERR,"Cannot use compute reaxff/atom with pair_style reaxff/kk. Use reaxff/atom/kk.");
 }
 
 /* ---------------------------------------------------------------------- */

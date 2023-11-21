@@ -57,8 +57,8 @@ class Thermo : protected Pointers {
  private:
   int nfield, nfield_initial;
   int *vtype;
+  int triclinic_general;   // set by thermo_modify
 
-  int triclinic_general;              // set by thermo_modify
   std::string line;
   std::vector<std::string> keyword, format, format_column_user, keyword_user;
   std::string format_line_user, format_float_user, format_int_user, format_bigint_user;

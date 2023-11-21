@@ -579,7 +579,8 @@ void Thermo::modify_params(int narg, char **arg)
       if (iarg + 2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       triclinic_general = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (triclinic_general && !domain->triclinic_general)
-        error->all(FLERR,"Thermo_modify triclinic/general invalid b/c simulation box is not");
+        error->all(FLERR,"Thermo_modify triclinic/general cannot be used "
+                   "if simulation box is not general triclinic");
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "lost") == 0) {

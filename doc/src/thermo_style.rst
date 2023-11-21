@@ -68,7 +68,7 @@ Syntax
            density = mass density of system
            lx,ly,lz = box lengths in x,y,z
            xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
-           xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
+           xy,xz,yz = box tilt for restricted triclinic (non-orthogonal) simulation boxes
            xlat,ylat,zlat = lattice spacings as calculated by :doc:`lattice <lattice>` command
            bonds,angles,dihedrals,impropers = # of these interactions defined
            pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
@@ -102,9 +102,12 @@ Examples
 Description
 """""""""""
 
-Set the style and content for printing thermodynamic data to the screen
-and log files.
-
+Set the style and content for printing thermodynamic data to the
+screen and log files.  The units for each column of output
+corresponding to the list of keywords is determined by the :doc:`units
+<units>` command for the simulation.  E.g. energies will be in energy
+units, temperature in temperature units, pressure in pressure units.
+     
 Style *one* prints a single line of thermodynamic info that is the
 equivalent of "thermo_style custom step temp epair emol etotal press".
 The line contains only numeric values.
@@ -319,6 +322,27 @@ thermostatting or barostatting to their coupling reservoirs -- that is,
 the NVT, NPH, or NPT ensembles, the *econserve* quantity should remain
 constant over time even though *etotal* may change.
 
+The *pxx,pyy,pzz,pxy,pxz,pyz* keywords are the 6 components of the
+symmetric pressure tensor for the system.  See the :doc:`compute
+pressure <compute_pressure>` command doc page for details of how it is
+calculated.
+
+If the :doc:`thermo_modify triclinic/general <thermo_modify>` option
+is set and the simulation box was created as a geenral triclinic box,
+then the components will be output as values consistent with the
+orientation of the general triclinic box relative to the standard xyz
+coordinate axes.  If this keyword is not used, the values will be
+consistent with the orientation of the restricted triclinic box (which
+aligns with the xyz coordinate axes).  As explained on the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page, even if the
+simulation box is created as a general triclinic box, internally
+LAMMPS uses a restricted triclinic box.
+
+Note that because the pressure tensor components are computed using
+force vectors and atom coordinates, both of which are rotated in the
+general versus restricted triclinic representation, the values will
+typically be different for the two cases.
+
 The *fmax* and *fnorm* keywords are useful for monitoring the progress
 of an :doc:`energy minimization <minimize>`.  The *fmax* keyword
 calculates the maximum force in any dimension on any atom in the
@@ -338,13 +362,13 @@ to reduce the delay factor to ensure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
 takes place.
 
-The keywords *cella*, *cellb*, *cellc*, *cellalpha*,
-*cellbeta*, *cellgamma*, correspond to the usual crystallographic
-quantities that define the periodic unit cell of a crystal.  See the
-:doc:`Howto triclinic <Howto_triclinic>` page for a geometric
-description of triclinic periodic cells, including a precise
-definition of these quantities in terms of the internal LAMMPS cell
-dimensions *lx*, *ly*, *lz*, *yz*, *xz*, *xy*\ .
+The keywords *cella*, *cellb*, *cellc*, *cellalpha*, *cellbeta*,
+*cellgamma*, correspond to the usual crystallographic quantities that
+define the periodic unit cell of a crystal.  See the :doc:`Howto
+triclinic <Howto_triclinic>` page for a geometric description of
+restricted triclinic periodic cells, including a precise definition of
+these quantities in terms of the internal LAMMPS cell dimensions *lx*,
+*ly*, *lz*, *yz*, *xz*, *xy*\ .
 
 ----------
 

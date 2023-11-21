@@ -11,7 +11,7 @@ Syntax
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *colname* or *format* or *temp* or *press*
+* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *colname* or *format* or *temp* or *press* or *triclinic/general*
 
   .. parsed-literal::
 
@@ -32,6 +32,8 @@ Syntax
               *or* a thermo keyword or reference to compute, fix, property or variable.
        *temp* value = compute ID that calculates a temperature
        *press* value = compute ID that calculates a pressure
+       *triclinic/general* arg = none
+
 
 Examples
 """"""""
@@ -239,6 +241,17 @@ command, thermo output uses a default compute for pressure with ID =
    *press* keyword.  If the *temp* keyword comes before the *press*
    keyword, then the new pressure compute specified by the *press*
    keyword will be unaffected by the *temp* setting.
+
+The *triclinic/general* keyword can only be used if the simulation box
+was created as a general triclinic box.  See the :doc:`Howto_triclinic
+<Howto_triclinic>` doc page for a detailed explanation of orthogonal,
+restricted triclinic, and general triclinic simulation boxes.
+
+If this keyword is used, the output of pressure tensor components for
+the system is affected.  These components are specified by the
+*pxx,pyy,pzz,pxy,pxz,pyz* keywords of the :doc:`thermo_style
+<thermo_style>` command.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 Restrictions
 """"""""""""

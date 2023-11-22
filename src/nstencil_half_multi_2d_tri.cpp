@@ -80,7 +80,7 @@ void NStencilHalfMulti2dTri::create()
       cutsq = cutcollectionsq[icollection][jcollection];
 
       if (flag_half_multi[icollection][jcollection]) {
-        for (j = 0; j <= sy; j++)
+        for (j = -sy; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
             if (bin_distance_multi(i, j, 0, bin_collection) < cutsq)
               stencil_multi[icollection][jcollection][ns++] = j * mbinx + i;

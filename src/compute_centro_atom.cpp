@@ -30,6 +30,7 @@
 #include "update.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -319,33 +320,24 @@ void ComputeCentroAtom::compute_peratom()
    2nd routine sorts auxiliary array at same time
 ------------------------------------------------------------------------- */
 
-#define SWAP(a, b) \
-  tmp = a;         \
-  (a) = b;         \
-  (b) = tmp;
-#define ISWAP(a, b) \
-  itmp = a;         \
-  (a) = b;          \
-  (b) = itmp;
-
 void ComputeCentroAtom::select(int k, int n, double *arr)
 {
   int i, ir, j, l, mid;
-  double a, tmp;
+  double a;
 
   arr--;
   l = 1;
   ir = n;
   while (true) {
     if (ir <= l + 1) {
-      if (ir == l + 1 && arr[ir] < arr[l]) { SWAP(arr[l], arr[ir]) }
+      if (ir == l + 1 && arr[ir] < arr[l]) std::swap(arr[l], arr[ir]);
       return;
     } else {
       mid = (l + ir) >> 1;
-      SWAP(arr[mid], arr[l + 1])
-      if (arr[l] > arr[ir]) { SWAP(arr[l], arr[ir]) }
-      if (arr[l + 1] > arr[ir]) { SWAP(arr[l + 1], arr[ir]) }
-      if (arr[l] > arr[l + 1]) { SWAP(arr[l], arr[l + 1]) }
+      std::swap(arr[mid], arr[l + 1]);
+      if (arr[l] > arr[ir]) std::swap(arr[l], arr[ir]);
+      if (arr[l + 1] > arr[ir]) std::swap(arr[l + 1], arr[ir]);
+      if (arr[l] > arr[l + 1]) std::swap(arr[l], arr[l + 1]);
       i = l + 1;
       j = ir;
       a = arr[l + 1];
@@ -355,7 +347,7 @@ void ComputeCentroAtom::select(int k, int n, double *arr)
         do j--;
         while (arr[j] > a);
         if (j < i) break;
-        SWAP(arr[i], arr[j])
+        std::swap(arr[i], arr[j]);
       }
       arr[l + 1] = arr[j];
       arr[j] = a;
@@ -369,8 +361,8 @@ void ComputeCentroAtom::select(int k, int n, double *arr)
 
 void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
 {
-  int i, ir, j, l, mid, ia, itmp;
-  double a, tmp;
+  int i, ir, j, l, mid, ia;
+  double a;
 
   arr--;
   iarr--;
@@ -379,25 +371,25 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
   while (true) {
     if (ir <= l + 1) {
       if (ir == l + 1 && arr[ir] < arr[l]) {
-        SWAP(arr[l], arr[ir])
-        ISWAP(iarr[l], iarr[ir])
+        std::swap(arr[l], arr[ir]);
+        std::swap(iarr[l], iarr[ir]);
       }
       return;
     } else {
       mid = (l + ir) >> 1;
-      SWAP(arr[mid], arr[l + 1])
-      ISWAP(iarr[mid], iarr[l + 1])
+      std::swap(arr[mid], arr[l + 1]);
+      std::swap(iarr[mid], iarr[l + 1]);
       if (arr[l] > arr[ir]) {
-        SWAP(arr[l], arr[ir])
-        ISWAP(iarr[l], iarr[ir])
+        std::swap(arr[l], arr[ir]);
+        std::swap(iarr[l], iarr[ir]);
       }
       if (arr[l + 1] > arr[ir]) {
-        SWAP(arr[l + 1], arr[ir])
-        ISWAP(iarr[l + 1], iarr[ir])
+        std::swap(arr[l + 1], arr[ir]);
+        std::swap(iarr[l + 1], iarr[ir]);
       }
       if (arr[l] > arr[l + 1]) {
-        SWAP(arr[l], arr[l + 1])
-        ISWAP(iarr[l], iarr[l + 1])
+        std::swap(arr[l], arr[l + 1]);
+        std::swap(iarr[l], iarr[l + 1]);
       }
       i = l + 1;
       j = ir;
@@ -409,8 +401,8 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
         do j--;
         while (arr[j] > a);
         if (j < i) break;
-        SWAP(arr[i], arr[j])
-        ISWAP(iarr[i], iarr[j])
+        std::swap(arr[i], arr[j]);
+        std::swap(iarr[i], iarr[j]);
       }
       arr[l + 1] = arr[j];
       arr[j] = a;

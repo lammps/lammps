@@ -97,7 +97,7 @@ void TemperGrem::command(int narg, char **arg)
 
   FixNH *nh = dynamic_cast<FixNH *>(modify->get_fix_by_id(arg[4]));
   if (!nh)
-    error->all(FLERR,fmt::format("Fix {} for Nose-Hoover fix does not exist", arg[4]));
+    error->universe_all(FLERR,fmt::format("Fix {} for Nose-Hoover fix does not exist", arg[4]));
 
   // get result from nvt vs npt check from fix_grem
 

@@ -64,6 +64,7 @@ fi
 
 if (test $1 = "COLLOID") then
   depend GPU
+  depend KOKKOS
   depend OPENMP
 fi
 
@@ -150,6 +151,7 @@ if (test $1 = "MOLECULE") then
   depend GPU
   depend KOKKOS
   depend FEP
+  depend MESONT
   depend OPENMP
   depend INTEL
 fi
@@ -184,6 +186,7 @@ fi
 if (test $1 = "ML-SNAP") then
   depend ML-IAP
   depend KOKKOS
+  depend INTEL
 fi
 
 if (test $1 = "CG-SPICA") then

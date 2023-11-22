@@ -129,9 +129,11 @@ void NEB::command(int narg, char **arg)
   if (nevery <= 0)
     error->universe_all(FLERR, fmt::format("Illegal NEB command every parameter: {}", nevery));
   if (n1steps % nevery)
-    error->all(FLERR, fmt::format("NEB N1 value {} incompatible with every {}", n1steps, nevery));
+    error->universe_all(FLERR, fmt::format("NEB N1 value {} incompatible with every {}",
+                                           n1steps, nevery));
   if (n2steps % nevery)
-    error->all(FLERR, fmt::format("NEB N2 value {} incompatible with every {}", n2steps, nevery));
+    error->universe_all(FLERR, fmt::format("NEB N2 value {} incompatible with every {}",
+                                           n2steps, nevery));
 
   // replica info
 

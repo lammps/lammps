@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "molecule.h"
 #include "my_page.h"
 #include "neighbor.h"
@@ -48,6 +49,7 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
   const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
   const int history = list->history;
   const int mask_history = 1 << HISTBITS;
+  const double delta = 0.01 * force->angstrom;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
@@ -55,15 +57,12 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,jh,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns;
+  int i,j,jh,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns,js;
   int which,imol,iatom;
-  tagint tagprev;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
-  int js;
-
-  // loop over each atom, storing neighbors
 
   int *collection = neighbor->collection;
   double **x = atom->x;
@@ -92,6 +91,7 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
     n = 0;
     neighptr = ipage.vget();
 
+    itag = tag[i];
     itype = type[i];
     icollection = collection[i];
     xtmp = x[i][0];
@@ -107,12 +107,13 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
     ibin = atom2bin[i];
 
     // loop through stencils for all collections
+
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
       // if same collection use own bin
-      if(icollection == jcollection) jbin = ibin;
-          else jbin = coord2bin(x[i], jcollection);
 
+      if (icollection == jcollection) jbin = ibin;
+      else jbin = coord2bin(x[i], jcollection);
 
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
@@ -130,14 +131,25 @@ void NPairHalfSizeMultiNewtonTriOmp::build(NeighList *list)
         js = binhead_multi[jcollection][jbin + s[k]];
         for (j = js; j >= 0; j = bins[j]) {
 
-          // if same size (same collection), use half stencil
-          if(cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
-            if (x[j][2] < ztmp) continue;
-            if (x[j][2] == ztmp) {
-              if (x[j][1] < ytmp) continue;
-              if (x[j][1] == ytmp) {
-                if (x[j][0] < xtmp) continue;
-                if (x[j][0] == xtmp && j <= i) continue;
+          // if same size (same collection), exclude half of interactions
+
+          if (cutcollectionsq[icollection][icollection] ==
+              cutcollectionsq[jcollection][jcollection]) {
+            if (j <= i) continue;
+            if (j >= nlocal) {
+              jtag = tag[j];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x[j][2]-ztmp) > delta) {
+                  if (x[j][2] < ztmp) continue;
+                } else if (fabs(x[j][1]-ytmp) > delta) {
+                  if (x[j][1] < ytmp) continue;
+                } else {
+                  if (x[j][0] < xtmp) continue;
+                }
               }
             }
           }

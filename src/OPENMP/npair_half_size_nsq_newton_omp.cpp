@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "molecule.h"
 #include "group.h"
 #include "my_page.h"
@@ -30,13 +31,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalfSizeNsqNewtonOmp::NPairHalfSizeNsqNewtonOmp(LAMMPS *lmp) :
-  NPair(lmp) {}
+NPairHalfSizeNsqNewtonOmp::NPairHalfSizeNsqNewtonOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    size particles
    N^2 / 2 search for neighbor pairs with full Newton's 3rd law
-   shear history must be accounted for when a neighbor pair is added
    pair added to list if atoms i and j are both owned and i < j
    if j is ghost only me or other proc adds pair
    decision based on itag,jtag tests
@@ -50,6 +49,8 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
   const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
   const int history = list->history;
   const int mask_history = 1 << HISTBITS;
+  const double delta = 0.01 * force->angstrom;
+  const int triclinic = domain->triclinic;
 
   NPAIR_OMP_INIT;
 
@@ -104,6 +105,12 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
     }
 
     // loop over remaining atoms, owned and ghost
+    // use itag/jtap comparision to eliminate half the interactions
+    // itag = jtag is possible for long cutoffs that include images of self
+    // for triclinic, must use delta to eliminate half the I/J interactions
+    // cannot use I/J exact coord comparision as for orthog
+    //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+    //   with an added PBC offset can shift all 3 coords by epsilon
 
     for (j = i+1; j < nall; j++) {
       if (includegroup && !(mask[j] & bitmask)) continue;
@@ -114,6 +121,14 @@ void NPairHalfSizeNsqNewtonOmp::build(NeighList *list)
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
           if ((itag+jtag) % 2 == 1) continue;
+        } else if (triclinic) {
+          if (fabs(x[j][2]-ztmp) > delta) {
+            if (x[j][2] < ztmp) continue;
+          } else if (fabs(x[j][1]-ytmp) > delta) {
+            if (x[j][1] < ytmp) continue;
+          } else {
+            if (x[j][0] < xtmp) continue;
+          }
         } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {

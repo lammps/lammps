@@ -27,9 +27,17 @@ void NStencilHalfBin2dTri::create()
 {
   int i, j;
 
+  // for triclinic, need to use full stencil in all dims
+  //   not a half stencil in y
+  // b/c transforming orthog -> lambda -> orthog for ghost atoms
+  //   with an added PBC offset can shift both coords by epsilon
+  // thus for an I/J owned/ghost pair, the xy coords
+  //   and bin assignments can be different on I proc vs J proc
+
   nstencil = 0;
 
-  for (j = 0; j <= sy; j++)
+  for (j = -sy; j <= sy; j++)
     for (i = -sx; i <= sx; i++)
-      if (bin_distance(i, j, 0) < cutneighmaxsq) stencil[nstencil++] = j * mbinx + i;
+      if (bin_distance(i, j, 0) < cutneighmaxsq)
+	stencil[nstencil++] = j * mbinx + i;
 }

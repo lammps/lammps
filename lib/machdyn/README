@@ -4,7 +4,7 @@ to use the MACHDYN package in a LAMMPS input script.
 The Eigen library is available at http://eigen.tuxfamily.org.  It's
 a general C++ template library for linear algebra.
 
-You can type "make lib-smd" from the src directory to see help on how
+You can type "make lib-machdyn" from the src directory to see help on how
 to download build this library via make commands, or you can do the
 same thing by typing "python Install.py" from within this directory,
 or you can do it manually by following the instructions below.
@@ -12,13 +12,13 @@ or you can do it manually by following the instructions below.
 Instructions:
 
 1.  Download the Eigen tarball at http://eigen.tuxfamily.org and
-    unpack the tarball either in this /lib/smd directory or somewhere
+    unpack the tarball either in this lib/machdyn directory or somewhere
     else on your system.  It should unpack with into a directory with
     a name similar to eigen-eigen-bdd17ee3b1b3.  You can rename
     the directory to just "eigen" if you wish.  Note that Eigen is a
     template library, so you do not have to build it.
 
-2.  Create a soft link in this dir (lib/smd)
+2.  Create a soft link in this dir (lib/machdyn)
     to the eigen directory.  E.g if you unpacked Eigen in this dir:
       % ln -s eigen-eigen-bdd17ee3b1b3 includelink
     If you unpacked Eigen somewhere else and renamed

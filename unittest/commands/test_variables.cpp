@@ -282,6 +282,13 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_rgsum"), 3.75);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_sum[1]"), 1.25);
 
+    // check handling of immediate variables
+    ASSERT_DOUBLE_EQ(variable->compute_equal("f_press[1]"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[2]"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("1.5+3.25"), 4.75);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("-2.5*1.5"), -3.75);
+
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -294,6 +301,8 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("v_self"););
     TEST_FAILURE(".*ERROR: Variable sum2: Inconsistent lengths in vector-style variable.*",
                  variable->compute_equal("max(v_sum2)"););
+    TEST_FAILURE("ERROR: Mismatched fix in variable formula.*",
+                 variable->compute_equal("f_press"););
 }
 
 TEST_F(VariableTest, Expressions)

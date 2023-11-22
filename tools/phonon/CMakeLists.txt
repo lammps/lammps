@@ -27,6 +27,7 @@ if(MSVC)
   add_compile_options(/wd4711)
   add_compile_options(/wd4820)
   add_compile_options(/wd5045)
+  add_compile_options(/wd4250)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
@@ -120,5 +121,9 @@ if(USE_SPGLIB)
   target_link_libraries(phana PRIVATE SPGLIB::SYMSPG)
 endif()
 
+# add dependency when using local linear algebra lib
+if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
+  add_dependencies(phana linalg)
+endif()
 target_link_libraries(phana PRIVATE tricubic ${LAPACK_LIBRARIES})
 install(TARGETS phana EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})

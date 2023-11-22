@@ -29,7 +29,6 @@ using namespace LAMMPS_NS;
 typedef MolfileInterface MFI;
 using namespace MathConst;
 
-enum{ID,TYPE,X,Y,Z,VX,VY,VZ};
 #define SMALL 1.0e-6
 
 // true if the difference between two floats is "small".

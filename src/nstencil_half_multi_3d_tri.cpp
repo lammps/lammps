@@ -81,7 +81,7 @@ void NStencilHalfMulti3dTri::create()
       cutsq = cutcollectionsq[icollection][jcollection];
 
       if (flag_half_multi[icollection][jcollection]) {
-        for (k = 0; k <= sz; k++)
+        for (k = -sz; k <= sz; k++)
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
               if (bin_distance_multi(i, j, k, bin_collection) < cutsq)

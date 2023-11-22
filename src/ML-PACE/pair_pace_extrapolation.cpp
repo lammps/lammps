@@ -170,7 +170,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
   //determine the maximum number of neighbours
   int max_jnum = 0;
   int nei = 0;
-  for (ii = 0; ii < list->inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     jnum = numneigh[i];
     nei = nei + jnum;
@@ -183,7 +183,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
     aceimpl->rec_ace->resize_neighbours_cache(max_jnum);
 
   //loop over atoms
-  for (ii = 0; ii < list->inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = list->ilist[ii];
     const int itype = type[i];
 

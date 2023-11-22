@@ -123,6 +123,9 @@ void PairPACEExtrapolationKokkos<DeviceType>::grow(int natom, int maxneigh)
     // hard-core repulsion
     MemKK::realloc_kokkos(rho_core, "pace:rho_core", natom);
     MemKK::realloc_kokkos(dF_drho_core, "pace:dF_drho_core", natom);
+    MemKK::realloc_kokkos(dF_dfcut, "pace:dF_dfcut", natom);
+    MemKK::realloc_kokkos(d_d_min, "pace:r_min_pair", natom);
+    MemKK::realloc_kokkos(d_jj_min, "pace:j_min_pair", natom);
 
     MemKK::realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_ms_combs_max, basis_set->rankmax);
 
@@ -219,6 +222,24 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_pertype()
 
   Kokkos::deep_copy(d_wpre, h_wpre);
   Kokkos::deep_copy(d_mexp, h_mexp);
+
+
+  // ZBL core-rep
+  MemKK::realloc_kokkos(d_cut_in, "pace:d_cut_in", nelements, nelements);
+  MemKK::realloc_kokkos(d_dcut_in, "pace:d_dcut_in", nelements, nelements);
+  auto h_cut_in = Kokkos::create_mirror_view(d_cut_in);
+  auto h_dcut_in = Kokkos::create_mirror_view(d_dcut_in);
+
+  for (int mu_i = 0; mu_i < nelements; ++mu_i) {
+    for (int mu_j = 0; mu_j < nelements; ++mu_j) {
+      h_cut_in(mu_i,mu_j) = basis_set->map_bond_specifications.at({mu_i,mu_j}).rcut_in;
+      h_dcut_in(mu_i,mu_j) = basis_set->map_bond_specifications.at({mu_i,mu_j}).dcut_in;
+    }
+  }
+  Kokkos::deep_copy(d_cut_in, h_cut_in);
+  Kokkos::deep_copy(d_dcut_in, h_dcut_in);
+
+  is_zbl = basis_set->radial_functions->inner_cutoff_type == "zbl";
 }
 
 /* ---------------------------------------------------------------------- */
@@ -631,6 +652,10 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     Kokkos::deep_copy(A_rank1, 0.0);
     Kokkos::deep_copy(rhos, 0.0);
 
+    Kokkos::deep_copy(rho_core, 0.0);
+    Kokkos::deep_copy(d_d_min, PairPACEExtrapolation::aceimpl->basis_set->cutoffmax);
+    Kokkos::deep_copy(d_jj_min, -1);
+
     Kokkos::deep_copy(projections, 0.0);
     Kokkos::deep_copy(d_gamma, 0.0);
 
@@ -799,6 +824,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int jnum = d_numneigh[i];
+  const int mu_i = d_map(type(i));
 
   // get a pointer to scratch memory
   // This is used to cache whether or not an atom is within the cutoff
@@ -858,6 +884,32 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
     }
     offset++;
   });
+
+  if(is_zbl) {
+    //adapted from https://www.osti.gov/servlets/purl/1429450
+    using minloc_value_type=Kokkos::MinLoc<F_FLOAT,int>::value_type;
+    minloc_value_type djjmin;
+    djjmin.val=1e20;
+    djjmin.loc=-1;
+    Kokkos::MinLoc<F_FLOAT,int> reducer_scalar(djjmin);
+    // loop over ncount (actual neighbours withing cutoff) rather than jnum (total number of neigh in cutoff+skin)
+    Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, ncount),
+                            [&](const int offset, minloc_value_type &min_d_dist) {
+                              int j = d_nearest(ii,offset);
+                              j &= NEIGHMASK;
+                              const int jtype = type(j);
+                              auto r = d_rnorms(ii,offset);
+                              const int mu_j = d_map(type(j));
+                              const F_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));
+                              if (d < min_d_dist.val) {
+                                min_d_dist.val = d;
+                                min_d_dist.loc = offset;
+                              }
+
+                            }, reducer_scalar);
+    d_d_min(ii) = djjmin.val;
+    d_jj_min(ii) = djjmin.loc;// d_jj_min should be NOT in 0..jnum range, but in 0..d_ncount(<=jnum)
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1056,19 +1108,38 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, 
   const int ndensity = d_ndensity(mu_i);
 
   double evdwl, fcut, dfcut;
+  double evdwl_cut;
   evdwl = fcut = dfcut = 0.0;
 
   inner_cutoff(rho_core(ii), rho_cut, drho_cut, fcut, dfcut);
   FS_values_and_derivatives(ii, evdwl, mu_i);
 
-  dF_drho_core(ii) = evdwl * dfcut + 1;
+  if(is_zbl) {
+    if (d_jj_min(ii) != -1) {
+      const int mu_jmin = d_mu(ii,d_jj_min(ii));
+      F_FLOAT dcutin = d_dcut_in(mu_i, mu_jmin);
+      F_FLOAT transition_coordinate =  dcutin  - d_d_min(ii); // == cutin - r_min
+      cutoff_func_poly(transition_coordinate, dcutin, dcutin, fcut, dfcut);
+      dfcut = -dfcut; // invert, because rho_core = cutin - r_min
+    } else {
+      // no neighbours
+      fcut = 1;
+      dfcut = 0;
+    }
+    evdwl_cut = evdwl * fcut + rho_core(ii) * (1 - fcut); // evdwl * fcut + rho_core_uncut  - rho_core_uncut* fcut
+    dF_drho_core(ii) = 1 - fcut;
+    dF_dfcut(ii) = evdwl * dfcut - rho_core(ii) * dfcut;
+  } else {
+    inner_cutoff(rho_core(ii), rho_cut, drho_cut, fcut, dfcut);
+    dF_drho_core(ii) = evdwl * dfcut + 1;
+    evdwl_cut = evdwl * fcut + rho_core(ii);
+  }
   for (int p = 0; p < ndensity; ++p)
     dF_drho(ii, p) *= fcut;
 
 
   // tally energy contribution
   if (eflag) {
-    double evdwl_cut = evdwl * fcut + rho_core(ii);
     // E0 shift
     evdwl_cut += d_E0vals(mu_i);
     e_atom(ii) = evdwl_cut;
@@ -1240,6 +1311,15 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
   f_ij(ii, jj, 0) = scale * f_ji[0] + fpair * r_hat[0];
   f_ij(ii, jj, 1) = scale * f_ji[1] + fpair * r_hat[1];
   f_ij(ii, jj, 2) = scale * f_ji[2] + fpair * r_hat[2];
+
+  if(is_zbl) {
+    if(jj==d_jj_min(ii)) {
+      // DCRU = 1.0
+      f_ij(ii, jj, 0) += dF_dfcut(ii) * r_hat[0];
+      f_ij(ii, jj, 1) += dF_dfcut(ii) * r_hat[1];
+      f_ij(ii, jj, 2) += dF_dfcut(ii) * r_hat[2];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1777,6 +1857,7 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(weights_rank1);
   bytes += MemKK::memory_usage(rho_core);
   bytes += MemKK::memory_usage(dF_drho_core);
+  bytes += MemKK::memory_usage(dF_dfcut);
   bytes += MemKK::memory_usage(dB_flatten);
   bytes += MemKK::memory_usage(fr);
   bytes += MemKK::memory_usage(dfr);
@@ -1794,6 +1875,8 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(d_mu);
   bytes += MemKK::memory_usage(d_rhats);
   bytes += MemKK::memory_usage(d_rnorms);
+  bytes += MemKK::memory_usage(d_d_min);
+  bytes += MemKK::memory_usage(d_jj_min);
   bytes += MemKK::memory_usage(d_nearest);
   bytes += MemKK::memory_usage(f_ij);
   bytes += MemKK::memory_usage(d_rho_core_cutoff);

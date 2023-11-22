@@ -45,7 +45,8 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "ace-evaluator/ace_evaluator.h"
 #include "ace-evaluator/ace_recursive.h"
 #include "ace-evaluator/ace_version.h"
-
+#include "ace/ace_b_basis.h"
+#include <unistd.h>
 namespace LAMMPS_NS {
 struct ACEImpl {
   ACEImpl() : basis_set(nullptr), ace(nullptr) {}
@@ -287,7 +288,14 @@ void PairPACE::coeff(int narg, char **arg)
   //load potential file
   delete aceimpl->basis_set;
   if (comm->me == 0) utils::logmesg(lmp, "Loading {}\n", potential_file_name);
-  aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+  // if potential is in ACEBBasisSet (YAML) format, then convert to ACECTildeBasisSet automatically
+  if (utils::strmatch(potential_file_name,".*\\.yaml$")) {
+    ACEBBasisSet bBasisSet = ACEBBasisSet(potential_file_name);
+    ACECTildeBasisSet cTildeBasisSet = bBasisSet.to_ACECTildeBasisSet();
+    aceimpl->basis_set = new ACECTildeBasisSet(cTildeBasisSet);
+  } else {
+      aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+  }
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "Total number of basis functions\n");

@@ -18,7 +18,10 @@ jobs:
         run: python tools/coding_standard/whitespace.py .
       - name: Check file permissions
         run: python tools/coding_standard/permissions.py .
+        if: always()
       - name: Check for old LAMMPS homepage URLs
         run: python tools/coding_standard/homepage.py .
+        if: always()
       - name: Check for obsolete Error docs in headers
         run: python tools/coding_standard/errordocs.py .
+        if: always()

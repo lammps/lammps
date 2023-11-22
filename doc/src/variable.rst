@@ -53,7 +53,7 @@ Syntax
                           x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x
          math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                           sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
-                          random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
+                          random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z),
                           ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
                           logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),
                           vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
@@ -526,7 +526,7 @@ variables.
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Math operators     | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                               |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)   |
+| Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)   |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Group functions    | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                     |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -702,6 +702,11 @@ The ceil(), floor(), and round() functions are those in the C math
 library.  Ceil() is the smallest integer not less than its argument.
 Floor() if the largest integer not greater than its argument.  Round()
 is the nearest integer to its argument.
+
+The ternary(x,y,z) function is the equivalent of the ternary operator
+(? and :) in C or C++.  It takes 3 arguments.  The first argument is a
+conditional.  The result of the function is y if x evaluates to true
+(non-zero).  The result is z if x evaluates to false (zero).
 
 The ramp(x,y) function uses the current timestep to generate a value
 linearly interpolated between the specified x,y values over the course

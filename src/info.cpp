@@ -1243,6 +1243,10 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+#if LMP_KOKKOS
+    mesg += "\nKokkos library version: " + std::to_string(KOKKOS_VERSION_MAJOR) + "."
+            + std::to_string(KOKKOS_VERSION_MINOR) + "." + std::to_string(KOKKOS_VERSION_PATCH);
+#endif
     mesg += "\n";
   }
   if ((package.empty() || (package == "OPENMP")) && has_package("OPENMP")) {
@@ -1253,6 +1257,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
     if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
+#if defined(_OPENMP)
+    mesg += "\nOpenMP standard: " + platform::openmp_standard();
+#endif
     mesg += "\n";
   }
   if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {

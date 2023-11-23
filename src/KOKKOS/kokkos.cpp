@@ -104,7 +104,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int me = 0;
   MPI_Comm_rank(world,&me);
-  if (me == 0) error->message(FLERR,"KOKKOS mode is enabled");
+  if (me == 0) error->message(FLERR,"KOKKOS mode with Kokkos version {}.{}.{} is enabled",
+                              KOKKOS_VERSION_MAJOR, KOKKOS_VERSION_MINOR, KOKKOS_VERSION_PATCH);
 
   // process any command-line args that invoke Kokkos settings
 

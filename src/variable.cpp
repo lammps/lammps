@@ -1345,6 +1345,7 @@ void Variable::copy(int narg, char **from, char **to)
      special function = sum(x),min(x), ...
      atom value = x[i], y[i], vx[i], ...
      atom vector = x, y, vx, ...
+     custom atom property = i/d_name, i/d_name[i], i/d2_name[i], i/d2_name[i][j]
      compute = c_ID, c_ID[i], c_ID[i][j]
      fix = f_ID, f_ID[i], f_ID[i][j]
      variable = v_name, v_name[i]
@@ -1441,7 +1442,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
     // ----------------
     // letter: c_ID, c_ID[], c_ID[][], f_ID, f_ID[], f_ID[][],
-    //         v_name, v_name[], exp(), xcm(,), x, x[], PI, vol
+    //         v_name, v_name[], exp(), xcm(,), x, x[], PI, vol,
+    //         i/d_name, i/d_name[],  i/d_name[][], 
+    //         i/d2_name, i/d2_name[],  i/d2_name[][]
     // ----------------
 
     } else if (isalpha(onechar)) {
@@ -2126,8 +2129,118 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         }
 
       // ----------------
-      // math/group/special/labelmap function or atom value/vector or
-      // constant or thermo keyword
+      // custom atom property
+      // ----------------
+
+      } else if (utils::strmatch(word,"^[id]2?_")) {
+        if (domain->box_exist == 0)
+          print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+
+        int index_custom,type_custom,cols_custom;
+        if (word[1] == '2') index_custom = atom->find_custom(word+3,type_custom,cols_custom);
+        else index_custom = atom->find_custom(word+2,type_custom,cols_custom);
+
+        if (index_custom < 0)
+          print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                          ivar);
+
+        // parse zero or one or two trailing brackets
+        // point i beyond last bracket
+        // nbracket = # of bracket pairs
+        // index1,index2 = int inside each bracket pair, possibly an atom ID
+
+        int nbracket;
+        tagint index1,index2;
+        if (str[i] != '[') nbracket = 0;
+        else {
+          nbracket = 1;
+          ptr = &str[i];
+          index1 = int_between_brackets(ptr,1);
+          i = ptr-str+1;
+          if (str[i] == '[') {
+            nbracket = 2;
+            ptr = &str[i];
+            index2 = int_between_brackets(ptr,1);
+            i = ptr-str+1;
+          }
+        }
+
+        // custom atom property with no bracket
+        // can only mean use a per-atom vector
+        
+        if (nbracket == 0) {
+          if (cols_custom == 0) {
+            auto newtree = new Tree();
+            treestack[ntreestack++] = newtree;
+            if (type_custom == 0) {
+              newtree->type = INTARRAY;
+              newtree->iarray = atom->ivector[index_custom];
+            } else {
+              newtree->type = ATOMARRAY;
+              newtree->array = atom->dvector[index_custom];
+            }
+            newtree->nstride = 1;
+            
+          } else if (cols_custom) {
+            print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                            ivar);
+          }
+
+        // custom atom property with one bracket
+        // can mean either extract a single value from a per-atom vector
+        // or use a column from a per-atom array
+          
+        } else if (nbracket == 1) {
+
+          if (cols_custom == 0) {
+            if (type_custom == 0) {
+              custom2global(atom->ivector[index_custom],nullptr,1,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            } else {
+              custom2global(nullptr,atom->dvector[index_custom],1,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            }
+            
+          } else if (cols_custom) {
+            if (index1 <= 0 || index1 > cols_custom)
+              print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                              ivar);
+            auto newtree = new Tree();
+            treestack[ntreestack++] = newtree;
+            if (type_custom == 0) {
+              newtree->type = INTARRAY;
+              newtree->iarray = &atom->iarray[index_custom][0][index1-1];
+            } else {
+              newtree->type = ATOMARRAY;
+              newtree->array = &atom->darray[index_custom][0][index1-1];
+            }
+            newtree->nstride = cols_custom;
+          }
+
+        // custom atom property with two brackets
+        // can only mean extract a single value from per-atom array
+
+        } else if (nbracket == 2) {
+          if (cols_custom == 0) {
+            print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                            ivar);
+            
+          } else if (cols_custom) {
+            if (index2 <= 0 || index2 > cols_custom)
+              print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                              ivar);
+            if (type_custom == 0) {
+              custom2global(&atom->iarray[index_custom][0][index2],nullptr,cols_custom,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            } else {
+              custom2global(nullptr,&atom->darray[index_custom][0][index2],cols_custom,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            }
+          }
+        }
+        
+      // ----------------
+      // math/group/special/labelmap function or atom value/vector or constant or thermo keyword
       // ----------------
 
       } else {
@@ -4646,20 +4759,20 @@ int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **t
    extract a global value from a per-atom quantity in a formula
    flag = 0 -> word is an atom vector
    flag = 1 -> vector is a per-atom compute or fix quantity with nstride
-   id = global ID of atom, converted to local index
+   id = global ID of atom, converted here to local index via atom map
    push result onto tree or arg stack
    customize by adding an atom vector:
-     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
+     id,mass,type,mol,radius,q,x,y,z,vx,vy,vz,fx,fy,fz,q
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word, double *vector, int nstride, tagint id, Tree **tree,
                               Tree **treestack, int &ntreestack, double *argstack, int &nargstack)
 {
-  // error check for ID larger than any atom
-  // int_between_brackets() already checked for ID <= 0
-
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR, "Indexed per-atom vector in variable formula without atom map");
+
+  // error check for ID larger than any atom
+  // int_between_brackets() already checked for ID <= 0
 
   if (id > atom->map_tag_max)
     error->all(FLERR,"Variable atom ID is too large");
@@ -4673,17 +4786,27 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
   if (index >= 0 && index < atom->nlocal) {
 
     if (flag == 0) {
-      if (strcmp(word,"id") == 0) mine = atom->tag[index];
-      else if (strcmp(word,"mass") == 0) {
+      if (strcmp(word,"id") == 0) {
+        mine = atom->tag[index];
+      } else if (strcmp(word,"mass") == 0) {
         if (atom->rmass) mine = atom->rmass[index];
         else mine = atom->mass[atom->type[index]];
-      }
-      else if (strcmp(word,"type") == 0) mine = atom->type[index];
-      else if (strcmp(word,"mol") == 0) {
+      } else if (strcmp(word,"type") == 0) {
+        mine = atom->type[index];
+      } else if (strcmp(word,"mol") == 0) {
         if (!atom->molecule_flag)
           error->one(FLERR,"Variable uses atom property that isn't allocated");
         mine = atom->molecule[index];
+      } else if (strcmp(word,"radius") == 0) {
+        if (!atom->radius_flag)
+          error->one(FLERR,"Variable uses atom property that isn't allocated");
+        mine = atom->radius[index];
+      } else if (strcmp(word,"q") == 0) {
+        if (!atom->q_flag)
+          error->one(FLERR,"Variable uses atom property that isn't allocated");
+        mine = atom->q[index];
       }
+
       else if (strcmp(word,"x") == 0) mine = atom->x[index][0];
       else if (strcmp(word,"y") == 0) mine = atom->x[index][1];
       else if (strcmp(word,"z") == 0) mine = atom->x[index][2];
@@ -4693,11 +4816,6 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
       else if (strcmp(word,"fx") == 0) mine = atom->f[index][0];
       else if (strcmp(word,"fy") == 0) mine = atom->f[index][1];
       else if (strcmp(word,"fz") == 0) mine = atom->f[index][2];
-      else if (strcmp(word,"q") == 0) {
-        if (!atom->q_flag)
-          error->one(FLERR,"Variable uses atom property that isn't allocated");
-        mine = atom->q[index];
-      }
       else error->one(FLERR,"Invalid atom vector {} in variable formula", word);
 
     } else mine = vector[index*nstride];
@@ -4716,10 +4834,53 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
 }
 
 /* ----------------------------------------------------------------------
+   extract a global value from a custom atom property in a formula
+   ivector = ptr to integer per-atom property with nstride
+   dvector = ptr to floating-point per-atom property with nstride
+     exactly one if ivector/dvector is non-NULL    
+   id = global ID of atom, converted here to local index via atom map
+   push result onto tree or arg stack
+------------------------------------------------------------------------- */
+
+void Variable::custom2global(int *ivector, double *dvector, int nstride, tagint id, Tree **tree,
+                             Tree **treestack, int &ntreestack, double *argstack, int &nargstack)
+{
+  if (atom->map_style == Atom::MAP_NONE)
+    error->all(FLERR, "Referenced custom atom property in variable formula without atom map");
+
+  // error check for ID larger than any atom
+  // int_between_brackets() already checked for ID <= 0
+
+  if (id > atom->map_tag_max)
+    error->all(FLERR,"Variable atom ID is too large");
+
+  // if ID does not exist, index will be -1 for all procs,
+  // and mine will be set to 0.0
+
+  int index = atom->map(id);
+
+  double mine;
+  if (index >= 0 && index < atom->nlocal) {
+    if (ivector) mine = ivector[index*nstride];
+    else mine = dvector[index*nstride];
+  } else mine = 0.0;
+
+  double value;
+  MPI_Allreduce(&mine,&value,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (tree) {
+    auto newtree = new Tree();
+    newtree->type = VALUE;
+    newtree->value = value;
+    treestack[ntreestack++] = newtree;
+  } else argstack[nargstack++] = value;
+}
+
+/* ----------------------------------------------------------------------
    check if word matches an atom vector
    return 1 if yes, else 0
    customize by adding an atom vector:
-     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
+     id,mass,type,mol,radius,q,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 int Variable::is_atom_vector(char *word)
@@ -4727,8 +4888,9 @@ int Variable::is_atom_vector(char *word)
   if (strcmp(word,"id") == 0) return 1;
   if (strcmp(word,"mass") == 0) return 1;
   if (strcmp(word,"type") == 0) return 1;
-  if (strcmp(word,"radius") == 0) return 1;
   if (strcmp(word,"mol") == 0) return 1;
+  if (strcmp(word,"radius") == 0) return 1;
+  if (strcmp(word,"q") == 0) return 1;
   if (strcmp(word,"x") == 0) return 1;
   if (strcmp(word,"y") == 0) return 1;
   if (strcmp(word,"z") == 0) return 1;
@@ -4738,7 +4900,6 @@ int Variable::is_atom_vector(char *word)
   if (strcmp(word,"fx") == 0) return 1;
   if (strcmp(word,"fy") == 0) return 1;
   if (strcmp(word,"fz") == 0) return 1;
-  if (strcmp(word,"q") == 0) return 1;
   return 0;
 }
 
@@ -4747,7 +4908,7 @@ int Variable::is_atom_vector(char *word)
    push result onto tree
    word = atom vector
    customize by adding an atom vector:
-     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
+     id,mass,type,mol,radius,q,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntreestack)

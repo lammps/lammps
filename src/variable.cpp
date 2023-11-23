@@ -1443,7 +1443,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
     // ----------------
     // letter: c_ID, c_ID[], c_ID[][], f_ID, f_ID[], f_ID[][],
     //         v_name, v_name[], exp(), xcm(,), x, x[], PI, vol,
-    //         i/d_name, i/d_name[],  i/d_name[][], 
+    //         i/d_name, i/d_name[],  i/d_name[][],
     //         i/d2_name, i/d2_name[],  i/d2_name[][]
     // ----------------
 
@@ -2167,7 +2167,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         // custom atom property with no bracket
         // can only mean use a per-atom vector
-        
+
         if (nbracket == 0) {
           if (cols_custom == 0) {
             auto newtree = new Tree();
@@ -2180,7 +2180,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               newtree->array = atom->dvector[index_custom];
             }
             newtree->nstride = 1;
-            
+
           } else if (cols_custom) {
             print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
                             ivar);
@@ -2189,7 +2189,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         // custom atom property with one bracket
         // can mean either extract a single value from a per-atom vector
         // or use a column from a per-atom array
-          
+
         } else if (nbracket == 1) {
 
           if (cols_custom == 0) {
@@ -2200,7 +2200,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               custom2global(nullptr,atom->dvector[index_custom],1,index1,
                             tree,treestack,ntreestack,argstack,nargstack);
             }
-            
+
           } else if (cols_custom) {
             if (index1 <= 0 || index1 > cols_custom)
               print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
@@ -2224,7 +2224,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (cols_custom == 0) {
             print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
                             ivar);
-            
+
           } else if (cols_custom) {
             if (index2 <= 0 || index2 > cols_custom)
               print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
@@ -2238,7 +2238,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             }
           }
         }
-        
+
       // ----------------
       // math/group/special/labelmap function or atom value/vector or constant or thermo keyword
       // ----------------
@@ -4837,7 +4837,7 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
    extract a global value from a custom atom property in a formula
    ivector = ptr to integer per-atom property with nstride
    dvector = ptr to floating-point per-atom property with nstride
-     exactly one if ivector/dvector is non-NULL    
+     exactly one if ivector/dvector is non-NULL
    id = global ID of atom, converted here to local index via atom map
    push result onto tree or arg stack
 ------------------------------------------------------------------------- */

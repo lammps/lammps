@@ -2694,7 +2694,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");
     dcols[index] = cols;
   }
-  
+
   if (index < 0)
     error->all(FLERR,"Invalid call to Atom::add_custom()");
   return index;

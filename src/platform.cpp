@@ -391,8 +391,16 @@ std::string platform::openmp_standard()
   // Supported OpenMP version corresponds to the release date of the
   // specifications as posted at https://www.openmp.org/specifications/
 
-#if _OPENMP > 202011
-  return "OpenMP newer than version 5.1";
+#if _OPENMP > 202411
+  return "OpenMP newer than version 6.0";
+#elif _OPENMP == 202411
+  return "OpenMP 6.0";
+#elif _OPENMP == 202311
+  return "OpenMP 6.0 preview 2";
+#elif _OPENMP == 202211
+  return "OpenMP 6.0 preview 1";
+#elif _OPENMP == 202111
+  return "OpenMP 5.2";
 #elif _OPENMP == 202011
   return "OpenMP 5.1";
 #elif _OPENMP == 201811

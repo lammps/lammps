@@ -3647,7 +3647,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       if (value1) argstack[nargstack++] = value2;
       else argstack[nargstack++] = values[0];
     }
-    
+
   } else if (strcmp(word,"ramp") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);

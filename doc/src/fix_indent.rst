@@ -14,17 +14,23 @@ Syntax
 * indent = style name of this fix command
 * K = force constant for indenter surface (force/distance\^2 units)
 * one or more keyword/value pairs may be appended
-* keyword = *sphere* or *cylinder* or *plane* or *side* or *units*
+* keyword = *sphere* or *cone* or *cylinder* or *plane* or *side* or *units*
 
   .. parsed-literal::
 
        *sphere* args = x y z R
-         x,y,z = position of center of indenter (distance units)
+         x, y, z = position of center of indenter (distance units)
          R = sphere radius of indenter (distance units)
-         any of x,y,z,R can be a variable (see below)
+         any of x, y, z, R can be a variable (see below)
+       *cone* args = dim c1 c2 radlo radhi lo hi
+         dim = *x* or *y* or *z* = axis of cone
+         c1, c2 = coords of cone axis in other 2 dimensions (distance units)
+         radlo,radhi = cone radii at lo and hi end (distance units)
+         lo,hi = bounds of cone in dim (distance units)
+         any of c1, c2, radlo, radhi, lo, hi can be a variable (see below)
        *cylinder* args = dim c1 c2 R
          dim = *x* or *y* or *z* = axis of cylinder
-         c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+         c1, c2 = coords of cylinder axis in other 2 dimensions (distance units)
          R = cylinder radius of indenter (distance units)
          any of c1,c2,R can be a variable (see below)
        *plane* args = dim pos side
@@ -57,7 +63,7 @@ material or as an obstacle in a flow.  Or it can be used as a
 constraining wall around a simulation; see the discussion of the
 *side* keyword below.
 
-The indenter can either be spherical or cylindrical or planar.  You
+The indenter can either be spherical or conical or cylindrical or planar.  You
 must set one of those 3 keywords.
 
 A spherical indenter exerts a force of magnitude
@@ -75,9 +81,9 @@ A cylindrical indenter exerts the same force, except that *r* is the
 distance from the atom to the center axis of the cylinder.  The
 cylinder extends infinitely along its axis.
 
-Spherical and cylindrical indenters account for periodic boundaries in
+Spherical, conical and cylindrical indenters account for periodic boundaries in
 two ways.  First, the center point of a spherical indenter (x,y,z) or
-axis of a cylindrical indenter (c1,c2) is remapped back into the
+axis of a conical/cylindrical indenter (c1,c2) is remapped back into the
 simulation box, if the box is periodic in a particular dimension.
 This occurs every timestep if the indenter geometry is specified with
 a variable (see below), e.g. it is moving over time.  Second, the

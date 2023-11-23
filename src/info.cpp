@@ -1226,8 +1226,8 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
 #if LMP_KOKKOS
-    mesg += "\nKokkos library version: " + std::to_string(KOKKOS_VERSION_MAJOR) + "."
-            + std::to_string(KOKKOS_VERSION_MINOR) + "." + std::to_string(KOKKOS_VERSION_PATCH);
+    mesg += fmt::format("\nKokkos library version: {}.{}.{}", KOKKOS_VERSION / 10000,
+                       (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
 #endif
     mesg += "\n";
   }

@@ -23,6 +23,7 @@
 #include "error.h"
 #include "input.h"
 #include "lattice.h"
+#include "math_extra.h"
 #include "modify.h"
 #include "respa.h"
 #include "update.h"
@@ -34,14 +35,30 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE,SPHERE,CYLINDER,PLANE};
-enum{INSIDE,OUTSIDE};
+enum{NONE, SPHERE, CYLINDER, PLANE, CONE};
+enum{INSIDE, OUTSIDE};
+
+static bool PointInsideCone(int dir, double *center, double lo,
+                       double hi, double rlo, double rhi, double *point);
+
+static void DistanceExteriorPoint(int dir, double *center,
+                       double lo, double hi, double rlo, double rhi, double &x,
+                       double &y, double &z);
+
+static void DistanceInteriorPoint(int dir, double *center,
+                       double lo, double hi, double rlo, double rhi, double &x,
+                       double &y, double &z);
+
+static void point_on_line_segment(double *a, double *b, double *c, double *d);
+
+static double closest(double *x, double *near, double *nearest, double dsq);
 
 /* ---------------------------------------------------------------------- */
 
 FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr), pstr(nullptr)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr), pstr(nullptr),
+  rlostr(nullptr), rhistr(nullptr), lostr(nullptr), histr(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix indent", error);
 
@@ -56,6 +73,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   ilevel_respa = 0;
 
   k = utils::numeric(FLERR,arg[3],false,lmp);
+  if (k < 0.0) error->all(FLERR, "Illegal fix indent force constant: {}", k);
   k3 = k/3.0;
 
   // read options from end of input line
@@ -79,6 +97,30 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
     if (!ystr) yvalue *= yscale;
     if (!zstr) zvalue *= zscale;
     if (!rstr) rvalue *= xscale;
+  } else if (istyle == CONE) {
+
+    if (!xstr) xvalue *= xscale;
+    if (!ystr) yvalue *= yscale;
+    if (!zstr) zvalue *= zscale;
+
+    double scaling_factor = 1.0;
+    switch (cdim) {
+      case 0:
+        scaling_factor = xscale;
+        break;
+      case 1:
+        scaling_factor = yscale;
+        break;
+      case 2:
+        scaling_factor = zscale;
+        break;
+    }
+
+    if (!rlostr) rlovalue *= scaling_factor;
+    if (!rhistr) rhivalue *= scaling_factor;
+    if (!lostr) lovalue *= scaling_factor;
+    if (!histr) hivalue *= scaling_factor;
+
   } else if (istyle == PLANE) {
     if (cdim == 0 && !pstr) pvalue *= xscale;
     else if (cdim == 1 && !pstr) pvalue *= yscale;
@@ -86,7 +128,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   } else error->all(FLERR,"Unknown fix indent keyword: {}", istyle);
 
   varflag = 0;
-  if (xstr || ystr || zstr || rstr || pstr) varflag = 1;
+  if (xstr || ystr || zstr || rstr || pstr || rlostr || rhistr || lostr || histr) varflag = 1;
 
   indenter_flag = 0;
   indenter[0] = indenter[1] = indenter[2] = indenter[3] = 0.0;
@@ -101,6 +143,10 @@ FixIndent::~FixIndent()
   delete [] zstr;
   delete [] rstr;
   delete [] pstr;
+  delete [] rlostr;
+  delete [] rhistr;
+  delete [] lostr;
+  delete [] histr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -154,6 +200,38 @@ void FixIndent::init()
       error->all(FLERR,"Variable {} for fix indent is invalid style", pstr);
   }
 
+  if (rlostr) {
+    rlovar = input->variable->find(rlostr);
+    if (rlovar < 0)
+      error->all(FLERR,"Variable {} for fix indent does not exist", rlostr);
+    if (!input->variable->equalstyle(rlovar))
+      error->all(FLERR,"Variable {} for fix indent is invalid style", rlostr);
+  }
+
+  if (rhistr) {
+    rhivar = input->variable->find(rhistr);
+    if (rhivar < 0)
+      error->all(FLERR,"Variable {} for fix indent does not exist", rhistr);
+    if (!input->variable->equalstyle(rhivar))
+      error->all(FLERR,"Variable {} for fix indent is invalid style", rhistr);
+  }
+
+  if (lostr) {
+    lovar = input->variable->find(lostr);
+    if (lovar < 0)
+      error->all(FLERR,"Variable {} for fix indent does not exist", lostr);
+    if (!input->variable->equalstyle(lovar))
+      error->all(FLERR,"Variable {} for fix indent is invalid style", lostr);
+  }
+
+  if (histr) {
+    hivar = input->variable->find(histr);
+    if (hivar < 0)
+      error->all(FLERR,"Variable {} for fix indent does not exist", histr);
+    if (!input->variable->equalstyle(hivar))
+      error->all(FLERR,"Variable {} for fix indent is invalid style", histr);
+  }
+
   if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
@@ -192,32 +270,28 @@ void FixIndent::post_force(int /*vflag*/)
   indenter_flag = 0;
   indenter[0] = indenter[1] = indenter[2] = indenter[3] = 0.0;
 
+  // ctr = current indenter centerz
+  double ctr[3] {xvalue, yvalue, zvalue};
+  if (xstr) ctr[0] = input->variable->compute_equal(xvar);
+  if (ystr) ctr[1] = input->variable->compute_equal(yvar);
+  if (zstr) ctr[2] = input->variable->compute_equal(zvar);
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double delx, dely, delz, r, dr, fmag, fx, fy, fz;
+
   // spherical indenter
 
   if (istyle == SPHERE) {
 
-    // ctr = current indenter center
-    // remap into periodic box
-
-    double ctr[3];
-    if (xstr) ctr[0] = input->variable->compute_equal(xvar);
-    else ctr[0] = xvalue;
-    if (ystr) ctr[1] = input->variable->compute_equal(yvar);
-    else ctr[1] = yvalue;
-    if (zstr) ctr[2] = input->variable->compute_equal(zvar);
-    else ctr[2] = zvalue;
+    // remap indenter center into periodic box
     domain->remap(ctr);
 
-    double radius;
-    if (rstr) radius = input->variable->compute_equal(rvar);
-    else radius = rvalue;
-
-    double **x = atom->x;
-    double **f = atom->f;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    double delx,dely,delz,r,dr,fmag,fx,fy,fz;
+    double radius { rstr ? input->variable->compute_equal(rvar) : rvalue};
+    if (radius < 0.0) error->all(FLERR, "Illegal fix indent sphere radius: {}", radius);
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -254,38 +328,11 @@ void FixIndent::post_force(int /*vflag*/)
     // remap into periodic box
     // 3rd coord is just near box for remap(), since isn't used
 
-    double ctr[3];
-    if (cdim == 0) {
-      ctr[0] = domain->boxlo[0];
-      if (ystr) ctr[1] = input->variable->compute_equal(yvar);
-      else ctr[1] = yvalue;
-      if (zstr) ctr[2] = input->variable->compute_equal(zvar);
-      else ctr[2] = zvalue;
-    } else if (cdim == 1) {
-      if (xstr) ctr[0] = input->variable->compute_equal(xvar);
-      else ctr[0] = xvalue;
-      ctr[1] = domain->boxlo[1];
-      if (zstr) ctr[2] = input->variable->compute_equal(zvar);
-      else ctr[2] = zvalue;
-    } else {
-      if (xstr) ctr[0] = input->variable->compute_equal(xvar);
-      else ctr[0] = xvalue;
-      if (ystr) ctr[1] = input->variable->compute_equal(yvar);
-      else ctr[1] = yvalue;
-      ctr[2] = domain->boxlo[2];
-    }
+    ctr[cdim] = domain->boxlo[cdim];
     domain->remap(ctr);
 
-    double radius;
-    if (rstr) radius = input->variable->compute_equal(rvar);
-    else radius = rvalue;
-
-    double **x = atom->x;
-    double **f = atom->f;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    double delx,dely,delz,r,dr,fmag,fx,fy,fz;
+    double radius { rstr ? input->variable->compute_equal(rvar) : rvalue};
+    if (radius < 0.0) error->all(FLERR, "Illegal fix indent cylinder radius: {}", radius);
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -324,31 +371,85 @@ void FixIndent::post_force(int /*vflag*/)
         indenter[3] -= fz;
       }
 
+  // conical indenter
+
+  } else if (istyle == CONE) {
+
+    double radiuslo { rlostr ? input->variable->compute_equal(rlovar) : rlovalue };
+    if (radiuslo < 0.0) error->all(FLERR, "Illegal fix indent cone lower radius: {}", radiuslo);
+
+    double radiushi { rhistr ? input->variable->compute_equal(rhivar) : rhivalue };
+    if (radiushi < 0.0) error->all(FLERR, "Illegal fix indent cone high radius: {}", radiushi);
+
+    double initial_lo { lostr ? input->variable->compute_equal(lovar) : lovalue };
+    double initial_hi { histr ? input->variable->compute_equal(hivar) : hivalue };
+
+    ctr[cdim] = 0.5 * (initial_hi + initial_lo);
+
+    domain->remap(ctr);
+
+    double hi = ctr[cdim] + 0.5 * (initial_hi - initial_lo);
+    double lo = ctr[cdim] - 0.5 * (initial_hi - initial_lo);
+
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+
+        delx = x[i][0] - ctr[0];
+        dely = x[i][1] - ctr[1];
+        delz = x[i][2] - ctr[2];
+        domain->minimum_image(delx, dely, delz);
+
+        double x0[3] {delx + ctr[0], dely + ctr[1], delz + ctr[2]};
+        r = sqrt(delx * delx + dely * dely + delz * delz);
+
+        // find if the particle is inside or outside the cone
+        bool point_inside_cone = PointInsideCone(cdim, ctr, lo, hi, radiuslo, radiushi, x0);
+
+        if (side == INSIDE && point_inside_cone) continue;
+        if (side == OUTSIDE && !point_inside_cone) continue;
+
+        // find the distance between the point and the cone
+        if (point_inside_cone) {
+          DistanceInteriorPoint(cdim, ctr, lo, hi, radiuslo, radiushi, x0[0], x0[1], x0[2]);
+        } else {
+          DistanceExteriorPoint(cdim, ctr, lo, hi, radiuslo, radiushi, x0[0], x0[1], x0[2]);
+        }
+
+        // compute the force from the center of the cone - it is different from the approach of fix wall/region
+        dr = sqrt(x0[0] * x0[0] + x0[1] * x0[1] + x0[2] * x0[2]);
+
+        int force_sign = { point_inside_cone ? 1 : -1 };
+        fmag = force_sign * k * dr * dr;
+
+        fx = delx*fmag/r;
+        fy = dely*fmag/r;
+        fz = delz*fmag/r;
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
+        indenter[0] -= k3 * dr * dr * dr;
+        indenter[1] -= fx;
+        indenter[2] -= fy;
+        indenter[3] -= fz;
+      }
+    }
+
   // planar indenter
 
   } else {
 
     // plane = current plane position
 
-    double plane;
-    if (pstr) plane = input->variable->compute_equal(pvar);
-    else plane = pvalue;
-
-    double **x = atom->x;
-    double **f = atom->f;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    double dr,fatom;
+    double plane { pstr ? input->variable->compute_equal(pvar) : pvalue};
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         dr = planeside * (plane - x[i][cdim]);
         if (dr >= 0.0) continue;
-        fatom = -planeside * k*dr*dr;
-        f[i][cdim] += fatom;
-        indenter[0] -= k3 * dr*dr*dr;
-        indenter[cdim+1] -= fatom;
+        fmag = -planeside * k * dr * dr;
+        f[i][cdim] += fmag;
+        indenter[0] -= k3 * dr * dr * dr;
+        indenter[cdim+1] -= fmag;
       }
   }
 
@@ -487,6 +588,64 @@ void FixIndent::options(int narg, char **arg)
       istyle = PLANE;
       iarg += 4;
 
+    } else if (strcmp(arg[iarg],"cone") == 0) {
+
+      if (iarg+8 > narg) utils::missing_cmd_args(FLERR, "fix indent cone", error);
+
+      if (strcmp(arg[iarg+1],"x") == 0) {
+        cdim = 0;
+
+        if (utils::strmatch(arg[iarg+2],"^v_")) {
+          ystr = utils::strdup(arg[iarg+2]+2);
+        } else yvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          zstr = utils::strdup(arg[iarg+3]+2);
+        } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+
+      } else if (strcmp(arg[iarg+1],"y") == 0) {
+        cdim = 1;
+
+        if (utils::strmatch(arg[iarg+2],"^v_")) {
+          xstr = utils::strdup(arg[iarg+2]+2);
+        } else xvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          zstr = utils::strdup(arg[iarg+3]+2);
+        } else zvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+
+      } else if (strcmp(arg[iarg+1],"z") == 0) {
+        cdim = 2;
+
+        if (utils::strmatch(arg[iarg+2],"^v_")) {
+          xstr = utils::strdup(arg[iarg+2]+2);
+        } else xvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          ystr = utils::strdup(arg[iarg+3]+2);
+        } else yvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+
+      } else error->all(FLERR,"Unknown fix indent cone argument: {}", arg[iarg+1]);
+
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        rlostr = utils::strdup(arg[iarg+4]+2);
+      } else rlovalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
+        rhistr = utils::strdup(arg[iarg+5]+2);
+      } else rhivalue = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+
+      if (utils::strmatch(arg[iarg+6],"^v_")) {
+        lostr = utils::strdup(arg[iarg+6]+2);
+      } else lovalue = utils::numeric(FLERR,arg[iarg+6],false,lmp);
+
+      if (utils::strmatch(arg[iarg+7],"^v_")) {
+        histr = utils::strdup(arg[iarg+7]+2);
+      } else hivalue = utils::numeric(FLERR,arg[iarg+7],false,lmp);
+
+      istyle = CONE;
+      iarg += 8;
+
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix indent units", error);
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
@@ -502,4 +661,175 @@ void FixIndent::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Unknown fix indent argument: {}", arg[iarg]);
   }
+}
+
+/* ----------------------------------------------------------------------
+    determines if a point is inside (true) or outside (false) of a cone
+------------------------------------------------------------------------- */
+
+bool PointInsideCone(int dir, double *center, double lo,
+                     double hi, double rlo, double rhi, double *x)
+{
+  if ((x[dir] > hi) || (x[dir] < lo)) return false;
+
+  double del[3] {x[0] - center[0], x[1] - center[1], x[2] - center[2]};
+  del[dir] = 0.0;
+
+  double dist = sqrt(del[0] * del[0] + del[1] * del[1] + del[2] * del[2]);
+  double currentradius = rlo + (x[dir] - lo) * (rhi - rlo) / (hi - lo);
+
+  if (dist > currentradius) return false;
+
+  return true;
+}
+
+/* ----------------------------------------------------------------------
+     distance between an exterior point and a cone
+------------------------------------------------------------------------- */
+void DistanceExteriorPoint(int dir, double *center, double lo, double hi,
+                           double rlo, double rhi, double &x, double &y, double &z)
+{
+  double xp[3], nearest[3], corner1[3], corner2[3];
+
+  double point[3] {x, y, z};
+
+  double del[3] {x - center[0], y - center[1], z - center[2]};
+  del[dir] = 0.0;
+
+  double r = sqrt(del[0] * del[0] + del[1] * del[1] + del[2] * del[2]);
+
+  corner1[0] = center[0] + del[0] * rlo / r;
+  corner1[1] = center[1] + del[1] * rlo / r;
+  corner1[2] = center[2] + del[2] * rlo / r;
+  corner1[dir] = lo;
+
+  corner2[0] = center[0] + del[0] * rhi / r;
+  corner2[1] = center[1] + del[1] * rhi / r;
+  corner2[2] = center[2] + del[2] * rhi / r;
+  corner2[dir] = hi;
+
+  double corner3[3] {center[0], center[1], center[2]};
+  corner3[dir] = lo;
+
+  double corner4[3] {center[0], center[1], center[2]};
+  corner4[dir] = hi;
+
+  // initialize distance to a big number
+  double distsq = 1.0e20;
+
+  // check the first triangle
+  point_on_line_segment(corner1, corner2, point, xp);
+  distsq = closest(point, xp, nearest, distsq);
+
+  // check the second triangle
+  point_on_line_segment(corner1, corner3, point, xp);
+  distsq = closest(point, xp, nearest, distsq);
+
+  // check the third triangle
+  point_on_line_segment(corner2, corner4, point, xp);
+  distsq = closest(point, xp, nearest, distsq);
+
+  x -= nearest[0];
+  y -= nearest[1];
+  z -= nearest[2];
+
+  return;
+}
+
+/* ----------------------------------------------------------------------
+     distance between an interior point and a cone
+------------------------------------------------------------------------- */
+
+void DistanceInteriorPoint(int dir, double *center,
+                       double lo, double hi, double rlo, double rhi, double &x,
+                       double &y, double &z)
+{
+  double r, dist_disk, dist_surf;
+  double surflo[3], surfhi[3], xs[3];
+  double initial_point[3] {x, y, z};
+  double point[3] {0.0, 0.0, 0.0};
+
+  // initial check with the two disks
+  if ( (initial_point[dir] - lo) < (hi - initial_point[dir]) ) {
+    dist_disk = (initial_point[dir] - lo) * (initial_point[dir] - lo);
+    point[dir] = initial_point[dir] - lo;
+  } else {
+    dist_disk = (hi - initial_point[dir]) * (hi - initial_point[dir]);
+    point[dir] = initial_point[dir] - hi;
+  }
+
+  // check with the points in the conical surface
+  double del[3] {x - center[0], y - center[1], z - center[2]};
+  del[dir] = 0.0;
+  r = sqrt(del[0] * del[0] + del[1] * del[1] + del[2] * del[2]);
+
+  surflo[0] = center[0] + del[0] * rlo / r;
+  surflo[1] = center[1] + del[1] * rlo / r;
+  surflo[2] = center[2] + del[2] * rlo / r;
+  surflo[dir] = lo;
+
+  surfhi[0] = center[0] + del[0] * rhi / r;
+  surfhi[1] = center[1] + del[1] * rhi / r;
+  surfhi[2] = center[2] + del[2] * rhi / r;
+  surfhi[dir] = hi;
+
+  point_on_line_segment(surflo, surfhi, initial_point, xs);
+
+  double dx[3]  {initial_point[0] - xs[0], initial_point[1] - xs[1], initial_point[2] - xs[2]};
+  dist_surf = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
+  if (dist_surf < dist_disk) {
+    x = dx[0];
+    y = dx[1];
+    z = dx[2];
+  } else {
+    x = point[0];
+    y = point[1];
+    z = point[2];
+  }
+
+  return;
+}
+
+/* ----------------------------------------------------------------------
+     helper function extracted from region.cpp
+------------------------------------------------------------------------- */
+
+void point_on_line_segment(double *a, double *b, double *c, double *d)
+{
+  double ba[3], ca[3];
+
+  MathExtra::sub3(b, a, ba);
+  MathExtra::sub3(c, a, ca);
+  double t = MathExtra::dot3(ca, ba) / MathExtra::dot3(ba, ba);
+  if (t <= 0.0) {
+    d[0] = a[0];
+    d[1] = a[1];
+    d[2] = a[2];
+  } else if (t >= 1.0) {
+    d[0] = b[0];
+    d[1] = b[1];
+    d[2] = b[2];
+  } else {
+    d[0] = a[0] + t * ba[0];
+    d[1] = a[1] + t * ba[1];
+    d[2] = a[2] + t * ba[2];
+  }
+}
+
+/* ----------------------------------------------------------------------
+     helper function extracted from region_cone.cpp
+------------------------------------------------------------------------- */
+
+double closest(double *x, double *near, double *nearest, double dsq)
+{
+  double dx = x[0] - near[0];
+  double dy = x[1] - near[1];
+  double dz = x[2] - near[2];
+  double rsq = dx * dx + dy * dy + dz * dz;
+  if (rsq >= dsq) return dsq;
+
+  nearest[0] = near[0];
+  nearest[1] = near[1];
+  nearest[2] = near[2];
+  return rsq;
 }

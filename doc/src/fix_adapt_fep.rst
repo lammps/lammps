@@ -307,7 +307,9 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
- none
+
+The keyword "scale yes" is not supported for scaling per-atom parameters
+diameter and change. You can use :doc:`fix adapt <fix_adapt>` for those.
 
 Related commands
 """"""""""""""""

@@ -1173,7 +1173,7 @@ custom atom properties are the same; just replace the leading "i" with
 +--------+---------------+------------------------------------------+
 | atom   | i_name        | per-atom vector                          |
 | atom   | i2_name[I]    | column of per-atom array                 |
-+--------+--------------+------------------------------------------+
++--------+---------------+------------------------------------------+
 
 The I and J indices in these custom atom property references can be
 integers or can be a variable name, specified as v_name, where name is

@@ -49,6 +49,10 @@ class FixIndent : public Fix {
   int cdim, varflag;
   int ilevel_respa;
 
+  char *rlostr, *rhistr, *lostr, *histr;
+  int rlovar, rhivar, lovar, hivar;
+  double rlovalue, rhivalue, lovalue, hivalue;
+
   void options(int, char **);
 };
 

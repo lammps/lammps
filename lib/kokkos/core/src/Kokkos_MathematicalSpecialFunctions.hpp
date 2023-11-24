@@ -846,69 +846,52 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y1(const CmplxType& z,
 //! for a complex argument
 template <class CmplxType, class RealType, class IntType>
 KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_i0(const CmplxType& z,
-                                               const RealType& joint_val = 25,
-                                               const IntType& bw_start   = 70) {
+                                               const RealType& joint_val = 18,
+                                               const IntType& n_terms    = 50) {
   // This function is converted and modified from the corresponding Fortran
-  // programs CIKNB and CIK01 in S. Zhang & J. Jin "Computation of Special
+  // programs CIK01 in S. Zhang & J. Jin "Computation of Special
   // Functions" (Wiley, 1996).
   //    Input :  z         --- Complex argument
   //             joint_val --- Joint point of abs(z) separating small and large
   //                           argument regions
-  //             bw_start  --- Starting point for backward recurrence
+  //             n_terms   --- Numbers of terms used in the power series
   //    Output:  cbi0      --- I0(z)
-  using Kokkos::numbers::pi_v;
 
-  CmplxType cbi0;
-  constexpr auto pi    = pi_v<RealType>;
-  const RealType a[12] = {0.125,
-                          7.03125e-2,
-                          7.32421875e-2,
-                          1.1215209960938e-1,
-                          2.2710800170898e-1,
-                          5.7250142097473e-1,
-                          1.7277275025845e0,
-                          6.0740420012735e0,
-                          2.4380529699556e1,
-                          1.1001714026925e2,
-                          5.5133589612202e2,
-                          3.0380905109224e3};
-
+  CmplxType cbi0(1.0, 0.0);
   RealType a0  = Kokkos::abs(z);
   CmplxType z1 = z;
 
-  if (a0 < 1e-100) {  // Treat z=0 as a special case
-    cbi0 = CmplxType(1.0, 0.0);
-  } else {
+  if (a0 > 1e-100) {
     if (z.real() < 0.0) z1 = -z;
-    if (a0 <= joint_val) {  // Using backward recurrence for |z|<=joint_val
-                            // (default:25)
-      CmplxType cbs = CmplxType(0.0, 0.0);
-      // CmplxType csk0 = CmplxType(0.0,0.0);
-      CmplxType cf0 = CmplxType(0.0, 0.0);
-      CmplxType cf1 = CmplxType(1e-100, 0.0);
-      CmplxType cf, cs0;
-      for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
-                                             // 70)
-        cf = 2.0 * (k + 1.0) * cf1 / z1 + cf0;
-        if (k == 0) cbi0 = cf;
-        // if ((k == 2*(k/2)) && (k != 0)) {
-        //  csk0 = csk0+4.0*cf/static_cast<RealType>(k);
-        //}
-        cbs = cbs + 2.0 * cf;
-        cf0 = cf1;
-        cf1 = cf;
+    if (a0 <= joint_val) {
+      // Using power series definition for |z|<=joint_val (default:18)
+      CmplxType cr = CmplxType(1.0e+00, 0.0e+00);
+      CmplxType z2 = z * z;
+      for (int k = 1; k < n_terms; ++k) {
+        cr = RealType(.25) * cr * z2 / CmplxType(k * k);
+        cbi0 += cr;
+        if (Kokkos::abs(cr / cbi0) < RealType(1.e-15)) continue;
       }
-      cs0  = Kokkos::exp(z1) / (cbs - cf);
-      cbi0 = cbi0 * cs0;
-    } else {  // Using asymptotic expansion (6.2.1) for |z|>joint_val
-              // (default:25)
-      CmplxType ca = Kokkos::exp(z1) / Kokkos::sqrt(2.0 * pi * z1);
-      cbi0         = CmplxType(1.0, 0.0);
-      CmplxType zr = 1.0 / z1;
+    } else {
+      // Using asymptotic expansion (6.2.1) for |z|>joint_val (default:18)
+      const RealType a[12] = {0.125,
+                              7.03125e-2,
+                              7.32421875e-2,
+                              1.1215209960938e-1,
+                              2.2710800170898e-1,
+                              5.7250142097473e-1,
+                              1.7277275025845e0,
+                              6.0740420012735e0,
+                              2.4380529699556e1,
+                              1.1001714026925e2,
+                              5.5133589612202e2,
+                              3.0380905109224e3};
+
       for (int k = 1; k <= 12; k++) {
-        cbi0 = cbi0 + a[k - 1] * Kokkos::pow(zr, 1.0 * k);
+        cbi0 += a[k - 1] * Kokkos::pow(z1, -k);
       }
-      cbi0 = ca * cbi0;
+      cbi0 *= Kokkos::exp(z1) /
+              Kokkos::sqrt(2.0 * Kokkos::numbers::pi_v<RealType> * z1);
     }
   }
   return cbi0;

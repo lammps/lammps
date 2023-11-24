@@ -98,7 +98,7 @@ constexpr bool test_quad_precision_math_constants() {
   static_assert(Kokkos::numbers::log10e_v<__float128> == M_LOG10Eq);
   static_assert(Kokkos::numbers::pi_v    <__float128> == M_PIq);
 #if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU >= 930)
-  static_assert(Kokkos::::inv_pi_v<__float128> == M_1_PIq);
+  static_assert(Kokkos::numbers::inv_pi_v<__float128> == M_1_PIq);
 #endif
   // inv_sqrtpi_v
   static_assert(Kokkos::numbers::ln2_v   <__float128> == M_LN2q);

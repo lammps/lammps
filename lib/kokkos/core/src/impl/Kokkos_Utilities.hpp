@@ -79,6 +79,33 @@ template <class T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 #endif
 
+// same as C++23 std::to_underlying but with __host__ __device__ annotations
+template <typename E>
+KOKKOS_FUNCTION constexpr std::underlying_type_t<E> to_underlying(
+    E e) noexcept {
+  return static_cast<std::underlying_type_t<E>>(e);
+}
+
+#if defined(__cpp_lib_is_scoped_enum)
+// since C++23
+using std::is_scoped_enum;
+using std::is_scoped_enum_v;
+#else
+template <typename E, bool = std::is_enum_v<E>>
+struct is_scoped_enum_impl : std::false_type {};
+
+template <typename E>
+struct is_scoped_enum_impl<E, true>
+    : std::bool_constant<!std::is_convertible_v<E, std::underlying_type_t<E>>> {
+};
+
+template <typename E>
+struct is_scoped_enum : is_scoped_enum_impl<E>::type {};
+
+template <typename E>
+inline constexpr bool is_scoped_enum_v = is_scoped_enum<E>::value;
+#endif
+
 //==============================================================================
 // <editor-fold desc="is_specialization_of"> {{{1
 

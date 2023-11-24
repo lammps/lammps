@@ -21,10 +21,6 @@
                                // unimplemented reduction features
 namespace {
 
-// FIXME_NVHPC 23.3 errors out when using enums here
-// NVC++-F-0000-Internal compiler error. process_acc_put_dinit: unexpected
-// datatype    5339
-#ifndef KOKKOS_COMPILER_NVHPC
 enum MyErrorCode {
   no_error                           = 0b000,
   error_operator_plus_equal          = 0b001,
@@ -38,17 +34,6 @@ KOKKOS_FUNCTION constexpr MyErrorCode operator|(MyErrorCode lhs,
   return static_cast<MyErrorCode>(static_cast<int>(lhs) |
                                   static_cast<int>(rhs));
 }
-
-#else
-
-using MyErrorCode                                        = unsigned;
-constexpr MyErrorCode no_error                           = 0b000;
-constexpr MyErrorCode error_operator_plus_equal          = 0b001;
-constexpr MyErrorCode error_operator_plus_equal_volatile = 0b010;
-constexpr MyErrorCode error_join_volatile                = 0b100;
-constexpr MyErrorCode expected_join_volatile             = 0b1000;
-
-#endif
 
 static_assert((no_error | error_operator_plus_equal_volatile) ==
                   error_operator_plus_equal_volatile,
@@ -111,7 +96,7 @@ struct ReducerWithJoinThatTakesVolatileQualifiedArgs {
 
 void test_join_backward_compatibility() {
   MyJoinBackCompatValueType result;
-  Kokkos::RangePolicy<> policy(0, 1);
+  Kokkos::RangePolicy<TEST_EXECSPACE> policy(0, 1);
 
   Kokkos::parallel_reduce(
       policy, ReducerWithJoinThatTakesBothVolatileAndNonVolatileQualifiedArgs{},
@@ -134,21 +119,9 @@ void test_join_backward_compatibility() {
   ReducerWithJoinThatTakesVolatileQualifiedArgs my_red;
   my_red.join(vol_result, result2);
   ASSERT_EQ(vol_result.err, expected_join_volatile);
-
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE_3)
-  MyJoinBackCompatValueType result3;
-  Kokkos::parallel_reduce(
-      policy, ReducerWithJoinThatTakesVolatileQualifiedArgs{}, result3);
-  ASSERT_EQ(result3.err, expected_join_volatile);
-#endif
 }
 
 TEST(TEST_CATEGORY, join_backward_compatibility) {
-#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_NVHPC) && \
-    KOKKOS_COMPILER_NVHPC <                                          \
-        230300  // FIXME_NVHPC test passes with workaround in 23.3
-  GTEST_SKIP() << "FIXME wrong result";
-#endif
   test_join_backward_compatibility();
 }
 

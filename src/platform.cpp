@@ -1066,7 +1066,7 @@ FILE *platform::compressed_read(const std::string &file)
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto compress = find_compress_type(file);
+  const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())
@@ -1085,7 +1085,7 @@ FILE *platform::compressed_write(const std::string &file)
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto compress = find_compress_type(file);
+  const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())

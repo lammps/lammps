@@ -562,6 +562,9 @@ Bibliography
 **(Kumar)**
    Kumar and Skinner, J. Phys. Chem. B, 112, 8311 (2008)
 
+**(Lafourcade et al, 2023)**
+   Lafourcade, P. and Maillet, J.-B. and Denoual, C. and Duval, E. and Allera, A. and Goryaeva, A. M. and Marinica, M.-C., `Comp. Mat. Science, 230, 112534 (2023) <https://doi.org/10.1016/j.commatsci.2023.112534>`_
+   
 **(Lamoureux and Roux)**
    G.\  Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)
 

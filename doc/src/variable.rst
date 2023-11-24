@@ -1150,8 +1150,8 @@ Custom atom properties
 ----------------------
 
 Custom atom properties refer to per-atom integer and floating point
-vectors or arrays that have been added via the :doc:"fix property/atom
-<fix property/atom>" command.  When that command is used specific
+vectors or arrays that have been added via the :doc:`fix property/atom
+<fix_property_atom>` command.  When that command is used specific
 names are given to each attribute which are the "name" portion of
 these references.  References beginning with *i* and *d* refer to
 integer and floating point properties respectively.  Per-atom vectors

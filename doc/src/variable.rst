@@ -1149,6 +1149,8 @@ variable by using the :doc:`compute property/atom
 Custom atom properties
 ----------------------
 
+.. versionadded:: TBD
+
 Custom atom properties refer to per-atom integer and floating point
 vectors or arrays that have been added via the :doc:`fix property/atom
 <fix_property_atom>` command.  When that command is used specific

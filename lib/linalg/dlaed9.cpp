@@ -4,7 +4,7 @@ extern "C" {
 #include "lmp_f2c.h"
 static integer c__1 = 1;
 int dlaed9_(integer *k, integer *kstart, integer *kstop, integer *n, doublereal *d__, doublereal *q,
-            integer *ldq, doublereal *rho, doublereal *dlamda, doublereal *w, doublereal *s,
+            integer *ldq, doublereal *rho, doublereal *dlambda, doublereal *w, doublereal *s,
             integer *lds, integer *info)
 {
     integer q_dim1, q_offset, s_dim1, s_offset, i__1, i__2;
@@ -15,14 +15,13 @@ int dlaed9_(integer *k, integer *kstart, integer *kstop, integer *n, doublereal 
     extern doublereal dnrm2_(integer *, doublereal *, integer *);
     extern int dcopy_(integer *, doublereal *, integer *, doublereal *, integer *),
         dlaed4_(integer *, integer *, doublereal *, doublereal *, doublereal *, doublereal *,
-                doublereal *, integer *);
-    extern doublereal dlamc3_(doublereal *, doublereal *);
-    extern int xerbla_(char *, integer *, ftnlen);
+                doublereal *, integer *),
+        xerbla_(char *, integer *, ftnlen);
     --d__;
     q_dim1 = *ldq;
     q_offset = 1 + q_dim1;
     q -= q_offset;
-    --dlamda;
+    --dlambda;
     --w;
     s_dim1 = *lds;
     s_offset = 1 + s_dim1;
@@ -49,13 +48,9 @@ int dlaed9_(integer *k, integer *kstart, integer *kstop, integer *n, doublereal 
     if (*k == 0) {
         return 0;
     }
-    i__1 = *n;
-    for (i__ = 1; i__ <= i__1; ++i__) {
-        dlamda[i__] = dlamc3_(&dlamda[i__], &dlamda[i__]) - dlamda[i__];
-    }
     i__1 = *kstop;
     for (j = *kstart; j <= i__1; ++j) {
-        dlaed4_(k, &j, &dlamda[1], &w[1], &q[j * q_dim1 + 1], rho, &d__[j], info);
+        dlaed4_(k, &j, &dlambda[1], &w[1], &q[j * q_dim1 + 1], rho, &d__[j], info);
         if (*info != 0) {
             goto L120;
         }
@@ -77,11 +72,11 @@ int dlaed9_(integer *k, integer *kstart, integer *kstop, integer *n, doublereal 
     for (j = 1; j <= i__1; ++j) {
         i__2 = j - 1;
         for (i__ = 1; i__ <= i__2; ++i__) {
-            w[i__] *= q[i__ + j * q_dim1] / (dlamda[i__] - dlamda[j]);
+            w[i__] *= q[i__ + j * q_dim1] / (dlambda[i__] - dlambda[j]);
         }
         i__2 = *k;
         for (i__ = j + 1; i__ <= i__2; ++i__) {
-            w[i__] *= q[i__ + j * q_dim1] / (dlamda[i__] - dlamda[j]);
+            w[i__] *= q[i__ + j * q_dim1] / (dlambda[i__] - dlambda[j]);
         }
     }
     i__1 = *k;

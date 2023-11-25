@@ -95,6 +95,9 @@ class PairPACEKokkos : public PairPACE {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
+  void *extract(const char *str, int &dim) override;
+  void *extract_peratom(const char *str, int &ncol) override;
+
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_rho_max;
   int host_flag;
@@ -210,6 +213,8 @@ class PairPACEKokkos : public PairPACE {
   typedef Kokkos::View<complex****, DeviceType> t_ace_4c;
   typedef Kokkos::View<complex***[3], DeviceType> t_ace_4c3;
 
+  typedef typename Kokkos::View<double*, DeviceType>::HostMirror th_ace_1d;
+
   t_ace_3d A_rank1;
   t_ace_4c A;
 
@@ -223,13 +228,16 @@ class PairPACEKokkos : public PairPACE {
   t_ace_2d rhos;
   t_ace_2d dF_drho;
 
+  t_ace_3c dB_flatten;
+
   // hard-core repulsion
   t_ace_1d rho_core;
-  t_ace_3c dB_flatten;
   t_ace_2d cr;
   t_ace_2d dcr;
   t_ace_1d dF_drho_core;
   t_ace_1d dF_dfcut;
+  t_ace_1d d_corerep;
+  th_ace_1d h_corerep;
 
   // radial functions
   t_ace_4d fr;

@@ -124,6 +124,8 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
     MemKK::realloc_kokkos(dF_dfcut, "pace:dF_dfcut", natom);
     MemKK::realloc_kokkos(d_d_min, "pace:r_min_pair", natom);
     MemKK::realloc_kokkos(d_jj_min, "pace:j_min_pair", natom);
+    MemKK::realloc_kokkos(d_corerep, "pace:corerep", natom); // per-atom corerep
+
     MemKK::realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_rho_max, basis_set->rankmax);
   }
 
@@ -555,6 +557,13 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
+  if (flag_corerep_factor && atom->nlocal > nmax_corerep) {
+    memory->destroy(corerep_factor);
+    nmax_corerep = atom->nlocal;
+    memory->create(corerep_factor, nmax_corerep, "pace/atom:corerep");
+    //zeroify array
+    memset(corerep_factor, 0, nmax_corerep * sizeof(*corerep_factor));
+  }
 
   copymode = 1;
   if (!force->newton_pair)
@@ -610,6 +619,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::deep_copy(rho_core, 0.0);
     Kokkos::deep_copy(d_d_min, PairPACE::aceimpl->basis_set->cutoffmax);
     Kokkos::deep_copy(d_jj_min, -1);
+    Kokkos::deep_copy(d_corerep, 0.0);
 
     EV_FLOAT ev_tmp;
 
@@ -709,6 +719,13 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
     ev += ev_tmp;
+
+    if (flag_corerep_factor) {
+      h_corerep = Kokkos::create_mirror_view(d_corerep);
+      Kokkos::deep_copy(h_corerep,d_corerep);
+      memcpy(corerep_factor+chunk_offset, (void *) h_corerep.data(), sizeof(double)*chunk_size);
+    }
+
     chunk_offset += chunk_size;
 
   } // end while
@@ -1073,6 +1090,9 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeFS, const int& ii
       evdwl_cut += d_E0vals(mu_i);
       e_atom(ii) = evdwl_cut;
   }
+
+  if (flag_corerep_factor)
+    d_corerep(ii) = 1-fcut;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1759,6 +1779,7 @@ double PairPACEKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(rho_core);
   bytes += MemKK::memory_usage(dF_drho_core);
   bytes += MemKK::memory_usage(dF_dfcut);
+  bytes += MemKK::memory_usage(d_corerep);
   bytes += MemKK::memory_usage(dB_flatten);
   bytes += MemKK::memory_usage(fr);
   bytes += MemKK::memory_usage(dfr);
@@ -1812,6 +1833,42 @@ double PairPACEKokkos<DeviceType>::memory_usage()
   }
 
   return bytes;
+}
+
+
+/* ----------------------------------------------------------------------
+    extract method for extracting value of scale variable
+ ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void *PairPACEKokkos<DeviceType>::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str, "corerep_flag") == 0) return (void *) &flag_corerep_factor;
+
+  dim = 2;
+  if (strcmp(str, "scale") == 0) return (void *) scale;
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void *PairPACEKokkos<DeviceType>::extract_peratom(const char *str, int &ncol)
+{
+  if (strcmp(str, "corerep") == 0) {
+    ncol = 0;
+    return (void *) corerep_factor;
+  }
+
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

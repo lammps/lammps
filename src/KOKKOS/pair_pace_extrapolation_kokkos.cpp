@@ -126,6 +126,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::grow(int natom, int maxneigh)
     MemKK::realloc_kokkos(dF_dfcut, "pace:dF_dfcut", natom);
     MemKK::realloc_kokkos(d_d_min, "pace:r_min_pair", natom);
     MemKK::realloc_kokkos(d_jj_min, "pace:j_min_pair", natom);
+    MemKK::realloc_kokkos(d_corerep, "pace:corerep", natom); // per-atom corerep
 
     MemKK::realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_ms_combs_max, basis_set->rankmax);
 
@@ -594,12 +595,19 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     d_vatom = k_vatom.view<DeviceType>();
   }
 
-  if (gamma_flag && atom->nlocal > nmax) {
+  if (flag_compute_extrapolation_grade && atom->nlocal > nmax) {
         memory->destroy(extrapolation_grade_gamma);
         nmax = atom->nlocal;
         memory->create(extrapolation_grade_gamma, nmax, "pace/atom:gamma");
         //zeroify array
         memset(extrapolation_grade_gamma, 0, nmax * sizeof(*extrapolation_grade_gamma));
+  }
+  if (flag_corerep_factor && atom->nlocal > nmax_corerep) {
+    memory->destroy(corerep_factor);
+    nmax_corerep = atom->nlocal;
+    memory->create(corerep_factor, nmax_corerep, "pace/atom:corerep");
+    //zeroify array
+    memset(corerep_factor, 0, nmax_corerep * sizeof(*corerep_factor));
   }
 
   copymode = 1;
@@ -658,6 +666,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
 
     Kokkos::deep_copy(projections, 0.0);
     Kokkos::deep_copy(d_gamma, 0.0);
+    Kokkos::deep_copy(d_corerep, 0.0);
 
     EV_FLOAT ev_tmp;
 
@@ -721,7 +730,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     }
 
     //ComputeGamma
-    if (gamma_flag) {
+    if (flag_compute_extrapolation_grade) {
       typename Kokkos::RangePolicy<DeviceType,TagPairPACEComputeGamma> policy_gamma(0,chunk_size);
       Kokkos::parallel_for("ComputeGamma",policy_gamma,*this);
     }
@@ -763,11 +772,16 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     }
     ev += ev_tmp;
 
-    //if gamma_flag - copy current d_gamma to extrapolation_grade_gamma
-    if (gamma_flag){
+    //if flag_compute_extrapolation_grade - copy current d_gamma to extrapolation_grade_gamma
+    if (flag_compute_extrapolation_grade){
         h_gamma = Kokkos::create_mirror_view(d_gamma);
         Kokkos::deep_copy(h_gamma, d_gamma);
         memcpy(extrapolation_grade_gamma+chunk_offset, (void *) h_gamma.data(), sizeof(double)*chunk_size);
+    }
+    if (flag_corerep_factor) {
+        h_corerep = Kokkos::create_mirror_view(d_corerep);
+        Kokkos::deep_copy(h_corerep,d_corerep);
+        memcpy(corerep_factor+chunk_offset, (void *) h_corerep.data(), sizeof(double)*chunk_size);
     }
 
     chunk_offset += chunk_size;
@@ -1050,7 +1064,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho,
 
 
     //gamma_i
-    if (gamma_flag)
+    if (flag_compute_extrapolation_grade)
         Kokkos::atomic_add(&projections(ii, func_ind),  d_gen_cgs(mu_i, idx_ms_comb) * A_cur);
 
   } else { // rank > 1
@@ -1089,7 +1103,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho,
       Kokkos::atomic_add(&rhos(ii, p), B.real_part_product(d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb)));
     }
     //gamma_i
-    if (gamma_flag)
+    if (flag_compute_extrapolation_grade)
       Kokkos::atomic_add(&projections(ii, func_ind),  B.real_part_product(d_gen_cgs(mu_i, idx_ms_comb)));
   }
 }
@@ -1144,6 +1158,9 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, 
     evdwl_cut += d_E0vals(mu_i);
     e_atom(ii) = evdwl_cut;
   }
+
+  if (flag_corerep_factor)
+    d_corerep(ii) = 1-fcut;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1858,6 +1875,7 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(rho_core);
   bytes += MemKK::memory_usage(dF_drho_core);
   bytes += MemKK::memory_usage(dF_dfcut);
+  bytes += MemKK::memory_usage(d_corerep);
   bytes += MemKK::memory_usage(dB_flatten);
   bytes += MemKK::memory_usage(fr);
   bytes += MemKK::memory_usage(dfr);
@@ -1925,9 +1943,10 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
 template<class DeviceType>
 void *PairPACEExtrapolationKokkos<DeviceType>::extract(const char *str, int &dim)
 {
-  //check if str=="gamma_flag" then compute extrapolation grades on this iteration
   dim = 0;
-  if (strcmp(str, "gamma_flag") == 0) return (void *) &gamma_flag;
+  //check if str=="flag_compute_extrapolation_grade" then compute extrapolation grades on this iteration
+  if (strcmp(str, "gamma_flag") == 0) return (void *) &flag_compute_extrapolation_grade;
+  if (strcmp(str, "corerep_flag") == 0) return (void *) &flag_corerep_factor;
 
   dim = 2;
   if (strcmp(str, "scale") == 0) return (void *) scale;
@@ -1949,6 +1968,10 @@ void *PairPACEExtrapolationKokkos<DeviceType>::extract_peratom(const char *str, 
   if (strcmp(str, "gamma") == 0) {
     ncol = 0;
     return (void *) extrapolation_grade_gamma;
+  }
+  if (strcmp(str, "corerep") == 0) {
+    ncol = 0;
+    return (void *) corerep_factor;
   }
 
   return nullptr;

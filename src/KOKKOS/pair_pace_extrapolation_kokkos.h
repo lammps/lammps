@@ -106,7 +106,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;
   int host_flag;
-  int gamma_flag;
+  //int gamma_flag;
 
   int eflag, vflag;
 
@@ -235,13 +235,16 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   t_ace_2d rhos;
   t_ace_2d dF_drho;
 
+  t_ace_3c dB_flatten;
+
   // hard-core repulsion
   t_ace_1d rho_core;
-  t_ace_3c dB_flatten;
   t_ace_2d cr;
   t_ace_2d dcr;
   t_ace_1d dF_drho_core;
   t_ace_1d dF_dfcut;
+  t_ace_1d d_corerep;
+  th_ace_1d h_corerep;
 
   // radial functions
   t_ace_4d fr;

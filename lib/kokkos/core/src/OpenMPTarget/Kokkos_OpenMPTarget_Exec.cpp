@@ -67,8 +67,6 @@ void OpenMPTargetExec::verify_initialized(const char* const label) {
     msg.append(" ERROR: not initialized");
     Kokkos::Impl::throw_runtime_exception(msg);
   }
-  OpenMPTargetExec::MAX_ACTIVE_THREADS =
-      Kokkos::Experimental::OpenMPTarget().concurrency();
 }
 
 void* OpenMPTargetExec::m_scratch_ptr         = nullptr;
@@ -149,9 +147,10 @@ int* OpenMPTargetExec::get_lock_array(int num_teams) {
 
     for (int i = 0; i < lock_array_elem; ++i) h_lock_array[i] = 0;
 
-    KOKKOS_IMPL_OMPT_SAFE_CALL(
-        omp_target_memcpy(m_lock_array, h_lock_array, m_lock_size, 0, 0,
-                          omp_get_default_device(), omp_get_initial_device()));
+    if (0 < m_lock_size)
+      KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
+          m_lock_array, h_lock_array, m_lock_size, 0, 0,
+          omp_get_default_device(), omp_get_initial_device()));
 
     omp_target_free(h_lock_array, omp_get_initial_device());
   }

@@ -400,6 +400,8 @@ TEST_F(VariableTest, Functions)
     command("variable ten2   equal     asin(-1.0)+acos(0.0)");
     command("variable ten3   equal     floor(100*random(0.2,0.8,v_seed)+1)");
     command("variable ten4   equal     extract_setting(world_size)");
+    command("variable ten5   equal     ternary(v_one,1.1,-2.2)");
+    command("variable ten6   equal     ternary(${one}==2.0,v_nine,v_ten)");
     END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
@@ -414,6 +416,8 @@ TEST_F(VariableTest, Functions)
     ASSERT_GT(variable->compute_equal(variable->find("ten3")), 19);
     ASSERT_LT(variable->compute_equal(variable->find("ten3")), 81);
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten4")), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten5")), 1.1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten6")), 3);
 
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););

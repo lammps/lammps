@@ -144,6 +144,7 @@ class Variable : protected Pointers {
   int special_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   int feature_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
+  void custom2global(int *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
   int parse_args(char *, char **);

@@ -22,76 +22,12 @@
 #include <Kokkos_Random.hpp>
 #include <Kokkos_Sort.hpp>
 #include <Kokkos_StdAlgorithms.hpp>
-#include <TestStdAlgorithmsHelperFunctors.hpp>
+#include <TestStdAlgorithmsCommon.hpp>
 #include <random>
 #include <numeric>  //needed for iota
 
 namespace Test {
 namespace BinSortSetB {
-
-template <class ViewTypeFrom, class ViewTypeTo>
-struct CopyFunctorRank2 {
-  ViewTypeFrom m_view_from;
-  ViewTypeTo m_view_to;
-
-  CopyFunctorRank2() = delete;
-
-  CopyFunctorRank2(const ViewTypeFrom view_from, const ViewTypeTo view_to)
-      : m_view_from(view_from), m_view_to(view_to) {}
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int k) const {
-    const auto i    = k / m_view_from.extent(1);
-    const auto j    = k % m_view_from.extent(1);
-    m_view_to(i, j) = m_view_from(i, j);
-  }
-};
-
-template <class ValueType, class... Props>
-auto create_deep_copyable_compatible_view_with_same_extent(
-    Kokkos::View<ValueType*, Props...> view) {
-  using view_type            = Kokkos::View<ValueType*, Props...>;
-  using view_value_type      = typename view_type::value_type;
-  using view_exespace        = typename view_type::execution_space;
-  const std::size_t ext0     = view.extent(0);
-  using view_deep_copyable_t = Kokkos::View<view_value_type*, view_exespace>;
-  return view_deep_copyable_t{"view_dc", ext0};
-}
-
-template <class ValueType, class... Props>
-auto create_deep_copyable_compatible_view_with_same_extent(
-    Kokkos::View<ValueType**, Props...> view) {
-  using view_type            = Kokkos::View<ValueType**, Props...>;
-  using view_value_type      = typename view_type::value_type;
-  using view_exespace        = typename view_type::execution_space;
-  using view_deep_copyable_t = Kokkos::View<view_value_type**, view_exespace>;
-  const std::size_t ext0     = view.extent(0);
-  const std::size_t ext1     = view.extent(1);
-  return view_deep_copyable_t{"view_dc", ext0, ext1};
-}
-
-template <class ViewType>
-auto create_deep_copyable_compatible_clone(ViewType view) {
-  static_assert(ViewType::rank <= 2);
-
-  auto view_dc    = create_deep_copyable_compatible_view_with_same_extent(view);
-  using view_dc_t = decltype(view_dc);
-  if constexpr (ViewType::rank == 1) {
-    Test::stdalgos::CopyFunctor<ViewType, view_dc_t> F1(view, view_dc);
-    Kokkos::parallel_for("copy", view.extent(0), F1);
-  } else {
-    static_assert(ViewType::rank == 2, "Only rank 1 or 2 supported.");
-    CopyFunctorRank2<ViewType, view_dc_t> F1(view, view_dc);
-    Kokkos::parallel_for("copy", view.extent(0) * view.extent(1), F1);
-  }
-  return view_dc;
-}
-
-template <class ViewType>
-auto create_host_space_copy(ViewType view) {
-  auto view_dc = create_deep_copyable_compatible_clone(view);
-  return create_mirror_view_and_copy(Kokkos::HostSpace(), view_dc);
-}
 
 template <class KeyType, class ExecutionSpace>
 auto create_rank1_dev_and_host_views_of_keys(const ExecutionSpace& exec,
@@ -171,9 +107,9 @@ void test_on_view_with_stride(std::size_t numRows, std::size_t indB,
 
   Kokkos::Random_XorShift64_Pool<ExecutionSpace> pool(73931);
   Kokkos::fill_random(v, pool, ValueType(545));
-  auto v_before_sort_h = create_host_space_copy(v);
+  auto v_before_sort_h = stdalgos::create_host_space_copy(v);
   sorter.sort(exec, v, indB, indE);
-  auto v_after_sort_h = create_host_space_copy(v);
+  auto v_after_sort_h = stdalgos::create_host_space_copy(v);
 
   for (size_t i = 0; i < v.extent(0); ++i) {
     // if i within [indB,indE), the sorting was done

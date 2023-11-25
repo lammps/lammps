@@ -15,7 +15,9 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
+
 #include <cstdio>
+#include <iostream>
 
 extern "C" void print_fortran_();
 void print_cxx();

@@ -65,8 +65,9 @@ enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      NOT,EQ,NE,LT,LE,GT,GE,AND,OR,XOR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
-     RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
-     LOGFREQ3,STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
+     RANDOM,NORMAL,CEIL,FLOOR,ROUND,TERNARY,
+     RAMP,STAGGER,LOGFREQ,LOGFREQ2,LOGFREQ3,STRIDE,STRIDE2,
+     VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
      GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,IS_FILE,EXTRACT_SETTING,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
@@ -2498,9 +2499,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
    this enables optimal eval_tree loop over atoms
    customize by adding a function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(x,y,z),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
-     logfreq3(x,y,z),stride(x,y,z),vdisplace(x,y),swiggle(x,y,z),
+     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),swiggle(x,y,z),
      cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
@@ -2839,6 +2840,17 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
+  if (tree->type == TERNARY) {
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    arg3 = collapse_tree(tree->extra[0]);
+    if (tree->first->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1) tree->value = arg2;
+    else tree->value = arg3;
+    return tree->value;
+  }
+
   if (tree->type == RAMP) {
     arg1 = collapse_tree(tree->first);
     arg2 = collapse_tree(tree->second);
@@ -3055,9 +3067,9 @@ double Variable::collapse_tree(Tree *tree)
    tree was created by one-time parsing of formula string via evaluate()
    customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(x,y,z),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
-     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z),vdisplace(x,y),
+     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),
      swiggle(x,y,z),cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
@@ -3219,6 +3231,14 @@ double Variable::eval_tree(Tree *tree, int i)
     return floor(eval_tree(tree->first,i));
   if (tree->type == ROUND)
     return MYROUND(eval_tree(tree->first,i));
+
+  if (tree->type == TERNARY) {
+    double first = eval_tree(tree->first,i);
+    double second = eval_tree(tree->second,i);
+    double third = eval_tree(tree->extra[0],i);
+    if (first) return second;
+    else return third;
+  }
 
   if (tree->type == RAMP) {
     arg1 = eval_tree(tree->first,i);
@@ -3534,7 +3554,7 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
      logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),
      swiggle(x,y,z),cwiggle(x,y,z)
@@ -3545,15 +3565,12 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") &&
-      strcmp(word,"ln") != 0 && strcmp(word,"log") != 0 &&
-      strcmp(word,"abs") != 0 &&
-      strcmp(word,"sin") != 0 && strcmp(word,"cos") != 0 &&
-      strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
-      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 &&
-      strcmp(word,"atan2") != 0 && strcmp(word,"random") != 0 &&
-      strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
-      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 &&
+  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") && strcmp(word,"ln") != 0 &&
+      strcmp(word,"log") != 0 &&  strcmp(word,"abs") != 0 && strcmp(word,"sin") != 0 &&
+      strcmp(word,"cos") != 0 &&  strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
+      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 && strcmp(word,"atan2") != 0 &&
+      strcmp(word,"random") != 0 && strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
+      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 && strcmp(word,"ternary") != 0 &&
       strcmp(word,"ramp") != 0 && strcmp(word,"stagger") != 0 &&
       strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
       strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
@@ -3734,6 +3751,15 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
     if (tree) newtree->type = ROUND;
     else argstack[nargstack++] = MYROUND(value1);
+
+  } else if (strcmp(word,"ternary") == 0) {
+    if (narg != 3)
+      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+    if (tree) newtree->type = TERNARY;
+    else {
+      if (value1) argstack[nargstack++] = value2;
+      else argstack[nargstack++] = values[0];
+    }
 
   } else if (strcmp(word,"ramp") == 0) {
     if (narg != 2)

@@ -41,6 +41,16 @@ ENDIF()
 KOKKOS_DEVICE_OPTION(OPENMP ${OMP_DEFAULT} HOST "Whether to build OpenMP backend")
 
 KOKKOS_DEVICE_OPTION(OPENACC OFF DEVICE "Whether to build the OpenACC backend")
+IF (KOKKOS_ENABLE_OPENACC)
+  COMPILER_SPECIFIC_FLAGS(
+    Clang -fopenacc -fopenacc-fake-async-wait
+          -Wno-openacc-and-cxx -Wno-openmp-mapping -Wno-unknown-cuda-version
+          -Wno-pass-failed
+  )
+  COMPILER_SPECIFIC_DEFS(
+    Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
+  )
+ENDIF()
 
 KOKKOS_DEVICE_OPTION(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
 IF (KOKKOS_ENABLE_OPENMPTARGET)

@@ -3,6 +3,9 @@
 IF ((KOKKOS_ENABLE_OPENMPTARGET OR KOKKOS_ENABLE_OPENACC) AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
   RETURN()
 ENDIF()
+IF (KOKKOS_ENABLE_OPENACC AND KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
+  RETURN()
+ENDIF()
 
 # all PerformanceTest_* executables are part of regular tests
 # TODO: finish converting these into benchmarks (in progress)
@@ -35,7 +38,7 @@ IF (KOKKOS_HAS_TRILINOS)
 ENDIF()
 
 # Find or download google/benchmark library
-find_package(benchmark QUIET)
+find_package(benchmark QUIET 1.5.6)
 IF(benchmark_FOUND)
   MESSAGE(STATUS "Using google benchmark found in ${benchmark_DIR}")
 ELSE()
@@ -46,6 +49,7 @@ ELSE()
   list(APPEND CMAKE_MESSAGE_INDENT "[benchmark] ")
   FetchContent_Declare(
     googlebenchmark
+    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
     URL https://github.com/google/benchmark/archive/refs/tags/v1.6.2.tar.gz
     URL_HASH MD5=14d14849e075af116143a161bc3b927b
   )
@@ -123,6 +127,7 @@ SET(
   PerfTest_CustomReduction.cpp
   PerfTest_ExecSpacePartitioning.cpp
   PerfTestHexGrad.cpp
+  PerfTest_MallocFree.cpp
   PerfTest_ViewAllocate.cpp
   PerfTest_ViewCopy_a123.cpp
   PerfTest_ViewCopy_b123.cpp

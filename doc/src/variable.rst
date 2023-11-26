@@ -706,6 +706,8 @@ library.  Ceil() is the smallest integer not less than its argument.
 Floor() if the largest integer not greater than its argument.  Round()
 is the nearest integer to its argument.
 
+.. versionadded:: TBD
+
 The ternary(x,y,z) function is the equivalent of the ternary operator
 (? and :) in C or C++.  It takes 3 arguments.  The first argument is a
 conditional.  The result of the function is y if x evaluates to true

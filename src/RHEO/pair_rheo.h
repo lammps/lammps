@@ -46,6 +46,8 @@ class PairRHEO : public Pair {
   int thermal_flag;
   int interface_flag;
 
+  int harmonic_means_flag;
+
   void allocate();
 
   class ComputeRHEOKernel *compute_kernel;

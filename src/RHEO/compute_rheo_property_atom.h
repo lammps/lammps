@@ -34,7 +34,7 @@ class ComputeRHEOPropertyAtom : public Compute {
 
  private:
   int nvalues, nmax;
-  int thermal_flag, interface_flag, surface_flag, shift_flag;
+  int pressure_flag, thermal_flag, interface_flag, surface_flag, shift_flag;
   int *avec_index;
   int *col_index;
   double *buf;
@@ -53,12 +53,14 @@ class ComputeRHEOPropertyAtom : public Compute {
   void pack_cv(int);
   void pack_shift_v(int);
   void pack_gradv(int);
+  void pack_pressure(int);
   void pack_atom_style(int);
 
   int get_vector_index(char*);
   int get_tensor_index(char*);
 
   class FixRHEO *fix_rheo;
+  class FixRHEOPressure *fix_pressure;
   class FixRHEOThermal *fix_thermal;
   class ComputeRHEOInterface *compute_interface;
   class ComputeRHEOKernel *compute_kernel;

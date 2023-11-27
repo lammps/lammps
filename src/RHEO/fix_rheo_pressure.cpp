@@ -31,14 +31,14 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-enum {NONE, LINEAR, CUBIC, TAITWATER};
+enum {NONE, LINEAR, CUBIC, TAITWATER, TAITGENERAL};
 
 static constexpr double SEVENTH = 1.0 / 7.0;
 
 /* ---------------------------------------------------------------------- */
 
 FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fix_rheo(nullptr), rho0(nullptr), csq(nullptr), rho0inv(nullptr), csqinv(nullptr), c_cubic(nullptr), pressure_style(nullptr)
+  Fix(lmp, narg, arg), fix_rheo(nullptr), rho0(nullptr), csq(nullptr), rho0inv(nullptr), csqinv(nullptr), c_cubic(nullptr), tpower(nullptr), pbackground(nullptr), pressure_style(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -51,6 +51,9 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
   int i, nlo, nhi;
   int n = atom->ntypes;
   memory->create(pressure_style, n + 1, "rheo:pressure_style");
+  memory->create(c_cubic, n + 1, "rheo:c_cubic");
+  memory->create(tpower, n + 1, "rheo:tpower");
+  memory->create(pbackground, n + 1, "rheo:pbackground");
   for (i = 1; i <= n; i++) pressure_style[i] = NONE;
 
   int iarg = 3;
@@ -62,9 +65,21 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg + 1], "linear") == 0) {
       for (i = nlo; i <= nhi; i++)
         pressure_style[i] = LINEAR;
-    } else if (strcmp(arg[iarg + 1], "taitwater") == 0) {
+    } else if (strcmp(arg[iarg + 1], "tait/water") == 0) {
       for (i = nlo; i <= nhi; i++)
         pressure_style[i] = TAITWATER;
+    } else if (strcmp(arg[iarg + 1], "tait/general") == 0) {
+      if (iarg + 3 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/pressure tait", error);
+
+      double tpower_one = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      double pbackground_one = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      iarg += 2;
+
+      for (i = nlo; i <= nhi; i++) {
+        pressure_style[i] = TAITGENERAL;
+        tpower[i] = tpower_one;
+        pbackground[i] = pbackground_one;
+      }
     } else if (strcmp(arg[iarg + 1], "cubic") == 0) {
       if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/pressure cubic", error);
 
@@ -94,6 +109,8 @@ FixRHEOPressure::~FixRHEOPressure()
   memory->destroy(csqinv);
   memory->destroy(rho0inv);
   memory->destroy(c_cubic);
+  memory->destroy(tpower);
+  memory->destroy(pbackground);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,6 +221,10 @@ double FixRHEOPressure::calc_pressure(double rho, int type)
     rho_ratio = rho * rho0inv[type];
     rr3 = rho_ratio * rho_ratio * rho_ratio;
     p = csq[type] * rho0[type] * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
+  } else if (pressure_style[type] == TAITGENERAL) {
+    rho_ratio = rho * rho0inv[type];
+    p = csq[type] * rho0[type] * (pow(rho_ratio, tpower[type]) - 1.0) / tpower[type];
+    p += pbackground[type];
   }
   return p;
 }
@@ -222,6 +243,11 @@ double FixRHEOPressure::calc_rho(double p, int type)
     rho = pow(7.0 * p + csq[type] * rho0[type], SEVENTH);
     rho *= pow(rho0[type], 6.0 * SEVENTH);
     rho *= pow(csq[type], -SEVENTH);
+  } else if (pressure_style[type] == TAITGENERAL) {
+    p -= pbackground[type];
+    rho = pow(tpower[type] * p + csq[type] * rho0[type], 1.0 / tpower[type]);
+    rho *= pow(rho0[type], 1.0 - 1.0 / tpower[type]);
+    rho *= pow(csq[type], -1.0 / tpower[type]);
   }
   return rho;
 }

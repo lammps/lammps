@@ -52,6 +52,10 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
   int i, nlo, nhi;
   int n = atom->ntypes;
   memory->create(viscosity_style, n + 1, "rheo:viscosity_style");
+  memory->create(eta, n + 1, "rheo:eta");
+  memory->create(gd0, n + 1, "rheo:gd0");
+  memory->create(K, n + 1, "rheo:K");
+  memory->create(npow, n + 1, "rheo:npow");
   for (i = 1; i <= n; i++) viscosity_style[i] = NONE;
 
   int iarg = 3;

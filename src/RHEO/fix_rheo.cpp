@@ -279,6 +279,9 @@ void FixRHEO::setup(int /*vflag*/)
     error->one(FLERR, "Fix rheo/viscosity does not fully cover all atoms");
   if (!t_coverage_flag)
     error->one(FLERR, "Fix rheo/thermal does not fully cover all atoms");
+
+  if (rhosum_flag)
+    compute_rhosum->compute_peratom();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -419,10 +422,11 @@ void FixRHEO::pre_force(int /*vflag*/)
       status[i] &= OPTIONSMASK;
 
   // Calculate surfaces, update status
-  if (surface_flag) compute_surface->compute_peratom();
-
-  if (shift_flag)
-    compute_vshift->correct_surfaces();
+  if (surface_flag) {
+    compute_surface->compute_peratom();
+    if (shift_flag)
+      compute_vshift->correct_surfaces();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

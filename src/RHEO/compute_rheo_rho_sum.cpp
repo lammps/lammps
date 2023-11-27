@@ -88,7 +88,7 @@ void ComputeRHEORhoSum::compute_peratom()
   // initialize arrays, local with quintic self-contribution, ghosts are zeroed
   for (i = 0; i < nlocal; i++) {
     w = compute_kernel->calc_w_quintic(i, i, 0.0, 0.0, 0.0, 0.0);
-    rho[i] += w * mass[type[i]];
+    rho[i] = w * mass[type[i]];
   }
 
   for (i = nlocal; i < nall; i++) rho[i] = 0.0;
@@ -131,12 +131,11 @@ int ComputeRHEORhoSum::pack_forward_comm(int n, int *list, double *buf,
 {
   int i, j, k, m;
   double *rho = atom->rho;
-  int *coordination = compute_kernel->coordination;
   m = 0;
 
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = coordination[j];
+    buf[m++] = rho[j];
   }
   return m;
 }

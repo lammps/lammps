@@ -295,6 +295,8 @@ class Pair : protected Pointers {
   void ev_tally_tip4p(int, int *, double *, double, double);
   void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double,
                     double);
+  void ev_tally_nt(int, int, int, int, double, double, double, double, double, double, double,
+                    double, double);
   void v_tally2(int, int, double, double *);
   void v_tally_tensor(int, int, int, int, double, double, double, double, double, double);
   void virial_fdotr_compute();

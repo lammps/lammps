@@ -844,28 +844,33 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
 
   if(is_zbl) {
      //adapted from https://www.osti.gov/servlets/purl/1429450
-     using minloc_value_type=Kokkos::MinLoc<F_FLOAT,int>::value_type;
-     minloc_value_type djjmin;
-     djjmin.val=1e20;
-     djjmin.loc=-1;
-     Kokkos::MinLoc<F_FLOAT,int> reducer_scalar(djjmin);
-     // loop over ncount (actual neighbours withing cutoff) rather than jnum (total number of neigh in cutoff+skin)
-     Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, ncount),
-             [&](const int offset, minloc_value_type &min_d_dist) {
-               int j = d_nearest(ii,offset);
-               j &= NEIGHMASK;
-               const int jtype = type(j);
-               auto r = d_rnorms(ii,offset);
-               const int mu_j = d_map(type(j));
-               const F_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));
-               if (d < min_d_dist.val) {
-                   min_d_dist.val = d;
-                   min_d_dist.loc = offset;
-               }
+     if(ncount>0) {
+       using minloc_value_type=Kokkos::MinLoc<F_FLOAT,int>::value_type;
+       minloc_value_type djjmin;
+       djjmin.val=1e20;
+       djjmin.loc=-1;
+       Kokkos::MinLoc<F_FLOAT,int> reducer_scalar(djjmin);
+       // loop over ncount (actual neighbours withing cutoff) rather than jnum (total number of neigh in cutoff+skin)
+       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, ncount),
+               [&](const int offset, minloc_value_type &min_d_dist) {
+                 int j = d_nearest(ii,offset);
+                 j &= NEIGHMASK;
+                 const int jtype = type(j);
+                 auto r = d_rnorms(ii,offset);
+                 const int mu_j = d_map(type(j));
+                 const F_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));
+                 if (d < min_d_dist.val) {
+                     min_d_dist.val = d;
+                     min_d_dist.loc = offset;
+                 }
 
-     }, reducer_scalar);
+       }, reducer_scalar);
       d_d_min(ii) = djjmin.val;
       d_jj_min(ii) = djjmin.loc;// d_jj_min should be NOT in 0..jnum range, but in 0..d_ncount(<=jnum)
+    } else {
+      d_d_min(ii) = 1e20;
+      d_jj_min(ii) = -1;
+    }
   }
 }
 

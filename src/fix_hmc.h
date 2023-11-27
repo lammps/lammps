@@ -22,6 +22,7 @@ FixStyle(hmc,FixHMC)
 
 #include "fix.h"
 #include "atom.h"
+#include "fix_rigid_small.h"
 
 namespace LAMMPS_NS {
 
@@ -62,13 +63,14 @@ class FixHMC : public Fix {
   void rigid_body_restore_forces();
   void rigid_body_random_velocities();
   template <typename T>
-  void store_peratom_member(LAMMPS_NS::Atom::PerAtom&, LAMMPS_NS::Atom::PerAtom, int);
+  void store_peratom_member(Atom::PerAtom&, Atom::PerAtom, int);
   template <typename T>
-  void restore_peratom_member(LAMMPS_NS::Atom::PerAtom, LAMMPS_NS::Atom::PerAtom &, int);
-  std::vector<LAMMPS_NS::Atom::PerAtom> stored_peratom;
-  std::vector<LAMMPS_NS::Atom::PerAtom> current_peratom;
-  int stored_nlocal;
-
+  void restore_peratom_member(Atom::PerAtom, Atom::PerAtom &, int);
+  std::vector<Atom::PerAtom> stored_peratom;
+  std::vector<Atom::PerAtom> current_peratom;
+  int stored_nlocal, stored_nghost, stored_ntotal;
+  FixRigidSmall::Body *stored_body;
+  int stored_nlocal_body, stored_nghost_body, stored_ntotal_body;
   int tune_flag;
 
   char *mdi;

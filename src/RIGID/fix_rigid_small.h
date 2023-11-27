@@ -67,22 +67,6 @@ class FixRigidSmall : public Fix {
   double compute_scalar() override;
   double memory_usage() override;
 
- protected:
-  int me, nprocs;
-  double dtv, dtf, dtq;
-  double *step_respa;
-  int triclinic;
-
-  char *inpfile;       // file to read rigid body attributes from
-  int setupflag;       // 1 if body properties are setup, else 0
-  int earlyflag;       // 1 if forces/torques are computed at post_force()
-  int commflag;        // various modes of forward/reverse comm
-  int customflag;      // 1 if custom property/variable define bodies
-  int nbody;           // total # of rigid bodies
-  int nlinear;         // total # of linear rigid bodies
-  tagint maxmol;       // max mol-ID
-  double maxextent;    // furthest distance from body owner to body atom
-
   struct Body {
     int natoms;            // total number of atoms in body
     int ilocal;            // index of owning atom
@@ -111,6 +95,22 @@ class FixRigidSmall : public Fix {
   int nghost_body;    // # of ghost rigid bodies
   int nmax_body;      // max # of bodies that body can hold
   int bodysize;       // sizeof(Body) in doubles
+
+ protected:
+  int me, nprocs;
+  double dtv, dtf, dtq;
+  double *step_respa;
+  int triclinic;
+
+  char *inpfile;       // file to read rigid body attributes from
+  int setupflag;       // 1 if body properties are setup, else 0
+  int earlyflag;       // 1 if forces/torques are computed at post_force()
+  int commflag;        // various modes of forward/reverse comm
+  int customflag;      // 1 if custom property/variable define bodies
+  int nbody;           // total # of rigid bodies
+  int nlinear;         // total # of linear rigid bodies
+  tagint maxmol;       // max mol-ID
+  double maxextent;    // furthest distance from body owner to body atom
 
   // per-atom quantities
   // only defined for owned atoms, except bodyown for own+ghost

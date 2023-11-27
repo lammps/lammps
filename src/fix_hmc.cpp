@@ -93,6 +93,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   vec = NULL;
   eatom = NULL;
   vatom = NULL;
+  stored_body = NULL;
 
   // Register callback:
   atom->add_callback(0);
@@ -139,7 +140,7 @@ FixHMC::~FixHMC()
   modify->delete_compute("hmc_press");
   modify->delete_compute("hmc_pressatom");
 
-  for (LAMMPS_NS::Atom::PerAtom &stored_peratom_member : stored_peratom) {
+  for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
     free(stored_peratom_member.address);
     free(stored_peratom_member.address_maxcols);
     free(stored_peratom_member.address_length);
@@ -171,8 +172,8 @@ void FixHMC::post_constructor()
 /* ---------------------------------------------------------------------- */
 
 template <typename T>
-void FixHMC::store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_member,
-                          LAMMPS_NS::Atom::PerAtom current_peratom_member, int nlocal)
+void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
+                          Atom::PerAtom current_peratom_member, int nlocal)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
         error->all(FLERR, "fix hmc tried to store incorrect peratom data");
@@ -224,8 +225,8 @@ void FixHMC::store_peratom_member(LAMMPS_NS::Atom::PerAtom &stored_peratom_membe
 
 
 template <typename T>
-void FixHMC::restore_peratom_member(LAMMPS_NS::Atom::PerAtom stored_peratom_member,
-                          LAMMPS_NS::Atom::PerAtom &current_peratom_member, int nlocal)
+void FixHMC::restore_peratom_member(Atom::PerAtom stored_peratom_member,
+                          Atom::PerAtom &current_peratom_member, int nlocal)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
     error->all(FLERR, "fix hmc tried to store incorrect peratom data");
@@ -693,25 +694,38 @@ void FixHMC::save_current_state()
   double *scalar, **vector, *energy, **stress;
 
   // clear peratom data and store a new struct
-  for (LAMMPS_NS::Atom::PerAtom &stored_peratom_member : stored_peratom) {
+  for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
     free(stored_peratom_member.address);
     free(stored_peratom_member.address_maxcols);
   }
   stored_peratom.clear();
-  for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
-    LAMMPS_NS::Atom::PerAtom stored_peratom_member = current_peratom_member;
+  for (Atom::PerAtom &current_peratom_member : current_peratom) {
+    Atom::PerAtom stored_peratom_member = current_peratom_member;
     switch (current_peratom_member.datatype) {
       case (Atom::INT):
-        store_peratom_member<int>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        store_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal);
         break;
       case (Atom::DOUBLE):
-        store_peratom_member<double>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        store_peratom_member<double>(stored_peratom_member, current_peratom_member, ntotal);
         break;
       case (Atom::BIGINT):
-        store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, stored_nlocal);
+        store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, ntotal);
         break;
     }
     stored_peratom.push_back(stored_peratom_member);
+  }
+  stored_ntotal = ntotal;
+  stored_nlocal = nlocal;
+  stored_nghost = atom->nghost;
+
+  // store bodies
+  if (rigid_flag) {
+    stored_nlocal_body = fix_rigid->nlocal_body;
+    stored_nghost_body = fix_rigid->nghost_body;
+    stored_ntotal_body = stored_nlocal_body + stored_nghost_body;
+    delete stored_body;
+    stored_body = new FixRigidSmall::Body[stored_ntotal_body];
+    for (int i = 0; i < stored_ntotal_body; i++) stored_body[i] = fix_rigid->body[i];
   }
 
   // Save per-atom scalar properties:
@@ -776,29 +790,40 @@ void FixHMC::restore_saved_state()
   double **x = atom->x;
   double *scalar, **vector, *energy, **stress;
 
+  atom->nlocal = stored_nlocal;
+  atom->nghost = stored_nghost;
+
   if (nlocal != stored_nlocal) error->all(FLERR, "bonk");
   if (stored_peratom.size() != current_peratom.size()) error->all(FLERR, "bonk");
-  for (LAMMPS_NS::Atom::PerAtom &stored_peratom_member : stored_peratom) {
-    for (LAMMPS_NS::Atom::PerAtom &current_peratom_member : current_peratom) {
+  for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
+    for (Atom::PerAtom &current_peratom_member : current_peratom) {
       if (stored_peratom_member.name.compare(current_peratom_member.name)) {
         continue;
       } else {
         switch (current_peratom_member.datatype) {
           case (Atom::INT):
-            restore_peratom_member<int>(stored_peratom_member, current_peratom_member, stored_nlocal);
+            restore_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal);
             break;
           case (Atom::DOUBLE):
             restore_peratom_member<double>(stored_peratom_member, current_peratom_member,
-                                         stored_nlocal);
+                                         ntotal);
             break;
           case (Atom::BIGINT):
             restore_peratom_member<bigint>(stored_peratom_member, current_peratom_member,
-                                         stored_nlocal);
+                                         ntotal);
             break;
         }
         break;
       }
     }
+  }
+
+  // restore bodies
+  if (rigid_flag) {
+    stored_ntotal_body = fix_rigid->nlocal_body + fix_rigid->nghost_body;
+    fix_rigid->nlocal_body = stored_nlocal_body;
+    fix_rigid->nghost_body = stored_nghost_body;
+    for (int i = 0; i < stored_ntotal_body; i++) fix_rigid->body[i] = stored_body[i];
   }
 
   // Restore global energy terms:

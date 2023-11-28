@@ -281,7 +281,6 @@ void PairQUIP::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
-
   // Initialise potential
   // First call initializes potential via the fortran code in memory,
   // and returns the necessary size of quip_potential. This behavior

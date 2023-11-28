@@ -711,7 +711,7 @@ struct TestMultipleDependence {
     using value_type = int;
     KOKKOS_INLINE_FUNCTION
     void operator()(typename Scheduler::member_type&, int& result) {
-      double value = 0;
+      double value = 1;
       // keep this one busy for a while
       for (int i = 0; i < 10000; ++i) {
         value += i * i / 7.138 / value;

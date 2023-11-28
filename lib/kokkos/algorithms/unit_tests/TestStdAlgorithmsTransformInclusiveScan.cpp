@@ -355,18 +355,20 @@ TEST(std_algorithms_numeric_ops_test, transform_inclusive_scan_functor) {
   using unary_op_type =
       KE::Impl::StdNumericScanIdentityReferenceUnaryFunctor<int>;
   {
-    using functor_type = KE::Impl::TransformInclusiveScanNoInitValueFunctor<
-        exespace, int, int, view_type, view_type, MultiplyFunctor<int>,
-        unary_op_type>;
+    using functor_type =
+        KE::Impl::ExeSpaceTransformInclusiveScanNoInitValueFunctor<
+            exespace, int, int, view_type, view_type, MultiplyFunctor<int>,
+            unary_op_type>;
     functor_type functor(dummy_view, dummy_view, {}, {});
 
     test_lambda(functor);
   }
 
   {
-    using functor_type = KE::Impl::TransformInclusiveScanWithInitValueFunctor<
-        exespace, int, int, view_type, view_type, MultiplyFunctor<int>,
-        unary_op_type>;
+    using functor_type =
+        KE::Impl::ExeSpaceTransformInclusiveScanWithInitValueFunctor<
+            exespace, int, int, view_type, view_type, MultiplyFunctor<int>,
+            unary_op_type>;
     functor_type functor(dummy_view, dummy_view, {}, {}, dummy);
 
     test_lambda(functor);

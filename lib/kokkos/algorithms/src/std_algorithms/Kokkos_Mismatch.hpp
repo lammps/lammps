@@ -30,46 +30,60 @@ namespace Experimental {
 //
 // makes API ambiguous (with the overload accepting views).
 
-template <class ExecutionSpace, class IteratorType1, class IteratorType2>
+//
+// overload set accepting execution space
+//
+template <
+    class ExecutionSpace, class IteratorType1, class IteratorType2,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 ::Kokkos::pair<IteratorType1, IteratorType2> mismatch(const ExecutionSpace& ex,
                                                       IteratorType1 first1,
                                                       IteratorType1 last1,
                                                       IteratorType2 first2,
                                                       IteratorType2 last2) {
-  return Impl::mismatch_impl("Kokkos::mismatch_iterator_api_default", ex,
-                             first1, last1, first2, last2);
+  return Impl::mismatch_exespace_impl("Kokkos::mismatch_iterator_api_default",
+                                      ex, first1, last1, first2, last2);
 }
 
-template <class ExecutionSpace, class IteratorType1, class IteratorType2,
-          class BinaryPredicateType>
+template <
+    class ExecutionSpace, class IteratorType1, class IteratorType2,
+    class BinaryPredicateType,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 ::Kokkos::pair<IteratorType1, IteratorType2> mismatch(
     const ExecutionSpace& ex, IteratorType1 first1, IteratorType1 last1,
     IteratorType2 first2, IteratorType2 last2,
     BinaryPredicateType&& predicate) {
-  return Impl::mismatch_impl("Kokkos::mismatch_iterator_api_default", ex,
-                             first1, last1, first2, last2,
-                             std::forward<BinaryPredicateType>(predicate));
+  return Impl::mismatch_exespace_impl(
+      "Kokkos::mismatch_iterator_api_default", ex, first1, last1, first2, last2,
+      std::forward<BinaryPredicateType>(predicate));
 }
 
-template <class ExecutionSpace, class IteratorType1, class IteratorType2>
+template <
+    class ExecutionSpace, class IteratorType1, class IteratorType2,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 ::Kokkos::pair<IteratorType1, IteratorType2> mismatch(
     const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
     IteratorType1 last1, IteratorType2 first2, IteratorType2 last2) {
-  return Impl::mismatch_impl(label, ex, first1, last1, first2, last2);
+  return Impl::mismatch_exespace_impl(label, ex, first1, last1, first2, last2);
 }
 
-template <class ExecutionSpace, class IteratorType1, class IteratorType2,
-          class BinaryPredicateType>
+template <
+    class ExecutionSpace, class IteratorType1, class IteratorType2,
+    class BinaryPredicateType,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 ::Kokkos::pair<IteratorType1, IteratorType2> mismatch(
     const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
     IteratorType1 last1, IteratorType2 first2, IteratorType2 last2,
     BinaryPredicateType&& predicate) {
-  return Impl::mismatch_impl(label, ex, first1, last1, first2, last2,
-                             std::forward<BinaryPredicateType>(predicate));
+  return Impl::mismatch_exespace_impl(
+      label, ex, first1, last1, first2, last2,
+      std::forward<BinaryPredicateType>(predicate));
 }
 
-template <class ExecutionSpace, class DataType1, class... Properties1,
-          class DataType2, class... Properties2>
+template <
+    class ExecutionSpace, class DataType1, class... Properties1,
+    class DataType2, class... Properties2,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto mismatch(const ExecutionSpace& ex,
               const ::Kokkos::View<DataType1, Properties1...>& view1,
               const ::Kokkos::View<DataType2, Properties2...>& view2) {
@@ -77,13 +91,15 @@ auto mismatch(const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::mismatch_impl("Kokkos::mismatch_view_api_default", ex,
-                             KE::begin(view1), KE::end(view1), KE::begin(view2),
-                             KE::end(view2));
+  return Impl::mismatch_exespace_impl("Kokkos::mismatch_view_api_default", ex,
+                                      KE::begin(view1), KE::end(view1),
+                                      KE::begin(view2), KE::end(view2));
 }
 
-template <class ExecutionSpace, class DataType1, class... Properties1,
-          class DataType2, class... Properties2, class BinaryPredicateType>
+template <
+    class ExecutionSpace, class DataType1, class... Properties1,
+    class DataType2, class... Properties2, class BinaryPredicateType,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto mismatch(const ExecutionSpace& ex,
               const ::Kokkos::View<DataType1, Properties1...>& view1,
               const ::Kokkos::View<DataType2, Properties2...>& view2,
@@ -92,14 +108,16 @@ auto mismatch(const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::mismatch_impl("Kokkos::mismatch_view_api_default", ex,
-                             KE::begin(view1), KE::end(view1), KE::begin(view2),
-                             KE::end(view2),
-                             std::forward<BinaryPredicateType>(predicate));
+  return Impl::mismatch_exespace_impl(
+      "Kokkos::mismatch_view_api_default", ex, KE::begin(view1), KE::end(view1),
+      KE::begin(view2), KE::end(view2),
+      std::forward<BinaryPredicateType>(predicate));
 }
 
-template <class ExecutionSpace, class DataType1, class... Properties1,
-          class DataType2, class... Properties2>
+template <
+    class ExecutionSpace, class DataType1, class... Properties1,
+    class DataType2, class... Properties2,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto mismatch(const std::string& label, const ExecutionSpace& ex,
               const ::Kokkos::View<DataType1, Properties1...>& view1,
               const ::Kokkos::View<DataType2, Properties2...>& view2) {
@@ -107,12 +125,15 @@ auto mismatch(const std::string& label, const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::mismatch_impl(label, ex, KE::begin(view1), KE::end(view1),
-                             KE::begin(view2), KE::end(view2));
+  return Impl::mismatch_exespace_impl(label, ex, KE::begin(view1),
+                                      KE::end(view1), KE::begin(view2),
+                                      KE::end(view2));
 }
 
-template <class ExecutionSpace, class DataType1, class... Properties1,
-          class DataType2, class... Properties2, class BinaryPredicateType>
+template <
+    class ExecutionSpace, class DataType1, class... Properties1,
+    class DataType2, class... Properties2, class BinaryPredicateType,
+    std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto mismatch(const std::string& label, const ExecutionSpace& ex,
               const ::Kokkos::View<DataType1, Properties1...>& view1,
               const ::Kokkos::View<DataType2, Properties2...>& view2,
@@ -121,9 +142,65 @@ auto mismatch(const std::string& label, const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::mismatch_impl(label, ex, KE::begin(view1), KE::end(view1),
-                             KE::begin(view2), KE::end(view2),
-                             std::forward<BinaryPredicateType>(predicate));
+  return Impl::mismatch_exespace_impl(
+      label, ex, KE::begin(view1), KE::end(view1), KE::begin(view2),
+      KE::end(view2), std::forward<BinaryPredicateType>(predicate));
+}
+
+//
+// overload set accepting a team handle
+// Note: for now omit the overloads accepting a label
+// since they cause issues on device because of the string allocation.
+//
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          std::enable_if_t<Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION ::Kokkos::pair<IteratorType1, IteratorType2> mismatch(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, IteratorType2 last2) {
+  return Impl::mismatch_team_impl(teamHandle, first1, last1, first2, last2);
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class BinaryPredicateType,
+          std::enable_if_t<Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION ::Kokkos::pair<IteratorType1, IteratorType2> mismatch(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, IteratorType2 last2,
+    BinaryPredicateType&& predicate) {
+  return Impl::mismatch_team_impl(teamHandle, first1, last1, first2, last2,
+                                  std::forward<BinaryPredicateType>(predicate));
+}
+
+template <class TeamHandleType, class DataType1, class... Properties1,
+          class DataType2, class... Properties2,
+          std::enable_if_t<Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION auto mismatch(
+    const TeamHandleType& teamHandle,
+    const ::Kokkos::View<DataType1, Properties1...>& view1,
+    const ::Kokkos::View<DataType2, Properties2...>& view2) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+
+  namespace KE = ::Kokkos::Experimental;
+  return Impl::mismatch_team_impl(teamHandle, KE::begin(view1), KE::end(view1),
+                                  KE::begin(view2), KE::end(view2));
+}
+
+template <class TeamHandleType, class DataType1, class... Properties1,
+          class DataType2, class... Properties2, class BinaryPredicateType,
+          std::enable_if_t<Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION auto mismatch(
+    const TeamHandleType& teamHandle,
+    const ::Kokkos::View<DataType1, Properties1...>& view1,
+    const ::Kokkos::View<DataType2, Properties2...>& view2,
+    BinaryPredicateType&& predicate) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+
+  namespace KE = ::Kokkos::Experimental;
+  return Impl::mismatch_team_impl(teamHandle, KE::begin(view1), KE::end(view1),
+                                  KE::begin(view2), KE::end(view2),
+                                  std::forward<BinaryPredicateType>(predicate));
 }
 
 }  // namespace Experimental

@@ -23,41 +23,80 @@
 namespace Kokkos {
 namespace Experimental {
 
-template <class ExecutionSpace, class IteratorType, class Predicate>
+//
+// overload set accepting execution space
+//
+template <
+    typename ExecutionSpace, typename IteratorType, typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 bool none_of(const ExecutionSpace& ex, IteratorType first, IteratorType last,
              Predicate predicate) {
-  return Impl::none_of_impl("Kokkos::none_of_iterator_api_default", ex, first,
-                            last, predicate);
+  return Impl::none_of_exespace_impl("Kokkos::none_of_iterator_api_default", ex,
+                                     first, last, predicate);
 }
 
-template <class ExecutionSpace, class IteratorType, class Predicate>
+template <
+    typename ExecutionSpace, typename IteratorType, typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 bool none_of(const std::string& label, const ExecutionSpace& ex,
              IteratorType first, IteratorType last, Predicate predicate) {
-  return Impl::none_of_impl(label, ex, first, last, predicate);
+  return Impl::none_of_exespace_impl(label, ex, first, last, predicate);
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class Predicate>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 bool none_of(const ExecutionSpace& ex,
              const ::Kokkos::View<DataType, Properties...>& v,
              Predicate predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::none_of_impl("Kokkos::none_of_view_api_default", ex,
-                            KE::cbegin(v), KE::cend(v), std::move(predicate));
+  return Impl::none_of_exespace_impl("Kokkos::none_of_view_api_default", ex,
+                                     KE::cbegin(v), KE::cend(v),
+                                     std::move(predicate));
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class Predicate>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 bool none_of(const std::string& label, const ExecutionSpace& ex,
              const ::Kokkos::View<DataType, Properties...>& v,
              Predicate predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::none_of_impl(label, ex, KE::cbegin(v), KE::cend(v),
-                            std::move(predicate));
+  return Impl::none_of_exespace_impl(label, ex, KE::cbegin(v), KE::cend(v),
+                                     std::move(predicate));
+}
+
+//
+// overload set accepting a team handle
+// Note: for now omit the overloads accepting a label
+// since they cause issues on device because of the string allocation.
+//
+template <typename TeamHandleType, typename IteratorType, typename Predicate>
+KOKKOS_FUNCTION
+    std::enable_if_t<::Kokkos::is_team_handle<TeamHandleType>::value, bool>
+    none_of(const TeamHandleType& teamHandle, IteratorType first,
+            IteratorType last, Predicate predicate) {
+  return Impl::none_of_team_impl(teamHandle, first, last, predicate);
+}
+
+template <typename TeamHandleType, typename DataType, typename... Properties,
+          typename Predicate>
+KOKKOS_FUNCTION
+    std::enable_if_t<::Kokkos::is_team_handle<TeamHandleType>::value, bool>
+    none_of(const TeamHandleType& teamHandle,
+            const ::Kokkos::View<DataType, Properties...>& v,
+            Predicate predicate) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
+
+  namespace KE = ::Kokkos::Experimental;
+  return Impl::none_of_team_impl(teamHandle, KE::cbegin(v), KE::cend(v),
+                                 std::move(predicate));
 }
 
 }  // namespace Experimental

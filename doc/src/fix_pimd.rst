@@ -149,7 +149,7 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    only the k > 0 modes are thermostatted, not the centroid degrees of
    freedom.
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
    Mode *pimd* added to fix pimd/langevin.
 

@@ -15,9 +15,7 @@ Python exception handling mechanism.
 
    try:
       # LAMMPS will normally terminate itself and the running process if an error
-      # occurs. This would kill the Python interpreter. To avoid this, make sure to
-      # compile with LAMMPS_EXCEPTIONS enabled. This ensures the library API calls
-      # will not terminate the parent process. Instead, the library wrapper will
+      # occurs. This would kill the Python interpreter.  The library wrapper will
       # detect that an error has occured and throw a Python exception
 
       lmp.command('unknown')

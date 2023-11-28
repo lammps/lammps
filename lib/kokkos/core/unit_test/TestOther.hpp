@@ -17,12 +17,7 @@
 #ifndef KOKKOS_TEST_OTHER_HPP
 #define KOKKOS_TEST_OTHER_HPP
 #include <TestAggregate.hpp>
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC:
-// NVC++-F-0000-Internal compiler error. Basic LLVM base data type required 23
-// (/ascldap/users/crtrott/Kokkos/kokkos/build/core/unit_test/cuda/TestCuda_Other.cpp:
-// 204) NVC++/x86-64 Linux 22.3-0: compilation aborted
 #include <TestMemoryPool.hpp>
-#endif
 #include <TestCXX11.hpp>
 
 #include <TestViewCtorPropEmbeddedDim.hpp>

@@ -201,7 +201,7 @@ information in this context, the *replace* keywords will extract the
 atom IDs for the two atoms in the bond of maximum stretch.  These atom
 IDs and the bond stretch will be printed with thermodynamic output.
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
 The *inputs* keyword allows selection of whether all the inputs are
 per-atom or local quantities.  As noted above, all the inputs must be

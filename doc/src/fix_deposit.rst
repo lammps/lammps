@@ -220,7 +220,7 @@ rotated configuration of the molecule.
    existing particle.  LAMMPS will issue a warning if R is smaller than
    this value, based on the radii of existing and inserted particles.
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
 The *var* and *set* keywords can be used together to provide a criterion
 for accepting or rejecting the addition of an individual atom, based on its

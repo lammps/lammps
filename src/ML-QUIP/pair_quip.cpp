@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 
 PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
 {
-  scale=nullptr;
+  scale=1.0;
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
@@ -57,7 +57,6 @@ PairQUIP::~PairQUIP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(scale);
     delete[] map;
   }
   delete[] quip_potential;
@@ -159,38 +158,38 @@ void PairQUIP::compute(int eflag, int vflag)
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
     for (jj = 0; jj < 3; jj++) {
-      f[ii][jj] += scale[1][1]*quip_force[iquip];
+      f[ii][jj] += scale*quip_force[iquip];
       iquip++;
     }
   }
 
-  if (eflag_global) { eng_vdwl = scale[1][1]*quip_energy; }
+  if (eflag_global) { eng_vdwl = scale*quip_energy; }
 
   if (eflag_atom) {
     for (ii = 0; ii < ntotal; ii++) {
-	   eatom[ii] = scale[1][1]*quip_local_e[ii];
+	   eatom[ii] = scale*quip_local_e[ii];
     }
   }
 
 
   if (vflag_global) {
-    virial[0] = scale[1][1]*quip_virial[0];
-    virial[1] = scale[1][1]*quip_virial[4];
-    virial[2] = scale[1][1]*quip_virial[8];
-    virial[3] = scale[1][1]*(quip_virial[3] + quip_virial[1]) * 0.5;
-    virial[4] = scale[1][1]*(quip_virial[2] + quip_virial[6]) * 0.5;
-    virial[5] = scale[1][1]*(quip_virial[5] + quip_virial[7]) * 0.5;
+    virial[0] = scale*quip_virial[0];
+    virial[1] = scale*quip_virial[4];
+    virial[2] = scale*quip_virial[8];
+    virial[3] = scale*(quip_virial[3] + quip_virial[1]) * 0.5;
+    virial[4] = scale*(quip_virial[2] + quip_virial[6]) * 0.5;
+    virial[5] = scale*(quip_virial[5] + quip_virial[7]) * 0.5;
   }
 
   if (vflag_atom) {
     int iatom = 0;
     for (ii = 0; ii < ntotal; ii++) {
-      vatom[ii][0] += scale[1][1]*quip_local_virial[iatom + 0];
-      vatom[ii][1] += scale[1][1]*quip_local_virial[iatom + 4];
-      vatom[ii][2] += scale[1][1]*quip_local_virial[iatom + 8];
-      vatom[ii][3] += scale[1][1]*(quip_local_virial[iatom + 3] + quip_local_virial[iatom + 1]) * 0.5;
-      vatom[ii][4] += scale[1][1]*(quip_local_virial[iatom + 2] + quip_local_virial[iatom + 6]) * 0.5;
-      vatom[ii][5] += scale[1][1]*(quip_local_virial[iatom + 5] + quip_local_virial[iatom + 7]) * 0.5;
+      vatom[ii][0] += scale*quip_local_virial[iatom + 0];
+      vatom[ii][1] += scale*quip_local_virial[iatom + 4];
+      vatom[ii][2] += scale*quip_local_virial[iatom + 8];
+      vatom[ii][3] += scale*(quip_local_virial[iatom + 3] + quip_local_virial[iatom + 1]) * 0.5;
+      vatom[ii][4] += scale*(quip_local_virial[iatom + 2] + quip_local_virial[iatom + 6]) * 0.5;
+      vatom[ii][5] += scale*(quip_local_virial[iatom + 5] + quip_local_virial[iatom + 7]) * 0.5;
       iatom += 9;
     }
   }
@@ -233,7 +232,6 @@ void PairQUIP::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
-  memory->create(scale, n + 1, n + 1, "pair:scale");
   setflag = memory->create(setflag, n + 1, n + 1, "pair:setflag");
   cutsq = memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
   map = new int[n + 1];
@@ -283,10 +281,6 @@ void PairQUIP::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
-  // initialize scale factor
-  for (int i = 1; i <= n; i++) {
-    for (int j = i; j <= n; j++) scale[i][j] = 1.0;
-  }
 
   // Initialise potential
   // First call initializes potential via the fortran code in memory,
@@ -325,17 +319,15 @@ void PairQUIP::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 double PairQUIP::init_one(int i, int j)
-{ if (setflag[i][j] == 0) scale[i][j] = 1.0;
-  scale[j][i] = scale[i][j];
-  return cutoff;
+{  return cutoff;
 }
 
 
 /* for fix adapt scaling */
 void *PairQUIP::extract(const char *str, int &dim)
 {
-  dim = 2;
-  if (strcmp(str,"scale") == 0) return (void *) scale;
+  dim = 0;
+  if (strcmp(str,"scale") == 0) return (void *) &scale;
   return nullptr;
 }
 

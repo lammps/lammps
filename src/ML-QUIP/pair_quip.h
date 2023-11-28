@@ -44,7 +44,7 @@ class PairQUIP : public Pair {
   void allocate();
   void *extract(const char *, int &);
  protected:
-  double **scale;
+  double scale;
  private:
   double cutoff;
   int *quip_potential;

@@ -24,9 +24,9 @@
 
 #include <Kokkos_HostSpace.hpp>  // used with HostInaccessible specializations
 
-#include <string>    // std::string
-#include <cstring>   // strncpy
-#include <iostream>  // ostream
+#include <cstring>
+#include <ostream>
+#include <string>
 
 namespace Kokkos {
 namespace Impl {

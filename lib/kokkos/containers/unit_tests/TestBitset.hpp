@@ -190,19 +190,8 @@ void test_bitset() {
     {
       Impl::TestBitsetTest<const_bitset_type> f(bitset);
       uint32_t count = f.testit();
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-      if constexpr (!std::is_same_v<typename Device::execution_space,
-                                    Kokkos::Cuda>) {
-        EXPECT_EQ(bitset.size(), count);
-        EXPECT_EQ(count, bitset.count());
-      } else {
-        (void)count;
-      }
-#else
       EXPECT_EQ(bitset.size(), count);
       EXPECT_EQ(count, bitset.count());
-#endif
     }
 
     // std::cout << "  Check reset() " << std::endl;

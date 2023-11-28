@@ -260,7 +260,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Compute {} compute {} array is accessed out-of-range", style, val.id);
 
       } else if (input_mode == LOCAL) {
-        if (!val.val.c->peratom_flag)
+        if (!val.val.c->local_flag)
           error->all(FLERR, "Compute {} compute {} does not calculate local values", style, val.id);
         if (val.argindex == 0 && val.val.c->size_local_cols != 0)
           error->all(FLERR, "Compute {} compute {} does not calculate a local vector", style, val.id);

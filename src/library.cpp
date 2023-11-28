@@ -481,7 +481,7 @@ void lammps_error(void *handle, int error_type, const char *error_text)
   }
   END_CAPTURE
 
-    // with enabled exceptions the above code will simply throw an
+    // in case of an error the above code will simply throw an
     // exception and record the error message. So we have to explicitly
     // stop here like we do in main.cpp
   if (lammps_has_error(handle)) {
@@ -6608,13 +6608,6 @@ has thrown a :ref:`C++ exception <exceptions>`.
    instance, but instead would check the global error buffer of the
    library interface.
 
-.. note::
-
-   This function will always report "no error" when the LAMMPS library
-   has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
-   errors aborting LAMMPS into C++ exceptions. You can use the library
-   function :cpp:func:`lammps_config_has_exceptions` to check whether this is
-   the case.
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *`` or NULL
@@ -6663,12 +6656,6 @@ the failing MPI ranks to send messages.
    The *buffer* pointer may be ``NULL``.  This will clear any error
    status without copying the error message.
 
-.. note::
-
-   This function will do nothing when the LAMMPS library has been
-   compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
-   LAMMPS into C++ exceptions.  You can use the library function
-   :cpp:func:`lammps_config_has_exceptions` to check whether this is the case.
 \endverbatim
  *
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.

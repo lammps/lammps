@@ -706,6 +706,8 @@ library.  Ceil() is the smallest integer not less than its argument.
 Floor() if the largest integer not greater than its argument.  Round()
 is the nearest integer to its argument.
 
+.. versionadded:: TBD
+
 The ternary(x,y,z) function is the equivalent of the ternary operator
 (? and :) in C or C++.  It takes 3 arguments.  The first argument is a
 conditional.  The result of the function is y if x evaluates to true
@@ -1042,10 +1044,9 @@ to built-in commands.  For all of these styles except *command*,
 appending of active suffixes is also tried before reporting failure.
 
 The *feature* category checks the availability of the following
-compile-time enabled features: GZIP support, PNG support, JPEG
-support, FFMPEG support, and C++ exceptions for error
-handling. Corresponding names are *gzip*, *png*, *jpeg*, *ffmpeg* and
-*exceptions*\ .
+compile-time enabled features: GZIP support, PNG support, JPEG support,
+FFMPEG support, and C++ exceptions for error handling. Corresponding
+names are *gzip*, *png*, *jpeg*, *ffmpeg* and *exceptions*\ .
 
 Example: Only dump in a given format if the compiled binary supports it.
 

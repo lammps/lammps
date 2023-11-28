@@ -66,7 +66,7 @@ PairQUIP::~PairQUIP()
 
 void PairQUIP::compute(int eflag, int vflag)
 {
-  int inum, jnum, sum_num_neigh, ii, jj, i, iquip, itype;
+  int inum, jnum, sum_num_neigh, ii, jj, i, iquip;
   int *ilist;
   int *jlist;
   int *numneigh, **firstneigh;
@@ -167,7 +167,7 @@ void PairQUIP::compute(int eflag, int vflag)
 
   if (eflag_atom) {
     for (ii = 0; ii < ntotal; ii++) {
-	   eatom[ii] = scale*quip_local_e[ii];
+           eatom[ii] = scale*quip_local_e[ii];
     }
   }
 
@@ -318,7 +318,7 @@ void PairQUIP::init_style()
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-double PairQUIP::init_one(int i, int j)
+double PairQUIP::init_one(int /*i*/, int /*j*/)
 {  return cutoff;
 }
 

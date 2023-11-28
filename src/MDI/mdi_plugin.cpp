@@ -22,6 +22,7 @@
 #include "input.h"
 #include "modify.h"
 
+#include <cstdlib>
 #include <cstring>
 
 #include <mdi.h>
@@ -66,11 +67,12 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       // do variable substitution in multiple word extra_arg
 
       int ncopy = strlen(extra_arg) + 1;
-      char *copy = utils::strdup(extra_arg);
-      char *work = new char[ncopy];
+      char *copy = (char *) malloc(ncopy);
+      strncpy(copy, extra_arg, ncopy);
+      char *work = (char *) malloc(ncopy);
       int nwork = ncopy;
-      input->substitute(copy,work,ncopy,nwork,0);
-      delete[] work;
+      input->substitute(copy, work, ncopy, nwork, 0);
+      free(work);
       extra_arg = copy;
 
       iarg += 2;
@@ -81,11 +83,12 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       // do variable substitution in multiple word lammps_command
 
       int ncopy = strlen(lammps_command) + 1;
-      char *copy = utils::strdup(lammps_command);
-      char *work = new char[ncopy];
+      char *copy = (char *) malloc(ncopy);
+      strncpy(copy, extra_arg, ncopy);
+      char *work = (char *) malloc(ncopy);
       int nwork = ncopy;
-      input->substitute(copy,work,ncopy,nwork,0);
-      delete[] work;
+      input->substitute(copy, work, ncopy, nwork, 0);
+      free(work);
       lammps_command = copy;
 
       iarg += 2;

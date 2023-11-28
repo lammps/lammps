@@ -318,12 +318,14 @@ void PairQUIP::init_style()
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
+
 double PairQUIP::init_one(int /*i*/, int /*j*/)
-{  return cutoff;
+{
+  return cutoff;
 }
 
-
 /* for fix adapt scaling */
+
 void *PairQUIP::extract(const char *str, int &dim)
 {
   dim = 0;

@@ -38,6 +38,7 @@ using namespace LAMMPS_NS;
 
 PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
 {
+  scale=nullptr;
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
@@ -66,7 +67,7 @@ PairQUIP::~PairQUIP()
 
 void PairQUIP::compute(int eflag, int vflag)
 {
-  int inum, jnum, sum_num_neigh, ii, jj, i, iquip;
+  int inum, jnum, sum_num_neigh, ii, jj, i, iquip, itype;
   int *ilist;
   int *jlist;
   int *numneigh, **firstneigh;
@@ -163,11 +164,14 @@ void PairQUIP::compute(int eflag, int vflag)
     }
   }
 
-  if (eflag_global) { eng_vdwl = quip_energy; }
+  if (eflag_global) { eng_vdwl = scale[1][1]*quip_energy; }
 
   if (eflag_atom) {
-    for (ii = 0; ii < ntotal; ii++) { eatom[ii] = scale[1][1]*quip_local_e[ii]; }
+    for (ii = 0; ii < ntotal; ii++) {
+	   eatom[ii] = scale[1][1]*quip_local_e[ii];
+    }
   }
+
 
   if (vflag_global) {
     virial[0] = scale[1][1]*quip_virial[0];
@@ -229,7 +233,7 @@ void PairQUIP::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
-
+  memory->create(scale, n + 1, n + 1, "pair:scale");
   setflag = memory->create(setflag, n + 1, n + 1, "pair:setflag");
   cutsq = memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
   map = new int[n + 1];
@@ -279,6 +283,11 @@ void PairQUIP::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
+  // initialize scale factor
+  for (int i = 1; i <= n; i++) {
+    for (int j = i; j <= n; j++) scale[i][j] = 1.0;
+  }
+
   // Initialise potential
   // First call initializes potential via the fortran code in memory,
   // and returns the necessary size of quip_potential. This behavior
@@ -316,7 +325,8 @@ void PairQUIP::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 double PairQUIP::init_one(int i, int j)
-{ scale[j][i] = scale[i][j];
+{ if (setflag[i][j] == 0) scale[i][j] = 1.0;
+  scale[j][i] = scale[i][j];
   return cutoff;
 }
 

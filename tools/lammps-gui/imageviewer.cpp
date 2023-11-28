@@ -215,9 +215,11 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     combo->setToolTip("Select group to display");
     combo->setObjectName("group");
     int ngroup = lammps->id_count("group");
-    char gname[64];
+    constexpr int BUFLEN = 256;
+    char gname[BUFLEN];
     for (int i = 0; i < ngroup; ++i) {
-        lammps->id_name("group", i, gname, 64);
+        memset(gname, 0, BUFLEN);
+        lammps->id_name("group", i, gname, BUFLEN);
         combo->addItem(gname);
     }
 

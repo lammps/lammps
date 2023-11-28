@@ -58,7 +58,7 @@
 #endif
 
 static const QString blank(" ");
-static constexpr int BUFLEN = 128;
+static constexpr int BUFLEN = 256;
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
@@ -778,11 +778,11 @@ void LammpsGui::logupdate()
 
         if (varwindow) {
             int nvar = lammps.id_count("variable");
-            char buffer[200];
+            char buffer[BUFLEN];
             QString varinfo("\n");
             for (int i = 0; i < nvar; ++i) {
-                lammps.variable_info(i, buffer, 200);
-                varinfo += buffer;
+                memset(buffer, 0, BUFLEN);
+                if (lammps.variable_info(i, buffer, BUFLEN)) varinfo += buffer;
             }
             if (nvar == 0) varinfo += "  (none)  ";
 
@@ -1432,12 +1432,12 @@ void LammpsGui::start_lammps()
     lammps.open(narg, args);
     lammpsstatus->show();
 
-    // must have at least 2 August 2023 version of LAMMPS
+    // must have a version newer than the 2 August 2023 release of LAMMPS
     // TODO: must update this check before next feature release
-    if (lammps.version() < 20230802) {
+    if (lammps.version() <= 20230802) {
         QMessageBox::critical(this, "Incompatible LAMMPS Version",
                               "LAMMPS-GUI version " LAMMPS_GUI_VERSION " requires\n"
-                              "LAMMPS version 2 August 2023 or later");
+                              "a LAMMPS version more recent than 2 August 2023");
         exit(1);
     }
 

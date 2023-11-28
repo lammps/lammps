@@ -33,10 +33,11 @@ protected:
     {
         const char *args[] = {"LAMMPS_test", "-log",      "none",
                               "-echo",       "screen",    "-nocite",
-                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER)};
+                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER),
+                              nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
         lmp                = lammps_open_no_mpi(argc, argv, nullptr);
@@ -551,10 +552,10 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite"};
+        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite", nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
         lmp                = lammps_open_no_mpi(argc, argv, nullptr);
@@ -632,10 +633,10 @@ TEST(SystemSettings, kokkos)
 
     // clang-format off
     const char *args[] = {"SystemSettings", "-log", "none", "-echo", "screen", "-nocite",
-                          "-k", "on", "t", "4", "-sf", "kk"};
+                          "-k", "on", "t", "4", "-sf", "kk", nullptr};
     // clang-format on
     char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *lmp          = lammps_open_no_mpi(argc, argv, nullptr);

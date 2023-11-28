@@ -12,6 +12,8 @@ export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
 CC =		mpicxx
 CCFLAGS =	-g -O3 -DNDEBUG -Xcudafe --diag_suppress=unrecognized_pragma
 SHFLAGS =	-fPIC
+# uncomment when compiling with Intel 21.5 or older
+FMTFLAGS = 	# -std=c++11
 DEPFLAGS =	-M
 
 LINK =		mpicxx
@@ -36,7 +38,7 @@ KOKKOS_ARCH = Volta70
 LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
-# see discussion in Section 2.2 (step 5) of manual
+# see discussion in Section 3.4 of the manual
 # MPI wrapper compiler/linker can provide this info
 # can point to dummy MPI library in src/STUBS as in Makefile.serial
 # use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts
@@ -117,6 +119,18 @@ $(SHLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
 
 %.o:%.cpp
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
+variable.o : ../variable.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+utils.o : ../utils.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+fmtlib_format.o : ../fmtlib_format.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+fmtlib_os.o : ../fmtlib_os.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
 
 # Individual dependencies
 

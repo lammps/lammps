@@ -11,8 +11,8 @@ CXXFLAGS += $(SHFLAGS)
 endif
 
 KOKKOS_VERSION_MAJOR = 4
-KOKKOS_VERSION_MINOR = 1
-KOKKOS_VERSION_PATCH = 00
+KOKKOS_VERSION_MINOR = 2
+KOKKOS_VERSION_PATCH = 0
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -23,7 +23,7 @@ KOKKOS_DEVICES ?= "OpenMP"
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75,Ampere80,Ampere86,Ada89,Hopper90
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2,A64FX
 # IBM:      BGQ,Power7,Power8,Power9
-# AMD-GPUS: Vega906,Vega908,Vega90A,Navi1030
+# AMD-GPUS: GFX906,GFX908,GFX90A,GFX942,GFX1030,GFX1100
 # AMD-CPUS: AMDAVX,Zen,Zen2,Zen3
 # Intel-GPUs: Gen9,Gen11,Gen12LP,DG1,XeHP,PVC
 KOKKOS_ARCH ?= ""
@@ -40,7 +40,7 @@ KOKKOS_TRIBITS ?= "no"
 KOKKOS_STANDALONE_CMAKE ?= "no"
 
 # Default settings specific options.
-# Options: force_uvm,use_ldg,rdc,enable_lambda,enable_constexpr
+# Options: force_uvm,use_ldg,rdc,enable_lambda,enable_constexpr,disable_malloc_async
 KOKKOS_CUDA_OPTIONS ?= "enable_lambda"
 
 # Options: rdc
@@ -92,6 +92,7 @@ KOKKOS_INTERNAL_CUDA_USE_UVM := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),
 KOKKOS_INTERNAL_CUDA_USE_RELOC := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),rdc)
 KOKKOS_INTERNAL_CUDA_USE_LAMBDA := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),enable_lambda)
 KOKKOS_INTERNAL_CUDA_USE_CONSTEXPR := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),enable_constexpr)
+KOKKOS_INTERNAL_CUDA_DISABLE_MALLOC_ASYNC := $(call kokkos_has_string,$(KOKKOS_CUDA_OPTIONS),disable_malloc_async)
 KOKKOS_INTERNAL_HPX_ENABLE_ASYNC_DISPATCH := $(call kokkos_has_string,$(KOKKOS_HPX_OPTIONS),enable_async_dispatch)
 # deprecated
 KOKKOS_INTERNAL_ENABLE_DESUL_ATOMICS := $(call kokkos_has_string,$(KOKKOS_OPTIONS),enable_desul_atomics)
@@ -412,10 +413,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 0)
     KOKKOS_INTERNAL_USE_ARCH_ZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen)
   endif
 endif
-KOKKOS_INTERNAL_USE_ARCH_VEGA906 := $(call kokkos_has_string,$(KOKKOS_ARCH),Vega906)
-KOKKOS_INTERNAL_USE_ARCH_VEGA908 := $(call kokkos_has_string,$(KOKKOS_ARCH),Vega908)
-KOKKOS_INTERNAL_USE_ARCH_VEGA90A := $(call kokkos_has_string,$(KOKKOS_ARCH),Vega90A)
-KOKKOS_INTERNAL_USE_ARCH_NAVI1030 := $(call kokkos_has_string,$(KOKKOS_ARCH),Navi1030)
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX906 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA906),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX906))
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX908 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA908),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX908))
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA90A),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX90A))
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1030),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1030))
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1100),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1100))
 
 # Any AVX?
 KOKKOS_INTERNAL_USE_ARCH_SSE42      := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM))
@@ -698,6 +700,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
   ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_IMPL_CUDA_CLANG_WORKAROUND")
   endif
+
+  ifeq ($(KOKKOS_INTERNAL_CUDA_DISABLE_MALLOC_ASYNC), 0)
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC")
+  else
+    tmp := $(call kokkos_append_header,"/* $H""undef KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC */")
+  endif
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
@@ -710,6 +718,7 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV80), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV80")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARM_NEON")
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
     KOKKOS_CXXFLAGS +=
@@ -722,6 +731,7 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV81), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV81")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARM_NEON")
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
     KOKKOS_CXXFLAGS +=
@@ -734,6 +744,7 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_A64FX), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_A64FX")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARM_NEON")
 
   KOKKOS_CXXFLAGS += -march=armv8.2-a+sve
   KOKKOS_LDFLAGS += -march=armv8.2-a+sve
@@ -749,7 +760,7 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_ZEN")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_AVX2")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AVX2")
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
     KOKKOS_CXXFLAGS += -mavx2
@@ -762,7 +773,7 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN2), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_ZEN2")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_AVX2")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AVX2")
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
     KOKKOS_CXXFLAGS += -mavx2
@@ -775,7 +786,7 @@ endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_ZEN3")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_AVX2")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AVX2")
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
     KOKKOS_CXXFLAGS += -mavx2
@@ -789,6 +800,7 @@ endif
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV80")
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV8_THUNDERX")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARM_NEON")
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
     KOKKOS_CXXFLAGS +=
@@ -802,6 +814,7 @@ endif
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX2), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV81")
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV8_THUNDERX2")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARM_NEON")
 
   ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
     KOKKOS_CXXFLAGS +=
@@ -1085,29 +1098,34 @@ endif
 
 
 # Figure out the architecture flag for ROCm.
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA906), 1)
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA906")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA")
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX906), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX906")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
   KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx906
 endif
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA908), 1)
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA908")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA")
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX908), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX908")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
   KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx908
 endif
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_VEGA90A), 1)
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA90A")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_VEGA")
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX90A")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
   KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx90a
 endif
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NAVI1030), 1)
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI1030")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI")
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX942), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX942")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
+  KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx942
+endif
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX1030")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
   KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx1030
 endif
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NAVI1100), 1)
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI1100")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_NAVI")
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX1100")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
   KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx1100
 endif
 

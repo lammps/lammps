@@ -190,7 +190,7 @@ Voro++ software in the src/VORONOI/README file.
 Output info
 """""""""""
 
-.. deprecated:: TBD
+.. deprecated:: 21Nov2023
 
    The *peratom* keyword was removed as it is no longer required.
 
@@ -232,4 +232,4 @@ Related commands
 Default
 """""""
 
-The default for the neighobrs keyword is no.
+The default for the neighbors keyword is no.

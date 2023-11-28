@@ -167,16 +167,16 @@ void Info::command(int narg, char **arg)
       if ((out != screen) && (out != logfile)) fclose(out);
       out = fopen(arg[idx+2],"w");
       idx += 3;
-    } else if (strncmp(arg[idx],"communication",5) == 0) {
+    } else if (strncmp(arg[idx],"communication",4) == 0) {
       flags |= COMM;
       ++idx;
-    } else if (strncmp(arg[idx],"computes",5) == 0) {
+    } else if (strncmp(arg[idx],"computes",4) == 0) {
       flags |= COMPUTES;
       ++idx;
-    } else if (strncmp(arg[idx],"dumps",5) == 0) {
+    } else if (strncmp(arg[idx],"dumps",3) == 0) {
       flags |= DUMPS;
       ++idx;
-    } else if (strncmp(arg[idx],"fixes",5) == 0) {
+    } else if (strncmp(arg[idx],"fixes",3) == 0) {
       flags |= FIXES;
       ++idx;
     } else if (strncmp(arg[idx],"groups",3) == 0) {
@@ -1225,6 +1225,10 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+#if LMP_KOKKOS
+    mesg += fmt::format("\nKokkos library version: {}.{}.{}", KOKKOS_VERSION / 10000,
+                       (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
+#endif
     mesg += "\n";
   }
   if ((package.empty() || (package == "OPENMP")) && has_package("OPENMP")) {
@@ -1235,6 +1239,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
     if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
+#if defined(_OPENMP)
+    mesg += "\nOpenMP standard: " + platform::openmp_standard();
+#endif
     mesg += "\n";
   }
   if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {

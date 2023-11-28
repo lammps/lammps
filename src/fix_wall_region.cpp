@@ -244,6 +244,7 @@ void FixWallRegion::post_force(int vflag)
   // initilize ewall after region->prematch(),
   //   so a dynamic region can access last timestep values
 
+  eflag = 0;
   ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
 
   for (i = 0; i < nlocal; i++)

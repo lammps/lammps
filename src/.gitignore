@@ -631,6 +631,8 @@
 /compute_ptm_atom.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
+/compute_slcsa_atom.cpp
+/compute_slcsa_atom.h
 /compute_smd_triangle_vertices.cpp
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp

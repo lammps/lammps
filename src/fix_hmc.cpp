@@ -1157,6 +1157,7 @@ void FixHMC::rigid_body_random_velocities()
   FixRigidSmall::Body *body = fix_rigid->body;
   int nlocal = fix_rigid->nlocal_body;
   int ntotal = nlocal + fix_rigid->nghost_body;
+  int *mask = atom->mask;
 
   double stdev, bmass, wbody[3], mbody[3];
   double total_mass = 0;
@@ -1165,16 +1166,18 @@ void FixHMC::rigid_body_random_velocities()
 
   for (int ibody = 0; ibody < nlocal; ibody++) {
     b = &body[ibody];
-    bmass = b->mass;
-    stdev = sqrt(KT/bmass);
-    total_mass += bmass;
-    for (int j = 0; j < 3; j++) {
-      b->vcm[j] = stdev*random->gaussian();
-      vcm[j] += b->vcm[j] * bmass;
-      if (b->inertia[j] > 0.0)
-        wbody[j] = sqrt(KT/b->inertia[j])*random->gaussian();
-      else
-        wbody[j] = 0.0;
+    if (mask[b->ilocal] & groupbit) {
+      bmass = b->mass;
+      stdev = sqrt(KT/bmass);
+      total_mass += bmass;
+      for (int j = 0; j < 3; j++) {
+        b->vcm[j] = stdev*random->gaussian();
+        vcm[j] += b->vcm[j] * bmass;
+        if (b->inertia[j] > 0.0)
+          wbody[j] = sqrt(KT/b->inertia[j])*random->gaussian();
+        else
+          wbody[j] = 0.0;
+      }
     }
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,wbody,b->omega);
   }
@@ -1182,8 +1185,10 @@ void FixHMC::rigid_body_random_velocities()
   if (mom_flag) {
     for (int j = 0; j < 3; j++) vcm[j] /= total_mass;
     for (int ibody = 0; ibody < nlocal; ibody++) {
-      b = &body[ibody];
-      for (int j = 0; j < 3; j++) b->vcm[j] -= vcm[j];
+      if (mask[b->ilocal] & groupbit) {
+        b = &body[ibody];
+        for (int j = 0; j < 3; j++) b->vcm[j] -= vcm[j];
+      }
     }
   }
 

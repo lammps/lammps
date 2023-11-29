@@ -639,6 +639,7 @@ of Angular Momentum, World Scientific, Singapore (1987).
 
 **(Ellis)** Ellis, Fiedler, Popoola, Modine, Stephens, Thompson, Cangi, Rajamanickam,  Phys Rev B, 104, 035120, (2021)
 
-.. _Lafourcade2023:
+.. _Lafourcade2023_2:
 
-**(Lafourcade)** Lafourcade, P. and Maillet, J.-B. and Denoual, C. and Duval, E. and Allera, A. and Goryaeva, A. M. and Marinica, M.-C., `Comp. Mat. Science, 230, 112534 (2023) <https://doi.org/10.1016/j.commatsci.2023.112534>`_
+**(Lafourcade)** Lafourcade, Maillet, Denoual, Duval, Allera, Goryaeva, and Marinica,
+`Comp. Mat. Science, 230, 112534 (2023) <https://doi.org/10.1016/j.commatsci.2023.112534>`_

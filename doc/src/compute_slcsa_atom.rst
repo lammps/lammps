@@ -93,6 +93,7 @@ none
 
 ----------
 
-.. _Lafourcade2023:
+.. _Lafourcade2023_1:
 
-**(Lafourcade)** Lafourcade, Maillet, Denoual, Duval, Allera, Goryaeva, Marinica, Comp. Mat. Science, XXX, XXX, (2023).
+**(Lafourcade)** Lafourcade, Maillet, Denoual, Duval, Allera, Goryaeva, and Marinica,
+`Comp. Mat. Science, 230, 112534 (2023) <https://doi.org/10.1016/j.commatsci.2023.112534>`_

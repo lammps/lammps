@@ -60,20 +60,20 @@ class ComputeSLCSAAtom : public Compute {
   const char *lr_decision_file;
   const char *lr_bias_file;
   const char *covmat_file;
-  const char *maha_file;  
+  const char *maha_file;
   class NeighList *list;
-  
+
   // LDA dimension reduction
   double **lda_scalings;
-  double *database_mean_descriptor;  
+  double *database_mean_descriptor;
 
   // LR classification
   double *lr_bias;
   double **lr_decision;
-  
+
   // Mahalanobis distance calculation
-  double ***icov_list;  
-  double **mean_projected_descriptors;  
+  double ***icov_list;
+  double **mean_projected_descriptors;
   double *maha_thresholds;
 
   // Per-atom local arrays
@@ -83,10 +83,10 @@ class ComputeSLCSAAtom : public Compute {
   double *probas;
   double *prodright;
   double *dmaha;
-  
+
   // Output array
   double **classification;
-  
+
 };
 
 }    // namespace LAMMPS_NS

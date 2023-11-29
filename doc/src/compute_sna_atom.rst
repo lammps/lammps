@@ -89,9 +89,9 @@ Syntax
        *nnn* value = number of considered nearest neighbors to compute the bispectrum over a target specific number of neighbors (only implemented for compute sna/atom)
        *wmode* value = weight function for finding optimal cutoff to match the target number of neighbors (required if nnn used, only implemented for compute sna/atom)
           *0* = heavyside weight function
-	  *1* = hyperbolic tangent weight function
+          *1* = hyperbolic tangent weight function
        *delta* value = transition interval centered at cutoff distance for hyperbolic tangent weight function (ignored if wmode=0, required if wmode=1, only implemented for compute sna/atom)
-     
+
 Examples
 """"""""
 
@@ -598,7 +598,7 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_style snap <pair_snap>`
-:doc:`compute slcsa/atom <compute_slcsa_atom>`     
+:doc:`compute slcsa/atom <compute_slcsa_atom>`
 
 Default
 """""""

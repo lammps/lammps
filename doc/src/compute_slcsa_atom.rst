@@ -39,7 +39,7 @@ The first step of the SL-CSA tool consists in performing a dimension reduction o
 .. math::
 
    \mathbf{x}^i = \mathbf{C}^T_\mathrm{LDA} \cdot (\mathbf{B}^i - \mu^\mathbf{B}_\mathrm{db})
-   
+
 where :math:`\mathbf{C}^T_\mathrm{LDA} \in \mathbb{R}^{D \times d}` is the reduction coefficients matrix of the LDA model read in file *lda_file*, :math:`\mathbf{B}^i \in \mathbb{R}^{D}` is the bispectrum of atom :math:`i` and :math:`\mu^\mathbf{B}_\mathrm{db} \in  \mathbb{R}^{D}` is the average descriptor of the entire database. The latter is computed from the average descriptors of each crystal structure read from the file *mean_descriptors_file*.
 
 The new projected descriptor with dimension :math:`d=C-1` allows for a good separation of different crystal structures fingerprints in the latent space.
@@ -49,7 +49,7 @@ Once the dimension reduction step is performed by means of LDA, the new descript
 .. math::
 
    \mathbf{s}^i = \mathbf{b}_\mathrm{LR} + \mathbf{D}_\mathrm{LR} \cdot {\mathbf{x}^i}^T
-   
+
 with :math:`\mathbf{b}_\mathrm{LR} \in \mathbb{R}^C` and :math:`\mathbf{D}_\mathrm{LR} \in \mathbb{R}^{C \times d}` the bias vector and decision matrix of the LR model after training both read in files *lr_fil1* and *lr_file2* respectively.
 
 Finally, a probability vector :math:`\mathbf{p}^i=\mathrm{P}_\mathrm{LR}(\mathbf{x}^i):\mathbb{R}^d \rightarrow \mathbb{R}^C` is defined as:

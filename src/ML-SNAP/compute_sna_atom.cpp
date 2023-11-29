@@ -132,7 +132,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       delta = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (delta < 1.0e-3) error->all(FLERR, "Illegal compute compute {} command", style);
-      iarg += 2;      
+      iarg += 2;
     } else if (strcmp(arg[iarg], "chem") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal compute {} command", style);
       chemflag = 1;
@@ -187,7 +187,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
         FLERR,
         "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
         style);
-  
+
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);
 
@@ -202,7 +202,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   sna = nullptr;
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -254,7 +254,7 @@ void ComputeSNAAtom::init_list(int /*id*/, NeighList *ptr)
 void ComputeSNAAtom::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
-  
+
   // grow sna array if necessary
 
   if (atom->nmax > nmax) {
@@ -298,161 +298,161 @@ void ComputeSNAAtom::compute_peratom()
 
       // ############################################################################## //
       // ##### Start of section for computing bispectrum on nnn nearest neighbors ##### //
-      // ############################################################################## //      
+      // ############################################################################## //
       if (nearest_neighbors_mode == true) {
-	// ##### 1) : consider full neighbor list in rlist	
-	memory->create(distsq, jnum, "snann/atom:distsq");
-	memory->create(rlist, jnum, 3, "snann/atom:rlist");
-      
-	int ncount = 0;
-	for (int jj = 0; jj < jnum; jj++) {
-	  int j = jlist[jj];
-	  j &= NEIGHMASK;
-	  int jtype = type[j];
+        // ##### 1) : consider full neighbor list in rlist
+        memory->create(distsq, jnum, "snann/atom:distsq");
+        memory->create(rlist, jnum, 3, "snann/atom:rlist");
 
-	  const double delx = xtmp - x[j][0];
-	  const double dely = ytmp - x[j][1];
-	  const double delz = ztmp - x[j][2];
-	  const double rsq = delx * delx + dely * dely + delz * delz;
+        int ncount = 0;
+        for (int jj = 0; jj < jnum; jj++) {
+          int j = jlist[jj];
+          j &= NEIGHMASK;
+          int jtype = type[j];
 
-	  if (rsq < rcutsq) {
-	    distsq[ncount] = rsq;
-	    rlist[ncount][0] = delx;
-	    rlist[ncount][1] = dely;
-	    rlist[ncount][2] = delz;
-	    ncount++;
-	  }
-	}
+          const double delx = xtmp - x[j][0];
+          const double dely = ytmp - x[j][1];
+          const double delz = ztmp - x[j][2];
+          const double rsq = delx * delx + dely * dely + delz * delz;
 
-	// ##### 2) : compute optimal cutoff such that sum weights S_target = nnn
-	double S_target=1.*nnn;
-	double rc_start=0.1;
-	double rc_max=sqrt(rcutsq);
-	double tol=1.e-8;
-	double * sol_dich = dichotomie(S_target, rc_start, rc_max, tol, distsq, ncount, wmode, delta);
-	memory->destroy(distsq);
-	
-	// ##### 3) : assign that optimal cutoff radius to bispectrum context using rcsol
-	double rcsol = (sol_dich[0]+sol_dich[1])/2.;
-	memory->destroy(sol_dich);
-	snaptr->grow_rij(ncount);
-	
-	int ninside = 0;
-	for (int jj = 0; jj < ncount; jj++) {
-	  int j = jlist[jj];
-	  j &= NEIGHMASK;
-	
-	  const double rsq = rlist[jj][0]*rlist[jj][0]+rlist[jj][1]*rlist[jj][1]+rlist[jj][2]*rlist[jj][2];
-	  int jtype = type[j];
-	  int jelem = 0;
-	  if (chemflag)
-	    jelem = map[jtype];
-	
-	  if (rsq < rcsol*rcsol) {
-	    snaptr->rij[ninside][0] = rlist[jj][0];//rijmax;
-	    snaptr->rij[ninside][1] = rlist[jj][1];//rijmax;
-	    snaptr->rij[ninside][2] = rlist[jj][2];//rijmax;
-	    snaptr->inside[ninside] = j;
-	    snaptr->wj[ninside] = 1.;
-	    snaptr->rcutij[ninside] = rcsol;
-	
-	    if (switchinnerflag) {
-	      snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
-	      snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
-	    }
-	    if (chemflag) snaptr->element[ninside] = jelem;
-	    ninside++;
-	  }
-	}
+          if (rsq < rcutsq) {
+            distsq[ncount] = rsq;
+            rlist[ncount][0] = delx;
+            rlist[ncount][1] = dely;
+            rlist[ncount][2] = delz;
+            ncount++;
+          }
+        }
 
-	memory->destroy(rlist);
+        // ##### 2) : compute optimal cutoff such that sum weights S_target = nnn
+        double S_target=1.*nnn;
+        double rc_start=0.1;
+        double rc_max=sqrt(rcutsq);
+        double tol=1.e-8;
+        double * sol_dich = dichotomie(S_target, rc_start, rc_max, tol, distsq, ncount, wmode, delta);
+        memory->destroy(distsq);
 
-	// ############################################################################ //
-	// ##### End of section for computing bispectrum on nnn nearest neighbors ##### //
-	// ############################################################################ //
-	snaptr->compute_ui(ninside, ielem);
-	snaptr->compute_zi();
-	snaptr->compute_bi(ielem);
-      
-	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-	  sna[i][icoeff] = snaptr->blist[icoeff];
-	if (quadraticflag) {
-	  int ncount = ncoeff;
-	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	    double bi = snaptr->blist[icoeff];
+        // ##### 3) : assign that optimal cutoff radius to bispectrum context using rcsol
+        double rcsol = (sol_dich[0]+sol_dich[1])/2.;
+        memory->destroy(sol_dich);
+        snaptr->grow_rij(ncount);
 
-	    // diagonal element of quadratic matrix
+        int ninside = 0;
+        for (int jj = 0; jj < ncount; jj++) {
+          int j = jlist[jj];
+          j &= NEIGHMASK;
 
-	    sna[i][ncount++] = 0.5*bi*bi;
+          const double rsq = rlist[jj][0]*rlist[jj][0]+rlist[jj][1]*rlist[jj][1]+rlist[jj][2]*rlist[jj][2];
+          int jtype = type[j];
+          int jelem = 0;
+          if (chemflag)
+            jelem = map[jtype];
 
-	    // upper-triangular elements of quadratic matrix
+          if (rsq < rcsol*rcsol) {
+            snaptr->rij[ninside][0] = rlist[jj][0];//rijmax;
+            snaptr->rij[ninside][1] = rlist[jj][1];//rijmax;
+            snaptr->rij[ninside][2] = rlist[jj][2];//rijmax;
+            snaptr->inside[ninside] = j;
+            snaptr->wj[ninside] = 1.;
+            snaptr->rcutij[ninside] = rcsol;
 
-	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-	      sna[i][ncount++] = bi*snaptr->blist[jcoeff];
-	  }
-	}
-	
-      } else {	
-	// ensure rij, inside, and typej  are of size jnum
+            if (switchinnerflag) {
+              snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
+              snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
+            }
+            if (chemflag) snaptr->element[ninside] = jelem;
+            ninside++;
+          }
+        }
 
-	snaptr->grow_rij(jnum);
+        memory->destroy(rlist);
 
-	// rij[][3] = displacements between atom I and those neighbors
-	// inside = indices of neighbors of I within cutoff
-	// typej = types of neighbors of I within cutoff
+        // ############################################################################ //
+        // ##### End of section for computing bispectrum on nnn nearest neighbors ##### //
+        // ############################################################################ //
+        snaptr->compute_ui(ninside, ielem);
+        snaptr->compute_zi();
+        snaptr->compute_bi(ielem);
 
-	int ninside = 0;
-	for (int jj = 0; jj < jnum; jj++) {
-	  int j = jlist[jj];
-	  j &= NEIGHMASK;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+          sna[i][icoeff] = snaptr->blist[icoeff];
+        if (quadraticflag) {
+          int ncount = ncoeff;
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bi = snaptr->blist[icoeff];
 
-	  const double delx = xtmp - x[j][0];
-	  const double dely = ytmp - x[j][1];
-	  const double delz = ztmp - x[j][2];
-	  const double rsq = delx*delx + dely*dely + delz*delz;
-	  int jtype = type[j];
-	  int jelem = 0;
-	  if (chemflag)
-	    jelem = map[jtype];
-	  if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
-	    snaptr->rij[ninside][0] = delx;
-	    snaptr->rij[ninside][1] = dely;
-	    snaptr->rij[ninside][2] = delz;
-	    snaptr->inside[ninside] = j;
-	    snaptr->wj[ninside] = wjelem[jtype];
-	    snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-	    if (switchinnerflag) {
-	      snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
-	      snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
-	    }
-	    if (chemflag) snaptr->element[ninside] = jelem;
-	    ninside++;
-	  }
-	}
-	snaptr->compute_ui(ninside, ielem);
-	snaptr->compute_zi();
-	snaptr->compute_bi(ielem);
-      
-	for (int icoeff = 0; icoeff < ncoeff; icoeff++)
-	  sna[i][icoeff] = snaptr->blist[icoeff];
-	if (quadraticflag) {
-	  int ncount = ncoeff;
-	  for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-	    double bi = snaptr->blist[icoeff];
+            // diagonal element of quadratic matrix
 
-	    // diagonal element of quadratic matrix
+            sna[i][ncount++] = 0.5*bi*bi;
 
-	    sna[i][ncount++] = 0.5*bi*bi;
+            // upper-triangular elements of quadratic matrix
 
-	    // upper-triangular elements of quadratic matrix
+            for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
+              sna[i][ncount++] = bi*snaptr->blist[jcoeff];
+          }
+        }
 
-	    for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
-	      sna[i][ncount++] = bi*snaptr->blist[jcoeff];
-	  }
-	}
-	
+      } else {
+        // ensure rij, inside, and typej  are of size jnum
+
+        snaptr->grow_rij(jnum);
+
+        // rij[][3] = displacements between atom I and those neighbors
+        // inside = indices of neighbors of I within cutoff
+        // typej = types of neighbors of I within cutoff
+
+        int ninside = 0;
+        for (int jj = 0; jj < jnum; jj++) {
+          int j = jlist[jj];
+          j &= NEIGHMASK;
+
+          const double delx = xtmp - x[j][0];
+          const double dely = ytmp - x[j][1];
+          const double delz = ztmp - x[j][2];
+          const double rsq = delx*delx + dely*dely + delz*delz;
+          int jtype = type[j];
+          int jelem = 0;
+          if (chemflag)
+            jelem = map[jtype];
+          if (rsq < cutsq[itype][jtype] && rsq>1e-20) {
+            snaptr->rij[ninside][0] = delx;
+            snaptr->rij[ninside][1] = dely;
+            snaptr->rij[ninside][2] = delz;
+            snaptr->inside[ninside] = j;
+            snaptr->wj[ninside] = wjelem[jtype];
+            snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
+            if (switchinnerflag) {
+              snaptr->sinnerij[ninside] = 0.5*(sinnerelem[itype]+sinnerelem[jtype]);
+              snaptr->dinnerij[ninside] = 0.5*(dinnerelem[itype]+dinnerelem[jtype]);
+            }
+            if (chemflag) snaptr->element[ninside] = jelem;
+            ninside++;
+          }
+        }
+        snaptr->compute_ui(ninside, ielem);
+        snaptr->compute_zi();
+        snaptr->compute_bi(ielem);
+
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+          sna[i][icoeff] = snaptr->blist[icoeff];
+        if (quadraticflag) {
+          int ncount = ncoeff;
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bi = snaptr->blist[icoeff];
+
+            // diagonal element of quadratic matrix
+
+            sna[i][ncount++] = 0.5*bi*bi;
+
+            // upper-triangular elements of quadratic matrix
+
+            for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++)
+              sna[i][ncount++] = bi*snaptr->blist[jcoeff];
+          }
+        }
+
       }
-      
+
     } else {
       for (int icoeff = 0; icoeff < size_peratom_cols; icoeff++)
         sna[i][icoeff] = 0.0;
@@ -583,7 +583,7 @@ void ComputeSNAAtom::select3(int k, int n, double *arr, int *iarr, double **arr3
 
 double * ComputeSNAAtom::weights(double * rsq, double rcut, int ncounts)
 {
-  double * w=nullptr;      
+  double * w=nullptr;
   memory->destroy(w);
   memory->create(w, ncounts, "snann:gauss_weights");
   double rloc=0.;
@@ -591,9 +591,9 @@ double * ComputeSNAAtom::weights(double * rsq, double rcut, int ncounts)
     {
       rloc = sqrt(rsq[i]);
       if (rloc > rcut){
-	w[i]=0.;
+        w[i]=0.;
       } else {
-	w[i]=1.;
+        w[i]=1.;
       }
     }
   return w;
@@ -601,11 +601,11 @@ double * ComputeSNAAtom::weights(double * rsq, double rcut, int ncounts)
 
 double * ComputeSNAAtom::tanh_weights(double * rsq, double rcut, double delta, int ncounts)
 {
-  double * w=nullptr;      
+  double * w=nullptr;
   memory->destroy(w);
   memory->create(w, ncounts, "snann:gauss_weights");
   double rloc=0.;
-  
+
   for (int i=0; i<ncounts; i++)
     {
       rloc = sqrt(rsq[i]);
@@ -631,7 +631,7 @@ double ComputeSNAAtom::get_target_rcut(double S_target, double * rsq, double rcu
   if (weightmode == 0) {
     double * www = weights(rsq, rcut, ncounts);
     S_sol = sum_weights(rsq, www, ncounts);
-    memory->destroy(www);    
+    memory->destroy(www);
   } else if (weightmode == 1) {
     double * www = tanh_weights(rsq, rcut, delta, ncounts);
     S_sol = sum_weights(rsq, www, ncounts);
@@ -658,19 +658,19 @@ double * ComputeSNAAtom::dichotomie(double S_target, double a, double b, double 
       double f_ra = get_target_rcut(S_target, rsq, a, ncounts, weightmode, delta);
       double f_rm = get_target_rcut(S_target, rsq, m, ncounts, weightmode, delta);
       if (f_rm == 0.)
-	{
-	  sol[0]=m;
-	  sol[1]=m;
-	  return sol;
-	}
+        {
+          sol[0]=m;
+          sol[1]=m;
+          return sol;
+        }
       else if (f_rm*f_ra > 0.)
-	{
-	  a = m;
-	}
+        {
+          a = m;
+        }
       else
-	{
-	  b = m;
-	}
+        {
+          b = m;
+        }
       cnt+=1;
     } while ( d > e );
   sol[0]=a;

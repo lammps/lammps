@@ -40,11 +40,11 @@ class ComputeSNAAtom : public Compute {
 
   void select3(int, int, double *, int *, double **);
   double * weights(double *, double, int);
-  double * tanh_weights(double *, double, double, int);  
+  double * tanh_weights(double *, double, double, int);
   double sum_weights(double *, double *, int);
   double get_target_rcut(double, double *, double, int, int, double);
   double * dichotomie(double, double, double, double, double *, int, int, double);
-  
+
  private:
   int nmax;
   int ncoeff;

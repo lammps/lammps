@@ -55,7 +55,7 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
 {
   // command : compute c1 all slcsa/atom jmax nclasses parameters_file.dat
   // example : compute c1 all slcsa/atom 8 4 slcsa_parameters.dat
-  // example : compute c1 all slcsa/atom 8 4 database_mean_descriptor.dat lda_scalings.dat lr_decision.dat lr_bias.dat mahalanobis_data.dat c_b1[*]  
+  // example : compute c1 all slcsa/atom 8 4 database_mean_descriptor.dat lda_scalings.dat lr_decision.dat lr_bias.dat mahalanobis_data.dat c_b1[*]
   // Steps :
   // 1. bs=bs-xbar
   // 2. dred=coefs_lda*bs
@@ -75,14 +75,14 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   // vector with 1 row x nclasses cols
 
   if (narg != 11) error->all(FLERR, "Illegal compute slcsa/atom command; wrong numer of arguments");
-  
+
   int twojmax = utils::inumeric(FLERR, arg[3], false, lmp);
   if (twojmax < 0) error->all(FLERR, "Illegal compute slcsa/atom command: twojmax should be a non-negative integer");
   ncomps = compute_ncomps(twojmax);
-  
+
   nclasses = utils::inumeric(FLERR, arg[4], false, lmp);
   if (nclasses < 2) error->all(FLERR, "Illegal compute slcsa/atom command: nclasses should be strictly greater than 1");
-  
+
   database_mean_descriptor_file = arg[5];
   lda_scalings_file = arg[6];
   lr_decision_file = arg[7];
@@ -94,22 +94,22 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   std::cout << " file lr decision              : " << lr_decision_file << std::endl;
   std::cout << " file lr bias                  : " << lr_bias_file << std::endl;
   std::cout << " file maha stats               : " << maha_file << std::endl;
-  
+
   int expand = 0;
   char **earg;
   int nvalues = utils::expand_args(FLERR, narg - 10, &arg[10], 1, earg, lmp);
   if (earg != &arg[10]) expand = 1;
   arg = earg;
-  
+
   ArgInfo argi(arg[0]);
   value_t val;
   val.id = "";
-  val.val.c = nullptr;  
+  val.val.c = nullptr;
   val.which = argi.get_type();
   val.argindex = argi.get_index1();
   val.id = argi.get_name();
   if ((val.which == ArgInfo::FIX) || (val.which == ArgInfo::VARIABLE) || (val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
-    error->all(FLERR, "Invalid compute slcsa/atom argument: {}", arg[0]);  
+    error->all(FLERR, "Invalid compute slcsa/atom argument: {}", arg[0]);
 
   // if wildcard expansion occurred, free earg memory from exapnd_args()
 
@@ -117,7 +117,7 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
   }
-  
+
   val.val.c = modify->get_compute_by_id(val.id);
   if (!val.val.c) error->all(FLERR,"Compute ID {} for fix slcsa/atom does not exist", val.id);
   if (val.val.c->peratom_flag == 0)
@@ -136,58 +136,58 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   memory->create(maha_thresholds, nclasses, "slcsa/atom:maha_thresholds");
   memory->create(icov_list, nclasses, nclasses-1, nclasses-1, "slcsa/atom:icov_list");
   memory->create(mean_projected_descriptors, nclasses, nclasses-1, "slcsa/atom:mean_projected_descriptors");
-  
+
   if (comm->me == 0) {
-    
+
     if (strcmp(database_mean_descriptor_file,"NULL") == 0) {
       error->one(FLERR,"Cannot open database mean descriptor file {}: ", database_mean_descriptor_file, utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp,database_mean_descriptor_file, "database mean descriptor file");
       int nread=0;
       while (nread<ncomps) {
-	auto values = reader.next_values(0);
-	database_mean_descriptor[nread]=values.next_double();
-	nread++;
+        auto values = reader.next_values(0);
+        database_mean_descriptor[nread]=values.next_double();
+        nread++;
       }
     }
-    
+
     if (strcmp(lda_scalings_file,"NULL") == 0) {
-      error->one(FLERR,"Cannot open database linear discriminant analysis scalings file {}: ", lda_scalings_file, utils::getsyserror());      
+      error->one(FLERR,"Cannot open database linear discriminant analysis scalings file {}: ", lda_scalings_file, utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp,lda_scalings_file, "lda scalings file");
       int nread=0;
       while (nread<ncomps) {
-	auto values = reader.next_values(nclasses-1);
-	lda_scalings[nread][0]=values.next_double();
-	lda_scalings[nread][1]=values.next_double();
-	lda_scalings[nread][2]=values.next_double();	
-	nread++;
+        auto values = reader.next_values(nclasses-1);
+        lda_scalings[nread][0]=values.next_double();
+        lda_scalings[nread][1]=values.next_double();
+        lda_scalings[nread][2]=values.next_double();
+        nread++;
       }
     }
 
     if (strcmp(lr_decision_file,"NULL") == 0) {
-      error->one(FLERR,"Cannot open logistic regression decision file {}: ", lr_decision_file, utils::getsyserror());      
+      error->one(FLERR,"Cannot open logistic regression decision file {}: ", lr_decision_file, utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp,lr_decision_file, "lr decision file");
       int nread=0;
       while (nread<nclasses) {
-	auto values = reader.next_values(nclasses-1);
-	lr_decision[nread][0]=values.next_double();
-	lr_decision[nread][1]=values.next_double();
-	lr_decision[nread][2]=values.next_double();	
-	nread++;
+        auto values = reader.next_values(nclasses-1);
+        lr_decision[nread][0]=values.next_double();
+        lr_decision[nread][1]=values.next_double();
+        lr_decision[nread][2]=values.next_double();
+        nread++;
       }
     }
 
     if (strcmp(lr_bias_file,"NULL") == 0) {
-      error->one(FLERR,"Cannot open logistic regression bias file {}: ", lr_bias_file, utils::getsyserror());      
+      error->one(FLERR,"Cannot open logistic regression bias file {}: ", lr_bias_file, utils::getsyserror());
     } else {
       PotentialFileReader reader(lmp,lr_bias_file, "lr bias file");
       auto values = reader.next_values(nclasses);
       lr_bias[0]=values.next_double();
       lr_bias[1]=values.next_double();
       lr_bias[2]=values.next_double();
-      lr_bias[3]=values.next_double();	      
+      lr_bias[3]=values.next_double();
     }
 
     if (strcmp(maha_file,"NULL") == 0) {
@@ -198,32 +198,32 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
       auto values = reader.next_values(nvalues);
 
       for(int i=0;i<nclasses;i++){
-	maha_thresholds[i]=values.next_double();
-	for(int j=0;j<nclasses-1;j++) {
-	  mean_projected_descriptors[i][j]=values.next_double();
-	}
-	for(int k=0;k<nclasses-1;k++) {
-	  for(int l=0;l<nclasses-1;l++) {
-	    icov_list[i][k][l]=values.next_double();
-	  }
-	}
+        maha_thresholds[i]=values.next_double();
+        for(int j=0;j<nclasses-1;j++) {
+          mean_projected_descriptors[i][j]=values.next_double();
+        }
+        for(int k=0;k<nclasses-1;k++) {
+          for(int l=0;l<nclasses-1;l++) {
+            icov_list[i][k][l]=values.next_double();
+          }
+        }
       }
 
       for(int i=0;i<nclasses;i++){
-	std::cout << "For class " << i << " maha threshold = " << maha_thresholds[i] << std::endl;
-	std::cout << "\tmean B: " << std::endl;
-	for(int j=0;j<nclasses-1;j++) {
-	  std::cout << "\t\t" << mean_projected_descriptors[i][j] << std::endl;
-	}
-	std::cout << "\ticov: " << std::endl;	
-	for(int j=0;j<nclasses-1;j++) {
-	  std::cout << "\t\t" << icov_list[i][j][0] << " " << icov_list[i][j][1] << " " << icov_list[i][j][2] << std::endl;	  
-	}
+        std::cout << "For class " << i << " maha threshold = " << maha_thresholds[i] << std::endl;
+        std::cout << "\tmean B: " << std::endl;
+        for(int j=0;j<nclasses-1;j++) {
+          std::cout << "\t\t" << mean_projected_descriptors[i][j] << std::endl;
+        }
+        std::cout << "\ticov: " << std::endl;
+        for(int j=0;j<nclasses-1;j++) {
+          std::cout << "\t\t" << icov_list[i][j][0] << " " << icov_list[i][j][1] << " " << icov_list[i][j][2] << std::endl;
+        }
       }
     }
-    
+
   }
-  
+
   MPI_Bcast(&database_mean_descriptor[0],ncomps,MPI_DOUBLE,0,world);
   MPI_Bcast(&lda_scalings[0][0],ncomps*(nclasses-1),MPI_DOUBLE,0,world);
   MPI_Bcast(&lr_decision[0][0],nclasses*(nclasses-1),MPI_DOUBLE,0,world);
@@ -231,11 +231,11 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   MPI_Bcast(&maha_thresholds[0],nclasses,MPI_DOUBLE,0,world);
   MPI_Bcast(&mean_projected_descriptors[0][0],nclasses*(nclasses-1),MPI_DOUBLE,0,world);
   MPI_Bcast(&icov_list[0][0][0],nclasses*(nclasses-1)*(nclasses-1),MPI_DOUBLE,0,world);
-  
+
   peratom_flag = 1;
   size_peratom_cols = nclasses+1;
   ncols=nclasses+1;
-  nmax=0;  
+  nmax=0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -253,7 +253,7 @@ ComputeSLCSAAtom::~ComputeSLCSAAtom()
   memory->destroy(full_descriptor);
   memory->destroy(projected_descriptor);
   memory->destroy(scores);
-  memory->destroy(probas);  
+  memory->destroy(probas);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -279,7 +279,7 @@ void ComputeSLCSAAtom::compute_peratom()
   invoked_peratom = update->ntimestep;
 
   // grow per-atom if necessary
-  
+
   if (atom->nmax > nmax) {
     memory->destroy(classification);
     nmax = atom->nmax;
@@ -290,7 +290,7 @@ void ComputeSLCSAAtom::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double **compute_array;
-  
+
   if (descriptorval.which == ArgInfo::COMPUTE) {
     if (!(descriptorval.val.c->invoked_flag & Compute::INVOKED_PERATOM)) {
       descriptorval.val.c->compute_peratom();
@@ -300,80 +300,80 @@ void ComputeSLCSAAtom::compute_peratom()
   }
 
   memory->create(full_descriptor, ncomps, "slcsa/atom:local descriptor");
-  memory->create(projected_descriptor, nclasses-1, "slcsa/atom:reduced descriptor");  
-  memory->create(scores, nclasses, "slcsa/atom:probas");  
-  memory->create(probas, nclasses, "slcsa/atom:probas");  
+  memory->create(projected_descriptor, nclasses-1, "slcsa/atom:reduced descriptor");
+  memory->create(scores, nclasses, "slcsa/atom:probas");
+  memory->create(probas, nclasses, "slcsa/atom:probas");
   memory->create(prodright, nclasses-1, "slcsa/atom:prodright");
-  memory->create(dmaha, nclasses, "slcsa/atom:prodright");    
-  
+  memory->create(dmaha, nclasses, "slcsa/atom:prodright");
+
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       for (int j = 0; j < ncomps; j++) {
-	full_descriptor[j] = compute_array[i][j];
-      }      
+        full_descriptor[j] = compute_array[i][j];
+      }
       // Here comes the LDA + LR process
       // 1st step : Retrieve mean database descriptor
       for (int j = 0; j < ncomps; j++) {
-	full_descriptor[j] -= database_mean_descriptor[j];
+        full_descriptor[j] -= database_mean_descriptor[j];
       }
       // 2nd step : Matrix multiplication to go from ncompsx1 -> (nclasses-1)*1
       for (int j = 0; j < nclasses-1; j++) {
-	projected_descriptor[j] = 0.;
-	for (int k = 0; k < ncomps; k++) {
-	  projected_descriptor[j] += full_descriptor[k]*lda_scalings[k][j];
-	}
-      }      
-      // 3rd step : Matrix multiplication 
+        projected_descriptor[j] = 0.;
+        for (int k = 0; k < ncomps; k++) {
+          projected_descriptor[j] += full_descriptor[k]*lda_scalings[k][j];
+        }
+      }
+      // 3rd step : Matrix multiplication
       for (int j = 0; j < nclasses; j++) {
-	scores[j] = lr_bias[j];
-	for (int k = 0; k < nclasses-1; k++) {
-	  scores[j] += lr_decision[j][k] * projected_descriptor[k];
-	}
-      }      
+        scores[j] = lr_bias[j];
+        for (int k = 0; k < nclasses-1; k++) {
+          scores[j] += lr_decision[j][k] * projected_descriptor[k];
+        }
+      }
       // 4th step : Matrix multiplication
       double sumexpscores=0.;
       for (int j = 0; j < nclasses; j++) sumexpscores += exp(scores[j]);
       for (int j = 0; j < nclasses; j++) {
-	probas[j] = exp(scores[j])/sumexpscores;
+        probas[j] = exp(scores[j])/sumexpscores;
       }
-      
+
       classification[i][nclasses]=argmax(probas,nclasses);
 
       // 5th step : Mahalanobis distance
       for (int j = 0; j < nclasses; j++) {
-      	prodright[0]=0.;
-      	prodright[1]=0.;
-      	prodright[2]=0.;
-      	for (int k = 0; k < nclasses-1; k++) {
-      	  for (int l = 0; l < nclasses-1; l++) {
-      	    prodright[k] += (icov_list[j][k][l] * (projected_descriptor[k]-mean_projected_descriptors[j][k]));
-      	  }	  
-      	}
-      	double prodleft=0.;
-      	for (int k = 0; k < nclasses-1; k++) {
-      	  prodleft += (prodright[k]*(projected_descriptor[k]-mean_projected_descriptors[j][k]));
-      	}
-      	classification[i][j]=sqrt(prodleft);
+        prodright[0]=0.;
+        prodright[1]=0.;
+        prodright[2]=0.;
+        for (int k = 0; k < nclasses-1; k++) {
+          for (int l = 0; l < nclasses-1; l++) {
+            prodright[k] += (icov_list[j][k][l] * (projected_descriptor[k]-mean_projected_descriptors[j][k]));
+          }
+        }
+        double prodleft=0.;
+        for (int k = 0; k < nclasses-1; k++) {
+          prodleft += (prodright[k]*(projected_descriptor[k]-mean_projected_descriptors[j][k]));
+        }
+        classification[i][j]=sqrt(prodleft);
       }
       // 6th step : Sanity check
       int locclass=classification[i][nclasses];
-      
+
       if (classification[i][locclass]>maha_thresholds[locclass]){
-      	classification[i][nclasses]=-1.;
+        classification[i][nclasses]=-1.;
       }
-      
+
     } else {
       for (int j = 0; j < ncols; j++) {
-	classification[i][j] = -1.;
-      }      
+        classification[i][j] = -1.;
+      }
     }
   }
   memory->destroy(full_descriptor);
   memory->destroy(projected_descriptor);
   memory->destroy(scores);
-  memory->destroy(probas);  
+  memory->destroy(probas);
   memory->destroy(prodright);
-  
+
 }
 
 int ComputeSLCSAAtom::compute_ncomps(int twojmax)
@@ -387,7 +387,7 @@ int ComputeSLCSAAtom::compute_ncomps(int twojmax)
       for (int j = j1 - j2;
            j <= MIN(twojmax, j1 + j2); j += 2)
         if (j >= j1) ncount++;
-  
+
   return ncount;
 }
 

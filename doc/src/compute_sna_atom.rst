@@ -444,7 +444,24 @@ requires that *bikflag=1*.
    The rerun script can use a :doc:`special_bonds <special_bonds>`
    command that includes all pairs in the neighbor list.
 
-The keyword *nnn* allows for the calculation of the bispectrum over a specific target number of neighbors. This option is only implemented for the compute *sna/atom*\ . An optimal cutoff radius for defining the neighborhood of the central atom is calculated by means of a dichotomy algorithm. This iterative process allows to assign weights to neighboring atoms in order to match the total sum of weights with the target number of neighbors. Depending on the radial weight function used in that process, the cutoff radius can fluctuate a lot in the presence of thermal noise. Therefore, in addition to the *nnn* keyword, the keyword *wmode* allows to choose whether a Heavyside (*wmode* = 0) function or a Hyperbolic tangent function (*wmode* = 1) should be used. If the Heavyside function is used, the cutoff radius exactly matches the distance between the central atom an its *nnn*'th neighbor. However, in the case of the hyperbolic tangent function, the dichotomy algorithm allows to span the weights over a distance *delta* in order to reduce fluctuations in the resulting local atomic environment fingerprint. The detailed formalism is given in the paper by Lafourcade et al. :ref:`(Lafourcade) <Lafourcade2023>`.
+The keyword *nnn* allows for the calculation of the bispectrum over a
+specific target number of neighbors. This option is only implemented for
+the compute *sna/atom*\ .  An optimal cutoff radius for defining the
+neighborhood of the central atom is calculated by means of a dichotomy
+algorithm.  This iterative process allows to assign weights to
+neighboring atoms in order to match the total sum of weights with the
+target number of neighbors.  Depending on the radial weight function
+used in that process, the cutoff radius can fluctuate a lot in the
+presence of thermal noise.  Therefore, in addition to the *nnn* keyword,
+the keyword *wmode* allows to choose whether a Heaviside (*wmode* = 0)
+function or a Hyperbolic tangent function (*wmode* = 1) should be used.
+If the Heaviside function is used, the cutoff radius exactly matches the
+distance between the central atom an its *nnn*'th neighbor.  However, in
+the case of the hyperbolic tangent function, the dichotomy algorithm
+allows to span the weights over a distance *delta* in order to reduce
+fluctuations in the resulting local atomic environment fingerprint.  The
+detailed formalism is given in the paper by Lafourcade et
+al. :ref:`(Lafourcade) <Lafourcade2023_2>`.
 
 ----------
 

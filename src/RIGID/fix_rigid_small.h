@@ -90,11 +90,14 @@ class FixRigidSmall : public Fix {
     imageint dummy;        // dummy entry for better alignment
   };
 
+  // or can we friend hmc?
   Body *body;         // list of rigid bodies, owned and ghost
   int nlocal_body;    // # of owned rigid bodies
   int nghost_body;    // # of ghost rigid bodies
   int nmax_body;      // max # of bodies that body can hold
   int bodysize;       // sizeof(Body) in doubles
+  int *bodyown;          // index of body if atom owns a body, -1 if not
+  void set_v();
 
  protected:
   int me, nprocs;
@@ -115,7 +118,6 @@ class FixRigidSmall : public Fix {
   // per-atom quantities
   // only defined for owned atoms, except bodyown for own+ghost
 
-  int *bodyown;          // index of body if atom owns a body, -1 if not
   tagint *bodytag;       // ID of body this atom is in, 0 if none
                          // ID = tag of atom that owns body
   int *atom2body;        // index of owned/ghost body this atom is in, -1 if not
@@ -197,7 +199,6 @@ class FixRigidSmall : public Fix {
 
   void image_shift();
   void set_xv();
-  void set_v();
   void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();

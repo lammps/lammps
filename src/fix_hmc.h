@@ -71,7 +71,7 @@ class FixHMC : public Fix {
   int stored_nlocal, stored_nghost, stored_ntotal;
   FixRigidSmall::Body *stored_body;
   int stored_nlocal_body, stored_nghost_body, stored_ntotal_body;
-  int tune_flag;
+  int tune_flag, mom_flag, rot_flag;
 
   char *mdi;
   class FixNVE *fix_nve;

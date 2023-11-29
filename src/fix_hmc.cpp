@@ -54,6 +54,8 @@ enum{ ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),random_equal(NULL)
 {
+  // set defaults
+  mom_flag = 1;
   if (narg < 7) error->all(FLERR, "Illegal fix hmc command");
 
   // Retrieve user-defined options:
@@ -77,6 +79,10 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) tune_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) tune_flag = 0;
       else error->all(FLERR,"Illegal fix hmc command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "mom") == 0) {    
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc mom", error);
+      mom_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     }
     else error->all(FLERR,"Illegal fix hmc command");
@@ -861,20 +867,29 @@ void FixHMC::random_velocities()
   int *mask = atom->mask;
 
   double stdev;
-  int nlocal;
-
+  int nlocal, dimension;
+  
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   nlocal = atom->nlocal;
+  dimension = domain->dimension;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (rmass) stdev = sqrt(KT/rmass[i]);
       else stdev = sqrt(KT/mass[type[i]]);
-      v[i][0] = stdev*random->gaussian();
-      v[i][1] = stdev*random->gaussian();
-      v[i][2] = stdev*random->gaussian();
+      for (int j = 0; j < dimension; j++)
+        v[i][j] = stdev*random->gaussian();
     }
+  if (mom_flag) {
+    double vcm[3];
+    group->vcm(igroup, group->mass(igroup), vcm);
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        for (int j = 0; j < dimension; j++)
+        v[i][j] -= vcm[j];
+      }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1138,84 +1153,95 @@ void FixHMC::rigid_body_restore_forces()
 
 void FixHMC::rigid_body_random_velocities()
 {
-//  FixRigidSmall::Body *body = fix_rigid->body;
-//  int nlocal = fix_rigid->nlocal_body;
-//  int ntotal = nlocal + fix_rigid->nghost_body;
-//
-//  double stdev, wbody[3], mbody[3];
-//  FixRigidSmall::Body *b;
-//
-//  for (int ibody = 0; ibody < nlocal; ibody++) {
-//    b = &body[ibody];
-//    stdev = sqrt(KT/b->mass);
-//    for (int j = 0; j < 3; j++) {
-//      b->vcm[j] = stdev*random->gaussian();
-//      if (b->inertia[j] > 0.0)
-//        wbody[j] = sqrt(KT/b->inertia[j])*random->gaussian();
-//      else
-//        wbody[j] = 0.0;
-//    }
-//    MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,wbody,b->omega);
-//  }
-//
-//  // Forward communicate vcm and omega to ghost bodies:
-//  comm_flag = VCM_OMEGA;
-//  comm->forward_comm_fix(this,6);
-//
-//  // Compute angular momenta of rigid bodies:
-//  for (int ibody = 0; ibody < ntotal; ibody++) {
-//    b = &body[ibody];
-//    MathExtra::omega_to_angmom(b->omega,b->ex_space,b->ey_space,b->ez_space,
-//                               b->inertia,b->angmom);
-//    MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
-//                                b->angmom,mbody);
-//    MathExtra::quatvec(b->quat,mbody,b->conjqm);
-//    b->conjqm[0] *= 2.0;
-//    b->conjqm[1] *= 2.0;
-//    b->conjqm[2] *= 2.0;
-//    b->conjqm[3] *= 2.0;
-//  }
-//
-//  // Compute velocities of individual atoms:
-//  fix_rigid->set_v();
+  FixRigidSmall::Body *body = fix_rigid->body;
+  int nlocal = fix_rigid->nlocal_body;
+  int ntotal = nlocal + fix_rigid->nghost_body;
+
+  double stdev, wbody[3], mbody[3];
+  double total_mass = 0;
+  FixRigidSmall::Body *b;
+  double vcm[] = {0.0, 0.0, 0.0};
+
+  for (int ibody = 0; ibody < nlocal; ibody++) {
+    b = &body[ibody];
+    stdev = sqrt(KT/b->mass);
+    total_mass += b->mass;
+    for (int j = 0; j < 3; j++) {
+      b->vcm[j] = stdev*random->gaussian();
+      vcm[j] += b->vcm[j];
+      if (b->inertia[j] > 0.0)
+        wbody[j] = sqrt(KT/b->inertia[j])*random->gaussian();
+      else
+        wbody[j] = 0.0;
+    }
+    MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,wbody,b->omega);
+  }
+
+  if (mom_flag) {
+    for (int j = 0; j < 3; j++) vcm[j] /= total_mass;
+    for (int ibody = 0; ibody < nlocal; ibody++) {
+      b = &body[ibody];
+      for (int j = 0; j < 3; j++) b->vcm[j] -= vcm[j];
+    }
+  }
+
+  // Forward communicate vcm and omega to ghost bodies:
+  comm_flag = VCM_OMEGA;
+  comm->forward_comm(this,6);
+
+  // Compute angular momenta of rigid bodies:
+  for (int ibody = 0; ibody < ntotal; ibody++) {
+    b = &body[ibody];
+    MathExtra::omega_to_angmom(b->omega,b->ex_space,b->ey_space,b->ez_space,
+                               b->inertia,b->angmom);
+    MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
+                                b->angmom,mbody);
+    MathExtra::quatvec(b->quat,mbody,b->conjqm);
+    b->conjqm[0] *= 2.0;
+    b->conjqm[1] *= 2.0;
+    b->conjqm[2] *= 2.0;
+    b->conjqm[3] *= 2.0;
+  }
+
+  // Compute velocities of individual atoms:
+  fix_rigid->set_v();
 }
 
 /* ----------------------------------------------------------------------
    Pack rigid body info for forward communication
 ------------------------------------------------------------------------- */
 
-int FixHMC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixHMC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
-  //int *bodyown = fix_rigid->bodyown;
-  //FixRigidSmall::Body *body = fix_rigid->body;
+  int *bodyown = fix_rigid->bodyown;
+  FixRigidSmall::Body *body = fix_rigid->body;
 
   int i, m, ibody;
-  m = 0;
-  //FixRigidSmall::Body *b;
+  FixRigidSmall::Body *b;
 
-  //m = 0;
-  //for (i = 0; i < n; i++) {
-  //  ibody = bodyown[list[i]];
-  //  if (ibody >= 0) {
-  //    b = &body[ibody];
-  //    if (comm_flag == VCM_OMEGA) {
-  //      memcpy( &buf[m], b->vcm, three );
-  //      memcpy( &buf[m+3], b->omega, three );
-  //      m += 6;
-  //    }
-  //    else if (comm_flag == XCM) {
-  //      memcpy( &buf[m], b->xcm, three );
-  //      m += 3;
-  //    }
-  //    else if (comm_flag == ROTATION) {
-  //      memcpy( &buf[m], b->ex_space, three );
-  //      memcpy( &buf[m+3], b->ey_space, three );
-  //      memcpy( &buf[m+6], b->ez_space, three );
-  //      memcpy( &buf[m+9], b->quat, four );
-  //      m += 12;
-  //    }
-  //  }
-  //}
+  m = 0;
+  for (i = 0; i < n; i++) {
+    ibody = bodyown[list[i]];
+    if (ibody >= 0) {
+      b = &body[ibody];
+      if (comm_flag == VCM_OMEGA) {
+        memcpy( &buf[m], b->vcm, three );
+        memcpy( &buf[m+3], b->omega, three );
+        m += 6;
+      }
+      else if (comm_flag == XCM) {
+        memcpy( &buf[m], b->xcm, three );
+        m += 3;
+      }
+      else if (comm_flag == ROTATION) {
+        memcpy( &buf[m], b->ex_space, three );
+        memcpy( &buf[m+3], b->ey_space, three );
+        memcpy( &buf[m+6], b->ez_space, three );
+        memcpy( &buf[m+9], b->quat, four );
+        m += 12;
+      }
+    }
+  }
   return m;
 }
 
@@ -1225,34 +1251,34 @@ int FixHMC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *
 
 void FixHMC::unpack_forward_comm(int n, int first, double *buf)
 {
-  //int *bodyown = fix_rigid->bodyown;
-  //FixRigidSmall::Body *body = fix_rigid->body;
+  int *bodyown = fix_rigid->bodyown;
+  FixRigidSmall::Body *body = fix_rigid->body;
 
   int i, m, last;
-  //FixRigidSmall::Body *b;
+  FixRigidSmall::Body *b;
 
-  //m = 0;
-  //last = first + n;
-  //for (i = first; i < last; i++)
-  //  if (bodyown[i] >= 0) {
-  //    b = &body[bodyown[i]];
-  //    if (comm_flag == VCM_OMEGA) {
-  //      memcpy( b->vcm, &buf[m], three );
-  //      memcpy( b->omega, &buf[m+3], three );
-  //      m += 6;
-  //    }
-  //    else if (comm_flag == XCM) {
-  //      memcpy( b->xcm, &buf[m], three );
-  //      m += 3;
-  //    }
-  //    else if (comm_flag == ROTATION) {
-  //      memcpy( b->ex_space, &buf[m], three );
-  //      memcpy( b->ey_space, &buf[m+3], three );
-  //      memcpy( b->ez_space, &buf[m+6], three );
-  //      memcpy( b->quat, &buf[m+9], four );
-  //      m += 12;
-  //    }
-  //  }
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++)
+    if (bodyown[i] >= 0) {
+      b = &body[bodyown[i]];
+      if (comm_flag == VCM_OMEGA) {
+        memcpy( b->vcm, &buf[m], three );
+        memcpy( b->omega, &buf[m+3], three );
+        m += 6;
+      }
+      //else if (comm_flag == XCM) {
+      //  memcpy( b->xcm, &buf[m], three );
+      //  m += 3;
+      //}
+      //else if (comm_flag == ROTATION) {
+      //  memcpy( b->ex_space, &buf[m], three );
+      //  memcpy( b->ey_space, &buf[m+3], three );
+      //  memcpy( b->ez_space, &buf[m+6], three );
+      //  memcpy( b->quat, &buf[m+9], four );
+      //  m += 12;
+      //}
+    }
 }
 
 /* ----------------------------------------------------------------------

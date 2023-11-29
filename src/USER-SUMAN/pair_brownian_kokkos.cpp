@@ -55,8 +55,8 @@ PairBrownianKokkos<DeviceType>::PairBrownianKokkos(LAMMPS *lmp) : PairBrownian(l
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TORQUE_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | RADIUS_MASK;
-  datamask_modify = F_MASK | TORQUE_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | TORQUE_MASK | TYPE_MASK | VIRIAL_MASK | RADIUS_MASK;
+  datamask_modify = F_MASK | TORQUE_MASK | VIRIAL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,42 +104,12 @@ void PairBrownianKokkos<DeviceType>::init_style()
   printf("PairBrownianKokkos::init_style()  flagdeform= %i  flagwall= %i  flaglog= %i  R0= %f  RT0= %f\n",flagdeform,flagwall,flaglog,R0,RT0);  
 }
 
-/* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double PairBrownianKokkos<DeviceType>::init_one(int i, int j)
-{
-  double cutone = PairBrownian::init_one(i,j);
-  double cutinnerm = cut_inner[i][j];
-
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  
-  k_cut_inner.h_view(i,j) = k_cut_inner.h_view(j,i) = cutinnerm;
-  k_cut_inner.template modify<LMPHostType>();
-
-  return cutone;
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairBrownianKokkos<DeviceType>::coeff(int narg, char **arg)
-{
-  PairBrownian::coeff(narg,arg);
-}
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   printf("Inside compute()\n");
-  
-  copymode = 1;
   
   eflag = eflag_in;
   vflag = vflag_in;
@@ -208,6 +178,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
+  k_cut_inner.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
@@ -230,10 +201,14 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
+  copymode = 1;
+  
   EV_FLOAT ev;
 
-  printf(" -- starting parallel_for()  neighflag= %i  HALF= %i  newton_pair= %i  vflag_either= %i  vflag_atom= %i  flagfld= %i  vflag_global= %i\n",
-	 neighflag, HALF, newton_pair, vflag_either, vflag_atom, flagfld, vflag_global);
+  printf(" -- starting parallel_for()  neighflag= %i  HALF= %i  HALFTHREAD= %i  newton_pair= %i  vflag_either= %i  vflag_atom= %i  flagfld= %i  vflag_global= %i\n",
+	 neighflag, HALF, HALFTHREAD, newton_pair, vflag_either, vflag_atom, flagfld, vflag_global);
+
+#if 1
   if (flagfld) { // FLAGFLD == 1
     if (vflag_either) { // VFLAG == 1
       if (neighflag == HALF) {
@@ -283,6 +258,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
+#endif
   printf(" -- finished\n");
   
   if (vflag_global) {
@@ -293,15 +269,15 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[4] += ev.v[4];
     virial[5] += ev.v[5];
   }
-    
+
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
   
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
-  
-  printf("i= %i  vatom= %f %f %f %f %f %f\n",0,vatom[0][0],vatom[0][1],vatom[0][2],vatom[0][3],vatom[0][4],vatom[0][5]);
+
+  printf("i= %i  vflag_fdotr= %i  vatom= %f %f %f %f %f %f\n",vflag_fdotr,0,vatom[0][0],vatom[0][1],vatom[0][2],vatom[0][3],vatom[0][4],vatom[0][5]);
   
   copymode = 0;
   
@@ -674,6 +650,35 @@ void PairBrownianKokkos<DeviceType>::settings(int narg, char **arg)
   if (narg != 7 && narg != 9) error->all(FLERR, "Illegal pair_style command");
 
   PairBrownian::settings(narg,arg);
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairBrownianKokkos<DeviceType>::init_one(int i, int j)
+{
+  double cutone = PairBrownian::init_one(i,j);
+  double cutinnerm = cut_inner[i][j];
+
+  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
+  k_cutsq.template modify<LMPHostType>();
+  
+  k_cut_inner.h_view(i,j) = k_cut_inner.h_view(j,i) = cutinnerm;
+  k_cut_inner.template modify<LMPHostType>();
+
+  return cutone;
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairBrownianKokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  PairBrownian::coeff(narg,arg);
 }
 
 namespace LAMMPS_NS {

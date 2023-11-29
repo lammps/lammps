@@ -51,47 +51,48 @@ enum{ ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 
 /* ---------------------------------------------------------------------- */
 
-FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),random_equal(NULL)
+FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_equal(NULL)
 {
   // set defaults
   mom_flag = 1;
   if (narg < 7) error->all(FLERR, "Illegal fix hmc command");
 
   // Retrieve user-defined options:
-  nevery = utils::numeric(FLERR, arg[3], false, lmp);    // Number of MD steps per MC step
-  int seed = utils::numeric(FLERR, arg[4], false, lmp);    // Seed for random number generation
+  nevery = utils::numeric(FLERR, arg[3], false, lmp);         // Number of MD steps per MC step
+  int seed = utils::numeric(FLERR, arg[4], false, lmp);       // Seed for random number generation
   double temp = utils::numeric(FLERR, arg[5], false, lmp);    // System temperature
 
   // Retrieve the molecular dynamics integrator type:
   mdi = arg[6];
-  if ( strcmp(mdi,"rigid") != 0 && strcmp(mdi,"flexible") != 0 )
+  if (strcmp(mdi, "rigid") != 0 && strcmp(mdi, "flexible") != 0)
     error->all(FLERR, "Illegal fix hmc command");
 
-  KT = force->boltz * temp / force->mvv2e;      // K*T in mvv units
-  mbeta = -1.0/(force->boltz * temp);           // -1/(K*T) in energy units
+  KT = force->boltz * temp / force->mvv2e;    // K*T in mvv units
+  mbeta = -1.0 / (force->boltz * temp);       // -1/(K*T) in energy units
 
   // Check keywords:
   int iarg = 7;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"adjust") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix hmc command");
-      if (strcmp(arg[iarg+1],"yes") == 0) tune_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) tune_flag = 0;
-      else error->all(FLERR,"Illegal fix hmc command");
+    if (strcmp(arg[iarg], "adjust") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc adjust", error);
+      tune_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "mom") == 0) {    
+    } else if (strcmp(arg[iarg], "mom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc mom", error);
       mom_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    }
-    else error->all(FLERR,"Illegal fix hmc command");
+    } else if (strcmp(arg[iarg], "rot") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc rot", error);
+      rot_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else
+      error->all(FLERR, "Illegal fix hmc command");
   }
 
   // Initialize RNG with a different seed for each process:
-  random = new RanPark(lmp,seed + comm->me);
+  random = new RanPark(lmp, seed + comm->me);
   for (int i = 0; i < 100; i++) random->gaussian();
-  random_equal = new RanPark(lmp,seed);
+  random_equal = new RanPark(lmp, seed);
   // Perform initialization of per-atom arrays:
   xu = NULL;
   deltax = NULL;

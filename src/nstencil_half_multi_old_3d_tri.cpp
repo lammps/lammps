@@ -37,7 +37,7 @@ void NStencilHalfMultiOld3dTri::create()
     s = stencil_multi_old[itype];
     distsq = distsq_multi_old[itype];
     n = 0;
-    for (k = 0; k <= sz; k++)
+    for (k = -sz; k <= sz; k++)
       for (j = -sy; j <= sy; j++)
         for (i = -sx; i <= sx; i++) {
           rsq = bin_distance(i, j, k);

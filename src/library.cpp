@@ -481,7 +481,7 @@ void lammps_error(void *handle, int error_type, const char *error_text)
   }
   END_CAPTURE
 
-    // with enabled exceptions the above code will simply throw an
+    // in case of an error the above code will simply throw an
     // exception and record the error message. So we have to explicitly
     // stop here like we do in main.cpp
   if (lammps_has_error(handle)) {
@@ -617,7 +617,7 @@ combined by removing the '&' and the following newline character.  After
 this processing the string is handed to LAMMPS for parsing and
 executing.
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
    The command is now able to process long strings with triple quotes and
    loops using :doc:`jump SELF \<label\> <jump>`.
@@ -702,6 +702,13 @@ void lammps_commands_string(void *handle, const char *str)
             continue;
           }
         }
+        // stop processing when quit command is found
+        if (words.size() && (words[0] == "quit")) {
+          if (lmp->comm->me == 0)
+            utils::logmesg(lmp, "Encountered a 'quit' command. Stopping ...\n");
+          break;
+        }
+
         lmp->input->one(cmd.c_str());
       }
     }
@@ -858,14 +865,17 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
 {
   auto lmp = (LAMMPS *) handle;
   void *val = nullptr;
+
+  if (!lmp->output) return val;
   Thermo *th = lmp->output->thermo;
-  if (!th) return nullptr;
+  if (!th) return val;
   const int nfield = *th->get_nfield();
 
   BEGIN_CAPTURE
   {
     if (strcmp(what, "setup") == 0) {
-      val = (void *) &lmp->update->setupflag;
+      if (lmp->update)
+        val = (void *) &lmp->update->setupflag;
 
     } else if (strcmp(what, "line") == 0) {
       val = (void *) th->get_line();
@@ -2474,7 +2484,7 @@ int lammps_set_variable(void *handle, char *name, char *str)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
 This function copies a string with human readable information about
 a defined variable: name, style, current value(s) into the provided
@@ -5571,7 +5581,7 @@ int lammps_config_has_ffmpeg_support() {
  *
 \verbatim embed:rst
 
-.. deprecated:: TBD
+.. deprecated:: 21Nov2023
 
    LAMMPS has now exceptions always enabled, so this function
    will now always return 1 and can be removed from applications
@@ -6598,13 +6608,6 @@ has thrown a :ref:`C++ exception <exceptions>`.
    instance, but instead would check the global error buffer of the
    library interface.
 
-.. note::
-
-   This function will always report "no error" when the LAMMPS library
-   has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
-   errors aborting LAMMPS into C++ exceptions. You can use the library
-   function :cpp:func:`lammps_config_has_exceptions` to check whether this is
-   the case.
 \endverbatim
  *
  * \param handle   pointer to a previously created LAMMPS instance cast to ``void *`` or NULL
@@ -6648,17 +6651,11 @@ the failing MPI ranks to send messages.
    instance, but instead would check the global error buffer of the
    library interface.
 
-   .. versionchanged: TBD
+   .. versionchanged: 21Nov2023
 
    The *buffer* pointer may be ``NULL``.  This will clear any error
    status without copying the error message.
 
-.. note::
-
-   This function will do nothing when the LAMMPS library has been
-   compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
-   LAMMPS into C++ exceptions.  You can use the library function
-   :cpp:func:`lammps_config_has_exceptions` to check whether this is the case.
 \endverbatim
  *
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *`` or NULL.

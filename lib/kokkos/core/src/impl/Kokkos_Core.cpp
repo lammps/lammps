@@ -754,20 +754,21 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_HOPPER90)
   declare_configuration_metadata("architecture", "GPU architecture",
                                  "HOPPER90");
-#elif defined(KOKKOS_ARCH_VEGA900)
-  declare_configuration_metadata("architecture", "GPU architecture", "VEGA900");
-#elif defined(KOKKOS_ARCH_VEGA906)
-  declare_configuration_metadata("architecture", "GPU architecture", "VEGA906");
-#elif defined(KOKKOS_ARCH_VEGA908)
-  declare_configuration_metadata("architecture", "GPU architecture", "VEGA908");
-#elif defined(KOKKOS_ARCH_VEGA90A)
-  declare_configuration_metadata("architecture", "GPU architecture", "VEGA90A");
-#elif defined(KOKKOS_ARCH_NAVI1030)
+#elif defined(KOKKOS_ARCH_AMD_GFX906)
   declare_configuration_metadata("architecture", "GPU architecture",
-                                 "NAVI1030");
-#elif defined(KOKKOS_ARCH_NAVI1100)
+                                 "AMD_GFX906");
+#elif defined(KOKKOS_ARCH_AMD_GFX908)
   declare_configuration_metadata("architecture", "GPU architecture",
-                                 "NAVI1100");
+                                 "AMD_GFX908");
+#elif defined(KOKKOS_ARCH_AMD_GFX90A)
+  declare_configuration_metadata("architecture", "GPU architecture",
+                                 "AMD_GFX90A");
+#elif defined(KOKKOS_ARCH_AMD_GFX1030)
+  declare_configuration_metadata("architecture", "GPU architecture",
+                                 "AMD_GFX1030");
+#elif defined(KOKKOS_ARCH_AMD_GFX1100)
+  declare_configuration_metadata("architecture", "GPU architecture",
+                                 "AMD_GFX1100");
 
 #else
   declare_configuration_metadata("architecture", "GPU architecture", "none");

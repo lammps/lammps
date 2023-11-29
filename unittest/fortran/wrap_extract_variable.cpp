@@ -71,10 +71,10 @@ protected:
         // clang-format off
         const char *args[] =
             { "LAMMPS_Fortran_test", "-l", "none", "-echo", "screen", "-nocite",
-              "-var", "input_dir", input_dir, "-var", "zpos", "1.5", "-var", "x", "2" };
+              "-var", "input_dir", input_dir, "-var", "zpos", "1.5", "-var", "x", "2", nullptr };
         // clang-format on
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(const char *);
+        int argc    = (sizeof(args) / sizeof(const char *)) - 1;
         ::testing::internal::CaptureStdout();
         lmp = (LAMMPS_NS::LAMMPS *)f_lammps_with_c_args(argc, argv);
 

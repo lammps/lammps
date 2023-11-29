@@ -92,16 +92,19 @@ class PairMorseKokkos : public PairMorse {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALF,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALFTHREAD,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairMorseKokkos,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,0>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,1>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALF>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALFTHREAD>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairMorseKokkos>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairMorseKokkos>(PairMorseKokkos*);
 };
 

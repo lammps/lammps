@@ -215,6 +215,9 @@ void Min::setup(int flag)
   }
   update->setupflag = 1;
 
+  if (lmp->kokkos)
+    error->all(FLERR,"KOKKOS package requires Kokkos-enabled min_style");
+
   // setup extra global dof due to fixes
   // cannot be done in init() b/c update init() is before modify init()
 

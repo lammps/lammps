@@ -88,7 +88,7 @@ The same functionality is available through
 MPIIO package
 -------------
 
-.. deprecated:: TBD
+.. deprecated:: 21Nov2023
 
 The MPIIO package has been removed from LAMMPS since it was unmaintained
 for many years and thus not updated to incorporate required changes that
@@ -107,7 +107,7 @@ see :doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
 MSCG package
 ------------
 
-.. deprecated:: TBD
+.. deprecated:: 21Nov2023
 
 The MSCG package has been removed from LAMMPS since it was unmaintained
 for many years and instead superseded by the `OpenMSCG software

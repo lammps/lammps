@@ -40,6 +40,7 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL};
 
+static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
@@ -95,12 +96,12 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempCSLD::~FixTempCSLD()
 {
-  delete [] tstr;
+  delete[] tstr;
 
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   delete random;
   memory->destroy(vhold);
@@ -137,15 +138,14 @@ void FixTempCSLD::init()
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)
-      error->all(FLERR,"Variable name for fix temp/csld does not exist");
+      error->all(FLERR,"Variable name {} for fix temp/csld does not exist", tstr);
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else error->all(FLERR,"Variable for fix temp/csld is invalid style");
+    else error->all(FLERR,"Variable {} for fix temp/csld is invalid style", tstr);
   }
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix temp/csld does not exist");
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature)
+    error->all(FLERR,"Temperature ID {} for fix temp/csld does not exist", id_temp);
 
   if (modify->check_rigid_group_overlap(groupbit))
     error->warning(FLERR,"Cannot thermostat atoms in rigid bodies");
@@ -158,7 +158,6 @@ void FixTempCSLD::init()
 
 void FixTempCSLD::end_of_step()
 {
-
   // set current t_target
   // if variable temp, evaluate variable, wrap with clear/add
 
@@ -171,8 +170,7 @@ void FixTempCSLD::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR,
-                 "Fix temp/csld variable returned negative temperature");
+      error->one(FLERR, "Fix temp/csld variable returned negative temperature");
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -259,17 +257,14 @@ int FixTempCSLD::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temperature ID {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature ID {} does not compute temperature", id_temp);
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;
@@ -297,7 +292,6 @@ double FixTempCSLD::compute_scalar()
 
 void FixTempCSLD::write_restart(FILE *fp)
 {
-  const int PRNGSIZE = 98+2+3;
   int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
   double *list = nullptr;
   if (comm->me == 0) {

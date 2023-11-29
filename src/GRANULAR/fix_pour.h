@@ -32,6 +32,7 @@ class FixPour : public Fix {
   void init() override;
   void setup_pre_exchange() override;
   void pre_exchange() override;
+  double compute_scalar() override;
   void reset_dt() override;
   void *extract(const char *, int &) override;
 

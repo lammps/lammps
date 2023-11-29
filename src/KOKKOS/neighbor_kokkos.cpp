@@ -308,7 +308,8 @@ void NeighborKokkos::build_kokkos(int topoflag)
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
     if (!lists[m]->kokkos) atomKK->sync(Host,ALL_MASK);
-    if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
+    if (!lists[m]->copy || lists[m]->trim || lists[m]->kk2cpu)
+      lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
   }

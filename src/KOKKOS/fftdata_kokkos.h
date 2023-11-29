@@ -114,7 +114,7 @@
     typedef cufftDoubleComplex FFT_DATA;
   #endif
 #elif defined(FFT_HIPFFT)
-  #include "hipfft.h"
+  #include <hipfft/hipfft.h>
   #if defined(FFT_SINGLE)
     #define hipfftExec hipfftExecC2C
     #define HIPFFT_TYPE HIPFFT_C2C

@@ -2892,6 +2892,7 @@ pscrozi
 pseudocode
 Pseudocode
 pseudodynamics
+pseudoparticle
 pseudopotential
 psllod
 pSp
@@ -3755,6 +3756,7 @@ uncomment
 uncommented
 uncompress
 uncompute
+underdamped
 underprediction
 undump
 uniaxial

@@ -473,7 +473,7 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
       }
       iarg += 2+nopt;
 
-    } else if (strcmp(arg[iarg+1],"sort") == 0) {
+    } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "balance sort", error);
       sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;

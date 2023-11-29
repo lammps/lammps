@@ -395,12 +395,12 @@ void Image::merge()
   if (fsaa) {
     for (int h=0; h < height; h += 2) {
       for (int w=0; w < width; w +=2) {
-        int idx1 = 3*height*h + 3*w;
-        int idx2 = 3*height*h + 3*(w+1);
-        int idx3 = 3*height*(h+1) + 3*w;
-        int idx4 = 3*height*(h+1) + 3*(w+1);
+        int idx1 = 3*width*h + 3*w;
+        int idx2 = 3*width*h + 3*(w+1);
+        int idx3 = 3*width*(h+1) + 3*w;
+        int idx4 = 3*width*(h+1) + 3*(w+1);
 
-        int out = 3*(height/2)*(h/2) + 3*(w/2);
+        int out = 3*(width/2)*(h/2) + 3*(w/2);
         for (int i=0; i < 3; ++i) {
           writeBuffer[out+i] = (unsigned char) (0.25*((int)writeBuffer[idx1+i]
                                                       +(int)writeBuffer[idx2+i]

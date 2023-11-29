@@ -52,8 +52,11 @@ void Replicate::command(int narg, char **arg)
   int nx = utils::inumeric(FLERR,arg[0],false,lmp);
   int ny = utils::inumeric(FLERR,arg[1],false,lmp);
   int nz = utils::inumeric(FLERR,arg[2],false,lmp);
-  int nrep = nx*ny*nz;
+  if ((nx <= 0) || (ny <= 0) || (nz <= 0))
+    error->all(FLERR, "Illegal replication grid {}x{}x{}. All replications must be > 0",
+               nx, ny, nz);
 
+  int nrep = nx*ny*nz;
   if (me == 0)
     utils::logmesg(lmp, "Replication is creating a {}x{}x{} = {} times larger system...\n",
                    nx, ny, nz, nrep);

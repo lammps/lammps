@@ -2,7 +2,6 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-# Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.16)
 ########################################
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it
@@ -106,7 +105,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
       set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
     else()
-      set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=2196")
+      set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
     endif()
   endif()
 endif()
@@ -159,17 +158,20 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-# set path to python interpreter and thus enforcing python version when
-# in a virtual environment and PYTHON_EXECUTABLE is not set on command line
-if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
-  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
-  else()
-    set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
-  endif()
+# backward compatibility with CMake before 3.12 and older LAMMPS documentation
+if (PYTHON_EXECUTABLE)
   set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
+endif()
+# set path to python interpreter and thus enforcing python version when
+# in a virtual environment and Python_EXECUTABLE is not set on command line
+if(DEFINED ENV{VIRTUAL_ENV} AND NOT Python_EXECUTABLE)
+  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
+  else()
+    set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
+  endif()
   message(STATUS "Running in virtual environment: $ENV{VIRTUAL_ENV}\n"
-    "   Setting Python interpreter to: ${PYTHON_EXECUTABLE}")
+    "   Setting Python interpreter to: ${Python_EXECUTABLE}")
 endif()
 
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary (WON'T enable any features automatically")
@@ -423,6 +425,18 @@ if(BUILD_OMP)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=${LAMMPS_OMP_COMPAT_LEVEL})
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
+# lower C++ standard for fmtlib sources when using Intel classic compiler
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_STANDARD GREATER_EQUAL 17)
+    AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 2021.10))
+  message(STATUS "Lowering C++ standard for compiling fmtlib sources with Intel Classic compiler")
+  get_filename_component(LMP_UTILS_SRC "${LAMMPS_SOURCE_DIR}/utils.cpp" ABSOLUTE)
+  get_filename_component(LMP_VARIABLE_SRC "${LAMMPS_SOURCE_DIR}/variable.cpp" ABSOLUTE)
+  get_filename_component(FMT_FORMAT_SRC "${LAMMPS_SOURCE_DIR}/fmtlib_format.cpp" ABSOLUTE)
+  get_filename_component(FMT_OS_SRC "${LAMMPS_SOURCE_DIR}/fmtlib_os.cpp" ABSOLUTE)
+  set_source_files_properties("${FMT_FORMAT_SRC}" "${FMT_OS_SRC}" "${LMP_VARIABLE_SRC}" "${LMP_UTILS_SRC}"
+          PROPERTIES COMPILE_OPTIONS "-std=c++14")
 endif()
 
 if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_TOOLS)
@@ -794,9 +808,6 @@ install(
 ###############################################################################
 if(BUILD_SHARED_LIBS)
   # backward compatibility
-  if(PYTHON_EXECUTABLE)
-    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-  endif()
   find_package(Python COMPONENTS Interpreter)
   if(BUILD_IS_MULTI_CONFIG)
     set(MY_BUILD_DIR ${CMAKE_BINARY_DIR}/$<CONFIG>)

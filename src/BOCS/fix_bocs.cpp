@@ -69,12 +69,9 @@ const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction 
  ---------------------------------------------------------------------- */
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
-  id_temp(nullptr), id_press(nullptr),
-  eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
-  eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
-  etap_mass(nullptr)
+    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr),
+    id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr),
+    etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
@@ -379,9 +376,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     if (deviatoric_flag) size_vector += 1;
   }
 
-  nrigid = 0;
-  rfix = nullptr;
-
   if (pre_exchange_flag) irregular = new Irregular(lmp);
   else irregular = nullptr;
 
@@ -424,31 +418,29 @@ FixBocs::~FixBocs()
 {
   if (copymode) return;
 
-  delete [] id_dilate;
-  delete [] rfix;
-
+  delete[] id_dilate;
   delete irregular;
 
   // delete temperature and pressure if fix created them
 
   if (tcomputeflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   if (tstat_flag) {
-    delete [] eta;
-    delete [] eta_dot;
-    delete [] eta_dotdot;
-    delete [] eta_mass;
+    delete[] eta;
+    delete[] eta_dot;
+    delete[] eta_dotdot;
+    delete[] eta_mass;
   }
 
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
-    delete [] id_press;
+    delete[] id_press;
     if (mpchain) {
-      delete [] etap;
-      delete [] etap_dot;
-      delete [] etap_dotdot;
-      delete [] etap_mass;
+      delete[] etap;
+      delete[] etap_dot;
+      delete[] etap_dotdot;
+      delete[] etap_mass;
     }
   }
   if (p_match_coeffs) free(p_match_coeffs);
@@ -487,33 +479,31 @@ void FixBocs::init()
 
   // ensure no conflict with fix deform
 
-  if (pstat_flag)
-  {
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
+  if (pstat_flag) {
+    for (auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto deform = dynamic_cast<FixDeform *>(ifix);
+      if (deform) {
+        int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
-          error->all(FLERR,"Cannot use fix bocs and fix deform on "
-                     "same component of stress tensor");
+          error->all(FLERR,"Cannot use fix bocs and fix deform on same component of stress tensor");
       }
+    }
   }
 
   // set temperature and pressure ptrs
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix bocs does not exist");
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature)
+    error->all(FLERR,"Temperature compute ID {} for fix bocs does not exist", id_temp);
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
 
   if (pstat_flag) {
-    icompute = modify->find_compute(id_press);
-    if (icompute < 0)
-      error->all(FLERR,"Pressure ID for fix bocs does not exist");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure)
+      error->all(FLERR,"Pressure compute ID {} for fix bocs does not exist", id_press);
   }
 
 
@@ -521,23 +511,21 @@ void FixBocs::init()
   {
     if (p_match_flag) // MRD NJD
     {
-      if (pressure)
+      auto pressure_bocs = dynamic_cast<ComputePressureBocs *>(pressure);
+      if (pressure_bocs)
       {
         if (p_basis_type == BASIS_ANALYTIC)
         {
-          (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type,
-                               N_p_match, p_match_coeffs, N_mol, vavg);
+          pressure_bocs->send_cg_info(p_basis_type, N_p_match, p_match_coeffs, N_mol, vavg);
         }
         else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
         {
-          (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type,
-                                               splines, spline_length);
+          pressure_bocs->send_cg_info(p_basis_type, splines, spline_length);
         }
       }
       else
       {
-        error->all(FLERR,"Unable to find pressure. Are you sure you included"
-                        " the compute bocsPress and fix_modify commands?");
+        error->all(FLERR,"Unable to find compatible pressure compute");
       }
     }
   }
@@ -591,26 +579,19 @@ void FixBocs::init()
   else kspace_flag = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
-    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
-    dto = 0.5*step_respa[0];
+    auto respa = dynamic_cast<Respa *>(update->integrate);
+    if (respa) {
+      nlevels_respa = respa->nlevels;
+      step_respa = respa->step;
+      dto = 0.5*step_respa[0];
+    }
   }
 
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
-  // rfix[] = indices to each fix rigid
 
-  delete [] rfix;
-  nrigid = 0;
-  rfix = nullptr;
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
-  if (nrigid) {
-    rfix = new int[nrigid];
-    nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
-  }
+  rfix.clear();
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
 // NJD MRD 2 functions
@@ -1024,7 +1005,10 @@ void FixBocs::final_integrate()
 
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -1202,9 +1186,7 @@ void FixBocs::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -1349,9 +1331,7 @@ void FixBocs::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1510,7 +1490,7 @@ int FixBocs::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tcomputeflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
@@ -1542,29 +1522,23 @@ int FixBocs::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pcomputeflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure ID {}", id_press);
+    if (!pressure->pressflag)
+      error->all(FLERR, "Fix_modify pressure ID {} does not compute pressure", id_press);
 
-    if (p_match_flag) // NJD MRD
-    {
-      if (p_basis_type == BASIS_ANALYTIC)
-      {
-        (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type, N_p_match,
-                                                   p_match_coeffs, N_mol, vavg);
+    if (p_match_flag) {
+      auto bocspress = dynamic_cast<ComputePressureBocs *>(pressure);
+      if (bocspress) {
+        if (p_basis_type == BASIS_ANALYTIC) {
+          bocspress->send_cg_info(p_basis_type, N_p_match, p_match_coeffs, N_mol, vavg);
+        } else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE) {
+          bocspress->send_cg_info(p_basis_type, splines, spline_length);
+        }
       }
-      else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
-      {
-        (dynamic_cast<ComputePressureBocs *>(pressure))->send_cg_info(p_basis_type, splines, spline_length );
-      }
-    }
-
-    if (pressure->pressflag == 0)
-    {
-      error->all(FLERR, "Fix_modify pressure ID does not compute pressure");
     }
     return 2;
   }
@@ -1961,6 +1935,7 @@ void FixBocs::nhc_press_integrate()
   int ich,i,pdof;
   double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
+  double lkt_press;
 
   // Update masses, to preserve initial freq, if flag set
 
@@ -2006,7 +1981,8 @@ void FixBocs::nhc_press_integrate()
     }
   }
 
-  double lkt_press = pdof * kt;
+  if (pstyle == ISO) lkt_press = kt;
+  else lkt_press = pdof * kt;
   etap_dotdot[0] = (kecurrent - lkt_press)/etap_mass[0];
 
   double ncfac = 1.0/nc_pchain;

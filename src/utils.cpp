@@ -557,7 +557,7 @@ void utils::bounds(const char *file, int line, const std::string &str,
   // check for illegal charcters
   size_t found = str.find_first_not_of("*-0123456789");
   if (found != std::string::npos) {
-    if (error) error->all(file, line, fmt::format("Invalid range string: {}", str));
+    if (error) error->all(file, line, "Invalid range string: {}", str);
     return;
   }
 
@@ -580,17 +580,14 @@ void utils::bounds(const char *file, int line, const std::string &str,
 
   if (error) {
     if ((nlo <= 0) || (nhi <= 0))
-      error->all(file, line, fmt::format("Invalid range string: {}", str));
+      error->all(file, line, "Invalid range string: {}", str);
 
     if (nlo < nmin)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
-                                         nlo, nmin, nmax));
+      error->all(file, line, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nmax);
     else if (nhi > nmax)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
-                                         nhi, nmin, nmax));
+      error->all(file, line, "Numeric index {} is out of bounds ({}-{})", nhi, nmin, nmax);
     else if (nlo > nhi)
-      error->all(file, line, fmt::format("Numeric index {} is out of bounds ({}-{})",
-                                         nlo, nmin, nhi));
+      error->all(file, line, "Numeric index {} is out of bounds ({}-{})", nlo, nmin, nhi);
   }
 }
 

@@ -189,6 +189,8 @@ class NeighborKokkosExecute
  public:
   NeighListKokkos<DeviceType> neigh_list;
 
+  const double delta;
+
   // data from Neighbor class
 
   const typename AT::t_xfloat_2d_randomread cutneighsq;
@@ -282,7 +284,7 @@ class NeighborKokkosExecute
                         const int & _mbinx,const int & _mbiny,const int & _mbinz,
                         const int & _mbinxlo,const int & _mbinylo,const int & _mbinzlo,
                         const X_FLOAT &_bininvx,const X_FLOAT &_bininvy,const X_FLOAT &_bininvz,
-                        const int & _exclude,const int & _nex_type,
+                        const double &_delta,const int & _exclude,const int & _nex_type,
                         const typename AT::t_int_1d_const & _ex1_type,
                         const typename AT::t_int_1d_const & _ex2_type,
                         const typename AT::t_int_2d_const & _ex_type,
@@ -301,7 +303,7 @@ class NeighborKokkosExecute
                         const typename ArrayTypes<LMPHostType>::t_int_scalar _h_resize,
                         const typename AT::t_int_scalar _new_maxneighs,
                         const typename ArrayTypes<LMPHostType>::t_int_scalar _h_new_maxneighs):
-    neigh_list(_neigh_list), cutneighsq(_cutneighsq),exclude(_exclude),
+    neigh_list(_neigh_list), cutneighsq(_cutneighsq),delta(_delta),exclude(_exclude),
     nex_type(_nex_type),ex1_type(_ex1_type),ex2_type(_ex2_type),
     ex_type(_ex_type),nex_group(_nex_group),
     ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),

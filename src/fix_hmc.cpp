@@ -1158,18 +1158,19 @@ void FixHMC::rigid_body_random_velocities()
   int nlocal = fix_rigid->nlocal_body;
   int ntotal = nlocal + fix_rigid->nghost_body;
 
-  double stdev, wbody[3], mbody[3];
+  double stdev, bmass, wbody[3], mbody[3];
   double total_mass = 0;
   FixRigidSmall::Body *b;
   double vcm[] = {0.0, 0.0, 0.0};
 
   for (int ibody = 0; ibody < nlocal; ibody++) {
     b = &body[ibody];
-    stdev = sqrt(KT/b->mass);
-    total_mass += b->mass;
+    bmass = b->mass;
+    stdev = sqrt(KT/bmass);
+    total_mass += bmass;
     for (int j = 0; j < 3; j++) {
       b->vcm[j] = stdev*random->gaussian();
-      vcm[j] += b->vcm[j];
+      vcm[j] += b->vcm[j] * bmass;
       if (b->inertia[j] > 0.0)
         wbody[j] = sqrt(KT/b->inertia[j])*random->gaussian();
       else

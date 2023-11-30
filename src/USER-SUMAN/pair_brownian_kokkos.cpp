@@ -42,7 +42,7 @@ using namespace MathSpecialKokkos;
 
 enum { EDGE, CONSTANT, VARIABLE };
 
-#define _NO_RANDOM
+//#define _NO_RANDOM
 
 /* ---------------------------------------------------------------------- */
 
@@ -100,8 +100,6 @@ void PairBrownianKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
-
-  printf("PairBrownianKokkos::init_style()  flagdeform= %i  flagwall= %i  flaglog= %i  R0= %f  RT0= %f\n",flagdeform,flagwall,flaglog,R0,RT0);  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,7 +107,9 @@ void PairBrownianKokkos<DeviceType>::init_style()
 template<class DeviceType>
 void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-  printf("Inside compute()\n");
+#ifdef _NO_RANDOM
+  printf("Warning:: PairBrownian::compute()  Random numbers all set to 0.5\n");
+#endif
   
   eflag = eflag_in;
   vflag = vflag_in;
@@ -120,8 +120,6 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
-
-  printf("PairBrownianKokkos::compute() flagVF= %i  flagdeform= %i  flagwall= %i  flaglog= %i\n",flagVF,flagdeform,flagwall,flaglog);
   
   double dims[3], wallcoord;
   if (flagVF)                             // Flag for volume fraction corrections
@@ -166,8 +164,6 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   prethermostat = sqrt(24.0 * force->boltz * t_target / update->dt);
   prethermostat *= sqrt(force->vxmu2f / force->ftm2v / force->mvv2e);
   
-  printf("PairBrownianKokkos::compute()  prethermostat= %f  R0= %f  RT0= %f\n",prethermostat, R0, RT0);
-  
   // reallocate per-atom arrays if necessary
 
   if (vflag_atom) {
@@ -205,10 +201,6 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   
   EV_FLOAT ev;
 
-  printf(" -- starting parallel_for()  neighflag= %i  HALF= %i  HALFTHREAD= %i  newton_pair= %i  vflag_either= %i  vflag_atom= %i  flagfld= %i  vflag_global= %i\n",
-	 neighflag, HALF, HALFTHREAD, newton_pair, vflag_either, vflag_atom, flagfld, vflag_global);
-
-#if 1
   if (flagfld) { // FLAGFLD == 1
     if (vflag_either) { // VFLAG == 1
       if (neighflag == HALF) {
@@ -258,8 +250,6 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-#endif
-  printf(" -- finished\n");
   
   if (vflag_global) {
     virial[0] += ev.v[0];
@@ -277,19 +267,13 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
-  printf("i= %i  vflag_fdotr= %i  vatom= %f %f %f %f %f %f\n",vflag_fdotr,0,vatom[0][0],vatom[0][1],vatom[0][2],vatom[0][3],vatom[0][4],vatom[0][5]);
-  
   copymode = 0;
-  
-  printf("Leaving compute()\n");
 }
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
 KOKKOS_INLINE_FUNCTION
 void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int ii, EV_FLOAT &ev) const {
-
-  //  printf("Inside TagPairBrownianCompute<>()  ii= %i\n",ii);
   
   // The f and torque arrays are atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
@@ -316,7 +300,6 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
   F_FLOAT torquey_i = 0.0;
   F_FLOAT torquez_i = 0.0;
   
-#if 1
 #ifdef _NO_RANDOM
   if (FLAGFLD) {
     fx_i = prethermostat * sqrt(R0) * 0.5;
@@ -340,9 +323,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
     }
   }
 #endif
-#endif
 
-#if 1
   if (flagHI) {
     
     for (int jj = 0; jj < jnum; jj++) {
@@ -397,7 +378,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	F_FLOAT fz = Fbmag * randr * delz / r;
   	
 	// add terms due to a_sh
-#if 1
+
 	if (flaglog) {
   	  
 	  // generate two orthogonal vectors to the line of centers
@@ -429,7 +410,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	  fy += Fbmag * randr * p3[1];
 	  fz += Fbmag * randr * p3[2];
    	}
-#endif
+
 	// scale forces to appropriate units
 
 	fx = vxmu2f * fx;
@@ -512,16 +493,13 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 	}
 	
 	if (VFLAG)
-	  ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, -fx, -fy, -fz, delx, dely, delz);
+          ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, -fx, -fy, -fz, delx, dely, delz);
       }
     }
     
   } // if(flagHI)
-#endif
   
   rand_pool.free_state(rand_gen);
-  
-  if(ii == 0) printf("ii= %i  i= %i  f(before)= %f %f %f  df= %f %f %f\n",ii,i,a_f(i,0),a_f(i,1),a_f(i,2),fx_i,fy_i,fz_i);
     
   a_f(i,0) += fx_i;
   a_f(i,1) += fy_i;
@@ -529,10 +507,6 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
   a_torque(i,0) += torquex_i;
   a_torque(i,1) += torquey_i;
   a_torque(i,2) += torquez_i;
-
-  if(ii == 0) printf("ii= %i  i= %i  f(after)= %f %f %f\n",ii,i,a_f(i,0),a_f(i,1),a_f(i,2));
-  
-  //  printf(" -- leaving %i\n",ii);
 }
 
 template<class DeviceType>

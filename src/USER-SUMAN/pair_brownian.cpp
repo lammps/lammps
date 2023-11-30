@@ -46,7 +46,7 @@ using namespace MathSpecial;
 
 enum { EDGE, CONSTANT, VARIABLE };
 
-#define _NO_RANDOM
+//#define _NO_RANDOM
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,7 +76,9 @@ PairBrownian::~PairBrownian()
 
 void PairBrownian::compute(int eflag, int vflag)
 {
+#ifdef _NO_RANDOM
   printf("Warning:: PairBrownian::compute()  Random numbers all set to 0.5\n");
+#endif
   
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fx, fy, fz, tx, ty, tz;
@@ -101,8 +103,6 @@ void PairBrownian::compute(int eflag, int vflag)
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
-
-  printf("PairBrownian::compute() flagVF= %i  flagdeform= %i  flagwall= %i  flaglog= %i\n",flagVF,flagdeform,flagwall,flaglog);
   
   double dims[3], wallcoord;
   if (flagVF)                             // Flag for volume fraction corrections
@@ -146,16 +146,11 @@ void PairBrownian::compute(int eflag, int vflag)
 
   prethermostat = sqrt(24.0 * force->boltz * t_target / update->dt);
   prethermostat *= sqrt(force->vxmu2f / force->ftm2v / force->mvv2e);
-
-  printf("PairBrownian::compute()  prethermostat= %f  R0= %f  RT0= %f\n",prethermostat, R0, RT0);
   
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  printf(" -- starting ij-loop()  newton_pair= %i  vflag_atom= %i  flagfld= %i  vflag_global= %i\n",
-	 newton_pair, vflag_atom, flagfld, vflag_global);
   
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -167,10 +162,8 @@ void PairBrownian::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-#if 1
     // FLD contribution to force and torque due to isotropic terms
 
-    if(ii == 0) printf("ii= %i  i= %i  f(before)= %f %f %f  df= %f\n",ii,i,f[i][0],f[i][1],f[i][2],prethermostat * sqrt(R0) * 0.5);
 #ifdef _NO_RANDOM
     if (flagfld) {
       f[i][0] += prethermostat * sqrt(R0) * 0.5;
@@ -195,11 +188,8 @@ void PairBrownian::compute(int eflag, int vflag)
     }
 #endif
     
-#endif
-    
     if (!flagHI) continue;
 
-#if 1
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -254,7 +244,6 @@ void PairBrownian::compute(int eflag, int vflag)
 
         // add terms due to a_sh
 
-#if 1
         if (flaglog) {
 
           // generate two orthogonal vectors to the line of centers
@@ -286,7 +275,7 @@ void PairBrownian::compute(int eflag, int vflag)
           fy += Fbmag * randr * p3[1];
           fz += Fbmag * randr * p3[2];
         }
-#endif
+
         // scale forces to appropriate units
 
         fx = vxmu2f * fx;
@@ -377,11 +366,7 @@ void PairBrownian::compute(int eflag, int vflag)
 	  ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, -fx, -fy, -fz, delx, dely, delz);
       }
     }
-#endif
   }
-  
-  printf("ii= %i  i= %i  f(after)= %f %f %f\n",0,ilist[0],f[ilist[0]][0],f[ilist[0]][1],f[ilist[0]][2]);
-  printf("i= %i  vatom= %f %f %f %f %f %f\n",0,vatom[0][0],vatom[0][1],vatom[0][2],vatom[0][3],vatom[0][4],vatom[0][5]);
     
   if (vflag_fdotr) virial_fdotr_compute();
 }
@@ -490,9 +475,7 @@ void PairBrownian::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 void PairBrownian::init_style()
-{
-  printf("Inside PairBrownian::init_style()\n");
-  
+{  
   if (!atom->sphere_flag) error->all(FLERR, "Pair brownian requires atom style sphere");
 
   // if newton off, forces between atoms ij will be double computed
@@ -535,7 +518,6 @@ void PairBrownian::init_style()
 
   flagdeform = flagwall = 0;
   for (int i = 0; i < modify->nfix; i++) {
-    printf("  i= %i  fix->style= %s\n",i,modify->fix[i]->style);
     if (strcmp(modify->fix[i]->style, "deform") == 0) flagdeform = 1;
     else if (strcmp(modify->fix[i]->style, "deform/kk") == 0) flagdeform = 1; // cleaner way to do this?? what about flagwall?
     else if (strstr(modify->fix[i]->style, "wall") != nullptr) {
@@ -595,8 +577,6 @@ void PairBrownian::init_style()
     R0 = 6 * MY_PI * mu * rad * (1.0 + 2.725 * vol_f - 6.583 * vol_f * vol_f);
     RT0 = 8 * MY_PI * mu * cube(rad) * (1.0 + 0.749 * vol_f - 2.469 * vol_f * vol_f);
   }
-  
-  printf("PairBrownian::init_style()  flagdeform= %i  flagwall= %i  flaglog= %i  R0= %f  RT0= %f\n",flagdeform,flagwall,flaglog,R0,RT0);
 }
 
 /* ----------------------------------------------------------------------

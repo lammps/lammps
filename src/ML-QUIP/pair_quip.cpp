@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 
 PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
 {
-  scale=1.0;
+  scale = 1.0;
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

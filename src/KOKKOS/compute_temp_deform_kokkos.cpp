@@ -214,6 +214,9 @@ void ComputeTempDeformKokkos<DeviceType>::remove_bias_all()
   copymode = 0;
 
   domainKK->lamda2x(nlocal);
+
+  atomKK->k_v.template modify<DeviceType>();
+  atomKK->k_v.template sync<LMPHostType>();
 }
 
 template<class DeviceType>
@@ -242,6 +245,9 @@ void ComputeTempDeformKokkos<DeviceType>::restore_bias_all()
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagComputeTempDeformRestoreBias >(0,nlocal),*this);
   copymode = 0;
+
+  atomKK->k_v.template modify<DeviceType>();
+  atomKK->k_v.template sync<LMPHostType>();
 }
 
 template<class DeviceType>

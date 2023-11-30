@@ -7,7 +7,9 @@ the :ref:`OPLS-AA force field <OPLSAA96>`. The first
 task is to describe an organic compound and create a complete input deck
 for LAMMPS. The second task is to map the OPLS-AA force field to a
 molecular sample created with an external tool, e.g. PACKMOL, and
-exported as a PDB file.
+exported as a PDB file.  The files used in this tutorial can be found
+in the ``tools/moltemplate/tutorial-files`` folder of the LAMMPS
+source code distribution.
 
 Simulating an organic solvent
 """""""""""""""""""""""""""""

@@ -116,6 +116,7 @@ struct PairComputeFunctor  {
 
   // Loop over neighbors of one atom without coulomb interaction
   // This function is called in parallel
+
   template<int EVFLAG, int NEWTON_PAIR>
   KOKKOS_FUNCTION
   EV_FLOAT compute_item(const int& ii,
@@ -161,7 +162,7 @@ struct PairComputeFunctor  {
         fytmp += dely*fpair;
         fztmp += delz*fpair;
 
-        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
+        if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
           a_f(j,0) -= delx*fpair;
           a_f(j,1) -= dely*fpair;
           a_f(j,2) -= delz*fpair;
@@ -169,9 +170,9 @@ struct PairComputeFunctor  {
 
         if (EVFLAG) {
           F_FLOAT evdwl = 0.0;
-          if (c.eflag) {
+          if (c.eflag_either) {
             evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-            ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*evdwl;
+            ev.evdwl += (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*evdwl;
           }
 
           if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
@@ -189,6 +190,7 @@ struct PairComputeFunctor  {
 
   // Loop over neighbors of one atom with coulomb interaction
   // This function is called in parallel
+
   template<int EVFLAG, int NEWTON_PAIR>
   KOKKOS_FUNCTION
   EV_FLOAT compute_item(const int& ii,
@@ -241,7 +243,7 @@ struct PairComputeFunctor  {
         fytmp += dely*fpair;
         fztmp += delz*fpair;
 
-        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
+        if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
           a_f(j,0) -= delx*fpair;
           a_f(j,1) -= dely*fpair;
           a_f(j,2) -= delz*fpair;
@@ -250,14 +252,14 @@ struct PairComputeFunctor  {
         if (EVFLAG) {
           F_FLOAT evdwl = 0.0;
           F_FLOAT ecoul = 0.0;
-          if (c.eflag) {
+          if (c.eflag_either) {
             if (rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
               evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*evdwl;
+              ev.evdwl += (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || (j < c.nlocal)))?1.0:0.5)*evdwl;
             }
             if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
               ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
-              ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*ecoul;
+              ev.ecoul += (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || (j < c.nlocal)))?1.0:0.5)*ecoul;
             }
           }
 
@@ -273,12 +275,15 @@ struct PairComputeFunctor  {
     return ev;
   }
 
-  // Use TeamPolicy, assume Newton off, Full Neighborlist, and no energy/virial
+  // TeamPolicy, newton off, and no energy/virial
   // Loop over neighbors of one atom without coulomb interaction
   // This function is called in parallel
+
   KOKKOS_FUNCTION
   void compute_item_team(typename Kokkos::TeamPolicy<device_type>::member_type team,
                          const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
+
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     const int inum = team.league_size();
     const int atoms_per_team = team.team_size();
@@ -292,7 +297,7 @@ struct PairComputeFunctor  {
       const X_FLOAT ztmp = c.x(i,2);
       const int itype = c.type(i);
 
-      if (ZEROFLAG) {
+      if (NEIGHFLAG == FULL && ZEROFLAG) {
         Kokkos::single(Kokkos::PerThread(team), [&] (){
           f(i,0) = 0.0;
           f(i,1) = 0.0;
@@ -321,28 +326,41 @@ struct PairComputeFunctor  {
 
           const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
-          ftmp.x += delx*fpair;
-          ftmp.y += dely*fpair;
-          ftmp.z += delz*fpair;
+          const F_FLOAT fx = delx*fpair;
+          const F_FLOAT fy = dely*fpair;
+          const F_FLOAT fz = delz*fpair;
+
+          ftmp.x += fx;
+          ftmp.y += fy;
+          ftmp.z += fz;
+
+          if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal) {
+            a_f(j,0) -= fx;
+            a_f(j,1) -= fy;
+            a_f(j,2) -= fz;
+          }
         }
 
       },fsum);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        f(i,0) += fsum.x;
-        f(i,1) += fsum.y;
-        f(i,2) += fsum.z;
+        a_f(i,0) += fsum.x;
+        a_f(i,1) += fsum.y;
+        a_f(i,2) += fsum.z;
       });
 
     });
   }
 
-  // Use TeamPolicy, assume Newton off, Full Neighborlist, and no energy/virial
+  // TeamPolicy, newton off, and no energy/virial
   // Loop over neighbors of one atom with coulomb interaction
   // This function is called in parallel
+
   KOKKOS_FUNCTION
   void compute_item_team(typename Kokkos::TeamPolicy<device_type>::member_type team,
                          const NeighListKokkos<device_type> &list, const CoulTag& ) const {
+
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     const int inum = team.league_size();
     const int atoms_per_team = team.team_size();
@@ -350,6 +368,7 @@ struct PairComputeFunctor  {
     int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
 
+
       const int i = list.d_ilist[ii];
       const X_FLOAT xtmp = c.x(i,0);
       const X_FLOAT ytmp = c.x(i,1);
@@ -357,8 +376,9 @@ struct PairComputeFunctor  {
       const int itype = c.type(i);
       const F_FLOAT qtmp = c.q(i);
 
-      if (ZEROFLAG) {
-        Kokkos::single(Kokkos::PerThread(team), [&] (){
+      if (NEIGHFLAG == FULL && ZEROFLAG) {
+        Kokkos::single(Kokkos::PerThread(team), [&] ()
+        {
           f(i,0) = 0.0;
           f(i,1) = 0.0;
           f(i,2) = 0.0;
@@ -391,27 +411,42 @@ struct PairComputeFunctor  {
           if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype)))
             fpair+=c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
 
-          ftmp.x += delx*fpair;
-          ftmp.y += dely*fpair;
-          ftmp.z += delz*fpair;
+          const F_FLOAT fx = delx*fpair;
+          const F_FLOAT fy = dely*fpair;
+          const F_FLOAT fz = delz*fpair;
+
+          ftmp.x += fx;
+          ftmp.y += fy;
+          ftmp.z += fz;
+
+          if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal) {
+            a_f(j,0) -= fx;
+            a_f(j,1) -= fy;
+            a_f(j,2) -= fz;
+          }
         }
+
       },fsum);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-      f(i,0) += fsum.x;
-      f(i,1) += fsum.y;
-      f(i,2) += fsum.z;
+        a_f(i,0) += fsum.x;
+        a_f(i,1) += fsum.y;
+        a_f(i,2) += fsum.z;
       });
     });
   }
 
-
-  // Use TeamPolicy, assume Newton off, Full Neighborlist, and energy/virial
+  // TeamPolicy, newton off, and energy/virial
   // Loop over neighbors of one atom without coulomb interaction
   // This function is called in parallel
+
   KOKKOS_FUNCTION
   EV_FLOAT compute_item_team_ev(typename Kokkos::TeamPolicy<device_type>::member_type team,
                                 const NeighListKokkos<device_type> &list, const NoCoulTag&) const {
+
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_eatom = dup_eatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_vatom = dup_vatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     EV_FLOAT ev;
 
@@ -419,6 +454,7 @@ struct PairComputeFunctor  {
     const int atoms_per_team = team.team_size();
     const int firstatom = team.league_rank()*atoms_per_team;
     const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
+
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
 
       const int i = list.d_ilist[ii];
@@ -427,8 +463,9 @@ struct PairComputeFunctor  {
       const X_FLOAT ztmp = c.x(i,2);
       const int itype = c.type(i);
 
-      if (ZEROFLAG) {
-        Kokkos::single(Kokkos::PerThread(team), [&] (){
+      if (NEIGHFLAG == FULL && ZEROFLAG) {
+        Kokkos::single(Kokkos::PerThread(team), [&] ()
+        {
           f(i,0) = 0.0;
           f(i,1) = 0.0;
           f(i,2) = 0.0;
@@ -456,36 +493,84 @@ struct PairComputeFunctor  {
 
           const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
-          fev_tmp.f[0] += delx*fpair;
-          fev_tmp.f[1] += dely*fpair;
-          fev_tmp.f[2] += delz*fpair;
+          const F_FLOAT fx = delx*fpair;
+          const F_FLOAT fy = dely*fpair;
+          const F_FLOAT fz = delz*fpair;
+
+          fev_tmp.f[0] += fx;
+          fev_tmp.f[1] += fy;
+          fev_tmp.f[2] += fz;
+
+          const int I_CONTRIB = (NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD);
+          const int J_CONTRIB = ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal);
+          const E_FLOAT factor = J_CONTRIB?1.0:0.5;
+
+          if (J_CONTRIB) {
+            a_f(j,0) -= fx;
+            a_f(j,1) -= fy;
+            a_f(j,2) -= fz;
+          }
 
           F_FLOAT evdwl = 0.0;
-          if (c.eflag) {
+          if (c.eflag_either) {
             evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-            fev_tmp.evdwl += 0.5*evdwl;
+            fev_tmp.evdwl += factor * evdwl;
+
+            if (c.eflag_atom) {
+              const E_FLOAT epairhalf = 0.5 * evdwl;
+
+              if (I_CONTRIB)
+                a_eatom[i] += epairhalf;
+
+              if (J_CONTRIB)
+                a_eatom[j] += epairhalf;
+            }
           }
+
           if (c.vflag_either) {
-            fev_tmp.v[0] += 0.5*delx*delx*fpair;
-            fev_tmp.v[1] += 0.5*dely*dely*fpair;
-            fev_tmp.v[2] += 0.5*delz*delz*fpair;
-            fev_tmp.v[3] += 0.5*delx*dely*fpair;
-            fev_tmp.v[4] += 0.5*delx*delz*fpair;
-            fev_tmp.v[5] += 0.5*dely*delz*fpair;
+            const E_FLOAT v0 = delx*delx*fpair;
+            const E_FLOAT v1 = dely*dely*fpair;
+            const E_FLOAT v2 = delz*delz*fpair;
+            const E_FLOAT v3 = delx*dely*fpair;
+            const E_FLOAT v4 = delx*delz*fpair;
+            const E_FLOAT v5 = dely*delz*fpair;
+
+            fev_tmp.v[0] += factor*v0;
+            fev_tmp.v[1] += factor*v1;
+            fev_tmp.v[2] += factor*v2;
+            fev_tmp.v[3] += factor*v3;
+            fev_tmp.v[4] += factor*v4;
+            fev_tmp.v[5] += factor*v5;
+
+            if (c.vflag_atom) {
+              if (I_CONTRIB) {
+                a_vatom(i,0) += 0.5*v0;
+                a_vatom(i,1) += 0.5*v1;
+                a_vatom(i,2) += 0.5*v2;
+                a_vatom(i,3) += 0.5*v3;
+                a_vatom(i,4) += 0.5*v4;
+                a_vatom(i,5) += 0.5*v5;
+              }
+              if (J_CONTRIB) {
+                a_vatom(j,0) += 0.5*v0;
+                a_vatom(j,1) += 0.5*v1;
+                a_vatom(j,2) += 0.5*v2;
+                a_vatom(j,3) += 0.5*v3;
+                a_vatom(j,4) += 0.5*v4;
+                a_vatom(j,5) += 0.5*v5;
+              }
+            }
           }
         }
       },fev);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        f(i,0) += fev.f[0];
-        f(i,1) += fev.f[1];
-        f(i,2) += fev.f[2];
+        a_f(i,0) += fev.f[0];
+        a_f(i,1) += fev.f[1];
+        a_f(i,2) += fev.f[2];
 
         if (c.eflag_global)
           ev.evdwl += fev.evdwl;
-
-        if (c.eflag_atom)
-          d_eatom(i) += fev.evdwl;
 
         if (c.vflag_global) {
           ev.v[0] += fev.v[0];
@@ -496,25 +581,36 @@ struct PairComputeFunctor  {
           ev.v[5] += fev.v[5];
         }
 
-        if (c.vflag_atom) {
-          d_vatom(i,0) += fev.v[0];
-          d_vatom(i,1) += fev.v[1];
-          d_vatom(i,2) += fev.v[2];
-          d_vatom(i,3) += fev.v[3];
-          d_vatom(i,4) += fev.v[4];
-          d_vatom(i,5) += fev.v[5];
+        if (NEIGHFLAG == FULL) {
+
+          if (c.eflag_atom)
+            a_eatom(i) += fev.evdwl;
+
+          if (c.vflag_atom) {
+            a_vatom(i,0) += fev.v[0];
+            a_vatom(i,1) += fev.v[1];
+            a_vatom(i,2) += fev.v[2];
+            a_vatom(i,3) += fev.v[3];
+            a_vatom(i,4) += fev.v[4];
+            a_vatom(i,5) += fev.v[5];
+          }
         }
       });
     });
     return ev;
   }
 
-  // Use TeamPolicy, assume Newton off, Full Neighborlist, and energy/virial
+  // TeamPolicy, newton off, and energy/virial
   // Loop over neighbors of one atom with coulomb interaction
   // This function is called in parallel
+
   KOKKOS_FUNCTION
   EV_FLOAT compute_item_team_ev(typename Kokkos::TeamPolicy<device_type>::member_type team,
                                 const NeighListKokkos<device_type> &list, const CoulTag& ) const {
+
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_eatom = dup_eatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_vatom = dup_vatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     EV_FLOAT ev;
 
@@ -566,45 +662,92 @@ struct PairComputeFunctor  {
           if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype)))
             fpair+=c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
 
-          fev_tmp.f[0] += delx*fpair;
-          fev_tmp.f[1] += dely*fpair;
-          fev_tmp.f[2] += delz*fpair;
+          const F_FLOAT fx = delx*fpair;
+          const F_FLOAT fy = dely*fpair;
+          const F_FLOAT fz = delz*fpair;
+
+          fev_tmp.f[0] += fx;
+          fev_tmp.f[1] += fy;
+          fev_tmp.f[2] += fz;
+
+          const int I_CONTRIB = (NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD);
+          const int J_CONTRIB = ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal);
+          const E_FLOAT factor = J_CONTRIB?1.0:0.5;
+
+          if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal) {
+            a_f(j,0) -= fx;
+            a_f(j,1) -= fy;
+            a_f(j,2) -= fz;
+          }
 
           F_FLOAT evdwl = 0.0;
           F_FLOAT ecoul = 0.0;
-          if (c.eflag) {
+          if (c.eflag_either) {
             if (rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
               evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              fev_tmp.evdwl += 0.5*evdwl;
+              fev_tmp.evdwl += factor * evdwl;
             }
             if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
               ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
-              fev_tmp.ecoul += 0.5*ecoul;
+              fev_tmp.ecoul += factor * ecoul;
+            }
+
+
+            if (c.eflag_atom) {
+              const E_FLOAT epairhalf = 0.5 * (evdwl + ecoul);
+
+              if (I_CONTRIB)
+                a_eatom[i] += epairhalf;
+
+              if (J_CONTRIB)
+                a_eatom[j] += epairhalf;
             }
           }
+
           if (c.vflag_either) {
-            fev_tmp.v[0] += 0.5*delx*delx*fpair;
-            fev_tmp.v[1] += 0.5*dely*dely*fpair;
-            fev_tmp.v[2] += 0.5*delz*delz*fpair;
-            fev_tmp.v[3] += 0.5*delx*dely*fpair;
-            fev_tmp.v[4] += 0.5*delx*delz*fpair;
-            fev_tmp.v[5] += 0.5*dely*delz*fpair;
+            const E_FLOAT v0 = delx*delx*fpair;
+            const E_FLOAT v1 = dely*dely*fpair;
+            const E_FLOAT v2 = delz*delz*fpair;
+            const E_FLOAT v3 = delx*dely*fpair;
+            const E_FLOAT v4 = delx*delz*fpair;
+            const E_FLOAT v5 = dely*delz*fpair;
+
+            fev_tmp.v[0] += factor*v0;
+            fev_tmp.v[1] += factor*v1;
+            fev_tmp.v[2] += factor*v2;
+            fev_tmp.v[3] += factor*v3;
+            fev_tmp.v[4] += factor*v4;
+            fev_tmp.v[5] += factor*v5;
+
+            if (c.vflag_atom) {
+              if (I_CONTRIB) {
+                a_vatom(i,0) += 0.5*v0;
+                a_vatom(i,1) += 0.5*v1;
+                a_vatom(i,2) += 0.5*v2;
+                a_vatom(i,3) += 0.5*v3;
+                a_vatom(i,4) += 0.5*v4;
+                a_vatom(i,5) += 0.5*v5;
+              }
+              if (J_CONTRIB) {
+                a_vatom(j,0) += 0.5*v0;
+                a_vatom(j,1) += 0.5*v1;
+                a_vatom(j,2) += 0.5*v2;
+                a_vatom(j,3) += 0.5*v3;
+                a_vatom(j,4) += 0.5*v4;
+                a_vatom(j,5) += 0.5*v5;
+              }
+            }
           }
         }
       },fev);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        f(i,0) += fev.f[0];
-        f(i,1) += fev.f[1];
-        f(i,2) += fev.f[2];
+        a_f(i,0) += fev.f[0];
+        a_f(i,1) += fev.f[1];
+        a_f(i,2) += fev.f[2];
 
-        if (c.eflag_global) {
+        if (c.eflag_global)
           ev.evdwl += fev.evdwl;
-          ev.ecoul += fev.ecoul;
-        }
-
-        if (c.eflag_atom)
-          d_eatom(i) += fev.evdwl + fev.ecoul;
 
         if (c.vflag_global) {
           ev.v[0] += fev.v[0];
@@ -615,13 +758,19 @@ struct PairComputeFunctor  {
           ev.v[5] += fev.v[5];
         }
 
-        if (c.vflag_atom) {
-          d_vatom(i,0) += fev.v[0];
-          d_vatom(i,1) += fev.v[1];
-          d_vatom(i,2) += fev.v[2];
-          d_vatom(i,3) += fev.v[3];
-          d_vatom(i,4) += fev.v[4];
-          d_vatom(i,5) += fev.v[5];
+        if (NEIGHFLAG == FULL) {
+
+          if (c.eflag_atom)
+            a_eatom(i) += fev.evdwl;
+
+          if (c.vflag_atom) {
+            a_vatom(i,0) += fev.v[0];
+            a_vatom(i,1) += fev.v[1];
+            a_vatom(i,2) += fev.v[2];
+            a_vatom(i,3) += fev.v[3];
+            a_vatom(i,4) += fev.v[4];
+            a_vatom(i,5) += fev.v[5];
+          }
         }
       });
     });
@@ -636,7 +785,7 @@ struct PairComputeFunctor  {
     auto a_eatom = dup_eatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
     auto a_vatom = dup_vatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
-    const int EFLAG = c.eflag;
+    const int EFLAG = c.eflag_either;
     const int NEWTON_PAIR = c.newton_pair;
     const int VFLAG = c.vflag_either;
 
@@ -657,7 +806,7 @@ struct PairComputeFunctor  {
       const E_FLOAT v5 = dely*delz*fpair;
 
       if (c.vflag_global) {
-        if (NEIGHFLAG!=FULL) {
+        if (NEIGHFLAG != FULL) {
           if (NEWTON_PAIR) {
             ev.v[0] += v0;
             ev.v[1] += v1;
@@ -747,7 +896,8 @@ struct PairComputeFunctor  {
 // This uses the fact that failure to match template parameters is not an error.
 // By having the enable_if with a ! and without it, exactly one of the functions
 // pair_compute_neighlist will match - either the dummy version
-// or the real one further below.
+// or the real one further below
+
 template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<!((NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*> list) {
   EV_FLOAT ev;

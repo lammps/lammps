@@ -39,10 +39,42 @@ This new proposed configuration is then accepted/rejected with the probability:
 
 .. math::
 
-   p = min(1,e^{-\Delta{H}})
+   p^{acc} = min(1,e^{\frac{-\Delta{H}}{k_B T}})
 
 If the configuration is accepted, the positions and velocities are updated.
 
-If the configuration is rejected, the previous positions and velocities are kept.
+If the configuration is rejected, particle momenta are randomly resampled from a normal distribution:
 
+.. math::
+
+   p_{x,y,z} = \textbf{N}(0,1) \sqrt{\frac{k_B T}{2 m^2}}
+
+the simulation is then continued, where a new MD step is proposed, and the procedure is repeated.
+
+Related commands
+""""""""""""""""
+
+fix tfmc, fix gcmc, fix nve
+
+Default
+"""""""
+
+none
+
+----------
+
+**(Watkins)** Watkins and Jorgensen, J Phys Chem A, 105, 4118-4125 (2001).
+
+**(Betancourt)** Betancourt, M. A Conceptual Introduction to Hamiltonian Monte Carlo, 2018.
+
+**(Duane)** Duane, S.; Kennedy, A. D.; Pendleton, B. J.; Roweth, D. Hybrid Monte Carlo. Physics Letters B 1987, 195 (2), 216–222. https://doi.org/10.1016/0370-2693(87)91197-X.
+
+**(Metropolis)** Metropolis, N.; Rosenbluth, A. W.; Rosenbluth, M. N.; Teller, A. H.; Teller, E. The journal of chemical physics
+1953, 21, 1087–1092.
+
+LAMMPS Developers Issue 565: [Brief description of the issue] GitHub issue, https://github.com/lammps/
+lammps/issues/565.
+
+LAMMPS Development Team LAMMPS Documentation: Modify Requirements https://docs.lammps.org/
+Modify_requirements.html.
 

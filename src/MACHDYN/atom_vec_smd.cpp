@@ -60,7 +60,7 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
   atom->eff_plastic_strain_rate_flag = 1;
 
   x0_hold = nullptr;
-  
+
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
@@ -166,7 +166,7 @@ void AtomVecSMD::data_atom_post(int ilocal)
   //   for PBC, shift, etc
   // this means no need for read_data_general_to_restricted() method
   //   to rotate x0 for general triclinic
-  
+
   x0[ilocal][0] = x[ilocal][0];
   x0[ilocal][1] = x[ilocal][1];
   x0[ilocal][2] = x[ilocal][2];

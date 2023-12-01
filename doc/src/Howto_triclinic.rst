@@ -92,7 +92,7 @@ restricted triclinic parallelepiped.
    conform to the LAMMPS definition of a restricted triclinic box.
    See the discussion in the next sub-section about general triclinic
    simulation boxes in LAMMPS.
-  
+
 Note that the :doc:`thermo_style custom <thermo_style>` command has
 keywords for outputting the various parameters that define both
 restricted and general triclinic simulation boxes.  Thus you can check

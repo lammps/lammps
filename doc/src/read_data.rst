@@ -148,7 +148,7 @@ keyword must be used.
    triclinic box, the avec, bvec, cvec, and "abc origin" keywords must
    have the same values in subsequent data files.  Also the *shift*
    keyword cannot be used in subsequent read_data commands.
-   
+
 The three choices for the *add* argument affect how the atom IDs and
 molecule IDs of atoms in the data file are treated.  If *append* is
 specified, atoms in the data file are added to the current system,
@@ -494,7 +494,7 @@ periodic sense) back inside the box.  For triclinic boxes, periodicity
 in x,y,z refers to the faces of the parallelepided defined by the
 **A**,**B**,**C** edge vectors of the simuation box.  See the
 :doc:`boundary <boundary>` command doc page for a fuller discussion.
-     
+
 Note that if the *add* option is being used to add atoms to a
 simulation box that already exists, this periodic remapping will be
 performed using simulation box bounds that are the union of the

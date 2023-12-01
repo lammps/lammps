@@ -358,11 +358,11 @@ void CreateAtoms::command(int narg, char **arg)
   }
 
   // require non-none lattice be defined for BOX or REGION styles
-  
+
   if ((style == BOX) || (style == REGION)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
   }
-  
+
   // apply scaling factor for styles that use distance-dependent factors
 
   if (scaleflag) {
@@ -465,7 +465,7 @@ void CreateAtoms::command(int narg, char **arg)
   atom->avec->clear_bonus();
 
   // add atoms/molecules with appropriate add() method
-  
+
   bigint natoms_previous = atom->natoms;
   int nlocal_previous = atom->nlocal;
 
@@ -1178,7 +1178,7 @@ void CreateAtoms::add_lattice()
 {
   // add atoms on general triclinic lattice if Domain has setting for it
   // verify lattice was defined with triclinic/general option
-  
+
   if (!domain->triclinic_general && domain->lattice->is_general_triclinic())
     error->all(FLERR,"Create_atoms for non general triclinic box cannot use triclinic/general lattice");
   if (domain->triclinic_general && !domain->lattice->is_general_triclinic())
@@ -1228,7 +1228,7 @@ void CreateAtoms::add_lattice()
   // convert 8 corner points of bounding box to lattice coordinates
   // compute new bounding box (xyz min/max) in lattice coords
   // for orthogonal or restricted triclinic, use 8 corner points of bbox lo/hi
-  
+
   if (!domain->triclinic_general) {
     domain->lattice->bbox(1, bboxlo[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
     domain->lattice->bbox(1, bboxhi[0], bboxlo[1], bboxlo[2], xmin, ymin, zmin, xmax, ymax, zmax);
@@ -1274,7 +1274,7 @@ void CreateAtoms::add_lattice()
     domain->restricted_to_general_coords(point);
     domain->lattice->bbox(1, point[0], point[1], point[2], xmin, ymin, zmin, xmax, ymax, zmax);
   }
-  
+
   // ilo:ihi,jlo:jhi,klo:khi = loop bounds for lattice overlap of my subbox
   // overlap = any part of a unit cell (face,edge,pt) in common with my subbox
   // in lattice space, subbox is a tilted box
@@ -1284,7 +1284,7 @@ void CreateAtoms::add_lattice()
   //   which can lead to missing atoms in rare cases
   // extra decrement of lo if min < 0, since static_cast(-1.5) = -1
   // for 2d simulation, klo = khi = 0 so just one plane of atoms
-  
+
   ilo = static_cast<int>(xmin) - 1;
   jlo = static_cast<int>(ymin) - 1;
   klo = static_cast<int>(zmin) - 1;
@@ -1297,7 +1297,7 @@ void CreateAtoms::add_lattice()
   if (zmin < 0.0) klo--;
 
   if (domain->dimension == 2) klo = khi = 0;
-  
+
   // count lattice sites on each proc
 
   nlatt_overflow = 0;
@@ -1395,7 +1395,7 @@ void CreateAtoms::loop_lattice(int action)
                 error->all(FLERR,"Create_atoms atom z coord is non-zero for 2d simulation");
               x[2] = 0.0;
             }
-          }          
+          }
 
           // if a region was specified, test if atom is in it
 

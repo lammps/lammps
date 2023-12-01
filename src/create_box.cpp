@@ -48,7 +48,7 @@ void CreateBox::command(int narg, char **arg)
 
   Region *region = nullptr;
   int triclinic_general = 0;
-  
+
   if (strcmp(arg[1],"NULL") == 0) triclinic_general = 1;
   else {
     region = domain->get_region_by_id(arg[1]);
@@ -61,13 +61,13 @@ void CreateBox::command(int narg, char **arg)
   // 3 options: orthogonal, restricted triclinic, general triclinic
 
   int iarg = 2;
-  
+
   if (region) {
-    
+
     // region is not prism
     // setup orthogonal box
     // set simulation domain from region extent
-    
+
     if (strcmp(region->style, "prism") != 0) {
       domain->triclinic = 0;
       domain->boxlo[0] = region->extent_xlo;
@@ -108,7 +108,7 @@ void CreateBox::command(int narg, char **arg)
   } else if (triclinic_general) {
     if (!domain->lattice->is_general_triclinic())
       error->all(FLERR,"Create_box for general triclinic requires triclnic/general lattice");
-    
+
     if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "create_box general triclinic", error);
 
     double alo = utils::numeric(FLERR, arg[iarg + 0], false, lmp);
@@ -118,14 +118,14 @@ void CreateBox::command(int narg, char **arg)
     double clo = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
     double chi = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
     iarg += 6;
-    
+
     // use lattice2box() to generate origin and ABC vectors
     // origin = abc lo
     // ABC vectors = hi in one dim - origin
-    
+
     double avec[3],bvec[3],cvec[3],origin[3];
     double px,py,pz;
-    
+
     px = alo; py = blo; pz = clo;
     domain->lattice->lattice2box(px,py,pz);
     origin[0] = px;
@@ -157,7 +157,7 @@ void CreateBox::command(int narg, char **arg)
     }
 
     // define general triclinic box within Domain class
-    
+
     domain->define_general_triclinic(avec,bvec,cvec,origin);
   }
 

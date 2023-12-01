@@ -46,11 +46,11 @@ Examples
    create_box    1 NULL 0 5 0 5 -0.5 0.5
 
 .. code-block:: LAMMPS
- 
+
    # 3d general triclinic box using primitive cell for 3d fcc lattice
    lattice custom 1.0 a2 0.0 0.5 0.5 a1 0.5 0.0 0.5 a3 0.5 0.5 0.0 basis 0.0 0.0 0.0
    create box 1 NULL -5 5 -10 10 0 20
-   
+
 Description
 """""""""""
 

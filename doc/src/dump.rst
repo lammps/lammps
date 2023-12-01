@@ -719,9 +719,9 @@ Third, the output for any attribute of the *custom* style which
 represents a per-atom vector quantity will be converted (rotated) to
 be oriented consistent with the general tricinic box and its
 orientation relative to the standard xyz coordinate axes.
- 
+
 This applies to the following *custom* style attributes:
- 
+
 * vx,vy,vz = atom velocities
 * fx,fy,fz = forces on atoms
 * mux,muy,muz = orientation of dipole moment of atom

@@ -474,7 +474,7 @@ void ReadData::command(int narg, char **arg)
   int atomflag, topoflag;
   int bondflag, angleflag, dihedralflag, improperflag;
   int ellipsoidflag, lineflag, triflag, bodyflag;
-  
+
   atomflag = topoflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
   ellipsoidflag = lineflag = triflag = bodyflag = 0;
@@ -492,14 +492,14 @@ void ReadData::command(int narg, char **arg)
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
   xy = xz = yz = 0.0;
-  
+
   avec[0] = bvec[1] = cvec[2] = 1.0;
   avec[1] = avec[2] = 0.0;
   bvec[0] = bvec[2] = 0.0;
   cvec[0] = cvec[1] = 0.0;
   abc_origin[0] = abc_origin[1] = abc_origin[2] = 0.0;
   if (domain->dimension == 2) abc_origin[2] = -0.5;
-  
+
   keyword[0] = '\0';
 
   nlocal_previous = atom->nlocal;
@@ -542,7 +542,7 @@ void ReadData::command(int narg, char **arg)
                      "2d simulation with general triclinic box");
       }
     }
-    
+
     // problem setup using info from header
     // only done once, if firstpass and first data file
     // apply extra settings before grow(), even if no topology in file
@@ -577,7 +577,7 @@ void ReadData::command(int narg, char **arg)
       if (!triclinic_general) {
 
         // orthogonal or restricted triclinic box
-        
+
         domain->boxlo[0] = boxlo[0];
         domain->boxhi[0] = boxhi[0];
         domain->boxlo[1] = boxlo[1];
@@ -586,7 +586,7 @@ void ReadData::command(int narg, char **arg)
         domain->boxhi[2] = boxhi[2];
 
         // restricted triclinic box
-        
+
         if (triclinic) {
           domain->triclinic = 1;
           domain->xy = xy;
@@ -597,7 +597,7 @@ void ReadData::command(int narg, char **arg)
       // general triclinic box
       // define_general_triclinic() converts
       //   ABC edge vectors + abc_origin to restricted triclinic
-        
+
       } else if (triclinic_general) {
         domain->define_general_triclinic(avec,bvec,cvec,abc_origin);
       }
@@ -612,7 +612,7 @@ void ReadData::command(int narg, char **arg)
       // first data file must also be general triclinic
       // avec,bvec,vec and origin must match first data file
       // shift not allowed
-      
+
       if (triclinic_general) {
         if (!domain->triclinic_general)
           error->all(FLERR,"Read_data subsequent file cannot switch to general triclinic");
@@ -633,14 +633,14 @@ void ReadData::command(int narg, char **arg)
 
       // restricted triclinic
       // tilt factors must match first data file
-        
+
       } else if (triclinic) {
         if (!domain->triclinic || domain->triclinic_general)
           error->all(FLERR,"Read_data subsequent file cannot switch to restricted triclinic");
         if (xy != domain->xy || xz != domain->xz || yz != domain->yz)
           error->all(FLERR,"Read_data subsequent file tilt factors must be same as first file");
       }
-      
+
       double oldboxlo[3] = {domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};
       double oldboxhi[3] = {domain->boxhi[0], domain->boxhi[1], domain->boxhi[2]};
       domain->boxlo[0] = MIN(domain->boxlo[0], boxlo[0] + shift[0]);
@@ -652,7 +652,7 @@ void ReadData::command(int narg, char **arg)
 
       // check if box has changed
       // if yes, warn about non-zero image flags
-      
+
       if ((oldboxlo[0] != domain->boxlo[0]) || (oldboxlo[1] != domain->boxlo[1]) ||
           (oldboxlo[2] != domain->boxlo[2]) || (oldboxhi[0] != domain->boxhi[0]) ||
           (oldboxhi[1] != domain->boxhi[1]) || (oldboxhi[2] != domain->boxhi[2])) {
@@ -673,7 +673,7 @@ void ReadData::command(int narg, char **arg)
     }
 
     // setup simulation box and paritioning in Domain and Comm classes
-    
+
     domain->print_box("  ");
     domain->set_initial_box();
     domain->set_global_box();
@@ -1228,7 +1228,7 @@ void ReadData::header(int firstpass)
   // initialize type counts by the "extra" numbers so they get counted
   // in case the corresponding "types" line is missing and thus the extra
   // value will not be processed
-  
+
   if (addflag == NONE) {
     atom->ntypes = extra_atom_types;
     atom->nbondtypes = extra_bond_types;
@@ -1244,7 +1244,7 @@ void ReadData::header(int firstpass)
     if (eof == nullptr) error->one(FLERR, "Unexpected end of data file");
 
     // check for units keyword in first line and print warning on mismatch
-    
+
     auto units = Tokenizer(utils::strfind(line, "units = \\w+")).as_vector();
     if (units.size() > 2) {
       if (units[2] != update->unit_style)
@@ -1433,7 +1433,7 @@ void ReadData::header(int firstpass)
       xy = utils::numeric(FLERR, words[0], false, lmp);
       xz = utils::numeric(FLERR, words[1], false, lmp);
       yz = utils::numeric(FLERR, words[2], false, lmp);
-      
+
     } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\avec\\s")) {
       avec_flag = 1;
       avec[0] = utils::numeric(FLERR, words[0], false, lmp);
@@ -1522,7 +1522,7 @@ void ReadData::atoms()
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (tlabelflag && !lmap->is_complete(Atom::ATOM))
       error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, 
+    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset,
                      shiftflag, shift, tlabelflag, lmap->lmap2lmap.atom, triclinic_general);
     nread += nchunk;
   }

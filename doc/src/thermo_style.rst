@@ -107,7 +107,7 @@ screen and log files.  The units for each column of output
 corresponding to the list of keywords is determined by the :doc:`units
 <units>` command for the simulation.  E.g. energies will be in energy
 units, temperature in temperature units, pressure in pressure units.
-     
+
 Style *one* prints a single line of thermodynamic info that is the
 equivalent of "thermo_style custom step temp epair emol etotal press".
 The line contains only numeric values.

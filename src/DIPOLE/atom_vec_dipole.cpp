@@ -29,7 +29,7 @@ AtomVecDipole::AtomVecDipole(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = PER_TYPE;
 
   atom->q_flag = atom->mu_flag = 1;
-  
+
   mu_hold = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
@@ -117,7 +117,7 @@ void AtomVecDipole::write_data_restore_restricted()
   AtomVec::write_data_restore_restricted();
 
   if (!mu_hold) return;
-  
+
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
     memcpy(&mu[i],&mu_hold[i],3*sizeof(double));

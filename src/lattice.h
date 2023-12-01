@@ -28,7 +28,7 @@ class Lattice : protected Pointers {
   int nbasis;                             // # of basis atoms in unit cell
   double **basis;                         // fractional coords of each basis atom
                                           // within unit cell (0 <= coord < 1)
-  
+
   Lattice(class LAMMPS *, int, char **);
   ~Lattice() override;
   void lattice2box(double &, double &, double &);
@@ -36,7 +36,7 @@ class Lattice : protected Pointers {
   void bbox(int, double, double, double,
             double &, double &, double &, double &, double &, double &);
   int is_general_triclinic();
-  
+
  private:
   int triclinic_general;     // 1 if general triclinic, else 0
   int oriented;              // 1 if non-default orient xyz, else 0
@@ -51,10 +51,10 @@ class Lattice : protected Pointers {
   double rotaterow[3][3];
   double rotatecol[3][3];
 
-  double a1_prime[3];   // a123 rotated to restricted triclinic orientation  
+  double a1_prime[3];   // a123 rotated to restricted triclinic orientation
   double a2_prime[3];
   double a3_prime[3];
-  
+
   int orthogonal();
   int right_handed_orientation();
   int right_handed_primitive();

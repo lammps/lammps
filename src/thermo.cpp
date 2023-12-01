@@ -980,7 +980,7 @@ void Thermo::parse_fields(const std::string &str)
         addfield("Pxy", &Thermo::compute_pxy_triclinic_general, FLOAT);
       else addfield("Pxy", &Thermo::compute_pxy, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
-    } else if (word == "pxz") { 
+    } else if (word == "pxz") {
       if (triclinic_general)
         addfield("Pxz", &Thermo::compute_pxz_triclinic_general, FLOAT);
       else addfield("Pxz", &Thermo::compute_pxz, FLOAT);
@@ -1223,7 +1223,7 @@ void Thermo::check_press_vector(const std::string &keyword)
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;
 
     // store 3x3 matrix form of symmetric pressure tensor for use in triclinic_general()
-    
+
     if (triclinic_general) {
       press_tensor[0][0] = pressure->vector[0];
       press_tensor[1][1] = pressure->vector[1];

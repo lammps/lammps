@@ -293,12 +293,12 @@ void Domain::set_global_box()
 
   // update general triclinic box if defined
   // reset general tri ABC edge vectors from restricted tri box
-  
+
   if (triclinic_general) {
     double aprime[3],bprime[3],cprime[3];
 
     // A'B'C' = edge vectors of restricted triclinic box
-    
+
     aprime[0] = boxhi[0] - boxlo[0];
     aprime[1] = aprime[2] = 0.0;
     bprime[0] = xy;
@@ -309,7 +309,7 @@ void Domain::set_global_box()
     cprime[2] = boxhi[2] - boxlo[2];
 
     // transform restricted A'B'C' to general triclinic ABC
-    
+
     MathExtra::matvec(rotate_r2g,aprime,avec);
     MathExtra::matvec(rotate_r2g,bprime,bvec);
     MathExtra::matvec(rotate_r2g,cprime,cvec);
@@ -556,7 +556,7 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
 {
   if (triclinic || triclinic_general)
     error->all(FLERR,"General triclinic box edge vectors are already set");
-  
+
   triclinic = triclinic_general = 1;
 
   avec[0] = avec_caller[0];
@@ -596,7 +596,7 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   xy = bprime[0];
   xz = cprime[0];
   yz = cprime[1];
-  
+
   // debug
 
   /*
@@ -656,7 +656,7 @@ void Domain::general_to_restricted_rotation(double *a, double *b, double *c,
   MathExtra::norm3(rot1);
   double theta1 = acos(a[0]/alen);
   MathExtra::axisangle_to_quat(rot1,theta1,quat1);
-  
+
   // rotmat1 = rotation matrix associated with quat1
 
   double rotmat1[3][3];
@@ -674,7 +674,7 @@ void Domain::general_to_restricted_rotation(double *a, double *b, double *c,
   //   Byz1 dot yunit = B1y = |Byz1| cos(theta2)
   // theta2 via acos() is positive (0 to PI)
   //   positive is valid if B1z < 0.0 else flip sign of theta2
-  
+
   double byzvec1[3],quat2[4];
   MathExtra::copy3(b1,byzvec1);
   byzvec1[0] = 0.0;
@@ -705,7 +705,7 @@ void Domain::general_to_restricted_rotation(double *a, double *b, double *c,
 void Domain::general_to_restricted_coords(double *x)
 {
   double xshift[3],xnew[3];
-  
+
   xshift[0] = x[0] - boxlo[0];
   xshift[1] = x[1] - boxlo[1];
   xshift[2] = x[2] - boxlo[2];
@@ -722,7 +722,7 @@ void Domain::general_to_restricted_coords(double *x)
 void Domain::restricted_to_general_coords(double *x)
 {
   double xshift[3],xnew[3];
-  
+
   xshift[0] = x[0] - boxlo[0];
   xshift[1] = x[1] - boxlo[1];
   xshift[2] = x[2] - boxlo[2];
@@ -735,7 +735,7 @@ void Domain::restricted_to_general_coords(double *x)
 void Domain::restricted_to_general_coords(double *x, double *xnew)
 {
   double xshift[3];
-  
+
   xshift[0] = x[0] - boxlo[0];
   xshift[1] = x[1] - boxlo[1];
   xshift[2] = x[2] - boxlo[2];
@@ -752,7 +752,7 @@ void Domain::restricted_to_general_coords(double *x, double *xnew)
 void Domain::general_to_restricted_vector(double *v)
 {
   double vnew[3];
-  
+
   MathExtra::matvec(rotate_g2r,v,vnew);
   v[0] = vnew[0];
   v[1] = vnew[1];
@@ -766,7 +766,7 @@ void Domain::general_to_restricted_vector(double *v)
 void Domain::restricted_to_general_vector(double *v)
 {
   double vnew[3];
-  
+
   MathExtra::matvec(rotate_r2g,v,vnew);
   v[0] = vnew[0];
   v[1] = vnew[1];

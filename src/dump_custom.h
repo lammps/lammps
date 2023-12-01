@@ -37,7 +37,7 @@ class DumpCustom : public Dump {
   int nevery;        // dump frequency for output
   char *idregion;    // region ID, nullptr if no region
   int triclinic_general;  // 1 if output box & per-atom info for general triclinic
-  
+
   int nthresh;                        // # of defined thresholds
   int nthreshlast;                    // # of defined thresholds with value = LAST
                                       //
@@ -159,7 +159,7 @@ class DumpCustom : public Dump {
   void pack_x_triclinic_general(int);
   void pack_y_triclinic_general(int);
   void pack_z_triclinic_general(int);
-  
+
   void pack_xs(int);
   void pack_ys(int);
   void pack_zs(int);
@@ -190,11 +190,11 @@ class DumpCustom : public Dump {
 
   void pack_vx(int);
   void pack_vy(int);
-  void pack_vz(int); 
+  void pack_vz(int);
   void pack_vx_triclinic_general(int);
   void pack_vy_triclinic_general(int);
   void pack_vz_triclinic_general(int);
-   
+
   void pack_fx(int);
   void pack_fy(int);
   void pack_fz(int);
@@ -214,7 +214,7 @@ class DumpCustom : public Dump {
 
   void pack_radius(int);
   void pack_diameter(int);
-  
+
   void pack_heatflow(int);
   void pack_temperature(int);
 
@@ -224,14 +224,14 @@ class DumpCustom : public Dump {
   void pack_omegax_triclinic_general(int);
   void pack_omegay_triclinic_general(int);
   void pack_omegaz_triclinic_general(int);
-  
+
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
   void pack_angmomx_triclinic_general(int);
   void pack_angmomy_triclinic_general(int);
   void pack_angmomz_triclinic_general(int);
-  
+
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);

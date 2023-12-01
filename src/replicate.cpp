@@ -231,7 +231,7 @@ void Replicate::command(int narg, char **arg)
 
   if (old->labelmapflag) {
     atom->add_label_map();
-    for (int i = 0; i<5; i++)  atom->lmap->merge_lmap(old->lmap, i);
+    for (int i = Atom::ATOM; i<=Atom::IMPROPER; i++)  atom->lmap->merge_lmap(old->lmap, i);
   }
 
   // store old simulation box

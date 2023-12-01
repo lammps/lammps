@@ -1,0 +1,2 @@
+Fix hmc documentation
+

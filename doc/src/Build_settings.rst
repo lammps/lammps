@@ -86,6 +86,12 @@ better pipelining for packing and communication.
          -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock backend
          -D Heffte_ROOT=path         # path to an existing heFFTe installation
 
+      .. note::
+
+         heFFTe comes with a builtin stock backend for FFTs; however, the backend
+         is intended for testing purposes and is not performance optimized
+         for large scale production runs.
+
 
    .. tab:: Traditional make
 
@@ -136,6 +142,8 @@ better pipelining for packing and communication.
       The `-DFFT_HEFFTE` is required to switch to using heFFTe, while the optional `-DFFT_HEFFTE_FFTW`
       selects the desired heFFTe backend, e.g., `-DFFT_HEFFTE_FFTW` or `-DFFT_HEFFTE_MKL`,
       omitting the variable will default to the `stock` backend.
+      The heFFTe `stock` backend is intended to be used for testing and debugging,
+      but is not performance optimized for large scale production runs.
 
 The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
 included in the LAMMPS distribution.  It is portable across all

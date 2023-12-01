@@ -200,7 +200,7 @@ the Z direction.
 The *triclinic/general* option specifies that the defined lattice is
 for use with a general triclinic simulation box, as opposed to an
 orthogonal or restricted triclinic box.  The :doc:`Howto triclinic
-<Howto_triclnic>` doc page explains all 3 kinds of simluation boxes
+<Howto_triclinic>` doc page explains all 3 kinds of simluation boxes
 LAMMPS supports.
 
 If this option is specified, a *custom* lattice style must be used.

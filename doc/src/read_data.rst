@@ -923,7 +923,7 @@ zero.
    data file in the direction of the **A** edge vector.  Likewise the
    (x0,y0,z0) per-atom strain-free coordinates should be inside the
    general triclinic simulation box as explained in the note above.
-   See the :doc:`Howto triclinic <Howto_triclininc>` doc page for more
+   See the :doc:`Howto triclinic <Howto_triclinic>` doc page for more
    details.
 
 The atom-ID is used to identify the atom throughout the simulation and
@@ -1675,7 +1675,7 @@ Wz are in units of angular velocity (radians/time).
 If the data file defines a general triclinic box, then each of the 3
 vectors (translational velocity, angular momentum, angular velocity)
 should be specified for the rotated coordinate axes of the general
-triclinic box.  See the :doc:`Howto triclinic <Howto_triclininc>` doc
+triclinic box.  See the :doc:`Howto triclinic <Howto_triclinic>` doc
 page for more details.
 
 For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),

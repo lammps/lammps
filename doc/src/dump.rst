@@ -288,7 +288,7 @@ with LAMMPS or third-party tools can read this format, as does the
 For all these styles, the dimensions of the simulation box are
 included in each snapshot.  The simulation box in LAMMPS can be
 defined in one of 3 ways: orthogonal, restricted triclinic, and
-general triclinic.  See the :doc:`Howto triclinic <Howto_triclininc>`
+general triclinic.  See the :doc:`Howto triclinic <Howto_triclinic>`
 doc page for a detailed description of all 3 options.
 
 For an orthogonal simulation box the box information is formatted as:
@@ -668,7 +668,7 @@ General triclinic simulation box output for the *atom* and *custom* styles:
 As mentioned above, the simulation box can be defined as a general
 triclinic box, which means that 3 arbitrary box edge vectors **A**,
 **B**, **C** can be specified.  See the :doc:`Howto triclinic
-<Howto_triclininc>` doc page for a detailed description of general
+<Howto_triclinic>` doc page for a detailed description of general
 triclinic boxes.
 
 This option is provided as a convenience for users who may be

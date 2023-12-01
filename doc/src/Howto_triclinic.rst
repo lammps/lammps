@@ -17,9 +17,9 @@ is created by one of these commands:
 * :doc:`read_dump <read_dump>`
 
 Internally, LAMMPS defines box size parameters lx,ly,lz where lx =
-xhi-xlo, and similarly in the y and z dimensions.  The 6 parameters,
-as well as lx,ly,lz, can be output via the :doc:`thermo_style custom
-<thermo_style>` command.  See the :doc:'Howto 2d <Howto_2d>` doc page
+xhi-xlo, and similarly in the y and z dimensions.  The 6 parameters, as
+well as lx,ly,lz, can be output via the :doc:`thermo_style custom
+<thermo_style>` command.  See the :doc:`Howto 2d <Howto_2d>` doc page
 for info on how zlo and zhi are defined for 2d simulations.
 
 ----------
@@ -30,7 +30,7 @@ Triclinic simulation boxes
 LAMMPS also allows simulations to be performed using triclinic
 (non-orthogonal) simulation boxes shaped as a 3d parallelepiped with
 triclinic symmetry.  For 2d simulations a triclinic simulation box is
-effectively a parallelogram; see the :doc:'Howto 2d <Howto_2d>` doc
+effectively a parallelogram; see the :doc:`Howto 2d <Howto_2d>` doc
 page for details.
 
 One use of triclinic simulation boxes is to model solid-state crystals

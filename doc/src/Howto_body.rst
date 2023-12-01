@@ -167,7 +167,7 @@ sub-particle displacements should reflect the fact the body is defined
 withing a general triclinic box with edge vectors **A**,**B**,**C**.
 LAMMPS will rotate the box to convert it to a restricted triclinic
 box.  This operation will also rotate the orientation of the body
-particles.  See the :doc:`Howto triclinic <Howto_triclininc>` doc page
+particles.  See the :doc:`Howto triclinic <Howto_triclinic>` doc page
 for more details.
 
 The :doc:`pair_style body/nparticle <pair_body_nparticle>` command can be used
@@ -288,7 +288,7 @@ defined withing a general triclinic box with edge vectors
 **A**,**B**,**C**.  LAMMPS will rotate the box to convert it to a
 restricted triclinic box.  This operation will also rotate the
 orientation of the body particles.  See the :doc:`Howto triclinic
-<Howto_triclininc>` doc page for more details.
+<Howto_triclinic>` doc page for more details.
 
 The :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
 command can be used with this body style to compute body/body
@@ -463,7 +463,7 @@ defined withing a general triclinic box with edge vectors
 **A**,**B**,**C**.  LAMMPS will rotate the box to convert it to a
 restricted triclinic box.  This operation will also rotate the
 orientation of the body particles.  See the :doc:`Howto triclinic
-<Howto_triclininc>` doc page for more details.
+<Howto_triclinic>` doc page for more details.
 
 The :doc:`pair_style body/rounded/polhedron
 <pair_body_rounded_polyhedron>` command can be used with this body

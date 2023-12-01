@@ -140,7 +140,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // process optional args
 
-  int triclinic_general = 0;
+  triclinic_general = 0;
+  oriented = 0;
 
   int iarg = 2;
   while (iarg < narg) {

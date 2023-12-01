@@ -33,25 +33,25 @@ class Lattice : protected Pointers {
   ~Lattice() override;
   void lattice2box(double &, double &, double &);
   void box2lattice(double &, double &, double &);
-  void bbox(int, double, double, double,
-            double &, double &, double &, double &, double &, double &);
+  void bbox(int, double, double, double, double &, double &, double &, double &, double &,
+            double &);
   int is_general_triclinic();
 
  private:
-  int triclinic_general;     // 1 if general triclinic, else 0
-  int oriented;              // 1 if non-default orient xyz, else 0
+  int triclinic_general;    // 1 if general triclinic, else 0
+  int oriented;             // 1 if non-default orient xyz, else 0
   double scale;
-  double origin[3];          // lattice origin
-  int orientx[3];            // lattice orientation vecs
-  int orienty[3];            // orientx = what lattice dir lies
-  int orientz[3];            //           along x dim in box
+  double origin[3];    // lattice origin
+  int orientx[3];      // lattice orientation vecs
+  int orienty[3];      // orientx = what lattice dir lies
+  int orientz[3];      //           along x dim in box
 
   double primitive[3][3];    // lattice <-> box transformation matrices
   double priminv[3][3];
   double rotaterow[3][3];
   double rotatecol[3][3];
 
-  double a1_prime[3];   // a123 rotated to restricted triclinic orientation
+  double a1_prime[3];    // a123 rotated to restricted triclinic orientation
   double a2_prime[3];
   double a3_prime[3];
 

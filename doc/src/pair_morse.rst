@@ -53,7 +53,7 @@ Style *morse* computes pairwise interactions with the formula
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
 
-Rc is the cutoff.
+:math:`r_c` is the cutoff.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples

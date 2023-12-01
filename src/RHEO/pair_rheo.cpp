@@ -248,7 +248,7 @@ void PairRHEO::compute(int eflag, int vflag)
           if (harmonic_means_flag) {
             kappa_ave = 2.0 * kappai * kappaj / (kappai + kappaj);
           } else {
-            kappa_ave = 0.5 * (kappai * kappaj);
+            kappa_ave = 0.5 * (kappai + kappaj);
           }
           dT_prefactor = 2.0 * kappa_ave * (Ti - Tj) * rinv * rinv * voli * volj * 2.0 / (rhoi + rhoj);
 
@@ -270,7 +270,7 @@ void PairRHEO::compute(int eflag, int vflag)
           if (harmonic_means_flag) {
             eta_ave = 2.0 * etai * etaj / (etai + etaj);
           } else {
-            eta_ave = 0.5 * (etai * etaj);
+            eta_ave = 0.5 * (etai + etaj);
           }
 
           //Add artificial viscous pressure if required

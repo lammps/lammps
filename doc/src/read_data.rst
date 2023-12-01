@@ -471,7 +471,7 @@ For 2d simulations, *cvec* = (0,0,1) is required, and the 3rd value of
 
    LAMMPS allows specification of general triclinic simulation boxes
    as a convenience for users who may be converting data from
-   solid-state crystallograhic representations or from DFT codes for
+   solid-state crystallographic representations or from DFT codes for
    input to LAMMPS.  However, as explained on the
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
@@ -491,8 +491,8 @@ orthogonal, restricted triclinic, and general triclinic.
 If the system is periodic (in a dimension), then atom coordinates can
 be outside the bounds (in that dimension); they will be remapped (in a
 periodic sense) back inside the box.  For triclinic boxes, periodicity
-in x,y,z refers to the faces of the parallelepided defined by the
-**A**,**B**,**C** edge vectors of the simuation box.  See the
+in x,y,z refers to the faces of the parallelepiped defined by the
+**A**,**B**,**C** edge vectors of the simulation box.  See the
 :doc:`boundary <boundary>` command doc page for a fuller discussion.
 
 Note that if the *add* option is being used to add atoms to a

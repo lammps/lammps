@@ -55,7 +55,7 @@ Description
 """""""""""
 
 This command creates a simulation box. It also partitions the box into
-a regular 3d grid of smaller sub-boxes, one per procssor (MPI task).
+a regular 3d grid of smaller sub-boxes, one per processor (MPI task).
 The geometry of the partitioning is based on the size and shape of the
 simulation box, the number of processors being used and the settings
 of the :doc:`processors <processors>` command.  The partitioning can
@@ -175,7 +175,7 @@ pair of the **A**, **B**, **C** vectors.
 To create a general triclinic boxes, the region is specified as NULL
 and the next 6 parameters (alo,ahi,blo,bhi,clo,chi) define the three
 edge vectors **A**, **B**, **C** using additional information
-previously defind by the :doc:`lattice <lattice>` command.
+previously defined by the :doc:`lattice <lattice>` command.
 
 The lattice must be of style *custom* and use its *triclinic/general*
 option.  This insures the lattice satisfies the restrictions listed
@@ -198,7 +198,7 @@ to do this is to specify clo = -0.5 and chi = 0.5 and use the
 
    LAMMPS allows specification of general triclinic simulation boxes
    as a convenience for users who may be converting data from
-   solid-state crystallograhic representations or from DFT codes for
+   solid-state crystallographic representations or from DFT codes for
    input to LAMMPS.  However, as explained on the
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means

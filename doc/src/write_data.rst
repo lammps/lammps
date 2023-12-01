@@ -127,16 +127,16 @@ given type-kind) to be written to the data file.
 
 Use of the *triclinic/general* keyword will output a data file which
 specifies a general triclinic simulation box as well as per-atom
-quantities consistent with the general triclinic box.  The latter
-means that per-atom vectors, such as velocities and dipole moments
-will be oriented conistent with the 3d rotation implied by the general
+quantities consistent with the general triclinic box.  The latter means
+that per-atom vectors, such as velocities and dipole moments will be
+oriented consistent with the 3d rotation implied by the general
 triclinic box (relative to the associated restricted triclinic box).
 
 This option can only be requested if the simulation box was initially
 defined to be general triclinic.  If if was and the
 *triclinic/general* keyword is not used, then the data file will
 specify a restricted triclinic box, since that is the internal format
-LAMMPS uses for both general and restricited triclinic simulations.
+LAMMPS uses for both general and restricted triclinic simulations.
 See the :doc:`Howto triclinic <Howto_triclinic>` doc page for more
 explanation of how general triclinic simulation boxes are supported by
 LAMMPS.  And see the :doc:`read_data <read_data>` doc page for details

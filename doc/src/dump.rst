@@ -672,7 +672,7 @@ triclinic box, which means that 3 arbitrary box edge vectors **A**,
 triclinic boxes.
 
 This option is provided as a convenience for users who may be
-converting data from solid-state crystallograhic representations or
+converting data from solid-state crystallographic representations or
 from DFT codes for input to LAMMPS.  However, as explained on the
 :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally, LAMMPS
 only uses restricted triclinic simulation boxes.  This means the box
@@ -712,12 +712,12 @@ output for unscaled atom coords, via the :doc:`dump_modify scaled no
 <dump_modify>` setting. For style *custom*, this alters output for
 either unscaled or unwrapped output of atom coords, via the *x,y,z* or
 *xu,yu,zu* attributes.  For output of scaled atom coords by both
-styles, there is no difference bewteen restricted and general
+styles, there is no difference between restricted and general
 triclinic values.
 
 Third, the output for any attribute of the *custom* style which
 represents a per-atom vector quantity will be converted (rotated) to
-be oriented consistent with the general tricinic box and its
+be oriented consistent with the general triclinic box and its
 orientation relative to the standard xyz coordinate axes.
 
 This applies to the following *custom* style attributes:

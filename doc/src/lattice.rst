@@ -200,7 +200,7 @@ the Z direction.
 The *triclinic/general* option specifies that the defined lattice is
 for use with a general triclinic simulation box, as opposed to an
 orthogonal or restricted triclinic box.  The :doc:`Howto triclinic
-<Howto_triclinic>` doc page explains all 3 kinds of simluation boxes
+<Howto_triclinic>` doc page explains all 3 kinds of simulation boxes
 LAMMPS supports.
 
 If this option is specified, a *custom* lattice style must be used.
@@ -232,7 +232,7 @@ atoms.  To do this, it also requires a lattice with the
 
    LAMMPS allows specification of general triclinic lattices and
    simulation boxes as a convenience for users who may be converting
-   data from solid-state crystallograhic representations or from DFT
+   data from solid-state crystallographic representations or from DFT
    codes for input to LAMMPS.  However, as explained on the
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
@@ -277,7 +277,7 @@ difference in the min/max of the y and z coordinates.
    defined by *a1*, *a2*, *a3* edge vectors is first converted to a
    restricted triclinic orientation, which is a rotation operation.
    The min/max extent of the 8 corner points is then determined, as
-   described in the preceeding paragraph, to set the lattice
+   described in the preceding paragraph, to set the lattice
    spacings. As explained for the *triclinic/general* option above,
    this is because any use of the lattice spacings by other commands
    will be for a restricted triclinic simulation box, not a general

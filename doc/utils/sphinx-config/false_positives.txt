@@ -50,6 +50,7 @@ agilio
 Agilio
 agni
 Agnolin
+ahi
 Ahrens
 Ai
 Aidan
@@ -85,6 +86,7 @@ allocator
 allocators
 allosws
 AlO
+alo
 Alonso
 Alperen
 alphak
@@ -184,6 +186,7 @@ automagically
 Auvergne
 Avalos
 avalue
+avec
 aveforce
 Avendano
 Averett
@@ -191,11 +194,14 @@ avi
 AVX
 awpmd
 AWPMD
+ax
 Axel
 Axilrod
 Ay
+ay
 Ayton
 Az
+az
 Azevedo
 azimuthal
 Azuri
@@ -268,6 +274,7 @@ Bext
 Bfrac
 bgq
 Bh
+bhi
 Bialke
 biaxial
 bicrystal
@@ -304,6 +311,7 @@ Bkappa
 blabel
 Blaise
 blanchedalmond
+blo
 blocksize
 blueviolet
 bn
@@ -383,6 +391,7 @@ burlywood
 Bussi
 Buturigakkwaishi
 Buyl
+bvec
 Bybee
 bz
 Cadarache
@@ -645,14 +654,18 @@ cv
 Cv
 Cval
 cvar
+cvec
 cvff
 cwiggle
+cx
+cy
 cygwin
 Cygwin
 cylindrically
 Cyrot
 cyrstals
 cython
+cz
 Daivis
 Dammak
 dampflag
@@ -2655,6 +2668,9 @@ organometallic
 orientational
 orientationsFile
 orientorder
+originx
+originy
+originz
 Orlikowski
 ornl
 Ornstein
@@ -2698,6 +2714,7 @@ papayawhip
 paquay
 Paquay
 parallelepiped
+parallelepipeds
 Parallelizable
 parallelization
 parallelized

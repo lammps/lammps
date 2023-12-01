@@ -98,7 +98,7 @@ Before using this command, a lattice must typically also be defined
 using the :doc:`lattice <lattice>` command, unless you specify the
 *single* or *mesh* style with units = box or the *random* style.  To
 create atoms on a lattice for general triclinic boxes, see the
-disucssion below.
+discussion below.
 
 For the remainder of this doc page, a created atom or molecule is
 referred to as a "particle".
@@ -150,7 +150,7 @@ you want.
 ----------
 
 If the simulation box is formulated as a general triclinic box defined
-by arbitary edge vectors **A**, **B**, **C**, then the *box* and
+by arbitrary edge vectors **A**, **B**, **C**, then the *box* and
 *region* styles will create atoms on a lattice commensurate with those
 edge vectors.  See the :doc:`Howto_triclinic <Howto_triclinic>` doc
 page for a detailed explanation of orthogonal, restricted triclinic,
@@ -167,7 +167,7 @@ a simulation box which replicates that unit cell along each of the
 
    LAMMPS allows specification of general triclinic simulation boxes
    as a convenience for users who may be converting data from
-   solid-state crystallograhic representations or from DFT codes for
+   solid-state crystallographic representations or from DFT codes for
    input to LAMMPS.  However, as explained on the
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
@@ -528,7 +528,7 @@ the distance units are in lattice spacings.  These are affected settings:
 
 * for *single* style: coordinates of the particle created
 * for *random* style: overlap distance *Doverlap* by the *overlap* keyword
-* for *mesh* style: *bisect* threshold valeu for *meshmode* = *bisect*
+* for *mesh* style: *bisect* threshold value for *meshmode* = *bisect*
 * for *mesh* style: *radthresh* value for *meshmode* = *bisect*
 * for *mesh* style: *density* value for *meshmode* = *qrand*
 

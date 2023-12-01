@@ -30,9 +30,8 @@ int dgelss_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
     integer minmn;
     extern int dcopy_(integer *, doublereal *, integer *, doublereal *, integer *);
     integer maxmn, itaup, itauq, mnthr, iwork;
-    extern int dlabad_(doublereal *, doublereal *),
-        dgebrd_(integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
-                doublereal *, doublereal *, doublereal *, integer *, integer *);
+    extern int dgebrd_(integer *, integer *, doublereal *, integer *, doublereal *, doublereal *,
+                       doublereal *, doublereal *, doublereal *, integer *, integer *);
     extern doublereal dlamch_(char *, ftnlen),
         dlange_(char *, integer *, integer *, doublereal *, integer *, doublereal *, ftnlen);
     integer bdspac;
@@ -208,7 +207,6 @@ int dgelss_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
     sfmin = dlamch_((char *)"S", (ftnlen)1);
     smlnum = sfmin / eps;
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
     anrm = dlange_((char *)"M", m, n, &a[a_offset], lda, &work[1], (ftnlen)1);
     iascl = 0;
     if (anrm > 0. && anrm < smlnum) {
@@ -300,7 +298,7 @@ int dgelss_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
                        &c_b46, &work[1], n, (ftnlen)1, (ftnlen)1);
                 dlacpy_((char *)"G", n, &bl, &work[1], n, &b[i__ * b_dim1 + 1], ldb, (ftnlen)1);
             }
-        } else {
+        } else if (*nrhs == 1) {
             dgemv_((char *)"T", n, n, &c_b79, &a[a_offset], lda, &b[b_offset], &c__1, &c_b46, &work[1],
                    &c__1, (ftnlen)1);
             dcopy_(n, &work[1], &c__1, &b[b_offset], &c__1);
@@ -376,7 +374,7 @@ int dgelss_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
                            ldb, &c_b46, &work[iwork], m, (ftnlen)1, (ftnlen)1);
                     dlacpy_((char *)"G", m, &bl, &work[iwork], m, &b[i__ * b_dim1 + 1], ldb, (ftnlen)1);
                 }
-            } else {
+            } else if (*nrhs == 1) {
                 dgemv_((char *)"T", m, m, &c_b79, &work[il], &ldwork, &b[b_dim1 + 1], &c__1, &c_b46,
                        &work[iwork], &c__1, (ftnlen)1);
                 dcopy_(m, &work[iwork], &c__1, &b[b_dim1 + 1], &c__1);
@@ -438,7 +436,7 @@ int dgelss_(integer *m, integer *n, integer *nrhs, doublereal *a, integer *lda, 
                            ldb, &c_b46, &work[1], n, (ftnlen)1, (ftnlen)1);
                     dlacpy_((char *)"F", n, &bl, &work[1], n, &b[i__ * b_dim1 + 1], ldb, (ftnlen)1);
                 }
-            } else {
+            } else if (*nrhs == 1) {
                 dgemv_((char *)"T", m, n, &c_b79, &a[a_offset], lda, &b[b_offset], &c__1, &c_b46, &work[1],
                        &c__1, (ftnlen)1);
                 dcopy_(n, &work[1], &c__1, &b[b_offset], &c__1);

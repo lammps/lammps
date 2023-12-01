@@ -5,21 +5,29 @@ Accelerator Variants: *None*
 
 Syntax
 """"""
-::
+.. code-block:: LAMMPS
 
-   fix ID group-ID hmc
+   fix ID group-ID hmc N seed temp integrator
 
 * ID = user-assigned name for the fix
 * group-ID = ID of the group of atoms to apply the fix to
 * hmc = style name of this fix command
+* N = number of integrator timesteps between HMC evaluations
+* seed = random number seed
+* temp = temperature for assigning velocities
+* integrator = integrator fix: flexible (for nve) or rigid (for rigid/small)
 
+  .. parsed-literal::
+
+     keyword = *mom*
+       *mom* value = *no* or *yes*
 Examples
 """"""""
 
-::
+.. code-block:: LAMMPS
 
-   fix 1 all hmc
-   fix hmc_water water hmc
+   fix 1 all hmc 10 123 500 flexible
+   fix hmc_water water 100 123 298.15 rigid
 
 Description
 """""""""""

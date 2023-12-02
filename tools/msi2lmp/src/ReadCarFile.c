@@ -1,7 +1,7 @@
 /*
-*  This function opens the .car file and extracts coordinate information
-*  into the atoms Atom structure
-*/
+ *  This function opens the .car file and extracts coordinate information
+ *  into the atoms Atom structure
+ */
 
 #include "msi2lmp.h"
 

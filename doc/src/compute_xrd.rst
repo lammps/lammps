@@ -62,28 +62,29 @@ equations:
    \frac{\sin(\theta)}{\lambda} &= \frac{\left\lVert\mathbf{k}\right\rVert}{2}
 
 Here, :math:`\mathbf{k}` is the location of the reciprocal lattice node,
-:math:`r_j` is the position of each atom, :math:`f_j` are atomic scattering
-factors, *Lp* is the Lorentz-polarization factor, and :math:`\theta` is the
-scattering angle of diffraction.  The Lorentz-polarization factor can be turned
-off using the optional *LP* keyword.
+:math:`r_j` is the position of each atom, :math:`f_j` are atomic
+scattering factors, *Lp* is the Lorentz-polarization factor, and
+:math:`\theta` is the scattering angle of diffraction.  The
+Lorentz-polarization factor can be turned off using the optional *LP*
+keyword.
 
 Diffraction intensities are calculated on a three-dimensional mesh of
-reciprocal lattice nodes. The mesh spacing is defined either (a) by the entire
-simulation domain or (b) manually using selected values as
-shown in the 2D diagram below.
+reciprocal lattice nodes. The mesh spacing is defined either (a) by the
+entire simulation domain or (b) manually using selected values as shown
+in the 2D diagram below.
 
-.. image:: img/xrd_mesh.jpg
+.. image:: img/xrd_mesh.png
    :scale: 75%
    :align: center
 
 For a mesh defined by the simulation domain, a rectilinear grid is
 constructed with spacing :math:`c A^{-1}` along each reciprocal lattice
-axis, where :math:`A` is a matrix containing the vectors corresponding to the
-edges of the simulation cell. If one or two directions has non-periodic
-boundary conditions, then the spacing in these directions is defined from the
-average of the (inversed) box lengths with periodic boundary conditions.
-Meshes defined by the simulation domain must contain at least one periodic
-boundary.
+axis, where :math:`A` is a matrix containing the vectors corresponding
+to the edges of the simulation cell. If one or two directions has
+non-periodic boundary conditions, then the spacing in these directions
+is defined from the average of the (inversed) box lengths with periodic
+boundary conditions.  Meshes defined by the simulation domain must
+contain at least one periodic boundary.
 
 If the *manual* flag is included, the mesh of reciprocal lattice nodes
 will be defined using the *c* values for the spacing along each

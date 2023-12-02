@@ -35,7 +35,10 @@ static int compare_IDs(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), id_mcfix(nullptr), mc_active_ptr(nullptr), exclusion_group_ptr(nullptr),
+    elements(nullptr), qmIDs(nullptr), qm2owned(nullptr), eqm(nullptr), eqm_mine(nullptr),
+    tqm(nullptr), tqm_mine(nullptr), xqm(nullptr), xqm_mine(nullptr), fqm(nullptr)
 {
   // check requirements for LAMMPS to work with MDI as an engine
   // atom IDs do not need to be consecutive
@@ -58,9 +61,7 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   addflag = 1;
   every = 1;
   connectflag = 1;
-  elements = nullptr;
   mcflag = 0;
-  id_mcfix = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -177,18 +178,6 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   nqm = nqm_last = max_nqm = 0;
   nexclude = 0;
-
-  qmIDs = nullptr;
-  qm2owned = nullptr;
-
-  eqm = nullptr;
-  tqm = nullptr;
-  xqm = nullptr;
-  fqm = nullptr;
-
-  eqm_mine = nullptr;
-  tqm_mine = nullptr;
-  xqm_mine = nullptr;
 
   // per-atom data
 
@@ -999,9 +988,8 @@ void FixMDIQM::send_box()
     ierr = MDI_Send(qm_cell, 9, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >CELL data");
 
-  } else if (domain->xperiodic == 1 || domain->yperiodic == 1 ||
-             domain->zperiodic == 1) {
-    error->all(FLERR,"MDI requires fully periodic or fully non-periodic system");
+  } else if (domain->xperiodic == 1 || domain->yperiodic == 1 || domain->zperiodic == 1) {
+    error->all(FLERR, "MDI requires fully periodic or fully non-periodic system");
   }
 }
 

@@ -1,19 +1,19 @@
-# This example demonstrates the use of various fix qeq variants with pair reax/c
+# This example demonstrates the use of various fix qeq variants with pair reaxff
 # You can comment in/out various versions below
 #
 # 1) Fix qeq/shielded generates the same results compared to fix qeq/reax when
-#    used with pair_style reax/c, provided that the QEq parameters are the same.
+#    used with pair_style reaxff, provided that the QEq parameters are the same.
 #
 # 2) Fix qeq/point and fix qeq/dynamic generate comparable results provided that
 #    the QEq parameters are the same.  These two styles can also be used with 
-#    pair_style reax/c.
+#    pair_style reaxff.
 
 units		real
 atom_style	charge
 
 read_data	data.CHO
 
-pair_style	reax/c NULL checkqeq no
+pair_style	reaxff NULL checkqeq no
 pair_coeff	* * ffield.reax.cho H C O
 
 neighbor	1 bin

@@ -205,10 +205,9 @@ int FixQEqReaxFF::setmask()
 
 void FixQEqReaxFF::pertype_parameters(char *arg)
 {
-  // match either new keyword "reaxff" or old keyword "reax/c"
-  if (utils::strmatch(arg,"^reax..$")) {
+  if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
-    Pair *pair = force->pair_match("^reax..",0);
+    Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
 
     int tmp;

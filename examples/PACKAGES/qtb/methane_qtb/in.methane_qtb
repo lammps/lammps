@@ -1,4 +1,10 @@
 ## This script first constructs a liquid methane structure of a given size. It then uses fix qtb to equilibrate the computational cell to the specified temperature and pressure.
+variable                x_rep equal 2                                                                           #x-direction replication number
+variable                y_rep equal 2                                                                           #y-direction replication number
+variable                z_rep equal 2                                                                           #z-direction replication number
+variable                temperature equal 110.0                                                                 #Target quantum temperature (K in real units)
+variable                delta_t equal 0.25                                                                      #MD timestep length (fs in real units)
+variable                damp_qtb equal 200                                                                      #1/gamma where gamma is the friction coefficient in quantum thermal bath (fs in real units)
 
 
 ## This part defines units, methane structure, and atomic information
@@ -53,12 +59,12 @@ velocity                all create ${temperature} 93 dist gaussian sum no mom ye
 
 #Setup output
 thermo_style            custom step temp press etotal vol
-thermo                  20
+thermo                  50
 
 #Colored thermal bath
 fix                     scapegoat_qtb all nve                                                                   #NVE does the time integration
 fix                     methane_qtb all qtb temp ${temperature} damp ${damp_qtb} seed 35082 f_max 0.3 N_f 50    #Change f_max if your Debye frequency is higher 
 timestep                ${delta_t}
-run                     500                                                                                    #500 fs
+run                     1000
 unfix                   methane_qtb
 unfix                   scapegoat_qtb

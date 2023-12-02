@@ -1,7 +1,7 @@
 /*
-*  This function opens the .car file and extracts coordinate information
-*  into the atoms Atom structure
-*/
+ *  This function opens the .car file and extracts coordinate information
+ *  into the atoms Atom structure
+ */
 
 #include "msi2lmp.h"
 
@@ -127,12 +127,15 @@ void ReadCarFile(void)
 
   /* First pass through file -- Count molecules */
 
-  while(fgets(line,MAX_LINE_LENGTH,CarF) != NULL )
-    if( strncmp(line,"end",3) == 0 )
+  while (fgets(line,MAX_LINE_LENGTH,CarF) != NULL )
+    if (strncmp(line,"end",3) == 0 )
       no_molecules++;
 
   /* Allocate space to keep track of the number of atoms within a molecule */
-
+  if (no_molecules < 1) {
+    fprintf(stderr, "No molecules in system");
+    exit(32);
+  }
   no_atoms = (int *) calloc(no_molecules,sizeof(int));
   if ( no_atoms == NULL ) {
     printf("Could not allocate memory for no_atoms\n");

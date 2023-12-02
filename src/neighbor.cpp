@@ -495,7 +495,7 @@ void Neighbor::init()
     if (cut_respa[0]-skin < 0) cut_middle_inside_sq = 0.0;
   }
 
-  restart_check = 0;
+  must_check = restart_check = 0;
   if (output->restart_flag) must_check = restart_check = 1;
 
   // fixchecklist = other classes that can induce reneighboring in decide()

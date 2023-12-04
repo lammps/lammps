@@ -113,7 +113,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_stencil_info()
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (ns->last_stencil != last_stencil_old) {
+  if (ns->last_stencil != last_stencil_old || ns->last_stencil == update->ntimestep) {
     // copy stencil to device as it may have changed
 
     last_stencil_old = ns->last_stencil;
@@ -1354,7 +1354,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
       other_x[MY_II + 4 * atoms_per_bin] = radi;
-      if (HalfNeigh && Newton && Tri) { 
+      if (HalfNeigh && Newton && Tri) {
         itag = tag(i);
         other_x[MY_II + 5 * atoms_per_bin] = itag;
       }

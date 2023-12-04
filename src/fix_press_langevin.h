@@ -40,10 +40,9 @@ class FixPressLangevin : public Fix {
   int modify_param(int, char **) override;
 
  protected:
-  int dimension, which;
+  int dimension;
   int pstyle, pcouple, allremap;
   int p_flag[6];    // 1 if control P on this dim, 0 if not
-  double nktv2p;
   double t_start, t_stop, t_target;
   double p_fric[6], p_ltime;    // Friction and Langevin charac. time
   double p_alpha[6];
@@ -52,9 +51,8 @@ class FixPressLangevin : public Fix {
   double p_deriv[6], dilation[6];
   double f_piston[6], f_old_piston[6];
   double gjfa[6], gjfb[6], fran[6];
-  int kspace_flag;    // 1 if KSpace invoked, 0 if not
-  int nrigid;         // number of rigid fixes
-  class Fix **rfix;    // list of rigid fixes
+  int kspace_flag;            // 1 if KSpace invoked, 0 if not
+  std::vector<Fix *> rfix;    // indices of rigid fixes
 
   char *id_temp, *id_press;
   class Compute *temperature, *pressure;
@@ -68,8 +66,8 @@ class FixPressLangevin : public Fix {
   int seed;
 
   void couple_pressure();
-  void couple_kinetic(double);
-  void couple_beta(double);
+  void couple_kinetic();
+  void couple_beta();
   void remap();
 };
 

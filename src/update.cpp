@@ -46,7 +46,9 @@ template <typename T> static Min *minimize_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Update::Update(LAMMPS *lmp) : Pointers(lmp)
+Update::Update(LAMMPS *lmp) :
+    Pointers(lmp), unit_style(nullptr), integrate(nullptr), integrate_style(nullptr),
+    minimize(nullptr), minimize_style(nullptr), integrate_map(nullptr), minimize_map(nullptr)
 {
   char *str;
 
@@ -67,13 +69,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 
   dt_default = 1;
   dt = 0.0;
-  unit_style = nullptr;
   set_units("lj");
-
-  integrate_style = nullptr;
-  integrate = nullptr;
-  minimize_style = nullptr;
-  minimize = nullptr;
 
   integrate_map = new IntegrateCreatorMap();
 
@@ -332,6 +328,8 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
 
   delete[] integrate_style;
   delete integrate;
+  integrate_style = nullptr;
+  integrate = nullptr;
 
   int sflag;
 
@@ -400,6 +398,8 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
 
   delete[] minimize_style;
   delete minimize;
+  minimize_style = nullptr;
+  minimize = nullptr;
 
   // temporarily assign the style name without suffix (for error messages during creation)
   minimize_style = arg[0];

@@ -31,6 +31,8 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
+#include <cmath>
+
 using namespace QtCharts;
 
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
@@ -86,9 +88,9 @@ int ChartWindow::get_step() const
     if (charts.size() > 0) {
         auto *v = charts[0];
         if (v)
-          return (int)v->get_step(v->get_count() - 1);
+            return (int)v->get_step(v->get_count() - 1);
         else
-          return -1;
+            return -1;
     } else {
         return -1;
     }
@@ -300,20 +302,7 @@ void ChartViewer::add_data(int step, double data)
     if (last_step < step) {
         last_step = step;
         series->append(step, data);
-        auto points = series->points();
-
-        qreal xmin = 1.0e100;
-        qreal xmax = -1.0e100;
-        qreal ymin = 1.0e100;
-        qreal ymax = -1.0e100;
-        for (auto &p : points) {
-            xmin = qMin(xmin, p.x());
-            xmax = qMax(xmax, p.x());
-            ymin = qMin(ymin, p.y());
-            ymax = qMax(ymax, p.y());
-        }
-        xaxis->setRange(xmin, xmax);
-        yaxis->setRange(ymin, ymax);
+        reset_zoom();
     }
 }
 
@@ -333,6 +322,30 @@ void ChartViewer::reset_zoom()
         ymin = qMin(ymin, p.y());
         ymax = qMax(ymax, p.y());
     }
+
+    // avoid (nearly) empty ranges
+    double deltax = xmax - xmin;
+    if ((deltax / ((xmax == 0.0) ? 1.0 : xmax)) < 1.0e-10) {
+        if ((xmin == 0.0) || (xmax == 0.0)) {
+            xmin = -0.025;
+            xmax = 0.025;
+        } else {
+            xmin -= 0.025 * fabs(xmin);
+            xmax += 0.025 * fabs(xmax);
+        }
+    }
+
+    double deltay = ymax - ymin;
+    if ((deltay / ((ymax == 0.0) ? 1.0 : ymax)) < 1.0e-10) {
+        if ((ymin == 0.0) || (ymax == 0.0)) {
+            ymin = -0.025;
+            ymax = 0.025;
+        } else {
+            ymin -= 0.025 * fabs(ymin);
+            ymax += 0.025 * fabs(ymax);
+        }
+    }
+
     xaxis->setRange(xmin, xmax);
     yaxis->setRange(ymin, ymax);
 }

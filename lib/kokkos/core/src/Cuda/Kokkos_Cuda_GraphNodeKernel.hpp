@@ -31,17 +31,9 @@
 #include <Kokkos_PointerOwnership.hpp>
 
 #include <Cuda/Kokkos_Cuda.hpp>
-#include <cuda_runtime_api.h>
 
 namespace Kokkos {
 namespace Impl {
-
-// FIXME Remove once all backends implement the new reduce interface
-template <class CombinedFunctorReducer, class PolicyType>
-struct PatternImplSpecializationFromTag<
-    Kokkos::ParallelReduceTag, CombinedFunctorReducer, PolicyType, Kokkos::Cuda>
-    : type_identity<
-          ParallelReduce<CombinedFunctorReducer, PolicyType, Kokkos::Cuda>> {};
 
 template <class PolicyType, class Functor, class PatternTag, class... Args>
 class GraphNodeKernelImpl<Kokkos::Cuda, PolicyType, Functor, PatternTag,

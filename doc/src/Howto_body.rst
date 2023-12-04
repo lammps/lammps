@@ -170,9 +170,9 @@ with this body style to compute body/body and body/non-body interactions.
 The *rounded/polygon* body style represents body particles as a 2d
 polygon with a variable number of N vertices.  This style can only be
 used for 2d models; see the :doc:`boundary <boundary>` command.  See the
-"pair_style body/rounded/polygon" page for a diagram of two
-squares with rounded circles at the vertices.  Special cases for N = 1
-(circle) and N = 2 (rod with rounded ends) can also be specified.
+:doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>` page for
+a diagram of two squares with rounded circles at the vertices.  Special cases
+for N = 1 (circle) and N = 2 (rod with rounded ends) can also be specified.
 
 One use of this body style is for 2d discrete element models, as
 described in :ref:`Fraige <body-Fraige>`.

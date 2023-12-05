@@ -697,7 +697,6 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for("ComputeDerivative",policy_derivative,*this);
     }
 
-
     //ComputeForce
     {
       if (evflag) {
@@ -842,7 +841,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
     offset++;
   });
 
-  if(is_zbl) {
+  if (is_zbl) {
      //adapted from https://www.osti.gov/servlets/purl/1429450
      if(ncount>0) {
        using minloc_value_type=Kokkos::MinLoc<F_FLOAT,int>::value_type;
@@ -863,7 +862,6 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
                      min_d_dist.val = d;
                      min_d_dist.loc = offset;
                  }
-
        }, reducer_scalar);
       d_d_min(ii) = djjmin.val;
       d_jj_min(ii) = djjmin.loc;// d_jj_min should be NOT in 0..jnum range, but in 0..d_ncount(<=jnum)
@@ -1066,7 +1064,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeFS, const int& ii
   evdwl = fcut = dfcut = 0.0;
 
   FS_values_and_derivatives(ii, evdwl, mu_i);
-  if(is_zbl) {
+  if (is_zbl) {
       if (d_jj_min(ii) != -1) {
           const int mu_jmin = d_mu(ii,d_jj_min(ii));
           F_FLOAT dcutin = d_dcut_in(mu_i, mu_jmin);
@@ -1238,8 +1236,8 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
   f_ij(ii, jj, 1) = scale * f_ji[1] + fpair * r_hat[1];
   f_ij(ii, jj, 2) = scale * f_ji[2] + fpair * r_hat[2];
 
-  if(is_zbl) {
-    if(jj==d_jj_min(ii)) {
+  if (is_zbl) {
+    if (jj==d_jj_min(ii)) {
         // DCRU = 1.0
         f_ij(ii, jj, 0) += dF_dfcut(ii) * r_hat[0];
         f_ij(ii, jj, 1) += dF_dfcut(ii) * r_hat[1];
@@ -1838,42 +1836,6 @@ double PairPACEKokkos<DeviceType>::memory_usage()
   }
 
   return bytes;
-}
-
-
-/* ----------------------------------------------------------------------
-    extract method for extracting value of scale variable
- ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void *PairPACEKokkos<DeviceType>::extract(const char *str, int &dim)
-{
-  dim = 0;
-  if (strcmp(str, "corerep_flag") == 0) return (void *) &flag_corerep_factor;
-
-  dim = 2;
-  if (strcmp(str, "scale") == 0) return (void *) scale;
-  return nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   peratom requests from FixPair
-   return ptr to requested data
-   also return ncol = # of quantites per atom
-     0 = per-atom vector
-     1 or more = # of columns in per-atom array
-   return NULL if str is not recognized
----------------------------------------------------------------------- */
-
-template<class DeviceType>
-void *PairPACEKokkos<DeviceType>::extract_peratom(const char *str, int &ncol)
-{
-  if (strcmp(str, "corerep") == 0) {
-    ncol = 0;
-    return (void *) corerep_factor;
-  }
-
-  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

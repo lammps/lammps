@@ -899,9 +899,9 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
     offset++;
   });
 
-  if(is_zbl) {
+  if (is_zbl) {
     //adapted from https://www.osti.gov/servlets/purl/1429450
-    if(ncount>0) {
+    if (ncount > 0) {
       using minloc_value_type=Kokkos::MinLoc<F_FLOAT,int>::value_type;
       minloc_value_type djjmin;
       djjmin.val=1e20;
@@ -920,7 +920,6 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
                                   min_d_dist.val = d;
                                   min_d_dist.loc = offset;
                                 }
-
                               }, reducer_scalar);
       d_d_min(ii) = djjmin.val;
       d_jj_min(ii) = djjmin.loc;// d_jj_min should be NOT in 0..jnum range, but in 0..d_ncount(<=jnum)
@@ -1133,7 +1132,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, 
   inner_cutoff(rho_core(ii), rho_cut, drho_cut, fcut, dfcut);
   FS_values_and_derivatives(ii, evdwl, mu_i);
 
-  if(is_zbl) {
+  if (is_zbl) {
     if (d_jj_min(ii) != -1) {
       const int mu_jmin = d_mu(ii,d_jj_min(ii));
       F_FLOAT dcutin = d_dcut_in(mu_i, mu_jmin);
@@ -1334,8 +1333,8 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
   f_ij(ii, jj, 1) = scale * f_ji[1] + fpair * r_hat[1];
   f_ij(ii, jj, 2) = scale * f_ji[2] + fpair * r_hat[2];
 
-  if(is_zbl) {
-    if(jj==d_jj_min(ii)) {
+  if (is_zbl) {
+    if (jj==d_jj_min(ii)) {
       // DCRU = 1.0
       f_ij(ii, jj, 0) += dF_dfcut(ii) * r_hat[0];
       f_ij(ii, jj, 1) += dF_dfcut(ii) * r_hat[1];

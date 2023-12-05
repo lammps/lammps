@@ -95,9 +95,6 @@ class PairPACEKokkos : public PairPACE {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
-  void *extract(const char *str, int &dim) override;
-  void *extract_peratom(const char *str, int &ncol) override;
-
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_rho_max;
   int host_flag;

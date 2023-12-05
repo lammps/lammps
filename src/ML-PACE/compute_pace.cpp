@@ -66,16 +66,10 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   if (dgradflag && !bikflag)
     error->all(FLERR,"Illegal compute pace command: dgradflag=1 requires bikflag=1");
 
-  // map[i] = which element the Ith atom type is, -1 if not mapped
-  // map[0] is not used
   memory->create(map,ntypes+1,"pace:map");
-  /*
-  for (int i=0; i<ntypes; i++){
-    map[i+1] = i+1;
-  }
-  */
 
   //read in file with CG coefficients or c_tilde coefficients
+
   auto potential_file_name = utils::get_potential_file_path(arg[3]);
   delete acecimpl -> basis_set;
   acecimpl -> basis_set = new ACECTildeBasisSet(potential_file_name);
@@ -83,30 +77,17 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   cutmax = acecimpl -> basis_set->cutoffmax;
   double cuti;
   double radelemall = 0.5;
-  /*
-  memory->create(cutsq,ntypes+1,ntypes+1,"pace:cutsq");
-  printf("----- looping over ntypes\n");
-  for (int i = 1; i <= ntypes; i++) {
-    printf("----- map[%d]: %d\n", i, map[i]);
-    cuti = basis_set->radial_functions->cut(map[i], map[i]);
-    if (cuti > cutmax) cutmax = cuti;
-    cutsq[i][i] = cuti*cuti;
-    for (int j = i+1; j <= ntypes; j++) {
-      //printf("----- j: %d\n", j);
-      printf("----- map[%d]: %d\n", j, map[j]);
-      cuti = basis_set->radial_functions->cut(map[i], map[j]);
-      cutsq[i][j] = cutsq[j][i] = cuti*cuti;
-    }
-  }
-  printf("----- looped over ntypes\n");
-  */
+
   //# of rank 1, rank > 1 functions
+
   int n_r1, n_rp = 0;
   n_r1 = acecimpl -> basis_set->total_basis_size_rank1[0];
   n_rp = acecimpl -> basis_set->total_basis_size[0];
 
   int ncoeff = n_r1 + n_rp;
+
   //int nvalues = ncoeff;
+
   nvalues = ncoeff;
 
   //-----------------------------------------------------------
@@ -124,9 +105,9 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   if (dgradflag) {
     size_array_rows = bik_rows + 3*natoms*natoms + 1;
     size_array_cols = nvalues + 3;
-    error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
-  }
-  else size_array_cols = nvalues*atom->ntypes + 1;
+    if (comm->me == 0)
+      error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
+  } else size_array_cols = nvalues*atom->ntypes + 1;
   lastcol = size_array_cols-1;
 
   ndims_peratom = ndims_force;
@@ -154,12 +135,8 @@ void ComputePACE::init()
   if (force->pair == nullptr)
     error->all(FLERR,"Compute pace requires a pair style be defined");
 
-  //printf("----- cutoffmax: %f\n", cutmax);
   if (cutmax > force->pair->cutforce)
     error->all(FLERR,"Compute pace cutoff is longer than pairwise cutoff");
-
-  //if (basis_set->cutoffmax > force->pair->cutforce)
-  //  error->all(FLERR,"Compute pace cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
@@ -171,10 +148,8 @@ void ComputePACE::init()
     error->warning(FLERR,"More than one compute pace");
 
   // allocate memory for global array
-  memory->create(pace,size_array_rows,size_array_cols,
-                 "pace:pace");
-  memory->create(paceall,size_array_rows,size_array_cols,
-                 "pace:paceall");
+  memory->create(pace,size_array_rows,size_array_cols, "pace:pace");
+  memory->create(paceall,size_array_rows,size_array_cols, "pace:paceall");
   array = paceall;
 
   // find compute for reference energy
@@ -195,9 +170,7 @@ void ComputePACE::init()
   if (ivirial == -1)
     error->all(FLERR,"compute pace_press does not exist.");
   c_virial = modify->compute[ivirial];
-
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -219,8 +192,7 @@ void ComputePACE::compute_array()
   if (atom->nmax > nmax) {
     memory->destroy(pace_peratom);
     nmax = atom->nmax;
-    memory->create(pace_peratom,nmax,size_peratom,
-                   "pace:pace_peratom");
+    memory->create(pace_peratom,nmax,size_peratom,"pace:pace_peratom");
   }
 
   // clear global array
@@ -514,11 +486,9 @@ void ComputePACE::dbdotr_compute()
 double ComputePACE::memory_usage()
 {
 
-  double bytes = (double)size_array_rows*size_array_cols *
-    sizeof(double);                                     // pace
-  bytes += (double)size_array_rows*size_array_cols *
-    sizeof(double);                                     // paceall
-  bytes += (double)nmax*size_peratom * sizeof(double);  // pace_peratom
+  double bytes = (double)size_array_rows*size_array_cols*sizeof(double); // pace
+  bytes += (double)size_array_rows*size_array_cols*sizeof(double);       // paceall
+  bytes += (double)nmax*size_peratom * sizeof(double);                   // pace_peratom
   int n = atom->ntypes+1;
   bytes += (double)n*sizeof(int);        // map
 

@@ -152,7 +152,6 @@ keyword must be used.
    box size grows.  This will separate the atoms in the bond, which
    can lead to "lost" bond atoms or bad dynamics.
 
-   
 The three choices for the *add* argument affect how the atom IDs and
 molecule IDs of atoms in the data file are treated.
 
@@ -479,7 +478,7 @@ For 2d simulations, *cvec* = (0,0,1) is required, and the 3rd value of
 
    LAMMPS allows specification of general triclinic simulation boxes
    as a convenience for users who may be converting data from
-   solid-state crystallograhic representations or from DFT codes for
+   solid-state crystallographic representations or from DFT codes for
    input to LAMMPS.  However, as explained on the
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
@@ -499,10 +498,10 @@ orthogonal, restricted triclinic, and general triclinic.
 If the system is periodic (in a dimension), then atom coordinates can
 be outside the bounds (in that dimension); they will be remapped (in a
 periodic sense) back inside the box.  For triclinic boxes, periodicity
-in x,y,z refers to the faces of the parallelepided defined by the
-**A**,**B**,**C** edge vectors of the simuation box.  See the
+in x,y,z refers to the faces of the parallelepiped defined by the
+**A**,**B**,**C** edge vectors of the simulation box.  See the
 :doc:`boundary <boundary>` command doc page for a fuller discussion.
-     
+
 Note that if the *add* option is being used to add atoms to a
 simulation box that already exists, this periodic remapping will be
 performed using simulation box bounds that are the union of the
@@ -931,7 +930,7 @@ zero.
    data file in the direction of the **A** edge vector.  Likewise the
    (x0,y0,z0) per-atom strain-free coordinates should be inside the
    general triclinic simulation box as explained in the note above.
-   See the :doc:`Howto triclinic <Howto_triclininc>` doc page for more
+   See the :doc:`Howto triclinic <Howto_triclinic>` doc page for more
    details.
 
 The atom-ID is used to identify the atom throughout the simulation and
@@ -1683,7 +1682,7 @@ Wz are in units of angular velocity (radians/time).
 If the data file defines a general triclinic box, then each of the 3
 vectors (translational velocity, angular momentum, angular velocity)
 should be specified for the rotated coordinate axes of the general
-triclinic box.  See the :doc:`Howto triclinic <Howto_triclininc>` doc
+triclinic box.  See the :doc:`Howto triclinic <Howto_triclinic>` doc
 page for more details.
 
 For atom_style hybrid, following the 4 initial values (ID,vx,vy,vz),

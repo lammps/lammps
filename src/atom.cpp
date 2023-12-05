@@ -1052,7 +1052,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   auto location = "Atoms section of data file";
 
   // use the first line to detect and validate the number of words/tokens per line
-  
+
   next = strchr(buf,'\n');
   if (!next) error->all(FLERR, "Missing data in {}", location);
   *next = '\0';
@@ -1069,7 +1069,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     error->all(FLERR,"Incorrect format in {}: {}", location, utils::trim(buf));
 
   *next = '\n';
-  
+
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
   // ensures all data atoms will be owned even with round-off
@@ -1147,17 +1147,17 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     int nvalues = values.size();
 
     // skip comment lines
-    
+
     if ((nvalues == 0) || (utils::strmatch(values[0],"^#.*"))) {
 
     // check that line has correct # of words
-        
+
     } else if ((nvalues < nwords) ||
                ((nvalues > nwords) && (!utils::strmatch(values[nwords],"^#")))) {
       error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
 
     // extract the atom coords and image flags (if they exist)
-      
+
     } else {
       int imx = 0, imy = 0, imz = 0;
       if (imageflag) {
@@ -1186,14 +1186,14 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
           error->all(FLERR,"Read_data atom z coord is non-zero for 2d simulation");
         xdata[2] = 0.0;
       }
-      
+
       // convert atom coords from general to restricted triclinic
       // so can decide which proc owns the atom
-      
+
       if (triclinic_general) domain->general_to_restricted_coords(xdata);
 
       // apply shift if requested by read_data command
-      
+
       if (shiftflag) {
         xdata[0] += shift[0];
         xdata[1] += shift[1];
@@ -1201,11 +1201,11 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       }
 
       // map atom into simulation box for periodic dimensions
-      
+
       domain->remap(xdata,imagedata);
 
       // determine if this proc owns the atom
-      
+
       if (triclinic) {
         domain->x2lamda(xdata,lamda);
         coord = lamda;
@@ -1216,7 +1216,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
           coord[2] >= sublo[2] && coord[2] < subhi[2]) {
 
         // atom-style specific method parses single line
-        
+
         avec->data_atom(xdata,imagedata,values,typestr);
         typestr = utils::utf8_subst(typestr);
         if (id_offset) tag[nlocal-1] += id_offset;
@@ -2719,7 +2719,6 @@ int Atom::add_custom(const char *name, int flag, int cols)
     ianame[index] = utils::strdup(name);
     iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),"atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
-
     icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
     icols[index] = cols;
 
@@ -2730,10 +2729,10 @@ int Atom::add_custom(const char *name, int flag, int cols)
     daname[index] = utils::strdup(name);
     darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),"atom:darray");
     memory->create(darray[index],nmax,cols,"atom:darray");
-
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");
     dcols[index] = cols;
   }
+
   if (index < 0)
     error->all(FLERR,"Invalid call to Atom::add_custom()");
   return index;

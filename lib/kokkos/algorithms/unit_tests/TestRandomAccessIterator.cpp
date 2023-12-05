@@ -217,5 +217,16 @@ TEST_F(random_access_iterator_test, distance) {
   ASSERT_EQ(m_dynamic_view.extent(0), size_t(KE::distance(first, last)));
 }
 
+TEST_F(random_access_iterator_test, traits_helpers) {
+  using T1_t = KE::Impl::RandomAccessIterator<static_view_t>;
+  using T2_t = KE::Impl::RandomAccessIterator<dyn_view_t>;
+  using T3_t = KE::Impl::RandomAccessIterator<strided_view_t>;
+
+  namespace KE = Kokkos::Experimental;
+  static_assert(KE::Impl::are_iterators_v<T1_t, T2_t, T3_t>);
+  static_assert(KE::Impl::are_random_access_iterators_v<T1_t, T2_t, T3_t>);
+  static_assert(!KE::Impl::are_iterators_v<int, T2_t, T3_t>);
+}
+
 }  // namespace stdalgos
 }  // namespace Test

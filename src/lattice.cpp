@@ -140,8 +140,9 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // process optional args
 
-  int triclinic_general = 0;
-  
+  triclinic_general = 0;
+  oriented = 0;
+
   int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"origin") == 0) {
@@ -230,7 +231,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"triclinic/general") == 0) {
       triclinic_general = 1;
       iarg++;
-      
+
     } else error->all(FLERR,"Unknown lattice keyword: {}", arg[iarg]);
   }
 
@@ -267,7 +268,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // additional requirements for a general triclinic lattice
   // a123 prime are used to compute lattice spacings
-  
+
   if (triclinic_general) {
     if (style != CUSTOM)
       error->all(FLERR,"Lattice triclnic/general must be style = CUSTOM");
@@ -285,11 +286,11 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     double rotmat[3][3];
     domain->general_to_restricted_rotation(a1,a2,a3,rotmat,a1_prime,a2_prime,a3_prime);
   }
-  
+
   // reset scale for LJ units (input scale is rho*)
   // scale = (Nbasis/(Vprimitive * rho*)) ^ (1/dim)
   // use fabs() in case a1,a2,a3 are not right-handed for general triclinic
-  
+
   if (strcmp(update->unit_style,"lj") == 0) {
     double vec[3];
     MathExtra::cross3(a2,a3,vec);
@@ -321,7 +322,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     // reset transform used by bbox() to be based on rotated a123 prime vectors
 
     if (triclinic_general) setup_transform(a1_prime,a2_prime,a3_prime);
-    
+
     bbox(0,0.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
     bbox(0,1.0,0.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
     bbox(0,0.0,1.0,0.0,xmin,ymin,zmin,xmax,ymax,zmax);
@@ -334,13 +335,13 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     // restore original general triclinic a123 transform
 
     if (triclinic_general) setup_transform(a2,a2,a3);
-    
+
     xlattice = xmax - xmin;
     ylattice = ymax - ymin;
     zlattice = zmax - zmin;
 
   // user-defined lattice spacings
-    
+
   } else {
     xlattice *= scale;
     ylattice *= scale;
@@ -542,7 +543,7 @@ void Lattice::setup_transform(double *a, double *b, double *c)
 ------------------------------------------------------------------------- */
 
 void Lattice::lattice2box(double &x, double &y, double &z)
-{ 
+{
   double x1 = primitive[0][0]*x + primitive[0][1]*y + primitive[0][2]*z;
   double y1 = primitive[1][0]*x + primitive[1][1]*y + primitive[1][2]*z;
   double z1 = primitive[2][0]*x + primitive[2][1]*y + primitive[2][2]*z;
@@ -615,7 +616,7 @@ void Lattice::add_basis(double x, double y, double z)
 void Lattice::bbox(int flag, double x, double y, double z,
                    double &xmin, double &ymin, double &zmin,
                    double &xmax, double &ymax, double &zmax)
-{ 
+{
   if (flag == 0) lattice2box(x,y,z);
   else box2lattice(x,y,z);
 

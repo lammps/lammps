@@ -43,7 +43,7 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   atom->sp_flag = 1;
 
   sp_hold = nullptr;
-  
+
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
@@ -147,7 +147,7 @@ void AtomVecSpin::write_data_restore_restricted()
   AtomVec::write_data_restore_restricted();
 
   if (!sp_hold) return;
-  
+
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
     memcpy(&sp[i],&sp_hold[i],3*sizeof(double));

@@ -288,7 +288,7 @@ with LAMMPS or third-party tools can read this format, as does the
 For all these styles, the dimensions of the simulation box are
 included in each snapshot.  The simulation box in LAMMPS can be
 defined in one of 3 ways: orthogonal, restricted triclinic, and
-general triclinic.  See the :doc:`Howto triclinic <Howto_triclininc>`
+general triclinic.  See the :doc:`Howto triclinic <Howto_triclinic>`
 doc page for a detailed description of all 3 options.
 
 For an orthogonal simulation box the box information is formatted as:
@@ -668,11 +668,11 @@ General triclinic simulation box output for the *atom* and *custom* styles:
 As mentioned above, the simulation box can be defined as a general
 triclinic box, which means that 3 arbitrary box edge vectors **A**,
 **B**, **C** can be specified.  See the :doc:`Howto triclinic
-<Howto_triclininc>` doc page for a detailed description of general
+<Howto_triclinic>` doc page for a detailed description of general
 triclinic boxes.
 
 This option is provided as a convenience for users who may be
-converting data from solid-state crystallograhic representations or
+converting data from solid-state crystallographic representations or
 from DFT codes for input to LAMMPS.  However, as explained on the
 :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally, LAMMPS
 only uses restricted triclinic simulation boxes.  This means the box
@@ -712,16 +712,16 @@ output for unscaled atom coords, via the :doc:`dump_modify scaled no
 <dump_modify>` setting. For style *custom*, this alters output for
 either unscaled or unwrapped output of atom coords, via the *x,y,z* or
 *xu,yu,zu* attributes.  For output of scaled atom coords by both
-styles, there is no difference bewteen restricted and general
+styles, there is no difference between restricted and general
 triclinic values.
 
 Third, the output for any attribute of the *custom* style which
 represents a per-atom vector quantity will be converted (rotated) to
-be oriented consistent with the general tricinic box and its
+be oriented consistent with the general triclinic box and its
 orientation relative to the standard xyz coordinate axes.
- 
+
 This applies to the following *custom* style attributes:
- 
+
 * vx,vy,vz = atom velocities
 * fx,fy,fz = forces on atoms
 * mux,muy,muz = orientation of dipole moment of atom
@@ -893,16 +893,16 @@ computes, fixes, or variables when they are evaluated, so this is a very
 general means of creating quantities to output to a dump file.
 
 The *i_name*, *d_name*, *i2_name*, *d2_name* attributes refer to
-per-atom integer and floating-point vectors or arrays that have been
-added via the :doc:`fix property/atom <fix_property_atom>` command.
-When that command is used specific names are given to each attribute
-which are the "name" portion of these keywords.  For arrays *i2_name*
-and *d2_name*, the column of the array must also be included following
-the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where :math:`i` is
-in the range from 1 to :math:`M`, where :math:`M` is the number of
-columns in the custom array). See the discussion above for how :math:`i`
-can be specified with a wildcard asterisk to effectively specify
-multiple values.
+custom per-atom integer and floating-point vectors or arrays that have
+been added via the :doc:`fix property/atom <fix_property_atom>`
+command.  When that command is used specific names are given to each
+attribute which are the "name" portion of these keywords.  For arrays
+*i2_name* and *d2_name*, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where
+:math:`i` is in the range from 1 to :math:`M`, where :math:`M` is the
+number of columns in the custom array).  See the discussion above for
+how :math:`i` can be specified with a wildcard asterisk to effectively
+specify multiple values.
 
 See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities

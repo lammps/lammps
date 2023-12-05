@@ -30,7 +30,8 @@ namespace Impl {
 template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
  public:
-  using Policy = Kokkos::MDRangePolicy<Traits...>;
+  using Policy       = Kokkos::MDRangePolicy<Traits...>;
+  using functor_type = FunctorType;
 
  private:
   using array_index_type = typename Policy::array_index_type;
@@ -40,10 +41,11 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
   const FunctorType m_functor;
   const Policy m_policy;
 
-  ParallelFor()        = delete;
+ public:
+  ParallelFor()                   = delete;
+  ParallelFor(ParallelFor const&) = default;
   ParallelFor& operator=(ParallelFor const&) = delete;
 
- public:
   inline __device__ void operator()() const {
     Kokkos::Impl::DeviceIterateTile<Policy::rank, Policy, FunctorType,
                                     typename Policy::work_tag>(m_policy,

@@ -1,50 +1,21 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2019) Sandia Corporation
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
-
 #pragma once
 
 #include "macros.hpp"
-#include "static_array.hpp"
 #include "extents.hpp"
 #include "trait_backports.hpp"
 #include "compressed_pair.hpp"
@@ -56,12 +27,14 @@
 #include <algorithm>
 #include <numeric>
 #include <array>
-#if  _MDSPAN_USE_CONCEPTS && MDSPAN_HAS_CXX_20
-#include<concepts>
+#ifdef __cpp_lib_span
+#include <span>
+#endif
+#if defined(_MDSPAN_USE_CONCEPTS) && MDSPAN_HAS_CXX_20 && defined(__cpp_lib_concepts)
+#  include <concepts>
 #endif
 
-namespace std {
-namespace experimental {
+namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 
 struct layout_left {
   template<class Extents>
@@ -75,18 +48,35 @@ struct layout_right {
 namespace detail {
   template<class Layout, class Mapping>
   constexpr bool __is_mapping_of =
-    is_same<typename Layout::template mapping<typename Mapping::extents_type>, Mapping>::value;
+    std::is_same<typename Layout::template mapping<typename Mapping::extents_type>, Mapping>::value;
 
-#if  _MDSPAN_USE_CONCEPTS && MDSPAN_HAS_CXX_20
+#if defined(_MDSPAN_USE_CONCEPTS) && MDSPAN_HAS_CXX_20
+#  if !defined(__cpp_lib_concepts)
+  namespace internal {
+  namespace detail {
+  template <typename _Tp, typename _Up>
+  concept __same_as = std::is_same_v<_Tp, _Up>;
+  } // namespace detail
+  template <class T, class U>
+  concept __same_as = detail::__same_as<T, U> && detail::__same_as<U, T>;
+  } // namespace internal
+#  endif
+
   template<class M>
   concept __layout_mapping_alike = requires {
     requires __is_extents<typename M::extents_type>::value;
-    { M::is_always_strided() } -> same_as<bool>;
-    { M::is_always_exhaustive() } -> same_as<bool>;
-    { M::is_always_unique() } -> same_as<bool>;
-    bool_constant<M::is_always_strided()>::value;
-    bool_constant<M::is_always_exhaustive()>::value;
-    bool_constant<M::is_always_unique()>::value;
+#if defined(__cpp_lib_concepts)
+    { M::is_always_strided() } -> std::same_as<bool>;
+    { M::is_always_exhaustive() } -> std::same_as<bool>;
+    { M::is_always_unique() } -> std::same_as<bool>;
+#else
+    { M::is_always_strided() } -> internal::__same_as<bool>;
+    { M::is_always_exhaustive() } -> internal::__same_as<bool>;
+    { M::is_always_unique() } -> internal::__same_as<bool>;
+#endif
+    std::bool_constant<M::is_always_strided()>::value;
+    std::bool_constant<M::is_always_exhaustive()>::value;
+    std::bool_constant<M::is_always_unique()>::value;
   };
 #endif
 } // namespace detail
@@ -111,14 +101,15 @@ struct layout_stride {
     using layout_type = layout_stride;
 
     // This could be a `requires`, but I think it's better and clearer as a `static_assert`.
-    static_assert(detail::__is_extents_v<Extents>, "std::experimental::layout_stride::mapping must be instantiated with a specialization of std::experimental::extents.");
+    static_assert(detail::__is_extents_v<Extents>,
+                  MDSPAN_IMPL_STANDARD_NAMESPACE_STRING "::layout_stride::mapping must be instantiated with a specialization of " MDSPAN_IMPL_STANDARD_NAMESPACE_STRING "::extents.");
 
 
   private:
 
     //----------------------------------------------------------------------------
 
-    using __strides_storage_t = array<index_type, extents_type::rank()>;//::std::experimental::dextents<index_type, extents_type::rank()>;
+    using __strides_storage_t = std::array<index_type, extents_type::rank()>;
     using __member_pair_t = detail::__compressed_pair<extents_type, __strides_storage_t>;
 
 #if defined(_MDSPAN_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
@@ -144,6 +135,12 @@ struct layout_stride {
 #endif
     }
 
+    template<class SizeType, size_t ... Ep, size_t ... Idx>
+    _MDSPAN_HOST_DEVICE
+    constexpr index_type __get_size(::MDSPAN_IMPL_STANDARD_NAMESPACE::extents<SizeType, Ep...>,std::integer_sequence<size_t, Idx...>) const {
+      return _MDSPAN_FOLD_TIMES_RIGHT( static_cast<index_type>(extents().extent(Idx)), 1 );
+    }
+
     //----------------------------------------------------------------------------
 
     template <class>
@@ -156,17 +153,19 @@ struct layout_stride {
     struct __deduction_workaround;
 
     template <size_t... Idxs>
-    struct __deduction_workaround<index_sequence<Idxs...>>
+    struct __deduction_workaround<std::index_sequence<Idxs...>>
     {
       template <class OtherExtents>
       MDSPAN_INLINE_FUNCTION
       static constexpr bool _eq_impl(mapping const& self, mapping<OtherExtents> const& other) noexcept {
-        return _MDSPAN_FOLD_AND((self.stride(Idxs) == other.stride(Idxs)) /* && ... */);
+        return    _MDSPAN_FOLD_AND((self.stride(Idxs) == other.stride(Idxs)) /* && ... */)
+               && _MDSPAN_FOLD_AND((self.extents().extent(Idxs) == other.extents().extent(Idxs)) /* || ... */);
       }
       template <class OtherExtents>
       MDSPAN_INLINE_FUNCTION
       static constexpr bool _not_eq_impl(mapping const& self, mapping<OtherExtents> const& other) noexcept {
-        return _MDSPAN_FOLD_OR((self.stride(Idxs) != other.stride(Idxs)) /* || ... */);
+        return    _MDSPAN_FOLD_OR((self.stride(Idxs) != other.stride(Idxs)) /* || ... */)
+               || _MDSPAN_FOLD_OR((self.extents().extent(Idxs) != other.extents().extent(Idxs)) /* || ... */);
       }
 
       template <class... Integral>
@@ -194,16 +193,17 @@ struct layout_stride {
 
       template<class IntegralType>
       MDSPAN_INLINE_FUNCTION
-      static constexpr const __strides_storage_t fill_strides(const array<IntegralType,extents_type::rank()>& s) {
+      static constexpr const __strides_storage_t fill_strides(const std::array<IntegralType,extents_type::rank()>& s) {
         return __strides_storage_t{static_cast<index_type>(s[Idxs])...};
       }
 
+#ifdef __cpp_lib_span
+      template<class IntegralType>
       MDSPAN_INLINE_FUNCTION
-      static constexpr const __strides_storage_t fill_strides(
-        detail::__extents_to_partially_static_sizes_t<
-          ::std::experimental::dextents<index_type, extents_type::rank()>>&& s) {
-        return __strides_storage_t{static_cast<index_type>(s.template __get_n<Idxs>())...};
+      static constexpr const __strides_storage_t fill_strides(const std::span<IntegralType,extents_type::rank()>& s) {
+        return __strides_storage_t{static_cast<index_type>(s[Idxs])...};
       }
+#endif
 
       template<size_t K>
       MDSPAN_INLINE_FUNCTION
@@ -216,7 +216,7 @@ struct layout_stride {
     };
 
     // Can't use defaulted parameter in the __deduction_workaround template because of a bug in MSVC warning C4348.
-    using __impl = __deduction_workaround<make_index_sequence<Extents::rank()>>;
+    using __impl = __deduction_workaround<std::make_index_sequence<Extents::rank()>>;
 
 
     //----------------------------------------------------------------------------
@@ -229,31 +229,6 @@ struct layout_stride {
     mapping(__base_t&& __b) : __base_t(::std::move(__b)) {}
 #endif
 
-  public: // but not really
-    MDSPAN_INLINE_FUNCTION
-    static constexpr mapping
-    __make_mapping(
-      detail::__extents_to_partially_static_sizes_t<Extents>&& __exts,
-      detail::__extents_to_partially_static_sizes_t<
-        ::std::experimental::dextents<index_type, Extents::rank()>>&& __strs
-    ) noexcept {
-      // call the private constructor we created for this purpose
-      return mapping(
-#if !defined(_MDSPAN_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-        __base_t{
-#endif
-          __member_pair_t(
-            extents_type::__make_extents_impl(::std::move(__exts)),
-            __strides_storage_t{__impl::fill_strides(::std::move(__strs))}
-          )
-#if !defined(_MDSPAN_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
-        }
-#endif
-      );
-    }
-    //----------------------------------------------------------------------------
-
-
   public:
 
     //--------------------------------------------------------------------------------
@@ -265,16 +240,16 @@ struct layout_stride {
       class IntegralTypes,
       /* requires */ (
         // MSVC 19.32 does not like using index_type here, requires the typename Extents::index_type
-        // error C2641: cannot deduce template arguments for 'std::experimental::layout_stride::mapping'
-        _MDSPAN_TRAIT(is_convertible, const remove_const_t<IntegralTypes>&, typename Extents::index_type) &&
-        _MDSPAN_TRAIT(is_nothrow_constructible, typename Extents::index_type, const remove_const_t<IntegralTypes>&)
+        // error C2641: cannot deduce template arguments for 'MDSPAN_IMPL_STANDARD_NAMESPACE::layout_stride::mapping'
+        _MDSPAN_TRAIT(std::is_convertible, const std::remove_const_t<IntegralTypes>&, typename Extents::index_type) &&
+        _MDSPAN_TRAIT(std::is_nothrow_constructible, typename Extents::index_type, const std::remove_const_t<IntegralTypes>&)
       )
     )
     MDSPAN_INLINE_FUNCTION
     constexpr
     mapping(
       extents_type const& e,
-      array<IntegralTypes, extents_type::rank()> const& s
+      std::array<IntegralTypes, extents_type::rank()> const& s
     ) noexcept
 #if defined(_MDSPAN_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
       : __members{
@@ -303,16 +278,16 @@ struct layout_stride {
       class IntegralTypes,
       /* requires */ (
         // MSVC 19.32 does not like using index_type here, requires the typename Extents::index_type
-        // error C2641: cannot deduce template arguments for 'std::experimental::layout_stride::mapping'
-        _MDSPAN_TRAIT(is_convertible, const remove_const_t<IntegralTypes>&, typename Extents::index_type) &&
-        _MDSPAN_TRAIT(is_nothrow_constructible, typename Extents::index_type, const remove_const_t<IntegralTypes>&)
+        // error C2641: cannot deduce template arguments for 'MDSPAN_IMPL_STANDARD_NAMESPACE::layout_stride::mapping'
+        _MDSPAN_TRAIT(std::is_convertible, const std::remove_const_t<IntegralTypes>&, typename Extents::index_type) &&
+        _MDSPAN_TRAIT(std::is_nothrow_constructible, typename Extents::index_type, const std::remove_const_t<IntegralTypes>&)
       )
     )
     MDSPAN_INLINE_FUNCTION
     constexpr
     mapping(
       extents_type const& e,
-      span<IntegralTypes, extents_type::rank()> const& s
+      std::span<IntegralTypes, extents_type::rank()> const& s
     ) noexcept
 #if defined(_MDSPAN_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
       : __members{
@@ -337,11 +312,11 @@ struct layout_stride {
     }
 #endif // __cpp_lib_span
 
-#if !(_MDSPAN_USE_CONCEPTS && MDSPAN_HAS_CXX_20)
+#if !(defined(_MDSPAN_USE_CONCEPTS) && MDSPAN_HAS_CXX_20)
     MDSPAN_TEMPLATE_REQUIRES(
       class StridedLayoutMapping,
       /* requires */ (
-        _MDSPAN_TRAIT(is_constructible, extents_type, typename StridedLayoutMapping::extents_type) &&
+        _MDSPAN_TRAIT(std::is_constructible, extents_type, typename StridedLayoutMapping::extents_type) &&
         detail::__is_mapping_of<typename StridedLayoutMapping::layout_type, StridedLayoutMapping> &&
         StridedLayoutMapping::is_always_unique() &&
         StridedLayoutMapping::is_always_strided()
@@ -351,13 +326,13 @@ struct layout_stride {
     template<class StridedLayoutMapping>
     requires(
          detail::__layout_mapping_alike<StridedLayoutMapping> &&
-         _MDSPAN_TRAIT(is_constructible, extents_type, typename StridedLayoutMapping::extents_type) &&
+         _MDSPAN_TRAIT(std::is_constructible, extents_type, typename StridedLayoutMapping::extents_type) &&
          StridedLayoutMapping::is_always_unique() &&
          StridedLayoutMapping::is_always_strided()
     )
 #endif
     MDSPAN_CONDITIONAL_EXPLICIT(
-      (!is_convertible<typename StridedLayoutMapping::extents_type, extents_type>::value) &&
+      (!std::is_convertible<typename StridedLayoutMapping::extents_type, extents_type>::value) &&
       (detail::__is_mapping_of<layout_left, StridedLayoutMapping> ||
        detail::__is_mapping_of<layout_right, StridedLayoutMapping> ||
        detail::__is_mapping_of<layout_stride, StridedLayoutMapping>)
@@ -398,7 +373,7 @@ struct layout_stride {
     };
 
     MDSPAN_INLINE_FUNCTION
-    constexpr array< index_type, extents_type::rank() > strides() const noexcept {
+    constexpr std::array< index_type, extents_type::rank() > strides() const noexcept {
       return __strides_storage();
     }
 
@@ -408,7 +383,7 @@ struct layout_stride {
       for(unsigned r = 0; r < extents_type::rank(); r++) {
         // Return early if any of the extents are zero
         if(extents().extent(r)==0) return 0;
-        span_size = std::max(span_size, static_cast<index_type>(extents().extent(r) * __strides_storage()[r]));
+        span_size += ( static_cast<index_type>(extents().extent(r) - 1 ) * __strides_storage()[r]);
       }
       return span_size;
     }
@@ -418,13 +393,13 @@ struct layout_stride {
       class... Indices,
       /* requires */ (
         sizeof...(Indices) == Extents::rank() &&
-        _MDSPAN_FOLD_AND(_MDSPAN_TRAIT(is_convertible, Indices, index_type) /*&& ...*/ ) &&
-        _MDSPAN_FOLD_AND(_MDSPAN_TRAIT(is_nothrow_constructible, index_type, Indices) /*&& ...*/)
+        _MDSPAN_FOLD_AND(_MDSPAN_TRAIT(std::is_convertible, Indices, index_type) /*&& ...*/ ) &&
+        _MDSPAN_FOLD_AND(_MDSPAN_TRAIT(std::is_nothrow_constructible, index_type, Indices) /*&& ...*/)
       )
     )
     MDSPAN_FORCE_INLINE_FUNCTION
-    constexpr size_t operator()(Indices... idxs) const noexcept {
-      return __impl::_call_op_impl(*this, static_cast<index_type>(idxs)...);
+    constexpr index_type operator()(Indices... idxs) const noexcept {
+      return static_cast<index_type>(__impl::_call_op_impl(*this, static_cast<index_type>(idxs)...));
     }
 
     MDSPAN_INLINE_FUNCTION static constexpr bool is_always_unique() noexcept { return true; }
@@ -435,53 +410,21 @@ struct layout_stride {
 
     MDSPAN_INLINE_FUNCTION static constexpr bool is_unique() noexcept { return true; }
     MDSPAN_INLINE_FUNCTION _MDSPAN_CONSTEXPR_14 bool is_exhaustive() const noexcept {
-// TODO @testing test layout_stride is_exhaustive()
-// FIXME CUDA
-#ifdef __CUDA_ARCH__
-      return false;
-#else
-      auto rem = array<size_t, Extents::rank()>{ };
-      std::iota(rem.begin(), rem.end(), size_t(0));
-      auto next_idx_iter = std::find_if(
-        rem.begin(), rem.end(),
-        [&](size_t i) { return this->stride(i) == 1;  }
-      );
-      if(next_idx_iter != rem.end()) {
-        size_t prev_stride_times_prev_extent =
-          this->extents().extent(*next_idx_iter) * this->stride(*next_idx_iter);
-        // "remove" the index
-        constexpr auto removed_index_sentinel = static_cast<size_t>(-1);
-        *next_idx_iter = removed_index_sentinel;
-        size_t found_count = 1;
-        while (found_count != Extents::rank()) {
-          next_idx_iter = std::find_if(
-            rem.begin(), rem.end(),
-            [&](size_t i) {
-              return i != removed_index_sentinel
-                && static_cast<size_t>(this->extents().extent(i)) == prev_stride_times_prev_extent;
-            }
-          );
-          if (next_idx_iter != rem.end()) {
-            // "remove" the index
-            *next_idx_iter = removed_index_sentinel;
-            ++found_count;
-            prev_stride_times_prev_extent = stride(*next_idx_iter) * this->extents().extent(*next_idx_iter);
-          } else { break; }
-        }
-        return found_count == Extents::rank();
-      }
-      return false;
-#endif
+      return required_span_size() == __get_size(extents(), std::make_index_sequence<extents_type::rank()>());
     }
     MDSPAN_INLINE_FUNCTION static constexpr bool is_strided() noexcept { return true; }
 
 
     MDSPAN_INLINE_FUNCTION
-    constexpr index_type stride(rank_type r) const noexcept {
+    constexpr index_type stride(rank_type r) const noexcept
+#if MDSPAN_HAS_CXX_20
+      requires ( Extents::rank() > 0 )
+#endif
+    {
       return __strides_storage()[r];
     }
 
-#if !(_MDSPAN_USE_CONCEPTS && MDSPAN_HAS_CXX_20)
+#if !(defined(_MDSPAN_USE_CONCEPTS) && MDSPAN_HAS_CXX_20)
     MDSPAN_TEMPLATE_REQUIRES(
       class StridedLayoutMapping,
       /* requires */ (
@@ -549,5 +492,4 @@ struct layout_stride {
   };
 };
 
-} // end namespace experimental
-} // end namespace std
+} // end namespace MDSPAN_IMPL_STANDARD_NAMESPACE

@@ -37,7 +37,7 @@ class SharedAllocationHeader {
  private:
   using Record = SharedAllocationRecord<void, void>;
 
-#if defined(KOKKOS_ARCH_VEGA) || defined(KOKKOS_ARCH_NAVI)
+#if defined(KOKKOS_ARCH_AMD_GPU)
   static constexpr unsigned maximum_label_length =
       (1u << 8 /* 256 */) - sizeof(Record*);
 #else
@@ -70,7 +70,7 @@ class SharedAllocationHeader {
 template <>
 class SharedAllocationRecord<void, void> {
  protected:
-#if defined(KOKKOS_ARCH_VEGA) || defined(KOKKOS_ARCH_NAVI)
+#if defined(KOKKOS_ARCH_AMD_GPU)
   static_assert(sizeof(SharedAllocationHeader) == (1u << 8 /* 256 */),
                 "sizeof(SharedAllocationHeader) != 256");
 #else

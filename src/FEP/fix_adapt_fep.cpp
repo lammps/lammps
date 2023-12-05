@@ -40,8 +40,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{PAIR,KSPACE,ATOM};
-enum{DIAMETER,CHARGE};
+enum{PAIR, KSPACE, ATOM};
+enum{DIAMETER, CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -165,21 +165,21 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
 FixAdaptFEP::~FixAdaptFEP()
 {
   for (int m = 0; m < nadapt; m++) {
-    delete [] adapt[m].var;
+    delete[] adapt[m].var;
     if (adapt[m].which == PAIR) {
-      delete [] adapt[m].pstyle;
-      delete [] adapt[m].pparam;
+      delete[] adapt[m].pstyle;
+      delete[] adapt[m].pparam;
       memory->destroy(adapt[m].array_orig);
     }
   }
-  delete [] adapt;
+  delete[] adapt;
 
   // check nfix in case all fixes have already been deleted
 
   if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
   if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
-  delete [] id_fix_diam;
-  delete [] id_fix_chg;
+  delete[] id_fix_diam;
+  delete[] id_fix_chg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -434,6 +434,8 @@ void FixAdaptFEP::change_settings()
 
     } else if (ad->which == ATOM) {
 
+      if (scaleflag)
+        error->all(FLERR, "Keyword 'scale yes' is not supported with fix adapt/fep for 'atom'");
       // reset radius from diameter
       // also scale rmass to new value
 

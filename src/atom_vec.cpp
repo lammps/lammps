@@ -70,7 +70,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
 
   x_hold = nullptr;
   v_hold = omega_hold = angmom_hold = nullptr;
-  
+
   threads = nullptr;
 }
 
@@ -2243,7 +2243,7 @@ void AtomVec::read_data_general_to_restricted(int nlocal_previous, int nlocal)
 
     // operate on v, omega, angmom
     // no other read_data Velocities fields are Nx3 double arrays
-    
+
     if (datatype == Atom::DOUBLE) {
       if (cols == 3) {
         double **array = *((double ***) pdata);
@@ -2283,7 +2283,7 @@ void AtomVec::write_data_restricted_to_general()
 
     // operate on v, omega, angmom
     // no other write_data Velocities fields are Nx3 double arrays
-    
+
     if (datatype == Atom::DOUBLE) {
       if (cols == 3) {
         double **array = *((double ***) pdata);
@@ -2325,10 +2325,10 @@ void AtomVec::write_data_restore_restricted()
     memory->destroy(x_hold);
     x_hold = nullptr;
   }
-  
+
   // operate on v, omega, angmom
   // no other write_data Velocities fields are Nx3 double arrays
-  
+
   if (v_hold) {
     memcpy(&v[0][0],&v_hold[0][0],3*nlocal*sizeof(double));
     memory->destroy(v_hold);
@@ -2340,7 +2340,7 @@ void AtomVec::write_data_restore_restricted()
     memory->destroy(omega_hold);
     omega_hold = nullptr;
   }
-  
+
   if (angmom_hold) {
     memcpy(&atom->angmom[0][0],&angmom_hold[0][0],3*nlocal*sizeof(double));
     memory->destroy(angmom_hold);

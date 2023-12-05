@@ -126,6 +126,17 @@ syntax compatible with the removed reax pair style, so input files will
 have to be adapted.  The REAXFF package was originally called
 USER-REAXC.
 
+USER-REAXC package
+------------------
+
+.. deprecated:: TBD
+
+The USER-REAXC package has been renamed to :ref:`REAXFF <PKG-REAXFF>`.
+In the process also the pair style and related fixes were renamed to use
+the "reaxff" string instead of "reax/c". For a while LAMMPS was maintaining
+backward compatibility by providing aliases for the styles.  These have
+been removed, so using "reaxff" is now *required*.
+
 USER-CUDA package
 -----------------
 

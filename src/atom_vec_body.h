@@ -69,7 +69,7 @@ class AtomVecBody : public AtomVec {
   void read_data_general_to_restricted(int, int);
   void write_data_restricted_to_general();
   void write_data_restore_restricted();
-  
+
   // methods used by other classes to query/set body info
 
   double radius_body(int, int, int *, double *);

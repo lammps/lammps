@@ -648,15 +648,15 @@ void AtomVecBody::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
 void AtomVecBody::read_data_general_to_restricted(int nlocal_previous, int nlocal)
 {
   int j;
-  
+
   AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
 
   // quat_g2r = quat that rotates from general to restricted triclinic
   // quat_new = body quat converted to restricted triclinic
-  
+
   double quat_g2r[4],quat_new[4];
   MathExtra::mat_to_quat(domain->rotate_g2r,quat_g2r);
-  
+
   for (int i = nlocal_previous; i < nlocal; i++) {
     if (body[i] < 0) continue;
     j = body[i];
@@ -685,7 +685,7 @@ void AtomVecBody::write_data_restricted_to_general()
 
   // quat_r2g = quat that rotates from restricted to general triclinic
   // quat_new = ellipsoid quat converted to general triclinic
-  
+
   double quat_r2g[4],quat_new[4];
   MathExtra::mat_to_quat(domain->rotate_r2g,quat_r2g);
 

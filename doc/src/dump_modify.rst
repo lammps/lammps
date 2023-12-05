@@ -818,7 +818,7 @@ threshold criterion is met.  Otherwise it is not met.
    For style *custom*, the *triclinic/general* keyword alters dump
    output for general triclinic simulation boxes and their atoms.  See
    the :doc:`dump <dump>` command for details of how this changes the
-   format of dump file snapstots.  The thresh keyword may access
+   format of dump file snapshots.  The thresh keyword may access
    per-atom attributes either directly or indirectly through a compute
    or variable.  If the attribute is an atom coordinate or a per-atom
    vector (such as velocity, force, or dipole moment), its value will

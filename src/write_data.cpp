@@ -74,7 +74,7 @@ void WriteData::command(int narg, char **arg)
   fixflag = 1;
   triclinic_general = 0;
   lmapflag = 1;
-  
+
   // store current (default) setting since we may change it
 
   int domain_triclinic_general = domain->triclinic_general;
@@ -227,9 +227,9 @@ void WriteData::write(const std::string &file)
   // reset internal per-atom data that needs rotation
 
   if (domain->triclinic_general) atom->avec->write_data_restricted_to_general();
-  
+
   // per atom info in Atoms and Velocities sections
-  
+
   if (natoms) atoms();
   if (natoms) velocities();
 
@@ -261,7 +261,7 @@ void WriteData::write(const std::string &file)
   // restore internal per-atom data that was rotated
 
   if (domain->triclinic_general) atom->avec->write_data_restore_restricted();
-  
+
   // close data file
 
   if (me == 0) fclose(fp);
@@ -326,7 +326,7 @@ void WriteData::header()
                domain->boxlo[2],domain->boxhi[2]);
     if (domain->triclinic)
       fmt::print(fp,"{} {} {} xy xz yz\n",domain->xy,domain->xz,domain->yz);
-    
+
   } else if (domain->triclinic_general) {
     fmt::print(fp,"\n{} {} {} avec\n{} {} {} bvec\n{} {} {} cvec\n",
                domain->avec[0],domain->avec[1],domain->avec[2],

@@ -88,7 +88,7 @@ box.
 
 The boundary <boundary> command settings explained above for the 6
 faces of an orthogonal box also apply in similar manner to the 6 faces
-of a restricted triclinix box (and thus to the corresponding 6 faces
+of a restricted triclinic box (and thus to the corresponding 6 faces
 of a general triclinic box), with the following context.
 
 if the second dimension of a tilt factor (e.g. y for xy) is periodic,

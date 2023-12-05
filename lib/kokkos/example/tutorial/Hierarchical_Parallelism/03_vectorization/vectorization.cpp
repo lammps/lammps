@@ -56,7 +56,8 @@ struct SomeCorrelation {
 
     // With each team run a parallel_for with its threads
     Kokkos::parallel_for(
-        Kokkos::TeamThreadRange(thread, data.extent(1)), [=](const int& j) {
+        Kokkos::TeamThreadRange(thread, data.extent(1)),
+        [=, *this](const int& j) {
           int tsum;
           // Run a vector loop reduction over the inner dimension of data
           // Count how many values are multiples of 4
@@ -64,7 +65,7 @@ struct SomeCorrelation {
           // broadcast to all vector lanes
           Kokkos::parallel_reduce(
               Kokkos::ThreadVectorRange(thread, data.extent(2)),
-              [=](const int& k, int& vsum) {
+              [=, *this](const int& k, int& vsum) {
                 vsum += (data(i, j, k) % 4 == 0) ? 1 : 0;
               },
               tsum);
@@ -103,7 +104,7 @@ struct SomeCorrelation {
     // Add with one thread and vectorlane of the team the team_sum to the global
     // value
     Kokkos::single(Kokkos::PerTeam(thread),
-                   [=]() { Kokkos::atomic_add(&gsum(), team_sum); });
+                   [=, *this]() { Kokkos::atomic_add(&gsum(), team_sum); });
   }
 
   // The functor needs to define how much shared memory it requests given a

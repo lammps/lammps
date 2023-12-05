@@ -545,15 +545,15 @@ void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag
 void AtomVecEllipsoid::read_data_general_to_restricted(int nlocal_previous, int nlocal)
 {
   int j;
-  
+
   AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
 
   // quat_g2r = quat that rotates from general to restricted triclinic
   // quat_new = ellipsoid quat converted to restricted triclinic
-  
+
   double quat_g2r[4],quat_new[4];
   MathExtra::mat_to_quat(domain->rotate_g2r,quat_g2r);
-  
+
   for (int i = nlocal_previous; i < nlocal; i++) {
     if (ellipsoid[i] < 0) continue;
     j = ellipsoid[i];
@@ -582,7 +582,7 @@ void AtomVecEllipsoid::write_data_restricted_to_general()
 
   // quat_r2g = quat that rotates from restricted to general triclinic
   // quat_new = ellipsoid quat converted to general triclinic
-  
+
   double quat_r2g[4],quat_new[4];
   MathExtra::mat_to_quat(domain->rotate_r2g,quat_r2g);
 

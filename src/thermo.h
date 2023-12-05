@@ -83,7 +83,7 @@ class Thermo : protected Pointers {
   std::string image_fname;
 
   // data used by routines that compute single values
-  
+
   int ivalue;          // integer value to print
   double dvalue;       // double value to print
   bigint bivalue;      // big integer value to print
@@ -96,7 +96,7 @@ class Thermo : protected Pointers {
   // index = where they are in computes list
   // id = ID of Compute objects
   // Compute * = ptrs to the Compute objects
-  
+
   int index_temp, index_press_scalar, index_press_vector, index_pe;
   class Compute *temperature, *pressure, *pe;
   double press_tensor[3][3];

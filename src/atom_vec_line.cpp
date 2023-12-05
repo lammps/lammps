@@ -526,7 +526,7 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
       j = line[i];
       length = bonus[j].length;
       theta = bonus[j].theta;
-      
+
       xc = x_bonus[i][0];
       yc = x_bonus[i][1];
       x1 = xc - 0.5 * cos(theta) * length;
@@ -541,7 +541,7 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
       // if triclinic_general:
       // rotate 4 buf values from restricted to general triclinic
       // output by write_data_bonus() as x1/y1 and x2/y2
-      
+
       if (triclinic_general) {
         coords[0] = buf[m-4]; coords[1] = buf[m-3]; coords[2] = 0.0;
         domain->restricted_to_general_coords(coords);

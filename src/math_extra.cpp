@@ -381,7 +381,7 @@ void mat_to_quat(double mat[3][3], double *q)
   ez[0] = mat[0][2];
   ez[1] = mat[1][2];
   ez[2] = mat[2][2];
-  
+
   MathExtra::exyz_to_q(ex,ey,ez,q);
 }
 

@@ -510,7 +510,7 @@ void AtomVecTri::data_atom_bonus(int m, const std::vector<std::string> &values)
 
   // convert c1,c2,c3 from general to restricted triclniic
   // x is already restricted triclinic
-  
+
   if (domain->triclinic_general) {
     domain->general_to_restricted_coords(c1);
     domain->general_to_restricted_coords(c2);
@@ -523,11 +523,11 @@ void AtomVecTri::data_atom_bonus(int m, const std::vector<std::string> &values)
   domain->remap_near(c1,x[m]);
   domain->remap_near(c2,x[m]);
   domain->remap_near(c3,x[m]);
-  
+
   // centroid = 1/3 of sum of vertices
   // error if centroid is not within EPSILON of atom x
   // reset atom x to centroid
-  
+
   double centroid[3];
   centroid[0] = (c1[0] + c2[0] + c3[0]) / 3.0;
   centroid[1] = (c1[1] + c2[1] + c3[1]) / 3.0;
@@ -729,7 +729,7 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
   double **x_bonus;
   if (triclinic_general) x_bonus = x_hold;
   else x_bonus = x;
-    
+
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
@@ -760,7 +760,7 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
       // if triclinic_general:
       // rotate 9 buf values from restricted to general triclinic
       // output by write_data_bonus() as c1,c2,c3
-      
+
       if (triclinic_general) {
         domain->restricted_to_general_coords(&buf[m-9]);
         domain->restricted_to_general_coords(&buf[m-6]);

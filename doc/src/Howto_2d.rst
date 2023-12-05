@@ -10,7 +10,7 @@ A 2d simulation box must be periodic in z as set by the :doc:`boundary
 
 If using the :doc:`create_box <create_box>` command, you must define a
 simulation box which straddles z = 0.0 in the z dimension since all
-the atoms will have a z coordinate of zero.  Typicaily the width of
+the atoms will have a z coordinate of zero.  Typically the width of
 box in the z dimension should be narrow, e.g. -0.5 to 0.5, but that is
 not required.  Example are:
 

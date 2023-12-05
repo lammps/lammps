@@ -107,7 +107,7 @@ screen and log files.  The units for each column of output
 corresponding to the list of keywords is determined by the :doc:`units
 <units>` command for the simulation.  E.g. energies will be in energy
 units, temperature in temperature units, pressure in pressure units.
-     
+
 Style *one* prints a single line of thermodynamic info that is the
 equivalent of "thermo_style custom step temp epair emol etotal press".
 The line contains only numeric values.
@@ -328,7 +328,7 @@ pressure <compute_pressure>` command doc page for details of how it is
 calculated.
 
 If the :doc:`thermo_modify triclinic/general <thermo_modify>` option
-is set and the simulation box was created as a geenral triclinic box,
+is set and the simulation box was created as a general triclinic box,
 then the components will be output as values consistent with the
 orientation of the general triclinic box relative to the standard xyz
 coordinate axes.  If this keyword is not used, the values will be

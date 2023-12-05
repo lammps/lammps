@@ -17,9 +17,9 @@ is created by one of these commands:
 * :doc:`read_dump <read_dump>`
 
 Internally, LAMMPS defines box size parameters lx,ly,lz where lx =
-xhi-xlo, and similarly in the y and z dimensions.  The 6 parameters,
-as well as lx,ly,lz, can be output via the :doc:`thermo_style custom
-<thermo_style>` command.  See the :doc:'Howto 2d <Howto_2d>` doc page
+xhi-xlo, and similarly in the y and z dimensions.  The 6 parameters, as
+well as lx,ly,lz, can be output via the :doc:`thermo_style custom
+<thermo_style>` command.  See the :doc:`Howto 2d <Howto_2d>` doc page
 for info on how zlo and zhi are defined for 2d simulations.
 
 ----------
@@ -30,7 +30,7 @@ Triclinic simulation boxes
 LAMMPS also allows simulations to be performed using triclinic
 (non-orthogonal) simulation boxes shaped as a 3d parallelepiped with
 triclinic symmetry.  For 2d simulations a triclinic simulation box is
-effectively a parallelogram; see the :doc:'Howto 2d <Howto_2d>` doc
+effectively a parallelogram; see the :doc:`Howto 2d <Howto_2d>` doc
 page for details.
 
 One use of triclinic simulation boxes is to model solid-state crystals
@@ -92,7 +92,7 @@ restricted triclinic parallelepiped.
    conform to the LAMMPS definition of a restricted triclinic box.
    See the discussion in the next sub-section about general triclinic
    simulation boxes in LAMMPS.
-  
+
 Note that the :doc:`thermo_style custom <thermo_style>` command has
 keywords for outputting the various parameters that define both
 restricted and general triclinic simulation boxes.  Thus you can check
@@ -122,7 +122,7 @@ General triclinic simulation boxes in LAMMPS
 
 LAMMPS allows specification of general triclinic simulation boxes with
 their atoms as a convenience for users who may be converting data from
-solid-state crystallograhic representations or from DFT codes for
+solid-state crystallographic representations or from DFT codes for
 input to LAMMPS.  Likewise it allows output of dump files, data files,
 and thermodynamic data (e.g. pressure tensor) in a general triclinic
 format.
@@ -160,7 +160,7 @@ This means 4 things which are important to understand:
 * If commands such as :doc:`write_data <write_data>` or :doc:`dump
   custom <dump>` are used to output general triclinic information, it
   is effectively the inverse of the operation described in the
-  preceeding bullet.
+  preceding bullet.
 * Other LAMMPS commands such as :doc:`region <region>` or
   :doc:`velocity <velocity>` or :doc:`set <set>`, operate on a
   restricted triclinic system even if a general triclinic system was
@@ -174,13 +174,13 @@ This is the list of commands which have general triclinic options:
 * :doc:`read_data <read_data>` - read a data file for a general triclinic system
 * :doc:`write_data <write_data>` - write a data file for a general triclinic system
 * :doc:`dump atom, dump custom <dump>` - output dump snapshots in general triclinic format
-* :doc:`dump_modify <dump_modify>` - toggle a dump file between restrictied and general triclinic format
+* :doc:`dump_modify <dump_modify>` - toggle a dump file between restricted and general triclinic format
 * :doc:`thermo_style <thermo_style>` - output the pressure tensor in
   general triclinic format
 * :doc:`thermo_modify <thermo_modify>` - toggle thermo-style output
   between restricted and general triclinic format
-* :doc:`read_restart <read_restart>` - read a restart file for a general tricliinc system
-* :doc:`write_restart <read_restart>` - write a restart file for a general tricliinc system
+* :doc:`read_restart <read_restart>` - read a restart file for a general triclinic system
+* :doc:`write_restart <read_restart>` - write a restart file for a general triclinic system
 
 ----------
 
@@ -216,9 +216,8 @@ For consistency, the same rotation applied to the triclinic box edge
 vectors can also be applied to atom positions, velocities, and other
 vector quantities.  This can be conveniently achieved by first
 converting to fractional coordinates in the general triclinic
-coordinates and then converting to coordinates in the resetricted
-triclinic basis.  The transformation is given by the following
-equation:
+coordinates and then converting to coordinates in the restricted
+triclinic basis.  The transformation is given by the following equation:
 
 .. math::
 
@@ -279,10 +278,10 @@ Output of restricted and general triclinic boxes in a dump file
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 As discussed on the :doc:`dump <dump>` command doc page, when the BOX
-BOUNDS for a snapshot is written to a dump file for a resticted
+BOUNDS for a snapshot is written to a dump file for a restricted
 triclinic box, an orthogonal bounding box which encloses the triclinic
-simulation box is output, along with the 3 tilt factors (xy, xz, yz)
-of the restricted triclinic box, formatted as follows:
+simulation box is output, along with the 3 tilt factors (xy, xz, yz) of
+the restricted triclinic box, formatted as follows:
 
 .. parsed-literal::
 

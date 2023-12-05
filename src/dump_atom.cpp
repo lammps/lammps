@@ -133,7 +133,7 @@ void DumpAtom::init_style()
       }
     }
   }
-  
+
   if (image_flag == 0) convert_choice = &DumpAtom::convert_noimage;
   else convert_choice = &DumpAtom::convert_image;
 
@@ -157,14 +157,14 @@ int DumpAtom::modify_param(int narg, char **arg)
     for (auto &item : keyword_user) item.clear();
     return 2;
   }
-  
+
   if (strcmp(arg[0],"image") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     image_flag = utils::logical(FLERR,arg[1],false,lmp);
     for (auto &item : keyword_user) item.clear();
     return 2;
   }
-  
+
   if (strcmp(arg[0],"triclinic/general") == 0) {
     triclinic_general = 1;
     if (triclinic_general && !domain->triclinic_general)
@@ -172,7 +172,7 @@ int DumpAtom::modify_param(int narg, char **arg)
                  "if simulation box is not general triclinic");
     return 1;
   }
-  
+
   return 0;
 }
 

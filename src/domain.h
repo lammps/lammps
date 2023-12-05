@@ -41,7 +41,7 @@ class Domain : protected Pointers {
 
   int triclinic;          // 0 = orthog box, 1 = triclinic (restricted or general)
   int triclinic_general;  // 1 if general <-> restricted tri mapping is stored, 0 if not
-  
+
   // orthogonal box
 
   double xprd, yprd, zprd;                   // global box dimensions
@@ -96,7 +96,7 @@ class Domain : protected Pointers {
   double rotate_r2g[3][3];           // rotation matrix from restricted --> general tri
 
   // box flags
-  
+
   int box_change;           // 1 if any of next 3 flags are set, else 0
   int box_change_size;      // 1 if box size changes, 0 if not
   int box_change_shape;     // 1 if box shape changes, 0 if not
@@ -145,13 +145,13 @@ class Domain : protected Pointers {
   void general_to_restricted_rotation(double *, double *, double *,
                                       double [3][3],
                                       double *, double *, double *);
-  void general_to_restricted_coords(double *); 
+  void general_to_restricted_coords(double *);
   void restricted_to_general_coords(double *);
   void restricted_to_general_coords(double *, double *);
-  void general_to_restricted_vector(double *); 
+  void general_to_restricted_vector(double *);
   void restricted_to_general_vector(double *);
-  void restricted_to_general_vector(double *, double *x); 
- 
+  void restricted_to_general_vector(double *, double *x);
+
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(Region *);

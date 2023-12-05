@@ -582,7 +582,6 @@ TEST(TEST_CATEGORY, view_layoutstride_right_to_layoutright_assignment) {
   }
 }
 
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
 TEST(TEST_CATEGORY_DEATH, view_layoutstride_right_to_layoutleft_assignment) {
   using exec_space = TEST_EXECSPACE;
 
@@ -886,7 +885,6 @@ TEST(TEST_CATEGORY_DEATH, view_layoutstride_left_to_layoutright_assignment) {
                  "View assignment must have compatible layouts");
   }
 }
-#endif
 
 }  // namespace Test
 

@@ -21,6 +21,22 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_VECTOR
 #endif
 
+#include <Kokkos_Macros.hpp>
+
+#if defined(KOKKOS_ENABLE_DEPRECATED_CODE_4)
+#if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS)
+namespace {
+[[deprecated("Deprecated <Kokkos_Vector.hpp> header is included")]] int
+emit_warning_kokkos_vector_deprecated() {
+  return 0;
+}
+static auto do_not_include = emit_warning_kokkos_vector_deprecated();
+}  // namespace
+#endif
+#else
+#error "Deprecated <Kokkos_Vector.hpp> header is included"
+#endif
+
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_DualView.hpp>
 
@@ -31,8 +47,10 @@
  */
 namespace Kokkos {
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 template <class Scalar, class Arg1Type = void>
-class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
+class KOKKOS_DEPRECATED vector
+    : public DualView<Scalar*, LayoutLeft, Arg1Type> {
  public:
   using value_type      = Scalar;
   using pointer         = Scalar*;
@@ -312,6 +330,7 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
     void operator()(const int& i) const { _data(i) = _val; }
   };
 };
+#endif
 
 }  // namespace Kokkos
 #ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_VECTOR

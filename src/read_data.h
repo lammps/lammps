@@ -64,12 +64,12 @@ class ReadData : public Command {
   int triclinic, triclinic_general;
   int xloxhi_flag, yloyhi_flag, zlozhi_flag, tilt_flag;
   int avec_flag, bvec_flag, cvec_flag, abc_origin_flag;
-  
+
   double boxlo[3], boxhi[3];
   double xy, xz, yz;
   double avec[3], bvec[3], cvec[3];
   double abc_origin[3];
-  
+
   // optional args
 
   int addflag, offsetflag, shiftflag, coeffflag, settypeflag;

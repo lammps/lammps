@@ -16,9 +16,6 @@
 PairStyle(reaxff/kk,PairReaxFFKokkos<LMPDeviceType>);
 PairStyle(reaxff/kk/device,PairReaxFFKokkos<LMPDeviceType>);
 PairStyle(reaxff/kk/host,PairReaxFFKokkos<LMPHostType>);
-PairStyle(reax/c/kk,PairReaxFFKokkos<LMPDeviceType>);
-PairStyle(reax/c/kk/device,PairReaxFFKokkos<LMPDeviceType>);
-PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 // clang-format on
 #else
 

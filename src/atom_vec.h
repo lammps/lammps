@@ -174,8 +174,8 @@ class AtomVec : protected Pointers {
   double **x, **v, **f;
 
   // copies of original unrotated fields for write_data for general triclinic
-  
-  double **x_hold;     
+
+  double **x_hold;
   double **v_hold, **omega_hold, **angmom_hold;
 
   // standard list of peratom fields always operated on by different methods

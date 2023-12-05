@@ -639,6 +639,10 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR,"Read_data subsequent file cannot switch to restricted triclinic");
         if (xy != domain->xy || xz != domain->xz || yz != domain->yz)
           error->all(FLERR,"Read_data subsequent file tilt factors must be same as first file");
+        
+      } else {
+        if (domain->triclinic)
+          error->all(FLERR,"Read_data subsequent file cannot switch to orthogonal");
       }
       
       double oldboxlo[3] = {domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};

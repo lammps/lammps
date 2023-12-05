@@ -127,48 +127,56 @@ keyword must be used.
 
 .. note::
 
-   The simulation box size in the new data file will be merged with
-   the existing simulation box to create a large enough box in each
-   dimension to contain both the existing and new atoms.  Each box
-   dimension never shrinks due to this merge operation, it only stays
-   the same or grows.  Care must be used if you are growing the
-   existing simulation box in a periodic dimension.  If there are
-   existing atoms with bonds that straddle that periodic boundary,
-   then the atoms may become far apart if the box size grows.  This
-   will separate the atoms in the bond, which can lead to "lost" bond
-   atoms or bad dynamics.
+   If the first read_data command defined an orthogonal or restricted
+   triclinic or general triclinic simulation box (see the sub-section
+   below on header keywords), then subsequent data files must define
+   the same kind of simulation box.  For orthogonal boxes, the new box
+   can be a different size; see the next Note.  For a restricted
+   triclinic box, the 3 new tilt factors ("xy xz yz" keyword) must
+   have the same values as in the original data file.  For a general
+   triclinic box, the new avec, bvec, cvec, and "abc origin" keywords
+   must have the same values in the original data file.  files.  Also
+   the *shift* keyword cannot be used in subsequent read_data commands
+   for a general triclinic box.
 
 .. note::
 
-   If the first read_data command defined a restricted or general
-   triclinic simulation box (see the sub-section below on header
-   keywords), then subsequent data files have restrictions.  For a
-   restricted triclinic box, the 3 tilt factors ("xy xz yz" keyword)
-   must have the same values in subsequent data files.  For a general
-   triclinic box, the avec, bvec, cvec, and "abc origin" keywords must
-   have the same values in subsequent data files.  Also the *shift*
-   keyword cannot be used in subsequent read_data commands.
+   For orthogonal boxes, the simulation box size in the new data file
+   will be merged with the existing simulation box to create a large
+   enough box in each dimension to contain both the existing and new
+   atoms.  Each box dimension never shrinks due to this merge
+   operation, it only stays the same or grows.  Care must be used if
+   you are growing the existing simulation box in a periodic
+   dimension.  If there are existing atoms with bonds that straddle
+   that periodic boundary, then the atoms may become far apart if the
+   box size grows.  This will separate the atoms in the bond, which
+   can lead to "lost" bond atoms or bad dynamics.
+
    
 The three choices for the *add* argument affect how the atom IDs and
-molecule IDs of atoms in the data file are treated.  If *append* is
-specified, atoms in the data file are added to the current system,
-with their atom IDs reset so that an atom-ID = M in the data file
-becomes atom-ID = N+M, where N is the largest atom ID in the current
-system.  This rule is applied to all occurrences of atom IDs in the
-data file, e.g. in the Velocity or Bonds section. This is also done
-for molecule IDs, if the atom style does support molecule IDs or
-they are enabled via fix property/atom. If *IDoffset* is specified,
-then *IDoffset* is a numeric value is given, e.g. 1000, so that an
-atom-ID = M in the data file becomes atom-ID = 1000+M. For systems
-with enabled molecule IDs, another numerical argument *MOLoffset*
-is required representing the equivalent offset for molecule IDs.
-If *merge* is specified, the data file atoms
-are added to the current system without changing their IDs.  They are
-assumed to merge (without duplication) with the currently defined
-atoms.  It is up to you to ensure there are no multiply defined atom
-IDs, as LAMMPS only performs an incomplete check that this is the case
-by ensuring the resulting max atom-ID >= the number of atoms. For
-molecule IDs, there is no check done at all.
+molecule IDs of atoms in the data file are treated.
+
+If *append* is specified, atoms in the data file are added to the
+current system, with their atom IDs reset so that an atom-ID = M in
+the data file becomes atom-ID = N+M, where N is the largest atom ID in
+the current system.  This rule is applied to all occurrences of atom
+IDs in the data file, e.g. in the Velocity or Bonds section. This is
+also done for molecule IDs, if the atom style does support molecule
+IDs or they are enabled via fix property/atom.
+
+If *IDoffset* is specified, then *IDoffset* is a numeric value is
+given, e.g. 1000, so that an atom-ID = M in the data file becomes
+atom-ID = 1000+M. For systems with enabled molecule IDs, another
+numerical argument *MOLoffset* is required representing the equivalent
+offset for molecule IDs.
+
+If *merge* is specified, the data file atoms are added to the current
+system without changing their IDs.  They are assumed to merge (without
+duplication) with the currently defined atoms.  It is up to you to
+ensure there are no multiply defined atom IDs, as LAMMPS only performs
+an incomplete check that this is the case by ensuring the resulting
+max atom-ID >= the number of atoms. For molecule IDs, there is no
+check done at all.
 
 The *offset* and *shift* keywords can only be used if the *add*
 keyword is also specified.

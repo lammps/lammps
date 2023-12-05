@@ -463,8 +463,8 @@ Exception handling when using LAMMPS as a library
 
 LAMMPS errors do not kill the calling code, but throw an exception.  In
 the C-library interface, the call stack is unwound and control returns
-to the caller, e.g. to Python or a code that is coupled to LAMMPS and
-the error status can be queried.  When using C++ directly, the calling
+to the caller, e.g. to Python or a code that is coupled to LAMMPS. The
+error status can then be queried.  When using C++ directly, the calling
 code has to be set up to *catch* exceptions thrown from within LAMMPS.
 
 .. note::

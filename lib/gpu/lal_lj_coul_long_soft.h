@@ -1,30 +1,30 @@
 /***************************************************************************
-                               lj_coul_long.h
+                             lj_coul_long_soft.h
                              -------------------
-                            W. Michael Brown (ORNL)
+                            Trung Nguyen (U Chicago)
 
-  Class for acceleration of the lj/cut/coul/long pair style.
+  Class for acceleration of the lj/cut/coul/long/soft pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
     begin                :
-    email                : brownw@ornl.gov
+    email                : ndtrung@uchicago.edu
  ***************************************************************************/
 
-#ifndef LAL_LJ_COUL_LONG_H
-#define LAL_LJ_COUL_LONG_H
+#ifndef LAL_LJ_COUL_LONG_SOFT_H
+#define LAL_LJ_COUL_LONG_SOFT_H
 
 #include "lal_base_charge.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class LJCoulLong : public BaseCharge<numtyp, acctyp> {
+class LJCoulLongSoft : public BaseCharge<numtyp, acctyp> {
  public:
-  LJCoulLong();
-  ~LJCoulLong();
+  LJCoulLongSoft();
+  ~LJCoulLongSoft();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -39,7 +39,7 @@ class LJCoulLong : public BaseCharge<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq,
            double **host_lj1, double **host_lj2, double **host_lj3,
-           double **host_lj4, double **host_offset, double *host_special_lj,
+           double **host_lj4, double **host_offset, double **host_epsilon, double *host_special_lj,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen, double **host_cut_ljsq,
@@ -49,7 +49,7 @@ class LJCoulLong : public BaseCharge<numtyp, acctyp> {
   /// Send updated coeffs from host to device (to be compatible with fix adapt)
   void reinit(const int ntypes, double **host_cutsq,
               double **host_lj1, double **host_lj2, double **host_lj3,
-              double **host_lj4, double **host_offset, double **host_cut_ljsq);
+              double **host_lj4, double **host_offset, double **host_epsilon, double **host_cut_ljsq);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -65,7 +65,7 @@ class LJCoulLong : public BaseCharge<numtyp, acctyp> {
 
   /// lj1.x = lj1, lj1.y = lj2, lj1.z = cutsq, lj1.w = cutsq_vdw
   UCL_D_Vec<numtyp4> lj1;
-  /// lj3.x = lj3, lj3.y = lj4, lj3.z = offset
+  /// lj3.x = lj3, lj3.y = lj4, lj3.z = offset, lj3.w = epsilon
   UCL_D_Vec<numtyp4> lj3;
   /// Special LJ values [0-3] and Special Coul values [4-7]
   UCL_D_Vec<numtyp> sp_lj;

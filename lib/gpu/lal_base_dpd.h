@@ -53,7 +53,7 @@ class BaseDPD {
                   const int maxspecial, const double cell_size,
                   const double gpu_split, FILE *screen,
                   const void *pair_program, const char *k_name,
-                  const int onetype=0);
+                  const int onetype=0, const int extra_fields=0);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead();
@@ -167,7 +167,6 @@ class BaseDPD {
   /// Atom Data
   Atom<numtyp,acctyp> *atom;
 
-
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
   Answer<numtyp,acctyp> *ans;
@@ -196,6 +195,8 @@ class BaseDPD {
   // ------------------------- COMMON VARS ----------------------------
   numtyp _dtinvsqrt;
   int _seed, _timestep;
+
+  int _extra_fields;
 
  protected:
   bool _compiled;

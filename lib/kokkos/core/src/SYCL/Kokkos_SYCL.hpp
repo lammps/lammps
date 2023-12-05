@@ -163,7 +163,8 @@ std::vector<SYCL> partition_space(const SYCL& sycl_space, Args...) {
   std::vector<SYCL> instances;
   instances.reserve(sizeof...(Args));
   for (unsigned int i = 0; i < sizeof...(Args); ++i)
-    instances.emplace_back(sycl::queue(context, device));
+    instances.emplace_back(
+        sycl::queue(context, device, sycl::property::queue::in_order()));
   return instances;
 }
 
@@ -183,7 +184,8 @@ std::vector<SYCL> partition_space(const SYCL& sycl_space,
   // otherwise.
   instances.reserve(weights.size());
   for (unsigned int i = 0; i < weights.size(); ++i)
-    instances.emplace_back(sycl::queue(context, device));
+    instances.emplace_back(
+        sycl::queue(context, device, sycl::property::queue::in_order()));
   return instances;
 }
 }  // namespace Experimental

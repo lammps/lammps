@@ -42,7 +42,9 @@ class PairQUIP : public Pair {
   void init_style() override;
   double init_one(int, int) override;
   void allocate();
-
+  void *extract(const char *, int &);
+ protected:
+  double scale;
  private:
   double cutoff;
   int *quip_potential;

@@ -85,7 +85,7 @@ struct in_place_shfl_op {
   operator()(Scalar& out, const Scalar& val, int lane_or_delta, int width) const
       noexcept {
     using shuffle_as_t = int;
-    int constexpr N    = sizeof(Scalar) / sizeof(shuffle_as_t);
+    constexpr int N    = sizeof(Scalar) / sizeof(shuffle_as_t);
 
     for (int i = 0; i < N; ++i) {
       reinterpret_cast<shuffle_as_t*>(&out)[i] = self().do_shfl_op(

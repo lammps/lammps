@@ -39,8 +39,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{PAIR,KSPACE,ATOM,BOND,ANGLE};
-enum{DIAMETER,CHARGE};
+enum{PAIR, KSPACE, ATOM, BOND, ANGLE};
+enum{DIAMETER, CHARGE};
 
 /* ---------------------------------------------------------------------- */
 

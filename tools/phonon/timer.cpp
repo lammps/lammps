@@ -42,7 +42,7 @@ void Timer::print()
 {
    if ( (flag&3) != 3) return;
 
-   cpu_time_used = ((double) (t2 - t1)) / CLOCKS_PER_SEC;
+   double cpu_time_used = ((double) (t2 - t1)) / CLOCKS_PER_SEC;
    printf("Total CPU time used: %g seconds.\n", cpu_time_used);
 
    return;

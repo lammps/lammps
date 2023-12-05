@@ -58,9 +58,11 @@ struct StdPartitionPointFunctor {
 };
 
 template <class ExecutionSpace, class IteratorType, class PredicateType>
-IteratorType partition_point_impl(const std::string& label,
-                                  const ExecutionSpace& ex, IteratorType first,
-                                  IteratorType last, PredicateType pred) {
+IteratorType partition_point_exespace_impl(const std::string& label,
+                                           const ExecutionSpace& ex,
+                                           IteratorType first,
+                                           IteratorType last,
+                                           PredicateType pred) {
   // locates the end of the first partition, that is, the first
   // element that does not satisfy p or last if all elements satisfy p.
   // Implementation below finds the first location where p is false.
@@ -87,6 +89,43 @@ IteratorType partition_point_impl(const std::string& label,
   ::Kokkos::parallel_reduce(label,
                             RangePolicy<ExecutionSpace>(ex, 0, num_elements),
                             func_t(first, reducer, pred), reducer);
+
+  // fence not needed because reducing into scalar
+
+  // decide and return
+  if (red_result.min_loc_false ==
+      ::Kokkos::reduction_identity<index_type>::min()) {
+    // if all elements are true, return last
+    return last;
+  } else {
+    return first + red_result.min_loc_false;
+  }
+}
+
+template <class TeamHandleType, class IteratorType, class PredicateType>
+KOKKOS_FUNCTION IteratorType
+partition_point_team_impl(const TeamHandleType& teamHandle, IteratorType first,
+                          IteratorType last, PredicateType pred) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  if (first == last) {
+    return first;
+  }
+
+  // aliases
+  using index_type           = typename IteratorType::difference_type;
+  using reducer_type         = StdPartitionPoint<index_type>;
+  using reduction_value_type = typename reducer_type::value_type;
+
+  // run
+  reduction_value_type red_result;
+  reducer_type reducer(red_result);
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            StdPartitionPointFunctor(first, reducer, pred),
+                            reducer);
 
   // fence not needed because reducing into scalar
 

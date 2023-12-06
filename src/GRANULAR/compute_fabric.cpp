@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Joel Clemmer (SNL), Ishan Srivastava (LBNL)
+------------------------------------------------------------------------- */
+
 #include "compute_fabric.h"
 
 #include "atom.h"

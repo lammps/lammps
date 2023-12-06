@@ -279,6 +279,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`property/grid <compute_property_grid>` - convert per-grid attributes to per-grid vectors/arrays
 * :doc:`property/local <compute_property_local>` - convert local attributes to local vectors/arrays
 * :doc:`ptm/atom <compute_ptm_atom>` - determines the local lattice structure based on the Polyhedral Template Matching method
+* :doc:`rattlers/atom <compute_rattlers_atom>` - identify under-coordinated rattler atoms
 * :doc:`rdf <compute_rdf>` - radial distribution function :math:`g(r)` histogram of group of atoms
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk

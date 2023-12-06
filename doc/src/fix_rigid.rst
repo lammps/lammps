@@ -80,7 +80,7 @@ Syntax
          groupID1, groupID2, ... = list of N group IDs
 
 * zero or more keyword/value pairs may be appended
-* keyword = *langevin* or *reinit* or *temp* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity*
+* keyword = *langevin* or *reinit* or *temp*  or *mol* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity*
 
   .. parsed-literal::
 
@@ -92,6 +92,8 @@ Syntax
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
+       *mol* value = template-ID
+         template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *iso* or *aniso* values = Pstart Pstop Pdamp
          Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
          Pdamp = pressure damping parameter (time units)

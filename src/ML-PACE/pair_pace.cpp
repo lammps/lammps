@@ -46,7 +46,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "ace-evaluator/ace_recursive.h"
 #include "ace-evaluator/ace_version.h"
 #include "ace/ace_b_basis.h"
-#include <unistd.h>
+
 namespace LAMMPS_NS {
 struct ACEImpl {
   ACEImpl() : basis_set(nullptr), ace(nullptr) {}

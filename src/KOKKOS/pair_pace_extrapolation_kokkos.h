@@ -106,7 +106,6 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;
   int host_flag;
-  //int gamma_flag;
 
   int eflag, vflag;
 

@@ -47,13 +47,15 @@ class PairPACEExtrapolation : public Pair {
 
  protected:
   struct ACEALImpl *aceimpl;
-  int nmax;
+  int nmax = 0, nmax_corerep = 0;
 
   virtual void allocate();
   std::vector<std::string> element_names;    // list of elements (used by dump pace/extrapolation)
-  double *extrapolation_grade_gamma;         //per-atom gamma value
+  double *extrapolation_grade_gamma = nullptr;         //per-atom gamma value
+  double *corerep_factor = nullptr;                    //per-atom core-rep factor (= 1 - fcut)
 
-  int flag_compute_extrapolation_grade;
+  int flag_compute_extrapolation_grade = 0;
+  int flag_corerep_factor = 0;
 
   double **scale;
 

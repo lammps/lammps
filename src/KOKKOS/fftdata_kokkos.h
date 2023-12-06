@@ -117,11 +117,11 @@
   #include <hipfft/hipfft.h>
   #if defined(FFT_KOKKOS_SINGLE)
     #define hipfftExec hipfftExecC2C
-    #define HIPFFT_KOKKOS_TYPE HIPFFT_KOKKOS_C2C
+    #define HIPFFT_KOKKOS_TYPE HIPFFT_C2C
     typedef hipfftComplex FFT_KOKKOS_DATA;
   #else
     #define hipfftExec hipfftExecZ2Z
-    #define HIPFFT_KOKKOS_TYPE HIPFFT_KOKKOS_Z2Z
+    #define HIPFFT_KOKKOS_TYPE HIPFFT_Z2Z
     typedef hipfftDoubleComplex FFT_KOKKOS_DATA;
   #endif
 #else

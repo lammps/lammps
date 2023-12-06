@@ -29,10 +29,10 @@
 
 // Data types for single-precision complex
 
-#if FFT_PRECISION == 1
-#elif FFT_PRECISION == 2
+#if FFT_KOKKOS_PRECISION == 1
+#elif FFT_KOKKOS_PRECISION == 2
 #else
-#error "FFT_PRECISION needs to be either 1 (=single) or 2 (=double)"
+#error "FFT_KOKKOS_PRECISION needs to be either 1 (=single) or 2 (=double)"
 #endif
 
 
@@ -41,70 +41,70 @@
 // FFTs here, since they may be valid in fft3d.cpp
 
 #ifdef KOKKOS_ENABLE_CUDA
-# if defined(FFT_FFTW)
-#  undef FFT_FFTW
+# if defined(FFT_KOKKOS_FFTW)
+#  undef FFT_KOKKOS_FFTW
 # endif
-# if defined(FFT_FFTW3)
-#  undef FFT_FFTW3
+# if defined(FFT_KOKKOS_FFTW3)
+#  undef FFT_KOKKOS_FFTW3
 # endif
-# if defined(FFT_MKL)
-#  undef FFT_MKL
+# if defined(FFT_KOKKOS_MKL)
+#  undef FFT_KOKKOS_MKL
 # endif
-# if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
-#  define FFT_KISSFFT
+# if !defined(FFT_KOKKOS_CUFFT) && !defined(FFT_KOKKOS_KISSFFT)
+#  define FFT_KOKKOS_KISSFFT
 # endif
 #elif defined(KOKKOS_ENABLE_HIP)
-# if defined(FFT_FFTW)
-#  undef FFT_FFTW
+# if defined(FFT_KOKKOS_FFTW)
+#  undef FFT_KOKKOS_FFTW
 # endif
-# if defined(FFT_FFTW3)
-#  undef FFT_FFTW3
+# if defined(FFT_KOKKOS_FFTW3)
+#  undef FFT_KOKKOS_FFTW3
 # endif
-# if defined(FFT_MKL)
-#  undef FFT_MKL
+# if defined(FFT_KOKKOS_MKL)
+#  undef FFT_KOKKOS_MKL
 # endif
-# if !defined(FFT_HIPFFT) && !defined(FFT_KISSFFT)
-#  define FFT_KISSFFT
+# if !defined(FFT_KOKKOS_HIPFFT) && !defined(FFT_KOKKOS_KISSFFT)
+#  define FFT_KOKKOS_KISSFFT
 # endif
 #else
-# if defined(FFT_CUFFT)
-#  error "Must enable CUDA with KOKKOS to use -DFFT_CUFFT"
+# if defined(FFT_KOKKOS_CUFFT)
+#  error "Must enable CUDA with KOKKOS to use -DFFT_KOKKOS_CUFFT"
 # endif
-# if defined(FFT_HIPFFT)
-#  error "Must enable HIP with KOKKOS to use -DFFT_HIPFFT"
+# if defined(FFT_KOKKOS_HIPFFT)
+#  error "Must enable HIP with KOKKOS to use -DFFT_KOKKOS_HIPFFT"
 # endif
 // if user set FFTW, it means FFTW3
-# ifdef FFT_FFTW
-#  define FFT_FFTW3
+# ifdef FFT_KOKKOS_FFTW
+#  define FFT_KOKKOS_FFTW3
 # endif
-# ifdef FFT_FFTW_THREADS
-#  if !defined(FFT_FFTW3)
-#   error "Must use -DFFT_FFTW3 with -DFFT_FFTW_THREADS"
+# ifdef FFT_KOKKOS_FFTW_THREADS
+#  if !defined(FFT_KOKKOS_FFTW3)
+#   error "Must use -DFFT_KOKKOS_FFTW3 with -DFFT_KOKKOS_FFTW_THREADS"
 #  endif
 # endif
 #endif
 
-#if defined(FFT_MKL)
+#if defined(FFT_KOKKOS_MKL)
   #include "mkl_dfti.h"
-  #if defined(FFT_SINGLE)
+  #if defined(FFT_KOKKOS_SINGLE)
     typedef float _Complex FFT_DATA;
-    #define FFT_MKL_PREC DFTI_SINGLE
+    #define FFT_KOKKOS_MKL_PREC DFTI_SINGLE
   #else
     typedef double _Complex FFT_DATA;
-    #define FFT_MKL_PREC DFTI_DOUBLE
+    #define FFT_KOKKOS_MKL_PREC DFTI_DOUBLE
   #endif
-#elif defined(FFT_FFTW3)
+#elif defined(FFT_KOKKOS_FFTW3)
   #include "fftw3.h"
-  #if defined(FFT_SINGLE)
+  #if defined(FFT_KOKKOS_SINGLE)
     typedef fftwf_complex FFT_DATA;
     #define FFTW_API(function)  fftwf_ ## function
   #else
     typedef fftw_complex FFT_DATA;
     #define FFTW_API(function) fftw_ ## function
   #endif
-#elif defined(FFT_CUFFT)
+#elif defined(FFT_KOKKOS_CUFFT)
   #include "cufft.h"
-  #if defined(FFT_SINGLE)
+  #if defined(FFT_KOKKOS_SINGLE)
     #define cufftExec cufftExecC2C
     #define CUFFT_TYPE CUFFT_C2C
     typedef cufftComplex FFT_DATA;
@@ -113,9 +113,9 @@
     #define CUFFT_TYPE CUFFT_Z2Z
     typedef cufftDoubleComplex FFT_DATA;
   #endif
-#elif defined(FFT_HIPFFT)
+#elif defined(FFT_KOKKOS_HIPFFT)
   #include <hipfft/hipfft.h>
-  #if defined(FFT_SINGLE)
+  #if defined(FFT_KOKKOS_SINGLE)
     #define hipfftExec hipfftExecC2C
     #define HIPFFT_TYPE HIPFFT_C2C
     typedef hipfftComplex FFT_DATA;
@@ -125,7 +125,7 @@
     typedef hipfftDoubleComplex FFT_DATA;
   #endif
 #else
-  #if defined(FFT_SINGLE)
+  #if defined(FFT_KOKKOS_SINGLE)
     #define kiss_fft_scalar float
   #else
     #define kiss_fft_scalar double
@@ -134,13 +134,13 @@
     kiss_fft_scalar re;
     kiss_fft_scalar im;
   } FFT_DATA;
-  #ifndef FFT_KISSFFT
-  #define FFT_KISSFFT
+  #ifndef FFT_KOKKOS_KISSFFT
+  #define FFT_KOKKOS_KISSFFT
   #endif
 #endif
 
 // (double[2]*) is not a 1D pointer
-#if defined(FFT_FFTW3)
+#if defined(FFT_KOKKOS_FFTW3)
   typedef FFT_SCALAR* FFT_DATA_POINTER;
 #else
   typedef FFT_DATA* FFT_DATA_POINTER;
@@ -216,7 +216,7 @@ typedef struct FFTArrayTypes<LMPDeviceType> FFT_DAT;
 typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
 
 
-#if defined(FFT_KISSFFT)
+#if defined(FFT_KOKKOS_KISSFFT)
 #include "kissfft_kokkos.h" // uses t_FFT_DATA_1d, needs to come last
 #endif
 

@@ -36,30 +36,30 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 // fix up FFT defines for KOKKOS with CUDA and HIP
 
 #ifdef KOKKOS_ENABLE_CUDA
-# if defined(FFT_FFTW)
-#  undef FFT_FFTW
+# if defined(FFT_KOKKOS_FFTW)
+#  undef FFT_KOKKOS_FFTW
 # endif
-# if defined(FFT_FFTW3)
-#  undef FFT_FFTW3
+# if defined(FFT_KOKKOS_FFTW3)
+#  undef FFT_KOKKOS_FFTW3
 # endif
-# if defined(FFT_MKL)
-#  undef FFT_MKL
+# if defined(FFT_KOKKOS_MKL)
+#  undef FFT_KOKKOS_MKL
 # endif
-# if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
-#  define FFT_KISSFFT
+# if !defined(FFT_KOKKOS_CUFFT) && !defined(FFT_KOKKOS_KISSFFT)
+#  define FFT_KOKKOS_KISSFFT
 # endif
 #elif defined(KOKKOS_ENABLE_HIP)
-# if defined(FFT_FFTW)
-#  undef FFT_FFTW
+# if defined(FFT_KOKKOS_FFTW)
+#  undef FFT_KOKKOS_FFTW
 # endif
-# if defined(FFT_FFTW3)
-#  undef FFT_FFTW3
+# if defined(FFT_KOKKOS_FFTW3)
+#  undef FFT_KOKKOS_FFTW3
 # endif
-# if defined(FFT_MKL)
-#  undef FFT_MKL
+# if defined(FFT_KOKKOS_MKL)
+#  undef FFT_KOKKOS_MKL
 # endif
-# if !defined(FFT_HIPFFT) && !defined(FFT_KISSFFT)
-#  define FFT_KISSFFT
+# if !defined(FFT_KOKKOS_HIPFFT) && !defined(FFT_KOKKOS_KISSFFT)
+#  define FFT_KOKKOS_KISSFFT
 # endif
 #endif
 

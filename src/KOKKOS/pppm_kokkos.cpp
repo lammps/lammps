@@ -48,7 +48,7 @@ using namespace MathSpecialKokkos;
 enum{REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_IK_PERATOM};
 
-#ifdef FFT_SINGLE
+#ifdef FFT_KOKKOS_SINGLE
 #define ZEROF 0.0f
 #define ONEF  1.0f
 #else
@@ -2390,7 +2390,7 @@ void PPPMKokkos<DeviceType>::compute_rho_coeff()
       s = 0.0;
       for (l = 0; l < j; l++) {
         a[l+1][k+order] = (a[l][k+1+order]-a[l][k-1+order]) / (l+1);
-#ifdef FFT_SINGLE
+#ifdef FFT_KOKKOS_SINGLE
         s += powf(0.5,(float) l+1) *
           (a[l][k-1+order] + powf(-1.0,(float) l) * a[l][k+1+order]) / (l+1);
 #else

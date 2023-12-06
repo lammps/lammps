@@ -636,7 +636,7 @@ void Grid3dKokkos<DeviceType>::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
-                            FFT_DAT::tdual_FFT_SCALAR_1d& k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d& k_buf2,
+                            FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d& k_buf1, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d& k_buf2,
                             MPI_Datatype datatype)
 {
   if (caller == KSPACE) {
@@ -655,14 +655,14 @@ void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, in
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
 forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
-                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                          FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf1, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
-  FFT_SCALAR* buf1;
-  FFT_SCALAR* buf2;
+  FFT_KOKKOS_SCALAR* buf1;
+  FFT_KOKKOS_SCALAR* buf2;
   if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
@@ -709,13 +709,13 @@ forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
 forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
-                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                          FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf1, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
-  FFT_SCALAR* buf1;
-  FFT_SCALAR* buf2;
+  FFT_KOKKOS_SCALAR* buf1;
+  FFT_KOKKOS_SCALAR* buf2;
   if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
@@ -776,7 +776,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
 
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::reverse_comm(int caller, void *ptr, int which, int nper, int nbyte,
-                            FFT_DAT::tdual_FFT_SCALAR_1d& k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d& k_buf2,
+                            FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d& k_buf1, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d& k_buf2,
                             MPI_Datatype datatype)
 {
   if (caller == KSPACE) {
@@ -795,14 +795,14 @@ void Grid3dKokkos<DeviceType>::reverse_comm(int caller, void *ptr, int which, in
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
 reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
-                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                          FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf1, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
-  FFT_SCALAR* buf1;
-  FFT_SCALAR* buf2;
+  FFT_KOKKOS_SCALAR* buf1;
+  FFT_KOKKOS_SCALAR* buf2;
   if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
@@ -850,14 +850,14 @@ reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
 reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
-                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+                          FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf1, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
 
-  FFT_SCALAR* buf1;
-  FFT_SCALAR* buf2;
+  FFT_KOKKOS_SCALAR* buf1;
+  FFT_KOKKOS_SCALAR* buf2;
   if (lmp->kokkos->gpu_aware_flag) {
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();

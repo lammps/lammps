@@ -20,10 +20,10 @@
 
 // data types for 2d/3d FFTs
 
-#ifndef LMP_FFT_DATA_KOKKOS_H
-#define LMP_FFT_DATA_KOKKOS_H
+#ifndef LMP_FFT_KOKKOS_DATA_H
+#define LMP_FFT_KOKKOS_DATA_H
 
-#include "lmpfftsettings.h"
+#include "lmpfftsettings_kokkos.h"
 
 // -------------------------------------------------------------------------
 
@@ -87,42 +87,42 @@
 #if defined(FFT_KOKKOS_MKL)
   #include "mkl_dfti.h"
   #if defined(FFT_KOKKOS_SINGLE)
-    typedef float _Complex FFT_DATA;
+    typedef float _Complex FFT_KOKKOS_DATA;
     #define FFT_KOKKOS_MKL_PREC DFTI_SINGLE
   #else
-    typedef double _Complex FFT_DATA;
+    typedef double _Complex FFT_KOKKOS_DATA;
     #define FFT_KOKKOS_MKL_PREC DFTI_DOUBLE
   #endif
 #elif defined(FFT_KOKKOS_FFTW3)
   #include "fftw3.h"
   #if defined(FFT_KOKKOS_SINGLE)
-    typedef fftwf_complex FFT_DATA;
+    typedef fftwf_complex FFT_KOKKOS_DATA;
     #define FFTW_API(function)  fftwf_ ## function
   #else
-    typedef fftw_complex FFT_DATA;
+    typedef fftw_complex FFT_KOKKOS_DATA;
     #define FFTW_API(function) fftw_ ## function
   #endif
 #elif defined(FFT_KOKKOS_CUFFT)
   #include "cufft.h"
   #if defined(FFT_KOKKOS_SINGLE)
     #define cufftExec cufftExecC2C
-    #define CUFFT_TYPE CUFFT_C2C
-    typedef cufftComplex FFT_DATA;
+    #define CUFFT_KOKKOS_TYPE CUFFT_KOKKOS_C2C
+    typedef cufftComplex FFT_KOKKOS_DATA;
   #else
     #define cufftExec cufftExecZ2Z
-    #define CUFFT_TYPE CUFFT_Z2Z
-    typedef cufftDoubleComplex FFT_DATA;
+    #define CUFFT_KOKKOS_TYPE CUFFT_KOKKOS_Z2Z
+    typedef cufftDoubleComplex FFT_KOKKOS_DATA;
   #endif
 #elif defined(FFT_KOKKOS_HIPFFT)
   #include <hipfft/hipfft.h>
   #if defined(FFT_KOKKOS_SINGLE)
     #define hipfftExec hipfftExecC2C
-    #define HIPFFT_TYPE HIPFFT_C2C
-    typedef hipfftComplex FFT_DATA;
+    #define HIPFFT_KOKKOS_TYPE HIPFFT_KOKKOS_C2C
+    typedef hipfftComplex FFT_KOKKOS_DATA;
   #else
     #define hipfftExec hipfftExecZ2Z
-    #define HIPFFT_TYPE HIPFFT_Z2Z
-    typedef hipfftDoubleComplex FFT_DATA;
+    #define HIPFFT_KOKKOS_TYPE HIPFFT_KOKKOS_Z2Z
+    typedef hipfftDoubleComplex FFT_KOKKOS_DATA;
   #endif
 #else
   #if defined(FFT_KOKKOS_SINGLE)
@@ -133,7 +133,7 @@
   typedef struct {
     kiss_fft_scalar re;
     kiss_fft_scalar im;
-  } FFT_DATA;
+  } FFT_KOKKOS_DATA;
   #ifndef FFT_KOKKOS_KISSFFT
   #define FFT_KOKKOS_KISSFFT
   #endif
@@ -141,9 +141,9 @@
 
 // (double[2]*) is not a 1D pointer
 #if defined(FFT_KOKKOS_FFTW3)
-  typedef FFT_SCALAR* FFT_DATA_POINTER;
+  typedef FFT_KOKKOS_SCALAR* FFT_KOKKOS_DATA_POINTER;
 #else
-  typedef FFT_DATA* FFT_DATA_POINTER;
+  typedef FFT_KOKKOS_DATA* FFT_KOKKOS_DATA_POINTER;
 #endif
 
 
@@ -154,23 +154,23 @@ template <>
 struct FFTArrayTypes<LMPDeviceType> {
 
 typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_dev t_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_dev_um t_FFT_SCALAR_1d_um;
+  DualView<FFT_KOKKOS_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_1d;
+typedef tdual_FFT_KOKKOS_SCALAR_1d::t_dev t_FFT_KOKKOS_SCALAR_1d;
+typedef tdual_FFT_KOKKOS_SCALAR_1d::t_dev_um t_FFT_KOKKOS_SCALAR_1d_um;
 
-typedef Kokkos::DualView<FFT_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d;
-typedef tdual_FFT_SCALAR_2d::t_dev t_FFT_SCALAR_2d;
+typedef Kokkos::DualView<FFT_KOKKOS_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_2d;
+typedef tdual_FFT_KOKKOS_SCALAR_2d::t_dev t_FFT_KOKKOS_SCALAR_2d;
 
-typedef Kokkos::DualView<FFT_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d_3;
-typedef tdual_FFT_SCALAR_2d_3::t_dev t_FFT_SCALAR_2d_3;
+typedef Kokkos::DualView<FFT_KOKKOS_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_2d_3;
+typedef tdual_FFT_KOKKOS_SCALAR_2d_3::t_dev t_FFT_KOKKOS_SCALAR_2d_3;
 
-typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_3d;
-typedef tdual_FFT_SCALAR_3d::t_dev t_FFT_SCALAR_3d;
+typedef Kokkos::DualView<FFT_KOKKOS_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_3d;
+typedef tdual_FFT_KOKKOS_SCALAR_3d::t_dev t_FFT_KOKKOS_SCALAR_3d;
 
 typedef Kokkos::
-  DualView<FFT_DATA*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_dev t_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_dev_um t_FFT_DATA_1d_um;
+  DualView<FFT_KOKKOS_DATA*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_KOKKOS_DATA_1d;
+typedef tdual_FFT_KOKKOS_DATA_1d::t_dev t_FFT_KOKKOS_DATA_1d;
+typedef tdual_FFT_KOKKOS_DATA_1d::t_dev_um t_FFT_KOKKOS_DATA_1d_um;
 
 typedef Kokkos::
   DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
@@ -186,23 +186,23 @@ struct FFTArrayTypes<LMPHostType> {
 //Kspace
 
 typedef Kokkos::
-  DualView<FFT_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_host t_FFT_SCALAR_1d;
-typedef tdual_FFT_SCALAR_1d::t_host_um t_FFT_SCALAR_1d_um;
+  DualView<FFT_KOKKOS_SCALAR*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_1d;
+typedef tdual_FFT_KOKKOS_SCALAR_1d::t_host t_FFT_KOKKOS_SCALAR_1d;
+typedef tdual_FFT_KOKKOS_SCALAR_1d::t_host_um t_FFT_KOKKOS_SCALAR_1d_um;
 
-typedef Kokkos::DualView<FFT_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d;
-typedef tdual_FFT_SCALAR_2d::t_host t_FFT_SCALAR_2d;
+typedef Kokkos::DualView<FFT_KOKKOS_SCALAR**,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_2d;
+typedef tdual_FFT_KOKKOS_SCALAR_2d::t_host t_FFT_KOKKOS_SCALAR_2d;
 
-typedef Kokkos::DualView<FFT_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_2d_3;
-typedef tdual_FFT_SCALAR_2d_3::t_host t_FFT_SCALAR_2d_3;
+typedef Kokkos::DualView<FFT_KOKKOS_SCALAR**[3],Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_2d_3;
+typedef tdual_FFT_KOKKOS_SCALAR_2d_3::t_host t_FFT_KOKKOS_SCALAR_2d_3;
 
-typedef Kokkos::DualView<FFT_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_SCALAR_3d;
-typedef tdual_FFT_SCALAR_3d::t_host t_FFT_SCALAR_3d;
+typedef Kokkos::DualView<FFT_KOKKOS_SCALAR***,Kokkos::LayoutRight,LMPDeviceType> tdual_FFT_KOKKOS_SCALAR_3d;
+typedef tdual_FFT_KOKKOS_SCALAR_3d::t_host t_FFT_KOKKOS_SCALAR_3d;
 
 typedef Kokkos::
-  DualView<FFT_DATA*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_host t_FFT_DATA_1d;
-typedef tdual_FFT_DATA_1d::t_host_um t_FFT_DATA_1d_um;
+  DualView<FFT_KOKKOS_DATA*, Kokkos::LayoutRight, LMPDeviceType> tdual_FFT_KOKKOS_DATA_1d;
+typedef tdual_FFT_KOKKOS_DATA_1d::t_host t_FFT_KOKKOS_DATA_1d;
+typedef tdual_FFT_KOKKOS_DATA_1d::t_host_um t_FFT_KOKKOS_DATA_1d_um;
 
 typedef Kokkos::
   DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
@@ -212,12 +212,12 @@ typedef tdual_int_64::t_host_um t_int_64_um;
 };
 #endif
 
-typedef struct FFTArrayTypes<LMPDeviceType> FFT_DAT;
-typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
+typedef struct FFTArrayTypes<LMPDeviceType> FFT_KOKKOS_DAT;
+typedef struct FFTArrayTypes<LMPHostType> FFT_KOKKOS_HAT;
 
 
 #if defined(FFT_KOKKOS_KISSFFT)
-#include "kissfft_kokkos.h" // uses t_FFT_DATA_1d, needs to come last
+#include "kissfft_kokkos.h" // uses t_FFT_KOKKOS_DATA_1d, needs to come last
 #endif
 
 

@@ -118,8 +118,8 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     sph_lj_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success,
-                    atom->v, atom->nlocal, domain->boxlo, domain->prd);
+                       eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success,
+                       atom->v, atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 

@@ -104,7 +104,7 @@ int EDPDT::init(const int ntypes,
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_power,host_kappa,
                          host_powerT,host_cutT);
 
-  UCL_H_Vec<int> dview_mass(ntypes, *(this->ucl_device), UCL_WRITE_ONLY);
+  UCL_H_Vec<numtyp> dview_mass(ntypes, *(this->ucl_device), UCL_WRITE_ONLY);
   for (int i = 0; i < ntypes; i++)
     dview_mass[i] = host_mass[i];
   mass.alloc(ntypes,*(this->ucl_device), UCL_READ_ONLY);

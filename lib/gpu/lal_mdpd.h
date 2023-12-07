@@ -13,8 +13,8 @@
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
-#ifndef LAL_DPD_H
-#define LAL_DPD_H
+#ifndef LAL_MDPD_H
+#define LAL_MDPD_H
 
 #include "lal_base_dpd.h"
 

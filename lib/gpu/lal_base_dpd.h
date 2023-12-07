@@ -196,11 +196,9 @@ class BaseDPD {
   numtyp _dtinvsqrt;
   int _seed, _timestep;
 
-  int _extra_fields;
-
  protected:
   bool _compiled;
-  int _block_size, _threads_per_atom, _onetype;
+  int _block_size, _threads_per_atom, _onetype, _extra_fields;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;

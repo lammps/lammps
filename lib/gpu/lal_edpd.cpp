@@ -271,16 +271,6 @@ int EDPDT::loop(const int eflag, const int vflag) {
   return GX;
 }
 
-template <class numtyp, class acctyp>
-void EDPDT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                        double **host_sigma, double **host_cut)
-{
-  UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
-                               UCL_WRITE_ONLY);
-  this->atom->type_pack4(ntypes,_lj_types,coeff,host_write,host_a0,host_gamma,
-                         host_sigma,host_cut);
-}
-
 // ---------------------------------------------------------------------------
 // Get the extra data pointers from host
 // ---------------------------------------------------------------------------

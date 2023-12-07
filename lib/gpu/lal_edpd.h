@@ -13,8 +13,8 @@
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
-#ifndef LAL_DPD_H
-#define LAL_DPD_H
+#ifndef LAL_EDPD_H
+#define LAL_EDPD_H
 
 #include "lal_base_dpd.h"
 
@@ -55,10 +55,6 @@ class EDPD : public BaseDPD<numtyp, acctyp> {
 
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
-
-  /// Update coeff if needed (tstat only)
-  void update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                    double **host_sigma, double **host_cut);
 
   void get_extra_data(double *host_T, double *host_cv);
 

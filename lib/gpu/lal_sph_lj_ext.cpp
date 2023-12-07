@@ -94,13 +94,15 @@ void sph_lj_gpu_clear() {
 
 int ** sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double **host_x, int *host_type, double *sublo,
-                         double *subhi, tagint *tag, int **nspecial,
+                         double *subhi, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum, const double cpu_time, bool &success,
-                         double **host_v, const double dtinvsqrt,
-                         const int seed, const int timestep,
-                         double *boxlo, double *prd) {
+                         double **host_v, double *boxlo, double *prd) {
+  double dtinvsqrt = 1.0;
+  int seed = 0;
+  int timestep = 0;
+  tagint* tag = nullptr;
   return SPHLJMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                          subhi, tag, nspecial, special, eflag, vflag, eatom,
                          vatom, host_start, ilist, jnum, cpu_time, success,
@@ -108,16 +110,18 @@ int ** sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall,
 }
 
 void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall,
-                       double **host_x, int *host_type, int *ilist, int *numj,
-                       int **firstneigh, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success, tagint *tag,
-                       double **host_v, const double dtinvsqrt,
-                       const int seed, const int timestep,
-                       const int nlocal, double *boxlo, double *prd) {
+                        double **host_x, int *host_type, int *ilist, int *numj,
+                        int **firstneigh, const bool eflag, const bool vflag,
+                        const bool eatom, const bool vatom, int &host_start,
+                        const double cpu_time, bool &success,
+                        double **host_v, const int nlocal, double *boxlo, double *prd) {
+  double dtinvsqrt = 1.0;
+  int seed = 0;
+  int timestep = 0;
+  tagint* tag = nullptr;
   SPHLJMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
-                firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
-                tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
+                  firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
+                  tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
 }
 
 void sph_lj_gpu_get_extra_data(double *host_rho, double *host_esph,

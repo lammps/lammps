@@ -107,7 +107,7 @@ int SPHLJT::init(const int ntypes,
     ef_nall=2000;
 
   _max_drhoE_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-  drhoE.alloc(_max_drhoE_size,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  drhoE.alloc(_max_drhoE_size*2,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
 
   _allocated=true;
   this->_max_bytes=coeff.row_bytes()+drhoE.row_bytes()+sp_lj.row_bytes();
@@ -134,7 +134,7 @@ double SPHLJT::host_memory_usage() const {
 template <class numtyp, class acctyp>
 void SPHLJT::update_drhoE(void **drhoE_ptr) {
   *drhoE_ptr=drhoE.host.begin();
-  drhoE.update_host(_max_drhoE_size,false);
+  drhoE.update_host(_max_drhoE_size*2,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -148,7 +148,7 @@ int SPHLJT::loop(const int eflag, const int vflag) {
   // Resize drhoE array if necessary
   if (nall > _max_drhoE_size) {
     _max_drhoE_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    drhoE.resize(_max_drhoE_size);
+    drhoE.resize(_max_drhoE_size*2);
   }
 
   // signal that we need to transfer extra data from the host

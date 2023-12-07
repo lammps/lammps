@@ -45,8 +45,8 @@ int SPHLJT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int SPHLJT::init(const int ntypes,
-                 double **host_cutsq, double **host_viscosity,
-                 double *host_special_lj,
+                 double **host_cutsq, double **host_cut,
+                 double **host_viscosity, double *host_special_lj,
                  const int nlocal, const int nall,
                  const int max_nbors, const int maxspecial,
                  const double cell_size,
@@ -92,8 +92,8 @@ int SPHLJT::init(const int ntypes,
     host_write[i]=0.0;
 
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack2(ntypes,lj_types,coeff,host_write,host_viscosity,
-                         host_cutsq);
+  this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_viscosity,
+                         host_cut, host_cutsq);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -163,9 +163,9 @@ int SPHLJT::loop(const int eflag, const int vflag) {
     int idx = n+i*nstride;
     numtyp4 v;
     v.x = rho[i];
+    v.x = esph[i];
     v.y = cv[i];
-    v.z = mass[i];
-    v.w = 0;
+    v.w = mass[i];
     pextra[idx] = v;
   }
   this->atom->add_extra_data();
@@ -202,8 +202,10 @@ int SPHLJT::loop(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void SPHLJT::get_extra_data(double *host_rho, double *host_cv, double* host_mass) {
+void SPHLJT::get_extra_data(double *host_rho, double *host_esph,
+                            double *host_cv, double* host_mass) {
   rho = host_rho;
+  esph = host_esph;
   cv = host_cv;
   mass = host_mass;
 }

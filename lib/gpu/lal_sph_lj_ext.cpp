@@ -27,8 +27,9 @@ static SPHLJ<PRECISION,ACC_PRECISION> SPHLJMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int sph_lj_gpu_init(const int ntypes, double **cutsq, double **host_viscosity,
-                    double *special_lj, const int inum, const int nall,
+int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
+                    double **host_viscosity, double *special_lj,
+                    const int inum, const int nall,
                     const int max_nbors,  const int maxspecial,
                     const double cell_size, int &gpu_mode, FILE *screen) {
   SPHLJMF.clear();
@@ -53,8 +54,8 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double **host_viscosity,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=SPHLJMF.init(ntypes, cutsq, host_viscosity, special_lj,
-                         inum, nall, max_nbors,  maxspecial,
+    init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity,
+                         special_lj, inum, nall, max_nbors,  maxspecial,
                          cell_size, gpu_split, screen);
 
   SPHLJMF.device->world_barrier();
@@ -71,9 +72,9 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double **host_viscosity,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=SPHLJMF.init(ntypes, cutsq, host_viscosity, special_lj,
-                          inum, nall, max_nbors, maxspecial,
-                          cell_size, gpu_split, screen);
+      init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity,
+                           special_lj, inum, nall, max_nbors, maxspecial,
+                           cell_size, gpu_split, screen);
 
     SPHLJMF.device->serialize_init();
     if (message)
@@ -119,8 +120,9 @@ void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall,
                 tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
 }
 
-void sph_lj_gpu_get_extra_data(double *host_rho, double *host_cv, double *host_mass) {
-  SPHLJMF.get_extra_data(host_rho, host_cv, host_mass);
+void sph_lj_gpu_get_extra_data(double *host_rho, double *host_esph,
+                               double *host_cv, double *host_mass) {
+  SPHLJMF.get_extra_data(host_rho, host_esph, host_cv, host_mass);
 }
 
 void sph_lj_gpu_update_drhoE(void **drhoE_ptr) {

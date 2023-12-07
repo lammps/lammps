@@ -37,7 +37,8 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, double **host_cutsq, double **host_viscosity,
+  int init(const int ntypes, double **host_cutsq,
+           double** host_cut, double **host_viscosity,
            double *host_special_lj, const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size, const double gpu_split,
            FILE *screen);
@@ -52,14 +53,15 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
 
-  void get_extra_data(double *host_rho, double *host_cv, double* host_mass);
+  void get_extra_data(double *host_rho, double *host_esph,
+                      double *host_cv, double* host_mass);
 
   /// copy drho and desph from device to host
   void update_drhoE(void **drhoE_ptr);
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// coeff.x = viscosity, coeff.y = cutsq
+  /// coeff.x = viscosity, coeff.y = cut, coeff.z = cutsq
   UCL_D_Vec<numtyp2> coeff;
 
   /// Special LJ values
@@ -76,7 +78,7 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
   int _max_drhoE_size;
 
   /// pointer to host data
-  double *rho, *cv, *mass;
+  double *rho, *esph, *cv, *mass;
 
  private:
   bool _allocated;

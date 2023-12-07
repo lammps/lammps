@@ -77,7 +77,8 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
     energy=(acctyp)0;
     for (int i=0; i<6; i++) virial[i]=(acctyp)0;
   }
-  acctyp Qi = (acctyp)0;
+  acctyp2 drhoEacc;
+  drhoEacc.x = drhoEacc.x = (acctyp)0;
 
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
@@ -88,24 +89,29 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
     int itype=ix.w;
     numtyp mass_itype = mass[itype];
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
-    int itag=iv.w;
 
-    const numtyp4 Tcvi = extra[i];
-    numtyp Ti = Tcvi.x;
-    numtyp cvi = Tcvi.y;
+    const numtyp4 extrai = extra[i];
+    numtyp rhoi = extrai.x;
+    numtyp esphi = extrai.y;
+    numtyp cvi = extrai.z;
+    numtyp massi= extrai.w;
 
-    numtyp factor_dpd;
+    // compute pressure of particle i with LJ EOS
+    numtyp fi, ci;
+    //LJEOS2(rho[i], esph[i], cv[i], &fi, &ci);
+    //fi /= (rho[i] * rho[i]);
+
+    numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
-      factor_dpd = sp_lj[sbmask(j)];
+      factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       numtyp4 jv; fetch4(jv,j,vel_tex); //v_[j];
-      int jtag=jv.w;
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -114,102 +120,70 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype=itype*lj_types+jtype;
-      if (rsq<cutsq[mtype]) {
-        numtyp r=ucl_sqrt(rsq);
-        if (r < EPSILON) continue;
+      if (rsq<coeff[mtype].z) { // cutsq[itype][jtype]
 
-        numtyp rinv=ucl_recip(r);
+        const numtyp coeffx=coeff[mtype].x;  // viscosity[itype][jtype]
+        const numtyp coeffy=coeff[mtype].y;  // cut[itype][jtype]
+
+        const numtyp4 extraj = extra[j];
+        numtyp rhoj = extraj.x;
+        numtyp esphj = extraj.y;
+        numtyp cvj = extraj.z;
+        numtyp massj= extraj.w;
+
+        numtyp h = coeffy; // cut[itype][jtype]
+        ih = (numtyp) 1.0 / h;
+        numtyp ihsq = ih * ih;
+        numtyp ihcub = ihsq * ih;
+
+        numtyp wfd = h - ucl_sqrt(rsq);
+        // domain->dimension == 3 Lucy Kernel, 3d
+        wfd = -25.066903536973515383e0 * wfd * wfd * ihsq * ihsq * ihsq * ih;
+       
+        // Lucy Kernel, 2d
+        //wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+        
+        // function call to LJ EOS
+        numtyp fj, cj;
+        //LJEOS2(rho[j], esph[j], cv[j], &fj, &cj);
+        //fj /= (rho[j] * rho[j]);
+
+        // apply long-range correction to model a LJ fluid with cutoff
+        // this implies that the modelled LJ fluid has cutoff == SPH cutoff
+        numtyp lrc = (numtyp)-11.1701 * (ihcub * ihcub * ihcub - (numtyp)1.5 * ihcub);
+        fi += lrc;
+        fj += lrc;
+
+        // dot product of velocity delta and distance vector
         numtyp delvx = iv.x - jv.x;
         numtyp delvy = iv.y - jv.y;
         numtyp delvz = iv.z - jv.z;
-        numtyp dot = delx*delvx + dely*delvy + delz*delvz;
-        numtyp vijeij = dot*rinv;
+        numtyp delVdotDelR = delx*delvx + dely*delvy + delz*delvz;
 
-        const numtyp coeffx=coeff[mtype].x; // a0[itype][jtype]
-        const numtyp coeffy=coeff[mtype].y; // gamma[itype][jtype]
-        const numtyp coeffz=coeff[mtype].z; // cut[itype][jtype]
-
-        const numtyp4 Tcvj = extra[j];
-        numtyp Tj = Tcvj.x;
-        numtyp cvj = Tcvj.y;
-
-        unsigned int tag1=itag, tag2=jtag;
-        if (tag1 > tag2) {
-          tag1 = jtag; tag2 = itag;
+        // artificial viscosity (Monaghan 1992)
+        numtyp fvisc = (numtyp)0;
+        if (delVdotDelR < (numyp)0) {
+          mu = h * delVdotDelR / (rsq + (numyp)0.01 * h * h);
+          fvisc = -coeffx * (ci + cj) * mu / (rhoi + rhoj); // viscosity[itype][jtype]
         }
 
-        numtyp randnum = (numtyp)0.0;
-        saru(tag1, tag2, seed, timestep, randnum);
-
-        numtyp T_ij=(numtyp)0.5*(Ti+Tj);
-        numtyp4 T_pow;
-        T_pow.x = T_ij - (numtyp)1.0;
-        T_pow.y = T_pow.x*T_pow.x;
-        T_pow.z = T_pow.x*T_pow.y;
-        T_pow.w = T_pow.x*T_pow.z;
-
-        numtyp coeff2x = coeff2[mtype].x; //power[itype][jtype]
-        numtyp coeff2y = coeff2[mtype].y; //kappa[itype][jtype]
-        numtyp coeff2z = coeff2[mtype].z; //powerT[itype][jtype]
-        numtyp coeff2w = coeff2[mtype].w; //cutT[itype][jtype]
-        numtyp power_d = coeff2x;
-        if (power_flag) {
-          numtyp factor = (numtyp)1.0;
-          factor += sc[mtype].x*T_pow.x + sc[mtype].y*T_pow.y +
-            sc[mtype].z*T_pow.z + sc[mtype].w*T_pow.w;
-          power_d *= factor;
-        }
-
-        power_d = MAX((numtyp)0.01,power_d);
-        numtyp wc = (numtyp)1.0 - r/coeffz; // cut[itype][jtype]
-        wc = MAX((numtyp)0.0,MIN((numtyp)1.0,wc));
-        numtyp wr = ucl_pow(wc, (numtyp)0.5*power_d);
-
-        numtyp kboltz = (numtyp)1.0;
-        numtyp GammaIJ = coeffy; // gamma[itype][jtype]
-        numtyp SigmaIJ = (numtyp)4.0*GammaIJ*kboltz*Ti*Tj/(Ti+Tj);
-        SigmaIJ = ucl_sqrt(SigmaIJ);
-
-        numtyp force =  coeffx*T_ij*wc; // a0[itype][jtype]
-        force -= GammaIJ *wr*wr *dot*rinv;
-        force += SigmaIJ * wr *randnum * dtinvsqrt;
-        force *= factor_dpd*rinv;
+        // total pair force & thermal energy increment
+        numtyp force = -massi * massj * (fi + fj + fvisc) * wfd;
+        numtyp deltaE = (numtyp)-0.5 * force * delVdotDelR;
 
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
-        // heat transfer
-        
-        if (r < coeff2w) {  
-          numtyp wrT = (numtyp)1.0 - r/coeff2w;
-          wrT = MAX((numtyp)0.0,MIN((numtyp)1.0,wrT));
-          wrT = ucl_pow(wrT, (numtyp)0.5*coeff2z); // powerT[itype][jtype]
-          numtyp randnumT = (numtyp)0;
-          saru(tag1, tag2, seed+tag1+tag2, timestep, randnumT); // randomT->gaussian();
-          randnumT = MAX((numtyp)-5.0,MIN(randnum,(numtyp)5.0));
+        // and change in density, drho[i]
+        drhoEacc.x += massj * delVdotDelR * wfd;
 
-          numtyp kappaT = coeff2y; // kappa[itype][jtype]
-          if (kappa_flag) {
-            numtyp factor = (numtyp)1.0;
-            factor += kc[mtype].x*T_pow.x + kc[mtype].y*T_pow.y +
-              kc[mtype].z*T_pow.z + kc[mtype].w*T_pow.w;
-            kappaT *= factor;
-          }
-
-          numtyp kij = cvi*cvj*kappaT * T_ij*T_ij;
-          numtyp alphaij = ucl_sqrt((numtyp)2.0*kboltz*kij);
-
-          numtyp dQc = kij * wrT*wrT * (Tj - Ti)/(Ti*Tj);
-          numtyp dQd = wr*wr*( GammaIJ * vijeij*vijeij - SigmaIJ*SigmaIJ/mass_itype ) - SigmaIJ * wr *vijeij *randnum;
-          dQd /= (cvi+cvj);
-          numtyp dQr = alphaij * wrT * dtinvsqrt * randnumT;
-          Qi += (dQc + dQd + dQr );
-        }
+        // change in thermal energy, desph[i]
+        drhoEacc.y += deltaE;
 
         if (EVFLAG && eflag) {
-          numtyp e = (numtyp)0.5*coeffx*T_ij*coeffz * wc*wc;
-          energy+=factor_dpd*e;
+          numtyp e = (numtyp)0;
+          energy+=e;
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -224,12 +198,12 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
   } // if ii
   store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                 ans,engv);
-  store_drhoE(Qi,ii,inum,tid,t_per_atom,offset,Q);
+  store_drhoE(drhoEacc,ii,inum,tid,t_per_atom,offset,drhoE);
 }
 
 __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict extra,
-                          const __global numtyp2 *restrict coeff_in,
+                          const __global numtyp4 *restrict coeff_in,
                           const __global numtyp *restrict sp_lj_in,
                           const __global int * dev_nbor,
                           const __global int * dev_packed,

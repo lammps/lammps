@@ -3,7 +3,7 @@
                              -------------------
                             Trung Dac Nguyen (U Chicago)
 
-  Class for acceleration of the sph_taitwater pair style.
+  Class for acceleration of the sph/taitwater pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -29,7 +29,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-SPHTaitwaterT::SPHTaitwater() : BaseDPD<numtyp,acctyp>(), _allocated(false) {
+SPHTaitwaterT::SPHTaitwater() : BaseSPH<numtyp,acctyp>(), _allocated(false) {
   _max_drhoE_size = 0;
 }
 
@@ -46,8 +46,8 @@ int SPHTaitwaterT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int SPHTaitwaterT::init(const int ntypes, double **host_cutsq,
                         double **host_cut, double **host_viscosity,
-                        double* host_rho0, double* host_soundspeed,
-                        double* host_B, const int dimension,
+                        double* host_mass, double* host_rho0,
+                        double* host_soundspeed, double* host_B, const int dimension,
                         double *host_special_lj, const int nlocal, const int nall,
                         const int max_nbors, const int maxspecial,
                         const double cell_size,
@@ -70,7 +70,7 @@ int SPHTaitwaterT::init(const int ntypes, double **host_cutsq,
 
   int success;
   int extra_fields = 4; // round up to accomodate quadruples of numtyp values
-                        // rho, mass
+                        // rho
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             gpu_split,_screen,sph_taitwater,"k_sph_taitwater",
                             onetype,extra_fields);
@@ -99,10 +99,10 @@ int SPHTaitwaterT::init(const int ntypes, double **host_cutsq,
 
   UCL_H_Vec<numtyp4> dview_coeff2(ntypes, *(this->ucl_device), UCL_WRITE_ONLY);
   for (int i = 0; i < ntypes; i++) {
-    dview_coeff2[i].x = host_rho0[i];
-    dview_coeff2[i].y = host_soundspeed[i];
-    dview_coeff2[i].z = host_B[i];
-    dview_coeff2[i].w = 0;
+    dview_coeff2[i].x = host_mass[i];
+    dview_coeff2[i].y = host_rho0[i];
+    dview_coeff2[i].z = host_soundspeed[i];
+    dview_coeff2[i].w = host_B[i];
   }
   coeff2.alloc(ntypes,*(this->ucl_device), UCL_READ_ONLY);
   ucl_copy(coeff2,dview_coeff2,false);
@@ -122,7 +122,7 @@ int SPHTaitwaterT::init(const int ntypes, double **host_cutsq,
   drhoE.alloc(_max_drhoE_size*2,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
 
   _dimension = dimension;
-  
+
   _allocated=true;
   this->_max_bytes=coeff.row_bytes()+coeff2.row_bytes()+drhoE.row_bytes()+sp_lj.row_bytes();
   return 0;
@@ -178,7 +178,7 @@ int SPHTaitwaterT::loop(const int eflag, const int vflag) {
     int idx = n+i*nstride;
     numtyp4 v;
     v.x = rho[i];
-    v.y = mass[i];
+    v.y = 0;
     v.z = 0;
     v.w = 0;
     pextra[idx] = v;
@@ -217,9 +217,8 @@ int SPHTaitwaterT::loop(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void SPHTaitwaterT::get_extra_data(double *host_rho, double* host_mass) {
+void SPHTaitwaterT::get_extra_data(double *host_rho) {
   rho = host_rho;
-  mass = host_mass;
 }
 
 template class SPHTaitwater<PRECISION,ACC_PRECISION>;

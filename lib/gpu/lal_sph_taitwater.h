@@ -1,9 +1,9 @@
 /***************************************************************************
-                                 sph_lj.h
+                              sph_taitwater.h
                              -------------------
                             Trung Dac Nguyen (U Chicago)
 
-  Class for acceleration of the sph lj pair style.
+  Class for acceleration of the sph/taitwater pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -14,14 +14,14 @@
  ***************************************************************************/
 
 #ifndef LAL_SPH_TAITWATER_H
-#define LAL_SPH_TaitLAL_SPH_TAITWATER_Hwater_H
+#define LAL_SPH_TAITWATER_H
 
-#include "lal_base_dpd.h"
+#include "lal_base_sph.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class SPHTaitwater : public BaseDPD<numtyp, acctyp> {
+class SPHTaitwater : public BaseSPH<numtyp, acctyp> {
  public:
   SPHTaitwater();
   ~SPHTaitwater();
@@ -38,9 +38,9 @@ class SPHTaitwater : public BaseDPD<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq,
-           double** host_cut, double **host_viscosity,
-           double* host_rho0, double* host_soundspeed,
-           double* host_B, const int dimension, double *host_special_lj,
+           double** host_cut, double **host_viscosity, double *host_mass,
+           double* host_rho0, double* host_soundspeed, double* host_B,
+           const int dimension, double *host_special_lj,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
@@ -55,7 +55,7 @@ class SPHTaitwater : public BaseDPD<numtyp, acctyp> {
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
 
-  void get_extra_data(double *host_rho, double* host_mass);
+  void get_extra_data(double *host_rho);
 
   /// copy drho and desph from device to host
   void update_drhoE(void **drhoE_ptr);
@@ -84,7 +84,7 @@ class SPHTaitwater : public BaseDPD<numtyp, acctyp> {
   int _dimension;
 
   /// pointer to host data
-  double *rho, *mass;
+  double *rho;
 
  private:
   bool _allocated;

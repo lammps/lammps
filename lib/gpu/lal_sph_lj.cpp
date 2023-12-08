@@ -29,7 +29,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-SPHLJT::SPHLJ() : BaseDPD<numtyp,acctyp>(), _allocated(false) {
+SPHLJT::SPHLJ() : BaseSPH<numtyp,acctyp>(), _allocated(false) {
   _max_drhoE_size = 0;
 }
 
@@ -46,8 +46,8 @@ int SPHLJT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int SPHLJT::init(const int ntypes,
                  double **host_cutsq, double **host_cut,
-                 double **host_viscosity, const int dimension,
-                 double *host_special_lj,
+                 double **host_viscosity, double* host_mass,
+                 const int dimension, double *host_special_lj,
                  const int nlocal, const int nall,
                  const int max_nbors, const int maxspecial,
                  const double cell_size,
@@ -70,7 +70,7 @@ int SPHLJT::init(const int ntypes,
 
   int success;
   int extra_fields = 4; // round up to accomodate quadruples of numtyp values
-                        // rho, cv, mass
+                        // rho, cv
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             gpu_split,_screen,sph_lj,"k_sph_lj",onetype,extra_fields);
   if (success!=0)
@@ -95,6 +95,12 @@ int SPHLJT::init(const int ntypes,
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_viscosity,
                          host_cut, host_cutsq);
+
+  UCL_H_Vec<numtyp> dview_mass(ntypes, *(this->ucl_device), UCL_WRITE_ONLY);
+  for (int i = 0; i < ntypes; i++)
+    dview_mass[i] = host_mass[i];
+  mass.alloc(ntypes,*(this->ucl_device), UCL_READ_ONLY);
+  ucl_copy(mass,dview_mass,false);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -124,6 +130,7 @@ void SPHLJT::clear() {
   _allocated=false;
 
   coeff.clear();
+  mass.clear();
   drhoE.clear();
   sp_lj.clear();
   this->clear_atomic();
@@ -168,7 +175,7 @@ int SPHLJT::loop(const int eflag, const int vflag) {
     v.x = rho[i];
     v.y = esph[i];
     v.z = cv[i];
-    v.w = mass[i];
+    v.w = 0;
     pextra[idx] = v;
   }
   this->atom->add_extra_data();
@@ -184,13 +191,13 @@ int SPHLJT::loop(const int eflag, const int vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_sel->set_size(GX,BX);
-    this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &sp_lj,
+    this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &mass, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &drhoE, &eflag, &vflag,
                           &ainum, &nbor_pitch, &this->atom->v, &_dimension, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff,
+    this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff, &mass,
                      &_lj_types, &sp_lj, &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &drhoE, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->v, &_dimension, &this->_threads_per_atom);
@@ -205,12 +212,10 @@ int SPHLJT::loop(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void SPHLJT::get_extra_data(double *host_rho, double *host_esph,
-                            double *host_cv, double* host_mass) {
+void SPHLJT::get_extra_data(double *host_rho, double *host_esph, double *host_cv) {
   rho = host_rho;
   esph = host_esph;
   cv = host_cv;
-  mass = host_mass;
 }
 
 template class SPHLJ<PRECISION,ACC_PRECISION>;

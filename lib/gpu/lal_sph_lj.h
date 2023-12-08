@@ -16,12 +16,12 @@
 #ifndef LAL_SPH_LJ_H
 #define LAL_SPH_LJ_H
 
-#include "lal_base_dpd.h"
+#include "lal_base_sph.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class SPHLJ : public BaseDPD<numtyp, acctyp> {
+class SPHLJ : public BaseSPH<numtyp, acctyp> {
  public:
   SPHLJ();
   ~SPHLJ();
@@ -38,7 +38,8 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq,
-           double** host_cut, double **host_viscosity, const int dimension,
+           double** host_cut, double **host_viscosity, double *host_mass,
+           const int dimension,
            double *host_special_lj, const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size, const double gpu_split,
            FILE *screen);
@@ -54,7 +55,7 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
   double host_memory_usage() const;
 
   void get_extra_data(double *host_rho, double *host_esph,
-                      double *host_cv, double* host_mass);
+                      double *host_cv);
 
   /// copy drho and desph from device to host
   void update_drhoE(void **drhoE_ptr);
@@ -62,7 +63,10 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
   // --------------------------- TYPE DATA --------------------------
 
   /// coeff.x = viscosity, coeff.y = cut, coeff.z = cutsq
-  UCL_D_Vec<numtyp2> coeff;
+  UCL_D_Vec<numtyp4> coeff;
+
+  /// per-type coeffs
+  UCL_D_Vec<numtyp> mass;
 
   /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj;
@@ -80,7 +84,7 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
   int _dimension;
 
   /// pointer to host data
-  double *rho, *esph, *cv, *mass;
+  double *rho, *esph, *cv;
 
  private:
   bool _allocated;

@@ -35,24 +35,27 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
-                    double **host_viscosity, const int dimension, double *special_lj,
+                    double **host_viscosity, double* host_mass,
+                     const int dimension, double *special_lj,
                     const int inum, const int nall,
                     const int max_nbors,  const int maxspecial,
                     const double cell_size, int &gpu_mode, FILE *screen);
 void sph_lj_gpu_clear();
-int **sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
-                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double **host_v,
-                        double *boxlo, double *prd);
-void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
-                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *tag, double **host_v,
-                        const int nlocal, double *boxlo, double *prd);
+int **sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                           double **host_x, int *host_type, double *sublo,
+                           double *subhi, tagint *host_tag, int **nspecial,
+                           tagint **special, const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time, bool &success,
+                           double **host_v);
+void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall,
+                        double **host_x, int *host_type, int *ilist, int *numj,
+                        int **firstneigh, const bool eflag, const bool vflag,
+                        const bool eatom, const bool vatom, int &host_start,
+                        const double cpu_time, bool &success, tagint *host_tag,
+                        double **host_v, const int nlocal);
 void sph_lj_gpu_get_extra_data(double *host_rho, double *host_esph,
-                               double *host_cv, double *host_mass);
+                               double *host_cv);
 void sph_lj_gpu_update_drhoE(void **drhoE_ptr);
 double sph_lj_gpu_bytes();
 
@@ -92,8 +95,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
   double *rho = atom->rho;
   double *esph = atom->esph;
   double *cv = atom->cv;
-  double *mass = atom->mass;
-  sph_lj_gpu_get_extra_data(rho, esph, cv, mass);
+  sph_lj_gpu_get_extra_data(rho, esph, cv);
 
   if (gpu_mode != GPU_FORCE) {
     double sublo[3], subhi[3];
@@ -112,7 +114,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
         neighbor->ago, inum, nall, atom->x, atom->type,
         sublo, subhi, atom->tag, atom->nspecial, atom->special, eflag, vflag,
         eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->v, domain->boxlo, domain->prd);
+        cpu_time, success, atom->v);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -121,7 +123,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
     sph_lj_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                        ilist, numneigh, firstneigh, eflag, vflag,
                        eflag_atom, vflag_atom, host_start, cpu_time, success,
-                       atom->tag, atom->v, atom->nlocal, domain->boxlo, domain->prd);
+                       atom->tag, atom->v, atom->nlocal);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
@@ -182,8 +184,9 @@ void PairSPHLJGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
-      sph_lj_gpu_init(atom->ntypes + 1, cutsq, cut, viscosity, domain->dimension,
-                      force->special_lj, atom->nlocal, atom->nlocal + atom->nghost,
+      sph_lj_gpu_init(atom->ntypes + 1, cutsq, cut, viscosity, atom->mass,
+                      domain->dimension, force->special_lj, atom->nlocal,
+                      atom->nlocal + atom->nghost,
                       mnf, maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success, error, world);
 

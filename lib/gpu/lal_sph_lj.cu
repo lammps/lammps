@@ -47,7 +47,7 @@ _texture_2d( vel_tex,int4);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    drhoE[ii].x=drhoEacc;                                                   \
+    drhoE[ii]=drhoEacc;                                                     \
   }
 #endif
 
@@ -98,13 +98,14 @@ void LJEOS2(const numtyp rho, const numtyp e, const numtyp cv, numtyp pc[2])
 __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
                        const __global numtyp4 *restrict extra,
                        const __global numtyp4 *restrict coeff,
+                       const __global numtyp *restrict mass,
                        const int lj_types,
                        const __global numtyp *restrict sp_lj,
                        const __global int * dev_nbor,
                        const __global int * dev_packed,
                        __global acctyp3 *restrict ans,
                        __global acctyp *restrict engv,
-                       __global acctyp *restrict drhoE,
+                       __global acctyp2 *restrict drhoE,
                        const int eflag, const int vflag,
                        const int inum, const int nbor_pitch,
                        const __global numtyp4 *restrict v_,
@@ -132,13 +133,13 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
+    numtyp mass_itype = mass[itype];
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
 
     const numtyp4 extrai = extra[i];
     numtyp rhoi = extrai.x;
     numtyp esphi = extrai.y;
     numtyp cvi = extrai.z;
-    numtyp massi= extrai.w;
 
     // compute pressure of particle i with LJ EOS
     numtyp fci[2];
@@ -151,7 +152,6 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
       ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
-      factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -166,7 +166,7 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<coeff[mtype].z) { // cutsq[itype][jtype]
-
+        numtyp mass_jtype = mass[jtype];
         const numtyp coeffx=coeff[mtype].x;  // viscosity[itype][jtype]
         const numtyp coeffy=coeff[mtype].y;  // cut[itype][jtype]
 
@@ -174,7 +174,6 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
         numtyp rhoj = extraj.x;
         numtyp esphj = extraj.y;
         numtyp cvj = extraj.z;
-        numtyp massj= extraj.w;
 
         numtyp h = coeffy; // cut[itype][jtype]
         ih = ucl_recip(h); // (numtyp)1.0 / h;
@@ -187,7 +186,7 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
           wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
         } else {
           // Lucy Kernel, 2d
-          wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+          wfd = (numtyp)-19.098593171027440292 * wfd * wfd * ihsq * ihsq * ihsq;
         }
 
         // function call to LJ EOS
@@ -217,7 +216,7 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
         }
 
         // total pair force & thermal energy increment
-        numtyp force = -massi * massj * (fi + fj + fvisc) * wfd;
+        numtyp force = -mass_itype * mass_type * (fi + fj + fvisc) * wfd;
         numtyp deltaE = (numtyp)-0.5 * force * delVdotDelR;
 
         f.x+=delx*force;
@@ -253,12 +252,13 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
 __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict extra,
                             const __global numtyp4 *restrict coeff_in,
+                            const __global numtyp *restrict mass,
                             const __global numtyp *restrict sp_lj_in,
                             const __global int * dev_nbor,
                             const __global int * dev_packed,
                             __global acctyp3 *restrict ans,
                             __global acctyp *restrict engv,
-                            __global acctyp *restrict drhoE,
+                            __global acctyp2 *restrict drhoE,
                             const int eflag, const int vflag,
                             const int inum, const int nbor_pitch,
                             const __global numtyp4 *restrict v_,
@@ -327,7 +327,6 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
 
       int j=dev_packed[nbor];
       #ifndef ONETYPE
-      factor_dpd = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
       #endif
 
@@ -367,7 +366,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
           wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
         } else {
           // Lucy Kernel, 2d
-          wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+          wfd = (numtyp)-19.098593171027440292 * wfd * wfd * ihsq * ihsq * ihsq;
         }
         
         // function call to LJ EOS
@@ -403,6 +402,12 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
+
+        // and change in density, drho[i]
+        drhoEacc.x += massj * delVdotDelR * wfd;
+
+        // change in thermal energy, desph[i]
+        drhoEacc.y += deltaE;
 
         if (EVFLAG && eflag) {
           numtyp e = (numtyp)0;          

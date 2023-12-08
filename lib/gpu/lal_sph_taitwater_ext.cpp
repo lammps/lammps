@@ -3,7 +3,7 @@
                              -------------------
                             Trung Dac Nguyen (U Chicago)
 
-  Functions for LAMMPS access to sph lj acceleration routines.
+  Functions for LAMMPS access to sph taitwater acceleration routines.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -28,8 +28,8 @@ static SPHTaitwater<PRECISION,ACC_PRECISION> SPHTaitwaterMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
-                           double **host_viscosity, double* host_rho0,
-                           double* host_soundspeed, double* host_B,
+                           double **host_viscosity, double* host_mass,
+                           double* host_rho0, double* host_soundspeed, double* host_B,
                            const int dimension, double *special_lj,
                            const int inum, const int nall,
                            const int max_nbors,  const int maxspecial,
@@ -56,7 +56,7 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity,
+    init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                                 host_rho0, host_soundspeed, host_B, dimension,
                                 special_lj, inum, nall, max_nbors,  maxspecial,
                                 cell_size, gpu_split, screen);
@@ -75,7 +75,7 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity,
+      init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                                   host_rho0, host_soundspeed, host_B, dimension,
                                   special_lj, inum, nall, max_nbors, maxspecial,
                                   cell_size, gpu_split, screen);
@@ -98,36 +98,30 @@ void sph_taitwater_gpu_clear() {
 
 int ** sph_taitwater_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double **host_x, int *host_type, double *sublo,
-                         double *subhi, tagint *tag, int **nspecial,
+                         double *subhi, tagint *host_tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum, const double cpu_time, bool &success,
-                         double **host_v, double *boxlo, double *prd) {
-  double dtinvsqrt = 1.0;
-  int seed = 0;
-  int timestep = 0;
+                         double **host_v) {
   return SPHTaitwaterMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
-                         subhi, tag, nspecial, special, eflag, vflag, eatom,
+                         subhi, host_tag, nspecial, special, eflag, vflag, eatom,
                          vatom, host_start, ilist, jnum, cpu_time, success,
-                         host_v, dtinvsqrt, seed, timestep, boxlo, prd);
+                         host_v);
 }
 
 void sph_taitwater_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *tag,
-                        double **host_v, const int nlocal, double *boxlo, double *prd) {
-  double dtinvsqrt = 1.0;
-  int seed = 0;
-  int timestep = 0;
+                        const double cpu_time, bool &success, tagint *host_tag,
+                        double **host_v, const int nlocal) {
   SPHTaitwaterMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
                   firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
-                  tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
+                  host_tag, host_v, nlocal);
 }
 
-void sph_taitwater_gpu_get_extra_data(double *host_rho, double *host_mass) {
-  SPHTaitwaterMF.get_extra_data(host_rho, host_mass);
+void sph_taitwater_gpu_get_extra_data(double *host_rho) {
+  SPHTaitwaterMF.get_extra_data(host_rho);
 }
 
 void sph_taitwater_gpu_update_drhoE(void **drhoE_ptr) {

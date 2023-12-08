@@ -3,7 +3,7 @@
                              -------------------
                             Trung Dac Nguyen (U Chicago)
 
-  Functions for LAMMPS access to sph lj acceleration routines.
+  Functions for LAMMPS access to sph/lj acceleration routines.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)

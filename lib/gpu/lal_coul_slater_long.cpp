@@ -1,6 +1,6 @@
 /***************************************************************************
                            coul_slater_long_ext.cpp
-                             -------------------
+                           ------------------------
                            Trung Nguyen (U Chicago)
 
   Class for acceleration of the coul/slater/long pair style.

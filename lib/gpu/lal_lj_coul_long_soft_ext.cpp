@@ -1,6 +1,6 @@
 /***************************************************************************
                             lj_coul_long_soft_ext.cpp
-                             -------------------
+                            -------------------------
                             Trung Nguyen (U Chicago)
 
   Functions for LAMMPS access to lj/cut/coul/long/soft acceleration routines.
@@ -10,7 +10,7 @@
  __________________________________________________________________________
 
     begin                :
-    email                : ndtrung@uchicago.edu
+    email                : ndactrung@gmail.com
  ***************************************************************************/
 
 #include <iostream>

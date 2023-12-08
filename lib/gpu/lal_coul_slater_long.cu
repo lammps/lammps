@@ -1,6 +1,6 @@
 // **************************************************************************
 //                           coul_slater_long.cu
-//                             -------------------
+//                           -------------------
 //                         Trung Nguyen (U Chicago)
 //
 //  Device code for acceleration of the coul/slater/long pair style

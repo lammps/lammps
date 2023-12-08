@@ -1,7 +1,7 @@
 /***************************************************************************
                                 base_sph.h
                              -------------------
-                            Trung Dac Nguyen (U Chicago)
+                            Trung Nguyen (U Chicago)
 
   Base class for SPH pair styles needing per-particle data for position,
   velocity, and type.

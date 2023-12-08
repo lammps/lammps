@@ -12,7 +12,7 @@ pair_style coul/slater/cut command
 pair_style coul/slater/long command
 ===================================
 
-Accelerator Variants: *coul/slater/gpu*
+Accelerator Variants: *coul/slater/long/gpu*
 
 Syntax
 """"""

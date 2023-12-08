@@ -1,7 +1,7 @@
 /***************************************************************************
                                    sph_lj.cpp
                              -------------------
-                            Trung Dac Nguyen (U Chicago)
+                            Trung Nguyen (U Chicago)
 
   Class for acceleration of the sph_lj pair style.
 

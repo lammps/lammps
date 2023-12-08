@@ -3,7 +3,7 @@
                              -------------------
                             Trung Dac Nguyen (U Chicago)
 
-  Class for acceleration of the dpd pair style.
+  Class for acceleration of the edpd pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)

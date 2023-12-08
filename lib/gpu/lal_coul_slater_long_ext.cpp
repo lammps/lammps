@@ -1,6 +1,6 @@
 /***************************************************************************
                            coul_slater_long_ext.cpp
-                             -------------------
+                           ------------------------
                            Trung Nguyen (U Chicago)
 
   Functions for LAMMPS access to coul/slater/long acceleration routines.

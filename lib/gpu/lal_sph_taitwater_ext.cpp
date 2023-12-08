@@ -29,7 +29,8 @@ static SPHTaitwater<PRECISION,ACC_PRECISION> SPHTaitwaterMF;
 // ---------------------------------------------------------------------------
 int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                            double **host_viscosity, double* host_rho0,
-                           double* host_soundspeed, double *special_lj,
+                           double* host_soundspeed, double* host_B,
+                           const int dimension, double *special_lj,
                            const int inum, const int nall,
                            const int max_nbors,  const int maxspecial,
                            const double cell_size, int &gpu_mode, FILE *screen) {
@@ -56,9 +57,9 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
   int init_ok=0;
   if (world_me==0)
     init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity,
-                                host_rho0, host_soundspeed, special_lj,
-                                inum, nall, max_nbors,  maxspecial, cell_size,
-                                gpu_split, screen);
+                                host_rho0, host_soundspeed, host_B, dimension,
+                                special_lj, inum, nall, max_nbors,  maxspecial,
+                                cell_size, gpu_split, screen);
 
   SPHTaitwaterMF.device->world_barrier();
   if (message)
@@ -75,9 +76,9 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity,
-                                  host_rho0, host_soundspeed, special_lj,
-                                  inum, nall, max_nbors, maxspecial, cell_size,
-                                  gpu_split, screen);
+                                  host_rho0, host_soundspeed, host_B, dimension,
+                                  special_lj, inum, nall, max_nbors, maxspecial,
+                                  cell_size, gpu_split, screen);
 
     SPHTaitwaterMF.device->serialize_init();
     if (message)

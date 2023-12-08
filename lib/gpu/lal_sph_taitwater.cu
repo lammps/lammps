@@ -52,20 +52,20 @@ _texture_2d( vel_tex,int4);
 #endif
 
 __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
-                       const __global numtyp4 *restrict extra,
-                       const __global numtyp4 *restrict coeff,
-                       const __global numtyp2 *restrict rho0sspeed,
-                       const int lj_types,
-                       const __global numtyp *restrict sp_lj,
-                       const __global int * dev_nbor,
-                       const __global int * dev_packed,
-                       __global acctyp3 *restrict ans,
-                       __global acctyp *restrict engv,
-                       __global acctyp *restrict drhoE,
-                       const int eflag, const int vflag,
-                       const int inum, const int nbor_pitch,
-                       const __global numtyp4 *restrict v_,
-                       const int t_per_atom) {
+                              const __global numtyp4 *restrict extra,
+                              const __global numtyp4 *restrict coeff,
+                              const __global numtyp4 *restrict coeff2,
+                              const int lj_types,
+                              const __global numtyp *restrict sp_lj,
+                              const __global int * dev_nbor,
+                              const __global int * dev_packed,
+                              __global acctyp3 *restrict ans,
+                              __global acctyp *restrict engv,
+                              __global acctyp *restrict drhoE,
+                              const int eflag, const int vflag,
+                              const int inum, const int nbor_pitch,
+                              const __global numtyp4 *restrict v_,
+                              const int dimension, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -89,6 +89,9 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
+    numtyp rho0_itype = coeff2[itype].x;
+    numtyp soundspeed_itype = coeff2[itype].y;
+    numtyp B_itype = coeff2[itype].z;
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
 
     const numtyp4 extrai = extra[i];
@@ -96,9 +99,9 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
     numtyp massi= extrai.y;
 
     // compute pressure of atom i with Tait EOS
-    numtyp tmp = rho[i] / rho0[itype];
+    numtyp tmp = rhoi / rho0_itype;
     numtyp fi = tmp * tmp * tmp;
-    fi = B[itype] * (fi * fi * tmp - 1.0);
+    fi = B_itype * (fi * fi * tmp - (numtyp)1.0);
     fi /= (rhoi * rhoi);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -120,15 +123,16 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<coeff[mtype].z) { // cutsq[itype][jtype]
-
         const numtyp coeffx=coeff[mtype].x;  // viscosity[itype][jtype]
         const numtyp coeffy=coeff[mtype].y;  // cut[itype][jtype]
 
+        numtyp rho0_jtype = coeff2[jtype].x;
+        numtyp soundspeed_jtype = coeff2[jtype].y;
+        numtyp B_jtype = coeff2[jtype].z;
+
         const numtyp4 extraj = extra[j];
         numtyp rhoj = extraj.x;
-        numtyp esphj = extraj.y;
-        numtyp cvj = extraj.z;
-        numtyp massj= extraj.w;
+        numtyp massj= extraj.y;
 
         numtyp h = coeffy; // cut[itype][jtype]
         ih = ucl_recip(h); // (numtyp)1.0 / h;
@@ -136,16 +140,19 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
         numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
-        // domain->dimension == 3 Lucy Kernel, 3d
-        wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
+        if (dimension == 3) {
+          // Lucy Kernel, 3d
+          wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
+        } else {
+          // Lucy Kernel, 2d
+          wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+        }
        
-        // Lucy Kernel, 2d
-        //wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
-        
         // compute pressure  of atom j with Tait EOS
-        numtyp tmp = rho[j] / rho0[jtype];
+        
+        numtyp tmp = rhoj / rho0_jtype;
         numtyp fj = tmp * tmp * tmp;
-        fj = B[jtype] * (fj * fj * tmp - 1.0);
+        fj = B_jtype * (fj * fj * tmp - (numtyp)1.0);
         fj /= (rhoj * rhoj);
 
         // dot product of velocity delta and distance vector
@@ -158,10 +165,8 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
         numtyp fvisc = (numtyp)0;
         if (delVdotDelR < (numyp)0) {
           numtyp mu = h * delVdotDelR / (rsq + (numyp)0.01 * h * h);
-          //fvisc = -coeffx * (ci + cj) * mu / (rhoi + rhoj); // viscosity[itype][jtype]
-
-          fvisc = -coeffx * (soundspeed[itype]
-              + soundspeed[jtype]) * mu / (rhoi + rhoj);
+          fvisc = -coeffx * (soundspeed_itype
+              + soundspeed_jtype) * mu / (rhoi + rhoj);
         }
 
         // total pair force & thermal energy increment
@@ -199,19 +204,20 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
 }
 
 __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
-                            const __global numtyp4 *restrict extra,
-                            const __global numtyp4 *restrict coeff_in,
-                            const __global numtyp2 *restrict rho0sspeed_in,
-                            const __global numtyp *restrict sp_lj_in,
-                            const __global int * dev_nbor,
-                            const __global int * dev_packed,
-                            __global acctyp3 *restrict ans,
-                            __global acctyp *restrict engv,
-                            __global acctyp *restrict drhoE,
-                            const int eflag, const int vflag,
-                            const int inum, const int nbor_pitch,
-                            const __global numtyp4 *restrict v_,
-                            const int t_per_atom) {
+                                   const __global numtyp4 *restrict extra,
+                                   const __global numtyp4 *restrict coeff_in,
+                                   const __global numtyp4 *restrict coeff2_in,
+                                   const __global numtyp2 *restrict rho0sspeed_in,
+                                   const __global numtyp *restrict sp_lj_in,
+                                   const __global int * dev_nbor,
+                                   const __global int * dev_packed,
+                                   __global acctyp3 *restrict ans,
+                                   __global acctyp *restrict engv,
+                                   __global acctyp *restrict drhoE,
+                                   const int eflag, const int vflag,
+                                   const int inum, const int nbor_pitch,
+                                   const __global numtyp4 *restrict v_,
+                                   const int dimension, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -251,7 +257,9 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
-    numtyp mass_itype = mass[iw];
+    numtyp rho0_itype = coeff2[iw].x;
+    numtyp soundspeed_itype = coeff2[iw].y;
+    numtyp B_itype = coeff2[iw].z;
     #ifndef ONETYPE
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     #endif
@@ -260,15 +268,12 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
 
     const numtyp4 extrai = extra[i];
     numtyp rhoi = extrai.x;
-    numtyp esphi = extrai.y;
-    numtyp cvi = extrai.z;
-    numtyp massi= extrai.w;
+    numtyp massi= extrai.y;
 
-    // compute pressure of particle i with LJ EOS
-    numtyp fci[2];
-    LJEOS2(rhoi, esphi, cvi, fci);
-    numtyp fi = fci[0];
-    numtyp ci = fci[1];
+    // compute pressure of atom i with Tait EOS
+    numtyp tmp = rhoi / rho0_itype;
+    numtyp fi = tmp * tmp * tmp;
+    fi = B_itype * (fi * fi * tmp - (numtyp)1.0);
     fi /= (rhoi * rhoi);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -299,11 +304,14 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
         const numtyp coeffx=coeff[mtype].x;  // viscosity[itype][jtype]
         const numtyp coeffy=coeff[mtype].y;  // cut[itype][jtype]
         #endif
+
+        numtyp rho0_jtype = coeff2[jtype].x;
+        numtyp soundspeed_jtype = coeff2[jtype].y;
+        numtyp B_jtype = coeff2[jtype].z;
+
         const numtyp4 extraj = extra[j];
         numtyp rhoj = extraj.x;
-        numtyp esphj = extraj.y;
-        numtyp cvj = extraj.z;
-        numtyp massj= extraj.w;
+        numtyp massj= extraj.y;
 
         numtyp h = coeffy; // cut[itype][jtype]
         ih = ih = ucl_recip(h); // (numtyp)1.0 / h;
@@ -311,24 +319,19 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
         numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
-        // domain->dimension == 3 Lucy Kernel, 3d
-        wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
-       
-        // Lucy Kernel, 2d
-        //wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
-        
-        // function call to LJ EOS
-        numtyp fcj[2];
-        LJEOS2(rhoj, esphj, cvj, fcj);
-        numtyp fj = fcj[0];
-        numtyp cj = fcj[1];
-        fj /= (rhoj * rhoj);
+        if (dimension == 3) {
+          // Lucy Kernel, 3d
+          wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
+        } else {
+          // Lucy Kernel, 2d
+          wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+        }
 
-        // apply long-range correction to model a LJ fluid with cutoff
-        // this implies that the modelled LJ fluid has cutoff == SPH cutoff
-        numtyp lrc = (numtyp)-11.1701 * (ihcub * ihcub * ihcub - (numtyp)1.5 * ihcub);
-        fi += lrc;
-        fj += lrc;
+        // compute pressure  of atom j with Tait EOS       
+        numtyp tmp = rhoj / rho0_jtype;
+        numtyp fj = tmp * tmp * tmp;
+        fj = B_jtype * (fj * fj * tmp - (numtyp)1.0);
+        fj /= (rhoj * rhoj);
 
         // dot product of velocity delta and distance vector
         numtyp delvx = iv.x - jv.x;
@@ -340,7 +343,8 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
         numtyp fvisc = (numtyp)0;
         if (delVdotDelR < (numyp)0) {
           numtyp mu = h * delVdotDelR / (rsq + (numyp)0.01 * h * h);
-          fvisc = -coeffx * (ci + cj) * mu / (rhoi + rhoj); // viscosity[itype][jtype]
+          fvisc = -coeffx * (soundspeed_itype
+              + soundspeed_jtype) * mu / (rhoi + rhoj);
         }
 
         // total pair force & thermal energy increment
@@ -363,7 +367,6 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
           virial[4] += delx*delz*force;
           virial[5] += dely*delz*force;
         }
-
       }
     } // for nbor
   } // if ii

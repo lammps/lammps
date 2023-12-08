@@ -44,14 +44,14 @@ int SPHTaitwaterT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int SPHTaitwaterT::init(const int ntypes,
-                 double **host_cutsq, double **host_cut,
-                 double **host_viscosity, double* host_rho0,
-                 double* host_soundspeed, double *host_special_lj,
-                 const int nlocal, const int nall,
-                 const int max_nbors, const int maxspecial,
-                 const double cell_size,
-                 const double gpu_split, FILE *_screen) {
+int SPHTaitwaterT::init(const int ntypes, double **host_cutsq,
+                        double **host_cut, double **host_viscosity,
+                        double* host_rho0, double* host_soundspeed,
+                        double* host_B, const int dimension,
+                        double *host_special_lj, const int nlocal, const int nall,
+                        const int max_nbors, const int maxspecial,
+                        const double cell_size,
+                        const double gpu_split, FILE *_screen) {
   const int max_shared_types=this->device->max_shared_types();
 
   int onetype=0;
@@ -72,7 +72,8 @@ int SPHTaitwaterT::init(const int ntypes,
   int extra_fields = 4; // round up to accomodate quadruples of numtyp values
                         // rho, mass
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,sph_taitwater,"k_sph_taitwater",onetype,extra_fields);
+                            gpu_split,_screen,sph_taitwater,"k_sph_taitwater",
+                            onetype,extra_fields);
   if (success!=0)
     return success;
 
@@ -83,7 +84,7 @@ int SPHTaitwaterT::init(const int ntypes,
     lj_types=max_shared_types;
     shared_types=true;
   }
-  _lj_types=taitwater_types;
+  _lj_types=lj_types;
 
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
@@ -96,13 +97,15 @@ int SPHTaitwaterT::init(const int ntypes,
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_viscosity,
                          host_cut, host_cutsq);
 
-  UCL_H_Vec<numtyp2> dview_rho0ss(ntypes, *(this->ucl_device), UCL_WRITE_ONLY);
+  UCL_H_Vec<numtyp4> dview_coeff2(ntypes, *(this->ucl_device), UCL_WRITE_ONLY);
   for (int i = 0; i < ntypes; i++) {
-    dview_rho0ss[i].x = host_rho0[i];
-    dview_rho0ss[i].y = host_soundspeed[i];
+    dview_coeff2[i].x = host_rho0[i];
+    dview_coeff2[i].y = host_soundspeed[i];
+    dview_coeff2[i].z = host_B[i];
+    dview_coeff2[i].w = 0;
   }
-  rho0sspeed.alloc(ntypes,*(this->ucl_device), UCL_READ_ONLY);
-  ucl_copy(rho0sspeed,dview_rho0ss,false);
+  coeff2.alloc(ntypes,*(this->ucl_device), UCL_READ_ONLY);
+  ucl_copy(coeff2,dview_coeff2,false);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -118,8 +121,10 @@ int SPHTaitwaterT::init(const int ntypes,
   _max_drhoE_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
   drhoE.alloc(_max_drhoE_size*2,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
 
+  _dimension = dimension;
+  
   _allocated=true;
-  this->_max_bytes=coeff.row_bytes()+corho0sspeedeff.row_bytes()+drhoE.row_bytes()+sp_lj.row_bytes();
+  this->_max_bytes=coeff.row_bytes()+coeff2.row_bytes()+drhoE.row_bytes()+sp_lj.row_bytes();
   return 0;
 }
 
@@ -130,7 +135,7 @@ void SPHTaitwaterT::clear() {
   _allocated=false;
 
   coeff.clear();
-  dview_rho0ss.clear();
+  coeff2.clear();
   drhoE.clear();
   sp_lj.clear();
   this->clear_atomic();
@@ -191,16 +196,16 @@ int SPHTaitwaterT::loop(const int eflag, const int vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_sel->set_size(GX,BX);
-    this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &rho0sspeed, &sp_lj,
+    this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &coeff2, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &drhoE, &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->atom->v, &this->_threads_per_atom);
+                          &ainum, &nbor_pitch, &this->atom->v, &_dimension, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff, &rho0sspeed,
+    this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff, &coeff2,
                      &_lj_types, &sp_lj, &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &drhoE, &eflag, &vflag,
-                     &ainum, &nbor_pitch, &this->atom->v, &this->_threads_per_atom);
+                     &ainum, &nbor_pitch, &this->atom->v, &_dimension, &this->_threads_per_atom);
   }
 
   this->time_pair.stop();

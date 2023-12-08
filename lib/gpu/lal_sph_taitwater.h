@@ -40,8 +40,8 @@ class SPHTaitwater : public BaseDPD<numtyp, acctyp> {
   int init(const int ntypes, double **host_cutsq,
            double** host_cut, double **host_viscosity,
            double* host_rho0, double* host_soundspeed,
-           double *host_special_lj, const int nlocal,
-           const int nall, const int max_nbors,
+           double* host_B, const int dimension, double *host_special_lj,
+           const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
 
@@ -62,10 +62,11 @@ class SPHTaitwater : public BaseDPD<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// coeff.x = viscosity, coeff.y = cut, coeff.z = cutsq
-  UCL_D_Vec<numtyp2> coeff;
+  /// per-pair coeffs: coeff.x = viscosity, coeff.y = cut, coeff.z = cutsq
+  UCL_D_Vec<numtyp4> coeff;
 
-  UCL_D_Vec<numtyp2> rho0sspeed;
+  /// per-type coeffs
+  UCL_D_Vec<numtyp4> coeff2;
 
   /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj;
@@ -79,6 +80,8 @@ class SPHTaitwater : public BaseDPD<numtyp, acctyp> {
   /// Per-atom arrays
   UCL_Vector<acctyp,acctyp> drhoE;
   int _max_drhoE_size;
+
+  int _dimension;
 
   /// pointer to host data
   double *rho, *mass;

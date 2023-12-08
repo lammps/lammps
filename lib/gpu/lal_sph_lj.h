@@ -38,7 +38,7 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq,
-           double** host_cut, double **host_viscosity,
+           double** host_cut, double **host_viscosity, const int dimension,
            double *host_special_lj, const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size, const double gpu_split,
            FILE *screen);
@@ -76,6 +76,8 @@ class SPHLJ : public BaseDPD<numtyp, acctyp> {
   /// Per-atom arrays
   UCL_Vector<acctyp,acctyp> drhoE;
   int _max_drhoE_size;
+
+  int _dimension;
 
   /// pointer to host data
   double *rho, *esph, *cv, *mass;

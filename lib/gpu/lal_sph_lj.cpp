@@ -46,7 +46,8 @@ int SPHLJT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int SPHLJT::init(const int ntypes,
                  double **host_cutsq, double **host_cut,
-                 double **host_viscosity, double *host_special_lj,
+                 double **host_viscosity, const int dimension,
+                 double *host_special_lj,
                  const int nlocal, const int nall,
                  const int max_nbors, const int maxspecial,
                  const double cell_size,
@@ -108,6 +109,8 @@ int SPHLJT::init(const int ntypes,
 
   _max_drhoE_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
   drhoE.alloc(_max_drhoE_size*2,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+
+  _dimension = dimension;
 
   _allocated=true;
   this->_max_bytes=coeff.row_bytes()+drhoE.row_bytes()+sp_lj.row_bytes();
@@ -184,13 +187,13 @@ int SPHLJT::loop(const int eflag, const int vflag) {
     this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &drhoE, &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->atom->v, &this->_threads_per_atom);
+                          &ainum, &nbor_pitch, &this->atom->v, &_dimension, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff,
                      &_lj_types, &sp_lj, &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &drhoE, &eflag, &vflag,
-                     &ainum, &nbor_pitch, &this->atom->v, &this->_threads_per_atom);
+                     &ainum, &nbor_pitch, &this->atom->v, &_dimension, &this->_threads_per_atom);
   }
 
   this->time_pair.stop();

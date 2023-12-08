@@ -108,7 +108,7 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
                        const int eflag, const int vflag,
                        const int inum, const int nbor_pitch,
                        const __global numtyp4 *restrict v_,
-                       const int t_per_atom) {
+                       const int dimension, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -182,12 +182,14 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
         numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
-        // domain->dimension == 3 Lucy Kernel, 3d
-        wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
-       
-        // Lucy Kernel, 2d
-        //wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
-        
+        if (dimension == 3) {
+          // Lucy Kernel, 3d
+          wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
+        } else {
+          // Lucy Kernel, 2d
+          wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+        }
+
         // function call to LJ EOS
         numtyp fcj[2];
         LJEOS2(rhoj, esphj, cvj, fcj);
@@ -260,7 +262,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
                             const int eflag, const int vflag,
                             const int inum, const int nbor_pitch,
                             const __global numtyp4 *restrict v_,
-                            const int t_per_atom) {
+                            const int dimension, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -360,11 +362,13 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
         numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
-        // domain->dimension == 3 Lucy Kernel, 3d
-        wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
-       
-        // Lucy Kernel, 2d
-        //wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+        if (dimension == 3) {
+          // Lucy Kernel, 3d
+          wfd = (numtyp)-25.066903536973515383 * wfd * wfd * ihsq * ihsq * ihsq * ih;
+        } else {
+          // Lucy Kernel, 2d
+          wfd = -19.098593171027440292e0 * wfd * wfd * ihsq * ihsq * ihsq;
+        }
         
         // function call to LJ EOS
         numtyp fcj[2];

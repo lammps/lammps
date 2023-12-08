@@ -28,8 +28,8 @@ static SPHLJ<PRECISION,ACC_PRECISION> SPHLJMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
-                    double **host_viscosity, double *special_lj,
-                    const int inum, const int nall,
+                    double **host_viscosity, const int dimension,
+                    double *special_lj, const int inum, const int nall,
                     const int max_nbors,  const int maxspecial,
                     const double cell_size, int &gpu_mode, FILE *screen) {
   SPHLJMF.clear();
@@ -54,7 +54,7 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity,
+    init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity, dimension,
                          special_lj, inum, nall, max_nbors,  maxspecial,
                          cell_size, gpu_split, screen);
 
@@ -72,7 +72,7 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity,
+      init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity, dimension,
                            special_lj, inum, nall, max_nbors, maxspecial,
                            cell_size, gpu_split, screen);
 

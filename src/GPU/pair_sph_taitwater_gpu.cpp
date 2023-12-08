@@ -15,7 +15,7 @@
    Contributing author: Trung Dac Nguyen (U Chicago)
 ------------------------------------------------------------------------- */
 
-#include "pair_sph_lj_gpu.h"
+#include "pair_sph_taitwater_gpu.h"
 
 #include "atom.h"
 #include "domain.h"
@@ -34,31 +34,31 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
-                    double **host_viscosity, const int dimension, double *special_lj,
-                    const int inum, const int nall,
-                    const int max_nbors,  const int maxspecial,
-                    const double cell_size, int &gpu_mode, FILE *screen);
-void sph_lj_gpu_clear();
-int **sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
+                           double **host_viscosity, double* host_rho0,
+                           double* host_soundspeed, double* host_B, const int dimension,
+                           double *special_lj, const int inum, const int nall,
+                           const int max_nbors,  const int maxspecial,
+                           const double cell_size, int &gpu_mode, FILE *screen);
+void sph_taitwater_gpu_clear();
+int **sph_taitwater_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
                         const bool vatom, int &host_start, int **ilist, int **jnum,
                         const double cpu_time, bool &success, double **host_v,
                         double *boxlo, double *prd);
-void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
+void sph_taitwater_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
                         const bool vflag, const bool eatom, const bool vatom, int &host_start,
                         const double cpu_time, bool &success, double **host_v,
                         const int nlocal, double *boxlo, double *prd);
-void sph_lj_gpu_get_extra_data(double *host_rho, double *host_esph,
-                               double *host_cv, double *host_mass);
-void sph_lj_gpu_update_drhoE(void **drhoE_ptr);
-double sph_lj_gpu_bytes();
+void sph_taitwater_gpu_get_extra_data(double *host_rho, double *host_mass);
+void sph_taitwater_gpu_update_drhoE(void **drhoE_ptr);
+double sph_taitwater_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHLJGPU::PairSPHLJGPU(LAMMPS *lmp) : PairSPHLJ(lmp), gpu_mode(GPU_FORCE)
+PairSPHTaitwaterGPU::PairSPHTaitwaterGPU(LAMMPS *lmp) : PairSPHTaitwater(lmp), gpu_mode(GPU_FORCE)
 {
   drhoE_pinned = nullptr;
   respa_enable = 0;
@@ -72,14 +72,14 @@ PairSPHLJGPU::PairSPHLJGPU(LAMMPS *lmp) : PairSPHLJ(lmp), gpu_mode(GPU_FORCE)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairSPHLJGPU::~PairSPHLJGPU()
+PairSPHTaitwaterGPU::~PairSPHTaitwaterGPU()
 {
-  sph_lj_gpu_clear();
+  sph_taitwater_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSPHLJGPU::compute(int eflag, int vflag)
+void PairSPHTaitwaterGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -90,10 +90,8 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh;
 
   double *rho = atom->rho;
-  double *esph = atom->esph;
-  double *cv = atom->cv;
   double *mass = atom->mass;
-  sph_lj_gpu_get_extra_data(rho, esph, cv, mass);
+  sph_taitwater_gpu_get_extra_data(rho, mass);
 
   if (gpu_mode != GPU_FORCE) {
     double sublo[3], subhi[3];
@@ -108,19 +106,17 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
       domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
     }
     inum = atom->nlocal;
-    firstneigh = sph_lj_gpu_compute_n(
-        neighbor->ago, inum, nall, atom->x, atom->type,
-        sublo, subhi, atom->nspecial, atom->special, eflag, vflag,
-        eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
+    firstneigh = sph_taitwater_gpu_compute_n(
+        neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->nspecial,
+        atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
         cpu_time, success, atom->v, domain->boxlo, domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    sph_lj_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-                       ilist, numneigh, firstneigh, eflag, vflag,
-                       eflag_atom, vflag_atom, host_start, cpu_time, success,
+    sph_taitwater_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
+                       eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success,
                        atom->v, atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
@@ -129,7 +125,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
 
   double *drho = atom->drho;
   double *desph = atom->desph;
-  sph_lj_gpu_update_drhoE(&drhoE_pinned);
+  sph_taitwater_gpu_update_drhoE(&drhoE_pinned);
 
   int nlocal = atom->nlocal;
   if (acc_float) {
@@ -159,7 +155,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairSPHLJGPU::init_style()
+void PairSPHTaitwaterGPU::init_style()
 {
 
   // Repeat cutsq calculation because done after call to init_style
@@ -182,9 +178,10 @@ void PairSPHLJGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
-      sph_lj_gpu_init(atom->ntypes + 1, cutsq, cut, viscosity, domain->dimension,
-                      force->special_lj, atom->nlocal, atom->nlocal + atom->nghost,
-                      mnf, maxspecial, cell_size, gpu_mode, screen);
+      sph_taitwater_gpu_init(atom->ntypes + 1, cutsq, cut, viscosity,
+                             rho0, soundspeed, B, domain->dimension, force->special_lj,
+                             atom->nlocal, atom->nlocal + atom->nghost,
+                             mnf, maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success, error, world);
 
   acc_float = Info::has_accelerator_feature("GPU", "precision", "single");
@@ -194,8 +191,8 @@ void PairSPHLJGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairSPHLJGPU::memory_usage()
+double PairSPHTaitwaterGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + sph_lj_gpu_bytes();
+  return bytes + sph_taitwater_gpu_bytes();
 }

@@ -82,7 +82,6 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     numtyp mass_itype = mass[itype];
-    numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
 
     const numtyp4 extrai = extra[i];
     numtyp rhoi = extrai.x;
@@ -96,7 +95,6 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
-      numtyp4 jv; fetch4(jv,j,vel_tex); //v_[j];
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -115,9 +113,8 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
         numtyp esphj = extraj.y;
 
         numtyp h = coeffy; // cut[itype][jtype]
-        ih = ucl_recip(h); // (numtyp)1.0 / h;
+        numtyp ih = ucl_recip(h); // (numtyp)1.0 / h;
         numtyp ihsq = ih * ih;
-        numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
         if (dimension == 3) {
@@ -141,7 +138,7 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
 
-  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,drhoE);
+  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,dE);
 }
 
 __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
@@ -172,7 +169,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
   }
   __syncthreads();
   #else
-  const numtyp coeffx=coeff_in[ONETYPE].x;   // viscosity[itype][jtype]
+  const numtyp coeffx=coeff_in[ONETYPE].x;   // alpha[itype][jtype]
   const numtyp coeffy=coeff_in[ONETYPE].y;   // cut[itype][jtype]
   const numtyp cutsq_p=coeff_in[ONETYPE].z;  // cutsq[itype][jtype]
   #endif
@@ -193,8 +190,6 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
     #ifndef ONETYPE
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     #endif
-    numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
-    int itag=iv.w;
 
     const numtyp4 extrai = extra[i];
     numtyp rhoi = extrai.x;
@@ -214,8 +209,6 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
       int mtype=itype+jx.w;
       const numtyp cutsq_p=cutsq[mtype];
       #endif
-      numtyp4 jv; fetch4(jv,j,vel_tex); //v_[j];
-      int jtag=jv.w;
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -226,7 +219,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
       if (rsq<cutsq_p) {
         numtyp mass_jtype = mass[jtype];
         #ifndef ONETYPE
-        const numtyp coeffx=coeff[mtype].x;  // viscosity[itype][jtype]
+        const numtyp coeffx=coeff[mtype].x;  // alpha[itype][jtype]
         const numtyp coeffy=coeff[mtype].y;  // cut[itype][jtype]
         #endif
         const numtyp4 extraj = extra[j];
@@ -234,9 +227,8 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
         numtyp esphj = extraj.y;
 
         numtyp h = coeffy; // cut[itype][jtype]
-        ih = ih = ucl_recip(h); // (numtyp)1.0 / h;
+        numtyp ih = ih = ucl_recip(h); // (numtyp)1.0 / h;
         numtyp ihsq = ih * ih;
-        numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
         if (dimension == 3) {

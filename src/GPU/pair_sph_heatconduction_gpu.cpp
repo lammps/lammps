@@ -94,7 +94,6 @@ void PairSPHHeatConductionGPU::compute(int eflag, int vflag)
 
   double *rho = atom->rho;
   double *esph = atom->esph;
-  double *cv = atom->cv;
   sph_heatconduction_gpu_get_extra_data(rho, esph);
 
   if (gpu_mode != GPU_FORCE) {
@@ -140,7 +139,7 @@ void PairSPHHeatConductionGPU::compute(int eflag, int vflag)
     }
 
   } else {
-    auto dE_ptr = (float *)dE_pinned;
+    auto dE_ptr = (double *)dE_pinned;
     for (int i = 0; i < nlocal; i++) {
       desph[i] = dE_ptr[i];
     }

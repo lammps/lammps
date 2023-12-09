@@ -41,7 +41,7 @@ int sph_heatconduction_gpu_init(const int ntypes, double **cutsq, double** host_
   int gpu_rank=SPHHeatConductionMF.device->gpu_rank();
   int procs_per_gpu=SPHHeatConductionMF.device->procs_per_gpu();
 
-  SPHHeatConductionMF.device->init_message(screen,"sph_lj",first_gpu,last_gpu);
+  SPHHeatConductionMF.device->init_message(screen,"sph_heatconduction",first_gpu,last_gpu);
 
   bool message=false;
   if (SPHHeatConductionMF.device->replica_me()==0 && screen)

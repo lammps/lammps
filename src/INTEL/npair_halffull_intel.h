@@ -109,9 +109,9 @@ class NPairHalffullNewtonIntel : public NPair {
   template <class flt_t> void build_t3(NeighList *, int *);
 };
 
-class NPairHalffullNewtonTrimIntel : public NPair {
+class NPairHalffullTrimNewtonIntel : public NPair {
  public:
-  NPairHalffullNewtonTrimIntel(class LAMMPS *);
+  NPairHalffullTrimNewtonIntel(class LAMMPS *);
   void build(class NeighList *) override;
 
  protected:

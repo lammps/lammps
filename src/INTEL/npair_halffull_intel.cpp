@@ -257,7 +257,7 @@ void NPairHalffullNewtonIntel::build(NeighList *list)
 
 /* ---------------------------------------------------------------------- */
 
-NPairHalffullNewtonTrimIntel::NPairHalffullNewtonTrimIntel(LAMMPS *lmp) : NPair(lmp) {
+NPairHalffullTrimNewtonIntel::NPairHalffullTrimNewtonIntel(LAMMPS *lmp) : NPair(lmp) {
   _fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!_fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 }
@@ -270,7 +270,7 @@ NPairHalffullNewtonTrimIntel::NPairHalffullNewtonTrimIntel(LAMMPS *lmp) : NPair(
 ------------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void NPairHalffullNewtonTrimIntel::build_t(NeighList *list,
+void NPairHalffullTrimNewtonIntel::build_t(NeighList *list,
                                        IntelBuffers<flt_t,acc_t> *buffers)
 {
   const int inum_full = list->listfull->inum;
@@ -408,7 +408,7 @@ void NPairHalffullNewtonTrimIntel::build_t(NeighList *list,
 ------------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void NPairHalffullNewtonTrimIntel::build_t3(NeighList *list, int *numhalf,
+void NPairHalffullTrimNewtonIntel::build_t3(NeighList *list, int *numhalf,
                                             IntelBuffers<flt_t,acc_t> *buffers)
 {
   const int inum_full = list->listfull->inum;
@@ -498,7 +498,7 @@ void NPairHalffullNewtonTrimIntel::build_t3(NeighList *list, int *numhalf,
 
 /* ---------------------------------------------------------------------- */
 
-void NPairHalffullNewtonTrimIntel::build(NeighList *list)
+void NPairHalffullTrimNewtonIntel::build(NeighList *list)
 {
   if (_fix->three_body_neighbor() == 0 || domain->triclinic) {
     if (_fix->precision() == FixIntel::PREC_MODE_MIXED)

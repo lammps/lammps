@@ -71,11 +71,20 @@ int FixMvvEDPD::setmask()
 
 void FixMvvEDPD::init()
 {
+  if (!atom->edpd_flag) error->all(FLERR,"Fix mvv/edpd requires atom style edpd");
+
+  if (!force->pair_match("^edpd",0)) {
+    if (force->pair_match("^hybrid",0)) {
+      if (!force->pair_match("^edpd",0,1)) {
+        error->all(FLERR, "Must use pair style edpd with fix mvv/edpd");
+      }
+    } else {
+      error->all(FLERR, "Must use pair style edpd with fix mvv/edpd");
+    }
+  }
+
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-
-  if (!force->pair_match("^edpd",0))
-    error->all(FLERR, "Must use pair style edpd with fix mvv/edpd");
 }
 
 /* ----------------------------------------------------------------------

@@ -1,0 +1,140 @@
+LAMMPS (21 Nov 2023)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# REAX potential for high energy CHON systems
+# .....
+
+units           real
+
+atom_style      charge
+read_data       data.RDX
+Reading data file ...
+  orthogonal box = (0 0 0) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  105 atoms
+  read_data CPU = 0.001 seconds
+
+pair_style      reaxff lmp_control
+pair_coeff      * * ffield.reax.rdx H C O N
+Reading potential file ffield.reax.rdx with DATE: 2010-02-19
+
+neighbor        2 bin
+neigh_modify    every 10 delay 0 check no
+
+fix             1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
+fix             3 all temp/berendsen 500.0 500.0 100.0
+
+timestep        0.25
+thermo 100
+#dump           1 all atom 30 dump.reax.rdx
+
+run             3000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 10 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 10.78 | 11.56 | 12.26 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -10197.932      0             -10197.932      38.347492    
+       100   47.47852      -10176.425      0             -10161.706      632.97359    
+       200   166.95287     -10181.513      0             -10129.757     -27.146803    
+       300   142.53582     -10148.039      0             -10103.852      5120.6397    
+       400   322.68523     -10178.868      0             -10078.834      2342.7187    
+       500   193.81484     -10117.984      0             -10057.901      8412.4559    
+       600   300.27165     -10134.473      0             -10041.388     -2801.9143    
+       700   272.63408     -10110.146      0             -10025.629      10749.2      
+       800   339.99669     -10114.123      0             -10008.723      5123.2489    
+       900   231.65632     -10068.587      0             -9996.7729      5306.0392    
+      1000   329.93324     -10088.777      0             -9986.4967      3190.4707    
+      1100   376.60924     -10092.398      0             -9975.6478      2920.8475    
+      1200   361.98231     -10076.598      0             -9964.3816      3612.0573    
+      1300   358.6599      -10069.366      0             -9958.1803      4341.9871    
+      1400   470.14856     -10098.552      0             -9952.8036     -146.9069     
+      1500   509.6454      -10106.577      0             -9948.5847      2355.4022    
+      1600   417.9276      -10075.284      0             -9945.7249      1749.565     
+      1700   453.25817     -10084.343      0             -9943.8306     -570.48011    
+      1800   472.9517      -10087.84       0             -9941.2226      1532.6424    
+      1900   507.14171     -10096.428      0             -9939.212      -404.84948    
+      2000   443.62843     -10076.86       0             -9939.3329     -132.17302    
+      2100   485.441       -10088.414      0             -9937.925      -609.75758    
+      2200   507.23914     -10095.067      0             -9937.8209      1288.5372    
+      2300   499.64956     -10090.665      0             -9935.7719      149.06622    
+      2400   457.97848     -10078.107      0             -9936.1317      2065.2075    
+      2500   510.58254     -10093.537      0             -9935.2543     -559.75965    
+      2600   440.97503     -10070.865      0             -9934.1605      1164.1078    
+      2700   500.4945      -10088.165      0             -9933.0096      1051.9016    
+      2800   485.77814     -10083.543      0             -9932.9498      294.64404    
+      2900   487.73983     -10082.939      0             -9931.7373      2208.263     
+      3000   504.69717     -10089.803      0             -9933.3447      1723.6386    
+Loop time of 2.81192 on 4 procs for 3000 steps with 105 atoms
+
+Performance: 23.045 ns/day, 1.041 hours/ns, 1066.887 timesteps/s, 112.023 katom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.0513     | 2.1567     | 2.2232     |   4.3 | 76.70
+Neigh   | 0.072125   | 0.087048   | 0.10214    |   3.7 |  3.10
+Comm    | 0.086792   | 0.15326    | 0.25749    |  16.2 |  5.45
+Output  | 0.00058533 | 0.00064027 | 0.00080207 |   0.0 |  0.02
+Modify  | 0.39587    | 0.41124    | 0.42647    |   1.7 | 14.62
+Other   |            | 0.003062   |            |       |  0.11
+
+Nlocal:          26.25 ave          46 max           8 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:          399.5 ave         512 max         288 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Neighs:        1011.25 ave        1819 max         420 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 4045
+Ave neighs/atom = 38.52381
+Neighbor list builds = 300
+Dangerous builds not checked
+Total wall time: 0:00:02

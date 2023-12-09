@@ -522,14 +522,13 @@ int FixPlumed::modify_param(int narg, char **arg)
     delete[] id_pe;
     id_pe = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify potential energy ID");
-    c_pe = modify->compute[icompute];
+    c_pe = modify->get_compute_by_id(id_pe);
+    if (!c_pe) error->all(FLERR,"Could not find fix_modify potential energy ID {}", id_pe);
 
     if (c_pe->peflag == 0)
-      error->all(FLERR,"Fix_modify plmd_pe ID does not compute potential energy");
+      error->all(FLERR,"Fix_modify compute pe ID {} does not compute potential energy", id_pe);
     if (c_pe->igroup != 0 && comm->me == 0)
-      error->warning(FLERR,"Potential for fix PLUMED is not for group all");
+      error->warning(FLERR,"Potential energy compute {} for fix PLUMED is not for group all", id_pe);
 
     return 2;
 
@@ -539,12 +538,11 @@ int FixPlumed::modify_param(int narg, char **arg)
     delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    c_press = modify->compute[icompute];
+    c_press = modify->get_compute_by_id(id_press);
+    if (!c_press) error->all(FLERR,"Could not find fix_modify compute pressure ID {}", id_press);
 
     if (c_press->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify compute pressure ID {} does not compute pressure", id_press);
     if (c_press->igroup != 0 && comm->me == 0)
       error->warning(FLERR,"Virial for fix PLUMED is not for group all");
 

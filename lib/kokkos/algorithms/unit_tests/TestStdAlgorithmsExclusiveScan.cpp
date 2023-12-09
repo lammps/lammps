@@ -348,8 +348,9 @@ TEST(std_algorithms_numeric_ops_test, exclusive_scan_functor) {
   int dummy       = 0;
   using view_type = Kokkos::View<int*, exespace>;
   view_type dummy_view("dummy_view", 0);
-  using functor_type = Kokkos::Experimental::Impl::ExclusiveScanDefaultFunctor<
-      exespace, int, int, view_type, view_type>;
+  using functor_type =
+      Kokkos::Experimental::Impl::ExclusiveScanDefaultFunctorWithValueWrapper<
+          exespace, int, int, view_type, view_type>;
   functor_type functor(dummy, dummy_view, dummy_view);
   using value_type = functor_type::value_type;
 

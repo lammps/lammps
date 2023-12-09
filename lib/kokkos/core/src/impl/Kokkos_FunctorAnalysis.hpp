@@ -631,11 +631,9 @@ struct FunctorAnalysis {
                         detected_volatile_join_no_tag<F>::value)>>
       : public has_volatile_join_no_tag_function<F> {
     enum : bool { value = true };
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
     static_assert(Impl::dependent_false_v<F>,
                   "Reducer with a join() operator taking "
                   "volatile-qualified parameters is no longer supported");
-#endif
   };
 
   template <class F = Functor, typename = void>
@@ -654,11 +652,9 @@ struct FunctorAnalysis {
                                          detected_volatile_join_tag<F>::value)>>
       : public has_volatile_join_tag_function<F> {
     enum : bool { value = true };
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
     static_assert(Impl::dependent_false_v<F>,
                   "Reducer with a join() operator taking "
                   "volatile-qualified parameters is no longer supported");
-#endif
   };
 
   //----------------------------------------

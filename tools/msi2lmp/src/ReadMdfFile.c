@@ -1,10 +1,9 @@
 /******************************
-*
-*  This function opens the .mdf file and extracts connectivity information
-*  into the atoms Atom structure.  It also updates the charge from the .car
-*  file because the charge in the .mdf file has more significant figures.
-*
-*/
+ *
+ *  This function opens the .mdf file and extracts connectivity information
+ *  into the atoms Atom structure.  It also updates the charge from the .car
+ *  file because the charge in the .mdf file has more significant figures.
+ */
 
 #include "msi2lmp.h"
 

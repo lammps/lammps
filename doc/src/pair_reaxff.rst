@@ -72,8 +72,7 @@ from LAMMPS after the 12 December 2018 version.
 
 LAMMPS provides several different versions of ffield.reax in its
 potentials dir, each called potentials/ffield.reax.label.  These are
-documented in potentials/README.reax.  The default ffield.reax
-contains parameterizations for the following elements: C, H, O, N.
+documented in potentials/README.reax.
 
 The format of these files is identical to that used originally by van
 Duin.  We have tested the accuracy of *pair_style reaxff* potential
@@ -110,12 +109,14 @@ control variable.  The format of the control file is described below.
    not agree.
 
 Examples using *pair_style reaxff* are provided in the examples/reax
-subdirectory.
+directory and its subdirectories.
 
-Use of this pair style requires that a charge be defined for every
-atom.  See the :doc:`atom_style <atom_style>` and
-:doc:`read_data <read_data>` commands for details on how to specify
-charges.
+Use of this pair style requires using an :doc:`atom_style <atom_style>`
+that includes a per-atom charge property *or* using
+:doc:`fix property/atom q <fix_property_atom>`.  Charges can be set
+via :doc:`read_data <read_data>` or :doc:`set <set>`.  Using an initial
+charge that is close to the result of charge equilibration will speed
+up that process.
 
 The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.

@@ -1,0 +1,207 @@
+LAMMPS (3 Aug 2023 - Development - patch_2Aug2023-790-g0fbe388cbd)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+
+units           lj
+atom_style      atomic
+processors      * 1 1
+
+variable        factor index 1.0
+
+lattice         fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region          box block 0 10 0 10 0 10
+create_box      3 box
+Created orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  2 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 4000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  create_atoms CPU = 0.001 seconds
+mass            * 1.0
+
+region          long block 3 6 0 10 0 10
+set             region long type 2
+Setting atom values ...
+  1400 settings made for type
+
+velocity        all create 1.0 87287
+
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0 2.5
+pair_coeff      * 2 1.0 1.0 5.0
+
+neighbor        0.3 bin
+neigh_modify    every 2 delay 4 check yes
+
+group           fast type 1
+2600 atoms in group fast
+group           slow type 2
+1400 atoms in group slow
+balance         1.0 shift x 5 1.1 weight time 1.0 # out unweighted.txt
+Balancing ...
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 2 steps, delay = 4 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+ rebalancing time: 0.001 seconds
+  iteration count = 1
+  time weight factor: 1
+  initial/final maximal load/proc = 2000 2000
+  initial/final imbalance factor  = 1 1
+  x cuts: 0 0.5 1
+  y cuts: 0 1
+  z cuts: 0 1
+
+fix             1 all nve
+
+#dump           id all atom 50 dump.melt
+
+#dump           2 all image 25 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 3
+
+#dump           3 all movie 25 movie.mpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 3
+
+thermo          50
+run             250
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.294 | 4.485 | 4.675 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1             -6.9453205      0             -5.4456955     -5.6812358    
+        50   0.49578514    -6.1929216      0             -5.4494298     -1.6668039    
+       100   0.53275389    -6.2475932      0             -5.4486622     -1.9063885    
+       150   0.53316457    -6.2483202      0             -5.4487733     -1.9476162    
+       200   0.536665      -6.2530113      0             -5.448215      -1.933468     
+       250   0.55006273    -6.27163        0             -5.4467422     -2.0438847    
+Loop time of 0.952998 on 2 procs for 250 steps with 4000 atoms
+
+Performance: 113326.532 tau/day, 262.330 timesteps/s, 1.049 Matom-step/s
+99.4% CPU use with 2 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.4745     | 0.59305    | 0.7116     |  15.4 | 62.23
+Neigh   | 0.19129    | 0.20528    | 0.21927    |   3.1 | 21.54
+Comm    | 0.016122   | 0.14873    | 0.28134    |  34.4 | 15.61
+Output  | 0.00015798 | 0.00017139 | 0.0001848  |   0.0 |  0.02
+Modify  | 0.0032698  | 0.0033573  | 0.0034449  |   0.2 |  0.35
+Other   |            | 0.00241    |            |       |  0.25
+
+Nlocal:           2000 ave        2051 max        1949 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:          10443 ave       10506 max       10380 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:         298332 ave      363449 max      233215 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 596664
+Ave neighs/atom = 149.166
+Neighbor list builds = 24
+Dangerous builds = 0
+balance         1.0 shift x 5 1.1 weight time 1.0 # out unweighted.txt
+Balancing ...
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+ rebalancing time: 0.000 seconds
+  iteration count = 3
+  time weight factor: 1
+  initial/final maximal load/proc = 1.0308705 0.92612715
+  initial/final imbalance factor  = 1.1475395 1.0309418
+  x cuts: 0 0.4375 1
+  y cuts: 0 1
+  z cuts: 0 1
+run             250
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.68 | 4.683 | 4.687 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+       250   0.55006273    -6.27163        0             -5.4467422     -2.0438847    
+       300   0.55111476    -6.2727642      0             -5.4462987     -2.0384873    
+       350   0.55211503    -6.274054       0             -5.4460885     -2.0116976    
+       400   0.54638463    -6.2661715      0             -5.4467995     -1.992248     
+       450   0.55885307    -6.2852263      0             -5.4471563     -2.0669747    
+       500   0.54587069    -6.2662849      0             -5.4476836     -2.0078802    
+Loop time of 0.88104 on 2 procs for 250 steps with 4000 atoms
+
+Performance: 122582.335 tau/day, 283.755 timesteps/s, 1.135 Matom-step/s
+99.6% CPU use with 2 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.54838    | 0.58404    | 0.6197     |   4.7 | 66.29
+Neigh   | 0.18083    | 0.20191    | 0.22299    |   4.7 | 22.92
+Comm    | 0.032279   | 0.089285   | 0.14629    |  19.1 | 10.13
+Output  | 0.00014548 | 0.00016198 | 0.00017849 |   0.0 |  0.02
+Modify  | 0.0029024  | 0.0032448  | 0.0035871  |   0.6 |  0.37
+Other   |            | 0.002397   |            |       |  0.27
+
+Nlocal:           2000 ave        2284 max        1716 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:          10450 ave       10742 max       10158 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:         298063 ave      326003 max      270123 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 596126
+Ave neighs/atom = 149.0315
+Neighbor list builds = 25
+Dangerous builds = 0
+balance         1.0 shift x 5 1.1 weight time 1.0 # out unweighted.txt
+Balancing ...
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+ rebalancing time: 0.000 seconds
+  iteration count = 4
+  time weight factor: 1
+  initial/final maximal load/proc = 0.94269243 0.91089769
+  initial/final imbalance factor  = 1.0640447 1.028157
+  x cuts: 0 0.47265625 1
+  y cuts: 0 1
+  z cuts: 0 1
+run             250
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.68 | 4.683 | 4.687 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+       500   0.54587069    -6.2662849      0             -5.4476836     -2.0078802    
+       550   0.54137926    -6.2592773      0             -5.4474115     -1.9770236    
+       600   0.54022886    -6.2573307      0             -5.44719       -1.9619637    
+       650   0.54709009    -6.2678862      0             -5.4474562     -1.9958342    
+       700   0.54590044    -6.2656903      0             -5.4470444     -1.9957108    
+       750   0.55098488    -6.2724831      0             -5.4462124     -2.0287523    
+Loop time of 0.879484 on 2 procs for 250 steps with 4000 atoms
+
+Performance: 122799.292 tau/day, 284.258 timesteps/s, 1.137 Matom-step/s
+99.5% CPU use with 2 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.52834    | 0.59047    | 0.6526     |   8.1 | 67.14
+Neigh   | 0.20544    | 0.20695    | 0.20845    |   0.3 | 23.53
+Comm    | 0.015738   | 0.076296   | 0.13685    |  21.9 |  8.68
+Output  | 0.00016028 | 0.00017427 | 0.00018825 |   0.0 |  0.02
+Modify  | 0.0032547  | 0.0033096  | 0.0033644  |   0.1 |  0.38
+Other   |            | 0.002288   |            |       |  0.26
+
+Nlocal:           2000 ave        2089 max        1911 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:        10347.5 ave       10639 max       10056 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:         299628 ave      327997 max      271259 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 599256
+Ave neighs/atom = 149.814
+Neighbor list builds = 25
+Dangerous builds = 0
+Total wall time: 0:00:02

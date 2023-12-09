@@ -292,6 +292,15 @@ class DualView : public ViewTraits<DataType, Properties...> {
         d_view(src.d_view),
         h_view(src.h_view) {}
 
+  //! Copy assignment operator (shallow copy assignment)
+  template <typename DT, typename... DP>
+  DualView& operator=(const DualView<DT, DP...>& src) {
+    modified_flags = src.modified_flags;
+    d_view         = src.d_view;
+    h_view         = src.h_view;
+    return *this;
+  }
+
   //! Subview constructor
   template <class DT, class... DP, class Arg0, class... Args>
   DualView(const DualView<DT, DP...>& src, const Arg0& arg0, Args... args)

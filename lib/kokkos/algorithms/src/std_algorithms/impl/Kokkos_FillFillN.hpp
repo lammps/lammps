@@ -41,9 +41,12 @@ struct StdFillFunctor {
       : m_first(std::move(_first)), m_value(std::move(_value)) {}
 };
 
+//
+// exespace impl
+//
 template <class ExecutionSpace, class IteratorType, class T>
-void fill_impl(const std::string& label, const ExecutionSpace& ex,
-               IteratorType first, IteratorType last, const T& value) {
+void fill_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                        IteratorType first, IteratorType last, const T& value) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
@@ -52,13 +55,14 @@ void fill_impl(const std::string& label, const ExecutionSpace& ex,
   const auto num_elements = Kokkos::Experimental::distance(first, last);
   ::Kokkos::parallel_for(label,
                          RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         StdFillFunctor<IteratorType, T>(first, value));
+                         StdFillFunctor(first, value));
   ex.fence("Kokkos::fill: fence after operation");
 }
 
 template <class ExecutionSpace, class IteratorType, class SizeType, class T>
-IteratorType fill_n_impl(const std::string& label, const ExecutionSpace& ex,
-                         IteratorType first, SizeType n, const T& value) {
+IteratorType fill_n_exespace_impl(const std::string& label,
+                                  const ExecutionSpace& ex, IteratorType first,
+                                  SizeType n, const T& value) {
   auto last = first + n;
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
@@ -67,7 +71,40 @@ IteratorType fill_n_impl(const std::string& label, const ExecutionSpace& ex,
     return first;
   }
 
-  fill_impl(label, ex, first, last, value);
+  fill_exespace_impl(label, ex, first, last, value);
+  return last;
+}
+
+//
+// team-level impl
+//
+template <class TeamHandleType, class IteratorType, class T>
+KOKKOS_FUNCTION void fill_team_impl(const TeamHandleType& teamHandle,
+                                    IteratorType first, IteratorType last,
+                                    const T& value) {
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                         StdFillFunctor(first, value));
+
+  teamHandle.team_barrier();
+}
+
+template <class TeamHandleType, class IteratorType, class SizeType, class T>
+KOKKOS_FUNCTION IteratorType fill_n_team_impl(const TeamHandleType& teamHandle,
+                                              IteratorType first, SizeType n,
+                                              const T& value) {
+  auto last = first + n;
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  if (n <= 0) {
+    return first;
+  }
+
+  fill_team_impl(teamHandle, first, last, value);
   return last;
 }
 

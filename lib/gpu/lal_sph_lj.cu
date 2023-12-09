@@ -224,7 +224,7 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         // and change in density, drho[i]
-        drhoEacc.x += massj * delVdotDelR * wfd;
+        drhoEacc.x += mass_jtype * delVdotDelR * wfd;
 
         // change in thermal energy, desph[i]
         drhoEacc.y += deltaE;
@@ -313,7 +313,6 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
     numtyp rhoi = extrai.x;
     numtyp esphi = extrai.y;
     numtyp cvi = extrai.z;
-    numtyp massi= extrai.w;
 
     // compute pressure of particle i with LJ EOS
     numtyp fci[2];
@@ -331,6 +330,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
       #endif
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      int jtype = jx.w;
       #ifndef ONETYPE
       int mtype=itype+jx.w;
       const numtyp cutsq_p=cutsq[mtype];
@@ -345,6 +345,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<cutsq_p) {
+        numtyp mass_jtype = mass[jtype];
         #ifndef ONETYPE
         const numtyp coeffx=coeff[mtype].x;  // viscosity[itype][jtype]
         const numtyp coeffy=coeff[mtype].y;  // cut[itype][jtype]
@@ -353,7 +354,6 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
         numtyp rhoj = extraj.x;
         numtyp esphj = extraj.y;
         numtyp cvj = extraj.z;
-        numtyp massj= extraj.w;
 
         numtyp h = coeffy; // cut[itype][jtype]
         ih = ih = ucl_recip(h); // (numtyp)1.0 / h;
@@ -396,7 +396,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
         }
 
         // total pair force & thermal energy increment
-        numtyp force = -massi * massj * (fi + fj + fvisc) * wfd;
+        numtyp force = -mass_itype * mass_jtype * (fi + fj + fvisc) * wfd;
         numtyp deltaE = (numtyp)-0.5 * force * delVdotDelR;
 
         f.x+=delx*force;
@@ -404,7 +404,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         // and change in density, drho[i]
-        drhoEacc.x += massj * delVdotDelR * wfd;
+        drhoEacc.x += mass_jtype * delVdotDelR * wfd;
 
         // change in thermal energy, desph[i]
         drhoEacc.y += deltaE;

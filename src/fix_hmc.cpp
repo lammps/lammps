@@ -847,7 +847,6 @@ void FixHMC::restore_saved_state()
 
   // restore bodies
   if (rigid_flag) {
-    stored_ntotal_body = fix_rigid->nlocal_body + fix_rigid->nghost_body;
     fix_rigid->nlocal_body = stored_nlocal_body;
     fix_rigid->nghost_body = stored_nghost_body;
     for (int i = 0; i < stored_ntotal_body; i++) fix_rigid->body[i] = stored_body[i];

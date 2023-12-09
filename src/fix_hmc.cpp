@@ -21,6 +21,7 @@
 #include "math_extra.h"
 #include "fix_hmc.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -724,6 +725,10 @@ void FixHMC::save_current_state()
   stored_ntotal = ntotal;
   stored_nlocal = nlocal;
   stored_nghost = atom->nghost;
+  stored_nbonds = atom->nbonds;
+  stored_nangles = atom->nangles;
+  stored_ndihedrals = atom->ndihedrals;
+  stored_nimpropers = atom->nimpropers;
 
   // store bodies
   if (rigid_flag) {
@@ -796,9 +801,24 @@ void FixHMC::restore_saved_state()
   int ntotal = nlocal + atom->nghost;
   double **x = atom->x;
   double *scalar, **vector, *energy, **stress;
+  int map_cleared;
+  
+  if (stored_ntotal > atom->nlocal + atom->nghost){
+    atom->avec->grow(stored_ntotal);
+    if (atom->map_style != Atom::MAP_NONE) {
+      atom->map_clear();
+      map_cleared = true;
+    }
+    atom->avec->clear_bonus();
 
+  }
+  
   atom->nlocal = stored_nlocal;
   atom->nghost = stored_nghost;
+  atom->nbonds = stored_nbonds;
+  atom->nangles = stored_nangles;
+  atom->ndihedrals = stored_ndihedrals;
+  atom->nimpropers = stored_nimpropers;
 
   if (nlocal != stored_nlocal) error->all(FLERR, "bonk");
   if (stored_peratom.size() != current_peratom.size()) error->all(FLERR, "bonk");
@@ -831,6 +851,12 @@ void FixHMC::restore_saved_state()
     fix_rigid->nlocal_body = stored_nlocal_body;
     fix_rigid->nghost_body = stored_nghost_body;
     for (int i = 0; i < stored_ntotal_body; i++) fix_rigid->body[i] = stored_body[i];
+  }
+
+  // reinit atom_map
+  if (map_cleared) {
+    atom->map_init();
+    atom->map_set();
   }
 
   // Restore global energy terms:

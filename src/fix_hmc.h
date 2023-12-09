@@ -69,8 +69,10 @@ class FixHMC : public Fix {
   std::vector<Atom::PerAtom> stored_peratom;
   std::vector<Atom::PerAtom> current_peratom;
   int stored_nlocal, stored_nghost, stored_ntotal;
+  int stored_nbonds, stored_nangles, stored_ndihedrals, stored_nimpropers;
   FixRigidSmall::Body *stored_body;
   int stored_nlocal_body, stored_nghost_body, stored_ntotal_body;
+
   int tune_flag, mom_flag, rot_flag;
 
   char *mdi;

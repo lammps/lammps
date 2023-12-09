@@ -82,10 +82,10 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc mom", error);
       mom_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "rot") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc rot", error);
-      rot_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
+    //} else if (strcmp(arg[iarg], "rot") == 0) {
+    //  if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc rot", error);
+    //  rot_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+    //  iarg += 2;
     } else
       error->all(FLERR, "Illegal fix hmc command");
   }

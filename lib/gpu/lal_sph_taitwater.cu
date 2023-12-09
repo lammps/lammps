@@ -136,7 +136,6 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
         numtyp h = coeffy; // cut[itype][jtype]
         numtyp ih = ucl_recip(h); // (numtyp)1.0 / h;
         numtyp ihsq = ih * ih;
-        numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
         if (dimension == 3) {
@@ -222,10 +221,6 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
   #ifndef ONETYPE
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 coeff2[MAX_SHARED_TYPES];
-  __local numtyp sp_lj[4];
-  if (tid<4) {
-    sp_lj[tid]=sp_lj_in[tid];
-  }
   if (tid<MAX_SHARED_TYPES) {
     coeff2[tid] = coeff2_in[tid];
   }
@@ -267,11 +262,9 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     #endif
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
-    int itag=iv.w;
 
     const numtyp4 extrai = extra[i];
     numtyp rhoi = extrai.x;
-    numtyp massi= extrai.y;
 
     // compute pressure of atom i with Tait EOS
     numtyp tmp = rhoi / rho0_itype;
@@ -294,7 +287,6 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
       const numtyp cutsq_p=coeff[mtype].z;
       #endif
       numtyp4 jv; fetch4(jv,j,vel_tex); //v_[j];
-      int jtag=jv.w;
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -315,12 +307,10 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
 
         const numtyp4 extraj = extra[j];
         numtyp rhoj = extraj.x;
-        numtyp massj= extraj.y;
 
         numtyp h = coeffy; // cut[itype][jtype]
         numtyp ih = ucl_recip(h); // (numtyp)1.0 / h;
         numtyp ihsq = ih * ih;
-        numtyp ihcub = ihsq * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
         if (dimension == 3) {

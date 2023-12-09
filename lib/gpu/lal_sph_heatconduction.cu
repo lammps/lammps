@@ -160,10 +160,6 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
 
   #ifndef ONETYPE
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp sp_lj[4];
-  if (tid<4) {
-    sp_lj[tid]=sp_lj_in[tid];
-  }
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
   }
@@ -207,7 +203,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
       int jtype = jx.w;
       #ifndef ONETYPE
       int mtype=itype+jx.w;
-      const numtyp cutsq_p=cutsq[mtype];
+      const numtyp cutsq_p=coeff[mtype].z;
       #endif
 
       // Compute r12

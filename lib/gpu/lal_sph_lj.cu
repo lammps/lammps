@@ -59,7 +59,7 @@ _texture_2d( vel_tex,int4);
    return p = pc[0], c = pc[1]
 */
 
-void LJEOS2(const numtyp rho, const numtyp e, const numtyp cv, numtyp pc[2])
+ucl_inline void LJEOS2(const numtyp rho, const numtyp e, const numtyp cv, numtyp pc[2])
 {
   numtyp T = e/cv;
   numtyp beta = ucl_recip(T); // (numtyp)1.0 / T;
@@ -176,7 +176,7 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
         numtyp cvj = extraj.z;
 
         numtyp h = coeffy; // cut[itype][jtype]
-        ih = ucl_recip(h); // (numtyp)1.0 / h;
+        numtyp ih = ucl_recip(h); // (numtyp)1.0 / h;
         numtyp ihsq = ih * ih;
         numtyp ihcub = ihsq * ih;
 
@@ -210,13 +210,13 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
 
         // artificial viscosity (Monaghan 1992)
         numtyp fvisc = (numtyp)0;
-        if (delVdotDelR < (numyp)0) {
-          numtyp mu = h * delVdotDelR / (rsq + (numyp)0.01 * h * h);
+        if (delVdotDelR < (numtyp)0) {
+          numtyp mu = h * delVdotDelR / (rsq + (numtyp)0.01 * h * h);
           fvisc = -coeffx * (ci + cj) * mu / (rhoi + rhoj); // viscosity[itype][jtype]
         }
 
         // total pair force & thermal energy increment
-        numtyp force = -mass_itype * mass_type * (fi + fj + fvisc) * wfd;
+        numtyp force = -mass_itype * mass_jtype * (fi + fj + fvisc) * wfd;
         numtyp deltaE = (numtyp)-0.5 * force * delVdotDelR;
 
         f.x+=delx*force;
@@ -268,10 +268,6 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
 
   #ifndef ONETYPE
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
-  __local numtyp sp_lj[4];
-  if (tid<4) {
-    sp_lj[tid]=sp_lj_in[tid];
-  }
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
   }
@@ -307,7 +303,6 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
     #endif
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
-    int itag=iv.w;
 
     const numtyp4 extrai = extra[i];
     numtyp rhoi = extrai.x;
@@ -333,10 +328,9 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
       int jtype = jx.w;
       #ifndef ONETYPE
       int mtype=itype+jx.w;
-      const numtyp cutsq_p=cutsq[mtype];
+      const numtyp cutsq_p=coeff[mtype].z; // cutsq[itype][jtype];
       #endif
       numtyp4 jv; fetch4(jv,j,vel_tex); //v_[j];
-      int jtag=jv.w;
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -356,7 +350,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
         numtyp cvj = extraj.z;
 
         numtyp h = coeffy; // cut[itype][jtype]
-        ih = ih = ucl_recip(h); // (numtyp)1.0 / h;
+        numtyp ih = ucl_recip(h); // (numtyp)1.0 / h;
         numtyp ihsq = ih * ih;
         numtyp ihcub = ihsq * ih;
 
@@ -390,8 +384,8 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
 
         // artificial viscosity (Monaghan 1992)
         numtyp fvisc = (numtyp)0;
-        if (delVdotDelR < (numyp)0) {
-          numtyp mu = h * delVdotDelR / (rsq + (numyp)0.01 * h * h);
+        if (delVdotDelR < (numtyp)0) {
+          numtyp mu = h * delVdotDelR / (rsq + (numtyp)0.01 * h * h);
           fvisc = -coeffx * (ci + cj) * mu / (rhoi + rhoj); // viscosity[itype][jtype]
         }
 

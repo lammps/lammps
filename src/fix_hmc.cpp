@@ -801,7 +801,8 @@ void FixHMC::restore_saved_state()
   int ntotal = nlocal + atom->nghost;
   double **x = atom->x;
   double *scalar, **vector, *energy, **stress;
-  int map_cleared;
+
+  int map_cleared = false;
   
   if (stored_ntotal > atom->nlocal + atom->nghost){
     atom->avec->grow(stored_ntotal);

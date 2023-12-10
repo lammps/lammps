@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: Windows Compilation Test
-    if: ${{ github.repository == 'lammps/lammps' }}
+    if: ${{ github.repository == 'draneyj/lammps_hmc' }}
     runs-on: windows-latest
 
     steps:

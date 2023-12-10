@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: MacOS Unit Test
-    if: ${{ github.repository == 'lammps/lammps' }}
+    if: ${{ github.repository == 'draneyj/lammps_hmc' }}
     runs-on: macos-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache

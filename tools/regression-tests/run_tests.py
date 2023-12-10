@@ -149,29 +149,40 @@ def generate_markers(inputFileName, outputFileName):
     for line in out:
       file.write(line + "\n")
 
+def has_markers(input):
+  with open(input) as f:
+    if '#REG' in f.read():
+      return True
+  return False
+
 '''
   Iterate over a list of input files
 '''
-def iterate(input_list, input_has_markers=False):
+def iterate(input_list):
   num_tests = len(input_list)
   test_id = 0
   # iterative over the input scripts
   for input in input_list:
     input_test = input + '.test'
+    
+    if os.path.isfile(input) == True:
+      if has_markers(input):
+        process_markers(input, input_test)
+    
+      else:
+        print("Input {input} does not have REG markers")
+        continue
 
-    if input_has_markers == False:
-      input_markers = input + '.markers'
-      # if the .test file with the REG markers does not exist
-      #   attempt to plug in the REG markers before each run command
-      if os.path.isfile(input_markers) == False:
-        
-        cmd_str = "cp " + input + " " + input_markers
-        os.system(cmd_str)
-        generate_markers(input, input_markers)
-        process_markers(input_markers, input_test)
-    else:
-      process_markers(input, input_test)
-
+        input_markers = input + '.markers'
+        # if the .test file with the REG markers does not exist
+        #   attempt to plug in the REG markers before each run command
+        if os.path.isfile(input_markers) == False:
+          
+          cmd_str = "cp " + input + " " + input_markers
+          os.system(cmd_str)
+          generate_markers(input, input_markers)
+          process_markers(input_markers, input_test)
+    
     # input.test should be ready for testing without markers but with the inserted thermo lines
 
     str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
@@ -265,10 +276,10 @@ if __name__ == "__main__":
   print(f"List of installed packages: {packages}")
 
   # list of input scripts with markers #REG:SUB and #REG:ADD
-  input_list=['in.lj', 'in.rhodo', 'in.eam']
-  iterate(input_list, input_has_markers=True)
+  #input_list=['in.lj', 'in.rhodo', 'in.eam']
+  #iterate(input_list)
 
-  automated = False
+  automated = True
   if automated == True:
     # save current working dir
     p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
@@ -284,7 +295,7 @@ if __name__ == "__main__":
     os.system(cmd_str)
     input_list=['in.melt']
     
-    iterate(input_list, input_has_markers=False)
+    iterate(input_list)
 
     # unlink the symbolic link
     cmd_str = "unlink lmp"

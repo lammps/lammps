@@ -98,6 +98,8 @@ class FixRigidSmall : public Fix {
   int bodysize;       // sizeof(Body) in doubles
   int *bodyown;          // index of body if atom owns a body, -1 if not
   void set_v();
+  imageint *xcmimage;    // internal image flags for atoms in rigid bodies
+                         // set relative to in-box xcm of each body
 
  protected:
   int me, nprocs;
@@ -122,8 +124,7 @@ class FixRigidSmall : public Fix {
                          // ID = tag of atom that owns body
   int *atom2body;        // index of owned/ghost body this atom is in, -1 if not
                          // can point to original or any image of the body
-  imageint *xcmimage;    // internal image flags for atoms in rigid bodies
-                         // set relative to in-box xcm of each body
+
   double **displace;     // displacement of each atom in body coords
   int *eflags;           // flags for extended particles
   double **orient;       // orientation vector of particle wrt rigid body

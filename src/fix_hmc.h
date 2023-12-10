@@ -73,6 +73,7 @@ class FixHMC : public Fix {
   int stored_nbonds, stored_nangles, stored_ndihedrals, stored_nimpropers;
   FixRigidSmall::Body *stored_body;
   int stored_nlocal_body, stored_nghost_body, stored_ntotal_body;
+  imageint *stored_xcmimage;
 
   int tune_flag, mom_flag, rot_flag;
 

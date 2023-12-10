@@ -103,6 +103,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
   vatom = NULL;
   stored_body = NULL;
   stored_tag = NULL;
+  stored_xcmimage = NULL;
 
   // Register callback:
   atom->add_callback(0);
@@ -150,6 +151,7 @@ FixHMC::~FixHMC()
   modify->delete_compute("hmc_pressatom");
 
   memory->destroy(stored_tag);
+  memory->destroy(stored_xcmimage);
   for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
     free(stored_peratom_member.address);
     free(stored_peratom_member.address_maxcols);
@@ -294,7 +296,8 @@ void FixHMC::setup_arrays_and_pointers()
   
   current_peratom = atom->peratom;
   stored_nmax = atom->nmax;
-  stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tags");
+  stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tag");
+  stored_xcmimage = memory->create(stored_xcmimage, stored_nmax, "hmc:stored_xcmimage");
 
   // Per-atom vector properties to be saved and restored:
   nvec = 2;
@@ -705,11 +708,18 @@ void FixHMC::save_current_state()
   int nmax = atom->nmax;
   double *scalar, **vector, *energy, **stress;
 
-  if (nmax > stored_nmax) { memory->destroy(stored_tag);
+  if (nmax > stored_nmax) {
     stored_nmax = nmax;
-    stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tags");
+    memory->destroy(stored_tag);
+    stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tag");
+    if (rigid_flag) {
+      memory->destroy(stored_xcmimage);
+      stored_xcmimage = memory->create(stored_xcmimage, stored_nmax, "hmc:stored_xcmimage");
+    }
   }
   memcpy(stored_tag, atom->tag, ntotal * sizeof(tagint));
+  if (rigid_flag)
+    memcpy(stored_xcmimage, fix_rigid->xcmimage, ntotal * sizeof(imageint));
 
   // clear peratom data and store a new struct
   for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
@@ -821,6 +831,8 @@ void FixHMC::restore_saved_state()
     map_cleared = true;
   }
   memcpy(atom->tag, stored_tag, stored_ntotal * sizeof(tagint));
+  if (rigid_flag)
+    memcpy(fix_rigid->xcmimage, stored_xcmimage, stored_ntotal * sizeof(tagint));
 
   if (stored_ntotal > atom->nlocal + atom->nghost){
     atom->avec->grow(stored_ntotal);

@@ -193,11 +193,14 @@ file changed):
     write_data tip4p-implicit.data nocoeff
 
 Below is the code for a LAMMPS input file using the explicit method and
-a TIP4P molecule file.  Because of using :doc:`fix rigid/nvt/small
+a TIP4P molecule file.  Because of using :doc:`fix rigid/small
 <fix_rigid>` no bonds need to be defined and thus no extra storage needs
-to be reserved for them, but we need to switch to atom style full or use
-:doc:`fix property/atom mol <fix_property_atom>` so that fix
-rigid/nvt/small can identify rigid bodies by their molecule ID:
+to be reserved for them, but we need to either switch to atom style full
+or use :doc:`fix property/atom mol <fix_property_atom>` so that fix
+rigid/small can identify rigid bodies by their molecule ID.  Also a
+:doc:`neigh_modify exclude <neigh_modify>` command is added to exclude
+computing intramolecular non-bonded interactions, since those are
+removed by the rigid fix anyway:
 
 .. code-block:: LAMMPS
 
@@ -216,17 +219,17 @@ rigid/nvt/small can identify rigid bodies by their molecule ID:
     pair_coeff 2 2 0.0    1.0
     pair_coeff 3 3 0.0    1.0
 
-    fix mol all property/atom mol
+    fix mol all property/atom mol ghost yes
     molecule water tip4p.mol
     create_atoms 0 random 33 34564 NULL mol water 25367 overlap 1.33
+    neigh_modify exclude molecule/intra all
 
     timestep 0.5
-    fix integrate all rigid/nvt/small molecule temp 300.0 300.0 100.0
-    velocity all create 300.0 5463576
+    fix integrate all rigid/small molecule langevin 300.0 300.0 100.0 2345634
 
     thermo_style custom step temp press etotal density pe ke
-    thermo 1000
-    run 20000
+    thermo 2000
+    run 40000
     write_data tip4p-explicit.data nocoeff
 
 .. _tip4p_molecule:

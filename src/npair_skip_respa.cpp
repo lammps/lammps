@@ -23,7 +23,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkipRespa::NPairSkipRespa(LAMMPS *lmp) : NPair(lmp) {}
+template<int TRIM>
+NPairSkipRespaTemp<TRIM>::NPairSkipRespaTemp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
@@ -31,7 +32,8 @@ NPairSkipRespa::NPairSkipRespa(LAMMPS *lmp) : NPair(lmp) {}
    this is for respa lists, copy the inner/middle values from parent
 ------------------------------------------------------------------------- */
 
-void NPairSkipRespa::build(NeighList *list)
+template<int TRIM>
+void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
 {
   int i, j, ii, jj, n, itype, jnum, joriginal, n_inner, n_middle;
   int *neighptr, *jlist, *neighptr_inner, *neighptr_middle;
@@ -76,6 +78,11 @@ void NPairSkipRespa::build(NeighList *list)
   ipage_inner->reset();
   if (respamiddle) ipage_middle->reset();
 
+  double **x = atom->x;
+  double xtmp, ytmp, ztmp;
+  double delx, dely, delz, rsq;
+  double cutsq_custom = cutoff_custom * cutoff_custom;
+
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
   // skip I,J pair if ijskip is set for type[I],type[J]
@@ -84,6 +91,12 @@ void NPairSkipRespa::build(NeighList *list)
     i = ilist_skip[ii];
     itype = type[i];
     if (iskip[itype]) continue;
+
+    if (TRIM) {
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+    }
 
     n = n_inner = 0;
     neighptr = ipage->vget();
@@ -102,6 +115,15 @@ void NPairSkipRespa::build(NeighList *list)
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
+
+      if (TRIM) {
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx * delx + dely * dely + delz * delz;
+        if (rsq > cutsq_custom) continue;
+      }
+
       neighptr[n++] = joriginal;
     }
 
@@ -114,6 +136,15 @@ void NPairSkipRespa::build(NeighList *list)
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
+
+      if (TRIM) {
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx * delx + dely * dely + delz * delz;
+        if (rsq > cutsq_custom) continue;
+      }
+
       neighptr_inner[n_inner++] = joriginal;
     }
 
@@ -127,6 +158,15 @@ void NPairSkipRespa::build(NeighList *list)
         joriginal = jlist[jj];
         j = joriginal & NEIGHMASK;
         if (ijskip[itype][type[j]]) continue;
+
+        if (TRIM) {
+          delx = xtmp - x[j][0];
+          dely = ytmp - x[j][1];
+          delz = ztmp - x[j][2];
+          rsq = delx * delx + dely * dely + delz * delz;
+          if (rsq > cutsq_custom) continue;
+        }
+
         neighptr_middle[n_middle++] = joriginal;
       }
     }
@@ -157,4 +197,9 @@ void NPairSkipRespa::build(NeighList *list)
   list->inum = inum;
   list->inum_inner = inum;
   if (respamiddle) list->inum_middle = inum;
+}
+
+namespace LAMMPS_NS {
+template class NPairSkipRespaTemp<0>;
+template class NPairSkipRespaTemp<1>;
 }

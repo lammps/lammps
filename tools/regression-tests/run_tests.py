@@ -49,7 +49,7 @@ except ImportError:
   inputFileName:  input file with comments #REG:ADD and #REG:SUB as markers
   outputFileName: modified input file ready for testing
 '''
-def processing_markers(inputFileName, outputFileName):
+def process_markers(inputFileName, outputFileName):
   # read in the script
   with open(inputFileName, 'r') as file:
     data = file.read()
@@ -122,6 +122,39 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
   p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
   output = p.stdout.split('\n')
 
+
+'''
+  attempt to plug in the REG markers before each run command
+  #REG:ADD thermo 10
+  #REG:ADD thermo_style yaml
+'''
+
+def generate_markers(inputFileName, outputFileName):
+  # read in the script
+  with open(inputFileName, 'r') as file:
+    data = file.read()
+
+    lines = data.splitlines()
+    out = []
+    for line in lines:
+      s = line.split()
+      if len(s) > 0:
+        if s[0] == "run":
+          out.append("    #REG:ADD thermo 10")
+          out.append("    #REG:ADD thermo_style yaml")
+      out.append(line)
+
+  # write data to the new script
+  with open(outputFileName, 'w') as file:
+    for line in out:
+      file.write(line + "\n")
+
+def has_markers(input):
+  with open(input) as f:
+    if '#REG' in f.read():
+      return True
+  return False
+
 '''
   Iterate over a list of input files
 '''
@@ -130,8 +163,27 @@ def iterate(input_list):
   test_id = 0
   # iterative over the input scripts
   for input in input_list:
-    input_test=input + '.test'
-    processing_markers(input, input_test)
+    input_test = input + '.test'
+    
+    if os.path.isfile(input) == True:
+      if has_markers(input):
+        process_markers(input, input_test)
+    
+      else:
+        print("Input {input} does not have REG markers")
+        continue
+
+        input_markers = input + '.markers'
+        # if the .test file with the REG markers does not exist
+        #   attempt to plug in the REG markers before each run command
+        if os.path.isfile(input_markers) == False:
+          
+          cmd_str = "cp " + input + " " + input_markers
+          os.system(cmd_str)
+          generate_markers(input, input_markers)
+          process_markers(input_markers, input_test)
+    
+    # input.test should be ready for testing without markers but with the inserted thermo lines
 
     str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
     print(str_t)
@@ -172,7 +224,7 @@ def iterate(input_list):
         print(f"nthermo_steps = {nthermo_steps}")
         for i in range(num_fields):
           val = thermo[irun]['data'][thermo_step][i]
-          ref = thermo_ref[0]['data'][thermo_step][i]
+          ref = thermo_ref[irun]['data'][thermo_step][i]
           diff = abs(float(val) - float(ref))
           print(f"{thermo[0]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {str(diff).rjust(20)}")
         print("-"*(4*width+3))
@@ -224,10 +276,30 @@ if __name__ == "__main__":
   print(f"List of installed packages: {packages}")
 
   # list of input scripts with markers #REG:SUB and #REG:ADD
-  input_list=['in.lj', 'in.rhodo', 'in.eam']
-  iterate(input_list)
+  #input_list=['in.lj', 'in.rhodo', 'in.eam']
+  #iterate(input_list)
 
+  automated = True
+  if automated == True:
+    # save current working dir
+    p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
+    pwd = p.stdout.split('\n')[0]
+    print("Working dir" + pwd)
 
-  
+    # change dir to an example
+    directory = "../../examples/melt"
+    print("Entering " + directory)
+    os.chdir(directory)
+    # create a symbolic link to the lammps binary at the present directory
+    cmd_str = "ln -s " + lmp_binary + " lmp"
+    os.system(cmd_str)
+    input_list=['in.melt']
+    
+    iterate(input_list)
 
-
+    # unlink the symbolic link
+    cmd_str = "unlink lmp"
+    os.system(cmd_str)
+    # get back to the working dir
+    cmd_str = "cd " + pwd
+    os.system(cmd_str)

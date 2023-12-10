@@ -1,10 +1,15 @@
 '''
-UPDATE: Oct 25, 2023:
-  Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml)
-  this way we can launch LAMMPS with mpirun with more flexibility. Also it simplifies the build configuration.
+UPDATE: Dec 10, 2023:
+  Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
+  This way we can:
+    + launch tests with mpirun with multiple procs
+    + specify what LAMMPS binary version to test 
+    + simplify the build configuration
+  Example usage:
+    python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=config.yaml --gen-ref=False
 
-  python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=config.yaml --gen-ref=False
 
+--------------------------------------------------------------------------------------------------------------
 Original plan: using the LAMMPS Python module
   The following steps are for setting up regression tests with the LAMMPS Python module
 
@@ -158,12 +163,12 @@ def has_markers(input):
 '''
   Iterate over a list of input files
 '''
-def iterate(input_list):
+def iterate(input_list, removeAnnotatedInput=False):
   num_tests = len(input_list)
   test_id = 0
   # iterative over the input scripts
   for input in input_list:
-    input_test = input + '.test'
+    input_test = 'test.' + input
     
     if os.path.isfile(input) == True:
       if has_markers(input):
@@ -233,9 +238,15 @@ def iterate(input_list):
 
     test_id = test_id + 1
 
+    # remove the annotated input script
+    if removeAnnotatedInput == True:
+      cmd_str = "rm " + input_test
+      os.system(cmd_str)
+
+
 '''
   TODO:
-    - automate tagging the example input scripts of the installed packages
+    - automate annotating the example input scripts of the installed packages
 '''
 if __name__ == "__main__":
 
@@ -275,26 +286,28 @@ if __name__ == "__main__":
   packages = get_installed_packages(lmp_binary)
   print(f"List of installed packages: {packages}")
 
-  # list of input scripts with markers #REG:SUB and #REG:ADD
-  #input_list=['in.lj', 'in.rhodo', 'in.eam']
-  #iterate(input_list)
+  # Using inplace input scripts
 
-  automated = True
-  if automated == True:
+  inplace_input = True
+  if inplace_input == True:
     # save current working dir
     p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
     pwd = p.stdout.split('\n')[0]
     print("Working dir" + pwd)
 
-    # change dir to an example
+    # change dir to a folder under examples/
+    # TODO: loop through the subfolders under examples/, depending on the installed packages
+
     directory = "../../examples/melt"
     print("Entering " + directory)
     os.chdir(directory)
+
     # create a symbolic link to the lammps binary at the present directory
     cmd_str = "ln -s " + lmp_binary + " lmp"
     os.system(cmd_str)
     input_list=['in.melt']
     
+    # iterate through the input scripts
     iterate(input_list)
 
     # unlink the symbolic link
@@ -303,3 +316,8 @@ if __name__ == "__main__":
     # get back to the working dir
     cmd_str = "cd " + pwd
     os.system(cmd_str)
+
+  else:
+    # or using the input scripts in the working directory
+    input_list=['in.lj', 'in.rhodo', 'in.eam']
+    iterate(input_list)

@@ -513,14 +513,14 @@ void FixHMC::init()
   int ntimestep = update->ntimestep;
 
   // Check conformance of run length:
-  tune_parameter( &update->nsteps, "number of steps of the run" );
-  update->laststep = ntimestep + update->nsteps;
+  //tune_parameter( &update->nsteps, "number of steps of the run" );
+  //update->laststep = ntimestep + update->nsteps;
 
   // Check conformance of thermo interval:
-  if (output->var_thermo)
-    error->all(FLERR,"fix HMC does not allow a variable thermo interval");
-  else if (output->thermo_every)
-    tune_parameter( &output->thermo_every, "thermo interval" );
+  //if (output->var_thermo)
+  //  error->all(FLERR,"fix HMC does not allow a variable thermo interval");
+  //else if (output->thermo_every)
+  //  tune_parameter( &output->thermo_every, "thermo interval" );
 
   // Check conformance of restart interval:
   if (output->restart_flag) {
@@ -531,8 +531,8 @@ void FixHMC::init()
   }
 
   // Check conformance of dump interval:
-  for (int i = 0; i < output->ndump; i++)
-    tune_parameter( &output->every_dump[i], "dump interval" );
+  //for (int i = 0; i < output->ndump; i++)
+  //  tune_parameter( &output->every_dump[i], "dump interval" );
 
   // Check whether there is any fixes that change box size and/or shape:
   for (int i = 0; i < modify->nfix; i++) {
@@ -925,8 +925,6 @@ void FixHMC::restore_saved_state()
   atom->ndihedrals = stored_ndihedrals;
   atom->nimpropers = stored_nimpropers;
 
-  if (nlocal != stored_nlocal) error->all(FLERR, "bonk");
-  if (stored_peratom.size() != current_peratom.size()) error->all(FLERR, "bonk");
   for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
     for (Atom::PerAtom &current_peratom_member : current_peratom) {
       if (stored_peratom_member.name.compare(current_peratom_member.name)) {

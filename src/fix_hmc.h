@@ -68,7 +68,8 @@ class FixHMC : public Fix {
   void restore_peratom_member(Atom::PerAtom, Atom::PerAtom &, int);
   std::vector<Atom::PerAtom> stored_peratom;
   std::vector<Atom::PerAtom> current_peratom;
-  int stored_nlocal, stored_nghost, stored_ntotal;
+  tagint *stored_tag;
+  int stored_nlocal, stored_nghost, stored_ntotal, stored_nmax;
   int stored_nbonds, stored_nangles, stored_ndihedrals, stored_nimpropers;
   FixRigidSmall::Body *stored_body;
   int stored_nlocal_body, stored_nghost_body, stored_ntotal_body;

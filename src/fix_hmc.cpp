@@ -102,6 +102,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
   eatom = NULL;
   vatom = NULL;
   stored_body = NULL;
+  stored_tag = NULL;
 
   // Register callback:
   atom->add_callback(0);
@@ -148,6 +149,7 @@ FixHMC::~FixHMC()
   modify->delete_compute("hmc_press");
   modify->delete_compute("hmc_pressatom");
 
+  memory->destroy(stored_tag);
   for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
     free(stored_peratom_member.address);
     free(stored_peratom_member.address_maxcols);
@@ -291,7 +293,8 @@ void FixHMC::setup_arrays_and_pointers()
   if (atom->rho_flag) scalptr[m++] = &atom->drho;
   
   current_peratom = atom->peratom;
-  stored_nlocal = atom->nlocal;
+  stored_nmax = atom->nmax;
+  stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tags");
 
   // Per-atom vector properties to be saved and restored:
   nvec = 2;
@@ -699,7 +702,14 @@ void FixHMC::save_current_state()
   int i, m, n;
   int nlocal = atom->nlocal;
   int ntotal = nlocal + atom->nghost;
+  int nmax = atom->nmax;
   double *scalar, **vector, *energy, **stress;
+
+  if (nmax > stored_nmax) { memory->destroy(stored_tag);
+    stored_nmax = nmax;
+    stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tags");
+  }
+  memcpy(stored_tag, atom->tag, ntotal * sizeof(tagint));
 
   // clear peratom data and store a new struct
   for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
@@ -722,8 +732,10 @@ void FixHMC::save_current_state()
     }
     stored_peratom.push_back(stored_peratom_member);
   }
+  // store totals
   stored_ntotal = ntotal;
   stored_nlocal = nlocal;
+  stored_nmax = nmax;
   stored_nghost = atom->nghost;
   stored_nbonds = atom->nbonds;
   stored_nangles = atom->nangles;
@@ -804,16 +816,18 @@ void FixHMC::restore_saved_state()
 
   int map_cleared = false;
   
+  if (atom->map_style != Atom::MAP_NONE) {
+    atom->map_clear();
+    map_cleared = true;
+  }
+  memcpy(atom->tag, stored_tag, stored_ntotal * sizeof(tagint));
+
   if (stored_ntotal > atom->nlocal + atom->nghost){
     atom->avec->grow(stored_ntotal);
-    if (atom->map_style != Atom::MAP_NONE) {
-      atom->map_clear();
-      map_cleared = true;
-    }
-    atom->avec->clear_bonus();
-
   }
   
+  
+
   atom->nlocal = stored_nlocal;
   atom->nghost = stored_nghost;
   atom->nbonds = stored_nbonds;

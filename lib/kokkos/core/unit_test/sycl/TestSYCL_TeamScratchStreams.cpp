@@ -76,12 +76,14 @@ void sycl_queue_scratch_test(
   Kokkos::Experimental::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 
-  sycl::queue queue(default_context, sycl::default_selector_v);
+  sycl::queue queue(default_context, sycl::default_selector_v,
+                    sycl::property::queue::in_order());
 
   std::array<Kokkos::Experimental::SYCL, K> sycl;
   for (int i = 0; i < K; i++) {
     sycl[i] = Kokkos::Experimental::SYCL(
-        sycl::queue(default_context, sycl::default_selector_v));
+        sycl::queue(default_context, sycl::default_selector_v,
+                    sycl::property::queue::in_order()));
   }
 
   // Test that growing scratch size in subsequent calls doesn't crash things

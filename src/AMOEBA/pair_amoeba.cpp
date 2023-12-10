@@ -347,8 +347,6 @@ void PairAmoeba::compute(int eflag, int vflag)
     }
   }
 
-  first_flag_compute = 0;
-
   // -------------------------------------------------------------------
   // end of one-time initializations
   // -------------------------------------------------------------------
@@ -427,6 +425,12 @@ void PairAmoeba::compute(int eflag, int vflag)
   if (amoeba) cfstyle = SETUP_AMOEBA;
   else cfstyle = SETUP_HIPPO;
   comm->forward_comm(this);
+
+  // output FF settings to screen and logfile
+  //   delay until here because RMS force accuracy is computed based on rpole
+
+  if (first_flag_compute && (comm->me == 0)) print_settings();
+  first_flag_compute = 0;
 
   if (amoeba) pbc_xred();
   time1 = platform::walltime();
@@ -978,10 +982,6 @@ void PairAmoeba::init_style()
     for (int i = 0; i < nlocal; i++) pval[i] = 0.0;
   }
 
-  // output FF settings to screen and logfile
-
-  if (first_flag && (comm->me == 0)) print_settings();
-
   // all done with one-time initializations
 
   first_flag = 0;
@@ -1098,9 +1098,13 @@ void PairAmoeba::print_settings()
 
   if (use_ewald) {
     choose(MPOLE_LONG);
-    mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} FFT {} {} {} "
+    double estimated_accuracy = final_accuracy_mpole();
+    mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} FFT {} {} {}; "
+                        "estimated absolute RMS force accuracy = {:.8g}; "
+                        "estimated relative RMS force accuracy = {:.8g}; "
                         "mscale {} {} {} {}\n",
                         sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
+                        estimated_accuracy,estimated_accuracy/two_charge_force,
                         special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
   } else {
     choose(MPOLE);

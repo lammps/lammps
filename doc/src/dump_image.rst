@@ -599,7 +599,7 @@ image will appear.  The *sfactor* value must be a value 0.0 <=
 *sfactor* <= 1.0, where *sfactor* = 1 is a highly reflective surface
 and *sfactor* = 0 is a rough non-shiny surface.
 
-.. versionadded:: TBD
+.. versionadded:: 21Nov2023
 
 The *fsaa* keyword can be used with the dump image command to improve
 the image quality by enabling full scene anti-aliasing.  Internally the

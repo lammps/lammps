@@ -63,7 +63,7 @@ void NPairTrim::build(NeighList *list)
     neighptr = ipage->vget();
 
     const int i = ilist_copy[ii];
-    ilist[i] = i;
+    ilist[ii] = i;
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];

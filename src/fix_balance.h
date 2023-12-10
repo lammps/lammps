@@ -42,7 +42,7 @@ class FixBalance : public Fix {
  private:
   int nevery, lbstyle, nitermax;
   double thresh, stopthresh;
-  char bstr[4];
+  std::string bstr;
   int wtflag;               // 1 for weighted balancing
   int sortflag;             // 1 for sorting comm messages
 

@@ -5,7 +5,7 @@ extern "C" {
 static doublereal c_b3 = -1.;
 static integer c__1 = 1;
 int dlaed2_(integer *k, integer *n, integer *n1, doublereal *d__, doublereal *q, integer *ldq,
-            integer *indxq, doublereal *rho, doublereal *z__, doublereal *dlamda, doublereal *w,
+            integer *indxq, doublereal *rho, doublereal *z__, doublereal *dlambda, doublereal *w,
             doublereal *q2, integer *indx, integer *indxc, integer *indxp, integer *coltyp,
             integer *info)
 {
@@ -35,7 +35,7 @@ int dlaed2_(integer *k, integer *n, integer *n1, doublereal *d__, doublereal *q,
     q -= q_offset;
     --indxq;
     --z__;
-    --dlamda;
+    --dlambda;
     --w;
     --q2;
     --indx;
@@ -75,9 +75,9 @@ int dlaed2_(integer *k, integer *n, integer *n1, doublereal *d__, doublereal *q,
     }
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-        dlamda[i__] = d__[indxq[i__]];
+        dlambda[i__] = d__[indxq[i__]];
     }
-    dlamrg_(n1, &n2, &dlamda[1], &c__1, &c__1, &indxc[1]);
+    dlamrg_(n1, &n2, &dlambda[1], &c__1, &c__1, &indxc[1]);
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
         indx[i__] = indxq[indxc[i__]];
@@ -94,11 +94,11 @@ int dlaed2_(integer *k, integer *n, integer *n1, doublereal *d__, doublereal *q,
         for (j = 1; j <= i__1; ++j) {
             i__ = indx[j];
             dcopy_(n, &q[i__ * q_dim1 + 1], &c__1, &q2[iq2], &c__1);
-            dlamda[j] = d__[i__];
+            dlambda[j] = d__[i__];
             iq2 += *n;
         }
         dlacpy_((char *)"A", n, n, &q2[1], n, &q[q_offset], ldq, (ftnlen)1);
-        dcopy_(n, &dlamda[1], &c__1, &d__[1], &c__1);
+        dcopy_(n, &dlambda[1], &c__1, &d__[1], &c__1);
         goto L190;
     }
     i__1 = *n1;
@@ -176,7 +176,7 @@ L80:
             pj = nj;
         } else {
             ++(*k);
-            dlamda[*k] = d__[pj];
+            dlambda[*k] = d__[pj];
             w[*k] = z__[pj];
             indxp[*k] = pj;
             pj = nj;
@@ -185,7 +185,7 @@ L80:
     goto L80;
 L100:
     ++(*k);
-    dlamda[*k] = d__[pj];
+    dlambda[*k] = d__[pj];
     w[*k] = z__[pj];
     indxp[*k] = pj;
     for (j = 1; j <= 4; ++j) {

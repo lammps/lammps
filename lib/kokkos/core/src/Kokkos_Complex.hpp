@@ -44,6 +44,11 @@ class
     alignas(2 * sizeof(RealType))
 #endif
         complex {
+  static_assert(std::is_floating_point_v<RealType> &&
+                    std::is_same_v<RealType, std::remove_cv_t<RealType>>,
+                "Kokkos::complex can only be instantiated for a cv-unqualified "
+                "floating point type");
+
  private:
   RealType re_{};
   RealType im_{};

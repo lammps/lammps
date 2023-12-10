@@ -30,8 +30,10 @@ struct ZeroMemset<Kokkos::Experimental::SYCL, View<T, P...>> {
              typename View<T, P...>::const_value_type&) {
     auto event = exec_space.impl_internal_space_instance()->m_queue->memset(
         dst.data(), 0, dst.size() * sizeof(typename View<T, P...>::value_type));
+#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
     exec_space.impl_internal_space_instance()
         ->m_queue->ext_oneapi_submit_barrier(std::vector<sycl::event>{event});
+#endif
   }
 
   ZeroMemset(const View<T, P...>& dst,

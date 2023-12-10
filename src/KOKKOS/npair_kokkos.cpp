@@ -113,7 +113,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_stencil_info()
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (ns->last_stencil != last_stencil_old) {
+  if (ns->last_stencil != last_stencil_old || ns->last_stencil == update->ntimestep) {
     // copy stencil to device as it may have changed
 
     last_stencil_old = ns->last_stencil;

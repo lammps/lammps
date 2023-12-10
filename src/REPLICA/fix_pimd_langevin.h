@@ -77,6 +77,8 @@ class FixPIMDLangevin : public Fix {
   int me, nprocs, ireplica, nreplica, nprocs_universe;
   int ntotal, maxlocal;
 
+  int x_last, x_next;
+
   int cmode;
   int sizeplan;
   int *plansend, *planrecv;
@@ -93,6 +95,7 @@ class FixPIMDLangevin : public Fix {
 
   void comm_init();
   void inter_replica_comm(double **ptr);
+  void spring_force();
 
   /* normal-mode operations */
 
@@ -121,6 +124,7 @@ class FixPIMDLangevin : public Fix {
   a_step();    // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
   void qc_step();    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
   void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
+  void q_step();     // integrate for dt/2 for all the beads (x <- x + v * dt/2)
 
   /* Bussi-Zykova-Parrinello barostat */
 

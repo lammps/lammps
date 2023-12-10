@@ -2,7 +2,6 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-# Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.16)
 ########################################
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it
@@ -106,7 +105,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
       set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
     else()
-      set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=2196")
+      set(CMAKE_TUNE_DEFAULT "-xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
     endif()
   endif()
 endif()
@@ -426,6 +425,18 @@ if(BUILD_OMP)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=${LAMMPS_OMP_COMPAT_LEVEL})
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
+# lower C++ standard for fmtlib sources when using Intel classic compiler
+if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_STANDARD GREATER_EQUAL 17)
+    AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 2021.10))
+  message(STATUS "Lowering C++ standard for compiling fmtlib sources with Intel Classic compiler")
+  get_filename_component(LMP_UTILS_SRC "${LAMMPS_SOURCE_DIR}/utils.cpp" ABSOLUTE)
+  get_filename_component(LMP_VARIABLE_SRC "${LAMMPS_SOURCE_DIR}/variable.cpp" ABSOLUTE)
+  get_filename_component(FMT_FORMAT_SRC "${LAMMPS_SOURCE_DIR}/fmtlib_format.cpp" ABSOLUTE)
+  get_filename_component(FMT_OS_SRC "${LAMMPS_SOURCE_DIR}/fmtlib_os.cpp" ABSOLUTE)
+  set_source_files_properties("${FMT_FORMAT_SRC}" "${FMT_OS_SRC}" "${LMP_VARIABLE_SRC}" "${LMP_UTILS_SRC}"
+          PROPERTIES COMPILE_OPTIONS "-std=c++14")
 endif()
 
 if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_TOOLS)

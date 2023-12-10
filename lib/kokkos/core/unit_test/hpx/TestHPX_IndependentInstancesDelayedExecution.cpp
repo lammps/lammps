@@ -17,7 +17,7 @@
 #include <Kokkos_Core.hpp>
 #include <TestHPX_Category.hpp>
 
-#include <hpx/local/execution.hpp>
+#include <hpx/execution.hpp>
 
 namespace {
 

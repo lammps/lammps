@@ -26,7 +26,6 @@
 #include <impl/Kokkos_GraphImpl.hpp>  // GraphAccess needs to be complete
 
 #include <Cuda/Kokkos_Cuda.hpp>
-#include <cuda_runtime_api.h>
 
 namespace Kokkos {
 namespace Impl {

@@ -54,7 +54,11 @@ FixTempBerendsenKokkos<DeviceType>::FixTempBerendsenKokkos(LAMMPS *lmp, int narg
 template<class DeviceType>
 void FixTempBerendsenKokkos<DeviceType>::end_of_step()
 {
+  atomKK->sync(temperature->execution_space,temperature->datamask_read);
   double t_current = temperature->compute_scalar();
+  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+  atomKK->sync(execution_space,temperature->datamask_modify);
+
   double tdof = temperature->dof;
 
   // there is nothing to do, if there are no degrees of freedom
@@ -97,7 +101,6 @@ void FixTempBerendsenKokkos<DeviceType>::end_of_step()
 
   if (which == NOBIAS) {
     atomKK->sync(temperature->execution_space,temperature->datamask_read);
-    temperature->compute_scalar(); // is this needed?
     temperature->remove_bias_all();
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
     atomKK->sync(execution_space,temperature->datamask_modify);

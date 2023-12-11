@@ -72,6 +72,7 @@ __kernel void k_coul_slater_long(const __global numtyp4 *restrict x_,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     numtyp qtmp; fetch(qtmp,i,q_tex);
+    numtyp lamdainv = ucl_recip(lamda);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       ucl_prefetch(dev_packed+nbor+n_stride);
@@ -101,17 +102,19 @@ __kernel void k_coul_slater_long(const __global numtyp4 *restrict x_,
         numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
         _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
         fetch(prefactor,j,q_tex);
-        prefactor *= qqrd2e * scale[mtype] * qtmp/r;
-        numtyp slater_term = ucl_exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
-        force = prefactor * (_erfc + EWALD_F*grij*expm2 - slater_term -factor_coul) * r2inv;
+        numtyp rlamdainv = r * lamdainv;
+        numtyp slater_term = ucl_exp(-(numtyp)2.0*rlamdainv)*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
+        force = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
+        if (factor_coul > (numtyp)0) force -= factor_coul*prefactor*((numtyp)1.0-slater_term);
+        force *= r2inv;
 
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e_slater = (1 + r/lamda)*ucl_exp(-2*r/lamda);
-          e_coul += prefactor*(_erfc-e_slater - factor_coul);
+          numtyp e_slater = ((numtyp)1.0 + rlamdainv)*ucl_exp((numtyp)-2.0*rlamdainv);
+          e_coul += prefactor*(_erfc-e_slater-factor_coul);
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -177,6 +180,7 @@ __kernel void k_coul_slater_long_fast(const __global numtyp4 *restrict x_,
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
+    numtyp lamdainv = ucl_recip(lamda);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       ucl_prefetch(dev_packed+nbor+n_stride);
@@ -206,15 +210,18 @@ __kernel void k_coul_slater_long_fast(const __global numtyp4 *restrict x_,
         _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
         fetch(prefactor,j,q_tex);
         prefactor *= qqrd2e * scale[mtype] * qtmp/r;
-        numtyp slater_term = ucl_exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
-        force = prefactor * (_erfc + EWALD_F*grij*expm2 - slater_term -factor_coul) * r2inv;
+        numtyp rlamdainv = r * lamdainv;
+        numtyp slater_term = ucl_exp((numtyp)-2.0*rlamdainv)*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
+        force = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
+        if (factor_coul > (numtyp)0) force -= factor_coul*prefactor*((numtyp)1.0-slater_term);
+        force *= r2inv;
 
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e_slater = (1 + r/lamda)*ucl_exp(-2*r/lamda);
+          numtyp e_slater = ((numtyp)1.0 + rlamdainv)*ucl_exp((numtyp)-2.0*rlamdainv);
           e_coul += prefactor*(_erfc-e_slater-factor_coul);
         }
         if (EVFLAG && vflag) {

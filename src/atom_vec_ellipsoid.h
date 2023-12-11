@@ -29,6 +29,9 @@ class AtomVecEllipsoid : public AtomVec {
   struct Bonus {
     double shape[3];
     double quat[4];
+    double block[3];
+    double radcirc;
+    bool flag_super;
     int ilocal;
   };
   struct Bonus *bonus;

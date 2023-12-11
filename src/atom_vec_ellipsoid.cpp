@@ -26,9 +26,12 @@
 #include "modify.h"
 
 #include <cstring>
+#include <tr1/cmath>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
+
+#define EPSBLOCK2 1.0e-3
 
 /* ---------------------------------------------------------------------- */
 
@@ -548,6 +551,8 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
+    double *block = bonus[nlocal_bonus].block;
+    bool flag_super = bonus[nlocal_bonus].flag_super;
     shape[0] = shapex;
     shape[1] = shapey;
     shape[2] = shapez;
@@ -555,6 +560,7 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     quat[1] = 0.0;
     quat[2] = 0.0;
     quat[3] = 0.0;
+    bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = i;
     ellipsoid[i] = nlocal_bonus++;
   } else if (shapex == 0.0 && shapey == 0.0 && shapez == 0.0) {
@@ -563,8 +569,110 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     ellipsoid[i] = -1;
   } else {
     double *shape = bonus[ellipsoid[i]].shape;
+    double *block = bonus[ellipsoid[i]].block;
+    bool flag_super = bonus[ellipsoid[i]].flag_super;
     shape[0] = shapex;
     shape[1] = shapey;
     shape[2] = shapez;
+    bonus[ellipsoid[i]].radcirc = compute_radcirc(shape, block, flag_super);
   }
+}
+
+/* ----------------------------------------------------------------------
+   set block values in bonus data for particle I
+   oriented aligned with xyz axes
+   this may create entry in bonus data
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
+{
+  if (ellipsoid[i] < 0) {
+    if (nlocal_bonus == nmax_bonus) grow_bonus();
+    double *shape = bonus[nlocal_bonus].shape;
+    double *quat = bonus[nlocal_bonus].quat;
+    double *block = bonus[nlocal_bonus].block;
+    bool &flag_super = bonus[nlocal_bonus].flag_super;
+    block[0] = blockn1;
+    block[1] = blockn2;
+    block[2] = blockn1 / blockn2;
+    quat[0] = 1.0;
+    quat[1] = 0.0;
+    quat[2] = 0.0;
+    quat[3] = 0.0;
+    bonus[nlocal_bonus].ilocal = i;
+    flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) && (std::fabs(blockn2 - 2) > EPSBLOCK2));
+    bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
+    ellipsoid[i] = nlocal_bonus++;
+  } else {
+    double *shape = bonus[ellipsoid[i]].shape;
+    double *block = bonus[ellipsoid[i]].block;
+    bool &flag_super = bonus[ellipsoid[i]].flag_super;
+    block[0] = blockn1;
+    block[1] = blockn2;
+    block[2] = blockn1 / blockn2;
+    flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) && (std::fabs(blockn2 - 2) > EPSBLOCK2));
+    bonus[ellipsoid[i]].radcirc = compute_radcirc(shape, block, flag_super);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute the circumscribed radius to the ellipsoid
+------------------------------------------------------------------------- */
+
+double AtomVecEllipsoid::compute_radcirc(double *shape, double *block, bool flag_super)
+{
+  if (!flag_super) return std::max(std::max(shape[0], shape[1]), shape[2]);
+
+  // Super ellipsoid
+  double a = shape[0], b = shape[1], c = shape[2];
+  double n1 = block[0], n2 = block[1], n1divn2 = block[2];
+  if (shape[0] < shape[1]) {a = shape[1]; b = shape[0];}
+
+  // Cylinder approximation for n2=2
+
+  if (std::fabs(n2 - 2.0) < EPSBLOCK2) return sqrt(a * a + c * c);
+
+  // Ellipsoid approximation for n1=2
+
+  if (std::fabs(n1 - 2.0) < EPSBLOCK2) return std::max(c, sqrt(a * a + b * b));
+
+  // Bounding box approximation when n1>2 and n2>2
+
+  return sqrt(a * a + b * b + c * c);
+
+  // General super-ellipsoid, Eq. (12) of Podlozhnyuk et al. 2017
+  // Not sure if exact solution worth it compared to boundig box diagonal
+  // If both blockiness exponents are greater than 2, the exact radius does not
+  // seem significantly smaller than the bounding box diagonal. At most sqrt(3)~ 70% too large
+  /*
+  double x, y, z, alpha, beta, gamma, xtilde;
+  double small = 0.1; // TO AVOID OVERFLOW IN POW
+
+  alpha = std::fabs(n2 - 2.0) > small ? std::pow(b / a, 2.0 / (n2 - 2.0)) : 0.0;
+  gamma = std::fabs(n1divn2 - 1.0) > small ? std::pow((1.0 + std::pow(alpha, n2)), n1divn2 - 1.0) : 1.0;
+  beta = std::pow(gamma * c * c / (a * a), 1.0 / std::max(n1 - 2.0, small));
+  xtilde = 1.0 / std::pow(std::pow(1.0 + std::pow(alpha, n2), n1divn2) + std::pow(beta, n1), 1.0 / n1);
+  x = a * xtilde;
+  y = alpha * b * xtilde;
+  z = beta * c * xtilde;
+  return sqrt(x * x + y * y + z * z);
+  */
+}
+
+/* ----------------------------------------------------------------------
+   compute the volume of the ellipsoid
+------------------------------------------------------------------------- */
+
+double AtomVecEllipsoid::compute_volume(double *shape, double *block, bool flag_super)
+{
+  double unitvol = 4.0 * MY_PI / 3.0;
+
+  // super-ellipsoid, Eq. (12) of Jaklic and Solina, 2003, for p = q = r = 0
+
+  if (flag_super) {
+    double e1 = 2.0 / block[0], e2 = 2.0 / block[1];
+    unitvol = e1 * e2 * std::beta(0.5 * e1, 1.0 + e1) *
+                        std::beta(0.5 * e2, 0.5 * e2); // CAN'T GET std::beta to be recognized, need help
+  }
+  return unitvol * shape[0] * shape[1] * shape[2];
 }

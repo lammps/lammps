@@ -4162,22 +4162,23 @@ double PairReaxFFKokkos<DeviceType>::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds)
+void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds, int groupbit)
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondZero>(0,nmax),*this);
 
   bo_cut_bond = api->control->bg_cut;
 
-  atomKK->sync(execution_space,TAG_MASK);
+  atomKK->sync(execution_space,TAG_MASK|MASK_MASK);
   tag = atomKK->k_tag.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
 
   const int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_ilist = k_list->d_ilist;
 
   numbonds = 0;
-  PairReaxKokkosFindBondFunctor<DeviceType> find_bond_functor(this);
+  PairReaxKokkosFindBondFunctor<DeviceType> find_bond_functor(this, groupbit);
   Kokkos::parallel_reduce(inum,find_bond_functor,numbonds);
   copymode = 0;
 }
@@ -4194,24 +4195,28 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondZero, const int
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds) const
+void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds, int groupbit) const
 {
   const int i = d_ilist[ii];
   int nj = 0;
 
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-  for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    const tagint jtag = tag[j];
-    const int j_index = jj - j_start;
-    double bo_tmp = d_BO(i,j_index);
+  if(mask[i] & groupbit) {
+    const int j_start = d_bo_first[i];
+    const int j_end = j_start + d_bo_num[i];
+    for (int jj = j_start; jj < j_end; jj++) {
+      int j = d_bo_list[jj];
+      j &= NEIGHMASK;
+      if(mask[j] & groupbit) {
+        const tagint jtag = tag[j];
+        const int j_index = jj - j_start;
+        double bo_tmp = d_BO(i,j_index);
 
-    if (bo_tmp > bo_cut_bond) {
-      d_neighid(i,nj) = jtag;
-      d_abo(i,nj) = bo_tmp;
-      nj++;
+        if (bo_tmp > bo_cut_bond) {
+          d_neighid(i,nj) = jtag;
+          d_abo(i,nj) = bo_tmp;
+          nj++;
+        }
+      }
     }
   }
   d_numneigh_bonds[i] = nj;

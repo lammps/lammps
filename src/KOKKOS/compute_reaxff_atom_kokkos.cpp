@@ -82,9 +82,9 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_bonds()
 
   int maxnumbonds = 0;
   if (reaxff->execution_space == Device)
-    device_pair()->FindBond(maxnumbonds);
+    device_pair()->FindBond(maxnumbonds, groupbit);
   else
-    host_pair()->FindBond(maxnumbonds);
+    host_pair()->FindBond(maxnumbonds, groupbit);
 
   nbuf = ((store_bonds ? maxnumbonds*2 : 0) + 3)*nlocal;
 

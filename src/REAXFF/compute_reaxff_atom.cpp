@@ -126,28 +126,33 @@ int ComputeReaxFFAtom::FindBond()
   bo_cut = reaxff->api->control->bg_cut;
 
   tagint *tag = atom->tag;
+  int * mask = atom->mask;
   int numbonds = 0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    nj = 0;
+    if (mask[i] & groupbit) {
+      nj = 0;
 
-    for (pj = Start_Index(i, reaxff->api->lists); pj < End_Index(i, reaxff->api->lists); ++pj) {
-      bo_ij = &(reaxff->api->lists->select.bond_list[pj]);
-      j = bo_ij->nbr;
-      jtag = tag[j];
-      bo_tmp = bo_ij->bo_data.BO;
+      for (pj = Start_Index(i, reaxff->api->lists); pj < End_Index(i, reaxff->api->lists); ++pj) {
+        bo_ij = &(reaxff->api->lists->select.bond_list[pj]);
+        j = bo_ij->nbr;
+        if (mask[j] & groupbit) {
+          jtag = tag[j];
+          bo_tmp = bo_ij->bo_data.BO;
 
-      if (bo_tmp > bo_cut) {
-        if(store_bonds) {
-          neighid[i][nj] = jtag;
-          abo[i][nj] = bo_tmp;
+          if (bo_tmp > bo_cut) {
+            if(store_bonds) {
+              neighid[i][nj] = jtag;
+              abo[i][nj] = bo_tmp;
+            }
+            nj++;
+          }
         }
-        nj++;
       }
+      bondcount[i] = nj;
+      numbonds += nj;
     }
-    bondcount[i] = nj;
-    numbonds += nj;
   }
   return numbonds;
 }

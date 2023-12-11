@@ -280,6 +280,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`property/local <compute_property_local>` - convert local attributes to local vectors/arrays
 * :doc:`ptm/atom <compute_ptm_atom>` - determines the local lattice structure based on the Polyhedral Template Matching method
 * :doc:`rdf <compute_rdf>` - radial distribution function :math:`g(r)` histogram of group of atoms
+* :doc:`reaxff/atom <compute_reaxff_atom>` - extract ReaxFF bond information
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region

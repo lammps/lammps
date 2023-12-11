@@ -175,7 +175,7 @@ def iterate(input_list, removeAnnotatedInput=False):
         process_markers(input, input_test)
     
       else:
-        print("Input {input} does not have REG markers")
+        print(f"SKIPPED: {input} does not have REG markers")
         continue
 
         input_markers = input + '.markers'
@@ -234,7 +234,7 @@ def iterate(input_list, removeAnnotatedInput=False):
           print(f"{thermo[0]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {str(diff).rjust(20)}")
         print("-"*(4*width+3))
     else:
-      print(f"{thermo_ref_file} does not exist")
+      print(f"SKIPPED: {thermo_ref_file} does not exist")
 
     test_id = test_id + 1
 
@@ -288,8 +288,17 @@ if __name__ == "__main__":
 
   # Using inplace input scripts
 
+  example_subfolders = []
+  example_subfolders.append("../../examples/melt")
+
+  if 'MOLECULE' in packages:
+    molecule_package = True
+    example_subfolders.append('../../examples/micelle')
+
+
   inplace_input = True
   if inplace_input == True:
+
     # save current working dir
     p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
     pwd = p.stdout.split('\n')[0]
@@ -298,24 +307,32 @@ if __name__ == "__main__":
     # change dir to a folder under examples/
     # TODO: loop through the subfolders under examples/, depending on the installed packages
 
-    directory = "../../examples/melt"
-    print("Entering " + directory)
-    os.chdir(directory)
+    for directory in example_subfolders:
 
-    # create a symbolic link to the lammps binary at the present directory
-    cmd_str = "ln -s " + lmp_binary + " lmp"
-    os.system(cmd_str)
-    input_list=['in.melt']
-    
-    # iterate through the input scripts
-    iterate(input_list)
+      print("Entering " + directory)
+      os.chdir(directory)
 
-    # unlink the symbolic link
-    cmd_str = "unlink lmp"
-    os.system(cmd_str)
-    # get back to the working dir
-    cmd_str = "cd " + pwd
-    os.system(cmd_str)
+      # create a symbolic link to the lammps binary at the present directory
+      cmd_str = "ln -s " + lmp_binary + " lmp"
+      os.system(cmd_str)
+
+      cmd_str = "ls in.*"
+      p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+      input_list = p.stdout.split('\n')
+      input_list.remove('')
+
+      print("List of input scripts:")
+      print(input_list)
+      
+      # iterate through the input scripts
+      iterate(input_list)
+
+      # unlink the symbolic link
+      cmd_str = "unlink lmp"
+      os.system(cmd_str)
+      # get back to the working dir
+      cmd_str = "cd " + pwd
+      os.system(cmd_str)
 
   else:
     # or using the input scripts in the working directory

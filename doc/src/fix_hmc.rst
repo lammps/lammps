@@ -32,8 +32,8 @@ Description
 """""""""""
 This fix performs the the Hybrid/Hamiltonian Monte Carlo (HMC) algorithm in line with the following order of steps:
 
-The new particle positions and velocities are calculated by invoking the velocity-Verlet time integration algorithm.
-Before these position and velocity changes are performed, the proposed change in the Hamiltonian,
+The new particle configuration (positions and velocities) is calculated by invoking the velocity-Verlet time integration algorithm.
+Before these configuration changes are performed, the proposed change in the Hamiltonian,
 :math:`\Delta{H}`
 is calculated following the equation:
 
@@ -48,15 +48,15 @@ This new proposed configuration is then accepted/rejected according to the Metro
 
    p^{acc} = min(1,e^{\frac{-\Delta{H}}{k_B T}})
 
-Upon acceptance, the new particle configuration positions and velocities (momenta) are updated.
+Upon acceptance, the new proposed particle configuration positions and velocities are updated.
 
-Upon rejection, the old particle configuration is kept, and particle momenta are randomly resampled from a normal distribution:
+Upon rejection, the old particle configuration is kept, and particle momenta (and therefore velocities) are randomly resampled from a normal distribution:
 
 .. math::
 
    p_{x,y,z} = \textbf{N}(0,1) \sqrt{\frac{k_B T}{2 m^2}}
 
-The algorithm then continues, proposing a new MD step until a configuration is accepted.
+The algorithm then continues, proposing a new configuration of particles and velocities N integration steps later.
 
 Restrictions
 """"""""""""

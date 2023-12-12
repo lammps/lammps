@@ -22,8 +22,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<int SIZE, int TRIM>
-NPairSkipTemp<SIZE, TRIM>::NPairSkipTemp(LAMMPS *lmp) : NPair(lmp) {}
+template<int TRIM>
+NPairSkipTemp<TRIM>::NPairSkipTemp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
@@ -33,8 +33,8 @@ NPairSkipTemp<SIZE, TRIM>::NPairSkipTemp(LAMMPS *lmp) : NPair(lmp) {}
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-template<int SIZE, int TRIM>
-void NPairSkipTemp<SIZE, TRIM>::build(NeighList *list)
+template<int TRIM>
+void NPairSkipTemp<TRIM>::build(NeighList *list)
 {
   int i, j, ii, jj, n, itype, jnum, joriginal;
   int *neighptr, *jlist;
@@ -124,8 +124,6 @@ void NPairSkipTemp<SIZE, TRIM>::build(NeighList *list)
 }
 
 namespace LAMMPS_NS {
-template class NPairSkipTemp<0,0>;
-template class NPairSkipTemp<1,0>;
-template class NPairSkipTemp<0,1>;
-template class NPairSkipTemp<1,1>;
+template class NPairSkipTemp<0>;
+template class NPairSkipTemp<1>;
 }

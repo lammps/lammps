@@ -118,8 +118,7 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
-      // if same collection use own bin
-
+      // Use own bin for same collection
       if (icollection == jcollection) jbin = ibin;
       else jbin = coord2bin(x[i], jcollection);
 
@@ -129,34 +128,34 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
       for (k = 0; k < ns; k++) {
         js = binhead_multi[jcollection][jbin + s[k]];
 
-        // own-bin for half stencil
-        if (HALF && !TRI)
-          if (k == 0 && flag_half_multi[icollection][jcollection]) js = bins[i];
+        // For half-newton-ortho, first check self bin (k == 0, always half)
+        // if checking its own binlist, skip all before i in linked list
+        if (HALF && NEWTON && !TRI)
+          if ((k == 0) && (icollection == jcollection)) js = bins[i];
 
         for (j = js; j >= 0; j = bins[j]) {
           if (!HALF) {
-            // Full neighbor list
+            // Full neighbor list, only uses full stencils
             // only skip i = j
             if (i == j) continue;
           } else if (!NEWTON) {
-            // Half neighbor list, newton off
+            // Half neighbor list, newton off, only uses full stencils
             // only store pair if i < j
             // stores own/own pairs only once
             // stores own/ghost pairs on both procs
             if (j <= i) continue;
           } else if (TRI) {
-            // Half neighbor list, newton on, triclinic
-            // if same size (same collection), use half stencil
-            // Always have full stencil
-            // if same size (same collection), exclude half of interactions
-            //   stencil is empty if i larger than j
-            //   stencil is full if i smaller than j
-            //   stencil is full if i same size as j
-            // for i smaller than j:
-            //   must use itag/jtag to eliminate half the I/J interactions
-            //   cannot use I/J exact coord comparision
-            //     b/c transforming orthog -> lambda -> orthog for ghost atoms
-            //     with an added PBC offset can shift all 3 coords by epsilon
+            // Half neighbor list, newton on, triclinic, only uses full stencils
+            // If different sizes -> full stencil (accept all, one-way search)
+            // If same size -> half stencil, exclude half of interactions
+            //     stencil is empty if i larger than j
+            //     stencil is full if i smaller than j
+            //     stencil is full if i same size as j
+            //   for i smaller than j:
+            //     must use itag/jtag to eliminate half the I/J interactions
+            //     cannot use I/J exact coord comparision
+            //       b/c transforming orthog -> lambda -> orthog for ghost atoms
+            //   with an added PBC offset can shift all 3 coords by epsilon
 
             if (flag_same_multi[icollection][jcollection]) {
               if (j <= i) continue;
@@ -178,9 +177,10 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
               }
             }
           } else {
-            // Half neighbor list, newton on, orthonormal
-            // if same size: uses half stencil so includes a check of the central bin
-            if (k == 0 && flag_half_multi[icollection][jcollection]) {
+            // Half neighbor list, newton on, orthonormal, uses a mix of stencils
+            // If different sizes -> full stencil (accept all, one-way search)
+            // If same size -> half stencil (first includes a self bin search)
+            if (k == 0 && flag_same_multi[icollection][jcollection]) {
               // if same collection,
               //   if j is owned atom, store it, since j is beyond i in linked list
               //   if j is ghost, only store if j coords are "above and to the right" of i
@@ -217,14 +217,14 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
             if (ATOMONLY) {
               if (rsq <= cutsq) {
                 jh = j;
-                if (history && rsq < radsum * radsum)
+                if (history && rsq < (radsum * radsum))
                   jh = jh ^ mask_history;
                 neighptr[n++] = jh;
               }
             } else {
               if (rsq <= cutsq) {
                 jh = j;
-                if (history && rsq < radsum * radsum)
+                if (history && rsq < (radsum * radsum))
                   jh = jh ^ mask_history;
 
                 if (molecular != Atom::ATOMIC) {

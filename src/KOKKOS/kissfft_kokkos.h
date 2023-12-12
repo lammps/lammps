@@ -138,25 +138,25 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct kiss_fft_state_kokkos {
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_KOKKOS_AT;
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
   int nfft;
   int inverse;
-  typename FFT_KOKKOS_AT::t_int_64 d_factors;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d d_twiddles;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d d_scratch;
+  typename FFT_AT::t_int_64 d_factors;
+  typename FFT_AT::t_FFT_KOKKOS_DATA_1d d_twiddles;
+  typename FFT_AT::t_FFT_KOKKOS_DATA_1d d_scratch;
 };
 
 template<class DeviceType>
 class KissFFTKokkos {
  public:
   typedef DeviceType device_type;
-  typedef FFTArrayTypes<DeviceType> FFT_KOKKOS_AT;
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   KOKKOS_INLINE_FUNCTION
-  static void kf_bfly2(typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
+  static void kf_bfly2(typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
   {
-      typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
+      typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
       FFT_KOKKOS_SCALAR t[2];
       int Fout2_count;
       int tw1_count = 0;
@@ -179,10 +179,10 @@ class KissFFTKokkos {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kf_bfly4(typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
+  static void kf_bfly4(typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, const size_t m, int Fout_count)
   {
-      typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
+      typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
       FFT_KOKKOS_SCALAR scratch[6][2];
       size_t k=m;
       const size_t m2=2*m;
@@ -237,12 +237,12 @@ class KissFFTKokkos {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kf_bfly3(typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
+  static void kf_bfly3(typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, size_t m, int Fout_count)
   {
       size_t k=m;
       const size_t m2 = 2*m;
-      typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
+      typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
       FFT_KOKKOS_SCALAR scratch[5][2];
       FFT_KOKKOS_SCALAR epi3[2];
       //C_EQ(epi3,d_twiddles[fstride*m]);
@@ -289,12 +289,12 @@ class KissFFTKokkos {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kf_bfly5(typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
+  static void kf_bfly5(typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
   {
       int u;
       FFT_KOKKOS_SCALAR scratch[13][2];
-      typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
+      typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
       FFT_KOKKOS_SCALAR ya[2],yb[2];
       //C_EQ(ya,d_twiddles[fstride*m]);
       ya[1] = d_twiddles(fstride*m).im;
@@ -369,15 +369,15 @@ class KissFFTKokkos {
   /* perform the butterfly for one stage of a mixed radix FFT */
 
   KOKKOS_INLINE_FUNCTION
-  static void kf_bfly_generic(typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
+  static void kf_bfly_generic(typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const size_t fstride,
                               const kiss_fft_state_kokkos<DeviceType> &st, int m, int p, int Fout_count)
   {
       int u,k,q1,q;
-      typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
+      typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_twiddles = st.d_twiddles;
       FFT_KOKKOS_SCALAR t[2];
       int Norig = st.nfft;
 
-      typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_scratch = st.d_scratch;
+      typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_scratch = st.d_scratch;
       for ( u=0; u<m; ++u ) {
           k=u;
           for ( q1=0 ; q1<p ; ++q1 ) {
@@ -408,9 +408,9 @@ class KissFFTKokkos {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kf_work(typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_f,
+  static void kf_work(typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_Fout, const typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_f,
                       const size_t fstride, int in_stride,
-                      const typename FFT_KOKKOS_AT::t_int_64_um &d_factors, const kiss_fft_state_kokkos<DeviceType> &st, int Fout_count, int f_count, int factors_count)
+                      const typename FFT_AT::t_int_64_um &d_factors, const kiss_fft_state_kokkos<DeviceType> &st, int Fout_count, int f_count, int factors_count)
   {
       const int beg = Fout_count;
       const int p = d_factors[factors_count++]; /* the radix  */
@@ -496,12 +496,12 @@ class KissFFTKokkos {
       st.nfft = nfft;
       st.inverse = inverse_fft;
 
-      typename FFT_KOKKOS_AT::tdual_int_64 k_factors = typename FFT_KOKKOS_AT::tdual_int_64();
-      typename FFT_KOKKOS_AT::tdual_FFT_KOKKOS_DATA_1d k_twiddles = typename FFT_KOKKOS_AT::tdual_FFT_KOKKOS_DATA_1d();
+      typename FFT_AT::tdual_int_64 k_factors = typename FFT_AT::tdual_int_64();
+      typename FFT_AT::tdual_FFT_KOKKOS_DATA_1d k_twiddles = typename FFT_AT::tdual_FFT_KOKKOS_DATA_1d();
 
       if (nfft > 0) {
-          k_factors = typename FFT_KOKKOS_AT::tdual_int_64("kissfft:factors",MAXFACTORS*2);
-          k_twiddles = typename FFT_KOKKOS_AT::tdual_FFT_KOKKOS_DATA_1d("kissfft:twiddles",nfft);
+          k_factors = typename FFT_AT::tdual_int_64("kissfft:factors",MAXFACTORS*2);
+          k_twiddles = typename FFT_AT::tdual_FFT_KOKKOS_DATA_1d("kissfft:twiddles",nfft);
 
           for (i=0;i<nfft;++i) {
               const double phase = (st.inverse ? 2.0*M_PI:-2.0*M_PI)*i / nfft;
@@ -509,7 +509,7 @@ class KissFFTKokkos {
           }
 
           int p_max = kf_factor(nfft,k_factors.h_view);
-          st.d_scratch = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d("kissfft:scratch",p_max);
+          st.d_scratch = typename FFT_AT::t_FFT_KOKKOS_DATA_1d("kissfft:scratch",p_max);
       }
 
       k_factors.template modify<LMPHostType>();
@@ -524,12 +524,12 @@ class KissFFTKokkos {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kiss_fft_stride(const kiss_fft_state_kokkos<DeviceType> &st, const typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_fin, typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um &d_fout, int in_stride, int offset)
+  static void kiss_fft_stride(const kiss_fft_state_kokkos<DeviceType> &st, const typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_fin, typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um &d_fout, int in_stride, int offset)
   {
       //if (d_fin.data() == d_fout.data()) {
       //    // NOTE: this is not really an in-place FFT algorithm.
       //    // It just performs an out-of-place FFT into a temp buffer
-      //    typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_tmpbuf = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d("kissfft:tmpbuf",d_fin.extent(1));
+      //    typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_tmpbuf = typename FFT_AT::t_FFT_KOKKOS_DATA_1d("kissfft:tmpbuf",d_fin.extent(1));
       //    kf_work(d_tmpbuf,d_fin,1,in_stride,st.d_factors,st,offset,offset).re;
       //    Kokkos::deep_copy(d_fout,d_tmpbuf);
       //} else {
@@ -538,7 +538,7 @@ class KissFFTKokkos {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void kiss_fft_kokkos(const kiss_fft_state_kokkos<DeviceType> &cfg, const typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_fin, typename FFT_KOKKOS_AT::t_FFT_KOKKOS_DATA_1d_um d_fout, int offset)
+  static void kiss_fft_kokkos(const kiss_fft_state_kokkos<DeviceType> &cfg, const typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_fin, typename FFT_AT::t_FFT_KOKKOS_DATA_1d_um d_fout, int offset)
   {
       kiss_fft_stride(cfg,d_fin,d_fout,1,offset);
   }

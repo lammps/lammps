@@ -582,7 +582,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     nmax = atomKK->nmax;
     d_part2grid = typename AT::t_int_1d_3("pppm:part2grid",nmax);
-    d_rho1d = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
+    d_rho1d = typename FFT_AT::t_FFT_KOKKOS_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
   }
 
   // find grid points for all my particles
@@ -753,7 +753,7 @@ void PPPMKokkos<DeviceType>::allocate()
 
   // allocate distributed grid data
 
-  d_density_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:density_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_density_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:density_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
   memoryKK->create_kokkos(k_density_fft,density_fft,nfft_both,"pppm:d_density_fft");
   d_density_fft = k_density_fft.view<DeviceType>();
@@ -775,16 +775,16 @@ void PPPMKokkos<DeviceType>::allocate()
     d_fkz = typename AT::t_float_1d("pppm:d_fkz",nfft_both);
   }
 
-  d_vdx_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_vdx_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_vdy_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_vdy_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_vdz_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_vdz_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_vdx_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_vdx_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_vdy_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_vdy_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_vdz_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_vdz_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
   // summation coeffs
 
   order_allocated = order;
   k_gf_b = typename DAT::tdual_float_1d("pppm:gf_b",order);
   d_gf_b = k_gf_b.view<DeviceType>();
-  d_rho1d = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
+  d_rho1d = typename FFT_AT::t_FFT_KOKKOS_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
   k_rho_coeff = FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_2d("pppm:rho_coeff",order,order/2-(1-order)/2+1);
   d_rho_coeff = k_rho_coeff.view<DeviceType>();
   h_rho_coeff = k_rho_coeff.h_view;
@@ -847,14 +847,14 @@ void PPPMKokkos<DeviceType>::allocate_peratom()
 {
   peratom_allocate_flag = 1;
 
-  d_u_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:u_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_u_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:u_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
-  d_v0_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v0_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v1_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v1_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v2_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v2_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v3_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v3_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v4_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v4_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
-  d_v5_brick = typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v5_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v0_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v0_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v1_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v1_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v2_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v2_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v3_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v3_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v4_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v4_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
+  d_v5_brick = typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d("pppm:d_v5_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
 
   // use same GC ghost grid object for peratom grid communication

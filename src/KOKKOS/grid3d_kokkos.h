@@ -27,7 +27,7 @@ class Grid3dKokkos : public Grid3d {
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typedef FFTArrayTypes<DeviceType> FFT_KOKKOS_AT;
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
   Grid3dKokkos(class LAMMPS *, MPI_Comm, int, int, int);
   Grid3dKokkos(class LAMMPS *, MPI_Comm, int, int, int,
          int, int, int, int, int, int, int, int, int, int, int, int);

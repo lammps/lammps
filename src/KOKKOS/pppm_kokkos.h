@@ -131,7 +131,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typedef FFTArrayTypes<DeviceType> FFT_KOKKOS_AT;
+  typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   PPPMKokkos(class LAMMPS *);
   ~PPPMKokkos() override;
@@ -350,7 +350,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   int nx,ny,nz;
   typename AT::t_int_1d_um d_list_index;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf;
   int unpack_offset;
 
   DAT::tdual_int_scalar k_flag;
@@ -364,11 +364,11 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d d_density_brick;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d d_u_brick;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d d_v0_brick,d_v1_brick,d_v2_brick;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_3d d_v3_brick,d_v4_brick,d_v5_brick;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d d_density_brick;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d d_u_brick;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d d_v0_brick,d_v1_brick,d_v2_brick;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_3d d_v3_brick,d_v4_brick,d_v5_brick;
   typename AT::t_float_1d d_greensfn;
   typename AT::t_virial_array d_vg;
   typename AT::t_float_1d d_fkx;
@@ -377,17 +377,17 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d k_density_fft;
   FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d k_work1;
   FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d k_work2;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_1d d_density_fft;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_1d d_work1;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_1d d_work2;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_density_fft;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_work1;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_work2;
 
   DAT::tdual_float_1d k_gf_b;
   typename AT::t_float_1d d_gf_b;
 
   //FFT_KOKKOS_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_2d_3 d_rho1d;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_2d_3 d_rho1d;
   FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_2d k_rho_coeff;
-  typename FFT_KOKKOS_AT::t_FFT_KOKKOS_SCALAR_2d d_rho_coeff;
+  typename FFT_AT::t_FFT_KOKKOS_SCALAR_2d d_rho_coeff;
   FFT_KOKKOS_HAT::t_FFT_KOKKOS_SCALAR_2d h_rho_coeff;
   //double **acons;
   typename Kokkos::DualView<F_FLOAT[8][7],Kokkos::LayoutRight,DeviceType>::t_host acons;

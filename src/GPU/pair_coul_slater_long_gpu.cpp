@@ -183,9 +183,8 @@ double PairCoulSlaterLongGPU::memory_usage()
 void PairCoulSlaterLongGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
                                   int *numneigh, int **firstneigh)
 {
-  int i, j, ii, jj, jnum, itable;
+  int i, j, ii, jj, jnum;
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, ecoul, fpair;
-  double fraction, table;
   double r, r2inv, forcecoul, factor_coul;
   double grij, expm2, prefactor, t, erfc;
   int *jlist;

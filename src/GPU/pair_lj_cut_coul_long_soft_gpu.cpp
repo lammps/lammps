@@ -201,9 +201,9 @@ double PairLJCutCoulLongSoftGPU::memory_usage()
 void PairLJCutCoulLongSoftGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
                                        int *numneigh, int **firstneigh)
 {
-  int i, j, ii, jj, jnum, itype, jtype, itable;
+  int i, j, ii, jj, jnum, itype, jtype;
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
-  double r, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
+  double r, r2inv, forcecoul, forcelj, factor_coul, factor_lj;
   double denc, denlj, r4sig6;
   double grij, expm2, prefactor, t, erfc;
   int *jlist;

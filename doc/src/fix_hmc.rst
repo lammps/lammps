@@ -73,7 +73,7 @@ Related commands
 Default
 """""""
 
-none
+The option default is mom = yes
 
 ----------
 

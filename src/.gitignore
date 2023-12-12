@@ -100,6 +100,8 @@
 /lepton_utils.cpp
 /lepton_utils.h
 
+/compute_pace.cpp
+/compute_pace.h
 /pair_pace.cpp
 /pair_pace.h
 /pair_pace_extrapolation.cpp

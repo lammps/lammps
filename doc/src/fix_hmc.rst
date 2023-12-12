@@ -9,11 +9,10 @@ Syntax
 
    fix ID group-ID hmc N seed temp integrator
 
-* ID = user-assigned name for the fix
-* group-ID = ID of the group of atoms to apply the fix to
+* ID, group-ID are documented in :doc:`fix <fix>` command
 * hmc = style name of this fix command
-* N = number of integrator timesteps between HMC evaluations
-* seed = random number seed
+* N = invoke this fix every N steps
+* seed = random # seed (positive integer)
 * temp = temperature for assigning velocities
 * integrator = integrator fix: flexible (for nve) or rigid (for rigid/small)
 
@@ -27,14 +26,14 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all hmc 10 123 500 flexible
-   fix hmc_water water 100 123 298.15 rigid
+   fix hmc_water water hmc 100 123 298.15 rigid
 
 Description
 """""""""""
-Perform the the Hybrid/Hamiltonian Monte Carlo (HMC) algorithm in line with the following order of steps:
+This fix performs the the Hybrid/Hamiltonian Monte Carlo (HMC) algorithm in line with the following order of steps:
 
-The new particle positions and velocities are calculated by invoking the velocity form of the Stoermer-Verlet time integration algorithm (velocity-Verlet).
-Before these position and velocity changes are performed, the proposed change in the Hamiltonian
+The new particle positions and velocities are calculated by invoking the velocity-Verlet time integration algorithm.
+Before these position and velocity changes are performed, the proposed change in the Hamiltonian,
 :math:`\Delta{H}`
 is calculated following the equation:
 
@@ -43,26 +42,33 @@ is calculated following the equation:
    \Delta{H} = H(q′,p′) - H(q,p)
 
 
-This new proposed configuration is then accepted/rejected with the probability:
+This new proposed configuration is then accepted/rejected according to the Metropolis criterion with probability:
 
 .. math::
 
    p^{acc} = min(1,e^{\frac{-\Delta{H}}{k_B T}})
 
-If the configuration is accepted, the positions and velocities are updated.
+Upon acceptance, the new particle configuration positions and velocities (momenta) are updated.
 
-If the configuration is rejected, particle momenta are randomly resampled from a normal distribution:
+Upon rejection, the old particle configuration is kept, and particle momenta are randomly resampled from a normal distribution:
 
 .. math::
 
    p_{x,y,z} = \textbf{N}(0,1) \sqrt{\frac{k_B T}{2 m^2}}
 
-the simulation is then continued, where a new MD step is proposed, and the procedure is repeated.
+The algorithm then continues, proposing a new MD step until a configuration is accepted.
+
+Restrictions
+""""""""""""
+
+This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
 
 Related commands
 """"""""""""""""
 
-fix tfmc, fix gcmc, fix nve
+:doc:`fix nvt <fix_nh>`, :doc:`fix gcmc <fix_gcmc>`, :doc:`fix tfmc <fix_tfmc>`
 
 Default
 """""""

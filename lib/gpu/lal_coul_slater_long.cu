@@ -114,7 +114,9 @@ __kernel void k_coul_slater_long(const __global numtyp4 *restrict x_,
 
         if (EVFLAG && eflag) {
           numtyp e_slater = ((numtyp)1.0 + rlamdainv)*ucl_exp((numtyp)-2.0*rlamdainv);
-          e_coul += prefactor*(_erfc-e_slater-factor_coul);
+          numtyp e = prefactor*(_erfc-e_slater);
+          if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
+          e_coul += e;
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -222,7 +224,9 @@ __kernel void k_coul_slater_long_fast(const __global numtyp4 *restrict x_,
 
         if (EVFLAG && eflag) {
           numtyp e_slater = ((numtyp)1.0 + rlamdainv)*ucl_exp((numtyp)-2.0*rlamdainv);
-          e_coul += prefactor*(_erfc-e_slater-factor_coul);
+          numtyp e = prefactor*(_erfc-e_slater);
+          if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
+          e_coul += e;
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;

@@ -103,7 +103,8 @@ __kernel void k_coul_slater_long(const __global numtyp4 *restrict x_,
         _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
         fetch(prefactor,j,q_tex);
         numtyp rlamdainv = r * lamdainv;
-        numtyp slater_term = ucl_exp(-(numtyp)2.0*rlamdainv)*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
+        numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
+        numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
         force = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
         if (factor_coul > (numtyp)0) force -= factor_coul*prefactor*((numtyp)1.0-slater_term);
         force *= r2inv;
@@ -113,7 +114,7 @@ __kernel void k_coul_slater_long(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e_slater = ((numtyp)1.0 + rlamdainv)*ucl_exp((numtyp)-2.0*rlamdainv);
+          numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
           numtyp e = prefactor*(_erfc-e_slater);
           if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
           e_coul += e;
@@ -213,7 +214,8 @@ __kernel void k_coul_slater_long_fast(const __global numtyp4 *restrict x_,
         fetch(prefactor,j,q_tex);
         prefactor *= qqrd2e * scale[mtype] * qtmp/r;
         numtyp rlamdainv = r * lamdainv;
-        numtyp slater_term = ucl_exp((numtyp)-2.0*rlamdainv)*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
+        numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
+        numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
         force = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
         if (factor_coul > (numtyp)0) force -= factor_coul*prefactor*((numtyp)1.0-slater_term);
         force *= r2inv;
@@ -223,7 +225,7 @@ __kernel void k_coul_slater_long_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e_slater = ((numtyp)1.0 + rlamdainv)*ucl_exp((numtyp)-2.0*rlamdainv);
+          numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
           numtyp e = prefactor*(_erfc-e_slater);
           if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
           e_coul += e;

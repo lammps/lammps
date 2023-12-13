@@ -382,6 +382,7 @@ void ComputeSLCSAAtom::compute_peratom()
   memory->destroy(scores);
   memory->destroy(probas);
   memory->destroy(prodright);
+  memory->destroy(dmaha);
 }
 
 int ComputeSLCSAAtom::compute_ncomps(int twojmax)

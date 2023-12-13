@@ -55,12 +55,7 @@ class FixHMC : public Fix {
   void tune_parameter(int *, const char *);
   void save_current_state();
   void restore_saved_state();
-  void atom_positions(double **);
   void random_velocities();
-  void rigid_body_atom_positions(double **);
-  void rigid_body_restore_positions(double **);
-  void rigid_body_restore_orientations();
-  void rigid_body_restore_forces();
   void rigid_body_random_velocities();
   template <typename T>
   void store_peratom_member(Atom::PerAtom&, Atom::PerAtom, int);
@@ -95,16 +90,6 @@ class FixHMC : public Fix {
 
   class RanPark *random;
   class RanPark *random_equal;
-  double **xu;
-  double **deltax;
-
-  int nscal;
-  double **scal;
-  double ***scalptr;
-
-  int nvec;
-  double ***vec;
-  double ****vecptr;
 
   int ne;
   int *rev_comm;

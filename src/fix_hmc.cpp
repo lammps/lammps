@@ -56,6 +56,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
 {
   // set defaults
   mom_flag = 1;
+  resample_on_accept_flag = 0;
   if (narg < 7) error->all(FLERR, "Illegal fix hmc command");
 
   // Retrieve user-defined options:

@@ -492,28 +492,6 @@ void FixHMC::init()
 {
   int ntimestep = update->ntimestep;
 
-  // Check conformance of run length:
-  //tune_parameter( &update->nsteps, "number of steps of the run" );
-  //update->laststep = ntimestep + update->nsteps;
-
-  // Check conformance of thermo interval:
-  //if (output->var_thermo)
-  //  error->all(FLERR,"fix HMC does not allow a variable thermo interval");
-  //else if (output->thermo_every)
-  //  tune_parameter( &output->thermo_every, "thermo interval" );
-
-  // Check conformance of restart interval:
-  if (output->restart_flag) {
-    if (output->restart_flag_single)
-      tune_parameter( &output->restart_every_single, "restart interval" );
-    if (output->restart_flag_double)
-      tune_parameter( &output->restart_every_double, "restart interval" );
-  }
-
-  // Check conformance of dump interval:
-  //for (int i = 0; i < output->ndump; i++)
-  //  tune_parameter( &output->every_dump[i], "dump interval" );
-
   // Check whether there is any fixes that change box size and/or shape:
   for (int i = 0; i < modify->nfix; i++) {
     if (modify->fix[i]->box_change)
@@ -643,11 +621,13 @@ void FixHMC::end_of_step()
   }
 
   // Choose new velocities and compute kinetic energy:
-  if (rigid_flag)
-    rigid_body_random_velocities();
-  else
-    random_velocities();
-  KE = ke->compute_scalar();
+  if (~accept) {
+    if (rigid_flag)
+      rigid_body_random_velocities();
+    else
+      random_velocities();
+    KE = ke->compute_scalar();
+  }
 
   // Activate potential energy and other necessary calculations:
   int nextstep = update->ntimestep + nevery;

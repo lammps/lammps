@@ -43,7 +43,7 @@ int ljcs_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   int gpu_rank=LJCSMF.device->gpu_rank();
   int procs_per_gpu=LJCSMF.device->procs_per_gpu();
 
-  LJCSMF.device->init_message(screen,"lj/cut/coul/cut",first_gpu,last_gpu);
+  LJCSMF.device->init_message(screen,"lj/cut/coul/cut/soft",first_gpu,last_gpu);
 
   bool message=false;
   if (LJCSMF.device->replica_me()==0 && screen)

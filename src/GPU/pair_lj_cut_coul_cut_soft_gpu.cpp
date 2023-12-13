@@ -110,6 +110,8 @@ void PairLJCutCoulCutSoftGPU::compute(int eflag, int vflag)
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
   if (host_start < inum) {
     cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
@@ -227,13 +229,11 @@ void PairLJCutCoulCutSoftGPU::cpu_compute(int start, int inum, int eflag, int /*
         f[i][1] += dely * fpair;
         f[i][2] += delz * fpair;
 
-
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype])
             ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
           else
             ecoul = 0.0;
-
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];

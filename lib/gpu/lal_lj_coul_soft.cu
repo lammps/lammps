@@ -225,7 +225,7 @@ __kernel void k_lj_coul_soft_fast(const __global numtyp4 *restrict x_,
         numtyp forcecoul, force_lj, force;
         numtyp r4sig6, denlj, denc;
 
-        if (rsq < lj1[mtype].z) {
+        if (rsq < lj1[mtype].z) { // cut_ljsq[itype][jtype]
           r4sig6 = rsq*rsq / lj1[mtype].y;
           denlj = lj3[mtype].x + rsq*r4sig6;
           force_lj = lj1[mtype].x * lj3[mtype].w *
@@ -234,7 +234,7 @@ __kernel void k_lj_coul_soft_fast(const __global numtyp4 *restrict x_,
         } else
           force_lj = (numtyp)0.0;
 
-        if (rsq < lj1[mtype].w) {
+        if (rsq < lj1[mtype].w) { // cut_coulsq[itype][jtype]
           fetch(forcecoul,j,q_tex);
           denc = sqrt(lj3[mtype].y + rsq);
           forcecoul *= qqrd2e * lj1[mtype].x * qtmp / (denc*denc*denc);

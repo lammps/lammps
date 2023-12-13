@@ -56,7 +56,7 @@ int LJCoulSoftT::init(const int ntypes,
                           double *host_special_coul, const double qqrd2e) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,lj_coul_soft,"lj_coul_soft");
+                            _screen,lj_coul_soft,"k_lj_coul_soft");
   if (success!=0)
     return success;
 

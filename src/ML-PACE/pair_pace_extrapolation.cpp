@@ -93,11 +93,14 @@ PairPACEExtrapolation::PairPACEExtrapolation(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
 
   nmax = 0;
+  nmax_corerep = 0;
 
   aceimpl = new ACEALImpl;
   scale = nullptr;
   flag_compute_extrapolation_grade = 0;
   extrapolation_grade_gamma = nullptr;
+  flag_corerep_factor = 0;
+  corerep_factor = nullptr;
 
   chunksize = 4096;
 }
@@ -118,6 +121,7 @@ PairPACEExtrapolation::~PairPACEExtrapolation()
     memory->destroy(scale);
     memory->destroy(map);
     memory->destroy(extrapolation_grade_gamma);
+    memory->destroy(corerep_factor);
   }
 }
 
@@ -166,11 +170,18 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
     //zeroify array
     memset(extrapolation_grade_gamma, 0, nmax * sizeof(*extrapolation_grade_gamma));
   }
+  if (flag_corerep_factor && atom->nlocal > nmax_corerep) {
+    memory->destroy(corerep_factor);
+    nmax_corerep = atom->nlocal;
+    memory->create(corerep_factor, nmax_corerep, "pace/atom:corerep_factor");
+    //zeroify array
+    memset(corerep_factor, 0, nmax_corerep * sizeof(*corerep_factor));
+  }
 
   //determine the maximum number of neighbours
   int max_jnum = 0;
   int nei = 0;
-  for (ii = 0; ii < list->inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     jnum = numneigh[i];
     nei = nei + jnum;
@@ -183,7 +194,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
     aceimpl->rec_ace->resize_neighbours_cache(max_jnum);
 
   //loop over atoms
-  for (ii = 0; ii < list->inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = list->ilist[ii];
     const int itype = type[i];
 
@@ -215,6 +226,11 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
 
     if (flag_compute_extrapolation_grade)
       extrapolation_grade_gamma[i] = aceimpl->ace->max_gamma_grade;
+
+    if (flag_corerep_factor) {
+      corerep_factor[i] = 1 - (flag_compute_extrapolation_grade ? aceimpl->ace->ace_fcut
+                              : aceimpl->rec_ace->ace_fcut);
+    }
 
     Array2D<DOUBLE_TYPE> &neighbours_forces =
         (flag_compute_extrapolation_grade ? aceimpl->ace->neighbours_forces
@@ -437,9 +453,11 @@ double PairPACEExtrapolation::init_one(int i, int j)
  ---------------------------------------------------------------------- */
 void *PairPACEExtrapolation::extract(const char *str, int &dim)
 {
-  //check if str=="gamma_flag" then compute extrapolation grades on this iteration
   dim = 0;
+  //check if str=="gamma_flag" then compute extrapolation grades on this iteration
   if (strcmp(str, "gamma_flag") == 0) return (void *) &flag_compute_extrapolation_grade;
+  //check if str=="corerep_flag" then compute extrapolation grades on this iteration
+  if (strcmp(str, "corerep_flag") == 0) return (void *) &flag_corerep_factor;
 
   dim = 2;
   if (strcmp(str, "scale") == 0) return (void *) scale;
@@ -459,6 +477,11 @@ void *PairPACEExtrapolation::extract_peratom(const char *str, int &ncol)
   if (strcmp(str, "gamma") == 0) {
     ncol = 0;
     return (void *) extrapolation_grade_gamma;
+  }
+
+  if (strcmp(str, "corerep") == 0) {
+    ncol = 0;
+    return (void *) corerep_factor;
   }
 
   return nullptr;

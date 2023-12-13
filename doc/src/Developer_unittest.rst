@@ -274,9 +274,7 @@ Tests for using the Fortran module are in the ``unittest/fortran``
 folder.  Since they are also using the GoogleTest library, they require
 to also implement test wrappers in C++ that will call fortran functions
 which provide a C function interface through ISO_C_BINDINGS that will in
-turn call the functions in the LAMMPS Fortran module.  This part of the
-unit tests is incomplete since the Fortran module it is based on is
-incomplete as well.
+turn call the functions in the LAMMPS Fortran module.
 
 Tests for the C++-style library interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -397,10 +395,10 @@ compare with the reference and also start from the data file.  A final
 check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
 run with multiple test fixtures for accelerated styles (OPT, OPENMP,
-INTEL) and for the latter two with 4 OpenMP threads enabled.  For
-these tests the relative error (epsilon) is lowered by a common factor
-due to the additional numerical noise, but the tests are still comparing
-to the same reference data.
+INTEL, KOKKOS (OpenMP only)) and for the latter three with 4 OpenMP
+threads enabled.  For these tests the relative error (epsilon) is lowered
+by a common factor due to the additional numerical noise, but the tests
+are still comparing to the same reference data.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests
@@ -434,17 +432,19 @@ The ``test_pair_style`` tester is used with 4 categories of test inputs:
   pair style is defined, but the computation of the pair style contributions
   is disabled.
 
-The ``test_bond_style`` and ``test_angle_style`` are set up in a similar
-fashion and share support functions with the pair style tester.  The final
-group of tests in this section is for fix styles that add/manipulate forces
-and velocities, e.g. for time integration, thermostats and more.
+The ``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``, and
+``test_improper_style`` tester programs are set up in a similar fashion and
+share support functions with the pair style tester.  The final group of
+tests in this section is for fix styles that add/manipulate forces and
+velocities, e.g. for time integration, thermostats and more.
 
-Adding a new test is easiest done by copying and modifying an existing test
-for a style that is similar to one to be tested.  The file name should follow
-the naming conventions described above and after copying the file, the first
-step is to replace the style names where needed.  The coefficient values
-do not have to be meaningful, just in a reasonable range for the given system.
-It does not matter if some forces are large, for as long as they do not diverge.
+Adding a new test is easiest done by copying and modifying an existing YAML
+file for a style that is similar to one to be tested.  The file name should
+follow the naming conventions described above and after copying the file,
+the first step is to replace the style names where needed.  The coefficient
+values do not have to be meaningful, just in a reasonable range for the
+given system.  It does not matter if some forces are large, for as long as
+they do not diverge.
 
 The template input files define a large number of index variables at the top
 that can be modified inside the YAML file to control the behavior.  For example,
@@ -472,7 +472,7 @@ Note that this disables computing the kspace contribution, but still will run
 the setup.  The "gewald" parameter should be set explicitly to speed up the run.
 For styles with long-range electrostatics, typically two tests are added one using
 the (slower) analytic approximation of the erfc() function and the other using
-the tabulated coulomb, to test both code paths. The reference results in the YAML
+the tabulated coulomb, to test both code paths.  The reference results in the YAML
 files then should be compared manually, if they agree well enough within the limits
 of those two approximations.
 

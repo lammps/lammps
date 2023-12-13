@@ -39,7 +39,11 @@ static int compare_IDs(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), elements(nullptr), pair_coul(nullptr), qmIDs(nullptr), qm2owned(nullptr),
+    eqm(nullptr), eqm_mine(nullptr), tqm(nullptr), tqm_mine(nullptr), xqm(nullptr),
+    xqm_mine(nullptr), qqm(nullptr), qqm_mine(nullptr), qpotential(nullptr),
+    qpotential_mine(nullptr), fqm(nullptr), ecoul(nullptr)
 {
   // check requirements for LAMMPS to work with MDI for a QMMM engine
   // atom IDs do not need to be consecutive
@@ -48,6 +52,18 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR, "Fix mdi/qmmm requires an atom map be defined");
+
+  // initialize class members
+
+  plugin = 0;
+  maxlocal = 0;
+  natoms_exists = 0;
+  celldispl_exists = 0;
+  elements_exists = 0;
+  types_exists = 0;
+  stress_exists = 0;
+  pe_exists = 0;
+  keelec_exists = 0;
 
   // confirm LAMMPS is being run as a driver
 
@@ -69,7 +85,6 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   virialflag = 0;
   connectflag = 1;
-  elements = nullptr;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -1782,9 +1797,8 @@ void FixMDIQMMM::send_box()
     ierr = MDI_Send(qm_cell, 9, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >CELL data");
 
-  } else if (domain->xperiodic == 1 || domain->yperiodic == 1 ||
-             domain->zperiodic == 1) {
-    error->all(FLERR,"MDI requires fully periodic or fully non-periodic system");
+  } else if (domain->xperiodic == 1 || domain->yperiodic == 1 || domain->zperiodic == 1) {
+    error->all(FLERR, "MDI requires fully periodic or fully non-periodic system");
   }
 }
 

@@ -1199,6 +1199,10 @@ bool Info::has_accelerator_feature(const std::string &package,
   return false;
 }
 
+#if defined(LMP_INTEL)
+#include "intel_preprocess.h"
+#endif
+
 std::string Info::get_accelerator_info(const std::string &package)
 {
   std::string mesg;
@@ -1252,6 +1256,11 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
     if (has_accelerator_feature("INTEL","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("INTEL","precision","double")) mesg += " double";
+#if defined(LMP_SIMD_COMPILER)
+    mesg += "\nINTEL package SIMD: enabled";
+#else
+    mesg += "\nINTEL package SIMD: not enabled";
+#endif
     mesg += "\n";
   }
   return mesg;

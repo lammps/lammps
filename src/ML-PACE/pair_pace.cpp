@@ -45,6 +45,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "ace-evaluator/ace_evaluator.h"
 #include "ace-evaluator/ace_recursive.h"
 #include "ace-evaluator/ace_version.h"
+#include "ace/ace_b_basis.h"
 
 namespace LAMMPS_NS {
 struct ACEImpl {
@@ -87,6 +88,10 @@ PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
 
+  nmax_corerep = 0;
+  flag_corerep_factor = 0;
+  corerep_factor = nullptr;
+
   aceimpl = new ACEImpl;
   recursive = false;
 
@@ -109,6 +114,7 @@ PairPACE::~PairPACE()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(scale);
+    memory->destroy(corerep_factor);
   }
 }
 
@@ -143,10 +149,18 @@ void PairPACE::compute(int eflag, int vflag)
   // the pointer to the list of neighbors of "i"
   firstneigh = list->firstneigh;
 
+  if (flag_corerep_factor && atom->nlocal > nmax_corerep) {
+    memory->destroy(corerep_factor);
+    nmax_corerep = atom->nlocal;
+    memory->create(corerep_factor, nmax_corerep, "pace/atom:corerep_factor");
+    //zeroify array
+    memset(corerep_factor, 0, nmax_corerep * sizeof(*corerep_factor));
+  }
+
   //determine the maximum number of neighbours
   int max_jnum = 0;
   int nei = 0;
-  for (ii = 0; ii < list->inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     jnum = numneigh[i];
     nei = nei + jnum;
@@ -156,7 +170,7 @@ void PairPACE::compute(int eflag, int vflag)
   aceimpl->ace->resize_neighbours_cache(max_jnum);
 
   //loop over atoms
-  for (ii = 0; ii < list->inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = list->ilist[ii];
     const int itype = type[i];
 
@@ -180,6 +194,9 @@ void PairPACE::compute(int eflag, int vflag)
     } catch (std::exception &e) {
       error->one(FLERR, e.what());
     }
+
+    if (flag_corerep_factor)
+      corerep_factor[i] = 1 - aceimpl->ace->ace_fcut;
 
     // 'compute_atom' will update the `aceimpl->ace->e_atom` and `aceimpl->ace->neighbours_forces(jj, alpha)` arrays
 
@@ -287,7 +304,14 @@ void PairPACE::coeff(int narg, char **arg)
   //load potential file
   delete aceimpl->basis_set;
   if (comm->me == 0) utils::logmesg(lmp, "Loading {}\n", potential_file_name);
-  aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+  // if potential is in ACEBBasisSet (YAML) format, then convert to ACECTildeBasisSet automatically
+  if (utils::strmatch(potential_file_name,".*\\.yaml$")) {
+    ACEBBasisSet bBasisSet = ACEBBasisSet(potential_file_name);
+    ACECTildeBasisSet cTildeBasisSet = bBasisSet.to_ACECTildeBasisSet();
+    aceimpl->basis_set = new ACECTildeBasisSet(cTildeBasisSet);
+  } else {
+      aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+  }
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "Total number of basis functions\n");
@@ -374,7 +398,29 @@ double PairPACE::init_one(int i, int j)
  ---------------------------------------------------------------------- */
 void *PairPACE::extract(const char *str, int &dim)
 {
+  dim = 0;
+  //check if str=="corerep_flag" then compute extrapolation grades on this iteration
+  if (strcmp(str, "corerep_flag") == 0) return (void *) &flag_corerep_factor;
+
   dim = 2;
   if (strcmp(str, "scale") == 0) return (void *) scale;
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   peratom requests from FixPair
+   return ptr to requested data
+   also return ncol = # of quantites per atom
+     0 = per-atom vector
+     1 or more = # of columns in per-atom array
+   return NULL if str is not recognized
+---------------------------------------------------------------------- */
+void *PairPACE::extract_peratom(const char *str, int &ncol)
+{
+  if (strcmp(str, "corerep") == 0) {
+    ncol = 0;
+    return (void *) corerep_factor;
+  }
+
   return nullptr;
 }

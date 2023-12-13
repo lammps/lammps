@@ -74,6 +74,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   vector_flag = 1;
   size_vector = 5;
   ecouple_flag = 1;
+  energy_global_flag = 1;
 
   qmass = 1.0e1;
   mu = 0.0;

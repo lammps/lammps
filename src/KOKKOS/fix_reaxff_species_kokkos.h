@@ -16,9 +16,6 @@
 FixStyle(reaxff/species/kk,FixReaxFFSpeciesKokkos);
 FixStyle(reaxff/species/kk/device,FixReaxFFSpeciesKokkos);
 FixStyle(reaxff/species/kk/host,FixReaxFFSpeciesKokkos);
-FixStyle(reax/c/species/kk,FixReaxFFSpeciesKokkos);
-FixStyle(reax/c/species/kk/device,FixReaxFFSpeciesKokkos);
-FixStyle(reax/c/species/kk/host,FixReaxFFSpeciesKokkos);
 // clang-format on
 #else
 

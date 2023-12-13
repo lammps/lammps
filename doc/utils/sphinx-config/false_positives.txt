@@ -1391,6 +1391,7 @@ Hebbeker
 Hebenstreit
 Hecht
 Heenen
+heFFTe
 Hendrik
 Henin
 Henkelman
@@ -2800,6 +2801,7 @@ pIm
 pimd
 Piola
 pIp
+pipelining
 Pisarev
 Pishevar
 Pitera

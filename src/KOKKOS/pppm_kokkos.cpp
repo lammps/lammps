@@ -285,7 +285,7 @@ void PPPMKokkos<DeviceType>::init()
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
                        estimated_accuracy/two_charge_force);
-    mesg += "  using " LMP_FFT_KOKKOS_PREC " precision " LMP_FFT_KOKKOS_LIB "\n";
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_KOKKOS_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);

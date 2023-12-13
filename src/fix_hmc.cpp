@@ -74,11 +74,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
   // Check keywords:
   int iarg = 7;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "adjust") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc adjust", error);
-      tune_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "mom") == 0) {
+    if (strcmp(arg[iarg], "mom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc mom", error);
       mom_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
@@ -488,22 +484,6 @@ int FixHMC::setmask()
   int mask = 0;
   mask |= END_OF_STEP;
   return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixHMC::tune_parameter(int *parameter, const char *name)
-{
-  if (*parameter % nevery != 0) {
-    if (tune_flag) {
-      *parameter = (*parameter / nevery + 1)*nevery;
-      if (comm->me == 0) printf("Fix HMC: adjusting %s to %d\n",name,*parameter);
-    }
-    else {
-      if (comm->me == 0) printf("Fix HMC: %s is not a multiple of nevery\n",name);
-      error->all(FLERR,"illegal parameter value");
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */

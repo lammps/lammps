@@ -43,7 +43,8 @@ Changing box ...
 
 pair_style      hybrid/overlay zero 9.0 eam/fs
 pair_coeff * *  zero
-pair_coeff * *  eam/fs Zr_2.eam.fs Zr
+pair_coeff * *  eam/fs Zr_mm.eam.fs Zr
+Reading eam/fs potential file Zr_mm.eam.fs with DATE: 2007-06-11
 
 timestep        0.002
 
@@ -60,6 +61,48 @@ compute         bnnn all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1
 
 # 2nd step : perform dimension reduction + logistic regression
 compute         slcsa all slcsa/atom 8 4 dir.slcsa/mean_descriptor.dat dir.slcsa/lda_scalings.dat dir.slcsa/lr_decision.dat dir.slcsa/lr_bias.dat dir.slcsa/mahalanobis_file.dat c_bnnn[*]
+Files used:
+  database mean descriptor: dir.slcsa/mean_descriptor.dat
+  lda scalings            : dir.slcsa/lda_scalings.dat
+  lr decision             : dir.slcsa/lr_decision.dat
+  lr bias                 : dir.slcsa/lr_bias.dat
+  maha stats              : dir.slcsa/mahalanobis_file.dat
+For class 0  maha threshold = 5.054
+  mean B:
+      -23.8329
+        4.6638
+        3.9805
+  icov:
+        1.1377      0.1077     -0.0171
+        0.1077      0.8846     -0.2577
+       -0.0171     -0.2577      0.6783
+For class 1  maha threshold = 5.234
+  mean B:
+      -21.2853
+       -6.1583
+        1.7948
+  icov:
+        1.7124      0.0341      0.1966
+        0.0341      0.6453       0.288
+        0.1966       0.288      1.8991
+For class 2  maha threshold = 5.036
+  mean B:
+      -23.1593
+        1.3059
+       -5.7549
+  icov:
+        0.7496     -0.0806     -0.1101
+       -0.0806      1.1178      0.1667
+       -0.1101      0.1667      0.6711
+For class 3  maha threshold = 7.994
+  mean B:
+       68.1971
+        0.1604
+       -0.0067
+  icov:
+        0.9663     -0.1846      0.6622
+       -0.1846      8.2371      0.9841
+        0.6622      0.9841      5.9601
 
 #dump            d1 all custom ${freqdump} slcsa_demo.dump id x y z c_slcsa[*]
 
@@ -101,37 +144,37 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 11.26 | 11.45 | 11.64 Mbytes
    Step         PotEng         KinEng          Temp      c_max_slcsa[1] c_max_slcsa[2] c_max_slcsa[3] c_max_slcsa[4] c_max_slcsa[5] c_min_slcsa[1] c_min_slcsa[2] c_min_slcsa[3] c_min_slcsa[4] c_min_slcsa[5]
-         0  -139689.93      2093.9174      750            7.6195146      15.787294      1.2169942      111.01919      2              7.6195146      15.787294      1.2169942      111.01919      2            
-        50  -138733.53      1165.0291      417.29048      8.2778907      18.221432      3.019507       113.65218      2              5.2735872      10.834132      0.042702874    108.2674       2            
-       100  -138821.33      1442.648       516.7281       8.3357676      17.470311      2.7073063      113.39999      2              6.145345       12.307441      0.034372881    108.61824      2            
-       150  -138607.9       1435.9634      514.33383      8.3817341      17.984657      2.892662       113.40287      2              5.3635301      10.064171      0.030283213    107.5829       2            
-       200  -138494.56      1560.9093      559.08699      8.5615388      18.429835      2.8130845      114.31517      2              5.4711815      11.113891      0.074490923    107.87418      2            
-Loop time of 9.89929 on 4 procs for 200 steps with 21600 atoms
+         0  -143297.23      2093.9174      750            7.6195146      15.787294      1.2169942      111.01919      2              7.6195146      15.787294      1.2169942      111.01919      2            
+        50  -142154.08      1007.7164      360.9442       8.8091564      19.23244       4.2093382      113.87959      2              5.0327148      9.6817454      0.02610585     106.71863      2            
+       100  -142365.33      1406.6559      503.83647      8.6272189      17.908949      2.9294666      113.75167      2              6.2058895      11.913521      0.033775944    108.66893      2            
+       150  -142188.18      1432.0075      512.91691      8.6441961      18.176321      2.9277374      114.27958      2              5.5899425      10.521867      0.014919473    108.14526      2            
+       200  -142000.4       1481.7247      530.72462      8.5895692      18.65646       3.1725758      114.55015      2              5.5955774      10.776385      0.061469343    108.35384      2            
+Loop time of 9.81677 on 4 procs for 200 steps with 21600 atoms
 
-Performance: 3.491 ns/day, 6.875 hours/ns, 20.203 timesteps/s, 436.395 katom-step/s
-99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 3.521 ns/day, 6.817 hours/ns, 20.373 timesteps/s, 440.063 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.61       | 2.618      | 2.622      |   0.3 | 26.45
-Neigh   | 0.19338    | 0.19618    | 0.19967    |   0.5 |  1.98
-Comm    | 0.051086   | 0.055818   | 0.065206   |   2.4 |  0.56
-Output  | 6.9725     | 6.9725     | 6.9725     |   0.0 | 70.43
-Modify  | 0.04635    | 0.046617   | 0.046825   |   0.1 |  0.47
-Other   |            | 0.01018    |            |       |  0.10
+Pair    | 2.6508     | 2.6589     | 2.6698     |   0.5 | 27.09
+Neigh   | 0.1516     | 0.15276    | 0.15406    |   0.3 |  1.56
+Comm    | 0.047132   | 0.058969   | 0.066095   |   3.2 |  0.60
+Output  | 6.8886     | 6.8886     | 6.8886     |   0.0 | 70.17
+Modify  | 0.046437   | 0.04661    | 0.046825   |   0.1 |  0.47
+Other   |            | 0.01091    |            |       |  0.11
 
-Nlocal:           5400 ave        5431 max        5376 min
-Histogram: 1 1 0 0 0 0 1 0 0 1
-Nghost:        12889.2 ave       12909 max       12847 min
-Histogram: 1 0 0 0 0 0 0 0 1 2
-Neighs:         649026 ave      652559 max      642783 min
-Histogram: 1 0 0 0 0 0 1 0 1 1
-FullNghs:  1.29777e+06 ave 1.30656e+06 max 1.29086e+06 min
-Histogram: 1 1 0 0 0 0 1 0 0 1
+Nlocal:           5400 ave        5416 max        5393 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+Nghost:        12902.8 ave       12911 max       12888 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Neighs:         654322 ave      655602 max      650912 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+FullNghs:  1.31002e+06 ave 1.31507e+06 max 1.30683e+06 min
+Histogram: 1 1 0 1 0 0 0 0 0 1
 
-Total # of neighbors = 5191084
-Ave neighs/atom = 240.32796
-Neighbor list builds = 5
+Total # of neighbors = 5240065
+Ave neighs/atom = 242.5956
+Neighbor list builds = 4
 Dangerous builds = 0
 Total wall time: 0:00:11

@@ -38,6 +38,7 @@ class ComputeSLCSAAtom : public Compute {
   //  double memory_usage() override;
   int compute_ncomps(int);
   int argmax(double *, int);
+
  private:
   struct value_t {
     int which;         // type of data: COMPUTE, FIX, VARIABLE
@@ -86,7 +87,6 @@ class ComputeSLCSAAtom : public Compute {
 
   // Output array
   double **classification;
-
 };
 
 }    // namespace LAMMPS_NS

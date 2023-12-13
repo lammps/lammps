@@ -27,7 +27,7 @@ change_box      all triclinic
 
 pair_style      hybrid/overlay zero 9.0 eam/fs
 pair_coeff * *  zero
-pair_coeff * *  eam/fs Zr_2.eam.fs Zr
+pair_coeff * *  eam/fs Zr_mm.eam.fs Zr
 
 timestep        0.002
 

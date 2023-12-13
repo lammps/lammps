@@ -29,19 +29,31 @@
 
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
+#if defined(__PYX_EXTERN_C) && !defined(CYTHON_EXTERN_C)
+#undef __PYX_EXTERN_C
+#endif
 #include "mliap_unified.h"
 // The above should somehow really be included in the next file.
 // We could get around this with cython --capi-reexport-cincludes
 // However, that exposes -too many- headers.
 #include "mliap_model_python_couple.h"
+#if defined(__PYX_EXTERN_C) && !defined(CYTHON_EXTERN_C)
+#undef __PYX_EXTERN_C
+#endif
 #include "mliap_unified_couple.h"
 #ifdef LMP_KOKKOS
 #include "mliap_model_python_kokkos.h"
+#if defined(__PYX_EXTERN_C) && !defined(CYTHON_EXTERN_C)
+#undef __PYX_EXTERN_C
+#endif
 #include "mliap_unified_kokkos.h"
 // The above should somehow really be included in the next file.
 // We could get around this with cython --capi-reexport-cincludes
 // However, that exposes -too many- headers.
 #include "mliap_model_python_couple_kokkos.h"
+#if defined(__PYX_EXTERN_C) && !defined(CYTHON_EXTERN_C)
+#undef __PYX_EXTERN_C
+#endif
 #include "mliap_unified_couple_kokkos.h"
 
 

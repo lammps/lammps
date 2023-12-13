@@ -77,7 +77,7 @@ class FixHMC : public Fix {
   double **stored_orient;
   double **stored_dorient;
 
-  int tune_flag, mom_flag, rot_flag;
+  int resample_on_accept_flag, mom_flag, rot_flag;
 
   char *mdi;
   class FixNVE *fix_nve;

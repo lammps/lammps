@@ -78,6 +78,10 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc mom", error);
       mom_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "ra") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc ra", error);
+      resample_on_accept_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
     //} else if (strcmp(arg[iarg], "rot") == 0) {
     //  if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc rot", error);
     //  rot_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
@@ -559,7 +563,7 @@ void FixHMC::end_of_step()
   }
 
   // Choose new velocities and compute kinetic energy:
-  if (~accept) {
+  if (~accept || resample_on_accept_flag) {
     if (rigid_flag)
       rigid_body_random_velocities();
     else

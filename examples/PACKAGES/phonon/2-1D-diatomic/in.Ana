@@ -1,4 +1,5 @@
-# 3D simple cubic lattice simulation
+# 2D slice of 3D simple cubic lattice simulation
+
 dimension   2
 boundary    p f p
 

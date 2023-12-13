@@ -23,7 +23,7 @@ Syntax
   .. parsed-literal::
 
      keyword = *erate* or *ext* or *strain* or *temp* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
-       *erate* values = e_x e_y = engineering strain rates (required)
+       *erate* values = e_x e_y = true strain rates (required)
        *ext* value = *x* or *y* or *z* or *xy* or *yz* or *xz* = external dimensions
          sets the external dimensions used to calculate the scalar pressure
        *strain* values = e_x e_y = initial strain

@@ -13,41 +13,29 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(temp/berendsen,FixTempBerendsen);
+FixStyle(temp/berendsen/kk,FixTempBerendsenKokkos<LMPDeviceType>);
+FixStyle(temp/berendsen/kk/device,FixTempBerendsenKokkos<LMPDeviceType>);
+FixStyle(temp/berendsen/kk/host,FixTempBerendsenKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_TEMP_BERENDSEN_H
-#define LMP_FIX_TEMP_BERENDSEN_H
+// clang-format off
+#ifndef LMP_FIX_TEMP_BERENDSEN_KOKKOS_H
+#define LMP_FIX_TEMP_BERENDSEN_KOKKOS_H
 
-#include "fix.h"
+#include "fix_temp_berendsen.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class FixTempBerendsen : public Fix {
+template<class DeviceType>
+class FixTempBerendsenKokkos : public FixTempBerendsen {
  public:
-  FixTempBerendsen(class LAMMPS *, int, char **);
-  ~FixTempBerendsen() override;
-  int setmask() override;
-  void init() override;
+  typedef DeviceType device_type;
+
+  FixTempBerendsenKokkos(class LAMMPS *, int, char **);
+  ~FixTempBerendsenKokkos() override {}
   void end_of_step() override;
-  int modify_param(int, char **) override;
-  void reset_target(double) override;
-  double compute_scalar() override;
-  void write_restart(FILE *) override;
-  void restart(char *buf) override;
-  void *extract(const char *, int &) override;
-
- protected:
-  int which;
-  double t_start, t_stop, t_period, t_target;
-  double energy;
-  int tstyle, tvar;
-  char *tstr;
-
-  char *id_temp;
-  class Compute *temperature;
-  int tflag;
 };
 
 }    // namespace LAMMPS_NS

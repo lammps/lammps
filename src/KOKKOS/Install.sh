@@ -177,6 +177,10 @@ action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
 action fix_spring_self_kokkos.cpp
 action fix_spring_self_kokkos.h
+action fix_temp_berendsen_kokkos.cpp
+action fix_temp_berendsen_kokkos.h
+action fix_temp_rescale_kokkos.cpp
+action fix_temp_rescale_kokkos.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp

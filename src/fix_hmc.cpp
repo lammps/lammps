@@ -729,11 +729,11 @@ void FixHMC::save_current_state()
     for (m = 0; m < nv; m++)
       memcpy( vglobal[m], *vglobalptr[m], six );
 
-  //// Perform reverse communication to incorporate ghost atoms info:
-  //if (comm_reverse && (peatom_flag || pressatom_flag)) {
-  //  comm_flag = ATOMS;
-  //  comm->reverse_comm(this, ncommrev);
-  //}
+  // Perform reverse communication to incorporate ghost atoms info:
+  if (comm_reverse && (peatom_flag || pressatom_flag)) {
+    comm_flag = ATOMS;
+    comm->reverse_comm(this, ncommrev);
+  }
 }
 
 /* ----------------------------------------------------------------------

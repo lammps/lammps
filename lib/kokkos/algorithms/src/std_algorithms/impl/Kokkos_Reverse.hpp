@@ -42,19 +42,17 @@ struct StdReverseFunctor {
     ::Kokkos::Experimental::swap(m_first[i], m_last[-i - 1]);
   }
 
+  KOKKOS_FUNCTION
   StdReverseFunctor(InputIterator first, InputIterator last)
       : m_first(std::move(first)), m_last(std::move(last)) {}
 };
 
 template <class ExecutionSpace, class InputIterator>
-void reverse_impl(const std::string& label, const ExecutionSpace& ex,
-                  InputIterator first, InputIterator last) {
+void reverse_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                           InputIterator first, InputIterator last) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
-
-  // aliases
-  using func_t = StdReverseFunctor<InputIterator>;
 
   // run
   if (last >= first + 2) {
@@ -62,8 +60,26 @@ void reverse_impl(const std::string& label, const ExecutionSpace& ex,
     const auto num_elements = Kokkos::Experimental::distance(first, last) / 2;
     ::Kokkos::parallel_for(label,
                            RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                           func_t(first, last));
+                           StdReverseFunctor(first, last));
     ex.fence("Kokkos::reverse: fence after operation");
+  }
+}
+
+template <class TeamHandleType, class InputIterator>
+KOKKOS_FUNCTION void reverse_team_impl(const TeamHandleType& teamHandle,
+                                       InputIterator first,
+                                       InputIterator last) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  // run
+  if (last >= first + 2) {
+    // only need half
+    const auto num_elements = Kokkos::Experimental::distance(first, last) / 2;
+    ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                           StdReverseFunctor(first, last));
+    teamHandle.team_barrier();
   }
 }
 

@@ -242,7 +242,7 @@ void PairLeptonCoul::read_restart_settings(FILE *fp)
 double PairLeptonCoul::single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
                               double /* factor_lj */, double &fforce)
 {
-  auto expr = expressions[type2expression[itype][jtype]];
+  const auto &expr = expressions[type2expression[itype][jtype]];
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp), functions);
   auto pairpot = parsed.createCompiledExpression();
   auto pairforce = parsed.differentiate("r").createCompiledExpression();

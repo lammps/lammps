@@ -48,11 +48,15 @@ class PairPACE : public Pair {
   double init_one(int, int) override;
 
   void *extract(const char *, int &) override;
+  void *extract_peratom(const char *, int &) override;
 
  protected:
   struct ACEImpl *aceimpl;
+  int nmax_corerep = 0;
 
   virtual void allocate();
+  double *corerep_factor;                    //per-atom core-rep factor (= 1 - fcut)
+  int flag_corerep_factor;
 
   double **scale;
   bool recursive;    // "recursive" option for ACERecursiveEvaluator

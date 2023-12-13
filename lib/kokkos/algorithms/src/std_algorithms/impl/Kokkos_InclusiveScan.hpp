@@ -101,9 +101,12 @@ struct InclusiveScanDefaultFunctor {
   }
 };
 
+//
+// exespace impl
+//
 template <class ExecutionSpace, class InputIteratorType,
           class OutputIteratorType>
-OutputIteratorType inclusive_scan_default_op_impl(
+OutputIteratorType inclusive_scan_default_op_exespace_impl(
     const std::string& label, const ExecutionSpace& ex,
     InputIteratorType first_from, InputIteratorType last_from,
     OutputIteratorType first_dest) {
@@ -143,7 +146,7 @@ OutputIteratorType inclusive_scan_default_op_impl(
 // -------------------------------------------------------------
 template <class ExecutionSpace, class InputIteratorType,
           class OutputIteratorType, class BinaryOpType>
-OutputIteratorType inclusive_scan_custom_binary_op_impl(
+OutputIteratorType inclusive_scan_custom_binary_op_exespace_impl(
     const std::string& label, const ExecutionSpace& ex,
     InputIteratorType first_from, InputIteratorType last_from,
     OutputIteratorType first_dest, BinaryOpType binary_op) {
@@ -158,7 +161,7 @@ OutputIteratorType inclusive_scan_custom_binary_op_impl(
   using value_type =
       std::remove_const_t<typename InputIteratorType::value_type>;
   using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor<value_type>;
-  using func_type     = TransformInclusiveScanNoInitValueFunctor<
+  using func_type     = ExeSpaceTransformInclusiveScanNoInitValueFunctor<
       ExecutionSpace, index_type, value_type, InputIteratorType,
       OutputIteratorType, BinaryOpType, unary_op_type>;
 
@@ -179,7 +182,7 @@ OutputIteratorType inclusive_scan_custom_binary_op_impl(
 // -------------------------------------------------------------
 template <class ExecutionSpace, class InputIteratorType,
           class OutputIteratorType, class BinaryOpType, class ValueType>
-OutputIteratorType inclusive_scan_custom_binary_op_impl(
+OutputIteratorType inclusive_scan_custom_binary_op_exespace_impl(
     const std::string& label, const ExecutionSpace& ex,
     InputIteratorType first_from, InputIteratorType last_from,
     OutputIteratorType first_dest, BinaryOpType binary_op,
@@ -193,7 +196,7 @@ OutputIteratorType inclusive_scan_custom_binary_op_impl(
   // aliases
   using index_type    = typename InputIteratorType::difference_type;
   using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor<ValueType>;
-  using func_type     = TransformInclusiveScanWithInitValueFunctor<
+  using func_type     = ExeSpaceTransformInclusiveScanWithInitValueFunctor<
       ExecutionSpace, index_type, ValueType, InputIteratorType,
       OutputIteratorType, BinaryOpType, unary_op_type>;
 
@@ -203,8 +206,137 @@ OutputIteratorType inclusive_scan_custom_binary_op_impl(
   ::Kokkos::parallel_scan(label,
                           RangePolicy<ExecutionSpace>(ex, 0, num_elements),
                           func_type(first_from, first_dest, binary_op,
-                                    unary_op_type(), init_value));
+                                    unary_op_type(), std::move(init_value)));
   ex.fence("Kokkos::inclusive_scan_custom_binary_op: fence after operation");
+
+  // return
+  return first_dest + num_elements;
+}
+
+//
+// team impl
+//
+template <class TeamHandleType, class InputIteratorType,
+          class OutputIteratorType>
+KOKKOS_FUNCTION OutputIteratorType inclusive_scan_default_op_team_impl(
+    const TeamHandleType& teamHandle, InputIteratorType first_from,
+    InputIteratorType last_from, OutputIteratorType first_dest) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first_from,
+                                                   first_dest);
+  Impl::static_assert_iterators_have_matching_difference_type(first_from,
+                                                              first_dest);
+  Impl::expect_valid_range(first_from, last_from);
+
+  using value_type =
+      std::remove_const_t<typename InputIteratorType::value_type>;
+
+  // #if defined(KOKKOS_ENABLE_CUDA)
+
+  using exe_space  = typename TeamHandleType::execution_space;
+  using index_type = typename InputIteratorType::difference_type;
+  using func_type  = std::conditional_t<
+      ::Kokkos::is_detected<in_scan_has_reduction_identity_sum_t,
+                            value_type>::value,
+      InclusiveScanDefaultFunctorForKnownIdentityElement<
+          exe_space, index_type, value_type, InputIteratorType,
+          OutputIteratorType>,
+      InclusiveScanDefaultFunctor<exe_space, index_type, value_type,
+                                  InputIteratorType, OutputIteratorType>>;
+
+  // run
+  const auto num_elements =
+      Kokkos::Experimental::distance(first_from, last_from);
+  ::Kokkos::parallel_scan(TeamThreadRange(teamHandle, 0, num_elements),
+                          func_type(first_from, first_dest));
+  teamHandle.team_barrier();
+
+  // return
+  return first_dest + num_elements;
+}
+
+// -------------------------------------------------------------
+// inclusive_scan_custom_binary_op_impl
+// -------------------------------------------------------------
+template <class TeamHandleType, class InputIteratorType,
+          class OutputIteratorType, class BinaryOpType>
+KOKKOS_FUNCTION OutputIteratorType inclusive_scan_custom_binary_op_team_impl(
+    const TeamHandleType& teamHandle, InputIteratorType first_from,
+    InputIteratorType last_from, OutputIteratorType first_dest,
+    BinaryOpType binary_op) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first_from,
+                                                   first_dest);
+  Impl::static_assert_iterators_have_matching_difference_type(first_from,
+                                                              first_dest);
+  Impl::expect_valid_range(first_from, last_from);
+
+  using value_type =
+      std::remove_const_t<typename InputIteratorType::value_type>;
+
+  static_assert(
+      ::Kokkos::is_detected_v<ex_scan_has_reduction_identity_sum_t, value_type>,
+      "At the moment inclusive_scan doesn't support types without reduction "
+      "identity");
+
+  // #if defined(KOKKOS_ENABLE_CUDA)
+
+  // aliases
+  using exe_space     = typename TeamHandleType::execution_space;
+  using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor<value_type>;
+  using func_type     = TeamTransformInclusiveScanNoInitValueFunctor<
+      exe_space, value_type, InputIteratorType, OutputIteratorType,
+      BinaryOpType, unary_op_type>;
+
+  // run
+  const auto num_elements =
+      Kokkos::Experimental::distance(first_from, last_from);
+
+  ::Kokkos::parallel_scan(
+      TeamThreadRange(teamHandle, 0, num_elements),
+      func_type(first_from, first_dest, binary_op, unary_op_type()));
+  teamHandle.team_barrier();
+
+  return first_dest + num_elements;
+}
+
+// -------------------------------------------------------------
+// inclusive_scan_custom_binary_op_impl with init_value
+// -------------------------------------------------------------
+template <class TeamHandleType, class InputIteratorType,
+          class OutputIteratorType, class BinaryOpType, class ValueType>
+KOKKOS_FUNCTION OutputIteratorType inclusive_scan_custom_binary_op_team_impl(
+    const TeamHandleType& teamHandle, InputIteratorType first_from,
+    InputIteratorType last_from, OutputIteratorType first_dest,
+    BinaryOpType binary_op, ValueType init_value) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first_from,
+                                                   first_dest);
+  Impl::static_assert_iterators_have_matching_difference_type(first_from,
+                                                              first_dest);
+  Impl::expect_valid_range(first_from, last_from);
+
+  static_assert(
+      ::Kokkos::is_detected_v<ex_scan_has_reduction_identity_sum_t, ValueType>,
+      "At the moment inclusive_scan doesn't support types without reduction "
+      "identity");
+
+  // #if defined(KOKKOS_ENABLE_CUDA)
+
+  // aliases
+  using exe_space     = typename TeamHandleType::execution_space;
+  using unary_op_type = StdNumericScanIdentityReferenceUnaryFunctor<ValueType>;
+  using func_type     = TeamTransformInclusiveScanWithInitValueFunctor<
+      exe_space, ValueType, InputIteratorType, OutputIteratorType, BinaryOpType,
+      unary_op_type>;
+
+  // run
+  const auto num_elements =
+      Kokkos::Experimental::distance(first_from, last_from);
+  ::Kokkos::parallel_scan(TeamThreadRange(teamHandle, 0, num_elements),
+                          func_type(first_from, first_dest, binary_op,
+                                    unary_op_type(), std::move(init_value)));
+  teamHandle.team_barrier();
 
   // return
   return first_dest + num_elements;

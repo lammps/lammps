@@ -80,6 +80,9 @@ struct CudaDispatchProperties {
   CudaLaunchMechanism launch_mechanism = l;
 };
 }  // namespace Experimental
+
+enum class ManageStream : bool { no, yes };
+
 }  // namespace Impl
 /// \class Cuda
 /// \brief Kokkos Execution Space that uses CUDA to run on GPUs.
@@ -181,7 +184,10 @@ class Cuda {
 
   Cuda();
 
-  Cuda(cudaStream_t stream, bool manage_stream = false);
+  Cuda(cudaStream_t stream,
+       Impl::ManageStream manage_stream = Impl::ManageStream::no);
+
+  KOKKOS_DEPRECATED Cuda(cudaStream_t stream, bool manage_stream);
 
   //--------------------------------------------------------------------------
   //! Free any resources being consumed by the device.

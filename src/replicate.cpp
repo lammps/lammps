@@ -22,6 +22,7 @@
 #include "error.h"
 #include "memory.h"
 #include "special.h"
+#include "label_map.h"
 
 #include <cstring>
 
@@ -227,6 +228,15 @@ void Replicate::command(int narg, char **arg)
   atom->extra_dihedral_per_atom = old->extra_dihedral_per_atom;
   atom->extra_improper_per_atom = old->extra_improper_per_atom;
   atom->maxspecial = old->maxspecial;
+
+  if (old->labelmapflag) {
+    atom->add_label_map();
+    atom->lmap->merge_lmap(old->lmap, Atom::ATOM);
+    atom->lmap->merge_lmap(old->lmap, Atom::BOND);
+    atom->lmap->merge_lmap(old->lmap, Atom::ANGLE);
+    atom->lmap->merge_lmap(old->lmap, Atom::DIHEDRAL);
+    atom->lmap->merge_lmap(old->lmap, Atom::IMPROPER);
+  }
 
   // store old simulation box
 

@@ -34,8 +34,7 @@
 
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_UnorderedMap_impl.hpp>
-
-#include <iostream>
+#include <impl/Kokkos_ViewCtor.hpp>
 
 #include <cstdint>
 
@@ -304,28 +303,76 @@ class UnorderedMap {
   ///                           keys are equal.
   UnorderedMap(size_type capacity_hint = 0, hasher_type hasher = hasher_type(),
                equal_to_type equal_to = equal_to_type())
-      : m_bounded_insert(true),
-        m_hasher(hasher),
-        m_equal_to(equal_to),
-        m_size("UnorderedMap size"),
-        m_available_indexes(calculate_capacity(capacity_hint)),
-        m_hash_lists(view_alloc(WithoutInitializing, "UnorderedMap hash list"),
-                     Impl::find_hash_size(capacity())),
-        m_next_index(view_alloc(WithoutInitializing, "UnorderedMap next index"),
-                     capacity() + 1)  // +1 so that the *_at functions can
-                                      // always return a valid reference
-        ,
-        m_keys("UnorderedMap keys", capacity()),
-        m_values("UnorderedMap values", (is_set ? 0 : capacity())),
-        m_scalars("UnorderedMap scalars") {
+      : UnorderedMap(Kokkos::view_alloc(), capacity_hint, hasher, equal_to) {}
+
+  template <class... P>
+  UnorderedMap(const Impl::ViewCtorProp<P...> &arg_prop,
+               size_type capacity_hint = 0, hasher_type hasher = hasher_type(),
+               equal_to_type equal_to = equal_to_type())
+      : m_bounded_insert(true), m_hasher(hasher), m_equal_to(equal_to) {
     if (!is_insertable_map) {
       Kokkos::Impl::throw_runtime_exception(
           "Cannot construct a non-insertable (i.e. const key_type) "
           "unordered_map");
     }
 
-    Kokkos::deep_copy(m_hash_lists, invalid_index);
-    Kokkos::deep_copy(m_next_index, invalid_index);
+    //! Ensure that allocation properties are consistent.
+    using alloc_prop_t = std::decay_t<decltype(arg_prop)>;
+    static_assert(alloc_prop_t::initialize,
+                  "Allocation property 'initialize' should be true.");
+    static_assert(
+        !alloc_prop_t::has_pointer,
+        "Allocation properties should not contain the 'pointer' property.");
+
+    /// Update allocation properties with 'label' and 'without initializing'
+    /// properties.
+    const auto prop_copy =
+        Impl::with_properties_if_unset(arg_prop, std::string("UnorderedMap"));
+    const auto prop_copy_noinit =
+        Impl::with_properties_if_unset(prop_copy, Kokkos::WithoutInitializing);
+
+    //! Initialize member views.
+    m_size = shared_size_t(Kokkos::view_alloc(
+        Kokkos::DefaultHostExecutionSpace{},
+        Impl::get_property<Impl::LabelTag>(prop_copy) + " - size"));
+
+    m_available_indexes =
+        bitset_type(Kokkos::Impl::with_updated_label(prop_copy, " - bitset"),
+                    calculate_capacity(capacity_hint));
+
+    m_hash_lists = size_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy_noinit, " - hash list"),
+        Impl::find_hash_size(capacity()));
+
+    m_next_index = size_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy_noinit, " - next index"),
+        capacity() + 1);  // +1 so that the *_at functions can always return a
+                          // valid reference
+
+    m_keys = key_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy, " - keys"), capacity());
+
+    m_values = value_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy, " - values"),
+        is_set ? 0 : capacity());
+
+    m_scalars =
+        scalars_view(Kokkos::Impl::with_updated_label(prop_copy, " - scalars"));
+
+    /**
+     * Deep copies should also be done using the space instance if given.
+     * Instead of the if/else we could use the
+     * @c get_property_or_default, but giving even the default execution space
+     * instance will change the behavior of @c deep_copy.
+     */
+    if constexpr (alloc_prop_t::has_execution_space) {
+      const auto &space = Impl::get_property<Impl::ExecutionSpaceTag>(arg_prop);
+      Kokkos::deep_copy(space, m_hash_lists, invalid_index);
+      Kokkos::deep_copy(space, m_next_index, invalid_index);
+    } else {
+      Kokkos::deep_copy(m_hash_lists, invalid_index);
+      Kokkos::deep_copy(m_next_index, invalid_index);
+    }
   }
 
   void reset_failed_insert_flag() { reset_flag(failed_insert_idx); }
@@ -568,7 +615,7 @@ class UnorderedMap {
           // Previously claimed an unused entry that was not inserted.
           // Release this unused entry immediately.
           if (!m_available_indexes.reset(new_index)) {
-            KOKKOS_IMPL_DO_NOT_USE_PRINTF("Unable to free existing\n");
+            Kokkos::printf("Unable to free existing\n");
           }
         }
 
@@ -862,7 +909,8 @@ class UnorderedMap {
   bool m_bounded_insert;
   hasher_type m_hasher;
   equal_to_type m_equal_to;
-  View<size_type, HostSpace> m_size;
+  using shared_size_t = View<size_type, Kokkos::DefaultHostExecutionSpace>;
+  shared_size_t m_size;
   bitset_type m_available_indexes;
   size_type_view m_hash_lists;
   size_type_view m_next_index;

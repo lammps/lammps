@@ -160,9 +160,8 @@ struct functor_teamvector_for {
     shared_int values         = shared_int(team.team_shmem(), shmemSize);
 
     if (values.data() == nullptr || values.extent(0) < shmemSize) {
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "FAILED to allocate shared memory of size %u\n",
-          static_cast<unsigned int>(shmemSize));
+      Kokkos::printf("FAILED to allocate shared memory of size %u\n",
+                     static_cast<unsigned int>(shmemSize));
     } else {
       // Initialize shared memory.
       Kokkos::parallel_for(Kokkos::TeamVectorRange(team, 131),
@@ -195,10 +194,9 @@ struct functor_teamvector_for {
         }
 
         if (test != value) {
-          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-              "FAILED teamvector_parallel_for %i %i %lf %lf\n",
-              team.league_rank(), team.team_rank(), static_cast<double>(test),
-              static_cast<double>(value));
+          Kokkos::printf("FAILED teamvector_parallel_for %i %i %lf %lf\n",
+                         team.league_rank(), team.team_rank(),
+                         static_cast<double>(test), static_cast<double>(value));
           flag() = 1;
         }
       });
@@ -262,7 +260,7 @@ struct functor_teamvector_reduce {
 
       if (test != value) {
         if (team.league_rank() == 0) {
-          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          Kokkos::printf(
               "FAILED teamvector_parallel_reduce %i %i %lf %lf %lu\n",
               (int)team.league_rank(), (int)team.team_rank(),
               static_cast<double>(test), static_cast<double>(value),
@@ -273,7 +271,7 @@ struct functor_teamvector_reduce {
       }
       if (test != shared_value(0)) {
         if (team.league_rank() == 0) {
-          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          Kokkos::printf(
               "FAILED teamvector_parallel_reduce with shared result %i %i %lf "
               "%lf %lu\n",
               static_cast<int>(team.league_rank()),
@@ -335,7 +333,7 @@ struct functor_teamvector_reduce_reducer {
       }
 
       if (test != value) {
-        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+        Kokkos::printf(
             "FAILED teamvector_parallel_reduce_reducer %i %i %lf %lf\n",
             team.league_rank(), team.team_rank(), static_cast<double>(test),
             static_cast<double>(value));
@@ -343,7 +341,7 @@ struct functor_teamvector_reduce_reducer {
         flag() = 1;
       }
       if (test != shared_value(0)) {
-        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+        Kokkos::printf(
             "FAILED teamvector_parallel_reduce_reducer shared value %i %i %lf "
             "%lf\n",
             team.league_rank(), team.team_rank(), static_cast<double>(test),
@@ -439,7 +437,7 @@ namespace Test {
 TEST(TEST_CATEGORY, team_teamvector_range) {
   ASSERT_TRUE((TestTeamVectorRange::Test<TEST_EXECSPACE>(0)));
 #if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
   if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>) {
     GTEST_SKIP() << "Disabling 2/3rd of the test for now";
   }

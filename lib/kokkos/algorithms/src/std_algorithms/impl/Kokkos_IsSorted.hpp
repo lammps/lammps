@@ -48,10 +48,13 @@ struct StdIsSortedFunctor {
       : m_first(std::move(_first1)), m_comparator(std::move(comparator)) {}
 };
 
+//
+// exespace impl
+//
 template <class ExecutionSpace, class IteratorType, class ComparatorType>
-bool is_sorted_impl(const std::string& label, const ExecutionSpace& ex,
-                    IteratorType first, IteratorType last,
-                    ComparatorType comp) {
+bool is_sorted_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                             IteratorType first, IteratorType last,
+                             ComparatorType comp) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
@@ -75,11 +78,49 @@ bool is_sorted_impl(const std::string& label, const ExecutionSpace& ex,
 }
 
 template <class ExecutionSpace, class IteratorType>
-bool is_sorted_impl(const std::string& label, const ExecutionSpace& ex,
-                    IteratorType first, IteratorType last) {
+bool is_sorted_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                             IteratorType first, IteratorType last) {
   using value_type = typename IteratorType::value_type;
   using pred_t     = Impl::StdAlgoLessThanBinaryPredicate<value_type>;
-  return is_sorted_impl(label, ex, first, last, pred_t());
+  return is_sorted_exespace_impl(label, ex, first, last, pred_t());
+}
+
+//
+// team impl
+//
+template <class TeamHandleType, class IteratorType, class ComparatorType>
+KOKKOS_FUNCTION bool is_sorted_team_impl(const TeamHandleType& teamHandle,
+                                         IteratorType first, IteratorType last,
+                                         ComparatorType comp) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  if (num_elements <= 1) {
+    return true;
+  }
+
+  // use num_elements-1 because each index handles i and i+1
+  const auto num_elements_minus_one = num_elements - 1;
+
+  // result is incremented by one if sorting breaks at index i
+  std::size_t result = 0;
+  ::Kokkos::parallel_reduce(
+      TeamThreadRange(teamHandle, 0, num_elements_minus_one),
+      // use CTAD here
+      StdIsSortedFunctor(first, std::move(comp)), result);
+
+  return result == 0;
+}
+
+template <class TeamHandleType, class IteratorType>
+KOKKOS_FUNCTION bool is_sorted_team_impl(const TeamHandleType& teamHandle,
+                                         IteratorType first,
+                                         IteratorType last) {
+  using value_type = typename IteratorType::value_type;
+  using pred_t     = Impl::StdAlgoLessThanBinaryPredicate<value_type>;
+  return is_sorted_team_impl(teamHandle, first, last, pred_t());
 }
 
 }  // namespace Impl

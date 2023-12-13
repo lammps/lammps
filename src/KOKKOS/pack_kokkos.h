@@ -44,7 +44,7 @@ struct pack_3d_functor {
 public:
   typedef DeviceType device_type;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -52,7 +52,7 @@ public:
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
-  pack_3d_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  pack_3d_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -80,7 +80,7 @@ public:
   }
 };
 
-static void pack_3d(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, struct pack_plan_3d *plan)
+static void pack_3d(typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;
@@ -98,7 +98,7 @@ struct unpack_3d_functor {
 public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -106,7 +106,7 @@ public:
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
-  unpack_3d_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  unpack_3d_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -134,7 +134,7 @@ public:
   }
 };
 
-static void unpack_3d(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
+static void unpack_3d(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;
@@ -153,7 +153,7 @@ struct unpack_3d_permute1_1_functor {
 public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -161,7 +161,7 @@ public:
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
-  unpack_3d_permute1_1_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  unpack_3d_permute1_1_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -189,7 +189,7 @@ public:
   }
 };
 
-static void unpack_3d_permute1_1(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
+static void unpack_3d_permute1_1(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;
@@ -206,7 +206,7 @@ struct unpack_3d_permute1_2_functor {
 public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -214,7 +214,7 @@ public:
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
-  unpack_3d_permute1_2_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  unpack_3d_permute1_2_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -243,7 +243,7 @@ public:
   }
 };
 
-static void unpack_3d_permute1_2(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
+static void unpack_3d_permute1_2(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;
@@ -261,7 +261,7 @@ struct unpack_3d_permute1_n_functor {
 public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -270,7 +270,7 @@ public:
   int nstride_plane;         // stride between successive slow indices
   int nqty;                  // # of values/element
 
-  unpack_3d_permute1_n_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  unpack_3d_permute1_n_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -299,7 +299,7 @@ public:
   }
 };
 
-static void unpack_3d_permute1_n(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
+static void unpack_3d_permute1_n(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;
@@ -317,7 +317,7 @@ struct unpack_3d_permute2_1_functor {
 public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -325,7 +325,7 @@ public:
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
-  unpack_3d_permute2_1_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  unpack_3d_permute2_1_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -352,7 +352,7 @@ public:
   }
 };
 
-static void unpack_3d_permute2_1(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
+static void unpack_3d_permute2_1(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;
@@ -370,7 +370,7 @@ struct unpack_3d_permute2_2_functor {
 public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -378,7 +378,7 @@ public:
   int nstride_line;          // stride between successive mid indices
   int nstride_plane;         // stride between successive slow indices
 
-  unpack_3d_permute2_2_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  unpack_3d_permute2_2_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -406,7 +406,7 @@ public:
   }
 };
 
-static void unpack_3d_permute2_2(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
+static void unpack_3d_permute2_2(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;
@@ -423,7 +423,7 @@ struct unpack_3d_permute2_n_functor {
 public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf,d_data;
+  typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
   int nfast;                 // # of elements in fast index
   int nmid;                  // # of elements in mid index
@@ -432,7 +432,7 @@ public:
   int nstride_plane;         // stride between successive slow indices
   int nqty;                  // # of values/element
 
-  unpack_3d_permute2_n_functor(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
+  unpack_3d_permute2_n_functor(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf_, int buf_offset_, typename FFT_AT::t_FFT_SCALAR_1d_um d_data_, int data_offset_, struct pack_plan_3d *plan):
     d_buf(d_buf_),
     d_data(d_data_)
     {
@@ -460,7 +460,7 @@ public:
   }
 };
 
-static void unpack_3d_permute2_n(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
+static void unpack_3d_permute2_n(typename FFT_AT::t_FFT_SCALAR_1d_um d_buf, int buf_offset, typename FFT_AT::t_FFT_SCALAR_1d_um d_data, int data_offset, struct pack_plan_3d *plan)
 {
   const int nslow = plan->nslow;
   const int nmid = plan->nmid;

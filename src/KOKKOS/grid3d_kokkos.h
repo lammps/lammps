@@ -34,9 +34,9 @@ class Grid3dKokkos : public Grid3d {
   ~Grid3dKokkos() override;
 
   void forward_comm(int, void *, int, int, int,
-                    FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, MPI_Datatype);
+                    FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm(int, void *, int, int, int,
-                    FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, MPI_Datatype);
+                    FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
  private:
   DAT::tdual_int_2d k_swap_packlist;
@@ -57,13 +57,13 @@ class Grid3dKokkos : public Grid3d {
   void setup_comm_tiled(int &, int &) override;
 
   void forward_comm_kspace_brick(class KSpace *, int, int,
-                                   FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, MPI_Datatype);
+                                   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void forward_comm_kspace_tiled(class KSpace *, int, int,
-                                 FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, MPI_Datatype);
+                                 FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace_brick(class KSpace *, int, int,
-                                   FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, MPI_Datatype);
+                                   FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace_tiled(class KSpace *, int, int,
-                                 FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, MPI_Datatype);
+                                 FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
   void grow_swap() override;
 

@@ -59,7 +59,7 @@ RemapKokkos<DeviceType>::~RemapKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void RemapKokkos<DeviceType>::perform(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_in, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_out, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_buf)
+void RemapKokkos<DeviceType>::perform(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf)
 {
   remap_3d_kokkos(d_in,d_out,d_buf,plan);
 }
@@ -103,7 +103,7 @@ void RemapKokkos<DeviceType>::perform(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_in, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_out, typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_buf,
+void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d_in, typename FFT_AT::t_FFT_SCALAR_1d d_out, typename FFT_AT::t_FFT_SCALAR_1d d_buf,
               struct remap_plan_3d_kokkos<DeviceType> *plan)
 {
   // collective flag not yet supported
@@ -111,7 +111,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_KOKKOS_SCAL
   // use point-to-point communication
 
   int i,isend,irecv;
-  typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d d_scratch;
+  typename FFT_AT::t_FFT_SCALAR_1d d_scratch;
 
   if (plan->memory == 0)
     d_scratch = d_buf;
@@ -120,20 +120,20 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_KOKKOS_SCAL
 
   // post all recvs into scratch space
 
-  FFT_KOKKOS_SCALAR* v_scratch = d_scratch.data();
+  FFT_SCALAR* v_scratch = d_scratch.data();
   if (!plan->usecuda_aware) {
     plan->h_scratch = Kokkos::create_mirror_view(d_scratch);
     v_scratch = plan->h_scratch.data();
   }
 
   for (irecv = 0; irecv < plan->nrecv; irecv++) {
-    FFT_KOKKOS_SCALAR* scratch = v_scratch + plan->recv_bufloc[irecv];
+    FFT_SCALAR* scratch = v_scratch + plan->recv_bufloc[irecv];
     MPI_Irecv(scratch,plan->recv_size[irecv],
-              MPI_FFT_KOKKOS_SCALAR,plan->recv_proc[irecv],0,
+              MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
               plan->comm,&plan->request[irecv]);
   }
 
-  FFT_KOKKOS_SCALAR* v_sendbuf = plan->d_sendbuf.data();
+  FFT_SCALAR* v_sendbuf = plan->d_sendbuf.data();
   if (!plan->usecuda_aware) {
     plan->h_sendbuf = Kokkos::create_mirror_view(plan->d_sendbuf);
     v_sendbuf = plan->h_sendbuf.data();
@@ -149,7 +149,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_KOKKOS_SCAL
     if (!plan->usecuda_aware)
       Kokkos::deep_copy(plan->h_sendbuf,plan->d_sendbuf);
 
-    MPI_Send(v_sendbuf,plan->send_size[isend],MPI_FFT_KOKKOS_SCALAR,
+    MPI_Send(v_sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
              plan->send_proc[isend],0,plan->comm);
   }
 
@@ -465,7 +465,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     size = MAX(size,plan->send_size[nsend]);
 
   if (size) {
-    plan->d_sendbuf = typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d("remap3d:sendbuf",size);
+    plan->d_sendbuf = typename FFT_AT::t_FFT_SCALAR_1d("remap3d:sendbuf",size);
     if (!plan->d_sendbuf.data()) return nullptr;
   }
 
@@ -475,7 +475,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   if (memory == 1) {
     if (nrecv > 0) {
       plan->d_scratch =
-        typename FFT_AT::t_FFT_KOKKOS_SCALAR_1d("remap3d:scratch",nqty*out.isize*out.jsize*out.ksize);
+        typename FFT_AT::t_FFT_SCALAR_1d("remap3d:scratch",nqty*out.isize*out.jsize*out.ksize);
       if (!plan->d_scratch.data()) return nullptr;
     }
   }

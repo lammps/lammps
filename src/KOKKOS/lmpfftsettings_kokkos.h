@@ -16,6 +16,8 @@
 #ifndef LMP_FFT_KOKKOS_SETTINGS_H
 #define LMP_FFT_KOKKOS_SETTINGS_H
 
+#include "lmpfftsettings.h"
+
 // if user set FFTW, it means FFTW3
 
 #ifdef FFT_KOKKOS_FFTW
@@ -36,19 +38,6 @@
 #define LMP_FFT_KOKKOS_LIB "hipFFT"
 #else
 #define LMP_FFT_KOKKOS_LIB "KISS FFT"
-#endif
-
-#ifdef FFT_KOKKOS_SINGLE
-typedef float FFT_KOKKOS_SCALAR;
-#define FFT_KOKKOS_PRECISION 1
-#define LMP_FFT_KOKKOS_PREC "single"
-#define MPI_FFT_KOKKOS_SCALAR MPI_FLOAT
-#else
-
-typedef double FFT_KOKKOS_SCALAR;
-#define FFT_KOKKOS_PRECISION 2
-#define LMP_FFT_KOKKOS_PREC "double"
-#define MPI_FFT_KOKKOS_SCALAR MPI_DOUBLE
 #endif
 
 #endif

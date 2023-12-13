@@ -12,8 +12,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_KOKKOS_BASE_FFT_KOKKOS_H
-#define LMP_KOKKOS_BASE_FFT_KOKKOS_H
+#ifndef LMP_KOKKOS_BASE_FFT_H
+#define LMP_KOKKOS_BASE_FFT_H
 
 #include "fftdata_kokkos.h"
 
@@ -24,10 +24,10 @@ class KokkosBaseFFT {
   KokkosBaseFFT() {}
 
   // Kspace
-  virtual void pack_forward_grid_kokkos(int, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
-  virtual void unpack_forward_grid_kokkos(int, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) {};
-  virtual void pack_reverse_grid_kokkos(int, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
-  virtual void unpack_reverse_grid_kokkos(int, FFT_KOKKOS_DAT::tdual_FFT_KOKKOS_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) {};
+  virtual void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) {};
+  virtual void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) {};
 };
 
 }

@@ -123,6 +123,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`reduce/region <compute_reduce>`
    * :doc:`rigid/local <compute_rigid_local>`
    * :doc:`saed <compute_saed>`
+   * :doc:`slcsa/atom <compute_slcsa_atom>`
    * :doc:`slice <compute_slice>`
    * :doc:`smd/contact/radius <compute_smd_contact_radius>`
    * :doc:`smd/damage <compute_smd_damage>`

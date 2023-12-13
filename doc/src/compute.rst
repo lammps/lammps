@@ -287,6 +287,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
+* :doc:`slcsa/atom <compute_slcsa_atom>` - perform Supervised Learning Crystal Structure Analysis (SL-CSA)
 * :doc:`slice <compute_slice>` - extract values from global vector or array
 * :doc:`smd/contact/radius <compute_smd_contact_radius>` - contact radius for Smooth Mach Dynamics
 * :doc:`smd/damage <compute_smd_damage>` - damage status of SPH particles in Smooth Mach Dynamics

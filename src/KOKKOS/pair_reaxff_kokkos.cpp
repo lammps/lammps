@@ -4200,13 +4200,13 @@ void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbond
   const int i = d_ilist[ii];
   int nj = 0;
 
-  if(mask[i] & groupbit) {
+  if (mask[i] & groupbit) {
     const int j_start = d_bo_first[i];
     const int j_end = j_start + d_bo_num[i];
     for (int jj = j_start; jj < j_end; jj++) {
       int j = d_bo_list[jj];
       j &= NEIGHMASK;
-      if(mask[j] & groupbit) {
+      if (mask[j] & groupbit) {
         const tagint jtag = tag[j];
         const int j_index = jj - j_start;
         double bo_tmp = d_BO(i,j_index);
@@ -4262,7 +4262,7 @@ void PairReaxFFKokkos<DeviceType>::PackReducedBondBuffer(DAT::tdual_ffloat_1d k_
 
   copymode = 1;
   nlocal = atomKK->nlocal;
-  if(store_bonds) {
+  if (store_bonds) {
     PairReaxKokkosPackReducedBondBufferFunctor<DeviceType, true> pack_bond_buffer_functor(this);
     Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
   } else {

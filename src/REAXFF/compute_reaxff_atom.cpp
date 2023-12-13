@@ -79,7 +79,6 @@ ComputeReaxFFAtom::ComputeReaxFFAtom(LAMMPS *lmp, int narg, char **arg) :
   local_flag = store_bonds;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 ComputeReaxFFAtom::~ComputeReaxFFAtom()
@@ -107,7 +106,7 @@ void ComputeReaxFFAtom::init()
   if (!reaxff) error->all(FLERR,"Cannot use compute reaxff/atom without "
                                 "pair_style reaxff or reaxff/omp");
 
-  if(reaxff->kokkosable && !kokkosable)
+  if (reaxff->kokkosable && !kokkosable)
     error->all(FLERR,"Cannot use compute reaxff/atom with pair_style reaxff/kk. Use reaxff/atom/kk.");
 }
 
@@ -142,7 +141,7 @@ int ComputeReaxFFAtom::FindBond()
           bo_tmp = bo_ij->bo_data.BO;
 
           if (bo_tmp > bo_cut) {
-            if(store_bonds) {
+            if (store_bonds) {
               neighid[i][nj] = jtag;
               abo[i][nj] = bo_tmp;
             }
@@ -157,7 +156,6 @@ int ComputeReaxFFAtom::FindBond()
   return numbonds;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void ComputeReaxFFAtom::compute_bonds()
@@ -170,7 +168,7 @@ void ComputeReaxFFAtom::compute_bonds()
     memory->destroy(bondcount);
     memory->destroy(array_atom);
     nlocal = atom->nlocal;
-    if(store_bonds) {
+    if (store_bonds) {
       memory->create(abo, nlocal, MAXREAXBOND, "reaxff/atom:abo");
       memory->create(neighid, nlocal, MAXREAXBOND, "reaxff/atom:neighid");
     }
@@ -195,11 +193,10 @@ void ComputeReaxFFAtom::compute_local()
 {
   invoked_local = update->ntimestep;
 
-  if(invoked_bonds < update->ntimestep) {
+  if (invoked_bonds < update->ntimestep)
     compute_bonds();
-  }
 
-  if(nbonds > prev_nbonds) {
+  if (nbonds > prev_nbonds) {
     // grow array_local
     memory->destroy(array_local);
     memory->create(array_local, nbonds, 3, "reaxff/atom:array_local");
@@ -229,7 +226,7 @@ void ComputeReaxFFAtom::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
-  if(invoked_bonds < update->ntimestep) {
+  if (invoked_bonds < update->ntimestep) {
     compute_bonds();
   }
 
@@ -249,7 +246,7 @@ double ComputeReaxFFAtom::memory_usage()
 {
   double bytes = (double)(nlocal*3) * sizeof(double);
   bytes += (double)(nlocal) * sizeof(int);
-  if(store_bonds) {
+  if (store_bonds) {
     bytes += (double)(2*nlocal*MAXREAXBOND) * sizeof(double);
     bytes += (double)(nbonds*3) * sizeof(double);
   }

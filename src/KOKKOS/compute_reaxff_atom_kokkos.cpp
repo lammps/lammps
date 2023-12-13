@@ -42,7 +42,6 @@ ComputeReaxFFAtomKokkos<DeviceType>::ComputeReaxFFAtomKokkos(LAMMPS *lmp, int na
   kokkosable = 1;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -58,7 +57,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::init()
 {
   ComputeReaxFFAtom::init();
 
-  if(!reaxff || !reaxff->kokkosable) {
+  if (!reaxff || !reaxff->kokkosable) {
     error->all(FLERR,"Cannot use compute reaxff/atom/kk without "
                      "pair_style reaxff/kk");
   }
@@ -88,7 +87,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_bonds()
 
   nbuf = ((store_bonds ? maxnumbonds*2 : 0) + 3)*nlocal;
 
-  if(!buf || k_buf.extent(0) < nbuf) {
+  if (!buf || k_buf.extent(0) < nbuf) {
     memoryKK->destroy_kokkos(k_buf, buf);
     memoryKK->create_kokkos(k_buf, buf, nbuf, "reaxff/atom:buf");
   }
@@ -119,10 +118,10 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_local()
 {
   invoked_local = update->ntimestep;
 
-  if(invoked_bonds < update->ntimestep)
+  if (invoked_bonds < update->ntimestep)
     compute_bonds();
 
-  if(nbonds > prev_nbonds) {
+  if (nbonds > prev_nbonds) {
     // grow array_local
     memory->destroy(array_local);
     memory->create(array_local, nbonds, 3, "reaxff/atom:array_local");
@@ -158,7 +157,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
-  if(invoked_bonds < update->ntimestep)
+  if (invoked_bonds < update->ntimestep)
     compute_bonds();
 
   // extract peratom bond information from buffer
@@ -182,7 +181,7 @@ template<class DeviceType>
 double ComputeReaxFFAtomKokkos<DeviceType>::memory_usage()
 {
   double bytes = (double)(nlocal*3) * sizeof(double);
-  if(store_bonds)
+  if (store_bonds)
     bytes += (double)(nbonds*3) * sizeof(double);
   bytes += (double)(nbuf > 0 ? nbuf * sizeof(double) : 0);
   return bytes;

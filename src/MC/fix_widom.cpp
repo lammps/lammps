@@ -73,6 +73,8 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   time_depend = 1;
 
+  triclinic = domain->triclinic;
+
   // required args
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -110,18 +112,6 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     region_yhi = region->extent_yhi;
     region_zlo = region->extent_zlo;
     region_zhi = region->extent_zhi;
-
-    if (triclinic) {
-      if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
-          (region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
-          (region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2]))
-        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
-    } else {
-      if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
-          (region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
-          (region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
-        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
-    }
 
     // estimate region volume using MC trials
 
@@ -216,8 +206,7 @@ void FixWidom::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
       region = domain->get_region_by_id(arg[iarg+1]);
-      if (!region)
-        error->all(FLERR,"Region {} for fix widom does not exist",arg[iarg+1]);
+      if (!region) error->all(FLERR,"Region {} for fix widom does not exist",arg[iarg+1]);
       idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
@@ -292,6 +281,7 @@ int FixWidom::setmask()
 
 void FixWidom::init()
 {
+  triclinic = domain->triclinic;
 
   // set index and check validity of region
 
@@ -300,7 +290,31 @@ void FixWidom::init()
     if (!region) error->all(FLERR, "Region {} for fix widom does not exist", idregion);
   }
 
-  triclinic = domain->triclinic;
+  if (region) {
+    if (region->bboxflag == 0)
+      error->all(FLERR,"Fix gcmc region does not support a bounding box");
+    if (region->dynamic_check())
+      error->all(FLERR,"Fix gcmc region cannot be dynamic");
+
+    region_xlo = region->extent_xlo;
+    region_xhi = region->extent_xhi;
+    region_ylo = region->extent_ylo;
+    region_yhi = region->extent_yhi;
+    region_zlo = region->extent_zlo;
+    region_zhi = region->extent_zhi;
+
+    if (triclinic) {
+      if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
+          (region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
+          (region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2]))
+        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
+    } else {
+      if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
+          (region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
+          (region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
+        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
+    }
+  }
 
   ave_widom_chemical_potential = 0.0;
 

@@ -164,8 +164,8 @@ defining a *body* particle, which requires setting the number of
 * Nd *dihedrals* = # of dihedrals Nd in molecule, default = 0
 * Ni *impropers* = # of impropers Ni in molecule, default = 0
 * Nf *fragments* = # of fragments Nf in molecule, default = 0
-* Ninteger Ndouble *body* = # of integer and floating-point values in body
-particle, default = 0
+* Ninteger Ndouble *body* = # of integer and floating-point values
+  in body particle, default = 0
 * Mtotal *mass* = total mass of molecule
 * Xc Yc Zc *com* = coordinates of center-of-mass of molecule
 * Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule

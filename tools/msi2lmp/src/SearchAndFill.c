@@ -93,7 +93,7 @@ void SearchAndFill(struct FrcFieldItem *item)
 
   file_pos = ftell(FrcF);
   if (file_pos < 0) {
-    fprintf(stderr, "Could not obtain file stream position: ", strerror(errno));
+    fprintf(stderr, "Could not obtain file stream position: %s\n", strerror(errno));
     exit(2);
   }
 

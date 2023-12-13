@@ -12,7 +12,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pace = style name of this compute command
-* ace_potential_filename = file name (in the .yace or .ace format from :doc:`pace pair_style <pair_pace>`) including ACE hyperparameters, bonds, and generalized coupling coefficients
+* ace_potential_filename = file name (in the .yace or .ace format from :doc:`pace pair_style <pair_pace>`) including ACE hyper-parameters, bonds, and generalized coupling coefficients
 * keyword = *bikflag* or *dgradflag*
 
   .. parsed-literal::
@@ -38,28 +38,30 @@ Description
 
 .. versionadded:: TBD
 
-This compute calculates a set of quantities related to the atomic cluster
-expansion (ACE) descriptors of the atoms in a group. ACE descriptors are
-a highly generalizable atomic descriptor, encoding the radial and angular
-distribution of neighbor atoms, up to arbitrary bond order (rank). The
-detailed mathematical definition is given in the paper by
-:ref:`(Drautz) <Drautz19>`. These descriptors are used in the
-:doc:`pace pair_style <pair_pace>`. Quantities obtained from `compute pace`
-are related to those used in :doc:`pace pair_style <pair_pace>` to
+This compute calculates a set of quantities related to the atomic
+cluster expansion (ACE) descriptors of the atoms in a group.  ACE
+descriptors are highly general atomic descriptors, encoding the radial
+and angular distribution of neighbor atoms, up to arbitrary bond order
+(rank).  The detailed mathematical definition is given in the paper by
+:ref:`(Drautz) <Drautz19>`.  These descriptors are used in the
+:doc:`pace pair_style <pair_pace>`.  Quantities obtained from `compute
+pace` are related to those used in :doc:`pace pair_style <pair_pace>` to
 evaluate atomic energies, forces, and stresses for linear ACE models.
+
 For example, the energy for a linear ACE model is calculated as:
-:math:`E=\sum_i^{N\_atoms} \sum_{\boldsymbol{\nu}} c_{\boldsymbol{\nu}}  B_{i,\boldsymbol{\boldsymbol{\nu}}}`.
-The ACE descriptors for atom `i` :math:`B_{i,\boldsymbol{\nu}}`, and
-:math:`c_{\nu}` are linear model parameters. The detailed definition
-and indexing convention for ACE descriptors is given in :ref:`(Drautz) <Drautz19>`.
-In short, body order :math:`N`, angular character, radial character,
-and chemical elements in the *N-body* descriptor are encoded by :math:`\nu`.
-In the :doc:`pace pair_style <pair_pace>`, the linear model parameters
-and the ACE descriptors are combined for efficient evaluation of energies
-and forces. The details and benefits of this efficient implementation are
-given in :ref:`(Lysogorskiy) <Lysogorskiy21>`. et. al, but the combined
-descriptors and linear model parameters for the purposes of `compute pace`
-may be expressed in terms of the ACE descriptors mentioned above.
+:math:`E=\sum_i^{N\_atoms} \sum_{\boldsymbol{\nu}} c_{\boldsymbol{\nu}}
+B_{i,\boldsymbol{\boldsymbol{\nu}}}`.  The ACE descriptors for atom `i`
+:math:`B_{i,\boldsymbol{\nu}}`, and :math:`c_{\nu}` are linear model
+parameters.  The detailed definition and indexing convention for ACE
+descriptors is given in :ref:`(Drautz) <Drautz19>`.  In short, body
+order :math:`N`, angular character, radial character, and chemical
+elements in the *N-body* descriptor are encoded by :math:`\nu`.  In the
+:doc:`pace pair_style <pair_pace>`, the linear model parameters and the
+ACE descriptors are combined for efficient evaluation of energies and
+forces.  The details and benefits of this efficient implementation are
+given in :ref:`(Lysogorskiy) <Lysogorskiy21>`, but the combined
+descriptors and linear model parameters for the purposes of `compute
+pace` may be expressed in terms of the ACE descriptors mentioned above.
 
 :math:`c_{\boldsymbol{\nu}} B_{i,\boldsymbol{\nu}}= \sum_{\boldsymbol{\nu}' \in \boldsymbol{\nu} } \big[ c_{\boldsymbol{\nu}} C(\boldsymbol{\nu}') \big] A_{i,\boldsymbol{\nu}'}`
 
@@ -90,7 +92,7 @@ The coefficient file, `<name>.yace`, ultimately defines the number of ACE
 descriptors to be computed, their maximum body-order, the degree of angular
 character they have, the degree of radial character they have, the chemical
 character (which element-element interactions are encoded by descriptors),
-and other hyperparameters defined in :ref:`(Drautz) <Drautz19>`. These may
+and other hyper-parameters defined in :ref:`(Drautz) <Drautz19>`. These may
 be modeled after the potential files in :doc:`pace pair_style <pair_pace>`,
 and have the same format. Details on how to generate the coefficient files
 to train ACE models may be found in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.

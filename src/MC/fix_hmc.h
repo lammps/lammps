@@ -56,7 +56,7 @@ class FixHMC : public Fix {
   void restore_saved_state();
   void random_velocities();
   void rigid_body_random_velocities();
-  template <typename T> void store_peratom_member(Atom::PerAtom &, Atom::PerAtom, int, int);
+  template <typename T> void store_peratom_member(Atom::PerAtom &, Atom::PerAtom, int, int, int);
   template <typename T> void restore_peratom_member(Atom::PerAtom, Atom::PerAtom &, int);
   template <typename T> double memory_usage_peratom_member(Atom::PerAtom &);
   std::vector<Atom::PerAtom> stored_peratom;

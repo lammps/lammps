@@ -193,7 +193,7 @@ void FixHMC::post_constructor()
 
 template <typename T>
 void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
-                                  Atom::PerAtom current_peratom_member, int nmax, int realloc)
+                                  Atom::PerAtom current_peratom_member, int ntotal, int nmax, int realloc)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
     error->all(FLERR, "fix hmc tried to store incorrect peratom data");
@@ -213,7 +213,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     if (*(T **) current_peratom_member.address != nullptr) {
       if (realloc) stored_peratom_member.address = malloc(sizeof(T) * nmax);
       memcpy(stored_peratom_member.address, *(T **) current_peratom_member.address,
-             nmax * sizeof(T));
+             ntotal * sizeof(T));
     } else {
       stored_peratom_member.address = nullptr;
     }
@@ -230,7 +230,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     }
     if (*(T ***) current_peratom_member.address != nullptr) {
       if (realloc) stored_peratom_member.address = malloc(sizeof(T) * nmax * cols);
-      for (int i = 0; i < nmax; i++) {
+      for (int i = 0; i < ntotal; i++) {
         memcpy((T *) stored_peratom_member.address + i * cols,
                (**(T ***) current_peratom_member.address) + i * cols, sizeof(T) * cols);
       }
@@ -715,15 +715,15 @@ void FixHMC::save_current_state()
       stored_peratom_member = current_peratom_member;
       switch (current_peratom_member.datatype) {
         case (Atom::INT):
-          store_peratom_member<int>(stored_peratom_member, current_peratom_member, nmax,
+          store_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal, nmax,
                                     reallocate_peratoms);
           break;
         case (Atom::DOUBLE):
-          store_peratom_member<double>(stored_peratom_member, current_peratom_member, nmax,
+          store_peratom_member<double>(stored_peratom_member, current_peratom_member, ntotal, nmax,
                                        reallocate_peratoms);
           break;
         case (Atom::BIGINT):
-          store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, nmax,
+          store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, ntotal, nmax,
                                        reallocate_peratoms);
           break;
       }
@@ -737,16 +737,16 @@ void FixHMC::save_current_state()
         } else {
           switch (current_peratom_member.datatype) {
             case (Atom::INT):
-              store_peratom_member<int>(stored_peratom_member, current_peratom_member, nmax,
+              store_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal, nmax,
                                         reallocate_peratoms);
               break;
             case (Atom::DOUBLE):
-              store_peratom_member<double>(stored_peratom_member, current_peratom_member, nmax,
-                                           reallocate_peratoms);
+              store_peratom_member<double>(stored_peratom_member, current_peratom_member, ntotal,
+                                           nmax, reallocate_peratoms);
               break;
             case (Atom::BIGINT):
-              store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, nmax,
-                                           reallocate_peratoms);
+              store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, ntotal,
+                                           nmax, reallocate_peratoms);
               break;
           }
         }

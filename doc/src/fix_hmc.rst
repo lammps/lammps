@@ -33,10 +33,13 @@ Examples
 
 Description
 """""""""""
-This fix performs the the Hybrid/Hamiltonian Monte Carlo (HMC) algorithm in line with the following order of steps:
+This fix performs the the Hybrid/Hamiltonian Monte Carlo (HMC)algorithm
+in line with the following order of steps:
 
-The new particle configuration (positions and velocities) is calculated by invoking the velocity-Verlet time integration algorithm.
-Before these configuration changes are performed, the proposed change in the Hamiltonian,
+The new particle configuration (positions and velocities) is calculated
+by invoking the velocity-Verlet time integration algorithm.
+Before these configuration changes are performed, the proposed change
+in the Hamiltonian,
 :math:`\Delta{H}`
 is calculated following the equation:
 
@@ -45,29 +48,39 @@ is calculated following the equation:
    \Delta{H} = H(q′,p′) - H(q,p)
 
 
-This new proposed configuration is then accepted/rejected according to the Metropolis criterion with probability:
+This new proposed configuration is then accepted/rejected according to
+the Metropolis criterion with probability:
 
 .. math::
 
    p^{acc} = min(1,e^{\frac{-\Delta{H}}{k_B T}})
 
-Upon acceptance, the new proposed particle configuration positions and velocities are updated.
-
-Upon rejection, the old particle configuration is kept, and particle momenta (and therefore velocities) are randomly resampled from a normal distribution:
+Upon acceptance, the new proposed particle configuration positions and
+velocities are updated. Upon rejection, the old particle configuration
+is kept, and particle momenta (and therefore velocities) are randomly
+resampled from a normal distribution:
 
 .. math::
 
    p_{x,y,z} = \textbf{N}(0,1) \sqrt{\frac{k_B T}{2 m^2}}
 
-The algorithm then continues, proposing a new configuration of particles and velocities N integration steps later.
+The algorithm then continues, proposing a new configuration of particles
+and velocities N integration steps later.
 
 ----------
 
 The keyword/value options are used in the following ways.
 
-The *mom* keyword sets the linear momentum of the ensemble of particles. If mom = yes, the linear momentum of the ensemble of velocities is zeroed. If mom = no, the linear momentum of the ensemble of velocities is not zeroed.
-The *ra* keyword decides whether velocities are resampled upon acceptance. If ra = yes, velocities are resampled upon acceptance. If ra = no, velocities are not resampled upon acceptance.
+The *mom* keyword sets the linear momentum of the ensemble of particles.
+If mom = yes, the linear momentum of the ensemble of velocities is
+zeroed. If mom = no, the linear momentum of the ensemble of velocities
+is not zeroed.
 
+The *ra* keyword decides whether velocities are resampled upon acceptance.
+If ra = yes, velocities are resampled upon acceptance. If ra = no,
+velocities are not resampled upon acceptance.
+
+----------
 
 Restrictions
 """"""""""""

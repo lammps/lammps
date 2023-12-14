@@ -35,15 +35,13 @@ class ComputePACE : public Compute {
 
  private:
   int natoms, nmax, size_peratom, lastcol;
-  int ncoeff, nvalues, nperdim, yoffset, zoffset;
+  int nvalues, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
   double **cutsq;
   class NeighList *list;
   double **pace, **paceall;
   double **pace_peratom;
-  double rcutfac;
   int *map;    // map types to [0,nelements)
-  int nelements, chemflag;
   int bikflag, bik_rows, dgradflag, dgrad_rows;
   double *cg;
   double cutmax;

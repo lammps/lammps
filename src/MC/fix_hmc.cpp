@@ -193,7 +193,7 @@ void FixHMC::post_constructor()
 
 template <typename T>
 void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
-                                  Atom::PerAtom current_peratom_member, int nmax)
+                                  Atom::PerAtom current_peratom_member, int ntotal, int nmax, int realloc)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
     error->all(FLERR, "fix hmc tried to store incorrect peratom data");
@@ -213,7 +213,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     if (*(T **) current_peratom_member.address != nullptr) {
       stored_peratom_member.address = malloc(sizeof(T) * nmax);
       memcpy(stored_peratom_member.address, *(T **) current_peratom_member.address,
-             nmax * sizeof(T));
+             ntotal * sizeof(T));
     } else {
       stored_peratom_member.address = nullptr;
     }
@@ -229,8 +229,8 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
       cols = current_peratom_member.cols;
     }
     if (*(T ***) current_peratom_member.address != nullptr) {
-      stored_peratom_member.address = malloc(sizeof(T) * nmax * cols);
-      for (int i = 0; i < nmax; i++) {
+      if (realloc) stored_peratom_member.address = malloc(sizeof(T) * nmax * cols);
+      for (int i = 0; i < ntotal; i++) {
         memcpy((T *) stored_peratom_member.address + i * cols,
                (**(T ***) current_peratom_member.address) + i * cols, sizeof(T) * cols);
       }
@@ -699,24 +699,53 @@ void FixHMC::save_current_state()
   }
 
   // clear peratom data and store a new struct if reallocation, else just re-store
-  for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
-    free(stored_peratom_member.address);
-    free(stored_peratom_member.address_maxcols);
-  }
-  stored_peratom.clear();
-  Atom::PerAtom stored_peratom_member;
-  for (Atom::PerAtom &current_peratom_member : current_peratom) {
-    stored_peratom_member = current_peratom_member;
-    switch (current_peratom_member.datatype) {
-      case (Atom::INT):
-        store_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal);
-        break;
-      case (Atom::DOUBLE):
-        store_peratom_member<double>(stored_peratom_member, current_peratom_member, ntotal);
-        break;
-      case (Atom::BIGINT):
-        store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, ntotal);
-        break;
+  if (reallocate_peratoms) {
+    for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
+      free(stored_peratom_member.address);
+      free(stored_peratom_member.address_maxcols);
+    }
+    stored_peratom.clear();
+    Atom::PerAtom stored_peratom_member;
+    for (Atom::PerAtom &current_peratom_member : current_peratom) {
+      stored_peratom_member = current_peratom_member;
+      switch (current_peratom_member.datatype) {
+        case (Atom::INT):
+          store_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal, nmax,
+                                    reallocate_peratoms);
+          break;
+        case (Atom::DOUBLE):
+          store_peratom_member<double>(stored_peratom_member, current_peratom_member, ntotal, nmax,
+                                       reallocate_peratoms);
+          break;
+        case (Atom::BIGINT):
+          store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, ntotal, nmax,
+                                       reallocate_peratoms);
+          break;
+      }
+      stored_peratom.push_back(stored_peratom_member);
+    }
+  } else {
+    for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
+      for (Atom::PerAtom &current_peratom_member : current_peratom) {
+        if (stored_peratom_member.name.compare(current_peratom_member.name)) {
+          continue;
+        } else {
+          switch (current_peratom_member.datatype) {
+            case (Atom::INT):
+              store_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal, nmax,
+                                        reallocate_peratoms);
+              break;
+            case (Atom::DOUBLE):
+              store_peratom_member<double>(stored_peratom_member, current_peratom_member, ntotal,
+                                           nmax, reallocate_peratoms);
+              break;
+            case (Atom::BIGINT):
+              store_peratom_member<bigint>(stored_peratom_member, current_peratom_member, ntotal,
+                                           nmax, reallocate_peratoms);
+              break;
+          }
+        }
+      }
     }
     stored_peratom.push_back(stored_peratom_member);
   }

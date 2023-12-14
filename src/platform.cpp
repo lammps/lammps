@@ -42,6 +42,7 @@
 #define PSAPI_VERSION 2
 
 #include <direct.h>
+#include <fileapi.h>
 #include <io.h>    // for _get_osfhandle()
 #include <sys/stat.h>
 #include <windows.h>
@@ -61,6 +62,13 @@
 #include <fcntl.h>
 #include <sys/syslimits.h>
 #endif
+
+// for disk_free()
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
+    defined(__OpenBSD__) || defined(__NetBSD__)
+#include <sys/statvfs.h>
+#endif
+
 ////////////////////////////////////////////////////////////////////////
 
 #include <chrono>
@@ -1046,6 +1054,35 @@ bool platform::file_is_readable(const std::string &path)
     return true;
   }
   return false;
+}
+/* ----------------------------------------------------------------------
+   determine available disk space, if supported. Return -1 if not.
+------------------------------------------------------------------------- */
+
+double platform::disk_free(const std::string &path)
+{
+  double disk_free = -1.0;
+
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
+    defined(__OpenBSD__) || defined(__NetBSD__)
+  struct statvfs fs;
+
+  if (path.size()) {
+    int rv = statvfs(path.c_str(), &fs);
+    if (rv == 0) {
+#if defined(__linux__)
+      disk_free = fs.f_bavail * fs.f_bsize;
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
+    defined(__OpenBSD__) || defined(__NetBSD__)
+      disk_free = fs.f_bavail * fs.f_frsize;
+#endif
+    }
+  }
+#else define(_WIN32)
+  bigint free_bytes;
+  if (GetDiskFreeSpaceEx(path.c_str(), &free_bytes, nullptr, nullptr)) disk_free = free_bytes;
+#endif
+  return disk_free;
 }
 
 /* ----------------------------------------------------------------------

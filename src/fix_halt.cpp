@@ -170,8 +170,8 @@ void FixHalt::init()
   // check if disk limit is supported
 
   if (attribute == DISKFREE) {
-    if (diskfree() < 0.0)
-      error->all(FLERR,"Disk limit not supported by OS or illegal path");
+    if (!dlimit_path || platform::disk_free(dlimit_path) < 0.0)
+      error->all(FLERR, "Disk limit not supported by OS or illegal path");
   }
 }
 
@@ -196,7 +196,7 @@ void FixHalt::end_of_step()
     if (update->ntimestep != nextstep) return;
     attvalue = tlimit();
   } else if (attribute == DISKFREE) {
-    attvalue = diskfree();
+    attvalue = platform::disk_free(dlimit_path) / 1048576.0;    // MBytes
   } else if (attribute == BONDMAX) {
     attvalue = bondmax();
   } else {

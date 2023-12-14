@@ -1165,19 +1165,20 @@ and a general discussion of how type labels can be used.
 *Ellipsoids* section:
 
 * one line per ellipsoid
-* line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk
+* line syntax: atom-ID shapex shapey shapez quatw quati quatj quatk block1 block2
 
   .. parsed-literal::
 
        atom-ID = ID of atom which is an ellipsoid
        shapex,shapey,shapez = 3 diameters of ellipsoid (distance units)
        quatw,quati,quatj,quatk = quaternion components for orientation of atom
+       block1,block2 = 2 blockiness parameters for super-ellipsoids
 
 * example:
 
   .. parsed-literal::
 
-       12 1 2 1 1 0 0 0
+       12 1 2 1 1 0 0 0 2 2
 
 The *Ellipsoids* section must appear if :doc:`atom_style ellipsoid <atom_style>` is used and any atoms are listed in the
 *Atoms* section with an ellipsoidflag = 1.  The number of ellipsoids
@@ -1199,6 +1200,13 @@ the quaternion that represents its new orientation is given by
 4 components are quatw, quati, quatj, and quatk as specified above.
 LAMMPS normalizes each atom's quaternion in case (a,b,c) is not
 specified as a unit vector.
+
+The blockiness values *block1*, *block2* generalize the geometry to a super
+ellipsoid for use in granualr simulations.  Sections through the center and
+parallel to the z-axis are superellipses with squareness *block1* and sections
+in the x-y plane are superellipses with squareness *block2*.  These parameters
+are optional and default to a value of 2, recovering ellipsoid geometry.
+When specified, both values must be greater than or equal to 2.
 
 The *Ellipsoids* section must appear after the *Atoms* section.
 

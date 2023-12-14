@@ -439,11 +439,27 @@ void AtomVecEllipsoid::data_atom_bonus(int m, const std::vector<std::string> &va
   quat[3] = utils::numeric(FLERR, values[ivalue++], true, lmp);
   MathExtra::qnormalize(quat);
 
+  // Blockiness exponents can be given optionally for superellipsoids
+
+  double *block = bonus[nlocal_bonus].block;
+  bool &flag_super = bonus[nlocal_bonus].flag_super;
+  if (ivalue == values.size()) {
+    block[0] = block[1] = 2.0;
+    flag_super = false;
+  }
+  else {
+    block[0] = utils::numeric(FLERR, values[ivalue++], true, lmp);
+    block[1] = utils::numeric(FLERR, values[ivalue++], true, lmp);
+    flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) && (std::fabs(block[1] - 2) > EPSBLOCK2));
+  }
+  block[2] = block[0] / block[1]; // ASSUMES EVEN NUMBERS ONLY?
+
   // reset ellipsoid mass
   // previously stored density in rmass
 
-  rmass[m] *= 4.0 * MY_PI / 3.0 * shape[0] * shape[1] * shape[2];
+  rmass[m] *= compute_volume(shape, block, flag_super);
 
+  bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
   bonus[nlocal_bonus].ilocal = m;
   ellipsoid[m] = nlocal_bonus++;
 }
@@ -569,8 +585,8 @@ void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag
 {
   int i = 0;
   while (i < n) {
-    fmt::print(fp, "{} {} {} {} {} {} {} {}\n", ubuf(buf[i]).i, buf[i + 1], buf[i + 2], buf[i + 3],
-               buf[i + 4], buf[i + 5], buf[i + 6], buf[i + 7]);
+    fmt::print(fp, "{} {} {} {} {} {} {} {} {} {}\n", ubuf(buf[i]).i, buf[i + 1], buf[i + 2], buf[i + 3],
+               buf[i + 4], buf[i + 5], buf[i + 6], buf[i + 7], buf[i + 8], buf[i + 9]);
     i += size_data_bonus;
   }
 }

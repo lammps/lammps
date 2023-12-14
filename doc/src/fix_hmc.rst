@@ -7,7 +7,7 @@ Syntax
 """"""
 .. code-block:: LAMMPS
 
-   fix ID group-ID hmc N seed temp integrator
+   fix ID group-ID hmc N seed temp integrator keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * hmc = style name of this fix command
@@ -15,11 +15,13 @@ Syntax
 * seed = random # seed (positive integer)
 * temp = temperature for assigning velocities
 * integrator = integrator fix: flexible (for nve) or rigid (for rigid/small)
+* keyword = *mom* or *ra*
 
   .. parsed-literal::
 
-     keyword = *mom*
-       *mom* value = *no* or *yes*
+       *mom* value = *yes* or *no*
+       *ra* value = *yes* or *no*
+       
 Examples
 """"""""
 
@@ -27,6 +29,7 @@ Examples
 
    fix 1 all hmc 10 123 500 flexible
    fix hmc_water water hmc 100 123 298.15 rigid
+   fix 2 all hmc 10 12345 300 flexible mom no ra yes
 
 Description
 """""""""""
@@ -58,6 +61,14 @@ Upon rejection, the old particle configuration is kept, and particle momenta (an
 
 The algorithm then continues, proposing a new configuration of particles and velocities N integration steps later.
 
+----------
+
+The keyword/value options are used in the following ways.
+
+The *mom* keyword sets the linear momentum of the ensemble of particles. If mom = yes, the linear momentum of the ensemble of velocities is zeroed. If mom = no, the linear momentum of the ensemble of velocities is not zeroed.
+The *ra* keyword decides whether velocities are resampled upon acceptance. If ra = yes, velocities are resampled upon acceptance. If ra = no, velocities are not resampled upon acceptance.
+
+
 Restrictions
 """"""""""""
 
@@ -73,7 +84,7 @@ Related commands
 Default
 """""""
 
-The option default is mom = yes
+The option default is mom = yes, ra = no.
 
 ----------
 

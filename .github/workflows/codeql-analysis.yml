@@ -51,6 +51,7 @@ jobs:
       run: |
         cmake -C ../cmake/presets/most.cmake \
               -D DOWNLOAD_POTENTIALS=off \
+              -D PKG_MC=on \
               ../cmake
         cmake --build . --parallel 2
 

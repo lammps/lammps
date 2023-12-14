@@ -53,6 +53,7 @@ jobs:
               -D ENABLE_TESTING=on \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \
+              -D PKG_MC=on \
               ../cmake
         cmake --build . --parallel 2
         ccache -s

@@ -197,7 +197,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
         error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
-  if (current_peratom_member.addreess == nullptr) return;
+  if (current_peratom_member.address == nullptr) return;
   int cols;
   // free old memory if stored_peratom_member isn't a copy of current_peratom_member
   if (stored_peratom_member.address != current_peratom_member.address) {

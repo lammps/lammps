@@ -43,12 +43,14 @@ When the KSPACE package is included in a LAMMPS build, the
 require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS, but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
-Alternatively, LAMMPS can use the
-`heFFTe <https://icl-utk-edu.github.io/heffte/>`_
-library for the MPI communication algorithms,
-which comes with many optimizations for special cases,
-e.g., leveraging 2D and 3D backend transforms and
-better pipelining for packing and communication.
+
+.. versionadded:: TBD
+
+Alternatively, LAMMPS can use the `heFFTe
+<https://icl-utk-edu.github.io/heffte/>`_ library for the MPI
+communication algorithms, which comes with many optimizations for
+special cases, e.g. leveraging available 2D and 3D FFTs in the back end
+libraries and better pipelining for packing and communication.
 
 .. tabs::
 
@@ -83,14 +85,15 @@ better pipelining for packing and communication.
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
-         -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock backend
+         -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock heFFTe back end
          -D Heffte_ROOT=path         # path to an existing heFFTe installation
 
       .. note::
 
-         heFFTe comes with a builtin stock backend for FFTs; however, the backend
-         is intended for testing purposes and is not performance optimized
-         for large scale production runs.
+         heFFTe comes with a builtin (= stock) back end for FFTs, i.e. a
+         default internal FFT implementation; however, this stock back
+         end is intended for testing purposes only and is not optimized
+         for production runs.
 
 
    .. tab:: Traditional make
@@ -140,9 +143,9 @@ better pipelining for packing and communication.
       which will define the `heffte_` include variables needed to link to heFFTe from
       an external project using traditional make.
       The `-DFFT_HEFFTE` is required to switch to using heFFTe, while the optional `-DFFT_HEFFTE_FFTW`
-      selects the desired heFFTe backend, e.g., `-DFFT_HEFFTE_FFTW` or `-DFFT_HEFFTE_MKL`,
-      omitting the variable will default to the `stock` backend.
-      The heFFTe `stock` backend is intended to be used for testing and debugging,
+      selects the desired heFFTe back end, e.g., `-DFFT_HEFFTE_FFTW` or `-DFFT_HEFFTE_MKL`,
+      omitting the variable will default to the `stock` back end.
+      The heFFTe `stock` back end is intended to be used for testing and debugging,
       but is not performance optimized for large scale production runs.
 
 The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
@@ -204,14 +207,14 @@ Depending on the machine, the size of the FFT grid, the number of
 processors used, one option may be slightly faster.  The default is
 ARRAY mode.
 
-When using ``-DFFT_HEFFTE`` CMake will first look for an existing install
-with hints provided by ``-DHeffte_ROOT``, as recommended by the CMake
-standard and note that the name is case sensitive. If CMake cannot find
-a heFFTe installation with the correct backend (e.g., FFTW or MKL),
-it will attempt to download and build the library automatically.
-In this case, LAMMPS CMake will also accept all heFFTe specific variables
-listed in the
-`heFFTe documentation <https://mkstoyanov.bitbucket.io/heffte/md_doxygen_installation.html>`_
+When using ``-DFFT_HEFFTE`` CMake will first look for an existing
+install with hints provided by ``-DHeffte_ROOT``, as recommended by the
+CMake standard and note that the name is case sensitive. If CMake cannot
+find a heFFTe installation with the correct back end (e.g., FFTW or
+MKL), it will attempt to download and build the library automatically.
+In this case, LAMMPS CMake will also accept all heFFTe specific
+variables listed in the `heFFTe documentation
+<https://mkstoyanov.bitbucket.io/heffte/md_doxygen_installation.html>`_
 and those variables will be passed into the heFFTe build.
 
 ----------
@@ -507,8 +510,8 @@ Exception handling when using LAMMPS as a library
 
 LAMMPS errors do not kill the calling code, but throw an exception.  In
 the C-library interface, the call stack is unwound and control returns
-to the caller, e.g. to Python or a code that is coupled to LAMMPS and
-the error status can be queried.  When using C++ directly, the calling
+to the caller, e.g. to Python or a code that is coupled to LAMMPS. The
+error status can then be queried.  When using C++ directly, the calling
 code has to be set up to *catch* exceptions thrown from within LAMMPS.
 
 .. note::

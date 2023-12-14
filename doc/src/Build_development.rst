@@ -518,6 +518,8 @@ The following options are available.
    make fix-errordocs       # remove error docs in header files
    make check-permissions   # search for files with permissions issues
    make fix-permissions     # correct permissions issues in files
+   make check-docs          # search for several issues in the manual
+   make check-version       # list files with pending release version tags
    make check               # run all check targets from above
 
 These should help to make source and documentation files conforming

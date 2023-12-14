@@ -192,12 +192,11 @@ void FixHMC::post_constructor()
 
 template <typename T>
 void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
-                          Atom::PerAtom current_peratom_member, int nlocal)
+                                  Atom::PerAtom current_peratom_member, int nlocal)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
-        error->all(FLERR, "fix hmc tried to store incorrect peratom data");
+    error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
-  if (current_peratom_member.address == nullptr) return;
   int cols;
   // free old memory if stored_peratom_member isn't a copy of current_peratom_member
   if (stored_peratom_member.address != current_peratom_member.address) {
@@ -752,15 +751,8 @@ void FixHMC::restore_saved_state()
   int ntotal = nlocal + atom->nghost;
   double **x = atom->x;
   double *scalar, **vector, *energy, **stress;
-
-  int map_cleared = false;
   
   current_peratom = atom->peratom;
-
-  // clear the atom map since we will be messing all that up
-  if (atom->map_style != Atom::MAP_NONE) {
-    atom->map_clear();
-  }
 
   // restore tag and peratom body data
   memcpy(atom->tag, stored_tag, stored_ntotal * sizeof(tagint));
@@ -826,7 +818,8 @@ void FixHMC::restore_saved_state()
   }
 
   // reinit atom_map
-  if (map_cleared) {
+  if (atom->map_style != Atom::MAP_NONE) {
+    atom->map_clear();
     atom->map_init();
     atom->map_set();
   }
@@ -1132,12 +1125,61 @@ int FixHMC::unpack_exchange(int i, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   memory usage of stored_peratom_member
+------------------------------------------------------------------------- */
+
+template <typename T>
+double FixHMC::memory_usage_peratom_member(Atom::PerAtom &stored_peratom_member)
+{
+  int cols;
+  if (stored_peratom_member.address == nullptr) return 0;
+  if (stored_peratom_member.cols == 0) { return stored_ntotal * sizeof(T); };
+  if (stored_peratom_member.cols < 0)
+    cols = *(stored_peratom_member.address_maxcols);
+  else
+    cols = stored_peratom_member.cols;
+  return sizeof(T) * stored_ntotal * cols;
+}
+
+/* ----------------------------------------------------------------------
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
 double FixHMC::memory_usage()
 {
-  double bytes = nvalues * atom->nmax * sizeof(double);
+  double bytes = 0;
+  bytes += stored_nmax * sizeof(int); // tag
+  if (rigid_flag) {
+    bytes += stored_nmax * sizeof(int);       // stored_bodyown
+    bytes += stored_nmax * sizeof(tagint);    // stored_bodytag
+    bytes += stored_nmax * sizeof(int);     // stored_atom2body
+    bytes += stored_nmax * sizeof(imageint);      // stored_xcmimage
+    bytes += stored_nmax * 3 * sizeof(double);    // stored_displace
+    if (fix_rigid->extended) {
+      bytes += stored_nmax * sizeof(int);    // stored_eflags
+      if (fix_rigid->orientflag)
+        bytes += stored_nmax * fix_rigid->orientflag * sizeof(double);          // stored_orient
+      if (fix_rigid->dorientflag) bytes += stored_nmax * 3 * sizeof(double);    // stored_dorient
+    }
+  }
+
+  for (Atom::PerAtom &stored_peratom_member : stored_peratom) { 
+    switch (stored_peratom_member.datatype) {
+      case (Atom::INT):
+        bytes += memory_usage_peratom_member<int>(stored_peratom_member);
+        break;
+      case (Atom::DOUBLE):
+        bytes += memory_usage_peratom_member<double>(stored_peratom_member);
+        break;
+      case (Atom::BIGINT):
+        bytes += memory_usage_peratom_member<bigint>(stored_peratom_member);
+        break;
+    }
+  }
+
+  bytes += stored_ntotal_body * sizeof(FixRigidSmall::Body);
+
+  bytes += nvalues * atom->nmax * sizeof(double);
   return bytes;
 }
 

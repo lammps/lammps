@@ -61,6 +61,7 @@ class FixHMC : public Fix {
   void store_peratom_member(Atom::PerAtom&, Atom::PerAtom, int);
   template <typename T>
   void restore_peratom_member(Atom::PerAtom, Atom::PerAtom &, int);
+  template <typename T> double memory_usage_peratom_member(Atom::PerAtom &);
   std::vector<Atom::PerAtom> stored_peratom;
   std::vector<Atom::PerAtom> current_peratom;
   tagint *stored_tag;
@@ -77,7 +78,7 @@ class FixHMC : public Fix {
   double **stored_orient;
   double **stored_dorient;
 
-  int resample_on_accept_flag, mom_flag, rot_flag;
+  int resample_on_accept_flag, mom_flag;
 
   char *mdi;
   class FixNVE *fix_nve;

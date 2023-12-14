@@ -200,7 +200,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
   }
   int cols;
   // free old memory if reallocating and stored_peratom_member isn't a copy of current_peratom_member
-  if (stored_peratom_member.address != current_peratom_member.address) {
+  if (realloc && stored_peratom_member.address != current_peratom_member.address) {
     free(stored_peratom_member.address);
     stored_peratom_member.address = nullptr;
   }
@@ -209,7 +209,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     stored_peratom_member.address_maxcols = nullptr;
   }
   // peratom scalers
-  if (realloc && current_peratom_member.cols == 0) {
+  if (current_peratom_member.cols == 0) {
     if (*(T **) current_peratom_member.address != nullptr) {
       if (realloc) stored_peratom_member.address = malloc(sizeof(T) * nmax);
       memcpy(stored_peratom_member.address, *(T **) current_peratom_member.address,

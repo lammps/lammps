@@ -644,7 +644,7 @@ void FixHMC::save_current_state()
   int ntotal = nlocal + atom->nghost;
   int nmax = atom->nmax;
   int reallocate_peratoms = false;
-  std::vector<Atom::PerAtom> current_peratom = atom->peratom;
+  current_peratom = atom->peratom;
 
   if (nmax > stored_nmax) {
     // reallocate tag array
@@ -710,8 +710,9 @@ void FixHMC::save_current_state()
       free(stored_peratom_member.address_maxcols);
     }
     stored_peratom.clear();
+    Atom::PerAtom stored_peratom_member;
     for (Atom::PerAtom &current_peratom_member : current_peratom) {
-      Atom::PerAtom stored_peratom_member = current_peratom_member;
+      stored_peratom_member = current_peratom_member;
       switch (current_peratom_member.datatype) {
         case (Atom::INT):
           store_peratom_member<int>(stored_peratom_member, current_peratom_member, nmax,
@@ -799,7 +800,7 @@ void FixHMC::restore_saved_state()
   double **x = atom->x;
   double *scalar, **vector, *energy, **stress;
 
-  std::vector<Atom::PerAtom> current_peratom = atom->peratom;
+  current_peratom = atom->peratom;
 
   // restore tag and peratom body data
   memcpy(atom->tag, stored_tag, stored_ntotal * sizeof(tagint));

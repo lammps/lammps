@@ -233,7 +233,7 @@ void Balance::command(int narg, char **arg)
   }
 
   if (style == SHIFT) {
-    const int blen = bstr.size();
+    const int blen = bstr.size() + 1;
     for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
         error->all(FLERR,"Balance shift string is invalid");

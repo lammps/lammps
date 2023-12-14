@@ -71,8 +71,14 @@ Also see the explanation of the :doc:`-restart command-line switch
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the *add*, *offset*, and
-*shift* keywords.  See more details below, which includes the use case
-for the *extra* keywords.
+*shift* keywords.  However, it is important to understand that several
+system parameters, like the number of types of different kinds and per
+atom settings are **locked in** after the first *read_data* command,
+which means that no type ID (including its offset) may have a larger
+value when processing additional data files than what is set by the
+first data file and the corresponding *read_data* command options.  See
+more details on this situation below, which includes the use case for
+the *extra* keywords.
 
 The *group* keyword adds all the atoms in the data file to the
 specified group-ID.  The group will be created if it does not already
@@ -143,9 +149,9 @@ is required representing the equivalent offset for molecule IDs.
 If *merge* is specified, the data file atoms
 are added to the current system without changing their IDs.  They are
 assumed to merge (without duplication) with the currently defined
-atoms.  It is up to you to insure there are no multiply defined atom
+atoms.  It is up to you to ensure there are no multiply defined atom
 IDs, as LAMMPS only performs an incomplete check that this is the case
-by insuring the resulting max atom-ID >= the number of atoms. For
+by ensuring the resulting max atom-ID >= the number of atoms. For
 molecule IDs, there is no check done at all.
 
 The *offset* and *shift* keywords can only be used if the *add*
@@ -174,7 +180,7 @@ The *shift* keyword can be used to specify an (Sx, Sy, Sz)
 displacement applied to the coordinates of each atom.  Sz must be 0.0
 for a 2d simulation.  This is a mechanism for adding structured
 collections of atoms at different locations within the simulation box,
-to build up a complex geometry.  It is up to you to insure atoms do
+to build up a complex geometry.  It is up to you to ensure atoms do
 not end up overlapping unphysically which would lead to bad dynamics.
 Note that the :doc:`displace_atoms <displace_atoms>` command can be used
 to move a subset of atoms after they have been read from a data file.
@@ -334,16 +340,20 @@ and are called "tilt factors" because they are the amount of
 displacement applied to faces of an originally orthogonal box to
 transform it into the parallelepiped.
 
-By default, the tilt factors (xy,xz,yz) can not skew the box more than
-half the distance of the corresponding parallel box length.  For
-example, if xlo = 2 and xhi = 12, then the x box length is 10 and the
-xy tilt factor must be between -5 and 5.  Similarly, both xz and yz
-must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not
-a limitation, since if the maximum tilt factor is 5 (as in this
-example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
-... are all geometrically equivalent.  If you wish to define a box
-with tilt factors that exceed these limits, you can use the :doc:`box tilt <box>` command, with a setting of *large*\ ; a setting of
-*small* is the default.
+The tilt factors (xy,xz,yz) should not skew the box more than half the
+distance of the corresponding parallel box length.  For example, if
+:math:`x_\text{lo} = 2` and :math:`x_\text{hi} = 12`, then the :math:`x`
+box length is 10 and the :math:`xy` tilt factor must be between
+:math:`-5` and :math:`5`.  Similarly, both :math:`xz` and :math:`yz`
+must be between :math:`-(x_\text{hi}-x_\text{lo})/2` and
+:math:`+(y_\text{hi}-y_\text{lo})/2`.  Note that this is not a
+limitation, since if the maximum tilt factor is 5 (as in this example),
+then configurations with tilt :math:`= \dots, -15`, :math:`-5`,
+:math:`5`, :math:`15`, :math:`25, \dots` are all geometrically
+equivalent.  Simulations with large tilt factors will run inefficiently,
+since they require more ghost atoms and thus more communication.  With
+very large tilt factors, LAMMPS will eventually produce incorrect
+trajectories and stop with errors due to lost atoms or similar.
 
 See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
@@ -700,8 +710,6 @@ of analysis.
      - atom-ID molecule-ID atom-type lineflag density x y z
    * - mdpd
      - atom-ID atom-type rho x y z
-   * - mesont
-     - atom-ID molecule-ID atom-type bond_nt mass mradius mlength buckling x y z
    * - molecular
      - atom-ID molecule-ID atom-type x y z
    * - peri
@@ -732,8 +740,6 @@ The per-atom values have these meanings and units, listed alphabetically:
 * atom-ID = integer ID of atom
 * atom-type = type of atom (1-Ntype, or type label)
 * bodyflag = 1 for body particles, 0 for point particles
-* bond_nt = bond NT factor for MESONT particles (?? units)
-* buckling = buckling factor for MESONT particles (?? units)
 * ccN = chemical concentration for tDPD particles for each species (mole/volume units)
 * cradius = contact radius for SMD particles (distance units)
 * cs_re,cs_im = real/imaginary parts of wave packet coefficients
@@ -750,9 +756,7 @@ The per-atom values have these meanings and units, listed alphabetically:
 * kradius = kernel radius for SMD particles (distance units)
 * lineflag = 1 for line segment particles, 0 for point or spherical particles
 * mass = mass of particle (mass units)
-* mlength = ?? length for MESONT particles (distance units)
 * molecule-ID = integer ID of molecule the atom belongs to
-* mradius = ?? radius for MESONT particles (distance units)
 * mux,muy,muz = components of dipole moment of atom (dipole units)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles
@@ -1473,10 +1477,12 @@ The *Triangles* section must appear after the *Atoms* section.
 
 where the keywords have these meanings:
 
-vx,vy,vz = translational velocity of atom
-lx,ly,lz = angular momentum of aspherical atom
-wx,wy,wz = angular velocity of spherical atom
-ervel = electron radial velocity (0 for fixed-core):ul
+   .. parsed-literal::
+
+      vx,vy,vz = translational velocity of atom
+      lx,ly,lz = angular momentum of aspherical atom
+      wx,wy,wz = angular velocity of spherical atom
+      ervel = electron radial velocity (0 for fixed-core)
 
 The velocity lines can appear in any order.  This section can only be
 used after an *Atoms* section.  This is because the *Atoms* section

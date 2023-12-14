@@ -6,7 +6,7 @@ fix_modify AtC control localized_lambda command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> control localized_lambda <on|off>
 

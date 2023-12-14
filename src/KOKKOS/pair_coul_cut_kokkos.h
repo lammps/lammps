@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -112,15 +112,18 @@ class PairCoulCutKokkos : public PairCoulCut {
   double qqrd2e;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,FULL,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALF,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALFTHREAD,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,FULL,0>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,FULL,1>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALF>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALFTHREAD>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairCoulCutKokkos,void>(PairCoulCutKokkos*,
                                                        NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairCoulCutKokkos>(PairCoulCutKokkos*);

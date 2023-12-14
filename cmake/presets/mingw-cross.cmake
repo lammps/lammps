@@ -35,7 +35,7 @@ set(WIN_PACKAGES
   INTEL
   INTERLAYER
   KSPACE
-  LATTE
+  LEPTON
   MACHDYN
   MANIFOLD
   MANYBODY
@@ -47,6 +47,7 @@ set(WIN_PACKAGES
   MISC
   ML-HDNNP
   ML-IAP
+  ML-POD
   ML-RANN
   ML-SNAP
   MOFFF
@@ -82,7 +83,6 @@ endforeach()
 
 # these two packages require a full MPI implementation
 if(BUILD_MPI)
-  set(PKG_MPIIO ON CACHE BOOL "" FORCE)
   set(PKG_LATBOLTZ ON CACHE BOOL "" FORCE)
 endif()
 

@@ -1,48 +1,19 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 #include <limits>
@@ -50,6 +21,17 @@
 #include <Kokkos_Core.hpp>
 
 //--------------------------------------------------------------------------
+
+namespace Test {
+struct MyPair : Kokkos::pair<int, int> {};
+}  // namespace Test
+
+template <>
+struct Kokkos::reduction_identity<Test::MyPair> {
+  KOKKOS_FUNCTION static Test::MyPair min() {
+    return Test::MyPair{{INT_MAX, INT_MAX}};
+  }
+};
 
 namespace Test {
 
@@ -103,6 +85,20 @@ struct TestReducers {
     }
   };
 
+  struct MinLocFunctor2D {
+    Kokkos::View<const Scalar**, ExecSpace> values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(
+        const int& i, const int& j,
+        typename Kokkos::MinLoc<Scalar, MyPair>::value_type& value) const {
+      if (values(i, j) < value.val) {
+        value.val = values(i, j);
+        value.loc = {{i, j}};
+      }
+    }
+  };
+
   struct MaxLocFunctor {
     Kokkos::View<const Scalar*, ExecSpace> values;
 
@@ -113,6 +109,20 @@ struct TestReducers {
       if (values(i) > value.val) {
         value.val = values(i);
         value.loc = i;
+      }
+    }
+  };
+
+  struct MaxLocFunctor2D {
+    Kokkos::View<const Scalar**, ExecSpace> values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(
+        const int& i, const int& j,
+        typename Kokkos::MaxLoc<Scalar, MyPair>::value_type& value) const {
+      if (values(i, j) > value.val) {
+        value.val = values(i, j);
+        value.loc = {{i, j}};
       }
     }
   };
@@ -132,6 +142,25 @@ struct TestReducers {
       if (values(i) < value.min_val) {
         value.min_val = values(i);
         value.min_loc = i;
+      }
+    }
+  };
+
+  struct MinMaxLocFunctor2D {
+    Kokkos::View<const Scalar**, ExecSpace> values;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(
+        const int& i, const int& j,
+        typename Kokkos::MinMaxLoc<Scalar, MyPair>::value_type& value) const {
+      if (values(i, j) > value.max_val) {
+        value.max_val = values(i, j);
+        value.max_loc = {{i, j}};
+      }
+
+      if (values(i, j) < value.min_val) {
+        value.min_val = values(i, j);
+        value.min_loc = {{i, j}};
       }
     }
   };
@@ -296,8 +325,24 @@ struct TestReducers {
     Scalar reference_sum = 0;
 
     for (int i = 0; i < N; i++) {
-      int denom   = sizeof(Scalar) <= 2 ? 10 : 100;
-      h_values(i) = (Scalar)(rand() % denom);
+      int denom = sizeof(Scalar) <= 2 ? 10 : 100;
+      // clang-format off
+      // For bhalf, we start overflowing integer values at 2^8.
+      //            after 2^8,  we lose representation of odd numbers;
+      //            after 2^9,  we lose representation of odd and even numbers in position 1.
+      //            after 2^10, we lose representation of odd and even numbers in position 1-3.
+      //            after 2^11, we lose representation of odd and even numbers in position 1-7.
+      //            ...
+      // Generally, for IEEE 754 floating point numbers, we start this overflow pattern at: 2^(num_fraction_bits+1).
+      // brain float has num_fraction_bits = 7.
+      // This mask addresses #4719 for N <= 51.
+      // The mask is not needed for N <= 25.
+      // clang-format on
+      int mask =
+          std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value && N > 25
+              ? (int)0xfffffffe
+              : (int)0xffffffff;
+      h_values(i) = (Scalar)((rand() % denom) & mask);
       reference_sum += h_values(i);
     }
     Kokkos::deep_copy(values, h_values);
@@ -314,19 +359,19 @@ struct TestReducers {
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, 0), f,
                               reducer_scalar);
-      ASSERT_EQ(sum_scalar, init);
+      ASSERT_EQ(sum_scalar, init) << "N: " << N;
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_scalar);
-      ASSERT_EQ(sum_scalar, reference_sum);
+      ASSERT_EQ(sum_scalar, reference_sum) << "N: " << N;
 
       sum_scalar = init;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace, ReducerTag>(0, N),
                               f_tag, reducer_scalar);
-      ASSERT_EQ(sum_scalar, reference_sum);
+      ASSERT_EQ(sum_scalar, reference_sum) << "N: " << N;
 
       Scalar sum_scalar_view = reducer_scalar.reference();
-      ASSERT_EQ(sum_scalar_view, reference_sum);
+      ASSERT_EQ(sum_scalar_view, reference_sum) << "N: " << N;
     }
 
     {
@@ -337,16 +382,16 @@ struct TestReducers {
                               reducer_view);
       Kokkos::fence();
       Scalar sum_view_scalar = sum_view();
-      ASSERT_EQ(sum_view_scalar, init);
+      ASSERT_EQ(sum_view_scalar, init) << "N: " << N;
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_view);
       Kokkos::fence();
       sum_view_scalar = sum_view();
-      ASSERT_EQ(sum_view_scalar, reference_sum);
+      ASSERT_EQ(sum_view_scalar, reference_sum) << "N: " << N;
 
       Scalar sum_view_view = reducer_view.reference();
-      ASSERT_EQ(sum_view_view, reference_sum);
+      ASSERT_EQ(sum_view_view, reference_sum) << "N: " << N;
     }
 
     {
@@ -359,13 +404,13 @@ struct TestReducers {
       Kokkos::fence();
       Scalar sum_view_scalar;
       Kokkos::deep_copy(sum_view_scalar, sum_view);
-      ASSERT_EQ(sum_view_scalar, init);
+      ASSERT_EQ(sum_view_scalar, init) << "N: " << N;
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_view);
       Kokkos::fence();
       Kokkos::deep_copy(sum_view_scalar, sum_view);
-      ASSERT_EQ(sum_view_scalar, reference_sum);
+      ASSERT_EQ(sum_view_scalar, reference_sum) << "N: " << N;
     }
   }
 
@@ -611,6 +656,44 @@ struct TestReducers {
     }
   }
 
+  static void test_minloc_2d(int N) {
+    using reducer_type = Kokkos::MinLoc<Scalar, MyPair>;
+    using value_type   = typename reducer_type::value_type;
+
+    Kokkos::View<Scalar**, ExecSpace> values("Values", N, N);
+    auto h_values        = Kokkos::create_mirror_view(values);
+    Scalar reference_min = std::numeric_limits<Scalar>::max();
+    MyPair reference_loc = {{-1, -1}};
+
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++) {
+        h_values(i, j) = (Scalar)(rand() % 100000 + 2);
+
+        if (h_values(i, j) < reference_min) {
+          reference_min = h_values(i, j);
+          reference_loc = {{i, j}};
+        } else if (h_values(i, j) == reference_min) {
+          // Make min unique.
+          h_values(i, j) += Scalar(1);
+        }
+      }
+    Kokkos::deep_copy(values, h_values);
+
+    MinLocFunctor2D f;
+    f.values = values;
+
+    {
+      value_type min_scalar;
+      reducer_type reducer_scalar(min_scalar);
+
+      Kokkos::parallel_reduce(
+          Kokkos::MDRangePolicy<Kokkos::Rank<2>, ExecSpace>({0, 0}, {N, N}), f,
+          reducer_scalar);
+      ASSERT_EQ(min_scalar.val, reference_min);
+      ASSERT_EQ(min_scalar.loc, reference_loc);
+    }
+  }
+
   static void test_maxloc(int N) {
     using value_type = typename Kokkos::MaxLoc<Scalar, int>::value_type;
 
@@ -671,6 +754,44 @@ struct TestReducers {
       value_type max_view_view = reducer_view.reference();
       ASSERT_EQ(max_view_view.val, reference_max);
       ASSERT_EQ(max_view_view.loc, reference_loc);
+    }
+  }
+
+  static void test_maxloc_2d(int N) {
+    using reducer_type = Kokkos::MaxLoc<Scalar, MyPair>;
+    using value_type   = typename reducer_type::value_type;
+
+    Kokkos::View<Scalar**, ExecSpace> values("Values", N, N);
+    auto h_values        = Kokkos::create_mirror_view(values);
+    Scalar reference_max = std::numeric_limits<Scalar>::min();
+    MyPair reference_loc = {{-1, -1}};
+
+    for (int i = 0; i < N; ++i)
+      for (int j = 0; j < N; ++j) {
+        h_values(i, j) = (Scalar)(rand() % 100000 + 2);
+
+        if (h_values(i, j) > reference_max) {
+          reference_max = h_values(i, j);
+          reference_loc = {{i, j}};
+        } else if (h_values(i, j) == reference_max) {
+          // Make max unique.
+          h_values(i, j) -= Scalar(1);
+        }
+      }
+    Kokkos::deep_copy(values, h_values);
+
+    MaxLocFunctor2D f;
+    f.values = values;
+
+    {
+      value_type max_scalar;
+      reducer_type reducer_scalar(max_scalar);
+
+      Kokkos::parallel_reduce(
+          Kokkos::MDRangePolicy<Kokkos::Rank<2>, ExecSpace>({0, 0}, {N, N}), f,
+          reducer_scalar);
+      ASSERT_EQ(max_scalar.val, reference_max);
+      ASSERT_EQ(max_scalar.loc, reference_loc);
     }
   }
 
@@ -787,6 +908,78 @@ struct TestReducers {
       ASSERT_EQ(minmax_view_view.min_loc, reference_minloc);
       ASSERT_EQ(minmax_view_view.max_val, reference_max);
       ASSERT_EQ(minmax_view_view.max_loc, reference_maxloc);
+    }
+  }
+
+  static void test_minmaxloc_2d(int N) {
+    using reducer_type = Kokkos::MinMaxLoc<Scalar, MyPair>;
+    using value_type   = typename reducer_type::value_type;
+
+    Kokkos::View<Scalar**, ExecSpace> values("Values", N, N);
+    auto h_values           = Kokkos::create_mirror_view(values);
+    Scalar reference_max    = std::numeric_limits<Scalar>::min();
+    Scalar reference_min    = std::numeric_limits<Scalar>::max();
+    MyPair reference_minloc = {{-1, -1}};
+    MyPair reference_maxloc = {{-1, -1}};
+
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++) {
+        h_values(i, j) = (Scalar)(rand() % 100000 + 2);
+      }
+
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++) {
+        if (h_values(i, j) > reference_max) {
+          reference_max    = h_values(i, j);
+          reference_maxloc = {{i, j}};
+        } else if (h_values(i, j) == reference_max) {
+          // Make max unique.
+          h_values(i, j) -= Scalar(1);
+        }
+      }
+
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++) {
+        if (h_values(i, j) < reference_min) {
+          reference_min    = h_values(i, j);
+          reference_minloc = {{i, j}};
+        } else if (h_values(i, j) == reference_min) {
+          // Make min unique.
+          h_values(i, j) += Scalar(1);
+        }
+      }
+
+    Kokkos::deep_copy(values, h_values);
+
+    MinMaxLocFunctor2D f;
+    f.values = values;
+    {
+      value_type minmax_scalar;
+      reducer_type reducer_scalar(minmax_scalar);
+
+      Kokkos::parallel_reduce(
+          Kokkos::MDRangePolicy<Kokkos::Rank<2>, ExecSpace>({0, 0}, {N, N}), f,
+          reducer_scalar);
+
+      ASSERT_EQ(minmax_scalar.min_val, reference_min);
+      for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++) {
+          if ((minmax_scalar.min_loc == MyPair{{i, j}}) &&
+              (h_values(i, j) == reference_min)) {
+            reference_minloc = {{i, j}};
+          }
+        }
+      ASSERT_EQ(minmax_scalar.min_loc, reference_minloc);
+
+      ASSERT_EQ(minmax_scalar.max_val, reference_max);
+      for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++) {
+          if ((minmax_scalar.max_loc == MyPair{{i, j}}) &&
+              (h_values(i, j) == reference_max)) {
+            reference_maxloc = {{i, j}};
+          }
+        }
+      ASSERT_EQ(minmax_scalar.max_loc, reference_maxloc);
     }
   }
 
@@ -995,14 +1188,39 @@ struct TestReducers {
     test_sum(10001);
     test_prod(35);
     test_min(10003);
+#if !defined(KOKKOS_ENABLE_OPENACC)
+    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_minloc(10003);
+// FIXME_OPENMPTARGET requires custom reductions.
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
+    test_minloc_2d(100);
+#endif
+#endif
     test_max(10007);
+#if !defined(KOKKOS_ENABLE_OPENACC)
+    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_maxloc(10007);
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
-    (KOKKOS_COMPILER_CLANG < 1300)
-    // FIXME_OPENMPTARGET - The minmaxloc test fails llvm <= 13 version.
+// FIXME_OPENMPTARGET requires custom reductions.
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
+    test_maxloc_2d(100);
+#endif
+#endif
+// FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
+#if !defined(KOKKOS_ENABLE_OPENACC)
+// FIXME_OPENMPTARGET - The minmaxloc test fails llvm < 13 version,
+// test_minmaxloc_2d requires custom reductions
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300) && \
+    (KOKKOS_COMPILER_CLANG <= 1700)
+    test_minmaxloc(10007);
+#else
+    if (!std::is_same_v<ExecSpace, Kokkos::Experimental::OpenMPTarget>)
+      test_minmaxloc(10007);
+#endif
 #else
     test_minmaxloc(10007);
+    test_minmaxloc_2d(100);
+#endif
 #endif
   }
 
@@ -1013,14 +1231,44 @@ struct TestReducers {
     test_sum(10001);
     test_prod(sizeof(Scalar) > 4 ? 35 : 19);  // avoid int overflow (see above)
     test_min(10003);
+#if !defined(KOKKOS_ENABLE_OPENACC)
+    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_minloc(10003);
+#if defined(KOKKOS_ENABLE_CUDA)
+    if (!std::is_same_v<ExecSpace, Kokkos::Cuda>)
+#endif
+    // FIXME_OPENMPTARGET requires custom reductions.
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
+      test_minloc_2d(100);
+#endif
+#endif
     test_max(10007);
+#if !defined(KOKKOS_ENABLE_OPENACC)
+    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_maxloc(10007);
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
-    (KOKKOS_COMPILER_CLANG < 1300)
-    // FIXME_OPENMPTARGET - The minmaxloc test fails llvm <= 13 version.
+#if defined(KOKKOS_ENABLE_CUDA)
+    if (!std::is_same_v<ExecSpace, Kokkos::Cuda>)
+#endif
+// FIXME_OPENMPTARGET requires custom reductions.
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
+      test_maxloc_2d(100);
+#endif
+#endif
+// FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
+#if !defined(KOKKOS_ENABLE_OPENACC)
+// FIXME_OPENMPTARGET - The minmaxloc test fails llvm < 13 version,
+// the minmaxloc_2d test requires custom reductions.
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300)
+    test_minmaxloc(10007);
+#else
+    if (!std::is_same_v<ExecSpace, Kokkos::Experimental::OpenMPTarget>)
+      test_minmaxloc(10007);
+#endif
 #else
     test_minmaxloc(10007);
+    test_minmaxloc_2d(100);
+#endif
 #endif
     test_BAnd(35);
     test_BOr(35);

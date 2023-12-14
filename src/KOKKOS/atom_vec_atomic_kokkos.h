@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
-   LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,32 +24,18 @@ AtomStyle(atomic/kk/host,AtomVecAtomicKokkos);
 #define LMP_ATOM_VEC_ATOMIC_KOKKOS_H
 
 #include "atom_vec_kokkos.h"
+#include "atom_vec_atomic.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecAtomicKokkos : public AtomVecKokkos {
+class AtomVecAtomicKokkos : public AtomVecKokkos, public AtomVecAtomic {
  public:
   AtomVecAtomicKokkos(class LAMMPS *);
 
   void grow(int) override;
-  void copy(int, int, int) override;
-  int pack_border(int, int *, double *, int, int *) override;
-  int pack_border_vel(int, int *, double *, int, int *) override;
-  void unpack_border(int, int, double *) override;
-  void unpack_border_vel(int, int, double *) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(double *) override;
-  int size_restart() override;
-  int pack_restart(int, double *) override;
-  int unpack_restart(double *) override;
-  void create_atom(int, double *) override;
-  void data_atom(double *, imageint, const std::vector<std::string> &, std::string &) override;
-  void pack_data(double **) override;
-  void write_data(FILE *, int, double **) override;
-  double memory_usage() override;
-
   void grow_pointers() override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
                          int pbc_flag, int *pbc, ExecutionSpace space) override;
@@ -59,22 +45,17 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
-                           ExecutionSpace space, int dim,
-                           X_FLOAT lo, X_FLOAT hi) override;
+                           ExecutionSpace space) override;
   int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                              int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                             ExecutionSpace space) override;
+                             ExecutionSpace space,
+                             DAT::tdual_int_1d &k_indices) override;
 
   void sync(ExecutionSpace space, unsigned int mask) override;
   void modified(ExecutionSpace space, unsigned int mask) override;
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
-  tagint *tag;
-  imageint *image;
-  int *type,*mask;
-  double **x,**v,**f;
-
   DAT::t_tagint_1d d_tag;
   HAT::t_tagint_1d h_tag;
   DAT::t_imageint_1d d_image;
@@ -85,12 +66,9 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   DAT::t_x_array d_x;
   DAT::t_v_array d_v;
   DAT::t_f_array d_f;
-
-  DAT::tdual_int_1d k_count;
 };
 
 }
 
 #endif
 #endif
-

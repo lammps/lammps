@@ -1,47 +1,24 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#endif
 #ifndef KOKKOS_HOSTSPACE_HPP
 #define KOKKOS_HOSTSPACE_HPP
 
@@ -60,39 +37,9 @@
 #include <impl/Kokkos_Tools.hpp>
 
 #include "impl/Kokkos_HostSpace_deepcopy.hpp"
+#include <impl/Kokkos_MemorySpace.hpp>
 
 /*--------------------------------------------------------------------------*/
-
-namespace Kokkos {
-
-namespace Impl {
-
-/// \brief Initialize lock array for arbitrary size atomics.
-///
-/// Arbitrary atomics are implemented using a hash table of locks
-/// where the hash value is derived from the address of the
-/// object for which an atomic operation is performed.
-/// This function initializes the locks to zero (unset).
-void init_lock_array_host_space();
-
-/// \brief Acquire a lock for the address
-///
-/// This function tries to acquire the lock for the hash value derived
-/// from the provided ptr. If the lock is successfully acquired the
-/// function returns true. Otherwise it returns false.
-bool lock_address_host_space(void* ptr);
-
-/// \brief Release lock for the address
-///
-/// This function releases the lock for the hash value derived
-/// from the provided ptr. This function should only be called
-/// after previously successfully acquiring a lock with
-/// lock_address.
-void unlock_address_host_space(void* ptr);
-
-}  // namespace Impl
-
-}  // namespace Kokkos
 
 namespace Kokkos {
 /// \class HostSpace
@@ -117,25 +64,27 @@ class HostSpace {
   //! This memory space preferred device_type
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  /**\brief  Default memory space instance */
-  HostSpace();
+  HostSpace()                     = default;
   HostSpace(HostSpace&& rhs)      = default;
   HostSpace(const HostSpace& rhs) = default;
   HostSpace& operator=(HostSpace&&) = default;
   HostSpace& operator=(const HostSpace&) = default;
   ~HostSpace()                           = default;
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   /**\brief  Non-default memory space instance to choose allocation mechansim,
    * if available */
 
-  enum AllocationMechanism {
+  enum KOKKOS_DEPRECATED AllocationMechanism {
     STD_MALLOC,
     POSIX_MEMALIGN,
     POSIX_MMAP,
     INTEL_MM_ALLOC
   };
 
+  KOKKOS_DEPRECATED
   explicit HostSpace(const AllocationMechanism&);
+#endif
 
   /**\brief  Allocate untracked memory in the space */
   void* allocate(const size_t arg_alloc_size) const;
@@ -167,7 +116,6 @@ class HostSpace {
   static constexpr const char* name() { return m_name; }
 
  private:
-  AllocationMechanism m_alloc_mech;
   static constexpr const char* m_name = "Host";
   friend class Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void>;
 };
@@ -204,13 +152,12 @@ struct HostMirror {
   };
 
  public:
-  using Space = typename std::conditional<
+  using Space = std::conditional_t<
       keep_exe && keep_mem, S,
-      typename std::conditional<
-          keep_mem,
-          Kokkos::Device<Kokkos::HostSpace::execution_space,
-                         typename S::memory_space>,
-          Kokkos::HostSpace>::type>::type;
+      std::conditional_t<keep_mem,
+                         Kokkos::Device<Kokkos::HostSpace::execution_space,
+                                        typename S::memory_space>,
+                         Kokkos::HostSpace>>;
 };
 
 }  // namespace Impl
@@ -241,16 +188,33 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
   static RecordBase s_root_record;
 #endif
 
-  const Kokkos::HostSpace m_space;
+  Kokkos::HostSpace m_space;
 
  protected:
-  ~SharedAllocationRecord()
-#if defined( \
-    KOKKOS_IMPL_INTEL_WORKAROUND_NOEXCEPT_SPECIFICATION_VIRTUAL_FUNCTION)
-      noexcept
-#endif
-      ;
+  ~SharedAllocationRecord();
   SharedAllocationRecord() = default;
+
+  // This constructor does not forward to the one without exec_space arg
+  // in order to work around https://github.com/kokkos/kokkos/issues/5258
+  // This constructor is templated so I can't just put it into the cpp file
+  // like the other constructor.
+  template <typename ExecutionSpace>
+  SharedAllocationRecord(
+      const ExecutionSpace& /* exec_space*/, const Kokkos::HostSpace& arg_space,
+      const std::string& arg_label, const size_t arg_alloc_size,
+      const RecordBase::function_type arg_dealloc = &deallocate)
+      : base_t(
+#ifdef KOKKOS_ENABLE_DEBUG
+            &SharedAllocationRecord<Kokkos::HostSpace, void>::s_root_record,
+#endif
+            Impl::checked_allocation_with_header(arg_space, arg_label,
+                                                 arg_alloc_size),
+            sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+            arg_label),
+        m_space(arg_space) {
+    this->base_t::_fill_host_accessible_header_info(*RecordBase::m_alloc_ptr,
+                                                    arg_label);
+  }
 
   SharedAllocationRecord(
       const Kokkos::HostSpace& arg_space, const std::string& arg_label,
@@ -277,20 +241,6 @@ class SharedAllocationRecord<Kokkos::HostSpace, void>
 namespace Kokkos {
 
 namespace Impl {
-
-template <class DT, class... DP>
-struct ZeroMemset<typename HostSpace::execution_space, DT, DP...> {
-  ZeroMemset(const typename HostSpace::execution_space&,
-             const View<DT, DP...>& dst,
-             typename View<DT, DP...>::const_value_type& value)
-      : ZeroMemset(dst, value) {}
-
-  ZeroMemset(const View<DT, DP...>& dst,
-             typename View<DT, DP...>::const_value_type&) {
-    using ValueType = typename View<DT, DP...>::value_type;
-    std::memset(dst.data(), 0, sizeof(ValueType) * dst.size());
-  }
-};
 
 template <>
 struct DeepCopy<HostSpace, HostSpace, DefaultHostExecutionSpace> {

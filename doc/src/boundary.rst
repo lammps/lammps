@@ -61,7 +61,7 @@ move. Note that when the difference between the current box dimensions
 and the shrink-wrap box dimensions is large, this can lead to lost
 atoms at the beginning of a run when running in parallel. This is due
 to the large change in the (global) box dimensions also causing
-significant changes in the individual sub-domain sizes. If these
+significant changes in the individual subdomain sizes. If these
 changes are farther than the communication cutoff, atoms will be lost.
 This is best addressed by setting initial box dimensions to match the
 shrink-wrapped dimensions more closely, by using *m* style boundaries

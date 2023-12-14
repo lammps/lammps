@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -79,7 +79,7 @@ void PairOxdna2Dh::compute_interaction_sites(double e1[3],
 
 void PairOxdna2Dh::compute(int eflag, int vflag)
 {
-  double delf[3],delta[3],deltb[3]; // force, torque increment;;
+  double delf[3],delta[3],deltb[3]; // force, torque increment
   double rtmp_s[3],delr[3];
   double evdwl,fpair,factor_lj;
   double r,rsq,rinv;

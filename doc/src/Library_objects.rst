@@ -6,8 +6,10 @@ fixes, or variables in LAMMPS using the following functions:
 
 - :cpp:func:`lammps_extract_compute`
 - :cpp:func:`lammps_extract_fix`
+- :cpp:func:`lammps_extract_variable_datatype`
 - :cpp:func:`lammps_extract_variable`
 - :cpp:func:`lammps_set_variable`
+- :cpp:func:`lammps_variable_info`
 
 -----------------------
 
@@ -17,6 +19,11 @@ fixes, or variables in LAMMPS using the following functions:
 -----------------------
 
 .. doxygenfunction:: lammps_extract_fix
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_extract_variable_datatype
    :project: progguide
 
 -----------------------
@@ -31,8 +38,15 @@ fixes, or variables in LAMMPS using the following functions:
 
 -----------------------
 
+.. doxygenfunction:: lammps_variable_info
+   :project: progguide
+
+-----------------------
+
 .. doxygenenum:: _LMP_DATATYPE_CONST
 
 .. doxygenenum:: _LMP_STYLE_CONST
 
 .. doxygenenum:: _LMP_TYPE_CONST
+
+.. doxygenenum:: _LMP_VAR_CONST

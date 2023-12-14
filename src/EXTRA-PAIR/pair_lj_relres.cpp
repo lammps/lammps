@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -453,7 +453,7 @@ double PairLJRelRes::init_one(int i, int j)
     offset[i][j] = 0.0;
   }
 
-  if (epsilonf[i][j] != 0 ) {  // fg (cut=cutf coefficients)
+  if (epsilonf[i][j] != 0) {  // fg (cut=cutf coefficients)
     ljf1[i][j] = 48.0 * epsilonf[i][j] * pow(sigmaf[i][j],12.0);
     ljf2[i][j] = 24.0 * epsilonf[i][j] * pow(sigmaf[i][j],6.0);
     ljf3[i][j] = 4.0 * epsilonf[i][j] * pow(sigmaf[i][j],12.0);

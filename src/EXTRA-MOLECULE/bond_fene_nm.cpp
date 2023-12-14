@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,7 +28,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp), nn(nullptr), mm(nullptr) {}
+BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp), nn(nullptr), mm(nullptr)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -266,6 +269,27 @@ double BondFENENM::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondFENENM::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double r0sq = r0[type] * r0[type];
+  double rlogarg = 1.0 - rsq / r0sq;
+
+  // Contribution from the attractive term
+  du = k[type] * r / rlogarg;
+  du2 = k[type] * (1.0 + rsq / r0sq) / (rlogarg * rlogarg);
+
+  // Contribution from the repulsive Lennard-Jones term
+  if (rsq < sigma[type] * sigma[type]) {
+    double prefactor = epsilon[type] * nn[type] * mm[type] / (nn[type] - mm[type]);
+    du += prefactor * (pow(sigma[type] / r, mm[type]) - pow(sigma[type] / r, nn[type])) / r;
+    du2 += prefactor * ((nn[type] + 1.0) * pow(sigma[type] / r, nn[type]) -
+                    (mm[type] + 1.0) * pow(sigma[type] / r, mm[type])) / rsq;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

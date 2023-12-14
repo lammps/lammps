@@ -16,7 +16,7 @@ foreach(Tag Threads;OpenMP;Cuda;HPX;HIP)
     )
 
     KOKKOS_ADD_EXECUTABLE_AND_TEST(
-      PerformanceTest_${Tag}
+      ContainersPerformanceTest_${Tag}
       SOURCES ${SOURCES}
     )
   endif()

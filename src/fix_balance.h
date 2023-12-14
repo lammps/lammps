@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,17 +42,17 @@ class FixBalance : public Fix {
  private:
   int nevery, lbstyle, nitermax;
   double thresh, stopthresh;
-  char bstr[4];
-  int wtflag;    // 1 for weighted balancing
+  std::string bstr;
+  int wtflag;               // 1 for weighted balancing
+  int sortflag;             // 1 for sorting comm messages
 
   double imbnow;            // current imbalance factor
   double imbprev;           // imbalance factor before last rebalancing
   double imbfinal;          // imbalance factor after last rebalancing
   double maxloadperproc;    // max load on any processor
   int itercount;            // iteration count of last call to Balance
-  int kspace_flag;          // 1 if KSpace solver defined
   int pending;
-  bigint lastbalance;    // last timestep balancing was attempted
+  bigint lastbalance;       // last timestep balancing was attempted
 
   class Balance *balance;
   class Irregular *irregular;

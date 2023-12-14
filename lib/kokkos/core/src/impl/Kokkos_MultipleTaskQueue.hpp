@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_MULTIPLETASKQUEUE_HPP
 #define KOKKOS_IMPL_MULTIPLETASKQUEUE_HPP
@@ -64,7 +36,6 @@
 
 #include <string>
 #include <typeinfo>
-#include <stdexcept>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -102,10 +73,10 @@ struct MultipleTaskQueueTeamEntry {
   using ready_queue_type =
       typename TaskQueueTraits::template ready_queue_type<task_base_type>;
   using task_queue_traits         = TaskQueueTraits;
-  using task_scheduling_info_type = typename std::conditional<
+  using task_scheduling_info_type = std::conditional_t<
       TaskQueueTraits::ready_queue_insertion_may_fail,
       FailedQueueInsertionLinkedListSchedulingInfo<TaskQueueTraits>,
-      EmptyTaskSchedulingInfo>::type;
+      EmptyTaskSchedulingInfo>;
 
  private:
   // Number of allowed priorities
@@ -123,10 +94,9 @@ struct MultipleTaskQueueTeamEntry {
   template <class _always_void = void>
   KOKKOS_INLINE_FUNCTION OptionalRef<task_base_type> _pop_failed_insertion(
       int priority, TaskType type,
-      typename std::enable_if<
-          task_queue_traits::ready_queue_insertion_may_fail &&
-              std::is_void<_always_void>::value,
-          void*>::type = nullptr) {
+      std::enable_if_t<task_queue_traits::ready_queue_insertion_may_fail &&
+                           std::is_void<_always_void>::value,
+                       void*> = nullptr) {
     auto* rv_ptr = m_failed_heads[priority][(int)type];
     if (rv_ptr) {
       m_failed_heads[priority][(int)type] =
@@ -142,10 +112,9 @@ struct MultipleTaskQueueTeamEntry {
   template <class _always_void = void>
   KOKKOS_INLINE_FUNCTION OptionalRef<task_base_type> _pop_failed_insertion(
       int /*priority*/, TaskType /*type*/,
-      typename std::enable_if<
-          !task_queue_traits::ready_queue_insertion_may_fail &&
-              std::is_void<_always_void>::value,
-          void*>::type = nullptr) {
+      std::enable_if_t<!task_queue_traits::ready_queue_insertion_may_fail &&
+                           std::is_void<_always_void>::value,
+                       void*> = nullptr) {
     return OptionalRef<task_base_type>{nullptr};
   }
 
@@ -201,10 +170,9 @@ struct MultipleTaskQueueTeamEntry {
   template <class _always_void = void>
   KOKKOS_INLINE_FUNCTION void do_handle_failed_insertion(
       runnable_task_base_type&& task,
-      typename std::enable_if<
-          task_queue_traits::ready_queue_insertion_may_fail &&
-              std::is_void<_always_void>::value,
-          void*>::type = nullptr) {
+      std::enable_if_t<task_queue_traits::ready_queue_insertion_may_fail &&
+                           std::is_void<_always_void>::value,
+                       void*> = nullptr) {
     // failed insertions, if they happen, must be from the only thread that
     // is allowed to push to m_ready_queues, so this linked-list insertion is
     // not concurrent
@@ -217,21 +185,20 @@ struct MultipleTaskQueueTeamEntry {
   template <class _always_void = void>
   KOKKOS_INLINE_FUNCTION void do_handle_failed_insertion(
       runnable_task_base_type&& /*task*/,
-      typename std::enable_if<
-          !task_queue_traits::ready_queue_insertion_may_fail &&
-              std::is_void<_always_void>::value,
-          void*>::type = nullptr) {
+      std::enable_if_t<!task_queue_traits::ready_queue_insertion_may_fail &&
+                           std::is_void<_always_void>::value,
+                       void*> = nullptr) {
     Kokkos::abort("should be unreachable!");
   }
 
   template <class _always_void = void>
   KOKKOS_INLINE_FUNCTION void flush_failed_insertions(
       int priority, int task_type,
-      typename std::enable_if<
+      std::enable_if_t<
           task_queue_traits::ready_queue_insertion_may_fail &&
               std::is_void<_always_void>::value,  // just to make this dependent
                                                   // on template parameter
-          int>::type = 0) {
+          int> = 0) {
     // TODO @tasking @minor DSH this somethimes gets some things out of LIFO
     // order, which may be undesirable (but not a bug)
 
@@ -256,11 +223,11 @@ struct MultipleTaskQueueTeamEntry {
   template <class _always_void = void>
   KOKKOS_INLINE_FUNCTION void flush_failed_insertions(
       int, int,
-      typename std::enable_if<
+      std::enable_if_t<
           !task_queue_traits::ready_queue_insertion_may_fail &&
               std::is_void<_always_void>::value,  // just to make this dependent
                                                   // on template parameter
-          int>::type = 0) {}
+          int> = 0) {}
 
   KOKKOS_INLINE_FUNCTION
   void flush_all_failed_insertions() {
@@ -353,10 +320,10 @@ class MultipleTaskQueue final
     ~SchedulerInfo() = default;
   };
 
-  using task_scheduling_info_type = typename std::conditional<
+  using task_scheduling_info_type = std::conditional_t<
       TaskQueueTraits::ready_queue_insertion_may_fail,
       FailedQueueInsertionLinkedListSchedulingInfo<TaskQueueTraits>,
-      EmptyTaskSchedulingInfo>::type;
+      EmptyTaskSchedulingInfo>;
   using team_scheduler_info_type = SchedulerInfo;
 
   using runnable_task_base_type = RunnableTaskBase<TaskQueueTraits>;

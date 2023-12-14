@@ -205,12 +205,11 @@ template <> struct _host_host_copy<1,1> {
 // Should never be here
 template <int host_t1, int host_t2> struct _host_host_copy {
   template <class mat1, class mat2>
-  static inline void hhc(mat1 &dst, const mat2 &src, const size_t numel) {
+  static inline void hhc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*numel*/) {
     assert(0==1);
   }
   template <class mat1, class mat2>
-  static inline void hhc(mat1 &dst, const mat2 &src, const size_t rows,
-                         const size_t cols) {
+  static inline void hhc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*rows*/, const size_t /*cols*/) {
     assert(0==1);
   }
 };
@@ -470,24 +469,22 @@ template <int host_type1> struct _ucl_cast_copy<host_type1,1> {
 // Neither on host or both on host
 template <> struct _ucl_cast_copy<1,1> {
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t numel,
-                        mat3 &cast_buffer, command_queue &cq) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*numel*/,
+                          mat3 & /*cast_buffer*/, command_queue & /*cq*/) {
     assert(0==1);
   }
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t numel,
-                        mat3 &cast_buffer) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*numel*/, mat3 & /*cast_buffer*/) {
     assert(0==1);
   }
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t rows,
-                        const size_t cols, mat3 &cast_buffer) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*rows*/,
+                          const size_t /*cols*/, mat3 & /*cast_buffer*/) {
     assert(0==1);
   }
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t rows,
-                        const size_t cols, mat3 &cast_buffer,
-                        command_queue &cq) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*rows*/,
+                          const size_t /*cols*/, mat3 & /*cast_buffer*/, command_queue & /*cq*/) {
     assert(0==1);
   }
 };
@@ -495,24 +492,22 @@ template <> struct _ucl_cast_copy<1,1> {
 // Neither on host or both on host
 template <> struct _ucl_cast_copy<0,0> {
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t numel,
-                        mat3 &cast_buffer, command_queue &cq) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*numel*/,
+                          mat3 & /*cast_buffer*/, command_queue & /*cq*/) {
     assert(0==1);
   }
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t numel,
-                        mat3 &cast_buffer) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*numel*/, mat3 & /*cast_buffer*/) {
     assert(0==1);
   }
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t rows,
-                        const size_t cols, mat3 &cast_buffer) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*rows*/,
+                          const size_t /*cols*/, mat3 & /*cast_buffer*/) {
     assert(0==1);
   }
   template <class mat1, class mat2, class mat3>
-  static inline void cc(mat1 &dst, const mat2 &src, const size_t rows,
-                        const size_t cols, mat3 &cast_buffer,
-                        command_queue &cq) {
+    static inline void cc(mat1 & /*dst*/, const mat2 & /*src*/, const size_t /*rows*/,
+                          const size_t cols, mat3 & /*cast_buffer*/, command_queue & /*cq*/) {
     assert(0==1);
   }
 };

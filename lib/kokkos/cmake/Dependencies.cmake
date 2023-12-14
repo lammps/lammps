@@ -1,9 +1,6 @@
 TRIBITS_PACKAGE_DEFINE_DEPENDENCIES(
-  SUBPACKAGES_DIRS_CLASSIFICATIONS_OPTREQS
-    #SubPackageName       Directory         Class    Req/Opt
-    #
-    # New Kokkos subpackages:
-    Core                  core              PS       REQUIRED
-    Containers            containers        PS       OPTIONAL
-    Algorithms            algorithms        PS       OPTIONAL
+  LIB_OPTIONAL_TPLS Pthread CUDA HWLOC DLlib
+  TEST_OPTIONAL_TPLS CUSPARSE
   )
+
+TRIBITS_TPL_TENTATIVELY_ENABLE(DLlib)

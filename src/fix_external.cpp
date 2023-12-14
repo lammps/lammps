@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -65,6 +65,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
 
   user_energy = 0.0;
+  memset(user_virial, 0, sizeof(user_virial));
 
   // optional vector of values provided by caller
   // vector_flag and size_vector are setup via set_vector_length()
@@ -321,6 +322,7 @@ double FixExternal::memory_usage()
 void FixExternal::grow_arrays(int nmax)
 {
   memory->grow(fexternal,nmax,3,"external:fexternal");
+  memset(&fexternal[0][0], 0, sizeof(double)*3*nmax);
 }
 
 /* ----------------------------------------------------------------------

@@ -6,7 +6,7 @@ compute smd/hourglass/error command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/hourglass/error
 
@@ -34,7 +34,7 @@ configuration.  This compute is only really useful for debugging the
 hourglass control mechanism which is part of the Total-Lagrangian SPH
 pair style.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
 **Output Info:**

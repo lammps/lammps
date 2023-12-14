@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -72,21 +72,12 @@ void PairLJCutCoulCutDielectricOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (force->newton_pair)
-          eval<1, 1, 1>(ifrom, ito, thr);
-        else
-          eval<1, 1, 0>(ifrom, ito, thr);
+        eval<1, 1>(ifrom, ito, thr);
       } else {
-        if (force->newton_pair)
-          eval<1, 0, 1>(ifrom, ito, thr);
-        else
-          eval<1, 0, 0>(ifrom, ito, thr);
+        eval<1, 0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair)
-        eval<0, 0, 1>(ifrom, ito, thr);
-      else
-        eval<0, 0, 0>(ifrom, ito, thr);
+      eval<0, 0>(ifrom, ito, thr);
     }
 
     thr->timer(Timer::PAIR);
@@ -96,7 +87,7 @@ void PairLJCutCoulCutDielectricOMP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+template <int EVFLAG, int EFLAG>
 void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
   int i, j, ii, jj, jnum, itype, jtype;
@@ -110,7 +101,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 
   const auto *_noalias const x = (dbl3_t *) atom->x[0];
   auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
-  const double *_noalias const q = atom->q;
+  const double *_noalias const q = atom->q_scaled;
   const double *_noalias const eps = atom->epsilon;
   const auto *_noalias const norm = (dbl3_t *) atom->mu[0];
   const double *_noalias const curvature = atom->curvature;

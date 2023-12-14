@@ -10,7 +10,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -68,7 +68,7 @@ class FixColvars : public Fix {
   char *out_name;               // prefix string for all output files
   char *tmp_name;               // name of thermostat fix.
   int rng_seed;                 // seed to initialize random number generator
-  int tstat_id;                 // id of the thermostat fix
+  Fix *tstat_fix;               // pointer to thermostat fix
   double energy;                // biasing energy of the fix
 
   int me;             // my MPI rank in this "world".

@@ -46,6 +46,42 @@ else()
   target_compile_definitions(lammps PRIVATE -DFFT_KISS)
 endif()
 
+option(FFT_USE_HEFFTE  "Use heFFTe as the distributed FFT engine, overrides the FFT option."  OFF)
+if(FFT_USE_HEFFTE)
+  # if FFT_HEFFTE is enabled, switch the builtin FFT engine with Heffte
+  set(FFT_HEFFTE_BACKEND_VALUES FFTW MKL)
+  set(FFT_HEFFTE_BACKEND "" CACHE STRING "Select heFFTe backend, e.g., FFTW or MKL")
+  set_property(CACHE FFT_HEFFTE_BACKEND PROPERTY STRINGS ${FFT_HEFFTE_BACKEND_VALUES})
+
+  if(FFT_HEFFTE_BACKEND STREQUAL "FFTW") # respect the backend choice, FFTW or MKL
+    set(HEFFTE_COMPONENTS "FFTW")
+    set(Heffte_ENABLE_FFTW "ON" CACHE BOOL "Enables FFTW backend for heFFTe")
+  elseif(FFT_HEFFTE_BACKEND STREQUAL "MKL")
+    set(HEFFTE_COMPONENTS "MKL")
+    set(Heffte_ENABLE_MKL "ON" CACHE BOOL "Enables MKL backend for heFFTe")
+  else()
+    message(WARNING "FFT_HEFFTE_BACKEND not selected, defaulting to the builtin 'stock' backend, which is intended for testing and is not optimized for production runs")
+  endif()
+
+  find_package(Heffte 2.4.0 QUIET COMPONENTS ${HEFFTE_COMPONENTS})
+  if (NOT Heffte_FOUND) # download and build
+    include(FetchContent)
+    FetchContent_Declare(HEFFTE_PROJECT # using v2.4.0
+      URL  "https://github.com/icl-utk-edu/heffte/archive/refs/tags/v2.4.0.tar.gz"
+      URL_HASH SHA256=02310fb4f9688df02f7181667e61c3adb7e38baf79611d80919d47452ff7881d
+      )
+    FetchContent_Populate(HEFFTE_PROJECT)
+    add_subdirectory(${heffte_project_SOURCE_DIR} ${heffte_project_BINARY_DIR})
+    set_target_properties(lmp PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set_target_properties(lammps PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    add_library(Heffte::Heffte INTERFACE IMPORTED GLOBAL)
+    target_link_libraries(Heffte::Heffte INTERFACE Heffte)
+  endif()
+
+  target_compile_definitions(lammps PRIVATE -DFFT_HEFFTE "-DFFT_HEFFTE_${FFT_HEFFTE_BACKEND}")
+  target_link_libraries(lammps PRIVATE Heffte::Heffte)
+endif()
+
 set(FFT_PACK "array" CACHE STRING "Optimization for FFT")
 set(FFT_PACK_VALUES array pointer memcpy)
 set_property(CACHE FFT_PACK PROPERTY STRINGS ${FFT_PACK_VALUES})

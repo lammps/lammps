@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -69,9 +41,10 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
   nargs = (do_threads ? 1 : 0) + (do_numa ? 1 : 0) + (do_device ? 1 : 0) +
           (do_other ? 4 : 0) + (do_tune ? 1 : 0);
 
-  char** args_kokkos = new char*[nargs];
+  char** args_kokkos      = new char*[nargs];
+  const int max_args_size = 45;
   for (int i = 0; i < nargs; i++) {
-    args_kokkos[i] = new char[45];
+    args_kokkos[i] = new char[max_args_size];
     delete_these.insert(args_kokkos[i]);
   }
 
@@ -90,7 +63,7 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
       nthreads = omp_get_max_threads();
     }
 #elif defined(KOKKOS_ENABLE_HPX)
-    const auto concurrency = std::thread::hardware_concurrency();
+    const int concurrency = std::thread::hardware_concurrency();
     if (concurrency < nthreads) {
       nthreads = concurrency;
     }
@@ -112,7 +85,7 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
 #endif
 
     init_args.num_threads = nthreads;
-    sprintf(args_kokkos[threads_idx], "--threads=%i", nthreads);
+    snprintf(args_kokkos[threads_idx], max_args_size, "--threads=%i", nthreads);
   }
 
   if (do_numa) {
@@ -130,24 +103,27 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
 #endif
 
     init_args.num_numa = numa;
-    sprintf(args_kokkos[numa_idx], "--numa=%i", numa);
+    snprintf(args_kokkos[numa_idx], max_args_size, "--numa=%i", numa);
   }
 
   if (do_device) {
     init_args.device_id = 0;
-    sprintf(args_kokkos[device_idx], "--device-id=%i", 0);
+    snprintf(args_kokkos[device_idx], max_args_size, "--device-id=%i", 0);
   }
 
   if (do_other) {
-    sprintf(args_kokkos[0], "--dummyarg=1");
-    sprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0)], "--dummy2arg");
-    sprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0) + 1], "dummy3arg");
-    sprintf(args_kokkos[device_idx + (do_device ? 1 : 0)], "dummy4arg=1");
+    snprintf(args_kokkos[0], max_args_size, "--dummyarg=1");
+    snprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0)], max_args_size,
+             "--dummy2arg");
+    snprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0) + 1], max_args_size,
+             "dummy3arg");
+    snprintf(args_kokkos[device_idx + (do_device ? 1 : 0)], max_args_size,
+             "dummy4arg=1");
   }
 
   if (do_tune) {
     init_args.tune_internals = true;
-    sprintf(args_kokkos[tune_idx], "--kokkos-tune-internals");
+    snprintf(args_kokkos[tune_idx], max_args_size, "--kokkos-tune-internals");
   }
 
   return args_kokkos;
@@ -165,7 +141,7 @@ Kokkos::InitArguments init_initstruct(bool do_threads, bool do_numa,
       nthreads = omp_get_max_threads();
     }
 #elif defined(KOKKOS_ENABLE_HPX)
-    const auto concurrency = std::thread::hardware_concurrency();
+    const int concurrency = std::thread::hardware_concurrency();
     if (concurrency < nthreads) {
       nthreads = concurrency;
     }
@@ -286,7 +262,7 @@ void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
 #endif
   }
 
-  ASSERT_EQ(Kokkos::HostSpace::execution_space::impl_thread_pool_size(),
+  ASSERT_EQ(Kokkos::HostSpace::execution_space().impl_thread_pool_size(),
             expected_nthreads);
 
 #ifdef KOKKOS_ENABLE_CUDA

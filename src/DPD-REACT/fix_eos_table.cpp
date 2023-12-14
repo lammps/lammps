@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -398,7 +398,7 @@ double FixEOStable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 /* ----------------------------------------------------------------------
    calculate internal energy u at temperature t
-   insure t is between min/max
+   ensure t is between min/max
 ------------------------------------------------------------------------- */
 
 void FixEOStable::energy_lookup(double t, double &u)
@@ -420,7 +420,7 @@ void FixEOStable::energy_lookup(double t, double &u)
 }
 /* ----------------------------------------------------------------------
    calculate temperature t at energy u
-   insure u is between min/max
+   ensure u is between min/max
 ------------------------------------------------------------------------- */
 
 void FixEOStable::temperature_lookup(double u, double &t)

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,11 +22,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mvv_dpd.h"
-#include <cstring>
+
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -61,7 +63,17 @@ int FixMvvDPD::setmask()
 void FixMvvDPD::init()
 {
   if (!atom->vest_flag)
-    error->all(FLERR,"Fix mvv/dpd requires atom attribute vest");
+    error->all(FLERR,"Fix mvv/dpd requires atom attribute vest e.g. from atom style mdpd");
+
+  if (!force->pair_match("^mdpd",0) && !force->pair_match("^dpd",0)) {
+    if (force->pair_match("^hybrid",0)) {
+      if (!(force->pair_match("^mdpd",0,1) || force->pair_match("^dpd",0),1)) {
+        error->all(FLERR, "Must use a dpd or mdpd pair style with fix mvv/dpd");
+      }
+    } else {
+      error->all(FLERR, "Must use a dpd or mdpd pair style with fix mvv/dpd");
+    }
+  }
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;

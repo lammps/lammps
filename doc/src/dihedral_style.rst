@@ -10,7 +10,7 @@ Syntax
 
    dihedral_style style
 
-* style = *none* or *zero* or *hybrid* or *charmm* or *charmmfsw* or *class2* or *osine/shift/exp* or *fourier* or *harmonic* or *helix* or *multi/harmonic* or *nharmonic* or *opls* or *spherical* or *table* or *table/cut*
+* style = *none* or *zero* or *hybrid* or *charmm* or *charmmfsw* or *class2* or *cosine/shift/exp* or *fourier* or *harmonic* or *helix* or *lepton* or *multi/harmonic* or *nharmonic* or *opls* or *spherical* or *table* or *table/cut*
 
 Examples
 """"""""
@@ -108,6 +108,7 @@ exist.
 * :doc:`fourier <dihedral_fourier>` - dihedral with multiple cosine terms
 * :doc:`harmonic <dihedral_harmonic>` - harmonic dihedral
 * :doc:`helix <dihedral_helix>` - helix dihedral
+* :doc:`lepton <dihedral_lepton>` - dihedral potential from evaluating a string
 * :doc:`multi/harmonic <dihedral_multi_harmonic>` - dihedral with 5 harmonic terms
 * :doc:`nharmonic <dihedral_nharmonic>` - same as multi-harmonic with N terms
 * :doc:`opls <dihedral_opls>` - OPLS dihedral

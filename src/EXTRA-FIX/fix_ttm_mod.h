@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -64,11 +64,8 @@ class FixTTMMod : public Fix {
   int nxgrid, nygrid, nzgrid;
   int ngridtotal;
 
-  int ***nsum, ***nsum_all;
   double *gfactor1, *gfactor2, *ratio, **flangevin;
   double ***T_electron, ***T_electron_old, ***T_electron_first;
-  double ***sum_vsq, ***sum_mass_vsq;
-  double ***sum_vsq_all, ***sum_mass_vsq_all;
   double ***net_energy_transfer, ***net_energy_transfer_all;
 
   double gamma_p, gamma_s, v_0, v_0_sq;

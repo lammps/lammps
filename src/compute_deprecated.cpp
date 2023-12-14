@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,6 +28,11 @@ ComputeDeprecated::ComputeDeprecated(LAMMPS *lmp, int narg, char **arg) : Comput
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nCompute style 'DEPRECATED' is a dummy style\n\n");
     return;
+  } else if (my_style == "mesont") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,
+                     "\nCompute style 'mesont' and the associated pair style have been "
+                     "removed. Please use pair style 'mesocnt' instead.\n\n");
   }
   error->all(FLERR, "This compute style is no longer available");
 }

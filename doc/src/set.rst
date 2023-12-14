@@ -6,12 +6,21 @@ set command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    set style ID keyword values ...
 
 * style = *atom* or *type* or *mol* or *group* or *region*
-* ID = atom ID range or type range or mol ID range or group ID or region ID
+* ID = depends on style
+
+.. parsed-literal::
+
+       for style = *atom*, ID = a range of atom IDs
+       for style = *type*, ID = a range of numeric types or a single type label
+       for style = *mol*, ID = a range of molecule IDs
+       for style = *group*, ID = a group ID
+       for style = *region*, ID = a region ID
+
 * one or more keyword/value pairs may be appended
 * keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
   or *mol* or *x* or *y* or *z* or *vx* or *vy* or *vz* or *charge* or
@@ -19,7 +28,7 @@ Syntax
   *spin/electron* or *radius/electron* or
   *quat* or *quat/random* or *diameter* or *shape* or *length* or *tri* or
   *theta* or *theta/random* or *angmom* or *omega* or
-  *mass* or *density* or *density/disc* or
+  *mass* or *density* or *density/disc* or *temperature* or
   *volume* or *image* or *bond* or *angle* or *dihedral* or
   *improper* or *sph/e* or *sph/cv* or *sph/rho* or
   *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
@@ -28,22 +37,22 @@ Syntax
 
   .. parsed-literal::
 
-       *type* value = atom type
+       *type* value = numeric atom type or type label
          value can be an atom-style variable (see below)
        *type/fraction* values = type fraction seed
-         type = new atom type
+         type = numeric atom type or type label
          fraction = approximate fraction of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *type/ratio* values = type fraction seed
-         type = new atom type
+         type = numeric atom type or type label
          fraction = exact fraction of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *type/subset* values = type Nsubset seed
-         type = new atom type
+         type = numeric atom type or type label
          Nsubset = exact number of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *mol* value = molecule ID
-         value can be an atom-style variable (see below)
+       value can be an atom-style variable (see below)
        *x*,\ *y*,\ *z* value = atom coordinate (distance units)
          value can be an atom-style variable (see below)
        *vx*,\ *vy*,\ *vz* value = atom velocity (velocity units)
@@ -100,15 +109,17 @@ Syntax
          value can be an atom-style variable (see below)
        *density/disc* value = particle density for a 2d disc or ellipse (mass/distance\^2 units)
          value can be an atom-style variable (see below)
+       *temperature* value = temperature for finite-size particles (temperature units)
+         value can be an atom-style variable (see below)
        *volume* value = particle volume for Peridynamic particle (distance\^3 units)
          value can be an atom-style variable (see below)
        *image* nx ny nz
          nx,ny,nz = which periodic image of the simulation box the atom is in
          any of nx,ny,nz can be an atom-style variable (see below)
-       *bond* value = bond type for all bonds between selected atoms
-       *angle* value = angle type for all angles between selected atoms
-       *dihedral* value = dihedral type for all dihedrals between selected atoms
-       *improper* value = improper type for all impropers between selected atoms
+       *bond* value = numeric bond type or bond type label, for all bonds between selected atoms
+       *angle* value = numeric angle type or angle type label, for all angles between selected atoms
+       *dihedral* value = numeric dihedral type or dihedral type label, for all dihedrals between selected atoms
+       *improper* value = numeric improper type or improper type label, for all impropers between selected atoms
        *sph/e* value = energy of SPH particles (need units)
          value can be an atom-style variable (see below)
        *sph/cv* value = heat capacity of SPH particles (need units)
@@ -143,15 +154,19 @@ Examples
 .. code-block:: LAMMPS
 
    set group solvent type 2
+   set group solvent type C
    set group solvent type/fraction 2 0.5 12393
+   set group solvent type/fraction C 0.5 12393
    set group edge bond 4
    set region half charge 0.5
    set type 3 charge 0.5
+   set type H charge 0.5
    set type 1*3 charge 0.5
    set atom * charge v_atomfile
    set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
+   set atom 1492 type H
    set atom * i_myVal 5
    set atom * d2_Sxyz[1] 6.4
 
@@ -181,9 +196,17 @@ properties to reset and what the new values are.  Some strings like
 This section describes how to select which atoms to change
 the properties of, via the *style* and *ID* arguments.
 
-The style *atom* selects all the atoms in a range of atom IDs.  The
-style *type* selects all the atoms in a range of types.  The style
-*mol* selects all the atoms in a range of molecule IDs.
+.. versionchanged:: 28Mar2023
+
+   Support for type labels was added for selecting atoms by type
+
+The style *atom* selects all the atoms in a range of atom IDs.
+
+The style *type* selects all the atoms in a range of types or type
+labels.  The style *type* selects atoms in one of two ways.  A range
+of numeric atom types can be specified.  Or a single atom type label
+can be specified, e.g. "C".  The style *mol* selects all the atoms in
+a range of molecule IDs.
 
 In each of the range cases, the range can be specified as a single
 numeric value, or a wildcard asterisk can be used to specify a range
@@ -235,14 +258,23 @@ from a file.
    such as the molecule ID, then the floating point value is truncated to
    its integer portion, e.g. a value of 2.6 would become 2.
 
-Keyword *type* sets the atom type for all selected atoms.  The
-specified value must be from 1 to ntypes, where ntypes was set by the
-:doc:`create_box <create_box>` command or the *atom types* field in the
-header of the data file read by the :doc:`read_data <read_data>`
-command.
+.. versionchanged:: 28Mar2023
 
-Keyword *type/fraction* sets the atom type for a fraction of the
-selected atoms.  The actual number of atoms changed is not guaranteed
+   Support for type labels was added for setting atom, bond, angle,
+   dihedral, and improper types
+
+Keyword *type* sets the atom type for all selected atoms.  A specified
+value can be either a numeric atom type or an atom type label. When
+using a numeric type, the specified value must be from 1 to ntypes,
+where ntypes was set by the :doc:`create_box <create_box>` command or
+the *atom types* field in the header of the data file read by the
+:doc:`read_data <read_data>` command.  When using a type label it must
+have been defined previously.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
+
+Keyword *type/fraction* sets the atom type for a fraction of the selected
+atoms.  The actual number of atoms changed is not guaranteed
 to be exactly the specified fraction (0 <= *fraction* <= 1), but
 should be statistically close.  Random numbers are used in such a way
 that a particular atom is changed or not changed, regardless of how
@@ -254,7 +286,7 @@ fraction of the selected atoms.  The actual number of atoms changed
 will be exactly the requested number.  For *type/ratio* the specified
 fraction (0 <= *fraction* <= 1) determines the number.  For
 *type/subset*, the specified *Nsubset* is the number.  An iterative
-algorithm is used which insures the correct number of atoms are
+algorithm is used which ensures the correct number of atoms are
 selected, in a perfectly random fashion.  Which atoms are selected
 will change with the number of processors used.  These keywords do not
 allow use of an atom-style variable.
@@ -429,6 +461,12 @@ assumed to be in mass/distance\^2 units).
 If none of these cases are valid, then the mass is set to the density
 value directly (the input density is assumed to be in mass units).
 
+Keyword *temperature* sets the temperature of a finite-size particle.
+Currently, only the GRANULAR package supports this attribute. The
+temperature must be added using an instance of
+:doc:`fix property/atom <fix_property_atom>` The values for the
+temperature must be positive.
+
 Keyword *volume* sets the volume of all selected particles.  Currently,
 only the :doc:`atom_style peri <atom_style>` command defines particles
 with a volume attribute.  Note that this command does not adjust the
@@ -455,14 +493,18 @@ simulation, but may mess up analysis of the trajectories if a LAMMPS
 diagnostic or your own analysis relies on the image flags to unwrap a
 molecule which straddles the periodic box.
 
-Keywords *bond*, *angle*, *dihedral*, and *improper*, set the bond type
-(angle type, etc) of all bonds (angles, etc) of selected atoms to the
-specified value from 1 to nbondtypes (nangletypes, etc).  All atoms in a
-particular bond (angle, etc) must be selected atoms in order for the
-change to be made.  The value of nbondtype (nangletypes, etc) was set by
-the *bond types* (\ *angle types*, etc) field in the header of the data
-file read by the :doc:`read_data <read_data>` command.  These keywords
-do not allow use of an atom-style variable.
+Keywords *bond*, *angle*, *dihedral*, and *improper*, set the bond
+type (angle type, etc) of all bonds (angles, etc) of selected atoms to
+the specified value.  The value can be a numeric type from 1 to
+nbondtypes (nangletypes, etc).  Or it can be a type label (bond type
+label, angle type label, etc).  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.  All atoms in
+a particular bond (angle, etc) must be selected atoms in order for the
+change to be made.  The value of nbondtypes (nangletypes, etc) was set
+by the *bond types* (\ *angle types*, etc) field in the header of the
+data file read by the :doc:`read_data <read_data>` command.  These
+keywords do not allow use of an atom-style variable.
 
 Keywords *sph/e*, *sph/cv*, and *sph/rho* set the energy, heat capacity,
 and density of smoothed particle hydrodynamics (SPH) particles.  See

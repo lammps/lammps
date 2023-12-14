@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,10 +18,7 @@
 #include "input.h"
 #include "output.h"
 #include "universe.h"
-
-#if defined(LAMMPS_EXCEPTIONS)
 #include "update.h"
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -40,16 +37,14 @@ static std::string truncpath(const std::string &path)
 Error::Error(LAMMPS *lmp)
   : Pointers(lmp), numwarn(0), maxwarn(100), allwarn(0)
 {
-#ifdef LAMMPS_EXCEPTIONS
   last_error_message.clear();
   last_error_type = ERROR_NONE;
-#endif
 }
 
 /* ----------------------------------------------------------------------
    called by all procs in universe
    close all output, screen, and log files in world and universe
-   no abort, so insure all procs in universe call, else will hang
+   no abort, so ensure all procs in universe call, else will hang
 ------------------------------------------------------------------------- */
 
 void Error::universe_all(const std::string &file, int line, const std::string &str)
@@ -73,19 +68,11 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
   }
   if (universe->ulogfile) fclose(universe->ulogfile);
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
-
   throw LAMMPSException(mesg);
-#else
-  KokkosLMP::finalize();
-  MPI_Finalize();
-  exit(1);
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -99,19 +86,11 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
                                  universe->me,str,truncpath(file),line);
   if (universe->uscreen) fputs(mesg.c_str(),universe->uscreen);
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
-
   throw LAMMPSAbortException(mesg, universe->uworld);
-#else
-  KokkosLMP::finalize();
-  MPI_Abort(universe->uworld,1);
-  exit(1); // to trick "smart" compilers into believing this does not return
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -122,7 +101,7 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
 void Error::universe_warn(const std::string &file, int line, const std::string &str)
 {
   ++numwarn;
-  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
+  if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   if (universe->uscreen)
     fmt::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
                universe->me,str,truncpath(file),line);
@@ -131,7 +110,7 @@ void Error::universe_warn(const std::string &file, int line, const std::string &
 /* ----------------------------------------------------------------------
    called by all procs in one world
    close all output, screen, and log files in world
-   insure all procs in world call, else will hang
+   ensure all procs in world call, else will hang
    force MPI_Abort if running in multi-partition mode
 ------------------------------------------------------------------------- */
 
@@ -155,31 +134,17 @@ void Error::all(const std::string &file, int line, const std::string &str)
     utils::logmesg(lmp,mesg);
   }
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
 
-  std::string msg = fmt::format("ERROR: {} ({}:{})\n",
-                                str, truncpath(file), line);
+  std::string msg = fmt::format("ERROR: {} ({}:{})\n", str, truncpath(file), line);
 
-  if (universe->nworlds > 1) {
+  if (universe->nworlds > 1)
     throw LAMMPSAbortException(msg, universe->uworld);
-  }
-
-  throw LAMMPSException(msg);
-#else
-  if (output) delete output;
-  if (screen && screen != stdout) fclose(screen);
-  if (logfile) fclose(logfile);
-
-  KokkosLMP::finalize();
-  if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
-  MPI_Finalize();
-  exit(1);
-#endif
+  else
+    throw LAMMPSException(msg);
 }
 
 /* ----------------------------------------------------------------------
@@ -204,20 +169,11 @@ void Error::one(const std::string &file, int line, const std::string &str)
     if (universe->uscreen)
       fputs(mesg.c_str(),universe->uscreen);
 
-#ifdef LAMMPS_EXCEPTIONS
-
   // allow commands if an exception was caught in a run
   // update may be a null pointer when catching command line errors
 
   if (update) update->whichflag = 0;
-
   throw LAMMPSAbortException(mesg, world);
-#else
-  utils::flush_buffers(lmp);
-  KokkosLMP::finalize();
-  MPI_Abort(world,1);
-  exit(1); // to trick "smart" compilers into believing this does not return
-#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -254,7 +210,7 @@ void Error::_one(const std::string &file, int line, fmt::string_view format,
 void Error::warning(const std::string &file, int line, const std::string &str)
 {
   ++numwarn;
-  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
+  if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   std::string mesg = fmt::format("WARNING: {} ({}:{})\n",
                                  str,truncpath(file),line);
   if (screen) fputs(mesg.c_str(),screen);
@@ -306,7 +262,7 @@ void Error::_message(const std::string &file, int line, fmt::string_view format,
    shutdown LAMMPS
    called by all procs in one world
    close all output, screen, and log files in world
-   no abort, so insure all procs in world call, else will hang
+   no abort, so ensure all procs in world call, else will hang
 ------------------------------------------------------------------------- */
 
 void Error::done(int status)
@@ -322,10 +278,8 @@ void Error::done(int status)
   exit(status);
 }
 
-#ifdef LAMMPS_EXCEPTIONS
 /* ----------------------------------------------------------------------
-   return the last error message reported by LAMMPS (only used if
-   compiled with -DLAMMPS_EXCEPTIONS)
+   return the last error message reported by LAMMPS
 ------------------------------------------------------------------------- */
 
 std::string Error::get_last_error() const
@@ -334,8 +288,7 @@ std::string Error::get_last_error() const
 }
 
 /* ----------------------------------------------------------------------
-   return the type of the last error reported by LAMMPS (only used if
-   compiled with -DLAMMPS_EXCEPTIONS)
+   return the type of the last error reported by LAMMPS
 ------------------------------------------------------------------------- */
 
 ErrorType Error::get_last_error_type() const
@@ -345,12 +298,10 @@ ErrorType Error::get_last_error_type() const
 
 /* ----------------------------------------------------------------------
    set the last error message and error type
-   (only used if compiled with -DLAMMPS_EXCEPTIONS)
 ------------------------------------------------------------------------- */
 
-void Error::set_last_error(const std::string &msg, ErrorType type)
+void Error::set_last_error(const char *msg, ErrorType type)
 {
   last_error_message = msg;
   last_error_type = type;
 }
-#endif

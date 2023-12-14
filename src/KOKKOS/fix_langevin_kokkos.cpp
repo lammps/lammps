@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,6 +44,8 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   FixLangevin(lmp, narg, arg),rand_pool(seed + comm->me)
 {
   kokkosable = 1;
+  fuse_integrate_flag = 1;
+  sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   int ntypes = atomKK->ntypes;
 
@@ -165,6 +167,14 @@ void FixLangevinKokkos<DeviceType>::initial_integrate_item(int i) const
     v(i,1) = d_lv(i,1);
     v(i,2) = d_lv(i,2);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::fused_integrate(int vflag)
+{
+  initial_integrate(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -674,8 +684,6 @@ void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::compute_target()
 {
-  atomKK->sync(Host, MASK_MASK);
-  mask = atomKK->k_mask.template view<DeviceType>();
   int nlocal = atomKK->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
@@ -700,12 +708,14 @@ void FixLangevinKokkos<DeviceType>::compute_target()
         memoryKK->destroy_kokkos(k_tforce,tforce);
         memoryKK->create_kokkos(k_tforce,tforce,maxatom2,"langevin:tforce");
         d_tforce = k_tforce.template view<DeviceType>();
-        h_tforce = k_tforce.template view<LMPHostType>();
+        h_tforce = k_tforce.h_view;
       }
       input->variable->compute_atom(tvar,igroup,tforce,1,0); // tforce is modified on host
-      k_tforce.template modify<LMPHostType>();
+      k_tforce.modify_host();
+      atomKK->sync(Host, MASK_MASK);
+      auto h_mask = atomKK->k_mask.h_view;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (h_mask[i] & groupbit)
           if (h_tforce[i] < 0.0)
             error->one(FLERR,
                        "Fix langevin variable returned negative temperature");
@@ -887,6 +897,25 @@ void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
   k_franprev.template modify<LMPHostType>();
   k_lv.template modify<LMPHostType>();
 
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_franprev.sync_device();
+  k_lv.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_franprev.d_view);
+  Sorter.sort(LMPDeviceType(), k_lv.d_view);
+
+  k_franprev.modify_device();
+  k_lv.modify_device();
 }
 
 /* ---------------------------------------------------------------------- */

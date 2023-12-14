@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,32 +15,25 @@
    e-mail: w.g.ouyang at gmail dot com
 
    This is a full version of the potential described in
-   [Ouyang et al, J. Chem. Theory Comput. 17, 7237 (2021).]
+   [Ouyang et al., J. Chem. Theory Comput. 17, 7237 (2021).]
 ------------------------------------------------------------------------- */
 
 #include "pair_ilp_tmd.h"
 
 #include "atom.h"
 #include "citeme.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "interlayer_taper.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace InterLayer;
-
-#define MAXLINE 1024
-#define DELTA 4
-#define PGDELTA 1
 
 static const char cite_ilp_tmd[] =
     "ilp/tmd potential doi:10.1021/acs.jctc.1c00782\n"
@@ -235,7 +228,7 @@ void PairILPTMD::calc_FRep(int eflag, int /* vflag */)
 
 void PairILPTMD::ILP_neigh()
 {
-  int i, j, l, ii, jj, ll, n, allnum, jnum, itype, jtype, ltype, imol, jmol, count;
+  int i, j, l, ii, jj, ll, n, inum, jnum, itype, jtype, ltype, imol, jmol, count;
   double xtmp, ytmp, ztmp, delx, dely, delz, deljx, deljy, deljz, rsq, rsqlj;
   int *ilist, *jlist, *numneigh, **firstneigh;
   int *neighsort;
@@ -252,7 +245,7 @@ void PairILPTMD::ILP_neigh()
     ILP_firstneigh = (int **) memory->smalloc(maxlocal * sizeof(int *), "ILPTMD:firstneigh");
   }
 
-  allnum = list->inum + list->gnum;
+  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -262,7 +255,7 @@ void PairILPTMD::ILP_neigh()
 
   ipage->reset();
 
-  for (ii = 0; ii < allnum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
 
     //initialize varibles
@@ -291,21 +284,21 @@ void PairILPTMD::ILP_neigh()
       delz = ztmp - x[j][2];
       rsq = delx * delx + dely * dely + delz * delz;
 
-      // check if the atom i is TMD, i.e., Mo/S/W/Se
-      if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||
-          strcmp(elements[itype], "S") == 0 || strcmp(elements[itype], "Se") == 0 ||
+      // check if the atom i is a TMD atom, i.e., Mo/S/W/Se
+      if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W")  == 0 ||
+          strcmp(elements[itype], "S")  == 0 || strcmp(elements[itype], "Se") == 0 ||
           strcmp(elements[itype], "Te") == 0) {
         if (rsq != 0 && rsq < cutILPsq[itype][jtype] && imol == jmol && type[i] == type[j]) {
           neighptr[n++] = j;
         }
-      } else {    // atom i is C, B, N or H.
+      } else {    // atom i can be P, C, B, N or H.
         if (rsq != 0 && rsq < cutILPsq[itype][jtype] && imol == jmol) { neighptr[n++] = j; }
       }
     }    // loop over jj
 
     // if atom i is Mo/W/S/Se/Te, then sorting the orders of neighbors
-    if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||
-        strcmp(elements[itype], "S") == 0 || strcmp(elements[itype], "Se") == 0 ||
+    if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W")  == 0 ||
+        strcmp(elements[itype], "S")  == 0 || strcmp(elements[itype], "Se") == 0 ||
         strcmp(elements[itype], "Te") == 0) {
       // initialize neighsort
       for (ll = 0; ll < n; ll++) {
@@ -339,9 +332,6 @@ void PairILPTMD::ILP_neigh()
           }
         }    // end of idenfying the first neighbor
       } else if (n > Nnei) {
-        fprintf(screen, "Molecule ID = %d\n", imol);
-        fprintf(screen, "Atom Type = %d\n", type[i]);
-        fprintf(screen, "Neinum = %d\n", n);
         error->one(FLERR,
                    "There are too many neighbors for TMD atoms, please check your configuration");
       }
@@ -370,11 +360,11 @@ void PairILPTMD::ILP_neigh()
           ll++;
         }
       }         // end of sorting the order of neighbors
-    } else {    // for B/N/C/H atoms
+    } else {    // for P/B/N/C/H atoms
       if (n > 3)
         error->one(
             FLERR,
-            "There are too many neighbors for B/N/C/H atoms, please check your configuration");
+            "There are too many neighbors for P/B/N/C/H atoms, please check your configuration");
       for (ll = 0; ll < n; ll++) { neighsort[ll] = neighptr[ll]; }
     }
 
@@ -393,12 +383,14 @@ void PairILPTMD::calc_normal()
 {
   int i, j, ii, jj, inum, jnum;
   int cont, id, ip, m, k, itype;
-  double nn, xtp, ytp, ztp, delx, dely, delz, nn2;
   int *ilist, *jlist;
+  int iH1,iH2,jH1,jH2;
   double Nave[3], dni[3], dpvdri[3][3];
+  double nn, xtp, ytp, ztp, delx, dely, delz, nn2;
 
   double **x = atom->x;
   int *type = atom->type;
+  tagint *tag = atom->tag;
 
   memory->destroy(dnn);
   memory->destroy(vect);
@@ -482,9 +474,60 @@ void PairILPTMD::calc_normal()
           for (m = 0; m < Nnei; m++) { dnormal[i][id][m][ip] = 0.0; }
         }
       }
+      // for hydrogen in water molecule
+      if (strcmp(elements[itype], "Hw") == 0) {
+        if(cont == 0) {
+          jH1 = atom->map(tag[i] - 1);
+          jH2 = atom->map(tag[i] - 2);
+          iH1 = map[type[jH1]];
+          iH2 = map[type[jH2]];
+          if (strcmp(elements[iH1], "Ow") == 0) {
+            vect[0][0] = x[jH1][0] - xtp;
+            vect[0][1] = x[jH1][1] - ytp;
+            vect[0][2] = x[jH1][2] - ztp;
+          } else if (strcmp(elements[iH2], "Ow") == 0) {
+            vect[0][0] = x[jH2][0] - xtp;
+            vect[0][1] = x[jH2][1] - ytp;
+            vect[0][2] = x[jH2][2] - ztp;
+          } else {
+            error->one(FLERR, "The order of atoms in water molecule should be O H H !");
+          }
+        }
+        Nave[0] = vect[0][0];
+        Nave[1] = vect[0][1];
+        Nave[2] = vect[0][2];
+        // the magnitude of the normal vector
+        nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
+        nn = sqrt(nn2);
+        if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+        // the unit normal vector
+        normal[i][0] = Nave[0] / nn;
+        normal[i][1] = Nave[1] / nn;
+        normal[i][2] = Nave[2] / nn;
+
+        // Calculte dNave/dri, defined as dpvdri
+        for (id = 0; id < 3; id++) {
+          for (ip = 0; ip < 3; ip++) {
+            if (ip == id) { dpvdri[id][ip] = -1.0;}
+            else {dpvdri[id][ip] = 0.0;}
+          }
+        }
+
+        // derivatives of nn, dnn:3x1 vector
+        dni[0] = (Nave[0] * dpvdri[0][0] + Nave[1] * dpvdri[1][0] + Nave[2] * dpvdri[2][0]) / nn;
+        dni[1] = (Nave[0] * dpvdri[0][1] + Nave[1] * dpvdri[1][1] + Nave[2] * dpvdri[2][1]) / nn;
+        dni[2] = (Nave[0] * dpvdri[0][2] + Nave[1] * dpvdri[1][2] + Nave[2] * dpvdri[2][2]) / nn;
+        // derivatives of unit vector ni respect to ri, the result is 3x3 matrix
+        for (id = 0; id < 3; id++) {
+          for (ip = 0; ip < 3; ip++) {
+            dnormdri[i][id][ip] = dpvdri[id][ip] / nn - Nave[id] * dni[ip] / nn2;
+            dnormal[i][id][0][ip] = -dnormdri[i][id][ip];
+          }
+        }
+      }
     }
     //############################ For the edge atoms of TMD ################################
-    else if (cont < Nnei) {
+    else if (cont > 1 && cont < Nnei) {
       if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||
           strcmp(elements[itype], "S") == 0 || strcmp(elements[itype], "Se") == 0) {
         // derivatives of Ni[l] respect to the cont neighbors
@@ -560,8 +603,7 @@ void PairILPTMD::calc_normal()
         for (m = 0; m < cont; m++) {
           for (id = 0; id < 3; id++) {
             dnn[m][id] = (Nave[0] * dNave[0][m][id] + Nave[1] * dNave[1][m][id] +
-                          Nave[2] * dNave[2][m][id]) /
-                nn;
+                          Nave[2] * dNave[2][m][id]) / nn;
           }
         }
         // dnormal[i][id][m][ip]: the derivative of normal[i][id] respect to r[m][ip], id,ip=0,1,2.
@@ -592,12 +634,99 @@ void PairILPTMD::calc_normal()
           }
         }
       }    // for TMD
+      //############################ For Oxygen in the water molecule #######################
+      else if (strcmp(elements[itype], "Ow") == 0) {
+        if(cont == 0) {
+          jH1 = atom->map(tag[i] + 1);
+          jH2 = atom->map(tag[i] + 2);
+          iH1 = map[type[jH1]];
+          iH2 = map[type[jH2]];
+          if (strcmp(elements[iH1], "Hw") == 0 && strcmp(elements[iH2], "Hw") == 0) {
+            vect[0][0] = x[jH1][0] - xtp;
+            vect[0][1] = x[jH1][1] - ytp;
+            vect[0][2] = x[jH1][2] - ztp;
+
+            vect[1][0] = x[jH2][0] - xtp;
+            vect[1][1] = x[jH2][1] - ytp;
+            vect[1][2] = x[jH2][2] - ztp;
+
+            cont = 2;
+          } else {
+            error->one(FLERR, "The order of atoms in water molecule should be O H H !");
+          }
+        }
+        if (cont == 2) {
+          Nave[0] = (vect[0][0] + vect[1][0])/cont;
+          Nave[1] = (vect[0][1] + vect[1][1])/cont;
+          Nave[2] = (vect[0][2] + vect[1][2])/cont;
+          // the magnitude of the normal vector
+          nn2 = Nave[0] * Nave[0] + Nave[1] * Nave[1] + Nave[2] * Nave[2];
+          nn = sqrt(nn2);
+          if (nn == 0) error->one(FLERR, "The magnitude of the normal vector is zero");
+          // the unit normal vector
+          normal[i][0] = Nave[0] / nn;
+          normal[i][1] = Nave[1] / nn;
+          normal[i][2] = Nave[2] / nn;
+
+          // derivatives of non-normalized normal vector, dNave:3xcontx3 array
+          // dNave[id][m][ip]: the derivatve of the id component of Nave
+          // respect to the ip component of atom m
+          for (id = 0; id < 3; id++) {
+            for (ip = 0; ip < 3; ip++) {
+              for (m = 0; m < cont; m++) {
+                if (ip == id) { dNave[id][m][ip] = 0.5;}
+                else {dNave[id][m][ip] = 0.0;}
+              }
+            }
+          }
+          // derivatives of nn, dnn:contx3 vector
+          // dnn[m][id]: the derivative of nn respect to r[m][id], m=0,...Nnei-1; id=0,1,2
+          // r[m][id]: the id's component of atom m
+          for (m = 0; m < cont; m++) {
+            for (id = 0; id < 3; id++) {
+              dnn[m][id] = (Nave[0] * dNave[0][m][id] + Nave[1] * dNave[1][m][id] +
+                            Nave[2] * dNave[2][m][id]) / nn;
+            }
+          }
+          // dnormal[i][id][m][ip]: the derivative of normal[i][id] respect to r[m][ip], id,ip=0,1,2.
+          // for atom m, which is a neighbor atom of atom i, m = 0,...,Nnei-1
+          for (m = 0; m < cont; m++) {
+            for (id = 0; id < 3; id++) {
+              for (ip = 0; ip < 3; ip++) {
+                dnormal[i][id][m][ip] = dNave[id][m][ip] / nn - Nave[id] * dnn[m][ip] / nn2;
+              }
+            }
+          }
+          // Calculte dNave/dri, defined as dpvdri
+          for (id = 0; id < 3; id++) {
+            for (ip = 0; ip < 3; ip++) {
+              dpvdri[id][ip] = 0.0;
+              for (k = 0; k < cont; k++) { dpvdri[id][ip] -= dNave[id][k][ip]; }
+            }
+          }
+
+          // derivatives of nn, dnn:3x1 vector
+          dni[0] = (Nave[0] * dpvdri[0][0] + Nave[1] * dpvdri[1][0] + Nave[2] * dpvdri[2][0]) / nn;
+          dni[1] = (Nave[0] * dpvdri[0][1] + Nave[1] * dpvdri[1][1] + Nave[2] * dpvdri[2][1]) / nn;
+          dni[2] = (Nave[0] * dpvdri[0][2] + Nave[1] * dpvdri[1][2] + Nave[2] * dpvdri[2][2]) / nn;
+          // derivatives of unit vector ni respect to ri, the result is 3x3 matrix
+          for (id = 0; id < 3; id++) {
+            for (ip = 0; ip < 3; ip++) {
+              dnormdri[i][id][ip] = dpvdri[id][ip] / nn - Nave[id] * dni[ip] / nn2;
+            }
+          }
+        }
+        else if (cont >= 3) {
+          error->one(FLERR,
+                     "There are too many neighbors for calculating normals of water molecules");
+        }
+      }
       //############################ For the edge & bulk atoms of GrhBN ################################
       else {
         if (cont == 2) {
           for (ip = 0; ip < 3; ip++) {
             pvet[0][ip] = vect[0][modulo(ip + 1, 3)] * vect[1][modulo(ip + 2, 3)] -
-                vect[0][modulo(ip + 2, 3)] * vect[1][modulo(ip + 1, 3)];
+                          vect[0][modulo(ip + 2, 3)] * vect[1][modulo(ip + 1, 3)];
           }
           // dpvet1[k][l][ip]: the derivatve of the k (=0,...cont-1)th Nik respect to the ip component of atom l
           // derivatives respect to atom l
@@ -660,8 +789,7 @@ void PairILPTMD::calc_normal()
           for (m = 0; m < cont; m++) {
             for (id = 0; id < 3; id++) {
               dnn[m][id] = (Nave[0] * dNave[0][m][id] + Nave[1] * dNave[1][m][id] +
-                            Nave[2] * dNave[2][m][id]) /
-                  nn;
+                            Nave[2] * dNave[2][m][id]) / nn;
             }
           }
           // dnormal[i][id][m][ip]: the derivative of normal[i][id] respect to r[m][ip], id,ip=0,1,2.

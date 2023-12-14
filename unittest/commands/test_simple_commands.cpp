@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +20,7 @@
 #include "input.h"
 #include "output.h"
 #include "update.h"
+#include "utils.h"
 #include "variable.h"
 
 #include "../testing/core.h"
@@ -212,8 +213,11 @@ TEST_F(SimpleCommandsTest, Quit)
     END_HIDE_OUTPUT();
     TEST_FAILURE(".*ERROR: Expected integer .*", command("quit xxx"););
 
-    // the following tests must be skipped with OpenMPI due to using threads
+    // the following tests must be skipped with OpenMPI or MPICH 4.1 and later due to using threads
     if (platform::mpi_vendor() == "Open MPI") GTEST_SKIP();
+#if defined(MPICH_NUMVERSION)
+    if (MPICH_NUMVERSION >= 40100000) GTEST_SKIP();
+#endif
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }
@@ -265,14 +269,22 @@ TEST_F(SimpleCommandsTest, Suffix)
 
     BEGIN_HIDE_OUTPUT();
     command("suffix one");
+    command("suffix yes");
     END_HIDE_OUTPUT();
     ASSERT_THAT(lmp->suffix, StrEq("one"));
+    ASSERT_EQ(lmp->suffix_enable, 1);
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one/four"));
+    ASSERT_THAT(utils::strip_style_suffix("four/one", lmp), StrEq("four"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix hybrid two three");
     END_HIDE_OUTPUT();
     ASSERT_THAT(lmp->suffix, StrEq("two"));
     ASSERT_THAT(lmp->suffix2, StrEq("three"));
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one/four"));
+    ASSERT_THAT(utils::strip_style_suffix("one/two", lmp), StrEq("one"));
+    ASSERT_THAT(utils::strip_style_suffix("one/three", lmp), StrEq("one"));
+    ASSERT_THAT(utils::strip_style_suffix("four/one", lmp), StrEq("four/one"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix four");
@@ -284,11 +296,13 @@ TEST_F(SimpleCommandsTest, Suffix)
     command("suffix off");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 0);
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one/four"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix yes");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 1);
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix no");
@@ -548,9 +562,6 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

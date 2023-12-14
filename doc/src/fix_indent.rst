@@ -6,7 +6,7 @@ fix indent command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID indent K keyword values ...
 
@@ -19,7 +19,7 @@ Syntax
   .. parsed-literal::
 
        *sphere* args = x y z R
-         x,y,z = initial position of center of indenter (distance units)
+         x,y,z = position of center of indenter (distance units)
          R = sphere radius of indenter (distance units)
          any of x,y,z,R can be a variable (see below)
        *cylinder* args = dim c1 c2 R

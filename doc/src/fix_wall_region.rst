@@ -6,7 +6,7 @@ fix wall/region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/region region-ID style args ... cutoff
 
@@ -77,7 +77,7 @@ region surface will move over time in the corresponding manner.
 
    As discussed on the :doc:`region <region>` command doc page,
    regions in LAMMPS do not get wrapped across periodic boundaries.  It
-   is up to you to insure that periodic or non-periodic boundaries are
+   is up to you to ensure that periodic or non-periodic boundaries are
    specified appropriately via the :doc:`boundary <boundary>` command when
    using a region as a wall that bounds particle motion.  This also means
    that if you embed a region in your simulation box and want it to

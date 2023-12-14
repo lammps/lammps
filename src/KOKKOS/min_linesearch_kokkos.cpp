@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -69,7 +69,7 @@ void MinLineSearchKokkos::init()
 {
   MinKokkos::init();
 
-  if (linestyle == 1) linemin = &MinLineSearchKokkos::linemin_quadratic;
+  if (linestyle == QUADRATIC) linemin = &MinLineSearchKokkos::linemin_quadratic;
   else error->all(FLERR,"Kokkos minimize only supports the 'min_modify line "
    "quadratic' option");
 }
@@ -205,7 +205,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   // for atom coords, max amount = dmax
   // for extra per-atom dof, max amount = extra_max[]
   // for extra global dof, max amount is set by fix
-  // also insure alphamax <= ALPHA_MAX
+  // also ensure alphamax <= ALPHA_MAX
   // else will have to backtrack from huge value when forces are tiny
   // if all search dir components are already 0.0, exit with error
 
@@ -376,10 +376,14 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
     });
   }
 
+  atomKK->modified(Device,X_MASK);
+
   // step forward along h
 
   if (alpha > 0.0) {
     if (nextra_global) modify->min_step(alpha,hextra);
+
+  atomKK->sync(Device,X_MASK); // positions can be modified by fix box/relax
 
     // local variables for lambda capture
 

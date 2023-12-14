@@ -35,11 +35,16 @@ From: fedora:35
                texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
                texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
-               texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
+               texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of texlive-pict2e \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng texlive-xindy \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
                zstd libzstd-devel yaml-cpp-devel
         dnf clean all
+
+        # install NSIS EnVar plugin
+        curl -L -o EnVar_plugin.zip https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+        unzip -d /usr/share/nsis EnVar_plugin.zip
+        rm EnVar_plugin.zip
 
         # enable Lmod and load MPI
         source /usr/share/lmod/lmod/init/profile
@@ -49,7 +54,7 @@ From: fedora:35
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.8.0
+        version=2.8.2
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}

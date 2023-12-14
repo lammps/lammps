@@ -1,12 +1,15 @@
 .. index:: fix viscous
+.. index:: fix viscous/kk
 
 fix viscous command
 ===================
 
+Accelerator Variants: *viscous/kk*
+
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID viscous gamma keyword values ...
 
@@ -81,6 +84,10 @@ that the gamma of fix viscous is related to the damping parameter of
 :doc:`fix langevin <fix_langevin>`, however the former is specified in
 units of force/velocity and the latter in units of time, so that it can
 more easily be used as a thermostat.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

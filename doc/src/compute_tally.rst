@@ -187,16 +187,22 @@ Both the scalar and vector values calculated by this compute are
 Restrictions
 """"""""""""
 
-This compute is part of the TALLY package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This compute is part of the TALLY package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Not all pair styles can be evaluated in a pairwise mode as required by
-this compute.  For example, 3-body and other many-body potentials,
-such as :doc:`Tersoff <pair_tersoff>` and
-:doc:`Stillinger-Weber <pair_sw>` cannot be used.  :doc:`EAM <pair_eam>`
-potentials only include the pair potential portion of the EAM
-interaction when used by this compute, not the embedding term.  Also
-bonded or Kspace interactions do not contribute to this compute.
+this compute.  For example, 3-body and other many-body potentials, such
+as :doc:`Tersoff <pair_tersoff>` and :doc:`Stillinger-Weber <pair_sw>`
+cannot be used.  :doc:`EAM <pair_eam>` potentials only include the pair
+potential portion of the EAM interaction when used by this compute, not
+the embedding term.  Also bonded or Kspace interactions do not
+contribute to this compute.
+
+These computes are not compatible with accelerated pair styles from the
+GPU, INTEL, KOKKOS, or OPENMP packages. They will either create an error
+or print a warning when required data was not tallied in the required way
+and thus the data acquisition functions from these computes not called.
 
 When used with dynamic groups, a :doc:`run 0 <run>` command needs to
 be inserted in order to initialize the dynamic groups before accessing

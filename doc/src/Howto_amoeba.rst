@@ -261,11 +261,11 @@ all the options available to use with the tinker2lmp.py script:
 
 .. code-block:: bash
 
-   % python tinker2lmp.py -xyz water_dimer.xyz -amoeba amoeba_water.prm -data data.water_dimer.amoeba                # AMOEBA non-periodic system
-   % python tinker2lmp.py -xyz water_dimer.xyz -hippo hippo_water.prm -data data.water_dimer.hippo                   # HIPPO non-periodic system
-   % python tinker2lmp.py -xyz water_box.xyz -amoeba amoeba_water.prm -data data.water_box.amoeba -pbc 18.643 18.643 18.643    # AMOEBA periodic system
-   % python tinker2lmp.py -xyz water_box.xyz -hippo hippo_water.prm -data data.water_box.hippo -pbc 18.643 18.643 18.643       # HIPPO periodic system
-   % python tinker2lmp.py -xyz ubiquitin.xyz -amoeba amoeba_ubiquitin.prm -data data.ubiquitin.new -pbc 54.99 41.91 41.91 -bitorsion bitorsion.ubiquitin.data.new   # system with bitorsions
+   python tinker2lmp.py -xyz water_dimer.xyz -amoeba amoeba_water.prm -data data.water_dimer.amoeba                # AMOEBA non-periodic system
+   python tinker2lmp.py -xyz water_dimer.xyz -hippo hippo_water.prm -data data.water_dimer.hippo                   # HIPPO non-periodic system
+   python tinker2lmp.py -xyz water_box.xyz -amoeba amoeba_water.prm -data data.water_box.amoeba -pbc 18.643 18.643 18.643    # AMOEBA periodic system
+   python tinker2lmp.py -xyz water_box.xyz -hippo hippo_water.prm -data data.water_box.hippo -pbc 18.643 18.643 18.643       # HIPPO periodic system
+   python tinker2lmp.py -xyz ubiquitin.xyz -amoeba amoeba_ubiquitin.prm -data data.ubiquitin.new -pbc 54.99 41.91 41.91 -bitorsion bitorsion.ubiquitin.data.new   # system with bitorsions
 
 Switches and their arguments may be specified in any order.
 
@@ -281,7 +281,7 @@ Here is more information about the extended XYZ format defined and
 used by Tinker, and links to programs that convert standard PDB files
 to the extended XYZ format:
 
-* `http://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html <http://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html>`_
+* `https://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html <https://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html>`_
 * `https://github.com/emleddin/pdbxyz-xyzpdb <https://github.com/emleddin/pdbxyz-xyzpdb>`_
 * `https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f <https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f>`_
 

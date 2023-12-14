@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -111,7 +111,6 @@ void PairADPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
@@ -322,9 +321,9 @@ void PairADPKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 
@@ -674,12 +673,12 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelA<NEIGHFLAG,NEWTON_PA
 
   // The rho array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_rho = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
-  auto a_rho = v_rho.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto v_mu = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_mu),decltype(ndup_mu)>::get(dup_mu,ndup_mu);
-  auto a_mu = v_mu.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto v_lambda = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_lambda),decltype(ndup_lambda)>::get(dup_lambda,ndup_lambda);
-  auto a_lambda = v_lambda.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_rho = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
+  auto a_rho = v_rho.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_mu = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_mu),decltype(ndup_mu)>::get(dup_mu,ndup_mu);
+  auto a_mu = v_mu.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_lambda = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_lambda),decltype(ndup_lambda)>::get(dup_lambda,ndup_lambda);
+  auto a_lambda = v_lambda.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -932,8 +931,8 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PA
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);

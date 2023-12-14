@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,6 +30,7 @@ using namespace LAMMPS_NS;
 
 PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -325,6 +326,31 @@ double PairCoulCut::single(int i, int j, int /*itype*/, int /*jtype*/, double rs
 
   phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * rinv;
   return factor_coul * phicoul;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairCoulCut::born_matrix(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
+                              double factor_coul, double /*factor_lj*/, double &dupair,
+                              double &du2pair)
+{
+  double rinv, r2inv, r3inv;
+  double du_coul, du2_coul;
+
+  double *q = atom->q;
+  double qqrd2e = force->qqrd2e;
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r3inv = r2inv * rinv;
+
+  // Reminder: qqrd2e converts  q^2/r to energy w/ dielectric constant
+
+  du_coul = -qqrd2e * q[i] * q[j] * r2inv;
+  du2_coul = 2.0 * qqrd2e * q[i] * q[j] * r3inv;
+
+  dupair = factor_coul * du_coul;
+  du2pair = factor_coul * du2_coul;
 }
 
 /* ---------------------------------------------------------------------- */

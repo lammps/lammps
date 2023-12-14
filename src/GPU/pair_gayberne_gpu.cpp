@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,33 +35,39 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int gb_gpu_init(const int ntypes, const double gamma, const double upsilon, const double mu,
-                double **shape, double **well, double **cutsq, double **sigma, double **epsilon,
-                double *host_lshape, int **form, double **host_lj1, double **host_lj2,
-                double **host_lj3, double **host_lj4, double **offset, double *special_lj,
-                const int nlocal, const int nall, const int max_nbors, const int maxspecial,
+int gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
+                const double mu, double **shape, double **well, double **cutsq,
+                double **sigma, double **epsilon, double *host_lshape,
+                int **form, double **host_lj1, double **host_lj2,
+                double **host_lj3, double **host_lj4, double **offset,
+                double *special_lj, const int nlocal, const int nall,
+                const int max_nbors, const int maxspecial,
                 const double cell_size, int &gpu_mode, FILE *screen);
 void gb_gpu_clear();
-int **gb_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                       int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                       tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start, int **ilist, int **jnum,
-                       const double cpu_time, bool &success, double **host_quat);
-int *gb_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
-                    int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                    bool &success, double **host_quat);
+int **gb_gpu_compute_n(const int ago, const int inum, const int nall,
+                       double **host_x, int *host_type, double *sublo,
+                       double *subhi, tagint *tag, int **nspecial,
+                       tagint **special, const bool eflag, const bool vflag,
+                       const bool eatom, const bool vatom, int &host_start,
+                       int **ilist, int **jnum, const double cpu_time,
+                       bool &success, const int *ellipsoid,
+                       const void *bonus);
+int *gb_gpu_compute(const int ago, const int inum, const int nall,
+                    double **host_x, int *host_type, int *ilist, int *numj,
+                    int **firstneigh, const bool eflag, const bool vflag,
+                    const bool eatom, const bool vatom, int &host_start,
+                    const double cpu_time, bool &success, const int *ellipsoid,
+                    const void *bonus);
 double gb_gpu_bytes();
 
 enum { SPHERE_SPHERE, SPHERE_ELLIPSE, ELLIPSE_SPHERE, ELLIPSE_ELLIPSE };
 
 /* ---------------------------------------------------------------------- */
 
-PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp), gpu_mode(GPU_FORCE)
+PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
+                                                gpu_mode(GPU_FORCE)
 {
-  quat_nmax = 0;
   reinitflag = 0;
-  quat = nullptr;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -74,7 +80,6 @@ PairGayBerneGPU::~PairGayBerneGPU()
 {
   gb_gpu_clear();
   cpu_time = 0.0;
-  memory->destroy(quat);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,21 +94,8 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
 
-  if (nall > quat_nmax) {
-    quat_nmax = static_cast<int>(1.1 * nall);
-    memory->grow(quat, quat_nmax, 4, "pair:quat");
-  }
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
-  for (int i = 0; i < nall; i++) {
-    int qi = ellipsoid[i];
-    if (qi > -1) {
-      quat[i][0] = bonus[qi].quat[0];
-      quat[i][1] = bonus[qi].quat[1];
-      quat[i][2] = bonus[qi].quat[2];
-      quat[i][3] = bonus[qi].quat[3];
-    }
-  }
 
   if (gpu_mode != GPU_FORCE) {
     double sublo[3], subhi[3];
@@ -119,19 +111,24 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
     }
     inum = atom->nlocal;
     firstneigh =
-        gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
-                         atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                         host_start, &ilist, &numneigh, cpu_time, success, quat);
+        gb_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo,
+                         subhi, atom->tag, atom->nspecial, atom->special,
+                         eflag, vflag, eflag_atom, vflag_atom,
+                         host_start, &ilist, &numneigh, cpu_time, success,
+                         ellipsoid, bonus);
   } else {
     inum = list->inum;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    ilist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, list->ilist, numneigh,
-                           firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                           success, quat);
+    ilist = gb_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+                           list->ilist, numneigh, firstneigh, eflag, vflag,
+                           eflag_atom, vflag_atom, host_start, cpu_time,
+                           success, ellipsoid, bonus);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
   if (host_start < inum) {
     cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
@@ -185,14 +182,13 @@ void PairGayBerneGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
-      gb_gpu_init(atom->ntypes + 1, gamma, upsilon, mu, shape2, well, cutsq, sigma, epsilon, lshape,
-                  form, lj1, lj2, lj3, lj4, offset, force->special_lj, atom->nlocal,
-                  atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode, screen);
+      gb_gpu_init(atom->ntypes + 1, gamma, upsilon, mu, shape2, well, cutsq,
+                  sigma, epsilon, lshape, form, lj1, lj2, lj3, lj4, offset,
+                  force->special_lj, atom->nlocal, atom->nlocal + atom->nghost,
+                  mnf, maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
-  quat_nmax = static_cast<int>(1.1 * (atom->nlocal + atom->nghost));
-  memory->grow(quat, quat_nmax, 4, "pair:quat");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -200,12 +196,13 @@ void PairGayBerneGPU::init_style()
 double PairGayBerneGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + memory->usage(quat, quat_nmax) + gb_gpu_bytes();
+  return bytes + gb_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
+void PairGayBerneGPU::cpu_compute(int start, int inum, int eflag,
+                                  int /* vflag */, int *ilist,
                                   int *numneigh, int **firstneigh)
 {
   int i, j, ii, jj, jnum, itype, jtype;

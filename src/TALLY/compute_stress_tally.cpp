@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,10 +29,11 @@ using namespace LAMMPS_NS;
 
 ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute stress/tally command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute stress/tally", error);
 
   igroup2 = group->find(arg[3]);
-  if (igroup2 == -1) error->all(FLERR, "Could not find compute stress/tally second group ID");
+  if (igroup2 == -1)
+    error->all(FLERR, "Could not find compute stress/tally second group ID {}", arg[3]);
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;
@@ -201,7 +202,10 @@ double ComputeStressTally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if ((did_setup != invoked_scalar) || (update->eflag_global != invoked_scalar))
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, "Stress was not tallied on needed timestep");
+
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Stress was not tallied by pair style");
 
   // sum accumulated forces across procs
 
@@ -221,7 +225,10 @@ void ComputeStressTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
   if ((did_setup != invoked_peratom) || (update->eflag_global != invoked_peratom))
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, "Stress was not tallied on needed timestep");
+
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Stress was not tallied by pair style");
 
   // collect contributions from ghost atoms
 

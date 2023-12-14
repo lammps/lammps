@@ -1,48 +1,19 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 #include <limits>
@@ -72,11 +43,6 @@ struct AddPlus {
   // Required.
   KOKKOS_INLINE_FUNCTION
   void join(value_type& dest, const value_type& src) const { dest += src + 1; }
-
-  KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dest, const volatile value_type& src) const {
-    dest += src + 1;
-  }
 
   // Optional.
   KOKKOS_INLINE_FUNCTION
@@ -195,9 +161,7 @@ struct FunctorScalarJoin<0> {
   void operator()(const int& i, double& update) const { update += i; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 };
 
 template <>
@@ -214,9 +178,7 @@ struct FunctorScalarJoin<1> {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 };
 
 template <int ISTEAM>
@@ -232,9 +194,7 @@ struct FunctorScalarJoinFinal<0> {
   void operator()(const int& i, double& update) const { update += i; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 
   KOKKOS_INLINE_FUNCTION
   void final(double& update) const { result() = update; }
@@ -254,9 +214,7 @@ struct FunctorScalarJoinFinal<1> {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 
   KOKKOS_INLINE_FUNCTION
   void final(double& update) const { result() = update; }
@@ -275,9 +233,7 @@ struct FunctorScalarJoinInit<0> {
   void operator()(const int& i, double& update) const { update += i; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 
   KOKKOS_INLINE_FUNCTION
   void init(double& update) const { update = 0.0; }
@@ -297,9 +253,7 @@ struct FunctorScalarJoinInit<1> {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 
   KOKKOS_INLINE_FUNCTION
   void init(double& update) const { update = 0.0; }
@@ -318,9 +272,7 @@ struct FunctorScalarJoinFinalInit<0> {
   void operator()(const int& i, double& update) const { update += i; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 
   KOKKOS_INLINE_FUNCTION
   void final(double& update) const { result() = update; }
@@ -343,9 +295,7 @@ struct FunctorScalarJoinFinalInit<1> {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double& dst, const volatile double& update) const {
-    dst += update;
-  }
+  void join(double& dst, const double& update) const { dst += update; }
 
   KOKKOS_INLINE_FUNCTION
   void final(double& update) const { result() = update; }
@@ -379,7 +329,7 @@ struct Functor2 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile double dst[], const volatile double src[]) const {
+  void join(double dst[], const double src[]) const {
     for (unsigned i = 0; i < value_count; ++i) dst[i] += src[i];
   }
 };
@@ -437,11 +387,11 @@ struct TestReduceCombinatoricalInstantiation {
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
     CallParallelReduce(args...,
                        Test::ReduceCombinatorical::AddPlus<double>(value));
-    if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
-        (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
+    if ((Kokkos::DefaultExecutionSpace().concurrency() > 1) &&
+        (ExecSpace().concurrency() > 1) && (expected_result > 0)) {
       ASSERT_LT(expected_result, value);
-    } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
-                (ExecSpace::concurrency() > 1)) &&
+    } else if (((Kokkos::DefaultExecutionSpace().concurrency() > 1) ||
+                (ExecSpace().concurrency() > 1)) &&
                (expected_result > 0)) {
       ASSERT_LE(expected_result, value);
     } else {
@@ -451,11 +401,11 @@ struct TestReduceCombinatoricalInstantiation {
     value = 99;
     Test::ReduceCombinatorical::AddPlus<double> add(value);
     CallParallelReduce(args..., add);
-    if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
-        (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
+    if ((Kokkos::DefaultExecutionSpace().concurrency() > 1) &&
+        (ExecSpace().concurrency() > 1) && (expected_result > 0)) {
       ASSERT_LT(expected_result, value);
-    } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
-                (ExecSpace::concurrency() > 1)) &&
+    } else if (((Kokkos::DefaultExecutionSpace().concurrency() > 1) ||
+                (ExecSpace().concurrency() > 1)) &&
                (expected_result > 0)) {
       ASSERT_LE(expected_result, value);
     } else {
@@ -545,9 +495,9 @@ struct TestReduceCombinatoricalInstantiation {
 #ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
     AddLambdaRange(
         N,
-        typename std::conditional<
+        std::conditional_t<
             std::is_same<ExecSpace, Kokkos::DefaultExecutionSpace>::value,
-            void*, Kokkos::InvalidType>::type(),
+            void*, Kokkos::InvalidType>(),
         args...);
 #endif
   }
@@ -558,9 +508,9 @@ struct TestReduceCombinatoricalInstantiation {
 #ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
     AddLambdaTeam(
         N,
-        typename std::conditional<
+        std::conditional_t<
             std::is_same<ExecSpace, Kokkos::DefaultExecutionSpace>::value,
-            void*, Kokkos::InvalidType>::type(),
+            void*, Kokkos::InvalidType>(),
         args...);
 #endif
   }

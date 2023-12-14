@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 /**
  * Before digging in to the code, it's worth taking a moment to review this
  * design. Fundamentally, what we're looking to do is allow people to test that
@@ -93,28 +65,6 @@ using EventBasePtr = std::shared_ptr<EventBase>;
 using event_vector = std::vector<EventBasePtr>;
 
 /**
- * @brief Base case of a recursive reduction using templates
- * Should be replaced with a fold in C++17
- */
-
-inline bool are_valid() { return true; }
-
-/**
- * @brief Recursive reduction to check whether any pointer in a set is null
- *
- * @tparam Head Type of the pointer to examine
- * @tparam Tail Types of the rest of the pointers
- * @param head The pointer to examine
- * @param tail The rest of the pointers
- * @return true if no pointer is null, false otherwise
- *
- */
-template <class Head, class... Tail>
-bool are_valid(const Head& head, const Tail&... tail) {
-  return (head != nullptr) && (are_valid(tail...));
-}
-
-/**
  * @brief In order to call some arbitrary set of lambdas representing matchers,
  * we need the ability to look at a lambda, and deduce its arguments.
  *
@@ -153,7 +103,7 @@ struct function_traits<R (*)(A...)> {
   constexpr static int num_arguments = sizeof...(A);
   template <class Call, class... Args>
   static auto invoke_as(const Call& call, Args&&... args) {
-    if (!are_valid(std::dynamic_pointer_cast<A>(std::forward<Args>(args))...)) {
+    if (!(std::dynamic_pointer_cast<A>(std::forward<Args>(args)) && ...)) {
       return MatchDiagnostic{false, {"Types didn't match on arguments"}};
     }
     return call(*std::dynamic_pointer_cast<A>(std::forward<Args>(args))...);
@@ -177,7 +127,7 @@ struct function_traits<R (C::*)(A...)> {
   constexpr static int num_arguments = sizeof...(A);
   template <class Call, class... Args>
   static auto invoke_as(const Call& call, Args&&... args) {
-    if (!are_valid(std::dynamic_pointer_cast<A>(std::forward<Args>(args))...)) {
+    if (!(std::dynamic_pointer_cast<A>(std::forward<Args>(args)) && ...)) {
       return MatchDiagnostic{false, {"Types didn't match on arguments"}};
     }
     return call(*std::dynamic_pointer_cast<A>(std::forward<Args>(args))...);
@@ -202,7 +152,7 @@ struct function_traits<R (C::*)(A...) const>  // const
   constexpr static int num_arguments = sizeof...(A);
   template <class Call, class... Args>
   static auto invoke_as(const Call& call, Args&&... args) {
-    if (!are_valid(std::dynamic_pointer_cast<A>(std::forward<Args>(args))...)) {
+    if (!(std::dynamic_pointer_cast<A>(std::forward<Args>(args)) && ...)) {
       return MatchDiagnostic{false, {"Types didn't match on arguments"}};
     }
     return call(*std::dynamic_pointer_cast<A>(std::forward<Args>(args))...);
@@ -218,7 +168,7 @@ struct function_traits<R (C::*)(A...) const>  // const
  * @tparam T The functor type
  */
 template <typename T>
-struct function_traits<T, Kokkos::Impl::void_t<decltype(&T::operator())> >
+struct function_traits<T, std::void_t<decltype(&T::operator())> >
     : public function_traits<decltype(&T::operator())> {};
 
 /**
@@ -1195,8 +1145,7 @@ template <int priority, class Config, class... Configs>
 void listen_tool_events_impl(std::integral_constant<int, priority> prio,
                              ToolValidatorConfiguration& in, Config conf,
                              Configs... configs) {
-  invoke_config(in, conf,
-                std::integral_constant<bool, priority == conf.value>{});
+  invoke_config(in, conf, std::bool_constant<priority == conf.value>{});
   listen_tool_events_impl(prio, in, configs...);
 }
 template <class... Configs>
@@ -1298,6 +1247,24 @@ bool validate_absence(const Lambda& lam, const Matchers... matchers) {
     }
   }
   return true;
+}
+
+template <class Lambda, class Matcher>
+bool validate_existence(const Lambda& lam, const Matcher matcher) {
+  // First, erase events from previous invocations
+  found_events.clear();
+  // Invoke the lambda (this will populate found_events, via tooling)
+  lam();
+  // compare the found events against the expected ones
+  for (const auto& event : found_events) {
+    MatchDiagnostic match = check_presence_of(event, matcher);
+
+    if (match.success) return true;
+  }
+  std::cout << "Test failure: Didn't encounter wanted events" << std::endl;
+  for (const auto& p_event : found_events)
+    std::cout << p_event->descriptor() << std::endl;
+  return false;
 }
 
 }  // namespace Tools

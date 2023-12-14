@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -64,9 +64,8 @@ class FixMSST : public Fix {
 
   double **old_velocity;    // saved velocities
 
-  int kspace_flag;    // 1 if KSpace invoked, 0 if not
-  int nrigid;         // number of rigid fixes
-  int *rfix;          // indices of rigid fixes
+  int kspace_flag;            // 1 if KSpace invoked, 0 if not
+  std::vector<Fix *> rfix;    // indices of rigid fixes
 
   char *id_temp, *id_press;    // strings with identifiers of
   char *id_pe;                 // created computes

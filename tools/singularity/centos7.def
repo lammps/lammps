@@ -1,5 +1,5 @@
-BootStrap: library
-From: centos:7
+BootStrap: docker
+From: library/centos:7
 
 %post
         yum -y install epel-release
@@ -37,7 +37,7 @@ From: centos:7
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.8.0
+        version=2.8.2
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}

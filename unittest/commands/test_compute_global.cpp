@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -100,24 +100,24 @@ TEST_F(ComputeGlobalTest, Energy)
     EXPECT_DOUBLE_EQ(get_scalar("pe1"), 24155.155261642241);
     EXPECT_DOUBLE_EQ(get_scalar("pe2"), 361.37528652881286);
     EXPECT_DOUBLE_EQ(get_scalar("pe3"), 0.0);
-    EXPECT_NEAR(get_scalar("pr1"), 1956948.4735454607, 0.0000000005);
-    EXPECT_NEAR(get_scalar("pr2"), 1956916.7725807722, 0.0000000005);
+    EXPECT_NEAR(get_scalar("pr1"), 1956948.4735454607, 0.000000005);
+    EXPECT_NEAR(get_scalar("pr2"), 1956916.7725807722, 0.000000005);
     EXPECT_DOUBLE_EQ(get_scalar("pr3"), 0.0);
     auto pr1 = get_vector("pr1");
     auto pr2 = get_vector("pr2");
     auto pr3 = get_vector("pr3");
-    EXPECT_NEAR(pr1[0], 2150600.9207200543, 0.0000000005);
-    EXPECT_NEAR(pr1[1], 1466949.7512112649, 0.0000000005);
-    EXPECT_NEAR(pr1[2], 2253294.7487050635, 0.0000000005);
-    EXPECT_NEAR(pr1[3], 856643.16926486336, 0.0000000005);
-    EXPECT_NEAR(pr1[4], 692710.86929464422, 0.0000000005);
-    EXPECT_NEAR(pr1[5], -44403.909298603547, 0.0000000005);
-    EXPECT_NEAR(pr2[0], 2150575.6989334146, 0.0000000005);
-    EXPECT_NEAR(pr2[1], 1466911.3911461537, 0.0000000005);
-    EXPECT_NEAR(pr2[2], 2253263.2276627473, 0.0000000005);
-    EXPECT_NEAR(pr2[3], 856632.34707690508, 0.0000000005);
-    EXPECT_NEAR(pr2[4], 692712.89222328411, 0.0000000005);
-    EXPECT_NEAR(pr2[5], -44399.277068014424, 0.0000000005);
+    EXPECT_NEAR(pr1[0], 2150600.9207200543, 0.000000005);
+    EXPECT_NEAR(pr1[1], 1466949.7512112649, 0.000000005);
+    EXPECT_NEAR(pr1[2], 2253294.7487050635, 0.000000005);
+    EXPECT_NEAR(pr1[3], 856643.16926486336, 0.000000005);
+    EXPECT_NEAR(pr1[4], 692710.86929464422, 0.000000005);
+    EXPECT_NEAR(pr1[5], -44403.909298603547, 0.000000005);
+    EXPECT_NEAR(pr2[0], 2150575.6989334146, 0.000000005);
+    EXPECT_NEAR(pr2[1], 1466911.3911461537, 0.000000005);
+    EXPECT_NEAR(pr2[2], 2253263.2276627473, 0.000000005);
+    EXPECT_NEAR(pr2[3], 856632.34707690508, 0.000000005);
+    EXPECT_NEAR(pr2[4], 692712.89222328411, 0.000000005);
+    EXPECT_NEAR(pr2[5], -44399.277068014424, 0.000000005);
     EXPECT_DOUBLE_EQ(pr3[0], 0.0);
     EXPECT_DOUBLE_EQ(pr3[1], 0.0);
     EXPECT_DOUBLE_EQ(pr3[2], 0.0);
@@ -126,12 +126,12 @@ TEST_F(ComputeGlobalTest, Energy)
     EXPECT_DOUBLE_EQ(pr3[5], 0.0);
 
     if (has_tally) {
-        EXPECT_DOUBLE_EQ(get_scalar("pe4"), 15425.840923850392);
+        EXPECT_NEAR(get_scalar("pe4"), 15425.840923850392, 0.000000005);
         auto pe5 = get_vector("pe5");
-        EXPECT_DOUBLE_EQ(pe5[0], 23803.966677151559);
-        EXPECT_DOUBLE_EQ(pe5[1], -94.210004432380643);
-        EXPECT_DOUBLE_EQ(pe5[2], 115.58040355478101);
-        EXPECT_DOUBLE_EQ(pe5[3], -31.557101160514257);
+        EXPECT_NEAR(pe5[0], 23803.966677151559, 0.000000005);
+        EXPECT_NEAR(pe5[1], -94.210004432380643, 0.000000005);
+        EXPECT_NEAR(pe5[2], 115.58040355478101, 0.000000005);
+        EXPECT_NEAR(pe5[3], -31.557101160514257, 0.000000005);
     }
 
     TEST_FAILURE(".*ERROR: Compute pressure must use group all.*",
@@ -169,7 +169,7 @@ TEST_F(ComputeGlobalTest, Geometry)
         command("compute mom1 all momentum");
         command("compute mom2 allwater momentum");
         command("compute mop1 all stress/mop x 0.0 total");
-        command("compute mop2 all stress/mop/profile z lower 0.5 kin conf");
+        command("compute mop2 all stress/mop/profile z lower 0.5 kin pair");
         thermo_style += " c_mu1 c_mu2 c_mop1[*] c_mop2[1][1]";
     }
 
@@ -184,36 +184,36 @@ TEST_F(ComputeGlobalTest, Geometry)
     auto rg1  = get_vector("rg1");
     auto rg2  = get_vector("rg2");
 
-    EXPECT_DOUBLE_EQ(com1[0], 1.4300952724948282);
-    EXPECT_DOUBLE_EQ(com1[1], -0.29759806705328351);
-    EXPECT_DOUBLE_EQ(com1[2], -0.7245120195899285);
-    EXPECT_DOUBLE_EQ(com2[0], 1.7850913321989679);
-    EXPECT_DOUBLE_EQ(com2[1], -0.45168408952146238);
-    EXPECT_DOUBLE_EQ(com2[2], -0.60215022088294912);
+    EXPECT_NEAR(com1[0], 1.4300952724948282, 0.0000000005);
+    EXPECT_NEAR(com1[1], -0.29759806705328351, 0.0000000005);
+    EXPECT_NEAR(com1[2], -0.7245120195899285, 0.0000000005);
+    EXPECT_NEAR(com2[0], 1.7850913321989679, 0.0000000005);
+    EXPECT_NEAR(com2[1], -0.45168408952146238, 0.0000000005);
+    EXPECT_NEAR(com2[2], -0.60215022088294912, 0.0000000005);
 
-    EXPECT_DOUBLE_EQ(get_scalar("mu1"), 1.8335537504770163);
-    EXPECT_DOUBLE_EQ(get_scalar("mu2"), 1.7849382239204072);
-    EXPECT_DOUBLE_EQ(mu1[0], 0.41613191281297729);
-    EXPECT_DOUBLE_EQ(mu1[1], 1.0056523085627747);
-    EXPECT_DOUBLE_EQ(mu1[2], -1.4756073398127658);
-    EXPECT_DOUBLE_EQ(mu2[0], -0.029474795088977768);
-    EXPECT_DOUBLE_EQ(mu2[1], 1.153516133030746);
-    EXPECT_DOUBLE_EQ(mu2[2], -1.3618135814069394);
+    EXPECT_NEAR(get_scalar("mu1"), 1.8335537504770163, 0.0000000005);
+    EXPECT_NEAR(get_scalar("mu2"), 1.7849382239204072, 0.0000000005);
+    EXPECT_NEAR(mu1[0], 0.41613191281297729, 0.0000000005);
+    EXPECT_NEAR(mu1[1], 1.0056523085627747, 0.0000000005);
+    EXPECT_NEAR(mu1[2], -1.4756073398127658, 0.0000000005);
+    EXPECT_NEAR(mu2[0], -0.029474795088977768, 0.0000000005);
+    EXPECT_NEAR(mu2[1], 1.153516133030746, 0.0000000005);
+    EXPECT_NEAR(mu2[2], -1.3618135814069394, 0.0000000005);
 
-    EXPECT_DOUBLE_EQ(get_scalar("rg1"), 3.8495643473797196);
-    EXPECT_DOUBLE_EQ(get_scalar("rg2"), 5.4558163385611342);
-    EXPECT_DOUBLE_EQ(rg1[0], 3.6747807397432752);
-    EXPECT_DOUBLE_EQ(rg1[1], 6.5440303159316278);
-    EXPECT_DOUBLE_EQ(rg1[2], 4.6003346089421457);
-    EXPECT_DOUBLE_EQ(rg1[3], -0.4639249501367636);
-    EXPECT_DOUBLE_EQ(rg1[4], -1.8859032304357459);
-    EXPECT_DOUBLE_EQ(rg1[5], 0.2339161878440186);
-    EXPECT_DOUBLE_EQ(rg2[0], 6.2582260148310143);
-    EXPECT_DOUBLE_EQ(rg2[1], 13.353763805454184);
-    EXPECT_DOUBLE_EQ(rg2[2], 10.153942099825425);
-    EXPECT_DOUBLE_EQ(rg2[3], 1.2965604701522486);
-    EXPECT_DOUBLE_EQ(rg2[4], -5.0315240817290841);
-    EXPECT_DOUBLE_EQ(rg2[5], 1.1103378503822141);
+    EXPECT_NEAR(get_scalar("rg1"), 3.8495643473797196, 0.0000000005);
+    EXPECT_NEAR(get_scalar("rg2"), 5.4558163385611342, 0.0000000005);
+    EXPECT_NEAR(rg1[0], 3.6747807397432752, 0.0000000005);
+    EXPECT_NEAR(rg1[1], 6.5440303159316278, 0.0000000005);
+    EXPECT_NEAR(rg1[2], 4.6003346089421457, 0.0000000005);
+    EXPECT_NEAR(rg1[3], -0.4639249501367636, 0.0000000005);
+    EXPECT_NEAR(rg1[4], -1.8859032304357459, 0.0000000005);
+    EXPECT_NEAR(rg1[5], 0.2339161878440186, 0.0000000005);
+    EXPECT_NEAR(rg2[0], 6.2582260148310143, 0.0000000005);
+    EXPECT_NEAR(rg2[1], 13.353763805454184, 0.0000000005);
+    EXPECT_NEAR(rg2[2], 10.153942099825425, 0.0000000005);
+    EXPECT_NEAR(rg2[3], 1.2965604701522486, 0.0000000005);
+    EXPECT_NEAR(rg2[4], -5.0315240817290841, 0.0000000005);
+    EXPECT_NEAR(rg2[5], 1.1103378503822141, 0.0000000005);
     if (has_extra) {
         auto mom1 = get_vector("mom1");
         auto mom2 = get_vector("mom2");
@@ -225,9 +225,9 @@ TEST_F(ComputeGlobalTest, Geometry)
         EXPECT_DOUBLE_EQ(mom2[0], -0.022332069630161717);
         EXPECT_DOUBLE_EQ(mom2[1], -0.056896553865696115);
         EXPECT_DOUBLE_EQ(mom2[2], 0.069179891052881484);
-        EXPECT_DOUBLE_EQ(mop1[0], 3522311.3572200728);
-        EXPECT_DOUBLE_EQ(mop1[1], 2871104.9055934539);
-        EXPECT_DOUBLE_EQ(mop1[2], -4136077.5224247416);
+        EXPECT_DOUBLE_EQ(mop1[0], 3536584.0880458541);
+        EXPECT_DOUBLE_EQ(mop1[1], 2887485.033995091);
+        EXPECT_DOUBLE_EQ(mop1[2], -4154145.8952306858);
         EXPECT_DOUBLE_EQ(mop2[0][0], -8.0869239999999998);
         EXPECT_DOUBLE_EQ(mop2[0][1], 0.0);
         EXPECT_DOUBLE_EQ(mop2[0][2], 0.0);
@@ -294,15 +294,104 @@ TEST_F(ComputeGlobalTest, Reduction)
     EXPECT_DOUBLE_EQ(rep[2], 26);
     EXPECT_DOUBLE_EQ(rep[3], max[0]);
 }
+
+TEST_F(ComputeGlobalTest, Counts)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style zero 10.0");
+    command("pair_coeff * *");
+
+    command("variable t1 atom type==1");
+    command("variable t2 atom type==2");
+    command("variable t3 atom type==3");
+    command("variable t4 atom type==4");
+    command("variable t5 atom type==5");
+    command("compute tsum all reduce sum v_t1 v_t2 v_t3 v_t4 v_t5");
+    command("compute tcnt all count/type atom");
+    command("compute bcnt all count/type bond");
+    command("compute acnt all count/type angle");
+    command("compute dcnt all count/type dihedral");
+    command("compute icnt all count/type improper");
+    command("thermo_style custom c_tsum[*] c_tcnt[*] c_bcnt[*] c_acnt[*] c_dcnt[*] c_icnt[*]");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto tsum = get_vector("tsum");
+    auto tcnt = get_vector("tcnt");
+    auto bcnt = get_vector("bcnt");
+    auto bbrk = get_scalar("bcnt");
+    auto acnt = get_vector("acnt");
+    auto dcnt = get_vector("dcnt");
+    auto icnt = get_vector("icnt");
+
+    EXPECT_DOUBLE_EQ(tsum[0], tcnt[0]);
+    EXPECT_DOUBLE_EQ(tsum[1], tcnt[1]);
+    EXPECT_DOUBLE_EQ(tsum[2], tcnt[2]);
+    EXPECT_DOUBLE_EQ(tsum[3], tcnt[3]);
+    EXPECT_DOUBLE_EQ(tsum[4], tcnt[4]);
+
+    EXPECT_DOUBLE_EQ(bbrk, 0.0);
+
+    EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
+    EXPECT_DOUBLE_EQ(bcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
+    EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
+
+    EXPECT_DOUBLE_EQ(acnt[0], 6.0);
+    EXPECT_DOUBLE_EQ(acnt[1], 10.0);
+    EXPECT_DOUBLE_EQ(acnt[2], 5.0);
+    EXPECT_DOUBLE_EQ(acnt[3], 9.0);
+
+    EXPECT_DOUBLE_EQ(dcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[1], 8.0);
+    EXPECT_DOUBLE_EQ(dcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[3], 4.0);
+    EXPECT_DOUBLE_EQ(dcnt[4], 13.0);
+
+    EXPECT_DOUBLE_EQ(icnt[0], 1.0);
+    EXPECT_DOUBLE_EQ(icnt[1], 1.0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("delete_bonds all bond 3 remove");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    bcnt = get_vector("bcnt");
+    bbrk = get_scalar("bcnt");
+    acnt = get_vector("acnt");
+    dcnt = get_vector("dcnt");
+    icnt = get_vector("icnt");
+
+    EXPECT_DOUBLE_EQ(bbrk, 0.0);
+    EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
+    EXPECT_DOUBLE_EQ(bcnt[2], 0.0);
+    EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
+    EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
+
+    EXPECT_DOUBLE_EQ(acnt[0], 6.0);
+    EXPECT_DOUBLE_EQ(acnt[1], 10.0);
+    EXPECT_DOUBLE_EQ(acnt[2], 5.0);
+    EXPECT_DOUBLE_EQ(acnt[3], 9.0);
+
+    EXPECT_DOUBLE_EQ(dcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[1], 8.0);
+    EXPECT_DOUBLE_EQ(dcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[3], 4.0);
+    EXPECT_DOUBLE_EQ(dcnt[4], 13.0);
+
+    EXPECT_DOUBLE_EQ(icnt[0], 1.0);
+    EXPECT_DOUBLE_EQ(icnt[1], 1.0);
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

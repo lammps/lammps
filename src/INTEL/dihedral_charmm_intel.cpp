@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -91,7 +91,7 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
 
-  // insure pair->ev_tally() will use 1-4 virial contribution
+  // ensure pair->ev_tally() will use 1-4 virial contribution
 
   if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
@@ -240,14 +240,14 @@ void DihedralCharmmIntel::eval(const int vflag,
       const flt_t rasq = ax*ax + ay*ay + az*az;
       const flt_t rbsq = bx*bx + by*by + bz*bz;
       const flt_t rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-      const flt_t rg = sqrt(rgsq);
+      const flt_t rg = std::sqrt(rgsq);
 
       flt_t rginv, ra2inv, rb2inv;
       rginv = ra2inv = rb2inv = (flt_t)0.0;
       if (rg > 0) rginv = (flt_t)1.0/rg;
       if (rasq > 0) ra2inv = (flt_t)1.0/rasq;
       if (rbsq > 0) rb2inv = (flt_t)1.0/rbsq;
-      const flt_t rabinv = sqrt(ra2inv*rb2inv);
+      const flt_t rabinv = std::sqrt(ra2inv*rb2inv);
 
       flt_t c = (ax*bx + ay*by + az*bz)*rabinv;
       const flt_t s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
@@ -367,7 +367,7 @@ void DihedralCharmmIntel::eval(const int vflag,
 
       flt_t forcecoul;
       if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
-      else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
+      else forcecoul = qqrd2e * q[i1]*q[i4]*std::sqrt(r2inv);
       const flt_t forcelj = r6inv * (fc.ljp[itype][jtype].lj1*r6inv -
                                      fc.ljp[itype][jtype].lj2);
       const flt_t fpair = tweight * (forcelj+forcecoul)*r2inv;

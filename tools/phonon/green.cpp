@@ -1,10 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
 #include "green.h"
+
+#include "memory.h"
+
 #include <complex>
-#include "global.h"
+#include <cmath>
+#include <cstdio>
 
 /*******************************************************************************
  * The class of Green is designed to evaluate the LDOS via the Green's Function
@@ -59,7 +59,6 @@ Green::Green(const int ntm, const int sdim, const int niter, const double min, c
    dw = (wmax - wmin)/double(nw-1);
    memory->create(alpha, sysdim,nit,  "Green_Green:alpha");
    memory->create(beta,  sysdim,nit+1,"Green_Green:beta");
-   //memory->create(ldos,  nw,sysdim, "Green_Green:ldos");
  
    // use Lanczos algorithm to diagonalize the Hessian
    Lanczos();
@@ -224,8 +223,6 @@ void Green::recursion()
 {
    // local variables
    std::complex<double> Z, rec_x, rec_x_inv;
-   std::complex<double> cunit = std::complex<double>(0.,1.);
- 
    double w = wmin;
  
    for (int i = 0; i < nw; ++i){

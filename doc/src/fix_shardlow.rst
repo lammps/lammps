@@ -9,7 +9,7 @@ Accelerator Variants: *shardlow/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID shardlow
 
@@ -69,7 +69,7 @@ geometries.
 This fix must be used with an additional fix that specifies time
 integration, e.g. :doc:`fix nve <fix_nve>` or :doc:`fix nph <fix_nh>`.
 
-The Shardlow splitting algorithm requires the sizes of the sub-domain
+The Shardlow splitting algorithm requires the sizes of the subdomain
 lengths to be larger than twice the cutoff+skin.  Generally, the
 domain decomposition is dependent on the number of processors
 requested.

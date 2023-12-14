@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,15 +15,14 @@
 
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "molecule.h"
 #include "output.h"
 #include "thermo.h"
-#include "molecule.h"
-#include "memory.h"
-#include "error.h"
-
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,8 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NTopoImproperTemplate::NTopoImproperTemplate(LAMMPS *lmp) :
-  NTopo(lmp)
+NTopoImproperTemplate::NTopoImproperTemplate(LAMMPS *lmp) : NTopo(lmp)
 {
   allocate_improper();
 }
@@ -42,11 +39,11 @@ NTopoImproperTemplate::NTopoImproperTemplate(LAMMPS *lmp) :
 
 void NTopoImproperTemplate::build()
 {
-  int i,m,atom1,atom2,atom3,atom4;
-  int imol,iatom;
+  int i, m, atom1, atom2, atom3, atom4;
+  int imol, iatom;
   tagint tagprev;
   int *num_improper;
-  tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
+  tagint **improper_atom1, **improper_atom2, **improper_atom3, **improper_atom4;
   int **improper_type;
 
   Molecule **onemols = atom->avec->onemols;
@@ -74,31 +71,27 @@ void NTopoImproperTemplate::build()
     improper_type = onemols[imol]->improper_type;
 
     for (m = 0; m < num_improper[iatom]; m++) {
-      atom1 = atom->map(improper_atom1[iatom][m]+tagprev);
-      atom2 = atom->map(improper_atom2[iatom][m]+tagprev);
-      atom3 = atom->map(improper_atom3[iatom][m]+tagprev);
-      atom4 = atom->map(improper_atom4[iatom][m]+tagprev);
+      atom1 = atom->map(improper_atom1[iatom][m] + tagprev);
+      atom2 = atom->map(improper_atom2[iatom][m] + tagprev);
+      atom3 = atom->map(improper_atom3[iatom][m] + tagprev);
+      atom4 = atom->map(improper_atom4[iatom][m] + tagprev);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,"Improper atoms {} {} {} {}"
-                                       " missing on proc {} at step {}",
-                                       improper_atom1[iatom][m]+tagprev,
-                                       improper_atom2[iatom][m]+tagprev,
-                                       improper_atom3[iatom][m]+tagprev,
-                                       improper_atom4[iatom][m]+tagprev,
-                                       me,update->ntimestep);
+          error->one(FLERR, "Improper atoms {} {} {} {} missing on proc {} at step {}",
+                     improper_atom1[iatom][m] + tagprev, improper_atom2[iatom][m] + tagprev,
+                     improper_atom3[iatom][m] + tagprev, improper_atom4[iatom][m] + tagprev, me,
+                     update->ntimestep);
         continue;
       }
-      atom1 = domain->closest_image(i,atom1);
-      atom2 = domain->closest_image(i,atom2);
-      atom3 = domain->closest_image(i,atom3);
-      atom4 = domain->closest_image(i,atom4);
-      if (newton_bond ||
-          (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
+      atom1 = domain->closest_image(i, atom1);
+      atom2 = domain->closest_image(i, atom2);
+      atom3 = domain->closest_image(i, atom3);
+      atom4 = domain->closest_image(i, atom4);
+      if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
         if (nimproperlist == maximproper) {
           maximproper += DELTA;
-          memory->grow(improperlist,maximproper,5,"neigh_topo:improperlist");
+          memory->grow(improperlist, maximproper, 5, "neigh_topo:improperlist");
         }
         improperlist[nimproperlist][0] = atom1;
         improperlist[nimproperlist][1] = atom2;
@@ -110,11 +103,11 @@ void NTopoImproperTemplate::build()
     }
   }
 
-  if (cluster_check) dihedral_check(nimproperlist,improperlist);
+  if (cluster_check) dihedral_check(nimproperlist, improperlist);
   if (lostbond == Thermo::IGNORE) return;
 
   int all;
-  MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&nmissing, &all, 1, MPI_INT, MPI_SUM, world);
   if (all && (me == 0))
-    error->warning(FLERR,"Improper atoms missing at step {}",update->ntimestep);
+    error->warning(FLERR, "Improper atoms missing at step {}", update->ntimestep);
 }

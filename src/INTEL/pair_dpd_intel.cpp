@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -180,7 +180,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
   ATOM_T * _noalias const x = buffers->get_x(offload);
   typedef struct { double x, y, z; } lmp_vt;
   auto *v = (lmp_vt *)atom->v[0];
-  const flt_t dtinvsqrt = 1.0/sqrt(update->dt);
+  const flt_t dtinvsqrt = 1.0/std::sqrt(update->dt);
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
@@ -322,11 +322,14 @@ void PairDPDIntel::eval(const int offload, const int vflag,
             icut = parami[jtype].icut;
           }
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
-          const flt_t rinv = (flt_t)1.0/sqrt(rsq);
+          const flt_t rinv = (flt_t)1.0/std::sqrt(rsq);
 
           if (rinv > icut) {
-            flt_t factor_dpd;
-            if (!ONETYPE) factor_dpd = special_lj[sbindex];
+            flt_t factor_dpd, factor_sqrt;
+            if (!ONETYPE) {
+              factor_dpd = special_lj[sbindex];
+              factor_sqrt = special_lj[sbindex];
+            }
 
             flt_t delvx = vxtmp - v[j].x;
             flt_t delvy = vytmp - v[j].y;
@@ -342,8 +345,11 @@ void PairDPDIntel::eval(const int offload, const int vflag,
               gamma = parami[jtype].gamma;
               sigma = parami[jtype].sigma;
             }
-            flt_t fpair = a0 - iwd * gamma * dot + sigma * randnum * dtinvsqrt;
-            if (!ONETYPE) fpair *= factor_dpd;
+            flt_t fpair = a0 - iwd * gamma * dot;
+            if (!ONETYPE) {
+              fpair *= factor_dpd;
+              fpair += factor_sqrt * sigma * randnum * dtinvsqrt;
+            } else fpair += sigma * randnum * dtinvsqrt;
             fpair *= iwd;
 
             const flt_t fpx = fpair * delx;
@@ -493,8 +499,7 @@ void PairDPDIntel::init_style()
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->offload_balance() != 0.0)
-    error->all(FLERR,
-          "Offload for dpd/intel is not yet available. Set balance to 0.");
+    error->all(FLERR, "Offload for dpd/intel is not yet available. Set balance to 0.");
   #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)

@@ -90,7 +90,7 @@ int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
                          nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
-    EAMALMF.device->gpu_barrier();
+    EAMALMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

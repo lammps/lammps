@@ -1,49 +1,20 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_MinMaxElementOperations.hpp>
 
 namespace KE = Kokkos::Experimental;
 
@@ -202,7 +173,7 @@ void std_algo_min_max_test_verify(Kokkos::pair<IndexType, ValueType> goldPair,
                                   const ItType result,
                                   TestedViewType testedView) {
   // check that iterator is pointing to right element
-  EXPECT_EQ(result - KE::begin(testedView), goldPair.first);
+  ASSERT_EQ(result - KE::begin(testedView), goldPair.first);
 
   // create a view for the result to copy into it the iterator's value
   using result_view_t = Kokkos::View<int>;
@@ -213,7 +184,7 @@ void std_algo_min_max_test_verify(Kokkos::pair<IndexType, ValueType> goldPair,
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), resultView);
 
   // use the host mirror of the result view to check that the values match
-  EXPECT_EQ(result_v_h(), goldPair.second);
+  ASSERT_EQ(result_v_h(), goldPair.second);
 }
 
 template <class GoldSolutionType, class ItType, class TestedViewType>
@@ -228,39 +199,39 @@ template <class ViewType>
 void test_max_element_trivial_data(ViewType view) {
   /* if we pass empty range, should return last */
   auto result = KE::max_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_TRUE(result == KE::cbegin(view));
+  ASSERT_EQ(result, KE::cbegin(view));
 
   /* if we pass empty range, should return last */
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::max_element(exespace(), it0, it1);
-  EXPECT_TRUE(result2 == it1);
+  ASSERT_EQ(result2, it1);
 }
 
 template <class ViewType>
 void test_min_element_trivial_data(ViewType view) {
   /* if we pass empty range, should return last */
   auto result = KE::min_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_TRUE(result == KE::cbegin(view));
+  ASSERT_EQ(result, KE::cbegin(view));
 
   /* if we pass empty range, should return last */
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::min_element(exespace(), it0, it1);
-  EXPECT_TRUE(result2 == it1);
+  ASSERT_EQ(result2, it1);
 }
 
 template <class ViewType>
 void test_minmax_element_empty_range(ViewType view) {
   auto result =
       KE::minmax_element(exespace(), KE::cbegin(view), KE::cbegin(view));
-  EXPECT_TRUE(result.first == KE::cbegin(view));
-  EXPECT_TRUE(result.second == KE::cbegin(view));
+  ASSERT_EQ(result.first, KE::cbegin(view));
+  ASSERT_EQ(result.second, KE::cbegin(view));
   auto it0     = KE::cbegin(view) + 3;
   auto it1     = it0;
   auto result2 = KE::minmax_element(exespace(), it0, it1);
-  EXPECT_TRUE(result2.first == it1);
-  EXPECT_TRUE(result2.second == it1);
+  ASSERT_EQ(result2.first, it1);
+  ASSERT_EQ(result2.second, it1);
 }
 
 template <class ViewType>
@@ -337,7 +308,7 @@ void std_algorithms_min_max_element_test::test_minmax_element_non_trivial_data(
   }
 }
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
 template <class ViewType>
 void std_algorithms_min_max_element_test::
     test_max_element_non_trivial_data_custom_comp(ViewType view) {
@@ -446,7 +417,7 @@ TEST_F(std_algorithms_min_max_element_test, max_element_non_trivial_data) {
   test_max_element_non_trivial_data(m_strided_view);
 }
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
 // non-trivial data, custom comp
 TEST_F(std_algorithms_min_max_element_test,
        min_element_non_trivial_data_custom_comp) {
@@ -478,7 +449,7 @@ TEST_F(std_algorithms_min_max_element_test, minmax_element_non_trivial_data) {
 }
 #endif
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
 // OpenMPTarget does not yet support custom comparator
 TEST_F(std_algorithms_min_max_element_test,
        minmax_element_non_trivial_data_custom_comp) {

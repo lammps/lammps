@@ -1,15 +1,15 @@
 .. index:: minimize
+.. index:: minimize/kk
 
 minimize command
 ================
 
-minimize/kk command
-===================
+Accelerator Variant: minimize/kk
 
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    minimize etol ftol maxiter maxeval
 
@@ -49,19 +49,19 @@ and forces) by pushing the atoms off of each other.
 
    The distance that atoms can move during individual minimization steps
    can be quite large, especially at the beginning of a minimization.
-   Thus `neighbor list settings <neigh_modify>` of *every = 1* and
+   Thus :doc:`neighbor list settings <neigh_modify>` of *every = 1* and
    *delay = 0* are **required**.  This may be combined with either
    *check = no* (always update the neighbor list) or *check = yes* (only
    update the neighbor list if at least one atom has moved more than
-   half the `neighbor list skin <neighbor>` distance since the last
+   half the :doc:`neighbor list skin <neighbor>` distance since the last
    reneighboring).  Using *check = yes* is recommended since it avoids
    unneeded reneighboring steps when the system is closer to the minimum
-   and thus atoms move only small distances.  Using *check = no* may
-   be required for debugging or when coupling LAMMPS with external
-   codes that require a predictable sequence of neighbor list updates.
+   and thus atoms move only small distances.  Using *check = no* may be
+   required for debugging or when coupling LAMMPS with external codes
+   that require a predictable sequence of neighbor list updates.
 
-   If the settings are **not** *every = 1* and *delay = 0*, LAMMPS
-   will temporarily apply a `neigh_modify every 1 delay 0 check yes
+   If the settings are **not** *every = 1* and *delay = 0*, LAMMPS will
+   temporarily apply a :doc:`neigh_modify every 1 delay 0 check yes
    <neigh_modify>` setting during the minimization and restore the
    original setting at the end of the minimization.  A corresponding
    message will be printed to the screen and log file, if this happens.

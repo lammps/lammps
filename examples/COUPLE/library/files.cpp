@@ -29,7 +29,7 @@ void replace(char *file, char *header, int n, char **lines)
 
 /* ---------------------------------------------------------------------- */
 
-char **extract(char *file, char *header, int n, char **lines)
+void extract(char *file, char *header, int n, char **lines)
 {
   FILE *fp = fopen(file,"r");
 

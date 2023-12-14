@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 #include <iostream>
 #include <gtest/gtest.h>
 #include "Kokkos_Core.hpp"
@@ -61,6 +33,12 @@ void stacktrace_test_f4();
 
 void my_fancy_handler();
 
+size_t find_first_non_whitespace(const std::string& s, const size_t start_pos) {
+  constexpr size_t num_ws_chars = 3;
+  const char ws_chars[]         = "\n\t ";
+  return s.find_first_not_of(ws_chars, start_pos, num_ws_chars);
+}
+
 void test_stacktrace(bool bTerminate, bool bCustom = true) {
   stacktrace_test_f1(std::cout);
   bool bDynamic = false;
@@ -72,7 +50,7 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
     bDynamic = std::string::npos != foutput.find("stacktrace");
 
     if (bDynamic) {
-      printf("test_f1: %s \n", foutput.c_str());
+      printf("test_f1:\n%s \n", foutput.c_str());
       ASSERT_NE(std::string::npos, foutput.find("stacktrace_test_f1"));
       for (auto x : {"stacktrace_test_f0", "stacktrace_test_f2",
                      "stacktrace_test_f3", "stacktrace_test_f4"}) {
@@ -87,13 +65,13 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 
     if (bDynamic) {
       std::string foutput = sstream.str();
-      printf("demangled test_f1: %s \n", foutput.c_str());
-      ASSERT_TRUE(std::string::npos !=
-                  foutput.find("Test::stacktrace_test_f1"));
+      printf("demangled test_f1:\n%s \n", foutput.c_str());
+      ASSERT_NE(std::string::npos, foutput.find("Test::stacktrace_test_f1"));
       for (auto x : {"stacktrace_test_f0", "stacktrace_test_f2",
                      "stacktrace_test_f3", "stacktrace_test_f4"}) {
         ASSERT_EQ(std::string::npos, foutput.find(x));
       }
+      EXPECT_EQ(0u, find_first_non_whitespace(foutput, 0));
     }
   }
 
@@ -112,7 +90,7 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 
     if (bDynamic) {
       std::string foutput = sstream.str();
-      printf("test_f3: %s \n", foutput.c_str());
+      printf("test_f3:\n%s \n", foutput.c_str());
       for (auto x : {"stacktrace_test_f1", "stacktrace_test_f3"}) {
         ASSERT_NE(std::string::npos, foutput.find(x));
       }
@@ -127,10 +105,11 @@ void test_stacktrace(bool bTerminate, bool bCustom = true) {
 
     if (bDynamic) {
       std::string foutput = sstream.str();
-      printf("demangled test_f3: %s \n", foutput.c_str());
+      printf("demangled test_f3:\n%s \n", foutput.c_str());
       for (auto x : {"stacktrace_test_f1", "stacktrace_test_f3"}) {
         ASSERT_NE(std::string::npos, foutput.find(x));
       }
+      EXPECT_EQ(0u, find_first_non_whitespace(foutput, 0));
     }
 
     // TODO make sure stacktrace_test_f2/4 don't show up

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -48,7 +20,6 @@
 #include <type_traits>
 #include <limits>
 #include "Kokkos_NumericTraits.hpp"
-#include "Kokkos_ExecPolicy.hpp"
 
 struct extrema {
 #define DEFINE_EXTREMA(T, m, M)                 \
@@ -69,7 +40,14 @@ struct extrema {
 
   DEFINE_EXTREMA(float, -FLT_MAX, FLT_MAX);
   DEFINE_EXTREMA(double, -DBL_MAX, DBL_MAX);
+
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double
   DEFINE_EXTREMA(long double, -LDBL_MAX, LDBL_MAX);
+#else
+  static long double min(long double) { return -LDBL_MAX; }
+  static long double max(long double) { return LDBL_MAX; }
+#endif
 
 #undef DEFINE_EXTREMA
 };
@@ -82,7 +60,6 @@ struct FiniteMax { template <class T> using trait = Kokkos::Experimental::finite
 struct RoundError { template <class T> using trait = Kokkos::Experimental::round_error<T>; };
 struct NormMin { template <class T> using trait = Kokkos::Experimental::norm_min<T>; };
 struct DenormMin { template <class T> using trait = Kokkos::Experimental::denorm_min<T>; };
-struct ReciprocalOverflowThreshold { template <class T> using trait = Kokkos::Experimental::reciprocal_overflow_threshold<T>; };
 struct Digits { template <class T> using trait = Kokkos::Experimental::digits<T>; };
 struct Digits10 { template <class T> using trait = Kokkos::Experimental::digits10<T>; };
 struct MaxDigits10 { template <class T> using trait = Kokkos::Experimental::max_digits10<T>; };
@@ -124,8 +101,8 @@ struct TestNumericTraits {
 
   KOKKOS_FUNCTION void operator()(Infinity, int, int& e) const {
     using Kokkos::Experimental::infinity;
-    auto const inf  = infinity<T>::value;
-    auto const zero = T(0);
+    constexpr auto inf = infinity<T>::value;
+    auto const zero    = T(0);
     e += (int)!(inf + inf == inf);
     e += (int)!(inf != zero);
     use_on_device();
@@ -153,18 +130,6 @@ struct TestNumericTraits {
     use_on_device();
   }
 
-  KOKKOS_FUNCTION void operator()(ReciprocalOverflowThreshold, int,
-                                  int& e) const {
-    using Kokkos::Experimental::reciprocal_overflow_threshold;
-    auto const inv = 1 / reciprocal_overflow_threshold<T>::value;
-    if (inv + inv == inv && inv != 0) {
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "inverse of reciprocal overflow threshold is inf\n");
-      ++e;
-    }
-    use_on_device();
-  }
-
   // clang-format off
   KOKKOS_FUNCTION void operator()(FiniteMax, int, int&) const { use_on_device(); }
   KOKKOS_FUNCTION void operator()(RoundError, int, int&) const { use_on_device(); }
@@ -180,10 +145,10 @@ struct TestNumericTraits {
   KOKKOS_FUNCTION void operator()(MaxExponent10, int, int&) const { use_on_device(); }
   // clang-format on
   KOKKOS_FUNCTION void operator()(QuietNaN, int, int& e) const {
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7 nan
     using Kokkos::Experimental::quiet_NaN;
-    constexpr auto nan  = quiet_NaN<T>::value;
-    constexpr auto zero = T(0);
+    constexpr auto nan = quiet_NaN<T>::value;
+    auto const zero    = T(0);
     e += (int)!(nan != nan);
     e += (int)!(nan != zero);
 #else
@@ -192,10 +157,10 @@ struct TestNumericTraits {
     use_on_device();
   }
   KOKKOS_FUNCTION void operator()(SignalingNaN, int, int& e) const {
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7 nan
     using Kokkos::Experimental::signaling_NaN;
-    constexpr auto nan  = signaling_NaN<T>::value;
-    constexpr auto zero = T(0);
+    constexpr auto nan = signaling_NaN<T>::value;
+    auto const zero    = T(0);
     e += (int)!(nan != nan);
     e += (int)!(nan != zero);
 #else
@@ -205,7 +170,8 @@ struct TestNumericTraits {
   }
 
   KOKKOS_FUNCTION void use_on_device() const {
-#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_NVHPC) || \
+    defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_OPENACC)
     take_by_value(trait<T>::value);
 #else
     (void)take_address_of(trait<T>::value);
@@ -213,8 +179,8 @@ struct TestNumericTraits {
   }
 };
 
-#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_ENABLE_SYCL) || \
-    defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if (defined(KOKKOS_COMPILER_NVCC) && defined(KOKKOS_ENABLE_CUDA)) || \
+    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 template <class Tag>
 struct TestNumericTraits<
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -237,49 +203,71 @@ struct TestNumericTraits<
 };
 #endif
 
-#ifdef KOKKOS_COMPILER_NVHPC
-// warning: 'long double' is treated as 'double' in device code
-#pragma diag_suppress 20208
-#endif
-
 TEST(TEST_CATEGORY, numeric_traits_infinity) {
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, Infinity>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Infinity>();
+#endif
   TestNumericTraits<TEST_EXECSPACE, float, Infinity>();
   TestNumericTraits<TEST_EXECSPACE, double, Infinity>();
-#ifndef KOKKOS_COMPILER_IBM  // fails with XL 16.1.1 see issue #4100
+  // FIXME_NVHPC long double not supported
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double
   TestNumericTraits<TEST_EXECSPACE, long double, Infinity>();
 #endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_epsilon) {
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7 bit_comparison_type
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, Epsilon>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Epsilon>();
+#endif
   TestNumericTraits<TEST_EXECSPACE, float, Epsilon>();
   TestNumericTraits<TEST_EXECSPACE, double, Epsilon>();
-#ifndef KOKKOS_COMPILER_IBM  // fails with XL 16.1.1
+  // FIXME_NVHPC long double not supported
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, Epsilon>();
 #endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_round_error) {
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7 bit_comparison_type
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, RoundError>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t,
+                    RoundError>();
+#endif
   TestNumericTraits<TEST_EXECSPACE, float, RoundError>();
   TestNumericTraits<TEST_EXECSPACE, double, RoundError>();
+  // FIXME_NVHPC long double not supported
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, RoundError>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_norm_min) {
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7 bit_comparison_type
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, NormMin>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, NormMin>();
+#endif
   TestNumericTraits<TEST_EXECSPACE, float, NormMin>();
   TestNumericTraits<TEST_EXECSPACE, double, NormMin>();
+  // FIXME_NVHPC long double not supported
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, NormMin>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_denorm_min) {
   TestNumericTraits<TEST_EXECSPACE, float, DenormMin>();
   TestNumericTraits<TEST_EXECSPACE, double, DenormMin>();
+  // FIXME_NVHPC long double not supported
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, DenormMin>();
-}
-
-TEST(TEST_CATEGORY, numeric_traits_reciprocal_overflow_threshold) {
-  TestNumericTraits<TEST_EXECSPACE, float, ReciprocalOverflowThreshold>();
-  TestNumericTraits<TEST_EXECSPACE, double, ReciprocalOverflowThreshold>();
-  TestNumericTraits<TEST_EXECSPACE, long double, ReciprocalOverflowThreshold>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_finite_min_max) {
@@ -314,8 +302,11 @@ TEST(TEST_CATEGORY, numeric_traits_finite_min_max) {
   TestNumericTraits<TEST_EXECSPACE, float, FiniteMax>();
   TestNumericTraits<TEST_EXECSPACE, double, FiniteMin>();
   TestNumericTraits<TEST_EXECSPACE, double, FiniteMax>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, FiniteMin>();
   TestNumericTraits<TEST_EXECSPACE, long double, FiniteMax>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_digits) {
@@ -331,9 +322,14 @@ TEST(TEST_CATEGORY, numeric_traits_digits) {
   TestNumericTraits<TEST_EXECSPACE, unsigned long int, Digits>();
   TestNumericTraits<TEST_EXECSPACE, long long int, Digits>();
   TestNumericTraits<TEST_EXECSPACE, unsigned long long int, Digits>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, Digits>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Digits>();
   TestNumericTraits<TEST_EXECSPACE, float, Digits>();
   TestNumericTraits<TEST_EXECSPACE, double, Digits>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, Digits>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_digits10) {
@@ -349,17 +345,24 @@ TEST(TEST_CATEGORY, numeric_traits_digits10) {
   TestNumericTraits<TEST_EXECSPACE, unsigned long int, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, long long int, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, unsigned long long int, Digits10>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, Digits10>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, float, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, double, Digits10>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, Digits10>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_max_digits10) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxDigits10>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxDigits10>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, MaxDigits10>();
+#endif
 }
-
 TEST(TEST_CATEGORY, numeric_traits_radix) {
   TestNumericTraits<TEST_EXECSPACE, bool, Radix>();
   TestNumericTraits<TEST_EXECSPACE, char, Radix>();
@@ -373,18 +376,30 @@ TEST(TEST_CATEGORY, numeric_traits_radix) {
   TestNumericTraits<TEST_EXECSPACE, unsigned long int, Radix>();
   TestNumericTraits<TEST_EXECSPACE, long long int, Radix>();
   TestNumericTraits<TEST_EXECSPACE, unsigned long long int, Radix>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, Radix>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Radix>();
   TestNumericTraits<TEST_EXECSPACE, float, Radix>();
   TestNumericTraits<TEST_EXECSPACE, double, Radix>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, Radix>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_min_max_exponent) {
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t,
+                    MinExponent>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t,
+                    MaxExponent>();
   TestNumericTraits<TEST_EXECSPACE, float, MinExponent>();
   TestNumericTraits<TEST_EXECSPACE, float, MaxExponent>();
   TestNumericTraits<TEST_EXECSPACE, double, MinExponent>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxExponent>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, MinExponent>();
   TestNumericTraits<TEST_EXECSPACE, long double, MaxExponent>();
+#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_min_max_exponent10) {
@@ -392,17 +407,30 @@ TEST(TEST_CATEGORY, numeric_traits_min_max_exponent10) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxExponent10>();
   TestNumericTraits<TEST_EXECSPACE, double, MinExponent10>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxExponent10>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, MinExponent10>();
   TestNumericTraits<TEST_EXECSPACE, long double, MaxExponent10>();
+#endif
 }
-
 TEST(TEST_CATEGORY, numeric_traits_quiet_and_signaling_nan) {
+#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC 23.7
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t, QuietNaN>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::half_t,
+                    SignalingNaN>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, QuietNaN>();
+  TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t,
+                    SignalingNaN>();
+#endif
   TestNumericTraits<TEST_EXECSPACE, float, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, float, SignalingNaN>();
   TestNumericTraits<TEST_EXECSPACE, double, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, double, SignalingNaN>();
+#if !defined(KOKKOS_ENABLE_CUDA) || \
+    !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double:
   TestNumericTraits<TEST_EXECSPACE, long double, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, long double, SignalingNaN>();
+#endif
 }
 
 namespace NumericTraitsSFINAE {
@@ -481,17 +509,20 @@ CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, infinity);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, infinity);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, epsilon);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, epsilon);
-#ifndef KOKKOS_COMPILER_IBM  // fails with XL 16.1.1
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, epsilon);
-#endif
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, denorm_min);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, denorm_min);
+
+// FIXME_OPENMPTARGET - The static_assert causes issues on Intel GPUs with the
+// OpenMPTarget backend.
+#if !(defined(KOKKOS_ENABLE_OPENMPTARGET) && \
+      defined(KOKKOS_COMPILER_INTEL_LLVM))
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, denorm_min);
-// NOTE reciprocal_overflow_threshold purposefully omitted since it does not
-// exist in std::numeric_limits
+#endif
+
 // clang-format off
 static_assert(Kokkos::Experimental::norm_min<float      >::value == std::numeric_limits<      float>::min(), "");
 static_assert(Kokkos::Experimental::norm_min<double     >::value == std::numeric_limits<     double>::min(), "");
@@ -604,7 +635,10 @@ CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_CONSTANT(long double, max_exponent10);
 
 // Workaround compiler issue error: expression must have a constant value
 // See kokkos/kokkos#4574
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
+// There is the same bug with CUDA 11.6
+// FIXME_NVHPC FIXME_CUDA FIXME_NVCC
+#if !defined(KOKKOS_COMPILER_NVHPC) && (CUDA_VERSION < 11060) && \
+    !(defined(KOKKOS_COMPILER_NVCC) && !defined(KOKKOS_ENABLE_CUDA))
 CHECK_NAN_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, quiet_NaN);
 CHECK_NAN_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, quiet_NaN);
 CHECK_NAN_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, quiet_NaN);
@@ -653,8 +687,6 @@ CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_INTEGRAL(finite_max);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(epsilon);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(round_error);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(norm_min);
-CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(
-    reciprocal_overflow_threshold);
 
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_FLOATING_POINT(digits);
 CHECK_INSTANTIATED_ON_CV_QUALIFIED_TYPES_INTEGRAL(digits);

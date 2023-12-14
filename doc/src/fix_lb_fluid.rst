@@ -6,7 +6,7 @@ fix lb/fluid command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID lb/fluid nevery viscosity density keyword values ...
 
@@ -16,7 +16,7 @@ Syntax
 * viscosity = the fluid viscosity (units of mass/(time\*length)).
 * density = the fluid density.
 * zero or more keyword/value pairs may be appended
-* keyword = *dx* or *dm* or *noise* or *stencil* or *read_restart* or *write_restart* or *zwall_velocity* or *pressurebcx* or *bodyforce* or *D3Q19*  or *dumpxdmf* or *dof* or *scaleGamma* or *a0* or *npits* or *wp* or *sw*
+* keyword = *dx* or *dm* or *noise* or *stencil* or *read_restart* or *write_restart* or *zwall_velocity* or *pressurebcx* or *bodyforce* or *D3Q19* or *dumpxdmf* or *linearInit* or *dof* or *scaleGamma* or *a0* or *npits* or *wp* or *sw*
 
   .. parsed-literal::
 
@@ -36,6 +36,7 @@ Syntax
            N = output the force and torque every N timesteps
            file = output file name
            timeI = 1 (use simulation time to index xdmf file), 0 (use output frame number to index xdmf file)
+       *linearInit* values = none = initialize density and velocity using linear interpolation (default is uniform density, no velocities)
        *dof* values = dof = specify the number of degrees of freedom for temperature calculation
        *scaleGamma* values = type gammaFactor
            type = atom type (1-N)
@@ -197,7 +198,7 @@ dt}{\rho dx^2}` is approximately equal to 1.
    and a simulation domain size.  This fix uses the same subdivision of
    the simulation domain among processors as the main LAMMPS program.  In
    order to uniformly cover the simulation domain with lattice sites, the
-   lengths of the individual LAMMPS sub-domains must all be evenly
+   lengths of the individual LAMMPS subdomains must all be evenly
    divisible by :math:`dx_{LB}`.  If the simulation domain size is cubic,
    with equal lengths in all dimensions, and the default value for
    :math:`dx_{LB}` is used, this will automatically be satisfied.

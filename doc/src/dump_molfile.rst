@@ -6,7 +6,7 @@ dump molfile command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID molfile N file format path
 
@@ -34,7 +34,7 @@ Dump a snapshot of atom coordinates and selected additional quantities
 to one or more files every N timesteps in one of several formats.
 Only information for atoms in the specified group is dumped.  This
 specific dump style uses molfile plugins that are bundled with the
-`VMD <http://www.ks.uiuc.edu/Research/vmd>`_ molecular visualization and
+`VMD <https://www.ks.uiuc.edu/Research/vmd>`_ molecular visualization and
 analysis program.
 
 Unless the filename contains a \* character, the output will be written
@@ -63,7 +63,7 @@ like element names.
 
 The *path* keyword determines which in directories. This is a "path"
 like other search paths, i.e. it can contain multiple directories
-separated by a colon (or semi-colon on windows). This keyword is
+separated by a colon (or semicolon on Windows). This keyword is
 optional and default to ".", the current directory.
 
 The *unwrap* option of the :doc:`dump_modify <dump_modify>` command allows

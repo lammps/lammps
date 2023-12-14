@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -831,10 +831,10 @@ bool FixRattle::check2(double **v, int m, bool checkr, bool checkv)
   domain->minimum_image(r01);
   MathExtra::sub3(v[i1],v[i0],v01);
 
-  stat = !(checkr && (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) > tol));
+  stat = !checkr || (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) <= tol);
   if (!stat) error->one(FLERR,"Coordinate constraints are not satisfied up to desired tolerance ");
 
-  stat = !(checkv && (fabs(MathExtra::dot3(r01,v01)) > tol));
+  stat = !checkv || (fabs(MathExtra::dot3(r01,v01)) <= tol);
   if (!stat) error->one(FLERR,"Velocity constraints are not satisfied up to desired tolerance ");
   return stat;
 }
@@ -863,12 +863,12 @@ bool FixRattle::check3(double **v, int m, bool checkr, bool checkv)
   MathExtra::sub3(v[i1],v[i0],v01);
   MathExtra::sub3(v[i2],v[i0],v02);
 
-  stat = !(checkr && (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) > tol ||
-                      fabs(sqrt(MathExtra::dot3(r02,r02))-bond2) > tol));
+  stat = !checkr || (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) <= tol &&
+                      fabs(sqrt(MathExtra::dot3(r02,r02))-bond2) <= tol);
   if (!stat) error->one(FLERR,"Coordinate constraints are not satisfied up to desired tolerance ");
 
-  stat = !(checkv && (fabs(MathExtra::dot3(r01,v01)) > tol ||
-                      fabs(MathExtra::dot3(r02,v02)) > tol));
+  stat = !checkv || (fabs(MathExtra::dot3(r01,v01)) <= tol &&
+                      fabs(MathExtra::dot3(r02,v02)) <= tol);
   if (!stat) error->one(FLERR,"Velocity constraints are not satisfied up to desired tolerance ");
   return stat;
 }
@@ -901,14 +901,14 @@ bool FixRattle::check4(double **v, int m, bool checkr, bool checkv)
   MathExtra::sub3(v[i2],v[i0],v02);
   MathExtra::sub3(v[i3],v[i0],v03);
 
-  stat = !(checkr && (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) > tol ||
-                      fabs(sqrt(MathExtra::dot3(r02,r02))-bond2) > tol ||
-                      fabs(sqrt(MathExtra::dot3(r03,r03))-bond3) > tol));
+  stat = !checkr || (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) <= tol &&
+                      fabs(sqrt(MathExtra::dot3(r02,r02))-bond2) <= tol &&
+                      fabs(sqrt(MathExtra::dot3(r03,r03))-bond3) <= tol);
   if (!stat) error->one(FLERR,"Coordinate constraints are not satisfied up to desired tolerance ");
 
-  stat = !(checkv && (fabs(MathExtra::dot3(r01,v01)) > tol ||
-                      fabs(MathExtra::dot3(r02,v02)) > tol ||
-                      fabs(MathExtra::dot3(r03,v03)) > tol));
+  stat = !checkv || (fabs(MathExtra::dot3(r01,v01)) <= tol &&
+                      fabs(MathExtra::dot3(r02,v02)) <= tol &&
+                      fabs(MathExtra::dot3(r03,v03)) <= tol);
   if (!stat) error->one(FLERR,"Velocity constraints are not satisfied up to desired tolerance ");
   return stat;
 }
@@ -944,7 +944,7 @@ bool FixRattle::check3angle(double **v, int m, bool checkr, bool checkv)
   double db2 = fabs(sqrt(MathExtra::dot3(r02,r02))-bond2);
   double db12 = fabs(sqrt(MathExtra::dot3(r12,r12))-bond12);
 
-  stat = !(checkr && (db1 > tol || db2 > tol || db12 > tol));
+  stat = !checkr || (db1 <= tol && db2 <= tol && db12 <= tol);
 
   if (derr_max < db1/bond1)    derr_max = db1/bond1;
   if (derr_max < db2/bond2)    derr_max = db2/bond2;
@@ -962,7 +962,7 @@ bool FixRattle::check3angle(double **v, int m, bool checkr, bool checkv)
   if (verr_max < dv2)    verr_max = dv2;
   if (verr_max < dv12)   verr_max = dv12;
 
-  stat = !(checkv && (dv1 > tol || dv2 > tol || dv12> tol));
+  stat = !checkv || (dv1 <= tol && dv2 <= tol && dv12<= tol);
 
 #if RATTLE_RAISE_ERROR
   if (!stat) error->one(FLERR,"Velocity constraints are not satisfied up to desired tolerance!");

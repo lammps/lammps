@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,9 +35,9 @@ class NEB : public Command {
   double ebf, ebr;    // forward and reverse energy barriers
 
  private:
+  int print_mode;         // output verbosity
   int me, me_universe;    // my proc ID in world and universe
   int ireplica, nreplica;
-  bool verbose;
   MPI_Comm uworld;
   MPI_Comm roots;    // MPI comm with 1 root proc from each world
   FILE *fp;

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -168,7 +168,7 @@ void BondHarmonicIntel::eval(const int vflag,
       const flt_t delz = x[i1].z - x[i2].z;
 
       const flt_t rsq = delx*delx + dely*dely + delz*delz;
-      const flt_t r = sqrt(rsq);
+      const flt_t r = std::sqrt(rsq);
       const flt_t dr = r - fc.fc[type].r0;
       const flt_t rk = fc.fc[type].k * dr;
 

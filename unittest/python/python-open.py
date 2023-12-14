@@ -4,7 +4,7 @@ from lammps import lammps
 
 has_mpi=False
 has_mpi4py=False
-has_exceptions=False
+
 try:
     from mpi4py import __version__ as mpi4py_version
     # tested to work with mpi4py versions 2 and 3
@@ -19,7 +19,6 @@ try:
         machine = ""
     lmp = lammps(name=machine)
     has_mpi = lmp.has_mpi_support
-    has_exceptions = lmp.has_exceptions
     lmp.close()
 except:
     pass
@@ -45,10 +44,20 @@ class PythonOpen(unittest.TestCase):
 
     def testWithArgs(self):
         """Create LAMMPS instance with a few arguments"""
-        lmp=lammps(name=self.machine,
-                   cmdargs=['-nocite','-sf','opt','-log','none'])
+        lmp=lammps(name=self.machine,cmdargs=['-nocite','-sf','opt','-log','none'])
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
+
+    def testError(self):
+        """Print warning message through LAMMPS Error class"""
+        lmp=lammps(name=self.machine,cmdargs=['-nocite','-log','none','-screen','tmp.error.output'])
+        lmp.error(0,'test_warning')
+        lmp.close()
+        with open('tmp.error.output','r') as f:
+            output = f.read()
+        self.assertTrue('LAMMPS' in output)
+        self.assertTrue('Total wall time' in output)
+        self.assertTrue('WARNING: test_warning' in output)
 
     def testContextManager(self):
         """Automatically clean up LAMMPS instance"""
@@ -69,7 +78,6 @@ class PythonOpen(unittest.TestCase):
         self.assertEqual(lmp.opened,1)
         lmp.close()
 
-    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
     def testUnknownCommand(self):
         lmp = lammps(name=self.machine)
 
@@ -78,7 +86,6 @@ class PythonOpen(unittest.TestCase):
 
         lmp.close()
 
-    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
     def testUnknownCommandInList(self):
         lmp = lammps(name=self.machine)
 
@@ -87,7 +94,6 @@ class PythonOpen(unittest.TestCase):
 
         lmp.close()
 
-    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
     def testUnknownCommandInString(self):
         lmp = lammps(name=self.machine)
 

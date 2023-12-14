@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,22 +32,21 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 
   no_comm_vel_flag = 0;
   no_border_vel_flag = 1;
+  unpack_exchange_indices_flag = 0;
+  size_exchange = 0;
+
+  k_count = DAT::tdual_int_1d("atom:k_count",1);
+  atomKK = (AtomKokkos *) atom;
+  commKK = (CommKokkos *) comm;
 }
 
-/* ----------------------------------------------------------------------
-   roundup N so it is a multiple of DELTA
-   error if N exceeds 32-bit int, since will be used as arg to grow()
-   overload needed because Kokkos uses a smaller DELTA than in atom_vec.cpp
-   and an exponential instead of a linear growth
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-bigint AtomVecKokkos::roundup(bigint n)
+AtomVecKokkos::~AtomVecKokkos()
 {
-  auto DELTA = LMP_KOKKOS_AV_DELTA;
-  if (n % DELTA) n = n/DELTA * DELTA + DELTA;
-  if (n > MAXSMALLINT)
-    error->one(FLERR,"Too many atoms created on one or more procs");
-  return n;
+  // Kokkos already deallocated host memory
+
+  ngrow = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -708,138 +707,6 @@ void AtomVecKokkos::unpack_comm_vel_kokkos(const int &n, const int &first,
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecKokkos::pack_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz;
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0);
-      buf[m++] = h_x(j,1);
-      buf[m++] = h_x(j,2);
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-      dz = pbc[2]*domain->zprd;
-    }
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0) + dx;
-      buf[m++] = h_x(j,1) + dy;
-      buf[m++] = h_x(j,2) + dz;
-    }
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecKokkos::pack_comm_vel(int n, int *list, double *buf,
-                                 int pbc_flag, int *pbc)
-{
-  int i,j,m;
-  double dx,dy,dz,dvx,dvy,dvz;
-
-  m = 0;
-  if (pbc_flag == 0) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = h_x(j,0);
-      buf[m++] = h_x(j,1);
-      buf[m++] = h_x(j,2);
-      buf[m++] = h_v(j,0);
-      buf[m++] = h_v(j,1);
-      buf[m++] = h_v(j,2);
-    }
-  } else {
-    if (domain->triclinic == 0) {
-      dx = pbc[0]*domain->xprd;
-      dy = pbc[1]*domain->yprd;
-      dz = pbc[2]*domain->zprd;
-    } else {
-      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-      dz = pbc[2]*domain->zprd;
-    }
-    if (!deform_vremap) {
-      for (i = 0; i < n; i++) {
-        j = list[i];
-        buf[m++] = h_x(j,0) + dx;
-        buf[m++] = h_x(j,1) + dy;
-        buf[m++] = h_x(j,2) + dz;
-        buf[m++] = h_v(j,0);
-        buf[m++] = h_v(j,1);
-        buf[m++] = h_v(j,2);
-      }
-    } else {
-      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
-      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
-      dvz = pbc[2]*h_rate[2];
-      for (i = 0; i < n; i++) {
-        j = list[i];
-        buf[m++] = h_x(j,0) + dx;
-        buf[m++] = h_x(j,1) + dy;
-        buf[m++] = h_x(j,2) + dz;
-        if (atom->mask[i] & deform_groupbit) {
-          buf[m++] = h_v(j,0) + dvx;
-          buf[m++] = h_v(j,1) + dvy;
-          buf[m++] = h_v(j,2) + dvz;
-        } else {
-          buf[m++] = h_v(j,0);
-          buf[m++] = h_v(j,1);
-          buf[m++] = h_v(j,2);
-        }
-      }
-    }
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecKokkos::unpack_comm(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    h_x(i,0) = buf[m++];
-    h_x(i,1) = buf[m++];
-    h_x(i,2) = buf[m++];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecKokkos::unpack_comm_vel(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    h_x(i,0) = buf[m++];
-    h_x(i,1) = buf[m++];
-    h_x(i,2) = buf[m++];
-    h_v(i,0) = buf[m++];
-    h_v(i,1) = buf[m++];
-    h_v(i,2) = buf[m++];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 struct AtomVecKokkos_PackReverse {
   typedef DeviceType device_type;
@@ -977,84 +844,3 @@ void AtomVecKokkos::unpack_reverse_kokkos(const int &n,
     atomKK->modified(Device,F_MASK);
   }
 }
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecKokkos::pack_reverse(int n, int first, double *buf)
-{
-  if (n > 0)
-    atomKK->sync(Host,F_MASK);
-
-  int m = 0;
-  const int last = first + n;
-  for (int i = first; i < last; i++) {
-    buf[m++] = h_f(i,0);
-    buf[m++] = h_f(i,1);
-    buf[m++] = h_f(i,2);
-  }
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void AtomVecKokkos::unpack_reverse(int n, int *list, double *buf)
-{
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    const int j = list[i];
-    h_f(j,0) += buf[m++];
-    h_f(j,1) += buf[m++];
-    h_f(j,2) += buf[m++];
-  }
-
-  if (n > 0)
-    atomKK->modified(Host,F_MASK);
-}
-
-/* ----------------------------------------------------------------------
- *    unpack one line from Velocities section of data file
- *    ------------------------------------------------------------------------- */
-
-void AtomVecKokkos::data_vel(int m, const std::vector<std::string> &values)
-{
-  double **v = atom->v;
-  int ivalue = 1;
-  v[m][0] = utils::numeric(FLERR,values[ivalue++],true,lmp);
-  v[m][1] = utils::numeric(FLERR,values[ivalue++],true,lmp);
-  v[m][2] = utils::numeric(FLERR,values[ivalue++],true,lmp);
-
-  atomKK->modified(Host,V_MASK);
-}
-
-/* ----------------------------------------------------------------------
- *    pack velocity info for data file
- *    ------------------------------------------------------------------------- */
-
-void AtomVecKokkos::pack_vel(double **buf)
-{
-  double **v = atom->v;
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
-
-  atomKK->sync(Host,V_MASK|TAG_MASK);
-
-  for (int i = 0; i < nlocal; i++) {
-    buf[i][0] = ubuf(tag[i]).d;
-    buf[i][1] = v[i][0];
-    buf[i][2] = v[i][1];
-    buf[i][3] = v[i][2];
-  }
-}
-
-/* ----------------------------------------------------------------------
- *    write velocity info to data file
- *    ------------------------------------------------------------------------- */
-
-void AtomVecKokkos::write_vel(FILE *fp, int n, double **buf)
-{
-  for (int i = 0; i < n; i++)
-    fprintf(fp,TAGINT_FORMAT " %-1.16e %-1.16e %-1.16e\n",
-            (tagint) ubuf(buf[i][0]).i,buf[i][1],buf[i][2],buf[i][3]);
-}
-

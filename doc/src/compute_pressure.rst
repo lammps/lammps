@@ -48,9 +48,9 @@ the virial, equal to :math:`-dU/dV`, computed for all pairwise as well
 as 2-body, 3-body, 4-body, many-body, and long-range interactions, where
 :math:`\vec r_i` and :math:`\vec f_i` are the position and force vector
 of atom *i*, and the dot indicates the dot product (scalar product).
-This is computed in parallel for each sub-domain and then summed over
+This is computed in parallel for each subdomain and then summed over
 all parallel processes. Thus :math:`N'` necessarily includes atoms from
-neighboring sub-domains (so-called ghost atoms) and the position and
+neighboring subdomains (so-called ghost atoms) and the position and
 force vectors of ghost atoms are thus included in the summation.  Only
 when running in serial and without periodic boundary conditions is
 :math:`N' = N` the number of atoms in the system.  :doc:`Fixes <fix>`

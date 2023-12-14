@@ -1,51 +1,20 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_NonModifyingSequenceOperations.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <algorithm>
 
 namespace Test {
@@ -75,16 +44,16 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
         std::lexicographical_compare(h_first_1, h_last_1, h_first_2, h_last_2);
 
     // pass iterators
-    EXPECT_EQ(std_result, KE::lexicographical_compare(exespace(), first_1,
+    ASSERT_EQ(std_result, KE::lexicographical_compare(exespace(), first_1,
                                                       last_1, first_2, last_2));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), first_1, last_1,
                                           first_2, last_2));
 
     // pass views
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare(exespace(), view_1, view_2));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), view_1, view_2));
   }
 
@@ -98,17 +67,17 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
         h_first_1, h_last_1, h_first_2, h_last_2, custom_comparator);
 
     // pass iterators
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare(exespace(), first_1, last_1, first_2,
                                           last_2, custom_comparator));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), first_1, last_1,
                                           first_2, last_2, custom_comparator));
 
     // pass views
-    EXPECT_EQ(std_result, KE::lexicographical_compare(
+    ASSERT_EQ(std_result, KE::lexicographical_compare(
                               exespace(), view_1, view_2, custom_comparator));
-    EXPECT_EQ(std_result,
+    ASSERT_EQ(std_result,
               KE::lexicographical_compare("label", exespace(), view_1, view_2,
                                           custom_comparator));
   }
@@ -117,7 +86,7 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
     // empty vs non-empty
     auto std_result =
         std::lexicographical_compare(h_first_1, h_first_1, h_first_2, h_last_2);
-    EXPECT_EQ(std_result, KE::lexicographical_compare(
+    ASSERT_EQ(std_result, KE::lexicographical_compare(
                               exespace(), first_1, first_1, first_2, last_2));
   }
 
@@ -126,7 +95,7 @@ void test_lexicographical_compare(const ViewType1 view_1, ViewType2 view_2) {
     if (view_1.extent(0) > 1) {
       auto std_result = std::lexicographical_compare(h_first_1, h_last_1 - 1,
                                                      h_first_2, h_last_2);
-      EXPECT_EQ(std_result,
+      ASSERT_EQ(std_result,
                 KE::lexicographical_compare(exespace(), first_1, last_1 - 1,
                                             first_2, last_2));
     }
@@ -172,7 +141,7 @@ void run_all_scenarios() {
 
 TEST(std_algorithms_lexicographical_compare_test, test) {
 // FIXME: should this disable only custom comparator tests?
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedTwoTag, int>();
   run_all_scenarios<StridedThreeTag, unsigned>();

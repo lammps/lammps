@@ -293,7 +293,6 @@ void FixHMC::setup_arrays_and_pointers()
 
   // Per-atom scalar properties to be saved and restored:
 
-  current_peratom = atom->peratom;
   stored_nmax = 0;  // initialize so the memory gets allocated on first save
 
   // Determine which energy contributions must be computed:
@@ -628,6 +627,8 @@ void FixHMC::save_current_state()
   int nmax = atom->nmax;
   double *scalar, **vector, *energy, **stress;
 
+  current_peratom = atom->peratom;
+
   if (nmax > stored_nmax) {
     // reallocate tag array
     stored_nmax = nmax;
@@ -754,10 +755,11 @@ void FixHMC::restore_saved_state()
 
   int map_cleared = false;
   
+  current_peratom = atom->peratom;
+
   // clear the atom map since we will be messing all that up
   if (atom->map_style != Atom::MAP_NONE) {
     atom->map_clear();
-    map_cleared = true;
   }
 
   // restore tag and peratom body data

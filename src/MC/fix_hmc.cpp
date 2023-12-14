@@ -193,27 +193,27 @@ void FixHMC::post_constructor()
 
 template <typename T>
 void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
-                                  Atom::PerAtom current_peratom_member, int nlocal)
+                                  Atom::PerAtom current_peratom_member, int nmax)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
     error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   int cols;
-  // free old memory if stored_peratom_member isn't a copy of current_peratom_member
+  // free old memory if reallocating and stored_peratom_member isn't a copy of current_peratom_member
   if (stored_peratom_member.address != current_peratom_member.address) {
     free(stored_peratom_member.address);
     stored_peratom_member.address = nullptr;
   }
-  if (stored_peratom_member.address_maxcols != current_peratom_member.address_maxcols) {
+  if (stored_peratom_member.address != current_peratom_member.address) {
     free(stored_peratom_member.address_maxcols);
     stored_peratom_member.address_maxcols = nullptr;
   }
   // peratom scalers
   if (current_peratom_member.cols == 0) {
     if (*(T **) current_peratom_member.address != nullptr) {
-      stored_peratom_member.address = malloc(sizeof(T) * nlocal);
+      stored_peratom_member.address = malloc(sizeof(T) * nmax);
       memcpy(stored_peratom_member.address, *(T **) current_peratom_member.address,
-             nlocal * sizeof(T));
+             nmax * sizeof(T));
     } else {
       stored_peratom_member.address = nullptr;
     }
@@ -229,8 +229,8 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
       cols = current_peratom_member.cols;
     }
     if (*(T ***) current_peratom_member.address != nullptr) {
-      stored_peratom_member.address = malloc(sizeof(T) * nlocal * cols);
-      for (int i = 0; i < nlocal; i++) {
+      stored_peratom_member.address = malloc(sizeof(T) * nmax * cols);
+      for (int i = 0; i < nmax; i++) {
         memcpy((T *) stored_peratom_member.address + i * cols,
                (**(T ***) current_peratom_member.address) + i * cols, sizeof(T) * cols);
       }
@@ -638,11 +638,11 @@ double FixHMC::compute_vector(int item)
 void FixHMC::save_current_state()
 {
   int i, m, n;
+  double *scalar, **vector, *energy, **stress;
+
   int nlocal = atom->nlocal;
   int ntotal = nlocal + atom->nghost;
   int nmax = atom->nmax;
-  double *scalar, **vector, *energy, **stress;
-
   current_peratom = atom->peratom;
 
   if (nmax > stored_nmax) {
@@ -650,7 +650,6 @@ void FixHMC::save_current_state()
     stored_nmax = nmax;
     memory->destroy(stored_tag);
     stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tag");
-
     // reallocate body peratom data
     if (rigid_flag) {
       memory->destroy(stored_bodyown);
@@ -699,14 +698,15 @@ void FixHMC::save_current_state()
     }
   }
 
-  // clear peratom data and store a new struct
+  // clear peratom data and store a new struct if reallocation, else just re-store
   for (Atom::PerAtom &stored_peratom_member : stored_peratom) {
     free(stored_peratom_member.address);
     free(stored_peratom_member.address_maxcols);
   }
   stored_peratom.clear();
+  Atom::PerAtom stored_peratom_member;
   for (Atom::PerAtom &current_peratom_member : current_peratom) {
-    Atom::PerAtom stored_peratom_member = current_peratom_member;
+    stored_peratom_member = current_peratom_member;
     switch (current_peratom_member.datatype) {
       case (Atom::INT):
         store_peratom_member<int>(stored_peratom_member, current_peratom_member, ntotal);

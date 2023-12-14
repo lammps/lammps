@@ -14,6 +14,9 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Charlles R. A. Abreu (abreu@eq.ufrj.br)
                          Ana J. Silveira (asilveira@plapiqui.edu.ar)
+                         Jack S. Draney (jd6157@princeton.edu)
+                         Louis E. S. Hoffenberg (lhoff@princeton.edu)
+                         Baris E. Ugur (bu9134@princeton.edu)
 ------------------------------------------------------------------------- */
 
 #include "fix_hmc.h"

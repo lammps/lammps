@@ -15,7 +15,9 @@
 #include "npair_halffull_newton_trim_omp.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "my_page.h"
 #include "neigh_list.h"
 #include "npair_omp.h"

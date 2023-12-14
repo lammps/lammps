@@ -1060,7 +1060,7 @@ bool platform::file_is_readable(const std::string &path)
 
 double platform::disk_free(const std::string &path)
 {
-  double disk_free = -1.0;
+  double bytes_free = -1.0;
 
 #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
     defined(__OpenBSD__) || defined(__NetBSD__)
@@ -1070,19 +1070,19 @@ double platform::disk_free(const std::string &path)
     int rv = statvfs(path.c_str(), &fs);
     if (rv == 0) {
 #if defined(__linux__)
-      disk_free = fs.f_bavail * fs.f_bsize;
+      bytes_free = fs.f_bavail * fs.f_bsize;
 #elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
     defined(__OpenBSD__) || defined(__NetBSD__)
-      disk_free = fs.f_bavail * fs.f_frsize;
+      bytes_free = fs.f_bavail * fs.f_frsize;
 #endif
     }
   }
-#else define(_WIN32)
-  bigint free_bytes = 0;
-  if (GetDiskFreeSpaceEx(path.c_str(), (PULARGE_INTEGER) &free_bytes, nullptr, nullptr))
-    disk_free = free_bytes;
+#elif defined(_WIN32)
+  uint64_t is_free = 0;
+  if (GetDiskFreeSpaceEx(path.c_str(), (PULARGE_INTEGER) &is_free, nullptr, nullptr))
+    bytes_free = is_free;
 #endif
-  return disk_free;
+  return bytes_free;
 }
 
 /* ----------------------------------------------------------------------

@@ -204,14 +204,14 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     free(stored_peratom_member.address);
     stored_peratom_member.address = nullptr;
   }
-  if (stored_peratom_member.address != current_peratom_member.address) {
+  if (realloc && stored_peratom_member.address != current_peratom_member.address) {
     free(stored_peratom_member.address_maxcols);
     stored_peratom_member.address_maxcols = nullptr;
   }
   // peratom scalers
-  if (current_peratom_member.cols == 0) {
+  if (realloc && current_peratom_member.cols == 0) {
     if (*(T **) current_peratom_member.address != nullptr) {
-      stored_peratom_member.address = malloc(sizeof(T) * nmax);
+      if (realloc) stored_peratom_member.address = malloc(sizeof(T) * nmax);
       memcpy(stored_peratom_member.address, *(T **) current_peratom_member.address,
              ntotal * sizeof(T));
     } else {
@@ -222,7 +222,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     if (current_peratom_member.cols < 0) {
       // variable column case
       cols = *(current_peratom_member.address_maxcols);
-      stored_peratom_member.address_maxcols = (int *) malloc(sizeof(int));
+      if (realloc) stored_peratom_member.address_maxcols = (int *) malloc(sizeof(int));
       *(stored_peratom_member.address_maxcols) = *(current_peratom_member.address_maxcols);
     } else {
       // non-variable column case
@@ -643,6 +643,7 @@ void FixHMC::save_current_state()
   int nlocal = atom->nlocal;
   int ntotal = nlocal + atom->nghost;
   int nmax = atom->nmax;
+  int reallocate_peratoms = false;
   current_peratom = atom->peratom;
 
   if (nmax > stored_nmax) {
@@ -650,6 +651,7 @@ void FixHMC::save_current_state()
     stored_nmax = nmax;
     memory->destroy(stored_tag);
     stored_tag = memory->create(stored_tag, stored_nmax, "hmc:stored_tag");
+    reallocate_peratoms = true;
     // reallocate body peratom data
     if (rigid_flag) {
       memory->destroy(stored_bodyown);
@@ -697,6 +699,10 @@ void FixHMC::save_current_state()
           memcpy(stored_dorient[i], fix_rigid->dorient[i], 3 * sizeof(double));
     }
   }
+
+  
+  // also reallocate if the number of peratoms has changed
+  if (current_peratom.size() != stored_peratom.size()) reallocate_peratoms = true;
 
   // clear peratom data and store a new struct if reallocation, else just re-store
   if (reallocate_peratoms) {
@@ -747,7 +753,6 @@ void FixHMC::save_current_state()
         }
       }
     }
-    stored_peratom.push_back(stored_peratom_member);
   }
 
   // store totals

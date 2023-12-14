@@ -627,7 +627,7 @@ double ComputeSNAAtom::sum_weights(double * rsq, double * w, int ncounts)
 
 double ComputeSNAAtom::get_target_rcut(double S_target, double * rsq, double rcut, int ncounts, int weightmode, double delta)
 {
-  double S_sol;
+  double S_sol = 0.0;
   if (weightmode == 0) {
     double * www = weights(rsq, rcut, ncounts);
     S_sol = sum_weights(rsq, www, ncounts);

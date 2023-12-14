@@ -198,8 +198,10 @@ void Balance::command(int narg, char **arg)
       if (style != -1) error->all(FLERR,"Illegal balance command");
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       style = SHIFT;
-      if (strlen(arg[iarg+1]) > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
-      strncpy(bstr,arg[iarg+1],BSTR_SIZE);
+      const int blen = strlen(arg[iarg+1]);
+      if (blen > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
+      memset(bstr, 0, BSTR_SIZE+1);
+      memcpy(bstr,arg[iarg+1],blen);
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -235,7 +237,7 @@ void Balance::command(int narg, char **arg)
   }
 
   if (style == SHIFT) {
-    const int blen=strlen(bstr) + 1;
+    const int blen=strlen(bstr);
     for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
         error->all(FLERR,"Balance shift string is invalid");

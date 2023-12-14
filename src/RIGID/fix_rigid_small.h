@@ -96,7 +96,7 @@ class FixRigidSmall : public Fix {
   int nghost_body;    // # of ghost rigid bodies
   int nmax_body;      // max # of bodies that body can hold
   int bodysize;       // sizeof(Body) in doubles
-  int *bodyown;          // index of body if atom owns a body, -1 if not
+  int *bodyown;       // index of body if atom owns a body, -1 if not
   void set_v();
 
   // per-atom quantities
@@ -132,8 +132,7 @@ class FixRigidSmall : public Fix {
   tagint maxmol;       // max mol-ID
   double maxextent;    // furthest distance from body owner to body atom
 
-
-  int reinitflag;     // 1 if re-initialize rigid bodies between runs
+  int reinitflag;    // 1 if re-initialize rigid bodies between runs
 
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;

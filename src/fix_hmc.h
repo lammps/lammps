@@ -13,15 +13,15 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(hmc,FixHMC)
+FixStyle(hmc, FixHMC)
 
 #else
 
 #ifndef LMP_FIX_HMC_H
 #define LMP_FIX_HMC_H
 
-#include "fix.h"
 #include "atom.h"
+#include "fix.h"
 #include "fix_rigid_small.h"
 
 namespace LAMMPS_NS {
@@ -49,7 +49,6 @@ class FixHMC : public Fix {
   double memory_usage();
 
  private:
-
   void setup_arrays_and_pointers();
   void add_new_computes();
   void tune_parameter(int *, const char *);
@@ -57,10 +56,8 @@ class FixHMC : public Fix {
   void restore_saved_state();
   void random_velocities();
   void rigid_body_random_velocities();
-  template <typename T>
-  void store_peratom_member(Atom::PerAtom&, Atom::PerAtom, int);
-  template <typename T>
-  void restore_peratom_member(Atom::PerAtom, Atom::PerAtom &, int);
+  template <typename T> void store_peratom_member(Atom::PerAtom &, Atom::PerAtom, int);
+  template <typename T> void restore_peratom_member(Atom::PerAtom, Atom::PerAtom &, int);
   template <typename T> double memory_usage_peratom_member(Atom::PerAtom &);
   std::vector<Atom::PerAtom> stored_peratom;
   std::vector<Atom::PerAtom> current_peratom;
@@ -123,16 +120,16 @@ class FixHMC : public Fix {
 
   double (*itensor)[6];
 
-  static const size_t three = 3*sizeof(double);
-  static const size_t four = 4*sizeof(double);
-  static const size_t six = 6*sizeof(double);
+  static const size_t three = 3 * sizeof(double);
+  static const size_t four = 4 * sizeof(double);
+  static const size_t six = 6 * sizeof(double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
+    /* ERROR/WARNING messages:
 
 */

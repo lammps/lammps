@@ -42,7 +42,6 @@
 #define PSAPI_VERSION 2
 
 #include <direct.h>
-#include <fileapi.h>
 #include <io.h>    // for _get_osfhandle()
 #include <sys/stat.h>
 #include <windows.h>
@@ -1079,8 +1078,9 @@ double platform::disk_free(const std::string &path)
     }
   }
 #else define(_WIN32)
-  bigint free_bytes;
-  if (GetDiskFreeSpaceEx(path.c_str(), &free_bytes, nullptr, nullptr)) disk_free = free_bytes;
+  bigint free_bytes = 0;
+  if (GetDiskFreeSpaceEx(path.c_str(), (PULARGE_INTEGER) &free_bytes, nullptr, nullptr))
+    disk_free = free_bytes;
 #endif
   return disk_free;
 }

@@ -498,7 +498,8 @@ void AtomVecEllipsoid::data_atom_post(int ilocal)
 
 void AtomVecEllipsoid::pack_data_pre(int ilocal)
 {
-  double *shape;
+  double *shape, *block;
+  bool flag_super;
 
   ellipsoid_flag = atom->ellipsoid[ilocal];
   rmass_one = atom->rmass[ilocal];

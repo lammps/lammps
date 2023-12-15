@@ -827,28 +827,31 @@ void PairAmoeba::init_style()
 
   // check if all custom atom arrays were set via fix property/atom
 
-  int flag,cols;
+  char const * names[6] = {"amtype", "amgroup", "redID",
+    "xyzaxis", "polaxe", "pval"};
+  int const flag_check[6] = {0, 0, 1, 1, 0, 1}; // correct type (0 int, 1 dbl)
+  int const cols_check[6] = {0, 0, 0, 3, 0, 0}; // xyzaxis 3 cols, all others 0
+  int const border_check[6] = {1, 0, 0, 0, 0, 0}; // which types need ghost
+  int flag, cols, border;
+  int index[6];
 
-  index_amtype = atom->find_custom("amtype",flag,cols);
-  if (index_amtype < 0 || flag || cols)
-    error->all(FLERR,"Pair {} amtype is not defined", mystyle);
-  index_amgroup = atom->find_custom("amgroup",flag,cols);
-  if (index_amgroup < 0 || flag || cols)
-    error->all(FLERR,"Pair {} amgroup is not defined", mystyle);
+  for (int i = 0; i < 6; i++) {
+    index[i] = atom->find_custom(names[i], flag, cols, border);
+    std::string err = "";
+    if (index[i] < 0) err = "was not defined";
+    else if (flag_check[i] != flag) err = "has the wrong type";
+    else if (cols_check[i] != cols) err = "has the wrong number of columns";
+    else if (border_check[i] && !border) err = "must be set by fix property/atom with ghost yes";
+    if (err != "")
+      error->all(FLERR,"Pair {} per-atom variable {} {}", mystyle, names[i], err);
+  }
 
-  index_redID = atom->find_custom("redID",flag,cols);
-  if (index_redID < 0 || !flag || cols)
-    error->all(FLERR,"Pair {} redID is not defined", mystyle);
-  index_xyzaxis = atom->find_custom("xyzaxis",flag,cols);
-  if (index_xyzaxis < 0 || !flag || cols == 0)
-    error->all(FLERR,"Pair {} xyzaxis is not defined", mystyle);
-
-  index_polaxe = atom->find_custom("polaxe",flag,cols);
-  if (index_polaxe < 0 || flag || cols)
-    error->all(FLERR,"Pair {} polaxe is not defined", mystyle);
-  index_pval = atom->find_custom("pval",flag,cols);
-  if (index_pval < 0 || !flag || cols)
-    error->all(FLERR,"Pair {} pval is not defined", mystyle);
+  index_amtype  = index[0];
+  index_amgroup = index[1];
+  index_redID   = index[2];
+  index_xyzaxis = index[3];
+  index_polaxe  = index[4];
+  index_pval    = index[5];
 
   // -------------------------------------------------------------------
   // one-time initializations

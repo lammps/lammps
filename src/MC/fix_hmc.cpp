@@ -30,7 +30,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_rigid_nve_small.h"
+#include "fix_rigid_small.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
@@ -771,7 +771,7 @@ void FixHMC::save_current_state()
     stored_nghost_body = fix_rigid->nghost_body;
     stored_ntotal_body = stored_nlocal_body + stored_nghost_body;
     delete stored_body;
-    stored_body = new FixRigidSmall::Body[stored_ntotal_body];
+    stored_body = new RigidSmallBody[stored_ntotal_body];
     for (int i = 0; i < stored_ntotal_body; i++) stored_body[i] = fix_rigid->body[i];
   }
 
@@ -919,14 +919,14 @@ void FixHMC::random_velocities()
 
 void FixHMC::rigid_body_random_velocities()
 {
-  FixRigidSmall::Body *body = fix_rigid->body;
+  RigidSmallBody *body = fix_rigid->body;
   int nlocal = fix_rigid->nlocal_body;
   int ntotal = nlocal + fix_rigid->nghost_body;
   int *mask = atom->mask;
 
   double stdev, bmass, wbody[3], mbody[3];
   double total_mass = 0;
-  FixRigidSmall::Body *b;
+  RigidSmallBody *b;
   double vcm[] = {0.0, 0.0, 0.0};
 
   for (int ibody = 0; ibody < nlocal; ibody++) {
@@ -985,10 +985,10 @@ void FixHMC::rigid_body_random_velocities()
 int FixHMC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int *bodyown = fix_rigid->bodyown;
-  FixRigidSmall::Body *body = fix_rigid->body;
+  RigidSmallBody *body = fix_rigid->body;
 
   int i, m, ibody;
-  FixRigidSmall::Body *b;
+  RigidSmallBody *b;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -1021,10 +1021,10 @@ int FixHMC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, i
 void FixHMC::unpack_forward_comm(int n, int first, double *buf)
 {
   int *bodyown = fix_rigid->bodyown;
-  FixRigidSmall::Body *body = fix_rigid->body;
+  RigidSmallBody *body = fix_rigid->body;
 
   int i, m, last;
-  FixRigidSmall::Body *b;
+  RigidSmallBody *b;
 
   m = 0;
   last = first + n;
@@ -1210,7 +1210,7 @@ double FixHMC::memory_usage()
     }
   }
 
-  bytes += stored_ntotal_body * sizeof(FixRigidSmall::Body);
+  bytes += stored_ntotal_body * sizeof(RigidSmallBody);
 
   bytes += nvalues * atom->nmax * sizeof(double);
   return bytes;

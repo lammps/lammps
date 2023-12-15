@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(hmc, FixHMC)
-
+// clang-format off
+FixStyle(hmc,FixHMC)
+// clang-format on
 #else
 
 #ifndef LMP_FIX_HMC_H
@@ -22,31 +22,30 @@ FixStyle(hmc, FixHMC)
 
 #include "atom.h"
 #include "fix.h"
-#include "fix_rigid_small.h"
 
 namespace LAMMPS_NS {
 
 class FixHMC : public Fix {
  public:
   FixHMC(class LAMMPS *, int, char **);
-  ~FixHMC();
-  void post_constructor();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_scalar();
-  double compute_vector(int);
+  ~FixHMC() override;
+  void post_constructor() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
  private:
   void setup_arrays_and_pointers();
@@ -64,7 +63,7 @@ class FixHMC : public Fix {
   tagint *stored_tag;
   int stored_nlocal, stored_nghost, stored_ntotal, stored_nmax;
   int stored_nbonds, stored_nangles, stored_ndihedrals, stored_nimpropers;
-  FixRigidSmall::Body *stored_body;
+  class RigidSmallBody *stored_body;
   int stored_nlocal_body, stored_nghost_body, stored_ntotal_body;
   int *stored_bodyown;
   tagint *stored_bodytag;

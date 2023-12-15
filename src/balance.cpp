@@ -198,8 +198,10 @@ void Balance::command(int narg, char **arg)
       if (style != -1) error->all(FLERR,"Illegal balance command");
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       style = SHIFT;
-      if (strlen(arg[iarg+1]) > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
-      strncpy(bstr,arg[iarg+1],BSTR_SIZE+1);
+      const int blen = strlen(arg[iarg+1]);
+      if (blen > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
+      memset(bstr, 0, BSTR_SIZE+1);
+      memcpy(bstr,arg[iarg+1],blen);
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -473,7 +475,7 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
       }
       iarg += 2+nopt;
 
-    } else if (strcmp(arg[iarg+1],"sort") == 0) {
+    } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "balance sort", error);
       sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;

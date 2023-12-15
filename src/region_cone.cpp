@@ -131,7 +131,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
   if (radiushi < 0.0) error->all(FLERR, "Illegal radius in region cone command");
   if (radiuslo == 0.0 && radiushi == 0.0)
     error->all(FLERR, "Illegal radius in region cone command");
-  if (hi == lo) error->all(FLERR, "Illegal cone length in region cone command");
+  if (hi <= lo) error->all(FLERR, "Illegal cone length in region cone command");
 
   // extent of cone
 

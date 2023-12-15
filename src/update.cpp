@@ -332,6 +332,8 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
 
   delete[] integrate_style;
   delete integrate;
+  integrate_style = nullptr;
+  integrate = nullptr;
 
   int sflag;
 
@@ -396,10 +398,12 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
 
 void Update::create_minimize(int narg, char **arg, int trysuffix)
 {
-  if (narg < 1) error->all(FLERR, "Illegal run_style command");
+  if (narg < 1) error->all(FLERR, "Illegal minimize_style command");
 
   delete[] minimize_style;
   delete minimize;
+  minimize_style = nullptr;
+  minimize = nullptr;
 
   // temporarily assign the style name without suffix (for error messages during creation)
   minimize_style = arg[0];

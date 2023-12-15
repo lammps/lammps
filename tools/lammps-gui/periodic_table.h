@@ -13,11 +13,13 @@
  * all tables and functions are declared static, so that it
  * can be safely included by all plugins that may need it.
  *
- * 2002-2009 akohlmey@cmm.chem.upenn.edu, vmd@ks.uiuc.edu
+ * 2002-2009,2023 akohlmey@gmail.com, vmd@ks.uiuc.edu
  */
 
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
+
+// clang-format off
 
 /* periodic table of elements for translation of ordinal to atom type */
 static const char *pte_label[] = {

@@ -1487,7 +1487,7 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 template<typename DeviceType>
 template<class TAG>
 struct PairEAMFSKokkos<DeviceType>::policyInstance {
-  KOKKOS_INLINE_FUNCTION
+
   static auto get(int inum) {
     auto policy = Kokkos::RangePolicy<DeviceType, TAG>(0,inum);
     return policy;
@@ -1498,7 +1498,7 @@ struct PairEAMFSKokkos<DeviceType>::policyInstance {
 template<>
 template<class TAG>
 struct PairEAMFSKokkos<Kokkos::Experimental::HIP>::policyInstance {
-  KOKKOS_INLINE_FUNCTION
+
   static auto get(int inum) {
     static_assert(t_ffloat_2d_n7::static_extent(2) == 7,
                   "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");

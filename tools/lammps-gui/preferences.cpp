@@ -39,6 +39,7 @@
 #include <QSpacerItem>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <QThread>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -115,8 +116,13 @@ void Preferences::accept()
 
     // store number of threads
     QLineEdit *field = tabWidget->findChild<QLineEdit *>("nthreads");
-    if (field)
-        if (field->hasAcceptableInput()) settings->setValue("nthreads", field->text());
+    if (field) {
+        int accel = settings->value("accelerator", AcceleratorTab::None).toInt();
+        if ((accel == AcceleratorTab::None) || (accel == AcceleratorTab::Opt))
+            settings->setValue("nthreads", 1);
+        else if (field->hasAcceptableInput())
+            settings->setValue("nthreads", field->text());
+    }
 
     // store image width, height, zoom, and rendering settings
 
@@ -366,11 +372,11 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
 
     int maxthreads = 1;
 #if defined(_OPENMP)
-    maxthreads = omp_get_max_threads();
+    maxthreads = QThread::idealThreadCount();
 #endif
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
-    auto *ntlabel      = new QLabel("Number of threads:");
+    auto *ntlabel      = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
     auto *ntchoice     = new QLineEdit(settings->value("nthreads", maxthreads).toString());
     auto *intval       = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);
@@ -397,7 +403,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *ssao  = new QLabel("HQ Image mode:");
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
-    auto *vdw  = new QLabel("VDW Style:");
+    auto *vdw   = new QLabel("VDW Style:");
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");

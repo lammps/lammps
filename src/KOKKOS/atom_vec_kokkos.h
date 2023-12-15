@@ -139,6 +139,8 @@ class AtomVecKokkos : virtual public AtomVec {
 
   DAT::tdual_int_1d k_count;
 
+ public:
+
   #ifdef LMP_KOKKOS_GPU
   template<class ViewType>
   Kokkos::View<typename ViewType::data_type,

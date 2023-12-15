@@ -26,6 +26,7 @@
 #include "atom.h"
 #include "compute.h"
 #include "dihedral.h"
+#include "exceptions.h"
 #include "fmt/format.h"
 #include "force.h"
 #include "info.h"
@@ -59,11 +60,9 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete lmp;
 }
 
-LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool newton = true)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton = true)
 {
-    LAMMPS *lmp;
-
-    lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    LAMMPS *lmp = new LAMMPS(args, MPI_COMM_WORLD);
 
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
@@ -90,7 +89,21 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line);
+        try {
+            lmp->input->one(line);
+        } catch (LAMMPSAbortException &ae) {
+            fprintf(stderr, "LAMMPS Error: %s\n", ae.what());
+            exit(2);
+        } catch (LAMMPSException &e) {
+            fprintf(stderr, "LAMMPS Error: %s\n", e.what());
+            exit(3);
+        } catch (fmt::format_error &fe) {
+            fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+            exit(4);
+        } catch (std::exception &e) {
+            fprintf(stderr, "General exception: %s\n", e.what());
+            exit(5);
+        }
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
@@ -220,11 +233,9 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
-    const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
-    LAMMPS *lmp = init_lammps(argc, argv, config);
+    LAMMPS *lmp = init_lammps(args, config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -306,13 +317,10 @@ TEST(DihedralStyle, plain)
 {
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    LAMMPS *lmp = init_lammps(args, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -361,7 +369,7 @@ TEST(DihedralStyle, plain)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
+    lmp = init_lammps(args, test_config, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -427,14 +435,11 @@ TEST(DihedralStyle, omp)
     if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
-                          "-pk",           "omp",  "4",    "-sf",   "omp"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",           "omp",  "4",    "-sf",   "omp"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    LAMMPS *lmp = init_lammps(args, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -488,7 +493,7 @@ TEST(DihedralStyle, omp)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
+    lmp = init_lammps(args, test_config, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on

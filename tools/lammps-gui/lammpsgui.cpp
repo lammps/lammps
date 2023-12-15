@@ -530,6 +530,8 @@ void LammpsGui::open_file(const QString &fileName)
     update_variables();
 }
 
+// write file and update CWD to its folder
+
 void LammpsGui::write_file(const QString &fileName)
 {
     QFileInfo path(fileName);
@@ -542,6 +544,7 @@ void LammpsGui::write_file(const QString &fileName)
         return;
     }
     setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+    QDir::setCurrent(current_dir);
 
     update_recents(path.absoluteFilePath());
 
@@ -1084,17 +1087,17 @@ void LammpsGui::preferences()
     QSettings settings;
     int oldthreads = settings.value("nthreads", 1).toInt();
     int oldaccel   = settings.value("accelerator", AcceleratorTab::None).toInt();
-    bool oldecho    = settings.value("echo", 0).toBool();
-    bool oldcite    = settings.value("cite", 0).toBool();
+    bool oldecho   = settings.value("echo", 0).toBool();
+    bool oldcite   = settings.value("cite", 0).toBool();
 
     Preferences prefs(&lammps);
     if (prefs.exec() == QDialog::Accepted) {
         // must delete LAMMPS instance after preferences have changed that require
         // using different command line flags when creating the LAMMPS instance like
         // suffixes or package commands
+        int newthreads = settings.value("nthreads", 1).toInt();
         if ((oldaccel != settings.value("accelerator", AcceleratorTab::None).toInt()) ||
-            (oldthreads != settings.value("nthreads", 1).toInt()) ||
-            (oldecho != settings.value("echo", 0).toBool()) ||
+            (oldthreads != newthreads) || (oldecho != settings.value("echo", 0).toBool()) ||
             (oldcite != settings.value("cite", 0).toBool())) {
             if (lammps.is_running()) {
                 stop_run();
@@ -1103,6 +1106,10 @@ void LammpsGui::preferences()
             }
             lammps.close();
             lammpsstatus->hide();
+#if defined(_OPENMP)
+            qputenv("OMP_NUM_THREADS", std::to_string(newthreads).c_str());
+            omp_set_num_threads(newthreads);
+#endif
         }
         if (imagewindow) imagewindow->createImage();
     }
@@ -1170,9 +1177,17 @@ void LammpsGui::start_lammps()
     lammps.open(narg, args);
     lammpsstatus->show();
 
+    // must have at least 2 August 2023 version of LAMMPS
+    if (lammps.version() < 20230802) {
+        QMessageBox::critical(this, "Incompatible LAMMPS Version",
+                              "LAMMPS-GUI version " LAMMPS_GUI_VERSION " requires\n"
+                              "LAMMPS version 2 August 2023 or later");
+        exit(1);
+    }
+
     // delete additional arguments again (3 were there initially
     while (lammps_args.size() > initial_narg) {
-        delete lammps_args.back();
+        delete[] lammps_args.back();
         lammps_args.pop_back();
     }
 

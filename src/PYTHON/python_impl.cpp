@@ -79,7 +79,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // Force the stdout and stderr streams to be unbuffered.
   bool unbuffered = PYTHONUNBUFFERED != nullptr && strcmp(PYTHONUNBUFFERED, "1") == 0;
 
-#if (PY_VERSION_HEX >= 0x030800f0) && !defined(__APPLE__)
+#if (PY_VERSION_HEX >= 0x030800f0)
   PyConfig config;
   PyConfig_InitPythonConfig(&config);
   config.buffered_stdio = !unbuffered;

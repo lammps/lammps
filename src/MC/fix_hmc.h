@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   https://www.lammps.org/ Sandia National Laboratories
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -119,16 +119,12 @@ class FixHMC : public Fix {
 
   double (*itensor)[6];
 
-  static const size_t three = 3 * sizeof(double);
-  static const size_t four = 4 * sizeof(double);
-  static const size_t six = 6 * sizeof(double);
+  static constexpr size_t three = 3 * sizeof(double);
+  static constexpr size_t four = 4 * sizeof(double);
+  static constexpr size_t six = 6 * sizeof(double);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-    /* ERROR/WARNING messages:
-
-*/

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   https://www.lammps.org/ Sandia National Laboratories
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -60,7 +60,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
   // set defaults
   mom_flag = 1;
   resample_on_accept_flag = 0;
-  if (narg < 7) error->all(FLERR, "Illegal fix hmc command");
+  if (narg < 7) utils::missing_cmd_args(FLERR, "fix hmc", error);
 
   // Retrieve user-defined options:
   nevery = utils::numeric(FLERR, arg[3], false, lmp);         // Number of MD steps per MC step
@@ -70,7 +70,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_
   // Retrieve the molecular dynamics integrator type:
   mdi = arg[6];
   if (strcmp(mdi, "rigid") != 0 && strcmp(mdi, "flexible") != 0)
-    error->all(FLERR, "Illegal fix hmc command");
+    error->all(FLERR, "Unsupported or unknown fix hmc MD integrator type {}", mdi);
 
   KT = force->boltz * temp / force->mvv2e;    // K*T in mvv units
   mbeta = -1.0 / (force->boltz * temp);       // -1/(K*T) in energy units
@@ -700,7 +700,7 @@ void FixHMC::save_current_state()
     }
   }
 
-  
+
   // also reallocate if the number of peratoms has changed
   if (current_peratom.size() != stored_peratom.size()) reallocate_peratoms = true;
 
@@ -914,7 +914,7 @@ void FixHMC::random_velocities()
 }
 
 /* ----------------------------------------------------------------------
-  
+
 ------------------------------------------------------------------------- */
 
 void FixHMC::rigid_body_random_velocities()

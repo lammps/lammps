@@ -1,0 +1,41 @@
+{
+   MPICH_MPI_init1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:*
+   ...
+   fun:psm3_init
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   fun:main
+}
+{
+   MPICH_MPI_init2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:*
+   ...
+   fun:fi_ini
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   fun:main
+}
+{
+   MPICH_MPI_init3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:*
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init
+   fun:main
+}

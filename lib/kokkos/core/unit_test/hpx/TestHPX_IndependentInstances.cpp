@@ -18,7 +18,7 @@
 #include <TestHPX_Category.hpp>
 
 #include <hpx/config.hpp>
-#include <hpx/local/future.hpp>
+#include <hpx/future.hpp>
 
 #ifndef HPX_COMPUTE_DEVICE_CODE
 

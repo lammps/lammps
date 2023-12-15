@@ -127,11 +127,11 @@ result in more consistent heat flux values for angle, dihedrals,
 improper and constraint force contributions
 when computed via :doc:`compute heat/flux <compute_heat_flux>`.
 
-If no extra keywords are listed, the kinetic contribution all of the
-virial contribution terms are included in the per-atom stress tensor.
-If any extra keywords are listed, only those terms are summed to
-compute the tensor.  The *virial* keyword means include all terms
-except the kinetic energy *ke*\ .
+If no extra keywords are listed, the kinetic contribution *and* all
+of the virial contribution terms are included in the per-atom stress
+tensor.  If any extra keywords are listed, only those terms are
+summed to compute the tensor.  The *virial* keyword means include all
+terms except the kinetic energy *ke*\ .
 
 Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.

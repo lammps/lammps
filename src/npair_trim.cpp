@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_trim.h"
+
 #include "atom.h"
 #include "error.h"
 #include "my_page.h"
@@ -63,7 +64,7 @@ void NPairTrim::build(NeighList *list)
     neighptr = ipage->vget();
 
     const int i = ilist_copy[ii];
-    ilist[i] = i;
+    ilist[ii] = i;
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];

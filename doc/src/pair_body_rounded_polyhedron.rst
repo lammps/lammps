@@ -40,7 +40,7 @@ rounded/polyhedron particles.
 This pairwise interaction between the rounded polyhedra is described
 in :ref:`Wang <pair-Wang>`, where a polyhedron does not have sharp corners
 and edges, but is rounded at its vertices and edges by spheres
-centered on each vertex with a specified diameter.  The edges if the
+centered on each vertex with a specified diameter.  The edges of the
 polyhedron are defined between pairs of adjacent vertices.  Its faces
 are defined by a loop of edges.  The sphere diameter for each polygon
 is specified in the data file read by the :doc:`read data <read_data>`

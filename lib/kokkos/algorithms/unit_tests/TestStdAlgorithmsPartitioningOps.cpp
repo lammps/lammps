@@ -127,7 +127,7 @@ struct std_algorithms_partitioning_test : public std_algorithms_test {
       case Mixed: return false;
       case NegativeFirst: return true;
       case AllNegative: return true;
-      case AllPositive: return false;
+      case AllPositive: return true;
       case NegativeLast: return false;
       case SingleNegative: return true;
       default: return false;

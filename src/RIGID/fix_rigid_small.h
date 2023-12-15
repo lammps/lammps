@@ -56,7 +56,6 @@ class FixRigidSmall : public Fix {
   void pre_neighbor() override;
   int dof(int) override;
   void deform(int) override;
-  void enforce2d() override;
   void reset_dt() override;
   void zero_momentum() override;
   void zero_rotation() override;
@@ -67,6 +66,9 @@ class FixRigidSmall : public Fix {
   double compute_scalar() override;
   double memory_usage() override;
 
+  // move these to public. Alternatively, friend this class
+  // or make a new inherited fic_rigid_small_hmc with getters
+  // and setters for these
   struct Body {
     int natoms;            // total number of atoms in body
     int ilocal;            // index of owning atom
@@ -90,18 +92,16 @@ class FixRigidSmall : public Fix {
     imageint dummy;        // dummy entry for better alignment
   };
 
-  // or can we friend hmc?
   Body *body;         // list of rigid bodies, owned and ghost
   int nlocal_body;    // # of owned rigid bodies
   int nghost_body;    // # of ghost rigid bodies
   int nmax_body;      // max # of bodies that body can hold
   int bodysize;       // sizeof(Body) in doubles
-  int *bodyown;       // index of body if atom owns a body, -1 if not
-  void set_v();
 
   // per-atom quantities
   // only defined for owned atoms, except bodyown for own+ghost
 
+  int *bodyown;          // index of body if atom owns a body, -1 if not
   tagint *bodytag;       // ID of body this atom is in, 0 if none
                          // ID = tag of atom that owns body
   int *atom2body;        // index of owned/ghost body this atom is in, -1 if not
@@ -116,8 +116,8 @@ class FixRigidSmall : public Fix {
   int extended;       // 1 if any particles have extended attributes
   int orientflag;     // 1 if particles store spatial orientation
   int dorientflag;    // 1 if particles store dipole orientation
+
  protected:
-  int me, nprocs;
   double dtv, dtf, dtq;
   double *step_respa;
   int triclinic;
@@ -132,7 +132,8 @@ class FixRigidSmall : public Fix {
   tagint maxmol;       // max mol-ID
   double maxextent;    // furthest distance from body owner to body atom
 
-  int reinitflag;    // 1 if re-initialize rigid bodies between runs
+
+  int reinitflag;     // 1 if re-initialize rigid bodies between runs
 
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
@@ -199,11 +200,13 @@ class FixRigidSmall : public Fix {
 
   void image_shift();
   void set_xv();
+  void set_v();
   void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
-  void compute_forces_and_torques();
+  virtual void compute_forces_and_torques();
+  void enforce2d();
   void readfile(int, double **, int *);
   void grow_body();
   void reset_atom2body();

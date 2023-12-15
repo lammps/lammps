@@ -58,7 +58,7 @@
 #endif
 
 static const QString blank(" ");
-static constexpr int BUFLEN = 128;
+static constexpr int BUFLEN = 256;
 
 LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
@@ -778,11 +778,11 @@ void LammpsGui::logupdate()
 
         if (varwindow) {
             int nvar = lammps.id_count("variable");
-            char buffer[200];
+            char buffer[BUFLEN];
             QString varinfo("\n");
             for (int i = 0; i < nvar; ++i) {
-                lammps.variable_info(i, buffer, 200);
-                varinfo += buffer;
+                memset(buffer, 0, BUFLEN);
+                if (lammps.variable_info(i, buffer, BUFLEN)) varinfo += buffer;
             }
             if (nvar == 0) varinfo += "  (none)  ";
 

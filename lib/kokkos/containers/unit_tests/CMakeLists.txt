@@ -28,6 +28,9 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
         Vector
         ViewCtorPropEmbeddedDim
         )
+      if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4 AND Name STREQUAL "Vector")
+        continue() # skip Kokkos::vector test if deprecated code 4 is not enabled
+      endif()
       # Write to a temporary intermediate file and call configure_file to avoid
       # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
       set(file ${dir}/Test${Tag}_${Name}.cpp)
@@ -41,6 +44,11 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
     #fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj
     if(KOKKOS_ENABLE_CUDA AND WIN32)
      LIST(REMOVE_ITEM UnitTestSources ${dir}/TestCuda_DynViewAPI_generic.cpp)
+    endif()
+
+    # FIXME_NVHPC: NVC++-S-0000-Internal compiler error. extractor: bad opc       0
+    if(KOKKOS_ENABLE_CUDA AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+     LIST(REMOVE_ITEM UnitTestSources ${dir}/TestCuda_WithoutInitializing.cpp)
     endif()
 
     KOKKOS_ADD_EXECUTABLE_AND_TEST(ContainersUnitTest_${Tag} SOURCES ${UnitTestSources})

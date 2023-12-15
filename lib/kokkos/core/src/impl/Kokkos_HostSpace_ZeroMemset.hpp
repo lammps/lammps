@@ -21,8 +21,6 @@
 #include <Kokkos_HostSpace.hpp>
 #include <impl/Kokkos_ZeroMemset_fwd.hpp>
 
-#include <iostream>
-
 namespace Kokkos {
 namespace Impl {
 

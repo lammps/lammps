@@ -68,7 +68,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int me = 0;
   MPI_Comm_rank(world,&me);
-  if (me == 0) error->message(FLERR,"KOKKOS mode is enabled");
+  if (me == 0)
+    error->message(FLERR,"KOKKOS mode with Kokkos version {}.{}.{} is enabled",
+                   KOKKOS_VERSION / 10000, (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
 
   // process any command-line args that invoke Kokkos settings
 
@@ -101,13 +103,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
       int set_flag = 0;
       char *str;
-      if (str = getenv("SLURM_LOCALID")) {
+      if ((str = getenv("SLURM_LOCALID"))) {
         int local_rank = atoi(str);
         device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
         set_flag = 1;
       }
-      if (str = getenv("FLUX_TASK_LOCAL_ID")) {
+      if ((str = getenv("FLUX_TASK_LOCAL_ID"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -115,7 +117,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("MPT_LRANK")) {
+      if ((str = getenv("MPT_LRANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -123,7 +125,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("MV2_COMM_WORLD_LOCAL_RANK")) {
+      if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -131,7 +133,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("OMPI_COMM_WORLD_LOCAL_RANK")) {
+      if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;
@@ -139,7 +141,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
           set_flag = 1;
         }
       }
-      if (str = getenv("PMI_LOCAL_RANK")) {
+      if ((str = getenv("PMI_LOCAL_RANK"))) {
         if (ngpus > 0) {
           int local_rank = atoi(str);
           device = local_rank % ngpus;

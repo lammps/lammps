@@ -36,7 +36,6 @@ class FixRigidNHSmall : public FixRigidSmall {
  protected:
   double boltz, nktv2p, mvv2e;    // boltzman constant, conversion factors
 
-  int dimension;                        // # of dimensions
   int nf_t, nf_r;                       // trans/rot degrees of freedom
   double *w, *wdti1, *wdti2, *wdti4;    // Yoshida-Suzuki coefficients
   double *q_t, *q_r;                    // trans/rot thermostat masses
@@ -50,9 +49,8 @@ class FixRigidNHSmall : public FixRigidSmall {
   double *f_eta_b;                      // thermo forces
   double akin_t, akin_r;                // translational/rotational kinetic energies
 
-  int kspace_flag;    // 1 if KSpace invoked, 0 if not
-  int nrigidfix;      // number of rigid fixes
-  int *rfix;          // indices of rigid fixes
+  int kspace_flag;            // 1 if KSpace invoked, 0 if not
+  std::vector<Fix *> rfix;    // indices of rigid fixes
 
   double vol0;          // reference volume
   double t0;            // reference temperature

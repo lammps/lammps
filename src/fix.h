@@ -72,7 +72,6 @@ class Fix : protected Pointers {
   int dynamic_group_allow;     // 1 if can be used with dynamic group, else 0
   int dof_flag;                // 1 if has dof() method (not min_dof())
   int special_alter_flag;      // 1 if has special_alter() meth for spec lists
-  int enforce2d_flag;          // 1 if has enforce2d method
   int respa_level_support;     // 1 if fix supports fix_modify respa
   int respa_level;             // which respa level to apply fix (1-Nrespa)
   int maxexchange;             // max # of per-atom values for Comm::exchange()
@@ -241,7 +240,6 @@ class Fix : protected Pointers {
   virtual void deform(int) {}
   virtual void reset_target(double) {}
   virtual void reset_dt() {}
-  virtual void enforce2d() {}
 
   virtual void read_data_header(char *) {}
   virtual void read_data_section(char *, int, char *, tagint) {}

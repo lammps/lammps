@@ -500,8 +500,8 @@ constexpr X test_bit_cast(...) {
   return {};
 }
 
-// FIXME_SYCL The SYCL implementation is unconstrained
-#ifndef KOKKOS_ENABLE_SYCL
+#if !defined(KOKKOS_ENABLE_SYCL) || \
+    (defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER >= 20240000)
 namespace TypesNotTheSameSize {
 struct To {
   char a;

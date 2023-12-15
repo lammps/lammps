@@ -117,6 +117,8 @@ class FixRigidSmall : public Fix {
   int orientflag;     // 1 if particles store spatial orientation
   int dorientflag;    // 1 if particles store dipole orientation
 
+  void set_v();
+
  protected:
   double dtv, dtf, dtq;
   double *step_respa;
@@ -200,7 +202,6 @@ class FixRigidSmall : public Fix {
 
   void image_shift();
   void set_xv();
-  void set_v();
   void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();

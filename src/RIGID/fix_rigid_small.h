@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
   friend class ComputeRigidLocal;
+  friend class FixHMC;
 
  public:
   FixRigidSmall(class LAMMPS *, int, char **);
@@ -66,9 +67,21 @@ class FixRigidSmall : public Fix {
   double compute_scalar() override;
   double memory_usage() override;
 
-  // move these to public. Alternatively, friend this class
-  // or make a new inherited fic_rigid_small_hmc with getters
-  // and setters for these
+ protected:
+  double dtv, dtf, dtq;
+  double *step_respa;
+  int triclinic;
+
+  char *inpfile;       // file to read rigid body attributes from
+  int setupflag;       // 1 if body properties are setup, else 0
+  int earlyflag;       // 1 if forces/torques are computed at post_force()
+  int commflag;        // various modes of forward/reverse comm
+  int customflag;      // 1 if custom property/variable define bodies
+  int nbody;           // total # of rigid bodies
+  int nlinear;         // total # of linear rigid bodies
+  tagint maxmol;       // max mol-ID
+  double maxextent;    // furthest distance from body owner to body atom
+
   struct Body {
     int natoms;            // total number of atoms in body
     int ilocal;            // index of owning atom
@@ -116,25 +129,6 @@ class FixRigidSmall : public Fix {
   int extended;       // 1 if any particles have extended attributes
   int orientflag;     // 1 if particles store spatial orientation
   int dorientflag;    // 1 if particles store dipole orientation
-
-  void set_v();
-
- protected:
-  double dtv, dtf, dtq;
-  double *step_respa;
-  int triclinic;
-
-  char *inpfile;       // file to read rigid body attributes from
-  int setupflag;       // 1 if body properties are setup, else 0
-  int earlyflag;       // 1 if forces/torques are computed at post_force()
-  int commflag;        // various modes of forward/reverse comm
-  int customflag;      // 1 if custom property/variable define bodies
-  int nbody;           // total # of rigid bodies
-  int nlinear;         // total # of linear rigid bodies
-  tagint maxmol;       // max mol-ID
-  double maxextent;    // furthest distance from body owner to body atom
-
-
   int reinitflag;     // 1 if re-initialize rigid bodies between runs
 
   class AtomVecEllipsoid *avec_ellipsoid;
@@ -202,6 +196,7 @@ class FixRigidSmall : public Fix {
 
   void image_shift();
   void set_xv();
+  void set_v();
   void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();

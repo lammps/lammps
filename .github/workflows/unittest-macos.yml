@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: MacOS Unit Test
-    if: ${{ github.repository == 'draneyj/lammps_hmc' }}
+    if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: macos-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
@@ -53,7 +53,6 @@ jobs:
               -D ENABLE_TESTING=on \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \
-              -D PKG_MC=on \
               ../cmake
         cmake --build . --parallel 2
         ccache -s

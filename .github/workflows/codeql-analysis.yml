@@ -10,7 +10,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    if: ${{ github.repository == 'draneyj/lammps_hmc' }}
+    if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
 
     permissions:
@@ -51,7 +51,6 @@ jobs:
       run: |
         cmake -C ../cmake/presets/most.cmake \
               -D DOWNLOAD_POTENTIALS=off \
-              -D PKG_MC=on \
               ../cmake
         cmake --build . --parallel 2
 

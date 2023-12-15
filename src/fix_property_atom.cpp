@@ -51,6 +51,19 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   nvalue = 0;
   values_peratom = 0;
 
+  // get "ghost" first for settings
+
+  border = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "ghost") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
+      border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else iarg++;
+  }
+
+  iarg = 3;
+
   while (iarg < narg) {
     if (strcmp(arg[iarg], "mol") == 0) {
       if (atom->molecule_flag)
@@ -168,11 +181,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  border = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "ghost") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
-      border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "writedata") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");

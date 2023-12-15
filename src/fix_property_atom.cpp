@@ -125,7 +125,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
       if (ReadData::is_data_section(id))
         error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
-      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0);
+      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0, border);
       cols[nvalue] = 0;
       values_peratom++;
       nvalue++;
@@ -138,7 +138,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
       if (ReadData::is_data_section(id))
         error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
-      index[nvalue] = atom->add_custom(&arg[iarg][2], 1, 0);
+      index[nvalue] = atom->add_custom(&arg[iarg][2], 1, 0, border);
       cols[nvalue] = 0;
       values_peratom++;
       nvalue++;
@@ -167,7 +167,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         which = 1;
         styles[nvalue] = DARRAY;
       }
-      index[nvalue] = atom->add_custom(&arg[iarg][3], which, ncols);
+      index[nvalue] = atom->add_custom(&arg[iarg][3], which, ncols, border);
       cols[nvalue] = ncols;
       values_peratom += ncols;
       nvalue++;

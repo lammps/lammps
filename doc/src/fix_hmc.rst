@@ -1,7 +1,7 @@
-fix hmc command
-==============================
+.. index:: fix hmc
 
-Accelerator Variants: *None*
+fix hmc command
+===============
 
 Syntax
 """"""
@@ -21,7 +21,7 @@ Syntax
 
        *mom* value = *yes* or *no*
        *ra* value = *yes* or *no*
-       
+
 Examples
 """"""""
 
@@ -33,20 +33,20 @@ Examples
 
 Description
 """""""""""
-This fix performs the the Hybrid/Hamiltonian Monte Carlo (HMC)algorithm
+
+.. versionadded:: TBD
+
+This fix performs the the Hybrid/Hamiltonian Monte Carlo (HMC) algorithm
 in line with the following order of steps:
 
 The new particle configuration (positions and velocities) is calculated
 by invoking the velocity-Verlet time integration algorithm.
 Before these configuration changes are performed, the proposed change
-in the Hamiltonian,
-:math:`\Delta{H}`
-is calculated following the equation:
+in the Hamiltonian, :math:`\Delta{H}` is calculated following the equation:
 
 .. math::
 
    \Delta{H} = H(q′,p′) - H(q,p)
-
 
 This new proposed configuration is then accepted/rejected according to
 the Metropolis criterion with probability:
@@ -109,10 +109,3 @@ The option default is mom = yes, ra = no.
 
 **(Metropolis)** Metropolis, N.; Rosenbluth, A. W.; Rosenbluth, M. N.; Teller, A. H.; Teller, E. The journal of chemical physics
 1953, 21, 1087–1092.
-
-LAMMPS Developers Issue 565: [Brief description of the issue] GitHub issue, https://github.com/lammps/
-lammps/issues/565.
-
-LAMMPS Development Team LAMMPS Documentation: Modify Requirements https://docs.lammps.org/
-Modify_requirements.html.
-

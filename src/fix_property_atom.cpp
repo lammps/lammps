@@ -948,27 +948,3 @@ int FixPropertyAtom::size_restart(int /*nlocal*/)
 {
   return values_peratom + 1;
 }
-
-/* ----------------------------------------------------------------------
-   extract fix property/atom properties
-------------------------------------------------------------------------- */
-
-void *FixPropertyAtom::extract(const char *str, int &dim)
-{
-  dim=0;
-  if (strcmp(str, "nvalue") == 0) {
-    return &nvalue;
-  } else if (strcmp(str, "border") == 0) {
-    return &border;
-  }
-  dim=1;
-  if (strcmp(str, "styles") == 0) {
-    return &styles;
-  } else if (strcmp(str, "index") == 0) {
-    return &index;
-  } else if (strcmp(str, "cols") == 0) {
-    return &cols;
-  }
-  return nullptr;
-}
-

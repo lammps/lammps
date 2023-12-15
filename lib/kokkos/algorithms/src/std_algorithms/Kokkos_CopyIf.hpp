@@ -23,46 +23,85 @@
 namespace Kokkos {
 namespace Experimental {
 
-template <class ExecutionSpace, class InputIterator, class OutputIterator,
-          class Predicate>
+//
+// overload set accepting execution space
+//
+template <
+    typename ExecutionSpace, typename InputIterator, typename OutputIterator,
+    typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 OutputIterator copy_if(const ExecutionSpace& ex, InputIterator first,
                        InputIterator last, OutputIterator d_first,
                        Predicate pred) {
-  return Impl::copy_if_impl("Kokkos::copy_if_iterator_api_default", ex, first,
-                            last, d_first, std::move(pred));
+  return Impl::copy_if_exespace_impl("Kokkos::copy_if_iterator_api_default", ex,
+                                     first, last, d_first, std::move(pred));
 }
 
-template <class ExecutionSpace, class InputIterator, class OutputIterator,
-          class Predicate>
+template <
+    typename ExecutionSpace, typename InputIterator, typename OutputIterator,
+    typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 OutputIterator copy_if(const std::string& label, const ExecutionSpace& ex,
                        InputIterator first, InputIterator last,
                        OutputIterator d_first, Predicate pred) {
-  return Impl::copy_if_impl(label, ex, first, last, d_first, std::move(pred));
+  return Impl::copy_if_exespace_impl(label, ex, first, last, d_first,
+                                     std::move(pred));
 }
 
-template <class ExecutionSpace, class DataType1, class... Properties1,
-          class DataType2, class... Properties2, class Predicate>
+template <
+    typename ExecutionSpace, typename DataType1, typename... Properties1,
+    typename DataType2, typename... Properties2, typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto copy_if(const ExecutionSpace& ex,
              const ::Kokkos::View<DataType1, Properties1...>& source,
              ::Kokkos::View<DataType2, Properties2...>& dest, Predicate pred) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
 
-  return Impl::copy_if_impl("Kokkos::copy_if_view_api_default", ex,
-                            cbegin(source), cend(source), begin(dest),
-                            std::move(pred));
+  return Impl::copy_if_exespace_impl("Kokkos::copy_if_view_api_default", ex,
+                                     cbegin(source), cend(source), begin(dest),
+                                     std::move(pred));
 }
 
-template <class ExecutionSpace, class DataType1, class... Properties1,
-          class DataType2, class... Properties2, class Predicate>
+template <
+    typename ExecutionSpace, typename DataType1, typename... Properties1,
+    typename DataType2, typename... Properties2, typename Predicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto copy_if(const std::string& label, const ExecutionSpace& ex,
              const ::Kokkos::View<DataType1, Properties1...>& source,
              ::Kokkos::View<DataType2, Properties2...>& dest, Predicate pred) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
 
-  return Impl::copy_if_impl(label, ex, cbegin(source), cend(source),
-                            begin(dest), std::move(pred));
+  return Impl::copy_if_exespace_impl(label, ex, cbegin(source), cend(source),
+                                     begin(dest), std::move(pred));
+}
+
+//
+// overload set accepting team handle
+//
+template <typename TeamHandleType, typename InputIterator,
+          typename OutputIterator, typename Predicate,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION OutputIterator copy_if(const TeamHandleType& teamHandle,
+                                       InputIterator first, InputIterator last,
+                                       OutputIterator d_first, Predicate pred) {
+  return Impl::copy_if_team_impl(teamHandle, first, last, d_first,
+                                 std::move(pred));
+}
+
+template <typename TeamHandleType, typename DataType1, typename... Properties1,
+          typename DataType2, typename... Properties2, typename Predicate,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION auto copy_if(
+    const TeamHandleType& teamHandle,
+    const ::Kokkos::View<DataType1, Properties1...>& source,
+    ::Kokkos::View<DataType2, Properties2...>& dest, Predicate pred) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
+
+  return Impl::copy_if_team_impl(teamHandle, cbegin(source), cend(source),
+                                 begin(dest), std::move(pred));
 }
 
 }  // namespace Experimental

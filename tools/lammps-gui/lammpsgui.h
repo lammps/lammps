@@ -16,8 +16,10 @@
 
 #include <QMainWindow>
 
+#include <QGridLayout>
 #include <QList>
 #include <QPair>
+#include <QSpacerItem>
 #include <QString>
 #include <vector>
 
@@ -45,6 +47,7 @@ class StdCapture;
 class Preferences;
 class ImageViewer;
 class ChartWindow;
+class SlideShow;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
@@ -65,6 +68,10 @@ protected:
     void start_lammps();
     void run_done();
 
+public slots:
+    void quit();
+    void stop_run();
+
 private slots:
     void new_document();
     void open();
@@ -72,7 +79,6 @@ private slots:
     void start_exe();
     void save();
     void save_as();
-    void quit();
     void copy();
     void cut();
     void paste();
@@ -81,9 +87,9 @@ private slots:
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
 
-    void stop_run();
     void edit_variables();
     void render_image();
+    void view_slides();
     void view_image();
     void view_chart();
     void view_log();
@@ -107,6 +113,7 @@ private:
     LogWindow *logwindow;
     ImageViewer *imagewindow;
     ChartWindow *chartwindow;
+    SlideShow *slideshow;
     QTimer *logupdater;
     QLabel *dirstatus;
     QProgressBar *progress;
@@ -123,6 +130,7 @@ private:
     LammpsRunner *runner;
     std::string plugin_path;
     bool is_running;
+    int run_counter;
     std::vector<char *> lammps_args;
 };
 #endif // LAMMPSGUI_H

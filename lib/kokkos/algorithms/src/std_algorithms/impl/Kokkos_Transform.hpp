@@ -27,15 +27,19 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-template <class IndexType, class InputIterator, class OutputIterator,
-          class UnaryFunctorType>
+template <class InputIterator, class OutputIterator, class UnaryFunctorType>
 struct StdTransformFunctor {
+  // we can use difference type from InputIterator since
+  // the impl functions calling this functor already
+  // static assert that the iterators have matching difference type
+  using index_type = typename InputIterator::difference_type;
+
   InputIterator m_first;
   OutputIterator m_d_first;
   UnaryFunctorType m_unary_op;
 
   KOKKOS_FUNCTION
-  void operator()(IndexType i) const { m_d_first[i] = m_unary_op(m_first[i]); }
+  void operator()(index_type i) const { m_d_first[i] = m_unary_op(m_first[i]); }
 
   KOKKOS_FUNCTION
   StdTransformFunctor(InputIterator _first, OutputIterator _m_d_first,
@@ -45,16 +49,21 @@ struct StdTransformFunctor {
         m_unary_op(std::move(_functor)) {}
 };
 
-template <class IndexType, class InputIterator1, class InputIterator2,
-          class OutputIterator, class BinaryFunctorType>
+template <class InputIterator1, class InputIterator2, class OutputIterator,
+          class BinaryFunctorType>
 struct StdTransformBinaryFunctor {
+  // we can use difference type from InputIterator1 since
+  // the impl functions calling this functor already
+  // static assert that the iterators have matching difference type
+  using index_type = typename InputIterator1::difference_type;
+
   InputIterator1 m_first1;
   InputIterator2 m_first2;
   OutputIterator m_d_first;
   BinaryFunctorType m_binary_op;
 
   KOKKOS_FUNCTION
-  void operator()(IndexType i) const {
+  void operator()(index_type i) const {
     m_d_first[i] = m_binary_op(m_first1[i], m_first2[i]);
   }
 
@@ -70,25 +79,19 @@ struct StdTransformBinaryFunctor {
 
 template <class ExecutionSpace, class InputIterator, class OutputIterator,
           class UnaryOperation>
-OutputIterator transform_impl(const std::string& label,
-                              const ExecutionSpace& ex, InputIterator first1,
-                              InputIterator last1, OutputIterator d_first,
-                              UnaryOperation unary_op) {
+OutputIterator transform_exespace_impl(
+    const std::string& label, const ExecutionSpace& ex, InputIterator first1,
+    InputIterator last1, OutputIterator d_first, UnaryOperation unary_op) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, d_first);
   Impl::static_assert_iterators_have_matching_difference_type(first1, d_first);
   Impl::expect_valid_range(first1, last1);
 
-  // aliases
-  using index_type = typename InputIterator::difference_type;
-  using func_t = StdTransformFunctor<index_type, InputIterator, OutputIterator,
-                                     UnaryOperation>;
-
   // run
   const auto num_elements = Kokkos::Experimental::distance(first1, last1);
   ::Kokkos::parallel_for(label,
                          RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         func_t(first1, d_first, unary_op));
+                         StdTransformFunctor(first1, d_first, unary_op));
   ex.fence("Kokkos::transform: fence after operation");
 
   // return
@@ -97,29 +100,69 @@ OutputIterator transform_impl(const std::string& label,
 
 template <class ExecutionSpace, class InputIterator1, class InputIterator2,
           class OutputIterator, class BinaryOperation>
-OutputIterator transform_impl(const std::string& label,
-                              const ExecutionSpace& ex, InputIterator1 first1,
-                              InputIterator1 last1, InputIterator2 first2,
-                              OutputIterator d_first,
-                              BinaryOperation binary_op) {
+OutputIterator transform_exespace_impl(
+    const std::string& label, const ExecutionSpace& ex, InputIterator1 first1,
+    InputIterator1 last1, InputIterator2 first2, OutputIterator d_first,
+    BinaryOperation binary_op) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, first2, d_first);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2,
                                                               d_first);
   Impl::expect_valid_range(first1, last1);
 
-  // aliases
-  using index_type = typename InputIterator1::difference_type;
-  using func_t =
-      StdTransformBinaryFunctor<index_type, InputIterator1, InputIterator2,
-                                OutputIterator, BinaryOperation>;
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first1, last1);
+  ::Kokkos::parallel_for(
+      label, RangePolicy<ExecutionSpace>(ex, 0, num_elements),
+      StdTransformBinaryFunctor(first1, first2, d_first, binary_op));
+  ex.fence("Kokkos::transform: fence after operation");
+  return d_first + num_elements;
+}
+
+//
+// team-level impl
+//
+
+template <class TeamHandleType, class InputIterator, class OutputIterator,
+          class UnaryOperation>
+KOKKOS_FUNCTION OutputIterator transform_team_impl(
+    const TeamHandleType& teamHandle, InputIterator first1, InputIterator last1,
+    OutputIterator d_first, UnaryOperation unary_op) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, d_first);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, d_first);
+  Impl::expect_valid_range(first1, last1);
 
   // run
   const auto num_elements = Kokkos::Experimental::distance(first1, last1);
-  ::Kokkos::parallel_for(label,
-                         RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         func_t(first1, first2, d_first, binary_op));
-  ex.fence("Kokkos::transform: fence after operation");
+  ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                         StdTransformFunctor(first1, d_first, unary_op));
+  teamHandle.team_barrier();
+
+  // return
+  return d_first + num_elements;
+}
+
+template <class TeamHandleType, class InputIterator1, class InputIterator2,
+          class OutputIterator, class BinaryOperation>
+KOKKOS_FUNCTION OutputIterator
+transform_team_impl(const TeamHandleType& teamHandle, InputIterator1 first1,
+                    InputIterator1 last1, InputIterator2 first2,
+                    OutputIterator d_first, BinaryOperation binary_op) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2,
+                                                   d_first);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, first2,
+                                                              d_first);
+  Impl::expect_valid_range(first1, last1);
+
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first1, last1);
+  ::Kokkos::parallel_for(
+      TeamThreadRange(teamHandle, 0, num_elements),
+      StdTransformBinaryFunctor(first1, first2, d_first, binary_op));
+  teamHandle.team_barrier();
+
   return d_first + num_elements;
 }
 

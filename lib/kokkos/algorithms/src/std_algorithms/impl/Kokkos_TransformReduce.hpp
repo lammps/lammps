@@ -110,9 +110,13 @@ struct StdTransformReduceTwoIntervalsFunctor {
 //
 //------------------------------
 
+//
+// exespace impl
+//
+
 template <class ExecutionSpace, class IteratorType, class ValueType,
           class JoinerType, class UnaryTransformerType>
-ValueType transform_reduce_custom_functors_impl(
+ValueType transform_reduce_custom_functors_exespace_impl(
     const std::string& label, const ExecutionSpace& ex, IteratorType first,
     IteratorType last, ValueType init_reduction_value, JoinerType joiner,
     UnaryTransformerType transformer) {
@@ -151,7 +155,7 @@ ValueType transform_reduce_custom_functors_impl(
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class ValueType, class JoinerType, class BinaryTransformerType>
-ValueType transform_reduce_custom_functors_impl(
+ValueType transform_reduce_custom_functors_exespace_impl(
     const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
     IteratorType1 last1, IteratorType2 first2, ValueType init_reduction_value,
     JoinerType joiner, BinaryTransformerType transformer) {
@@ -191,7 +195,7 @@ ValueType transform_reduce_custom_functors_impl(
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class ValueType>
-ValueType transform_reduce_default_functors_impl(
+ValueType transform_reduce_default_functors_exespace_impl(
     const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
     IteratorType1 last1, IteratorType2 first2, ValueType init_reduction_value) {
   // checks
@@ -205,8 +209,112 @@ ValueType transform_reduce_default_functors_impl(
       Impl::StdTranformReduceDefaultBinaryTransformFunctor<ValueType>;
   using joiner_type = Impl::StdTranformReduceDefaultJoinFunctor<ValueType>;
 
-  return transform_reduce_custom_functors_impl(
+  return transform_reduce_custom_functors_exespace_impl(
       label, ex, first1, last1, first2, std::move(init_reduction_value),
+      joiner_type(), transformer_type());
+}
+
+//
+// team impl
+//
+
+template <class TeamHandleType, class IteratorType, class ValueType,
+          class JoinerType, class UnaryTransformerType>
+KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
+    const TeamHandleType& teamHandle, IteratorType first, IteratorType last,
+    ValueType init_reduction_value, JoinerType joiner,
+    UnaryTransformerType transformer) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+  Impl::expect_valid_range(first, last);
+
+  if (first == last) {
+    // init is returned, unmodified
+    return init_reduction_value;
+  }
+
+  // aliases
+  using reducer_type =
+      ReducerWithArbitraryJoinerNoNeutralElement<ValueType, JoinerType>;
+  using functor_type =
+      StdTransformReduceSingleIntervalFunctor<IteratorType, reducer_type,
+                                              UnaryTransformerType>;
+  using reduction_value_type = typename reducer_type::value_type;
+
+  // run
+  reduction_value_type result;
+  reducer_type reducer(result, joiner);
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            functor_type(first, reducer, transformer), reducer);
+
+  teamHandle.team_barrier();
+
+  // as per standard, transform is not applied to the init value
+  // https://en.cppreference.com/w/cpp/algorithm/transform_reduce
+  return joiner(result.val, init_reduction_value);
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class ValueType, class JoinerType, class BinaryTransformerType>
+KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, ValueType init_reduction_value, JoinerType joiner,
+    BinaryTransformerType transformer) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
+  Impl::expect_valid_range(first1, last1);
+
+  if (first1 == last1) {
+    // init is returned, unmodified
+    return init_reduction_value;
+  }
+
+  // aliases
+  using index_type = typename IteratorType1::difference_type;
+  using reducer_type =
+      ReducerWithArbitraryJoinerNoNeutralElement<ValueType, JoinerType>;
+  using functor_type =
+      StdTransformReduceTwoIntervalsFunctor<index_type, IteratorType1,
+                                            IteratorType2, reducer_type,
+                                            BinaryTransformerType>;
+  using reduction_value_type = typename reducer_type::value_type;
+
+  // run
+  reduction_value_type result;
+  reducer_type reducer(result, joiner);
+
+  const auto num_elements = Kokkos::Experimental::distance(first1, last1);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            functor_type(first1, first2, reducer, transformer),
+                            reducer);
+
+  teamHandle.team_barrier();
+
+  return joiner(result.val, init_reduction_value);
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class ValueType>
+KOKKOS_FUNCTION ValueType transform_reduce_default_functors_team_impl(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, ValueType init_reduction_value) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
+  Impl::expect_valid_range(first1, last1);
+
+  // aliases
+  using transformer_type =
+      Impl::StdTranformReduceDefaultBinaryTransformFunctor<ValueType>;
+  using joiner_type = Impl::StdTranformReduceDefaultJoinFunctor<ValueType>;
+
+  return transform_reduce_custom_functors_team_impl(
+      teamHandle, first1, last1, first2, std::move(init_reduction_value),
       joiner_type(), transformer_type());
 }
 

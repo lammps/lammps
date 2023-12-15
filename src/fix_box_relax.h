@@ -68,8 +68,7 @@ class FixBoxRelax : public Fix {
   class Compute *temperature, *pressure;
   int tflag, pflag;
 
-  int nrigid;
-  int *rfix;
+  std::vector<Fix *> rfix;
 
   double sigma[6];        // scaled target stress
   double utsigma[3];      // weighting for upper-tri elements

@@ -31,13 +31,13 @@ Style *lj/smooth/linear* computes a truncated and force-shifted LJ
 interaction (aka Shifted Force Lennard-Jones) that combines the
 standard 12/6 Lennard-Jones function and subtracts a linear term based
 on the cutoff distance, so that both, the potential and the force, go
-continuously to zero at the cutoff Rc :ref:`(Toxvaerd) <Toxvaerd>`:
+continuously to zero at the cutoff :math:`r_c` :ref:`(Toxvaerd) <Toxvaerd>`:
 
 .. math::
 
    \phi\left(r\right) & =  4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
                        \left(\frac{\sigma}{r}\right)^6 \right] \\
-   E\left(r\right) & =  \phi\left(r\right)  - \phi\left(R_c\right) - \left(r - R_c\right) \left.\frac{d\phi}{d r} \right|_{r=R_c}       \qquad r < R_c
+   E\left(r\right) & =  \phi\left(r\right)  - \phi\left(r_c\right) - \left(r - r_c\right) \left.\frac{d\phi}{d r} \right|_{r=r_c}       \qquad r < r_c
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -77,8 +77,9 @@ tail option for adding long-range tail corrections to energy and
 pressure, since the energy of the pair interaction is smoothed to 0.0
 at the cutoff.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
+This pair style writes its information to :doc:`binary restart files <restart>`,
+so pair_style and pair_coeff commands do not need to be specified
+in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the

@@ -106,7 +106,7 @@ typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
 
-#define LAMMPSPLUGIN_ABI_VERSION 1
+#define LAMMPSPLUGIN_ABI_VERSION 2
 struct _liblammpsplugin {
   int abiversion;
   int has_exceptions;

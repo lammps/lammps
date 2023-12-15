@@ -42,14 +42,17 @@ class Thermo : protected Pointers {
   void compute(int);
   int evaluate_keyword(const std::string &, double *);
 
-  // for accessing cached thermo data
-  const int *get_nfield() const { return &nfield; }
+  // for accessing cached thermo and related data
   const int *get_line() const { return &nline; }
+  const char *get_image_fname() const { return image_fname.c_str(); }
+
+  const int *get_nfield() const { return &nfield; }
   const bigint *get_timestep() const { return &ntimestep; }
   const std::vector<multitype> &get_fields() const { return field_data; }
   const std::vector<std::string> &get_keywords() const { return keyword; }
 
   void set_line(int _nline) { nline = _nline; }
+  void set_image_fname(const std::string &fname) { image_fname = fname; }
 
  private:
   int nfield, nfield_initial;
@@ -75,6 +78,7 @@ class Thermo : protected Pointers {
   bigint natoms;
   bigint ntimestep;
   int nline;
+  std::string image_fname;
 
   // data used by routines that compute single values
   int ivalue;          // integer value to print

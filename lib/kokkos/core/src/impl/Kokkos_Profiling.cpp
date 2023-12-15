@@ -626,17 +626,11 @@ void initialize(const std::string& profileLibrary) {
     return;
   }
 
-  char* envProfileLibrary = const_cast<char*>(profileLibrary.c_str());
-
-  const size_t envProfileLen = strlen(envProfileLibrary) + 1;
-  const auto envProfileCopy  = std::make_unique<char[]>(envProfileLen);
-  snprintf(envProfileCopy.get(), envProfileLen, "%s", envProfileLibrary);
-
-  char* profileLibraryName = strtok(envProfileCopy.get(), ";");
-
-  if ((profileLibraryName != nullptr) &&
-      (strcmp(profileLibraryName, "") != 0)) {
-    firstProfileLibrary = dlopen(profileLibraryName, RTLD_NOW | RTLD_GLOBAL);
+  if (auto end_first_library = profileLibrary.find(';');
+      end_first_library != 0) {
+    auto profileLibraryName = profileLibrary.substr(0, end_first_library);
+    firstProfileLibrary =
+        dlopen(profileLibraryName.c_str(), RTLD_NOW | RTLD_GLOBAL);
 
     if (firstProfileLibrary == nullptr) {
       std::cerr << "Error: Unable to load KokkosP library: "

@@ -36,6 +36,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
+#include "output.h"
+#include "thermo.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
@@ -77,18 +79,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // set filetype based on filename suffix
 
-  int n = strlen(filename);
-  if (strlen(filename) > 4 && strcmp(&filename[n-4],".jpg") == 0)
+  if (utils::strmatch(filename, "\\.jpg$") || utils::strmatch(filename, "\\.JPG$")
+      || utils::strmatch(filename, "\\.jpeg$") || utils::strmatch(filename, "\\.JPEG$"))
     filetype = JPG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".JPG") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".jpeg") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 5 && strcmp(&filename[n-5],".JPEG") == 0)
-    filetype = JPG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".png") == 0)
-    filetype = PNG;
-  else if (strlen(filename) > 4 && strcmp(&filename[n-4],".PNG") == 0)
+  else if  (utils::strmatch(filename, "\\.png$") || utils::strmatch(filename, "\\.PNG$"))
     filetype = PNG;
   else filetype = PPM;
 
@@ -140,13 +134,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   }
   char *fixID = nullptr;
 
-  thetastr = phistr = nullptr;
   cflag = STATIC;
   cx = cy = cz = 0.5;
-  cxstr = cystr = czstr = nullptr;
 
-  upxstr = upystr = upzstr = nullptr;
-  zoomstr = nullptr;
   boxflag = YES;
   boxdiam = 0.02;
   axesflag = NO;
@@ -481,6 +471,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 DumpImage::~DumpImage()
 {
   delete image;
+  output->thermo->set_image_fname("");
 
   delete[] diamtype;
   delete[] diamelement;
@@ -491,6 +482,16 @@ DumpImage::~DumpImage()
   memory->destroy(chooseghost);
   memory->destroy(bufcopy);
   memory->destroy(gbuf);
+
+  delete[] upxstr;
+  delete[] upystr;
+  delete[] upzstr;
+  delete[] zoomstr;
+  delete[] thetastr;
+  delete[] phistr;
+  delete[] cxstr;
+  delete[] cystr;
+  delete[] czstr;
 
   delete[] id_grid_compute;
   delete[] id_grid_fix;
@@ -792,6 +793,12 @@ void DumpImage::write()
     if (multifile) {
       fclose(fp);
       fp = nullptr;
+
+      // cache last dump image filename for access through library interface.
+      // update only *after* the file has been written so there will be no invalid read.
+      // have to recreate the substitution done within openfile().
+
+      output->thermo->set_image_fname(utils::star_subst(filename, update->ntimestep, padflag));
     }
   }
 }

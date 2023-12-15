@@ -27,15 +27,16 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-template <class IndexType, class IteratorType1, class IteratorType2,
-          class BinaryPredicateType>
+template <class IteratorType1, class IteratorType2, class BinaryPredicateType>
 struct StdEqualFunctor {
+  using index_type = typename IteratorType1::difference_type;
+
   IteratorType1 m_first1;
   IteratorType2 m_first2;
   BinaryPredicateType m_predicate;
 
   KOKKOS_FUNCTION
-  void operator()(IndexType i, std::size_t& lsum) const {
+  void operator()(index_type i, std::size_t& lsum) const {
     if (!m_predicate(m_first1[i], m_first2[i])) {
       lsum = 1;
     }
@@ -49,67 +50,130 @@ struct StdEqualFunctor {
         m_predicate(std::move(_predicate)) {}
 };
 
+//
+// exespace impl
+//
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class BinaryPredicateType>
-bool equal_impl(const std::string& label, const ExecutionSpace& ex,
-                IteratorType1 first1, IteratorType1 last1, IteratorType2 first2,
-                BinaryPredicateType predicate) {
+bool equal_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                         IteratorType1 first1, IteratorType1 last1,
+                         IteratorType2 first2, BinaryPredicateType predicate) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, first2);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 
-  // aliases
-  using index_type = typename IteratorType1::difference_type;
-  using func_t     = StdEqualFunctor<index_type, IteratorType1, IteratorType2,
-                                 BinaryPredicateType>;
-
   // run
   const auto num_elements = Kokkos::Experimental::distance(first1, last1);
   std::size_t different   = 0;
-  ::Kokkos::parallel_reduce(label,
-                            RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                            func_t(first1, first2, predicate), different);
+  ::Kokkos::parallel_reduce(
+      label, RangePolicy<ExecutionSpace>(ex, 0, num_elements),
+      StdEqualFunctor(first1, first2, predicate), different);
   ex.fence("Kokkos::equal: fence after operation");
 
   return !different;
 }
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2>
-bool equal_impl(const std::string& label, const ExecutionSpace& ex,
-                IteratorType1 first1, IteratorType1 last1,
-                IteratorType2 first2) {
+bool equal_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                         IteratorType1 first1, IteratorType1 last1,
+                         IteratorType2 first2) {
   using value_type1 = typename IteratorType1::value_type;
   using value_type2 = typename IteratorType2::value_type;
   using pred_t      = StdAlgoEqualBinaryPredicate<value_type1, value_type2>;
-  return equal_impl(label, ex, first1, last1, first2, pred_t());
+  return equal_exespace_impl(label, ex, first1, last1, first2, pred_t());
 }
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class BinaryPredicateType>
-bool equal_impl(const std::string& label, const ExecutionSpace& ex,
-                IteratorType1 first1, IteratorType1 last1, IteratorType2 first2,
-                IteratorType2 last2, BinaryPredicateType predicate) {
+bool equal_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                         IteratorType1 first1, IteratorType1 last1,
+                         IteratorType2 first2, IteratorType2 last2,
+                         BinaryPredicateType predicate) {
   const auto d1 = ::Kokkos::Experimental::distance(first1, last1);
   const auto d2 = ::Kokkos::Experimental::distance(first2, last2);
   if (d1 != d2) {
     return false;
   }
 
-  return equal_impl(label, ex, first1, last1, first2, predicate);
+  return equal_exespace_impl(label, ex, first1, last1, first2, predicate);
 }
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2>
-bool equal_impl(const std::string& label, const ExecutionSpace& ex,
-                IteratorType1 first1, IteratorType1 last1, IteratorType2 first2,
-                IteratorType2 last2) {
+bool equal_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                         IteratorType1 first1, IteratorType1 last1,
+                         IteratorType2 first2, IteratorType2 last2) {
   Impl::expect_valid_range(first1, last1);
   Impl::expect_valid_range(first2, last2);
 
   using value_type1 = typename IteratorType1::value_type;
   using value_type2 = typename IteratorType2::value_type;
   using pred_t      = StdAlgoEqualBinaryPredicate<value_type1, value_type2>;
-  return equal_impl(label, ex, first1, last1, first2, last2, pred_t());
+  return equal_exespace_impl(label, ex, first1, last1, first2, last2, pred_t());
+}
+
+//
+// team impl
+//
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class BinaryPredicateType>
+KOKKOS_FUNCTION bool equal_team_impl(const TeamHandleType& teamHandle,
+                                     IteratorType1 first1, IteratorType1 last1,
+                                     IteratorType2 first2,
+                                     BinaryPredicateType predicate) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
+  Impl::expect_valid_range(first1, last1);
+
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first1, last1);
+  std::size_t different   = 0;
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            StdEqualFunctor(first1, first2, predicate),
+                            different);
+  teamHandle.team_barrier();
+
+  return !different;
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2>
+KOKKOS_FUNCTION bool equal_team_impl(const TeamHandleType& teamHandle,
+                                     IteratorType1 first1, IteratorType1 last1,
+                                     IteratorType2 first2) {
+  using value_type1 = typename IteratorType1::value_type;
+  using value_type2 = typename IteratorType2::value_type;
+  using pred_t      = StdAlgoEqualBinaryPredicate<value_type1, value_type2>;
+  return equal_team_impl(teamHandle, first1, last1, first2, pred_t());
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class BinaryPredicateType>
+KOKKOS_FUNCTION bool equal_team_impl(const TeamHandleType& teamHandle,
+                                     IteratorType1 first1, IteratorType1 last1,
+                                     IteratorType2 first2, IteratorType2 last2,
+                                     BinaryPredicateType predicate) {
+  const auto d1 = ::Kokkos::Experimental::distance(first1, last1);
+  const auto d2 = ::Kokkos::Experimental::distance(first2, last2);
+  if (d1 != d2) {
+    return false;
+  }
+
+  return equal_team_impl(teamHandle, first1, last1, first2, predicate);
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2>
+KOKKOS_FUNCTION bool equal_team_impl(const TeamHandleType& teamHandle,
+                                     IteratorType1 first1, IteratorType1 last1,
+                                     IteratorType2 first2,
+                                     IteratorType2 last2) {
+  Impl::expect_valid_range(first1, last1);
+  Impl::expect_valid_range(first2, last2);
+
+  using value_type1 = typename IteratorType1::value_type;
+  using value_type2 = typename IteratorType2::value_type;
+  using pred_t      = StdAlgoEqualBinaryPredicate<value_type1, value_type2>;
+  return equal_team_impl(teamHandle, first1, last1, first2, last2, pred_t());
 }
 
 }  // namespace Impl

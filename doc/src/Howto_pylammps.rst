@@ -133,7 +133,7 @@ to the location in the virtual environment with:
 
 .. code-block:: bash
 
-   cmake . -DPYTHON_EXECUTABLE=$(which python)
+   cmake . -DPython_EXECUTABLE=$(which python)
 
    # install LAMMPS package in virtualenv
    (testing) make install-python

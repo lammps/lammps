@@ -128,7 +128,7 @@ inline void check_shmem_request(CudaInternal const* cuda_instance, int shmem) {
 // These functions need to be templated on DriverType and LaunchBounds
 // so that the static bool is unique for each type combo
 // KernelFuncPtr does not necessarily contain that type information.
-
+// FIXME_CUDA_MULTIPLE_DEVICES
 template <class DriverType, class LaunchBounds, class KernelFuncPtr>
 const cudaFuncAttributes& get_cuda_kernel_func_attributes(
     const KernelFuncPtr& func) {
@@ -136,7 +136,9 @@ const cudaFuncAttributes& get_cuda_kernel_func_attributes(
   // by leveraging static variable initialization rules
   auto wrap_get_attributes = [&]() -> cudaFuncAttributes {
     cudaFuncAttributes attr;
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFuncGetAttributes(&attr, func));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (CudaInternal::singleton().cuda_func_get_attributes_wrapper(&attr,
+                                                                    func)));
     return attr;
   };
   static cudaFuncAttributes func_attr = wrap_get_attributes();
@@ -217,9 +219,11 @@ inline void configure_shmem_preference(const KernelFuncPtr& func,
   if (carveout > 100) carveout = 100;
 
   // Set the carveout, but only call it once per kernel or when it changes
+  // FIXME_CUDA_MULTIPLE_DEVICES
   auto set_cache_config = [&] {
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFuncSetAttribute(
-        func, cudaFuncAttributePreferredSharedMemoryCarveout, carveout));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (CudaInternal::singleton().cuda_func_set_attributes_wrapper(
+            func, cudaFuncAttributePreferredSharedMemoryCarveout, carveout)));
     return carveout;
   };
   // Store the value in a static variable so we only reset if needed
@@ -361,9 +365,8 @@ struct CudaParallelLaunchKernelInvoker<
   static void invoke_kernel(DriverType const& driver, dim3 const& grid,
                             dim3 const& block, int shmem,
                             CudaInternal const* cuda_instance) {
-    (base_t::
-         get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>(
-        driver);
+    (base_t::get_kernel_func())<<<grid, block, shmem,
+                                  cuda_instance->get_stream()>>>(driver);
   }
 
   inline static void create_parallel_launch_graph_node(
@@ -399,15 +402,17 @@ struct CudaParallelLaunchKernelInvoker<
       params.kernelParams   = (void**)args;
       params.extra          = nullptr;
 
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphAddKernelNode(
-          &graph_node, graph, /* dependencies = */ nullptr,
-          /* numDependencies = */ 0, &params));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          (cuda_instance->cuda_graph_add_kernel_node_wrapper(
+              &graph_node, graph, /* dependencies = */ nullptr,
+              /* numDependencies = */ 0, &params)));
     } else {
       // We still need an empty node for the dependency structure
       KOKKOS_IMPL_CUDA_SAFE_CALL(
-          cudaGraphAddEmptyNode(&graph_node, graph,
-                                /* dependencies = */ nullptr,
-                                /* numDependencies = */ 0));
+          (cuda_instance->cuda_graph_add_empty_node_wrapper(
+              &graph_node, graph,
+              /* dependencies = */ nullptr,
+              /* numDependencies = */ 0)));
     }
     KOKKOS_ENSURES(bool(graph_node))
   }
@@ -458,11 +463,10 @@ struct CudaParallelLaunchKernelInvoker<
     DriverType* driver_ptr = reinterpret_cast<DriverType*>(
         cuda_instance->scratch_functor(sizeof(DriverType)));
 
-    cudaMemcpyAsync(driver_ptr, &driver, sizeof(DriverType), cudaMemcpyDefault,
-                    cuda_instance->m_stream);
-    (base_t::
-         get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>(
-        driver_ptr);
+    KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_memcpy_async_wrapper(
+        driver_ptr, &driver, sizeof(DriverType), cudaMemcpyDefault)));
+    (base_t::get_kernel_func())<<<grid, block, shmem,
+                                  cuda_instance->get_stream()>>>(driver_ptr);
   }
 
   inline static void create_parallel_launch_graph_node(
@@ -494,8 +498,8 @@ struct CudaParallelLaunchKernelInvoker<
       // which is guaranteed to be alive until the graph instance itself is
       // destroyed, where there should be a fence ensuring that the allocation
       // associated with this kernel on the device side isn't deleted.
-      cudaMemcpyAsync(driver_ptr, &driver, sizeof(DriverType),
-                      cudaMemcpyDefault, cuda_instance->m_stream);
+      KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_memcpy_async_wrapper(
+          driver_ptr, &driver, sizeof(DriverType), cudaMemcpyDefault)));
 
       void const* args[] = {&driver_ptr};
 
@@ -508,15 +512,17 @@ struct CudaParallelLaunchKernelInvoker<
       params.kernelParams   = (void**)args;
       params.extra          = nullptr;
 
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphAddKernelNode(
-          &graph_node, graph, /* dependencies = */ nullptr,
-          /* numDependencies = */ 0, &params));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          (cuda_instance->cuda_graph_add_kernel_node_wrapper(
+              &graph_node, graph, /* dependencies = */ nullptr,
+              /* numDependencies = */ 0, &params)));
     } else {
       // We still need an empty node for the dependency structure
       KOKKOS_IMPL_CUDA_SAFE_CALL(
-          cudaGraphAddEmptyNode(&graph_node, graph,
-                                /* dependencies = */ nullptr,
-                                /* numDependencies = */ 0));
+          (cuda_instance->cuda_graph_add_empty_node_wrapper(
+              &graph_node, graph,
+              /* dependencies = */ nullptr,
+              /* numDependencies = */ 0)));
     }
     KOKKOS_ENSURES(bool(graph_node))
   }
@@ -572,26 +578,26 @@ struct CudaParallelLaunchKernelInvoker<
                             CudaInternal const* cuda_instance) {
     // Wait until the previous kernel that uses the constant buffer is done
     std::lock_guard<std::mutex> lock(CudaInternal::constantMemMutex);
-    KOKKOS_IMPL_CUDA_SAFE_CALL(
-        cudaEventSynchronize(CudaInternal::constantMemReusable));
+    KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_event_synchronize_wrapper(
+        CudaInternal::constantMemReusable)));
 
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging = cuda_instance->constantMemHostStaging;
     memcpy(staging, &driver, sizeof(DriverType));
 
     // Copy functor asynchronously from there to constant memory on the device
-    cudaMemcpyToSymbolAsync(kokkos_impl_cuda_constant_memory_buffer, staging,
-                            sizeof(DriverType), 0, cudaMemcpyHostToDevice,
-                            cudaStream_t(cuda_instance->m_stream));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (cuda_instance->cuda_memcpy_to_symbol_async_wrapper(
+            kokkos_impl_cuda_constant_memory_buffer, staging,
+            sizeof(DriverType), 0, cudaMemcpyHostToDevice)));
 
     // Invoke the driver function on the device
-    (base_t::
-         get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>();
+    (base_t::get_kernel_func())<<<grid, block, shmem,
+                                  cuda_instance->get_stream()>>>();
 
     // Record an event that says when the constant buffer can be reused
-    KOKKOS_IMPL_CUDA_SAFE_CALL(
-        cudaEventRecord(CudaInternal::constantMemReusable,
-                        cudaStream_t(cuda_instance->m_stream)));
+    KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_event_record_wrapper(
+        CudaInternal::constantMemReusable)));
   }
 
   inline static void create_parallel_launch_graph_node(
@@ -669,7 +675,8 @@ struct CudaParallelLaunchImpl<
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);
 
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetLastError());
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          (cuda_instance->cuda_get_last_error_wrapper()));
       cuda_instance->fence(
           "Kokkos::Impl::launch_kernel: Debug Only Check for Execution Error");
 #endif

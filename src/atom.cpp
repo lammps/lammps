@@ -2605,6 +2605,7 @@ void Atom::update_callback(int ifix)
      lists of names can have NULL entries if previously removed
    return flag = 0/1 for int/double
    return cols = 0/N for vector/array where N = # of columns
+   return border = 0/1 if fix property/atom has "ghost" no/yes
 ------------------------------------------------------------------------- */
 
 int Atom::find_custom(const char *name, int &flag, int &cols)
@@ -2642,6 +2643,13 @@ int Atom::find_custom(const char *name, int &flag, int &cols)
   return -1;
 }
 
+int Atom::find_custom(const char *name, int &flag, int &cols, int &border)
+{
+  int i = find_custom(name, flag, cols);
+  if (i != -1) border = custom_border[flag + (cols) ? 2 : 0][i];
+  return i;
+}
+
 /** \brief Add a custom per-atom property with the given name and type and size
 \verbatim embed:rst
 
@@ -2654,7 +2662,7 @@ This function is called, e.g. from :doc:`fix property/atom <fix_property_atom>`.
  * \param cols Number of values: 0 for a single value, 1 or more for a vector of values
  * \return index of property in the respective list of properties
  */
-int Atom::add_custom(const char *name, int flag, int cols)
+int Atom::add_custom(const char *name, int flag, int cols, int border)
 {
   int index = -1;
 
@@ -2697,6 +2705,9 @@ int Atom::add_custom(const char *name, int flag, int cols)
 
   if (index < 0)
     error->all(FLERR,"Invalid call to Atom::add_custom()");
+  else
+    custom_border[flag + (cols) ? 2 : 0].push_back(border);
+
   return index;
 }
 

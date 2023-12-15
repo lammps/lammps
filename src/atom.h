@@ -242,6 +242,7 @@ class Atom : protected Pointers {
   int *icols, *dcols;
   char **ivname, **dvname, **ianame, **daname;
   int nivector, ndvector, niarray, ndarray;
+  std::array<std::vector<int>, 4> custom_border;
 
   // molecule templates
   // each template can be a set of consecutive molecules
@@ -363,7 +364,8 @@ class Atom : protected Pointers {
   void update_callback(int);
 
   int find_custom(const char *, int &, int &);
-  virtual int add_custom(const char *, int, int);
+  int find_custom(const char *, int &, int &, int &);
+  virtual int add_custom(const char *, int, int, int border = 0);
   virtual void remove_custom(int, int, int);
 
   void *extract(const char *);

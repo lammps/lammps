@@ -297,7 +297,7 @@ void AtomKokkos::grow(unsigned int mask)
    return index in ivector or dvector of its location
 ------------------------------------------------------------------------- */
 
-int AtomKokkos::add_custom(const char *name, int flag, int cols)
+int AtomKokkos::add_custom(const char *name, int flag, int cols, int border)
 {
   int index;
 
@@ -341,6 +341,11 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
     dcols[index] = cols;
   }
+
+  if (index < 0)
+    error->all(FLERR,"Invalid call to AtomKokkos::add_custom()");
+  else
+    custom_border[flag + (cols) ? 2 : 0].push_back(border);
 
   return index;
 }

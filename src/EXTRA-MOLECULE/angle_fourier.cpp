@@ -39,6 +39,7 @@ using namespace MathConst;
 
 AngleFourier::AngleFourier(LAMMPS *lmp) : Angle(lmp)
 {
+  born_matrix_enable = 1;
   k = nullptr;
   C0 = nullptr;
   C1 = nullptr;

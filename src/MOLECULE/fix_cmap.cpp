@@ -49,15 +49,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define MAXLINE 256
-#define LISTDELTA 10000
-#define LB_FACTOR 1.5
+static constexpr int LISTDELTA = 10000;
+static constexpr double LB_FACTOR = 1.5;
 
-#define CMAPMAX 6   // max # of CMAP terms stored by one atom
-#define CMAPDIM 24  // grid map dimension is 24 x 24
-#define CMAPXMIN -360.0
-#define CMAPXMIN2 -180.0
-#define CMAPDX 15.0 // 360/CMAPDIM
+static constexpr int CMAPMAX = 6;   // max # of CMAP terms stored by one atom
+static constexpr int CMAPDIM = 24;  // grid map dimension is 24 x 24
+static constexpr double CMAPXMIN = -360.0;
+static constexpr double CMAPXMIN2 = -180.0;
+static constexpr double CMAPDX = 15.0; // 360/CMAPDIM
 
 /* ---------------------------------------------------------------------- */
 
@@ -90,10 +89,10 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   // allocate memory for CMAP data
 
   memory->create(g_axis,CMAPDIM,"cmap:g_axis");
-  memory->create(cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:grid");
-  memory->create(d1cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d1grid");
-  memory->create(d2cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d2grid");
-  memory->create(d12cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d12grid");
+  memory->create(cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:grid");
+  memory->create(d1cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d1grid");
+  memory->create(d2cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d2grid");
+  memory->create(d12cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d12grid");
 
   // read and setup CMAP data
 
@@ -231,6 +230,8 @@ void FixCMAP::min_setup(int vflag)
 void FixCMAP::pre_neighbor()
 {
   int i,m,atom1,atom2,atom3,atom4,atom5;
+  const int me = comm->me;
+  const int nprocs = comm->nprocs;
 
   // guesstimate initial length of local crossterm list
   // if ncmap was not set (due to read_restart, no read_data),

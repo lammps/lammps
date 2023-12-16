@@ -87,9 +87,6 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
   // allocate memory for CMAP data
 
   memory->create(g_axis,CMAPDIM,"cmap:g_axis");
@@ -183,10 +180,6 @@ void FixCMAP::init()
 
   for (i = 0; i < 6; i++)
     set_map_derivatives(cmapgrid[i],d1cmapgrid[i],d2cmapgrid[i],d12cmapgrid[i]);
-
-  // define newton_bond here in case restart file was read (not data file)
-
-  newton_bond = force->newton_bond;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
@@ -934,10 +927,6 @@ void FixCMAP::read_data_header(char *line)
   } catch (std::exception &e) {
     error->all(FLERR,"Invalid read data header line for fix cmap: {}", e.what());
   }
-
-  // not set in constructor because this fix could be defined before newton command
-
-  newton_bond = force->newton_bond;
 }
 
 /* ----------------------------------------------------------------------

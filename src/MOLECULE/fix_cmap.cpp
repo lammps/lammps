@@ -946,10 +946,10 @@ void FixCMAP::read_data_section(char * /*keyword*/, int /*n*/, char *buf,
 
   // loop over lines of CMAP crossterms
   // tokenize the line into values
-  // add crossterm to one of my atoms, depending on newton_bond
+  // add crossterm to one of my atoms
 
   for (const auto &line : lines) {
-    ValueTokenizer values(line);
+    ValueTokenizer values(utils::trim_comment(line));
     try {
       values.skip();
       itype = values.next_int();

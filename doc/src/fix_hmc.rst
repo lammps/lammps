@@ -46,7 +46,7 @@ in the Hamiltonian, :math:`\Delta{H}` is calculated following the equation:
 
 .. math::
 
-   \Delta{H} = H(q′,p′) - H(q,p)
+   \Delta{H} = H(q\prime,p\prime) -  H(q,p)
 
 This new proposed configuration is then accepted/rejected according to
 the Metropolis criterion with probability:
@@ -105,7 +105,6 @@ The option default is mom = yes, ra = no.
 
 **(Betancourt)** Betancourt, M. A Conceptual Introduction to Hamiltonian Monte Carlo, 2018.
 
-**(Duane)** Duane, S.; Kennedy, A. D.; Pendleton, B. J.; Roweth, D. Hybrid Monte Carlo. Physics Letters B 1987, 195 (2), 216–222. https://doi.org/10.1016/0370-2693(87)91197-X.
+**(Duane)** Duane, S.; Kennedy, A. D.; Pendleton, B. J.; Roweth, D. Hybrid Monte Carlo. Physics Letters B 1987, 195 (2), 216-222. https://doi.org/10.1016/0370-2693(87)91197-X.
 
-**(Metropolis)** Metropolis, N.; Rosenbluth, A. W.; Rosenbluth, M. N.; Teller, A. H.; Teller, E. The journal of chemical physics
-1953, 21, 1087–1092.
+**(Metropolis)** Metropolis, N.; Rosenbluth, A. W.; Rosenbluth, M. N.; Teller, A. H.; Teller, E. The journal of chemical physics 1953, 21, 1087-1092.

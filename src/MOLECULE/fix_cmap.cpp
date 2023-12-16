@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "potential_file_reader.h"
 #include "respa.h"
+#include "text_file_reader.h"
 #include "update.h"
 
 #include <cmath>
@@ -631,15 +632,22 @@ void FixCMAP::read_grid_map(char *cmapfile)
 {
   if (comm->me == 0) {
     try {
-      memset(&cmapgrid[0][0][0], 0, 6*CMAPDIM*CMAPDIM*sizeof(double));
+      ncrosstermtypes = 0;
+      memset(&cmapgrid[0][0][0], 0, CMAPMAX*CMAPDIM*CMAPDIM*sizeof(double));
+      utils::logmesg(lmp, "Reading CMAP parameters from: {}\n", cmapfile);
       PotentialFileReader reader(lmp, cmapfile, "cmap grid");
 
-      // there are six maps in this order.
+      // there may be up to six maps.
+      // the charmm36.cmap file has in this order.
       // alanine, alanine-proline, proline, proline-proline, glycine, glycine-proline.
-      // read as one big blob of numbers while ignoring comments
+      // custom CMAP files created by charmm-gui may have fewer entries
+      // read one map at a time as a blob of numbers while ignoring comments
+      // and stop reading when whe have reached EOF.
+      for (ncrosstermtypes = 0; ncrosstermtypes < CMAPMAX; ++ncrosstermtypes)
+        reader.next_dvector(&cmapgrid[ncrosstermtypes][0][0],CMAPDIM*CMAPDIM);
 
-      reader.next_dvector(&cmapgrid[0][0][0],6*CMAPDIM*CMAPDIM);
-
+    } catch (EOFException &) {
+      utils::logmesg(lmp, "  Read in CMAP data for {} crossterm types\n", ncrosstermtypes);
     } catch (std::exception &e) {
       error->one(FLERR,"Error reading CMAP potential file: {}", e.what());
     }

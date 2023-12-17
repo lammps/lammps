@@ -526,3 +526,69 @@ The ``unittest/tools`` folder contains tests for programs in the
 shell, which are implemented as a python scripts using the ``unittest``
 Python module and launching the tool commands through the ``subprocess``
 Python module.
+
+
+Troubleshooting failed unit tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The unit tests of a newly added features (e.g. pair, fix or compute styles)
+are not automatically run when your pull request (PR) is submitted via GitHub.
+To trigger the unit test(s), you need to add appropriate labels the PR, e.g.,
+``gpu_unit_tests`` to enable the unit tests for the GPU package. After the test
+has started, you had better remove the label since every PR activity will
+retrigger the test.
+
+For a failed build on GitHub, click on Details to go to the LAMMPS Jenkins CI web page.
+Click on the "Exit" symbol near the "Logout" button on the top right of that page
+to go to the classic view. In the classic view, there is a list of the individual runs
+that make up this test run. You can click on any of those. Then on "Test Result"
+to display the list of tests. Click on the Status column to sort the tests
+based on their Failed or Passed status. Then click on the failed test to expand
+its output.
+
+For example, the following output snippet shows the failed unit test
+
+.. code-block:: bash
+
+   [ RUN      ] PairStyle.gpu
+   /home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:63: Failure
+   Expected: (err) <= (epsilon)
+   Actual: 0.00018957912910606503 vs 0.0001
+   Google Test trace:
+   /home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:56: EXPECT_FORCES: init_forces (newton off)
+   /home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:64: Failure
+   Expected: (err) <= (epsilon)
+   Actual: 0.00022892713393549854 vs 0.0001
+
+
+Note that the force style engine runs the same system on a rather
+off-equilibrium system with few atoms for just a few steps, writes data and restart,
+uses ``clean`` to reset, and then run with different settings and integrators.
+Beyond potential issues/bugs in the source code, the mismatch between the expected
+and actual values could be that force arrays are not properly cleared between
+multiple run commands and/or when starting a run from restarts.
+
+As a rule of thumb, the test epsilon can often be in the range 5e-14 to 1e-13.
+For "noisy" force kernels, e.g. those involving `exp()`, `log()` or `sin()`
+operations and subject to compiler optimization, epsilon can be further relaxed,
+sometimes epsilon can be relaxed to 1.e-12. If lookup tables are added,
+we may need to go to 1.e-10 or even higher.
+
+To rerun the failed unit test individually, change to the ``build`` directory
+and run the test with verbose output. For example,
+
+.. code-block:: bash
+
+    env TEST_ARGS=-v ctest -R ^MolPairStyle:lj_cut_coul_long -V
+
+It is recommended to configure the build with ``-D BUILD_SHARED_LIBS=on`` to
+shorten the build time during recompilation. Installing `ccache` in
+your development environment helps speed up recompilation by
+caching previous compilations and detecting when the same compilation
+is being done again.
+
+
+
+
+
+

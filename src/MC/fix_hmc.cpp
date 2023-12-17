@@ -43,14 +43,15 @@
 #include "output.h"
 #include "pair.h"
 #include "random_park.h"
-#include "stdlib.h"
-#include "string.h"
 #include "update.h"
+
+#include <cstdlib>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define EPSILON 1.0e-7
+static constexpr double EPSILON = 1.0e-7;
 
 enum { ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 

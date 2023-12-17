@@ -85,7 +85,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   KT = force->boltz * temp / force->mvv2e;    // K*T in mvv units
   mbeta = -1.0 / (force->boltz * temp);       // -1/(K*T) in energy units
 
-  // Check keywords:
+  // Check optional keywords:
 
   int iarg = 7;
   while (iarg < narg) {
@@ -97,32 +97,15 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc ra", error);
       resample_on_accept_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-      //} else if (strcmp(arg[iarg], "rot") == 0) {
-      //  if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc rot", error);
-      //  rot_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      //  iarg += 2;
-    } else
-      error->all(FLERR, "Illegal fix hmc command");
+    } else {
+      error->all(FLERR, "Unknown fix hmc keyword {}", arg[iarg]);
+    }
   }
 
   // Initialize RNG with a different seed for each process:
   random = new RanPark(lmp, seed + comm->me);
-  for (int i = 0; i < 100; i++) random->gaussian();
+  for (int i = 0; i < 100; i++) random->uniform();
   random_equal = new RanPark(lmp, seed);
-
-  // Perform initialization of per-atom arrays:
-  eatom = nullptr;
-  vatom = nullptr;
-  stored_body = nullptr;
-  stored_tag = nullptr;
-  stored_bodyown = nullptr;
-  stored_bodytag = nullptr;
-  stored_atom2body = nullptr;
-  stored_xcmimage = nullptr;
-  stored_displace = nullptr;
-  stored_eflags = nullptr;
-  stored_orient = nullptr;
-  stored_dorient = nullptr;
 
   // Register callback:
   atom->add_callback(0);
@@ -131,7 +114,12 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   setup_arrays_and_pointers();
 
   // Add new computes for global and per-atom properties:
-  add_new_computes();
+
+  ke = modify->add_compute(fmt::format("hmc_ke_{} all ke", id));
+  pe = modify->add_compute(fmt::format("hmc_pe_{} all pe", id));
+  peatom = modify->add_compute(fmt::format("hmc_peatom_{} all pe/atom", id));
+  press = modify->add_compute(fmt::format("hmc_press_{} all pressure NULL virial", id));
+  pressatom = modify->add_compute(fmt::format("hmc_pressatom_{} all stress/atom NULL virial", id));
 
   // Define non-default fix attributes:
 
@@ -206,7 +194,6 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
     error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
-  int cols;
 
   // free old memory if reallocating and stored_peratom_member isn't a copy of current_peratom_member
 
@@ -229,6 +216,7 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     }
   } else {
     // peratom vectors
+    int cols;
     if (current_peratom_member.cols < 0) {
       // variable column case
       cols = *(current_peratom_member.address_maxcols);
@@ -252,6 +240,8 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
   stored_peratom_member.collength = current_peratom_member.collength;
   stored_peratom_member.address_length = nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template <typename T>
 void FixHMC::restore_peratom_member(Atom::PerAtom stored_peratom_member,
@@ -288,6 +278,8 @@ void FixHMC::restore_peratom_member(Atom::PerAtom stored_peratom_member,
   current_peratom_member.cols = stored_peratom_member.cols;
   current_peratom_member.collength = stored_peratom_member.collength;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixHMC::setup_arrays_and_pointers()
 {
@@ -421,17 +413,6 @@ void FixHMC::setup_arrays_and_pointers()
     comm_reverse = MAX(comm_reverse, 6);
     comm_forward = 12;
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixHMC::add_new_computes()
-{
-  ke = modify->add_compute(fmt::format("hmc_ke_{} all ke", id));
-  pe = modify->add_compute(fmt::format("hmc_pe_{} all pe", id));
-  peatom = modify->add_compute(fmt::format("hmc_peatom_{} all pe/atom", id));
-  press = modify->add_compute(fmt::format("hmc_press_{} all pressure NULL virial", id));
-  pressatom = modify->add_compute(fmt::format("hmc_pressatom_{} all stress/atom NULL virial", id));
 }
 
 /* ---------------------------------------------------------------------- */

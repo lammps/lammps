@@ -15,1146 +15,439 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Pair.hpp>
 
 namespace TestAtomicOperations {
 
-//-----------------------------------------------
-//--------------zero_functor---------------------
-//-----------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct ZeroFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = typename Kokkos::View<T, execution_space>;
-  using h_type          = typename Kokkos::View<T, execution_space>::HostMirror;
-
-  type data;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { data() = 0; }
+struct AddAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_add(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_add(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_add_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
+  }
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old + update;
+  }
+  static const char* name() { return "add"; }
 };
 
-//-----------------------------------------------
-//--------------init_functor---------------------
-//-----------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct InitFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = typename Kokkos::View<T, execution_space>;
-  using h_type          = typename Kokkos::View<T, execution_space>::HostMirror;
-
-  type data;
-  T init_value;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { data() = init_value; }
-
-  InitFunctor(T _init_value) : init_value(_init_value) {}
+struct SubAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_sub(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_sub(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_sub_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
+  }
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old - update;
+  }
+  static const char* name() { return "sub"; }
 };
 
-//---------------------------------------------------
-//--------------atomic_load/store/assign---------------------
-//---------------------------------------------------
-template <class T, class DEVICE_TYPE>
-struct LoadStoreFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const {
-    T old = Kokkos::atomic_load(&data());
-    if (old != i0)
-      Kokkos::abort("Kokkos Atomic Load didn't get the right value");
-    Kokkos::atomic_store(&data(), i1);
-    Kokkos::atomic_assign(&data(), old);
+struct IncAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T) {
+    Kokkos::atomic_inc(ptr_op);
+    T old_val = Kokkos::atomic_fetch_inc(ptr_fetch_op);
+    T new_val = Kokkos::atomic_inc_fetch(ptr_op_fetch);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-  LoadStoreFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T) {
+    return old + 1;
+  }
+  static const char* name() { return "inc"; }
 };
 
-template <class T, class DeviceType>
-bool LoadStoreAtomicTest(T i0, T i1) {
-  using execution_space = typename DeviceType::execution_space;
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct LoadStoreFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-
-  Kokkos::deep_copy(h_data, data);
-
-  return h_data() == i0;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_max---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct MaxFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const {
-    // Kokkos::atomic_fetch_max( &data(), (T) 1 );
-    Kokkos::atomic_fetch_max(&data(), (T)i1);
+struct DecAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T) {
+    Kokkos::atomic_dec(ptr_op);
+    T old_val = Kokkos::atomic_fetch_dec(ptr_fetch_op);
+    T new_val = Kokkos::atomic_dec_fetch(ptr_op_fetch);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-  MaxFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T) {
+    return old - 1;
+  }
+  static const char* name() { return "dec"; }
 };
 
-template <class T, class execution_space>
-T MaxAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct MaxFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T MaxAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = (i0 > i1 ? i0 : i1);
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool MaxAtomicTest(T i0, T i1) {
-  T res       = MaxAtomic<T, DeviceType>(i0, i1);
-  T resSerial = MaxAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = MaxAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct MaxAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_max(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_max(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_max_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_min---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct MinFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_min(&data(), (T)i1); }
-
-  MinFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return update > old ? update : old;
+  }
+  static const char* name() { return "max"; }
 };
 
-template <class T, class execution_space>
-T MinAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct MinFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T MinAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = (i0 < i1 ? i0 : i1);
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool MinAtomicTest(T i0, T i1) {
-  T res       = MinAtomic<T, DeviceType>(i0, i1);
-  T resSerial = MinAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = MinAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct MinAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_min(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_min(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_min_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_increment---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct IncFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_increment(&data()); }
-
-  IncFunctor(T _i0) : i0(_i0) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return update < old ? update : old;
+  }
+  static const char* name() { return "min"; }
 };
 
-template <class T, class execution_space>
-T IncAtomic(T i0) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct IncFunctor<T, execution_space> f(i0);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T IncAtomicCheck(T i0) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 + 1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool IncAtomicTest(T i0) {
-  T res       = IncAtomic<T, DeviceType>(i0);
-  T resSerial = IncAtomicCheck<T>(i0);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = IncAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct MulAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_mul(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_mul(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_mul_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//-------------atomic_wrapping_increment-------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct WrappingIncFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const {
-    desul::atomic_fetch_inc_mod(&data(), (T)i1, desul::MemoryOrderRelaxed(),
-                                desul::MemoryScopeDevice());
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old * update;
   }
-
-  WrappingIncFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  static const char* name() { return "mul"; }
 };
 
-template <class T, class execution_space>
-T WrappingIncAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct WrappingIncFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T WrappingIncAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  // Wraps to 0 when i0 >= i1
-  *data = ((i0 >= i1) ? (T)0 : i0 + (T)1);
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool WrappingIncAtomicTest(T i0, T i1) {
-  T res       = WrappingIncAtomic<T, DeviceType>(i0, i1);
-  T resSerial = WrappingIncAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name()
-              << ">( test = WrappingIncAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct DivAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_div(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_div(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_div_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_decrement---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct DecFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_decrement(&data()); }
-
-  DecFunctor(T _i0) : i0(_i0) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old / update;
+  }
+  static const char* name() { return "div"; }
 };
 
-template <class T, class execution_space>
-T DecAtomic(T i0) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct DecFunctor<T, execution_space> f(i0);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T DecAtomicCheck(T i0) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 - 1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool DecAtomicTest(T i0) {
-  T res       = DecAtomic<T, DeviceType>(i0);
-  T resSerial = DecAtomicCheck<T>(i0);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = DecAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct ModAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    // Kokkos::atomic_mod(ptr_op, update);
+    (void)Kokkos::atomic_fetch_mod(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_mod(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_mod_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//-------------atomic_wrapping_decrement-------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct WrappingDecFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const {
-    desul::atomic_fetch_dec_mod(&data(), (T)i1, desul::MemoryOrderRelaxed(),
-                                desul::MemoryScopeDevice());
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old % update;
   }
-
-  WrappingDecFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  static const char* name() { return "mod"; }
 };
 
-template <class T, class execution_space>
-T WrappingDecAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct WrappingDecFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T WrappingDecAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  // Wraps to i1 when i0 <= 0
-  // i0 should never be negative
-  *data = ((i0 <= (T)0) ? i1 : i0 - (T)1);
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool WrappingDecAtomicTest(T i0, T i1) {
-  T res       = WrappingDecAtomic<T, DeviceType>(i0, i1);
-  T resSerial = WrappingDecAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name()
-              << ">( test = WrappingDecAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct AndAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_and(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_and(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_and_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_mul---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct MulFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_mul(&data(), (T)i1); }
-
-  MulFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old & update;
+  }
+  static const char* name() { return "and"; }
 };
 
-template <class T, class execution_space>
-T MulAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct MulFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T MulAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 * i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool MulAtomicTest(T i0, T i1) {
-  T res       = MulAtomic<T, DeviceType>(i0, i1);
-  T resSerial = MulAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = MulAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct OrAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    Kokkos::atomic_or(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_or(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_or_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_div---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct DivFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_div(&data(), (T)i1); }
-
-  DivFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old | update;
+  }
+  static const char* name() { return "or"; }
 };
 
-template <class T, class execution_space>
-T DivAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct DivFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T DivAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 / i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool DivAtomicTest(T i0, T i1) {
-  T res       = DivAtomic<T, DeviceType>(i0, i1);
-  T resSerial = DivAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  using Kokkos::abs;
-  if (abs((resSerial - res) * 1.) > 1e-5) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = DivAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct XorAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    // Kokkos::atomic_xor(ptr_op, update);
+    (void)Kokkos::atomic_fetch_xor(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_xor(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_xor_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_mod---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct ModFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_mod(&data(), (T)i1); }
-
-  ModFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old ^ update;
+  }
+  static const char* name() { return "xor"; }
 };
 
-template <class T, class execution_space>
-T ModAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct ModFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T ModAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 % i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool ModAtomicTest(T i0, T i1) {
-  T res       = ModAtomic<T, DeviceType>(i0, i1);
-  T resSerial = ModAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = ModAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct NandAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    // Kokkos::atomic_nand(ptr_op, update);
+    (void)Kokkos::atomic_fetch_nand(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_nand(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_nand_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_and---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct AndFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const {
-    T result = Kokkos::atomic_fetch_and(&data(), (T)i1);
-    Kokkos::atomic_and(&data(), result);
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return ~(old & update);
   }
-
-  AndFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  static const char* name() { return "nand"; }
 };
 
-template <class T, class execution_space>
-T AndAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct AndFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T AndAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 & i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool AndAtomicTest(T i0, T i1) {
-  T res       = AndAtomic<T, DeviceType>(i0, i1);
-  T resSerial = AndAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = AndAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct LShiftAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    // Kokkos::atomic_lshift(ptr_op, update);
+    (void)Kokkos::atomic_fetch_lshift(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_lshift(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_lshift_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_or----------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct OrFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const {
-    T result = Kokkos::atomic_fetch_or(&data(), (T)i1);
-    Kokkos::atomic_or(&data(), result);
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old << update;
   }
-
-  OrFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  static const char* name() { return "lshift"; }
 };
 
-template <class T, class execution_space>
-T OrAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct OrFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T OrAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 | i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool OrAtomicTest(T i0, T i1) {
-  T res       = OrAtomic<T, DeviceType>(i0, i1);
-  T resSerial = OrAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = OrAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct RShiftAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    // Kokkos::atomic_rshift(ptr_op, update); not implemented
+    (void)Kokkos::atomic_fetch_rshift(ptr_op, update);
+    T old_val = Kokkos::atomic_fetch_rshift(ptr_fetch_op, update);
+    T new_val = Kokkos::atomic_rshift_fetch(ptr_op_fetch, update);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_xor---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct XorFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_xor(&data(), (T)i1); }
-
-  XorFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T update) {
+    return old >> update;
+  }
+  static const char* name() { return "rshift"; }
 };
 
-template <class T, class execution_space>
-T XorAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct XorFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T XorAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 ^ i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool XorAtomicTest(T i0, T i1) {
-  T res       = XorAtomic<T, DeviceType>(i0, i1);
-  T resSerial = XorAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = XorAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct LoadStoreAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T update) {
+    T old_val = Kokkos::atomic_load(ptr_op);
+    Kokkos::atomic_store(ptr_op, update);
+    Kokkos::atomic_store(ptr_op_fetch, update);
+    Kokkos::atomic_store(ptr_fetch_op, update);
+    return Kokkos::pair<T, T>(old_val, update);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_lshift---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct LShiftFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_lshift(&data(), (T)i1); }
-
-  LShiftFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T, T update) {
+    return update;
+  }
+  static const char* name() { return "load/store"; }
 };
 
-template <class T, class execution_space>
-T LShiftAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct LShiftFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T LShiftAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 << i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool LShiftAtomicTest(T i0, T i1) {
-  T res       = LShiftAtomic<T, DeviceType>(i0, i1);
-  T resSerial = LShiftAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = LShiftAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct IncModAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T wrap_value) {
+    // no atomic_inc_mod in desul
+    (void)desul::atomic_fetch_inc_mod(ptr_op, wrap_value,
+                                      desul::MemoryOrderRelaxed(),
+                                      desul::MemoryScopeDevice());
+    T old_val = desul::atomic_fetch_inc_mod(ptr_fetch_op, wrap_value,
+                                            desul::MemoryOrderRelaxed(),
+                                            desul::MemoryScopeDevice());
+    // no atomic_inc_mod_fetch in desul
+    (void)desul::atomic_fetch_inc_mod(ptr_op_fetch, wrap_value,
+                                      desul::MemoryOrderRelaxed(),
+                                      desul::MemoryScopeDevice());
+    T new_val = op(old_val, wrap_value);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
-
-  return passed;
-}
-
-//---------------------------------------------------
-//--------------atomic_fetch_rshift---------------------
-//---------------------------------------------------
-
-template <class T, class DEVICE_TYPE>
-struct RShiftFunctor {
-  using execution_space = DEVICE_TYPE;
-  using type            = Kokkos::View<T, execution_space>;
-
-  type data;
-  T i0;
-  T i1;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_rshift(&data(), (T)i1); }
-
-  RShiftFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T wrap_value) {
+    return old + 1 > wrap_value ? 0 : old + 1;
+  }
+  static const char* name() { return "inc_mod"; }
 };
 
-template <class T, class execution_space>
-T RShiftAtomic(T i0, T i1) {
-  struct InitFunctor<T, execution_space> f_init(i0);
-  typename InitFunctor<T, execution_space>::type data("Data");
-  typename InitFunctor<T, execution_space>::h_type h_data("HData");
-
-  f_init.data = data;
-  Kokkos::parallel_for(1, f_init);
-  execution_space().fence();
-
-  struct RShiftFunctor<T, execution_space> f(i0, i1);
-
-  f.data = data;
-  Kokkos::parallel_for(1, f);
-  execution_space().fence();
-
-  Kokkos::deep_copy(h_data, data);
-  T val = h_data();
-
-  return val;
-}
-
-template <class T>
-T RShiftAtomicCheck(T i0, T i1) {
-  T* data = new T[1];
-  data[0] = 0;
-
-  *data = i0 >> i1;
-
-  T val = *data;
-  delete[] data;
-
-  return val;
-}
-
-template <class T, class DeviceType>
-bool RShiftAtomicTest(T i0, T i1) {
-  T res       = RShiftAtomic<T, DeviceType>(i0, i1);
-  T resSerial = RShiftAtomicCheck<T>(i0, i1);
-
-  bool passed = true;
-
-  if (resSerial != res) {
-    passed = false;
-
-    std::cout << "Loop<" << typeid(T).name() << ">( test = RShiftAtomicTest"
-              << " FAILED : " << resSerial << " != " << res << std::endl;
+struct DecModAtomicTest {
+  template <class T>
+  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
+                                        T* ptr_op_fetch, T wrap_value) {
+    // no atomic_dec_mod in desul
+    (void)desul::atomic_fetch_dec_mod(ptr_op, wrap_value,
+                                      desul::MemoryOrderRelaxed(),
+                                      desul::MemoryScopeDevice());
+    T old_val = desul::atomic_fetch_dec_mod(ptr_fetch_op, wrap_value,
+                                            desul::MemoryOrderRelaxed(),
+                                            desul::MemoryScopeDevice());
+    // no atomic_dec_mod_fetch in desul
+    (void)desul::atomic_fetch_dec_mod(ptr_op_fetch, wrap_value,
+                                      desul::MemoryOrderRelaxed(),
+                                      desul::MemoryScopeDevice());
+    T new_val = op(old_val, wrap_value);
+    return Kokkos::pair<T, T>(old_val, new_val);
   }
+  template <class T>
+  KOKKOS_FUNCTION static T op(T old, T wrap_value) {
+    return ((old == 0) || (old > wrap_value)) ? wrap_value : old - 1;
+  }
+  static const char* name() { return "dec_mod"; }
+};
 
-  return passed;
+template <class Op, class T, class ExecSpace>
+bool atomic_op_test(T old_val, T update) {
+  Kokkos::View<T[3], ExecSpace> op_data("op_data");
+  Kokkos::deep_copy(op_data, old_val);
+  int result = 0;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<ExecSpace>(0, 1),
+      KOKKOS_LAMBDA(int, int& local_result) {
+        auto fetch_result =
+            Op::atomic_op(&op_data(0), &op_data(1), &op_data(2), update);
+        T expected_val = Op::op(old_val, update);
+        Kokkos::memory_fence();
+        if (op_data(0) != expected_val) local_result += 1;
+        if (op_data(1) != expected_val) local_result += 2;
+        if (op_data(2) != expected_val) local_result += 4;
+        if (fetch_result.first != old_val) local_result += 8;
+        if (fetch_result.second != expected_val) local_result += 16;
+      },
+      result);
+  if ((result & 1) != 0)
+    printf("atomic_%s failed with type %s\n", Op::name(), typeid(T).name());
+  if ((result & 2) != 0)
+    printf("atomic_fetch_%s failed with type %s\n", Op::name(),
+           typeid(T).name());
+  if ((result & 4) != 0)
+    printf("atomic_%s_fetch failed with type %s\n", Op::name(),
+           typeid(T).name());
+  if ((result & 8) != 0)
+    printf("atomic_fetch_%s did not return old value with type %s\n",
+           Op::name(), typeid(T).name());
+  if ((result & 16) != 0)
+    printf("atomic_%s_fetch did not return updated value with type %s\n",
+           Op::name(), typeid(T).name());
+
+  return result == 0;
 }
 
 //---------------------------------------------------
 //--------------atomic_test_control------------------
 //---------------------------------------------------
 
-template <class T, class DeviceType>
-bool AtomicOperationsTestIntegralType(int i0, int i1, int test) {
+template <class T, class ExecSpace>
+bool AtomicOperationsTestIntegralType(int old_val_in, int update_in, int test) {
+  T old_val = static_cast<T>(old_val_in);
+  T update  = static_cast<T>(update_in);
   switch (test) {
-    case 1: return MaxAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 2: return MinAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 3: return MulAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 4: return DivAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 5: return ModAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 6: return AndAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 7: return OrAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 8: return XorAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 9: return LShiftAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 10: return RShiftAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 11: return IncAtomicTest<T, DeviceType>((T)i0);
-    case 12: return DecAtomicTest<T, DeviceType>((T)i0);
-    case 13: return LoadStoreAtomicTest<T, DeviceType>((T)i0, (T)i1);
+    case 0: return atomic_op_test<AddAtomicTest, T, ExecSpace>(old_val, update);
+    case 1: return atomic_op_test<SubAtomicTest, T, ExecSpace>(old_val, update);
+    case 2: return atomic_op_test<MaxAtomicTest, T, ExecSpace>(old_val, update);
+    case 3: return atomic_op_test<MinAtomicTest, T, ExecSpace>(old_val, update);
+    case 4: return atomic_op_test<MulAtomicTest, T, ExecSpace>(old_val, update);
+    case 5:
+      return update != 0
+                 ? atomic_op_test<DivAtomicTest, T, ExecSpace>(old_val, update)
+                 : true;
+    case 6:
+      return update != 0
+                 ? atomic_op_test<ModAtomicTest, T, ExecSpace>(old_val, update)
+                 : true;
+    case 7: return atomic_op_test<AndAtomicTest, T, ExecSpace>(old_val, update);
+    case 8: return atomic_op_test<OrAtomicTest, T, ExecSpace>(old_val, update);
+    case 9: return atomic_op_test<XorAtomicTest, T, ExecSpace>(old_val, update);
+    case 10:
+      return atomic_op_test<NandAtomicTest, T, ExecSpace>(old_val, update);
+    case 11:
+      return update_in >= 0 ? atomic_op_test<LShiftAtomicTest, T, ExecSpace>(
+                                  old_val, update)
+                            : true;
+    case 12:
+      return update_in >= 0 ? atomic_op_test<RShiftAtomicTest, T, ExecSpace>(
+                                  old_val, update)
+                            : true;
+    case 13:
+      return atomic_op_test<IncAtomicTest, T, ExecSpace>(old_val, update);
+    case 14:
+      return atomic_op_test<DecAtomicTest, T, ExecSpace>(old_val, update);
+    case 15:
+      return atomic_op_test<LoadStoreAtomicTest, T, ExecSpace>(old_val, update);
   }
 
-  return 0;
+  return true;
 }
 
-template <class T, class DeviceType>
-bool AtomicOperationsTestUnsignedIntegralType(int i0, int i1, int test) {
+template <class T, class ExecSpace>
+bool AtomicOperationsTestUnsignedIntegralType(int old_val_in, int update_in,
+                                              int test) {
+  T old_val = static_cast<T>(old_val_in);
+  T update  = static_cast<T>(update_in);
   switch (test) {
-    case 1: return WrappingIncAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 2: return WrappingDecAtomicTest<T, DeviceType>((T)i0, (T)i1);
+    case 1:
+      return atomic_op_test<IncModAtomicTest, T, ExecSpace>(old_val, update);
+    case 2:
+      return atomic_op_test<DecModAtomicTest, T, ExecSpace>(old_val, update);
   }
 
-  return 0;
+  return true;
 }
 
-template <class T, class DeviceType>
-bool AtomicOperationsTestNonIntegralType(int i0, int i1, int test) {
+template <class T, class ExecSpace>
+bool AtomicOperationsTestNonIntegralType(int old_val_in, int update_in,
+                                         int test) {
+  T old_val = static_cast<T>(old_val_in);
+  T update  = static_cast<T>(update_in);
   switch (test) {
-    case 1: return MaxAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 2: return MinAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 3: return MulAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 4: return DivAtomicTest<T, DeviceType>((T)i0, (T)i1);
-    case 5: return LoadStoreAtomicTest<T, DeviceType>((T)i0, (T)i1);
+    case 0: return atomic_op_test<AddAtomicTest, T, ExecSpace>(old_val, update);
+    case 1: return atomic_op_test<SubAtomicTest, T, ExecSpace>(old_val, update);
+    case 2: return atomic_op_test<MaxAtomicTest, T, ExecSpace>(old_val, update);
+    case 3: return atomic_op_test<MinAtomicTest, T, ExecSpace>(old_val, update);
+    case 4: return atomic_op_test<MulAtomicTest, T, ExecSpace>(old_val, update);
+    case 5:
+      return update != 0
+                 ? atomic_op_test<DivAtomicTest, T, ExecSpace>(old_val, update)
+                 : true;
+    case 6:
+      return atomic_op_test<LoadStoreAtomicTest, T, ExecSpace>(old_val, update);
   }
 
-  return 0;
+  return true;
 }
-
 }  // namespace TestAtomicOperations

@@ -203,6 +203,10 @@ int FixAtomSwap::setmask()
 
 void FixAtomSwap::init()
 {
+  if (!atom->mass) error->all(FLERR, "Fix atom/swap requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix atom/swap will use per-type masses for velocity rescaling");
+
   c_pe = modify->get_compute_by_id("thermo_pe");
 
   int *type = atom->type;

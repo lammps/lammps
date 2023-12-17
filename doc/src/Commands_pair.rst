@@ -87,7 +87,7 @@ OPT.
    * :doc:`coul/long/soft (o) <pair_fep_soft>`
    * :doc:`coul/msm (o) <pair_coul>`
    * :doc:`coul/slater/cut <pair_coul_slater>`
-   * :doc:`coul/slater/long <pair_coul_slater>`
+   * :doc:`coul/slater/long (g) <pair_coul_slater>`
    * :doc:`coul/shield <pair_coul_shield>`
    * :doc:`coul/streitz <pair_coul>`
    * :doc:`coul/tt <pair_coul_tt>`
@@ -110,7 +110,7 @@ OPT.
    * :doc:`eam/he <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
-   * :doc:`edpd <pair_mesodpd>`
+   * :doc:`edpd (g) <pair_mesodpd>`
    * :doc:`eff/cut <pair_eff>`
    * :doc:`eim (o) <pair_eim>`
    * :doc:`exp6/rx (k) <pair_exp6_rx>`
@@ -158,14 +158,14 @@ OPT.
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
-   * :doc:`lj/cut/coul/cut/soft (o) <pair_fep_soft>`
+   * :doc:`lj/cut/coul/cut/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`
    * :doc:`lj/cut/coul/long/dielectric (o) <pair_dielectric>`
-   * :doc:`lj/cut/coul/long/soft (o) <pair_fep_soft>`
+   * :doc:`lj/cut/coul/long/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>`
    * :doc:`lj/cut/coul/wolf (o) <pair_lj_cut_coul>`
@@ -202,7 +202,7 @@ OPT.
    * :doc:`lubricate/poly (o) <pair_lubricate>`
    * :doc:`lubricateU <pair_lubricateU>`
    * :doc:`lubricateU/poly <pair_lubricateU>`
-   * :doc:`mdpd <pair_mesodpd>`
+   * :doc:`mdpd (g) <pair_mesodpd>`
    * :doc:`mdpd/rhosum <pair_mesodpd>`
    * :doc:`meam (k) <pair_meam>`
    * :doc:`meam/ms (k) <pair_meam>`
@@ -220,7 +220,8 @@ OPT.
    * :doc:`morse/soft <pair_fep_soft>`
    * :doc:`multi/lucy <pair_multi_lucy>`
    * :doc:`multi/lucy/rx (k) <pair_multi_lucy_rx>`
-   * :doc:`nb3b/harmonic <pair_nb3b_harmonic>`
+   * :doc:`nb3b/harmonic <pair_nb3b>`
+   * :doc:`nb3b/screened <pair_nb3b>`
    * :doc:`nm/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/long (o) <pair_nm>`
@@ -265,13 +266,13 @@ OPT.
    * :doc:`smd/tri_surface <pair_smd_triangulated_surface>`
    * :doc:`smd/ulsph <pair_smd_ulsph>`
    * :doc:`smtbq <pair_smtbq>`
-   * :doc:`snap (k) <pair_snap>`
+   * :doc:`snap (ik) <pair_snap>`
    * :doc:`soft (go) <pair_soft>`
-   * :doc:`sph/heatconduction <pair_sph_heatconduction>`
+   * :doc:`sph/heatconduction (g) <pair_sph_heatconduction>`
    * :doc:`sph/idealgas <pair_sph_idealgas>`
-   * :doc:`sph/lj <pair_sph_lj>`
+   * :doc:`sph/lj (g) <pair_sph_lj>`
    * :doc:`sph/rhosum <pair_sph_rhosum>`
-   * :doc:`sph/taitwater <pair_sph_taitwater>`
+   * :doc:`sph/taitwater (g) <pair_sph_taitwater>`
    * :doc:`sph/taitwater/morris <pair_sph_taitwater_morris>`
    * :doc:`spin/dipole/cut <pair_spin_dipole>`
    * :doc:`spin/dipole/long <pair_spin_dipole>`
@@ -305,5 +306,5 @@ OPT.
    * :doc:`wf/cut <pair_wf_cut>`
    * :doc:`ylz <pair_ylz>`
    * :doc:`yukawa (gko) <pair_yukawa>`
-   * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
+   * :doc:`yukawa/colloid (gko) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

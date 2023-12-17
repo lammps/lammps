@@ -81,7 +81,6 @@ TEST(TEST_CATEGORY, md_range_policy_construction_from_arrays) {
   construct_mdrange_policy_variable_type<std::int64_t>();
 }
 
-#ifndef KOKKOS_COMPILER_NVHPC       // FIXME_NVHPC
 #ifndef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
 TEST(TEST_CATEGORY_DEATH, policy_bounds_unsafe_narrowing_conversions) {
   using Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
@@ -94,7 +93,6 @@ TEST(TEST_CATEGORY_DEATH, policy_bounds_unsafe_narrowing_conversions) {
       },
       "unsafe narrowing conversion");
 }
-#endif
 #endif
 
 }  // namespace

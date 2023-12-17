@@ -25,7 +25,8 @@ TEST(sycl, raw_sycl_queues) {
   Kokkos::Experimental::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 
-  sycl::queue queue(default_context, sycl::default_selector_v);
+  sycl::queue queue(default_context, sycl::default_selector_v,
+                    sycl::property::queue::in_order());
   int* p            = sycl::malloc_device<int>(100, queue);
   using MemorySpace = typename TEST_EXECSPACE::memory_space;
 

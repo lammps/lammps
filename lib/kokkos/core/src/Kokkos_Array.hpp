@@ -163,8 +163,8 @@ struct Array<T, 0, Proxy> {
     return *reinterpret_cast<const_pointer>(-1);
   }
 
-  KOKKOS_INLINE_FUNCTION pointer data() { return pointer(0); }
-  KOKKOS_INLINE_FUNCTION const_pointer data() const { return const_pointer(0); }
+  KOKKOS_INLINE_FUNCTION pointer data() { return nullptr; }
+  KOKKOS_INLINE_FUNCTION const_pointer data() const { return nullptr; }
 
   KOKKOS_DEFAULTED_FUNCTION ~Array()            = default;
   KOKKOS_DEFAULTED_FUNCTION Array()             = default;
@@ -199,7 +199,7 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::contiguous> {
   using const_pointer   = std::add_const_t<T>*;
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size() const { return m_size; }
-  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 != m_size; }
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 == m_size; }
   KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return m_size; }
 
   template <typename iType>
@@ -234,14 +234,14 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::contiguous> {
 
   KOKKOS_INLINE_FUNCTION
   Array& operator=(const Array& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
     for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
     return *this;
   }
 
   template <size_t N, class P>
   KOKKOS_INLINE_FUNCTION Array& operator=(const Array<T, N, P>& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
     for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
     return *this;
   }
@@ -268,7 +268,7 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
   using const_pointer   = std::add_const_t<T>*;
 
   KOKKOS_INLINE_FUNCTION constexpr size_type size() const { return m_size; }
-  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 != m_size; }
+  KOKKOS_INLINE_FUNCTION constexpr bool empty() const { return 0 == m_size; }
   KOKKOS_INLINE_FUNCTION constexpr size_type max_size() const { return m_size; }
 
   template <typename iType>
@@ -303,15 +303,15 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
 
   KOKKOS_INLINE_FUNCTION
   Array& operator=(const Array& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
-    for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
+    for (size_t i = 0; i < n; ++i) m_elem[i * m_stride] = rhs[i];
     return *this;
   }
 
   template <size_t N, class P>
   KOKKOS_INLINE_FUNCTION Array& operator=(const Array<T, N, P>& rhs) {
-    const size_t n = std::min(m_size, rhs.size());
-    for (size_t i = 0; i < n; ++i) m_elem[i] = rhs[i];
+    const size_t n = size() < rhs.size() ? size() : rhs.size();
+    for (size_t i = 0; i < n; ++i) m_elem[i * m_stride] = rhs[i];
     return *this;
   }
 

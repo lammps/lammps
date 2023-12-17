@@ -37,18 +37,19 @@ using MathConst::MY_PI;
 #define DELTA 4
 #define SMALL 0.001
 
+static const char *substyle[] = {"nb3n/harmonic", "nb3b/screened"};
+
 /* ---------------------------------------------------------------------- */
 
-PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp)
+PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp), params(nullptr)
 {
+  variant = HARMONIC;
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
-
-  params = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -191,9 +192,10 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
 
 void PairNb3bHarmonic::init_style()
 {
-  if (atom->tag_enable == 0) error->all(FLERR, "Pair style nb3b/harmonic requires atom IDs");
+  if (atom->tag_enable == 0)
+    error->all(FLERR, "Pair style {} requires atom IDs", substyle[variant]);
   if (force->newton_pair == 0)
-    error->all(FLERR, "Pair style nb3b/harmonic requires newton pair on");
+    error->all(FLERR, "Pair style {} requires newton pair on", substyle[variant]);
 
   // need a full neighbor list
 
@@ -222,14 +224,14 @@ void PairNb3bHarmonic::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "nb3b/harmonic", unit_convert_flag);
+    PotentialFileReader reader(lmp, file, substyle[variant], unit_convert_flag);
     char *line;
 
     // transparently convert units for supported conversions
 
     int unit_convert = reader.get_unit_convert();
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
-    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE + ((variant == SCREENED) ? 1 : 0)))) {
       try {
         ValueTokenizer values(line);
 
@@ -269,6 +271,14 @@ void PairNb3bHarmonic::read_file(char *file)
         params[nparams].kelement = kelement;
         params[nparams].k_theta = values.next_double();
         params[nparams].theta0 = values.next_double();
+        params[nparams].invrho = 1.0;    // dummy value
+        if (variant == SCREENED) {
+          double rho = values.next_double();
+          if (rho > 0.0)
+            params[nparams].invrho = 1.0 / rho;
+          else
+            throw TokenizerException("Incorrect value for potential parameter", "rho");
+        }
         params[nparams].cutoff = values.next_double();
 
         if (unit_convert) params[nparams].k_theta *= conversion_factor;
@@ -276,9 +286,9 @@ void PairNb3bHarmonic::read_file(char *file)
         error->one(FLERR, e.what());
       }
 
-      if (params[nparams].k_theta < 0.0 || params[nparams].theta0 < 0.0 ||
-          params[nparams].cutoff < 0.0)
-        error->one(FLERR, "Illegal nb3b/harmonic parameter");
+      if ((params[nparams].k_theta < 0.0) || (params[nparams].theta0 < 0.0) ||
+          (params[nparams].cutoff < 0.0))
+        error->one(FLERR, "Illegal {} parameter", substyle[variant]);
 
       nparams++;
     }

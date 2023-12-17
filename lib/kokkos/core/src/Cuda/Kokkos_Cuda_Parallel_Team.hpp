@@ -554,9 +554,10 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     m_shmem_size =
         (m_policy.scratch_size(0, m_team_size) +
          FunctorTeamShmemSize<FunctorType>::value(m_functor, m_team_size));
-    m_scratch_size[0] = m_policy.scratch_size(0, m_team_size);
-    m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
-    m_scratch_locks   = internal_space_instance->m_scratch_locks;
+    m_scratch_size[0]   = m_policy.scratch_size(0, m_team_size);
+    m_scratch_size[1]   = m_policy.scratch_size(1, m_team_size);
+    m_scratch_locks     = internal_space_instance->m_scratch_locks;
+    m_num_scratch_locks = internal_space_instance->m_num_scratch_locks;
 
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.

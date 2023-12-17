@@ -64,9 +64,9 @@ static void callback(void *handle, step_t timestep, int nlocal, tag_t *, double 
 
 TEST(lammps_external, callback)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *handle       = lammps_open_no_mpi(argc, argv, nullptr);
@@ -131,9 +131,9 @@ TEST(lammps_external, callback)
 
 TEST(lammps_external, array)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *handle       = lammps_open_no_mpi(argc, argv, nullptr);

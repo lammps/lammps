@@ -46,6 +46,33 @@
 /mdi_plugin.cpp
 /mdi_plugin.h
 
+/amoeba_charge_transfer.cpp
+/amoeba_convolution.cpp
+/amoeba_convolution.h
+/amoeba_dispersion.cpp
+/amoeba_file.cpp
+/amoeba_hal.cpp
+/amoeba_induce.cpp
+/amoeba_kspace.cpp
+/amoeba_multipole.cpp
+/amoeba_polar.cpp
+/amoeba_repulsion.cpp
+/amoeba_utils.cpp
+/angle_amoeba.cpp
+/angle_amoeba.h
+/atom_vec_amoeba.cpp
+/atom_vec_amoeba.h
+/fix_amoeba_bitorsion.cpp
+/fix_amoeba_bitorsion.h
+/fix_amoeba_pitorsion.cpp
+/fix_amoeba_pitorsion.h
+/improper_amoeba.cpp
+/improper_amoeba.h
+/pair_amoeba.cpp
+/pair_amoeba.h
+/pair_hippo.cpp
+/pair_hippo.h
+
 /fix_brownian*.cpp
 /fix_brownian*.h
 /fix_propel_self.cpp
@@ -73,6 +100,8 @@
 /lepton_utils.cpp
 /lepton_utils.h
 
+/compute_pace.cpp
+/compute_pace.h
 /pair_pace.cpp
 /pair_pace.h
 /pair_pace_extrapolation.cpp
@@ -602,8 +631,14 @@
 /compute_pressure_grem.h
 /compute_ptm_atom.cpp
 /compute_ptm_atom.h
+/compute_rattlers_atom.cpp
+/compute_rattlers_atom.h
+/compute_reaxff_atom.cpp
+/compute_reaxff_atom.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
+/compute_slcsa_atom.cpp
+/compute_slcsa_atom.h
 /compute_smd_triangle_vertices.cpp
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp
@@ -885,6 +920,8 @@
 /fix_nvt_sllod_eff.h
 /fix_nve_tri.cpp
 /fix_nve_tri.h
+/fix_nonaffine_displacement.cpp
+/fix_nonaffine_displacement.h
 /fix_oneway.cpp
 /fix_oneway.h
 /fix_orient_bcc.cpp
@@ -1297,6 +1334,8 @@
 /pair_morse_soft.h
 /pair_nb3b_harmonic.cpp
 /pair_nb3b_harmonic.h
+/pair_nb3b_screened.cpp
+/pair_nb3b_screened.h
 /pair_nm_cut.cpp
 /pair_nm_cut.h
 /pair_nm_cut_coul_cut.cpp

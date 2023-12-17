@@ -60,8 +60,6 @@ void HIP::impl_initialize(InitializationSettings const& settings) {
   if (Impl::HIPTraits::WarpSize < Impl::HIPInternal::m_maxWarpCount) {
     Impl::HIPInternal::m_maxWarpCount = Impl::HIPTraits::WarpSize;
   }
-  int constexpr WordSize              = sizeof(size_type);
-  Impl::HIPInternal::m_maxSharedWords = hipProp.sharedMemPerBlock / WordSize;
 
   //----------------------------------
   // Maximum number of blocks
@@ -103,15 +101,19 @@ HIP::HIP()
       "HIP instance constructor");
 }
 
-HIP::HIP(hipStream_t const stream, bool manage_stream)
+HIP::HIP(hipStream_t const stream, Impl::ManageStream manage_stream)
     : m_space_instance(new Impl::HIPInternal, [](Impl::HIPInternal* ptr) {
         ptr->finalize();
         delete ptr;
       }) {
   Impl::HIPInternal::singleton().verify_is_initialized(
       "HIP instance constructor");
-  m_space_instance->initialize(stream, manage_stream);
+  m_space_instance->initialize(stream, static_cast<bool>(manage_stream));
 }
+
+KOKKOS_DEPRECATED HIP::HIP(hipStream_t const stream, bool manage_stream)
+    : HIP(stream,
+          manage_stream ? Impl::ManageStream::yes : Impl::ManageStream::no) {}
 
 void HIP::print_configuration(std::ostream& os, bool /*verbose*/) const {
   os << "Device Execution Space:\n";

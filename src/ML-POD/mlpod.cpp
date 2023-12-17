@@ -328,7 +328,7 @@ void MLPOD::read_pod(const std::string &pod_file)
 
     if (words.size() == 0) continue;
 
-    auto keywd = words[0];
+    const auto &keywd = words[0];
 
     if (keywd == "species") {
       pod.nelements = words.size()-1;

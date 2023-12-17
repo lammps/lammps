@@ -1,11 +1,11 @@
 Handling LAMMPS errors
 **********************
 
-The shared library is compiled with :ref:`C++ exception support
-<exceptions>` to provide a better error handling experience.  C++
-exceptions allow capturing errors on the C++ side and rethrowing them on
-the Python side.  This way LAMMPS errors can be handled through the
-Python exception handling mechanism.
+LAMMPS and the LAMMPS library are compiled with :ref:`C++ exception support
+<exceptions>` to provide a better error handling experience.  LAMMPS errors
+trigger throwing a C++ exception. These exceptions allow capturing errors on
+the C++ side and rethrowing them on the Python side.  This way LAMMPS errors
+can be handled through the Python exception handling mechanism.
 
 .. code-block:: python
 
@@ -15,9 +15,7 @@ Python exception handling mechanism.
 
    try:
       # LAMMPS will normally terminate itself and the running process if an error
-      # occurs. This would kill the Python interpreter. To avoid this, make sure to
-      # compile with LAMMPS_EXCEPTIONS enabled. This ensures the library API calls
-      # will not terminate the parent process. Instead, the library wrapper will
+      # occurs. This would kill the Python interpreter.  The library wrapper will
       # detect that an error has occured and throw a Python exception
 
       lmp.command('unknown')

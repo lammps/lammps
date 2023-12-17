@@ -111,9 +111,6 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
 Output::~Output()
 {
-  if (thermo) delete thermo;
-  delete[] var_thermo;
-
   memory->destroy(mode_dump);
   memory->destroy(every_dump);
   memory->destroy(every_time_dump);
@@ -134,6 +131,10 @@ Output::~Output()
   delete restart;
 
   delete dump_map;
+
+  if (thermo) delete thermo;
+  delete[] var_thermo;
+
 }
 
 /* ---------------------------------------------------------------------- */

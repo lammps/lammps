@@ -29,9 +29,9 @@ namespace Experimental {
 namespace Impl {
 
 template <class ExecutionSpace, class IteratorType>
-IteratorType shift_left_impl(const std::string& label, const ExecutionSpace& ex,
-                             IteratorType first, IteratorType last,
-                             typename IteratorType::difference_type n) {
+IteratorType shift_left_exespace_impl(
+    const std::string& label, const ExecutionSpace& ex, IteratorType first,
+    IteratorType last, typename IteratorType::difference_type n) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
@@ -100,6 +100,40 @@ IteratorType shift_left_impl(const std::string& label, const ExecutionSpace& ex,
                          step2_func_type(begin(tmp_view), first));
 
   ex.fence("Kokkos::shift_left: fence after operation");
+
+  return last - n;
+}
+
+template <class TeamHandleType, class IteratorType>
+KOKKOS_FUNCTION IteratorType shift_left_team_impl(
+    const TeamHandleType& teamHandle, IteratorType first, IteratorType last,
+    typename IteratorType::difference_type n) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+  KOKKOS_EXPECTS(n >= 0);
+
+  // handle trivial cases
+  if (n == 0) {
+    return last;
+  }
+
+  if (n >= Kokkos::Experimental::distance(first, last)) {
+    return first;
+  }
+
+  // we cannot use here a new allocation like we do for the
+  // execution space impl because for this team impl we are
+  // within a parallel region, so for now we solve serially
+
+  const std::size_t numElementsToMove =
+      ::Kokkos::Experimental::distance(first + n, last);
+  Kokkos::single(Kokkos::PerTeam(teamHandle), [=]() {
+    for (std::size_t i = 0; i < numElementsToMove; ++i) {
+      first[i] = std::move(first[i + n]);
+    }
+  });
+  teamHandle.team_barrier();
 
   return last - n;
 }

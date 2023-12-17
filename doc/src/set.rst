@@ -26,7 +26,8 @@ Syntax
   or *mol* or *x* or *y* or *z* or *vx* or *vy* or *vz* or *charge* or
   *dipole* or *dipole/random* or *quat* or *spin/atom* or *spin/atom/random* or
   *spin/electron* or *radius/electron* or
-  *quat* or *quat/random* or *diameter* or *shape* or *length* or *tri* or
+  *quat* or *quat/random* or *diameter* or *shape* or *block* or *length* or
+  *tri* or
   *theta* or *theta/random* or *angmom* or *omega* or
   *mass* or *density* or *density/disc* or *temperature* or
   *volume* or *image* or *bond* or *angle* or *dihedral* or
@@ -86,6 +87,8 @@ Syntax
          value can be an atom-style variable (see below)
        *shape* value = Sx Sy Sz
          Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
+       *block* value = block1, block2
+         block1,block2 = 2 blockiness parameters for super-ellipsoids
        *length* value = len
          len = length of line segment (distance units)
          len can be an atom-style variable (see below)
@@ -380,6 +383,18 @@ are the 3 diameters of the ellipsoid in each direction.  All 3 can be
 set to the same value, which means the ellipsoid is effectively a
 sphere.  They can also all be set to 0.0 which means the particle will
 be treated as a point particle.  Note that this command does not
+adjust the particle mass, even if it was defined with a density,
+e.g. via the :doc:`read_data <read_data>` command.
+
+Keyword *block* sets the blockiness of the selected atoms.  The
+particles must be ellipsoids as defined by the :doc:`atom_style
+ellipsoid <atom_style>` command.  This command is used to define
+super-ellipsoid particle shapes for use in granular simulations.
+The *block1*, *block2* settings are the 2 exponents of the super-ellipsoid
+in the horizontal and vertical directions.  Vertical sections through the
+center are superellipses with squareness *block1* and horizontal sections
+are superellipses with squareness *block2*.  If both parameters are set to
+a value of 2 (the default), the atom is an ellipsoid. Note that this command does not
 adjust the particle mass, even if it was defined with a density,
 e.g. via the :doc:`read_data <read_data>` command.
 

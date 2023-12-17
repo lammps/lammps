@@ -45,7 +45,7 @@ using namespace MathConst;
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
 enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
-     MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
+     MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,BLOCK,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN_ATOM,SPIN_RANDOM,SPIN_ELECTRON,RADIUS_ELECTRON,
      QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,TEMPERATURE,
      DIAMETER,RADIUS_ATOM,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
@@ -230,6 +230,17 @@ void Set::command(int narg, char **arg)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
       set(SHAPE);
       iarg += 4;
+
+    } else if (strcmp(arg[iarg],"block") == 0) {
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "set block", error);
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else xvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (utils::strmatch(arg[iarg+2],"^v_")) varparse(arg[iarg+2],2);
+      else yvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (!atom->ellipsoid_flag)
+        error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
+      set(BLOCK);
+      iarg += 3;
 
     } else if (strcmp(arg[iarg],"length") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set length", error);
@@ -835,6 +846,7 @@ void Set::set(int keyword)
   case MASS:
   case ANGMOM:
   case SHAPE:
+  case BLOCK:
   case DIAMETER:
   case DENSITY:
   case TEMPERATURE:
@@ -943,6 +955,13 @@ void Set::set(int keyword)
       avec_ellipsoid->set_shape(i,0.5*xvalue,0.5*yvalue,0.5*zvalue);
     }
 
+    // set blockiness of super-ellipsoidal particle
+
+    else if (keyword == BLOCK) {
+      if (xvalue < 2.0 || yvalue < 2.0)
+        error->one(FLERR,"Invalid block in set command");
+      avec_ellipsoid->set_block(i,xvalue,yvalue);
+    }
     // set length of line particle
 
     else if (keyword == LENGTH) {
@@ -974,12 +993,14 @@ void Set::set(int keyword)
             atom->radius[i]*atom->radius[i]*atom->radius[i] * dvalue;
       else if (atom->ellipsoid_flag && atom->ellipsoid[i] >= 0) {
         double *shape = avec_ellipsoid->bonus[atom->ellipsoid[i]].shape;
+        double *block = avec_ellipsoid->bonus[atom->ellipsoid[i]].block;
+        bool flag_super = avec_ellipsoid->bonus[atom->ellipsoid[i]].flag_super;
         // enable 2d ellipse (versus 3d ellipsoid) when time integration
         //   options (fix nve/asphere, fix nh/asphere) are also implemented
         // if (discflag)
         // atom->rmass[i] = MY_PI*shape[0]*shape[1] * dvalue;
         // else
-        atom->rmass[i] = 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2] * dvalue;
+        atom->rmass[i] = avec_ellipsoid->compute_volume(shape, block, flag_super) * dvalue;
       } else if (atom->line_flag && atom->line[i] >= 0) {
         double length = avec_line->bonus[atom->line[i]].length;
         atom->rmass[i] = length * dvalue;

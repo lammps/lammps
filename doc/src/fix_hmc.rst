@@ -11,7 +11,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * hmc = style name of this fix command
-* N = invoke this fix every N steps
+* N = invoke a Monto Carlo step every N steps
 * seed = random # seed (positive integer)
 * temp = temperature for assigning velocities
 * integrator = integrator fix: flexible (for nve) or rigid (for rigid/small)
@@ -46,7 +46,7 @@ in the Hamiltonian, :math:`\Delta{H}` is calculated following the equation:
 
 .. math::
 
-   \Delta{H} = H(q\prime,p\prime) -  H(q,p)
+   \Delta{H} = H(q',p') -  H(q,p)
 
 This new proposed configuration is then accepted/rejected according to
 the Metropolis criterion with probability:

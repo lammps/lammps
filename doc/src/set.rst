@@ -87,8 +87,10 @@ Syntax
          value can be an atom-style variable (see below)
        *shape* value = Sx Sy Sz
          Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
+         any of Sx,Sy,Sz can be an atom-style variable (see below)
        *block* value = block1, block2
          block1,block2 = 2 blockiness parameters for super-ellipsoids
+         any of block1,block2 can be an atom-style variable (see below)
        *length* value = len
          len = length of line segment (distance units)
          len can be an atom-style variable (see below)
@@ -168,6 +170,7 @@ Examples
    set atom * charge v_atomfile
    set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
+   set atom 200 shape 1.5 2.0 4.0 block 2.0 4.0
    set atom 1492 type 3
    set atom 1492 type H
    set atom * i_myVal 5
@@ -391,10 +394,14 @@ particles must be ellipsoids as defined by the :doc:`atom_style
 ellipsoid <atom_style>` command.  This command is used to define
 super-ellipsoid particle shapes for use in granular simulations.
 The *block1*, *block2* settings are the 2 exponents of the super-ellipsoid
-in the horizontal and vertical directions.  Vertical sections through the
+in the vertical and horizontal directions.  Vertical sections through the
 center are superellipses with squareness *block1* and horizontal sections
 are superellipses with squareness *block2*.  If both parameters are set to
-a value of 2 (the default), the atom is an ellipsoid. Note that this command does not
+a value of 2 (the default), the atom is a regular ellipsoid.  The keyword
+*block* should be used together with the keyword *shape* to give the particle
+the desired shape.  If the keyword *block* is given alone, and the *shape* has
+not been defined, e.g., in a previous *set* command, the 3 diameters would be
+set to a value of 1 internally.  Note that this command does not
 adjust the particle mass, even if it was defined with a density,
 e.g. via the :doc:`read_data <read_data>` command.
 

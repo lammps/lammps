@@ -648,6 +648,9 @@ void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
     double *quat = bonus[nlocal_bonus].quat;
     double *block = bonus[nlocal_bonus].block;
     bool &flag_super = bonus[nlocal_bonus].flag_super;
+    shape[0] = 0.5;
+    shape[1] = 0.5;
+    shape[2] = 0.5;
     block[0] = blockn1;
     block[1] = blockn2;
     block[2] = blockn1 / blockn2;

@@ -439,6 +439,13 @@ void FixHMC::init()
 {
   int ntimestep = update->ntimestep;
 
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use fix hmc unless atoms have IDs");
+
+  if (neighbor->dist_check != 0) error->all(FLERR, "Must use 'neigh_modify check no'");
+  if (neighbor->delay != 0) error->all(FLERR, "Must use 'neigh_modify delay 0'");
+  if ((neighbor->every % nevery) > 0)
+    error->all(FLERR, "Must use 'neigh_modify every' with multiple of {}", nevery);
+
   // Check whether there is any fixes that change box size and/or shape:
   for (int i = 0; i < modify->nfix; i++) {
     if (modify->fix[i]->box_change)

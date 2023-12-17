@@ -85,9 +85,9 @@ velocities are not resampled upon acceptance.
 Restrictions
 """"""""""""
 
-This fix is part of the MC package.  It is only enabled if LAMMPS was
-built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+This fix is part of the MC package and requires the RIGID package to
+be installed. It is only enabled if LAMMPS was built with both packages.
+See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

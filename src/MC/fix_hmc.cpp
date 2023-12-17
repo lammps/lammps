@@ -133,15 +133,19 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
 FixHMC::~FixHMC()
 {
   atom->delete_callback(id, 0);
+
   memory->destroy(eglobal);
   memory->destroy(vglobal);
   memory->destroy(eatom);
   memory->destroy(vatom);
   delete[] eglobalptr;
+  if (vglobalptr)
+    for (int m = 0; m < nv; m++) delete[] vglobalptr[m];
   delete[] vglobalptr;
   delete[] eatomptr;
   delete[] vatomptr;
   delete[] rev_comm;
+  delete random;
   delete random_equal;
   modify->delete_compute(std::string("hmc_ke_") + id);
   modify->delete_compute(std::string("hmc_pe_") + id);
@@ -347,6 +351,8 @@ void FixHMC::setup_arrays_and_pointers()
   for (j = 0; j < modify->nfix; j++)
     if (modify->fix[j]->virial_global_flag) nv++;
   memory->create(vglobal, nv, 6, "fix_hmc:vglobal");
+  if (vglobalptr)
+    for (m = 0; m < nv; m++) delete[] vglobalptr[m];
   delete[] vglobalptr;
   vglobalptr = new double **[nv];
   for (m = 0; m < nv; m++) vglobalptr[m] = new double *[6];

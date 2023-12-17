@@ -252,7 +252,7 @@ int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
       block[0] = buf[m++];
       block[1] = buf[m++];
       block[2] = block[0] / block[1];
-      flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) && (std::fabs(block[1] - 2) > EPSBLOCK2));
+      flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
       bonus[j].flag_super = flag_super;
       bonus[j].ilocal = i;
       bonus[j].radcirc = compute_radcirc(shape, block, flag_super);
@@ -319,7 +319,7 @@ int AtomVecEllipsoid::unpack_exchange_bonus(int ilocal, double *buf)
     block[0] = buf[m++];
     block[1] = buf[m++];
     block[2] = block[0] / block[1];
-    flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) && (std::fabs(block[1] - 2) > EPSBLOCK2));
+    flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = ilocal;
     ellipsoid[ilocal] = nlocal_bonus++;
@@ -405,7 +405,7 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
     block[0] = buf[m++];
     block[1] = buf[m++];
     block[2] = block[0] / block[1];
-    flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) && (std::fabs(block[1] - 2) > EPSBLOCK2));
+    flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = ilocal;
     ellipsoid[ilocal] = nlocal_bonus++;
@@ -450,7 +450,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, const std::vector<std::string> &va
   else {
     block[0] = utils::numeric(FLERR, values[ivalue++], true, lmp);
     block[1] = utils::numeric(FLERR, values[ivalue++], true, lmp);
-    flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) && (std::fabs(block[1] - 2) > EPSBLOCK2));
+    flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
   }
   block[2] = block[0] / block[1]; // ASSUMES EVEN NUMBERS ONLY?
 
@@ -653,7 +653,7 @@ void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
     quat[2] = 0.0;
     quat[3] = 0.0;
     bonus[nlocal_bonus].ilocal = i;
-    flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) && (std::fabs(blockn2 - 2) > EPSBLOCK2));
+    flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) || (std::fabs(blockn2 - 2) > EPSBLOCK2));
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     ellipsoid[i] = nlocal_bonus++;
   } else {
@@ -663,7 +663,7 @@ void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
     block[0] = blockn1;
     block[1] = blockn2;
     block[2] = blockn1 / blockn2;
-    flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) && (std::fabs(blockn2 - 2) > EPSBLOCK2));
+    flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) || (std::fabs(blockn2 - 2) > EPSBLOCK2));
     bonus[ellipsoid[i]].radcirc = compute_radcirc(shape, block, flag_super);
   }
 }

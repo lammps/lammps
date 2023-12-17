@@ -110,9 +110,6 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   // Register callback:
   atom->add_callback(0);
 
-  // Initialize arrays and pointers for saving/restoration of states:
-  setup_arrays_and_pointers();
-
   // Add new computes for global and per-atom properties:
 
   ke = modify->add_compute(fmt::format("hmc_ke_{} all ke", id));
@@ -455,6 +452,9 @@ void FixHMC::init()
       press_flag = press_flag | modify->compute[i]->pressflag;
       pressatom_flag = pressatom_flag | modify->compute[i]->pressatomflag;
     }
+
+  // Initialize arrays and pointers for saving/restoration of states:
+  setup_arrays_and_pointers();
 
   // Count per-atom properties to be exchanged:
   nvalues = 0;

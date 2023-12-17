@@ -22,11 +22,11 @@
 #include "fix.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 
 #include <cstring>
-#include <tr1/cmath>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
@@ -724,8 +724,8 @@ double AtomVecEllipsoid::compute_volume(double *shape, double *block, bool flag_
 
   if (flag_super) {
     double e1 = 2.0 / block[0], e2 = 2.0 / block[1];
-    unitvol = e1 * e2 * std::tr1::beta(0.5 * e1, 1.0 + e1) *
-                        std::tr1::beta(0.5 * e2, 0.5 * e2); // CAN'T GET std::beta to be recognized, need help
+    unitvol = e1 * e2 * MathSpecial::beta(0.5 * e1, 1.0 + e1) *
+                        MathSpecial::beta(0.5 * e2, 0.5 * e2);
   }
   return unitvol * shape[0] * shape[1] * shape[2];
 }

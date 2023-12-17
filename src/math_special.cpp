@@ -668,6 +668,143 @@ double MathSpecial::erfcx_y100(const double y100)
     return 1.0;
 } /* erfcx_y100 */
 
+
+/* Library cephes:
+ *    Some software in this archive may be from the book _Methods and
+ * Programs for Mathematical Functions_ (Prentice-Hall or Simon & Schuster
+ * International, 1989) or from the Cephes Mathematical Library, a
+ * commercial product. In either event, it is copyrighted by the author.
+ * What you see here may be used freely but it comes with no support or
+ * guarantee.
+ *
+ *    The two known misprints in the book are repaired here in the
+ * source listings for the gamma function and the incomplete beta
+ * integral.
+ *
+ *    Stephen L. Moshier
+ *    moshier@na-net.ornl.gov
+ *
+ * File beta.c:
+ *   Beta function
+ *
+ *
+ *
+ *   SYNOPSIS:
+ *
+ *   double a, b, y, beta();
+ *
+ *   y = beta( a, b );
+ *
+ *
+ *
+ *   DESCRIPTION:
+ *
+ *                     -     -
+ *                    | (a) | (b)
+ *   beta( a, b )  =  -----------.
+ *                       -
+ *                      | (a+b)
+ *
+ *   For large arguments the logarithm of the function is
+ *   evaluated using lgam(), then exponentiated.
+ *
+ *
+ *
+ *   ACCURACY:
+ *
+ *                        Relative error:
+ *   arithmetic   domain     # trials      peak         rms
+ *      DEC        0,30        1700       7.7e-15     1.5e-15
+ *      IEEE       0,30       30000       8.1e-14     1.1e-14
+ *
+ *   ERROR MESSAGES:
+ *
+ *     message         condition          value returned
+ *     beta overflow    log(beta) > MAXLOG       0.0
+ *                      a or b <0 integer        0.0
+ *
+ * Copyright:
+ *   Cephes Math Library Release 2.0:  April, 1987
+ *   Copyright 1984, 1987 by Stephen L. Moshier
+ *   Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+ *
+ * Licence:
+ *
+ * Authors:
+ *   Stephen L. Moshier, 1987, core author
+ *
+ * Website:
+ *   https://www.netlib.org/cephes/
+ *   https://github.com/scipy/scipy/blob/main/scipy/special/cephes/beta.c
+ *   (the Scipy implementation contains useful updates adopted here)
+ *
+ */
+
+static constexpr double MAXGAM = 171.624376956302725;
+static constexpr double ASYMP_FACTOR = 1e6;
+static constexpr double MAXLOG = 7.09782712893383996732E2;  /* log(DBL_MAX) */
+
+/* ----------------------------------------------------------------------
+   beta function
+------------------------------------------------------------------------- */
+
+double MathSpecial::beta(double a, double b)
+{
+  // Inputs assumed strictly positive, not checked
+  // Simplifies the original cephes code for our purposes
+  double y;
+
+  if (a < b) {
+    y = a; a = b; b = y;
+  }
+
+  /*
+   * Asymptotic expansion for  ln(|B(a, b)|) for a > ASYMP_FACTOR*max(|b|, 1).
+   */
+  auto lbeta_asymp = [](double aa, double bb) {
+    double r = std::lgamma(bb);
+    r -= bb * std::log(aa);
+
+    r += bb*(1-bb)/(2*aa);
+    r += bb*(1-bb)*(1-2*bb)/(12*aa*aa);
+    r += - bb*bb*(1-bb)*(1-bb)/(12*aa*aa*aa);
+
+    return r;
+  };
+
+  if (a > ASYMP_FACTOR * b && a > ASYMP_FACTOR) {
+    /* Avoid loss of precision in lgam(a + b) - lgam(a) */
+    y = lbeta_asymp(a, b);
+    return std::exp(y);
+  }
+
+  y = a + b;
+  if( y > MAXGAM || a > MAXGAM || b > MAXGAM ) {
+    y = std::lgamma(y);
+    y = std::lgamma(b) - y;
+    y = std::lgamma(a) + y;
+    if( y > MAXLOG ) {
+      // No check for overflow? lmp-error ?
+    }
+    return std::exp(y);
+  }
+
+  y = std::tgamma(y);
+  a = std::tgamma(a);
+  b = std::tgamma(b);
+
+  if (std::fabs(a - y) > std::fabs(b) - fabs(y)) {
+    y = b / y;
+    y *= a;
+  }
+  else {
+    y = a / y;
+    y *= b;
+  }
+
+   return y;
+}
+
 /* optimizer friendly implementation of exp2(x).
  *
  * strategy:

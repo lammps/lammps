@@ -76,8 +76,7 @@ class FixHMC : public Fix {
 
   int resample_on_accept_flag, mom_flag;
 
-  char *mdi;
-  class FixNVE *fix_nve;
+  std::string mdi;
   class FixRigidSmall *fix_rigid;
 
   int nattempts, naccepts;

@@ -59,31 +59,34 @@ enum { ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), stored_bodyown(nullptr), stored_bodytag(nullptr),
     stored_atom2body(nullptr), stored_xcmimage(nullptr), stored_displace(nullptr),
-    stored_eflags(nullptr), stored_orient(nullptr), stored_dorient(nullptr), mdi(nullptr),
-    fix_nve(nullptr), fix_rigid(nullptr), random(nullptr), random_equal(nullptr), rev_comm(nullptr),
-    eatom(nullptr), eatomptr(nullptr), eglobal(nullptr), eglobalptr(nullptr), vglobal(nullptr),
-    vglobalptr(nullptr), vatom(nullptr), vatomptr(nullptr), pe(nullptr), ke(nullptr),
-    peatom(nullptr), press(nullptr), pressatom(nullptr)
+    stored_eflags(nullptr), stored_orient(nullptr), stored_dorient(nullptr), fix_rigid(nullptr),
+    random(nullptr), random_equal(nullptr), rev_comm(nullptr), eatom(nullptr), eatomptr(nullptr),
+    eglobal(nullptr), eglobalptr(nullptr), vglobal(nullptr), vglobalptr(nullptr), vatom(nullptr),
+    vatomptr(nullptr), pe(nullptr), ke(nullptr), peatom(nullptr), press(nullptr), pressatom(nullptr)
 {
-  // set defaults
+  // set some defaults
+
   mom_flag = 1;
   resample_on_accept_flag = 0;
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix hmc", error);
 
   // Retrieve user-defined options:
+
   nevery = utils::numeric(FLERR, arg[3], false, lmp);         // Number of MD steps per MC step
   int seed = utils::numeric(FLERR, arg[4], false, lmp);       // Seed for random number generation
   double temp = utils::numeric(FLERR, arg[5], false, lmp);    // System temperature
 
   // Retrieve the molecular dynamics integrator type:
+
   mdi = arg[6];
-  if (strcmp(mdi, "rigid") != 0 && strcmp(mdi, "flexible") != 0)
+  if ((mdi != "rigid") && (mdi != "flexible"))
     error->all(FLERR, "Unsupported or unknown fix hmc MD integrator type {}", mdi);
 
   KT = force->boltz * temp / force->mvv2e;    // K*T in mvv units
   mbeta = -1.0 / (force->boltz * temp);       // -1/(K*T) in energy units
 
   // Check keywords:
+
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "mom") == 0) {
@@ -131,6 +134,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   add_new_computes();
 
   // Define non-default fix attributes:
+
   global_freq = 1;
   scalar_flag = 1;
   extscalar = 0;
@@ -154,11 +158,12 @@ FixHMC::~FixHMC()
   delete[] vatomptr;
   delete[] rev_comm;
   delete random_equal;
-  modify->delete_compute("hmc_ke");
-  modify->delete_compute("hmc_pe");
-  modify->delete_compute("hmc_peatom");
-  modify->delete_compute("hmc_press");
-  modify->delete_compute("hmc_pressatom");
+  modify->delete_compute(std::string("hmc_ke_") + id);
+  modify->delete_compute(std::string("hmc_pe_") + id);
+  modify->delete_compute(std::string("hmc_peatom_") + id);
+  modify->delete_compute(std::string("hmc_press_") + id);
+  modify->delete_compute(std::string("hmc_pressatom_") + id);
+  modify->delete_fix(std::string("hmc_mdi_") + id);
 
   memory->destroy(stored_tag);
   memory->destroy(stored_bodyown);
@@ -181,20 +186,14 @@ FixHMC::~FixHMC()
 
 void FixHMC::post_constructor()
 {
-  char **newarg = new char *[4];
-  newarg[0] = (char *) "hmc_mdi";
-  newarg[1] = group->names[igroup];
-  if (strcmp(mdi, "flexible") == 0) {
-    newarg[2] = (char *) "nve";
-    modify->add_fix(3, newarg);
+  if (mdi == "flexible") {
+    modify->add_fix(fmt::format("hmc_mdi_{} {} nve", id, group->names[igroup]));
+    rigid_flag = 0;
   } else {
-    newarg[2] = (char *) "rigid/nve/small";
-    newarg[3] = (char *) "molecule";
-    modify->add_fix(4, newarg);
+    fix_rigid = (FixRigidSmall *) modify->add_fix(
+        fmt::format("hmc_mdi_{} {} rigid/small molecule", id, group->names[igroup]));
+    rigid_flag = 1;
   }
-  class Fix *mdfix = modify->fix[modify->find_fix("hmc_mdi")];
-  rigid_flag = mdfix->rigid_flag;
-  if (rigid_flag) fix_rigid = (class FixRigidSmall *) mdfix;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -208,7 +207,9 @@ void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
     error->all(FLERR, "fix hmc tried to store incorrect peratom data");
   }
   int cols;
+
   // free old memory if reallocating and stored_peratom_member isn't a copy of current_peratom_member
+
   if (realloc && stored_peratom_member.address != current_peratom_member.address) {
     free(stored_peratom_member.address);
     stored_peratom_member.address = nullptr;
@@ -426,44 +427,11 @@ void FixHMC::setup_arrays_and_pointers()
 
 void FixHMC::add_new_computes()
 {
-  char **newarg = new char *[5];
-
-  // Add all new computes for group "all":
-  newarg[1] = (char *) "all";
-
-  // Kinetic energy:
-  newarg[0] = (char *) "hmc_ke";
-  newarg[2] = (char *) "ke";
-  modify->add_compute(3, newarg);
-  ke = modify->compute[modify->ncompute - 1];
-
-  // Potential energy:
-  newarg[0] = (char *) "hmc_pe";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3, newarg);
-  pe = modify->compute[modify->ncompute - 1];
-
-  // Per-atom potential energy:
-  newarg[0] = (char *) "hmc_peatom";
-  newarg[2] = (char *) "pe/atom";
-  modify->add_compute(3, newarg);
-  peatom = modify->compute[modify->ncompute - 1];
-
-  // System pressure:
-  newarg[0] = (char *) "hmc_press";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "NULL";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5, newarg);
-  press = modify->compute[modify->ncompute - 1];
-
-  // Per-atom stress tensor:
-  newarg[0] = (char *) "hmc_pressatom";
-  newarg[2] = (char *) "stress/atom";
-  modify->add_compute(5, newarg);
-  pressatom = modify->compute[modify->ncompute - 1];
-
-  delete[] newarg;
+  ke = modify->add_compute(fmt::format("hmc_ke_{} all ke", id));
+  pe = modify->add_compute(fmt::format("hmc_pe_{} all pe", id));
+  peatom = modify->add_compute(fmt::format("hmc_peatom_{} all pe/atom", id));
+  press = modify->add_compute(fmt::format("hmc_press_{} all pressure NULL virial", id));
+  pressatom = modify->add_compute(fmt::format("hmc_pressatom_{} all stress/atom NULL virial", id));
 }
 
 /* ---------------------------------------------------------------------- */

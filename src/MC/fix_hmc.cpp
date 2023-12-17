@@ -57,7 +57,7 @@ enum { ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 /* ---------------------------------------------------------------------- */
 
 FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), stored_bodyown(nullptr), stored_bodytag(nullptr),
+    Fix(lmp, narg, arg), stored_tag(nullptr), stored_bodyown(nullptr), stored_bodytag(nullptr),
     stored_atom2body(nullptr), stored_xcmimage(nullptr), stored_displace(nullptr),
     stored_eflags(nullptr), stored_orient(nullptr), stored_dorient(nullptr), fix_rigid(nullptr),
     random(nullptr), random_equal(nullptr), rev_comm(nullptr), eatom(nullptr), eatomptr(nullptr),
@@ -291,6 +291,7 @@ void FixHMC::setup_arrays_and_pointers()
   // Per-atom scalar properties to be saved and restored:
 
   stored_nmax = 0;    // initialize so the memory gets allocated on first save
+  stored_ntotal_body = 0;
 
   // Determine which energy contributions must be computed:
   ne = 0;
@@ -328,6 +329,7 @@ void FixHMC::setup_arrays_and_pointers()
   // Initialize arrays for managing global energy terms:
   neg = pair_flag ? ne + 1 : ne;
   memory->create(eglobal, neg, "fix_hmc:eglobal");
+  delete[] eglobalptr;
   eglobalptr = new double *[neg];
   m = 0;
   if (pair_flag) {
@@ -345,6 +347,7 @@ void FixHMC::setup_arrays_and_pointers()
   for (j = 0; j < modify->nfix; j++)
     if (modify->fix[j]->virial_global_flag) nv++;
   memory->create(vglobal, nv, 6, "fix_hmc:vglobal");
+  delete[] vglobalptr;
   vglobalptr = new double **[nv];
   for (m = 0; m < nv; m++) vglobalptr[m] = new double *[6];
   for (i = 0; i < 6; i++) {
@@ -371,6 +374,7 @@ void FixHMC::setup_arrays_and_pointers()
   for (i = ne; i < nv; i++) rev_comm[m++] = 0;
 
   // Initialize array of pointers to manage per-atom energies:
+  delete[] eatomptr;
   eatomptr = new double **[ne];
   m = 0;
   if (pair_flag) eatomptr[m++] = &force->pair->eatom;
@@ -381,6 +385,7 @@ void FixHMC::setup_arrays_and_pointers()
   if (kspace_flag) eatomptr[m++] = &force->kspace->eatom;
 
   // Initialize array of pointers to manage per-atom virials:
+  delete[] vatomptr;
   vatomptr = new double ***[nv];
   m = 0;
   if (pair_flag) vatomptr[m++] = &force->pair->vatom;

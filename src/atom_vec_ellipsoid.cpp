@@ -605,7 +605,7 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
     double *block = bonus[nlocal_bonus].block;
-    bool flag_super = bonus[nlocal_bonus].flag_super;
+    bool &flag_super = bonus[nlocal_bonus].flag_super;
     shape[0] = shapex;
     shape[1] = shapey;
     shape[2] = shapez;
@@ -613,6 +613,9 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     quat[1] = 0.0;
     quat[2] = 0.0;
     quat[3] = 0.0;
+    block[0] = 2;
+    block[1] = 2;
+    flag_super = false;
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = i;
     ellipsoid[i] = nlocal_bonus++;

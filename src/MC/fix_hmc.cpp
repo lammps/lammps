@@ -20,6 +20,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_hmc.h"
+
 #include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -55,7 +56,14 @@ enum { ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 
 /* ---------------------------------------------------------------------- */
 
-FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), random_equal(nullptr)
+FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), stored_bodyown(nullptr), stored_bodytag(nullptr),
+    stored_atom2body(nullptr), stored_xcmimage(nullptr), stored_displace(nullptr),
+    stored_eflags(nullptr), stored_orient(nullptr), stored_dorient(nullptr), mdi(nullptr),
+    fix_nve(nullptr), fix_rigid(nullptr), random(nullptr), random_equal(nullptr), rev_comm(nullptr),
+    eatom(nullptr), eatomptr(nullptr), eglobal(nullptr), eglobalptr(nullptr), vglobal(nullptr),
+    vglobalptr(nullptr), vatom(nullptr), vatomptr(nullptr), pe(nullptr), ke(nullptr),
+    peatom(nullptr), press(nullptr), pressatom(nullptr)
 {
   // set defaults
   mom_flag = 1;
@@ -193,7 +201,8 @@ void FixHMC::post_constructor()
 
 template <typename T>
 void FixHMC::store_peratom_member(Atom::PerAtom &stored_peratom_member,
-                                  Atom::PerAtom current_peratom_member, int ntotal, int nmax, int realloc)
+                                  Atom::PerAtom current_peratom_member, int ntotal, int nmax,
+                                  int realloc)
 {
   if (stored_peratom_member.name.compare(current_peratom_member.name)) {
     error->all(FLERR, "fix hmc tried to store incorrect peratom data");
@@ -699,7 +708,6 @@ void FixHMC::save_current_state()
           memcpy(stored_dorient[i], fix_rigid->dorient[i], 3 * sizeof(double));
     }
   }
-
 
   // also reallocate if the number of peratoms has changed
   if (current_peratom.size() != stored_peratom.size()) reallocate_peratoms = true;

@@ -569,6 +569,10 @@ For example, the following output snippet shows the failed unit test
    Expected: (err) <= (epsilon)
    Actual: 0.00022892713393549854 vs 0.0001
 
+The failed assertions provide line numbers in the test source
+(e.g. ``test_main.cpp:56``), from which one can understand what
+specific assertion failed.
+
 Note that the force style engine runs one of a small number of systems
 in a rather off-equilibrium configuration with a few atoms for a few
 steps, writes data and restart files, uses :doc:`the clear command
@@ -606,15 +610,18 @@ and run the test with verbose output. For example,
 
     env TEST_ARGS=-v ctest -R ^MolPairStyle:lj_cut_coul_long -V
 
+``ctest`` with the ``-V`` flag also shows the exact command line
+of the test. One can then use ``gdb --args`` to furthere debug and
+catch exceptions with the test command, for example,
+
+.. code-block:: bash
+
+    gdb --args /path/to/lammps/build/test_pair_style "/path/to/lammps/unittest/force-styles/tests/mol-pair-lj_cut_coul_long.yaml"
+
+
 It is recommended to configure the build with ``-D
 BUILD_SHARED_LIBS=on`` and use a custom linker to shorten the build time
 during recompilation.  Installing `ccache` in your development
 environment helps speed up recompilation by caching previous
 compilations and detecting when the same compilation is being done
 again.  Please see :doc:`Build_development` for further details.
-
-
-
-
-
-

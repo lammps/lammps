@@ -3348,7 +3348,7 @@ void FixBondReact::update_everything()
         dynamic_cast<FixBondHistory *>(ihistory)->clear_cache();
 
     // Angles! First let's delete all angle info:
-    if (force->angle && twomol->angleflag) {
+    if (force->angle) {
       int *num_angle = atom->num_angle;
       int **angle_type = atom->angle_type;
       tagint **angle_atom1 = atom->angle_atom1;
@@ -3389,33 +3389,35 @@ void FixBondReact::update_everything()
           }
         }
         // now let's add the new angle info.
-        for (int j = 0; j < twomol->natoms; j++) {
-          int jj = equivalences[j][1][rxnID]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
-            if (landlocked_atoms[j][rxnID] == 1) {
-              num_angle[atom->map(update_mega_glove[jj+1][i])] = twomol->num_angle[j];
-              delta_angle += twomol->num_angle[j];
-              for (int p = 0; p < twomol->num_angle[j]; p++) {
-                angle_type[atom->map(update_mega_glove[jj+1][i])][p] = twomol->angle_type[j][p];
-                angle_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->angle_atom1[j][p]-1][1][rxnID]][i];
-                angle_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->angle_atom2[j][p]-1][1][rxnID]][i];
-                angle_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->angle_atom3[j][p]-1][1][rxnID]][i];
+        if (twomol->angleflag) {
+          for (int j = 0; j < twomol->natoms; j++) {
+            int jj = equivalences[j][1][rxnID]-1;
+            if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+              if (landlocked_atoms[j][rxnID] == 1) {
+                num_angle[atom->map(update_mega_glove[jj+1][i])] = twomol->num_angle[j];
+                delta_angle += twomol->num_angle[j];
+                for (int p = 0; p < twomol->num_angle[j]; p++) {
+                  angle_type[atom->map(update_mega_glove[jj+1][i])][p] = twomol->angle_type[j][p];
+                  angle_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->angle_atom1[j][p]-1][1][rxnID]][i];
+                  angle_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->angle_atom2[j][p]-1][1][rxnID]][i];
+                  angle_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->angle_atom3[j][p]-1][1][rxnID]][i];
+                }
               }
-            }
-            if (landlocked_atoms[j][rxnID] == 0) {
-              for (int p = 0; p < twomol->num_angle[j]; p++) {
-                if (landlocked_atoms[twomol->angle_atom1[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->angle_atom2[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->angle_atom3[j][p]-1][rxnID] == 1) {
-                  insert_num = num_angle[atom->map(update_mega_glove[jj+1][i])];
-                  angle_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->angle_type[j][p];
-                  angle_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom1[j][p]-1][1][rxnID]][i];
-                  angle_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom2[j][p]-1][1][rxnID]][i];
-                  angle_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom3[j][p]-1][1][rxnID]][i];
-                  num_angle[atom->map(update_mega_glove[jj+1][i])]++;
-                  if (num_angle[atom->map(update_mega_glove[jj+1][i])] > atom->angle_per_atom)
-                    error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
-                  delta_angle++;
+              if (landlocked_atoms[j][rxnID] == 0) {
+                for (int p = 0; p < twomol->num_angle[j]; p++) {
+                  if (landlocked_atoms[twomol->angle_atom1[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->angle_atom2[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->angle_atom3[j][p]-1][rxnID] == 1) {
+                    insert_num = num_angle[atom->map(update_mega_glove[jj+1][i])];
+                    angle_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->angle_type[j][p];
+                    angle_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom1[j][p]-1][1][rxnID]][i];
+                    angle_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom2[j][p]-1][1][rxnID]][i];
+                    angle_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->angle_atom3[j][p]-1][1][rxnID]][i];
+                    num_angle[atom->map(update_mega_glove[jj+1][i])]++;
+                    if (num_angle[atom->map(update_mega_glove[jj+1][i])] > atom->angle_per_atom)
+                      error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
+                    delta_angle++;
+                  }
                 }
               }
             }
@@ -3425,7 +3427,7 @@ void FixBondReact::update_everything()
     }
 
     // Dihedrals! first let's delete all dihedral info for landlocked atoms
-    if (force->dihedral && twomol->dihedralflag) {
+    if (force->dihedral) {
       int *num_dihedral = atom->num_dihedral;
       int **dihedral_type = atom->dihedral_type;
       tagint **dihedral_atom1 = atom->dihedral_atom1;
@@ -3469,36 +3471,38 @@ void FixBondReact::update_everything()
           }
         }
         // now let's add new dihedral info
-        for (int j = 0; j < twomol->natoms; j++) {
-          int jj = equivalences[j][1][rxnID]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
-            if (landlocked_atoms[j][rxnID] == 1) {
-              num_dihedral[atom->map(update_mega_glove[jj+1][i])] = twomol->num_dihedral[j];
-              delta_dihed += twomol->num_dihedral[j];
-              for (int p = 0; p < twomol->num_dihedral[j]; p++) {
-                dihedral_type[atom->map(update_mega_glove[jj+1][i])][p] = twomol->dihedral_type[j][p];
-                dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom1[j][p]-1][1][rxnID]][i];
-                dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom2[j][p]-1][1][rxnID]][i];
-                dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom3[j][p]-1][1][rxnID]][i];
-                dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom4[j][p]-1][1][rxnID]][i];
+        if (twomol->dihedralflag) {
+          for (int j = 0; j < twomol->natoms; j++) {
+            int jj = equivalences[j][1][rxnID]-1;
+            if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+              if (landlocked_atoms[j][rxnID] == 1) {
+                num_dihedral[atom->map(update_mega_glove[jj+1][i])] = twomol->num_dihedral[j];
+                delta_dihed += twomol->num_dihedral[j];
+                for (int p = 0; p < twomol->num_dihedral[j]; p++) {
+                  dihedral_type[atom->map(update_mega_glove[jj+1][i])][p] = twomol->dihedral_type[j][p];
+                  dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom1[j][p]-1][1][rxnID]][i];
+                  dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom2[j][p]-1][1][rxnID]][i];
+                  dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom3[j][p]-1][1][rxnID]][i];
+                  dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->dihedral_atom4[j][p]-1][1][rxnID]][i];
+                }
               }
-            }
-            if (landlocked_atoms[j][rxnID] == 0) {
-              for (int p = 0; p < twomol->num_dihedral[j]; p++) {
-                if (landlocked_atoms[twomol->dihedral_atom1[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->dihedral_atom2[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->dihedral_atom3[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->dihedral_atom4[j][p]-1][rxnID] == 1) {
-                  insert_num = num_dihedral[atom->map(update_mega_glove[jj+1][i])];
-                  dihedral_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->dihedral_type[j][p];
-                  dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom1[j][p]-1][1][rxnID]][i];
-                  dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom2[j][p]-1][1][rxnID]][i];
-                  dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom3[j][p]-1][1][rxnID]][i];
-                  dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom4[j][p]-1][1][rxnID]][i];
-                  num_dihedral[atom->map(update_mega_glove[jj+1][i])]++;
-                  if (num_dihedral[atom->map(update_mega_glove[jj+1][i])] > atom->dihedral_per_atom)
-                    error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
-                  delta_dihed++;
+              if (landlocked_atoms[j][rxnID] == 0) {
+                for (int p = 0; p < twomol->num_dihedral[j]; p++) {
+                  if (landlocked_atoms[twomol->dihedral_atom1[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->dihedral_atom2[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->dihedral_atom3[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->dihedral_atom4[j][p]-1][rxnID] == 1) {
+                    insert_num = num_dihedral[atom->map(update_mega_glove[jj+1][i])];
+                    dihedral_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->dihedral_type[j][p];
+                    dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom1[j][p]-1][1][rxnID]][i];
+                    dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom2[j][p]-1][1][rxnID]][i];
+                    dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom3[j][p]-1][1][rxnID]][i];
+                    dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->dihedral_atom4[j][p]-1][1][rxnID]][i];
+                    num_dihedral[atom->map(update_mega_glove[jj+1][i])]++;
+                    if (num_dihedral[atom->map(update_mega_glove[jj+1][i])] > atom->dihedral_per_atom)
+                      error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
+                    delta_dihed++;
+                  }
                 }
               }
             }
@@ -3508,7 +3512,7 @@ void FixBondReact::update_everything()
     }
 
     // finally IMPROPERS!!!! first let's delete all improper info for landlocked atoms
-    if (force->improper && twomol->improperflag) {
+    if (force->improper) {
       int *num_improper = atom->num_improper;
       int **improper_type = atom->improper_type;
       tagint **improper_atom1 = atom->improper_atom1;
@@ -3552,36 +3556,38 @@ void FixBondReact::update_everything()
           }
         }
         // now let's add new improper info
-        for (int j = 0; j < twomol->natoms; j++) {
-          int jj = equivalences[j][1][rxnID]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
-            if (landlocked_atoms[j][rxnID] == 1) {
-              num_improper[atom->map(update_mega_glove[jj+1][i])] = twomol->num_improper[j];
-              delta_imprp += twomol->num_improper[j];
-              for (int p = 0; p < twomol->num_improper[j]; p++) {
-                improper_type[atom->map(update_mega_glove[jj+1][i])][p] = twomol->improper_type[j][p];
-                improper_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom1[j][p]-1][1][rxnID]][i];
-                improper_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom2[j][p]-1][1][rxnID]][i];
-                improper_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom3[j][p]-1][1][rxnID]][i];
-                improper_atom4[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom4[j][p]-1][1][rxnID]][i];
+        if (twomol->improperflag) {
+          for (int j = 0; j < twomol->natoms; j++) {
+            int jj = equivalences[j][1][rxnID]-1;
+            if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+              if (landlocked_atoms[j][rxnID] == 1) {
+                num_improper[atom->map(update_mega_glove[jj+1][i])] = twomol->num_improper[j];
+                delta_imprp += twomol->num_improper[j];
+                for (int p = 0; p < twomol->num_improper[j]; p++) {
+                  improper_type[atom->map(update_mega_glove[jj+1][i])][p] = twomol->improper_type[j][p];
+                  improper_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom1[j][p]-1][1][rxnID]][i];
+                  improper_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom2[j][p]-1][1][rxnID]][i];
+                  improper_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom3[j][p]-1][1][rxnID]][i];
+                  improper_atom4[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->improper_atom4[j][p]-1][1][rxnID]][i];
+                }
               }
-            }
-            if (landlocked_atoms[j][rxnID] == 0) {
-              for (int p = 0; p < twomol->num_improper[j]; p++) {
-                if (landlocked_atoms[twomol->improper_atom1[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->improper_atom2[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->improper_atom3[j][p]-1][rxnID] == 1 ||
-                    landlocked_atoms[twomol->improper_atom4[j][p]-1][rxnID] == 1) {
-                  insert_num = num_improper[atom->map(update_mega_glove[jj+1][i])];
-                  improper_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->improper_type[j][p];
-                  improper_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom1[j][p]-1][1][rxnID]][i];
-                  improper_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom2[j][p]-1][1][rxnID]][i];
-                  improper_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom3[j][p]-1][1][rxnID]][i];
-                  improper_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom4[j][p]-1][1][rxnID]][i];
-                  num_improper[atom->map(update_mega_glove[jj+1][i])]++;
-                  if (num_improper[atom->map(update_mega_glove[jj+1][i])] > atom->improper_per_atom)
-                    error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
-                  delta_imprp++;
+              if (landlocked_atoms[j][rxnID] == 0) {
+                for (int p = 0; p < twomol->num_improper[j]; p++) {
+                  if (landlocked_atoms[twomol->improper_atom1[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->improper_atom2[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->improper_atom3[j][p]-1][rxnID] == 1 ||
+                      landlocked_atoms[twomol->improper_atom4[j][p]-1][rxnID] == 1) {
+                    insert_num = num_improper[atom->map(update_mega_glove[jj+1][i])];
+                    improper_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->improper_type[j][p];
+                    improper_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom1[j][p]-1][1][rxnID]][i];
+                    improper_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom2[j][p]-1][1][rxnID]][i];
+                    improper_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom3[j][p]-1][1][rxnID]][i];
+                    improper_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->improper_atom4[j][p]-1][1][rxnID]][i];
+                    num_improper[atom->map(update_mega_glove[jj+1][i])]++;
+                    if (num_improper[atom->map(update_mega_glove[jj+1][i])] > atom->improper_per_atom)
+                      error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
+                    delta_imprp++;
+                  }
                 }
               }
             }

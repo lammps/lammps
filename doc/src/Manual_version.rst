@@ -10,34 +10,47 @@ Modifications of the LAMMPS source code (like bug fixes, code refactors,
 updates to existing features, or addition of new features) are organized
 into pull requests.  Pull requests will be merged into the *develop*
 branch of the git repository after they pass automated testing and code
-review by the LAMMPS developers.  When a sufficient number of changes
-have accumulated *and* the *develop* branch version passes an extended
-set of automated tests, we release it as a *feature release*, which are
-currently made every 4 to 8 weeks.  The *release* branch of the git
-repository is updated with every such release.  A summary of the most
-important changes of the patch releases are on `this website page
-<https://www.lammps.org/bug.html>`_.  More detailed release notes are
-`available on GitHub <https://github.com/lammps/lammps/releases/>`_.
+review by the LAMMPS developers.
 
-Once or twice a year, we have a "stabilization period" where we apply
-only bug fixes and small, non-intrusive changes to the *develop*
-branch.  At the same time, the code is subjected to more detailed and
-thorough manual testing than the default automated testing.  Also,
-several variants of static code analysis are run to improve the overall
-code quality, consistency, and compliance with programming standards,
-best practices and style conventions.
+_Feature_ V.S _Stable_ release channels
+'''''''''''''''''''''''''''''''''''''''
 
-The release after such a stabilization period is called a *stable*
-version and both, the *release* and the *stable* branches are updated
-with it.  Between stable releases, we collect back-ported bug fixes and
-updates from the *develop* branch in the *maintenance* branch.  From the
-*maintenance* branch we make occasional update releases and update the
-*stable* branch accordingly.
+LAMMPS has 2 release channels - _Feature_ and _Stable_. By default commits
+reach first the `develop` branch, and every certain amount of time we
+create a GitHub release, along with a Git tag for either of the channels.
+In parallel to the Git tags, we also maintain a Git branch that is
+identical of the latest Git tag of the release (either a _Feature_ or
+_Stable_). The table below lists the names
+
+Particularly for the _Stable_ channel, we use a branch named `maintenance`,
+to backport commits from the `develop` branch, that we want the stable
+channel to include. Hence the `maintenance` branch is a mediator between
+the main `develop` branch and the `stable` branch that is parallel to the
+latest tag of the _Stable_ channel.
+
++--------------+----------------+-----------------------------------+----------------------------------------------+------------------+
+| Release name | Git tag prefix | Git Branch parallel to latest tag | Git branches workflow                        | Release schedule |
++--------------+----------------+-----------------------------------+----------------------------------------------+------------------+
+| Feature      | ``patch_``     | ``release``                       | ``develop`` -> ``release``                   | Every 4-8 weeks  |
++--------------+----------------+-----------------------------------+----------------------------------------------+------------------+
+| Stable       | ``stable_``    | ``stable``                        | ``develop`` -> ``maintenance`` -> ``stable`` | 1-2 times a year |
++--------------+----------------+-----------------------------------+----------------------------------------------+------------------+
+
+A summary of the most important changes of the _Stable_ channel releases
+are on `this website page <https://www.lammps.org/bug.html>`_.  More
+detailed release notes are `available on GitHub
+<https://github.com/lammps/lammps/releases/>`_.
+
+The code in the _Stable_ release channel is subjected to more detailed and
+thorough manual testing than the default automated testing. Also, several
+variants of static code analysis are run to improve the overall code
+quality, consistency, and compliance with programming standards, best
+practices and style conventions.
 
 Each version of LAMMPS contains all the documented *features* up to and
-including its version date.  For recently added features, we add markers
-to the documentation at which specific LAMMPS version a feature or
-keyword was added or significantly changed.
+including its version date.  For recently added features, we add markers to
+the documentation at which specific LAMMPS version a feature or keyword was
+added or significantly changed.
 
 The version date is printed to the screen and log file every time you run
 LAMMPS.  It is also in the file src/version.h and in the LAMMPS

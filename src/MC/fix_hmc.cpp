@@ -596,11 +596,9 @@ double FixHMC::compute_scalar()
 double FixHMC::compute_vector(int item)
 {
   int n = item + 1;
-  if (n == 1) {
-    double acc_frac = naccepts;
-    acc_frac /= MAX(1, nattempts);
-    return acc_frac;
-  } else if (n == 2)
+  if (n == 1)
+    return compute_scalar();
+  else if (n == 2)
     return DeltaPE;
   else if (n == 3)
     return DeltaKE;

@@ -100,6 +100,8 @@
 /lepton_utils.cpp
 /lepton_utils.h
 
+/compute_pace.cpp
+/compute_pace.h
 /pair_pace.cpp
 /pair_pace.h
 /pair_pace_extrapolation.cpp
@@ -631,8 +633,12 @@
 /compute_ptm_atom.h
 /compute_rattlers_atom.cpp
 /compute_rattlers_atom.h
+/compute_reaxff_atom.cpp
+/compute_reaxff_atom.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
+/compute_slcsa_atom.cpp
+/compute_slcsa_atom.h
 /compute_smd_triangle_vertices.cpp
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp

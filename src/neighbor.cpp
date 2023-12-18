@@ -2015,6 +2015,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
     // require match of these request flags and mask bits
     // (!A != !B) is effectively a logical xor
 
+    if (!rq->intel != !(mask & NS_INTEL)) continue;
     if (!rq->ghost != !(mask & NS_GHOST)) continue;
     if (!rq->ssa != !(mask & NS_SSA)) continue;
 

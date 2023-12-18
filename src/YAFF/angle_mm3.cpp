@@ -36,7 +36,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleMM3::AngleMM3(LAMMPS *lmp) : Angle(lmp) {}
+AngleMM3::AngleMM3(LAMMPS *lmp) : Angle(lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -283,4 +286,44 @@ double AngleMM3::single(int type, int i1, int i2, int i3)
   double energy = k2[type]*dtheta2*(1.0-0.802141*dtheta+0.183837*dtheta2-0.131664*dtheta3+0.237090*dtheta4);
 
   return energy;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleMM3::born_matrix(int type, int i1, int i2, int i3, double &du, double &du2)
+{
+  double **x = atom->x;
+
+  double delx1 = x[i1][0] - x[i2][0];
+  double dely1 = x[i1][1] - x[i2][1];
+  double delz1 = x[i1][2] - x[i2][2];
+  domain->minimum_image(delx1,dely1,delz1);
+  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
+
+  double delx2 = x[i3][0] - x[i2][0];
+  double dely2 = x[i3][1] - x[i2][1];
+  double delz2 = x[i3][2] - x[i2][2];
+  domain->minimum_image(delx2,dely2,delz2);
+  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
+
+  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  c /= r1*r2;
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+  double theta = acos(c);
+
+  double s = sqrt(1.0 - c*c);
+  if (s < SMALL) s = SMALL;
+  s = 1.0/s;
+
+  double dtheta = theta - theta0[type];
+  double dtheta2 = dtheta*dtheta;
+  double dtheta3 = dtheta2*dtheta;
+  double dtheta4 = dtheta3*dtheta;
+  double dtheta5 = dtheta4*dtheta;
+  double df = 2.0 * dtheta - 2.406423 * dtheta2 + 0.735348 * dtheta3 - 0.65832 * dtheta4 + 1.42254 * dtheta5;
+  double d2f = 2.0 - 4.812846 * dtheta + 2.206044 * dtheta2 - 2.63328 * dtheta3 + 7.1127 * dtheta4;
+
+  du = -k2[type] * df / s;
+  du2 = k2[type] * (d2f - df  * c / s) / (s * s) ;
 }

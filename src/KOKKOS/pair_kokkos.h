@@ -933,8 +933,9 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
   EV_FLOAT ev;
 
   if (!fpair->lmp->kokkos->neigh_thread_set)
-    if (list->inum <= 16384 && NEIGHFLAG == FULL)
-      fpair->lmp->kokkos->neigh_thread = 1;
+    if (list->inum <= 16384)
+      if (NEIGHFLAG == FULL || !fpair->newton_pair)
+        fpair->lmp->kokkos->neigh_thread = 1;
 
   if (fpair->lmp->kokkos->neigh_thread) {
 

@@ -452,14 +452,15 @@ void FixHMC::init()
       error->all(FLERR, "fix hmc is incompatible with fixes that change box size or shape");
 
   // Check whether there are subsequent fixes with active virial_flag:
-  int check_nv = ne;
+  int past_this_fix = false;
+  int past_rigid = !rigid_flag;
   for (const auto &ifix : modify->get_fix_list()) {
-    if (ifix->virial_global_flag) {
-      check_nv++;
-      if (check_nv > nv)
-        if (comm->me == 0) utils::logmesg(lmp, "Fix {} defined after fix hmc.\n", ifix->style);
-            error->all(FLERR, "fix hmc cannot precede fixes that modify the system pressure");
+    if (past_this_fix && past_rigid && ifix->virial_global_flag) {
+      if (comm->me == 0) utils::logmesg(lmp, "Fix {} defined after fix hmc.\n", ifix->style);
+      error->all(FLERR, "fix hmc cannot precede fixes that modify the system pressure");
     }
+    if (!strcmp(ifix->id, id)) past_this_fix = true;
+    if (!strcmp(ifix->id, fix_rigid->id)) past_rigid = true;
   }
 
   // Look for computes with active peatomflag, press_flag, or pressatomflag:

@@ -611,12 +611,12 @@ and run the test with verbose output. For example,
     env TEST_ARGS=-v ctest -R ^MolPairStyle:lj_cut_coul_long -V
 
 ``ctest`` with the ``-V`` flag also shows the exact command line
-of the test. One can then use ``gdb --args`` to furthere debug and
+of the test. One can then use ``gdb --args`` to further debug and
 catch exceptions with the test command, for example,
 
 .. code-block:: bash
 
-    gdb --args /path/to/lammps/build/test_pair_style "/path/to/lammps/unittest/force-styles/tests/mol-pair-lj_cut_coul_long.yaml"
+    gdb --args /path/to/lammps/build/test_pair_style /path/to/lammps/unittest/force-styles/tests/mol-pair-lj_cut_coul_long.yaml
 
 
 It is recommended to configure the build with ``-D

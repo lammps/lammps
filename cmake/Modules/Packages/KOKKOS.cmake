@@ -131,6 +131,7 @@ if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/grid3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
+  set(FFT_KOKKOS "KISS" CACHE STRING "FFT library for Kokkos-enabled KSPACE package")
   set(FFT_KOKKOS_VALUES KISS FFTW3 MKL HIPFFT CUFFT)
   set_property(CACHE FFT_KOKKOS PROPERTY STRINGS ${FFT_KOKKOS_VALUES})
   validate_option(FFT_KOKKOS FFT_KOKKOS_VALUES)

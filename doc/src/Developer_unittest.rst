@@ -121,7 +121,7 @@ will be suppressed and only a summary printed, but adding
 the '-V' option will then produce output from the tests
 above like the following:
 
-.. code-block::
+.. code-block:: console
 
    [...]
    1: [ RUN      ] Tokenizer.empty_string
@@ -531,24 +531,33 @@ Python module.
 Troubleshooting failed unit tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The unit tests of a newly added features (e.g. pair, fix or compute styles)
-are not automatically run when your pull request (PR) is submitted via GitHub.
-To trigger the unit test(s), you need to add appropriate labels the PR, e.g.,
-``gpu_unit_tests`` to enable the unit tests for the GPU package. After the test
-has started, you had better remove the label since every PR activity will
-retrigger the test.
+The are by default no unit tests for newly added features (e.g. pair, fix,
+or compute styles) unless your pull request also includes tests for the
+added features.  If you are modifying some features, you may see failures
+for existing tests, if your modifications have some unexpected side effects
+or your changes render the existing text invalid.  If you are adding an
+accelerated version of an existing style, then only tests for INTEL,
+KOKKOS (with OpenMP only), OPENMP, and OPT will be run automatically.
+Tests for the GPU package are time consuming and thus are only run
+*after* a merge, or when a special label, ``gpu_unit_tests`` is added
+to the pull request.  After the test has started, it is often best to
+remove the label since every PR activity will re-trigger the test (that
+is a limitation of triggering a test with a label).  Support for unit
+tests with using KOKKOS with GPU acceleration is currently not supported.
 
-For a failed build on GitHub, click on Details to go to the LAMMPS Jenkins CI web page.
-Click on the "Exit" symbol near the "Logout" button on the top right of that page
-to go to the classic view. In the classic view, there is a list of the individual runs
-that make up this test run. You can click on any of those. Then on "Test Result"
-to display the list of tests. Click on the Status column to sort the tests
-based on their Failed or Passed status. Then click on the failed test to expand
-its output.
+When you see a failed build on GitHub, click on ``Details`` to be taken
+to the corresponding LAMMPS Jenkins CI web page.  Click on the "Exit"
+symbol near the ``Logout`` button on the top right of that page to go to
+the "classic view".  In the classic view, there is a list of the
+individual runs that make up this test run (they are shown but cannot be
+inspected in the default view).  You can click on any of those.
+Clicking on ``Test Result`` will display the list of failed tests. Click
+on the "Status" column to sort the tests based on their Failed or Passed
+status.  Then click on the failed test to expand its output.
 
 For example, the following output snippet shows the failed unit test
 
-.. code-block:: bash
+.. code-block:: console
 
    [ RUN      ] PairStyle.gpu
    /home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:63: Failure
@@ -560,19 +569,35 @@ For example, the following output snippet shows the failed unit test
    Expected: (err) <= (epsilon)
    Actual: 0.00022892713393549854 vs 0.0001
 
+Note that the force style engine runs one of a small number of systems
+in a rather off-equilibrium configuration with a few atoms for a few
+steps, writes data and restart files, uses :doc:`the clear command
+<clear>` to reset LAMMPS, and then runs from those files with different
+settings (e.g. newton on/off) and integrators (e.g. verlet vs. respa).
+Beyond potential issues/bugs in the source code, the mismatch between
+the expected and actual values could be that force arrays are not
+properly cleared between multiple run commands or that class members are
+not correctly initialized or written to or read from a data or restart
+file.
 
-Note that the force style engine runs the same system on a rather
-off-equilibrium system with few atoms for just a few steps, writes data and restart,
-uses ``clean`` to reset, and then run with different settings and integrators.
-Beyond potential issues/bugs in the source code, the mismatch between the expected
-and actual values could be that force arrays are not properly cleared between
-multiple run commands and/or when starting a run from restarts.
-
-As a rule of thumb, the test epsilon can often be in the range 5e-14 to 1e-13.
-For "noisy" force kernels, e.g. those involving `exp()`, `log()` or `sin()`
-operations and subject to compiler optimization, epsilon can be further relaxed,
-sometimes epsilon can be relaxed to 1.e-12. If lookup tables are added,
-we may need to go to 1.e-10 or even higher.
+While the epsilon (relative precision) for a single, `IEEE 754 compliant
+<https://en.wikipedia.org/wiki/IEEE_754>`_, double precision floating
+point operation is at about 2.2e-16, the achievable precision for the
+tests is lower due to most numbers being sums over intermediate results
+and the non-associativity of floating point math leading to larger
+errors.  In some cases specific properties of the tested style.  As a
+rule of thumb, the test epsilon can often be in the range 5.0e-14 to
+1.0e-13.  But for "noisy" force kernels, e.g. those a larger amount of
+arithmetic operations involving `exp()`, `log()` or `sin()` functions,
+and also due to the effect of compiler optimization or differences
+between compilers or platforms, epsilon may need to be further relaxed,
+sometimes epsilon can be relaxed to 1.0e-12. If interpolation or lookup
+tables are used, epsilon may need to be set to 1.0e-10 or even higher.
+For tests of accelerated styles, the per-test epsilon is multiplied
+by empirical factors that take into account the differences in the order
+of floating point operations or that some or most intermediate operations
+may be done using approximations or with single precision floating point
+math.
 
 To rerun the failed unit test individually, change to the ``build`` directory
 and run the test with verbose output. For example,
@@ -581,11 +606,12 @@ and run the test with verbose output. For example,
 
     env TEST_ARGS=-v ctest -R ^MolPairStyle:lj_cut_coul_long -V
 
-It is recommended to configure the build with ``-D BUILD_SHARED_LIBS=on`` to
-shorten the build time during recompilation. Installing `ccache` in
-your development environment helps speed up recompilation by
-caching previous compilations and detecting when the same compilation
-is being done again.
+It is recommended to configure the build with ``-D
+BUILD_SHARED_LIBS=on`` and use a custom linker to shorten the build time
+during recompilation.  Installing `ccache` in your development
+environment helps speed up recompilation by caching previous
+compilations and detecting when the same compilation is being done
+again.  Please see :doc:`Build_development` for further details.
 
 
 

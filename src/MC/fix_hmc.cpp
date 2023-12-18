@@ -349,8 +349,8 @@ void FixHMC::setup_arrays_and_pointers()
 
   // Initialize arrays for managing global virial terms:
   nv = ne;
-  for (j = 0; j < modify->nfix; j++)
-    if (modify->fix[j]->virial_global_flag) nv++;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->virial_global_flag) nv++;
   memory->create(vglobal, nv, 6, "fix_hmc:vglobal");
   if (vglobalptr)
     for (m = 0; m < nv; m++) delete[] vglobalptr[m];
@@ -365,8 +365,8 @@ void FixHMC::setup_arrays_and_pointers()
     if (dihedral_flag) vglobalptr[m++][i] = &force->dihedral->virial[i];
     if (improper_flag) vglobalptr[m++][i] = &force->improper->virial[i];
     if (kspace_flag) vglobalptr[m++][i] = &force->kspace->virial[i];
-    for (j = 0; j < modify->nfix; j++)
-      if (modify->fix[j]->virial_global_flag) vglobalptr[m++][i] = &modify->fix[j]->virial[i];
+    for (const auto &ifix : modify->get_fix_list())
+      if (ifix->virial_global_flag) vglobalptr[m++][i] = &ifix->virial[i];
   }
 
   // Determine which per-atom energy terms require reverse communication:
@@ -401,8 +401,8 @@ void FixHMC::setup_arrays_and_pointers()
   if (dihedral_flag) vatomptr[m++] = &force->dihedral->vatom;
   if (improper_flag) vatomptr[m++] = &force->improper->vatom;
   if (kspace_flag) vatomptr[m++] = &force->kspace->vatom;
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->virial_peratom_flag) vatomptr[m++] = &modify->fix[i]->vatom;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->virial_peratom_flag) vatomptr[m++] = &ifix->vatom;
 
   // Determine the maximum and the actual numbers of per-atom variables in reverse
   // communications:
@@ -447,29 +447,30 @@ void FixHMC::init()
     error->all(FLERR, "Must use 'neigh_modify every' with multiple of {}", nevery);
 
   // Check whether there is any fixes that change box size and/or shape:
-  for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->box_change)
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->box_change)
       error->all(FLERR, "fix hmc is incompatible with fixes that change box size or shape");
-  }
 
   // Check whether there are subsequent fixes with active virial_flag:
-  int first = modify->find_fix(this->id) + 1;
-  if (rigid_flag) first++;
-  for (int i = first; i < modify->nfix; i++)
-    if (modify->fix[i]->virial_peratom_flag || modify->fix[i]->virial_global_flag) {
-      if (comm->me == 0) printf("Fix %s defined after fix hmc.\n", modify->fix[i]->style);
-      error->all(FLERR, "fix hmc cannot precede fixes that modify the system pressure");
+  int check_nv = ne;
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->virial_global_flag) {
+      check_nv++;
+      if (check_nv > nv)
+        if (comm->me == 0) utils::logmesg(lmp, "Fix {} defined after fix hmc.\n", ifix->style);
+            error->all(FLERR, "fix hmc cannot precede fixes that modify the system pressure");
     }
+  }
 
   // Look for computes with active peatomflag, press_flag, or pressatomflag:
   peatom_flag = 0;
   press_flag = 0;
   pressatom_flag = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strncmp(modify->compute[i]->id, "hmc_", 4) != 0) {
-      peatom_flag = peatom_flag | modify->compute[i]->peatomflag;
-      press_flag = press_flag | modify->compute[i]->pressflag;
-      pressatom_flag = pressatom_flag | modify->compute[i]->pressatomflag;
+  for (const auto &icompute : modify->get_compute_list())
+    if (strncmp(icompute->id, "hmc_", 4)) {
+      peatom_flag = peatom_flag | icompute->peatomflag;
+      press_flag = press_flag | icompute->pressflag;
+      pressatom_flag = pressatom_flag | icompute->pressatomflag;
     }
 
   // Initialize arrays and pointers for saving/restoration of states:

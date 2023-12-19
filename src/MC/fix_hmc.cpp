@@ -461,7 +461,7 @@ void FixHMC::init()
       error->all(FLERR, "fix hmc cannot precede fixes that modify the system pressure");
     }
     if (!strcmp(ifix->id, id)) past_this_fix = true;
-    if (!strcmp(ifix->id, fix_rigid->id)) past_rigid = true;
+    if (rigid_flag && !strcmp(ifix->id, fix_rigid->id)) past_rigid = true;
   }
 
   // Look for computes with active peatomflag, press_flag, or pressatomflag:

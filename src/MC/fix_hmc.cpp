@@ -288,7 +288,7 @@ void FixHMC::restore_peratom_member(Atom::PerAtom stored_peratom_member,
 
 void FixHMC::setup_arrays_and_pointers()
 {
-  int i, j, m;
+  int i, m;
   int pair_flag;
   int bond_flag;
   int angle_flag;
@@ -616,8 +616,7 @@ double FixHMC::compute_vector(int item)
 ------------------------------------------------------------------------- */
 void FixHMC::save_current_state()
 {
-  int i, m, n;
-  double *scalar, **vector, *energy, **stress;
+  int m;
 
   int nlocal = atom->nlocal;
   int ntotal = nlocal + atom->nghost;
@@ -773,11 +772,9 @@ void FixHMC::save_current_state()
 
 void FixHMC::restore_saved_state()
 {
-  int i, m;
+  int i;
   int nlocal = atom->nlocal;
   int ntotal = nlocal + atom->nghost;
-  double **x = atom->x;
-  double *scalar, **vector, *energy, **stress;
 
   current_peratom = atom->peratom;
 

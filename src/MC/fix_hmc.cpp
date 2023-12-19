@@ -496,6 +496,8 @@ void FixHMC::init()
 
 void FixHMC::setup(int vflag)
 {
+  // initialize rigid first to avoid saving uninitialized state
+  if (rigid_flag) fix_rigid->setup(vflag);
 
   // Compute properties of the initial state:
   nattempts = 0;

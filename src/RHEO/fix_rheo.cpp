@@ -100,7 +100,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       thermal_flag = 1;
     } else if (strcmp(arg[iarg], "surface/detection") == 0) {
       surface_flag = 1;
-      if(iarg + 2 >= narg) error->all(FLERR, "Illegal surface/detection option in fix rheo");
+      if(iarg + 3 >= narg) error->all(FLERR, "Illegal surface/detection option in fix rheo");
       if (strcmp(arg[iarg + 1], "coordination") == 0) {
         surface_style = COORDINATION;
         zmin_surface = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);

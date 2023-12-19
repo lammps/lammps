@@ -12,7 +12,7 @@ mass            4 95.94
 pair_style     	hybrid/overlay sw/mod sw/mod ilp/tmd 16.0
 pair_coeff     	* * sw/mod 1 tmd.sw.mod Mo S S NULL NULL NULL
 pair_coeff     	* * sw/mod 2 tmd.sw.mod NULL NULL NULL Mo S S
-pair_coeff     	* * ilp/tmd  MoS2.ILP Mo S S Mo S S
+pair_coeff     	* * ilp/tmd  TMD.ILP Mo S S Mo S S
 
 # Calculate the pair potential
 compute   	0 all pair ilp/tmd

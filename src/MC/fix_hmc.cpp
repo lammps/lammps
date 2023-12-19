@@ -58,12 +58,13 @@ enum { ATOMS, VCM_OMEGA, XCM, ITENSOR, ROTATION, FORCE_TORQUE };
 /* ---------------------------------------------------------------------- */
 
 FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), stored_tag(nullptr), stored_bodyown(nullptr), stored_bodytag(nullptr),
-    stored_atom2body(nullptr), stored_xcmimage(nullptr), stored_displace(nullptr),
-    stored_eflags(nullptr), stored_orient(nullptr), stored_dorient(nullptr), fix_rigid(nullptr),
-    random(nullptr), random_equal(nullptr), rev_comm(nullptr), eatom(nullptr), eatomptr(nullptr),
-    eglobal(nullptr), eglobalptr(nullptr), vglobal(nullptr), vglobalptr(nullptr), vatom(nullptr),
-    vatomptr(nullptr), pe(nullptr), ke(nullptr), peatom(nullptr), press(nullptr), pressatom(nullptr)
+    Fix(lmp, narg, arg), stored_tag(nullptr), stored_body(nullptr), stored_bodyown(nullptr),
+    stored_bodytag(nullptr), stored_atom2body(nullptr), stored_xcmimage(nullptr),
+    stored_displace(nullptr), stored_eflags(nullptr), stored_orient(nullptr),
+    stored_dorient(nullptr), fix_rigid(nullptr), random(nullptr), random_equal(nullptr),
+    rev_comm(nullptr), eatom(nullptr), eatomptr(nullptr), eglobal(nullptr), eglobalptr(nullptr),
+    vglobal(nullptr), vglobalptr(nullptr), vatom(nullptr), vatomptr(nullptr), pe(nullptr),
+    ke(nullptr), peatom(nullptr), press(nullptr), pressatom(nullptr)
 {
   // set some defaults
 

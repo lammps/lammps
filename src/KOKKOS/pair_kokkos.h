@@ -935,8 +935,10 @@ template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisa
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*> list) {
   EV_FLOAT ev;
 
+  const int inum = list->inum;
+
   if (!fpair->lmp->kokkos->neigh_thread_set)
-    if (list->inum <= 16384)
+    if (fpair->lmp->kokkos->ngpus && inum <= 16000)
       if (NEIGHFLAG == FULL || !fpair->newton_pair)
         fpair->lmp->kokkos->neigh_thread = 1;
 
@@ -947,26 +949,26 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     static int lastcall = -1;
 
 #if defined(LMP_KOKKOS_GPU)
-
-  #if defined(KOKKOS_ENABLE_HIP)
-    int max_vectorsize = 64;
-  #else
-    int max_vectorsize = 32;
-  #endif
-
     if (!vectorsize || lastcall < fpair->lmp->neighbor->lastcall) {
       lastcall = fpair->lmp->update->ntimestep;
       vectorsize = GetMaxNeighs(list);
       vectorsize = MathSpecial::powint(2,(int(log2(vectorsize) + 0.5))); // round to nearest power of 2
+
+  #if defined(KOKKOS_ENABLE_HIP)
+      int max_vectorsize = 64;
+  #else
+      int max_vectorsize = 32;
+  #endif
+
       vectorsize = MIN(vectorsize,max_vectorsize);
 
       int teamsize_max_for,teamsize_max_reduce;
       if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
         PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
-        GetMaxTeamSize<typename PairStyle::device_type>(ff, list->inum, teamsize_max_for, teamsize_max_reduce);
+        GetMaxTeamSize<typename PairStyle::device_type>(ff, inum, teamsize_max_for, teamsize_max_reduce);
       } else {
         PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
-        GetMaxTeamSize<typename PairStyle::device_type>(ff, list->inum, teamsize_max_for, teamsize_max_reduce);
+        GetMaxTeamSize<typename PairStyle::device_type>(ff, inum, teamsize_max_for, teamsize_max_reduce);
       }
 
       int teamsize_max = teamsize_max_for;
@@ -979,7 +981,6 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     atoms_per_team = 1;
 #endif
 
-    const int inum = list->inum;
     const int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
 
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
@@ -996,13 +997,13 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
   } else {
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
-      else                              Kokkos::parallel_for(list->inum,ff);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(inum,ff,ev);
+      else                              Kokkos::parallel_for(inum,ff);
       ff.contribute();
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
-      else                              Kokkos::parallel_for(list->inum,ff);
+      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(inum,ff,ev);
+      else                              Kokkos::parallel_for(inum,ff);
       ff.contribute();
     }
   }

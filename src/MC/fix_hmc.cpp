@@ -128,6 +128,8 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   extvector = 0;
   size_vector = 4;
+  force_reneighbor = 1;
+  next_reneighbor = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -442,11 +444,6 @@ void FixHMC::init()
 
   if (atom->tag_enable == 0) error->all(FLERR, "Cannot use fix hmc unless atoms have IDs");
 
-  if (neighbor->dist_check != 0) error->all(FLERR, "Must use 'neigh_modify check no'");
-  if (neighbor->delay != 0) error->all(FLERR, "Must use 'neigh_modify delay 0'");
-  if ((neighbor->every % nevery) > 0)
-    error->all(FLERR, "Must use 'neigh_modify every' with multiple of {}", nevery);
-
   // Check whether there is any fixes that change box size and/or shape:
   for (const auto &ifix : modify->get_fix_list())
     if (ifix->box_change)
@@ -556,7 +553,7 @@ void FixHMC::end_of_step()
   } else {
     // Restore saved state and enforce check_distance/reneighboring in the next step:
     restore_saved_state();
-    neighbor->ago = (neighbor->delay / neighbor->every + 1) * neighbor->every;
+    next_reneighbor = update->ntimestep + 1;
   }
 
   // Choose new velocities and compute kinetic energy:

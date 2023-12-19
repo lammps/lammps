@@ -65,6 +65,7 @@ struct PairComputeFunctor  {
   typename AT::t_f_array f;
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
+  int inum;
 
   using KKDeviceType = typename KKDevice<device_type>::value;
   using DUP = NeedDup_v<NEIGHFLAG,device_type>;
@@ -97,6 +98,7 @@ struct PairComputeFunctor  {
     dup_f     = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.f);
     dup_eatom = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.d_eatom);
     dup_vatom = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.d_vatom);
+    inum = list.inum;
   };
 
   // Set copymode = 1 so parent allocations aren't destructed by copies of the style
@@ -287,7 +289,6 @@ struct PairComputeFunctor  {
 
     auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
-    const int inum = team.league_size();
     const int atoms_per_team = team.team_size();
     const int firstatom = team.league_rank()*atoms_per_team;
     const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
@@ -364,12 +365,10 @@ struct PairComputeFunctor  {
 
     auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
-    const int inum = team.league_size();
     const int atoms_per_team = team.team_size();
     int firstatom = team.league_rank()*atoms_per_team;
     int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
-
 
       const int i = list.d_ilist[ii];
       const X_FLOAT xtmp = c.x(i,0);
@@ -452,11 +451,9 @@ struct PairComputeFunctor  {
 
     EV_FLOAT ev;
 
-    const int inum = team.league_size();
     const int atoms_per_team = team.team_size();
     const int firstatom = team.league_rank()*atoms_per_team;
     const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
-
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, firstatom, lastatom), [&] (const int &ii) {
 
       const int i = list.d_ilist[ii];
@@ -616,7 +613,6 @@ struct PairComputeFunctor  {
 
     EV_FLOAT ev;
 
-    const int inum = team.league_size();
     const int atoms_per_team = team.team_size();
     const int firstatom = team.league_rank()*atoms_per_team;
     const int lastatom = firstatom + atoms_per_team < inum ? firstatom + atoms_per_team : inum;
@@ -926,6 +922,14 @@ int GetMaxNeighs(NeighStyle* list)
   return maxneigh;
 }
 
+template<class DeviceType, class FunctorStyle>
+void GetMaxTeamSize(FunctorStyle& functor, int inum,
+                int &teamsize_max_for, int &teamsize_max_reduce)
+{
+  teamsize_max_for = Kokkos::TeamPolicy<DeviceType>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelForTag());
+  teamsize_max_reduce = Kokkos::TeamPolicy<DeviceType>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelReduceTag());
+}
+
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL
 template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*> list) {
@@ -939,6 +943,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
   if (fpair->lmp->kokkos->neigh_thread) {
 
     static int vectorsize = 0;
+    static int atoms_per_team = 0;
     static int lastcall = -1;
 
 #if defined(LMP_KOKKOS_GPU)
@@ -952,21 +957,39 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     if (!vectorsize || lastcall < fpair->lmp->neighbor->lastcall) {
       lastcall = fpair->lmp->update->ntimestep;
       vectorsize = GetMaxNeighs(list);
-      vectorsize = MathSpecial::powint(2,int(log2(vectorsize))); // round down to nearest power of 2
+      vectorsize = MathSpecial::powint(2,(int(log2(vectorsize) + 0.5))); // round to nearest power of 2
       vectorsize = MIN(vectorsize,max_vectorsize);
+
+      int teamsize_max_for,teamsize_max_reduce;
+      if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
+        PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
+        GetMaxTeamSize<typename PairStyle::device_type>(ff, list->inum, teamsize_max_for, teamsize_max_reduce);
+      } else {
+        PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
+        GetMaxTeamSize<typename PairStyle::device_type>(ff, list->inum, teamsize_max_for, teamsize_max_reduce);
+      }
+
+      int teamsize_max = teamsize_max_for;
+      if (fpair->eflag || fpair->vflag)
+        teamsize_max = teamsize_max_reduce;
+      atoms_per_team = teamsize_max/vectorsize;
     }
 #else
     vectorsize = 1;
+    atoms_per_team = 1;
 #endif
+
+    const int inum = list->inum;
+    const int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
 
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
-      Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(list->inum,Kokkos::AUTO(),vectorsize);
+      Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(num_teams,atoms_per_team,vectorsize);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
-      Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(list->inum,Kokkos::AUTO(),vectorsize);
+      Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(num_teams,atoms_per_team,vectorsize);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
     }

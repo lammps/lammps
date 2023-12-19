@@ -127,7 +127,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   vector_flag = 1;
   extvector = 0;
-  size_vector = 4;
+  size_vector = 5;
   force_reneighbor = 1;
   next_reneighbor = -1;
 }
@@ -598,12 +598,14 @@ double FixHMC::compute_vector(int item)
 {
   int n = item + 1;
   if (n == 1)
-    return compute_scalar();
+    return naccepts;
   else if (n == 2)
-    return DeltaPE;
+    return nattempts;
   else if (n == 3)
-    return DeltaKE;
+    return DeltaPE;
   else if (n == 4)
+    return DeltaKE;
+  else if (n == 5)
     return DeltaPE + DeltaKE;
   else
     return 0.0;

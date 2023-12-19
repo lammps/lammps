@@ -82,6 +82,22 @@ velocities are not resampled upon acceptance.
 
 ----------
 
+Ouput info
+""""""""""
+
+This fix computes a global scalar and global vector of length 5,
+which can be accessed by various :doc:`output commands
+<Howto_output>`.  The scalar is the fraction of attempted MC moves which have been accepted.  The vector stores the
+following quantities:
+
+* 1 = number of accepted moves
+* 2 = number of rejected moves
+* 3 = change in potential energy
+* 4 = change in kinetic energy
+* 5 = change in total energy (kinetic + potential energy)
+
+These values are calculated every N timesteps
+
 Restrictions
 """"""""""""
 

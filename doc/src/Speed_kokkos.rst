@@ -384,6 +384,12 @@ You can either  `build your own GPU-aware UCX and MPI libraries using configure 
 Compiling KOKKOS package with CMake option ``-DKokkos_ENABLE_DEBUG=on`` or makefile setting
 ``KOKKOS_DEBUG=yes`` will generate debug output useful to you, `MATSCI LAMMPS forum <https://matsci.org/c/lammps>`_ participants, and LAMMPS contributors to diagnose your specific issue(s). Remember to turn this off later in production code to not incur performance penalty.
 
+.. admonition:: CUDA MPS
+    :class: note
+    
+    If you use multiple MPI ranks per GPU, then you **MUST** enable CUDA MPS (`Multi-Process Service :: GPU Deployment and Management Documentation <https://docs.nvidia.com/deploy/mps/index.html>`_ ) to get good performance.
+
+
 Troubleshooting memory allocation on GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

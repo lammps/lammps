@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,6 +29,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 
@@ -40,14 +41,20 @@ Dump *Dump::dumpptr;
 #define BIG 1.0e20
 #define EPSILON 1.0e-6
 
-enum{ASCEND,DESCEND};
+enum { ASCEND, DESCEND };
 
 /* ---------------------------------------------------------------------- */
 
-Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
+Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
+    Pointers(lmp), multiname(nullptr), refresh(nullptr), skipvar(nullptr), format(nullptr),
+    format_default(nullptr), format_line_user(nullptr), format_float_user(nullptr),
+    format_int_user(nullptr), format_bigint_user(nullptr), format_column_user(nullptr), fp(nullptr),
+    nameslist(nullptr), buf(nullptr), sbuf(nullptr), ids(nullptr), bufsort(nullptr),
+    idsort(nullptr), index(nullptr), proclist(nullptr), xpbc(nullptr), vpbc(nullptr),
+    imagepbc(nullptr), irregular(nullptr)
 {
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
 
   id = utils::strdup(arg[0]);
 
@@ -63,17 +70,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   first_flag = 0;
   flush_flag = 1;
 
-  format = nullptr;
-  format_default = nullptr;
-
-  format_line_user = nullptr;
-  format_float_user = nullptr;
-  format_int_user = nullptr;
-  format_bigint_user = nullptr;
-  format_column_user = nullptr;
-
   refreshflag = 0;
-  refresh = nullptr;
 
   clearstep = 0;
   sort_flag = 0;
@@ -88,27 +85,18 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   unit_count = 0;
   delay_flag = 0;
   write_header_flag = 1;
+  has_id = 1;
 
   skipflag = 0;
-  skipvar = nullptr;
 
   maxfiles = -1;
   numfiles = 0;
   fileidx = 0;
-  nameslist = nullptr;
 
   maxbuf = maxids = maxsort = maxproc = 0;
-  buf = bufsort = nullptr;
-  ids = idsort = nullptr;
-  index = proclist = nullptr;
-  irregular = nullptr;
-
   maxsbuf = 0;
-  sbuf = nullptr;
 
   maxpbc = -1;
-  xpbc = vpbc = nullptr;
-  imagepbc = nullptr;
 
   // parse filename for special syntax
   // if contains '%', write one file per proc and replace % with proc-ID
@@ -118,23 +106,20 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   //   else if ends in .gz or other known extensions -> compressed text file
   //   else ASCII text file
 
-  fp = nullptr;
   singlefile_opened = 0;
   compressed = 0;
   binary = 0;
   multifile = 0;
+  size_one = 0;
 
   multiproc = 0;
   nclusterprocs = nprocs;
   filewriter = 0;
   if (me == 0) filewriter = 1;
   fileproc = 0;
-  multiname = nullptr;
 
   char *ptr;
   if ((ptr = strchr(filename,'%'))) {
-    if (strstr(style,"mpiio"))
-      error->all(FLERR,"Dump file MPI-IO output not allowed with % in filename");
     multiproc = 1;
     nclusterprocs = 1;
     filewriter = 1;
@@ -230,16 +215,22 @@ void Dump::init()
     ids = idsort = nullptr;
     index = proclist = nullptr;
     irregular = nullptr;
+    if ((has_id == 0) && (me == 0))
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
   }
 
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values");
+                 "Cannot sort dump when 'nfile' or 'fileper' keywords are set to non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
-      error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
+      error->all(FLERR,"Cannot sort dump on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
       error->all(FLERR,"Dump sort column is invalid");
+    if ((sortcol != 0) && (has_id == 0) && (me == 0))
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
     if (nprocs > 1 && irregular == nullptr)
       irregular = new Irregular(lmp);
 
@@ -393,8 +384,8 @@ void Dump::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
-  // insure buf is sized for packing and communicating
-  // use nmax to insure filewriter proc can receive info from others
+  // ensure buf is sized for packing and communicating
+  // use nmax to ensure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
 
   if (nmax*size_one > maxbuf) {
@@ -405,7 +396,7 @@ void Dump::write()
     memory->create(buf,maxbuf,"dump:buf");
   }
 
-  // insure ids buffer is sized for sorting
+  // ensure ids buffer is sized for sorting
 
   if (sort_flag && sortcol == 0 && nmax > maxids) {
     maxids = nmax;
@@ -460,7 +451,7 @@ void Dump::write()
   if (filewriter && write_header_flag) write_header(nheader);
 
   // if buffering, convert doubles into strings
-  // insure sbuf is sized for communicating
+  // ensure sbuf is sized for communicating
   // cannot buffer if output is to binary file
 
   if (buffer_flag && !binary) {
@@ -768,7 +759,7 @@ void Dump::sort()
 #endif
 
   // reset buf size and maxbuf to largest of any post-sort nme values
-  // this insures proc 0 can receive everyone's info
+  // this ensures proc 0 can receive everyone's info
 
   int nmax;
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
@@ -952,7 +943,7 @@ void Dump::balance()
   proc_new_offsets[0] = 0;
 
   // reset buf size to largest of any post-balance nme values
-  // this insures proc 0 can receive everyone's info
+  // this ensures proc 0 can receive everyone's info
   // cannot shrink buf to nme_balance, must use previous maxbuf value
 
   int nmax;

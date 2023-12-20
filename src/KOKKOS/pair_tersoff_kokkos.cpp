@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,8 +46,18 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define KOKKOS_CUDA_MAX_THREADS 256
-#define KOKKOS_CUDA_MIN_BLOCKS 8
+// A point of optimization with the pairwise force calculation is to hand-tune
+// the number of atoms per team, which cannot be done (yet?) with the standard
+// 1-d RangePolicy. A more intuitive way to do this is with team parallelism,
+// where you specify the team size, but this currently leads to a regression
+// on CUDA due to the way Kokkos handles cache carveout preferences. This is
+// being worked on in https://github.com/kokkos/kokkos/pull/4295 . Until that is
+// worked out/merged, the workaround is using a Rank 2 MDRangePolicy, where the
+// second dimension is trivially of length 1, because "team" == block sizes can
+// be explicitly set with MDRangePolicies. It has been confirmed that the performance
+// regression from using a TeamPolicy goes away after addressing the cache carveout.
+// This is a convenience flag to make it easy to toggle team parallelism later.
+#define LMP_KOKKOS_TERSOFF_MDRANGEPOLICY_WORKAROUND
 
 /* ---------------------------------------------------------------------- */
 
@@ -60,7 +70,7 @@ PairTersoffKokkos<DeviceType>::PairTersoffKokkos(LAMMPS *lmp) : PairTersoff(lmp)
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | TAG_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
@@ -113,9 +123,9 @@ void PairTersoffKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
 
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair tersoff/kk");
@@ -232,8 +242,21 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   } else if (neighflag == HALFTHREAD) {
     if (evflag)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairTersoffCompute<HALFTHREAD,1> >(0,inum),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffCompute<HALFTHREAD,0> >(0,inum),*this);
+    else {
+      if (ExecutionSpaceFromDevice<DeviceType>::space == Host) {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairTersoffCompute<HALFTHREAD,0> >(0,inum),*this);
+      } else {
+#ifdef LMP_KOKKOS_TERSOFF_MDRANGEPOLICY_WORKAROUND
+        Kokkos::parallel_for(Kokkos::MDRangePolicy<DeviceType, Kokkos::Rank<2>, Kokkos::LaunchBounds<block_size_compute_tersoff_force>,
+          TagPairTersoffCompute<HALFTHREAD,0> >({0,0},{inum,1},{block_size_compute_tersoff_force,1}),*this);
+#else
+        int team_count = (inum + block_size_compute_tersoff_force - 1) / block_size_compute_tersoff_force;
+        Kokkos::TeamPolicy<DeviceType, Kokkos::LaunchBounds<block_size_compute_tersoff_force>,
+          TagPairTersoffCompute<HALFTHREAD,0>> team_policy(team_count, block_size_compute_tersoff_force);
+        Kokkos::parallel_for(team_policy, *this);
+#endif
+      }
+    }
     ev_all += ev;
   }
 
@@ -311,7 +334,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeShortNeigh, 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+void PairTersoffKokkos<DeviceType>::tersoff_compute(const int &ii, EV_FLOAT& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
@@ -480,9 +503,56 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+  this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int &ii, const int&, EV_FLOAT& ev) const {
+  this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const int &ii, const int&) const {
+  EV_FLOAT ev;
+  this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
+}
+
+// TeamPolicy versions
+template<class DeviceType>
+template<int NEIGHFLAG, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffCompute<NEIGHFLAG,EVFLAG> >::member_type &team, EV_FLOAT& ev) const {
+
+  const int ii = team.league_rank() * block_size_compute_tersoff_energy + team.team_rank();
+
+  if (ii < inum)
+    this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffCompute<NEIGHFLAG,EVFLAG> >::member_type &team) const {
+
+  const int ii = team.league_rank() * block_size_compute_tersoff_force + team.team_rank();
+
+  if (ii < inum) {
+    EV_FLOAT ev;
+    this->template tersoff_compute<NEIGHFLAG, EVFLAG>(ii, ev);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

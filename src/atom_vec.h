@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -156,21 +156,6 @@ class AtomVec : protected Pointers {
 
   virtual double memory_usage();
   virtual double memory_usage_bonus() { return 0; }
-
-  // old hybrid functions, needed by Kokkos package
-
-  virtual int pack_comm_hybrid(int, int *, double *) { return 0; }
-  virtual int unpack_comm_hybrid(int, int, double *) { return 0; }
-  virtual int pack_reverse_hybrid(int, int, double *) { return 0; }
-  virtual int unpack_reverse_hybrid(int, int *, double *) { return 0; }
-  virtual int pack_border_hybrid(int, int *, double *) { return 0; }
-  virtual int unpack_border_hybrid(int, int, double *) { return 0; }
-  virtual int data_atom_hybrid(int, const std::vector<std::string> &, int) { return 0; }
-  virtual int data_vel_hybrid(int, const std::vector<std::string> &, int) { return 0; }
-  virtual int pack_data_hybrid(int, double *) { return 0; }
-  virtual int write_data_hybrid(FILE *, double *) { return 0; }
-  virtual int pack_vel_hybrid(int, double *) { return 0; }
-  virtual int write_vel_hybrid(FILE *, double *) { return 0; }
 
  protected:
   int nmax;             // local copy of atom->nmax

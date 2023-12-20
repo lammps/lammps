@@ -1,6 +1,6 @@
 ---
 lammps_version: 17 Feb 2022
-tags: slow
+tags: slow unstable
 date_generated: Fri Mar 18 22:17:34 2022
 epsilon: 2.5e-09
 skip_tests:

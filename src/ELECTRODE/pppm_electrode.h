@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,7 +35,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   ~PPPMElectrode() override;
   void init() override;
   void setup() override;
-  void setup_grid() override;
+  void reset_grid() override;
   void compute(int, int) override;
 
   void compute_vector(double *, int, int, bool) override;
@@ -93,10 +93,9 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void start_compute();
   void make_rho_in_brick(int, FFT_SCALAR ***, bool);
   void project_psi(double *, int);
-  void one_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
-                               int const, bool);
-  void two_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
-                               int const, bool);
+  void one_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void two_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void build_amesh(int, int, int, double *, double *);
   bool compute_vector_called;
 };
 

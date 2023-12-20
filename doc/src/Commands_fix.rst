@@ -29,6 +29,7 @@ OPT.
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
    * :doc:`addtorque <fix_addtorque>`
+   * :doc:`alchemy <fix_alchemy>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
    * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
@@ -38,14 +39,12 @@ OPT.
    * :doc:`ave/chunk <fix_ave_chunk>`
    * :doc:`ave/correlate <fix_ave_correlate>`
    * :doc:`ave/correlate/long <fix_ave_correlate_long>`
+   * :doc:`ave/grid <fix_ave_grid>`
    * :doc:`ave/histo <fix_ave_histo>`
    * :doc:`ave/histo/weight <fix_ave_histo>`
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
-   * :doc:`brownian <fix_brownian>`
-   * :doc:`brownian/asphere <fix_brownian>`
-   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
@@ -53,6 +52,9 @@ OPT.
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
+   * :doc:`brownian <fix_brownian>`
+   * :doc:`brownian/asphere <fix_brownian>`
+   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`charge/regulation <fix_charge_regulation>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
@@ -65,13 +67,14 @@ OPT.
    * :doc:`drude <fix_drude>`
    * :doc:`drude/transform/direct <fix_drude_transform>`
    * :doc:`drude/transform/inverse <fix_drude_transform>`
-   * :doc:`dt/reset <fix_dt_reset>`
+   * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
-   * :doc:`efield <fix_efield>`
+   * :doc:`efield (k) <fix_efield>`
+   * :doc:`efield/tip4p <fix_efield>`
    * :doc:`ehex <fix_ehex>`
-   * :doc:`electrode/conp (i) <fix_electrode_conp>`
-   * :doc:`electrode/conq (i) <fix_electrode_conp>`
-   * :doc:`electrode/thermo (i) <fix_electrode_conp>`
+   * :doc:`electrode/conp (i) <fix_electrode>`
+   * :doc:`electrode/conq (i) <fix_electrode>`
+   * :doc:`electrode/thermo (i) <fix_electrode>`
    * :doc:`electron/stopping <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
@@ -91,6 +94,7 @@ OPT.
    * :doc:`grem <fix_grem>`
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
+   * :doc:`heat/flow <fix_heat_flow>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
@@ -100,25 +104,25 @@ OPT.
    * :doc:`langevin/drude <fix_langevin_drude>`
    * :doc:`langevin/eff <fix_langevin_eff>`
    * :doc:`langevin/spin <fix_langevin_spin>`
-   * :doc:`latte <fix_latte>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
    * :doc:`mdi/qm <fix_mdi_qm>`
+   * :doc:`mdi/qmmm <fix_mdi_qmmm>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
    * :doc:`move <fix_move>`
-   * :doc:`mscg <fix_mscg>`
    * :doc:`msst <fix_msst>`
    * :doc:`mvv/dpd <fix_mvv_dpd>`
    * :doc:`mvv/edpd <fix_mvv_dpd>`
    * :doc:`mvv/tdpd <fix_mvv_dpd>`
    * :doc:`neb <fix_neb>`
    * :doc:`neb/spin <fix_neb_spin>`
+   * :doc:`nonaffine/displacement <fix_nonaffine_displacement>`
    * :doc:`nph (ko) <fix_nh>`
    * :doc:`nph/asphere (o) <fix_nph_asphere>`
    * :doc:`nph/body <fix_nph_body>`
@@ -167,7 +171,8 @@ OPT.
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
-   * :doc:`pimd <fix_pimd>`
+   * :doc:`pimd/langevin <fix_pimd>`
+   * :doc:`pimd/nvt <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
@@ -177,6 +182,7 @@ OPT.
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
    * :doc:`press/berendsen <fix_press_berendsen>`
+   * :doc:`press/langevin <fix_press_langevin>`
    * :doc:`print <fix_print>`
    * :doc:`propel/self <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
@@ -213,6 +219,7 @@ OPT.
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
+   * :doc:`sgcmc <fix_sgcmc>`
    * :doc:`shake (k) <fix_shake>`
    * :doc:`shardlow (k) <fix_shardlow>`
    * :doc:`smd <fix_smd>`
@@ -227,15 +234,15 @@ OPT.
    * :doc:`spring <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
    * :doc:`spring/rg <fix_spring_rg>`
-   * :doc:`spring/self <fix_spring_self>`
+   * :doc:`spring/self (k) <fix_spring_self>`
    * :doc:`srd <fix_srd>`
    * :doc:`store/force <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
    * :doc:`tdpd/source <fix_dpd_source>`
-   * :doc:`temp/berendsen <fix_temp_berendsen>`
+   * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
    * :doc:`temp/csld <fix_temp_csvr>`
    * :doc:`temp/csvr <fix_temp_csvr>`
-   * :doc:`temp/rescale <fix_temp_rescale>`
+   * :doc:`temp/rescale (k) <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
    * :doc:`tgnpt/drude <fix_tgnh_drude>`
@@ -249,18 +256,19 @@ OPT.
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
-   * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous (k) <fix_viscous>`
    * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`
    * :doc:`wall/ees <fix_wall_ees>`
-   * :doc:`wall/gran <fix_wall_gran>`
+   * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
    * :doc:`wall/harmonic <fix_wall>`
    * :doc:`wall/lj1043 <fix_wall>`
    * :doc:`wall/lj126 <fix_wall>`
    * :doc:`wall/lj93 (k) <fix_wall>`
+   * :doc:`wall/lepton <fix_wall>`
    * :doc:`wall/morse <fix_wall>`
    * :doc:`wall/piston <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
@@ -268,4 +276,5 @@ OPT.
    * :doc:`wall/region <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
+   * :doc:`wall/table <fix_wall>`
    * :doc:`widom <fix_widom>`

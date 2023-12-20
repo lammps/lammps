@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -105,7 +105,7 @@ void PairATM::compute(int eflag, int vflag)
   // must compute each IJK triplet interaction exactly once
   // by proc that owns the triplet atom with smallest x coord
   //   special logic to break ties if multiple atoms have same x or y coords
-  // inner two loops for jj=1,Jnum and kk=jj+1,Jnum insure
+  // inner two loops for jj=1,Jnum and kk=jj+1,Jnum ensure
   //   the pair of other 2 non-minimum-x atoms is only considered once
   // triplet geometry criteria for calculation:
   //   each pair distance <= cutoff

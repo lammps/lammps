@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -80,7 +80,6 @@ class PairLJExpandKokkos : public PairLJExpand {
   typename AT::t_x_array c_x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_tagint_1d tag;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
@@ -98,16 +97,19 @@ class PairLJExpandKokkos : public PairLJExpand {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairLJExpandKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairLJExpandKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,FULL,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALF,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALFTHREAD,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJExpandKokkos,void>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,FULL,0>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,FULL,1>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALF>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJExpandKokkos,HALFTHREAD>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJExpandKokkos>(PairLJExpandKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJExpandKokkos>(PairLJExpandKokkos*);
 };
 

@@ -1,10 +1,9 @@
-##########################################
-# CMake build system for plugin examples.
+# -*- CMake -*- build system for plugin examples.
 # The is meant to be used as a template for plugins that are
 # distributed independent from the LAMMPS package.
 ##########################################
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 project(paceplugin VERSION 1.0 LANGUAGES CXX)
 
@@ -38,9 +37,15 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/lammps.ico
       ${CMAKE_SOURCE_DIR}/lammps-text-logo-wide.bmp ${CMAKE_SOURCE_DIR}/paceplugin.nsis ${CMAKE_BINARY_DIR})
     if(BUILD_MPI)
-      add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION}-MPI paceplugin.nsis
-        DEPENDS paceplugin
-        BYPRODUCTS LAMMPS-ML-PACE-plugin-${LAMMPS_VERSION}-MPI.exe)
+      if(USE_MSMPI)
+        add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION}-MSMPI paceplugin.nsis
+          DEPENDS paceplugin
+          BYPRODUCTS LAMMPS-ML-PACE-plugin-${LAMMPS_VERSION}-MSMPI.exe)
+      else()
+        add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION}-MPI paceplugin.nsis
+          DEPENDS paceplugin
+          BYPRODUCTS LAMMPS-ML-PACE-plugin-${LAMMPS_VERSION}-MPI.exe)
+      endif()
     else()
       add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION} paceplugin.nsis
         COMMAND ${CMAKE_COMMAND} -E echo ${PWD}

@@ -6,7 +6,7 @@ fix wall/gran/region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID keyword values ...
 
@@ -36,12 +36,14 @@ Syntax
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
 * region-ID = region whose boundary will act as wall
-* keyword = *contacts*
+* keyword = *contacts* or *temperature*
 
   .. parsed-literal::
 
       *contacts* value = none
          generate contact information for each particle
+      *temperature* value = temperature
+         specify temperature of wall
 
 Examples
 """"""""
@@ -199,6 +201,17 @@ Note that you can choose a different force styles and/or different
 values for the 6 wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
+
+The *temperature* keyword is used to assign a temperature to the wall.
+The following value can either be a numeric value or an equal-style
+:doc:`variable <variable>`.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case, the
+variable will be evaluated each timestep, and its value used to determine
+the temperature. This option must be used in conjunction with a heat
+conduction model defined in :doc:`pair_style granular <pair_granular>`,
+:doc:`fix property/atom <fix_property_atom>` to store temperature and a
+heat flow, and :doc:`fix heat/flow <fix_heat_flow>` to integrate heat
+flow.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

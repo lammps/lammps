@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -241,7 +241,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
   MemKK::realloc_kokkos(idxz_block,"SNAKokkos::idxz_block", jdim,jdim,jdim);
   auto h_idxz_block = Kokkos::create_mirror_view(idxz_block);
 
+  // fused table for idxz and idxcg_block
   idxz_count = 0;
+  idxcg_count = 0;
   for (int j1 = 0; j1 <= twojmax; j1++)
     for (int j2 = 0; j2 <= j1; j2++)
       for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
@@ -251,27 +253,33 @@ void SNAKokkos<DeviceType, real_type, vector_length>::build_indexlist()
         // multiply and divide by j+1 factors
         // account for multiplicity of 1, 2, or 3
 
-        for (int mb = 0; 2*mb <= j; mb++)
+        for (int mb = 0; 2*mb <= j; mb++) {
           for (int ma = 0; ma <= j; ma++) {
-            h_idxz(idxz_count,0) = j1;
-            h_idxz(idxz_count,1) = j2;
-            h_idxz(idxz_count,2) = j;
-            h_idxz(idxz_count,3) = MAX(0, (2 * ma - j - j2 + j1) / 2);
-            h_idxz(idxz_count,4) = (2 * ma - j - (2 * h_idxz(idxz_count,3) - j1) + j2) / 2;
-            h_idxz(idxz_count,5) = MAX(0, (2 * mb - j - j2 + j1) / 2);
-            h_idxz(idxz_count,6) = (2 * mb - j - (2 * h_idxz(idxz_count,5) - j1) + j2) / 2;
-            h_idxz(idxz_count,7) = MIN(j1, (2 * ma - j + j2 + j1) / 2) - h_idxz(idxz_count,3) + 1;
-            h_idxz(idxz_count,8) = MIN(j1, (2 * mb - j + j2 + j1) / 2) - h_idxz(idxz_count,5) + 1;
+            int ma1min = MAX(0, (2 * ma - j - j2 + j1) / 2);
+            int ma2max = (2 * ma - j - (2 * ma1min - j1) + j2) / 2;
+            int mb1min = MAX(0, (2 * mb - j - j2 + j1) / 2);
+            int mb2max = (2 * mb - j - (2 * mb1min - j1) + j2) / 2;
+            int na = MIN(j1, (2 * ma - j + j2 + j1) / 2) - ma1min + 1;
+            int nb = MIN(j1, (2 * mb - j + j2 + j1) / 2) - mb1min + 1;
 
             // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
             // ylist is "compressed" via symmetry in its
             // contraction with dulist
             const int jju_half = h_idxu_half_block[j] + (j+1)*mb + ma;
-            h_idxz(idxz_count,9) = jju_half;
+
+            // idxz_struct's constructor handles all of the data packing
+            h_idxz(idxz_count) = idxz_struct(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg_count);
 
             idxz_count++;
           }
+        }
+
+        // there are different loop bounds for idxcg_count
+        for (int m1 = 0; m1 <= j1; m1++)
+          for (int m2 = 0; m2 <= j2; m2++)
+            idxcg_count++;
       }
+
   Kokkos::deep_copy(idxz,h_idxz);
   Kokkos::deep_copy(idxz_block,h_idxz_block);
 
@@ -663,17 +671,10 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi(const int& iatom_mod, const int& jjz, const int& iatom_div)
 {
 
-  const int j1 = idxz(jjz, 0);
-  const int j2 = idxz(jjz, 1);
-  const int j = idxz(jjz, 2);
-  const int ma1min = idxz(jjz, 3);
-  const int ma2max = idxz(jjz, 4);
-  const int mb1min = idxz(jjz, 5);
-  const int mb2max = idxz(jjz, 6);
-  const int na = idxz(jjz, 7);
-  const int nb = idxz(jjz, 8);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg;
+  idxz(jjz).get_zi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg);
 
-  const real_type* cgblock = cglist.data() + idxcg_block(j1, j2, j);
+  const real_type* cgblock = cglist.data() + idxcg;
 
   int idouble = 0;
 
@@ -792,18 +793,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi(int iatom_mod, 
  const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
 {
 
-  const int j1 = idxz(jjz, 0);
-  const int j2 = idxz(jjz, 1);
-  const int j = idxz(jjz, 2);
-  const int ma1min = idxz(jjz, 3);
-  const int ma2max = idxz(jjz, 4);
-  const int mb1min = idxz(jjz, 5);
-  const int mb2max = idxz(jjz, 6);
-  const int na = idxz(jjz, 7);
-  const int nb = idxz(jjz, 8);
-  const int jju_half = idxz(jjz, 9);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg;
+  idxz(jjz).get_yi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg);
 
-  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg;
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
@@ -840,10 +833,9 @@ KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi_with_zlist(int iatom_mod, int jjz, int iatom_div,
  const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
 {
-  const int j1 = idxz(jjz, 0);
-  const int j2 = idxz(jjz, 1);
-  const int j = idxz(jjz, 2);
-  const int jju_half = idxz(jjz, 9);
+  int j1, j2, j, jju_half;
+  idxz(jjz).get_yi_with_zlist(j1, j2, j, jju_half);
+
   int idouble = 0;
   for (int elem1 = 0; elem1 < nelements; elem1++) {
     for (int elem2 = 0; elem2 < nelements; elem2++) {
@@ -1259,17 +1251,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_zi_cpu(const int& 
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
-  const int j1 = idxz(jjz, 0);
-  const int j2 = idxz(jjz, 1);
-  const int j = idxz(jjz, 2);
-  const int ma1min = idxz(jjz, 3);
-  const int ma2max = idxz(jjz, 4);
-  const int mb1min = idxz(jjz, 5);
-  const int mb2max = idxz(jjz, 6);
-  const int na = idxz(jjz, 7);
-  const int nb = idxz(jjz, 8);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg;
+  idxz(jjz).get_zi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, idxcg);
 
-  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg;
 
   int idouble = 0;
 
@@ -1429,18 +1414,10 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi_cpu(int iter,
   const int iatom = iter / idxz_max;
   const int jjz = iter % idxz_max;
 
-  const int j1 = idxz(jjz, 0);
-  const int j2 = idxz(jjz, 1);
-  const int j = idxz(jjz, 2);
-  const int ma1min = idxz(jjz, 3);
-  const int ma2max = idxz(jjz, 4);
-  const int mb1min = idxz(jjz, 5);
-  const int mb2max = idxz(jjz, 6);
-  const int na = idxz(jjz, 7);
-  const int nb = idxz(jjz, 8);
-  const int jju_half = idxz(jjz, 9);
+  int j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg;
+  idxz(jjz).get_yi(j1, j2, j, ma1min, ma2max, mb1min, mb2max, na, nb, jju_half, idxcg);
 
-  const real_type *cgblock = cglist.data() + idxcg_block(j1,j2,j);
+  const real_type *cgblock = cglist.data() + idxcg;
   //int mb = (2 * (mb1min+mb2max) - j1 - j2 + j) / 2;
   //int ma = (2 * (ma1min+ma2max) - j1 - j2 + j) / 2;
 
@@ -2321,7 +2298,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
 
-  if (switch_flag == 0) { sfac_outer = zero; dsfac_outer = zero; }
+  if (switch_flag == 0) { sfac_outer = one; dsfac_outer = zero; }
   else if (switch_flag == 1) {
     if (r <= rmin0) { sfac_outer = one; dsfac_outer = zero; }
     else if (r > rcut) { sfac = zero; dsfac = zero; return; }

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -12,24 +12,29 @@
    ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Dan Bolintineanu (SNL)
+   Contributing authors: Dan Bolintineanu (SNL), Joel Clemmer (SNL)
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran_region.h"
 
 #include "atom.h"
+#include "granular_model.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "input.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "math_extra.h"
 #include "region.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
+using namespace Granular_NS;
+using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,15 +51,14 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   tmax = region->tmax;
   c2r = new int[tmax];
 
+  model->contact_type = WALLREGION;
+
   // re-allocate atom-based arrays with nshear
   // do not register with Atom class, since parent class did that
 
   memory->destroy(history_one);
   history_one = nullptr;
 
-  ncontact = nullptr;
-  walls = nullptr;
-  history_many = nullptr;
   FixWallGranRegion::grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
@@ -117,13 +121,15 @@ void FixWallGranRegion::init()
 void FixWallGranRegion::post_force(int /*vflag*/)
 {
   int i, m, nc, iwall;
-  double dx, dy, dz, rsq, meff;
-  double vwall[3];
+  double *forces, *torquesi;
+  double meff, vwall[3], w0[3] = {0.0, 0.0, 0.0};
+  bool touchflag = false;
 
   // do not update shear history during setup
 
   history_update = 1;
   if (update->setupflag) history_update = 0;
+  model->history_update = history_update;
 
   // if just reneighbored:
   // update rigid body masses for owned atoms if using FixRigid
@@ -158,7 +164,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-
+  double *temperature, *heatflow;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -170,97 +176,112 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     region->set_velocity();
   }
 
-  if (peratom_flag) { clear_stored_contacts(); }
+  if (peratom_flag) clear_stored_contacts();
+
+  // Define constant wall properties (atom j)
+  model->radj = 0.0;
+  model->omegaj = w0;
+  if (heat_flag) {
+    temperature = atom->temperature;
+    heatflow = atom->heatflow;
+    if (tstr)
+      Twall = input->variable->compute_equal(tvar);
+    model->Tj = Twall;
+  }
 
   for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (!region->match(x[i][0], x[i][1], x[i][2])) continue;
+    if (!(mask[i] & groupbit)) continue;
+    if (! region->match(x[i][0], x[i][1], x[i][2])) continue;
 
-      if (pairstyle == FixWallGran::GRANULAR && normal_model == FixWallGran::JKR) {
-        nc = region->surface(x[i][0], x[i][1], x[i][2], radius[i] + pulloff_distance(radius[i]));
-      } else {
-        nc = region->surface(x[i][0], x[i][1], x[i][2], radius[i]);
+    nc = region->surface(x[i][0], x[i][1], x[i][2], radius[i] + model->pulloff_distance(radius[i], 0.0));
+    if (nc > tmax) error->one(FLERR, "Too many wallgran/region contacts for one particle");
+
+    // shear history maintenance
+    // update ncontact,walls,shear2many for particle I
+    //   to reflect new and persistent shear historyvalues
+    // also set c2r[] = indices into region->contact[]for each of N contacts
+    // process zero or one contact here, otherwiseinvoke update_contacts()
+
+    if (use_history) {
+      if (nc == 0) {
+        ncontact[i] = 0;
+        continue;
       }
-      if (nc > tmax) error->one(FLERR, "Too many wall/gran/region contacts for one particle");
-
-      // shear history maintenance
-      // update ncontact,walls,shear2many for particle I
-      //   to reflect new and persistent shear history values
-      // also set c2r[] = indices into region->contact[] for each of N contacts
-      // process zero or one contact here, otherwise invoke update_contacts()
-
-      if (use_history) {
-        if (nc == 0) {
-          ncontact[i] = 0;
-          continue;
-        }
-        if (nc == 1) {
-          c2r[0] = 0;
-          iwall = region->contact[0].iwall;
-          if (ncontact[i] == 0) {
-            ncontact[i] = 1;
-            walls[i][0] = iwall;
-            for (m = 0; m < size_history; m++) history_many[i][0][m] = 0.0;
-          } else if (ncontact[i] > 1 || iwall != walls[i][0])
-            update_contacts(i, nc);
-        } else
+      if (nc == 1) {
+        c2r[0] = 0;
+        iwall = region->contact[0].iwall;
+        if (ncontact[i] == 0) {
+          ncontact[i] = 1;
+          walls[i][0] = iwall;
+          for (m = 0; m < size_history; m++) history_many[i][0][m] = 0.0;
+        } else if (ncontact[i] > 1 || iwall != walls[i][0])
           update_contacts(i, nc);
+      } else
+        update_contacts(i, nc);
+    }
+
+    // process current contacts
+    for (int ic = 0; ic < nc; ic++) {
+
+      // Reset model and copy initial geometric data
+      model->dx[0] = region->contact[ic].delx;
+      model->dx[1] = region->contact[ic].dely;
+      model->dx[2] = region->contact[ic].delz;
+      model->radi = radius[i];
+      model->radj = region->contact[ic].radius;
+      model->r = region->contact[ic].r;
+      if (model->beyond_contact) model->touch = history_many[i][c2r[ic]][0];
+
+      touchflag = model->check_contact();
+
+      if (!touchflag) {
+        if (use_history)
+          for (m = 0; m < size_history; m++)
+            history_many[i][c2r[ic]][m] = 0.0;
+        continue;
       }
 
-      // process current contacts
-      for (int ic = 0; ic < nc; ic++) {
+      if (model->beyond_contact)
+        history_many[i][c2r[ic]][0] = 1;
 
-        // rsq = squared contact distance
-        // xc = contact point
+      if (regiondynamic) region->velocity_contact(vwall, x[i], ic);
+      model->vj = vwall;
 
-        rsq = region->contact[ic].r * region->contact[ic].r;
+      // meff = effective mass of sphere
+      // if I is part of rigid body, use body mass
 
-        if (pairstyle == FixWallGran::GRANULAR && normal_model == FixWallGran::JKR) {
-          if (history_many[i][c2r[ic]][0] == 0.0 && rsq > radius[i] * radius[i]) {
-            for (m = 0; m < size_history; m++) history_many[i][0][m] = 0.0;
-            continue;
-          }
-        }
+      meff = rmass[i];
+      if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
-        dx = region->contact[ic].delx;
-        dy = region->contact[ic].dely;
-        dz = region->contact[ic].delz;
+      // Copy additional information and prepare force calculations
+      model->meff = meff;
+      model->vi = v[i];
+      model->omegai = omega[i];
 
-        if (regiondynamic) region->velocity_contact(vwall, x[i], ic);
+      if (use_history) model->history = history_many[i][c2r[ic]];
+      if (heat_flag) model->Ti = temperature[i];
 
-        // meff = effective mass of sphere
-        // if I is part of rigid body, use body mass
+      model->calculate_forces();
 
-        meff = rmass[i];
-        if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
+      forces = model->forces;
+      torquesi = model->torquesi;
 
-        // store contact info
-        if (peratom_flag) {
-          array_atom[i][0] = 1.0;
-          array_atom[i][4] = x[i][0] - dx;
-          array_atom[i][5] = x[i][1] - dy;
-          array_atom[i][6] = x[i][2] - dz;
-          array_atom[i][7] = radius[i];
-        }
+      // apply forces & torques
+      add3(f[i], forces, f[i]);
 
-        // invoke sphere/wall interaction
-        double *contact;
-        if (peratom_flag)
-          contact = array_atom[i];
-        else
-          contact = nullptr;
+      add3(torque[i], torquesi, torque[i]);
+      if (heat_flag) heatflow[i] += model->dq;
 
-        if (pairstyle == FixWallGran::HOOKE)
-          hooke(rsq, dx, dy, dz, vwall, v[i], f[i], omega[i], torque[i], radius[i], meff, contact);
-        else if (pairstyle == FixWallGran::HOOKE_HISTORY)
-          hooke_history(rsq, dx, dy, dz, vwall, v[i], f[i], omega[i], torque[i], radius[i], meff,
-                        history_many[i][c2r[ic]], contact);
-        else if (pairstyle == FixWallGran::HERTZ_HISTORY)
-          hertz_history(rsq, dx, dy, dz, vwall, region->contact[ic].radius, v[i], f[i], omega[i],
-                        torque[i], radius[i], meff, history_many[i][c2r[ic]], contact);
-        else if (pairstyle == FixWallGran::GRANULAR)
-          granular(rsq, dx, dy, dz, vwall, region->contact[ic].radius, v[i], f[i], omega[i],
-                   torque[i], radius[i], meff, history_many[i][c2r[ic]], contact);
+      // store contact info
+      if (peratom_flag) {
+        array_atom[i][0] = 1.0;
+        array_atom[i][1] = forces[0];
+        array_atom[i][2] = forces[1];
+        array_atom[i][3] = forces[2];
+        array_atom[i][4] = x[i][0] - model->dx[0];
+        array_atom[i][5] = x[i][1] - model->dx[1];
+        array_atom[i][6] = x[i][2] - model->dx[2];
+        array_atom[i][7] = radius[i];
       }
     }
   }

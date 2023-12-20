@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -59,6 +59,9 @@ void MinKokkos::init()
 {
   Min::init();
 
+  if (!fix_minimize->kokkosable)
+    error->all(FLERR,"KOKKOS package requires fix minimize/kk");
+
   fix_minimize_kk = (FixMinimizeKokkos*) fix_minimize;
 }
 
@@ -69,8 +72,7 @@ void MinKokkos::init()
 void MinKokkos::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fmt::print(screen,"Setting up {} style minimization ...\n",
-               update->minimize_style);
+    fmt::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
     if (flag) {
       fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
       fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
@@ -87,16 +89,15 @@ void MinKokkos::setup(int flag)
   nextra_global = modify->min_dof();
   if (nextra_global) {
     fextra = new double[nextra_global];
-    if (comm->me == 0 && screen)
-      fprintf(screen,"WARNING: Energy due to %d extra global DOFs will"
-              " be included in minimizer energies\n",nextra_global);
+    if (comm->me == 0)
+      error->warning(FLERR, "Energy due to {} extra global DOFs will"
+                     " be included in minimizer energies\n",nextra_global);
   }
 
   // compute for potential energy
 
-  int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all(FLERR,"Minimization could not find thermo_pe compute");
-  pe_compute = modify->compute[id];
+  pe_compute = modify->get_compute_by_id("thermo_pe");
+  if (!pe_compute) error->all(FLERR,"Minimization could not find thermo_pe compute");
 
   // style-specific setup does two tasks
   // setup extra global dof vectors
@@ -359,7 +360,7 @@ void MinKokkos::run(int n)
   // if early exit from iterate loop:
   // set update->nsteps to niter for Finish stats to print
   // set output->next values to this timestep
-  // call energy_force() to insure vflag is set when forces computed
+  // call energy_force() to ensure vflag is set when forces computed
   // output->write does final output for thermo, dump, restart files
   // add ntimestep to all computes that store invocation times
   //   since are hardwiring call to thermo/dumps and computes may not be ready
@@ -513,6 +514,7 @@ double MinKokkos::energy_force(int resetflag)
   if (modify->n_min_post_force) {
      timer->stamp();
      modify->min_post_force(vflag);
+     atomKK->sync(Device,F_MASK);
      timer->stamp(Timer::MODIFY);
   }
 
@@ -533,6 +535,7 @@ double MinKokkos::energy_force(int resetflag)
     if (resetflag) fix_minimize_kk->reset_coords();
     reset_vectors();
   }
+
   return energy;
 }
 
@@ -571,7 +574,14 @@ void MinKokkos::force_clear()
         l_torque(i,2) = 0.0;
       }
     });
+
+    if (extraflag) {
+      size_t nbytes = sizeof(double) * atom->nlocal;
+      if (force->newton) nbytes += sizeof(double) * atom->nghost;
+      atom->avec->force_clear(0,nbytes);
+    }
   }
+
   atomKK->modified(Device,F_MASK|TORQUE_MASK);
 }
 

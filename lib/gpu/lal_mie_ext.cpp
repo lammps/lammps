@@ -80,7 +80,7 @@ int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
                         offset, special_lj, inum, nall, max_nbors, maxspecial,
                         cell_size, gpu_split, screen);
 
-    MLMF.device->gpu_barrier();
+    MLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

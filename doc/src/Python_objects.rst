@@ -76,7 +76,7 @@ computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
 
       To define a variable you can use the :doc:`variable <variable>` command:
 
-      .. code-block:: Python
+      .. code-block:: python
 
          L.variable("a index 2")
 
@@ -85,14 +85,14 @@ computes, fixes, or variables in LAMMPS using the :py:mod:`lammps` module.
       you can access an individual variable by retrieving a variable object from the
       ``L.variables`` dictionary by name
 
-      .. code-block:: Python
+      .. code-block:: python
 
          a = L.variables['a']
 
       The variable value can then be easily read and written by accessing the value
       property of this object.
 
-      .. code-block:: Python
+      .. code-block:: python
 
          print(a.value)
          a.value = 4

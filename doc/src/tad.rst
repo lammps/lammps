@@ -6,7 +6,7 @@ tad command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    tad N t_event T_lo T_hi delta tmax compute-ID keyword value ...
 
@@ -18,7 +18,7 @@ Syntax
 * tmax = reciprocal of lowest expected pre-exponential factor (time units)
 * compute-ID = ID of the compute used for event detection
 * zero or more keyword/value pairs may be appended
-* keyword = *min* or *neb* or *min_style* or *neb_style* or *neb_log*
+* keyword = *min* or *neb* or *neb_style* or *neb_step* or *neb_log*
 
   .. parsed-literal::
 

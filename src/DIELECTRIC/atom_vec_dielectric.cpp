@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -60,28 +60,28 @@ AtomVecDielectric::AtomVecDielectric(LAMMPS *_lmp) : AtomVec(_lmp)
     "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
     "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
     "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special",
-    "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
+    "mu", "area", "ed", "em", "epsilon", "curvature", "q_scaled"};
   fields_copy = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle", "angle_type",
     "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
     "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
     "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special",
-    "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
-  fields_comm = {"q", "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
-  fields_border = {"q", "molecule", "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
+    "mu", "area", "ed", "em", "epsilon", "curvature", "q_scaled"};
+  fields_comm = {"q", "mu", "area", "ed", "em", "epsilon", "curvature", "q_scaled"};
+  fields_border = {"q", "molecule", "mu", "area", "ed", "em", "epsilon", "curvature", "q_scaled"};
   fields_border_vel = {"q", "molecule", "mu", "area", "ed", "em", "epsilon", "curvature",
-    "q_unscaled"};
+    "q_scaled"};
   fields_exchange = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle",
     "angle_type", "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type",
     "dihedral_atom1", "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper",
     "improper_type", "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4",
-    "nspecial", "special", "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
+    "nspecial", "special", "mu", "area", "ed", "em", "epsilon", "curvature", "q_scaled"};
   fields_restart = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle",
     "angle_type", "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type",
     "dihedral_atom1", "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper",
     "improper_type", "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4",
-    "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
+    "mu", "area", "ed", "em", "epsilon", "curvature", "q_scaled"};
   fields_create = {"q", "molecule", "num_bond", "num_angle", "num_dihedral", "num_improper",
-    "nspecial", "mu", "area", "ed", "em", "epsilon", "curvature", "q_unscaled"};
+    "nspecial", "mu", "area", "ed", "em", "epsilon", "curvature", "q_scaled"};
   fields_data_atom = {"id", "molecule", "type", "q", "x", "mu3", "area", "ed", "em", "epsilon",
     "curvature"};
   fields_data_vel = {"id", "v"};
@@ -151,7 +151,7 @@ void AtomVecDielectric::grow_pointers()
   em = atom->em;
   epsilon = atom->epsilon;
   curvature = atom->curvature;
-  q_unscaled = atom->q_unscaled;
+  q_scaled = atom->q_scaled;
 }
 
 /* ----------------------------------------------------------------------
@@ -181,29 +181,10 @@ void AtomVecDielectric::data_atom_post(int ilocal)
   nspecial[ilocal][2] = 0;
 
   double *q = atom->q;
-  q_unscaled[ilocal] = q[ilocal];
-  q[ilocal] /= epsilon[ilocal];
+  q_scaled[ilocal] = q[ilocal]/epsilon[ilocal];
 
   double *mu_one = mu[ilocal];
   mu_one[3] = sqrt(mu_one[0] * mu_one[0] + mu_one[1] * mu_one[1] + mu_one[2] * mu_one[2]);
-}
-
-/* ----------------------------------------------------------------------
-   restore original data for writing the data file
-------------------------------------------------------------------------- */
-
-void AtomVecDielectric::pack_data_pre(int ilocal)
-{
-  atom->q[ilocal] = q_unscaled[ilocal];
-}
-
-/* ----------------------------------------------------------------------
-   undo restore and get back to post read data state
-------------------------------------------------------------------------- */
-
-void AtomVecDielectric::pack_data_post(int ilocal)
-{
-  atom->q[ilocal] /= epsilon[ilocal];
 }
 
 /* ----------------------------------------------------------------------
@@ -229,7 +210,7 @@ int AtomVecDielectric::property_atom(const std::string &name)
   if (name == "em") return 2;
   if (name == "epsilon") return 3;
   if (name == "curvature") return 4;
-  if (name == "q_unscaled") return 5;
+  if (name == "q_scaled") return 5;
   return -1;
 }
 
@@ -287,7 +268,7 @@ void AtomVecDielectric::pack_property_atom(int index, double *buf, int nvalues, 
   } else if (index == 5) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
-        buf[n] = q_unscaled[i];
+        buf[n] = q_scaled[i];
       else
         buf[n] = 0.0;
       n += nvalues;

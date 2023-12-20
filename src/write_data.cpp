@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -245,8 +245,8 @@ void WriteData::write(const std::string &file)
 
 void WriteData::header()
 {
-  fmt::print(fp,"LAMMPS data file via write_data, version {}, "
-             "timestep = {}\n\n",lmp->version,update->ntimestep);
+  fmt::print(fp,"LAMMPS data file via write_data, version {}, timestep = {}, units = {}\n\n",
+             lmp->version, update->ntimestep, update->unit_style);
 
   fmt::print(fp,"{} atoms\n{} atom types\n",atom->natoms,atom->ntypes);
 

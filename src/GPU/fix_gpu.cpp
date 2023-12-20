@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -120,8 +120,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   // If ngpu is 0, autoset ngpu to the number of devices per node matching
   // best device
-  int ngpu = atoi(arg[3]);
-  if (ngpu < 0) error->all(FLERR,"Illegal package gpu command");
+  int ngpu = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (ngpu < 0) error->all(FLERR,"Illegal number of GPUs ({}) in package gpu command", ngpu);
 
   // Negative value indicate GPU package should find the best device ID
   int first_gpu_id = -1;
@@ -131,12 +131,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   _gpu_mode = GPU_NEIGH;
   _particle_split = 1.0;
   int nthreads = 0;
-  int newtonflag = 0;
+  int newtonflag = force->newton_pair;
   int threads_per_atom = -1;
   double binsize = 0.0;
   char *opencl_args = nullptr;
   int block_pair = -1;
-  int pair_only_flag = 0;
   int ocl_platform = -1;
   char *device_type_flags = nullptr;
 
@@ -194,7 +193,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      lmp->pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -223,16 +222,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   if (force->newton_pair == 1 && _particle_split < 1)
     error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
-
-  if (pair_only_flag) {
-    lmp->suffixp = lmp->suffix;
-    lmp->suffix = nullptr;
-  } else {
-    if (lmp->suffixp) {
-      lmp->suffix = lmp->suffixp;
-      lmp->suffixp = nullptr;
-    }
-  }
 
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib
@@ -301,6 +290,20 @@ void FixGPU::init()
 
 void FixGPU::setup(int vflag)
 {
+  // See if we should overlap topology list builds on CPU with work on GPU
+  int overlap_topo = 0;
+  if ((atom->molecular != Atom::ATOMIC)) {
+    PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid",0));
+    if (ph) {
+      for (int isub=0; isub < ph->nstyles; ++isub) {
+        if (force->pair_match("gpu",0,isub)) overlap_topo = 1;
+      }
+    } else {
+      if (force->pair_match("gpu",0)) overlap_topo = 1;
+    }
+  }
+  if (overlap_topo) neighbor->set_overlap_topo(1);
+
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (neighbor->exclude_setting() != 0)
       error->all(FLERR, "Cannot use neigh_modify exclude with GPU neighbor builds");
@@ -370,6 +373,8 @@ double FixGPU::memory_usage()
   // memory usage currently returned by pair routine
   return bytes;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixGPU::binsize(const double subx, const double suby,
                        const double subz, const int nlocal,

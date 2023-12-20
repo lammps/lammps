@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,10 +18,29 @@
    a LAMMPS plugin to some other software.
 */
 
-#include "library.h"
 #include "liblammpsplugin.h"
-#include <stdlib.h>
+
+#if defined(_WIN32)
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#if defined(_WIN32_WINNT)
+#undef _WIN32_WINNT
+#endif
+
+// target Windows version is windows 7 and later
+#define _WIN32_WINNT _WIN32_WINNT_WIN7
+#define PSAPI_VERSION 2
+
+#include <windows.h>
+#else
 #include <dlfcn.h>
+#endif
+
+#include <stdlib.h>
+
 
 liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 {
@@ -29,14 +48,30 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   void *handle;
 
   if (lib == NULL) return NULL;
+
+#ifdef _WIN32
+  handle = (void *) LoadLibrary(lib);
+#else
   handle = dlopen(lib,RTLD_NOW|RTLD_GLOBAL);
+#endif
   if (handle == NULL) return NULL;
 
-  lmp = (liblammpsplugin_t *) malloc(sizeof(liblammpsplugin_t));
+  lmp = (liblammpsplugin_t *) calloc(1, sizeof(liblammpsplugin_t));
+  lmp->abiversion = LAMMPSPLUGIN_ABI_VERSION;
   lmp->handle = handle;
 
-#define ADDSYM(symbol) lmp->symbol = dlsym(handle,"lammps_" #symbol)
+#ifdef _WIN32
+#define ADDSYM(symbol) *(void **) (&lmp->symbol) = (void *) GetProcAddress((HINSTANCE) handle, "lammps_" #symbol)
+#else
+#define ADDSYM(symbol) *(void **) (&lmp->symbol) = dlsym(handle,"lammps_" #symbol)
+#endif
+
+#if defined(LAMMPS_LIB_MPI)
   ADDSYM(open);
+#else
+  lmp->open = NULL;
+#endif
+
   ADDSYM(open_no_mpi);
   ADDSYM(open_fortran);
   ADDSYM(close);
@@ -46,6 +81,8 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(kokkos_finalize);
   ADDSYM(python_finalize);
 
+  ADDSYM(error);
+
   ADDSYM(file);
   ADDSYM(command);
   ADDSYM(commands_list);
@@ -53,6 +90,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 
   ADDSYM(get_natoms);
   ADDSYM(get_thermo);
+  ADDSYM(last_thermo);
 
   ADDSYM(extract_box);
   ADDSYM(reset_box);
@@ -70,14 +108,26 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(extract_compute);
   ADDSYM(extract_fix);
   ADDSYM(extract_variable);
+  ADDSYM(extract_variable_datatype);
   ADDSYM(set_variable);
+  ADDSYM(variable_info);
 
   ADDSYM(gather_atoms);
   ADDSYM(gather_atoms_concat);
   ADDSYM(gather_atoms_subset);
   ADDSYM(scatter_atoms);
   ADDSYM(scatter_atoms_subset);
+
   ADDSYM(gather_bonds);
+  ADDSYM(gather_angles);
+  ADDSYM(gather_dihedrals);
+  ADDSYM(gather_impropers);
+
+  ADDSYM(gather);
+  ADDSYM(gather_concat);
+  ADDSYM(gather_subset);
+  ADDSYM(scatter);
+  ADDSYM(scatter_subset);
 
   ADDSYM(create_atoms);
 
@@ -116,6 +166,9 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(plugin_count);
   ADDSYM(plugin_name);
 
+  ADDSYM(encode_image_flags);
+  ADDSYM(decode_image_flags);
+
   ADDSYM(set_fix_external_callback);
   ADDSYM(fix_external_get_force);
   ADDSYM(fix_external_set_energy_global);
@@ -125,20 +178,20 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(fix_external_set_vector_length);
   ADDSYM(fix_external_set_vector);
 
+  ADDSYM(flush_buffers);
+
   ADDSYM(free);
 
   ADDSYM(is_running);
   ADDSYM(force_timeout);
 
-#ifdef LAMMPS_EXCEPTIONS
-  lmp->has_exceptions = 1;
-  ADDSYM(has_error);
-  ADDSYM(get_last_error_message);
-#else
-  lmp->has_exceptions = 0;
-  lmp->has_error = NULL;
-  lmp->get_last_error_message = NULL;
-#endif
+  lmp->has_exceptions = lmp->config_has_exceptions();
+  if (lmp->has_exceptions) {
+    ADDSYM(has_error);
+    ADDSYM(get_last_error_message);
+  }
+
+  ADDSYM(python_api_version);
   return lmp;
 }
 
@@ -147,7 +200,11 @@ int liblammpsplugin_release(liblammpsplugin_t *lmp)
   if (lmp == NULL) return 1;
   if (lmp->handle == NULL) return 2;
 
+#ifdef _WIN32
+  FreeLibrary((HINSTANCE) lmp->handle);
+#else
   dlclose(lmp->handle);
+#endif
   free((void *)lmp);
   return 0;
 }

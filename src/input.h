@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -39,6 +39,7 @@ class Input : protected Pointers {
   char *one(const std::string &);                          // process a single command
   void substitute(char *&, char *&, int &, int &, int);    // substitute for variables in a string
   void write_echo(const std::string &);                    // send text to active echo file pointers
+  int get_jump_skip() const { return jump_skip; }
 
  protected:
   char *command;      // ptr to current command
@@ -50,13 +51,14 @@ class Input : protected Pointers {
   int maxarg;                       // max # of args in arg
   char *line, *copy, *work;         // input line & copy and work string
   int maxline, maxcopy, maxwork;    // max lengths of char strings
-  int nfile, maxfile;               // current # and max # of open input files
+  int nfile;                        // current # of open input files
   int label_active;                 // 0 = no label, 1 = looking for label
   char *labelstr;                   // label string being looked for
   int jump_skip;                    // 1 if skipping next jump, 0 otherwise
   bool utf8_warn;                   // true if need to warn about UTF-8 chars
 
   FILE **infiles;    // list of open input files
+  int *inlines;      // list of saved line numbers of open input files
 
  public:
   typedef Command *(*CommandCreator)(LAMMPS *);
@@ -69,6 +71,8 @@ class Input : protected Pointers {
   int numtriple(char *);                   // count number of triple quotes
   void reallocate(char *&, int &, int);    // reallocate a char string
   int execute_command();                   // execute a single command
+
+  int meta(const std::string &);    // process meta-commands
 
   void clear();    // input script commands
   void echo();
@@ -94,7 +98,6 @@ class Input : protected Pointers {
   void bond_style();
   void bond_write();
   void boundary();
-  void box();
   void comm_modify();
   void comm_style();
   void compute();
@@ -143,7 +146,5 @@ class Input : protected Pointers {
   void unfix();
   void units();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif

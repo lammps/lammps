@@ -1,51 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 #include <Kokkos_DynRankView.hpp>
@@ -108,8 +79,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 7> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
@@ -193,8 +163,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 6> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
@@ -275,8 +244,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 5> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
@@ -370,8 +338,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 4> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
@@ -445,8 +412,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 3> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
@@ -543,8 +509,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 2> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
@@ -623,8 +588,7 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
   using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
@@ -724,6 +688,7 @@ class TestDynViewAPI {
     run_test_subview_strided();
     run_test_vector();
     run_test_as_view_of_rank_n();
+    run_test_layout();
   }
 
   static void run_operator_test_rank12345() {
@@ -1158,9 +1123,6 @@ class TestDynViewAPI {
 #endif  // MDRangePolict Rank < 7
 
 #endif  // defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-
-    // Error checking test
-    EXPECT_ANY_THROW({ auto v_copy = Kokkos::Impl::as_view_of_rank_n<2>(d); });
   }
 
   static void run_test_scalar() {
@@ -1238,19 +1200,19 @@ class TestDynViewAPI {
 
     View7 vtest1("vtest1", 2, 2, 2, 2, 2, 2, 2);
     dView0 dfromv1(vtest1);
-    ASSERT_EQ(dfromv1.rank(), vtest1.Rank);
+    ASSERT_EQ(dfromv1.rank(), vtest1.rank);
     ASSERT_EQ(dfromv1.extent(0), vtest1.extent(0));
     ASSERT_EQ(dfromv1.extent(1), vtest1.extent(1));
     ASSERT_EQ(dfromv1.use_count(), vtest1.use_count());
 
     dView0 dfromv2(vcast);
-    ASSERT_EQ(dfromv2.rank(), vcast.Rank);
+    ASSERT_EQ(dfromv2.rank(), vcast.rank);
     ASSERT_EQ(dfromv2.extent(0), vcast.extent(0));
     ASSERT_EQ(dfromv2.extent(1), vcast.extent(1));
     ASSERT_EQ(dfromv2.use_count(), vcast.use_count());
 
     dView0 dfromv3 = vcast1;
-    ASSERT_EQ(dfromv3.rank(), vcast1.Rank);
+    ASSERT_EQ(dfromv3.rank(), vcast1.rank);
     ASSERT_EQ(dfromv3.extent(0), vcast1.extent(0));
     ASSERT_EQ(dfromv3.extent(1), vcast1.extent(1));
     ASSERT_EQ(dfromv3.use_count(), vcast1.use_count());
@@ -1897,6 +1859,28 @@ class TestDynViewAPI {
     const_smultivector_type cmv(mv);
     typename smultivector_type::const_type cmvX(cmv);
     typename const_smultivector_type::const_type ccmvX(cmv);
+  }
+
+  static void run_test_layout() {
+    Kokkos::DynRankView<double> d("source", 1, 2, 3, 4);
+    Kokkos::DynRankView<double> e("dest");
+
+    auto props = Kokkos::view_alloc(Kokkos::WithoutInitializing, d.label());
+    e          = Kokkos::DynRankView<double>(props, d.layout());
+
+    ASSERT_EQ(d.rank(), 4u);
+    ASSERT_EQ(e.rank(), 4u);
+    ASSERT_EQ(e.label(), "source");
+
+    auto ulayout = e.layout();
+    ASSERT_EQ(ulayout.dimension[0], 1u);
+    ASSERT_EQ(ulayout.dimension[1], 2u);
+    ASSERT_EQ(ulayout.dimension[2], 3u);
+    ASSERT_EQ(ulayout.dimension[3], 4u);
+    ASSERT_EQ(ulayout.dimension[4], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(ulayout.dimension[5], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(ulayout.dimension[6], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(ulayout.dimension[7], KOKKOS_INVALID_INDEX);
   }
 };
 

@@ -26,42 +26,15 @@ action () {
   fi
 }
 
-# all package files with no dependencies
-
-for file in *.cpp *.h; do
-  test -f ${file} && action $file
-done
-
-# edit 2 Makefile.package files to include/exclude package info
+# some styles in MESONT have base classes in MOLECULE
 
 if (test $1 = 1) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*mesont[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/mesont |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/mesont |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-lmesont |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(mesont_SYSINC) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(mesont_SYSLIB) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(mesont_SYSPATH) |' ../Makefile.package
+  if (test ! -e ../bond_harmonic.cpp) then
+    echo "Must install MOLECULE package with MESONT"
+    exit 1
   fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*mesont.*$/d' ../Makefile.package.settings
-    # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-include ..\/..\/lib\/mesont\/Makefile.lammps
-' ../Makefile.package.settings
-  fi
-
-elif (test $1 = 0) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*mesont[^ \t]* //' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*mesont.*$/d' ../Makefile.package.settings
-  fi
-
 fi
+
+for file in *.cpp *.h; do
+    action ${file}
+done

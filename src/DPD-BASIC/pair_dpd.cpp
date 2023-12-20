@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -68,7 +68,7 @@ void PairDPD::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,factor_dpd;
+  double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -105,6 +105,7 @@ void PairDPD::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_dpd = special_lj[sbmask(j)];
+      factor_sqrt = special_sqrt[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -127,11 +128,13 @@ void PairDPD::compute(int eflag, int vflag)
         // conservative force = a0 * wd
         // drag force = -gamma * wd^2 * (delx dot delv) / r
         // random force = sigma * wd * rnd * dtinvsqrt;
+        // random force must be scaled by sqrt(factor_dpd)
 
         fpair = a0[itype][jtype]*wd;
         fpair -= gamma[itype][jtype]*wd*wd*dot*rinv;
-        fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-        fpair *= factor_dpd*rinv;
+        fpair *= factor_dpd;
+        fpair += factor_sqrt*sigma[itype][jtype]*wd*randnum*dtinvsqrt;
+        fpair *= rinv;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -263,6 +266,10 @@ void PairDPD::init_style()
     error->warning(FLERR, "Pair dpd needs newton pair on for momentum conservation");
 
   neighbor->add_request(this);
+
+  // precompute random force scaling factors
+
+  for (int i = 0; i < 4; ++i) special_sqrt[i] = sqrt(force->special_lj[i]);
 }
 
 /* ----------------------------------------------------------------------

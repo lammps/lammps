@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,10 +26,10 @@ class NeighRequest : protected Pointers {
   friend class NStencil;
   friend class NeighborKokkos;
   friend class NPairSkipIntel;
+  friend class NPairSkipTrimIntel;
   friend class FixIntel;
 
  protected:
-  int index;                 // index of which neigh request this is
   void *requestor;           // class that made request
   int requestor_instance;    // instance of that class (only Fix, Compute, Pair)
   int id;                    // ID of request as stored by requestor
@@ -122,7 +122,7 @@ class NeighRequest : protected Pointers {
   // methods
  public:
   NeighRequest(class LAMMPS *);
-  NeighRequest(class LAMMPS *, int, void *, int);
+  NeighRequest(class LAMMPS *, void *, int);
   NeighRequest(NeighRequest *);
   ~NeighRequest() override;
 

@@ -33,14 +33,14 @@ kim           hooks to the KIM library, used by KIM package
                 from Ryan Elliott and Ellad Tadmor (U Minn)
 kokkos        Kokkos package for GPU and many-core acceleration
                 from Kokkos development team (Sandia)
+lepton        Lepton library for fast evaluation of mathematical
+                expressions from a string. Imported from OpenMM.
 linalg        set of BLAS and LAPACK routines needed by ATC package
                 from Axel Kohlmeyer (Temple U)
 mdi           hooks to the MDI library, used by MDI package
                 from Taylor Barnes (MolSSI at Virginia Tech)
 molfile       hooks to VMD molfile plugins, used by the MOLFILE package
                 from Axel Kohlmeyer (Temple U) and the VMD development team
-mscg          hooks to the MSCG library, used by fix_mscg command
-                from Jacob Wagner and Greg Voth group (U Chicago)
 netcdf        hooks to a NetCDF library installed on your system
                 from Lars Pastewka (Karlsruhe Institute of Technology)
 plugin        settings to load styles into LAMMPS from plugins

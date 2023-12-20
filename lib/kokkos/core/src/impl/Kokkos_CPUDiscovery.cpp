@@ -1,120 +1,58 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#elif defined(__APPLE__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#else
-#include <unistd.h>
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cerrno>
+
+#include <impl/Kokkos_CPUDiscovery.hpp>
+
+#include <cstdlib>  // getenv
 #include <string>
 
-namespace Kokkos {
-namespace Impl {
-
-int processors_per_node() {
-#ifdef _SC_NPROCESSORS_ONLN
-  int const num_procs     = sysconf(_SC_NPROCESSORS_ONLN);
-  int const num_procs_max = sysconf(_SC_NPROCESSORS_CONF);
-  if ((num_procs < 1) || (num_procs_max < 1)) {
-    return -1;
+int Kokkos::Impl::mpi_ranks_per_node() {
+  for (char const* env_var : {
+           "OMPI_COMM_WORLD_LOCAL_SIZE",  // OpenMPI
+           "MV2_COMM_WORLD_LOCAL_SIZE",   // MVAPICH2
+           "MPI_LOCALNRANKS",             // MPICH
+                                          // SLURM???
+           "PMI_LOCAL_SIZE",              // PMI
+       }) {
+    char const* str = std::getenv(env_var);
+    if (str) {
+      return std::stoi(str);
+    }
   }
-  return num_procs;
-#elif defined(__APPLE__)
-  int ncpu;
-  int activecpu;
-  size_t size = sizeof(int);
-  sysctlbyname("hw.ncpu", &ncpu, &size, nullptr, 0);
-  sysctlbyname("hw.activecpu", &activecpu, &size, nullptr, 0);
-  if (ncpu < 1 || activecpu < 1)
-    return -1;
-  else
-    return activecpu;
-#else
   return -1;
-#endif
 }
 
-int mpi_ranks_per_node() {
-  char *str;
-  int ppn = 1;
-  // if ((str = getenv("SLURM_TASKS_PER_NODE"))) {
-  //  ppn = std::stoi(str);
-  //  if(ppn<=0) ppn = 1;
-  //}
-  if ((str = getenv("MV2_COMM_WORLD_LOCAL_SIZE"))) {
-    ppn = std::stoi(str);
-    if (ppn <= 0) ppn = 1;
+int Kokkos::Impl::mpi_local_rank_on_node() {
+  for (char const* env_var : {
+           "OMPI_COMM_WORLD_LOCAL_RANK",  // OpenMPI
+           "MV2_COMM_WORLD_LOCAL_RANK",   // MVAPICH2
+           "MPI_LOCALRANKID",             // MPICH
+           "SLURM_LOCALID",               // SLURM
+           "PMI_LOCAL_RANK",              // PMI
+       }) {
+    char const* str = std::getenv(env_var);
+    if (str) {
+      return std::stoi(str);
+    }
   }
-  if ((str = getenv("OMPI_COMM_WORLD_LOCAL_SIZE"))) {
-    ppn = std::stoi(str);
-    if (ppn <= 0) ppn = 1;
-  }
-  return ppn;
+  return -1;
 }
 
-int mpi_local_rank_on_node() {
-  char *str;
-  int local_rank = 0;
-  // if ((str = getenv("SLURM_LOCALID"))) {
-  //  local_rank = std::stoi(str);
-  //}
-  if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK"))) {
-    local_rank = std::stoi(str);
-  }
-  if ((str = getenv("OMPI_COMM_WORLD_LOCAL_RANK"))) {
-    local_rank = std::stoi(str);
-  }
-  return local_rank;
-}
-
-}  // namespace Impl
-}  // namespace Kokkos
+bool Kokkos::Impl::mpi_detected() { return mpi_local_rank_on_node() != -1; }

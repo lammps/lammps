@@ -43,8 +43,9 @@ Syntax
              name = name of the atom-style variable
            *store* name = store weight in custom atom property defined by :doc:`fix property/atom <fix_property_atom>` command
              name = atom property name (without d\_ prefix)
+       *sort* arg = *no* or *yes*
        *out* arg = filename
-         filename = write each processor's sub-domain to a file, at each re-balancing
+         filename = write each processor's subdomain to a file, at each re-balancing
 
 Examples
 """"""""
@@ -61,7 +62,7 @@ Examples
 Description
 """""""""""
 
-This command adjusts the size and shape of processor sub-domains
+This command adjusts the size and shape of processor subdomains
 within the simulation box, to attempt to balance the number of
 particles and thus the computational cost (load) evenly across
 processors.  The load balancing is "dynamic" in the sense that
@@ -77,7 +78,7 @@ an irregular-shaped geometry containing void regions, or
 :doc:`hybrid pair style simulations <pair_hybrid>` that combine
 pair styles with different computational cost).  In these cases, the
 LAMMPS default of dividing the simulation box volume into a
-regular-spaced grid of 3d bricks, with one equal-volume sub-domain
+regular-spaced grid of 3d bricks, with one equal-volume subdomain
 per processor, may assign numbers of particles per processor in a
 way that the computational effort varies significantly.  This can
 lead to poor performance when the simulation is run in parallel.
@@ -105,7 +106,7 @@ a :math:`P_x \times P_y \times P_z` grid of processors, it allows choices of
 :math:`P_x P_y P_z = P`, the total number of processors.
 This is sufficient to achieve good load-balance for
 some problems on some processor counts.  However, all the processor
-sub-domains will still have the same shape and the same volume.
+subdomains will still have the same shape and the same volume.
 
 On a particular time step, a load-balancing operation is only performed
 if the current "imbalance factor" in particles owned by each processor
@@ -141,7 +142,7 @@ forced even if the current balance is perfect (1.0) be specifying a
    simulation could run up to 20% faster if it were perfectly balanced,
    versus when imbalanced.  However, computational cost is not strictly
    proportional to particle count, and changing the relative size and
-   shape of processor sub-domains may lead to additional computational
+   shape of processor subdomains may lead to additional computational
    and communication overheads (e.g., in the PPPM solver used via the
    :doc:`kspace_style <kspace_style>` command).  Thus, you should benchmark
    the run times of a simulation before and after balancing.
@@ -156,7 +157,7 @@ The *shift* style is a "grid" method which produces a logical 3d grid
 of processors.  It operates by changing the cutting planes (or lines)
 between processors in 3d (or 2d), to adjust the volume (area in 2d)
 assigned to each processor, as in the following 2d diagram where
-processor sub-domains are shown and atoms are colored by the processor
+processor subdomains are shown and atoms are colored by the processor
 that owns them.
 
 .. |balance1| image:: img/balance_uniform.jpg
@@ -258,7 +259,7 @@ from balanced, and converge more slowly.  In this case you probably
 want to use the :doc:`balance <balance>` command before starting a run,
 so that you begin the run with a balanced system.
 
-Once the re-balancing is complete and final processor sub-domains
+Once the re-balancing is complete and final processor subdomains
 assigned, particles migrate to their new owning processor as part of
 the normal reneighboring procedure.
 
@@ -266,7 +267,7 @@ the normal reneighboring procedure.
 
    At each re-balance operation, the bisectioning for each cutting
    plane (line in 2d) typically starts with low and high bounds separated
-   by the extent of a processor's sub-domain in one dimension.  The size
+   by the extent of a processor's subdomain in one dimension.  The size
    of this bracketing region shrinks based on the local density, as
    described above, which should typically be 1/2 or more every
    iteration.  Thus if :math:`N_\text{iter}` is specified as 10, the cutting
@@ -308,9 +309,17 @@ in that sub-box.
 
 ----------
 
+The *sort* keyword determines whether the communication of per-atom
+data to other processors during load-balancing will be random or
+deterministic.  Random is generally faster; deterministic will ensure
+the new ordering of atoms on each processor is the same each time the
+same simulation is run.  This can be useful for debugging purposes.
+Since the fix balance command is performed during timestepping, the
+default is *no* so that sorting is not performed.
+
 The *out* keyword writes text to the specified *filename* with the
 results of each re-balancing operation.  The file contains the bounds
-of the sub-domain for each processor after the balancing operation
+of the subdomain for each processor after the balancing operation
 completes.  The format of the file is compatible with the
 `Pizza.py <pizza_>`_ *mdump* tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by four
@@ -354,7 +363,7 @@ processors for a 2d problem:
    4 1 13 14 15 16
 
 The coordinates of all the vertices are listed in the NODES section, five
-per processor.  Note that the four sub-domains share vertices, so there
+per processor.  Note that the four subdomains share vertices, so there
 will be duplicate nodes in the list.
 
 The "SQUARES" section lists the node IDs of the four vertices in a
@@ -415,4 +424,4 @@ Related commands
 Default
 """""""
 
-none
+The default setting is sort = no.

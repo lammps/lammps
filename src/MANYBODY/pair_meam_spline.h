@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -82,9 +82,9 @@ class PairMEAMSpline : public Pair {
     }
 
     /// Initialization of spline function.
-    void init(int _N, double _deriv0, double _derivN)
+    void init(int _n, double _deriv0, double _derivN)
     {
-      N = _N;
+      N = _n;
       deriv0 = _deriv0;
       derivN = _derivN;
       // if (X) delete[] X;

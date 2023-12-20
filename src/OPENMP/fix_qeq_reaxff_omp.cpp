@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -224,8 +224,8 @@ void FixQEqReaxFFOMP::compute_H()
   } // omp
 
   if (m_fill >= H.m)
-    error->all(FLERR,fmt::format("Fix qeq/reaxff: H matrix size has been "
-                                   "exceeded: m_fill={} H.m={}\n", m_fill, H.m));
+    error->all(FLERR,"Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -467,9 +467,8 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff/omp CG convergence failed "
-                                     "after {} iterations at step {}",
-                                     i,update->ntimestep));
+    error->warning(FLERR,"Fix qeq/reaxff/omp CG convergence failed after {} iterations at step {}",
+                   i,update->ntimestep);
   return i;
 }
 
@@ -796,9 +795,8 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff/omp CG convergence failed "
-                                     "after {} iterations at step {}",
-                                     i,update->ntimestep));
+    error->warning(FLERR,"Fix qeq/reaxff/omp CG convergence failed after {} iterations at step {}",
+                   i,update->ntimestep);
   return matvecs_s + matvecs_t;
 }
 

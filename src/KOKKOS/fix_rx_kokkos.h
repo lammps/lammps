@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,15 +58,6 @@ struct s_CounterType
     nFuncs += rhs.nFuncs;
     nFails += rhs.nFails;
     return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_CounterType &rhs) volatile
-  {
-    nSteps += rhs.nSteps;
-    nIters += rhs.nIters;
-    nFuncs += rhs.nFuncs;
-    nFails += rhs.nFails;
   }
 };
 typedef struct s_CounterType CounterType;

@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,41 +17,40 @@
 
 #include "fix_wall_ees.h"
 
-#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "error.h"
+#include "math_extra.h"
+#include "math_special.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
-FixWallEES::FixWallEES(LAMMPS *lmp, int narg, char **arg) :
-  FixWall(lmp, narg, arg) {}
+FixWallEES::FixWallEES(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, narg, arg) {}
 
 /* ---------------------------------------------------------------------- */
 
 void FixWallEES::precompute(int m)
 {
-  coeff1[m] = ( 2. / 4725. ) * epsilon[m] * pow(sigma[m],12.0);
-  coeff2[m] = ( 1. / 24. ) * epsilon[m] * pow(sigma[m],6.0);
+  coeff1[m] = (2.0 / 4725.0) * epsilon[m] * powint(sigma[m], 12);
+  coeff2[m] = (1.0 / 24.0) * epsilon[m] * powint(sigma[m], 6);
 
-  coeff3[m] = ( 2. / 315. ) * epsilon[m] * pow(sigma[m],12.0);
-  coeff4[m] = ( 1. / 3. ) * epsilon[m] * pow(sigma[m],6.0);
+  coeff3[m] = (2.0 / 315.0) * epsilon[m] * powint(sigma[m], 12);
+  coeff4[m] = (1.0 / 3.0) * epsilon[m] * powint(sigma[m], 6);
 
-  coeff5[m] = ( 4. / 315. ) * epsilon[m] * pow(sigma[m],12.0);
-  coeff6[m] = ( 1. / 12. )  * epsilon[m] * pow(sigma[m],6.0);
+  coeff5[m] = (4.0 / 315.0) * epsilon[m] * powint(sigma[m], 12);
+  coeff6[m] = (1.0 / 12.0) * epsilon[m] * powint(sigma[m], 6);
 }
 
 /* ---------------------------------------------------------------------- */
 void FixWallEES::init()
 {
   avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
-  if (!avec)
-    error->all(FLERR,"Fix wall/ees requires atom style ellipsoid");
+  if (!avec) error->all(FLERR, "Fix wall/ees requires atom style ellipsoid");
 
   // check that all particles are finite-size ellipsoids
   // no point particles allowed, spherical is OK
@@ -63,12 +61,12 @@ void FixWallEES::init()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (ellipsoid[i] < 0)
-        error->one(FLERR,"Fix wall/ees requires extended particles");
+      if (ellipsoid[i] < 0) error->one(FLERR, "Fix wall/ees requires extended particles");
 
   FixWall::init();
 }
 
+// clang-format off
 
 /* ----------------------------------------------------------------------
    interaction of all particles in group with a wall
@@ -118,7 +116,7 @@ void FixWallEES::wall_particle(int m, int which, double coord)
       nhat[(dim+2)%3] = 0 ;
 
 
-      double* shape = bonus[ellipsoid[i]].shape;;
+      double* shape = bonus[ellipsoid[i]].shape;
       MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
       MathExtra::transpose_matvec(A,nhat,tempvec);
       for (int k = 0; k<3; k++) {

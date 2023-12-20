@@ -9,7 +9,7 @@ if len(sys.argv) < 2:
     print("usage: fep.py temperature < out.fep")
     sys.exit()
 
-rt = 0.008314 / 4.184 * float(sys.argv[1])
+rt = 0.008314 / 4.184 * float(sys.argv[1]) # in kcal/mol
 
 v = 1.0
 sum = 0.0

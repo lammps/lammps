@@ -36,7 +36,7 @@ Description
 The fix performs explicit time integration for particles which
 interact with the updated Lagrangian SPH pair style.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth Mach
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth Mach
 Dynamics in LAMMPS.
 
 The *adjust_radius* keyword activates dynamic adjustment of the

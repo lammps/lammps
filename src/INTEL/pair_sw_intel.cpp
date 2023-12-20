@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -382,7 +382,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
           const flt_t rsq1 = trsq[jj];
 
           const flt_t rinvsq1 = (flt_t)1.0 / rsq1;
-          const flt_t r1 = (flt_t)1.0/sqrt(rinvsq1);
+          const flt_t r1 = (flt_t)1.0/std::sqrt(rinvsq1);
           if (!ONETYPE) cut = p2f[ijtype].cut;
           const flt_t rainv1 = (flt_t)1.0 / (r1 - cut);
 
@@ -411,7 +411,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
           }
 
           const flt_t rainvsq = rainv1 * rainv1 * r1;
-          flt_t expsrainv = exp(sigma * rainv1);
+          flt_t expsrainv = std::exp(sigma * rainv1);
           if (jj >= ejnumhalf) expsrainv = (flt_t)0.0;
           const flt_t fpair = (c1 * rp - c2 * rq + (c3 * rp - c4 * rq) *
                                rainvsq) * expsrainv * rinvsq1;
@@ -453,7 +453,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 
           flt_t gsrainv1 = sigma_gamma * rainv1;
           flt_t gsrainvsq1 = gsrainv1 * rainv1 / r1;
-          flt_t expgsrainv1 = exp(gsrainv1);
+          flt_t expgsrainv1 = std::exp(gsrainv1);
 
           for (int kk = 0; kk < ejnum; kk++) {
             int iktype, ijktype;
@@ -475,11 +475,11 @@ void PairSWIntel::eval(const int offload, const int vflag,
             const flt_t rsq2 = trsq[kk];
 
             const flt_t rinvsq2 = (flt_t)1.0 / rsq2;
-            const flt_t r2 = (flt_t)1.0 / sqrt(rinvsq2);
+            const flt_t r2 = (flt_t)1.0 / std::sqrt(rinvsq2);
             const flt_t rainv2 = (flt_t)1.0 / (r2 - cut);
             const flt_t gsrainv2 = sigma_gamma * rainv2;
             const flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
-            const flt_t expgsrainv2 = exp(gsrainv2);
+            const flt_t expgsrainv2 = std::exp(gsrainv2);
 
             const flt_t rinv12 = (flt_t)1.0 / (r1 * r2);
             const flt_t cs = (delx * delr2[0] + dely * delr2[1] +

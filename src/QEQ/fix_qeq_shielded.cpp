@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,13 +35,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {
+FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg, arg)
+{
   if (narg == 10) {
-    if (strcmp(arg[8],"warn") == 0) {
-      maxwarn = utils::logical(FLERR,arg[9],false,lmp);
-    } else error->all(FLERR,"Illegal fix qeq/shielded command");
-  } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/shielded command");
+    if (strcmp(arg[8], "warn") == 0) {
+      maxwarn = utils::logical(FLERR, arg[9], false, lmp);
+    } else
+      error->all(FLERR, "Illegal fix qeq/shielded command");
+  } else if (narg > 8)
+    error->all(FLERR, "Illegal fix qeq/shielded command");
   if (reax_flag) extract_reax();
 }
 
@@ -55,14 +56,13 @@ void FixQEqShielded::init()
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
   int ntypes = atom->ntypes;
-  memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
+  memory->create(shld, ntypes + 1, ntypes + 1, "qeq:shielding");
 
   init_shielding();
 
   int i;
   for (i = 1; i <= ntypes; i++) {
-    if (gamma[i] == 0.0)
-      error->all(FLERR,"Invalid param file for fix qeq/shielded");
+    if (gamma[i] == 0.0) error->all(FLERR, "Invalid param file for fix qeq/shielded");
   }
 }
 
@@ -70,17 +70,17 @@ void FixQEqShielded::init()
 
 void FixQEqShielded::extract_reax()
 {
-  Pair *pair = force->pair_match("^reax..",0);
-  if (pair == nullptr) error->all(FLERR,"No pair reaxff for fix qeq/shielded");
+  Pair *pair = force->pair_match("^reax..", 0);
+  if (pair == nullptr) error->all(FLERR, "No pair reaxff for fix qeq/shielded");
   int tmp;
-  chi = (double *) pair->extract("chi",tmp);
-  eta = (double *) pair->extract("eta",tmp);
-  gamma = (double *) pair->extract("gamma",tmp);
+  chi = (double *) pair->extract("chi", tmp);
+  eta = (double *) pair->extract("eta", tmp);
+  gamma = (double *) pair->extract("gamma", tmp);
   if (chi == nullptr || eta == nullptr || gamma == nullptr)
     error->all(FLERR, "Fix qeq/shielded could not extract params from pair reaxff");
 }
 
-
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 void FixQEqShielded::init_shielding()

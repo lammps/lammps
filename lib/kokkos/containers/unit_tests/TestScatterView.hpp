@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_TEST_SCATTER_VIEW_HPP
 #define KOKKOS_TEST_SCATTER_VIEW_HPP
@@ -90,7 +62,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
     scatterSize = n;
     auto policy =
         Kokkos::RangePolicy<typename DeviceType::execution_space, int>(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Sum");
+    Kokkos::parallel_for("scatter_view_test: Sum", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -106,51 +78,11 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       scatter_access(k, 3)++;
       scatter_access(k, 4)--;
       scatter_access(k, 5) -= 5;
-// Workaround Intel 17 compiler bug which sometimes add random
-// instruction alignment which makes the lock instruction
-// illegal. Seems to be mostly just for unsigned int atomics.
-// Looking at the assembly the compiler
-// appears to insert cache line alignment for the instruction.
-// Isn't restricted to specific archs. Seen it on SNB and SKX, but for
-// different code. Another occurrence was with Desul atomics in
-// a different unit test. This one here happens without desul atomics.
-// Inserting an assembly nop instruction changes the alignment and
-// works round this.
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access_atomic(k, 6) += 2;
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access_atomic(k, 7)++;
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access_atomic(k, 8)--;
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       --scatter_access_atomic(k, 9);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       ++scatter_access_atomic(k, 10);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access(k, 11) -= 3;
     }
   }
@@ -235,7 +167,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
     scatterSize = n;
     auto policy =
         Kokkos::RangePolicy<typename DeviceType::execution_space, int>(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Prod");
+    Kokkos::parallel_for("scatter_view_test: Prod", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -259,12 +191,10 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val0 = host_view(i, 0);
       auto val1 = host_view(i, 1);
       auto val2 = host_view(i, 2);
-      EXPECT_TRUE(std::fabs((val0 - 65536.0) / 65536.0) < 1e-14)
+      EXPECT_NEAR(val0, 65536.0, 1e-14 * 65536.0)
           << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val1 - 256.0) / 256.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14)
-          << "Data differs at index " << i;
+      EXPECT_NEAR(val1, 256.0, 1e-14 * 256.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0) << "Data differs at index " << i;
     }
   }
 
@@ -282,9 +212,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val2 = host_view(i, 2);
       if (i >= std::get<0>(subRangeDim0) && i < std::get<1>(subRangeDim0)) {
         // is in subview
-        EXPECT_TRUE(std::fabs((val0 - 65536.0) / 65536.0) < 1e-14);
-        EXPECT_TRUE(std::fabs((val1 - 256.0) / 256.0) < 1e-14);
-        EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14);
+        EXPECT_NEAR(val0, 65536.0, 1e-14 * 65536.0);
+        EXPECT_NEAR(val1, 256.0, 1e-14 * 256.0);
+        EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0);
       } else {
         // is outside of subview
         EXPECT_NEAR(val0, NumberType(1), 1e-14)
@@ -338,7 +268,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
     scatterSize = n;
     auto policy =
         Kokkos::RangePolicy<typename DeviceType::execution_space, int>(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Prod");
+    Kokkos::parallel_for("scatter_view_test: Prod", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -362,12 +292,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val0 = host_view(i, 0);
       auto val1 = host_view(i, 1);
       auto val2 = host_view(i, 2);
-      EXPECT_TRUE(std::fabs((val0 - 4.0) / 4.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val1 - 2.0) / 2.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14)
-          << "Data differs at index " << i;
+      EXPECT_NEAR(val0, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val1, 2.0, 1e-14 * 2.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0) << "Data differs at index " << i;
     }
   }
 
@@ -385,12 +312,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val2 = host_view(i, 2);
       if (i >= std::get<0>(subRangeDim0) && i < std::get<1>(subRangeDim0)) {
         // is in subview
-        EXPECT_TRUE(std::fabs((val0 - 4.0) / 4.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val1 - 2.0) / 2.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val2 - 1.0) / 1.0) < 1e-14)
-            << "Data differs at index " << i;
+        EXPECT_NEAR(val0, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val1, 2.0, 1e-14 * 2.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val2, 1.0, 1e-14 * 1.0) << "Data differs at index " << i;
       } else {
         // is outside of subview
         EXPECT_NEAR(val0, NumberType(999999), 1e-14)
@@ -443,7 +367,7 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
   void run_parallel(int n) {
     scatterSize = n;
     Kokkos::RangePolicy<typename DeviceType::execution_space, int> policy(0, n);
-    Kokkos::parallel_for(policy, *this, "scatter_view_test: Prod");
+    Kokkos::parallel_for("scatter_view_test: Prod", policy, *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -467,12 +391,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val0 = host_view(i, 0);
       auto val1 = host_view(i, 1);
       auto val2 = host_view(i, 2);
-      EXPECT_TRUE(std::fabs((val0 - 16.0) / 16.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val1 - 8.0) / 8.0) < 1e-14)
-          << "Data differs at index " << i;
-      EXPECT_TRUE(std::fabs((val2 - 4.0) / 4.0) < 1e-14)
-          << "Data differs at index " << i;
+      EXPECT_NEAR(val0, 16.0, 1e-14 * 16.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val1, 8.0, 1e-14 * 8.0) << "Data differs at index " << i;
+      EXPECT_NEAR(val2, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
     }
   }
 
@@ -490,12 +411,9 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       auto val2 = host_view(i, 2);
       if (i >= std::get<0>(subRangeDim0) && i < std::get<1>(subRangeDim0)) {
         // is in subview
-        EXPECT_TRUE(std::fabs((val0 - 16.0) / 16.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val1 - 8.0) / 8.0) < 1e-14)
-            << "Data differs at index " << i;
-        EXPECT_TRUE(std::fabs((val2 - 4.0) / 4.0) < 1e-14)
-            << "Data differs at index " << i;
+        EXPECT_NEAR(val0, 16.0, 1e-14 * 16.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val1, 8.0, 1e-14 * 8.0) << "Data differs at index " << i;
+        EXPECT_NEAR(val2, 4.0, 1e-14 * 4.0) << "Data differs at index " << i;
       } else {
         // is outside of subview
         EXPECT_NEAR(val0, NumberType(0), 1e-14)
@@ -808,9 +726,9 @@ void test_scatter_view(int64_t n) {
   }
 #endif
   // with hundreds of threads we were running out of memory.
-  // limit (n) so that duplication doesn't exceed 4GB
+  // limit (n) so that duplication doesn't exceed 1GB
   constexpr std::size_t maximum_allowed_total_bytes =
-      4ull * 1024ull * 1024ull * 1024ull;
+      1ull * 1024ull * 1024ull * 1024ull;
   std::size_t const maximum_allowed_copy_bytes =
       maximum_allowed_total_bytes /
       std::size_t(execution_space().concurrency());
@@ -852,9 +770,18 @@ TEST(TEST_CATEGORY, scatterview) {
   int big_n = 100 * 1000;
 #else
 
-#ifdef KOKKOS_ENABLE_SERIAL
+#if defined(KOKKOS_ENABLE_SERIAL) || defined(KOKKOS_ENABLE_OPENMP)
+#if defined(KOKKOS_ENABLE_SERIAL)
   bool is_serial = std::is_same<TEST_EXECSPACE, Kokkos::Serial>::value;
-  int big_n      = is_serial ? 100 * 1000 : 10000 * 1000;
+#else
+  bool is_serial = false;
+#endif
+#if defined(KOKKOS_ENABLE_OPENMP)
+  bool is_openmp = std::is_same<TEST_EXECSPACE, Kokkos::OpenMP>::value;
+#else
+  bool is_openmp = false;
+#endif
+  int big_n      = is_serial || is_openmp ? 100 * 1000 : 10000 * 1000;
 #else
   int big_n = 10000 * 1000;
 #endif
@@ -886,9 +813,9 @@ TEST(TEST_CATEGORY, scatterview_devicetype) {
   using device_memory_space    = Kokkos::CudaSpace;
   using host_accessible_space  = Kokkos::CudaUVMSpace;
 #else
-  using device_execution_space = Kokkos::Experimental::HIP;
-  using device_memory_space    = Kokkos::Experimental::HIPSpace;
-  using host_accessible_space  = Kokkos::Experimental::HIPHostPinnedSpace;
+  using device_execution_space = Kokkos::HIP;
+  using device_memory_space    = Kokkos::HIPSpace;
+  using host_accessible_space  = Kokkos::HIPManagedSpace;
 #endif
   if (std::is_same<TEST_EXECSPACE, device_execution_space>::value) {
     using device_device_type =

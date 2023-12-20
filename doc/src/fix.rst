@@ -77,30 +77,44 @@ for individual fixes for info on which ones can be restarted.
 
 ----------
 
-Some fixes calculate one of three styles of quantities: global,
-per-atom, or local, which can be used by other commands or output as
-described below.  A global quantity is one or more system-wide values
-(e.g., the energy of a wall interacting with particles).  A per-atom
-quantity is one or more values per atom (e.g., the displacement vector
-for each atom since time 0).  Per-atom values are set to 0.0 for atoms
-not in the specified fix group.  Local quantities are calculated by
-each processor based on the atoms it owns, but there may be zero or
-more per atoms.
+Some fixes calculate and store any of four *styles* of quantities:
+global, per-atom, local, or per-grid.
 
-Note that a single fix can produce either global or per-atom or local
-quantities (or none at all), but not both global and per-atom.  It can
-produce local quantities in tandem with global or per-atom quantities.
-The fix page will explain.
+A global quantity is one or more system-wide values, e.g. the energy
+of a wall interacting with particles.  A per-atom quantity is one or
+more values per atom, e.g. the original coordinates of each atom at
+time 0.  Per-atom values are set to 0.0 for atoms not in the specified
+fix group.  Local quantities are calculated by each processor based on
+the atoms it owns, but there may be zero or more per atom, e.g. values
+for each bond.  Per-grid quantities are calculated on a regular 2d or
+3d grid which overlays a 2d or 3d simulation domain.  The grid points
+and the data they store are distributed across processors; each
+processor owns the grid points which fall within its subdomain.
 
-Global, per-atom, and local quantities each come in three kinds: a
-single scalar value, a vector of values, or a 2d array of values.  The
-doc page for each fix describes the style and kind of values it
-produces (e.g., a per-atom vector).  Some fixes produce more than one
-kind of a single style (e.g., a global scalar and a global vector).
+As a general rule of thumb, fixes that produce per-atom quantities
+have the word "atom" at the end of their style, e.g. *ave/atom*\ .
+Fixes that produce local quantities have the word "local" at the end
+of their style, e.g. *store/local*\ .  Fixes that produce per-grid
+quantities have the word "grid" at the end of their style,
+e.g. *ave/grid*\ .
 
-When a fix quantity is accessed, as in many of the output commands
-discussed below, it can be referenced via the following bracket
-notation, where ID is the ID of the fix:
+Global, per-atom, local, and per-grid quantities can also be of three
+*kinds*: a single scalar value (global only), a vector of values, or a
+2d array of values.  For per-atom, local, and per-grid quantities, a
+"vector" means a single value for each atom, each local entity
+(e.g. bond), or grid cell.  Likewise an "array", means multiple values
+for each atom, each local entity, or each grid cell.
+
+Note that a single fix can produce any combination of global,
+per-atom, local, or per-grid values.  Likewise it can produce any
+combination of scalar, vector, or array output for each style.  The
+exception is that for per-atom, local, and per-grid output, either a
+vector or array can be produced, but not both.  The doc page for each
+fix explains the values it produces, if any.
+
+When a fix output is accessed by another input script command it is
+referenced via the following bracket notation, where ID is the ID of
+the fix:
 
 +-------------+--------------------------------------------+
 | f_ID        | entire scalar, vector, or array            |
@@ -111,19 +125,23 @@ notation, where ID is the ID of the fix:
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the
-quantity once (vector :math:`\to` scalar, array :math:`\to` vector).  Using two
-brackets reduces the dimension twice (array :math:`\to` scalar).  Thus, a
-command that uses scalar fix values as input can also process elements of a
-vector or array.
+quantity once (vector :math:`\to` scalar, array :math:`\to` vector).
+Using two brackets reduces the dimension twice (array :math:`\to`
+scalar).  Thus, for example, a command that uses global scalar fix
+values as input can also process elements of a vector or array.
+Depending on the command, this can either be done directly using the
+syntax in the table, or by first defining a :doc:`variable <variable>`
+of the appropriate style to store the quantity, then using the
+variable as an input to the command.
 
-Note that commands and :doc:`variables <variable>` that use fix
-quantities typically do not allow for all kinds (e.g., a command may
-require a vector of values, not a scalar), and even if they do, the context
-in which they are called can be used to resolve which output is being
-requested.  This means there is no
-ambiguity about referring to a fix quantity as f_ID even if it
-produces, for example, both a scalar and vector.  The doc pages for
-various commands explain the details.
+Note that commands and :doc:`variables <variable>` which take fix
+outputs as input typically do not allow for all styles and kinds of
+data (e.g., a command may require global but not per-atom values, or
+it may require a vector of values, not a scalar).  This means there is
+typically no ambiguity about referring to a fix output as c_ID even if
+it produces, for example, both a scalar and vector.  The doc pages for
+various commands explain the details, including how any ambiguities
+are resolved.
 
 ----------
 
@@ -176,6 +194,7 @@ accelerated styles exist.
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom
 * :doc:`addtorque <fix_addtorque>` - add a torque to a group of atoms
+* :doc:`alchemy <fix_alchemy>` - perform an "alchemical transformation" between two partitions
 * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>` - torsion/torsion terms in AMOEBA force field
 * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>` - 6-body terms in AMOEBA force field
 * :doc:`append/atoms <fix_append_atoms>` - append atoms to a running simulation
@@ -185,6 +204,7 @@ accelerated styles exist.
 * :doc:`ave/chunk <fix_ave_chunk>` - compute per-chunk time-averaged quantities
 * :doc:`ave/correlate <fix_ave_correlate>` - compute/output time correlations
 * :doc:`ave/correlate/long <fix_ave_correlate_long>` - alternative to :doc:`ave/correlate <fix_ave_correlate>` that allows efficient calculation over long time windows
+* :doc:`ave/grid <fix_ave_grid>` - compute per-grid time-averaged quantities
 * :doc:`ave/histo <fix_ave_histo>` - compute/output time-averaged histograms
 * :doc:`ave/histo/weight <fix_ave_histo>` - weighted version of fix ave/histo
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
@@ -215,10 +235,11 @@ accelerated styles exist.
 * :doc:`dt/reset <fix_dt_reset>` - reset the timestep based on velocity, forces
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
+* :doc:`efield/tip4p <fix_efield>` - impose electric field on system with TIP4P molecules
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
-* :doc:`electrode/conp <fix_electrode_conp>` - impose electric potential
-* :doc:`electrode/conq <fix_electrode_conp>` - impose total electric charge
-* :doc:`electrode/thermo <fix_electrode_conp>` - apply thermo-potentiostat
+* :doc:`electrode/conp <fix_electrode>` - impose electric potential
+* :doc:`electrode/conq <fix_electrode>` - impose total electric charge
+* :doc:`electrode/thermo <fix_electrode>` - apply thermo-potentiostat
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out *z*-dimension velocity and force
@@ -238,6 +259,7 @@ accelerated styles exist.
 * :doc:`grem <fix_grem>` - implements the generalized replica exchange method
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
+* :doc:`heat/flow <fix_heat_flow>` - plain time integration of heat flow with per-atom temperature updates
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
@@ -247,25 +269,25 @@ accelerated styles exist.
 * :doc:`langevin/drude <fix_langevin_drude>` - Langevin temperature control of Drude oscillators
 * :doc:`langevin/eff <fix_langevin_eff>` - Langevin temperature control for the electron force field model
 * :doc:`langevin/spin <fix_langevin_spin>` - Langevin temperature control for a spin or spin-lattice system
-* :doc:`latte <fix_latte>` - wrapper on LATTE density-functional tight-binding code
 * :doc:`lb/fluid <fix_lb_fluid>` - lattice-Boltzmann fluid on a uniform mesh
 * :doc:`lb/momentum <fix_lb_momentum>` - :doc:`fix momentum <fix_momentum>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lb/viscous <fix_lb_viscous>` - :doc:`fix viscous <fix_viscous>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
-* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as driver for a quantum code via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as a client for a quantum code via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qmmm <fix_mdi_qmmm>` - LAMMPS operates as client for QM/MM simulation with a quantum code via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms
 * :doc:`move <fix_move>` - move atoms in a prescribed fashion
-* :doc:`mscg <fix_mscg>` - apply MSCG method for force-matching to generate coarse grain models
 * :doc:`msst <fix_msst>` - multi-scale shock technique (MSST) integration
 * :doc:`mvv/dpd <fix_mvv_dpd>` - DPD using the modified velocity-Verlet integration algorithm
 * :doc:`mvv/edpd <fix_mvv_dpd>` - constant energy DPD using the modified velocity-Verlet algorithm
 * :doc:`mvv/tdpd <fix_mvv_dpd>` - constant temperature DPD using the modified velocity-Verlet algorithm
 * :doc:`neb <fix_neb>` - nudged elastic band (NEB) spring forces
 * :doc:`neb/spin <fix_neb_spin>` - nudged elastic band (NEB) spring forces for spins
+* :doc:`nonaffine/displacement <fix_nonaffine_displacement>` - calculate nonaffine displacement of atoms
 * :doc:`nph <fix_nh>` - constant NPH time integration via Nose/Hoover
 * :doc:`nph/asphere <fix_nph_asphere>` - NPH for aspherical particles
 * :doc:`nph/body <fix_nph_body>` - NPH for body particles
@@ -314,7 +336,8 @@ accelerated styles exist.
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
 * :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
-* :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
+* :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
+* :doc:`pimd/nvt <fix_pimd>` - Feynman path-integral molecular dynamics with Nose-Hoover thermostat
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies
@@ -324,6 +347,7 @@ accelerated styles exist.
 * :doc:`pour <fix_pour>` - pour new atoms/molecules into a granular simulation domain
 * :doc:`precession/spin <fix_precession_spin>` - apply a precession torque to each magnetic spin
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by Berendsen barostat
+* :doc:`press/langevin <fix_press_langevin>` - pressure control by Langevin barostat
 * :doc:`print <fix_print>` - print text and variables during a simulation
 * :doc:`propel/self <fix_propel_self>` - model self-propelled particles
 * :doc:`property/atom <fix_property_atom>` - add customized per-atom values
@@ -360,6 +384,7 @@ accelerated styles exist.
 * :doc:`saed/vtk <fix_saed_vtk>` - time-average the intensities from :doc:`compute saed <compute_saed>`
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`setforce/spin <fix_setforce>` - set magnetic precession vectors on each atom
+* :doc:`sgcmc <fix_sgcmc>` - fix for hybrid semi-grand canonical MD/MC simulations
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles
 * :doc:`shardlow <fix_shardlow>` - integration of DPD equations of motion using the Shardlow splitting
 * :doc:`smd <fix_smd>` - applied a steered MD force to a group
@@ -408,6 +433,7 @@ accelerated styles exist.
 * :doc:`wall/lj1043 <fix_wall>` - Lennard-Jones 10--4--3 wall
 * :doc:`wall/lj126 <fix_wall>` - Lennard-Jones 12--6 wall
 * :doc:`wall/lj93 <fix_wall>` - Lennard-Jones 9--3 wall
+* :doc:`wall/lepton <fix_wall>` - Custom Lepton expression wall
 * :doc:`wall/morse <fix_wall>` - Morse potential wall
 * :doc:`wall/piston <fix_wall_piston>` - moving reflective piston wall
 * :doc:`wall/reflect <fix_wall_reflect>` - reflecting wall(s)
@@ -415,6 +441,7 @@ accelerated styles exist.
 * :doc:`wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`wall/region/ees <fix_wall_ees>` - use region surface as wall for ellipsoidal particles
 * :doc:`wall/srd <fix_wall_srd>` - slip/no-slip wall for SRD particles
+* :doc:`wall/table <fix_wall>` - Tabulated potential wall wall
 * :doc:`widom <fix_widom>` - Widom insertions of atoms or molecules
 
 Restrictions

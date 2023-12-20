@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -322,7 +322,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
           const int jtype = tjtype[jj];
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
-          const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+          const flt_t r = (flt_t)1.0 / std::sqrt(r2inv);
 
           #ifdef INTEL_ALLOW_TABLE
           if (!ncoultablebits || rsq <= tabinnersq) {
@@ -336,7 +336,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
             const flt_t INV_EWALD_P = 1.0 / 0.3275911;
 
             const flt_t grij = g_ewald * r;
-            const flt_t expm2 = exp(-grij * grij);
+            const flt_t expm2 = std::exp(-grij * grij);
             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
             const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
             const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
@@ -377,7 +377,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
           if (rsq < c_forcei[jtype].cut_ljsq) {
           #endif
             flt_t r6inv = r2inv * r2inv * r2inv;
-            flt_t rexp = exp(-r * rho_invi[jtype]);
+            flt_t rexp = std::exp(-r * rho_invi[jtype]);
             forcebuck = r * rexp * c_forcei[jtype].buck1 -
               r6inv * c_forcei[jtype].buck2;
             if (EFLAG) evdwl = rexp * c_energyi[jtype].a -

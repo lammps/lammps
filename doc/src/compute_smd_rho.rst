@@ -6,7 +6,7 @@ compute smd/rho command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/rho
 
@@ -28,7 +28,7 @@ The mass density is the mass of a particle which is constant during
 the course of a simulation, divided by its volume, which can change
 due to mechanical deformation.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
 Output info

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,7 +35,7 @@ class FixGCMC : public Fix {
   double memory_usage() override;
   void write_restart(FILE *) override;
   void restart(char *) override;
-  void *extract(const char *, int &);
+  void *extract(const char *, int &) override;
 
  private:
   int molecule_group, molecule_group_bit;
@@ -73,6 +73,8 @@ class FixGCMC : public Fix {
   double ndeletion_successes;
   double ninsertion_attempts;
   double ninsertion_successes;
+
+  int mc_active;              // 1 during MC trials, otherwise 0
 
   int gcmc_nmax;
   int max_region_attempts;

@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,7 +17,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBOMorseOMP::PairAIREBOMorseOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp) {
+PairAIREBOMorseOMP::PairAIREBOMorseOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp)
+{
   variant = AIREBO_M;
 }
 
@@ -28,7 +28,7 @@ PairAIREBOMorseOMP::PairAIREBOMorseOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp) {
 
 void PairAIREBOMorseOMP::settings(int narg, char **arg)
 {
-  PairAIREBOOMP::settings(narg,arg);
+  PairAIREBOOMP::settings(narg, arg);
 
   morseflag = 1;
 }

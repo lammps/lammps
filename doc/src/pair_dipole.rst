@@ -1,5 +1,6 @@
 .. index:: pair_style lj/cut/dipole/cut
 .. index:: pair_style lj/cut/dipole/cut/gpu
+.. index:: pair_style lj/cut/dipole/cut/kk
 .. index:: pair_style lj/cut/dipole/cut/omp
 .. index:: pair_style lj/sf/dipole/sf
 .. index:: pair_style lj/sf/dipole/sf/gpu
@@ -11,7 +12,7 @@
 pair_style lj/cut/dipole/cut command
 ====================================
 
-Accelerator Variants: *lj/cut/dipole/cut/gpu*, *lj/cut/dipole/cut/omp*
+Accelerator Variants: *lj/cut/dipole/cut/gpu*, *lj/cut/dipole/cut/kk*, *lj/cut/dipole/cut/omp*
 
 pair_style lj/sf/dipole/sf command
 ==================================
@@ -58,22 +59,26 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style lj/cut/dipole/cut 10.0
+   pair_style lj/cut/dipole/cut 2.5 5.0
    pair_coeff * * 1.0 1.0
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0 2.5 4.0
 
    pair_style lj/sf/dipole/sf 9.0
    pair_coeff * * 1.0 1.0
    pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0 2.5 4.0
 
-   pair_style lj/cut/dipole/long 10.0
+   pair_style lj/cut/dipole/long 2.5 3.5
    pair_coeff * * 1.0 1.0
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0 3.0
 
-   pair_style lj/long/dipole/long long long 3.5 10.0
+   pair_style lj/long/dipole/long long long 3.5
    pair_coeff * * 1.0 1.0
-   pair_coeff 2 3 1.0 1.0 2.5 4.0
+   pair_coeff 2 3 0.8 1.0
+
+   pair_style lj/long/dipole/long cut long 2.5 3.5
+   pair_coeff * * 1.0 1.0
+   pair_coeff 2 3 0.8 1.0 3.0
 
 Description
 """""""""""
@@ -91,29 +96,29 @@ force (F), and torque (T) between particles I and J.
                         \left(\frac{\sigma}{r}\right)^6 \right] \\
    E_{qq}  = & \frac{q_i q_j}{r} \\
    E_{qp}  = & \frac{q}{r^3} (p \bullet \vec{r}) \\
-   E_{pp}  = & \frac{1}{r^3} (\vec{p_i} \bullet \vec{p_j}) -
-             \frac{3}{r^5} (\vec{p_i} \bullet \vec{r}) (\vec{p_j} \bullet \vec{r}) \\
+   E_{pp}  = & \frac{1}{r^3} (\vec{p}_i \bullet \vec{p}_j) -
+             \frac{3}{r^5} (\vec{p}_i \bullet \vec{r}) (\vec{p}_j \bullet \vec{r}) \\
              & \\
    F_{qq}  = & \frac{q_i q_j}{r^3} \vec{r} \\
    F_{qp}  = & -\frac{q}{r^3} \vec{p} + \frac{3q}{r^5}
              (\vec{p} \bullet \vec{r}) \vec{r} \\
-   F_{pp}  = & \frac{3}{r^5} (\vec{p_i} \bullet \vec{p_j}) \vec{r} -
-             \frac{15}{r^7} (\vec{p_i} \bullet \vec{r})
-             (\vec{p_j} \bullet \vec{r}) \vec{r} +
-             \frac{3}{r^5} \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} +
-             (\vec{p_i} \bullet \vec{r}) \vec{p_j} \right] \\
+   F_{pp}  = & \frac{3}{r^5} (\vec{p}_i \bullet \vec{p}_j) \vec{r} -
+             \frac{15}{r^7} (\vec{p}_i \bullet \vec{r})
+             (\vec{p}_j \bullet \vec{r}) \vec{r} +
+             \frac{3}{r^5} \left[ (\vec{p}_j \bullet \vec{r}) \vec{p}_i +
+             (\vec{p}_i \bullet \vec{r}) \vec{p}_j \right] \\
              & \\
-   T_{pq} = T_{ij}  = & \frac{q_j}{r^3} (\vec{p_i} \times \vec{r}) \\
-   T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} (\vec{p_j} \times \vec{r}) \\
-   T_{pp} = T_{ij}  = & -\frac{1}{r^3} (\vec{p_i} \times \vec{p_j}) +
-                      \frac{3}{r^5} (\vec{p_j} \bullet \vec{r})
-                      (\vec{p_i} \times \vec{r}) \\
-   T_{pp} = T_{ji}  = & -\frac{1}{r^3} (\vec{p_j} \times \vec{p_i}) +
-                      \frac{3}{r^5} (\vec{p_i} \bullet \vec{r})
-                      (\vec{p_j} \times \vec{r})
+   T_{pq} = T_{ij}  = & \frac{q_j}{r^3} (\vec{p}_i \times \vec{r}) \\
+   T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} (\vec{p}_j \times \vec{r}) \\
+   T_{pp} = T_{ij}  = & -\frac{1}{r^3} (\vec{p}_i \times \vec{p}_j) +
+                      \frac{3}{r^5} (\vec{p}_j \bullet \vec{r})
+                      (\vec{p}_i \times \vec{r}) \\
+   T_{pp} = T_{ji}  = & -\frac{1}{r^3} (\vec{p}_j \times \vec{p}_i) +
+                      \frac{3}{r^5} (\vec{p}_i \bullet \vec{r})
+                      (\vec{p}_j \times \vec{r})
 
 where :math:`q_i` and :math:`q_j` are the charges on the two
-particles, :math:`\vec{p_i}` and :math:`\vec{p_j}` are the dipole
+particles, :math:`\vec{p}_i` and :math:`\vec{p}_j` are the dipole
 moment vectors of the two particles, r is their separation distance,
 and the vector r = Ri - Rj is the separation vector between the two
 particles.  Note that Eqq and Fqq are simply Coulombic energy and
@@ -158,8 +163,8 @@ energy (E), force (F), and torque (T) between particles I and J:
   2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p}\bullet\vec{r}) \\
   E_{pp} = & \left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
   3\left(\frac{r}{r_c}\right)^{\!4}\right]\left[\frac{1}{r^3}
-  (\vec{p_i} \bullet \vec{p_j}) - \frac{3}{r^5}
-  (\vec{p_i} \bullet \vec{r}) (\vec{p_j} \bullet \vec{r})\right] \\
+  (\vec{p}_i \bullet \vec{p}_j) - \frac{3}{r^5}
+  (\vec{p}_i \bullet \vec{r}) (\vec{p}_j \bullet \vec{r})\right] \\
            & \\
 
   F_{LJ}  = & \left\{\left[48\epsilon \left(\frac{\sigma}{r}\right)^{\!12} -
@@ -177,37 +182,37 @@ energy (E), force (F), and torque (T) between particles I and J:
   \frac{q}{r^3}\left[1-3\left(\frac{r}{r_c}\right)^{\!2} +
   2\left(\frac{r}{r_c}\right)^{\!3}\right] \vec{p} \\
   F_{pp}  = &\frac{3}{r^5}\Bigg\{\left[1-\left(\frac{r}{r_c}\right)^{\!4}\right]
-  \left[(\vec{p_i}\bullet\vec{p_j}) - \frac{3}{r^2} (\vec{p_i}\bullet\vec{r})
-  (\vec{p_j} \bullet \vec{r})\right] \vec{r} + \\
+  \left[(\vec{p}_i\bullet\vec{p}_j) - \frac{3}{r^2} (\vec{p}_i\bullet\vec{r})
+  (\vec{p}_j \bullet \vec{r})\right] \vec{r} + \\
     & \left[1 -
   4\left(\frac{r}{r_c}\right)^{\!3}+3\left(\frac{r}{r_c}\right)^{\!4}\right]
-  \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} + (\vec{p_i} \bullet \vec{r})
-  \vec{p_j} -\frac{2}{r^2} (\vec{p_i} \bullet \vec{r})
-  (\vec{p_j} \bullet \vec{r})\vec{r}\right] \Bigg\}
+  \left[ (\vec{p}_j \bullet \vec{r}) \vec{p}_i + (\vec{p}_i \bullet \vec{r})
+  \vec{p}_j -\frac{2}{r^2} (\vec{p}_i \bullet \vec{r})
+  (\vec{p}_j \bullet \vec{r})\vec{r}\right] \Bigg\}
 
 .. math::
 
    T_{pq} = T_{ij}  = & \frac{q_j}{r^3} \left[ 1 -
   3\left(\frac{r}{r_c}\right)^{\!2} +
-  2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p_i}\times\vec{r}) \\
+  2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p}_i\times\vec{r}) \\
   T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} \left[ 1 -
   3\left(\frac{r}{r_c}\right)^{\!2} +
-  2\left(\frac{r}{r_c}\right)^{\!3} \right] (\vec{p_j}\times\vec{r}) \\
+  2\left(\frac{r}{r_c}\right)^{\!3} \right] (\vec{p}_j\times\vec{r}) \\
   T_{pp} = T_{ij}  = & -\frac{1}{r^3}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  e3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_i} \times \vec{p_j}) + \\
+  e3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p}_i \times \vec{p}_j) + \\
                      & \frac{3}{r^5}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_j}\bullet\vec{r})
-  (\vec{p_i} \times \vec{r}) \\
+  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p}_j\bullet\vec{r})
+  (\vec{p}_i \times \vec{r}) \\
   T_{pp} = T_{ji} = & -\frac{1}{r^3}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right](\vec{p_j} \times \vec{p_i}) + \\
+  3\left(\frac{r}{r_c}\right)^{\!4}\right](\vec{p}_j \times \vec{p}_i) + \\
                      & \frac{3}{r^5}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_i} \bullet \vec{r})
-  (\vec{p_j} \times \vec{r})
+  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p}_i \bullet \vec{r})
+  (\vec{p}_j \times \vec{r})
 
 where :math:`\epsilon` and :math:`\sigma` are the standard LJ
 parameters, :math:`r_c` is the cutoff, :math:`q_i` and :math:`q_j` are
-the charges on the two particles, :math:`\vec{p_i}` and
-:math:`\vec{p_j}` are the dipole moment vectors of the two particles,
+the charges on the two particles, :math:`\vec{p}_i` and
+:math:`\vec{p}_j` are the dipole moment vectors of the two particles,
 r is their separation distance, and the vector r = Ri - Rj is the
 separation vector between the two particles.  Note that Eqq and Fqq
 are simply Coulombic energy and force, Fij = -Fji as symmetric forces,
@@ -254,23 +259,28 @@ long-range LJ interactions, the :doc:`kspace_style ewald/disp
 
 ----------
 
-The following coefficients must be defined for each pair of atoms
-types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
-above, or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands, or by mixing as described below:
+The following coefficients must be defined for each pair of atoms types
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
+or in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands, or by
+mixing as described below:
 
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)
 * cutoff1 (distance units)
 * cutoff2 (distance units)
 
-The latter 2 coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair_style command are used.
-If only one cutoff is specified, it is used as the cutoff for both LJ
-and Coulombic interactions for this type pair.  If both coefficients
-are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair.
+The latter 2 coefficients are optional.  If not specified, the global LJ
+and Coulombic cutoffs specified in the pair_style command are used.  If
+only one cutoff is specified, it is used as the cutoff for both LJ and
+Coulombic interactions for this type pair.  If both coefficients are
+specified, they are used as the LJ and Coulombic cutoffs for this type
+pair.  When using a long-rang Coulomb solver, only a global Coulomb
+cutoff may be used and only the LJ cutoff may be changed with the
+:doc:`pair_coeff <pair_coeff>` command.  When using the
+*lj/long/dipole/long* pair style with *long* *long* setting, only a
+single global cutoff may be provided and no cutoff for the
+:doc:`pair_coeff <pair_coeff>` command.
 
 ----------
 
@@ -299,7 +309,7 @@ one of these options:
 * :doc:`fix nvt/sphere update dipole <fix_nvt_sphere>`
 * :doc:`fix npt/sphere update dipole <fix_npt_sphere>`
 
-In all cases the "update dipole" setting insures the dipole moments
+In all cases the "update dipole" setting ensures the dipole moments
 are also rotated when the finite-size spheres rotate.  The 2nd and 3rd
 bullets perform thermostatting; in the case of a Langevin thermostat
 the "omega yes" option also thermostats the rotational degrees of

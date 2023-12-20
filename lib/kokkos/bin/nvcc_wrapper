@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This shell script (nvcc_wrapper) wraps both the host compiler and
 # NVCC, if you are building legacy C or C++ code with CUDA enabled.
@@ -10,10 +10,12 @@
 # Default settings: change those according to your machine.  For
 # example, you may have have two different wrappers with either icpc
 # or g++ as their back-end compiler.  The defaults can be overwritten
-# by using the usual arguments (e.g., -arch=sm_30 -ccbin icpc).
+# by using the usual arguments (e.g., -arch=sm_80 -ccbin icpc).
+# sm_70 is supported by every CUDA version from 9-12 and is thus
+# chosen as default
 
-default_arch="sm_35"
-#default_arch="sm_50"
+default_arch="sm_70"
+#default_arch="sm_80"
 
 #
 # The default C++ compiler.
@@ -227,11 +229,11 @@ do
     fi
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|--verbose|--keep|--source-in-ptx|-src-in-ptx|--keep-dir*|-G|-lineinfo|-extended-lambda|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
-  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler)
+  --extended-lambda|--expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
@@ -242,6 +244,77 @@ do
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
+  # Handle Werror. Note, we must differentiate between the ones going to nvcc and the host compiler
+  # --Werror kind,... OR --Werror=kind,... <- always to nvcc
+  --Werror)
+    cuda_args="$cuda_args $1 $2"
+    shift
+    ;;
+  --Werror=*)
+    cuda_args="$cuda_args $1"
+    ;;
+  # -Werror kind,... where kind is one of {all-warnings, cross-execution-space-call, reorder, default-stream-launch, missing-launch-bounds, ext-lambda-captures-this, deprecated-declarations} <- goes to nvcc
+  # -Werror not followed by any kind as mentioned above goes to host compiler without any arguments
+  -Werror)
+    if [ $# -gt 1 ]; then
+      IFS="," read -r -a kinds <<< "$2"
+      first_kind=${kinds[0]}
+      # check if the first kind is one of the allowed ones, then this must be an nvcc list so put all of them to the cuda compiler
+      case $first_kind in
+      all-warnings|cross-execution-space-call|reorder|default-stream-launch|missing-launch-bounds|ext-lambda-captures-this|deprecated-declarations)
+        cuda_args="$cuda_args $1 $2"
+        shift
+        ;;
+      *)
+        if [ $first_xcompiler_arg -eq 1 ]; then
+          xcompiler_args="$1"
+          first_xcompiler_arg=0
+        else
+          xcompiler_args="$xcompiler_args,$1"
+        fi
+        ;;
+      esac
+    fi
+    ;;
+  # -Werror=kind,... will be split into two parts, those kinds that belong to nvcc (see above) go there, while all others go towards the host compiler
+  -Werror=*)
+    kinds_str="${1:8}" # strip -Werror=
+    IFS="," read -r -a kinds <<< ${kinds_str}
+    first_werror_cuda=1
+    first_werror_host=1
+    xcompiler_args_werror=
+    # loop over all kinds that are sparated via ','
+    for kind in "${kinds[@]}"
+    do
+      case ${kind} in
+      all-warnings|cross-execution-space-call|reorder|default-stream-launch|missing-launch-bounds|ext-lambda-captures-this|deprecated-declarations)
+        if [ $first_werror_cuda -ne 0 ]; then
+          cuda_args="$cuda_args -Werror="
+          first_werror_cuda=0
+        else
+          cuda_args="$cuda_args,"
+        fi
+        cuda_args="$cuda_args$kind"
+        ;;
+      *)
+        if [ $first_werror_host -eq 0 ]; then
+            xcompiler_args_werror="${xcompiler_args_werror},"
+        fi
+        first_werror_host=0
+        xcompiler_args_werror="$xcompiler_args_werror-Werror=$kind"
+        ;;
+      esac
+    done
+    if [ $first_werror_host -eq 0 ]; then
+      if [ $first_xcompiler_arg -eq 1 ]; then
+        xcompiler_args="$xcompiler_args_werror"
+        first_xcompiler_arg=0
+      else
+        xcompiler_args="$xcompiler_args,$xcompiler_args_werror"
+      fi
+    fi
+    ;;
+  # End of Werror handling
   #Handle unsupported standard flags
   --std=c++1y|-std=c++1y|--std=gnu++1y|-std=gnu++1y|--std=c++1z|-std=c++1z|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a)
     fallback_std_flag="-std=c++14"
@@ -263,6 +336,24 @@ do
        shared_args=${shared_args/ $std_flag/}
     fi
     std_flag=$corrected_std_flag
+    shared_args="$shared_args $std_flag"
+    ;;
+  --std=c++20|-std=c++20)
+    if [ -n "$std_flag" ]; then
+      warn_std_flag
+      shared_args=${shared_args/ $std_flag/}
+    fi
+    # NVCC only has C++20 from version 12 on
+    cuda_main_version=$([[ $(${nvcc_compiler} --version) =~ V([0-9]+) ]] && echo ${BASH_REMATCH[1]})
+    if [ ${cuda_main_version} -lt 12 ]; then
+      fallback_std_flag="-std=c++14"
+      # this is hopefully just occurring in a downstream project during CMake feature tests
+      # we really have no choice here but to accept the flag and change  to an accepted C++ standard
+      echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++14 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
+      std_flag=$fallback_std_flag
+    else
+      std_flag=$1
+    fi
     shared_args="$shared_args $std_flag"
     ;;
   --std=c++17|-std=c++17)
@@ -306,17 +397,17 @@ do
   -A)
     ;;
 
-  #strip off -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
+  #strip of -std=c++98 due to nvcc warnings and Tribits will place both -std=c++11 and -std=c++98
   -std=c++98|--std=c++98)
     ;;
-  #strip off pedantic because it produces endless warnings about #LINE added by the preprocessor
+  #strip of pedantic because it produces endless warnings about #LINE added by the preprocessor
   -pedantic|-pedantic-errors|-Wpedantic|-ansi)
     ;;
-  #strip off -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
+  #strip of -Woverloaded-virtual to avoid "cc1: warning: command line option ‘-Woverloaded-virtual’ is valid for C++/ObjC++ but not for C"
   -Woverloaded-virtual)
     ;;
   #strip -Xcompiler because we add it
-  -Xcompiler)
+  -Xcompiler|--compiler-options)
     if [[ $2 != "-o" ]]; then
       if [ $first_xcompiler_arg -eq 1 ]; then
         xcompiler_args="$2"

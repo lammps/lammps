@@ -11,20 +11,22 @@ independently and used to build the wheel without installing it.
 """
 
 from __future__ import print_function
-import sys,os,shutil,glob,subprocess
+import sys, os, shutil, glob, subprocess
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='install.py',
                         description='LAMMPS python package installer script')
 
 parser.add_argument("-p", "--package", required=True,
-                    help="path to the LAMMPS Python package")
+                    help="path to the LAMMPS Python package folder")
 parser.add_argument("-l", "--lib", required=True,
                     help="path to the compiled LAMMPS shared library")
 parser.add_argument("-n", "--noinstall", action="store_true", default=False,
                     help="only build a binary wheel. Don't attempt to install it")
 parser.add_argument("-w", "--wheeldir", required=False,
                     help="path to a directory where the created wheel will be stored")
+parser.add_argument("-v", "--versionfile", required=True,
+                    help="path to the LAMMPS version.h source file")
 
 args = parser.parse_args()
 
@@ -32,15 +34,21 @@ args = parser.parse_args()
 
 if args.package:
   if not os.path.exists(args.package):
-    print("ERROR: LAMMPS package %s does not exist" % args.package)
+    print("\nERROR: LAMMPS package folder %s does not exist\n" % args.package)
     parser.print_help()
     sys.exit(1)
   else:
     args.package = os.path.abspath(args.package)
+    if ((os.path.basename(args.package) != "lammps")
+        and ((os.path.basename(os.path.dirname(args.package)) != "python"))):
+             print("\nERROR: LAMMPS package folder path %s does not end in %s\n"
+                   % (args.package, os.path.join("python", "lammps")))
+             parser.print_help()
+             sys.exit(1)
 
 if args.lib:
   if not os.path.exists(args.lib):
-    print("ERROR: LAMMPS shared library %s does not exist" % args.lib)
+    print("\nERROR: LAMMPS shared library %s does not exist\n" % args.lib)
     parser.print_help()
     sys.exit(1)
   else:
@@ -48,21 +56,38 @@ if args.lib:
 
 if args.wheeldir:
   if not os.path.exists(args.wheeldir):
-    print("ERROR: directory %s to store the wheel does not exist" % args.wheeldir)
+    print("\nERROR: directory %s to store the wheel does not exist\n" % args.wheeldir)
     parser.print_help()
     sys.exit(1)
   else:
     args.wheeldir = os.path.abspath(args.wheeldir)
 
-# we need to switch to the folder of the python package
-olddir = os.path.abspath('.')
-os.chdir(os.path.dirname(args.package))
+if args.versionfile:
+  if not os.path.exists(args.versionfile):
+    print("\nERROR: LAMMPS version file at %s does not exist\n" % args.versionfile)
+    parser.print_help()
+    sys.exit(1)
+  else:
+    args.versionfile = os.path.abspath(args.versionfile)
 
-# remove any wheel files left over from previous calls
+olddir = os.path.abspath('.')
+pythondir = os.path.abspath(os.path.join(args.package,'..'))
+os.putenv('LAMMPS_VERSION_FILE',os.path.abspath(args.versionfile))
+
+# purge old build folder
+if os.path.isdir(os.path.join(olddir, 'build-python')):
+  print("Cleaning old build directory")
+  shutil.rmtree(os.path.join(olddir, 'build-python'))
+
+# remove any old wheel files left over from previous calls
 print("Purging existing wheels...")
 for wheel in glob.glob('lammps-*.whl'):
   print("deleting " + wheel)
   os.remove(wheel)
+
+# copy python tree to build folder
+builddir = shutil.copytree(pythondir, os.path.join(olddir, 'build-python'))
+os.chdir(builddir)
 
 # copy shared object to the current folder so that
 # it will show up in the installation at the expected location
@@ -70,7 +95,7 @@ os.putenv('LAMMPS_SHARED_LIB',os.path.basename(args.lib))
 shutil.copy(args.lib,'lammps')
 
 # create a virtual environment for building the wheel
-shutil.rmtree('buildwheel',True)
+shutil.rmtree('buildwheel', True)
 try:
   txt = subprocess.check_output([sys.executable, '-m', 'venv', 'buildwheel'], stderr=subprocess.STDOUT, shell=False)
   print(txt.decode('UTF-8'))
@@ -82,18 +107,19 @@ except subprocess.CalledProcessError as err:
 # there is no simple way to return from that in python.
 os.system(sys.executable + ' makewheel.py')
 
+# copy wheel to final location
+for wheel in glob.glob('lammps-*.whl'):
+  if args.wheeldir:
+    shutil.copy(wheel, args.wheeldir)
+  else:
+    shutil.copy(wheel, olddir)
+
 # remove temporary folders and files
-shutil.rmtree('buildwheel',True)
-shutil.rmtree('build',True)
-shutil.rmtree('lammps.egg-info',True)
-os.remove(os.path.join('lammps',os.path.basename(args.lib)))
+os.chdir(olddir)
+shutil.rmtree('build-python', True)
 
 # stop here if we were asked not to install the wheel we created
 if args.noinstall:
-  if args.wheeldir:
-    for wheel in glob.glob('lammps-*.whl'):
-      shutil.copy(wheel, args.wheeldir)
-      os.remove(wheel)
   exit(0)
 
 # install the wheel with pip. first try to install in the default environment.
@@ -118,28 +144,17 @@ else:
   print("Installing wheel into system site-packages folder")
   py_exe = sys.executable
 
-for wheel in glob.glob('lammps-*.whl'):
-  try:
-    txt = subprocess.check_output([py_exe, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
-    print(txt.decode('UTF-8'))
-    if args.wheeldir:
-      shutil.copy(wheel, args.wheeldir)
-    else:
-      shutil.copy(wheel, olddir)
-    os.remove(wheel)
-    continue
-  except subprocess.CalledProcessError as err:
-    errmsg = err.output.decode('UTF-8')
-    if errmsg.find("distutils installed"):
-      sys.exit(errmsg + "You need to uninstall the LAMMPS python module manually first.\n")
-  try:
-    print('Installing wheel into system site-packages folder failed. Trying user folder now')
-    txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
-    print(txt.decode('UTF-8'))
-    if args.wheeldir:
-      shutil.copy(wheel, args.wheeldir)
-    else:
-      shutil.copy(wheel, olddir)
-    os.remove(wheel)
-  except:
-    sys.exit('Failed to install wheel ' + wheel)
+try:
+  txt = subprocess.check_output([py_exe, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
+  print(txt.decode('UTF-8'))
+  sys.exit(0)
+except subprocess.CalledProcessError as err:
+  errmsg = err.output.decode('UTF-8')
+  if errmsg.find("distutils installed"):
+    sys.exit(errmsg + "You need to uninstall the LAMMPS python module manually first.\n")
+try:
+  print('Installing wheel into system site-packages folder failed. Trying user folder now')
+  txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
+  print(txt.decode('UTF-8'))
+except:
+  sys.exit('Failed to install wheel ' + wheel)

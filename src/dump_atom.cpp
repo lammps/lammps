@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
+DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) :
+  Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump atom command");
 
@@ -146,6 +147,8 @@ int DumpAtom::modify_param(int narg, char **arg)
 
 void DumpAtom::write_header(bigint ndump)
 {
+  if (!header_choice) error->all(FLERR, "Must not use 'run pre no' after creating a new dump");
+
   if (multiproc) (this->*header_choice)(ndump);
   else if (me == 0) (this->*header_choice)(ndump);
 }
@@ -154,6 +157,8 @@ void DumpAtom::write_header(bigint ndump)
 
 void DumpAtom::pack(tagint *ids)
 {
+  if (!pack_choice) error->all(FLERR, "Must not use 'run pre no' after creating a new dump");
+
   (this->*pack_choice)(ids);
 }
 

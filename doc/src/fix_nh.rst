@@ -30,7 +30,7 @@ Accelerator Variants: *nph/kk*, *nph/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style_name keyword value ...
 
@@ -371,7 +371,7 @@ flipping the box when it is exceeded.  If the *flip* value is set to
 applied stress induces large deformations (e.g. in a liquid), this
 means the box shape can tilt dramatically and LAMMPS will run less
 efficiently, due to the large volume of communication needed to
-acquire ghost atoms around a processor's irregular-shaped sub-domain.
+acquire ghost atoms around a processor's irregular-shaped subdomain.
 For extreme values of tilt, LAMMPS may also lose atoms and generate an
 error.
 

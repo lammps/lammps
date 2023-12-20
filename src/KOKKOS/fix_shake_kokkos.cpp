@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -53,12 +53,15 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixShake(lmp, narg, arg)
 {
   kokkosable = 1;
-  forward_comm_device = 1;
+  forward_comm_device = exchange_comm_device = sort_device = 1;
+  maxexchange = 9;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
+
+  memory->destroy(xshake);
 
   shake_flag_tmp = shake_flag;
   shake_atom_tmp = shake_atom;
@@ -72,7 +75,7 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   grow_arrays(nmax);
 
-  for (int i = 0; i < nmax; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     k_shake_flag.h_view[i] = shake_flag_tmp[i];
     k_shake_atom.h_view(i,0) = shake_atom_tmp[i][0];
     k_shake_atom.h_view(i,1) = shake_atom_tmp[i][1];
@@ -103,6 +106,9 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   h_error_flag = Kokkos::subview(h_scalars,0);
   h_nlist = Kokkos::subview(h_scalars,1);
+
+  d_count = typename AT::t_int_scalar("fix_shake:count");
+  h_count = Kokkos::create_mirror_view(d_count);
 
   memory->destroy(shake_flag_tmp);
   memory->destroy(shake_atom_tmp);
@@ -142,6 +148,7 @@ FixShakeKokkos<DeviceType>::~FixShakeKokkos()
   memoryKK->destroy_kokkos(k_shake_type,shake_type);
   memoryKK->destroy_kokkos(k_xshake,xshake);
   memoryKK->destroy_kokkos(k_list,list);
+  memoryKK->destroy_kokkos(k_closest_list,closest_list);
 
   memoryKK->destroy_kokkos(k_vatom,vatom);
 }
@@ -202,13 +209,10 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // local copies of atom quantities
   // used by SHAKE until next re-neighboring
 
+  atomKK->sync(execution_space,X_MASK);
+
   ebond = 0.0;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-  mass = atom->mass;
-  rmass = atom->rmass;
-  type = atom->type;
+  d_x = atomKK->k_x.view<DeviceType>();
   nlocal = atom->nlocal;
 
   map_style = atom->map_style;
@@ -217,6 +221,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
   }
 
   k_shake_flag.sync<DeviceType>();
@@ -225,10 +230,14 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // extend size of SHAKE list if necessary
 
   if (nlocal > maxlist) {
-    maxlist = nlocal;
+    maxlist = atom->nmax;
     memoryKK->destroy_kokkos(k_list,list);
     memoryKK->create_kokkos(k_list,list,maxlist,"shake:list");
     d_list = k_list.view<DeviceType>();
+
+    memoryKK->destroy_kokkos(k_closest_list,closest_list);
+    memoryKK->create_kokkos(k_closest_list,closest_list,maxlist,4,"shake:closest_list");
+    d_closest_list = k_closest_list.view<DeviceType>();
   }
 
   // Atom Map
@@ -240,62 +249,24 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
   }
+
+  atomKK->k_sametag.sync<DeviceType>();
+  d_sametag = atomKK->k_sametag.view<DeviceType>();
 
   // build list of SHAKE clusters I compute
 
   Kokkos::deep_copy(d_scalars,0);
 
-  {
-    // local variables for lambda capture
+  copymode = 1;
 
-    auto d_shake_flag = this->d_shake_flag;
-    auto d_shake_atom = this->d_shake_atom;
-    auto d_list = this->d_list;
-    auto d_error_flag = this->d_error_flag;
-    auto d_nlist = this->d_nlist;
-    auto map_style = atom->map_style;
-    auto k_map_array = this->k_map_array;
-    auto k_map_hash = this->k_map_hash;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixShakePreNeighbor>(0,nlocal),*this);
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-     LAMMPS_LAMBDA(const int& i) {
-      if (d_shake_flag[i]) {
-        if (d_shake_flag[i] == 2) {
-          const int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          const int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          if (atom1 == -1 || atom2 == -1) {
-            d_error_flag() = 1;
-          }
-          if (i <= atom1 && i <= atom2) {
-            const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
-            d_list[nlist] = i;
-          }
-        } else if (d_shake_flag[i] % 2 == 1) {
-          const int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          const int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          const int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
-          if (atom1 == -1 || atom2 == -1 || atom3 == -1)
-            d_error_flag() = 1;
-          if (i <= atom1 && i <= atom2 && i <= atom3) {
-            const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
-            d_list[nlist] = i;
-          }
-        } else {
-          const int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          const int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          const int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
-          const int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,3),map_style,k_map_array,k_map_hash);
-          if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-            d_error_flag() = 1;
-          if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
-            const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
-            d_list[nlist] = i;
-          }
-        }
-      }
-    });
-  }
+  copymode = 0;
+
+  k_list.modify<DeviceType>();
+  k_closest_list.modify<DeviceType>();
 
   Kokkos::deep_copy(h_scalars,d_scalars);
   nlist = h_nlist();
@@ -303,6 +274,65 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   if (h_error_flag() == 1) {
     error->one(FLERR,"Shake atoms missing on proc "
                                  "{} at step {}",comm->me,update->ntimestep);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixShakeKokkos<DeviceType>::operator()(TagFixShakePreNeighbor, const int &i) const {
+  if (d_shake_flag[i]) {
+    if (d_shake_flag[i] == 2) {
+      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+      if (atom1 == -1 || atom2 == -1) {
+        d_error_flag() = 1;
+      }
+      atom1 = closest_image(i, atom1);
+      atom2 = closest_image(i, atom2);
+      if (i <= atom1 && i <= atom2) {
+        const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
+        d_list[nlist] = i;
+        d_closest_list(nlist,0) = atom1;
+        d_closest_list(nlist,1) = atom2;
+      }
+    } else if (d_shake_flag[i] % 2 == 1) {
+      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+      int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
+      if (atom1 == -1 || atom2 == -1 || atom3 == -1)
+        d_error_flag() = 1;
+      atom1 = closest_image(i, atom1);
+      atom2 = closest_image(i, atom2);
+      atom3 = closest_image(i, atom3);
+      if (i <= atom1 && i <= atom2 && i <= atom3) {
+        const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
+        d_list[nlist] = i;
+        d_closest_list(nlist,0) = atom1;
+        d_closest_list(nlist,1) = atom2;
+        d_closest_list(nlist,2) = atom3;
+      }
+    } else {
+      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+      int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
+      int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,3),map_style,k_map_array,k_map_hash);
+      if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
+        d_error_flag() = 1;
+      atom1 = closest_image(i, atom1);
+      atom2 = closest_image(i, atom2);
+      atom3 = closest_image(i, atom3);
+      atom4 = closest_image(i, atom4);
+      if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
+        const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
+        d_list[nlist] = i;
+        d_closest_list(nlist,0) = atom1;
+        d_closest_list(nlist,1) = atom2;
+        d_closest_list(nlist,2) = atom3;
+        d_closest_list(nlist,3) = atom4;
+      }
+    }
   }
 }
 
@@ -329,6 +359,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
   }
 
   if (d_rmass.data())
@@ -337,22 +368,18 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
 
   k_shake_flag.sync<DeviceType>();
-  k_shake_atom.sync<DeviceType>();
   k_shake_type.sync<DeviceType>();
+  k_list.sync<DeviceType>();
+  k_closest_list.sync<DeviceType>();
 
-  if (update->ntimestep == next_output) {
-    atomKK->sync(Host,X_MASK);
-    k_shake_flag.sync_host();
-    k_shake_atom.sync_host();
-    k_shake_type.sync_host();
+  if (update->ntimestep == next_output)
     stats();
-  }
 
   // xshake = unconstrained move with current v,f
   // communicate results if necessary
 
   unconstrained_update();
-  if (comm->nprocs > 1) comm->forward_comm(this);
+  comm->forward_comm(this);
   k_xshake.sync<DeviceType>();
 
   // virial setup
@@ -367,7 +394,6 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     d_vatom = k_vatom.template view<KKDeviceType>();
   }
 
-
   neighflag = lmp->kokkos->neighflag;
 
   // FULL neighlist still needs atomics in fix shake
@@ -381,7 +407,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   need_dup = 0;
   if (neighflag != HALF)
-    need_dup = std::is_same<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>::value;
+    need_dup = std::is_same_v<NeedDup_v<HALFTHREAD,DeviceType>,Kokkos::Experimental::ScatterDuplicated>;
 
   // allocate duplicated memory
 
@@ -394,8 +420,6 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   }
 
   Kokkos::deep_copy(d_error_flag,0);
-
-  update_domain_variables();
 
   EV_FLOAT ev;
 
@@ -455,6 +479,26 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   }
 }
 
+/* ----------------------------------------------------------------------
+   substitute shake constraints with very strong bonds
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::min_post_force(int vflag)
+{
+  // not yet ported to Kokkos
+
+  atomKK->sync(Host,X_MASK | F_MASK);
+  k_shake_flag.sync_host();
+  k_shake_type.sync_host();
+  k_list.sync_host();
+  k_closest_list.sync_host();
+
+  FixShake::min_post_force(vflag);
+
+  atomKK->modified(Host,F_MASK);
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -462,10 +506,10 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLAG>, const int &i, EV_FLOAT& ev) const {
   const int m = d_list[i];
-  if (d_shake_flag[m] == 2) shake<NEIGHFLAG,EVFLAG>(m,ev);
-  else if (d_shake_flag[m] == 3) shake3<NEIGHFLAG,EVFLAG>(m,ev);
-  else if (d_shake_flag[m] == 4) shake4<NEIGHFLAG,EVFLAG>(m,ev);
-  else shake3angle<NEIGHFLAG,EVFLAG>(m,ev);
+  if (d_shake_flag[m] == 2) shake<NEIGHFLAG,EVFLAG>(i,ev);
+  else if (d_shake_flag[m] == 3) shake3<NEIGHFLAG,EVFLAG>(i,ev);
+  else if (d_shake_flag[m] == 4) shake4<NEIGHFLAG,EVFLAG>(i,ev);
+  else shake3angle<NEIGHFLAG,EVFLAG>(i,ev);
 }
 
 template<class DeviceType>
@@ -483,7 +527,6 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLA
 template<class DeviceType>
 int FixShakeKokkos<DeviceType>::dof(int igroup)
 {
-
   d_mask = atomKK->k_mask.view<DeviceType>();
   d_tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;
@@ -543,7 +586,6 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
   else
     atomKK->sync(execution_space,X_MASK|V_MASK|F_MASK|TYPE_MASK);
 
-
   k_shake_flag.sync<DeviceType>();
   k_xshake.sync<DeviceType>();
 
@@ -591,12 +633,14 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
   k_xshake.modify<DeviceType>();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 2 cluster = single bond
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake(int m, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -604,33 +648,30 @@ void FixShakeKokkos<DeviceType>::shake(int m, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  int nlist,list[2];
+  int atomlist[2];
   double v[6];
   double invmass0,invmass1;
 
   // local atom IDs and constraint distances
 
-  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
+  int m = d_list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
 
-  // r01 = distance vec between atoms, with PBC
+  // r01 = distance vec between atoms
 
   double r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
-  minimum_image(r01);
 
-  // s01 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
-  minimum_image_once(s01);
 
   // scalar distances between atoms
 
@@ -687,9 +728,9 @@ void FixShakeKokkos<DeviceType>::shake(int m, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
 
     v[0] = lamda*r01[0]*r01[0];
     v[1] = lamda*r01[1]*r01[1];
@@ -698,16 +739,18 @@ void FixShakeKokkos<DeviceType>::shake(int m, EV_FLOAT& ev) const
     v[4] = lamda*r01[0]*r01[2];
     v[5] = lamda*r01[1]*r01[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,list,2.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,2.0,v);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 3 cluster = two bonds
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake3(int m, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -715,47 +758,42 @@ void FixShakeKokkos<DeviceType>::shake3(int m, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  int nlist,list[3];
+  int atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
-  int i2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
+  int m = d_list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
+  int i2 = d_closest_list(ilist,2);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
 
-  // r01,r02 = distance vec between atoms, with PBC
+  // r01,r02 = distance vec between atoms
 
   double r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
-  minimum_image(r01);
 
   double r02[3];
   r02[0] = d_x(i0,0) - d_x(i2,0);
   r02[1] = d_x(i0,1) - d_x(i2,1);
   r02[2] = d_x(i0,2) - d_x(i2,2);
-  minimum_image(r02);
 
-  // s01,s02 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01,s02 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
-  minimum_image_once(s01);
 
   double s02[3];
   s02[0] = d_xshake(i0,0) - d_xshake(i2,0);
   s02[1] = d_xshake(i0,1) - d_xshake(i2,1);
   s02[2] = d_xshake(i0,2) - d_xshake(i2,2);
-  minimum_image_once(s02);
 
   // scalar distances between atoms
 
@@ -869,10 +907,10 @@ void FixShakeKokkos<DeviceType>::shake3(int m, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
-    if (i2 < nlocal) list[nlist++] = i2;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0] + lamda02*r02[0]*r02[0];
     v[1] = lamda01*r01[1]*r01[1] + lamda02*r02[1]*r02[1];
@@ -881,16 +919,18 @@ void FixShakeKokkos<DeviceType>::shake3(int m, EV_FLOAT& ev) const
     v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
     v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,list,3.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,3.0,v);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 4 cluster = three bonds
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake4(int m, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -898,61 +938,54 @@ void FixShakeKokkos<DeviceType>::shake4(int m, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
- int nlist,list[4];
+  int atomlist[4];
   double v[6];
   double invmass0,invmass1,invmass2,invmass3;
 
   // local atom IDs and constraint distances
 
-  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
-  int i2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
-  int i3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,3),map_style,k_map_array,k_map_hash);
+  int m = d_list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
+  int i2 = d_closest_list(ilist,2);
+  int i3 = d_closest_list(ilist,3);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
   double bond3 = d_bond_distance[d_shake_type(m,2)];
 
-  // r01,r02,r03 = distance vec between atoms, with PBC
+  // r01,r02,r03 = distance vec between atoms
 
   double r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
-  minimum_image(r01);
 
   double r02[3];
   r02[0] = d_x(i0,0) - d_x(i2,0);
   r02[1] = d_x(i0,1) - d_x(i2,1);
   r02[2] = d_x(i0,2) - d_x(i2,2);
-  minimum_image(r02);
 
   double r03[3];
   r03[0] = d_x(i0,0) - d_x(i3,0);
   r03[1] = d_x(i0,1) - d_x(i3,1);
   r03[2] = d_x(i0,2) - d_x(i3,2);
-  minimum_image(r03);
 
-  // s01,s02,s03 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01,s02,s03 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
-  minimum_image_once(s01);
 
   double s02[3];
   s02[0] = d_xshake(i0,0) - d_xshake(i2,0);
   s02[1] = d_xshake(i0,1) - d_xshake(i2,1);
   s02[2] = d_xshake(i0,2) - d_xshake(i2,2);
-  minimum_image_once(s02);
 
   double s03[3];
   s03[0] = d_xshake(i0,0) - d_xshake(i3,0);
   s03[1] = d_xshake(i0,1) - d_xshake(i3,1);
   s03[2] = d_xshake(i0,2) - d_xshake(i3,2);
-  minimum_image_once(s03);
 
   // scalar distances between atoms
 
@@ -1130,11 +1163,11 @@ void FixShakeKokkos<DeviceType>::shake4(int m, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
-    if (i2 < nlocal) list[nlist++] = i2;
-    if (i3 < nlocal) list[nlist++] = i3;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
+    if (i3 < nlocal) atomlist[count++] = i3;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda03*r03[0]*r03[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda03*r03[1]*r03[1];
@@ -1143,16 +1176,18 @@ void FixShakeKokkos<DeviceType>::shake4(int m, EV_FLOAT& ev) const
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,list,4.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,4.0,v);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 3 cluster = two bonds + angle
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake3angle(int m, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -1160,60 +1195,53 @@ void FixShakeKokkos<DeviceType>::shake3angle(int m, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  int nlist,list[3];
+  int atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int i0 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,0),map_style,k_map_array,k_map_hash);
-  int i1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,1),map_style,k_map_array,k_map_hash);
-  int i2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,2),map_style,k_map_array,k_map_hash);
+  int m = d_list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
+  int i2 = d_closest_list(ilist,2);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
   double bond12 = d_angle_distance[d_shake_type(m,2)];
 
-  // r01,r02,r12 = distance vec between atoms, with PBC
+  // r01,r02,r12 = distance vec between atoms
 
   double r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
-  minimum_image(r01);
 
   double r02[3];
   r02[0] = d_x(i0,0) - d_x(i2,0);
   r02[1] = d_x(i0,1) - d_x(i2,1);
   r02[2] = d_x(i0,2) - d_x(i2,2);
-  minimum_image(r02);
 
   double r12[3];
   r12[0] = d_x(i1,0) - d_x(i2,0);
   r12[1] = d_x(i1,1) - d_x(i2,1);
   r12[2] = d_x(i1,2) - d_x(i2,2);
-  minimum_image(r12);
 
-  // s01,s02,s12 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01,s02,s12 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
-  minimum_image_once(s01);
 
   double s02[3];
   s02[0] = d_xshake(i0,0) - d_xshake(i2,0);
   s02[1] = d_xshake(i0,1) - d_xshake(i2,1);
   s02[2] = d_xshake(i0,2) - d_xshake(i2,2);
-  minimum_image_once(s02);
 
   double s12[3];
   s12[0] = d_xshake(i1,0) - d_xshake(i2,0);
   s12[1] = d_xshake(i1,1) - d_xshake(i2,1);
   s12[2] = d_xshake(i1,2) - d_xshake(i2,2);
-  minimum_image_once(s12);
 
   // scalar distances between atoms
 
@@ -1384,10 +1412,10 @@ void FixShakeKokkos<DeviceType>::shake3angle(int m, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
-    if (i2 < nlocal) list[nlist++] = i2;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda12*r12[0]*r12[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda12*r12[1]*r12[1];
@@ -1396,8 +1424,25 @@ void FixShakeKokkos<DeviceType>::shake3angle(int m, EV_FLOAT& ev) const
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,list,3.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,3.0,v);
   }
+}
+
+/* ----------------------------------------------------------------------
+   print-out bond & angle statistics
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::stats()
+{
+  atomKK->sync(Host,X_MASK);
+  k_shake_flag.sync_host();
+  k_shake_atom.sync_host();
+  k_shake_type.sync_host();
+  k_list.sync_host();
+  k_closest_list.sync_host();
+
+  FixShake::stats();
 }
 
 /* ----------------------------------------------------------------------
@@ -1443,6 +1488,28 @@ void FixShakeKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 }
 
 /* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_shake_flag.sync_device();
+  k_shake_atom.sync_device();
+  k_shake_type.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_shake_flag.d_view);
+  Sorter.sort(LMPDeviceType(), k_shake_atom.d_view);
+  Sorter.sort(LMPDeviceType(), k_shake_type.d_view);
+
+  k_shake_flag.modify_device();
+  k_shake_atom.modify_device();
+  k_shake_type.modify_device();
+}
+
+/* ----------------------------------------------------------------------
    initialize one atom's array values, called when atom is created
 ------------------------------------------------------------------------- */
 
@@ -1485,15 +1552,216 @@ template<class DeviceType>
 void FixShakeKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev, int imol,
                             double * xgeom, double * vcm, double * quat)
 {
-  atomKK->sync(Host,TAG_MASK);
+  atomKK->sync(Host,TAG_MASK|MOLECULE_MASK);
   k_shake_flag.sync_host();
   k_shake_atom.sync_host();
   k_shake_type.sync_host();
 
   FixShake::set_molecule(nlocalprev,tagprev,imol,xgeom,vcm,quat);
 
+  k_shake_flag.modify_host();
   k_shake_atom.modify_host();
   k_shake_type.modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
+{
+  const int i = d_exchange_sendlist(mysend);
+  int flag = d_shake_flag[i];
+
+  if (!final) {
+    if (flag == 1) offset += 7;
+    else if (flag == 2) offset += 4;
+    else if (flag == 3) offset += 6;
+    else if (flag == 4) offset += 8;
+    else offset++;
+  } else {
+
+    d_buf[mysend] = nsend + offset;
+    int m = nsend + offset;
+    d_buf[m++] = flag;
+    if (flag == 1) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_atom(i,2);
+      d_buf[m++] = d_shake_type(i,0);
+      d_buf[m++] = d_shake_type(i,1);
+      d_buf[m++] = d_shake_type(i,2);
+    } else if (flag == 2) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_type(i,0);
+    } else if (flag == 3) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_atom(i,2);
+      d_buf[m++] = d_shake_type(i,0);
+      d_buf[m++] = d_shake_type(i,1);
+    } else if (flag == 4) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_atom(i,2);
+      d_buf[m++] = d_shake_atom(i,3);
+      d_buf[m++] = d_shake_type(i,0);
+      d_buf[m++] = d_shake_type(i,1);
+      d_buf[m++] = d_shake_type(i,2);
+    }
+    if (mysend == nsend-1) d_count() = m;
+    offset = m - nsend;
+
+    const int j = d_copylist(mysend);
+    if (j > -1) {
+      d_shake_flag[i] = d_shake_flag[j];
+      int flag = d_shake_flag[i];
+      if (flag == 1) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_atom(i,2) = d_shake_atom(j,2);
+        d_shake_type(i,0) = d_shake_type(j,0);
+        d_shake_type(i,1) = d_shake_type(j,1);
+        d_shake_type(i,2) = d_shake_type(j,2);
+      } else if (flag == 2) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_type(i,0) = d_shake_type(j,0);
+      } else if (flag == 3) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_atom(i,2) = d_shake_atom(j,2);
+        d_shake_type(i,0) = d_shake_type(j,0);
+        d_shake_type(i,1) = d_shake_type(j,1);
+      } else if (flag == 4) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_atom(i,2) = d_shake_atom(j,2);
+        d_shake_atom(i,3) = d_shake_atom(j,3);
+        d_shake_type(i,0) = d_shake_type(j,0);
+        d_shake_type(i,1) = d_shake_type(j,1);
+        d_shake_type(i,2) = d_shake_type(j,2);
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
+   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
+   ExecutionSpace space)
+{
+  k_buf.sync<DeviceType>();
+  k_copylist.sync<DeviceType>();
+  k_exchange_sendlist.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_copylist = k_copylist.view<DeviceType>();
+  d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
+  this->nsend = nsend;
+
+  k_shake_flag.template sync<DeviceType>();
+  k_shake_atom.template sync<DeviceType>();
+  k_shake_type.template sync<DeviceType>();
+
+  Kokkos::deep_copy(d_count,0);
+
+  copymode = 1;
+
+  FixShakeKokkosPackExchangeFunctor<DeviceType> pack_exchange_functor(this);
+  Kokkos::parallel_scan(nsend,pack_exchange_functor);
+
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+
+  if (space == Host) k_buf.sync<LMPHostType>();
+  else k_buf.sync<LMPDeviceType>();
+
+  k_shake_flag.template modify<DeviceType>();
+  k_shake_atom.template modify<DeviceType>();
+  k_shake_type.template modify<DeviceType>();
+
+  Kokkos::deep_copy(h_count,d_count);
+
+  return h_count();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int &i) const
+{
+  int index = d_indices(i);
+
+  if (index > -1) {
+    int m = d_buf[i];
+
+    int flag = d_shake_flag[index] = static_cast<int> (d_buf[m++]);
+    if (flag == 1) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,2) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,1) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,2) = static_cast<int> (d_buf[m++]);
+    } else if (flag == 2) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+    } else if (flag == 3) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,2) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,1) = static_cast<int> (d_buf[m++]);
+    } else if (flag == 4) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,2) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,3) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,1) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,2) = static_cast<int> (d_buf[m++]);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
+  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  ExecutionSpace /*space*/)
+{
+  k_buf.sync<DeviceType>();
+  k_indices.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_indices = k_indices.view<DeviceType>();
+
+  k_shake_flag.template sync<DeviceType>();
+  k_shake_atom.template sync<DeviceType>();
+  k_shake_type.template sync<DeviceType>();
+
+  copymode = 1;
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShakeUnpackExchange>(0,nrecv),*this);
+
+  copymode = 0;
+
+  k_shake_flag.template modify<DeviceType>();
+  k_shake_atom.template modify<DeviceType>();
+  k_shake_type.template modify<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -1646,6 +1914,13 @@ void FixShakeKokkos<DeviceType>::shake_end_of_step(int vflag) {
 
 template<class DeviceType>
 void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass = atom->mass;
+  rmass = atom->rmass;
+  type = atom->type;
+
   atomKK->sync(Host,X_MASK|V_MASK|F_MASK);
 
   // save current forces and velocities so that you
@@ -1713,11 +1988,9 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 
   double **xtmp = xshake;
   xshake = x;
-  if (comm->nprocs > 1) {
-    forward_comm_device = 0;
-    comm->forward_comm(this);
-    forward_comm_device = 1;
-  }
+  forward_comm_device = 0;
+  comm->forward_comm(this);
+  forward_comm_device = 1;
   xshake = xtmp;
 
   atomKK->modified(Host,X_MASK|V_MASK|F_MASK);
@@ -1737,7 +2010,7 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *list, double total,
+void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *atomlist, double total,
      double *v) const
 {
   int m;
@@ -1757,7 +2030,7 @@ void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *list, double 
     for (int i = 0; i < n; i++) {
       auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
       auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-      m = list[i];
+      m = atomlist[i];
       a_vatom(m,0) += fraction*v[0];
       a_vatom(m,1) += fraction*v[1];
       a_vatom(m,2) += fraction*v[2];
@@ -1768,163 +2041,42 @@ void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *list, double 
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixShakeKokkos<DeviceType>::update_domain_variables()
-{
-  triclinic = domain->triclinic;
-  xperiodic = domain->xperiodic;
-  xprd_half = domain->xprd_half;
-  xprd = domain->xprd;
-  yperiodic = domain->yperiodic;
-  yprd_half = domain->yprd_half;
-  yprd = domain->yprd;
-  zperiodic = domain->zperiodic;
-  zprd_half = domain->zprd_half;
-  zprd = domain->zprd;
-  xy = domain->xy;
-  xz = domain->xz;
-  yz = domain->yz;
-}
-
 /* ----------------------------------------------------------------------
-   minimum image convention in periodic dimensions
-   use 1/2 of box size as test
-   for triclinic, also add/subtract tilt factors in other dims as needed
-   changed "if" to "while" to enable distance to
-     far-away ghost atom returned by atom->map() to be wrapped back into box
-     could be problem for looking up atom IDs when cutoff > boxsize
-   this should not be used if atom has moved infinitely far outside box
-     b/c while could iterate forever
-     e.g. fix shake prediction of new position with highly overlapped atoms
-     use minimum_image_once() instead
+   return local index of atom J or any of its images that is closest to atom I
+   if J is not a valid index like -1, just return it
    copied from domain.cpp
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::minimum_image(double *delta) const
+int FixShakeKokkos<DeviceType>::closest_image(const int i, int j) const
 {
-  if (triclinic == 0) {
-    if (xperiodic) {
-      while (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-    if (yperiodic) {
-      while (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) delta[1] += yprd;
-        else delta[1] -= yprd;
-      }
-    }
-    if (zperiodic) {
-      while (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) delta[2] += zprd;
-        else delta[2] -= zprd;
-      }
-    }
+  if (j < 0) return j;
 
-  } else {
-    if (zperiodic) {
-      while (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) {
-          delta[2] += zprd;
-          delta[1] += yz;
-          delta[0] += xz;
-        } else {
-          delta[2] -= zprd;
-          delta[1] -= yz;
-          delta[0] -= xz;
-        }
-      }
-    }
-    if (yperiodic) {
-      while (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) {
-          delta[1] += yprd;
-          delta[0] += xy;
-        } else {
-          delta[1] -= yprd;
-          delta[0] -= xy;
-        }
-      }
-    }
-    if (xperiodic) {
-      while (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
+  const X_FLOAT xi0 = d_x(i,0);
+  const X_FLOAT xi1 = d_x(i,1);
+  const X_FLOAT xi2 = d_x(i,2);
+
+  int closest = j;
+  X_FLOAT delx = xi0 - d_x(j,0);
+  X_FLOAT dely = xi1 - d_x(j,1);
+  X_FLOAT delz = xi2 - d_x(j,2);
+  X_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+  X_FLOAT rsq;
+
+  while (d_sametag[j] >= 0) {
+    j = d_sametag[j];
+    delx = xi0 - d_x(j,0);
+    dely = xi1 - d_x(j,1);
+    delz = xi2 - d_x(j,2);
+    rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq < rsqmin) {
+      rsqmin = rsq;
+      closest = j;
     }
   }
-}
 
-/* ----------------------------------------------------------------------
-   minimum image convention in periodic dimensions
-   use 1/2 of box size as test
-   for triclinic, also add/subtract tilt factors in other dims as needed
-   only shift by one box length in each direction
-   this should not be used if multiple box shifts are required
-   copied from domain.cpp
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::minimum_image_once(double *delta) const
-{
-  if (triclinic == 0) {
-    if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-    if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) delta[1] += yprd;
-        else delta[1] -= yprd;
-      }
-    }
-    if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) delta[2] += zprd;
-        else delta[2] -= zprd;
-      }
-    }
-
-  } else {
-    if (zperiodic) {
-      if (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) {
-          delta[2] += zprd;
-          delta[1] += yz;
-          delta[0] += xz;
-        } else {
-          delta[2] -= zprd;
-          delta[1] -= yz;
-          delta[0] -= xz;
-        }
-      }
-    }
-    if (yperiodic) {
-      if (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) {
-          delta[1] += yprd;
-          delta[0] += xy;
-        } else {
-          delta[1] -= yprd;
-          delta[0] -= xy;
-        }
-      }
-    }
-    if (xperiodic) {
-      if (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-  }
+  return closest;
 }
 
 /* ---------------------------------------------------------------------- */

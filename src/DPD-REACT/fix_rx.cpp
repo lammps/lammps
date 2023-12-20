@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -249,7 +249,7 @@ void FixRX::post_constructor()
 
   // Assign species names to tmpspecies array and determine the number of unique species
 
-  int n,nwords;
+  int n;
   char line[MAXLINE],*ptr;
   int eof = 0;
   char * word;
@@ -270,12 +270,10 @@ void FixRX::post_constructor()
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     // words = ptrs to all words in line
 
-    nwords = 0;
     word = strtok(line," \t\n\r\f");
     while (word != nullptr) {
       word = strtok(nullptr, " \t\n\r\f");
@@ -390,7 +388,6 @@ void FixRX::initSparse()
   int mxprod = 0;
   int mxreac = 0;
   int mxspec = 0;
-  int nIntegral = 0;
   for (int i = 0; i < nreactions; ++i) {
     int nreac_i = 0, nprod_i = 0;
     std::string pstr, rstr;
@@ -430,7 +427,6 @@ void FixRX::initSparse()
     mxreac = std::max( mxreac, nreac_i );
     mxprod = std::max( mxprod, nprod_i );
     mxspec = std::max( mxspec, nreac_i + nprod_i );
-    if (allAreIntegral) nIntegral++;
   }
 
   if (comm->me == 0 && Verbosity > 1) {
@@ -787,7 +783,7 @@ void FixRX::read_file(char *file)
 
   // Count the number of reactions from kinetics file
 
-  int n,nwords,ispecies;
+  int n,ispecies;
   char line[MAXLINE],*ptr;
   int eof = 0;
 
@@ -807,8 +803,7 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     nreactions++;
   }
@@ -861,12 +856,10 @@ void FixRX::read_file(char *file)
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+    if (utils::count_words(line) == 0) continue;
 
     // words = ptrs to all words in line
 
-    nwords = 0;
     word = strtok(line," \t\n\r\f");
     while (word != nullptr) {
       tmpStoich = atof(word);

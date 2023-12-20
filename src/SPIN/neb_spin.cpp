@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -243,7 +243,7 @@ void NEBSpin::run()
   // perform regular NEBSpin for n1steps or until replicas converge
   // retrieve PE values from fix NEBSpin and print every nevery iterations
   // break out of while loop early if converged
-  // damped dynamic min styles insure all replicas converge together
+  // damped dynamic min styles ensure all replicas converge together
 
   timer->init();
   timer->barrier_start();
@@ -331,7 +331,7 @@ void NEBSpin::run()
   // perform climbing NEBSpin for n2steps or until replicas converge
   // retrieve PE values from fix NEBSpin and print every nevery iterations
   // break induced if converged
-  // damped dynamic min styles insure all replicas converge together
+  // damped dynamic min styles ensure all replicas converge together
 
   timer->init();
   timer->barrier_start();

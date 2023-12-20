@@ -50,7 +50,7 @@ ntimestep = 0
 
 if me == 0:
   tkroot = None
-  try: 
+  try:
     import Tkinter
   except:
     import tkinter as Tkinter

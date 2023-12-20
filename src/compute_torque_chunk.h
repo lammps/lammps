@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,35 +20,24 @@ ComputeStyle(torque/chunk,ComputeTorqueChunk);
 #ifndef LMP_COMPUTE_TORQUE_CHUNK_H
 #define LMP_COMPUTE_TORQUE_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
 
-class ComputeTorqueChunk : public Compute {
+class ComputeTorqueChunk : public ComputeChunk {
  public:
   ComputeTorqueChunk(class LAMMPS *, int, char **);
   ~ComputeTorqueChunk() override;
-  void init() override;
   void compute_array() override;
-
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
 
   double memory_usage() override;
 
  private:
-  int nchunk, maxchunk;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
-
   double *massproc, *masstotal;
   double **com, **comall;
   double **torque, **torqueall;
 
-  void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS

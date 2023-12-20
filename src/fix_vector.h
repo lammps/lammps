@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,8 +50,11 @@ class FixVector : public Fix {
 
   bigint nextstep, initialstep;
 
-  int ncount;       // # of values currently in growing vector or array
-  int ncountmax;    // max # of values vector/array can hold
+  bigint ncount;       // # of values processed and stored into growing vector or array
+  bigint ncountmax;    // max # of values vector/array can hold
+  bigint nmaxval;      // maximum allowed number of values
+  bigint nindex;       // start index of data, may wrap around
+
   double *vector;
   double **array;
 };

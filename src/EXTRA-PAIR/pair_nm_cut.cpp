@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,8 +18,6 @@
 
 #include "pair_nm_cut.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -28,6 +26,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -36,6 +36,7 @@ using namespace MathConst;
 
 PairNMCut::PairNMCut(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -412,6 +413,25 @@ double PairNMCut::single(int /*i*/, int /*j*/, int itype, int jtype,
      nn[itype][jtype]*r0m[itype][jtype] /pow(r,mm[itype][jtype])) -
     offset[itype][jtype];
   return factor_lj*phinm;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairNMCut::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double r = sqrt(rsq);
+  double prefactor = e0nm[itype][jtype]*nm[itype][jtype];
+
+  double du = prefactor *
+          (r0m[itype][jtype]/pow(r,mm[itype][jtype]) - r0n[itype][jtype]/pow(r,nn[itype][jtype])) / r;
+  double du2 = prefactor *
+          (r0n[itype][jtype]*(nn[itype][jtype] + 1.0) / pow(r,nn[itype][jtype]) -
+           r0m[itype][jtype]*(mm[itype][jtype] + 1.0) / pow(r,mm[itype][jtype])) / rsq;
+
+  dupair = factor_lj * du;
+  du2pair = factor_lj * du2;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -289,7 +289,7 @@ void ComputeSNAVAtom::compute_peratom()
 
       const int typeoffset = 6*nvalues*(atom->type[i]-1);
 
-      // insure rij, inside, and typej  are of size jnum
+      // ensure rij, inside, and typej  are of size jnum
 
       snaptr->grow_rij(jnum);
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,13 +11,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Wengen Ouyang (Tel Aviv University)
+   Contributing author: Wengen Ouyang (Wuhan University)
    e-mail: w.g.ouyang at gmail dot com
 
    This is a full version of the potential described in
-   [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
-   The definition of normals are the same as that in
-   [Kolmogorov & Crespi, Phys. Rev. B 71, 235415 (2005)]
+   [Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020)]
 ------------------------------------------------------------------------- */
 
 #include "pair_ilp_graphene_hbn.h"
@@ -59,6 +57,7 @@ static const char cite_ilp[] =
 static std::map<int, std::string> variant_map = {
     {PairILPGrapheneHBN::ILP_GrhBN, "ilp/graphene/hbn"},
     {PairILPGrapheneHBN::ILP_TMD, "ilp/tmd"},
+    {PairILPGrapheneHBN::AIP_WATER_2DM, "aip/water/2dm"},
     {PairILPGrapheneHBN::SAIP_METAL, "saip/metal"}};
 
 /* ---------------------------------------------------------------------- */
@@ -632,7 +631,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
 
 void PairILPGrapheneHBN::ILP_neigh()
 {
-  int i, j, ii, jj, n, allnum, jnum, itype, jtype;
+  int i, j, ii, jj, n, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
   int *neighptr;
@@ -649,7 +648,7 @@ void PairILPGrapheneHBN::ILP_neigh()
         (int **) memory->smalloc(maxlocal * sizeof(int *), "ILPGrapheneHBN:firstneigh");
   }
 
-  allnum = list->inum + list->gnum;
+  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -659,7 +658,7 @@ void PairILPGrapheneHBN::ILP_neigh()
 
   ipage->reset();
 
-  for (ii = 0; ii < allnum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
 
     n = 0;

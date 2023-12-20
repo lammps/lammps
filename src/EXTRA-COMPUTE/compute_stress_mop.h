@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,11 +38,17 @@ class ComputeStressMop : public Compute {
 
  private:
   void compute_pairs();
+  void compute_bonds();
+  void compute_angles();
 
-  int me, nvalues, dir;
+  int nvalues, dir;
   int *which;
 
+  int bondflag, angleflag;
+
   double *values_local, *values_global;
+  double *bond_local, *bond_global;
+  double *angle_local, *angle_global;
   double pos, pos1, dt, nktv2p, ftm2v;
   double area;
   class NeighList *list;

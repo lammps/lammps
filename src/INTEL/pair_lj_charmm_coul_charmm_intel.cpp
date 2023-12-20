@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -306,7 +306,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
           const int sbindex = tj[jj] >> SBBITS & 3;
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
-          const flt_t r_inv = (flt_t)1.0 / sqrt(rsq);
+          const flt_t r_inv = (flt_t)1.0 / std::sqrt(rsq);
           forcecoul = qqrd2e * qtmp * q[j] * r_inv;
           if (rsq > cut_coul_innersq) {
             const flt_t ccr = cut_coulsq - rsq;

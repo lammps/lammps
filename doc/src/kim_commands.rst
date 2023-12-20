@@ -1333,13 +1333,13 @@ For example,
 Citation of OpenKIM IMs
 """""""""""""""""""""""
 
-When publishing results obtained using OpenKIM IMs researchers are requested
-to cite the OpenKIM project :ref:`(Tadmor) <kim-mainpaper>`, KIM API
-:ref:`(Elliott) <kim-api>`, and the specific IM codes used in the simulations,
-in addition to the relevant scientific references for the IM. The citation
-format for an IM is displayed on its page on
-`OpenKIM <https://openkim.org>`_ along with the corresponding BibTex file, and
-is automatically added to the LAMMPS citation reminder.
+When publishing results obtained using OpenKIM IMs researchers are
+requested to cite the OpenKIM project :ref:`(Tadmor) <kim-mainpaper>`,
+KIM API :ref:`(Elliott) <kim-api>`, and the specific IM codes used in
+the simulations, in addition to the relevant scientific references for
+the IM. The citation format for an IM is displayed on its page on
+`OpenKIM <https://openkim.org>`_ along with the corresponding BibTex
+file, and is automatically added to the LAMMPS citation reminder.
 
 Citing the IM software (KIM infrastructure and specific PM or SM codes) used in
 the simulation gives credit to the researchers who developed them and enables
@@ -1348,15 +1348,15 @@ open source efforts like OpenKIM to function.
 Restrictions
 """"""""""""
 
-The *kim* command is part of the KIM package.  It is only enabled if LAMMPS is
-built with that package.  A requirement for the KIM package, is the KIM API
-library that must be downloaded from the
-`OpenKIM website <https://openkim.org/kim-api/>`_ and installed before LAMMPS is
+The *kim* command is part of the KIM package.  It is only enabled if
+LAMMPS is built with that package.  A requirement for the KIM package,
+is the KIM API library that must be downloaded from the `OpenKIM website
+<https://openkim.org/kim-api/>`_ and installed before LAMMPS is
 compiled.  When installing LAMMPS from binary, the kim-api package is a
-dependency that is automatically downloaded and installed.  The *kim query*
-command requires the *libcurl* library to be installed.  The *kim property*
-command requires *Python* 3.6 or later and the *kim-property* python package to
-be installed.  See the KIM section of the
+dependency that is automatically downloaded and installed.  The *kim
+query* command requires the *libcurl* library to be installed.  The *kim
+property* command requires *Python* 3.6 or later and the *kim-property*
+python package to be installed.  See the KIM section of the
 :doc:`Packages details <Packages_details>` for details.
 
 Furthermore, when using *kim* command to run KIM SMs, any packages required by

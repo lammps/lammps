@@ -3,20 +3,19 @@ From: ubuntu:20.04
 
 %environment
     export PATH=/usr/lib/ccache:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/lib:/opt/rocm-5.1.3/llvm/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/lib:/opt/rocm-5.4.3/llvm/lib
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get upgrade --no-install-recommends -y
 
     apt-get install -y --no-install-recommends curl wget libnuma-dev gnupg ca-certificates
-    apt-get install --no-install-recommends -y software-properties-common
 
     ###########################################################################
-    # ROCm 5.1.3
+    # ROCm 5.4.3
     ###########################################################################
-    wget https://repo.radeon.com/amdgpu-install/22.10.3/ubuntu/focal/amdgpu-install_22.10.3.50103-1_all.deb
-    apt-get install -y ./amdgpu-install_22.10.3.50103-1_all.deb
+    wget https://repo.radeon.com/amdgpu-install/5.4.3/ubuntu/focal/amdgpu-install_5.4.50403-1_all.deb
+    apt-get install -y ./amdgpu-install_5.4.50403-1_all.deb
 
     apt-get update
     apt-get install --no-install-recommends -y \
@@ -29,14 +28,15 @@ From: ubuntu:20.04
     amdgpu-install --usecase=rocm --no-dkms -y
 
     ###########################################################################
-    # ROCm hipCUB
+    # ROCm hipCUB and hipFFT
     ###########################################################################
-    apt-get install -y hipcub-dev
+    apt-get install -y hipcub-dev hipfft-dev
 
     ###########################################################################
     # Common Software
     ###########################################################################
-    add-apt-repository ppa:openkim/latest
+    apt-get install --no-install-recommends -y software-properties-common
+    add-apt-repository ppa:openkim/latest -y
     apt-get update
     apt-get install --no-install-recommends -y \
         bc \
@@ -83,6 +83,7 @@ From: ubuntu:20.04
         python3-setuptools \
         python3-virtualenv \
         python3-venv \
+        python-is-python3 \
         rsync \
         ssh \
         vim-nox \
@@ -123,7 +124,7 @@ From: ubuntu:20.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.8.0
+    export PLUMED_PKG_VERSION=2.8.2
 
     mkdir plumed
     cd plumed

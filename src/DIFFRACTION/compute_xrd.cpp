@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -90,8 +90,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         ztype[i] = j;
        }
      }
-    if (ztype[i] == XRDmaxType + 1)
-        error->all(FLERR,"Compute XRD: Invalid ASF atom type");
+    if (ztype[i] == XRDmaxType + 1) error->all(FLERR,"Compute XRD: Invalid ASF atom type {}", arg[iarg]);
     iarg++;
   }
 
@@ -125,7 +124,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute XRD Command");
       LP = utils::numeric(FLERR,arg[iarg+1],false,lmp);
 
-      if (!(LP == 1 || LP == 0))
+      if (LP != 1 && LP != 0)
          error->all(FLERR,"Compute XRD: LP must have value of 0 or 1");
       iarg += 2;
 

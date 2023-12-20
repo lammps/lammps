@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,19 +11,30 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Optimization author1: Ping Gao (National Supercomputing Center in Wuxi, China)
+   This is an optimized version of ilp/graphene/hbn based on the contirubtion of:
+   author: Wengen Ouyang (Wuhan University, China)
+   e-mail: w.g.ouyang at gmail dot com
+
+   Optimizations are done by:
+   author1: Ping Gao (National Supercomputing Center in Wuxi, China) implements the base ILP potential.
    e-mail: qdgaoping at gmail dot com
-   Optimization author2: Xiaohui Duan (National Supercomputing Center in Wuxi, China)
+
+   author2: Xiaohui Duan (Shandong University, China) adjusts the framework to adopt SAIP, TMD, WATER2DM, etc.
    e-mail: sunrise_duan at 126 dot com
 
-   Provides some bugfixes and performance optimizations in this potential.
+   Optimizations are described in:
+   Gao, Ping and Duan, Xiaohui, et al:
+   LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous Many-Core Processors
+   DOI: 10.1145/3458817.3476137
+
+   Potential is described by:
+   [Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020)]
 */
 
 #include "pair_ilp_graphene_hbn_opt.h"
 
 #include "atom.h"
 #include "citeme.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "interlayer_taper.h"
@@ -31,6 +42,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "pointers.h"
 
 #include <cmath>
 #include <cstring>
@@ -39,10 +51,10 @@ using namespace LAMMPS_NS;
 using namespace InterLayer;
 
 static const char cite_ilp_cur[] =
-    "ilp/graphene/hbn/opt potential: doi:10.1145/3458817.3476137\n"
+    "ilp/graphene/hbn/opt potential doi:10.1145/3458817.3476137\n"
     "@inproceedings{gao2021lmff\n"
-    " author = {Gao, Ping and Duan, Xiaohui and others},\n"
-    " title = {{LMFF}: Efficient and Scalable Layered Materials Force Field on Heterogeneous "
+    " author = {Gao, Ping and Duan, Xiaohui and Others},\n"
+    " title = {LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous "
     "Many-Core Processors},\n"
     " year = {2021},\n"
     " isbn = {9781450384421},\n"
@@ -52,13 +64,11 @@ static const char cite_ilp_cur[] =
     " doi = {10.1145/3458817.3476137},\n"
     " booktitle = {Proceedings of the International Conference for High Performance Computing, "
     "Networking, Storage and Analysis},\n"
-    " pages    = {42},\n"
+    " articleno = {42},\n"
     " numpages = {14},\n"
-    " location = {St.~Louis, Missouri},\n"
+    " location = {St. Louis, Missouri},\n"
     " series = {SC'21},\n"
     "}\n\n";
-
-static bool check_vdw(tagint itag, tagint jtag, double *xi, double *xj);
 
 /* ---------------------------------------------------------------------- */
 
@@ -170,6 +180,36 @@ void PairILPGrapheneHBNOpt::compute(int eflag, int vflag)
         }
       }
     }
+  } else if (variant == AIP_WATER_2DM) {
+    if (eflag_global || eflag_atom) {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<6, 1, 1, 1, AIP_WATER_2DM>();
+        } else {
+          eval<6, 1, 1, 0, AIP_WATER_2DM>();
+        }
+      } else {
+        if (tap_flag) {
+          eval<6, 1, 0, 1, AIP_WATER_2DM>();
+        } else {
+          eval<6, 1, 0, 0, AIP_WATER_2DM>();
+        }
+      }
+    } else {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<6, 0, 1, 1, AIP_WATER_2DM>();
+        } else {
+          eval<6, 0, 1, 0, AIP_WATER_2DM>();
+        }
+      } else {
+        if (tap_flag) {
+          eval<6, 0, 0, 1, AIP_WATER_2DM>();
+        } else {
+          eval<6, 0, 0, 0, AIP_WATER_2DM>();
+        }
+      }
+    }
   } else if (variant == SAIP_METAL) {
     if (eflag_global || eflag_atom) {
       if (vflag_either) {
@@ -257,7 +297,7 @@ void PairILPGrapheneHBNOpt::eval()
       rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq != 0 && rsq < cutILPsq[itype_map][jtype]) {
-        if (VARIANT == ILP_TMD && special_type[itype] && itype != type[j]) continue;
+        if ((VARIANT == ILP_TMD || VARIANT == AIP_WATER_2DM) && special_type[itype] == TMD_METAL && itype != type[j]) continue;
         if (ILP_nneigh >= MAX_NNEIGH) {
           error->one(FLERR, "There are too many neighbors for calculating normals");
         }
@@ -271,7 +311,8 @@ void PairILPGrapheneHBNOpt::eval()
     dproddni[2] = 0.0;
 
     double norm[3], dnormdxi[3][3], dnormdxk[MAX_NNEIGH][3][3];
-    calc_normal<MAX_NNEIGH>(i, ILP_neigh, ILP_nneigh, norm, dnormdxi, dnormdxk);
+
+    calc_atom_normal<MAX_NNEIGH>(i, itype, ILP_neigh, ILP_nneigh, norm, dnormdxi, dnormdxk);
 
     for (jj = 0; jj < jnum_inter; jj++) {
       j = jlist_inter[jj];
@@ -300,7 +341,7 @@ void PairILPGrapheneHBNOpt::eval()
           Tap = 1.0;
           dTap = 0.0;
         }
-        if (VARIANT != SAIP_METAL || !special_type[itype]) {
+        if (VARIANT != SAIP_METAL || special_type[itype] != SAIP_BNCH) {
           // Calculate the transverse distance
           prodnorm1 = norm[0] * delx + norm[1] * dely + norm[2] * delz;
           rhosq1 = rsq - prodnorm1 * prodnorm1;    // rho_ij
@@ -312,7 +353,7 @@ void PairILPGrapheneHBNOpt::eval()
 
           frho1 = exp1 * p.C;
           Erep = 0.5 * p.epsilon + frho1;
-          if (VARIANT == SAIP_METAL && special_type[jtype]) { Erep += 0.5 * p.epsilon + p.C; }
+          if (VARIANT == SAIP_METAL && special_type[jtype] == SAIP_BNCH) { Erep += 0.5 * p.epsilon + p.C; }
           Vilp = exp0 * Erep;
 
           // derivatives
@@ -430,6 +471,18 @@ inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnor
   dndr[1][2] = (del[1] * n[0] * n[1] + del[0] * (n[0] * n[0] + n[2] * n[2])) * rnnorm;
   dndr[2][2] = (del[1] * n[0] * n[2] - del[0] * n[1] * n[2]) * rnnorm;
 }
+inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double factor){
+  double cfactor = rnnorm * factor;
+  dnhatdn[0][0] = (n[1]*n[1]+n[2]*n[2])*cfactor;
+  dnhatdn[1][0] = -n[1]*n[0]*cfactor;
+  dnhatdn[2][0] = -n[2]*n[0]*cfactor;
+  dnhatdn[0][1] = -n[0]*n[1]*cfactor;
+  dnhatdn[1][1] = (n[0]*n[0]+n[2]*n[2])*cfactor;
+  dnhatdn[2][1] = -n[2]*n[1]*cfactor;
+  dnhatdn[0][2] = -n[0]*n[2]*cfactor;
+  dnhatdn[1][2] = -n[1]*n[2]*cfactor;
+  dnhatdn[2][2] = (n[0]*n[0]+n[1]*n[1])*cfactor;
+}
 inline double normalize_factor(double *n)
 {
   double nnorm = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
@@ -443,7 +496,7 @@ inline double normalize_factor(double *n)
   Yet another normal calculation method for simpiler code.
  */
 template <int MAX_NNEIGH>
-void PairILPGrapheneHBNOpt::calc_normal(int i, int *ILP_neigh, int nneigh, double *n,
+void PairILPGrapheneHBNOpt::calc_atom_normal(int i, int itype, int *ILP_neigh, int nneigh, double *n,
                                         double (*dnormdri)[3], double (*dnormdrk)[3][3])
 {
   double **x = atom->x;
@@ -477,6 +530,32 @@ void PairILPGrapheneHBNOpt::calc_normal(int i, int *ILP_neigh, int nneigh, doubl
     vet[jj][2] = x[j][2] - x[i][2];
   }
 
+  //specialize for AIP_WATER_2DM for hydrogen has special normal vector rule
+  if (variant == AIP_WATER_2DM && special_type[itype] == WATER) {
+    if (nneigh == 1){
+      n[0] = vet[0][0];
+      n[1] = vet[0][1];
+      n[2] = vet[0][2];
+
+      double rnnorm = normalize_factor(n);
+
+      deriv_hat(dnormdri, n, rnnorm, -1.0);
+      deriv_hat(dnormdrk[0], n, rnnorm, 1.0);
+
+    } else if (nneigh == 2){
+      n[0] = (vet[0][0] + vet[1][0])*0.5;
+      n[1] = (vet[0][1] + vet[1][1])*0.5;
+      n[2] = (vet[0][2] + vet[1][2])*0.5;
+      double rnnorm = normalize_factor(n);
+
+      deriv_hat(dnormdri, n, rnnorm, -1.0);
+      deriv_hat(dnormdrk[0], n, rnnorm, 0.5);
+      deriv_hat(dnormdrk[1], n, rnnorm, 0.5);
+    } else {
+      error->one(FLERR, "malformed water");
+    }
+    return;
+  }
   if (nneigh <= 1) {
     n[0] = 0.0;
     n[1] = 0.0;

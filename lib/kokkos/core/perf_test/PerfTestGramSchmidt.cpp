@@ -1,53 +1,25 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
-#include <gtest/gtest.h>
-#include <PerfTest_Category.hpp>
+#include <benchmark/benchmark.h>
+#include "PerfTest_Category.hpp"
 
 #include <cmath>
-#include <PerfTestBlasKernels.hpp>
+#include "PerfTestBlasKernels.hpp"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -69,7 +41,7 @@ struct InvNorm2 : public Kokkos::DotSingle<VectorView> {
 
   KOKKOS_INLINE_FUNCTION
   void final(value_type& result) const {
-    result = Kokkos::Experimental::sqrt(result);
+    result = Kokkos::sqrt(result);
     Rjj()  = result;
     inv()  = (0 < result) ? 1.0 / result : 0;
   }
@@ -165,87 +137,61 @@ struct ModifiedGramSchmidt {
 
   //--------------------------------------------------------------------------
 
-  static double test(const size_type length, const size_type count,
-                     const size_t iter = 1) {
+  static double test(const size_type length, const size_type count) {
     multivector_type Q_("Q", length, count);
     multivector_type R_("R", count, count);
 
     typename multivector_type::HostMirror A = Kokkos::create_mirror(Q_);
 
     // Create and fill A on the host
-
     for (size_type j = 0; j < count; ++j) {
       for (size_type i = 0; i < length; ++i) {
         A(i, j) = (i + 1) * (j + 1);
       }
     }
 
-    double dt_min = 0;
+    Kokkos::deep_copy(Q_, A);
 
-    for (size_t i = 0; i < iter; ++i) {
-      Kokkos::deep_copy(Q_, A);
+    // A = Q * R
+    const double dt = factorization(Q_, R_);
 
-      // A = Q * R
-
-      const double dt = factorization(Q_, R_);
-
-      if (0 == i)
-        dt_min = dt;
-      else
-        dt_min = dt < dt_min ? dt : dt_min;
-    }
-
-    return dt_min;
+    return dt;
   }
 };
 
-template <class DeviceType>
-void run_test_gramschmidt(int exp_beg, int exp_end, int num_trials,
-                          const char deviceTypeName[]) {
-  std::string label_gramschmidt;
-  label_gramschmidt.append("\"GramSchmidt< double , ");
-  label_gramschmidt.append(deviceTypeName);
-  label_gramschmidt.append(" >\"");
+template <class Scalar>
+static void GramSchmidt(benchmark::State& state) {
+  const int parallel_work_length = state.range(0);
 
-  for (int i = exp_beg; i < exp_end; ++i) {
-    double min_seconds = 0.0;
-    double max_seconds = 0.0;
-    double avg_seconds = 0.0;
+  for (auto _ : state) {
+    const double seconds =
+        ModifiedGramSchmidt<Scalar, Kokkos::DefaultExecutionSpace>::test(
+            parallel_work_length, 32);
 
-    const int parallel_work_length = 1 << i;
-
-    for (int j = 0; j < num_trials; ++j) {
-      const double seconds = ModifiedGramSchmidt<double, DeviceType>::test(
-          parallel_work_length, 32);
-
-      if (0 == j) {
-        min_seconds = seconds;
-        max_seconds = seconds;
-      } else {
-        if (seconds < min_seconds) min_seconds = seconds;
-        if (seconds > max_seconds) max_seconds = seconds;
-      }
-      avg_seconds += seconds;
-    }
-    avg_seconds /= num_trials;
-
-    std::cout << label_gramschmidt << " , " << parallel_work_length << " , "
-              << min_seconds << " , " << (min_seconds / parallel_work_length)
-              << ", " << avg_seconds << std::endl;
+    state.SetIterationTime(seconds);
+    state.counters["Count"] = benchmark::Counter(parallel_work_length);
+    state.counters["Time normalized"] =
+        benchmark::Counter(seconds / parallel_work_length);
   }
 }
 
-TEST(default_exec, gramschmidt) {
-  int exp_beg    = 10;
-  int exp_end    = 20;
-  int num_trials = 5;
-
-  if (command_line_num_args() > 1) exp_beg = std::stoi(command_line_arg(1));
-  if (command_line_num_args() > 2) exp_end = std::stoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
-
-  EXPECT_NO_THROW(run_test_gramschmidt<Kokkos::DefaultExecutionSpace>(
-      exp_beg, exp_end, num_trials, Kokkos::DefaultExecutionSpace::name()));
-}
+// FIXME_SYCL SYCL+Cuda reports "an illegal memory access was encountered"
+#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+BENCHMARK(GramSchmidt<double>)
+    ->ArgName("Count")
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 10, 1 << 18, 2),
+    })
+    ->UseManualTime()
+    ->Iterations(5);
+#else
+BENCHMARK(GramSchmidt<double>)
+    ->ArgName("Count")
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 10, 1 << 19, 2),
+    })
+    ->UseManualTime()
+    ->Iterations(5);
+#endif
 
 }  // namespace Test

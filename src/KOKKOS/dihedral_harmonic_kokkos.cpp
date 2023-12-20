@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -265,9 +265,9 @@ void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<N
 
   const F_FLOAT df = -d_k[type] * df1;
 
-  const F_FLOAT sx2  = df*dtgx;;
-  const F_FLOAT sy2  = df*dtgy;;
-  const F_FLOAT sz2  = df*dtgz;;
+  const F_FLOAT sx2  = df*dtgx;
+  const F_FLOAT sy2  = df*dtgy;
+  const F_FLOAT sz2  = df*dtgz;
 
   F_FLOAT f1[3],f2[3],f3[3],f4[3];
   f1[0] = df*dtfx;

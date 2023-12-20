@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -73,7 +73,8 @@ PairGW::~PairGW()
 void PairGW::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum;
-  int itag,jtag,itype,jtype,ktype,iparam_ij,iparam_ijk;
+  int itype,jtype,ktype,iparam_ij,iparam_ijk;
+  tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];

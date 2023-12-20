@@ -1,12 +1,12 @@
 .. index:: fix pair
 
 fix pair command
-=======================
+================
 
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID pair N pstyle name flag ...
 
@@ -47,7 +47,12 @@ These are example use cases:
 The *N* argument determines how often the fix is invoked.
 
 The *pstyle* argument is the name of the pair style.  It can be a
-sub-style used in a :doc:`pair_style hybrid <pair_hybrid>` command.
+sub-style used in a :doc:`pair_style hybrid <pair_hybrid>` command.  If
+there are multiple sub-styles using the same pair style, then *pstyle*
+should be specified as "style:N", where *N* is the number of the
+instance of the pair style you wish monitor (e.g., the first or second).
+For example, *pstyle* could be specified as "pace/extrapolation" or
+"amoeba" or "eam:1" or "eam:2".
 
 One or more *name/flag* pairs of arguments follow.  Each *name* is a
 per-atom quantity which the pair style must recognize as an extraction
@@ -80,7 +85,7 @@ columns 4-6 will store the "uinp" values.
 .. code-block:: LAMMPS
 
    pair_style amoeba
-   fix ex all pair amoeba 10 uind 0 uinp 0
+   fix ex all pair 10 amoeba uind 0 uinp 0
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

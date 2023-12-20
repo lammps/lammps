@@ -110,7 +110,7 @@ These pair styles compute Lennard Jones (LJ) and Coulombic
 interactions with additional switching or shifting functions that ramp
 the energy and/or force smoothly to zero between an inner and outer
 cutoff.  They are implementations of the widely used CHARMM force
-field used in the `CHARMM <http://www.scripps.edu/brooks>`_ MD code (and
+field used in the `CHARMM <https://www.charmm.org>`_ MD code (and
 others).  See :ref:`(MacKerell) <pair-MacKerell>` for a description of the
 CHARMM force field.
 
@@ -144,7 +144,7 @@ artifacts.
    conversion factor used internally in the code, from the LAMMPS value
    to the CHARMM value, as if it were effectively a parameter of the
    force field.  This is because the CHARMM code uses a slightly
-   different value for the this conversion factor in :doc:`real units <units>` (Kcal/mole), namely CHARMM = 332.0716, LAMMPS =
+   different value for the this conversion factor in :doc:`real units <units>` (kcal/mol), namely CHARMM = 332.0716, LAMMPS =
    332.06371.  This is to enable more precise agreement by LAMMPS with
    the CHARMM force field energies and forces, when using one of these
    two CHARMM pair styles.

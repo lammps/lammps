@@ -6,7 +6,7 @@ fix store/state command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID store/state N input1 input2 ... keyword value ...
 

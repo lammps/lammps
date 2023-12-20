@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -303,6 +303,7 @@ TEST_F(FileOperationsTest, error_all_one)
 
 TEST_F(FileOperationsTest, write_restart)
 {
+    ASSERT_EQ(lmp->restart_ver, -1);
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
@@ -323,7 +324,6 @@ TEST_F(FileOperationsTest, write_restart)
     command("write_restart multi-%.restart");
     command("write_restart multi2-%.restart fileper 2");
     command("write_restart multi3-%.restart nfile 1");
-    if (Info::has_package("MPIIO")) command("write_restart test.restart.mpiio");
     END_HIDE_OUTPUT();
 
     ASSERT_FILE_EXISTS("noinit.restart");
@@ -335,18 +335,6 @@ TEST_F(FileOperationsTest, write_restart)
     ASSERT_FILE_EXISTS("multi2-0.restart");
     ASSERT_FILE_EXISTS("multi3-base.restart");
     ASSERT_FILE_EXISTS("multi3-0.restart");
-    if (Info::has_package("MPIIO")) {
-        ASSERT_FILE_EXISTS("test.restart.mpiio");
-    }
-
-    if (!Info::has_package("MPIIO")) {
-        TEST_FAILURE(".*ERROR: Writing to MPI-IO filename when MPIIO package is not inst.*",
-                     command("write_restart test.restart.mpiio"););
-    } else {
-        TEST_FAILURE(".*ERROR: Restart file MPI-IO output not allowed with % in filename.*",
-                     command("write_restart test.restart-%.mpiio"););
-    }
-
     TEST_FAILURE(".*ERROR: Illegal write_restart command.*", command("write_restart"););
     TEST_FAILURE(".*ERROR: Unknown write_restart keyword: xxxx.*",
                  command("write_restart test.restart xxxx"););
@@ -356,6 +344,7 @@ TEST_F(FileOperationsTest, write_restart)
     BEGIN_HIDE_OUTPUT();
     command("clear");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, -1);
     ASSERT_EQ(lmp->atom->natoms, 0);
     ASSERT_EQ(lmp->update->ntimestep, 0);
     ASSERT_EQ(lmp->domain->triclinic, 0);
@@ -369,18 +358,21 @@ TEST_F(FileOperationsTest, write_restart)
     command("change_box all triclinic");
     command("write_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
     ASSERT_EQ(lmp->domain->triclinic, 1);
     BEGIN_HIDE_OUTPUT();
     command("clear");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, -1);
     ASSERT_EQ(lmp->atom->natoms, 0);
     ASSERT_EQ(lmp->update->ntimestep, 0);
     ASSERT_EQ(lmp->domain->triclinic, 0);
     BEGIN_HIDE_OUTPUT();
     command("read_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
     ASSERT_EQ(lmp->domain->triclinic, 1);
@@ -396,7 +388,6 @@ TEST_F(FileOperationsTest, write_restart)
     delete_file("multi3-base.restart");
     delete_file("multi3-0.restart");
     delete_file("triclinic.restart");
-    if (Info::has_package("MPIIO")) delete_file("test.restart.mpiio");
 }
 
 TEST_F(FileOperationsTest, write_data)
@@ -464,6 +455,8 @@ TEST_F(FileOperationsTest, write_data)
 
     TEST_FAILURE(".*ERROR: Cannot open file noexist.data: No such file or directory.*",
                  command("read_data noexist.data"););
+    TEST_FAILURE(".*ERROR: Unknown read_data keyword xxx.*",
+                 command("read_data noexist.data xxx"););
 
     BEGIN_HIDE_OUTPUT();
     command("pair_style zero 1.0");
@@ -496,13 +489,124 @@ TEST_F(FileOperationsTest, write_data)
     delete_file("triclinic.data");
 }
 
+#define GETIDX(i) lmp->atom->map(i)
+TEST_F(FileOperationsTest, read_data_fix)
+{
+    ASSERT_EQ(lmp->restart_ver, -1);
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    command("atom_modify map array");
+    command("fix MoleculeIDs all property/atom mol");
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 1 box");
+    command("create_atoms 1 single 1.0 0.0 0.0");
+    command("create_atoms 1 single 0.0 1.0 0.0");
+    command("create_atoms 1 single 1.0 0.0 1.0");
+    command("create_atoms 1 single 0.0 1.0 1.0");
+    command("mass 1 1.0");
+    command("set atom 1*2 mol 1");
+    command("set atom 3*4 mol 2");
+    command("write_data test_mol_id.data");
+    lmp->atom->molecule[0] = 5;
+    lmp->atom->molecule[1] = 6;
+    lmp->atom->molecule[2] = 5;
+    lmp->atom->molecule[3] = 6;
+    lmp->atom->tag[0] = 9;
+    lmp->atom->tag[1] = 6;
+    lmp->atom->tag[2] = 7;
+    lmp->atom->tag[3] = 8;
+    lmp->atom->map_init(1);
+    lmp->atom->map_set();
+    command("write_data test_mol_id_merge.data");
+    command("clear");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Cannot use read_data add before simulation box is defined.*",
+                 command("read_data test_mol_id.data add append"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_modify map array");
+    command("fix MoleculeIDs all property/atom mol");
+    command("read_data test_mol_id.data fix MoleculeIDs NULL Molecules");
+    command("read_data test_mol_id_merge.data add merge fix MoleculeIDs NULL Molecules");
+    END_HIDE_OUTPUT();
+
+    EXPECT_EQ(lmp->atom->natoms, 8);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(1)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(2)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(3)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(4)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(6)], 6);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(7)], 5);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(8)], 6);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(9)], 5);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(1)], 1);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(2)], 2);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(3)], 3);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(4)], 4);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(6)], 6);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(7)], 7);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(8)], 8);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(9)], 9);
+
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    command("atom_modify map array");
+    command("fix MoleculeIDs all property/atom mol");
+    command("read_data test_mol_id.data fix MoleculeIDs NULL Molecules");
+    command("read_data test_mol_id.data add append fix MoleculeIDs NULL Molecules");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(lmp->atom->natoms, 8);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(1)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(2)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(3)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(4)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(5)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(6)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(7)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(8)], 2);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(1)], 1);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(2)], 2);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(3)], 3);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(4)], 4);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(5)], 5);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(6)], 6);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(7)], 7);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(8)], 8);
+
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    command("atom_modify map array");
+    command("fix MoleculeIDs all property/atom mol");
+    command("read_data test_mol_id.data fix MoleculeIDs NULL Molecules");
+    command("read_data test_mol_id.data add 6 4 fix MoleculeIDs NULL Molecules");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(lmp->atom->natoms, 8);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(1)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(2)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(3)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(4)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(7)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(8)], 1);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(9)], 2);
+    EXPECT_EQ(lmp->atom->molecule[GETIDX(10)], 2);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(1)], 1);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(2)], 2);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(3)], 3);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(4)], 4);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(7)], 7);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(8)], 8);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(9)], 9);
+    EXPECT_EQ(lmp->atom->tag[GETIDX(10)], 10);
+
+    // clean up
+    delete_file("test_mol_id_merge.data");
+    delete_file("test_mol_id.data");
+}
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

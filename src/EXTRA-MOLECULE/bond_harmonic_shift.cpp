@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,7 +31,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicShift::BondHarmonicShift(LAMMPS *lmp) : Bond(lmp) {}
+BondHarmonicShift::BondHarmonicShift(LAMMPS *lmp) : Bond(lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -212,4 +215,16 @@ double BondHarmonicShift::single(int type, double rsq, int /*i*/, int /*j*/,
 
   fforce =  -2.0*k[type]*dr/r;
   return k[type]*(dr*dr - dr2*dr2);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondHarmonicShift::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double dr = r - r0[type];
+
+  du = 0.0;
+  du2 = 2 * k[type];
+  if (r > 0.0) du = du2 * dr;
 }

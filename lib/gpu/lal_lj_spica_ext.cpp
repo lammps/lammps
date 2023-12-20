@@ -77,7 +77,7 @@ int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types,
                          host_lj4, offset, special_lj, inum, nall, max_nbors,
                          maxspecial, cell_size, gpu_split, screen);
 
-    CMMMF.device->gpu_barrier();
+    CMMMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

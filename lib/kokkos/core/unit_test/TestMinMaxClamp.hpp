@@ -1,52 +1,21 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-
-// FIXME C++17
-#define STATIC_ASSERT(cond) static_assert(cond, "");
 
 namespace Test {
 template <class T>
@@ -72,32 +41,30 @@ struct PairIntCompareFirst {
 // test max()
 // ----------------------------------------------------------
 TEST(TEST_CATEGORY, max) {
-  namespace KE = Kokkos::Experimental;
-
   int a = 1;
   int b = 2;
-  EXPECT_TRUE(KE::max(a, b) == 2);
+  EXPECT_EQ(Kokkos::max(a, b), 2);
 
   a = 3;
   b = 1;
-  EXPECT_TRUE(KE::max(a, b) == 3);
+  EXPECT_EQ(Kokkos::max(a, b), 3);
 
-  STATIC_ASSERT(KE::max(1, 2) == 2);
-  STATIC_ASSERT(KE::max(1, 2, ::Test::Greater<int>{}) == 1);
+  static_assert(Kokkos::max(1, 2) == 2);
+  static_assert(Kokkos::max(1, 2, ::Test::Greater<int>{}) == 1);
 
-  EXPECT_TRUE(KE::max({3.f, -1.f, 0.f}) == 3.f);
+  EXPECT_EQ(Kokkos::max({3.f, -1.f, 0.f}), 3.f);
 
-  STATIC_ASSERT(KE::max({3, -1, 0}) == 3);
-  STATIC_ASSERT(KE::max({3, -1, 0}, ::Test::Greater<int>{}) == -1);
+  static_assert(Kokkos::max({3, -1, 0}) == 3);
+  static_assert(Kokkos::max({3, -1, 0}, ::Test::Greater<int>{}) == -1);
 
-  STATIC_ASSERT(KE::max({
-                            ::Test::PairIntCompareFirst{255, 0},
-                            ::Test::PairIntCompareFirst{255, 1},
-                            ::Test::PairIntCompareFirst{0, 2},
-                            ::Test::PairIntCompareFirst{0, 3},
-                            ::Test::PairIntCompareFirst{255, 4},
-                            ::Test::PairIntCompareFirst{0, 5},
-                        })
+  static_assert(Kokkos::max({
+                                ::Test::PairIntCompareFirst{255, 0},
+                                ::Test::PairIntCompareFirst{255, 1},
+                                ::Test::PairIntCompareFirst{0, 2},
+                                ::Test::PairIntCompareFirst{0, 3},
+                                ::Test::PairIntCompareFirst{255, 4},
+                                ::Test::PairIntCompareFirst{0, 5},
+                            })
                     .second == 0);  // leftmost element
 }
 
@@ -107,9 +74,8 @@ struct StdAlgoMinMaxOpsTestMax {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int& ind) const {
-    namespace KE = Kokkos::Experimental;
-    auto v1      = 10.;
-    if (KE::max(v1, m_view(ind)) == 10.) {
+    auto v1 = 10.;
+    if (Kokkos::max(v1, m_view(ind)) == 10.) {
       m_view(ind) = 6.;
     }
   }
@@ -136,32 +102,30 @@ TEST(TEST_CATEGORY, max_within_parfor) {
 // test min()
 // ----------------------------------------------------------
 TEST(TEST_CATEGORY, min) {
-  namespace KE = Kokkos::Experimental;
-
   int a = 1;
   int b = 2;
-  EXPECT_TRUE(KE::min(a, b) == 1);
+  EXPECT_EQ(Kokkos::min(a, b), 1);
 
   a = 3;
   b = 2;
-  EXPECT_TRUE(KE::min(a, b) == 2);
+  EXPECT_EQ(Kokkos::min(a, b), 2);
 
-  STATIC_ASSERT(KE::min(3.f, 2.f) == 2.f);
-  STATIC_ASSERT(KE::min(3.f, 2.f, ::Test::Greater<int>{}) == 3.f);
+  static_assert(Kokkos::min(3.f, 2.f) == 2.f);
+  static_assert(Kokkos::min(3.f, 2.f, ::Test::Greater<int>{}) == 3.f);
 
-  EXPECT_TRUE(KE::min({3.f, -1.f, 0.f}) == -1.f);
+  EXPECT_EQ(Kokkos::min({3.f, -1.f, 0.f}), -1.f);
 
-  STATIC_ASSERT(KE::min({3, -1, 0}) == -1);
-  STATIC_ASSERT(KE::min({3, -1, 0}, ::Test::Greater<int>{}) == 3);
+  static_assert(Kokkos::min({3, -1, 0}) == -1);
+  static_assert(Kokkos::min({3, -1, 0}, ::Test::Greater<int>{}) == 3);
 
-  STATIC_ASSERT(KE::min({
-                            ::Test::PairIntCompareFirst{255, 0},
-                            ::Test::PairIntCompareFirst{255, 1},
-                            ::Test::PairIntCompareFirst{0, 2},
-                            ::Test::PairIntCompareFirst{0, 3},
-                            ::Test::PairIntCompareFirst{255, 4},
-                            ::Test::PairIntCompareFirst{0, 5},
-                        })
+  static_assert(Kokkos::min({
+                                ::Test::PairIntCompareFirst{255, 0},
+                                ::Test::PairIntCompareFirst{255, 1},
+                                ::Test::PairIntCompareFirst{0, 2},
+                                ::Test::PairIntCompareFirst{0, 3},
+                                ::Test::PairIntCompareFirst{255, 4},
+                                ::Test::PairIntCompareFirst{0, 5},
+                            })
                     .second == 2);  // leftmost element
 }
 
@@ -171,9 +135,8 @@ struct StdAlgoMinMaxOpsTestMin {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int& ind) const {
-    namespace KE = Kokkos::Experimental;
-    auto v1      = 10.;
-    if (KE::min(v1, m_view(ind)) == 0.) {
+    auto v1 = 10.;
+    if (Kokkos::min(v1, m_view(ind)) == 0.) {
       m_view(ind) = 8.;
     }
   }
@@ -199,48 +162,47 @@ TEST(TEST_CATEGORY, min_within_parfor) {
 // test minmax()
 // ----------------------------------------------------------
 TEST(TEST_CATEGORY, minmax) {
-  namespace KE  = Kokkos::Experimental;
   int a         = 1;
   int b         = 2;
-  const auto& r = KE::minmax(a, b);
-  EXPECT_TRUE(r.first == 1);
-  EXPECT_TRUE(r.second == 2);
+  const auto& r = Kokkos::minmax(a, b);
+  EXPECT_EQ(r.first, 1);
+  EXPECT_EQ(r.second, 2);
 
   a              = 3;
   b              = 2;
-  const auto& r2 = KE::minmax(a, b);
-  EXPECT_TRUE(r2.first == 2);
-  EXPECT_TRUE(r2.second == 3);
+  const auto& r2 = Kokkos::minmax(a, b);
+  EXPECT_EQ(r2.first, 2);
+  EXPECT_EQ(r2.second, 3);
 
-  STATIC_ASSERT((Kokkos::pair<float, float>(KE::minmax(3.f, 2.f)) ==
+  static_assert((Kokkos::pair<float, float>(Kokkos::minmax(3.f, 2.f)) ==
                  Kokkos::make_pair(2.f, 3.f)));
-  STATIC_ASSERT(
-      (Kokkos::pair<float, float>(KE::minmax(
+  static_assert(
+      (Kokkos::pair<float, float>(Kokkos::minmax(
            3.f, 2.f, ::Test::Greater<int>{})) == Kokkos::make_pair(3.f, 2.f)));
 
-  EXPECT_TRUE(KE::minmax({3.f, -1.f, 0.f}) == Kokkos::make_pair(-1.f, 3.f));
+  EXPECT_EQ(Kokkos::minmax({3.f, -1.f, 0.f}), Kokkos::make_pair(-1.f, 3.f));
 
-  STATIC_ASSERT(KE::minmax({3, -1, 0}) == Kokkos::make_pair(-1, 3));
-  STATIC_ASSERT(KE::minmax({3, -1, 0}, ::Test::Greater<int>{}) ==
+  static_assert(Kokkos::minmax({3, -1, 0}) == Kokkos::make_pair(-1, 3));
+  static_assert(Kokkos::minmax({3, -1, 0}, ::Test::Greater<int>{}) ==
                 Kokkos::make_pair(3, -1));
 
-  STATIC_ASSERT(KE::minmax({
-                               ::Test::PairIntCompareFirst{255, 0},
-                               ::Test::PairIntCompareFirst{255, 1},
-                               ::Test::PairIntCompareFirst{0, 2},
-                               ::Test::PairIntCompareFirst{0, 3},
-                               ::Test::PairIntCompareFirst{255, 4},
-                               ::Test::PairIntCompareFirst{0, 5},
-                           })
+  static_assert(Kokkos::minmax({
+                                   ::Test::PairIntCompareFirst{255, 0},
+                                   ::Test::PairIntCompareFirst{255, 1},
+                                   ::Test::PairIntCompareFirst{0, 2},
+                                   ::Test::PairIntCompareFirst{0, 3},
+                                   ::Test::PairIntCompareFirst{255, 4},
+                                   ::Test::PairIntCompareFirst{0, 5},
+                               })
                     .first.second == 2);  // leftmost
-  STATIC_ASSERT(KE::minmax({
-                               ::Test::PairIntCompareFirst{255, 0},
-                               ::Test::PairIntCompareFirst{255, 1},
-                               ::Test::PairIntCompareFirst{0, 2},
-                               ::Test::PairIntCompareFirst{0, 3},
-                               ::Test::PairIntCompareFirst{255, 4},
-                               ::Test::PairIntCompareFirst{0, 5},
-                           })
+  static_assert(Kokkos::minmax({
+                                   ::Test::PairIntCompareFirst{255, 0},
+                                   ::Test::PairIntCompareFirst{255, 1},
+                                   ::Test::PairIntCompareFirst{0, 2},
+                                   ::Test::PairIntCompareFirst{0, 3},
+                                   ::Test::PairIntCompareFirst{255, 4},
+                                   ::Test::PairIntCompareFirst{0, 5},
+                               })
                     .second.second == 4);  // rightmost
 }
 
@@ -250,9 +212,8 @@ struct StdAlgoMinMaxOpsTestMinMax {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int& ind) const {
-    namespace KE  = Kokkos::Experimental;
     auto v1       = 7.;
-    const auto& r = KE::minmax(v1, m_view(ind));
+    const auto& r = Kokkos::minmax(v1, m_view(ind));
     m_view(ind)   = (double)(r.first - r.second);
   }
 
@@ -261,7 +222,6 @@ struct StdAlgoMinMaxOpsTestMinMax {
 };
 
 TEST(TEST_CATEGORY, minmax_within_parfor) {
-  namespace KE = Kokkos::Experimental;
   using view_t = Kokkos::View<double*>;
   view_t a("a", 10);
 
@@ -277,28 +237,26 @@ TEST(TEST_CATEGORY, minmax_within_parfor) {
 // test clamp()
 // ----------------------------------------------------------
 TEST(TEST_CATEGORY, clamp) {
-  namespace KE = Kokkos::Experimental;
-
   int a         = 1;
   int b         = 2;
   int c         = 19;
-  const auto& r = KE::clamp(a, b, c);
-  EXPECT_TRUE(&r == &b);
-  EXPECT_TRUE(r == b);
+  const auto& r = Kokkos::clamp(a, b, c);
+  EXPECT_EQ(&r, &b);
+  EXPECT_EQ(r, b);
 
   a              = 5;
   b              = -2;
   c              = 3;
-  const auto& r2 = KE::clamp(a, b, c);
-  EXPECT_TRUE(&r2 == &c);
-  EXPECT_TRUE(r2 == c);
+  const auto& r2 = Kokkos::clamp(a, b, c);
+  EXPECT_EQ(&r2, &c);
+  EXPECT_EQ(r2, c);
 
   a              = 5;
   b              = -2;
   c              = 7;
-  const auto& r3 = KE::clamp(a, b, c);
-  EXPECT_TRUE(&r3 == &a);
-  EXPECT_TRUE(r3 == a);
+  const auto& r3 = Kokkos::clamp(a, b, c);
+  EXPECT_EQ(&r3, &a);
+  EXPECT_EQ(r3, a);
 }
 
 template <class ViewType>
@@ -307,11 +265,10 @@ struct StdAlgoMinMaxOpsTestClamp {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int& ind) const {
-    namespace KE  = Kokkos::Experimental;
     m_view(ind)   = 10.;
     const auto b  = -2.;
     const auto c  = 3.;
-    const auto& r = KE::clamp(m_view(ind), b, c);
+    const auto& r = Kokkos::clamp(m_view(ind), b, c);
     m_view(ind)   = (double)(r);
   }
 
@@ -320,7 +277,6 @@ struct StdAlgoMinMaxOpsTestClamp {
 };
 
 TEST(TEST_CATEGORY, clamp_within_parfor) {
-  namespace KE = Kokkos::Experimental;
   using view_t = Kokkos::View<double*>;
   view_t a("a", 10);
 

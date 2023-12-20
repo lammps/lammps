@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,7 +47,7 @@ using namespace LAMMPS_NS;
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  style = 1;
+  style = Comm::TILED;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = nullptr;
   buf_send = nullptr;
@@ -68,7 +68,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 {
-  style = 1;
+  style = Comm::TILED;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
   init_buffers();
@@ -633,7 +633,7 @@ void CommTiled::setup()
 
     // overlap = list of procs that touch my sub-box in idim
     // proc can appear twice in list if touches in both directions
-    // 2nd add-to-list checks to insure each proc appears exactly once
+    // 2nd add-to-list checks to ensure each proc appears exactly once
 
     noverlap = 0;
     iswap = 2*idim;
@@ -904,7 +904,7 @@ void CommTiled::exchange()
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  // insure send buf has extra space for a single atom
+  // ensure send buf has extra space for a single atom
   // only need to reset if a fix can dynamically add to size of single atom
 
   if (maxexchange_fix_dynamic) {
@@ -1249,7 +1249,7 @@ void CommTiled::borders()
     }
     rmaxall = MAX(rmaxall,ncountall);
 
-    // insure send/recv buffers are large enough for this border comm swap
+    // ensure send/recv buffers are large enough for this border comm swap
 
     if (smaxone*size_border > maxsend) grow_send(smaxone*size_border,0);
     if (rmaxall*size_border > maxrecv) grow_recv(rmaxall*size_border);
@@ -1329,7 +1329,7 @@ void CommTiled::borders()
   if ((atom->molecular != Atom::ATOMIC) && ((atom->nlocal + atom->nghost) > NEIGHMASK))
     error->one(FLERR,"Per-processor number of atoms is too large for molecular neighbor lists");
 
-  // insure send/recv buffers are long enough for all forward & reverse comm
+  // ensure send/recv buffers are long enough for all forward & reverse comm
   // send buf is for one forward or reverse sends to one proc
   // recv buf is for all forward or reverse recvs in one swap
 
@@ -1605,8 +1605,8 @@ void CommTiled::reverse_comm(Fix *fix, int size)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix with variable size data
-   query fix for all pack sizes to insure buf_send is big enough
-   handshake sizes before irregular comm to insure buf_recv is big enough
+   query fix for all pack sizes to ensure buf_send is big enough
+   handshake sizes before irregular comm to ensure buf_recv is big enough
    NOTE: how to setup one big buf recv with correct offsets ??
 ------------------------------------------------------------------------- */
 
@@ -1790,7 +1790,7 @@ void CommTiled::forward_comm_array(int nsize, double **array)
 {
   int i,j,k,m,iatom,last,irecv,nsend,nrecv;
 
-  // insure send/recv bufs are big enough for nsize
+  // ensure send/recv bufs are big enough for nsize
   // based on smaxone/rmaxall from most recent borders() invocation
 
   if (nsize > maxforward) {
@@ -1846,17 +1846,6 @@ void CommTiled::forward_comm_array(int nsize, double **array)
       }
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   exchange info provided with all 6 stencil neighbors
-   NOTE: this method is currently not used
-------------------------------------------------------------------------- */
-
-int CommTiled::exchange_variable(int n, double * /*inbuf*/, double *& /*outbuf*/)
-{
-  int nrecv = n;
-  return nrecv;
 }
 
 /* ----------------------------------------------------------------------

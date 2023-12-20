@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DynRankView.hpp>
@@ -50,9 +22,10 @@
 static_assert(
     std::is_same<
         Kokkos::Experimental::python_view_type_t<Kokkos::View<double*>>,
-        Kokkos::View<
-            double*, typename Kokkos::DefaultExecutionSpace::array_layout,
-            typename Kokkos::DefaultExecutionSpace::memory_space>>::value,
+        Kokkos::View<double*,
+                     typename Kokkos::DefaultExecutionSpace::array_layout,
+                     typename Kokkos::DefaultExecutionSpace::memory_space,
+                     Kokkos::Experimental::DefaultViewHooks>>::value,
     "Error! Unexpected python_view_type for: View");
 
 // DynRankView
@@ -69,9 +42,10 @@ static_assert(
     std::is_same<
         Kokkos::Experimental::python_view_type_t<
             Kokkos::View<double*, Kokkos::DefaultExecutionSpace>>,
-        Kokkos::View<
-            double*, typename Kokkos::DefaultExecutionSpace::array_layout,
-            typename Kokkos::DefaultExecutionSpace::memory_space>>::value,
+        Kokkos::View<double*,
+                     typename Kokkos::DefaultExecutionSpace::array_layout,
+                     typename Kokkos::DefaultExecutionSpace::memory_space,
+                     Kokkos::Experimental::DefaultViewHooks>>::value,
     "Error! Unexpected python_view_type for: View + Execution Space");
 
 // DynRankView + Execution Space
@@ -85,11 +59,12 @@ static_assert(
     "Error! Unexpected python_view_type for: DynRankView + Execution Space");
 
 // View + Memory space
-static_assert(std::is_same<Kokkos::Experimental::python_view_type_t<
-                               Kokkos::View<int64_t*, Kokkos::HostSpace>>,
-                           Kokkos::View<int64_t*, Kokkos::LayoutRight,
-                                        Kokkos::HostSpace>>::value,
-              "Error! Unexpected python_view_type for: View + Memory space");
+static_assert(
+    std::is_same<Kokkos::Experimental::python_view_type_t<
+                     Kokkos::View<int64_t*, Kokkos::HostSpace>>,
+                 Kokkos::View<int64_t*, Kokkos::LayoutRight, Kokkos::HostSpace,
+                              Kokkos::Experimental::DefaultViewHooks>>::value,
+    "Error! Unexpected python_view_type for: View + Memory space");
 
 // DynRankView + Memory space
 static_assert(
@@ -105,8 +80,8 @@ static_assert(
         Kokkos::Experimental::python_view_type_t<Kokkos::View<
             int**, Kokkos::LayoutLeft, Kokkos::DefaultExecutionSpace>>,
         Kokkos::View<int**, Kokkos::LayoutLeft,
-                     typename Kokkos::DefaultExecutionSpace::memory_space>>::
-        value,
+                     typename Kokkos::DefaultExecutionSpace::memory_space,
+                     Kokkos::Experimental::DefaultViewHooks>>::value,
     "Error! Unexpected python_view_type for: View + Layout + Execution space");
 
 // DynRankView + Layout + Execution space
@@ -121,10 +96,10 @@ static_assert(
 
 // View + Layout + Memory Space
 static_assert(
-    std::is_same<
-        Kokkos::Experimental::python_view_type_t<
-            Kokkos::View<uint32_t**, Kokkos::LayoutLeft, Kokkos::HostSpace>>,
-        Kokkos::View<uint32_t**, Kokkos::LayoutLeft, Kokkos::HostSpace>>::value,
+    std::is_same<Kokkos::Experimental::python_view_type_t<Kokkos::View<
+                     uint32_t**, Kokkos::LayoutLeft, Kokkos::HostSpace>>,
+                 Kokkos::View<uint32_t**, Kokkos::LayoutLeft, Kokkos::HostSpace,
+                              Kokkos::Experimental::DefaultViewHooks>>::value,
     "Error! Unexpected python_view_type for: View + Layout + Memory Space");
 
 // DynRankView + Layout + Memory Space
@@ -144,6 +119,7 @@ static_assert(
             Kokkos::MemoryTraits<Kokkos::RandomAccess>>>,
         Kokkos::View<float***, Kokkos::LayoutLeft,
                      typename Kokkos::DefaultHostExecutionSpace::memory_space,
+                     Kokkos::Experimental::DefaultViewHooks,
                      Kokkos::MemoryTraits<Kokkos::RandomAccess>>>::value,
     "Error! Unexpected python_view_type for: View + Layout + Execution space + "
     "Memory Trait");

@@ -66,20 +66,21 @@ positive or negative values and are called "tilt factors" because they
 are the amount of displacement applied to faces of an originally
 orthogonal box to transform it into the parallelepiped.
 
-By default, a *prism* region used with the create_box command must
-have tilt factors :math:`(xy,xz,yz)` that do not skew the box more than half
+By default, a *prism* region used with the create_box command must have
+tilt factors :math:`(xy,xz,yz)` that do not skew the box more than half
 the distance of the parallel box length.  For example, if
 :math:`x_\text{lo} = 2` and :math:`x_\text{hi} = 12`, then the :math:`x`
-box length is 10 and the :math:`xy` tilt factor must be between :math:`-5` and
-:math:`5`.  Similarly, both :math:`xz` and :math:`yz` must be between
-:math:`-(x_\text{hi}-x_\text{lo})/2` and :math:`+(y_\text{hi}-y_\text{lo})/2`.
-Note that this is not a limitation, since if the maximum tilt factor is 5 (as
-in this example), then configurations with tilt :math:`= \dots, -15`,
-:math:`-5`, :math:`5`, :math:`15`, :math:`25, \dots`
-are all geometrically equivalent.  If you wish to define a box with tilt
-factors that exceed these limits, you can use the :doc:`box tilt <box>`
-command, with a setting of *large*\ ; a setting of *small* is the
-default.
+box length is 10 and the :math:`xy` tilt factor must be between
+:math:`-5` and :math:`5`.  Similarly, both :math:`xz` and :math:`yz`
+must be between :math:`-(x_\text{hi}-x_\text{lo})/2` and
+:math:`+(y_\text{hi}-y_\text{lo})/2`.  Note that this is not a
+limitation, since if the maximum tilt factor is 5 (as in this example),
+then configurations with tilt :math:`= \dots, -15`, :math:`-5`,
+:math:`5`, :math:`15`, :math:`25, \dots` are all geometrically
+equivalent.  Simulations with large tilt factors will run inefficiently,
+since they require more ghost atoms and thus more communication.  With
+very large tilt factors, LAMMPS will eventually produce incorrect
+trajectories and stop with errors due to lost atoms or similar.
 
 See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and

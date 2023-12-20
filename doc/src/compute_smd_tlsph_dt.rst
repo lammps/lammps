@@ -6,7 +6,7 @@ compute smd/tlsph/dt command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/tlsph/dt
 
@@ -32,7 +32,7 @@ time step.  This calculation is performed automatically in the
 relevant SPH pair styles and this compute only serves to make the
 stable time increment accessible for output purposes.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
 Output info

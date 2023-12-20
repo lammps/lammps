@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -82,10 +82,11 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
     id_orientorder = utils::strdup(arg[4]);
 
-    int iorientorder = modify->find_compute(id_orientorder);
-    if (iorientorder < 0) error->all(FLERR, "Could not find compute coord/atom compute ID");
-    if (!utils::strmatch(modify->compute[iorientorder]->style, "^orientorder/atom"))
-      error->all(FLERR, "Compute coord/atom compute ID is not orientorder/atom");
+    auto iorientorder = modify->get_compute_by_id(id_orientorder);
+    if (!iorientorder)
+      error->all(FLERR, "Could not find compute coord/atom compute ID {}", id_orientorder);
+    if (!utils::strmatch(iorientorder->style, "^orientorder/atom"))
+      error->all(FLERR, "Compute coord/atom compute ID {} is not orientorder/atom", id_orientorder);
 
     threshold = utils::numeric(FLERR, arg[5], false, lmp);
     if (threshold <= -1.0 || threshold >= 1.0)
@@ -128,8 +129,11 @@ ComputeCoordAtom::~ComputeCoordAtom()
 void ComputeCoordAtom::init()
 {
   if (cstyle == ORIENT) {
-    int iorientorder = modify->find_compute(id_orientorder);
-    c_orientorder = dynamic_cast<ComputeOrientOrderAtom *>(modify->compute[iorientorder]);
+    c_orientorder =
+        dynamic_cast<ComputeOrientOrderAtom *>(modify->get_compute_by_id(id_orientorder));
+    if (!c_orientorder)
+      error->all(FLERR, "Could not find compute coord/atom compute ID {}", id_orientorder);
+
     cutsq = c_orientorder->cutsq;
     l = c_orientorder->qlcomp;
     //  communicate real and imaginary 2*l+1 components of the normalized vector

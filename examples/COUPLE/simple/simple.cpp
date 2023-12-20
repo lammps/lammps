@@ -67,7 +67,7 @@ int main(int narg, char **arg)
   FILE *fp;
   if (me == 0) {
     fp = fopen(arg[2],"r");
-    if (fp == NULL) {
+    if (fp == nullptr) {
       printf("ERROR: Could not open LAMMPS input script\n");
       MPI_Abort(MPI_COMM_WORLD,1);
     }
@@ -78,14 +78,14 @@ int main(int narg, char **arg)
   // (could just send it to proc 0 of comm_lammps and let it Bcast)
   // all LAMMPS procs call input->one() on the line
   
-  LAMMPS *lmp = NULL;
-  if (lammps == 1) lmp = new LAMMPS(0,NULL,comm_lammps);
+  LAMMPS *lmp = nullptr;
+  if (lammps == 1) lmp = new LAMMPS(0,nullptr,comm_lammps);
 
   int n;
   char line[1024];
-  while (1) {
+  while (true) {
     if (me == 0) {
-      if (fgets(line,1024,fp) == NULL) n = 0;
+      if (fgets(line,1024,fp) == nullptr) n = 0;
       else n = strlen(line) + 1;
       if (n == 0) fclose(fp);
     }
@@ -101,8 +101,8 @@ int main(int narg, char **arg)
   // put coords back into LAMMPS
   // run a single step with changed coords
 
-  double *x = NULL;
-  double *v = NULL;
+  double *x = nullptr;
+  double *v = nullptr;
 
   if (lammps == 1) {
     lmp->input->one("run 10");
@@ -147,7 +147,7 @@ int main(int narg, char **arg)
   // create_atoms() to create new ones with old coords, vels
   // initial thermo should be same as step 20
 
-  int *type = NULL;
+  int *type = nullptr;
 
   if (lammps == 1) {
     int natoms = static_cast<int> (lmp->atom->natoms);
@@ -155,7 +155,7 @@ int main(int narg, char **arg)
     for (int i = 0; i < natoms; i++) type[i] = 1;
 
     lmp->input->one("delete_atoms group all");
-    lammps_create_atoms(lmp,natoms,NULL,type,x,v,NULL,0);
+    lammps_create_atoms(lmp,natoms,nullptr,type,x,v,nullptr,0);
     lmp->input->one("run 10");
   }
 

@@ -299,7 +299,7 @@ void ComputeSNAAtom::compute_peratom()
       // ############################################################################## //
       // ##### Start of section for computing bispectrum on nnn nearest neighbors ##### //
       // ############################################################################## //
-      if (nearest_neighbors_mode == true) {
+      if (nearest_neighbors_mode) {
         // ##### 1) : consider full neighbor list in rlist
         memory->create(distsq, jnum, "snann/atom:distsq");
         memory->create(rlist, jnum, 3, "snann/atom:rlist");
@@ -308,7 +308,6 @@ void ComputeSNAAtom::compute_peratom()
         for (int jj = 0; jj < jnum; jj++) {
           int j = jlist[jj];
           j &= NEIGHMASK;
-          int jtype = type[j];
 
           const double delx = xtmp - x[j][0];
           const double dely = ytmp - x[j][1];
@@ -614,10 +613,9 @@ double * ComputeSNAAtom::tanh_weights(double * rsq, double rcut, double delta, i
   return w;
 }
 
-double ComputeSNAAtom::sum_weights(double * rsq, double * w, int ncounts)
+double ComputeSNAAtom::sum_weights(double * /*rsq*/, double * w, int ncounts)
 {
   double S=0.;
-  double rloc=0.;
   for (int i=0; i<ncounts; i++)
     {
       S += w[i];

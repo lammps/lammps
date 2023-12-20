@@ -34,11 +34,10 @@ using namespace ReaxFF;
 /* ---------------------------------------------------------------------- */
 
 ComputeReaxFFAtom::ComputeReaxFFAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  abo(nullptr), neighid(nullptr), bondcount(nullptr), reaxff(nullptr)
+    Compute(lmp, narg, arg), neighid(nullptr), abo(nullptr), bondcount(nullptr), reaxff(nullptr)
 {
   if (atom->tag_consecutive() == 0)
-    error->all(FLERR,"Atom IDs must be consecutive for compute reaxff/atom");
+    error->all(FLERR, "Atom IDs must be consecutive for compute reaxff/atom");
 
   peratom_flag = 1;
 

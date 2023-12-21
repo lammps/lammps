@@ -30,6 +30,7 @@
 #include "error.h"
 #include "memory.h"
 #include "text_file_reader.h"
+#include "tokenizer.h"
 #include "utils.h"
 
 #include <cmath>
@@ -40,6 +41,8 @@
 using LAMMPS_NS::utils::open_potential;
 using LAMMPS_NS::utils::getsyserror;
 using LAMMPS_NS::utils::uppercase;
+using LAMMPS_NS::EOFException;
+using LAMMPS_NS::ValueTokenizer;
 
 namespace ReaxFF {
 
@@ -551,16 +554,19 @@ namespace ReaxFF {
           }
         }
 
-        // next line is number of hydrogen bond parameters
-
-        values = reader.next_values(0);
-        n = values.next_int();
-        ++lineno;
+        // next line is number of hydrogen bond parameters. that block may be missing
 
         for (i = 0; i < ntypes; ++i)
           for (j = 0; j < ntypes; ++j)
             for (k = 0; k < ntypes; ++k)
               hbp[i][j][k].r0_hb = -1.0;
+
+        auto thisline = reader.next_line();
+        if (!thisline) throw EOFException("ReaxFF parameter file has no hydrogen bond parameters");
+
+        values = ValueTokenizer(thisline);
+        n = values.next_int();
+        ++lineno;
 
         for (i = 0; i < n; ++i) {
           values = reader.next_values(0);
@@ -584,6 +590,8 @@ namespace ReaxFF {
         }
 
         memory->destroy(tor_flag);
+      } catch (EOFException &e) {
+        error->warning(FLERR, e.what());
       } catch (std::exception &e) {
         error->one(FLERR,e.what());
       }

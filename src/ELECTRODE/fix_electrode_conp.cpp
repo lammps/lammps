@@ -522,11 +522,9 @@ void FixElectrodeConp::setup_post_neighbor()
   if (qtotal_var_style == VarStyle::EQUAL) {
     const char *var_name = qtotal_var_name.c_str();
     int var_id = input->variable->find(var_name);
-    if (var_id < 0)
-      error->all(FLERR, fmt::format("Variable '{}' for fix electrode does not exist", var_name));
+    if (var_id < 0) error->all(FLERR, "Variable '{}' for fix electrode does not exist", var_name);
     if (!input->variable->equalstyle(var_id))
-      error->all(FLERR,
-                 fmt::format("Variable '{}' for fix electrode is not equal-style", var_name));
+      error->all(FLERR, "Variable '{}' for fix electrode is not equal-style", var_name);
     qtotal_var_id = var_id;
   }
 

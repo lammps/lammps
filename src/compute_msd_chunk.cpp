@@ -27,8 +27,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
-    ComputeChunk(lmp, narg, arg), id_fix(nullptr), massproc(nullptr), masstotal(nullptr),
-    com(nullptr), comall(nullptr), msd(nullptr)
+    ComputeChunk(lmp, narg, arg), id_fix(nullptr), fix(nullptr), massproc(nullptr),
+    masstotal(nullptr), com(nullptr), comall(nullptr), msd(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute msd/chunk command");
 
@@ -196,6 +196,12 @@ void ComputeMSDChunk::compute_array()
 void ComputeMSDChunk::allocate()
 {
   ComputeChunk::allocate();
+  memory->destroy(massproc);
+  memory->destroy(masstotal);
+  memory->destroy(com);
+  memory->destroy(comall);
+  memory->destroy(msd);
+
   memory->create(massproc, nchunk, "msd/chunk:massproc");
   memory->create(masstotal, nchunk, "msd/chunk:masstotal");
   memory->create(com, nchunk, 3, "msd/chunk:com");

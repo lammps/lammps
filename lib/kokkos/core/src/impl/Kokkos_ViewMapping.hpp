@@ -3667,7 +3667,7 @@ class ViewMapping<
     size_t exp_stride = 1;
     if (std::is_same<typename DstTraits::array_layout,
                      Kokkos::LayoutLeft>::value) {
-      for (unsigned int i = 0; i < src.Rank; i++) {
+      for (int i = 0; i < (int)src.Rank; i++) {
         if (i > 0) exp_stride *= src.extent(i - 1);
         if (strides[i] != exp_stride) {
           assignable = false;
@@ -3676,7 +3676,7 @@ class ViewMapping<
       }
     } else if (std::is_same<typename DstTraits::array_layout,
                             Kokkos::LayoutRight>::value) {
-      for (unsigned int i = 0; i < src.Rank; i++) {
+      for (int i = 0; i < (int)src.Rank; i++) {
         if (i > 0) exp_stride *= src.extent(src.Rank - i);
         if (strides[src.Rank - 1 - i] != exp_stride) {
           assignable = false;

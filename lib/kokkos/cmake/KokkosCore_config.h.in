@@ -69,10 +69,10 @@
 #cmakedefine KOKKOS_ARCH_ARMV81
 #cmakedefine KOKKOS_ARCH_ARMV8_THUNDERX2
 #cmakedefine KOKKOS_ARCH_A64FX
-#cmakedefine KOKKOS_ARCH_AMD_AVX2
 #cmakedefine KOKKOS_ARCH_AVX
 #cmakedefine KOKKOS_ARCH_AVX2
 #cmakedefine KOKKOS_ARCH_AVX512XEON
+#cmakedefine KOKKOS_ARCH_ARM_NEON
 #cmakedefine KOKKOS_ARCH_KNC
 #cmakedefine KOKKOS_ARCH_AVX512MIC
 #cmakedefine KOKKOS_ARCH_POWER7
@@ -111,12 +111,19 @@
 #cmakedefine KOKKOS_ARCH_AMD_ZEN
 #cmakedefine KOKKOS_ARCH_AMD_ZEN2
 #cmakedefine KOKKOS_ARCH_AMD_ZEN3
-#cmakedefine KOKKOS_ARCH_VEGA
-#cmakedefine KOKKOS_ARCH_VEGA906
-#cmakedefine KOKKOS_ARCH_VEGA908
-#cmakedefine KOKKOS_ARCH_VEGA90A
-#cmakedefine KOKKOS_ARCH_NAVI
-#cmakedefine KOKKOS_ARCH_NAVI1030
-#cmakedefine KOKKOS_ARCH_NAVI1100
+#cmakedefine KOKKOS_ARCH_AMD_GFX906
+#cmakedefine KOKKOS_ARCH_AMD_GFX908
+#cmakedefine KOKKOS_ARCH_AMD_GFX90A
+#cmakedefine KOKKOS_ARCH_AMD_GFX942
+#cmakedefine KOKKOS_ARCH_AMD_GFX1030
+#cmakedefine KOKKOS_ARCH_AMD_GFX1100
+#cmakedefine KOKKOS_ARCH_AMD_GPU
+#cmakedefine KOKKOS_ARCH_VEGA // deprecated
+#cmakedefine KOKKOS_ARCH_VEGA906 // deprecated
+#cmakedefine KOKKOS_ARCH_VEGA908 // deprecated
+#cmakedefine KOKKOS_ARCH_VEGA90A // deprecated
+#cmakedefine KOKKOS_ARCH_NAVI // deprecated
+#cmakedefine KOKKOS_ARCH_NAVI1030 // deprecated
+#cmakedefine KOKKOS_ARCH_NAVI1100 // deprecated
 
 #cmakedefine KOKKOS_IMPL_32BIT

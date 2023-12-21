@@ -33,3 +33,4 @@ tag:  3.7.01     date: 12:01:2022    master: 61d7db55    release: d3bb8cfe
 tag:  4.0.00     date: 02:23:2023    master: 5ad60966    release: 52ea2953
 tag:  4.0.01     date: 04:26:2023    master: aa1f48f3    release: 5893754f
 tag:  4.1.00     date: 06:20:2023    master: 62d2b6c8    release: adde1e6a
+tag:  4.2.00     date: 11:09:2023    master: 1a3ea28f    release: abe01c88

@@ -30,7 +30,6 @@
 #include "label_map.h"
 #include "memory.h"
 #include "modify.h"
-#include "mpiio.h"
 #include "pair.h"
 #include "special.h"
 #include "update.h"
@@ -43,7 +42,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ReadRestart::ReadRestart(LAMMPS *lmp) : Command(lmp), mpiio(nullptr) {}
+ReadRestart::ReadRestart(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -88,17 +87,8 @@ void ReadRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = 1;
   else multiproc = 0;
-  if (strstr(arg[0],".mpiio")) mpiioflag = 1;
-  else mpiioflag = 0;
-
-  if (multiproc && mpiioflag)
-    error->all(FLERR,"Read restart MPI-IO input not allowed with % in filename");
-
-  if (mpiioflag) {
-    mpiio = new RestartMPIIO(lmp);
-    if (!mpiio->mpiio_exists)
-      error->all(FLERR,"Reading from MPI-IO filename when MPIIO package is not installed");
-  }
+  if (utils::strmatch(arg[0],"\\.mpiio"))
+    error->all(FLERR,"MPI-IO files are no longer supported by LAMMPS");
 
   // open single restart file or base file for multiproc case
 
@@ -182,28 +172,6 @@ void ReadRestart::command(int narg, char **arg)
   double *buf = nullptr;
   int m,flag;
 
-  // MPI-IO input from single file
-
-  if (mpiioflag) {
-    mpiio->openForRead(file);
-    memory->create(buf,assignedChunkSize,"read_restart:buf");
-    mpiio->read((headerOffset+assignedChunkOffset),assignedChunkSize,buf);
-    mpiio->close();
-
-    // can calculate number of atoms from assignedChunkSize
-
-    if (!nextra) {
-      atom->nlocal = 1; // temporarily claim there is one atom...
-      int perAtomSize = avec->size_restart(); // ...so we can get its size
-      atom->nlocal = 0; // restore nlocal to zero atoms
-      int atomCt = (int) (assignedChunkSize / perAtomSize);
-      if (atomCt > atom->nmax) avec->grow(atomCt);
-    }
-
-    m = 0;
-    while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
-  }
-
   // input of single native file
   // nprocs_file = # of chunks in file
   // proc 0 reads a chunk and bcasts it to other procs
@@ -211,7 +179,7 @@ void ReadRestart::command(int narg, char **arg)
   // if remapflag set, remap the atom to box before checking sub-domain
   // check for atom in sub-domain differs for orthogonal vs triclinic box
 
-  else if (multiproc == 0) {
+  if (multiproc == 0) {
 
     int triclinic = domain->triclinic;
     imageint *iptr;
@@ -410,7 +378,7 @@ void ReadRestart::command(int narg, char **arg)
   // for multiproc or MPI-IO files:
   // perform irregular comm to migrate atoms to correct procs
 
-  if (multiproc || mpiioflag) {
+  if (multiproc) {
 
     // if remapflag set, remap all atoms I read back to box before migrating
 
@@ -419,8 +387,7 @@ void ReadRestart::command(int narg, char **arg)
       imageint *image = atom->image;
       int nlocal = atom->nlocal;
 
-      for (int i = 0; i < nlocal; i++)
-        domain->remap(x[i],image[i]);
+      for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
     }
 
     // create a temporary fix to hold and migrate extra atom info
@@ -528,8 +495,6 @@ void ReadRestart::command(int narg, char **arg)
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  read_restart CPU = {:.3f} seconds\n",platform::walltime()-time1);
-
-  delete mpiio;
 }
 
 /* ----------------------------------------------------------------------
@@ -831,9 +796,12 @@ void ReadRestart::header()
     } else if (flag == ATOM_ID) {
       atom->tag_enable = read_int();
     } else if (flag == ATOM_MAP_STYLE) {
-      atom->map_style = read_int();
+      // we should be able to enable an atom map, even
+      // if the simulation in the restart didn't use one
+      int itmp = read_int();
+      if (atom->map_user == Atom::MAP_NONE) atom->map_style = itmp;
     } else if (flag == ATOM_MAP_USER) {
-      atom->map_user  = read_int();
+      read_int();  // ignored
     } else if (flag == ATOM_SORTFREQ) {
       atom->sortfreq = read_int();
     } else if (flag == ATOM_SORTBIN) {
@@ -989,119 +957,8 @@ void ReadRestart::file_layout()
         error->all(FLERR,"Restart file is not a multi-proc file");
       if (multiproc && multiproc_file == 0)
         error->all(FLERR,"Restart file is a multi-proc file");
-
-    } else if (flag == MPIIO) {
-      int mpiioflag_file = read_int();
-      if (mpiioflag == 0 && mpiioflag_file)
-        error->all(FLERR,"Restart file is a MPI-IO file");
-      if (mpiioflag && mpiioflag_file == 0)
-        error->all(FLERR,"Restart file is not a MPI-IO file");
-
-      if (mpiioflag) {
-        bigint *nproc_chunk_offsets;
-        memory->create(nproc_chunk_offsets,nprocs,
-                       "write_restart:nproc_chunk_offsets");
-        bigint *nproc_chunk_sizes;
-        memory->create(nproc_chunk_sizes,nprocs,
-                       "write_restart:nproc_chunk_sizes");
-
-        // on rank 0 read in the chunk sizes that were written out
-        // then consolidate them and compute offsets relative to the
-        // end of the header info to fit the current partition size
-        // if the number of ranks that did the writing is different
-
-        if (me == 0) {
-          int ndx;
-          int *all_written_send_sizes;
-          memory->create(all_written_send_sizes,nprocs_file,
-                         "write_restart:all_written_send_sizes");
-          int *nproc_chunk_number;
-          memory->create(nproc_chunk_number,nprocs,
-                         "write_restart:nproc_chunk_number");
-
-          utils::sfread(FLERR,all_written_send_sizes,sizeof(int),nprocs_file,fp,nullptr,error);
-
-          if ((nprocs != nprocs_file) && !(atom->nextra_store)) {
-            // nprocs differ, but atom sizes are fixed length, yeah!
-            atom->nlocal = 1; // temporarily claim there is one atom...
-            int perAtomSize = atom->avec->size_restart(); // ...so we can get its size
-            atom->nlocal = 0; // restore nlocal to zero atoms
-
-            bigint total_size = 0;
-            for (int i = 0; i < nprocs_file; ++i) {
-              total_size += all_written_send_sizes[i];
-            }
-            bigint total_ct = total_size / perAtomSize;
-
-            bigint base_ct = total_ct / nprocs;
-            bigint leftover_ct = total_ct  - (base_ct * nprocs);
-            bigint current_ByteOffset = 0;
-            base_ct += 1;
-            bigint base_ByteOffset = base_ct * (perAtomSize * sizeof(double));
-            for (ndx = 0; ndx < leftover_ct; ++ndx) {
-              nproc_chunk_offsets[ndx] = current_ByteOffset;
-              nproc_chunk_sizes[ndx] = base_ct * perAtomSize;
-              current_ByteOffset += base_ByteOffset;
-            }
-            base_ct -= 1;
-            base_ByteOffset -= (perAtomSize * sizeof(double));
-            for (; ndx < nprocs; ++ndx) {
-              nproc_chunk_offsets[ndx] = current_ByteOffset;
-              nproc_chunk_sizes[ndx] = base_ct * perAtomSize;
-              current_ByteOffset += base_ByteOffset;
-            }
-          } else { // we have to read in based on how it was written
-            int init_chunk_number = nprocs_file/nprocs;
-            int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
-
-            for (int i = 0; i < nprocs; i++) {
-              if (i < num_extra_chunks)
-                nproc_chunk_number[i] = init_chunk_number+1;
-              else
-                nproc_chunk_number[i] = init_chunk_number;
-            }
-
-            int all_written_send_sizes_index = 0;
-            bigint current_offset = 0;
-            for (int i=0;i<nprocs;i++) {
-              nproc_chunk_offsets[i] = current_offset;
-              nproc_chunk_sizes[i] = 0;
-              for (int j=0;j<nproc_chunk_number[i];j++) {
-                nproc_chunk_sizes[i] +=
-                  all_written_send_sizes[all_written_send_sizes_index];
-                current_offset +=
-                  (all_written_send_sizes[all_written_send_sizes_index] *
-                   sizeof(double));
-                all_written_send_sizes_index++;
-              }
-
-            }
-          }
-          memory->destroy(all_written_send_sizes);
-          memory->destroy(nproc_chunk_number);
-        }
-
-        // scatter chunk sizes and offsets to all procs
-
-        MPI_Scatter(nproc_chunk_sizes, 1, MPI_LMP_BIGINT,
-                    &assignedChunkSize , 1, MPI_LMP_BIGINT, 0,world);
-        MPI_Scatter(nproc_chunk_offsets, 1, MPI_LMP_BIGINT,
-                    &assignedChunkOffset , 1, MPI_LMP_BIGINT, 0,world);
-
-        memory->destroy(nproc_chunk_sizes);
-        memory->destroy(nproc_chunk_offsets);
-      }
     }
-
     flag = read_int();
-  }
-
-  // if MPI-IO file, broadcast the end of the header offset
-  // this allows all ranks to compute offset to their data
-
-  if (mpiioflag) {
-    if (me == 0) headerOffset = platform::ftell(fp);
-    MPI_Bcast(&headerOffset,1,MPI_LMP_BIGINT,0,world);
   }
 }
 

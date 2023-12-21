@@ -1,3 +1,4 @@
+# -*- CMake -*- file for testing the c-library interface
 
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
 target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)

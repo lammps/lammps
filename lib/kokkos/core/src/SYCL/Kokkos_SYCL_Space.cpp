@@ -41,7 +41,9 @@ void DeepCopyAsyncSYCL(const Kokkos::Experimental::SYCL& instance, void* dst,
                        const void* src, size_t n) {
   sycl::queue& q = *instance.impl_internal_space_instance()->m_queue;
   auto event     = q.memcpy(dst, src, n);
+#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
   q.ext_oneapi_submit_barrier(std::vector<sycl::event>{event});
+#endif
 }
 
 void DeepCopyAsyncSYCL(void* dst, const void* src, size_t n) {

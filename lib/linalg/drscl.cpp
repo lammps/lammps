@@ -7,8 +7,7 @@ int drscl_(integer *n, doublereal *sa, doublereal *sx, integer *incx)
     doublereal mul, cden;
     logical done;
     doublereal cnum, cden1, cnum1;
-    extern int dscal_(integer *, doublereal *, doublereal *, integer *),
-        dlabad_(doublereal *, doublereal *);
+    extern int dscal_(integer *, doublereal *, doublereal *, integer *);
     extern doublereal dlamch_(char *, ftnlen);
     doublereal bignum, smlnum;
     --sx;
@@ -17,7 +16,6 @@ int drscl_(integer *n, doublereal *sa, doublereal *sx, integer *incx)
     }
     smlnum = dlamch_((char *)"S", (ftnlen)1);
     bignum = 1. / smlnum;
-    dlabad_(&smlnum, &bignum);
     cden = *sa;
     cnum = 1.;
 L10:

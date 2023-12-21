@@ -56,7 +56,8 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
                           const int max_nbors, const int maxspecial,
                           const double cell_size, const double gpu_split,
                           FILE *_screen, const void *pair_program,
-                          const char *k_name, const int onetype) {
+                          const char *k_name, const int onetype,
+                          const int extra_fields) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -75,7 +76,8 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
   bool charge = false;
   bool rot = false;
   bool vel = true;
-  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial,vel);
+  _extra_fields = extra_fields;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial,vel,_extra_fields/4);
   if (success!=0)
     return success;
 

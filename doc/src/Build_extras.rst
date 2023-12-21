@@ -626,22 +626,22 @@ They must be specified in uppercase.
    *  - HOPPER90
       - GPU
       - NVIDIA Hopper generation CC 9.0 GPU
-   *  - VEGA900
+   *  - AMD_GFX906
       - GPU
-      - AMD GPU MI25 GFX900
-   *  - VEGA906
+      - AMD GPU MI50/MI60
+   *  - AMD_GFX908
       - GPU
-      - AMD GPU MI50/MI60 GFX906
-   *  - VEGA908
+      - AMD GPU MI100
+   *  - AMD_GFX90A
       - GPU
-      - AMD GPU MI100 GFX908
-   *  - VEGA90A
+      - AMD GPU MI200
+   *  - AMD_GFX942
       - GPU
-      - AMD GPU MI200 GFX90A
-   *  - NAVI1030
+      - AMD GPU MI300
+   *  - AMD_GFX1030
       - GPU
       - AMD GPU V620/W6800
-   *  - NAVI1100
+   *  - AMD_GFX1100
       - GPU
       - AMD GPU RX7900XTX
    *  - INTEL_GEN
@@ -666,7 +666,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 4.0.1 of the Kokkos library.
+This list was last updated for version 4.2 of the Kokkos library.
 
 .. tabs::
 
@@ -722,9 +722,10 @@ This list was last updated for version 4.0.1 of the Kokkos library.
       ``cmake/presets`` folder, ``kokkos-serial.cmake``,
       ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``,
       ``kokkos-hip.cmake``, and ``kokkos-sycl.cmake``.  They will enable
-      the KOKKOS package and enable some hardware choice.  So to compile
-      with CUDA device parallelization (for GPUs with CC 5.0 and up)
-      with some common packages enabled, you can do the following:
+      the KOKKOS package and enable some hardware choices.  For GPU
+      support those preset files must be customized to match the
+      hardware used. So to compile with CUDA device parallelization with
+      some common packages enabled, you can do the following:
 
       .. code-block:: bash
 
@@ -886,6 +887,50 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
 
 ----------
 
+.. _machdyn:
+
+MACHDYN package
+-------------------------------
+
+To build with this package, you must download the Eigen3 library.
+Eigen3 is a template library, so you do not need to build it.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D DOWNLOAD_EIGEN3            # download Eigen3, value = no (default) or yes
+         -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a custom location)
+
+      If ``DOWNLOAD_EIGEN3`` is set, the Eigen3 library will be
+      downloaded and inside the CMake build directory.  If the Eigen3
+      library is already on your system (in a location where CMake
+      cannot find it), set ``EIGEN3_INCLUDE_DIR`` to the directory the
+      ``Eigen3`` include file is in.
+
+   .. tab:: Traditional make
+
+      You can download the Eigen3 library manually if you prefer; follow
+      the instructions in ``lib/machdyn/README``.  You can also do it in one
+      step from the ``lammps/src`` dir, using a command like these,
+      which simply invokes the ``lib/machdyn/Install.py`` script with the
+      specified args:
+
+      .. code-block:: bash
+
+         make lib-machdyn                         # print help message
+         make lib-machdyn args="-b"               # download to lib/machdyn/eigen3
+         make lib-machdyn args="-p /usr/include/eigen3"    # use existing Eigen installation in /usr/include/eigen3
+
+      Note that a symbolic (soft) link named ``includelink`` is created
+      in ``lib/machdyn`` to point to the Eigen dir.  When LAMMPS builds it
+      will use this link.  You should not need to edit the
+      ``lib/machdyn/Makefile.lammps`` file.
+
+----------
+
 .. _mliap:
 
 ML-IAP package
@@ -1011,12 +1056,12 @@ additional details.
 
       .. code-block:: bash
 
-         -D PYTHON_EXECUTABLE=path   # path to Python executable to use
+         -D Python_EXECUTABLE=path   # path to Python executable to use
 
       Without this setting, CMake will guess the default Python version
       on your system.  To use a different Python version, you can either
       create a virtualenv, activate it and then run cmake.  Or you can
-      set the PYTHON_EXECUTABLE variable to specify which Python
+      set the Python_EXECUTABLE variable to specify which Python
       interpreter should be used.  Note note that you will also need to
       have the development headers installed for this version,
       e.g. python2-devel.
@@ -1428,6 +1473,55 @@ ML-POD package
          make lib-linalg args="-m g++"     # build with GNU C++ compiler
 
       The package itself is activated with ``make yes-ML-POD``.
+
+----------
+
+.. _ml-quip:
+
+ML-QUIP package
+---------------------------------
+
+To build with this package, you must download and build the QUIP
+library.  It can be obtained from GitHub.  For support of GAP
+potentials, additional files with specific licensing conditions need
+to be downloaded and configured.  The automatic download will from
+within CMake will download the non-commercial use version.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D DOWNLOAD_QUIP=value       # download QUIP library for build, value = no (default) or yes
+         -D QUIP_LIBRARY=path         # path to libquip.a (only needed if a custom location)
+         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
+                                      #   value = no (default) or yes
+
+      CMake will try to download and build the QUIP library from GitHub,
+      if it is not found on the local machine. This requires to have git
+      installed. It will use the same compilers and flags as used for
+      compiling LAMMPS.  Currently this is only supported for the GNU
+      and the Intel compilers. Set the ``QUIP_LIBRARY`` variable if you
+      want to use a previously compiled and installed QUIP library and
+      CMake cannot find it.
+
+      The QUIP library requires LAPACK (and BLAS) and CMake can identify
+      their locations and pass that info to the QUIP build script. But
+      on some systems this triggers a (current) limitation of CMake and
+      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
+      those cases to use the bundled linear algebra library and work around
+      the limitation.
+
+   .. tab:: Traditional make
+
+      The download/build procedure for the QUIP library, described in
+      ``lib/quip/README`` file requires setting two environment
+      variables, ``QUIP_ROOT`` and ``QUIP_ARCH``.  These are accessed by
+      the ``lib/quip/Makefile.lammps`` file which is used when you
+      compile and link LAMMPS with this package.  You should only need
+      to edit ``Makefile.lammps`` if the LAMMPS build can not use its
+      settings to successfully build on your system.
 
 ----------
 
@@ -1952,55 +2046,6 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
 ----------
 
-.. _ml-quip:
-
-ML-QUIP package
----------------------------------
-
-To build with this package, you must download and build the QUIP
-library.  It can be obtained from GitHub.  For support of GAP
-potentials, additional files with specific licensing conditions need
-to be downloaded and configured.  The automatic download will from
-within CMake will download the non-commercial use version.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D DOWNLOAD_QUIP=value       # download QUIP library for build, value = no (default) or yes
-         -D QUIP_LIBRARY=path         # path to libquip.a (only needed if a custom location)
-         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
-                                      #   value = no (default) or yes
-
-      CMake will try to download and build the QUIP library from GitHub,
-      if it is not found on the local machine. This requires to have git
-      installed. It will use the same compilers and flags as used for
-      compiling LAMMPS.  Currently this is only supported for the GNU
-      and the Intel compilers. Set the ``QUIP_LIBRARY`` variable if you
-      want to use a previously compiled and installed QUIP library and
-      CMake cannot find it.
-
-      The QUIP library requires LAPACK (and BLAS) and CMake can identify
-      their locations and pass that info to the QUIP build script. But
-      on some systems this triggers a (current) limitation of CMake and
-      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
-      those cases to use the bundled linear algebra library and work around
-      the limitation.
-
-   .. tab:: Traditional make
-
-      The download/build procedure for the QUIP library, described in
-      ``lib/quip/README`` file requires setting two environment
-      variables, ``QUIP_ROOT`` and ``QUIP_ARCH``.  These are accessed by
-      the ``lib/quip/Makefile.lammps`` file which is used when you
-      compile and link LAMMPS with this package.  You should only need
-      to edit ``Makefile.lammps`` if the LAMMPS build can not use its
-      settings to successfully build on your system.
-
-----------
-
 .. _scafacos:
 
 SCAFACOS package
@@ -2045,50 +2090,6 @@ To build with this package, you must download and build the
       created in ``lib/scafacos`` to point to the ScaFaCoS src dir.  When LAMMPS
       builds in src it will use these links.  You should not need to edit
       the ``lib/scafacos/Makefile.lammps`` file.
-
-----------
-
-.. _machdyn:
-
-MACHDYN package
--------------------------------
-
-To build with this package, you must download the Eigen3 library.
-Eigen3 is a template library, so you do not need to build it.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D DOWNLOAD_EIGEN3            # download Eigen3, value = no (default) or yes
-         -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a custom location)
-
-      If ``DOWNLOAD_EIGEN3`` is set, the Eigen3 library will be
-      downloaded and inside the CMake build directory.  If the Eigen3
-      library is already on your system (in a location where CMake
-      cannot find it), set ``EIGEN3_INCLUDE_DIR`` to the directory the
-      ``Eigen3`` include file is in.
-
-   .. tab:: Traditional make
-
-      You can download the Eigen3 library manually if you prefer; follow
-      the instructions in ``lib/smd/README``.  You can also do it in one
-      step from the ``lammps/src`` dir, using a command like these,
-      which simply invokes the ``lib/smd/Install.py`` script with the
-      specified args:
-
-      .. code-block:: bash
-
-         make lib-smd                         # print help message
-         make lib-smd args="-b"               # download to lib/smd/eigen3
-         make lib-smd args="-p /usr/include/eigen3"    # use existing Eigen installation in /usr/include/eigen3
-
-      Note that a symbolic (soft) link named ``includelink`` is created
-      in ``lib/smd`` to point to the Eigen dir.  When LAMMPS builds it
-      will use this link.  You should not need to edit the
-      ``lib/smd/Makefile.lammps`` file.
 
 ----------
 

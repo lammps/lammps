@@ -25,7 +25,7 @@ LAMMPS can be compiled from source code using a (traditional) build
 system based on shell scripts, a few shell utilities (grep, sed, cat,
 tr) and the GNU make program. This requires running within a Bourne
 shell (``/bin/sh``).  Alternatively, a build system with different back ends
-can be created using CMake.  CMake must be at least version 3.10.
+can be created using CMake.  CMake must be at least version 3.16.
 
 Operating systems
 ^^^^^^^^^^^^^^^^^
@@ -62,9 +62,9 @@ regularly tested.
 Portability compliance
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Only a subset of the LAMMPS source code is fully compliant to all of the
-above mentioned standards.  This is rather typical for projects like
-LAMMPS that largely depend on contributions from the user community.
+Only a subset of the LAMMPS source code is *fully* compliant to *all*
+of the above mentioned standards.  This is rather typical for projects
+like LAMMPS that largely depend on contributions from the user community.
 Not all contributors are trained as programmers and not all of them have
 access to multiple platforms for testing.  As part of the continuous
 integration process, however, all contributions are automatically tested

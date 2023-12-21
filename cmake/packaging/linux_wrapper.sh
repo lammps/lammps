@@ -1,6 +1,9 @@
 #!/bin/sh
 # wrapper for bundled executables
 
+# reset locale to avoid problems with decimal numbers
+export LC_ALL=C
+
 BASEDIR=$(dirname "$0")
 EXENAME=$(basename "$0")
 

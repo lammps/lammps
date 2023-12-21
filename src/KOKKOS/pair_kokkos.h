@@ -50,7 +50,7 @@ struct DoCoul<1> {
 
 
 //Specialisation for Neighborlist types Half, HalfThread, Full
-template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, class Specialisation = void>
+template <class PairStyle, int NEIGHFLAG, bool STACKPARAMS, int ZEROFLAG = 0, class Specialisation = void>
 struct PairComputeFunctor  {
   typedef typename PairStyle::device_type device_type ;
   typedef ArrayTypes<device_type> AT;
@@ -137,7 +137,7 @@ struct PairComputeFunctor  {
     F_FLOAT fytmp = 0.0;
     F_FLOAT fztmp = 0.0;
 
-    if (NEIGHFLAG == FULL) {
+    if (NEIGHFLAG == FULL && ZEROFLAG) {
       f(i,0) = 0.0;
       f(i,1) = 0.0;
       f(i,2) = 0.0;
@@ -211,7 +211,7 @@ struct PairComputeFunctor  {
     F_FLOAT fytmp = 0.0;
     F_FLOAT fztmp = 0.0;
 
-    if (NEIGHFLAG == FULL) {
+    if (NEIGHFLAG == FULL && ZEROFLAG) {
       f(i,0) = 0.0;
       f(i,1) = 0.0;
       f(i,2) = 0.0;
@@ -292,11 +292,13 @@ struct PairComputeFunctor  {
       const X_FLOAT ztmp = c.x(i,2);
       const int itype = c.type(i);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
-        f(i,0) = 0.0;
-        f(i,1) = 0.0;
-        f(i,2) = 0.0;
-      });
+      if (ZEROFLAG) {
+        Kokkos::single(Kokkos::PerThread(team), [&] (){
+          f(i,0) = 0.0;
+          f(i,1) = 0.0;
+          f(i,2) = 0.0;
+        });
+      }
 
       const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
       const int jnum = list.d_numneigh[i];
@@ -355,11 +357,13 @@ struct PairComputeFunctor  {
       const int itype = c.type(i);
       const F_FLOAT qtmp = c.q(i);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
-        f(i,0) = 0.0;
-        f(i,1) = 0.0;
-        f(i,2) = 0.0;
-      });
+      if (ZEROFLAG) {
+        Kokkos::single(Kokkos::PerThread(team), [&] (){
+          f(i,0) = 0.0;
+          f(i,1) = 0.0;
+          f(i,2) = 0.0;
+        });
+      }
 
       const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
       const int jnum = list.d_numneigh[i];
@@ -423,11 +427,13 @@ struct PairComputeFunctor  {
       const X_FLOAT ztmp = c.x(i,2);
       const int itype = c.type(i);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
-        f(i,0) = 0.0;
-        f(i,1) = 0.0;
-        f(i,2) = 0.0;
-      });
+      if (ZEROFLAG) {
+        Kokkos::single(Kokkos::PerThread(team), [&] (){
+          f(i,0) = 0.0;
+          f(i,1) = 0.0;
+          f(i,2) = 0.0;
+        });
+      }
 
       const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
       const int jnum = list.d_numneigh[i];
@@ -525,11 +531,13 @@ struct PairComputeFunctor  {
       const int itype = c.type(i);
       const F_FLOAT qtmp = c.q(i);
 
-      Kokkos::single(Kokkos::PerThread(team), [&] (){
-        f(i,0) = 0.0;
-        f(i,1) = 0.0;
-        f(i,2) = 0.0;
-      });
+      if (ZEROFLAG) {
+        Kokkos::single(Kokkos::PerThread(team), [&] (){
+          f(i,0) = 0.0;
+          f(i,1) = 0.0;
+          f(i,2) = 0.0;
+        });
+      }
 
       const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
       const int jnum = list.d_numneigh[i];
@@ -740,7 +748,7 @@ struct PairComputeFunctor  {
 // By having the enable_if with a ! and without it, exactly one of the functions
 // pair_compute_neighlist will match - either the dummy version
 // or the real one further below.
-template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
+template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<!((NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*> list) {
   EV_FLOAT ev;
   (void) fpair;
@@ -770,7 +778,7 @@ int GetTeamSize(FunctorStyle& KOKKOS_GPU_ARG(functor), int KOKKOS_GPU_ARG(inum),
 }
 
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL
-template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
+template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*> list) {
   EV_FLOAT ev;
 
@@ -784,13 +792,13 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     int atoms_per_team = 32;
 
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
-      PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
+      PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
       atoms_per_team = GetTeamSize<typename PairStyle::device_type>(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
       Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
     } else {
-      PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
+      PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
       atoms_per_team = GetTeamSize<typename PairStyle::device_type>(ff, list->inum, (fpair->eflag || fpair->vflag), atoms_per_team, vector_length);
       Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(list->inum,atoms_per_team,vector_length);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
@@ -798,12 +806,12 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     }
   } else {
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
-      PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
+      PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else                              Kokkos::parallel_for(list->inum,ff);
       ff.contribute();
     } else {
-      PairComputeFunctor<PairStyle,NEIGHFLAG,true,Specialisation > ff(fpair,list);
+      PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else                              Kokkos::parallel_for(list->inum,ff);
       ff.contribute();
@@ -812,16 +820,21 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
   return ev;
 }
 
-template<class PairStyle, class Specialisation>
+template<class PairStyle, class Specialisation = void>
 EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
   EV_FLOAT ev;
   if (fpair->neighflag == FULL) {
-    fpair->fuse_force_clear_flag = 1;
-    ev = pair_compute_neighlist<PairStyle,FULL,Specialisation> (fpair,list);
+    if (utils::strmatch(fpair->lmp->force->pair_style,"^hybrid/overlay")) {
+      fpair->fuse_force_clear_flag = 0;
+      ev = pair_compute_neighlist<PairStyle,FULL,0,Specialisation> (fpair,list);
+    } else {
+      fpair->fuse_force_clear_flag = 1;
+      ev = pair_compute_neighlist<PairStyle,FULL,1,Specialisation> (fpair,list);
+    }
   } else if (fpair->neighflag == HALFTHREAD) {
-    ev = pair_compute_neighlist<PairStyle,HALFTHREAD,Specialisation> (fpair,list);
+    ev = pair_compute_neighlist<PairStyle,HALFTHREAD,0,Specialisation> (fpair,list);
   } else if (fpair->neighflag == HALF) {
-    ev = pair_compute_neighlist<PairStyle,HALF,Specialisation> (fpair,list);
+    ev = pair_compute_neighlist<PairStyle,HALF,0,Specialisation> (fpair,list);
   }
   return ev;
 }

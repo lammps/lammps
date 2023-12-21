@@ -364,7 +364,7 @@ void ReadData::command(int narg, char **arg)
   // check if data file is available and readable
 
   if (!platform::file_is_readable(arg[0]))
-    error->all(FLERR, fmt::format("Cannot open file {}: {}", arg[0], utils::getsyserror()));
+    error->all(FLERR, "Cannot open file {}: {}", arg[0], utils::getsyserror());
 
   // reset so we can warn about reset image flags exactly once per data file
 
@@ -2021,7 +2021,7 @@ void ReadData::pairIJcoeffs()
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR,"Label map is incomplete: all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (i = 0; i < ntypes; i++)

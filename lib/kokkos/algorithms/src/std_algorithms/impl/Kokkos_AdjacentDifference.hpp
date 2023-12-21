@@ -63,14 +63,15 @@ struct StdAdjacentDiffFunctor {
         m_op(std::move(op)) {}
 };
 
+//
+// exespace impl
+//
 template <class ExecutionSpace, class InputIteratorType,
           class OutputIteratorType, class BinaryOp>
-OutputIteratorType adjacent_difference_impl(const std::string& label,
-                                            const ExecutionSpace& ex,
-                                            InputIteratorType first_from,
-                                            InputIteratorType last_from,
-                                            OutputIteratorType first_dest,
-                                            BinaryOp bin_op) {
+OutputIteratorType adjacent_difference_exespace_impl(
+    const std::string& label, const ExecutionSpace& ex,
+    InputIteratorType first_from, InputIteratorType last_from,
+    OutputIteratorType first_dest, BinaryOp bin_op) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first_from, first_dest);
   Impl::static_assert_iterators_have_matching_difference_type(first_from,
@@ -81,20 +82,45 @@ OutputIteratorType adjacent_difference_impl(const std::string& label,
     return first_dest;
   }
 
-  // aliases
-  using value_type    = typename OutputIteratorType::value_type;
-  using aux_view_type = ::Kokkos::View<value_type*, ExecutionSpace>;
-  using functor_t =
-      StdAdjacentDiffFunctor<InputIteratorType, OutputIteratorType, BinaryOp>;
+  // run
+  const auto num_elements =
+      Kokkos::Experimental::distance(first_from, last_from);
+  ::Kokkos::parallel_for(
+      label, RangePolicy<ExecutionSpace>(ex, 0, num_elements),
+      StdAdjacentDiffFunctor(first_from, first_dest, bin_op));
+  ex.fence("Kokkos::adjacent_difference: fence after operation");
+
+  // return
+  return first_dest + num_elements;
+}
+
+//
+// team impl
+//
+template <class TeamHandleType, class InputIteratorType,
+          class OutputIteratorType, class BinaryOp>
+KOKKOS_FUNCTION OutputIteratorType adjacent_difference_team_impl(
+    const TeamHandleType& teamHandle, InputIteratorType first_from,
+    InputIteratorType last_from, OutputIteratorType first_dest,
+    BinaryOp bin_op) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first_from,
+                                                   first_dest);
+  Impl::static_assert_iterators_have_matching_difference_type(first_from,
+                                                              first_dest);
+  Impl::expect_valid_range(first_from, last_from);
+
+  if (first_from == last_from) {
+    return first_dest;
+  }
 
   // run
   const auto num_elements =
       Kokkos::Experimental::distance(first_from, last_from);
-  aux_view_type aux_view("aux_view", num_elements);
-  ::Kokkos::parallel_for(label,
-                         RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         functor_t(first_from, first_dest, bin_op));
-  ex.fence("Kokkos::adjacent_difference: fence after operation");
+  ::Kokkos::parallel_for(
+      TeamThreadRange(teamHandle, 0, num_elements),
+      StdAdjacentDiffFunctor(first_from, first_dest, bin_op));
+  teamHandle.team_barrier();
 
   // return
   return first_dest + num_elements;

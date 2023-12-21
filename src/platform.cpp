@@ -239,6 +239,8 @@ std::string platform::os_info()
     buf = "Windows 11 21H2";
   } else if (build == "22621") {
     buf = "Windows 11 22H2";
+  } else if (build == "22631") {
+    buf = "Windows 11 23H2";
   } else {
     const char *entry = "ProductName";
     RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,
@@ -389,8 +391,16 @@ std::string platform::openmp_standard()
   // Supported OpenMP version corresponds to the release date of the
   // specifications as posted at https://www.openmp.org/specifications/
 
-#if _OPENMP > 202011
-  return "OpenMP newer than version 5.1";
+#if _OPENMP > 202411
+  return "OpenMP newer than version 6.0";
+#elif _OPENMP == 202411
+  return "OpenMP 6.0";
+#elif _OPENMP == 202311
+  return "OpenMP 6.0 preview 2";
+#elif _OPENMP == 202211
+  return "OpenMP 6.0 preview 1";
+#elif _OPENMP == 202111
+  return "OpenMP 5.2";
 #elif _OPENMP == 202011
   return "OpenMP 5.1";
 #elif _OPENMP == 201811
@@ -1056,7 +1066,7 @@ FILE *platform::compressed_read(const std::string &file)
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto compress = find_compress_type(file);
+  const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())
@@ -1075,7 +1085,7 @@ FILE *platform::compressed_write(const std::string &file)
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto compress = find_compress_type(file);
+  const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())

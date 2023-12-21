@@ -1,7 +1,7 @@
 Output from LAMMPS (thermo, dumps, computes, fixes, variables)
 ==============================================================
 
-There are four basic kinds of LAMMPS output:
+There are four basic forms of LAMMPS output:
 
 * :doc:`Thermodynamic output <thermo_style>`, which is a list of
   quantities printed every few timesteps to the screen and logfile.
@@ -20,18 +20,17 @@ output files, depending on what :doc:`dump <dump>` and :doc:`fix <fix>`
 commands you specify.
 
 As discussed below, LAMMPS gives you a variety of ways to determine
-what quantities are computed and printed when the thermodynamics,
+what quantities are calculated and printed when the thermodynamics,
 dump, or fix commands listed above perform output.  Throughout this
 discussion, note that users can also :doc:`add their own computes and
-fixes to LAMMPS <Modify>` which can then generate values that can then
-be output with these commands.
+fixes to LAMMPS <Modify>` which can generate values that can then be
+output with these commands.
 
 The following subsections discuss different LAMMPS commands related
 to output and the kind of data they operate on and produce:
 
 * :ref:`Global/per-atom/local/per-grid data <global>`
 * :ref:`Scalar/vector/array data <scalar>`
-* :ref:`Per-grid data <grid>`
 * :ref:`Disambiguation <disambiguation>`
 * :ref:`Thermodynamic output <thermo>`
 * :ref:`Dump file output <dump>`
@@ -48,34 +47,65 @@ to output and the kind of data they operate on and produce:
 Global/per-atom/local/per-grid data
 -----------------------------------
 
-Various output-related commands work with four different styles of
+Various output-related commands work with four different "styles" of
 data: global, per-atom, local, and per-grid.  A global datum is one or
 more system-wide values, e.g. the temperature of the system.  A
 per-atom datum is one or more values per atom, e.g. the kinetic energy
 of each atom.  Local datums are calculated by each processor based on
-the atoms it owns, but there may be zero or more per atom, e.g. a list
+the atoms it owns, and there may be zero or more per atom, e.g. a list
 of bond distances.
 
 A per-grid datum is one or more values per grid cell, for a grid which
-overlays the simulation domain.  The grid cells and the data they
-store are distributed across processors; each processor owns the grid
-cells whose center point falls within its subdomain.
+overlays the simulation domain.  Similar to atoms and per-atom data,
+the grid cells and the data they store are distributed across
+processors; each processor owns the grid cells whose center points
+fall within its subdomain.
 
 .. _scalar:
 
 Scalar/vector/array data
 ------------------------
 
-Global, per-atom, and local datums can come in three kinds: a single
-scalar value, a vector of values, or a 2d array of values.  The doc
-page for a "compute" or "fix" or "variable" that generates data will
-specify both the style and kind of data it produces, e.g. a per-atom
-vector.
+Global, per-atom, local, and per-grid datums can come in three
+"kinds": a single scalar value, a vector of values, or a 2d array of
+values.  More specifically these are the valid kinds for each style:
 
-When a quantity is accessed, as in many of the output commands
-discussed below, it can be referenced via the following bracket
-notation, where ID in this case is the ID of a compute.  The leading
-"c\_" would be replaced by "f\_" for a fix, or "v\_" for a variable:
+* global scalar
+* global vector
+* global array
+* per-atom vector
+* per-atom array
+* local vector
+* local array
+* per-grid vector
+* per-grid array
+
+A per-atom vector means a single value per atom; the "vector" is the
+length of the number of atoms.  A per-atom array means multiple values
+per atom.  Similarly a local vector or array means one or multiple
+values per entity (e.g. per bond in the system).  And a per-grid
+vector or array means one or multiple values per grid cell.
+
+The doc page for a compute or fix or variable that generates data will
+specify both the styles and kinds of data it produces, e.g. a per-atom
+vector.  Note that a compute or fix may generate multiple styles and
+kinds of output.  However, for per-atom data only a vector or array is
+output, never both.  Likewise for per-local and per-grid data.  An
+example of a fix which generates multiple styles and kinds of data is
+the :doc:`fix mdi/qm <fix_mdi_qm>` command.  It outputs a global
+scalar, global vector, and per-atom array for the quantum mechanical
+energy and virial of the system and forces on each atom.
+
+By contrast, different variable styles generate only a single kind of
+data: a global scalar for an equal-style variable, global vector for a
+vector-style variable, and a per-atom vector for an atom-style
+variable.
+
+When data is accessed by another command, as in many of the output
+commands discussed below, it can be referenced via the following
+bracket notation, where ID in this case is the ID of a compute.  The
+leading "c\_" would be replaced by "f\_" for a fix, or "v\_" for a
+variable (and ID would be the name of the variable):
 
 +-------------+--------------------------------------------+
 | c_ID        | entire scalar, vector, or array            |
@@ -85,40 +115,56 @@ notation, where ID in this case is the ID of a compute.  The leading
 | c_ID[I][J]  | one element of array                       |
 +-------------+--------------------------------------------+
 
-In other words, using one bracket reduces the dimension of the data
-once (vector -> scalar, array -> vector).  Using two brackets reduces
-the dimension twice (array -> scalar).  Thus a command that uses
-scalar values as input can typically also process elements of a vector
-or array.
+Note that using one bracket reduces the dimension of the data once
+(vector -> scalar, array -> vector).  Using two brackets reduces the
+dimension twice (array -> scalar).  Thus a command that uses scalar
+values as input can also conceptually operate on an element of a
+vector or array.
 
-.. _grid:
-
-Per-grid data
-------------------------
-
-Per-grid data can come in two kinds: a vector of values (one per grid
-cekk), or a 2d array of values (multiple values per grid ckk).  The
-doc page for a "compute" or "fix" that generates data will specify
-names for both the grid(s) and datum(s) it produces, e.g. per-grid
-vectors or arrays, which can be referenced by other commands.  See the
-:doc:`Howto grid <Howto_grid>` doc page for more details.
+Per-grid vectors or arrays are accessed similarly, except that the ID
+for the compute or fix includes a grid name and a data name.  This is
+because a fix or compute can create multiple grids (of different
+sizes) and multiple sets of data (for each grid).  The fix or compute
+defines names for each grid and for each data set, so that all of them
+can be accessed by other commands.  See the :doc:`Howto grid
+<Howto_grid>` doc page for more details.
 
 .. _disambiguation:
 
 Disambiguation
 --------------
 
-Some computes and fixes produce data in multiple styles, e.g. a global
-scalar and a per-atom vector. Usually the context in which the input
-script references the data determines which style is meant. Example:
-if a compute provides both a global scalar and a per-atom vector, the
-former will be accessed by using ``c_ID`` in an equal-style variable,
-while the latter will be accessed by using ``c_ID`` in an atom-style
-variable.  Note that atom-style variable formulas can also access
-global scalars, but in this case it is not possible to do this
-directly because of the ambiguity.  Instead, an equal-style variable
-can be defined which accesses the global scalar, and that variable can
-be used in the atom-style variable formula in place of ``c_ID``.
+When a compute or fix produces data in multiple styles, e.g. global
+and per-atom, a reference to the data can sometimes be ambiguous.
+Usually the context in which the input script references the data
+determines which style is meant.
+
+For example, if a compute outputs a global vector and a per-atom
+array, an element of the global vector will be accessed by using
+``c_ID[I]`` in :doc:`thermodynamic output <thermo_style>`, while a
+column of the per-atom array will be accessed by using ``c_ID[I]`` in
+a :doc:`dump custom <dump>` command.
+
+However, if a :doc:`atom-style variable <variable>` references
+``c_ID[I]``, then it could be intended to refer to a single element of
+the global vector or a column of the per-atom array.  The doc page for
+any command that has a potential ambiguity (variables are the most
+common) will explain how to resolve the ambiguity.
+
+In this case, an atom-style variables references per-atom data if it
+exists.  If access to an element of a global vector is needed (as in
+this example), an equal-style variable which references the value can
+be defined and used in the atom-style variable formula instead.
+
+Similarly, :doc:`thermodynamic output <thermo_style>` can only
+reference global data from a compute or fix.  But you can indirectly
+access per-atom data as follows.  The reference ``c_ID[245][2]`` for
+the ID of a :doc:`compute displace/atom <compute_displace_atom>`
+command, refers to the y-component of displacement for the atom with
+ID 245.  While you cannot use that reference directly in the
+:doc:`thermo_style <thermo_style>` command, you can use it an
+equal-style variable formula, and then reference the variable in
+thermodynamic output.
 
 .. _thermo:
 
@@ -389,7 +435,7 @@ output and input data types must match, e.g. global/per-atom/local
 data and scalar/vector/array data.
 
 Also note that, as described above, when a command takes a scalar as
-input, that could be an element of a vector or array.  Likewise a
+input, that could also be an element of a vector or array.  Likewise a
 vector input could be a column of an array.
 
 +--------------------------------------------------------+----------------------------------------------+----------------------------------------------------+

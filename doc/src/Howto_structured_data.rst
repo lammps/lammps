@@ -119,6 +119,45 @@ for example :doc:`dump yaml <dump>` or :doc:`fix ave/time <fix_ave_time>`
 Depending on the kind of data being written, organization of the data
 or the specific syntax used may change, but the principles are very
 similar and all files should be readable with a suitable YAML parser.
+A simple example for this is given below:
+
+.. code-block:: python
+
+   import yaml
+   try:
+       from yaml import CSafeLoader as YamlLoader
+   except ImportError:
+       from yaml import SafeLoader as YamlLoader
+
+   timesteps = []
+   with open("dump.yaml", "r") as f:
+       data = yaml.load_all(f, Loader=YamlLoader)
+
+       for d in data:
+           print('Processing timestep %d' % d['timestep'])
+           timesteps.append(d)
+
+   print('Read %d timesteps from yaml dump' % len(timesteps))
+   print('Second timestep: ', timesteps[1]['timestep'])
+   print('Box info: x: ' , timesteps[1]['box'][0], ' y:', timesteps[1]['box'][1], ' z:',timesteps[1]['box'][2])
+   print('First 5 per-atom columns: ', timesteps[1]['keywords'][0:5])
+   print('Corresponding 10th atom data: ', timesteps[1]['data'][9][0:5])
+
+The corresponding output for a YAML dump command added to the "melt" example is:
+
+.. parsed-literal::
+
+   Processing timestep 0
+   Processing timestep 50
+   Processing timestep 100
+   Processing timestep 150
+   Processing timestep 200
+   Processing timestep 250
+   Read 6 timesteps from yaml dump
+   Second timestep:  50
+   Box info: x:  [0, 16.795961913825074]  y: [0, 16.795961913825074]  z: [0, 16.795961913825074]
+   First 5 per-atom columns:  ['id', 'type', 'x', 'y', 'z']
+   Corresponding 10th atom data:  [10, 1, 4.43828, 0.968481, 0.108555]
 
 Processing scalar data with Python
 ----------------------------------

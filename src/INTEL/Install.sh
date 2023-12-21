@@ -51,8 +51,6 @@ action npair_intel.cpp
 action intel_simd.h
 action intel_intrinsics.h pair_tersoff_intel.cpp
 action intel_intrinsics_airebo.h pair_airebo_intel.cpp
-action electrode_accel_intel.h fix_electrode_conp.cpp
-action electrode_accel_intel.cpp fix_electrode_conp.cpp
 
 if (test $mode = 1) then
 

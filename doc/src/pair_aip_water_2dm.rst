@@ -35,7 +35,7 @@ Examples
    pair_coeff  3 3   lj/cut/tip4p/long    8.0313e-3  3.1589      # O-O
    pair_coeff  3 4   lj/cut/tip4p/long    0.0        0.0         # O-H
    pair_coeff  4 4   lj/cut/tip4p/long    0.0        0.0         # H-H
-   pair_coeff  * *   aip/water/2dm        CBNOH.aip.water.2dm i  B N Ow Hw
+   pair_coeff  * *   aip/water/2dm        CBNOH.aip.water.2dm  B N Ow Hw
    pair_coeff  1 3   coul/shield          1.333
    pair_coeff  1 4   coul/shield          1.333
    pair_coeff  2 3   coul/shield          1.333
@@ -73,7 +73,7 @@ larger than :math:`r_c` :doc:`pair_style ilp_graphene_hbn
 .. note::
 
    This pair style uses the atomic normal vector definition from
-   :ref:`(Feng) <Feng>`), where the atomic normal vectors of the
+   :ref:`(Feng1) <Feng1>`), where the atomic normal vectors of the
    hydrogen atoms are assumed to lie along the corresponding
    oxygen-hydrogen bonds and the normal vector of the central oxygen
    atom is defined as their average.

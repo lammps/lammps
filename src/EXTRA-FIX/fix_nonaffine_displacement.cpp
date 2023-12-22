@@ -71,6 +71,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal nevery value {} in fix nonaffine/displacement", nevery);
 
+  reference_timestep = update_timestep = offset_timestep = -1;
   int iarg = 4;
   if (strcmp(arg[iarg], "integrated") == 0) {
     nad_style = INTEGRATED;
@@ -99,7 +100,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   if (strcmp(arg[iarg], "fixed") == 0) {
     reference_style = FIXED;
     reference_timestep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-    if (update_timestep < 0)
+    if (reference_timestep < 0)
       error->all(FLERR, "Illegal reference timestep {} in fix nonaffine/displacement", arg[iarg + 1]);
   } else if (strcmp(arg[iarg], "update") == 0) {
     reference_style = UPDATE;

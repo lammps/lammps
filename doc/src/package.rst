@@ -344,12 +344,10 @@ specify additional flags for the runtime build.
 
 ----------
 
-The *intel* style invokes settings associated with the use of the
-INTEL package.  All of its settings, except the *omp* and *mode*
-keywords, are ignored if LAMMPS was not built with Xeon Phi
-co-processor support.  All of its settings, including the *omp* and
-*mode* keyword are applicable if LAMMPS was built with co-processor
-support.
+The *intel* style invokes settings associated with the use of the INTEL
+package.  The keywords *balance*, *ghost*, *tpc*, and *tptask* are
+**only** applicable if LAMMPS was built with Xeon Phi co-processor
+support and are otherwise ignored.
 
 The *Nphi* argument sets the number of co-processors per node.
 This can be set to any value, including 0, if LAMMPS was not

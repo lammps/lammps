@@ -32,6 +32,8 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 
+#include "update.h"
+
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
 
@@ -195,6 +197,7 @@ void ComputeRHEOVShift::compute_peratom()
         if (mask[i] & groupbit) {
           vmag = sqrt(vi[0] * vi[0] + vi[1] * vi[1] + vi[2] * vi[2]);
           prefactor = vmag * volj * dr;
+
           vshift[i][0] += prefactor * dx[0];
           vshift[i][1] += prefactor * dx[1];
           vshift[i][2] += prefactor * dx[2];
@@ -204,6 +207,7 @@ void ComputeRHEOVShift::compute_peratom()
           if (mask[j] & groupbit) {
             vmag = sqrt(vj[0] * vj[0] + vj[1] * vj[1] + vj[2] * vj[2]);
             prefactor = vmag * voli * dr;
+
             vshift[j][0] -= prefactor * dx[0];
             vshift[j][1] -= prefactor * dx[1];
             vshift[j][2] -= prefactor * dx[2];

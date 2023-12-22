@@ -104,6 +104,14 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     } else if (utils::strmatch(arg[iarg], "^grad/v")) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_gradv;
       col_index[i] = get_tensor_index(arg[iarg]);
+    } else if (strcmp(arg[iarg], "energy") == 0) {
+      avec_index[i] = atom->avec->property_atom("esph");
+      if (avec_index[i] < 0)
+        error->all(FLERR,
+                   "Invalid keyword {} for atom style {} in compute rheo/property/atom command ",
+                   arg[iarg], atom->get_style());
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_atom_style;
+      thermal_flag = 1;
     } else {
       avec_index[i] = atom->avec->property_atom(arg[iarg]);
       if (avec_index[i] < 0)

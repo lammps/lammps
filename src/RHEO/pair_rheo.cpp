@@ -96,7 +96,6 @@ void PairRHEO::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   double **gradv = compute_grad->gradv;
-  double **gradt = compute_grad->gradt;
   double **gradr = compute_grad->gradr;
   double **v = atom->v;
   double **x = atom->x;

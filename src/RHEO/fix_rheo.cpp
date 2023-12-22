@@ -164,7 +164,7 @@ void FixRHEO::post_constructor()
   compute_kernel->fix_rheo = this;
 
   std::string cmd = "rheo_grad all RHEO/GRAD velocity rho viscosity";
-  if (thermal_flag) cmd += " temperature";
+  if (thermal_flag) cmd += " energy";
   compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(cmd));
   compute_grad->fix_rheo = this;
 
@@ -401,6 +401,7 @@ void FixRHEO::pre_force(int /*vflag*/)
     compute_rhosum->compute_peratom();
 
   compute_kernel->compute_peratom();
+
   if (interface_flag) {
     // Note on first setup, have no forces for pressure to reference
     compute_interface->compute_peratom();

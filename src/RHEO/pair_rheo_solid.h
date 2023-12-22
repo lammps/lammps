@@ -11,33 +11,38 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef ATOM_CLASS
+#ifdef PAIR_CLASS
 // clang-format off
-AtomStyle(rheo/thermal,AtomVecRHEOThermal);
+PairStyle(rheo/solid,PairRHEOSolid);
 // clang-format on
 #else
 
-#ifndef LMP_ATOM_VEC_RHEO_THERMAL_H
-#define LMP_ATOM_VEC_RHEO_THERMAL_H
+#ifndef LMP_PAIR_RHEO_SOLID_H
+#define LMP_PAIR_RHEO_SOLID_H
 
-#include "atom_vec.h"
+#include "pair.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecRHEOThermal : virtual public AtomVec {
+class PairRHEOSolid : public Pair {
  public:
-  AtomVecRHEOThermal(class LAMMPS *);
+  PairRHEOSolid(class LAMMPS *);
+  ~PairRHEOSolid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
-  void grow_pointers() override;
-  void force_clear(int, size_t) override;
-  void data_atom_post(int) override;
-  int property_atom(const std::string &) override;
-  void pack_property_atom(int, double *, int, int) override;
+ protected:
+  double **k, **cut, **gamma;
 
- private:
-  int *status;
-  double *conductivity, *temperature, *heatflow, *esph;
-  double *pressure, *rho, *drho, *viscosity;
+  void allocate();
 };
 
 }    // namespace LAMMPS_NS

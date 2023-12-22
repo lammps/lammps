@@ -40,7 +40,7 @@ class ComputeRHEOGrad : public Compute {
   void forward_fields();
   double **gradv;
   double **gradr;
-  double **gradt;
+  double **grade;
   double **gradn;
   class FixRHEO *fix_rheo;
 
@@ -48,7 +48,7 @@ class ComputeRHEOGrad : public Compute {
   int comm_stage, ncomm_grad, ncomm_field, nmax_store;
   double cut, cutsq, *rho0;
 
-  int velocity_flag, temperature_flag, rho_flag, eta_flag;
+  int velocity_flag, energy_flag, rho_flag, eta_flag;
   int interface_flag, remap_v_flag;
 
   class ComputeRHEOKernel *compute_kernel;

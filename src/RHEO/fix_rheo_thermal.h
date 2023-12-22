@@ -43,12 +43,14 @@ class FixRHEOThermal : public Fix {
   void unpack_forward_comm(int, int, double *) override;
   void reset_dt() override;
   double calc_cv(int, int);
+  double calc_Tc(int, int);
+  double calc_L(int, int);
 
  private:
-  double *cv, *Tc, *kappa;
+  double *cv, *Tc, *kappa, *L;
   double dtf, dtv;
   double cut_kernel, cut_bond, cutsq_bond;
-  int *cv_style, *Tc_style, *kappa_style;
+  int *cv_style, *Tc_style, *kappa_style, *L_style;
   int btype;
   class NeighList *list;
 

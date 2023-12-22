@@ -901,7 +901,7 @@ void Set::set(int keyword)
     }
 
     else if (keyword == RHEO_STATUS) {
-      if (ivalue != 0 && ivalue !=2)
+      if (ivalue != 0 && ivalue != 2)
         error->one(FLERR,"Invalid value {} in set command for rheo/status", ivalue);
       atom->status[i] = ivalue;
     }

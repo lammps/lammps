@@ -86,6 +86,8 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
   }
 
   comm_forward_save = comm_forward;
+  corrections_calculated = 0;
+  gsl_error_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -150,6 +152,10 @@ int ComputeRHEOKernel::check_corrections(int i)
 
   // Skip if undercoordinated
   if (coordination[i] < zmin)
+    return 0;
+
+  // Skip if corrections not yet calculated
+  if (!corrections_calculated)
     return 0;
 
   return 1;
@@ -479,6 +485,7 @@ void ComputeRHEOKernel::compute_peratom()
   gsl_error_tags.clear();
 
   if (kernel_style == QUINTIC) return;
+  corrections_calculated = 1;
 
   int i, j, ii, jj, inum, jnum, itype, g, a, b, gsl_error;
   double xtmp, ytmp, ztmp, r, rsq, w, vj, rhoj;
@@ -530,11 +537,11 @@ void ComputeRHEOKernel::compute_peratom()
 
         if (rsq < hsq) {
           r = sqrt(rsq);
-          w = calc_w_quintic(i,j,dx[0],dx[1],dx[2],r);
+          w = calc_w_quintic(i, j, dx[0], dx[1], dx[2], r);
           rhoj = rho[j];
           if (interface_flag)
             if (status[j] & PHASECHECK)
-              rhoj = compute_interface->correct_rho(j,i);
+              rhoj = compute_interface->correct_rho(j, i);
 
           vj = mass[type[j]] / rhoj;
           M += w * vj;
@@ -578,12 +585,12 @@ void ComputeRHEOKernel::compute_peratom()
 
         if (rsq < hsq) {
           r = sqrt(rsq);
-          w = calc_w_quintic(i,j,dx[0],dx[1],dx[2],r);
+          w = calc_w_quintic(i, j, dx[0], dx[1], dx[2], r);
 
           rhoj = rho[j];
           if (interface_flag)
             if (status[j] & PHASECHECK)
-              rhoj = compute_interface->correct_rho(j,i);
+              rhoj = compute_interface->correct_rho(j, i);
 
           vj = mass[type[j]] / rhoj;
 

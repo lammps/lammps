@@ -44,6 +44,7 @@ ComputeReaxFFAtom::ComputeReaxFFAtom(LAMMPS *lmp, int narg, char **arg) :
   // initialize output
 
   nlocal = -1;
+  nbonds = 0;
   prev_nbonds = -1;
 
   size_peratom_cols = 3;

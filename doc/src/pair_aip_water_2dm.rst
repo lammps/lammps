@@ -31,7 +31,7 @@ Examples
    pair_coeff  * *   aip/water/2dm        CBNOH.aip.water.2dm    C Ow Hw
 
    pair_style  hybrid/overlay aip/water/2dm 16.0 lj/cut/tip4p/long 3 4 1 1 0.1546 10 8.5 coul/shield 16.0 1
-   pair_coeff  1*2 1*2   none  
+   pair_coeff  1*2 1*2   none
    pair_coeff  3 3   lj/cut/tip4p/long    8.0313e-3  3.1589      # O-O
    pair_coeff  3 4   lj/cut/tip4p/long    0.0        0.0         # O-H
    pair_coeff  4 4   lj/cut/tip4p/long    0.0        0.0         # H-H

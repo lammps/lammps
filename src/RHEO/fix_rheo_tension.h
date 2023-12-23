@@ -32,7 +32,7 @@ class FixRHEOTension : public Fix {
   void init() override;
   void init_list(int, class NeighList *) override;
   void setup(int) override;
-  void post_force(int) override;
+  void pre_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
@@ -40,14 +40,15 @@ class FixRHEOTension : public Fix {
   void grow_arrays(int) override;
 
  private:
-  int nmax_store, comm_stage, interface_flag;
-  int index_nt, index_cgradt, index_divnt, index_ft;
+  int nmax_store, comm_stage, interface_flag, shift_flag;
+  int index_ct, index_nt, index_cgradt, index_divnt, index_ft, index_wsame;
 
-  double **nt, **cgradt, *divnt, *norm, **ft, *wsame;
-  double alpha, beta, wmin, h, hsq, hinv, hinv3, rho0;
+  double *ct, **nt, **cgradt, *divnt, *norm, **ft, *wsame;
+  double alpha, beta, wmin, cmin, vshift_strength, h, hsq, hinv, hinv3, *rho0;
 
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOInterface *compute_interface;
+  class ComputeRHEOVShift *compute_vshift;
   class FixRHEO *fix_rheo;
   class NeighList *list;
 };

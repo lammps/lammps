@@ -34,13 +34,16 @@ first page of the :doc:`manual <Manual>`.
   describe the version you have, which may be older than the online
   version.
 
-Development
-^^^^^^^^^^^
+LAMMPS releases, branches, and tags
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. figure:: JPG/lammps-releases.png
    :figclass: align-center
 
-   Relationships between main branches and tags in the LAMMPS git repository
+   Relations between releases, main branches, and tags in the LAMMPS git repository
+
+Development
+"""""""""""
 
 Modifications of the LAMMPS source code (like bug fixes, code
 refactoring, updates to existing features, or addition of new features)
@@ -49,7 +52,7 @@ are organized into pull requests.  Pull requests will be merged into the
 and code review by the LAMMPS developers.
 
 Feature Releases
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 When a sufficient number of new features and updates have accumulated
 *and* the LAMMPS version on the *develop* branch passes an extended set
@@ -63,7 +66,7 @@ notes are `available on GitHub
 <https://github.com/lammps/lammps/releases/>`_.
 
 Stable Releases
-^^^^^^^^^^^^^^^
+"""""""""""""""
 
 About once a year, we release a *stable release* version of LAMMPS.
 This is done after a "stabilization period" where we apply only bug
@@ -75,7 +78,7 @@ branches are updated and two tags are applied, a ``patch_1May2014`` format
 and a ``stable_1May2014`` format tag.
 
 Stable Release Updates
-^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""
 
 Between *stable releases*, we collect bug fixes and updates back-ported
 from the *develop* branch in a branch called *maintenance*.  From the

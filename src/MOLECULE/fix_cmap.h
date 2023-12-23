@@ -65,8 +65,7 @@ class FixCMAP : public Fix {
   double memory_usage() override;
 
  private:
-  int nprocs, me;
-  int newton_bond, eflag_caller;
+  int eflag_caller;
   int ctype, ilevel_respa;
   int ncrosstermtypes, crossterm_per_atom, maxcrossterm;
   int ncrosstermlist;

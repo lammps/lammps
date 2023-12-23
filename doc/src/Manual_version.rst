@@ -37,6 +37,11 @@ first page of the :doc:`manual <Manual>`.
 Development
 ^^^^^^^^^^^
 
+.. figure:: JPG/lammps-releases.png
+   :figclass: align-center
+
+   Relationships between main branches and tags in the LAMMPS git repository
+
 Modifications of the LAMMPS source code (like bug fixes, code
 refactoring, updates to existing features, or addition of new features)
 are organized into pull requests.  Pull requests will be merged into the

@@ -807,23 +807,3 @@ double PairGranHookeHistory::memory_usage()
   double bytes = (double) nmax * sizeof(double);
   return bytes;
 }
-
-/* ----------------------------------------------------------------------
-   self-interaction range of particle
-------------------------------------------------------------------------- */
-
-double PairGranHookeHistory::atom2cut(int i)
-{
-  double cut = atom->radius[i] * 2;
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairGranHookeHistory::radii2cut(double r1, double r2)
-{
-  double cut = r1 + r2;
-  return cut;
-}

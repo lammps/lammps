@@ -111,7 +111,7 @@ class Neighbor : protected Pointers {
 
   int custom_collection_flag;      // 1 if custom collections are defined for multi
   int interval_collection_flag;    // 1 if custom collections use intervals
-  int finite_cut_flag;             // 1 if multi considers finite atom size
+  int cut_style;                   // whether cutoffs are determined by type, radii, or other
   int ncollections;                // # of custom collections
   int nmax_collection;             // maximum atoms stored in collection array
   int *type2collection;            // ntype array mapping types to custom collections

@@ -51,6 +51,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   finitecutflag = 1;
+  nonstandardcutflag = 0;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -421,6 +422,7 @@ void PairGranular::init_style()
 
     if (model->beyond_contact) {
       beyond_contact = 1;
+      nonstandardcutflag = 1;
       use_history = 1; // Need to track if in contact
     }
     if (model->size_history != 0) use_history = 1;
@@ -451,8 +453,13 @@ void PairGranular::init_style()
     }
   }
 
-  if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
-  else neighbor->add_request(this, NeighConst::REQ_SIZE);
+  int req_flags;
+  if (beyond_contact)
+    req_flags = NeighConst::REQ_SIZE;
+  else
+    req_flags = NeighConst::REQ_NONSTANDARD_CUT;
+  if (use_history) req_flags |= NeighConst::REQ_HISTORY;
+  neighbor->add_request(this, req_flags);
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
@@ -846,7 +853,7 @@ void PairGranular::transfer_history(double* source, double* target, int itype, i
 }
 
 /* ----------------------------------------------------------------------
-   self-interaction range of particle
+   self-interaction range of particle for beyond contact
 ------------------------------------------------------------------------- */
 
 double PairGranular::atom2cut(int i)
@@ -854,38 +861,33 @@ double PairGranular::atom2cut(int i)
   double cut;
 
   cut = atom->radius[i] * 2;
-  if (beyond_contact) {
-    int itype = atom->type[i];
-    class GranularModel* model = models_list[types_indices[itype][itype]];
-    if (model->beyond_contact) {
-      cut += model->pulloff_distance(cut, cut);
-    }
+  int itype = atom->type[i];
+  class GranularModel* model = models_list[types_indices[itype][itype]];
+  if (model->beyond_contact) {
+    cut += model->pulloff_distance(cut, cut);
   }
 
   return cut;
 }
 
 /* ----------------------------------------------------------------------
-   maximum interaction range for two finite particles
+   maximum interaction range for two particles for beyond contact
 ------------------------------------------------------------------------- */
 
-double PairGranular::radii2cut(double r1, double r2)
+double PairGranular::pair2cut(int i, int j)
 {
   double cut = 0.0;
+  double temp;
+  int n = atom->ntypes;
 
-  if (beyond_contact) {
-    int n = atom->ntypes;
-    double temp;
-
-    // Check all combinations of i and j to find theoretical maximum pull off distance
-    class GranularModel* model;
-    for (int i = 1; i <= n; i++) {
-      for (int j = 1; j <= n; j++) {
-        model = models_list[types_indices[i][j]];
-        if (model->beyond_contact) {
-          temp = model->pulloff_distance(r1, r2);
-          if (temp > cut) cut = temp;
-        }
+  // Check all combinations of i and j to find theoretical maximum pull off distance
+  class GranularModel* model;
+  for (int i = 1; i <= n; i++) {
+    for (int j = 1; j <= n; j++) {
+      model = models_list[types_indices[i][j]];
+      if (model->beyond_contact) {
+        temp = model->pulloff_distance(r1, r2);
+        if (temp > cut) cut = temp;
       }
     }
   }

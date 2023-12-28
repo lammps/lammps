@@ -871,28 +871,16 @@ double PairGranular::atom2cut(int i)
 }
 
 /* ----------------------------------------------------------------------
-   maximum interaction range for two particles for beyond contact
+   interaction range for two particles for beyond contact
 ------------------------------------------------------------------------- */
 
 double PairGranular::pair2cut(int i, int j)
 {
-  double cut = 0.0;
-  double temp;
-  int n = atom->ntypes;
+  double cut = r1 + r2;
 
-  // Check all combinations of i and j to find theoretical maximum pull off distance
-  class GranularModel* model;
-  for (int i = 1; i <= n; i++) {
-    for (int j = 1; j <= n; j++) {
-      model = models_list[types_indices[i][j]];
-      if (model->beyond_contact) {
-        temp = model->pulloff_distance(r1, r2);
-        if (temp > cut) cut = temp;
-      }
-    }
-  }
-
-  cut += r1 + r2;
+  class GranularModel* model = models_list[types_indices[i][j]];
+  if (model->beyond_contact)
+    cut += model->pulloff_distance(r1, r2);
 
   return cut;
 }

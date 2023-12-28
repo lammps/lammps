@@ -2226,7 +2226,7 @@ and third order tensor from finite differences.
 
 **Install:**
 
-The PHONON package requires that also the :ref:`KSPACE <PKG-KSPACE>`
+The fix phonon command also requires that the :ref:`KSPACE <PKG-KSPACE>`
 package is installed.
 
 

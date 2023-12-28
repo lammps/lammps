@@ -1,11 +1,11 @@
 Handling LAMMPS errors
 **********************
 
-The shared library is compiled with :ref:`C++ exception support
-<exceptions>` to provide a better error handling experience.  C++
-exceptions allow capturing errors on the C++ side and rethrowing them on
-the Python side.  This way LAMMPS errors can be handled through the
-Python exception handling mechanism.
+LAMMPS and the LAMMPS library are compiled with :ref:`C++ exception support
+<exceptions>` to provide a better error handling experience.  LAMMPS errors
+trigger throwing a C++ exception. These exceptions allow capturing errors on
+the C++ side and rethrowing them on the Python side.  This way LAMMPS errors
+can be handled through the Python exception handling mechanism.
 
 .. code-block:: python
 

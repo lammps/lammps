@@ -51,7 +51,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   finitecutflag = 1;
-  nonstandardcutflag = 0;
+  pairwisecutflag = 0;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -422,7 +422,7 @@ void PairGranular::init_style()
 
     if (model->beyond_contact) {
       beyond_contact = 1;
-      nonstandardcutflag = 1;
+      pairwisecutflag = 1;
       use_history = 1; // Need to track if in contact
     }
     if (model->size_history != 0) use_history = 1;
@@ -457,7 +457,7 @@ void PairGranular::init_style()
   if (beyond_contact)
     req_flags = NeighConst::REQ_SIZE;
   else
-    req_flags = NeighConst::REQ_NONSTANDARD_CUT;
+    req_flags = NeighConst::REQ_PAIRWISECUT;
   if (use_history) req_flags |= NeighConst::REQ_HISTORY;
   neighbor->add_request(this, req_flags);
 
@@ -874,15 +874,17 @@ double PairGranular::atom2cut(int i)
    interaction range for two particles for beyond contact
 ------------------------------------------------------------------------- */
 
-double PairGranular::pair2cut(int i, int j)
+double PairGranular::pair2cutsq(int i, int j)
 {
-  double cut = r1 + r2;
+  double ri = atom->radius[i];
+  double rj = atom->radius[j];
+  double cut = ri + rj;
 
   class GranularModel* model = models_list[types_indices[i][j]];
   if (model->beyond_contact)
-    cut += model->pulloff_distance(r1, r2);
+    cut += model->pulloff_distance(ri, rj);
 
-  return cut;
+  return cut * cut;
 }
 
 /* ----------------------------------------------------------------------

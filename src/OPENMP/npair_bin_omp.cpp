@@ -24,13 +24,14 @@
 #include "molecule.h"
 #include "my_page.h"
 #include "neigh_list.h"
+#include "pair.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int ATOMONLY>
-NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::NPairBinOmp(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI, int SIZE, int PAIRWISE, int ATOMONLY>
+NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::NPairBinOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    Full:
@@ -47,8 +48,8 @@ NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::NPairBinOmp(LAMMPS *lmp) : NPair
      every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int ATOMONLY>
-void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI, int SIZE, int PAIRWISE, int ATOMONLY>
+void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -220,6 +221,28 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                 neighptr[n++] = jh;
             }
           }
+        } else if (PAIRWISE) {
+          if (ATOMONLY) {
+            if (rsq <= pair->pair2cutsq(i, j)) neighptr[n++] = j;
+          } else {
+            if (rsq <= pair->pair2cutsq(i, j)) {
+              if (molecular != Atom::ATOMIC) {
+                if (!moltemplate)
+                  which = find_special(special[i], nspecial[i], tag[j]);
+                else if (imol >= 0)
+                  which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                       tag[j] - tagprev);
+                else which = 0;
+                if (which == 0)
+                  neighptr[n++] = j;
+                else if (domain->minimum_image_check(delx, dely, delz))
+                  neighptr[n++] = j;
+                else if (which > 0)
+                  neighptr[n++] = j ^ (which << SBBITS);
+              } else
+                neighptr[n++] = j;
+            }
+          }
         } else {
           if (ATOMONLY) {
             if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
@@ -258,20 +281,28 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 }
 
 namespace LAMMPS_NS {
-template class NPairBinOmp<0,1,0,0,0>;
-template class NPairBinOmp<1,0,0,0,0>;
-template class NPairBinOmp<1,1,0,0,0>;
-template class NPairBinOmp<1,1,1,0,0>;
-template class NPairBinOmp<0,1,0,1,0>;
-template class NPairBinOmp<1,0,0,1,0>;
-template class NPairBinOmp<1,1,0,1,0>;
-template class NPairBinOmp<1,1,1,1,0>;
-template class NPairBinOmp<0,1,0,0,1>;
-template class NPairBinOmp<1,0,0,0,1>;
-template class NPairBinOmp<1,1,0,0,1>;
-template class NPairBinOmp<1,1,1,0,1>;
-template class NPairBinOmp<0,1,0,1,1>;
-template class NPairBinOmp<1,0,0,1,1>;
-template class NPairBinOmp<1,1,0,1,1>;
-template class NPairBinOmp<1,1,1,1,1>;
+template class NPairBinOmp<0,1,0,0,0,0>;
+template class NPairBinOmp<1,0,0,0,0,0>;
+template class NPairBinOmp<1,1,0,0,0,0>;
+template class NPairBinOmp<1,1,1,0,0,0>;
+template class NPairBinOmp<0,1,0,1,0,0>;
+template class NPairBinOmp<1,0,0,1,0,0>;
+template class NPairBinOmp<1,1,0,1,0,0>;
+template class NPairBinOmp<1,1,1,1,0,0>;
+template class NPairBinOmp<0,1,0,0,1,0>;
+template class NPairBinOmp<1,0,0,0,1,0>;
+template class NPairBinOmp<1,1,0,0,1,0>;
+template class NPairBinOmp<1,1,1,0,1,0>;
+template class NPairBinOmp<0,1,0,0,0,1>;
+template class NPairBinOmp<1,0,0,0,0,1>;
+template class NPairBinOmp<1,1,0,0,0,1>;
+template class NPairBinOmp<1,1,1,0,0,1>;
+template class NPairBinOmp<0,1,0,1,0,1>;
+template class NPairBinOmp<1,0,0,1,0,1>;
+template class NPairBinOmp<1,1,0,1,0,1>;
+template class NPairBinOmp<1,1,1,1,0,1>;
+template class NPairBinOmp<0,1,0,0,1,1>;
+template class NPairBinOmp<1,0,0,0,1,1>;
+template class NPairBinOmp<1,1,0,0,1,1>;
+template class NPairBinOmp<1,1,1,0,1,1>;
 }

@@ -64,7 +64,7 @@ using namespace NeighConst;
 #define BIG 1.0e20
 
 enum{NONE,ALL,PARTIAL,TEMPLATE};
-enum{TYPE,RADIUS,NONSTANDARD}
+enum{TYPE,RADIUS,PAIRWISE};
 
 static const char cite_neigh_multi_old[] =
   "neighbor multi/old command: doi:10.1016/j.cpc.2008.03.005\n\n"
@@ -428,8 +428,8 @@ void Neighbor::init()
         }
       }
     } else {
-      if (force->pair->nonstandardcutflag)
-        cut_style = NONSTANDARD;
+      if (force->pair->pairwisecutflag)
+        cut_style = PAIRWISE;
       else if (force->pair->finitecutflag)
         cut_style = RADIUS;
       else
@@ -2153,6 +2153,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
     if (!rq->ghost != !(mask & NP_GHOST)) continue;
     if (!rq->size != !(mask & NP_SIZE)) continue;
+    if (!rq->pairwisecut != !(mask & NP_PAIRWISECUT)) continue;
     if (!rq->respaouter != !(mask & NP_RESPA)) continue;
     if (!rq->granonesided != !(mask & NP_ONESIDE)) continue;
     if (!rq->respaouter != !(mask & NP_RESPA)) continue;
@@ -2900,7 +2901,7 @@ void Neighbor::build_collection(int istart)
     memory->grow(collection, nmax_collection, "neigh:collection");
   }
 
-  if (cut_style == NONSTANDARD) {
+  if (cut_style == PAIRWISE) {
     double cut;
     int icollection;
     for (int i = istart; i < nmax; i++){

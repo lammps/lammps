@@ -34,6 +34,8 @@ class NPair : protected Pointers {
   void build_setup();
   virtual void build(class NeighList *) = 0;
 
+  class Pair *pair;         // ptr to pairstyle for custom cutoffs
+
  protected:
   double **mycutneighsq;    // per-type cutoffs when user specified
 

@@ -67,7 +67,7 @@ class PairHybrid : public Pair {
   void add_tally_callback(class Compute *) override;
   void del_tally_callback(class Compute *) override;
   double atom2cut(int) override;
-  double pair2cut(int, int) override;
+  double pair2cutsq(int, int) override;
 
  protected:
   int nstyles;             // # of sub-styles

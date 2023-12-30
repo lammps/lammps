@@ -455,9 +455,9 @@ void PairGranular::init_style()
 
   int req_flags;
   if (beyond_contact)
-    req_flags = NeighConst::REQ_SIZE;
-  else
     req_flags = NeighConst::REQ_PAIRWISECUT;
+  else
+    req_flags = NeighConst::REQ_SIZE;
   if (use_history) req_flags |= NeighConst::REQ_HISTORY;
   neighbor->add_request(this, req_flags);
 
@@ -597,15 +597,12 @@ double PairGranular::init_one(int i, int j)
       cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
       pulloff = 0.0;
       if (model->beyond_contact) {
-        pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);
-        cutoff += pulloff;
-
-        pulloff = model->pulloff_distance(maxrad_frozen[i], maxrad_dynamic[j]);
-        cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j] + pulloff);
-
-        pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
-        cutoff = MAX(cutoff,maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
+        pulloff = MAX(pulloff, model->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]));
+        pulloff = MAX(pulloff, model->pulloff_distance(maxrad_frozen[i], maxrad_dynamic[j]));
+        pulloff = MAX(pulloff, model->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]));
       }
+      cutoff += pulloff;
+
     } else {
       // radius info about either i or j does not exist
       // (i.e. not present and not about to get poured;
@@ -613,8 +610,8 @@ double PairGranular::init_one(int i, int j)
 
       double cutmax = 0.0;
       for (int k = 1; k <= atom->ntypes; k++) {
-        cutmax = MAX(cutmax,2.0*maxrad_dynamic[k]);
-        cutmax = MAX(cutmax,2.0*maxrad_frozen[k]);
+        cutmax = MAX(cutmax, 2.0 * maxrad_dynamic[k]);
+        cutmax = MAX(cutmax, 2.0 * maxrad_frozen[k]);
       }
       cutoff = cutmax;
     }
@@ -880,7 +877,8 @@ double PairGranular::pair2cutsq(int i, int j)
   double rj = atom->radius[j];
   double cut = ri + rj;
 
-  class GranularModel* model = models_list[types_indices[i][j]];
+  int *type = atom->type;
+  class GranularModel* model = models_list[types_indices[type[i]][type[j]]];
   if (model->beyond_contact)
     cut += model->pulloff_distance(ri, rj);
 

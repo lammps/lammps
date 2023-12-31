@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "pair.h"
 
@@ -72,9 +73,6 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
       force->special_coul[3] != 1.0)
     error->all(FLERR, "Fix update/special/bonds requires special Coulomb weights = 1,1,1");
   // Implies neighbor->special_flag = [X, 2, 1, 1]
-
-  if (utils::strmatch(force->pair_style, "^hybrid"))
-    error->all(FLERR, "Cannot use fix update/special/bonds with hybrid pair styles");
 }
 
 /* ----------------------------------------------------------------------
@@ -155,44 +153,47 @@ void FixUpdateSpecialBonds::pre_exchange()
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 {
-  int i1, i2, j, jj, jnum;
+  int ilist, nlist, i1, i2, j, jj, jnum;
   int *jlist, *numneigh, **firstneigh;
   tagint tag1, tag2;
+  NeighList *list;
 
   int nlocal = atom->nlocal;
-
   tagint *tag = atom->tag;
-  NeighList *list = force->pair->list;    // may need to be generalized for pair hybrid*
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
 
   // In theory could communicate a list of broken bonds to neighboring processors here
   // to remove restriction that users use Newton bond off
 
-  for (auto const &it : new_broken_pairs) {
-    tag1 = it.first;
-    tag2 = it.second;
-    i1 = atom->map(tag1);
-    i2 = atom->map(tag2);
+  for (int ilist = 0; ilist < neighbor->nlist; ilist ++) {
+    list = neighbor->lists[ilist];
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
 
-    // Loop through atoms of owned atoms i j
-    if (i1 < nlocal) {
-      jlist = firstneigh[i1];
-      jnum = numneigh[i1];
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= SPECIALMASK;    // Clear special bond bits
-        if (tag[j] == tag2) jlist[jj] = j;
+    for (auto const &it : new_broken_pairs) {
+      tag1 = it.first;
+      tag2 = it.second;
+      i1 = atom->map(tag1);
+      i2 = atom->map(tag2);
+
+      // Loop through atoms of owned atoms i j
+      if (i1 < nlocal) {
+        jlist = firstneigh[i1];
+        jnum = numneigh[i1];
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          j &= SPECIALMASK;    // Clear special bond bits
+          if (tag[j] == tag2) jlist[jj] = j;
+        }
       }
-    }
 
-    if (i2 < nlocal) {
-      jlist = firstneigh[i2];
-      jnum = numneigh[i2];
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= SPECIALMASK;    // Clear special bond bits
-        if (tag[j] == tag1) jlist[jj] = j;
+      if (i2 < nlocal) {
+        jlist = firstneigh[i2];
+        jnum = numneigh[i2];
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          j &= SPECIALMASK;    // Clear special bond bits
+          if (tag[j] == tag1) jlist[jj] = j;
+        }
       }
     }
   }

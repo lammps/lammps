@@ -60,6 +60,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
   newton = 0;
   ghost = 0;
   size = 0;
+  pairwisecut = 0;
   history = 0;
   granonesided = 0;
   respainner = respamiddle = respaouter = 0;

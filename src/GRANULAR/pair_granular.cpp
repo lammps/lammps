@@ -871,7 +871,7 @@ double PairGranular::atom2cut(int i)
    interaction range for two particles for beyond contact
 ------------------------------------------------------------------------- */
 
-double PairGranular::pair2cutsq(int i, int j)
+double PairGranular::pair2cut(int i, int j)
 {
   double ri = atom->radius[i];
   double rj = atom->radius[j];
@@ -882,7 +882,7 @@ double PairGranular::pair2cutsq(int i, int j)
   if (model->beyond_contact)
     cut += model->pulloff_distance(ri, rj);
 
-  return cut * cut;
+  return cut;
 }
 
 /* ----------------------------------------------------------------------

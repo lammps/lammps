@@ -1195,18 +1195,18 @@ double PairHybrid::atom2cut(int i)
    check if substyles calculate maximum interaction range for two particles
 ------------------------------------------------------------------------- */
 
-double PairHybrid::pair2cutsq(int i, int j)
+double PairHybrid::pair2cut(int i, int j)
 {
-  double temp, cutsq;
+  double temp, cut;
 
- cutsq = 0.0;
+ cut = 0.0;
   for (int m = 0; m < nstyles; m++) {
     if (styles[m]->pairwisecutflag) {
-      temp = styles[m]->pair2cutsq(i, j);
-      if (temp > cutsq) cutsq = temp;
+      temp = styles[m]->pair2cut(i, j);
+      if (temp > cut) cut = temp;
     }
   }
-  return cutsq;
+  return cut;
 }
 
 /* ----------------------------------------------------------------------

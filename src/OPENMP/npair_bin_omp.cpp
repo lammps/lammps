@@ -185,9 +185,15 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
 
-        if (SIZE) {
-          radsum = radius[i] + radius[j];
-          cut = radsum + skin;
+        if (SIZE || PAIRWISE) {
+
+          if (PAIRWISE) {
+            cut = pair->pair2cut(i, j);
+            cut += skin;
+          } else {
+            radsum = radius[i] + radius[j];
+            cut = radsum + skin;
+          }
           cutsq = cut * cut;
 
           if (ATOMONLY) {
@@ -219,28 +225,6 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *
                   neighptr[n++] = jh ^ (which << SBBITS);
               } else
                 neighptr[n++] = jh;
-            }
-          }
-        } else if (PAIRWISE) {
-          if (ATOMONLY) {
-            if (rsq <= pair->pair2cutsq(i, j)) neighptr[n++] = j;
-          } else {
-            if (rsq <= pair->pair2cutsq(i, j)) {
-              if (molecular != Atom::ATOMIC) {
-                if (!moltemplate)
-                  which = find_special(special[i], nspecial[i], tag[j]);
-                else if (imol >= 0)
-                  which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                       tag[j] - tagprev);
-                else which = 0;
-                if (which == 0)
-                  neighptr[n++] = j;
-                else if (domain->minimum_image_check(delx, dely, delz))
-                  neighptr[n++] = j;
-                else if (which > 0)
-                  neighptr[n++] = j ^ (which << SBBITS);
-              } else
-                neighptr[n++] = j;
             }
           }
         } else {

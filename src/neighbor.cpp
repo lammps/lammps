@@ -2922,7 +2922,7 @@ void Neighbor::build_collection(int istart)
     double cut;
     double *radius = atom->radius;
     int icollection;
-    for (int i = istart; i < nmax; i++){
+    for (int i = istart; i < nmax; i++) {
       cut = 2 * radius[i];
       collection[i] = -1;
 

@@ -107,7 +107,9 @@ struct PairComputeFunctor  {
   }
 
   void contribute() {
-    if constexpr (std::is_same_v<NeedDup_v<NEIGHFLAG,device_type>,Kokkos::Experimental::ScatterDuplicated>) {
+    int need_dup = std::is_same_v<DUP,Kokkos::Experimental::ScatterDuplicated>;
+
+    if (need_dup) {
       Kokkos::Experimental::contribute(c.f, dup_f);
 
       if (c.eflag_atom)

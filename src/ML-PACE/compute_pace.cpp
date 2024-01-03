@@ -73,10 +73,7 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   auto potential_file_name = utils::get_potential_file_path(arg[3]);
   delete acecimpl -> basis_set;
   acecimpl -> basis_set = new ACECTildeBasisSet(potential_file_name);
-  double cut = acecimpl -> basis_set->cutoffmax;
   cutmax = acecimpl -> basis_set->cutoffmax;
-  double cuti;
-  double radelemall = 0.5;
 
   //# of rank 1, rank > 1 functions
 
@@ -184,7 +181,6 @@ void ComputePACE::init_list(int /*id*/, NeighList *ptr)
 void ComputePACE::compute_array()
 {
   int ntotal = atom->nlocal + atom->nghost;
-  double **f = atom->f;
   invoked_array = update->ntimestep;
 
   // grow pace_peratom array if necessary
@@ -214,9 +210,6 @@ void ComputePACE::compute_array()
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
-  SPECIES_TYPE *mus;
-  NS_TYPE *ns;
-  LS_TYPE *ls;
 
   const int inum = list->inum;
   const int* const ilist = list->ilist;
@@ -240,7 +233,6 @@ void ComputePACE::compute_array()
   // compute pace derivatives for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
-  double** const x = atom->x;
   const int* const mask = atom->mask;
   const int ntypes = atom->ntypes;
 

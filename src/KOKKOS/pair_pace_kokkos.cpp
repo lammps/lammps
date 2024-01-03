@@ -104,7 +104,8 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
 
   if ((int)A.extent(0) < natom) {
 
-    MemKK::realloc_kokkos(A, "pace:A", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(A_sph, "pace:A_sph", natom, nelements, idx_sph_max, nradmax + 1);
+    MemKK::realloc_kokkos(A, "pace:A", natom, nelements, (lmax + 1) * (lmax + 1), nradmax + 1);
     MemKK::realloc_kokkos(A_rank1, "pace:A_rank1", natom, nelements, nradbase);
 
     MemKK::realloc_kokkos(A_list, "pace:A_list", natom, idx_rho_max, basis_set->rankmax);
@@ -115,7 +116,7 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
     MemKK::realloc_kokkos(rhos, "pace:rhos", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
     MemKK::realloc_kokkos(dF_drho, "pace:dF_drho", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
 
-    MemKK::realloc_kokkos(weights, "pace:weights", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(weights, "pace:weights", natom, nelements, idx_sph_max, nradmax + 1);
     MemKK::realloc_kokkos(weights_rank1, "pace:weights_rank1", natom, nelements, nradbase);
 
     // hard-core repulsion
@@ -129,11 +130,11 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
     MemKK::realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_rho_max, basis_set->rankmax);
   }
 
-  if (((int)ylm.extent(0) < natom) || ((int)ylm.extent(1) < maxneigh)) {
+  if (((int)fr.extent(0) < natom) || ((int)fr.extent(1) < maxneigh)) {
 
     // radial functions
-    MemKK::realloc_kokkos(fr, "pace:fr", natom, maxneigh, nradmax, lmax + 1);
-    MemKK::realloc_kokkos(dfr, "pace:dfr", natom, maxneigh, nradmax, lmax + 1);
+    MemKK::realloc_kokkos(fr, "pace:fr", natom, maxneigh, lmax + 1, nradmax);
+    MemKK::realloc_kokkos(dfr, "pace:dfr", natom, maxneigh, lmax + 1, nradmax);
     MemKK::realloc_kokkos(gr, "pace:gr", natom, maxneigh, nradbase);
     MemKK::realloc_kokkos(dgr, "pace:dgr", natom, maxneigh, nradbase);
     const int max_num_functions = MAX(nradbase, nradmax*(lmax + 1));
@@ -143,12 +144,6 @@ void PairPACEKokkos<DeviceType>::grow(int natom, int maxneigh)
     // hard-core repulsion
     MemKK::realloc_kokkos(cr, "pace:cr", natom, maxneigh);
     MemKK::realloc_kokkos(dcr, "pace:dcr", natom, maxneigh);
-
-    // spherical harmonics
-    MemKK::realloc_kokkos(plm, "pace:plm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    MemKK::realloc_kokkos(dplm, "pace:dplm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    MemKK::realloc_kokkos(ylm, "pace:ylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    MemKK::realloc_kokkos(dylm, "pace:dylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
 
     // short neigh list
     MemKK::realloc_kokkos(d_ncount, "pace:ncount", natom);
@@ -443,6 +438,7 @@ void PairPACEKokkos<DeviceType>::init_style()
 
   // spherical harmonics
 
+  MemKK::realloc_kokkos(d_idx_sph, "pace:idx_sph", (lmax + 1) * (lmax + 1));
   MemKK::realloc_kokkos(alm, "pace:alm", (lmax + 1) * (lmax + 1));
   MemKK::realloc_kokkos(blm, "pace:blm", (lmax + 1) * (lmax + 1));
   MemKK::realloc_kokkos(cl, "pace:cl", lmax + 1);
@@ -613,7 +609,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     Kokkos::deep_copy(weights, 0.0);
     Kokkos::deep_copy(weights_rank1, 0.0);
-    Kokkos::deep_copy(A, 0.0);
+    Kokkos::deep_copy(A_sph, 0.0);
     Kokkos::deep_copy(A_rank1, 0.0);
     Kokkos::deep_copy(rhos, 0.0);
     Kokkos::deep_copy(rho_core, 0.0);
@@ -644,15 +640,6 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       check_team_size_for<TagPairPACEComputeRadial>(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
       typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeRadial> policy_radial(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
       Kokkos::parallel_for("ComputeRadial",policy_radial,*this);
-    }
-
-    //ComputeYlm
-    {
-      int vector_length = vector_length_default;
-      int team_size = 16;
-      check_team_size_for<TagPairPACEComputeYlm>(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
-      typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeYlm> policy_ylm(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
-      Kokkos::parallel_for("ComputeYlm",policy_ylm,*this);
     }
 
     //ComputeAi
@@ -693,7 +680,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       int vector_length = vector_length_default;
       int team_size = team_size_default;
       check_team_size_for<TagPairPACEComputeDerivative>(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
-      typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeDerivative> policy_derivative(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
+      typename Kokkos::TeamPolicy<DeviceType,TagPairPACEComputeDerivative> policy_derivative(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
       Kokkos::parallel_for("ComputeDerivative",policy_derivative,*this);
     }
 
@@ -900,28 +887,6 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeRadial, const typ
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeYlm, const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeYlm>::member_type& team) const
-{
-  // Extract the atom number
-  int ii = team.team_rank() + team.team_size() * (team.league_rank() %
-           ((chunk_size+team.team_size()-1)/team.team_size()));
-  if (ii >= chunk_size) return;
-
-  // Extract the neighbor number
-  const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
-  const int ncount = d_ncount(ii);
-  if (jj >= ncount) return;
-
-  const double xn = d_rhats(ii, jj, 0);
-  const double yn = d_rhats(ii, jj, 1);
-  const double zn = d_rhats(ii, jj, 2);
-  compute_ylm(ii,jj,xn,yn,zn,lmax);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeAi>::member_type& team) const
 {
   // Extract the atom number
@@ -941,13 +906,127 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typenam
     Kokkos::atomic_add(&A_rank1(ii, mu_j, n), gr(ii, jj, n) * Y00);
 
   // rank > 1
-  for (int n = 0; n < nradmax; n++) {
-    for (int l = 0; l <= lmax; l++) {
-      for (int m = 0; m <= l; m++) {
-        const int idx = l * (l + 1) + m; // (l, m)
-        Kokkos::atomic_add(&A(ii, mu_j, n, idx).re, fr(ii, jj, n, l) * ylm(ii, jj, idx).re);
-        Kokkos::atomic_add(&A(ii, mu_j, n, idx).im, fr(ii, jj, n, l) * ylm(ii, jj, idx).im);
+
+  // Compute plm and ylm
+
+  // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // prefactors include 1/sqrt(2) factor compared to reference
+
+  complex ylm, phase;
+  complex phasem, mphasem1;
+  complex dyx, dyy, dyz;
+  complex rdy;
+
+  const double rx = d_rhats(ii, jj, 0);
+  const double ry = d_rhats(ii, jj, 1);
+  const double rz = d_rhats(ii, jj, 2);
+
+  phase.re = rx;
+  phase.im = ry;
+
+  double plm_idx,plm_idx1,plm_idx2;
+  
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+
+  int idx_sph = 0;
+
+  // m = 0
+  for (int l = 0; l <= lmax; l++) {
+    // const int idx = l * (l + 1);
+
+    if (l == 0) {
+      // l=0, m=0
+      // plm[0] = Y00/sq1o4pi; //= sq1o4pi;
+      plm_idx = Y00; //= 1;
+    } else if (l == 1) {
+      // l=1, m=0
+      plm_idx = Y00 * sq3 * rz;
+    } else {
+      // l>=2, m=0
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+    }
+
+    ylm.re = plm_idx;
+    ylm.im = 0.0;
+
+    for (int n = 0; n < nradmax; n++) {
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).re, fr(ii, jj, l, n) * ylm.re);
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).im, fr(ii, jj, l, n) * ylm.im);
+    }
+
+    plm_idx2 = plm_idx1;
+    plm_idx1 = plm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+
+  // m = 1
+  for (int l = 1; l <= lmax; l++) {
+    // const int idx = l * (l + 1) + 1; // (l, 1)
+
+    if (l == 1) {
+      // l=1, m=1
+      plm_idx = -sq3o2 * Y00;
+    } else if (l == 2) {
+      const double t = dl(l) * plm_idx1;
+      plm_idx = t * rz;
+    } else {
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+    }
+
+    ylm = phase * plm_idx;
+
+    for (int n = 0; n < nradmax; n++) {
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).re, fr(ii, jj, l, n) * ylm.re);
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).im, fr(ii, jj, l, n) * ylm.im);
+    }
+
+    plm_idx2 = plm_idx1;
+    plm_idx1 = plm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+
+  double plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
+
+  // m > 1
+  phasem = phase;
+  for (int m = 2; m <= lmax; m++) {
+
+    mphasem1.re = phasem.re * double(m);
+    mphasem1.im = phasem.im * double(m);
+    phasem = phasem * phase;
+
+    for (int l = m; l <= lmax; l++) {
+      // const int idx = l * (l + 1) + m;
+
+      if (l == m) {
+        plm_idx = cl(l) * plm_mm1_mm1; // (m+1, m)
+        plm_mm1_mm1 = plm_idx;
+      } else if (l == (m + 1)) {
+        const double t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
+        plm_idx = t * rz; // (m, m)
+      } else {
+        plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
       }
+
+      ylm.re = phasem.re * plm_idx;
+      ylm.im = phasem.im * plm_idx;
+
+      for (int n = 0; n < nradmax; n++) {
+        Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).re, fr(ii, jj, l, n) * ylm.re);
+        Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).im, fr(ii, jj, l, n) * ylm.im);
+      }
+
+      plm_idx2 = plm_idx1;
+      plm_idx1 = plm_idx;
+
+      idx_sph++;
     }
   }
 
@@ -961,17 +1040,35 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairPACEKokkos<DeviceType>::operator() (TagPairPACEConjugateAi, const int& ii) const
 {
-  //complex conjugate A's (for NEGATIVE (-m) terms)
-  // for rank > 1
   for (int mu_j = 0; mu_j < nelements; mu_j++) {
-    for (int n = 0; n < nradmax; n++) {
-      for (int l = 0; l <= lmax; l++) {
+
+    // transpose
+
+    int idx_sph = 0;
+
+    for (int m = 0; m <= lmax; m++) {
+      for (int l = m; l <= lmax; l++) {
+        const int idx = l * (l + 1) + m;
+        for (int n = 0; n < nradmax; n++) {
+          A(ii, mu_j, idx, n) = A_sph(ii, mu_j, idx_sph, n);
+        }
+
+        idx_sph++;
+      }
+    }
+
+    // complex conjugate A's (for NEGATIVE (-m) terms)
+    //  for rank > 1
+
+    for (int l = 0; l <= lmax; l++) {
         //fill in -m part in the outer loop using the same m <-> -m symmetry as for Ylm
-        for (int m = 1; m <= l; m++) {
-          const int idx = l * (l + 1) + m; // (l, m)
-          const int idxm = l * (l + 1) - m; // (l, -m)
-          const int factor = m % 2 == 0 ? 1 : -1;
-          A(ii, mu_j, n, idxm) = A(ii, mu_j, n, idx).conj() * (double)factor;
+      for (int m = 1; m <= l; m++) {
+        const int idx = l * (l + 1) + m; // (l, m)
+        const int idxm = l * (l + 1) - m; // (l, -m)
+        const int idx_sph = d_idx_sph(idx);
+        const int factor = m % 2 == 0 ? 1 : -1;
+        for (int n = 0; n < nradmax; n++) {
+          A(ii, mu_j, idxm, n) = A_sph(ii, mu_j, idx_sph, n).conj() * (double)factor;
         }
       }
     }
@@ -1021,7 +1118,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeRho, const int& i
       const int l = d_ls(mu_i, offset, t);
       const int m = d_ms_combs(mu_i, idx_rho, t); // current ms-combination (of length = rank)
       const int idx = l * (l + 1) + m; // (l, m)
-      A_list(ii, idx_rho, t) = A(ii, mu, n - 1, idx);
+      A_list(ii, idx_rho, t) = A(ii, mu, idx, n - 1);
       A_forward_prod(ii, idx_rho, t + 1) = A_forward_prod(ii, idx_rho, t) * A_list(ii, idx_rho, t);
     }
 
@@ -1142,14 +1239,20 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeWeights, const in
       const int n_t = d_ns(mu_i, offset, t);
       const int l_t = d_ls(mu_i, offset, t);
       const int idx = l_t * (l_t + 1) + m_t; // (l, m)
-      const complex value = theta * dB;
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idx).re), value.re);
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idx).im), value.im);
+      const int idx_sph = d_idx_sph(idx);
+      if (idx_sph >= 0) {
+        const complex value = theta * dB;
+        Kokkos::atomic_add(&(weights(ii, mu_t, idx_sph, n_t - 1).re), value.re);
+        Kokkos::atomic_add(&(weights(ii, mu_t, idx_sph, n_t - 1).im), value.im);
+      }
       // update -m_t (that could also be positive), because the basis is half_basis
       const int idxm = l_t * (l_t + 1) - m_t; // (l, -m)
-      const complex valuem = theta * dB.conj() * (double)factor;
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idxm).re), valuem.re);
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idxm).im), valuem.im);
+      const int idxm_sph = d_idx_sph(idxm);
+      if (idxm_sph >= 0) {
+        const complex valuem = theta * dB.conj() * (double)factor;
+        Kokkos::atomic_add(&(weights(ii, mu_t, idxm_sph, n_t - 1).re), valuem.re);
+        Kokkos::atomic_add(&(weights(ii, mu_t, idxm_sph, n_t - 1).im), valuem.im);
+      }
     }
   }
 }
@@ -1196,37 +1299,239 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
   }
 
   // for rank > 1
-  for (int n = 0; n < nradmax; n++) {
-    for (int l = 0; l <= lmax; l++) {
-      const double R_over_r = fr(ii, jj, n, l) * rinv;
-      const double DR = dfr(ii, jj, n, l);
 
-      // for m >= 0
-      for (int m = 0; m <= l; m++) {
-        const int idx = l * (l + 1) + m; // (l, m)
-        complex w = weights(ii, mu_j, n, idx);
+  // compute plm, dplm, ylm and dylm
+  // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // prefactors include 1/sqrt(2) factor compared to reference
+
+  complex ylm,dylm[3];
+  complex phase;
+  complex phasem, mphasem1;
+  complex dyx, dyy, dyz;
+  complex rdy;
+
+  const double rx = d_rhats(ii, jj, 0);
+  const double ry = d_rhats(ii, jj, 1);
+  const double rz = d_rhats(ii, jj, 2);
+
+  phase.re = rx;
+  phase.im = ry;
+
+  double plm_idx,plm_idx1,plm_idx2;
+  double dplm_idx,dplm_idx1,dplm_idx2;
+  
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+  dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
+
+  int idx_sph = 0;
+
+  // m = 0
+  for (int l = 0; l <= lmax; l++) {
+    // const int idx = l * (l + 1);
+
+    if (l == 0) {
+      // l=0, m=0
+      // plm[0] = Y00/sq1o4pi; //= sq1o4pi;
+      plm_idx = Y00; //= 1;
+      dplm_idx = 0.0;
+    } else if (l == 1) {
+      // l=1, m=0
+      plm_idx = Y00 * sq3 * rz;
+      dplm_idx = Y00 * sq3;
+    } else {
+      // l>=2, m=0
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+      dplm_idx = alm(idx_sph) * (plm_idx1 + rz * dplm_idx1 + blm(idx_sph) * dplm_idx2);
+    }
+
+    ylm.re = plm_idx;
+    ylm.im = 0.0;
+
+    dyz.re = dplm_idx;
+    rdy.re = dyz.re * rz;
+
+    dylm[0].re = -rdy.re * rx;
+    dylm[0].im = 0.0;
+    dylm[1].re = -rdy.re * ry;
+    dylm[1].im = 0.0;
+    dylm[2].re = dyz.re - rdy.re * rz;
+    dylm[2].im = 0;
+
+    for (int n = 0; n < nradmax; n++) {
+
+      const double R_over_r = fr(ii, jj, l, n) * rinv;
+      const double DR = dfr(ii, jj, l, n);
+      const complex Y_DR = ylm * DR;
+
+      complex w = weights(ii, mu_j, idx_sph, n);
+      if (w.re == 0.0 && w.im == 0.0) continue;
+
+      complex grad_phi_nlm[3];
+      grad_phi_nlm[0] = Y_DR * r_hat[0] + dylm[0] * R_over_r;
+      grad_phi_nlm[1] = Y_DR * r_hat[1] + dylm[1] * R_over_r;
+      grad_phi_nlm[2] = Y_DR * r_hat[2] + dylm[2] * R_over_r;
+      // real-part multiplication only
+      f_ji[0] += w.real_part_product(grad_phi_nlm[0]);
+      f_ji[1] += w.real_part_product(grad_phi_nlm[1]);
+      f_ji[2] += w.real_part_product(grad_phi_nlm[2]);
+    }
+
+    plm_idx2 = plm_idx1;
+    dplm_idx2 = dplm_idx1;
+
+    plm_idx1 = plm_idx;
+    dplm_idx1 = dplm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+  dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
+
+  // m = 1
+  for (int l = 1; l <= lmax; l++) {
+    // const int idx = l * (l + 1) + 1; // (l, 1)
+
+    if (l == 1) {
+      // l=1, m=1
+      plm_idx = -sq3o2 * Y00;
+      dplm_idx = 0.0;
+    } else if (l == 2) {
+      const double t = dl(l) * plm_idx1;
+      plm_idx = t * rz;
+      dplm_idx = t;
+    } else {
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+      dplm_idx = alm(idx_sph) * (plm_idx1 + rz * dplm_idx1 + blm(idx_sph) * dplm_idx2);
+    }
+
+    ylm = phase * plm_idx;
+
+    dyx.re = plm_idx;
+    dyx.im = 0.0;
+    dyy.re = 0.0;
+    dyy.im = plm_idx;
+    dyz.re = phase.re * dplm_idx;
+    dyz.im = phase.im * dplm_idx;
+
+    rdy.re = rx * dyx.re + +rz * dyz.re;
+    rdy.im = ry * dyy.im + rz * dyz.im;
+
+    dylm[0].re = dyx.re - rdy.re * rx;
+    dylm[0].im = -rdy.im * rx;
+    dylm[1].re = -rdy.re * ry;
+    dylm[1].im = dyy.im - rdy.im * ry;
+    dylm[2].re = dyz.re - rdy.re * rz;
+    dylm[2].im = dyz.im - rdy.im * rz;
+
+    for (int n = 0; n < nradmax; n++) {
+
+      const double R_over_r = fr(ii, jj, l, n) * rinv;
+      const double DR = dfr(ii, jj, l, n);
+      const complex Y_DR = ylm * DR;
+
+      complex w = weights(ii, mu_j, idx_sph, n);
+      if (w.re == 0.0 && w.im == 0.0) continue;
+      // counting for -m cases if m > 0
+      w.re *= 2.0;
+      w.im *= 2.0;
+
+      complex grad_phi_nlm[3];
+      grad_phi_nlm[0] = Y_DR * r_hat[0] + dylm[0] * R_over_r;
+      grad_phi_nlm[1] = Y_DR * r_hat[1] + dylm[1] * R_over_r;
+      grad_phi_nlm[2] = Y_DR * r_hat[2] + dylm[2] * R_over_r;
+      // real-part multiplication only
+      f_ji[0] += w.real_part_product(grad_phi_nlm[0]);
+      f_ji[1] += w.real_part_product(grad_phi_nlm[1]);
+      f_ji[2] += w.real_part_product(grad_phi_nlm[2]);
+    }
+
+    plm_idx2 = plm_idx1;
+    dplm_idx2 = dplm_idx1;
+
+    plm_idx1 = plm_idx;
+    dplm_idx1 = dplm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+  dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
+
+  double plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
+
+  // m > 1
+  phasem = phase;
+  for (int m = 2; m <= lmax; m++) {
+
+    mphasem1.re = phasem.re * double(m);
+    mphasem1.im = phasem.im * double(m);
+    phasem = phasem * phase;
+
+    for (int l = m; l <= lmax; l++) {
+      // const int idx = l * (l + 1) + m;
+
+      if (l == m) {
+        plm_idx = cl(l) * plm_mm1_mm1; // (m+1, m)
+        dplm_idx = 0.0;
+        plm_mm1_mm1 = plm_idx;
+      } else if (l == (m + 1)) {
+        const double t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
+        plm_idx = t * rz; // (m, m)
+        dplm_idx = t;
+      } else {
+        plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+        dplm_idx = alm(idx_sph) * (plm_idx1 + rz * dplm_idx1 + blm(idx_sph) * dplm_idx2);
+      }
+
+      ylm.re = phasem.re * plm_idx;
+      ylm.im = phasem.im * plm_idx;
+
+      dyx = mphasem1 * plm_idx;
+      dyy.re = -dyx.im;
+      dyy.im = dyx.re;
+      dyz = phasem * dplm_idx;
+
+      rdy.re = rx * dyx.re + ry * dyy.re + rz * dyz.re;
+      rdy.im = rx * dyx.im + ry * dyy.im + rz * dyz.im;
+
+      dylm[0].re = dyx.re - rdy.re * rx;
+      dylm[0].im = dyx.im - rdy.im * rx;
+      dylm[1].re = dyy.re - rdy.re * ry;
+      dylm[1].im = dyy.im - rdy.im * ry;
+      dylm[2].re = dyz.re - rdy.re * rz;
+      dylm[2].im = dyz.im - rdy.im * rz;
+
+      for (int n = 0; n < nradmax; n++) {
+
+        const double R_over_r = fr(ii, jj, l, n) * rinv;
+        const double DR = dfr(ii, jj, l, n);
+        const complex Y_DR = ylm * DR;
+
+        complex w = weights(ii, mu_j, idx_sph, n);
         if (w.re == 0.0 && w.im == 0.0) continue;
         // counting for -m cases if m > 0
-        if (m > 0) {
-          w.re *= 2.0;
-          w.im *= 2.0;
-        }
-
-        complex DY[3];
-        DY[0] = dylm(ii, jj, idx, 0);
-        DY[1] = dylm(ii, jj, idx, 1);
-        DY[2] = dylm(ii, jj, idx, 2);
-        const complex Y_DR = ylm(ii, jj, idx) * DR;
+        w.re *= 2.0;
+        w.im *= 2.0;
 
         complex grad_phi_nlm[3];
-        grad_phi_nlm[0] = Y_DR * r_hat[0] + DY[0] * R_over_r;
-        grad_phi_nlm[1] = Y_DR * r_hat[1] + DY[1] * R_over_r;
-        grad_phi_nlm[2] = Y_DR * r_hat[2] + DY[2] * R_over_r;
+        grad_phi_nlm[0] = Y_DR * r_hat[0] + dylm[0] * R_over_r;
+        grad_phi_nlm[1] = Y_DR * r_hat[1] + dylm[1] * R_over_r;
+        grad_phi_nlm[2] = Y_DR * r_hat[2] + dylm[2] * R_over_r;
         // real-part multiplication only
         f_ji[0] += w.real_part_product(grad_phi_nlm[0]);
         f_ji[1] += w.real_part_product(grad_phi_nlm[1]);
         f_ji[2] += w.real_part_product(grad_phi_nlm[2]);
       }
+
+      plm_idx2 = plm_idx1;
+      dplm_idx2 = dplm_idx1;
+
+      plm_idx1 = plm_idx;
+      dplm_idx1 = dplm_idx;
+
+      idx_sph++;
     }
   }
 
@@ -1364,172 +1669,50 @@ void PairPACEKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const i
 template<class DeviceType>
 void PairPACEKokkos<DeviceType>::pre_compute_harmonics(int lmax)
 {
+  auto h_idx_sph = Kokkos::create_mirror_view(d_idx_sph);
   auto h_alm = Kokkos::create_mirror_view(alm);
   auto h_blm = Kokkos::create_mirror_view(blm);
   auto h_cl = Kokkos::create_mirror_view(cl);
   auto h_dl = Kokkos::create_mirror_view(dl);
 
-  for (int l = 1; l <= lmax; l++) {
-    const double lsq = l * l;
-    const double ld = 2 * l;
-    const double l1 = (4 * lsq - 1);
-    const double l2 = lsq - ld + 1;
-    for (int m = 0; m < l - 1; m++) {
-      const double msq = m * m;
-      const double a = sqrt((double(l1)) / (double(lsq - msq)));
-      const double b = -sqrt((double(l2 - msq)) / (double(4 * l2 - 1)));
+  Kokkos::deep_copy(h_idx_sph,-1);
+
+  int idx_sph = 0;
+  for (int m = 0; m <= lmax; m++) {
+    const double msq = m * m;
+    for (int l = m; l <= lmax; l++) {
       const int idx = l * (l + 1) + m; // (l, m)
-      h_alm(idx) = a;
-      h_blm(idx) = b;
+      h_idx_sph(idx) = idx_sph;
+
+      double a = 0.0;
+      double b = 0.0;
+
+      if (l > 1 && l != m) {
+        const double lsq = l * l;
+        const double ld = 2 * l;
+        const double l1 = (4 * lsq - 1);
+        const double l2 = lsq - ld + 1;
+
+        a = sqrt((double(l1)) / (double(lsq - msq)));
+        b = -sqrt((double(l2 - msq)) / (double(4 * l2 - 1)));
+      }
+      h_alm(idx_sph) = a;
+      h_blm(idx_sph) = b;
+      idx_sph++;
     }
   }
+  idx_sph_max = idx_sph;
 
   for (int l = 1; l <= lmax; l++) {
     h_cl(l) = -sqrt(1.0 + 0.5 / (double(l)));
     h_dl(l) = sqrt(double(2 * (l - 1) + 3));
   }
 
+  Kokkos::deep_copy(d_idx_sph, h_idx_sph);
   Kokkos::deep_copy(alm, h_alm);
   Kokkos::deep_copy(blm, h_blm);
   Kokkos::deep_copy(cl, h_cl);
   Kokkos::deep_copy(dl, h_dl);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::compute_barplm(int ii, int jj, double rz, int lmax) const
-{
-  // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
-  // prefactors include 1/sqrt(2) factor compared to reference
-
-  // l=0, m=0
-  // plm(ii, jj, 0, 0) = Y00/sq1o4pi; //= sq1o4pi;
-  plm(ii, jj, 0) = Y00; //= 1;
-  dplm(ii, jj, 0) = 0.0;
-
-  if (lmax > 0) {
-
-    // l=1, m=0
-    plm(ii, jj, 2) = Y00 * sq3 * rz;
-    dplm(ii, jj, 2) = Y00 * sq3;
-
-    // l=1, m=1
-    plm(ii, jj, 3) = -sq3o2 * Y00;
-    dplm(ii, jj, 3) = 0.0;
-
-    // loop l = 2, lmax
-    for (int l = 2; l <= lmax; l++) {
-      for (int m = 0; m < l - 1; m++) {
-        const int idx = l * (l + 1) + m; // (l, m)
-        const int idx1 = (l - 1) * l + m; // (l - 1, m)
-        const int idx2 = (l - 2) * (l - 1) + m; // (l - 2, m)
-        plm(ii, jj, idx) = alm(idx) * (rz * plm(ii, jj, idx1) + blm(idx) * plm(ii, jj, idx2));
-        dplm(ii, jj, idx) = alm(idx) * (plm(ii, jj, idx1) + rz * dplm(ii, jj, idx1) + blm(idx) * dplm(ii, jj, idx2));
-      }
-      const int idx = l * (l + 1) + l; // (l, l)
-      const int idx1 = l * (l + 1) + l - 1; // (l, l - 1)
-      const int idx2 = (l - 1) * l + l - 1; // (l - 1, l - 1)
-      const double t = dl(l) * plm(ii, jj, idx2);
-      plm(ii, jj, idx1) = t * rz;
-      dplm(ii, jj, idx1) = t;
-      plm(ii, jj, idx) = cl(l) * plm(ii, jj, idx2);
-      dplm(ii, jj, idx) = 0.0;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::compute_ylm(int ii, int jj, double rx, double ry, double rz, int lmax) const
-{
-  // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!
-
-  complex phase;
-  complex phasem, mphasem1;
-  complex dyx, dyy, dyz;
-  complex rdy;
-
-  phase.re = rx;
-  phase.im = ry;
-
-  // compute barplm
-  compute_barplm(ii, jj, rz, lmax);
-
-  // m = 0
-  for (int l = 0; l <= lmax; l++) {
-    const int idx = l * (l + 1);
-
-    ylm(ii, jj, idx).re = plm(ii, jj, idx);
-    ylm(ii, jj, idx).im = 0.0;
-
-    dyz.re = dplm(ii, jj, idx);
-    rdy.re = dyz.re * rz;
-
-    dylm(ii, jj, idx, 0).re = -rdy.re * rx;
-    dylm(ii, jj, idx, 0).im = 0.0;
-    dylm(ii, jj, idx, 1).re = -rdy.re * ry;
-    dylm(ii, jj, idx, 1).im = 0.0;
-    dylm(ii, jj, idx, 2).re = dyz.re - rdy.re * rz;
-    dylm(ii, jj, idx, 2).im = 0;
-  }
-  // m = 1
-  for (int l = 1; l <= lmax; l++) {
-    const int idx = l * (l + 1) + 1;
-
-    ylm(ii, jj, idx) = phase * plm(ii, jj, idx);
-
-    dyx.re = plm(ii, jj, idx);
-    dyx.im = 0.0;
-    dyy.re = 0.0;
-    dyy.im = plm(ii, jj, idx);
-    dyz.re = phase.re * dplm(ii, jj, idx);
-    dyz.im = phase.im * dplm(ii, jj, idx);
-
-    rdy.re = rx * dyx.re + +rz * dyz.re;
-    rdy.im = ry * dyy.im + rz * dyz.im;
-
-    dylm(ii, jj, idx, 0).re = dyx.re - rdy.re * rx;
-    dylm(ii, jj, idx, 0).im = -rdy.im * rx;
-    dylm(ii, jj, idx, 1).re = -rdy.re * ry;
-    dylm(ii, jj, idx, 1).im = dyy.im - rdy.im * ry;
-    dylm(ii, jj, idx, 2).re = dyz.re - rdy.re * rz;
-    dylm(ii, jj, idx, 2).im = dyz.im - rdy.im * rz;
-  }
-
-  // m > 1
-  phasem = phase;
-  for (int m = 2; m <= lmax; m++) {
-
-    mphasem1.re = phasem.re * double(m);
-    mphasem1.im = phasem.im * double(m);
-    phasem = phasem * phase;
-
-    for (int l = m; l <= lmax; l++) {
-      const int idx = l * (l + 1) + m;
-
-      ylm(ii, jj, idx).re = phasem.re * plm(ii, jj, idx);
-      ylm(ii, jj, idx).im = phasem.im * plm(ii, jj, idx);
-
-      dyx = mphasem1 * plm(ii, jj, idx);
-      dyy.re = -dyx.im;
-      dyy.im = dyx.re;
-      dyz = phasem * dplm(ii, jj, idx);
-
-      rdy.re = rx * dyx.re + ry * dyy.re + rz * dyz.re;
-      rdy.im = rx * dyx.im + ry * dyy.im + rz * dyz.im;
-
-      dylm(ii, jj, idx, 0).re = dyx.re - rdy.re * rx;
-      dylm(ii, jj, idx, 0).im = dyx.im - rdy.im * rx;
-      dylm(ii, jj, idx, 1).re = dyy.re - rdy.re * ry;
-      dylm(ii, jj, idx, 1).im = dyy.im - rdy.im * ry;
-      dylm(ii, jj, idx, 2).re = dyz.re - rdy.re * rz;
-      dylm(ii, jj, idx, 2).im = dyz.im - rdy.im * rz;
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1662,11 +1845,11 @@ void PairPACEKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, do
   spline_gk.calcSplines(ii, jj, r, gr, dgr);
 
   spline_rnl.calcSplines(ii, jj, r, d_values, d_derivatives);
-  for (int kk = 0; kk < (int)fr.extent(2); kk++) {
-    for (int ll = 0; ll < (int)fr.extent(3); ll++) {
-      const int flatten = kk*fr.extent(3) + ll;
-      fr(ii, jj, kk, ll) = d_values(ii, jj, flatten);
-      dfr(ii, jj, kk, ll) = d_derivatives(ii, jj, flatten);
+  for (int ll = 0; ll < (int)fr.extent(2); ll++) {
+    for (int kk = 0; kk < (int)fr.extent(3); kk++) {
+      const int flatten = kk*fr.extent(2) + ll;
+      fr(ii, jj, ll, kk) = d_values(ii, jj, flatten);
+      dfr(ii, jj, ll, kk) = d_derivatives(ii, jj, flatten);
     }
   }
 
@@ -1686,7 +1869,7 @@ void PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos::operator=(const Splin
     rscalelookup = spline.rscalelookup;
     num_of_functions = spline.num_of_functions;
 
-    lookupTable = t_ace_3d4("lookupTable", ntot+1, num_of_functions);
+    lookupTable = t_ace_3d4_lr("lookupTable", ntot+1, num_of_functions);
     auto h_lookupTable = Kokkos::create_mirror_view(lookupTable);
     for (int i = 0; i < ntot+1; i++)
         for (int j = 0; j < num_of_functions; j++)
@@ -1792,10 +1975,6 @@ double PairPACEKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(d_derivatives);
   bytes += MemKK::memory_usage(cr);
   bytes += MemKK::memory_usage(dcr);
-  bytes += MemKK::memory_usage(plm);
-  bytes += MemKK::memory_usage(dplm);
-  bytes += MemKK::memory_usage(ylm);
-  bytes += MemKK::memory_usage(dylm);
   bytes += MemKK::memory_usage(d_ncount);
   bytes += MemKK::memory_usage(d_mu);
   bytes += MemKK::memory_usage(d_rhats);

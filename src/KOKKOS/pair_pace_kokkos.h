@@ -92,7 +92,7 @@ class PairPACEKokkos : public PairPACE {
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
  protected:
-  int inum, maxneigh, chunk_size, chunk_offset, idx_rho_max, idx_sph_max;
+  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, idx_sph_max;
   int host_flag;
 
   int eflag, vflag;
@@ -271,10 +271,10 @@ class PairPACEKokkos : public PairPACE {
   t_ace_2d_lr d_mexp;
 
   // tilde
-  t_ace_1i d_idx_rho_count;
+  t_ace_1i d_idx_ms_combs_count;
   t_ace_2i_lr d_rank;
   t_ace_2i_lr d_num_ms_combs;
-  t_ace_2i_lr d_offsets;
+  t_ace_2i_lr d_idx_funcs;
   t_ace_3i_lr d_mus;
   t_ace_3i_lr d_ns;
   t_ace_3i_lr d_ls;

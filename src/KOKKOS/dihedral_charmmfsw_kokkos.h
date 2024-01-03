@@ -78,14 +78,6 @@ DihedralStyle(charmmfsw/kk/host,DihedralCharmmfswKokkos<LMPHostType>);
  /Users/mitch/Dropbox/lammps/lammps/src/KOKKOS/dihedral_charmm_kokkos.h:31:8: note: previous definition is here
  struct s_EVM_FLOAT {
         ^
- In file included from /Users/mitch/Dropbox/lammps/lammps/src/force.cpp:18:
- In file included from /Users/mitch/Dropbox/lammps/lammps/build/styles/style_dihedral.h:4:
- /Users/mitch/Dropbox/lammps/lammps/src/KOKKOS/dihedral_charmmfsw_kokkos.h:104:8: error: redefinition of 'TagDihedralCharmmCompute'
- struct TagDihedralCharmmCompute{};
-        ^
- /Users/mitch/Dropbox/lammps/lammps/src/KOKKOS/dihedral_charmm_kokkos.h:70:8: note: previous definition is here
- struct TagDihedralCharmmCompute{};
-        ^
  In file included from /Users/mitch/Dropbox/lammps/lammps/src/lammps.cpp:23:
  In file included from /Users/mitch/Dropbox/lammps/lammps/build/styles/style_dihedral.h:4:
  /Users/mitch/Dropbox/lammps/lammps/src/KOKKOS/dihedral_charmmfsw_kokkos.h:65:8: error: redefinition of 's_EVM_FLOAT'
@@ -93,14 +85,6 @@ DihedralStyle(charmmfsw/kk/host,DihedralCharmmfswKokkos<LMPHostType>);
         ^
  /Users/mitch/Dropbox/lammps/lammps/src/KOKKOS/dihedral_charmm_kokkos.h:31:8: note: previous definition is here
  struct s_EVM_FLOAT {
-        ^
- In file included from /Users/mitch/Dropbox/lammps/lammps/src/lammps.cpp:23:
- In file included from /Users/mitch/Dropbox/lammps/lammps/build/styles/style_dihedral.h:4:
- /Users/mitch/Dropbox/lammps/lammps/src/KOKKOS/dihedral_charmmfsw_kokkos.h:104:8: error: redefinition of 'TagDihedralCharmmCompute'
- struct TagDihedralCharmmCompute{};
-        ^
- /Users/mitch/Dropbox/lammps/lammps/src/KOKKOS/dihedral_charmm_kokkos.h:70:8: note: previous definition is here
- struct TagDihedralCharmmCompute{};
         ^
 
  */
@@ -146,10 +130,12 @@ struct s_EVM_FLOAT {
 };
 typedef struct s_EVM_FLOAT EVM_FLOAT;
 
-template<int NEWTON_BOND, int EVFLAG>
-struct TagDihedralCharmmCompute{};
+ */
 
-*/
+template<int NEWTON_BOND, int EVFLAG>
+struct TagDihedralCharmmfswCompute{};
+
+
  
 /*
  27c27
@@ -181,11 +167,11 @@ class DihedralCharmmfswKokkos : public DihedralCharmmfsw {
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagDihedralCharmmCompute<NEWTON_BOND,EVFLAG>, const int&, EVM_FLOAT&) const;
+  void operator()(TagDihedralCharmmfswCompute<NEWTON_BOND,EVFLAG>, const int&, EVM_FLOAT&) const;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagDihedralCharmmCompute<NEWTON_BOND,EVFLAG>, const int&) const;
+  void operator()(TagDihedralCharmmfswCompute<NEWTON_BOND,EVFLAG>, const int&) const;
 
   //template<int NEWTON_BOND>
   KOKKOS_INLINE_FUNCTION

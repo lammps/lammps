@@ -18,7 +18,7 @@
  
    - Ray Shan (SNL) - original PairLJCharmmCoulLongKokkos
    
-   - Mitch Murphy (alphataubio) - PairLJCharmmfswCoulLongKokkos update (2023/12)
+   - Mitch Murphy (alphataubio) - PairLJCharmmfswCoulLongKokkos update (2024/01)
 
    Based on serial kspace lj-fsw sections (force-switched) provided by
    Robert Meissner and Lucio Colombi Ciacchi of Bremen University, Germany,
@@ -113,9 +113,6 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairLJCharmmfswCoulLongKokkos<DeviceType>::PairLJCharmmfswCoulLongKokkos(LAMMPS *lmp):PairLJCharmmfswCoulLong(lmp)
 {
-  
-  // pair_lj_charmmfsw_coul_long_kokkos.cpp:112:28: error: qualified reference to 'PairLJCharmmfswCoulLong' is a constructor name rather than a type in this context
-  // ??? PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(lmp);
 
   respa_enable = 0;
 
@@ -147,14 +144,9 @@ PairLJCharmmfswCoulLongKokkos<DeviceType>::PairLJCharmmfswCoulLongKokkos(LAMMPS 
 
  */
 
-// added superclass constructor to inherit from PairLJCharmmfswCoulLong
-
 template<class DeviceType>
 PairLJCharmmfswCoulLongKokkos<DeviceType>::~PairLJCharmmfswCoulLongKokkos()
 {
-  
-  // pair_lj_charmmfsw_coul_long_kokkos.cpp:150:28: error: qualified reference to 'PairLJCharmmfswCoulLong' is a constructor name rather than a type in this context
-  // ??? PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong();
   
   if (copymode) return;
 
@@ -186,39 +178,7 @@ PairLJCharmmfswCoulLongKokkos<DeviceType>::~PairLJCharmmfswCoulLongKokkos()
  >   double switch1;
  96d120
  <   double rsq;
- 174,179c198,200
- <               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
- <             switch2 = 12.0*rsq * (cut_ljsq-rsq) *
- <               (rsq-cut_lj_innersq) * denom_lj_inv;
- <             philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
- <             forcelj = forcelj*switch1 + philj*switch2;
- <           }
- ---
- >               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
- >             forcelj = forcelj*switch1;
- >          }
- 205d225
- <             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
- 207,209c227,240
- <               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
- <                 (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
- <               evdwl *= switch1;
- ---
- >               r = sqrt(rsq);
- >               rinv = 1.0/r;
- >               r3inv = rinv*rinv*rinv;
- >               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
- >                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
- >               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
- >                 (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
- >               evdwl = evdwl12 + evdwl6;
- >             } else {
- >               evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
- >                 lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
- >               evdwl6 = -lj4[itype][jtype]*r6inv +
- >                 lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
- >               evdwl = evdwl12 + evdwl6;
-
+  
  */
 
 template<class DeviceType>
@@ -320,20 +280,32 @@ compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT forcelj, switch1, switch2, englj;
+  F_FLOAT forcelj, switch1;
 
   forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
   if (rsq > cut_lj_innersq) {
+
+    /*
+     174,179c198,200
+     <               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
+     <             switch2 = 12.0*rsq * (cut_ljsq-rsq) *
+     <               (rsq-cut_lj_innersq) * denom_lj_inv;
+     <             philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+     <             forcelj = forcelj*switch1 + philj*switch2;
+     <           }
+     ---
+     >               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+     >             forcelj = forcelj*switch1;
+     >          }
+
+     */
+
     switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-    switch2 = 12.0*rsq * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-    englj = r6inv *
-            ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-             (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
-    forcelj = forcelj*switch1 + englj*switch2;
+    forcelj = forcelj*switch1;
   }
 
   return forcelj*r2inv;
@@ -350,20 +322,52 @@ compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj, switch1;
+  const F_FLOAT r = sqrt(rsq);
+  const F_FLOAT rinv = 1.0/r;
+  const F_FLOAT r3inv = rinv*rinv*rinv;
+  F_FLOAT englj, englj12, englj6;
 
-  englj = r6inv *
-    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-     (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
+  /*
+   205d225
+  <             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+  207,209c227,240
+  <               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
+  <                 (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
+  <               evdwl *= switch1;
+  ---
+  >               r = sqrt(rsq);
+  >               rinv = 1.0/r;
+  >               r3inv = rinv*rinv*rinv;
+  >               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
+  >                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
+  >               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
+  >                 (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
+  >               evdwl = evdwl12 + evdwl6;
+  >             } else {
+  >               evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
+  >                 lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
+  >               evdwl6 = -lj4[itype][jtype]*r6inv +
+  >                 lj4[itype][jtype]*cut_lj_inner3inv*cut_lj3inv;
+  >               evdwl = evdwl12 + evdwl6;
+
+   */
+
 
   if (rsq > cut_lj_innersq) {
-    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-    englj *= switch1;
+    englj12 = (STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*cut_lj6*
+      denom_lj12 * (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
+    englj6 = -(STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)*
+      cut_lj3*denom_lj6 * (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
+    englj = englj12 + englj6;
+  } else {
+    englj12 = r6inv*lj3[itype][jtype]*r6inv -
+      lj3[itype][jtype]*cut_lj_inner6inv*cut_lj6inv;
+    englj6 = -(STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)*r6inv +
+      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)*
+      cut_lj_inner3inv*cut_lj3inv;
+    englj = englj12 + englj6;
   }
-
   return englj;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -458,7 +462,7 @@ void PairLJCharmmfswCoulLongKokkos<DeviceType>::allocate()
 
   d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
 
-  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmCoulLong::params",n+1,n+1);
+  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmfswCoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }
 
@@ -574,49 +578,11 @@ void PairLJCharmmfswCoulLongKokkos<DeviceType>::init_tables(double cut_coul, dou
  < void PairLJCharmmCoulLong::init_style()
  ---
  > void PairLJCharmmfswCoulLong::init_style()
- 686c737
- <                "Pair style lj/charmm/coul/long requires atom attribute q");
- ---
- >                "Pair style lj/charmmfsw/coul/long requires atom attribute q");
- 688c739
+  688c739
  <   // request regular or rRESPA neighbor list
  ---
  >   // request regular or rRESPA neighbor lists
- 705a757,766
- >   cut_ljinv = 1.0/cut_lj;
- >   cut_lj_innerinv = 1.0/cut_lj_inner;
- >   cut_lj3 = cut_lj * cut_lj * cut_lj;
- >   cut_lj3inv = cut_ljinv * cut_ljinv * cut_ljinv;
- >   cut_lj_inner3inv = cut_lj_innerinv * cut_lj_innerinv * cut_lj_innerinv;
- >   cut_lj_inner3 = cut_lj_inner * cut_lj_inner * cut_lj_inner;
- >   cut_lj6 = cut_ljsq * cut_ljsq * cut_ljsq;
- >   cut_lj6inv = cut_lj3inv * cut_lj3inv;
- >   cut_lj_inner6inv = cut_lj_inner3inv * cut_lj_inner3inv;
- >   cut_lj_inner6 = cut_lj_innersq * cut_lj_innersq * cut_lj_innersq;
- 709,711c770,773
- <   denom_lj = ( (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) *
- <                (cut_ljsq-cut_lj_innersq) );
- <   denom_lj_inv = 1.0 / denom_lj;
- ---
- >   denom_lj = (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) *
- >     (cut_ljsq-cut_lj_innersq);
- >   denom_lj12 = 1.0/(cut_lj6 - cut_lj_inner6);
- >   denom_lj6 = 1.0/(cut_lj3 - cut_lj_inner3);
- 718,730d779
- <     cut_in_off = cut_respa[0];
- <     cut_in_on = cut_respa[1];
- <     cut_out_on = cut_respa[2];
- <     cut_out_off = cut_respa[3];
- <
- <     cut_in_diff = cut_in_on - cut_in_off;
- <     cut_out_diff = cut_out_off - cut_out_on;
- <     cut_in_diff_inv = 1.0 / (cut_in_diff);
- <     cut_out_diff_inv = 1.0 / (cut_out_diff);
- <     cut_in_off_sq = cut_in_off*cut_in_off;
- <     cut_in_on_sq = cut_in_on*cut_in_on;
- <     cut_out_on_sq = cut_out_on*cut_out_on;
- <     cut_out_off_sq = cut_out_off*cut_out_off;
-
+ 
  */
 
 template<class DeviceType>
@@ -689,6 +655,8 @@ template class PairLJCharmmfswCoulLongKokkos<LMPHostType>;
 
 
 
+
+
 /*
  80d105
  <     memory->destroy(offset);
@@ -706,6 +674,48 @@ template class PairLJCharmmfswCoulLongKokkos<LMPHostType>;
  < void PairLJCharmmCoulLong::coeff(int narg, char **arg)
  ---
  > void PairLJCharmmfswCoulLong::coeff(int narg, char **arg)
+ 
+ 686c737
+ <                "Pair style lj/charmm/coul/long requires atom attribute q");
+ ---
+ >                "Pair style lj/charmmfsw/coul/long requires atom attribute q");
+
+ 705a757,766
+ >   cut_ljinv = 1.0/cut_lj;
+ >   cut_lj_innerinv = 1.0/cut_lj_inner;
+ >   cut_lj3 = cut_lj * cut_lj * cut_lj;
+ >   cut_lj3inv = cut_ljinv * cut_ljinv * cut_ljinv;
+ >   cut_lj_inner3inv = cut_lj_innerinv * cut_lj_innerinv * cut_lj_innerinv;
+ >   cut_lj_inner3 = cut_lj_inner * cut_lj_inner * cut_lj_inner;
+ >   cut_lj6 = cut_ljsq * cut_ljsq * cut_ljsq;
+ >   cut_lj6inv = cut_lj3inv * cut_lj3inv;
+ >   cut_lj_inner6inv = cut_lj_inner3inv * cut_lj_inner3inv;
+ >   cut_lj_inner6 = cut_lj_innersq * cut_lj_innersq * cut_lj_innersq;
+ 709,711c770,773
+ <   denom_lj = ( (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) *
+ <                (cut_ljsq-cut_lj_innersq) );
+ <   denom_lj_inv = 1.0 / denom_lj;
+ ---
+ >   denom_lj = (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) *
+ >     (cut_ljsq-cut_lj_innersq);
+ >   denom_lj12 = 1.0/(cut_lj6 - cut_lj_inner6);
+ >   denom_lj6 = 1.0/(cut_lj3 - cut_lj_inner3);
+ 718,730d779
+ <     cut_in_off = cut_respa[0];
+ <     cut_in_on = cut_respa[1];
+ <     cut_out_on = cut_respa[2];
+ <     cut_out_off = cut_respa[3];
+ <
+ <     cut_in_diff = cut_in_on - cut_in_off;
+ <     cut_out_diff = cut_out_off - cut_out_on;
+ <     cut_in_diff_inv = 1.0 / (cut_in_diff);
+ <     cut_out_diff_inv = 1.0 / (cut_out_diff);
+ <     cut_in_off_sq = cut_in_off*cut_in_off;
+ <     cut_in_on_sq = cut_in_on*cut_in_on;
+ <     cut_out_on_sq = cut_out_on*cut_out_on;
+ <     cut_out_off_sq = cut_out_off*cut_out_off;
+
+ 
  752c801
  < double PairLJCharmmCoulLong::init_one(int i, int j)
  ---

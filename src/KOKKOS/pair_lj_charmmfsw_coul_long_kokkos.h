@@ -11,29 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
  
-  
-/* ----------------------------------------------------------------------
-
- *** DRAFT VERSION 1 (lots of comments to be removed just before merge) ***
- 
- (1) first draft version of PairLJCharmmfswCoulLongKokkos exactly
- same as PairLJCharmmCoulLongKokkos but with new class name
- 
- method: track changes from serial kspace pair_lj_charmm_coul_long to
- pair_lj_charmmfsw_coul_long and apply to PairLJCharmmfswCoulLongKokkos
- 
- % diff pair_lj_charmm_coul_long.h pair_lj_charmmfsw_coul_long.h
- 
- 
-------------------------------------------------------------------------- */
-
-/*
- 16c16
- < PairStyle(lj/charmm/coul/long,PairLJCharmmCoulLong);
- ---
- > PairStyle(lj/charmmfsw/coul/long,PairLJCharmmfswCoulLong);
- 
- */
 
 #ifdef PAIR_CLASS
 // clang-format off
@@ -42,17 +19,6 @@ PairStyle(lj/charmmfsw/coul/long/kk/device,PairLJCharmmfswCoulLongKokkos<LMPDevi
 PairStyle(lj/charmmfsw/coul/long/kk/host,PairLJCharmmfswCoulLongKokkos<LMPHostType>);
 // clang-format on
 #else
-
-/*
- 
- 20,21c20,21
- < #ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_H
- < #define LMP_PAIR_LJ_CHARMM_COUL_LONG_H
- ---
- > #ifndef LMP_PAIR_LJ_CHARMMFSW_COUL_LONG_H
- > #define LMP_PAIR_LJ_CHARMMFSW_COUL_LONG_H
-
- */
 
 // clang-format off
 #ifndef LMP_PAIR_LJ_CHARMMFSW_COUL_LONG_KOKKOS_H
@@ -64,15 +30,6 @@ PairStyle(lj/charmmfsw/coul/long/kk/host,PairLJCharmmfswCoulLongKokkos<LMPHostTy
 
 namespace LAMMPS_NS {
 
-/*
-
- 27c27
-< class PairLJCharmmCoulLong : public Pair {
----
-> class PairLJCharmmfswCoulLong : public Pair {
-
- */
-
 template<class DeviceType>
 class PairLJCharmmfswCoulLongKokkos : public PairLJCharmmfswCoulLong {
  public:
@@ -80,18 +37,7 @@ class PairLJCharmmfswCoulLongKokkos : public PairLJCharmmfswCoulLong {
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  
-  /*
-   
-   29,30c29,30
-  <   PairLJCharmmCoulLong(class LAMMPS *);
-  <   ~PairLJCharmmCoulLong() override;
-  ---
-  >   PairLJCharmmfswCoulLong(class LAMMPS *);
-  >   ~PairLJCharmmfswCoulLong() override;
-
-   */
-  
+    
   PairLJCharmmfswCoulLongKokkos(class LAMMPS *);
   ~PairLJCharmmfswCoulLongKokkos() override;
 
@@ -102,34 +48,6 @@ class PairLJCharmmfswCoulLongKokkos : public PairLJCharmmfswCoulLong {
   double init_one(int, int) override;
 
  protected:
-  
-  /*
-   52c52,54
- <   double cut_lj_inner, cut_lj;
- ---
- >   int dihedflag;
- >
- >   double cut_lj_inner, cut_lj, cut_ljinv, cut_lj_innerinv;
- 53a56,57
- >   double cut_lj3inv, cut_lj_inner3inv, cut_lj3, cut_lj_inner3;
- >   double cut_lj6inv, cut_lj_inner6inv, cut_lj6, cut_lj_inner6;
- 56,60c60
- <   double cut_in_off, cut_in_on, cut_out_off, cut_out_on;
- <   double cut_in_diff, cut_out_diff;
- <   double cut_in_diff_inv, cut_out_diff_inv;
- <   double cut_in_off_sq, cut_in_on_sq, cut_out_off_sq, cut_out_on_sq;
- <   double denom_lj, denom_lj_inv;
- ---
- >   double denom_lj, denom_lj12, denom_lj6;
-
-   */
-  
-  // almost nothing to do here, inherited from PairLJCharmmfswCoulLong
-  // only temporarily need cut_lj_innersq, denom_coul protected variables
-  // (removed from pair_lj_charmm_coul_long to pair_lj_charmmfsw_coul_long)
-  // to compile draft version 1, can be removed by draft version 2
-
-  
   
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION

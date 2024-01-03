@@ -27,29 +27,6 @@
 
 ------------------------------------------------------------------------- */
 
-
-/* ----------------------------------------------------------------------
- 
- *** DRAFT VERSION 1 (lots of comments to be removed just before merge) ***
- 
- (1) first draft version of DihedralCharmmfswKokkos exactly
- same as DihedralCharmmfswKokkos but with new class name
- 
- method: track changes from serial kspace dihedral_charmm to
- dihedral_charmmfsw and apply to DihedralCharmmfswKokkos
-
- % diff dihedral_charmm.cpp dihedral_charmmfsw.cpp
-
-------------------------------------------------------------------------- */
-
-/*
- 18c21
- < #include "dihedral_charmm.h"
- ---
- > #include "dihedral_charmmfsw.h"
-
- */
-
 #include "dihedral_charmmfsw_kokkos.h"
 
 #include "atom_kokkos.h"
@@ -526,15 +503,6 @@ void DihedralCharmmfswKokkos<DeviceType>::operator()(TagDihedralCharmmfswCompute
 
 /* ---------------------------------------------------------------------- */
 
-/*
- 
- 288c307
- < void DihedralCharmm::allocate()
- ---
- > void DihedralCharmmfsw::allocate()
- 
- */
-
 template<class DeviceType>
 void DihedralCharmmfswKokkos<DeviceType>::allocate()
 {
@@ -544,15 +512,6 @@ void DihedralCharmmfswKokkos<DeviceType>::allocate()
 /* ----------------------------------------------------------------------
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
-
-/*
- 
- 308c327
- < void DihedralCharmm::coeff(int narg, char **arg)
- ---
- > void DihedralCharmmfsw::coeff(int narg, char **arg)
-
- */
 
 template<class DeviceType>
 void DihedralCharmmfswKokkos<DeviceType>::coeff(int narg, char **arg)
@@ -603,40 +562,6 @@ void DihedralCharmmfswKokkos<DeviceType>::coeff(int narg, char **arg)
    error check and initialize all values needed for force computation
 ------------------------------------------------------------------------- */
 
-/*
- 
- 350c369
- < void DihedralCharmm::init_style()
- ---
- > void DihedralCharmmfsw::init_style()
-  382a402,425
- >
- >   // constants for applying force switch (LJ) and force_shift (coul)
- >   // to 1/4 dihedral atoms to match CHARMM pairwise interactions
- >
- >   int itmp;
- >   int *p_dihedflag = (int *) force->pair->extract("dihedflag", itmp);
- >   auto p_cutljinner = (double *) force->pair->extract("cut_lj_inner", itmp);
- >   auto p_cutlj = (double *) force->pair->extract("cut_lj", itmp);
- >   auto p_cutcoul = (double *) force->pair->extract("cut_coul", itmp);
- >
- >   if (p_cutcoul == nullptr || p_cutljinner == nullptr || p_cutlj == nullptr ||
- >       p_dihedflag == nullptr)
- >     error->all(FLERR, "Dihedral charmmfsw is incompatible with Pair style");
- >
- >   dihedflag = *p_dihedflag;
- >   cut_coul14 = *p_cutcoul;
- >   cut_lj_inner14 = *p_cutljinner;
- >   cut_lj14 = *p_cutlj;
- >
- >   cut_coulinv14 = 1 / cut_coul14;
- >   cut_lj_inner3inv = (1 / cut_lj_inner14) * (1 / cut_lj_inner14) * (1 / cut_lj_inner14);
- >   cut_lj_inner6inv = cut_lj_inner3inv * cut_lj_inner3inv;
- >   cut_lj3inv = (1 / cut_lj14) * (1 / cut_lj14) * (1 / cut_lj14);
- >   cut_lj6inv = cut_lj3inv * cut_lj3inv;
-
- */
-
 template<class DeviceType>
 void DihedralCharmmfswKokkos<DeviceType>::init_style()
 {
@@ -681,14 +606,6 @@ void DihedralCharmmfswKokkos<DeviceType>::init_style()
    proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
-/*
- 
- 402c445
- < void DihedralCharmm::read_restart(FILE *fp)
- ---
- > void DihedralCharmmfsw::read_restart(FILE *fp)
-
- */
 template<class DeviceType>
 void DihedralCharmmfswKokkos<DeviceType>::read_restart(FILE *fp)
 {
@@ -968,37 +885,3 @@ template class DihedralCharmmfswKokkos<LMPHostType>;
 #endif
 }
 
-
-
-/*
- 
- 
- 355c374
- <       error->all(FLERR, "Dihedral style charmm must be set to same r-RESPA level as 'pair'");
- ---
- >       error->all(FLERR, "Dihedral style charmmfsw must be set to same r-RESPA level as 'pair'");
- 357c376
- <       error->all(FLERR, "Dihedral style charmm must be set to same r-RESPA level as 'outer'");
- ---
- >       error->all(FLERR, "Dihedral style charmmfsw must be set to same r-RESPA level as 'outer'");
- 373c392
- <       error->all(FLERR, "Dihedral charmm is incompatible with Pair style");
- ---
- >       error->all(FLERR, "Dihedral charmmfsw is incompatible with Pair style");
- 380c399
- <       error->all(FLERR, "Dihedral charmm is incompatible with Pair style");
- ---
- >       error->all(FLERR, "Dihedral charmmfsw is incompatible with Pair style");
-
- 389c432
- < void DihedralCharmm::write_restart(FILE *fp)
- ---
- > void DihedralCharmmfsw::write_restart(FILE *fp)
-  430c473
- < void DihedralCharmm::write_data(FILE *fp)
- ---
- > void DihedralCharmmfsw::write_data(FILE *fp)
-
- */
-
-// nothing to do for all these, inherited from DihedralCharmmfsw

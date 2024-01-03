@@ -985,7 +985,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeAi, 
   phase.im = ry;
 
   double plm_idx,plm_idx1,plm_idx2;
-  
+
   plm_idx = plm_idx1 = plm_idx2 = 0.0;
 
   int idx_sph = 0;
@@ -1415,7 +1415,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
 
   double plm_idx,plm_idx1,plm_idx2;
   double dplm_idx,dplm_idx1,dplm_idx2;
-  
+
   plm_idx = plm_idx1 = plm_idx2 = 0.0;
   dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
 

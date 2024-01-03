@@ -84,8 +84,6 @@ struct PairComputeFunctor  {
   //             typename KKDevice<device_type>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
   KKScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,KKDeviceType,KKScatterSum,DUP> dup_vatom;
 
-
-
   NeighListKokkos<device_type> list;
 
   PairComputeFunctor(PairStyle* c_ptr,
@@ -109,13 +107,15 @@ struct PairComputeFunctor  {
   }
 
   void contribute() {
-    Kokkos::Experimental::contribute(c.f, dup_f);
+    if constexpr (std::is_same_v<NeedDup_v<NEIGHFLAG,device_type>,Kokkos::Experimental::ScatterDuplicated>) {
+      Kokkos::Experimental::contribute(c.f, dup_f);
 
-    if (c.eflag_atom)
-      Kokkos::Experimental::contribute(c.d_eatom, dup_eatom);
+      if (c.eflag_atom)
+        Kokkos::Experimental::contribute(c.d_eatom, dup_eatom);
 
-    if (c.vflag_atom)
-      Kokkos::Experimental::contribute(c.d_vatom, dup_vatom);
+      if (c.vflag_atom)
+        Kokkos::Experimental::contribute(c.d_vatom, dup_vatom);
+    }
   }
 
   // Loop over neighbors of one atom without coulomb interaction
@@ -988,11 +988,13 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(num_teams,atoms_per_team,vectorsize);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
+      ff.contribute();
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
       Kokkos::TeamPolicy<typename PairStyle::device_type,Kokkos::IndexType<int> > policy(num_teams,atoms_per_team,vectorsize);
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
       else                              Kokkos::parallel_for(policy,ff);
+      ff.contribute();
     }
   } else {
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {

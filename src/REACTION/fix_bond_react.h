@@ -139,7 +139,7 @@ class FixBondReact : public Fix {
   int avail_guesses;     // num of restore points available
   int *guess_branch;     // used when there is more than two choices when guessing
   int **restore_pt;      // contains info about restore points
-  tagint **restore;      // contaings info about restore points
+  tagint **restore;      // contains info about restore points
   int *pioneer_count;    // counts pioneers
 
   int **edge;                // atoms in molecule templates with incorrect valences

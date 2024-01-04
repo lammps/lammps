@@ -2681,15 +2681,42 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   }
 
   // also, if atoms change number of bonds, but aren't landlocked, that could be bad
+  int warnflag = 0;
   if (comm->me == 0)
     for (int i = 0; i < twomol->natoms; i++) {
       if ((create_atoms[i][myrxn] == 0) &&
           (twomol_nxspecial[i][0] != onemol_nxspecial[equivalences[i][1][myrxn]-1][0]) &&
-          (landlocked_atoms[i][myrxn] == 0))
-        error->warning(FLERR, "Fix bond/react: Atom affected by reaction {} is too close "
-                       "to template edge",rxn_name[myrxn]);
-          break;
+          (landlocked_atoms[i][myrxn] == 0)) {
+        warnflag = 1;
+        break;
+      }
     }
+
+  // also, if an atom changes any of its bonds, but is not landlocked, that could be bad
+  int thereflag;
+  if (comm->me == 0)
+    for (int i = 0; i < twomol->natoms; i++) {
+      if (landlocked_atoms[i][myrxn] == 1) continue;
+      for (int j = 0; j < twomol_nxspecial[i][0]; j++) {
+        int oneneighID = equivalences[twomol_xspecial[i][j]-1][1][myrxn];
+        int ii = equivalences[i][1][myrxn] - 1;
+        thereflag = 0;
+        for (int k = 0; k < onemol_nxspecial[ii][0]; k++) {
+          if (oneneighID == onemol_xspecial[ii][k]) {
+            thereflag = 1;
+            break;
+          }
+        }
+        if (thereflag == 0) {
+          warnflag = 1;
+          break;
+        }
+      }
+      if (warnflag == 1) break;
+    }
+
+  if (comm->me == 0 && warnflag == 1) error->warning(FLERR, "Fix bond/react: Atom affected "
+                       "by reaction {} is too close to template edge",rxn_name[myrxn]);
 
   // finally, if a created atom is not landlocked, bad!
   for (int i = 0; i < twomol->natoms; i++) {

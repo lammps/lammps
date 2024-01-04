@@ -20,7 +20,8 @@ improper_style class2
 special_bonds lj/coul 0 0 1
 pair_modify tail yes mix sixthpower
 
-read_data tiny_epoxy.data
+read_data tiny_epoxy.data &
+  extra/special/per/atom 25
 
 velocity all create 300.0 4928459 dist gaussian
 

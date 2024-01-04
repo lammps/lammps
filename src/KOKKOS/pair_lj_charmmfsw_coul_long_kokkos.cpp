@@ -76,17 +76,6 @@ template<class DeviceType>
 PairLJCharmmfswCoulLongKokkos<DeviceType>::~PairLJCharmmfswCoulLongKokkos()
 {
   
-  // FIXME:
-  // superclass destructor from KSPACE/pair_lj_charmmfsw_coul_long.cpp:81
-  // resets force->qqr2e = force->qqr2e_lammps_real at end of timestep 0
-  // causing ~E-6 errors for steps 1,2,... everywhere in this class when
-  // running kokkos with openmp (and probably with GPUs also).
-  //
-  // WORKAROUND: for now until guidance from lammps devs is to
-  // reset it back force->qqr2e = force->qqr2e_charmm_real here.
-  
-  force->qqr2e = force->qqr2e_charmm_real;
-  
   if (copymode) return;
 
   if (allocated) {

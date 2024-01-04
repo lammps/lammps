@@ -709,7 +709,7 @@ void lammps_commands_string(void *handle, const char *str)
           break;
         }
 
-        lmp->input->one(cmd.c_str());
+        lmp->input->one(cmd);
       }
     }
   }

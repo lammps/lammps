@@ -14,7 +14,6 @@
 
 #include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
-#include "fix_property_atom_kokkos.h"
 
 #include <Kokkos_Sort.hpp>
 
@@ -27,7 +26,7 @@ class AtomKokkos : public Atom {
  public:
   bool sort_classic;
   int nprop_atom;
-  FixPropertyAtomKokkos** fix_prop_atom;
+  class FixPropertyAtomKokkos **fix_prop_atom;
 
   DAT::tdual_tagint_1d k_tag;
   DAT::tdual_int_1d k_type, k_mask;

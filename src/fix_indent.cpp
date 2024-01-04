@@ -82,13 +82,9 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
 
   // setup scaling
 
-  double xscale,yscale,zscale;
-  if (scaleflag) {
-    xscale = domain->lattice->xlattice;
-    yscale = domain->lattice->ylattice;
-    zscale = domain->lattice->zlattice;
-  }
-  else xscale = yscale = zscale = 1.0;
+  const double xscale { scaleflag ? domain->lattice->xlattice : 1.0};
+  const double yscale { scaleflag ? domain->lattice->ylattice : 1.0};
+  const double zscale { scaleflag ? domain->lattice->zlattice : 1.0};
 
   // apply scaling factors to geometry
 

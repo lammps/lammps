@@ -792,6 +792,7 @@ dispersionflag
 dissipative
 Dissipative
 distharm
+distutils
 dl
 dlabel
 dlambda

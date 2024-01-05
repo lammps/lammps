@@ -184,7 +184,7 @@ void FixSpringSelfKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
+void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &/*final*/) const
 {
   const int i = d_exchange_sendlist(mysend);
 

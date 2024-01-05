@@ -143,7 +143,7 @@ void AtomKokkos::map_set()
 
   // sort by tag
 
-  int nmax = atom->nmax;
+  unsigned int nmax = atom->nmax;
 
   int realloc_flag = 0;
   if (d_tag_sorted.extent(0) < nmax) {

@@ -526,7 +526,7 @@ struct PairReaxKokkosFindBondFunctor  {
   typedef int value_type;
   int groupbit;
   PairReaxFFKokkos<DeviceType> c;
-  PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr, int groupbit):c(*c_ptr),groupbit(groupbit) {};
+  PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr, int groupbit):groupbit(groupbit),c(*c_ptr){};
 
   KOKKOS_INLINE_FUNCTION
   void join(int &dst,

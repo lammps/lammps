@@ -1199,6 +1199,10 @@ bool Info::has_accelerator_feature(const std::string &package,
   return false;
 }
 
+#if defined(LMP_INTEL)
+#include "intel_preprocess.h"
+#endif
+
 std::string Info::get_accelerator_info(const std::string &package)
 {
   std::string mesg;
@@ -1225,6 +1229,10 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+#if LMP_KOKKOS
+    mesg += fmt::format("\nKokkos library version: {}.{}.{}", KOKKOS_VERSION / 10000,
+                       (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
+#endif
     mesg += "\n";
   }
   if ((package.empty() || (package == "OPENMP")) && has_package("OPENMP")) {
@@ -1235,6 +1243,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
     if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
+#if defined(_OPENMP)
+    mesg += "\nOpenMP standard: " + platform::openmp_standard();
+#endif
     mesg += "\n";
   }
   if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
@@ -1245,6 +1256,11 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
     if (has_accelerator_feature("INTEL","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("INTEL","precision","double")) mesg += " double";
+#if defined(LMP_SIMD_COMPILER)
+    mesg += "\nINTEL package SIMD: enabled";
+#else
+    mesg += "\nINTEL package SIMD: not enabled";
+#endif
     mesg += "\n";
   }
   return mesg;

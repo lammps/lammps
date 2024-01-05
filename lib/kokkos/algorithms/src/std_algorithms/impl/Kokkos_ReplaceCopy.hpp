@@ -58,30 +58,51 @@ struct StdReplaceCopyFunctor {
 
 template <class ExecutionSpace, class InputIteratorType,
           class OutputIteratorType, class ValueType>
-OutputIteratorType replace_copy_impl(const std::string& label,
-                                     const ExecutionSpace& ex,
-                                     InputIteratorType first_from,
-                                     InputIteratorType last_from,
-                                     OutputIteratorType first_dest,
-                                     const ValueType& old_value,
-                                     const ValueType& new_value) {
+OutputIteratorType replace_copy_exespace_impl(const std::string& label,
+                                              const ExecutionSpace& ex,
+                                              InputIteratorType first_from,
+                                              InputIteratorType last_from,
+                                              OutputIteratorType first_dest,
+                                              const ValueType& old_value,
+                                              const ValueType& new_value) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first_from, first_dest);
   Impl::static_assert_iterators_have_matching_difference_type(first_from,
                                                               first_dest);
   Impl::expect_valid_range(first_from, last_from);
 
-  // aliases
-  using func_t =
-      StdReplaceCopyFunctor<InputIteratorType, OutputIteratorType, ValueType>;
+  // run
+  const auto num_elements =
+      Kokkos::Experimental::distance(first_from, last_from);
+  ::Kokkos::parallel_for(
+      label, RangePolicy<ExecutionSpace>(ex, 0, num_elements),
+      StdReplaceCopyFunctor(first_from, first_dest, old_value, new_value));
+  ex.fence("Kokkos::replace_copy: fence after operation");
+
+  // return
+  return first_dest + num_elements;
+}
+
+template <class TeamHandleType, class InputIteratorType,
+          class OutputIteratorType, class ValueType>
+KOKKOS_FUNCTION OutputIteratorType replace_copy_team_impl(
+    const TeamHandleType& teamHandle, InputIteratorType first_from,
+    InputIteratorType last_from, OutputIteratorType first_dest,
+    const ValueType& old_value, const ValueType& new_value) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first_from,
+                                                   first_dest);
+  Impl::static_assert_iterators_have_matching_difference_type(first_from,
+                                                              first_dest);
+  Impl::expect_valid_range(first_from, last_from);
 
   // run
   const auto num_elements =
       Kokkos::Experimental::distance(first_from, last_from);
-  ::Kokkos::parallel_for(label,
-                         RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         func_t(first_from, first_dest, old_value, new_value));
-  ex.fence("Kokkos::replace_copy: fence after operation");
+  ::Kokkos::parallel_for(
+      TeamThreadRange(teamHandle, 0, num_elements),
+      StdReplaceCopyFunctor(first_from, first_dest, old_value, new_value));
+  teamHandle.team_barrier();
 
   // return
   return first_dest + num_elements;

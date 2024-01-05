@@ -1076,7 +1076,6 @@ void FixTGNHDrude::couple()
 
 void FixTGNHDrude::remap()
 {
-  int i;
   double oldlo,oldhi;
   double expfac;
 

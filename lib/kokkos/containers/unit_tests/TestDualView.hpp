@@ -61,6 +61,47 @@ struct test_dualview_alloc {
 };
 
 template <typename Scalar, class Device>
+struct test_dualview_copy_construction_and_assignment {
+  using scalar_type     = Scalar;
+  using execution_space = Device;
+
+  void operator()() {
+    constexpr unsigned int n = 10;
+    constexpr unsigned int m = 5;
+
+    using SrcViewType = Kokkos::DualView<Scalar**, Kokkos::LayoutLeft, Device>;
+    using DstViewType =
+        Kokkos::DualView<const Scalar * [m], Kokkos::LayoutLeft, Device>;
+
+    SrcViewType a("A", n, m);
+
+    // Copy construction
+    DstViewType b(a);
+
+    // Copy assignment
+    DstViewType c = a;
+
+    // Check equality (shallow) of the host and device views
+    ASSERT_EQ(a.view_host(), b.view_host());
+    ASSERT_EQ(a.view_device(), b.view_device());
+
+    ASSERT_EQ(a.view_host(), c.view_host());
+    ASSERT_EQ(a.view_device(), c.view_device());
+
+    // We can't test shallow equality of modified_flags because it's protected.
+    // So we test it indirectly through sync state behavior.
+    if (!std::decay_t<SrcViewType>::impl_dualview_is_single_device::value) {
+      a.clear_sync_state();
+      a.modify_host();
+      ASSERT_TRUE(a.need_sync_device());
+      ASSERT_TRUE(b.need_sync_device());
+      ASSERT_TRUE(c.need_sync_device());
+      a.clear_sync_state();
+    }
+  }
+};
+
+template <typename Scalar, class Device>
 struct test_dualview_combinations {
   using self_type = test_dualview_combinations<Scalar, Device>;
 
@@ -380,6 +421,11 @@ void test_dualview_alloc(unsigned int size) {
 }
 
 template <typename Scalar, typename Device>
+void test_dualview_copy_construction_and_assignment() {
+  Impl::test_dualview_copy_construction_and_assignment<Scalar, Device>()();
+}
+
+template <typename Scalar, typename Device>
 void test_dualview_deep_copy() {
   Impl::test_dual_view_deep_copy<Scalar, Device>();
 }
@@ -402,6 +448,10 @@ TEST(TEST_CATEGORY, dualview_combination) {
 
 TEST(TEST_CATEGORY, dualview_alloc) {
   test_dualview_alloc<int, TEST_EXECSPACE>(10);
+}
+
+TEST(TEST_CATEGORY, test_dualview_copy_construction_and_assignment) {
+  test_dualview_copy_construction_and_assignment<int, TEST_EXECSPACE>();
 }
 
 TEST(TEST_CATEGORY, dualview_combinations_without_init) {

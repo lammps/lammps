@@ -68,7 +68,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int me = 0;
   MPI_Comm_rank(world,&me);
-  if (me == 0) error->message(FLERR,"KOKKOS mode is enabled");
+  if (me == 0)
+    error->message(FLERR,"KOKKOS mode with Kokkos version {}.{}.{} is enabled",
+                   KOKKOS_VERSION / 10000, (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
 
   // process any command-line args that invoke Kokkos settings
 
@@ -606,8 +608,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
 
-  if (neigh_thread && neighflag != FULL)
-    error->all(FLERR,"Must use KOKKOS package option 'neigh full' with 'neigh/thread on'");
+  if (neigh_thread && newtonflag)
+    error->all(FLERR,"Must use KOKKOS package option 'newton off' with 'neigh/thread on'");
 
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;

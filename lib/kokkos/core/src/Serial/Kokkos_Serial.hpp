@@ -72,6 +72,10 @@ class SerialInternal {
 };
 }  // namespace Impl
 
+struct NewInstance {
+  explicit NewInstance() = default;
+};
+
 /// \class Serial
 /// \brief Kokkos device for non-parallel execution
 ///
@@ -107,6 +111,8 @@ class Serial {
   //@}
 
   Serial();
+
+  Serial(NewInstance);
 
   /// \brief True if and only if this method is being called in a
   ///   thread-parallel function.
@@ -217,6 +223,38 @@ struct MemorySpaceAccess<Kokkos::Serial::memory_space,
 
 }  // namespace Impl
 }  // namespace Kokkos
+
+namespace Kokkos::Experimental {
+
+template <class... Args>
+std::vector<Serial> partition_space(const Serial&, Args...) {
+  static_assert(
+      (... && std::is_arithmetic_v<Args>),
+      "Kokkos Error: partitioning arguments must be integers or floats");
+  std::vector<Serial> instances;
+  instances.reserve(sizeof...(Args));
+  std::generate_n(std::back_inserter(instances), sizeof...(Args),
+                  []() { return Serial{NewInstance{}}; });
+  return instances;
+}
+
+template <class T>
+std::vector<Serial> partition_space(const Serial&,
+                                    std::vector<T> const& weights) {
+  static_assert(
+      std::is_arithmetic<T>::value,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+
+  // We only care about the number of instances to create and ignore weights
+  // otherwise.
+  std::vector<Serial> instances;
+  instances.reserve(weights.size());
+  std::generate_n(std::back_inserter(instances), weights.size(),
+                  []() { return Serial{NewInstance{}}; });
+  return instances;
+}
+
+}  // namespace Kokkos::Experimental
 
 #include <Serial/Kokkos_Serial_Parallel_Range.hpp>
 #include <Serial/Kokkos_Serial_Parallel_MDRange.hpp>

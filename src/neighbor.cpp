@@ -495,7 +495,7 @@ void Neighbor::init()
     if (cut_respa[0]-skin < 0) cut_middle_inside_sq = 0.0;
   }
 
-  restart_check = 0;
+  must_check = restart_check = 0;
   if (output->restart_flag) must_check = restart_check = 1;
 
   // fixchecklist = other classes that can induce reneighboring in decide()
@@ -1791,16 +1791,17 @@ void Neighbor::print_pairwise_info()
         out += fmt::format(", trim from ({})",rq->copylist+1);
       else
         out += fmt::format(", copy from ({})",rq->copylist+1);
-    } else if (rq->halffull)
+    } else if (rq->halffull) {
       if (rq->trim)
         out += fmt::format(", half/full trim from ({})",rq->halffulllist+1);
       else
         out += fmt::format(", half/full from ({})",rq->halffulllist+1);
-    else if (rq->skip)
+    } else if (rq->skip) {
       if (rq->trim)
         out += fmt::format(", skip trim from ({})",rq->skiplist+1);
       else
         out += fmt::format(", skip from ({})",rq->skiplist+1);
+    }
     out += "\n";
 
     // list of neigh list attributes
@@ -2015,6 +2016,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
     // require match of these request flags and mask bits
     // (!A != !B) is effectively a logical xor
 
+    if (!rq->intel != !(mask & NS_INTEL)) continue;
     if (!rq->ghost != !(mask & NS_GHOST)) continue;
     if (!rq->ssa != !(mask & NS_SSA)) continue;
 

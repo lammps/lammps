@@ -145,6 +145,12 @@ Serial::Serial()
     : m_space_instance(&Impl::SerialInternal::singleton(),
                        [](Impl::SerialInternal*) {}) {}
 
+Serial::Serial(NewInstance)
+    : m_space_instance(new Impl::SerialInternal, [](Impl::SerialInternal* ptr) {
+        ptr->finalize();
+        delete ptr;
+      }) {}
+
 void Serial::print_configuration(std::ostream& os, bool /*verbose*/) const {
   os << "Host Serial Execution Space:\n";
   os << "  KOKKOS_ENABLE_SERIAL: yes\n";

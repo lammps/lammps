@@ -298,7 +298,7 @@ double BondLepton::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   const double r = sqrt(rsq);
   const double dr = r - r0[type];
 
-  auto expr = expressions[type2expression[type]];
+  const auto &expr = expressions[type2expression[type]];
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto bondpot = parsed.createCompiledExpression();
   auto bondforce = parsed.differentiate("r").createCompiledExpression();

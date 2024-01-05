@@ -106,7 +106,6 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;
   int host_flag;
-  int gamma_flag;
 
   int eflag, vflag;
 
@@ -130,6 +129,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   tdual_fparams k_cutsq, k_scale;
   typedef Kokkos::View<F_FLOAT**, DeviceType> t_fparams;
   t_fparams d_cutsq, d_scale;
+  t_fparams d_cut_in, d_dcut_in; // inner cutoff
 
   typename AT::t_int_1d d_map;
 
@@ -234,12 +234,16 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   t_ace_2d rhos;
   t_ace_2d dF_drho;
 
+  t_ace_3c dB_flatten;
+
   // hard-core repulsion
   t_ace_1d rho_core;
-  t_ace_3c dB_flatten;
   t_ace_2d cr;
   t_ace_2d dcr;
   t_ace_1d dF_drho_core;
+  t_ace_1d dF_dfcut;
+  t_ace_1d d_corerep;
+  th_ace_1d h_corerep;
 
   // radial functions
   t_ace_4d fr;
@@ -281,6 +285,11 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   t_ace_2d d_rnorms;
   t_ace_3d3 d_rhats;
   t_ace_2i d_nearest;
+
+  // for ZBL core-rep implementation
+  t_ace_1d  d_d_min; // [i] -> min-d for atom ii, d=d = r - (cut_in(mu_i, mu_j) - dcut_in(mu_i, mu_j))
+  t_ace_1i  d_jj_min; // [i] -> jj-index of nearest neigh (by r-(cut_in-dcut_in) criterion)
+  bool is_zbl;
 
   // per-type
   t_ace_1i d_ndensity;

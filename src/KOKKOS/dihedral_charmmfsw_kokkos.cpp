@@ -14,9 +14,7 @@
 
 /* ----------------------------------------------------------------------
 
-   Contributing authors:
-   - Stan Moore (SNL) original DihedralCharmmfswKokkos
-   - Mitch Murphy (alphataubio) - DihedralCharmmfswKokkos update (2024/01)
+   Contributing author: Mitch Murphy (alphataubio)
 
    Based on serial dihedral_charmmfsw.cpp lj-fsw sections (force-switched)
    provided by Robert Meissner and Lucio Colombi Ciacchi of Bremen
@@ -389,23 +387,6 @@ void DihedralCharmmfswKokkos<DeviceType>::operator()(TagDihedralCharmmfswCompute
     else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
     const F_FLOAT forcelj = r6inv * (d_lj14_1(itype,jtype)*r6inv - d_lj14_2(itype,jtype));
     const F_FLOAT fpair = d_weight[type] * (forcelj+forcecoul)*r2inv;
-
-    /*
-     264,265c275,284
-     <         ecoul = weight[type] * forcecoul;
-     <         evdwl = r6inv * (lj14_3[itype][jtype] * r6inv - lj14_4[itype][jtype]);
-     ---
-     >         if (dihedflag)
-     >           ecoul = weight[type] * forcecoul;
-     >         else
-     >           ecoul = weight[type] * qqrd2e * q[i1] * q[i4] *
-     >               (sqrt(r2inv) + r * cut_coulinv14 * cut_coulinv14 - 2.0 * cut_coulinv14);
-     >         evdwl14_12 = r6inv * lj14_3[itype][jtype] * r6inv -
-     >             lj14_3[itype][jtype] * cut_lj_inner6inv * cut_lj6inv;
-     >         evdwl14_6 =
-     >             -lj14_4[itype][jtype] * r6inv + lj14_4[itype][jtype] * cut_lj_inner3inv * cut_lj3inv;
-     >         evdwl = evdwl14_12 + evdwl14_6;
-     */
 
     const F_FLOAT r = sqrt(rsq);
     F_FLOAT ecoul = 0.0;

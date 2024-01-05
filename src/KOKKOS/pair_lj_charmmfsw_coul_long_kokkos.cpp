@@ -13,16 +13,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors:
-   - Ray Shan (SNL) - original PairLJCharmmCoulLongKokkos
-   - Mitch Murphy (alphataubio) - PairLJCharmmfswCoulLongKokkos update (2024/01)
+   Contributing author: Mitch Murphy (alphataubio)
 
    Based on serial kspace lj-fsw sections (force-switched) provided by
    Robert Meissner and Lucio Colombi Ciacchi of Bremen University, Germany,
    with additional assistance from Robert A. Latour, Clemson University
 
  ------------------------------------------------------------------------- */
-
 
 #include "pair_lj_charmmfsw_coul_long_kokkos.h"
 
@@ -57,7 +54,6 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairLJCharmmfswCoulLongKokkos<DeviceType>::PairLJCharmmfswCoulLongKokkos(LAMMPS *lmp):PairLJCharmmfswCoulLong(lmp)
 {
-
   respa_enable = 0;
 
   kokkosable = 1;

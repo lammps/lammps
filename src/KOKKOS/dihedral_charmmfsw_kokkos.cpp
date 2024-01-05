@@ -15,9 +15,7 @@
 /* ----------------------------------------------------------------------
 
    Contributing authors:
- 
    - Stan Moore (SNL) original DihedralCharmmfswKokkos
- 
    - Mitch Murphy (alphataubio) - DihedralCharmmfswKokkos update (2024/01)
 
    Based on serial dihedral_charmmfsw.cpp lj-fsw sections (force-switched)
@@ -48,15 +46,6 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-/*
- 
- 40c43
- < DihedralCharmm::DihedralCharmm(LAMMPS *_lmp) : Dihedral(_lmp)
- ---
- > DihedralCharmmfsw::DihedralCharmmfsw(LAMMPS *_lmp) : Dihedral(_lmp)
-
- */
-
 template<class DeviceType>
 DihedralCharmmfswKokkos<DeviceType>::DihedralCharmmfswKokkos(LAMMPS *lmp) : DihedralCharmmfsw(lmp)
 {
@@ -75,15 +64,6 @@ DihedralCharmmfswKokkos<DeviceType>::DihedralCharmmfswKokkos(LAMMPS *lmp) : Dihe
 
 /* ---------------------------------------------------------------------- */
 
-/*
-
- 48c51
- < DihedralCharmm::~DihedralCharmm()
- ---
- > DihedralCharmmfsw::~DihedralCharmmfsw()
-
- */
-
 template<class DeviceType>
 DihedralCharmmfswKokkos<DeviceType>::~DihedralCharmmfswKokkos()
 {
@@ -94,39 +74,6 @@ DihedralCharmmfswKokkos<DeviceType>::~DihedralCharmmfswKokkos()
 }
 
 /* ---------------------------------------------------------------------- */
-
-/*
- 
- 73c76
- <   double delx, dely, delz, rsq, r2inv, r6inv;
- ---
- >   double delx, dely, delz, rsq, r2inv, r6inv, r;
- 255a259,264
- >       // modifying coul and LJ force and energies to apply
- >       //   force_shift and force_switch as in CHARMM pairwise
- >       // LJ interactions between 1-4 atoms should usually be
- >       //   for r < cut_inner, so switching not applied
- >
- >       r = sqrt(rsq);
- 258c267
- <       else
- ---
- >       else if (dihedflag)
- 259a269,270
- >       else
- >         forcecoul = qqrd2e * q[i1] * q[i4] * (sqrt(r2inv) - r * cut_coulinv14 * cut_coulinv14);
- 
- */
-
-
-/*
- 
- 63c66
- < void DihedralCharmm::compute(int eflag, int vflag)
- ---
- > void DihedralCharmmfsw::compute(int eflag, int vflag)
- 
- */
 
 template<class DeviceType>
 void DihedralCharmmfswKokkos<DeviceType>::compute(int eflag_in, int vflag_in)

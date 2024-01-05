@@ -10,7 +10,6 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
- 
 
 #ifdef PAIR_CLASS
 // clang-format off
@@ -37,7 +36,6 @@ class PairLJCharmmfswCoulLongKokkos : public PairLJCharmmfswCoulLong {
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-    
   PairLJCharmmfswCoulLongKokkos(class LAMMPS *);
   ~PairLJCharmmfswCoulLongKokkos() override;
 
@@ -48,7 +46,6 @@ class PairLJCharmmfswCoulLongKokkos : public PairLJCharmmfswCoulLong {
   double init_one(int, int) override;
 
  protected:
-  
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,

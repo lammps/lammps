@@ -26,7 +26,7 @@ DihedralStyle(charmmfsw/kk/host,DihedralCharmmfswKokkos<LMPHostType>);
 #include "dihedral_charmmfsw.h"
 #include "kokkos_type.h"
 #include "dihedral_charmm_kokkos.h"
- 
+
 namespace LAMMPS_NS {
 
 // s_EVM_FLOAT definition in here conflicted because style_dihedral.h

@@ -13,11 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
- 
    Contributing authors:
- 
    - Ray Shan (SNL) - original PairLJCharmmCoulLongKokkos
-   
    - Mitch Murphy (alphataubio) - PairLJCharmmfswCoulLongKokkos update (2024/01)
 
    Based on serial kspace lj-fsw sections (force-switched) provided by
@@ -75,7 +72,6 @@ PairLJCharmmfswCoulLongKokkos<DeviceType>::PairLJCharmmfswCoulLongKokkos(LAMMPS 
 template<class DeviceType>
 PairLJCharmmfswCoulLongKokkos<DeviceType>::~PairLJCharmmfswCoulLongKokkos()
 {
-  
   if (copymode) return;
 
   if (allocated) {

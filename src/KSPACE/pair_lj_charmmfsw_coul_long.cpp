@@ -82,7 +82,6 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
     if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
       error->message(FLERR,"Restoring original LAMMPS coulomb energy"
                      " conversion constant");
-    
     // FIXME: destructor from this class resets
     //
     // force->qqr2e = force->qqr2e_lammps_real

@@ -255,16 +255,18 @@ A test run is then a a collection multiple individual test runs each
 with many comparisons to reference results based on template input
 files, individual command settings, relative error margins, and
 reference data stored in a YAML format file with ``.yaml``
-suffix. Currently the programs ``test_pair_style``, ``test_bond_style``, and
-``test_angle_style`` are implemented.  They will compare forces, energies and
-(global) stress for all atoms after a ``run 0`` calculation and after a
-few steps of MD with :doc:`fix nve <fix_nve>`, each in multiple variants
-with different settings and also for multiple accelerated styles. If a
-prerequisite style or package is missing, the individual tests are
-skipped.  All tests will be executed on a single MPI process, so using
-the CMake option ``-D BUILD_MPI=off`` can significantly speed up testing,
-since this will skip the MPI initialization for each test run.
-Below is an example command and output:
+suffix. Currently the programs ``test_pair_style``, ``test_bond_style``,
+``test_angle_style``, ``test_dihedral_style``, and
+``test_improper_style`` are implemented.  They will compare forces,
+energies and (global) stress for all atoms after a ``run 0`` calculation
+and after a few steps of MD with :doc:`fix nve <fix_nve>`, each in
+multiple variants with different settings and also for multiple
+accelerated styles. If a prerequisite style or package is missing, the
+individual tests are skipped.  All force style tests will be executed on
+a single MPI process, so using the CMake option ``-D BUILD_MPI=off`` can
+significantly speed up testing, since this will skip the MPI
+initialization for each test run.  Below is an example command and
+output:
 
 .. code-block:: console
 
@@ -416,15 +418,16 @@ When compiling LAMMPS with enabled tests, most test executables will
 need to be linked against the LAMMPS library.  Since this can be a very
 large library with many C++ objects when many packages are enabled, link
 times can become very long on machines that use the GNU BFD linker (e.g.
-Linux systems).  Alternatives like the ``lld`` linker of the LLVM project
-or the ``gold`` linker available with GNU binutils can speed up this step
-substantially. CMake will by default test if any of the two can be
-enabled and use it when ``ENABLE_TESTING`` is active.  It can also be
-selected manually through the ``CMAKE_CUSTOM_LINKER`` CMake variable.
-Allowed values are ``lld``, ``gold``, ``bfd``, or ``default``.  The
-``default`` option will use the system default linker otherwise, the
-linker is chosen explicitly.  This option is only available for the
-GNU or Clang C++ compiler.
+Linux systems).  Alternatives like the ``mold`` linker, the ``lld``
+linker of the LLVM project, or the ``gold`` linker available with GNU
+binutils can speed up this step substantially (in this order).  CMake
+will by default test if any of the three can be enabled and use it when
+``ENABLE_TESTING`` is active.  It can also be selected manually through
+the ``CMAKE_CUSTOM_LINKER`` CMake variable.  Allowed values are
+``mold``, ``lld``, ``gold``, ``bfd``, or ``default``.  The ``default``
+option will use the system default linker otherwise, the linker is
+chosen explicitly.  This option is only available for the GNU or Clang
+C++ compilers.
 
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -518,6 +521,8 @@ The following options are available.
    make fix-errordocs       # remove error docs in header files
    make check-permissions   # search for files with permissions issues
    make fix-permissions     # correct permissions issues in files
+   make check-docs          # search for several issues in the manual
+   make check-version       # list files with pending release version tags
    make check               # run all check targets from above
 
 These should help to make source and documentation files conforming

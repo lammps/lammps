@@ -395,7 +395,24 @@ double utils::numeric(const char *file, int line, const std::string &str, bool d
       lmp->error->all(file, line, msg);
   }
 
-  return atof(buf.c_str());
+  double rv = 0;
+  try {
+    rv = stod(buf);
+  } catch (std::invalid_argument const &) {
+    auto msg = fmt::format("Floating point number {} in input script or data file is invalid", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  } catch (std::out_of_range const &) {
+    auto msg =
+        fmt::format("Floating point number {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
 }
 
 /* ----------------------------------------------------------------------
@@ -439,7 +456,17 @@ int utils::inumeric(const char *file, int line, const std::string &str, bool do_
       lmp->error->all(file, line, msg);
   }
 
-  return atoi(buf.c_str());
+  int rv = 0;
+  try {
+    rv = stoi(buf);
+  } catch (std::out_of_range const &) {
+    auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
 }
 
 /* ----------------------------------------------------------------------
@@ -484,7 +511,18 @@ bigint utils::bnumeric(const char *file, int line, const std::string &str, bool 
       lmp->error->all(file, line, msg);
   }
 
-  return ATOBIGINT(buf.c_str());
+  long long rv = 0;
+  try {
+    rv = stoll(buf);
+    if (rv > MAXBIGINT) throw std::out_of_range("64-bit");
+  } catch (std::out_of_range const &) {
+    auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return static_cast<bigint>(rv);
 }
 
 /* ----------------------------------------------------------------------
@@ -529,7 +567,18 @@ tagint utils::tnumeric(const char *file, int line, const std::string &str, bool 
       lmp->error->all(file, line, msg);
   }
 
-  return ATOTAGINT(buf.c_str());
+  long long rv = 0;
+  try {
+    rv = stoll(buf);
+    if (rv > MAXTAGINT) throw std::out_of_range("64-bit");
+  } catch (std::out_of_range const &) {
+    auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return static_cast<tagint>(rv);
 }
 
 /* ----------------------------------------------------------------------

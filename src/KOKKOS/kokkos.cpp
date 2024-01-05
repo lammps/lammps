@@ -608,8 +608,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
 
-  if (neigh_thread && neighflag != FULL)
-    error->all(FLERR,"Must use KOKKOS package option 'neigh full' with 'neigh/thread on'");
+  if (neigh_thread && newtonflag)
+    error->all(FLERR,"Must use KOKKOS package option 'newton off' with 'neigh/thread on'");
 
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;

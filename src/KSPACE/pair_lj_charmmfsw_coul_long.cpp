@@ -76,27 +76,16 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
 {
+  if (copymode) return;
+
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
     if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
       error->message(FLERR,"Restoring original LAMMPS coulomb energy"
                      " conversion constant");
-    // FIXME: destructor from this class resets
-    //
-    // force->qqr2e = force->qqr2e_lammps_real
-    //
-    // at end of timestep 0 causing ~E-6 errors for steps 1,2,...
-    // everywhere in pair_lj_charmmfsw_coul_long_kokkos when
-    // running kokkos with openmp (and probably with GPUs also).
-    //
-    // WORKAROUND: for now until guidance from lammps devs is to
-    // comment out this line here (commit to be reversed later).
-
-    //force->qqr2e = force->qqr2e_lammps_real;
+    force->qqr2e = force->qqr2e_lammps_real;
   }
-
-  if (copymode) return;
 
   if (allocated) {
     memory->destroy(setflag);

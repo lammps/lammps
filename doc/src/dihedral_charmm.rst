@@ -147,7 +147,9 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`dihedral_coeff <dihedral_coeff>`
+:doc:`dihedral_coeff <dihedral_coeff>`,
+:doc:`pair_style lj/charmm variants <pair_charmm>`,
+:doc:`angle_style charmm <angle_charmm>`, :doc:`fix cmap <fix_cmap>`
 
 Default
 """""""

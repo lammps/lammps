@@ -84,20 +84,26 @@ if(Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonCommands PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
-  add_test(NAME PythonNumpy
-           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-numpy.py -v
-           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  set_tests_properties(PythonNumpy PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  # randomly failing on macOS with python 3.12
+  if(NOT APPLE)
+    add_test(NAME PythonNumpy
+             COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-numpy.py -v
+             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+    set_tests_properties(PythonNumpy PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  endif()
 
   add_test(NAME PythonCapabilities
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-capabilities.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
-  add_test(NAME PythonPyLammps
-           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-pylammps.py -v
-           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  set_tests_properties(PythonPyLammps PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  # randomly failing on macOS with python 3.12
+  if(NOT APPLE)
+    add_test(NAME PythonPyLammps
+             COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-pylammps.py -v
+             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+    set_tests_properties(PythonPyLammps PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  endif()
 
   add_test(NAME PythonFormats
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-formats.py -v

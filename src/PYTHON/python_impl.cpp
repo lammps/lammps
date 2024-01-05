@@ -17,6 +17,7 @@
 
 #include "python_impl.h"
 
+#include "comm.h"
 #include "error.h"
 #include "input.h"
 #include "memory.h"
@@ -56,7 +57,6 @@
 #endif
 #include "mliap_unified_couple_kokkos.h"
 
-
 #endif
 #endif
 
@@ -79,7 +79,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // Force the stdout and stderr streams to be unbuffered.
   bool unbuffered = PYTHONUNBUFFERED != nullptr && strcmp(PYTHONUNBUFFERED, "1") == 0;
 
-#if (PY_VERSION_HEX >= 0x030800f0) && !defined(__APPLE__)
+#if (PY_VERSION_HEX >= 0x030800f0)
   PyConfig config;
   PyConfig_InitPythonConfig(&config);
   config.buffered_stdio = !unbuffered;
@@ -87,28 +87,30 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // Python Global configuration variable
   Py_UnbufferedStdioFlag = unbuffered;
 #endif
-#else
-#warning Cannot force stdout and stderr to be unbuffered
 #endif
 
 #ifdef MLIAP_PYTHON
-  // Inform python intialization scheme of the mliappy module.
-  // This -must- happen before python is initialized.
-  int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
-  if (err) error->all(FLERR, "Could not register MLIAPPY embedded python module.");
+  // cannot register mliappy module a second time
+  if (!Py_IsInitialized()) {
+    // Inform python intialization scheme of the mliappy module.
+    // This -must- happen before python is initialized.
+    int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
+    if (err) error->all(FLERR, "Could not register MLIAPPY embedded python module.");
 
-  err = PyImport_AppendInittab("mliap_unified_couple", PyInit_mliap_unified_couple);
-  if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python module.");
+    err = PyImport_AppendInittab("mliap_unified_couple", PyInit_mliap_unified_couple);
+    if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python module.");
+
 #ifdef LMP_KOKKOS
-  // Inform python intialization scheme of the mliappy module.
-  // This -must- happen before python is initialized.
-  err = PyImport_AppendInittab("mliap_model_python_couple_kokkos", PyInit_mliap_model_python_couple_kokkos);
-  if (err) error->all(FLERR, "Could not register MLIAPPY embedded python module.");
+    // Inform python intialization scheme of the mliappy module.
+    // This -must- happen before python is initialized.
+    err = PyImport_AppendInittab("mliap_model_python_couple_kokkos",
+                                 PyInit_mliap_model_python_couple_kokkos);
+    if (err) error->all(FLERR, "Could not register MLIAPPY embedded python KOKKOS module.");
 
-  err = PyImport_AppendInittab("mliap_unified_couple_kokkos", PyInit_mliap_unified_couple_kokkos);
-  if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python module.");
-
+    err = PyImport_AppendInittab("mliap_unified_couple_kokkos", PyInit_mliap_unified_couple_kokkos);
+    if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python KOKKOS module.");
 #endif
+  }
 #endif
 
 #if PY_VERSION_HEX >= 0x030800f0 && !defined(Py_LIMITED_API)
@@ -122,7 +124,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // With Python 3.7 this function is now called by Py_Initialize()
   // Deprecated since version 3.9, will be removed in version 3.11
 #if PY_VERSION_HEX < 0x030700f0
-  if (!PyEval_ThreadsInitialized()) { PyEval_InitThreads(); }
+  if (!PyEval_ThreadsInitialized()) PyEval_InitThreads();
 #endif
 
   PyUtils::GIL lock;

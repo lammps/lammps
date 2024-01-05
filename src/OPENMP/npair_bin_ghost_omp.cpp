@@ -59,7 +59,7 @@ void NPairBinGhostOmp<HALF>::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nall);
 
-  int i, j, k, n, itype, jtype, ibin, bin_start, which, imol, iatom;
+  int i, j, k, n, itype, jtype, ibin, which, imol, iatom;
   tagint tagprev;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   int xbin, ybin, zbin, xbin2, ybin2, zbin2;

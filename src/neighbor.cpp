@@ -1791,16 +1791,17 @@ void Neighbor::print_pairwise_info()
         out += fmt::format(", trim from ({})",rq->copylist+1);
       else
         out += fmt::format(", copy from ({})",rq->copylist+1);
-    } else if (rq->halffull)
+    } else if (rq->halffull) {
       if (rq->trim)
         out += fmt::format(", half/full trim from ({})",rq->halffulllist+1);
       else
         out += fmt::format(", half/full from ({})",rq->halffulllist+1);
-    else if (rq->skip)
+    } else if (rq->skip) {
       if (rq->trim)
         out += fmt::format(", skip trim from ({})",rq->skiplist+1);
       else
         out += fmt::format(", skip from ({})",rq->skiplist+1);
+    }
     out += "\n";
 
     // list of neigh list attributes

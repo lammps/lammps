@@ -43,8 +43,11 @@ pair_style lj/charmmfsw/coul/charmmfsh command
 pair_style lj/charmmfsw/coul/long command
 =========================================
 
+Accelerator Variants: *lj/charmmfsw/coul/long/kk*
+
+
 Syntax
-""""""
+======
 
 .. code-block:: LAMMPS
 
@@ -74,8 +77,9 @@ Syntax
        inner, outer = global cutoffs for LJ (and Coulombic if only 2 args)
        cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 2 args)
 
+
 Examples
-""""""""
+========
 
 .. code-block:: LAMMPS
 
@@ -104,70 +108,62 @@ Examples
    pair_coeff 1 1 100.0 2.0 150.0 3.5
 
 Description
-"""""""""""
+===========
 
-These pair styles compute Lennard Jones (LJ) and Coulombic
-interactions with additional switching or shifting functions that ramp
-the energy and/or force smoothly to zero between an inner and outer
-cutoff.  They are implementations of the widely used CHARMM force
-field used in the `CHARMM <https://www.charmm.org>`_ MD code (and
-others).  See :ref:`(MacKerell) <pair-MacKerell>` for a description of the
-CHARMM force field.
-
-The styles with *charmm* (not *charmmfsw* or *charmmfsh*\ ) in their
-name are the older, original LAMMPS implementations.  They compute the
-LJ and Coulombic interactions with an energy switching function (esw,
-shown in the formula below as S(r)), which ramps the energy smoothly
-to zero between the inner and outer cutoff.  This can cause
-irregularities in pairwise forces (due to the discontinuous second
-derivative of energy at the boundaries of the switching region), which
-in some cases can result in detectable artifacts in an MD simulation.
-
-The newer styles with *charmmfsw* or *charmmfsh* in their name replace
-the energy switching with force switching (fsw) and force shifting
-(fsh) functions, for LJ and Coulombic interactions respectively.
-These follow the formulas and description given in
-:ref:`(Steinbach) <Steinbach>` and :ref:`(Brooks) <Brooks1>` to minimize these
-artifacts.
-
-.. note::
-
-   The newer *charmmfsw* or *charmmfsh* styles were released in
-   March 2017.  We recommend they be used instead of the older *charmm*
-   styles.  This includes the newer :doc:`dihedral_style charmmfsw <dihedral_charmm>` command.  Eventually code from the new
-   styles will propagate into the related pair styles (e.g. implicit,
-   accelerator, free energy variants).
-
-.. note::
-
-   The newest CHARMM pair styles reset the Coulombic energy
-   conversion factor used internally in the code, from the LAMMPS value
-   to the CHARMM value, as if it were effectively a parameter of the
-   force field.  This is because the CHARMM code uses a slightly
-   different value for the this conversion factor in :doc:`real units <units>` (kcal/mol), namely CHARMM = 332.0716, LAMMPS =
-   332.06371.  This is to enable more precise agreement by LAMMPS with
-   the CHARMM force field energies and forces, when using one of these
-   two CHARMM pair styles.
+The `CHARMM force field <https://mackerell.umaryland.edu/charmm_ff.shtml>`_ :ref:`(MacKerell) <pair-MacKerell>` has potential energy function of the form
 
 .. math::
 
-   E = & LJ(r) \qquad \qquad \qquad r < r_{\rm in} \\
-     = & S(r) * LJ(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
-     = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
-   E = & C(r) \qquad \qquad \qquad r < r_{\rm in} \\
-     = & S(r) * C(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
-     = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
-   LJ(r) = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
-           \left(\frac{\sigma}{r}\right)^6 \right] \\
-   C(r) = & \frac{C q_i q_j}{ \epsilon r} \\
-   S(r) = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
-     \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
-   { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
+  V = & \sum_{bonds} E_b + \sum_{angles} \!E_a + \!\sum_{dihedral} \!\!E_d +\!\! \sum_{impropers} \!\!\!E_i +  \!\!\!\!\overbrace{\sum_{pairs} \left(E_{LJ}+E_{coul}\right)}^{\substack{
+         \text{lj/charmm/coul/charmm} \\
+        \text{lj/charmm/coul/charmm/implicit} \\
+        \text{lj/charmm/coul/long} \\
+        \text{lj/charmm/coul/msm} \\
+         \text{lj/charmmfsw/coul/charmmfsh} \\
+        \text{lj_charmmfsw/coul/long}
+      }} \\[0.6em]
+      & \qquad  \!\!\!\!+ \sum_{special}\! E_s + \sum \text{CMAP}(\phi,\psi)
 
-where S(r) is the energy switching function mentioned above for the
-*charmm* styles.  See the :ref:`(Steinbach) <Steinbach>` paper for the
-functional forms of the force switching and force shifting functions
-used in the *charmmfsw* and *charmmfsh* styles.
+
+The pair styles described here compute the *non-covalently bonded pair interactions* term of Lennard Jones (LJ) and Coulombic interactions, with additional switching or shifting functions that ramp the energy and/or force smoothly to zero between an inner and outer cutoff. The other terms of this potential energy functions are computed by :doc:`bond styles <bonds>` (relationship between 2 atoms), :doc:`angle styles <bonds>` (between 3 atoms) , :doc:`dihedral styles <dihedrals>` and :doc:`improper styles <impropers>`  (between 4 atoms), and :doc:`special bonds <special_bonds>`. The last CMAP term corrects for pairs of dihedral angles (Correction MAP) to properly represent conformational behavior (see :doc:`fix cmap <fix_cmap>`
+command for details).
+
+
+charmm
+------
+
+The styles with *charmm* (not *charmmfsw* or *charmmfsh*\ ) in their
+name are the older, original LAMMPS implementations.  They compute the
+LJ and Coulombic interactions with an energy switching function (esw) S(r):
+
+.. math::
+
+.. math::
+
+   E_{LJ} = & \begin{cases}
+        LJ(r), & r < r_{\rm in} \\
+        S(r) LJ(r), & r_{\rm in} < r < r_{\rm out} \\
+        0, &r > r_{\rm out}
+      \end{cases}\\[1em]
+   E_{coul} =& \begin{cases}
+        C(r), r < r_{\rm in} \\
+        S(r) C(r), r_{\rm in} < r < r_{\rm out} \\
+        0, r > r_{\rm out}
+      \end{cases}\\[1em]
+   LJ(r) = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
+           \left(\frac{\sigma}{r}\right)^6 \right] \\[1em]
+   C(r) = & \frac{C q_i q_j}{ \epsilon r}\\[1em]
+   S(r) = & \frac{ \left(r_{\rm out}^2 - r^2\right)^2
+     \left(r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right)}
+   { \left(r_{\rm out}^2 - {r_{\rm in}}^2\right)^3 }
+
+
+
+which ramps the energy smoothly to zero between the inner :math:`(r_{\rm in})` and outer :math:`(r_{\rm out})` cutoff.  This can cause irregularities in pairwise forces (due to the discontinuous second derivative of energy at the boundaries of the switching region), which in some cases can result in detectable artifacts in an MD simulation an complications in energy minimization.
+
+.. image:: img/pair_charmm_ELJ.png
+  :align: center
+
 
 When using the *lj/charmm/coul/charmm styles*, both the LJ and
 Coulombic terms require an inner and outer cutoff. They can be the
@@ -225,7 +221,37 @@ because the CHARMM force field does not allow varying cutoffs for
 individual atom pairs; all pairs use the global cutoff(s) specified in
 the pair_style command.
 
+
+charmmfsw
+---------
+
+The newer styles with *charmmfsw* or *charmmfsh* in their name replace the energy switching with force switching (fsw) and force shifting (fsh) functions, for LJ and Coulombic interactions respectively. These styles are used by LAMMPS input scripts generated by  `charmm-gui.org <https://charmm-gui.org/>`_. These follow the formulas and description given in :ref:`(Steinbach) <Steinbach>` and :ref:`(Brooks) <Brooks1>` to minimize these artifacts.
+
+.. warning::
+
+   The newer *charmmfsw* or *charmmfsh* styles were released in
+   March 2017.  We recommend they be used instead of the older *charmm*
+   styles.  This includes the newer :doc:`dihedral_style charmmfsw <dihedral_charmm>` command.  Eventually code from the new
+   styles will propagate into the related pair styles (e.g. implicit,
+   accelerator, free energy variants).
+
+.. warning::
+
+   The newest CHARMM pair styles reset the Coulombic energy
+   conversion factor used internally in the code, from the LAMMPS value
+   to the CHARMM value, as if it were effectively a parameter of the
+   force field.  This is because the CHARMM code uses a slightly
+   different value for the this conversion factor in :doc:`real units <units>` (kcal/mol), namely CHARMM = 332.0716, LAMMPS =
+   332.06371.  This is to enable more precise agreement by LAMMPS with
+   the CHARMM force field energies and forces, when using one of these
+   two CHARMM pair styles.
+
+
+
 ----------
+
+Accelerated styles
+""""""""""""""""""
 
 .. include:: accel_styles.rst
 

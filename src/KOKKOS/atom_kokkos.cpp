@@ -25,6 +25,7 @@
 #include "kokkos_base.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_property_atom_kokkos.h"
 
 using namespace LAMMPS_NS;
 

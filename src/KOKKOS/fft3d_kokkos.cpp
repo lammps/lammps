@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Stan Moore (SNL), Sam Mish (U.C. Davis)
+   Contributing authors: Stan Moore (SNL), Sam Mish (U.C. Davis), Nick Hagerty (ORNL)
 ------------------------------------------------------------------------- */
 #include "fft3d_kokkos.h"
 

@@ -23,15 +23,15 @@ The `CHARMM force field <https://mackerell.umaryland.edu/charmm_ff.shtml>`_ :ref
   V = & \sum_{bonds} E_b + \sum_{angles} \!E_a + \!\overbrace{\sum_{dihedral} \!\!E_d}^{\substack{
          \text{charmm} \\
         \text{charmmfsw}
-      }} +\!\! \sum_{impropers} \!\!\!E_i +  \!\!\!\!\overbrace{\sum_{pairs} \left(E_{LJ}+E_{coul}\right)}^{\substack{
+      }} +\!\! \sum_{impropers} \!\!\!E_i +  \!\!\!\!\!\!\overbrace{\sum_{pairs} \left(E_{LJ}+E_{coul}\right)}^{\substack{
          \text{lj/charmm/coul/charmm} \\
         \text{lj/charmm/coul/charmm/implicit} \\
         \text{lj/charmm/coul/long} \\
         \text{lj/charmm/coul/msm} \\
          \text{lj/charmmfsw/coul/charmmfsh} \\
-        \text{lj_charmmfsw/coul/long}
+        \text{lj/charmmfsw/coul/long}
       }} \\[0.6em]
-      & \qquad  \!\!\!\!+ \sum_{special}\! E_s + \sum_{residues} \text{CMAP}(\phi,\psi)
+      & \qquad  \!\!\!\!+ \sum_{special}\! E_s + \sum_{residues} \!\text{CMAP}(\phi,\psi)
 
 
 The terms are computed by bond styles (relationship between 2 atoms), angle styles (between 3 atoms) , dihedral/improper styles (between 4 atoms), pair styles (non-covalently bonded pair interactions) and special bonds. The CMAP term (see :doc:`fix cmap <fix_cmap>` command for details) corrects for pairs of dihedral angles ("Correction MAP") to significantly improve the structural and dynamic properties of proteins in crystalline and solution environments :ref:`(Brooks) <howto-Brooks>`. The AMBER force field does not include the CMAP term.

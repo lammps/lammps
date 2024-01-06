@@ -1,0 +1,40 @@
+###Lipid Head### 
+
+Colvarstrajfrequency    100
+Colvarsrestartfrequency 100
+
+indexFile               colvar.index
+
+colvar {
+   name bb_rmsd
+   rmsd {
+       atoms {
+          indexGroup         bb_rmsd
+       }
+       refPositionsFile      restraints/posres.xyz
+   }
+}
+
+harmonic {
+   colvars bb_rmsd
+   centers 0
+   forceConstant $bb
+}
+
+colvar {
+    name sc_rmsd
+    rmsd {
+       atoms {
+          indexGroup         sc_rmsd
+       }
+       refPositionsFile      restraints/posres.xyz
+    }
+}
+
+harmonic {
+  colvars sc_rmsd
+  centers 0
+  forceConstant $sc
+}
+
+

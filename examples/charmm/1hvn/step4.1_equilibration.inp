@@ -1,0 +1,50 @@
+echo            screen
+variable        dcdfreq index 2500
+variable        outputname index step4.1_equilibration 
+variable        inputname  index step4.0_minimization 
+
+units           real
+boundary        p p p
+
+newton          off
+pair_style      lj/charmmfsw/coul/long 10 12
+pair_modify     mix arithmetic
+kspace_style    pppm 1e-6
+
+atom_style      full
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmmfsw
+special_bonds   charmm
+improper_style  harmonic
+timestep        1
+
+fix             cmap all cmap charmmff.cmap
+fix_modify      cmap energy yes
+read_data       step3_input.data fix cmap crossterm CMAP
+
+variable        laststep file ${inputname}.dump
+next            laststep
+read_dump       ${inputname}.dump ${laststep}  x y z vx vy vz ix iy iz box yes replace yes format native
+
+neighbor        2 bin
+neigh_modify    delay 5 every 1
+
+include         restraints/constraint_angletype
+fix             1 all shake 1e-6 500 ${dcdfreq} m 1.008 a ${constraint_angletype}
+
+fix             2 all nvt temp 303.15 303.15 100.0
+
+shell           sed -e "s/\$bb/1.0/g" -e "s/\$sc/0.1/g" step3_input.col > restraints/${outputname}.col
+fix             restraint all colvars restraints/${outputname}.col output ${outputname}
+
+thermo          ${dcdfreq}
+thermo_style    custom step time xlo xhi ylo yhi zlo zhi etotal pe ke temp press ebond eangle edihed eimp evdwl ecoul elong temp vol 
+dump            1 all dcd ${dcdfreq} ${outputname}.dcd
+dump_modify     1 unwrap yes
+
+reset_timestep  0
+run             25000
+write_dump      all custom ${outputname}.dump id type x y z vx vy vz ix iy iz
+write_data      ${outputname}.data
+

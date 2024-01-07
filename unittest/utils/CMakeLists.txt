@@ -24,6 +24,10 @@ add_executable(test_platform test_platform.cpp)
 target_link_libraries(test_platform PRIVATE lammps GTest::GMockMain)
 add_test(NAME Platform COMMAND test_platform)
 
+add_executable(test_elements test_elements.cpp)
+target_link_libraries(test_elements PRIVATE lammps GTest::GMockMain)
+add_test(NAME Elements COMMAND test_elements)
+
 if(PKG_LEPTON)
   add_executable(test_lepton test_lepton.cpp)
   target_link_libraries(test_lepton PRIVATE lepton lammps GTest::GMockMain)

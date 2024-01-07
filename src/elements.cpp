@@ -17,7 +17,6 @@
 
 #include "elements.h"
 
-#include "pointers.h"
 #include "utils.h"
 #include "error.h"
 

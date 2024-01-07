@@ -19,9 +19,7 @@
 #include "lmptype.h"
 #include "error.h"
 
-//#include <cstdio>
 #include <string>
-//#include <vector>
 
 namespace LAMMPS_NS {
 namespace elements {

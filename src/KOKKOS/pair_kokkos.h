@@ -746,8 +746,10 @@ struct PairComputeFunctor  {
         a_f(i,1) += fev.f[1];
         a_f(i,2) += fev.f[2];
 
-        if (c.eflag_global)
+        if (c.eflag_global) {
           ev.evdwl += fev.evdwl;
+          ev.ecoul += fev.ecoul;
+        }
 
         if (c.vflag_global) {
           ev.v[0] += fev.v[0];
@@ -761,7 +763,7 @@ struct PairComputeFunctor  {
         if (NEIGHFLAG == FULL) {
 
           if (c.eflag_atom)
-            a_eatom(i) += fev.evdwl;
+            a_eatom(i) += fev.evdwl + fev.ecoul;
 
           if (c.vflag_atom) {
             a_vatom(i,0) += fev.v[0];

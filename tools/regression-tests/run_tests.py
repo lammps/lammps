@@ -42,8 +42,8 @@ import sys
 import re, yaml
 import subprocess
 
-import optparse, sys
-from optparse import OptionParser
+import sys
+from argparse import ArgumentParser
 
 try:
     from yaml import CSafeLoader as Loader
@@ -256,19 +256,18 @@ if __name__ == "__main__":
   genref = False
 
   # parse the arguments
-  parser = OptionParser()
-  parser.add_option("--lmp-bin", dest="lmp_binary", type = "string", default="",
-                    help="LAMMPS binary")
-  parser.add_option("--config-file", dest="config_file", type = "string", default="config.yaml",
+  parser = ArgumentParser()
+  parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
+  parser.add_argument("--config-file", dest="config_file", default="config.yaml",
                     help="Configuration YAML file")
-  parser.add_option("--gen-ref",dest="genref", default=False,
+  parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                     help="Generating reference data")
 
-  (options, args) = parser.parse_args()
+  args = parser.parse_args()
 
-  lmp_binary = options.lmp_binary
-  config_file= options.config_file
-  genref = options.genref
+  lmp_binary = args.lmp_binary
+  config_file= args.config_file
+  genref = args.genref
   
   # read in the configuration of the tests
   with open(configFileName, 'r') as f:
@@ -296,7 +295,7 @@ if __name__ == "__main__":
     example_subfolders.append('../../examples/micelle')
 
 
-  inplace_input = True
+  inplace_input = False
   if inplace_input == True:
 
     # save current working dir

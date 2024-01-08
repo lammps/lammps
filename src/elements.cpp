@@ -46,8 +46,6 @@ std::string elements::symbol(int atomic_number, Error *error)
     return Symbol[atomic_number];
 }
 
-/* ------------------------------------------------------------------ */
-
 std::string elements::name(int atomic_number, Error *error)
 {
   if( atomic_number<0 || atomic_number>MAX_ATOMIC_NUMBER) {
@@ -56,8 +54,6 @@ std::string elements::name(int atomic_number, Error *error)
   } else
     return Name[atomic_number];
 }
-
-/* ------------------------------------------------------------------ */
 
 std::string elements::cpkHexColor(int atomic_number, Error *error)
 {
@@ -82,8 +78,6 @@ double elements::atomic_mass(int atomic_number, Error *error)
     return AtomicMass[atomic_number];
 }
 
-/* ------------------------------------------------------------------ */
-
 double elements::vdw_radius(int atomic_number, Error *error)
 {
   if( atomic_number<0 || atomic_number>MAX_ATOMIC_NUMBER) {
@@ -92,8 +86,6 @@ double elements::vdw_radius(int atomic_number, Error *error)
   } else
     return VdwRadius[atomic_number];
 }
-
-/* ------------------------------------------------------------------ */
 
 double elements::covalent_radius(int atomic_number, Error *error)
 {
@@ -109,50 +101,45 @@ double elements::covalent_radius(int atomic_number, Error *error)
 int elements::atomic_number_with_symbol(const std::string &symbol, Error *error)
 {
   int i=0;
-  
+
   while( i<=MAX_ATOMIC_NUMBER ) {
     if( LAMMPS_NS::utils::strmatch(Symbol[i], symbol) )
        return i;
     else
        i++;
   }
-  
+
   error->all(FLERR, "symbol {} not found", symbol);
   return -1;
 }
-
-/* ------------------------------------------------------------------ */
 
 int elements::atomic_number_with_closest_mass(double mass, Error *error)
 {
   int i=0;
   double previous_mass=0.0;
-  
+
   if( mass<0 )
     error->all(FLERR, "atomic mass {} is negative, must be >=0", mass);
-      
+
   while( i<=MAX_ATOMIC_NUMBER ) {
-  
+
     double current_mass=AtomicMass[i];
-    
+
     if( mass<=current_mass ) {
-    
       // now we have previous_mass < mass <= current_mass
-    
       if( mass-previous_mass < current_mass-mass )
         return i-1;
       else
         return i;
     }
-        
+
     // otherwise keep looking
     previous_mass=current_mass;
     i++;
   }
-  
+
   error->all(FLERR, "atomic mass {} higher than heaviest element {} ({}) available",
                               mass, Name[MAX_ATOMIC_NUMBER], AtomicMass[MAX_ATOMIC_NUMBER]);
-                              
   return -1;
 }
 

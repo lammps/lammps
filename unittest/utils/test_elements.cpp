@@ -35,10 +35,10 @@ TEST_F(ElementsTest, symbol)
   ASSERT_THAT(LAMMPS_NS::elements::symbol(1,error), StrEq("H"));
   ASSERT_THAT(LAMMPS_NS::elements::symbol(74,error), StrEq("W"));
   ASSERT_THAT(LAMMPS_NS::elements::symbol(96,error), StrEq("Cm"));
-  
+
   TEST_FAILURE("atomic_number -1 out of range \\(0-96\\)",
     LAMMPS_NS::elements::symbol(-1,error););
- 
+
   TEST_FAILURE("atomic_number 99 out of range \\(0-96\\)",
     elements::symbol(99,error););
 }
@@ -66,7 +66,7 @@ TEST_F(ElementsTest, cpkHexColor)
 
   TEST_FAILURE("atomic_number -1 out of range \\(0-96\\)",
     LAMMPS_NS::elements::cpkHexColor(-1,error););
-    
+
   TEST_FAILURE("atomic_number 99 out of range \\(0-96\\)",
     elements::cpkHexColor(99,error););
 }
@@ -79,7 +79,7 @@ TEST_F(ElementsTest, atomic_mass)
   ASSERT_EQ(LAMMPS_NS::elements::atomic_mass(1,error), 1.008);
   ASSERT_EQ(LAMMPS_NS::elements::atomic_mass(8,error), 15.999);
   ASSERT_EQ(LAMMPS_NS::elements::atomic_mass(96,error), 247.07035);
-  
+
   TEST_FAILURE("atomic_number -1 out of range \\(0-96\\)",
     LAMMPS_NS::elements::atomic_mass(-1,error););
 
@@ -96,7 +96,7 @@ TEST_F(ElementsTest, vdw_radius)
 
   TEST_FAILURE("atomic_number -1 out of range \\(0-96\\)",
     LAMMPS_NS::elements::vdw_radius(-1,error););
-    
+
   TEST_FAILURE("atomic_number 99 out of range \\(0-96\\)",
     elements::vdw_radius(99,error););
 }
@@ -122,7 +122,7 @@ TEST_F(ElementsTest, atomic_number_with_symbol)
   ASSERT_EQ(LAMMPS_NS::elements::atomic_number_with_symbol("X",error), 0);
   ASSERT_EQ(LAMMPS_NS::elements::atomic_number_with_symbol("H",error), 1);
   ASSERT_EQ(LAMMPS_NS::elements::atomic_number_with_symbol("Ca",error), 20);
-  
+
   TEST_FAILURE("symbol FOO not found",
     elements::atomic_number_with_symbol("FOO",error););
 }

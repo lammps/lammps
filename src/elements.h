@@ -27,11 +27,9 @@ namespace elements {
   std::string symbol(int atomic_number, Error *error);
   std::string name(int atomic_number, Error *error);
   std::string cpkHexColor(int atomic_number, Error *error);
-  
   double atomic_mass(int atomic_number, Error *error); // units u
   double vdw_radius(int atomic_number, Error *error); // units pm
   double covalent_radius(int atomic_number, Error *error); // units pm
-  
   int atomic_number_with_symbol(const std::string &symbol, Error *error);
   int atomic_number_with_closest_mass(double mass, Error *error);
 

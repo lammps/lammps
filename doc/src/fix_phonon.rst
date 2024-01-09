@@ -181,10 +181,10 @@ This fix assumes a crystalline system with periodical lattice. The
 temperature of the system should not exceed the melting temperature to
 keep the system in its solid state.
 
-This fix is part of the PHONON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
-
-This fix requires LAMMPS be built with an FFT library.  See the :doc:`Build settings <Build_settings>` page for details.
+This fix is part of the PHONON package.  It is only enabled if LAMMPS
+was built with that package.  This fix also requires LAMMPS to be built
+with 3d-FFT support which is included in the KSPACE package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

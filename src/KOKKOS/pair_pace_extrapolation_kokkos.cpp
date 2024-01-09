@@ -106,7 +106,8 @@ void PairPACEExtrapolationKokkos<DeviceType>::grow(int natom, int maxneigh)
 
   if ((int)A.extent(0) < natom) {
 
-    MemKK::realloc_kokkos(A, "pace:A", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(A_sph, "pace:A_sph", natom, nelements, idx_sph_max, nradmax + 1);
+    MemKK::realloc_kokkos(A, "pace:A", natom, nelements, (lmax + 1) * (lmax + 1), nradmax + 1);
     MemKK::realloc_kokkos(A_rank1, "pace:A_rank1", natom, nelements, nradbase);
 
     MemKK::realloc_kokkos(A_list, "pace:A_list", natom, idx_ms_combs_max, basis_set->rankmax);
@@ -117,25 +118,29 @@ void PairPACEExtrapolationKokkos<DeviceType>::grow(int natom, int maxneigh)
     MemKK::realloc_kokkos(rhos, "pace:rhos", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
     MemKK::realloc_kokkos(dF_drho, "pace:dF_drho", natom, basis_set->ndensitymax + 1); // +1 density for core repulsion
 
-    MemKK::realloc_kokkos(weights, "pace:weights", natom, nelements, nradmax + 1, (lmax + 1) * (lmax + 1));
+    MemKK::realloc_kokkos(weights, "pace:weights", natom, nelements, idx_sph_max, nradmax + 1);
     MemKK::realloc_kokkos(weights_rank1, "pace:weights_rank1", natom, nelements, nradbase);
 
     // hard-core repulsion
     MemKK::realloc_kokkos(rho_core, "pace:rho_core", natom);
     MemKK::realloc_kokkos(dF_drho_core, "pace:dF_drho_core", natom);
+    MemKK::realloc_kokkos(dF_dfcut, "pace:dF_dfcut", natom);
+    MemKK::realloc_kokkos(d_d_min, "pace:r_min_pair", natom);
+    MemKK::realloc_kokkos(d_jj_min, "pace:j_min_pair", natom);
+    MemKK::realloc_kokkos(d_corerep, "pace:corerep", natom); // per-atom corerep
 
     MemKK::realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_ms_combs_max, basis_set->rankmax);
 
-    //B-projections
+    // B-projections
     MemKK::realloc_kokkos(projections, "pace:projections", natom, total_num_functions_max); // per-atom B-projections
     MemKK::realloc_kokkos(d_gamma, "pace:gamma", natom); // per-atom gamma
   }
 
-  if (((int)ylm.extent(0) < natom) || ((int)ylm.extent(1) < maxneigh)) {
+  if (((int)fr.extent(0) < natom) || ((int)fr.extent(1) < maxneigh)) {
 
     // radial functions
-    MemKK::realloc_kokkos(fr, "pace:fr", natom, maxneigh, nradmax, lmax + 1);
-    MemKK::realloc_kokkos(dfr, "pace:dfr", natom, maxneigh, nradmax, lmax + 1);
+    MemKK::realloc_kokkos(fr, "pace:fr", natom, maxneigh, lmax + 1, nradmax);
+    MemKK::realloc_kokkos(dfr, "pace:dfr", natom, maxneigh, lmax + 1, nradmax);
     MemKK::realloc_kokkos(gr, "pace:gr", natom, maxneigh, nradbase);
     MemKK::realloc_kokkos(dgr, "pace:dgr", natom, maxneigh, nradbase);
     const int max_num_functions = MAX(nradbase, nradmax*(lmax + 1));
@@ -145,12 +150,6 @@ void PairPACEExtrapolationKokkos<DeviceType>::grow(int natom, int maxneigh)
     // hard-core repulsion
     MemKK::realloc_kokkos(cr, "pace:cr", natom, maxneigh);
     MemKK::realloc_kokkos(dcr, "pace:dcr", natom, maxneigh);
-
-    // spherical harmonics
-    MemKK::realloc_kokkos(plm, "pace:plm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    MemKK::realloc_kokkos(dplm, "pace:dplm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    MemKK::realloc_kokkos(ylm, "pace:ylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
-    MemKK::realloc_kokkos(dylm, "pace:dylm", natom, maxneigh, (lmax + 1) * (lmax + 1));
 
     // short neigh list
     MemKK::realloc_kokkos(d_ncount, "pace:ncount", natom);
@@ -219,6 +218,23 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_pertype()
 
   Kokkos::deep_copy(d_wpre, h_wpre);
   Kokkos::deep_copy(d_mexp, h_mexp);
+
+  // ZBL core-rep
+  MemKK::realloc_kokkos(d_cut_in, "pace:d_cut_in", nelements, nelements);
+  MemKK::realloc_kokkos(d_dcut_in, "pace:d_dcut_in", nelements, nelements);
+  auto h_cut_in = Kokkos::create_mirror_view(d_cut_in);
+  auto h_dcut_in = Kokkos::create_mirror_view(d_dcut_in);
+
+  for (int mu_i = 0; mu_i < nelements; ++mu_i) {
+    for (int mu_j = 0; mu_j < nelements; ++mu_j) {
+      h_cut_in(mu_i,mu_j) = basis_set->map_bond_specifications.at({mu_i,mu_j}).rcut_in;
+      h_dcut_in(mu_i,mu_j) = basis_set->map_bond_specifications.at({mu_i,mu_j}).dcut_in;
+    }
+  }
+  Kokkos::deep_copy(d_cut_in, h_cut_in);
+  Kokkos::deep_copy(d_dcut_in, h_dcut_in);
+
+  is_zbl = basis_set->radial_functions->inner_cutoff_type == "zbl";
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,6 +259,9 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_splines()
   k_splines_hc = Kokkos::DualView<SplineInterpolatorKokkos**, DeviceType>("pace:splines_hc", nelements, nelements);
 
   ACERadialFunctions* radial_functions = dynamic_cast<ACERadialFunctions*>(basis_set->radial_functions);
+
+  if (radial_functions == nullptr)
+    error->all(FLERR,"Chosen radial basis style not supported by pair style pace/kk");
 
   for (int i = 0; i < nelements; i++) {
     for (int j = 0; j < nelements; j++) {
@@ -275,8 +294,9 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
   total_num_functions_max = 0;
 
   MemKK::realloc_kokkos(d_idx_ms_combs_count, "pace:idx_ms_combs_count", nelements);
-  MemKK::realloc_kokkos(d_total_basis_size, "pace:total_basis_size", nelements);
   auto h_idx_ms_combs_count = Kokkos::create_mirror_view(d_idx_ms_combs_count);
+
+  MemKK::realloc_kokkos(d_total_basis_size, "pace:total_basis_size", nelements);
   auto h_total_basis_size = Kokkos::create_mirror_view(d_total_basis_size);
 
   for (int mu = 0; mu < nelements; mu++) {
@@ -291,8 +311,8 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
       idx_ms_combs++;
 
     // rank > 1
-    for (int func_ind = 0; func_ind < total_basis_size; ++func_ind) {
-      ACEBBasisFunction *func = &basis[func_ind];
+    for (int idx_func = 0; idx_func < total_basis_size; ++idx_func) {
+      ACEBBasisFunction *func = &basis[idx_func];
 
       // loop over {ms} combinations in sum
       for (int ms_ind = 0; ms_ind < func->num_ms_combs; ++ms_ind)
@@ -309,7 +329,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 
   MemKK::realloc_kokkos(d_rank, "pace:rank", nelements, total_num_functions_max);
   MemKK::realloc_kokkos(d_num_ms_combs, "pace:num_ms_combs", nelements, total_num_functions_max);
-  MemKK::realloc_kokkos(d_func_inds, "pace:func_inds", nelements, idx_ms_combs_max);
+  MemKK::realloc_kokkos(d_idx_funcs, "pace:idx_funcs", nelements, idx_ms_combs_max);
   MemKK::realloc_kokkos(d_mus, "pace:mus", nelements, total_num_functions_max, basis_set->rankmax);
   MemKK::realloc_kokkos(d_ns, "pace:ns", nelements, total_num_functions_max, basis_set->rankmax);
   MemKK::realloc_kokkos(d_ls, "pace:ls", nelements, total_num_functions_max, basis_set->rankmax);
@@ -322,7 +342,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 
   auto h_rank = Kokkos::create_mirror_view(d_rank);
   auto h_num_ms_combs = Kokkos::create_mirror_view(d_num_ms_combs);
-  auto h_func_inds = Kokkos::create_mirror_view(d_func_inds);
+  auto h_idx_funcs = Kokkos::create_mirror_view(d_idx_funcs);
   auto h_mus = Kokkos::create_mirror_view(d_mus);
   auto h_ns = Kokkos::create_mirror_view(d_ns);
   auto h_ls = Kokkos::create_mirror_view(d_ls);
@@ -343,55 +363,52 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 
     const int ndensity = basis_set->map_embedding_specifications.at(mu).ndensity;
 
-    int idx_ms_comb = 0;
+    int idx_ms_combs = 0;
 
     // rank=1
-    for (int func_ind = 0; func_ind < total_basis_size_rank1; ++func_ind) {
-      ACEBBasisFunction *func = &basis_rank1[func_ind];
-      h_rank(mu, func_ind) = 1;
-      h_mus(mu, func_ind, 0) = func->mus[0];
-      h_ns(mu, func_ind, 0) = func->ns[0];
+    for (int idx_func = 0; idx_func < total_basis_size_rank1; ++idx_func) {
+      ACEBBasisFunction *func = &basis_rank1[idx_func];
+      h_rank(mu, idx_func) = 1;
+      h_mus(mu, idx_func, 0) = func->mus[0];
+      h_ns(mu, idx_func, 0) = func->ns[0];
 
       for (int p = 0; p < ndensity; ++p)
-            h_coeffs(mu, func_ind, p) = func->coeff[p];
+        h_coeffs(mu, idx_func, p) = func->coeff[p];
 
-      h_gen_cgs(mu, idx_ms_comb) = func->gen_cgs[0];
+      h_gen_cgs(mu, idx_ms_combs) = func->gen_cgs[0];
 
-      h_func_inds(mu, idx_ms_comb) = func_ind;
-      idx_ms_comb++;
+      h_idx_funcs(mu, idx_ms_combs) = idx_func;
+      idx_ms_combs++;
     }
 
     // rank > 1
-    for (int func_ind = 0; func_ind < total_basis_size; ++func_ind) {
-      ACEBBasisFunction *func = &basis[func_ind];
+    for (int idx_func = 0; idx_func < total_basis_size; ++idx_func) {
+      ACEBBasisFunction *func = &basis[idx_func];
       // TODO: check if func->ctildes are zero, then skip
 
-      const int func_ind_through = total_basis_size_rank1 + func_ind;
+      const int idx_func_through = total_basis_size_rank1 + idx_func;
 
-      const int rank = h_rank(mu, func_ind_through) = func->rank;
-      h_num_ms_combs(mu, func_ind_through) = func->num_ms_combs;
+      const int rank = h_rank(mu, idx_func_through) = func->rank;
+      h_num_ms_combs(mu, idx_func_through) = func->num_ms_combs;
       for (int t = 0; t < rank; t++) {
-        h_mus(mu, func_ind_through, t) = func->mus[t];
-        h_ns(mu, func_ind_through, t) = func->ns[t];
-        h_ls(mu, func_ind_through, t) = func->ls[t];
+        h_mus(mu, idx_func_through, t) = func->mus[t];
+        h_ns(mu, idx_func_through, t) = func->ns[t];
+        h_ls(mu, idx_func_through, t) = func->ls[t];
       }
 
       for (int p = 0; p < ndensity; ++p)
-        h_coeffs(mu, func_ind_through, p) = func->coeff[p];
-
+        h_coeffs(mu, idx_func_through, p) = func->coeff[p];
 
       // loop over {ms} combinations in sum
       for (int ms_ind = 0; ms_ind < func->num_ms_combs; ++ms_ind) {
         auto ms = &func->ms_combs[ms_ind * rank]; // current ms-combination (of length = rank)
         for (int t = 0; t < rank; t++)
-          h_ms_combs(mu, idx_ms_comb, t) = ms[t];
+          h_ms_combs(mu, idx_ms_combs, t) = ms[t];
 
+        h_gen_cgs(mu, idx_ms_combs) = func->gen_cgs[ms_ind];
 
-        h_gen_cgs(mu, idx_ms_comb) = func->gen_cgs[ms_ind];
-
-
-        h_func_inds(mu, idx_ms_comb) = func_ind_through;
-        idx_ms_comb++;
+        h_idx_funcs(mu, idx_ms_combs) = idx_func_through;
+        idx_ms_combs++;
       }
     }
 
@@ -405,7 +422,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 
   Kokkos::deep_copy(d_rank, h_rank);
   Kokkos::deep_copy(d_num_ms_combs, h_num_ms_combs);
-  Kokkos::deep_copy(d_func_inds, h_func_inds);
+  Kokkos::deep_copy(d_idx_funcs, h_idx_funcs);
   Kokkos::deep_copy(d_mus, h_mus);
   Kokkos::deep_copy(d_ns, h_ns);
   Kokkos::deep_copy(d_ls, h_ls);
@@ -455,6 +472,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::init_style()
 
   // spherical harmonics
 
+  MemKK::realloc_kokkos(d_idx_sph, "pace:idx_sph", (lmax + 1) * (lmax + 1));
   MemKK::realloc_kokkos(alm, "pace:alm", (lmax + 1) * (lmax + 1));
   MemKK::realloc_kokkos(blm, "pace:blm", (lmax + 1) * (lmax + 1));
   MemKK::realloc_kokkos(cl, "pace:cl", lmax + 1);
@@ -553,6 +571,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     atomKK->modified(Host,F_MASK);
     return;
   }
+
   eflag = eflag_in;
   vflag = vflag_in;
 
@@ -573,12 +592,20 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     d_vatom = k_vatom.view<DeviceType>();
   }
 
-  if (gamma_flag && atom->nlocal > nmax) {
+  if (flag_compute_extrapolation_grade && atom->nlocal > nmax) {
         memory->destroy(extrapolation_grade_gamma);
         nmax = atom->nlocal;
         memory->create(extrapolation_grade_gamma, nmax, "pace/atom:gamma");
         //zeroify array
         memset(extrapolation_grade_gamma, 0, nmax * sizeof(*extrapolation_grade_gamma));
+  }
+
+  if (flag_corerep_factor && atom->nlocal > nmax_corerep) {
+    memory->destroy(corerep_factor);
+    nmax_corerep = atom->nlocal;
+    memory->create(corerep_factor, nmax_corerep, "pace/atom:corerep");
+    //zeroify array
+    memset(corerep_factor, 0, nmax_corerep * sizeof(*corerep_factor));
   }
 
   copymode = 1;
@@ -618,7 +645,6 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
   chunk_size = MIN(chunksize,inum); // "chunksize" variable is set by user
   chunk_offset = 0;
 
-
   grow(chunk_size, maxneigh);
 
   EV_FLOAT ev;
@@ -627,12 +653,15 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
 
     Kokkos::deep_copy(weights, 0.0);
     Kokkos::deep_copy(weights_rank1, 0.0);
-    Kokkos::deep_copy(A, 0.0);
+    Kokkos::deep_copy(A_sph, 0.0);
     Kokkos::deep_copy(A_rank1, 0.0);
     Kokkos::deep_copy(rhos, 0.0);
-
+    Kokkos::deep_copy(rho_core, 0.0);
+    Kokkos::deep_copy(d_d_min, PairPACEExtrapolation::aceimpl->basis_set->cutoffmax);
+    Kokkos::deep_copy(d_jj_min, -1);
     Kokkos::deep_copy(projections, 0.0);
     Kokkos::deep_copy(d_gamma, 0.0);
+    Kokkos::deep_copy(d_corerep, 0.0);
 
     EV_FLOAT ev_tmp;
 
@@ -657,15 +686,6 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
       check_team_size_for<TagPairPACEComputeRadial>(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
       typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeRadial> policy_radial(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
       Kokkos::parallel_for("ComputeRadial",policy_radial,*this);
-    }
-
-    //ComputeYlm
-    {
-      int vector_length = vector_length_default;
-      int team_size = 16;
-      check_team_size_for<TagPairPACEComputeYlm>(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
-      typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeYlm> policy_ylm(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
-      Kokkos::parallel_for("ComputeYlm",policy_ylm,*this);
     }
 
     //ComputeAi
@@ -696,14 +716,14 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     }
 
     //ComputeGamma
-    if (gamma_flag) {
+    if (flag_compute_extrapolation_grade) {
       typename Kokkos::RangePolicy<DeviceType,TagPairPACEComputeGamma> policy_gamma(0,chunk_size);
       Kokkos::parallel_for("ComputeGamma",policy_gamma,*this);
     }
 
     //ComputeWeights
     {
-      typename Kokkos::RangePolicy<DeviceType,TagPairPACEComputeWeights> policy_weights(0, chunk_size * idx_ms_combs_max);
+      typename Kokkos::RangePolicy<DeviceType,TagPairPACEComputeWeights> policy_weights(0,chunk_size * idx_ms_combs_max);
       Kokkos::parallel_for("ComputeWeights",policy_weights,*this);
     }
 
@@ -712,7 +732,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
       int vector_length = vector_length_default;
       int team_size = team_size_default;
       check_team_size_for<TagPairPACEComputeDerivative>(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
-      typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeDerivative> policy_derivative(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
+      typename Kokkos::TeamPolicy<DeviceType,TagPairPACEComputeDerivative> policy_derivative(((chunk_size+team_size-1)/team_size)*maxneigh,team_size,vector_length);
       Kokkos::parallel_for("ComputeDerivative",policy_derivative,*this);
     }
 
@@ -738,11 +758,18 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     }
     ev += ev_tmp;
 
-    //if gamma_flag - copy current d_gamma to extrapolation_grade_gamma
-    if (gamma_flag){
+    // if flag_compute_extrapolation_grade - copy current d_gamma to extrapolation_grade_gamma
+
+    if (flag_compute_extrapolation_grade){
         h_gamma = Kokkos::create_mirror_view(d_gamma);
         Kokkos::deep_copy(h_gamma, d_gamma);
         memcpy(extrapolation_grade_gamma+chunk_offset, (void *) h_gamma.data(), sizeof(double)*chunk_size);
+    }
+
+    if (flag_corerep_factor) {
+      h_corerep = Kokkos::create_mirror_view(d_corerep);
+      Kokkos::deep_copy(h_corerep,d_corerep);
+      memcpy(corerep_factor+chunk_offset, (void *) h_corerep.data(), sizeof(double)*chunk_size);
     }
 
     chunk_offset += chunk_size;
@@ -799,6 +826,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const int jnum = d_numneigh[i];
+  const int mu_i = d_map(type(i));
 
   // get a pointer to scratch memory
   // This is used to cache whether or not an atom is within the cutoff
@@ -858,6 +886,36 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
     }
     offset++;
   });
+
+  if (is_zbl) {
+    //adapted from https://www.osti.gov/servlets/purl/1429450
+    if (ncount > 0) {
+      using minloc_value_type=Kokkos::MinLoc<F_FLOAT,int>::value_type;
+      minloc_value_type djjmin;
+      djjmin.val=1e20;
+      djjmin.loc=-1;
+      Kokkos::MinLoc<F_FLOAT,int> reducer_scalar(djjmin);
+      // loop over ncount (actual neighbours withing cutoff) rather than jnum (total number of neigh in cutoff+skin)
+      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, ncount),
+               [&](const int offset, minloc_value_type &min_d_dist) {
+                 int j = d_nearest(ii,offset);
+                 j &= NEIGHMASK;
+                 const int jtype = type(j);
+                 auto r = d_rnorms(ii,offset);
+                 const int mu_j = d_map(type(j));
+                 const F_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));
+                 if (d < min_d_dist.val) {
+                   min_d_dist.val = d;
+                   min_d_dist.loc = offset;
+                 }
+       }, reducer_scalar);
+      d_d_min(ii) = djjmin.val;
+      d_jj_min(ii) = djjmin.loc;// d_jj_min should be NOT in 0..jnum range, but in 0..d_ncount(<=jnum)
+    } else {
+      d_d_min(ii) = 1e20;
+      d_jj_min(ii) = -1;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -888,28 +946,6 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRadi
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeYlm, const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeYlm>::member_type& team) const
-{
-  // Extract the atom number
-  int ii = team.team_rank() + team.team_size() * (team.league_rank() %
-           ((chunk_size+team.team_size()-1)/team.team_size()));
-  if (ii >= chunk_size) return;
-
-  // Extract the neighbor number
-  const int jj = team.league_rank() / ((chunk_size+team.team_size()-1)/team.team_size());
-  const int ncount = d_ncount(ii);
-  if (jj >= ncount) return;
-
-  const double xn = d_rhats(ii, jj, 0);
-  const double yn = d_rhats(ii, jj, 1);
-  const double zn = d_rhats(ii, jj, 2);
-  compute_ylm(ii,jj,xn,yn,zn,lmax);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeAi>::member_type& team) const
 {
   // Extract the atom number
@@ -929,13 +965,127 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeAi, 
     Kokkos::atomic_add(&A_rank1(ii, mu_j, n), gr(ii, jj, n) * Y00);
 
   // rank > 1
-  for (int n = 0; n < nradmax; n++) {
-    for (int l = 0; l <= lmax; l++) {
-      for (int m = 0; m <= l; m++) {
-        const int idx = l * (l + 1) + m; // (l, m)
-        Kokkos::atomic_add(&A(ii, mu_j, n, idx).re, fr(ii, jj, n, l) * ylm(ii, jj, idx).re);
-        Kokkos::atomic_add(&A(ii, mu_j, n, idx).im, fr(ii, jj, n, l) * ylm(ii, jj, idx).im);
+
+  // Compute plm and ylm
+
+  // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // prefactors include 1/sqrt(2) factor compared to reference
+
+  complex ylm, phase;
+  complex phasem, mphasem1;
+  complex dyx, dyy, dyz;
+  complex rdy;
+
+  const double rx = d_rhats(ii, jj, 0);
+  const double ry = d_rhats(ii, jj, 1);
+  const double rz = d_rhats(ii, jj, 2);
+
+  phase.re = rx;
+  phase.im = ry;
+
+  double plm_idx,plm_idx1,plm_idx2;
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+
+  int idx_sph = 0;
+
+  // m = 0
+  for (int l = 0; l <= lmax; l++) {
+    // const int idx = l * (l + 1);
+
+    if (l == 0) {
+      // l=0, m=0
+      // plm[0] = Y00/sq1o4pi; //= sq1o4pi;
+      plm_idx = Y00; //= 1;
+    } else if (l == 1) {
+      // l=1, m=0
+      plm_idx = Y00 * sq3 * rz;
+    } else {
+      // l>=2, m=0
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+    }
+
+    ylm.re = plm_idx;
+    ylm.im = 0.0;
+
+    for (int n = 0; n < nradmax; n++) {
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).re, fr(ii, jj, l, n) * ylm.re);
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).im, fr(ii, jj, l, n) * ylm.im);
+    }
+
+    plm_idx2 = plm_idx1;
+    plm_idx1 = plm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+
+  // m = 1
+  for (int l = 1; l <= lmax; l++) {
+    // const int idx = l * (l + 1) + 1; // (l, 1)
+
+    if (l == 1) {
+      // l=1, m=1
+      plm_idx = -sq3o2 * Y00;
+    } else if (l == 2) {
+      const double t = dl(l) * plm_idx1;
+      plm_idx = t * rz;
+    } else {
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+    }
+
+    ylm = phase * plm_idx;
+
+    for (int n = 0; n < nradmax; n++) {
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).re, fr(ii, jj, l, n) * ylm.re);
+      Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).im, fr(ii, jj, l, n) * ylm.im);
+    }
+
+    plm_idx2 = plm_idx1;
+    plm_idx1 = plm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+
+  double plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
+
+  // m > 1
+  phasem = phase;
+  for (int m = 2; m <= lmax; m++) {
+
+    mphasem1.re = phasem.re * double(m);
+    mphasem1.im = phasem.im * double(m);
+    phasem = phasem * phase;
+
+    for (int l = m; l <= lmax; l++) {
+      // const int idx = l * (l + 1) + m;
+
+      if (l == m) {
+        plm_idx = cl(l) * plm_mm1_mm1; // (m+1, m)
+        plm_mm1_mm1 = plm_idx;
+      } else if (l == (m + 1)) {
+        const double t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
+        plm_idx = t * rz; // (m, m)
+      } else {
+        plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
       }
+
+      ylm.re = phasem.re * plm_idx;
+      ylm.im = phasem.im * plm_idx;
+
+      for (int n = 0; n < nradmax; n++) {
+        Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).re, fr(ii, jj, l, n) * ylm.re);
+        Kokkos::atomic_add(&A_sph(ii, mu_j, idx_sph, n).im, fr(ii, jj, l, n) * ylm.im);
+      }
+
+      plm_idx2 = plm_idx1;
+      plm_idx1 = plm_idx;
+
+      idx_sph++;
     }
   }
 
@@ -949,17 +1099,35 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEConjugateAi, const int& ii) const
 {
-  //complex conjugate A's (for NEGATIVE (-m) terms)
-  // for rank > 1
   for (int mu_j = 0; mu_j < nelements; mu_j++) {
-    for (int n = 0; n < nradmax; n++) {
-      for (int l = 0; l <= lmax; l++) {
+
+    // transpose
+
+    int idx_sph = 0;
+
+    for (int m = 0; m <= lmax; m++) {
+      for (int l = m; l <= lmax; l++) {
+        const int idx = l * (l + 1) + m;
+        for (int n = 0; n < nradmax; n++) {
+          A(ii, mu_j, idx, n) = A_sph(ii, mu_j, idx_sph, n);
+        }
+
+        idx_sph++;
+      }
+    }
+
+    // complex conjugate A's (for NEGATIVE (-m) terms)
+    //  for rank > 1
+
+    for (int l = 0; l <= lmax; l++) {
         //fill in -m part in the outer loop using the same m <-> -m symmetry as for Ylm
-        for (int m = 1; m <= l; m++) {
-          const int idx = l * (l + 1) + m; // (l, m)
-          const int idxm = l * (l + 1) - m; // (l, -m)
-          const int factor = m % 2 == 0 ? 1 : -1;
-          A(ii, mu_j, n, idxm) = A(ii, mu_j, n, idx).conj() * (double)factor;
+      for (int m = 1; m <= l; m++) {
+        const int idx = l * (l + 1) + m; // (l, m)
+        const int idxm = l * (l + 1) - m; // (l, -m)
+        const int idx_sph = d_idx_sph(idx);
+        const int factor = m % 2 == 0 ? 1 : -1;
+        for (int n = 0; n < nradmax; n++) {
+          A(ii, mu_j, idxm, n) = A_sph(ii, mu_j, idx_sph, n).conj() * (double)factor;
         }
       }
     }
@@ -972,73 +1140,72 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho, const int& iter) const
 {
-  const int idx_ms_comb = iter / chunk_size;
+  const int idx_ms_combs = iter / chunk_size;
   const int ii = iter % chunk_size;
 
   const int i = d_ilist[ii + chunk_offset];
   const int mu_i = d_map(type(i));
 
-  if (idx_ms_comb >= d_idx_ms_combs_count(mu_i)) return;
+  if (idx_ms_combs >= d_idx_ms_combs_count(mu_i)) return;
 
   const int ndensity = d_ndensity(mu_i);
 
-  const int func_ind = d_func_inds(mu_i, idx_ms_comb);
-  const int rank = d_rank(mu_i, func_ind);
+  const int idx_func = d_idx_funcs(mu_i, idx_ms_combs);
+  const int rank = d_rank(mu_i, idx_func);
   const int r = rank - 1;
 
   // Basis functions B with iterative product and density rho(p) calculation
   if (rank == 1) {
-    const int mu = d_mus(mu_i, func_ind, 0);
-    const int n = d_ns(mu_i, func_ind, 0);
+    const int mu = d_mus(mu_i, idx_func, 0);
+    const int n = d_ns(mu_i, idx_func, 0);
     double A_cur = A_rank1(ii, mu, n - 1);
     for (int p = 0; p < ndensity; ++p) {
       //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
-      Kokkos::atomic_add(&rhos(ii, p), d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb) * A_cur);
+      Kokkos::atomic_add(&rhos(ii, p), d_coeffs(mu_i, idx_func, p) * d_gen_cgs(mu_i, idx_ms_combs) * A_cur);
     }
 
-
-    //gamma_i
-    if (gamma_flag)
-        Kokkos::atomic_add(&projections(ii, func_ind),  d_gen_cgs(mu_i, idx_ms_comb) * A_cur);
+    // gamma_i
+    if (flag_compute_extrapolation_grade)
+      Kokkos::atomic_add(&projections(ii, idx_func),  d_gen_cgs(mu_i, idx_ms_combs) * A_cur);
 
   } else { // rank > 1
     // loop over {ms} combinations in sum
 
     // loop over m, collect B  = product of A with given ms
-    A_forward_prod(ii, idx_ms_comb, 0) = complex::one();
+    A_forward_prod(ii, idx_ms_combs, 0) = complex::one();
 
     // fill forward A-product triangle
     for (int t = 0; t < rank; t++) {
       //TODO: optimize ns[t]-1 -> ns[t] during functions construction
-      const int mu = d_mus(mu_i, func_ind, t);
-      const int n = d_ns(mu_i, func_ind, t);
-      const int l = d_ls(mu_i, func_ind, t);
-      const int m = d_ms_combs(mu_i, idx_ms_comb, t); // current ms-combination (of length = rank)
+      const int mu = d_mus(mu_i, idx_func, t);
+      const int n = d_ns(mu_i, idx_func, t);
+      const int l = d_ls(mu_i, idx_func, t);
+      const int m = d_ms_combs(mu_i, idx_ms_combs, t); // current ms-combination (of length = rank)
       const int idx = l * (l + 1) + m; // (l, m)
-      A_list(ii, idx_ms_comb, t) = A(ii, mu, n - 1, idx);
-      A_forward_prod(ii, idx_ms_comb, t + 1) = A_forward_prod(ii, idx_ms_comb, t) * A_list(ii, idx_ms_comb, t);
+      A_list(ii, idx_ms_combs, t) = A(ii, mu, idx, n - 1);
+      A_forward_prod(ii, idx_ms_combs, t + 1) = A_forward_prod(ii, idx_ms_combs, t) * A_list(ii, idx_ms_combs, t);
     }
 
     complex A_backward_prod = complex::one();
 
     // fill backward A-product triangle
     for (int t = r; t >= 1; t--) {
-      const complex dB = A_forward_prod(ii, idx_ms_comb, t) * A_backward_prod; // dB - product of all A's except t-th
-      dB_flatten(ii, idx_ms_comb, t) = dB;
+      const complex dB = A_forward_prod(ii, idx_ms_combs, t) * A_backward_prod; // dB - product of all A's except t-th
+      dB_flatten(ii, idx_ms_combs, t) = dB;
 
-      A_backward_prod = A_backward_prod * A_list(ii, idx_ms_comb, t);
+      A_backward_prod = A_backward_prod * A_list(ii, idx_ms_combs, t);
     }
-    dB_flatten(ii, idx_ms_comb, 0) = A_forward_prod(ii, idx_ms_comb, 0) * A_backward_prod;
+    dB_flatten(ii, idx_ms_combs, 0) = A_forward_prod(ii, idx_ms_combs, 0) * A_backward_prod;
 
-    const complex B = A_forward_prod(ii, idx_ms_comb, rank);
+    const complex B = A_forward_prod(ii, idx_ms_combs, rank);
 
     for (int p = 0; p < ndensity; ++p) {
       // real-part only multiplication
-      Kokkos::atomic_add(&rhos(ii, p), B.real_part_product(d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb)));
+      Kokkos::atomic_add(&rhos(ii, p), B.real_part_product(d_coeffs(mu_i, idx_func, p) * d_gen_cgs(mu_i, idx_ms_combs)));
     }
-    //gamma_i
-    if (gamma_flag)
-      Kokkos::atomic_add(&projections(ii, func_ind),  B.real_part_product(d_gen_cgs(mu_i, idx_ms_comb)));
+    // gamma_i
+    if (flag_compute_extrapolation_grade)
+      Kokkos::atomic_add(&projections(ii, idx_func),  B.real_part_product(d_gen_cgs(mu_i, idx_ms_combs)));
   }
 }
 
@@ -1056,23 +1223,43 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, 
   const int ndensity = d_ndensity(mu_i);
 
   double evdwl, fcut, dfcut;
+  double evdwl_cut;
   evdwl = fcut = dfcut = 0.0;
 
-  inner_cutoff(rho_core(ii), rho_cut, drho_cut, fcut, dfcut);
   FS_values_and_derivatives(ii, evdwl, mu_i);
 
-  dF_drho_core(ii) = evdwl * dfcut + 1;
+  if (is_zbl) {
+    if (d_jj_min(ii) != -1) {
+      const int mu_jmin = d_mu(ii,d_jj_min(ii));
+      F_FLOAT dcutin = d_dcut_in(mu_i, mu_jmin);
+      F_FLOAT transition_coordinate =  dcutin  - d_d_min(ii); // == cutin - r_min
+      cutoff_func_poly(transition_coordinate, dcutin, dcutin, fcut, dfcut);
+      dfcut = -dfcut; // invert, because rho_core = cutin - r_min
+    } else {
+      // no neighbours
+      fcut = 1;
+      dfcut = 0;
+    }
+    evdwl_cut = evdwl * fcut + rho_core(ii) * (1 - fcut); // evdwl * fcut + rho_core_uncut  - rho_core_uncut* fcut
+    dF_drho_core(ii) = 1 - fcut;
+    dF_dfcut(ii) = evdwl * dfcut - rho_core(ii) * dfcut;
+  } else {
+    inner_cutoff(rho_core(ii), rho_cut, drho_cut, fcut, dfcut);
+    dF_drho_core(ii) = evdwl * dfcut + 1;
+    evdwl_cut = evdwl * fcut + rho_core(ii);
+  }
   for (int p = 0; p < ndensity; ++p)
     dF_drho(ii, p) *= fcut;
 
-
   // tally energy contribution
   if (eflag) {
-    double evdwl_cut = evdwl * fcut + rho_core(ii);
     // E0 shift
     evdwl_cut += d_E0vals(mu_i);
     e_atom(ii) = evdwl_cut;
   }
+
+  if (flag_corerep_factor)
+    d_corerep(ii) = 1-fcut;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1109,52 +1296,58 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeWeights, const int& iter) const
 {
-  const int idx_ms_comb = iter / chunk_size;
+  const int idx_ms_combs = iter / chunk_size;
   const int ii = iter % chunk_size;
 
   const int i = d_ilist[ii + chunk_offset];
   const int mu_i = d_map(type(i));
 
-  if (idx_ms_comb >= d_idx_ms_combs_count(mu_i)) return;
+  if (idx_ms_combs >= d_idx_ms_combs_count(mu_i)) return;
 
   const int ndensity = d_ndensity(mu_i);
 
-  const int func_ind = d_func_inds(mu_i, idx_ms_comb);
-  const int rank = d_rank(mu_i, func_ind);
+  const int idx_func = d_idx_funcs(mu_i, idx_ms_combs);
+  const int rank = d_rank(mu_i, idx_func);
 
   // Weights and theta calculation
 
   if (rank == 1) {
-    const int mu = d_mus(mu_i, func_ind, 0);
-    const int n = d_ns(mu_i, func_ind, 0);
+    const int mu = d_mus(mu_i, idx_func, 0);
+    const int n = d_ns(mu_i, idx_func, 0);
     double theta = 0.0;
     for (int p = 0; p < ndensity; ++p) {
       // for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
-      theta += dF_drho(ii, p) * d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb);
+      theta += dF_drho(ii, p) * d_coeffs(mu_i, idx_func, p) * d_gen_cgs(mu_i, idx_ms_combs);
     }
     Kokkos::atomic_add(&weights_rank1(ii, mu, n - 1), theta);
   } else { // rank > 1
     double theta = 0.0;
     for (int p = 0; p < ndensity; ++p)
-      theta += dF_drho(ii, p) * d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb);
+      theta += dF_drho(ii, p) * d_coeffs(mu_i, idx_func, p) * d_gen_cgs(mu_i, idx_ms_combs);
 
     theta *= 0.5; // 0.5 factor due to possible double counting ???
     for (int t = 0; t < rank; ++t) {
-      const int m_t = d_ms_combs(mu_i, idx_ms_comb, t);
+      const int m_t = d_ms_combs(mu_i, idx_ms_combs, t);
       const int factor = (m_t % 2 == 0 ? 1 : -1);
-      const complex dB = dB_flatten(ii, idx_ms_comb, t);
-      const int mu_t = d_mus(mu_i, func_ind, t);
-      const int n_t = d_ns(mu_i, func_ind, t);
-      const int l_t = d_ls(mu_i, func_ind, t);
+      const complex dB = dB_flatten(ii, idx_ms_combs, t);
+      const int mu_t = d_mus(mu_i, idx_func, t);
+      const int n_t = d_ns(mu_i, idx_func, t);
+      const int l_t = d_ls(mu_i, idx_func, t);
       const int idx = l_t * (l_t + 1) + m_t; // (l, m)
-      const complex value = theta * dB;
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idx).re), value.re);
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idx).im), value.im);
+      const int idx_sph = d_idx_sph(idx);
+      if (idx_sph >= 0) {
+        const complex value = theta * dB;
+        Kokkos::atomic_add(&(weights(ii, mu_t, idx_sph, n_t - 1).re), value.re);
+        Kokkos::atomic_add(&(weights(ii, mu_t, idx_sph, n_t - 1).im), value.im);
+      }
       // update -m_t (that could also be positive), because the basis is half_basis
       const int idxm = l_t * (l_t + 1) - m_t; // (l, -m)
-      const complex valuem = theta * dB.conj() * (double)factor;
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idxm).re), valuem.re);
-      Kokkos::atomic_add(&(weights(ii, mu_t, n_t - 1, idxm).im), valuem.im);
+      const int idxm_sph = d_idx_sph(idxm);
+      if (idxm_sph >= 0) {
+        const complex valuem = theta * dB.conj() * (double)factor;
+        Kokkos::atomic_add(&(weights(ii, mu_t, idxm_sph, n_t - 1).re), valuem.re);
+        Kokkos::atomic_add(&(weights(ii, mu_t, idxm_sph, n_t - 1).im), valuem.im);
+      }
     }
   }
 }
@@ -1201,37 +1394,239 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
   }
 
   // for rank > 1
-  for (int n = 0; n < nradmax; n++) {
-    for (int l = 0; l <= lmax; l++) {
-      const double R_over_r = fr(ii, jj, n, l) * rinv;
-      const double DR = dfr(ii, jj, n, l);
 
-      // for m >= 0
-      for (int m = 0; m <= l; m++) {
-        const int idx = l * (l + 1) + m; // (l, m)
-        complex w = weights(ii, mu_j, n, idx);
+  // compute plm, dplm, ylm and dylm
+  // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
+  // prefactors include 1/sqrt(2) factor compared to reference
+
+  complex ylm,dylm[3];
+  complex phase;
+  complex phasem, mphasem1;
+  complex dyx, dyy, dyz;
+  complex rdy;
+
+  const double rx = d_rhats(ii, jj, 0);
+  const double ry = d_rhats(ii, jj, 1);
+  const double rz = d_rhats(ii, jj, 2);
+
+  phase.re = rx;
+  phase.im = ry;
+
+  double plm_idx,plm_idx1,plm_idx2;
+  double dplm_idx,dplm_idx1,dplm_idx2;
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+  dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
+
+  int idx_sph = 0;
+
+  // m = 0
+  for (int l = 0; l <= lmax; l++) {
+    // const int idx = l * (l + 1);
+
+    if (l == 0) {
+      // l=0, m=0
+      // plm[0] = Y00/sq1o4pi; //= sq1o4pi;
+      plm_idx = Y00; //= 1;
+      dplm_idx = 0.0;
+    } else if (l == 1) {
+      // l=1, m=0
+      plm_idx = Y00 * sq3 * rz;
+      dplm_idx = Y00 * sq3;
+    } else {
+      // l>=2, m=0
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+      dplm_idx = alm(idx_sph) * (plm_idx1 + rz * dplm_idx1 + blm(idx_sph) * dplm_idx2);
+    }
+
+    ylm.re = plm_idx;
+    ylm.im = 0.0;
+
+    dyz.re = dplm_idx;
+    rdy.re = dyz.re * rz;
+
+    dylm[0].re = -rdy.re * rx;
+    dylm[0].im = 0.0;
+    dylm[1].re = -rdy.re * ry;
+    dylm[1].im = 0.0;
+    dylm[2].re = dyz.re - rdy.re * rz;
+    dylm[2].im = 0;
+
+    for (int n = 0; n < nradmax; n++) {
+
+      const double R_over_r = fr(ii, jj, l, n) * rinv;
+      const double DR = dfr(ii, jj, l, n);
+      const complex Y_DR = ylm * DR;
+
+      complex w = weights(ii, mu_j, idx_sph, n);
+      if (w.re == 0.0 && w.im == 0.0) continue;
+
+      complex grad_phi_nlm[3];
+      grad_phi_nlm[0] = Y_DR * r_hat[0] + dylm[0] * R_over_r;
+      grad_phi_nlm[1] = Y_DR * r_hat[1] + dylm[1] * R_over_r;
+      grad_phi_nlm[2] = Y_DR * r_hat[2] + dylm[2] * R_over_r;
+      // real-part multiplication only
+      f_ji[0] += w.real_part_product(grad_phi_nlm[0]);
+      f_ji[1] += w.real_part_product(grad_phi_nlm[1]);
+      f_ji[2] += w.real_part_product(grad_phi_nlm[2]);
+    }
+
+    plm_idx2 = plm_idx1;
+    dplm_idx2 = dplm_idx1;
+
+    plm_idx1 = plm_idx;
+    dplm_idx1 = dplm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+  dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
+
+  // m = 1
+  for (int l = 1; l <= lmax; l++) {
+    // const int idx = l * (l + 1) + 1; // (l, 1)
+
+    if (l == 1) {
+      // l=1, m=1
+      plm_idx = -sq3o2 * Y00;
+      dplm_idx = 0.0;
+    } else if (l == 2) {
+      const double t = dl(l) * plm_idx1;
+      plm_idx = t * rz;
+      dplm_idx = t;
+    } else {
+      plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+      dplm_idx = alm(idx_sph) * (plm_idx1 + rz * dplm_idx1 + blm(idx_sph) * dplm_idx2);
+    }
+
+    ylm = phase * plm_idx;
+
+    dyx.re = plm_idx;
+    dyx.im = 0.0;
+    dyy.re = 0.0;
+    dyy.im = plm_idx;
+    dyz.re = phase.re * dplm_idx;
+    dyz.im = phase.im * dplm_idx;
+
+    rdy.re = rx * dyx.re + +rz * dyz.re;
+    rdy.im = ry * dyy.im + rz * dyz.im;
+
+    dylm[0].re = dyx.re - rdy.re * rx;
+    dylm[0].im = -rdy.im * rx;
+    dylm[1].re = -rdy.re * ry;
+    dylm[1].im = dyy.im - rdy.im * ry;
+    dylm[2].re = dyz.re - rdy.re * rz;
+    dylm[2].im = dyz.im - rdy.im * rz;
+
+    for (int n = 0; n < nradmax; n++) {
+
+      const double R_over_r = fr(ii, jj, l, n) * rinv;
+      const double DR = dfr(ii, jj, l, n);
+      const complex Y_DR = ylm * DR;
+
+      complex w = weights(ii, mu_j, idx_sph, n);
+      if (w.re == 0.0 && w.im == 0.0) continue;
+      // counting for -m cases if m > 0
+      w.re *= 2.0;
+      w.im *= 2.0;
+
+      complex grad_phi_nlm[3];
+      grad_phi_nlm[0] = Y_DR * r_hat[0] + dylm[0] * R_over_r;
+      grad_phi_nlm[1] = Y_DR * r_hat[1] + dylm[1] * R_over_r;
+      grad_phi_nlm[2] = Y_DR * r_hat[2] + dylm[2] * R_over_r;
+      // real-part multiplication only
+      f_ji[0] += w.real_part_product(grad_phi_nlm[0]);
+      f_ji[1] += w.real_part_product(grad_phi_nlm[1]);
+      f_ji[2] += w.real_part_product(grad_phi_nlm[2]);
+    }
+
+    plm_idx2 = plm_idx1;
+    dplm_idx2 = dplm_idx1;
+
+    plm_idx1 = plm_idx;
+    dplm_idx1 = dplm_idx;
+
+    idx_sph++;
+  }
+
+  plm_idx = plm_idx1 = plm_idx2 = 0.0;
+  dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
+
+  double plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
+
+  // m > 1
+  phasem = phase;
+  for (int m = 2; m <= lmax; m++) {
+
+    mphasem1.re = phasem.re * double(m);
+    mphasem1.im = phasem.im * double(m);
+    phasem = phasem * phase;
+
+    for (int l = m; l <= lmax; l++) {
+      // const int idx = l * (l + 1) + m;
+
+      if (l == m) {
+        plm_idx = cl(l) * plm_mm1_mm1; // (m+1, m)
+        dplm_idx = 0.0;
+        plm_mm1_mm1 = plm_idx;
+      } else if (l == (m + 1)) {
+        const double t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
+        plm_idx = t * rz; // (m, m)
+        dplm_idx = t;
+      } else {
+        plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
+        dplm_idx = alm(idx_sph) * (plm_idx1 + rz * dplm_idx1 + blm(idx_sph) * dplm_idx2);
+      }
+
+      ylm.re = phasem.re * plm_idx;
+      ylm.im = phasem.im * plm_idx;
+
+      dyx = mphasem1 * plm_idx;
+      dyy.re = -dyx.im;
+      dyy.im = dyx.re;
+      dyz = phasem * dplm_idx;
+
+      rdy.re = rx * dyx.re + ry * dyy.re + rz * dyz.re;
+      rdy.im = rx * dyx.im + ry * dyy.im + rz * dyz.im;
+
+      dylm[0].re = dyx.re - rdy.re * rx;
+      dylm[0].im = dyx.im - rdy.im * rx;
+      dylm[1].re = dyy.re - rdy.re * ry;
+      dylm[1].im = dyy.im - rdy.im * ry;
+      dylm[2].re = dyz.re - rdy.re * rz;
+      dylm[2].im = dyz.im - rdy.im * rz;
+
+      for (int n = 0; n < nradmax; n++) {
+
+        const double R_over_r = fr(ii, jj, l, n) * rinv;
+        const double DR = dfr(ii, jj, l, n);
+        const complex Y_DR = ylm * DR;
+
+        complex w = weights(ii, mu_j, idx_sph, n);
         if (w.re == 0.0 && w.im == 0.0) continue;
         // counting for -m cases if m > 0
-        if (m > 0) {
-          w.re *= 2.0;
-          w.im *= 2.0;
-        }
-
-        complex DY[3];
-        DY[0] = dylm(ii, jj, idx, 0);
-        DY[1] = dylm(ii, jj, idx, 1);
-        DY[2] = dylm(ii, jj, idx, 2);
-        const complex Y_DR = ylm(ii, jj, idx) * DR;
+        w.re *= 2.0;
+        w.im *= 2.0;
 
         complex grad_phi_nlm[3];
-        grad_phi_nlm[0] = Y_DR * r_hat[0] + DY[0] * R_over_r;
-        grad_phi_nlm[1] = Y_DR * r_hat[1] + DY[1] * R_over_r;
-        grad_phi_nlm[2] = Y_DR * r_hat[2] + DY[2] * R_over_r;
+        grad_phi_nlm[0] = Y_DR * r_hat[0] + dylm[0] * R_over_r;
+        grad_phi_nlm[1] = Y_DR * r_hat[1] + dylm[1] * R_over_r;
+        grad_phi_nlm[2] = Y_DR * r_hat[2] + dylm[2] * R_over_r;
         // real-part multiplication only
         f_ji[0] += w.real_part_product(grad_phi_nlm[0]);
         f_ji[1] += w.real_part_product(grad_phi_nlm[1]);
         f_ji[2] += w.real_part_product(grad_phi_nlm[2]);
       }
+
+      plm_idx2 = plm_idx1;
+      dplm_idx2 = dplm_idx1;
+
+      plm_idx1 = plm_idx;
+      dplm_idx1 = dplm_idx;
+
+      idx_sph++;
     }
   }
 
@@ -1240,6 +1635,15 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
   f_ij(ii, jj, 0) = scale * f_ji[0] + fpair * r_hat[0];
   f_ij(ii, jj, 1) = scale * f_ji[1] + fpair * r_hat[1];
   f_ij(ii, jj, 2) = scale * f_ji[2] + fpair * r_hat[2];
+
+  if (is_zbl) {
+    if (jj==d_jj_min(ii)) {
+      // DCRU = 1.0
+      f_ij(ii, jj, 0) += dF_dfcut(ii) * r_hat[0];
+      f_ij(ii, jj, 1) += dF_dfcut(ii) * r_hat[1];
+      f_ij(ii, jj, 2) += dF_dfcut(ii) * r_hat[2];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1360,172 +1764,50 @@ void PairPACEExtrapolationKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const in
 template<class DeviceType>
 void PairPACEExtrapolationKokkos<DeviceType>::pre_compute_harmonics(int lmax)
 {
+  auto h_idx_sph = Kokkos::create_mirror_view(d_idx_sph);
   auto h_alm = Kokkos::create_mirror_view(alm);
   auto h_blm = Kokkos::create_mirror_view(blm);
   auto h_cl = Kokkos::create_mirror_view(cl);
   auto h_dl = Kokkos::create_mirror_view(dl);
 
-  for (int l = 1; l <= lmax; l++) {
-    const double lsq = l * l;
-    const double ld = 2 * l;
-    const double l1 = (4 * lsq - 1);
-    const double l2 = lsq - ld + 1;
-    for (int m = 0; m < l - 1; m++) {
-      const double msq = m * m;
-      const double a = sqrt((double(l1)) / (double(lsq - msq)));
-      const double b = -sqrt((double(l2 - msq)) / (double(4 * l2 - 1)));
+  Kokkos::deep_copy(h_idx_sph,-1);
+
+  int idx_sph = 0;
+  for (int m = 0; m <= lmax; m++) {
+    const double msq = m * m;
+    for (int l = m; l <= lmax; l++) {
       const int idx = l * (l + 1) + m; // (l, m)
-      h_alm(idx) = a;
-      h_blm(idx) = b;
+      h_idx_sph(idx) = idx_sph;
+
+      double a = 0.0;
+      double b = 0.0;
+
+      if (l > 1 && l != m) {
+        const double lsq = l * l;
+        const double ld = 2 * l;
+        const double l1 = (4 * lsq - 1);
+        const double l2 = lsq - ld + 1;
+
+        a = sqrt((double(l1)) / (double(lsq - msq)));
+        b = -sqrt((double(l2 - msq)) / (double(4 * l2 - 1)));
+      }
+      h_alm(idx_sph) = a;
+      h_blm(idx_sph) = b;
+      idx_sph++;
     }
   }
+  idx_sph_max = idx_sph;
 
   for (int l = 1; l <= lmax; l++) {
     h_cl(l) = -sqrt(1.0 + 0.5 / (double(l)));
     h_dl(l) = sqrt(double(2 * (l - 1) + 3));
   }
 
+  Kokkos::deep_copy(d_idx_sph, h_idx_sph);
   Kokkos::deep_copy(alm, h_alm);
   Kokkos::deep_copy(blm, h_blm);
   Kokkos::deep_copy(cl, h_cl);
   Kokkos::deep_copy(dl, h_dl);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairPACEExtrapolationKokkos<DeviceType>::compute_barplm(int ii, int jj, double rz, int lmax) const
-{
-  // requires -1 <= rz <= 1 , NO CHECKING IS PERFORMED !!!!!!!!!
-  // prefactors include 1/sqrt(2) factor compared to reference
-
-  // l=0, m=0
-  // plm(ii, jj, 0, 0) = Y00/sq1o4pi; //= sq1o4pi;
-  plm(ii, jj, 0) = Y00; //= 1;
-  dplm(ii, jj, 0) = 0.0;
-
-  if (lmax > 0) {
-
-    // l=1, m=0
-    plm(ii, jj, 2) = Y00 * sq3 * rz;
-    dplm(ii, jj, 2) = Y00 * sq3;
-
-    // l=1, m=1
-    plm(ii, jj, 3) = -sq3o2 * Y00;
-    dplm(ii, jj, 3) = 0.0;
-
-    // loop l = 2, lmax
-    for (int l = 2; l <= lmax; l++) {
-      for (int m = 0; m < l - 1; m++) {
-        const int idx = l * (l + 1) + m; // (l, m)
-        const int idx1 = (l - 1) * l + m; // (l - 1, m)
-        const int idx2 = (l - 2) * (l - 1) + m; // (l - 2, m)
-        plm(ii, jj, idx) = alm(idx) * (rz * plm(ii, jj, idx1) + blm(idx) * plm(ii, jj, idx2));
-        dplm(ii, jj, idx) = alm(idx) * (plm(ii, jj, idx1) + rz * dplm(ii, jj, idx1) + blm(idx) * dplm(ii, jj, idx2));
-      }
-      const int idx = l * (l + 1) + l; // (l, l)
-      const int idx1 = l * (l + 1) + l - 1; // (l, l - 1)
-      const int idx2 = (l - 1) * l + l - 1; // (l - 1, l - 1)
-      const double t = dl(l) * plm(ii, jj, idx2);
-      plm(ii, jj, idx1) = t * rz;
-      dplm(ii, jj, idx1) = t;
-      plm(ii, jj, idx) = cl(l) * plm(ii, jj, idx2);
-      dplm(ii, jj, idx) = 0.0;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairPACEExtrapolationKokkos<DeviceType>::compute_ylm(int ii, int jj, double rx, double ry, double rz, int lmax) const
-{
-  // requires rx^2 + ry^2 + rz^2 = 1 , NO CHECKING IS PERFORMED !!!!!!!!!
-
-  complex phase;
-  complex phasem, mphasem1;
-  complex dyx, dyy, dyz;
-  complex rdy;
-
-  phase.re = rx;
-  phase.im = ry;
-
-  // compute barplm
-  compute_barplm(ii, jj, rz, lmax);
-
-  // m = 0
-  for (int l = 0; l <= lmax; l++) {
-    const int idx = l * (l + 1);
-
-    ylm(ii, jj, idx).re = plm(ii, jj, idx);
-    ylm(ii, jj, idx).im = 0.0;
-
-    dyz.re = dplm(ii, jj, idx);
-    rdy.re = dyz.re * rz;
-
-    dylm(ii, jj, idx, 0).re = -rdy.re * rx;
-    dylm(ii, jj, idx, 0).im = 0.0;
-    dylm(ii, jj, idx, 1).re = -rdy.re * ry;
-    dylm(ii, jj, idx, 1).im = 0.0;
-    dylm(ii, jj, idx, 2).re = dyz.re - rdy.re * rz;
-    dylm(ii, jj, idx, 2).im = 0;
-  }
-  // m = 1
-  for (int l = 1; l <= lmax; l++) {
-    const int idx = l * (l + 1) + 1;
-
-    ylm(ii, jj, idx) = phase * plm(ii, jj, idx);
-
-    dyx.re = plm(ii, jj, idx);
-    dyx.im = 0.0;
-    dyy.re = 0.0;
-    dyy.im = plm(ii, jj, idx);
-    dyz.re = phase.re * dplm(ii, jj, idx);
-    dyz.im = phase.im * dplm(ii, jj, idx);
-
-    rdy.re = rx * dyx.re + +rz * dyz.re;
-    rdy.im = ry * dyy.im + rz * dyz.im;
-
-    dylm(ii, jj, idx, 0).re = dyx.re - rdy.re * rx;
-    dylm(ii, jj, idx, 0).im = -rdy.im * rx;
-    dylm(ii, jj, idx, 1).re = -rdy.re * ry;
-    dylm(ii, jj, idx, 1).im = dyy.im - rdy.im * ry;
-    dylm(ii, jj, idx, 2).re = dyz.re - rdy.re * rz;
-    dylm(ii, jj, idx, 2).im = dyz.im - rdy.im * rz;
-  }
-
-  // m > 1
-  phasem = phase;
-  for (int m = 2; m <= lmax; m++) {
-
-    mphasem1.re = phasem.re * double(m);
-    mphasem1.im = phasem.im * double(m);
-    phasem = phasem * phase;
-
-    for (int l = m; l <= lmax; l++) {
-      const int idx = l * (l + 1) + m;
-
-      ylm(ii, jj, idx).re = phasem.re * plm(ii, jj, idx);
-      ylm(ii, jj, idx).im = phasem.im * plm(ii, jj, idx);
-
-      dyx = mphasem1 * plm(ii, jj, idx);
-      dyy.re = -dyx.im;
-      dyy.im = dyx.re;
-      dyz = phasem * dplm(ii, jj, idx);
-
-      rdy.re = rx * dyx.re + ry * dyy.re + rz * dyz.re;
-      rdy.im = rx * dyx.im + ry * dyy.im + rz * dyz.im;
-
-      dylm(ii, jj, idx, 0).re = dyx.re - rdy.re * rx;
-      dylm(ii, jj, idx, 0).im = dyx.im - rdy.im * rx;
-      dylm(ii, jj, idx, 1).re = dyy.re - rdy.re * ry;
-      dylm(ii, jj, idx, 1).im = dyy.im - rdy.im * ry;
-      dylm(ii, jj, idx, 2).re = dyz.re - rdy.re * rz;
-      dylm(ii, jj, idx, 2).im = dyz.im - rdy.im * rz;
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1658,11 +1940,11 @@ void PairPACEExtrapolationKokkos<DeviceType>::evaluate_splines(const int ii, con
   spline_gk.calcSplines(ii, jj, r, gr, dgr);
 
   spline_rnl.calcSplines(ii, jj, r, d_values, d_derivatives);
-  for (int kk = 0; kk < (int)fr.extent(2); kk++) {
-    for (int ll = 0; ll < (int)fr.extent(3); ll++) {
-      const int flatten = kk*fr.extent(3) + ll;
-      fr(ii, jj, kk, ll) = d_values(ii, jj, flatten);
-      dfr(ii, jj, kk, ll) = d_derivatives(ii, jj, flatten);
+  for (int ll = 0; ll < (int)fr.extent(2); ll++) {
+    for (int kk = 0; kk < (int)fr.extent(3); kk++) {
+      const int flatten = kk*fr.extent(2) + ll;
+      fr(ii, jj, ll, kk) = d_values(ii, jj, flatten);
+      dfr(ii, jj, ll, kk) = d_derivatives(ii, jj, flatten);
     }
   }
 
@@ -1682,7 +1964,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::SplineInterpolatorKokkos::operator
     rscalelookup = spline.rscalelookup;
     num_of_functions = spline.num_of_functions;
 
-    lookupTable = t_ace_3d4("lookupTable", ntot+1, num_of_functions);
+    lookupTable = t_ace_3d4_lr("lookupTable", ntot+1, num_of_functions);
     auto h_lookupTable = Kokkos::create_mirror_view(lookupTable);
     for (int i = 0; i < ntot+1; i++)
         for (int j = 0; j < num_of_functions; j++)
@@ -1777,6 +2059,8 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(weights_rank1);
   bytes += MemKK::memory_usage(rho_core);
   bytes += MemKK::memory_usage(dF_drho_core);
+  bytes += MemKK::memory_usage(dF_dfcut);
+  bytes += MemKK::memory_usage(d_corerep);
   bytes += MemKK::memory_usage(dB_flatten);
   bytes += MemKK::memory_usage(fr);
   bytes += MemKK::memory_usage(dfr);
@@ -1786,14 +2070,12 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(d_derivatives);
   bytes += MemKK::memory_usage(cr);
   bytes += MemKK::memory_usage(dcr);
-  bytes += MemKK::memory_usage(plm);
-  bytes += MemKK::memory_usage(dplm);
-  bytes += MemKK::memory_usage(ylm);
-  bytes += MemKK::memory_usage(dylm);
   bytes += MemKK::memory_usage(d_ncount);
   bytes += MemKK::memory_usage(d_mu);
   bytes += MemKK::memory_usage(d_rhats);
   bytes += MemKK::memory_usage(d_rnorms);
+  bytes += MemKK::memory_usage(d_d_min);
+  bytes += MemKK::memory_usage(d_jj_min);
   bytes += MemKK::memory_usage(d_nearest);
   bytes += MemKK::memory_usage(f_ij);
   bytes += MemKK::memory_usage(d_rho_core_cutoff);
@@ -1806,7 +2088,7 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(d_idx_ms_combs_count);
   bytes += MemKK::memory_usage(d_rank);
   bytes += MemKK::memory_usage(d_num_ms_combs);
-  bytes += MemKK::memory_usage(d_func_inds);
+  bytes += MemKK::memory_usage(d_idx_funcs);
   bytes += MemKK::memory_usage(d_mus);
   bytes += MemKK::memory_usage(d_ns);
   bytes += MemKK::memory_usage(d_ls);
@@ -1835,42 +2117,6 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   return bytes;
 }
 
-/* ----------------------------------------------------------------------
-    extract method for extracting value of scale variable
- ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void *PairPACEExtrapolationKokkos<DeviceType>::extract(const char *str, int &dim)
-{
-  //check if str=="gamma_flag" then compute extrapolation grades on this iteration
-  dim = 0;
-  if (strcmp(str, "gamma_flag") == 0) return (void *) &gamma_flag;
-
-  dim = 2;
-  if (strcmp(str, "scale") == 0) return (void *) scale;
-  return nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   peratom requests from FixPair
-   return ptr to requested data
-   also return ncol = # of quantites per atom
-     0 = per-atom vector
-     1 or more = # of columns in per-atom array
-   return NULL if str is not recognized
----------------------------------------------------------------------- */
-
-template<class DeviceType>
-void *PairPACEExtrapolationKokkos<DeviceType>::extract_peratom(const char *str, int &ncol)
-{
-  if (strcmp(str, "gamma") == 0) {
-    ncol = 0;
-    return (void *) extrapolation_grade_gamma;
-  }
-
-  return nullptr;
-}
-
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
@@ -1879,4 +2125,3 @@ template class PairPACEExtrapolationKokkos<LMPDeviceType>;
 template class PairPACEExtrapolationKokkos<LMPHostType>;
 #endif
 }
-

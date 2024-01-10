@@ -755,7 +755,7 @@ void FixShake::min_post_force(int vflag)
    count # of degrees-of-freedom removed by SHAKE for atoms in igroup
 ------------------------------------------------------------------------- */
 
-int FixShake::dof(int igroup)
+bigint FixShake::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
 
@@ -766,7 +766,7 @@ int FixShake::dof(int igroup)
   // count dof in a cluster if and only if
   // the central atom is in group and atom i is the central atom
 
-  int n = 0;
+  bigint n = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     if (shake_flag[i] == 0) continue;
@@ -777,8 +777,8 @@ int FixShake::dof(int igroup)
     else if (shake_flag[i] == 4) n += 3;
   }
 
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
   return nall;
 }
 

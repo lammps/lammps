@@ -83,7 +83,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   extra_dof = domain->dimension;
   dynamic_user = 0;
-  fix_dof = 0;
+  fix_dof = 0.0;
 
   // setup list of timesteps
 

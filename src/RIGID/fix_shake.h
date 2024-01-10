@@ -59,7 +59,7 @@ class FixShake : public Fix {
   virtual void correct_coordinates(int vflag);
   virtual void correct_velocities();
 
-  int dof(int) override;
+  bigint dof(int) override;
   void reset_dt() override;
   void *extract(const char *, int &) override;
   double compute_scalar() override;

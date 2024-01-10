@@ -137,7 +137,7 @@ void FixLangevinEff::post_force_no_tally()
   dof = domain->dimension * particles;
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+    fix_dof += (int)modify->fix[i]->dof(igroup);
 
   // extra_dof = domain->dimension
   dof -= domain->dimension + fix_dof;
@@ -306,7 +306,7 @@ void FixLangevinEff::post_force_tally()
   dof = domain->dimension * particles;
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+    fix_dof += (int)modify->fix[i]->dof(igroup);
 
   // extra_dof = domain->dimension
   dof -= domain->dimension + fix_dof;

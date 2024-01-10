@@ -44,8 +44,6 @@ struct TagFixShakeUnpackExchange{};
 template<class DeviceType>
 class FixShakeKokkos : public FixShake, public KokkosBase {
 
- //friend class FixEHEX;
-
  public:
   typedef DeviceType device_type;
   typedef EV_FLOAT value_type;
@@ -77,7 +75,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   void shake_end_of_step(int vflag) override;
   void correct_coordinates(int vflag) override;
 
-  int dof(int) override;
+  bigint dof(int) override;
 
   void unconstrained_update() override;
 

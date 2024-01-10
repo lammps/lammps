@@ -1098,7 +1098,7 @@ void FixShake::find_clusters()
   // print info on SHAKE clusters
   // -----------------------------------------------------
 
-  int count1,count2,count3,count4;
+  bigint count1,count2,count3,count4;
   count1 = count2 = count3 = count4 = 0;
   for (i = 0; i < nlocal; i++) {
     if (shake_flag[i] == 1) count1++;
@@ -1107,15 +1107,15 @@ void FixShake::find_clusters()
     else if (shake_flag[i] == 4) count4++;
   }
 
-  int tmp;
+  bigint tmp;
   tmp = count1;
-  MPI_Allreduce(&tmp,&count1,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count1,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count2;
-  MPI_Allreduce(&tmp,&count2,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count2,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count3;
-  MPI_Allreduce(&tmp,&count3,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count3,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count4;
-  MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count4,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (comm->me == 0) {
     utils::logmesg(lmp,"{:>8} = # of size 2 clusters\n"

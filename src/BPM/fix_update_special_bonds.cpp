@@ -166,6 +166,10 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 
   for (int ilist = 0; ilist < neighbor->nlist; ilist ++) {
     list = neighbor->lists[ilist];
+
+    // Skip copied lists, will update original
+    if (list->copy) continue;
+
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
 

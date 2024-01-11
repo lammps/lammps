@@ -1188,7 +1188,7 @@ double PPPM::compute_qopt()
   // each proc calculates contributions from every Pth grid point
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  int nxy_pppm = nx_pppm * ny_pppm;
+  bigint nxy_pppm = (bigint) nx_pppm * ny_pppm;
 
   double qopt = 0.0;
 
@@ -1945,7 +1945,7 @@ void PPPM::poisson_ik()
   // global energy and virial contribution
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  double scaleinv = 1.0/(ngridtotal);
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -2147,7 +2147,7 @@ void PPPM::poisson_ad()
   // global energy and virial contribution
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  double scaleinv = 1.0/(ngridtotal);
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -3262,7 +3262,7 @@ void PPPM::poisson_groups(int AA_flag)
   //  no inverse FFTs needed
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  double scaleinv = 1.0/(ngridtotal);
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   // energy

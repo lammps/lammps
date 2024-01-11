@@ -670,15 +670,6 @@ FixBondReact::~FixBondReact()
   memory->destroy(ghostly_rxn_count);
   memory->destroy(reaction_count_total);
 
-  if (newton_bond == 0) {
-    memory->destroy(xspecial);
-    memory->destroy(nxspecial);
-    memory->destroy(onemol_xspecial);
-    memory->destroy(onemol_nxspecial);
-    memory->destroy(twomol_xspecial);
-    memory->destroy(twomol_nxspecial);
-  }
-
   if (attempted_rxn == 1) {
     memory->destroy(restore_pt);
     memory->destroy(restore);
@@ -930,29 +921,10 @@ void FixBondReact::post_integrate()
 
   neighbor->build_one(list,1);
 
-  // here we define a full special list, independent of Newton setting
-  if (newton_bond == 1) {
-    nxspecial = atom->nspecial;
-    xspecial = atom->special;
-  } else {
-    int nall = atom->nlocal + atom->nghost;
-    memory->destroy(nxspecial);
-    memory->destroy(xspecial);
-    memory->create(nxspecial,nall,3,"bond/react:nxspecial");
-    memory->create(xspecial,nall,atom->maxspecial,"bond/react:xspecial");
-    for (int i = 0; i < atom->nlocal; i++) {
-      nxspecial[i][0] = atom->num_bond[i];
-      for (int j = 0; j < nxspecial[i][0]; j++) {
-        xspecial[i][j] = atom->bond_atom[i][j];
-      }
-      nxspecial[i][1] = atom->nspecial[i][1];
-      nxspecial[i][2] = atom->nspecial[i][2];
-      int joffset = nxspecial[i][0] - atom->nspecial[i][0];
-      for (int j = nxspecial[i][0]; j < nxspecial[i][2]; j++) {
-        xspecial[i][j+joffset] = atom->special[i][j];
-      }
-    }
-  }
+  // here we define a full special list
+  // may need correction for unusual special bond settings
+  nxspecial = atom->nspecial;
+  xspecial = atom->special;
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
@@ -2540,49 +2512,15 @@ int FixBondReact::get_chirality(double four_coords[12])
 
 /* ----------------------------------------------------------------------
   Get xspecials for current molecule templates
+  may need correction when specials defined explicitly in molecule templates
 ------------------------------------------------------------------------- */
 
 void FixBondReact::get_molxspecials()
 {
-  if (newton_bond == 1) {
-    onemol_nxspecial = onemol->nspecial;
-    onemol_xspecial = onemol->special;
-    twomol_nxspecial = twomol->nspecial;
-    twomol_xspecial = twomol->special;
-  } else {
-    memory->destroy(onemol_nxspecial);
-    memory->destroy(onemol_xspecial);
-    memory->create(onemol_nxspecial,onemol->natoms,3,"bond/react:onemol_nxspecial");
-    memory->create(onemol_xspecial,onemol->natoms,atom->maxspecial,"bond/react:onemol_xspecial");
-    for (int i = 0; i < onemol->natoms; i++) {
-      onemol_nxspecial[i][0] = onemol->num_bond[i];
-      for (int j = 0; j < onemol_nxspecial[i][0]; j++) {
-        onemol_xspecial[i][j] = onemol->bond_atom[i][j];
-      }
-      onemol_nxspecial[i][1] = onemol->nspecial[i][1];
-      onemol_nxspecial[i][2] = onemol->nspecial[i][2];
-      int joffset = onemol_nxspecial[i][0] - onemol->nspecial[i][0];
-      for (int j = onemol_nxspecial[i][0]; j < onemol_nxspecial[i][2]; j++) {
-        onemol_xspecial[i][j+joffset] = onemol->special[i][j];
-      }
-    }
-    memory->destroy(twomol_nxspecial);
-    memory->destroy(twomol_xspecial);
-    memory->create(twomol_nxspecial,twomol->natoms,3,"bond/react:twomol_nxspecial");
-    memory->create(twomol_xspecial,twomol->natoms,atom->maxspecial,"bond/react:twomol_xspecial");
-    for (int i = 0; i < twomol->natoms; i++) {
-      twomol_nxspecial[i][0] = twomol->num_bond[i];
-      for (int j = 0; j < twomol_nxspecial[i][0]; j++) {
-        twomol_xspecial[i][j] = twomol->bond_atom[i][j];
-      }
-      twomol_nxspecial[i][1] = twomol->nspecial[i][1];
-      twomol_nxspecial[i][2] = twomol->nspecial[i][2];
-      int joffset = twomol_nxspecial[i][0] - twomol->nspecial[i][0];
-      for (int j = twomol_nxspecial[i][0]; j < twomol_nxspecial[i][2]; j++) {
-        twomol_xspecial[i][j+joffset] = twomol->special[i][j];
-      }
-    }
-  }
+  onemol_nxspecial = onemol->nspecial;
+  onemol_xspecial = onemol->special;
+  twomol_nxspecial = twomol->nspecial;
+  twomol_xspecial = twomol->special;
 }
 
 /* ----------------------------------------------------------------------

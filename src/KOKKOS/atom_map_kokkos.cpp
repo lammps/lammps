@@ -143,10 +143,10 @@ void AtomKokkos::map_set()
 
   // sort by tag
 
-  unsigned int nmax = atom->nmax;
+  int nmax = atom->nmax;
 
   int realloc_flag = 0;
-  if (!d_tag_sorted.data() || d_tag_sorted.extent(0) < nmax) {
+  if (!d_tag_sorted.data() || (int)d_tag_sorted.extent(0) < nmax) {
     MemKK::realloc_kokkos(d_tag_sorted,"atom:tag_sorted",nmax);
     MemKK::realloc_kokkos(d_i_sorted,"atom:i_sorted",nmax);
     realloc_flag = 1;

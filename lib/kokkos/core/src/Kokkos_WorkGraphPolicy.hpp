@@ -1,47 +1,24 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#endif
 #ifndef KOKKOS_WORKGRAPHPOLICY_HPP
 #define KOKKOS_WORKGRAPHPOLICY_HPP
 
@@ -92,8 +69,8 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   void push_work(const std::int32_t w) const noexcept {
     const std::int32_t N = m_graph.numRows();
 
-    std::int32_t volatile* const ready_queue = &m_queue[0];
-    std::int32_t volatile* const end_hint    = &m_queue[2 * N + 1];
+    std::int32_t* const ready_queue = &m_queue[0];
+    std::int32_t* const end_hint    = &m_queue[2 * N + 1];
 
     // Push work to end of queue
     const std::int32_t j = atomic_fetch_add(end_hint, 1);
@@ -125,14 +102,14 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   std::int32_t pop_work() const noexcept {
     const std::int32_t N = m_graph.numRows();
 
-    std::int32_t volatile* const ready_queue = &m_queue[0];
-    std::int32_t volatile* const begin_hint  = &m_queue[2 * N];
+    std::int32_t* const ready_queue = &m_queue[0];
+    std::int32_t* const begin_hint  = &m_queue[2 * N];
 
     // begin hint is guaranteed to be less than or equal to
     // actual begin location in the queue.
 
-    for (std::int32_t i = *begin_hint; i < N; ++i) {
-      const std::int32_t w = ready_queue[i];
+    for (std::int32_t i = Kokkos::atomic_load(begin_hint); i < N; ++i) {
+      const std::int32_t w = Kokkos::atomic_load(&ready_queue[i]);
 
       if (w == END_TOKEN) {
         return END_TOKEN;
@@ -160,7 +137,7 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
     const std::int32_t N = m_graph.numRows();
 
-    std::int32_t volatile* const count_queue = &m_queue[N];
+    std::int32_t* const count_queue = &m_queue[N];
 
     const std::int32_t B = m_graph.row_map(w);
     const std::int32_t E = m_graph.row_map(w + 1);
@@ -190,7 +167,7 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const TagCount, int i) const noexcept {
-    std::int32_t volatile* const count_queue = &m_queue[m_graph.numRows()];
+    std::int32_t* const count_queue = &m_queue[m_graph.numRows()];
 
     atomic_increment(count_queue + m_graph.entries[i]);
   }
@@ -243,7 +220,7 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 }  // namespace Kokkos
 
 #ifdef KOKKOS_ENABLE_SERIAL
-#include "impl/Kokkos_Serial_WorkGraphPolicy.hpp"
+#include "Serial/Kokkos_Serial_WorkGraphPolicy.hpp"
 #endif
 
 #ifdef KOKKOS_ENABLE_OPENMP

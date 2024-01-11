@@ -6,7 +6,7 @@ jump command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    jump file label
 
@@ -99,7 +99,7 @@ system temperature has reached a certain value, and if so, breaks out
 of the loop to finish the run.  Note that any variable could be
 checked, so long as it is current on the timestep when the run
 completes.  As explained on the :doc:`variable <variable>` doc page,
-this can be insured by including the variable in thermodynamic output.
+this can be ensured by including the variable in thermodynamic output.
 
 .. code-block:: LAMMPS
 

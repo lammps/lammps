@@ -1,5 +1,5 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
-# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+# Pizza.py toolkit, https://lammps.github.io/pizza
+# LAMMPS development team: developers@lammps.org
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains

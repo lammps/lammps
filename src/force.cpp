@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -45,7 +45,11 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Force::Force(LAMMPS *lmp) : Pointers(lmp)
+Force::Force(LAMMPS *lmp) :
+    Pointers(lmp), pair(nullptr), pair_style(nullptr), pair_restart(nullptr), bond(nullptr),
+    bond_style(nullptr), angle(nullptr), angle_style(nullptr), dihedral(nullptr),
+    dihedral_style(nullptr), improper(nullptr), improper_style(nullptr), kspace(nullptr),
+    kspace_style(nullptr)
 {
   newton = newton_pair = newton_bond = 1;
 
@@ -53,6 +57,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;
+  special_onefive = 0;
   special_extra = 0;
 
   dielectric = 1.0;
@@ -236,22 +241,13 @@ void Force::create_pair(const std::string &style, int trysuffix)
 /* ----------------------------------------------------------------------
    generate a pair class
    if trysuffix = 1, try first with suffix1/2 appended
-   return sflag = 0 for no suffix added, 1 or 2 or 3 for suffix1/2/p added
-   special case: if suffixp exists only try suffixp, not suffix
+   return sflag = 0 for no suffix added, 1 or 2 for suffix1/2 added
 ------------------------------------------------------------------------- */
 
 Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffixp) {
-      sflag = 3;
-      std::string estyle = style + "/" + lmp->suffixp;
-      if (pair_map->find(estyle) != pair_map->end()) {
-        PairCreator &pair_creator = (*pair_map)[estyle];
-        return pair_creator(lmp);
-      }
-    }
-    if (lmp->suffix && !lmp->suffixp) {
+    if (lmp->suffix) {
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (pair_map->find(estyle) != pair_map->end()) {
@@ -340,6 +336,8 @@ void Force::create_bond(const std::string &style, int trysuffix)
 {
   delete[] bond_style;
   if (bond) delete bond;
+  bond_style = nullptr;
+  bond = nullptr;
 
   int sflag;
   bond = new_bond(style, trysuffix, sflag);
@@ -353,9 +351,9 @@ void Force::create_bond(const std::string &style, int trysuffix)
 Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + "/" + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2 * lmp->pair_only_flag;
+      std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (bond_map->find(estyle) != bond_map->end()) {
         BondCreator &bond_creator = (*bond_map)[estyle];
         return bond_creator(lmp);
@@ -408,6 +406,8 @@ void Force::create_angle(const std::string &style, int trysuffix)
 {
   delete[] angle_style;
   if (angle) delete angle;
+  angle_style = nullptr;
+  angle = nullptr;
 
   int sflag;
   angle = new_angle(style, trysuffix, sflag);
@@ -421,9 +421,9 @@ void Force::create_angle(const std::string &style, int trysuffix)
 Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + "/" + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2 * lmp->pair_only_flag;
+      std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (angle_map->find(estyle) != angle_map->end()) {
         AngleCreator &angle_creator = (*angle_map)[estyle];
         return angle_creator(lmp);
@@ -476,6 +476,8 @@ void Force::create_dihedral(const std::string &style, int trysuffix)
 {
   delete[] dihedral_style;
   if (dihedral) delete dihedral;
+  dihedral_style = nullptr;
+  dihedral = nullptr;
 
   int sflag;
   dihedral = new_dihedral(style, trysuffix, sflag);
@@ -489,9 +491,9 @@ void Force::create_dihedral(const std::string &style, int trysuffix)
 Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + "/" + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2 * lmp->pair_only_flag;
+      std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (dihedral_map->find(estyle) != dihedral_map->end()) {
         DihedralCreator &dihedral_creator = (*dihedral_map)[estyle];
         return dihedral_creator(lmp);
@@ -544,6 +546,8 @@ void Force::create_improper(const std::string &style, int trysuffix)
 {
   delete[] improper_style;
   if (improper) delete improper;
+  improper_style = nullptr;
+  improper = nullptr;
 
   int sflag;
   improper = new_improper(style, trysuffix, sflag);
@@ -557,9 +561,9 @@ void Force::create_improper(const std::string &style, int trysuffix)
 Improper *Force::new_improper(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + "/" + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2 * lmp->pair_only_flag;
+      std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (improper_map->find(estyle) != improper_map->end()) {
         ImproperCreator &improper_creator = (*improper_map)[estyle];
         return improper_creator(lmp);
@@ -612,6 +616,8 @@ void Force::create_kspace(const std::string &style, int trysuffix)
 {
   delete[] kspace_style;
   if (kspace) delete kspace;
+  kspace_style = nullptr;
+  kspace = nullptr;
 
   int sflag;
   kspace = new_kspace(style, trysuffix, sflag);
@@ -625,9 +631,9 @@ void Force::create_kspace(const std::string &style, int trysuffix)
 KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + "/" + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2 * lmp->pair_only_flag;
+      std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (kspace_map->find(estyle) != kspace_map->end()) {
         KSpaceCreator &kspace_creator = (*kspace_map)[estyle];
         return kspace_creator(lmp);
@@ -675,7 +681,7 @@ KSpace *Force::kspace_match(const std::string &word, int exact)
 /* ----------------------------------------------------------------------
    store style name in str allocated here
    if sflag = 0, no suffix
-   if sflag = 1/2/3, append suffix or suffix2 or suffixp to style
+   if sflag = 1/2, append suffix or suffix2 to style
 ------------------------------------------------------------------------- */
 
 char *Force::store_style(const std::string &style, int sflag)
@@ -686,8 +692,8 @@ char *Force::store_style(const std::string &style, int sflag)
     estyle += std::string("/") + lmp->suffix;
   else if (sflag == 2)
     estyle += std::string("/") + lmp->suffix2;
-  else if (sflag == 3)
-    estyle += std::string("/") + lmp->suffixp;
+  else if ((sflag == 3) && lmp->non_pair_suffix())
+    estyle += std::string("/") + lmp->non_pair_suffix();
   return utils::strdup(estyle);
 }
 
@@ -704,6 +710,7 @@ void Force::set_special(int narg, char **arg)
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
   special_angle = special_dihedral = 0;
+  special_onefive = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -768,6 +775,19 @@ void Force::set_special(int narg, char **arg)
     } else if (strcmp(arg[iarg], "dihedral") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal special_bonds command");
       special_dihedral = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "one/five") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal special_bonds command");
+      if (strcmp(arg[iarg + 1], "no") == 0)
+        special_onefive = 0;
+      else if (strcmp(arg[iarg + 1], "yes") == 0)
+        special_onefive = 1;
+      else
+        error->all(FLERR, "Illegal special_bonds command");
+      if (special_onefive && atom->nspecial15_flag == 0)
+        error->all(FLERR,
+                   "Cannot set special_bonds one/five if "
+                   "atom style does not support it");
       iarg += 2;
     } else
       error->all(FLERR, "Illegal special_bonds command");

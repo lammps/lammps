@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -287,7 +287,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
           const flt_t delx = xtmp - x[j].x;
           const flt_t dely = ytmp - x[j].y;
           const flt_t delz = ztmp - x[j].z;
-          const int jtype = x[j].w;
+          const int jtype = IP_PRE_dword_index(x[j].w);
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
 
           if (rsq < c_forcei[jtype].cutsq) {
@@ -316,8 +316,8 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
           forcecoul = forcelj = evdwl = ecoul = (flt_t)0.0;
 
           const int j = tj[jj] & NEIGHMASK;
-          const int sbindex = tj[jj] >> SBBITS & 3;
-          const int jtype = tjtype[jj];
+          const int sbindex = IP_PRE_dword_index(tj[jj] >> SBBITS & 3);
+          const int jtype = IP_PRE_dword_index(tjtype[jj]);
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
 
@@ -332,9 +332,9 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
             const flt_t EWALD_F = 1.12837917;
             const flt_t INV_EWALD_P = 1.0 / 0.3275911;
 
-            const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+            const flt_t r = (flt_t)1.0 / std::sqrt(r2inv);
             const flt_t grij = g_ewald * r;
-            const flt_t expm2 = exp(-grij * grij);
+            const flt_t expm2 = std::exp(-grij * grij);
             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
             const flt_t erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
             const flt_t prefactor = qqrd2e * qtmp * q[j] / r;

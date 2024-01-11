@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -189,8 +189,9 @@ void TextFileReader::next_dvector(double *list, int n)
     char *ptr = next_line();
 
     if (ptr == nullptr) {
-      // EOF
-      if (i < n) {
+      if (i == 0) { // EOF without any records
+        throw EOFException("EOF reached");
+      } else if (i < n) { // EOF with incomplete data
         throw FileReaderException(
             fmt::format("Incorrect format in {} file! {}/{} values", filetype, i, n));
       }

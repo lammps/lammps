@@ -6,7 +6,7 @@ fix halt command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID halt N attribute operator avalue keyword value ...
 
@@ -173,7 +173,7 @@ the :doc:`run <run>` command.
 
 Restrictions
 """"""""""""
-The *diskfree* attribute is currently only supported on Linux, MacOSX, and BSD.
+The *diskfree* attribute is currently only supported on Linux, macOS, and \*BSD.
 
 Related commands
 """"""""""""""""
@@ -183,4 +183,4 @@ Related commands
 Default
 """""""
 
-The option defaults are error = hard, message = yes, and path = ".".
+The option defaults are error = soft, message = yes, and path = ".".

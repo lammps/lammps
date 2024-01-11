@@ -179,31 +179,19 @@ int colvarbias_histogram::write_output_files()
     return COLVARS_OK;
   }
 
+  int error_code = COLVARS_OK;
+
   if (out_name.size() && out_name != "none") {
     cvm::log("Writing the histogram file \""+out_name+"\".\n");
-    cvm::backup_file(out_name.c_str());
-    std::ostream *grid_os = cvm::proxy->output_stream(out_name);
-    if (!grid_os) {
-      return cvm::error("Error opening histogram file "+out_name+
-                        " for writing.\n", COLVARS_FILE_ERROR);
-    }
-    grid->write_multicol(*grid_os);
-    cvm::proxy->close_output_stream(out_name);
+    error_code |= grid->write_multicol(out_name, "histogram output file");
   }
 
   if (out_name_dx.size() && out_name_dx != "none") {
     cvm::log("Writing the histogram file \""+out_name_dx+"\".\n");
-    cvm::backup_file(out_name_dx.c_str());
-    std::ostream *grid_os = cvm::proxy->output_stream(out_name_dx);
-    if (!grid_os) {
-      return cvm::error("Error opening histogram file "+out_name_dx+
-                        " for writing.\n", COLVARS_FILE_ERROR);
-    }
-    grid->write_opendx(*grid_os);
-    cvm::proxy->close_output_stream(out_name_dx);
+    error_code |= grid->write_opendx(out_name_dx, "histogram DX output file");
   }
 
-  return COLVARS_OK;
+  return error_code;
 }
 
 

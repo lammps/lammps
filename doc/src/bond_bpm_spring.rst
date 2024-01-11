@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/spring keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth*
+* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break*
 
   .. parsed-literal::
 
@@ -24,11 +24,17 @@ Syntax
             *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
 
-       *overlay/pair* value = none
+       *overlay/pair* value = *yes* or *no*
           bonded particles will still interact with pair forces
 
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
+
+       *normalize* value = *yes* or *no*
+          normalizes bond forces by the reference length
+
+       *break* value = *yes* or *no*
+          indicates whether bonds break during a run
 
 Examples
 """"""""
@@ -45,7 +51,9 @@ Examples
 Description
 """""""""""
 
-The *bpm/spring* bond style computes forces and torques based on
+.. versionadded:: 4May2022
+
+The *bpm/spring* bond style computes forces based on
 deviations from the initial reference state of the two atoms.  The
 reference state is stored by each bond when it is first computed in
 the setup of a run. Data is then preserved across run commands and is
@@ -54,22 +62,23 @@ the system will not reset the reference state of a bond.
 
 This bond style only applies central-body forces which conserve the
 translational and rotational degrees of freedom of a bonded set of
-particles. The force has a magnitude of
+particles based on a model described by Clemmer and Robbins
+:ref:`(Clemmer) <fragment-Clemmer>`. The force has a magnitude of
 
 .. math::
 
    F = k (r - r_0) w
 
-where :math:`k_r` is a stiffness, :math:`r` is the current distance
+where :math:`k` is a stiffness, :math:`r` is the current distance
 and :math:`r_0` is the initial distance between the two particles, and
 :math:`w` is an optional smoothing factor discussed below. Bonds will
-break at a strain of :math:`\epsilon_c`.  This is done by setting by
-setting its type to 0 such that forces are no longer computed.
+break at a strain of :math:`\epsilon_c`.  This is done by setting
+the bond type to 0 such that forces are no longer computed.
 
 An additional damping force is applied to the bonded
 particles.  This forces is proportional to the difference in the
 normal velocity of particles using a similar construction as
-dissipative particle dynamics (:ref:`(Groot) <Groot4>`):
+dissipative particle dynamics :ref:`(Groot) <Groot4>`:
 
 .. math::
 
@@ -79,9 +88,10 @@ where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
 radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles.
 
-The smoothing factor :math:`w` can be added or removed using the
-*smooth* keyword. It is constructed such that forces smoothly go
-to zero, avoiding discontinuities, as bonds approach the critical strain
+The smoothing factor :math:`w` can be added or removed by setting the
+*smooth* keyword to *yes* or *no*, respectively. It is constructed such
+that forces smoothly go to zero, avoiding discontinuities, as bonds
+approach the critical strain
 
 .. math::
 
@@ -96,22 +106,31 @@ the data file or restart files read by the :doc:`read_data
 * :math:`\epsilon_c`    (unit less)
 * :math:`\gamma`        (force/velocity units)
 
-By default, pair forces are not calculated between bonded particles.
-Pair forces can alternatively be overlaid on top of bond forces using
-the *overlay/pair* keyword. These settings require specific
-:doc:`special_bonds <special_bonds>` settings described in the
-restrictions.  Further details can be found in the `:doc: how to
-<Howto_BPM>` page on BPMs.
+If the *normalize* keyword is set to *yes*, the elastic bond force will be
+normalized by :math:`r_0` such that :math:`k` must be given in force units.
 
-If the *store/local* keyword is used, this fix will track bonds that
+By default, pair forces are not calculated between bonded particles.
+Pair forces can alternatively be overlaid on top of bond forces by setting
+the *overlay/pair* keyword to *yes*. These settings require specific
+:doc:`special_bonds <special_bonds>` settings described in the
+restrictions.  Further details can be found in the :doc:`how to
+<Howto_bpm>` page on BPMs.
+
+.. versionadded:: 28Mar2023
+
+If the *break* keyword is set to *no*, LAMMPS assumes bonds should not break
+during a simulation run. This will prevent some unnecessary calculation.
+However, if a bond reaches a strain greater than :math:`\epsilon_c`,
+it will trigger an error.
+
+If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
 and transferred to an internal fix labeled *fix_ID*. This allows the
-local data to be accessed by other LAMMPS commands.
-Following any optional keyword/value arguments, a list of one or more
-attributes is specified.  These include the IDs of the two atoms in
-the bond. The other attributes for the two atoms include the timestep
-during which the bond broke and the current/initial center of mass
-position of the two atoms.
+local data to be accessed by other LAMMPS commands. Following this optional
+keyword, a list of one or more attributes is specified.  These include the
+IDs of the two atoms in the bond. The other attributes for the two atoms
+include the timestep during which the bond broke and the current/initial
+center of mass position of the two atoms.
 
 Data is continuously accumulated over intervals of *N*
 timesteps. At the end of each interval, all of the saved accumulated
@@ -141,45 +160,46 @@ Restart and other info
 
 This bond style writes the reference state of each bond to
 :doc:`binary restart files <restart>`. Loading a restart
-file will properly resume bonds.
+file will properly restore bonds. However, the reference state is NOT
+written to data files. Therefore reading a data file will not
+restore bonds and will cause their reference states to be redefined.
 
-The single() function of these pair styles returns 0.0 for the energy
-of a pairwise interaction, since energy is not conserved in these
-dissipative potentials.
-
-The accumulated data is not written to restart files and should be
-output before a restart file is written to avoid missing data.
-
-The internal fix calculates a local vector or local array depending on the
-number of input values.  The length of the vector or number of rows in
-the array is the number of recorded, lost interactions.  If a single
-input is specified, a local vector is produced.  If two or more inputs
-are specified, a local array is produced where the number of columns =
-the number of inputs.  The vector or array can be accessed by any
-command that uses local values from a compute as input.  See the
-:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
-output options.
+If the *store/local* option is used, an internal fix will calculate
+a local vector or local array depending on the number of input values.
+The length of the vector or number of rows in the array is the number
+of recorded, broken bonds.  If a single input is specified, a local
+vector is produced. If two or more inputs are specified, a local array
+is produced where the number of columns = the number of inputs.  The
+vector or array can be accessed by any command that uses local values
+from a compute as input. See the :doc:`Howto output <Howto_output>` page
+for an overview of LAMMPS output options.
 
 The vector or array will be floating point values that correspond to
 the specified attribute.
 
+The single() function of this bond style returns 0.0 for the energy
+of a bonded interaction, since energy is not conserved in these
+dissipative potentials.  The single() function also calculates an
+extra bond quantity, the initial distance :math:`r_0`. This
+extra quantity can be accessed by the
+:doc:`compute bond/local <compute_bond_local>` command as *b1*\ .
+
 Restrictions
 """"""""""""
 
-This bond style can only be used if LAMMPS was built with the BPM
-package. See the :doc:`Build package <Build_package>` doc page for
-more info.
+This bond style is part of the BPM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-By default if pair interactions are to be disabled, this bond style
-requires setting
+By default if pair interactions between bonded atoms are to be disabled,
+this bond style requires setting
 
 .. code-block:: LAMMPS
 
    special_bonds lj 0 1 1 coul 1 1 1
 
-and :doc:`newton <newton>` must be set to bond off.  If the
-*overlay/pair* option is used, this bond style alternatively requires
-setting
+and :doc:`newton <newton>` must be set to bond off.  If the *overlay/pair*
+keyword is set to *yes*, this bond style alternatively requires setting
 
 .. code-block:: LAMMPS
 
@@ -193,9 +213,13 @@ Related commands
 Default
 """""""
 
-The option defaults are *smooth* = *yes*
+The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *no*, and *break* = *yes*
 
 ----------
+
+.. _fragment-Clemmer:
+
+**(Clemmer)** Clemmer and Robbins, Phys. Rev. Lett. (2022).
 
 .. _Groot4:
 

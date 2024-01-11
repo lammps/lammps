@@ -95,7 +95,7 @@ a class ``PairMorse2`` in the files ``pair_morse2.h`` and
 ``pair_morse2.cpp`` with the factory function and initialization
 function would look like this:
 
-.. code-block:: C++
+.. code-block:: c++
 
   #include "lammpsplugin.h"
   #include "version.h"
@@ -141,7 +141,7 @@ list of argument strings), then the pointer type is ``lammpsplugin_factory2``
 and it must be assigned to the *creator.v2* member of the plugin struct.
 Below is an example for that:
 
-.. code-block:: C++
+.. code-block:: c++
 
   #include "lammpsplugin.h"
   #include "version.h"
@@ -176,7 +176,7 @@ demonstrated in the following example, which also shows that the
 implementation of the plugin class may be within the same source
 file as the plugin interface code:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "lammpsplugin.h"
 
@@ -276,10 +276,27 @@ Compilation of the plugin can be managed via both, CMake or traditional
 GNU makefiles.  Some examples that can be used as a template are in the
 ``examples/plugins`` folder.  The CMake script code has some small
 adjustments to allow building the plugins for running unit tests with
-them. Another example that converts the KIM package into a plugin can be
-found in the ``examples/kim/plugin`` folder.  No changes to the sources
-of the KIM package themselves are needed; only the plugin interface and
-loader code needs to be added.  This example only supports building with
-CMake, but is probably a more typical example. To compile you need to
-run CMake with -DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>.  Other
+them.
+
+Another example that converts the KIM package into a plugin can be found
+in the ``examples/kim/plugin`` folder.  No changes to the sources of the
+KIM package themselves are needed; only the plugin interface and loader
+code needs to be added.  This example only supports building with CMake,
+but is probably a more typical example. To compile you need to run CMake
+with -DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>.  Other
 configuration setting are identical to those for compiling LAMMPS.
+
+A second example for a plugin from a package is in the
+``examples/PACKAGES/pace/plugin`` folder that will create a plugin from
+the ML-PACE package.  In this case the bulk of the code is in a static
+external library that is being downloaded and compiled first and then
+combined with the pair style wrapper and the plugin loader.  This
+example also contains a NSIS script that can be used to create an
+Installer package for Windows (the mutual licensing terms of the
+external library and LAMMPS conflict when distributing binaries, so the
+ML-PACE package cannot be linked statically, but the LAMMPS headers
+required to build the plugin are also available under a less restrictive
+license).  This will automatically set the required environment variable
+and launching a (compatible) LAMMPS binary will load and register the
+plugin and the ML-PACE package can then be used as it was linked into
+LAMMPS.

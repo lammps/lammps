@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -417,7 +417,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         for (int jj = 0; jj < jnum; jj++) {
           int jm = jlist[jj];
           int j = jm & NEIGHMASK;
-          const int jtype = x[j].w;
+          const int jtype = IP_PRE_dword_index(x[j].w);
 
           if (ijci[jtype].form == ELLIPSE_ELLIPSE) {
             flt_t delx = x[j].x-xtmp;
@@ -473,7 +473,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           const int sbindex = jlist_form[jj] >> SBBITS & 3;
           const int j = jlist_form[jj] & NEIGHMASK;
           flt_t factor_lj = special_lj[sbindex];
-          const int jtype = jtype_form[jj];
+          const int jtype = IP_PRE_dword_index(jtype_form[jj]);
           const flt_t sigma = ijci[jtype].sigma;
           const flt_t epsilon = ijci[jtype].epsilon;
           const flt_t shape2_0 = ic[jtype].shape2[0];
@@ -492,7 +492,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
           flt_t r12hat_0, r12hat_1, r12hat_2;
           ME_normalize3(delx_form[jj], dely_form[jj], delz_form[jj], r12hat);
-          flt_t r = sqrt(rsq_form[jj]);
+          flt_t r = std::sqrt(rsq_form[jj]);
 
           // compute distance of closest approach
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -144,6 +144,8 @@ void PotentialFileReader::next_dvector(double *list, int n)
 {
   try {
     return reader->next_dvector(list, n);
+  } catch (EOFException &) {
+    throw EOFException("EOF reached");
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }

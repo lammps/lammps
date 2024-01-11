@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -170,11 +170,11 @@ void ImproperHarmonicIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = improperlist[n].a;
-      const int i2 = improperlist[n].b;
-      const int i3 = improperlist[n].c;
-      const int i4 = improperlist[n].d;
-      const int type = improperlist[n].t;
+      const int i1 = IP_PRE_dword_index(improperlist[n].a);
+      const int i2 = IP_PRE_dword_index(improperlist[n].b);
+      const int i3 = IP_PRE_dword_index(improperlist[n].c);
+      const int i4 = IP_PRE_dword_index(improperlist[n].d);
+      const int type = IP_PRE_dword_index(improperlist[n].t);
 
       // geometry of 4-body
 
@@ -194,9 +194,9 @@ void ImproperHarmonicIntel::eval(const int vflag,
       flt_t ss2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
       flt_t ss3 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
 
-      const flt_t r1 = (flt_t)1.0 / sqrt(ss1);
-      const flt_t r2 = (flt_t)1.0 / sqrt(ss2);
-      const flt_t r3 = (flt_t)1.0 / sqrt(ss3);
+      const flt_t r1 = (flt_t)1.0 / std::sqrt(ss1);
+      const flt_t r2 = (flt_t)1.0 / std::sqrt(ss2);
+      const flt_t r3 = (flt_t)1.0 / std::sqrt(ss3);
 
       ss1 = (flt_t)1.0 / ss1;
       ss2 = (flt_t)1.0 / ss2;
@@ -214,7 +214,7 @@ void ImproperHarmonicIntel::eval(const int vflag,
       flt_t s2 = (flt_t)1.0 - c2*c2;
       if (s2 < SMALL) s2 = SMALL;
 
-      flt_t s12 = (flt_t)1.0 / sqrt(s1*s2);
+      flt_t s12 = (flt_t)1.0 / std::sqrt(s1*s2);
       s1 = (flt_t)1.0 / s1;
       s2 = (flt_t)1.0 / s2;
       flt_t c = (c1*c2 + c0) * s12;
@@ -229,12 +229,12 @@ void ImproperHarmonicIntel::eval(const int vflag,
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
       const flt_t sd = (flt_t)1.0 - c * c;
-      flt_t s = (flt_t)1.0 / sqrt(sd);
+      flt_t s = (flt_t)1.0 / std::sqrt(sd);
       if (sd < SMALL2) s = INVSMALL;
 
       // force & energy
 
-      const flt_t domega = acos(c) - fc.fc[type].chi;
+      const flt_t domega = std::acos(c) - fc.fc[type].chi;
       flt_t a;
       a = fc.fc[type].k * domega;
 

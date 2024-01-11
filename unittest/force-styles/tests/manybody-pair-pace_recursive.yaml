@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Mar 2021
 date_generated: Wed Apr  7 19:30:07 2021
-epsilon: 5e-13
+epsilon: 5e-12
 prerequisites: ! |
   pair pace
 pre_commands: ! |

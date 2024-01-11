@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,6 +27,13 @@
 
 using namespace LAMMPS_NS;
 using MathConst::MY_CUBEROOT2;
+
+/* ---------------------------------------------------------------------- */
+
+BondFENE::BondFENE(LAMMPS *_lmp) : Bond(_lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -258,6 +265,28 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/, double &ffor
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondFENE::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double r0sq = r0[type] * r0[type];
+  double rlogarg = 1.0 - rsq / r0sq;
+
+  // Contribution from the attractive term
+  du = k[type] * r / rlogarg;
+  du2 = k[type] * (1.0 + rsq / r0sq) / (rlogarg * rlogarg);
+
+  // Contribution from the repulsive Lennard-Jones term
+  if (rsq < MY_CUBEROOT2 * sigma[type] * sigma[type]) {
+    double sr2 = sigma[type] * sigma[type] / rsq;
+    double sr6 = sr2 * sr2 * sr2;
+
+    du += 48.0 * epsilon[type] * sr6 * (0.5 - sr6) / r;
+    du2 += 48.0 * epsilon[type] * sr6 * (13.0 * sr6 - 3.5) / rsq;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

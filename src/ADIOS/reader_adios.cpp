@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,11 +29,6 @@
 #include "adios_common.h"
 
 using namespace LAMMPS_NS;
-
-// also in read_dump.cpp
-
-enum { ID, TYPE, X, Y, Z, VX, VY, VZ, Q, IX, IY, IZ, FX, FY, FZ };
-enum { UNSET, NOSCALE_NOWRAP, NOSCALE_WRAP, SCALE_NOWRAP, SCALE_WRAP };
 
 #define SMALL 1.0e-6
 
@@ -82,7 +77,11 @@ ReaderADIOS::ReaderADIOS(LAMMPS *lmp) : Reader(lmp)
 
   internal = new ReadADIOSInternal();
   try {
-    internal->ad = new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+#if defined(MPI_STUBS)
+    internal->ad = new adios2::ADIOS("adios2_config.xml");
+#else
+    internal->ad = new adios2::ADIOS("adios2_config.xml", world);
+#endif
   } catch (std::ios_base::failure &e) {
     error->one(FLERR, "ADIOS initialization failed with error: {}", e.what());
   }
@@ -134,7 +133,11 @@ void ReaderADIOS::open_file(const std::string &file)
   if (internal->fh) internal->fh.Close();
 
   try {
+#if defined(MPI_STUBS)
+    internal->fh = internal->io.Open(file, adios2::Mode::Read);
+#else
     internal->fh = internal->io.Open(file, adios2::Mode::Read, world);
+#endif
   } catch (std::ios_base::failure &e) {
     error->one(FLERR, "Error opening file {}: {}", file, e.what());
   }

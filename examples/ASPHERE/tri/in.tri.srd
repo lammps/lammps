@@ -2,7 +2,7 @@
 
 units		lj
 atom_style	tri
-atom_modify	first big
+atom_modify	first big map yes
 
 read_data	data.tri.srd
 
@@ -52,12 +52,12 @@ pair_coeff	1 2 0.0 1.0 0.0
 
 timestep	0.001
 
-fix		1 big rigid molecule #langevin 1.0 1.0 0.1 12398 
-fix	        2 small srd 20 big 1.0 0.25 49894 &
+fix		1 big rigid/small molecule #langevin 1.0 1.0 0.1 12398 
+fix	        2 small srd 20 big 1.0 1.0 49894 &
 		search 0.2 cubic warn 0.0001 shift yes 49829 &
-		overlap yes collision noslip
+		overlap yes collision noslip inside ignore
 
-fix		3 all deform 1 x scale 0.6 y scale 0.6 z scale 0.6
+fix		3 all deform 1 x scale 0.8 y scale 0.8 z scale 0.8
 
 # diagnostics
 
@@ -73,8 +73,8 @@ compute		2 all ke
 compute		3 all pe
 variable	toteng equal (c_1+c_2+c_3)/atoms
 
-thermo		1000
-thermo_style	custom step f_1 c_tsmall f_2[9] temp press
+thermo		100
+thermo_style	custom step f_1 c_tsmall temp press f_2[9] f_2[4] 
 thermo_modify	temp tbig
 
 compute		10 all property/atom corner1x corner1y corner1z &
@@ -93,9 +93,9 @@ unfix		3
 
 change_box      all triclinic
 
-fix	        2 small srd 20 big 1.0 0.25 49894 &
+fix	        2 small srd 20 big 1.0 1.0 49894 &
 		search 0.2 cubic warn 0.0001 shift yes 49829 &
-		overlap yes collision noslip tstat yes
+		overlap yes collision noslip tstat yes inside ignore
 
 #dump		1 all custom 500 dump2.atom.srd id type x y z ix iy iz
 #dump		2 all custom 500 dump2.tri.srd id type &

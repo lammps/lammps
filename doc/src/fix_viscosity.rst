@@ -6,7 +6,7 @@ fix viscosity command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID viscosity N vdim pdim Nbin keyword value ...
 
@@ -17,7 +17,7 @@ Syntax
 * pdim = *x* or *y* or *z* = direction of momentum transfer
 * Nbin = # of layers in pdim direction (must be even number)
 * zero or more keyword/value pairs may be appended
-* keyword = *swap* or *target*
+* keyword = *swap* or *vtarget*
 
   .. parsed-literal::
 

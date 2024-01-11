@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -609,7 +609,7 @@ void FixDeform::init()
 
   rfix.clear();
 
-  for (auto ifix : modify->get_fix_list())
+  for (auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -882,7 +882,7 @@ void FixDeform::end_of_step()
       if (mask[i] & groupbit)
         domain->x2lamda(x[i],x[i]);
 
-    for (auto ifix : rfix)
+    for (auto &ifix : rfix)
       ifix->deform(0);
   }
 
@@ -921,7 +921,7 @@ void FixDeform::end_of_step()
       if (mask[i] & groupbit)
         domain->lamda2x(x[i],x[i]);
 
-    for (auto ifix : rfix)
+    for (auto &ifix : rfix)
       ifix->deform(1);
   }
 

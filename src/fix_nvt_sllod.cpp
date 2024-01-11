@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,16 +44,28 @@ FixNVTSllod::FixNVTSllod(LAMMPS *lmp, int narg, char **arg) :
 
   // default values
 
+  psllod_flag = 0;
   if (mtchain_default_flag) mtchain = 1;
 
+  // select SLLOD/p-SLLOD/g-SLLOD variant
+
+  int iarg = 3;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"psllod") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nvt/sllod psllod", error);
+      psllod_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else iarg++;
+  }
 
   // create a new compute temp style
   // id = fix-ID + temp
 
   id_temp = utils::strdup(std::string(id) + "_temp");
-  modify->add_compute(fmt::format("{} {} temp/deform",
-                                  id_temp,group->names[igroup]));
+  modify->add_compute(fmt::format("{} {} temp/deform",id_temp,group->names[igroup]));
   tcomputeflag = 1;
+  nondeformbias = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,23 +75,21 @@ void FixNVTSllod::init()
   FixNH::init();
 
   if (!temperature->tempbias)
-    error->all(FLERR,"Temperature for fix nvt/sllod does not have a bias");
+    error->all(FLERR,"Temperature for fix {} does not have a bias", style);
 
   nondeformbias = 0;
   if (strcmp(temperature->style,"temp/deform") != 0) nondeformbias = 1;
 
   // check fix deform remap settings
 
-  int i;
-  for (i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
-      if ((dynamic_cast<FixDeform *>( modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
-                   "remap option");
-      break;
-    }
-  if (i == modify->nfix)
-    error->all(FLERR,"Using fix nvt/sllod with no fix deform defined");
+  auto deform = modify->get_fix_by_style("^deform");
+  if (deform.size() < 1) error->all(FLERR,"Using fix {} with no fix deform defined", style);
+
+  for (auto &ifix : deform) {
+    auto f = dynamic_cast<FixDeform *>(ifix);
+    if (f && (f->remapflag != Domain::V_REMAP))
+      error->all(FLERR,"Using fix {} with inconsistent fix deform remap option", style);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -107,10 +117,11 @@ void FixNVTSllod::nh_v_temp()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+      if (!psllod_flag) temperature->remove_bias(i,v[i]);
       vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
       vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
       vdelu[2] = h_two[2]*v[i][2];
-      temperature->remove_bias(i,v[i]);
+      if (psllod_flag) temperature->remove_bias(i,v[i]);
       v[i][0] = v[i][0]*factor_eta - dthalf*vdelu[0];
       v[i][1] = v[i][1]*factor_eta - dthalf*vdelu[1];
       v[i][2] = v[i][2]*factor_eta - dthalf*vdelu[2];

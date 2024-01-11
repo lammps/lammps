@@ -23,13 +23,15 @@ Examples
 
 Used in example input script:
 
-  .. parsed-literal::
+.. parsed-literal::
 
-     examples/PACKAGES/manybody_table/in.spce_sw
+   examples/PACKAGES/manybody_table/in.spce_sw
 
 
 Description
 """""""""""
+
+.. versionadded:: 2Jun2022
 
 The *sw/angle/table* style is a modification of the original
 :doc:`pair_style sw <pair_sw>`. It has been developed for coarse-grained
@@ -296,7 +298,8 @@ for pair interactions.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style sw <pair_sw>`, :doc:`pair_style threebody/table <pair_threebody_table>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style sw <pair_sw>`,
+:doc:`pair_style threebody/table <pair_threebody_table>`
 
 
 ----------

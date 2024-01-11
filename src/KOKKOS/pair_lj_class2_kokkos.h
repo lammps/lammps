@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -80,7 +80,6 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   typename AT::t_x_array c_x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_tagint_1d tag;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
@@ -97,16 +96,19 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   int nlocal,nall,eflag,vflag;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,false>;
   friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,FULL,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALF,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALFTHREAD,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJClass2Kokkos,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,FULL,0>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,FULL,1>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALF>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALFTHREAD>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJClass2Kokkos>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJClass2Kokkos>(PairLJClass2Kokkos*);
 };
 

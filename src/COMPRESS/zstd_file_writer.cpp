@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,7 +24,7 @@
 using namespace LAMMPS_NS;
 
 ZstdFileWriter::ZstdFileWriter() :
-     compression_level(0), checksum_flag(1), cctx(nullptr), fp(nullptr)
+    compression_level(0), checksum_flag(1), cctx(nullptr), fp(nullptr)
 {
   out_buffer_size = ZSTD_CStreamOutSize();
   out_buffer = new char[out_buffer_size];

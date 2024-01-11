@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,13 +46,14 @@ using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
 static const char cite_pair_reax_c[] =
-  "pair reaxff command:\n\n"
+  "pair reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
-  " author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},\n"
-  " title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},\n"
+  " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
+  " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
   " journal = {Parallel Computing},\n"
   " year =    2012,\n"
   " volume =  38,\n"
+  " number =  {4--5},\n"
   " pages =   {245--259}\n"
   "}\n\n";
 
@@ -109,9 +110,7 @@ PairReaxFF::PairReaxFF(LAMMPS *lmp) : Pair(lmp)
 
   setup_flag = 0;
   fixspecies_flag = 0;
-
   nmax = 0;
-
   list_blocking_flag = 0;
 }
 
@@ -129,13 +128,13 @@ PairReaxFF::~PairReaxFF()
     // deallocate reax data-structures
 
     if (api->control->tabulate) Deallocate_Lookup_Tables(api->system);
-
     if (api->control->hbond_cut > 0) Delete_List(api->lists+HBONDS);
+
     Delete_List(api->lists+BONDS);
     Delete_List(api->lists+THREE_BODIES);
     Delete_List(api->lists+FAR_NBRS);
 
-    DeAllocate_Workspace(api->control, api->workspace);
+    DeAllocate_Workspace(api->workspace);
     DeAllocate_System(api->system);
   }
 
@@ -152,17 +151,16 @@ PairReaxFF::~PairReaxFF()
     memory->destroy(cutsq);
     memory->destroy(cutghost);
 
-    delete [] chi;
-    delete [] eta;
-    delete [] gamma;
-    delete [] bcut_acks2;
+    delete[] chi;
+    delete[] eta;
+    delete[] gamma;
+    delete[] bcut_acks2;
   }
 
   memory->destroy(tmpid);
   memory->destroy(tmpbo);
 
-  delete [] pvector;
-
+  delete[] pvector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,11 +279,6 @@ void PairReaxFF::coeff(int nargs, char **args)
   if (nargs != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
-
-  if (strcmp(args[0],"*") != 0 || strcmp(args[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
   // read ffield file
 
   Read_Force_Field(args[2], &(api->system->reax_param), api->control, world);
@@ -373,7 +366,7 @@ void PairReaxFF::init_style()
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
-    fix_reaxff = dynamic_cast<FixReaxFF *>( modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
+    fix_reaxff = dynamic_cast<FixReaxFF *>(modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -467,7 +460,7 @@ void PairReaxFF::compute(int eflag, int vflag)
 
   if (api->system->acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
-    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>( ifix))->get_s();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>(ifix))->get_s();
   }
 
   // setup data structures
@@ -535,7 +528,6 @@ void PairReaxFF::compute(int eflag, int vflag)
       }
     FindBond();
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -586,8 +578,8 @@ void PairReaxFF::set_far_nbr(far_neighbor_data *fdest,
 int PairReaxFF::estimate_reax_lists()
 {
   int itr_i, itr_j, i, j;
-  int num_nbrs, num_marked;
-  int *ilist, *jlist, *numneigh, **firstneigh, *marked;
+  int num_nbrs;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   double d_sqr;
   rvec dvec;
   double **x;
@@ -601,15 +593,11 @@ int PairReaxFF::estimate_reax_lists()
   firstneigh = list->firstneigh;
 
   num_nbrs = 0;
-  num_marked = 0;
-  marked = (int*) calloc(api->system->N, sizeof(int));
 
   int numall = list->inum + list->gnum;
 
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
-    marked[i] = 1;
-    ++num_marked;
     jlist = firstneigh[i];
 
     for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
@@ -621,8 +609,6 @@ int PairReaxFF::estimate_reax_lists()
         ++num_nbrs;
     }
   }
-
-  free(marked);
 
   return static_cast<int> (MAX(num_nbrs*safezone, mincap*REAX_MIN_NBRS));
 }
@@ -659,7 +645,7 @@ int PairReaxFF::write_reax_lists()
     jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs, far_nbrs);
 
-    if (i < inum)
+    if (itr_i < inum)
       cutoff_sqr = SQR(api->control->nonb_cut);
     else
       cutoff_sqr = SQR(api->control->bond_cut);

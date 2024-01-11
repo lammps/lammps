@@ -10,7 +10,7 @@ compute centroid/stress/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style temp-ID keyword ...
 
@@ -127,11 +127,11 @@ result in more consistent heat flux values for angle, dihedrals,
 improper and constraint force contributions
 when computed via :doc:`compute heat/flux <compute_heat_flux>`.
 
-If no extra keywords are listed, the kinetic contribution all of the
-virial contribution terms are included in the per-atom stress tensor.
-If any extra keywords are listed, only those terms are summed to
-compute the tensor.  The *virial* keyword means include all terms
-except the kinetic energy *ke*\ .
+If no extra keywords are listed, the kinetic contribution *and* all
+of the virial contribution terms are included in the per-atom stress
+tensor.  If any extra keywords are listed, only those terms are
+summed to compute the tensor.  The *virial* keyword means include all
+terms except the kinetic energy *ke*\ .
 
 Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
@@ -221,6 +221,26 @@ result. I.e. the last 2 columns of thermo output will be the same:
    corrections to the pressure added by the :doc:`pair_modify tail yes
    <pair_modify>` command, since those are contributions to the global
    system pressure.
+
+The compute stress/atom can be used in a number of ways.  Here is an
+example to compute a 1-d pressure profile in x-direction across the
+complete simulation box. You will need to adjust the number of bins and the
+selections for time averaging to your specific simulation.  This assumes
+that the dimensions of the simulation cell does not change.
+
+.. code-block:: LAMMPS
+
+   # set number of bins
+   variable nbins index 20
+   variable fraction equal 1.0/v_nbins
+   # define bins as chunks
+   compute cchunk all chunk/atom bin/1d x lower ${fraction} units reduced
+   compute stress all stress/atom NULL
+   # apply conversion to pressure early since we have no variable style for processing chunks
+   variable press atom -(c_stress[1]+c_stress[2]+c_stress[3])/(3.0*vol*${fraction})
+   compute binpress all reduce/chunk cchunk sum v_press
+   fix avg all ave/time 10 40 400 c_binpress mode vector file ave_stress.txt
+
 
 Output info
 """""""""""

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,7 +38,7 @@ class FixTempBerendsen : public Fix {
   void restart(char *buf) override;
   void *extract(const char *, int &) override;
 
- private:
+ protected:
   int which;
   double t_start, t_stop, t_period, t_target;
   double energy;

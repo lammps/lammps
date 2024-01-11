@@ -21,9 +21,9 @@ protected:
     LAMMPS *lmp;
     LAMMPS_plain() : lmp(nullptr)
     {
-        const char *args[] = {"LAMMPS_test"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        const char * args[] = {"LAMMPS_test", nullptr};
+        char ** argv = (char**)args;
+        int argc = 1;
 
         int flag;
         MPI_Initialized(&flag);
@@ -34,12 +34,10 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "both", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        LAMMPS::argv args = {"LAMMPS_test", "-log", "none", "-echo", "both", "-nocite"};
 
         ::testing::internal::CaptureStdout();
-        lmp                = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+        lmp = new LAMMPS(args, MPI_COMM_WORLD);
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
     }
@@ -83,8 +81,8 @@ TEST_F(LAMMPS_plain, InitMembers)
 
     EXPECT_STREQ(lmp->exename, "LAMMPS_test");
     EXPECT_EQ(lmp->num_package, 0);
-    EXPECT_EQ(lmp->clientserver, 0);
 
+    EXPECT_EQ(lmp->mdicomm, nullptr);
     EXPECT_EQ(lmp->kokkos, nullptr);
     EXPECT_EQ(lmp->atomKK, nullptr);
     EXPECT_EQ(lmp->memoryKK, nullptr);
@@ -159,9 +157,9 @@ protected:
     LAMMPS *lmp;
     LAMMPS_omp() : lmp(nullptr)
     {
-        const char *args[] = {"LAMMPS_test"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        const char * args[] = {"LAMMPS_test", nullptr};
+        char ** argv = (char**)args;
+        int argc = 1;
 
         int flag;
         MPI_Initialized(&flag);
@@ -172,15 +170,13 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log", "none", "-screen", "none", "-echo", "screen",
-                              "-pk",         "omp",  "2",    "neigh",   "yes",  "-sf",   "omp"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        LAMMPS::argv args = {"LAMMPS_test", "-log", "none", "-screen", "none", "-echo", "screen",
+                             "-pk",         "omp",  "2",    "neigh",   "yes",  "-sf",   "omp"};
 
         // only run this test fixture with omp suffix if OPENMP package is installed
 
         if (LAMMPS::is_installed_pkg("OPENMP"))
-            lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            lmp = new LAMMPS(args, MPI_COMM_WORLD);
         else
             GTEST_SKIP();
     }
@@ -218,8 +214,8 @@ TEST_F(LAMMPS_omp, InitMembers)
 
     EXPECT_STREQ(lmp->exename, "LAMMPS_test");
     EXPECT_EQ(lmp->num_package, 1);
-    EXPECT_EQ(lmp->clientserver, 0);
 
+    EXPECT_EQ(lmp->mdicomm, nullptr);
     EXPECT_EQ(lmp->kokkos, nullptr);
     EXPECT_EQ(lmp->atomKK, nullptr);
     EXPECT_EQ(lmp->memoryKK, nullptr);
@@ -242,9 +238,9 @@ protected:
     LAMMPS *lmp;
     LAMMPS_kokkos() : lmp(nullptr)
     {
-        const char *args[] = {"LAMMPS_test"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        const char * args[] = {"LAMMPS_test", nullptr};
+        char ** argv = (char**)args;
+        int argc = 1;
 
         int flag;
         MPI_Initialized(&flag);
@@ -255,15 +251,13 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none",
-                              "-k",          "on",   "t",    "1",     "-sf",  "kk"};
+        LAMMPS::argv args = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none",
+                             "-k",          "on",   "t",    "1",     "-sf",  "kk"};
         if (Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[10] = "2";
-        char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
 
         if (LAMMPS::is_installed_pkg("KOKKOS")) {
             ::testing::internal::CaptureStdout();
-            lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            lmp = new LAMMPS(args, MPI_COMM_WORLD);
             ::testing::internal::GetCapturedStdout();
         } else
             GTEST_SKIP();
@@ -302,12 +296,12 @@ TEST_F(LAMMPS_kokkos, InitMembers)
 
     EXPECT_STREQ(lmp->exename, "LAMMPS_test");
     EXPECT_EQ(lmp->num_package, 0);
-    EXPECT_EQ(lmp->clientserver, 0);
 
     if (Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
         EXPECT_EQ(lmp->comm->nthreads, 2);
     else
         EXPECT_EQ(lmp->comm->nthreads, 1);
+    EXPECT_EQ(lmp->mdicomm, nullptr);
     EXPECT_NE(lmp->kokkos, nullptr);
     EXPECT_NE(lmp->atomKK, nullptr);
     EXPECT_NE(lmp->memoryKK, nullptr);
@@ -333,12 +327,10 @@ TEST(LAMMPS_init, OpenMP)
     fputs("\n", fp);
     fclose(fp);
 
-    const char *args[] = {"LAMMPS_init", "-in", "in.lammps_empty", "-log", "none", "-nocite"};
-    char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"LAMMPS_init", "-in", "in.lammps_empty", "-log", "none", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    LAMMPS *lmp        = new LAMMPS(args, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, ContainsRegex(".*using 2 OpenMP thread.*per MPI task.*"));
 
@@ -366,12 +358,10 @@ TEST(LAMMPS_init, NoOpenMP)
     fclose(fp);
     platform::unsetenv("OMP_NUM_THREADS");
 
-    const char *args[] = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
-    char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    LAMMPS *lmp        = new LAMMPS(args, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, ContainsRegex(
                             ".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));

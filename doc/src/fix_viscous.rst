@@ -1,12 +1,15 @@
 .. index:: fix viscous
+.. index:: fix viscous/kk
 
 fix viscous command
 ===================
 
+Accelerator Variants: *viscous/kk*
+
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID viscous gamma keyword values ...
 
@@ -57,12 +60,12 @@ multiple times to adjust :math:`\gamma` for several atom types.
    self-consistent.
 
 In a Brownian dynamics context, :math:`\gamma = \frac{k_B T}{D}`, where
-:math:`k_B =` Boltzmann's constant, *T* = temperature, and *D* = particle
-diffusion coefficient.  *D* can be written as :math:`\frac{k_B T}{3 \pi
-\eta d}`, where :math:`\eta =` dynamic viscosity of the frictional fluid
-and d = diameter of particle.  This means :math:`\gamma = 3 \pi \eta d`,
-and thus is proportional to the viscosity of the fluid and the particle
-diameter.
+:math:`k_B =` Boltzmann's constant, :math:`T` = temperature, and *D* =
+particle diffusion coefficient.  *D* can be written as :math:`\frac{k_B
+T}{3 \pi \eta d}`, where :math:`\eta =` dynamic viscosity of the
+frictional fluid and d = diameter of particle.  This means :math:`\gamma
+= 3 \pi \eta d`, and thus is proportional to the viscosity of the fluid
+and the particle diameter.
 
 In the current implementation, rather than have the user specify a
 viscosity, :math:`\gamma` is specified directly in force/velocity units.
@@ -81,6 +84,10 @@ that the gamma of fix viscous is related to the damping parameter of
 :doc:`fix langevin <fix_langevin>`, however the former is specified in
 units of force/velocity and the latter in units of time, so that it can
 more easily be used as a thermostat.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

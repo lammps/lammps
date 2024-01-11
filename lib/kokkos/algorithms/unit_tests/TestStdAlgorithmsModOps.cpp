@@ -1,49 +1,20 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_ModifyingOperations.hpp>
 
 namespace Test {
 namespace stdalgos {
@@ -76,19 +47,19 @@ struct MyMovableType {
 
 TEST(std_algorithms_mod_ops_test, move) {
   MyMovableType a;
-  using move_t = decltype(KE::move(a));
+  using move_t = decltype(std::move(a));
   static_assert(std::is_rvalue_reference<move_t>::value, "");
 
   // move constr
-  MyMovableType b(KE::move(a));
-  EXPECT_TRUE(b.m_value == 11);
-  EXPECT_TRUE(a.m_value == -2);
+  MyMovableType b(std::move(a));
+  ASSERT_EQ(b.m_value, 11);
+  ASSERT_EQ(a.m_value, -2);
 
   // move assign
   MyMovableType c;
-  c = KE::move(b);
-  EXPECT_TRUE(c.m_value == 11);
-  EXPECT_TRUE(b.m_value == -4);
+  c = std::move(b);
+  ASSERT_EQ(c.m_value, 11);
+  ASSERT_EQ(b.m_value, -4);
 }
 
 template <class ViewType>
@@ -98,9 +69,9 @@ struct StdAlgoModSeqOpsTestMove {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int index) const {
     typename ViewType::value_type a{11};
-    using move_t = decltype(KE::move(a));
+    using move_t = decltype(std::move(a));
     static_assert(std::is_rvalue_reference<move_t>::value, "");
-    m_view(index) = KE::move(a);
+    m_view(index) = std::move(a);
   }
 
   StdAlgoModSeqOpsTestMove(ViewType view) : m_view(view) {}
@@ -126,8 +97,8 @@ TEST(std_algorithms_mod_ops_test, swap) {
     int a = 1;
     int b = 2;
     KE::swap(a, b);
-    EXPECT_TRUE(a == 2);
-    EXPECT_TRUE(b == 1);
+    ASSERT_EQ(a, 2);
+    ASSERT_EQ(b, 1);
   }
 
   {
@@ -180,17 +151,17 @@ void test_iter_swap(ViewType view) {
   using value_type = typename ViewType::value_type;
   auto a_dc        = create_deep_copyable_compatible_clone(view);
   auto a_h         = create_mirror_view_and_copy(Kokkos::HostSpace(), a_dc);
-  EXPECT_TRUE(view.extent(0) == 10);
-  EXPECT_TRUE(a_h(0) == value_type(3));
-  EXPECT_TRUE(a_h(1) == value_type(1));
-  EXPECT_TRUE(a_h(2) == value_type(2));
-  EXPECT_TRUE(a_h(3) == value_type(0));
-  EXPECT_TRUE(a_h(4) == value_type(6));
-  EXPECT_TRUE(a_h(5) == value_type(5));
-  EXPECT_TRUE(a_h(6) == value_type(4));
-  EXPECT_TRUE(a_h(7) == value_type(7));
-  EXPECT_TRUE(a_h(8) == value_type(8));
-  EXPECT_TRUE(a_h(9) == value_type(9));
+  ASSERT_EQ(view.extent_int(0), 10);
+  ASSERT_EQ(a_h(0), value_type(3));
+  ASSERT_EQ(a_h(1), value_type(1));
+  ASSERT_EQ(a_h(2), value_type(2));
+  ASSERT_EQ(a_h(3), value_type(0));
+  ASSERT_EQ(a_h(4), value_type(6));
+  ASSERT_EQ(a_h(5), value_type(5));
+  ASSERT_EQ(a_h(6), value_type(4));
+  ASSERT_EQ(a_h(7), value_type(7));
+  ASSERT_EQ(a_h(8), value_type(8));
+  ASSERT_EQ(a_h(9), value_type(9));
 }
 
 TEST(std_algorithms_mod_ops_test, iter_swap_static_view) {

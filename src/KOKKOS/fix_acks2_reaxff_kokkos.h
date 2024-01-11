@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,6 +27,7 @@ FixStyle(acks2/reax/kk/host,FixACKS2ReaxFFKokkos<LMPHostType>);
 
 #include "fix_acks2_reaxff.h"
 #include "kokkos_type.h"
+#include "kokkos_base.h"
 #include "neigh_list.h"
 #include "neigh_list_kokkos.h"
 
@@ -57,7 +58,7 @@ struct TagACKS2ZeroQGhosts{};
 struct TagACKS2CalculateQ{};
 
 template<class DeviceType>
-class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
+class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef double value_type;
@@ -65,10 +66,10 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
   FixACKS2ReaxFFKokkos(class LAMMPS *, int, char **);
   ~FixACKS2ReaxFFKokkos();
 
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
   void cleanup_copy();
-  void init();
-  void setup_pre_force(int);
-  void pre_force(int);
 
   DAT::tdual_ffloat_1d get_s() {return k_s;}
 
@@ -163,7 +164,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
     KOKKOS_INLINE_FUNCTION
     params_acks2(){chi=0;eta=0;gamma=0;bcut_acks2=0;};
     KOKKOS_INLINE_FUNCTION
-    params_acks2(int i){chi=0;eta=0;gamma=0;bcut_acks2=0;};
+    params_acks2(int){chi=0;eta=0;gamma=0;bcut_acks2=0;};
     F_FLOAT chi, eta, gamma, bcut_acks2;
   };
 
@@ -234,11 +235,11 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
 
   void init_shielding_k();
   void init_hist();
-  void allocate_matrix();
+  void allocate_matrix() override;
   void allocate_array();
   void deallocate_array();
   int bicgstab_solve();
-  void calculate_Q();
+  void calculate_Q() override;
 
   int neighflag;
   int nlocal,nall,nmax,newton_pair;
@@ -250,12 +251,13 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void get_chi_field();
-  double memory_usage();
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void get_chi_field() override;
+  double memory_usage() override;
 
   void sparse_matvec_acks2(typename AT::t_ffloat_1d &, typename AT::t_ffloat_1d &);
 };

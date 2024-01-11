@@ -1,49 +1,25 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_MATHEMATICAL_SPECIAL_FUNCTIONS_HPP
 #define KOKKOS_MATHEMATICAL_SPECIAL_FUNCTIONS_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_MATHSPECFUNCTIONS
+#endif
 
 #include <Kokkos_Macros.hpp>
 #include <cmath>
@@ -62,12 +38,12 @@ template <class RealType>
 KOKKOS_INLINE_FUNCTION RealType expint1(RealType x) {
   // This function is a conversion of the corresponding Fortran program in
   // S. Zhang & J. Jin "Computation of Special Functions" (Wiley, 1996).
+  using Kokkos::exp;
+  using Kokkos::fabs;
+  using Kokkos::log;
+  using Kokkos::pow;
   using Kokkos::Experimental::epsilon;
-  using Kokkos::Experimental::exp;
-  using Kokkos::Experimental::fabs;
   using Kokkos::Experimental::infinity;
-  using Kokkos::Experimental::log;
-  using Kokkos::Experimental::pow;
 
   RealType e1;
 
@@ -114,26 +90,27 @@ KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> erf(
   //      (1)  abs(z)<=2 - Power series, NBS Handbook, p. 298
   //      (2)  abs(z)>2 and x>1 - continued fraction, NBS Handbook, p. 298
   //      (3)  abs(z)>2 and 0<=x<=1 and abs(y)<6 - series, NBS Handbook, p. 299
-  //      (4)  abs(z)>2 and 0<=x<=1 and abs(y)>=6 - asymtotic expansion
+  //      (4)  abs(z)>2 and 0<=x<=1 and abs(y)>=6 - asymptotic expansion
   //  Error condition: abs(z^2) > 670 is a fatal overflow error
-  using Kokkos::Experimental::cos;
-  using Kokkos::Experimental::epsilon;
-  using Kokkos::Experimental::exp;
-  using Kokkos::Experimental::fabs;
-  using Kokkos::Experimental::infinity;
-  using Kokkos::Experimental::sin;
+  using Kokkos::cos;
+  using Kokkos::exp;
+  using Kokkos::fabs;
+  using Kokkos::sin;
+  using Kokkos::Experimental::epsilon_v;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::pi_v;
 
   using CmplxType = Kokkos::complex<RealType>;
 
-  constexpr auto inf = infinity<RealType>::value;
-  constexpr auto tol = epsilon<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
+  constexpr auto tol = epsilon_v<RealType>;
 
   const RealType fnorm = 1.12837916709551;
   const RealType gnorm = 0.564189583547756;
   const RealType eh    = 0.606530659712633;
   const RealType ef    = 0.778800783071405;
   // const RealType tol   = 1.0e-13;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
 
   CmplxType cans;
 
@@ -248,7 +225,7 @@ KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> erf(
         if (z.real() < 0.0) cans = -cans;
       }       // end (abs(yp) < 6.0)
       else {  //(abs(YP)>=6.0)
-        // Asymtotic expansion for 0<=xp<=1 and abs(yp)>=6
+        // Asymptotic expansion for 0<=xp<=1 and abs(yp)>=6
         CmplxType rcz   = 0.5 / cz;
         CmplxType accum = CmplxType(1.0, 0.0);
         CmplxType term  = accum;
@@ -291,27 +268,29 @@ KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> erfcx(
   //      (1)  abs(z)<=2 - Power series, NBS Handbook, p. 298
   //      (2)  abs(z)>2 and x>1 - continued fraction, NBS Handbook, p. 298
   //      (3)  abs(z)>2 and 0<=x<=1 and abs(y)<6 - series, NBS Handbook, p. 299
-  //      (4)  abs(z)>2 and 0<=x<=1 and abs(y)>=6 - asymtotic expansion
+  //      (4)  abs(z)>2 and 0<=x<=1 and abs(y)>=6 - asymptotic expansion
   // Error condition: abs(z^2) > 670 is a fatal overflow error when x<0
-  using Kokkos::Experimental::cos;
-  using Kokkos::Experimental::epsilon;
-  using Kokkos::Experimental::exp;
-  using Kokkos::Experimental::fabs;
-  using Kokkos::Experimental::infinity;
-  using Kokkos::Experimental::isinf;
-  using Kokkos::Experimental::sin;
+  using Kokkos::cos;
+  using Kokkos::exp;
+  using Kokkos::fabs;
+  using Kokkos::isinf;
+  using Kokkos::sin;
+  using Kokkos::Experimental::epsilon_v;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::inv_sqrtpi_v;
+  using Kokkos::numbers::pi_v;
 
   using CmplxType = Kokkos::complex<RealType>;
 
-  constexpr auto inf = infinity<RealType>::value;
-  constexpr auto tol = epsilon<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
+  constexpr auto tol = epsilon_v<RealType>;
 
   const RealType fnorm = 1.12837916709551;
-  constexpr auto gnorm = Kokkos::Experimental::inv_sqrtpi_v<RealType>;
+  constexpr auto gnorm = inv_sqrtpi_v<RealType>;
   const RealType eh    = 0.606530659712633;
   const RealType ef    = 0.778800783071405;
   // const RealType tol   = 1.0e-13;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
 
   CmplxType cans;
 
@@ -440,7 +419,7 @@ KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> erfcx(
           cans = cz * (1.0 + w) + rcz * CmplxType(s1, s2) / pi;
       }       // end (abs(yp) < 6.0)
       else {  //(abs(YP)>=6.0)
-        // Asymtotic expansion for 0<=xp<=1 and abs(yp)>=6
+        // Asymptotic expansion for 0<=xp<=1 and abs(yp)>=6
         CmplxType rcz   = 0.5 / cz;
         CmplxType accum = CmplxType(1.0, 0.0);
         CmplxType term  = accum;
@@ -486,11 +465,12 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_j0(const CmplxType& z,
   //                       argument regions
   //         bw_start  --- Starting point for backward recurrence
   // Output:  cbj0      --- J0(z)
-  using Kokkos::Experimental::fabs;
-  using Kokkos::Experimental::pow;
+  using Kokkos::fabs;
+  using Kokkos::pow;
+  using Kokkos::numbers::pi_v;
 
   CmplxType cbj0;
-  constexpr auto pi    = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi    = pi_v<RealType>;
   const RealType a[12] = {
       -0.703125e-01,           0.112152099609375e+00,   -0.5725014209747314e+00,
       0.6074042001273483e+01,  -0.1100171402692467e+03, 0.3038090510922384e+04,
@@ -574,15 +554,17 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y0(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cby0      --- Y0(z)
-  using Kokkos::Experimental::fabs;
-  using Kokkos::Experimental::infinity;
-  using Kokkos::Experimental::pow;
+  using Kokkos::fabs;
+  using Kokkos::pow;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::egamma_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType cby0, cbj0;
-  constexpr auto pi    = Kokkos::Experimental::pi_v<RealType>;
-  constexpr auto el    = Kokkos::Experimental::egamma_v<RealType>;
+  constexpr auto pi    = pi_v<RealType>;
+  constexpr auto el    = egamma_v<RealType>;
   const RealType a[12] = {
       -0.703125e-01,           0.112152099609375e+00,   -0.5725014209747314e+00,
       0.6074042001273483e+01,  -0.1100171402692467e+03, 0.3038090510922384e+04,
@@ -675,11 +657,12 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_j1(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cbj1      --- J1(z)
-  using Kokkos::Experimental::fabs;
-  using Kokkos::Experimental::pow;
+  using Kokkos::fabs;
+  using Kokkos::pow;
+  using Kokkos::numbers::pi_v;
 
   CmplxType cbj1;
-  constexpr auto pi     = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi     = pi_v<RealType>;
   const RealType a1[12] = {0.1171875e+00,          -0.144195556640625e+00,
                            0.6765925884246826e+00, -0.6883914268109947e+01,
                            0.1215978918765359e+03, -0.3302272294480852e+04,
@@ -767,15 +750,17 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y1(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cby1      --- Y1(z)
-  using Kokkos::Experimental::fabs;
-  using Kokkos::Experimental::infinity;
-  using Kokkos::Experimental::pow;
+  using Kokkos::fabs;
+  using Kokkos::pow;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::egamma_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType cby1, cbj0, cbj1, cby0;
-  constexpr auto pi     = Kokkos::Experimental::pi_v<RealType>;
-  constexpr auto el     = Kokkos::Experimental::egamma_v<RealType>;
+  constexpr auto pi     = pi_v<RealType>;
+  constexpr auto el     = egamma_v<RealType>;
   const RealType a1[12] = {0.1171875e+00,          -0.144195556640625e+00,
                            0.6765925884246826e+00, -0.6883914268109947e+01,
                            0.1215978918765359e+03, -0.3302272294480852e+04,
@@ -861,67 +846,52 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y1(const CmplxType& z,
 //! for a complex argument
 template <class CmplxType, class RealType, class IntType>
 KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_i0(const CmplxType& z,
-                                               const RealType& joint_val = 25,
-                                               const IntType& bw_start   = 70) {
+                                               const RealType& joint_val = 18,
+                                               const IntType& n_terms    = 50) {
   // This function is converted and modified from the corresponding Fortran
-  // programs CIKNB and CIK01 in S. Zhang & J. Jin "Computation of Special
+  // programs CIK01 in S. Zhang & J. Jin "Computation of Special
   // Functions" (Wiley, 1996).
   //    Input :  z         --- Complex argument
   //             joint_val --- Joint point of abs(z) separating small and large
   //                           argument regions
-  //             bw_start  --- Starting point for backward recurrence
+  //             n_terms   --- Numbers of terms used in the power series
   //    Output:  cbi0      --- I0(z)
-  CmplxType cbi0;
-  constexpr auto pi    = Kokkos::Experimental::pi_v<RealType>;
-  const RealType a[12] = {0.125,
-                          7.03125e-2,
-                          7.32421875e-2,
-                          1.1215209960938e-1,
-                          2.2710800170898e-1,
-                          5.7250142097473e-1,
-                          1.7277275025845e0,
-                          6.0740420012735e0,
-                          2.4380529699556e1,
-                          1.1001714026925e2,
-                          5.5133589612202e2,
-                          3.0380905109224e3};
 
+  CmplxType cbi0(1.0, 0.0);
   RealType a0  = Kokkos::abs(z);
   CmplxType z1 = z;
 
-  if (a0 < 1e-100) {  // Treat z=0 as a special case
-    cbi0 = CmplxType(1.0, 0.0);
-  } else {
+  if (a0 > 1e-100) {
     if (z.real() < 0.0) z1 = -z;
-    if (a0 <= joint_val) {  // Using backward recurrence for |z|<=joint_val
-                            // (default:25)
-      CmplxType cbs = CmplxType(0.0, 0.0);
-      // CmplxType csk0 = CmplxType(0.0,0.0);
-      CmplxType cf0 = CmplxType(0.0, 0.0);
-      CmplxType cf1 = CmplxType(1e-100, 0.0);
-      CmplxType cf, cs0;
-      for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
-                                             // 70)
-        cf = 2.0 * (k + 1.0) * cf1 / z1 + cf0;
-        if (k == 0) cbi0 = cf;
-        // if ((k == 2*(k/2)) && (k != 0)) {
-        //  csk0 = csk0+4.0*cf/static_cast<RealType>(k);
-        //}
-        cbs = cbs + 2.0 * cf;
-        cf0 = cf1;
-        cf1 = cf;
+    if (a0 <= joint_val) {
+      // Using power series definition for |z|<=joint_val (default:18)
+      CmplxType cr = CmplxType(1.0e+00, 0.0e+00);
+      CmplxType z2 = z * z;
+      for (int k = 1; k < n_terms; ++k) {
+        cr = RealType(.25) * cr * z2 / CmplxType(k * k);
+        cbi0 += cr;
+        if (Kokkos::abs(cr / cbi0) < RealType(1.e-15)) continue;
       }
-      cs0  = Kokkos::exp(z1) / (cbs - cf);
-      cbi0 = cbi0 * cs0;
-    } else {  // Using asymptotic expansion (6.2.1) for |z|>joint_val
-              // (default:25)
-      CmplxType ca = Kokkos::exp(z1) / Kokkos::sqrt(2.0 * pi * z1);
-      cbi0         = CmplxType(1.0, 0.0);
-      CmplxType zr = 1.0 / z1;
+    } else {
+      // Using asymptotic expansion (6.2.1) for |z|>joint_val (default:18)
+      const RealType a[12] = {0.125,
+                              7.03125e-2,
+                              7.32421875e-2,
+                              1.1215209960938e-1,
+                              2.2710800170898e-1,
+                              5.7250142097473e-1,
+                              1.7277275025845e0,
+                              6.0740420012735e0,
+                              2.4380529699556e1,
+                              1.1001714026925e2,
+                              5.5133589612202e2,
+                              3.0380905109224e3};
+
       for (int k = 1; k <= 12; k++) {
-        cbi0 = cbi0 + a[k - 1] * Kokkos::pow(zr, 1.0 * k);
+        cbi0 += a[k - 1] * Kokkos::pow(z1, -k);
       }
-      cbi0 = ca * cbi0;
+      cbi0 *= Kokkos::exp(z1) /
+              Kokkos::sqrt(2.0 * Kokkos::numbers::pi_v<RealType> * z1);
     }
   }
   return cbi0;
@@ -943,14 +913,16 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_k0(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cbk0      --- K0(z)
-  using Kokkos::Experimental::infinity;
-  using Kokkos::Experimental::pow;
+  using Kokkos::pow;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::egamma_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType cbk0, cbi0;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
-  constexpr auto el = Kokkos::Experimental::egamma_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
+  constexpr auto el = egamma_v<RealType>;
 
   RealType a0  = Kokkos::abs(z);
   CmplxType ci = CmplxType(0.0, 1.0);
@@ -1016,8 +988,10 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_i1(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cbi1      --- I1(z)
+  using Kokkos::numbers::pi_v;
+
   CmplxType cbi1;
-  constexpr auto pi    = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi    = pi_v<RealType>;
   const RealType b[12] = {-0.375,
                           -1.171875e-1,
                           -1.025390625e-1,
@@ -1089,14 +1063,16 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_k1(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cbk1      --- K1(z)
-  using Kokkos::Experimental::infinity;
-  using Kokkos::Experimental::pow;
+  using Kokkos::pow;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::egamma_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType cbk0, cbi0, cbk1, cbi1;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
-  constexpr auto el = Kokkos::Experimental::egamma_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
+  constexpr auto el = egamma_v<RealType>;
 
   RealType a0  = Kokkos::abs(z);
   CmplxType ci = CmplxType(0.0, 1.0);
@@ -1159,12 +1135,13 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h10(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType ch10, cbk0, cbj0, cby0;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
   CmplxType ci      = CmplxType(0.0, 1.0);
 
   if ((z.real() == 0.0) && (z.imag() == 0.0)) {
@@ -1189,12 +1166,13 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h11(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType ch11, cbk1, cbj1, cby1;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
   CmplxType ci      = CmplxType(0.0, 1.0);
 
   if ((z.real() == 0.0) && (z.imag() == 0.0)) {
@@ -1219,12 +1197,13 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h20(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType ch20, cbk0, cbj0, cby0;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
   CmplxType ci      = CmplxType(0.0, 1.0);
 
   if ((z.real() == 0.0) && (z.imag() == 0.0)) {
@@ -1249,12 +1228,13 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h21(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity;
+  using Kokkos::Experimental::infinity_v;
+  using Kokkos::numbers::pi_v;
 
-  constexpr auto inf = infinity<RealType>::value;
+  constexpr auto inf = infinity_v<RealType>;
 
   CmplxType ch21, cbk1, cbj1, cby1;
-  constexpr auto pi = Kokkos::Experimental::pi_v<RealType>;
+  constexpr auto pi = pi_v<RealType>;
   CmplxType ci      = CmplxType(0.0, 1.0);
 
   if ((z.real() == 0.0) && (z.imag() == 0.0)) {
@@ -1274,4 +1254,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h21(const CmplxType& z) {
 }  // namespace Experimental
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_MATHSPECFUNCTIONS
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_MATHSPECFUNCTIONS
+#endif
 #endif

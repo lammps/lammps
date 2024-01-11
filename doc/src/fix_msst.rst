@@ -6,7 +6,7 @@ fix msst command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID msst dir shockvel keyword value ...
 

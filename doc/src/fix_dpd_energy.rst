@@ -9,7 +9,7 @@ Accelerator Variants: *dpd/energy/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID dpd/energy
 

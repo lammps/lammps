@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -59,7 +59,7 @@ class BondHarmonicIntel : public BondHarmonic {
     fc_packed1 *fc;
 
     ForceConst() : fc(nullptr), _nbondtypes(0) {}
-    ~ForceConst() { set_ntypes(0, nullptr); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);
 

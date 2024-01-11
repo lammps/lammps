@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,8 +37,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      COMM_MODE,COMM_CUTOFF,COMM_VEL,NO_PAIR,
      EXTRA_BOND_PER_ATOM,EXTRA_ANGLE_PER_ATOM,EXTRA_DIHEDRAL_PER_ATOM,
      EXTRA_IMPROPER_PER_ATOM,EXTRA_SPECIAL_PER_ATOM,ATOM_MAXSPECIAL,
-     NELLIPSOIDS,NLINES,NTRIS,NBODIES,
-     ATIME,ATIMESTEP};
+     NELLIPSOIDS,NLINES,NTRIS,NBODIES,ATIME,ATIMESTEP,LABELMAP};
 
 #define LB_FACTOR 1.1
 

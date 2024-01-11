@@ -11,6 +11,7 @@ Available topics are:
 
 - `Reading and parsing of text and text files`_
 - `Requesting and accessing neighbor lists`_
+- `Choosing between a custom atom style, fix property/atom, and fix STORE/ATOM`_
 - `Fix contributions to instantaneous energy, virial, and cumulative energy`_
 - `KSpace PPPM FFT grids`_
 
@@ -73,6 +74,8 @@ when converting "12.5", while the ValueTokenizer class will throw an
 :cpp:func:`ValueTokenizer::next_int()
 <LAMMPS_NS::ValueTokenizer::next_int>` is called on the same string.
 
+.. _request-neighbor-list:
+
 Requesting and accessing neighbor lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -102,10 +105,10 @@ build is then :doc:`processed in parallel <Developer_par_neigh>`.
 The most commonly required neighbor list is a so-called "half" neighbor
 list, where each pair of atoms is listed only once (except when the
 :doc:`newton command setting <newton>` for pair is off; in that case
-pairs straddling sub-domains or periodic boundaries will be listed twice).
+pairs straddling subdomains or periodic boundaries will be listed twice).
 Thus these are the default settings when a neighbor list request is created in:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void Pair::init_style()
    {
@@ -129,7 +132,7 @@ neighbor list request to the specific needs of a style an additional
 request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair style,
 for example, needs a "full" neighbor list:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void PairTersoff::init_style()
    {
@@ -141,7 +144,7 @@ When a pair style supports r-RESPA time integration with different cutoff region
 the request flag may depend on the corresponding r-RESPA settings. Here an example
 from pair style lj/cut:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void PairLJCut::init_style()
    {
@@ -160,7 +163,7 @@ Granular pair styles need neighbor lists based on particle sizes and not cutoff
 and also may require to have the list of previous neighbors available ("history").
 For example with:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY);
    else neighbor->add_request(this, NeighConst::REQ_SIZE);
@@ -170,7 +173,7 @@ settings each request can set an id which is then used in the corresponding
 ``init_list()`` function to assign it to the suitable pointer variable. This is
 done for example by the :doc:`pair style meam <pair_meam>`:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void PairMEAM::init_style()
    {
@@ -189,7 +192,7 @@ just once) and this can also be indicated by a flag.  As an example here
 is the request from the ``FixPeriNeigh`` class which is created
 internally by :doc:`Peridynamics pair styles <pair_peri>`:
 
-.. code-block:: C++
+.. code-block:: c++
 
    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
@@ -198,7 +201,7 @@ than what is usually inferred from the pair style settings (largest cutoff of
 all pair styles plus neighbor list skin).  The following is used in the
 :doc:`compute rdf <compute_rdf>` command implementation:
 
-.. code-block:: C++
+.. code-block:: c++
 
   if (cutflag)
     neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff(mycutneigh);
@@ -212,9 +215,33 @@ for printing the neighbor list summary the name of the requesting command
 should be set.  Below is the request from the :doc:`delete atoms <delete_atoms>`
 command:
 
-.. code-block:: C++
+.. code-block:: c++
 
    neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
+
+Choosing between a custom atom style, fix property/atom, and fix STORE/ATOM
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are multiple ways to manage per-atom data within LAMMPS.  Often
+the per-atom storage is only used locally and managed by the class that
+uses it.  If the data has to persist between multiple time steps and
+migrate with atoms when they move from sub-domain to sub-domain or
+across periodic boundaries, then using a custom atom style, or :doc:`fix
+property/atom <fix_property_atom>`, or the internal fix STORE/ATOM are
+possible options.
+
+- Using the atom style is usually the most programming effort and mostly
+  needed when the per-atom data is an integral part of the model like a
+  per-atom charge or diameter and thus should be part of the Atoms
+  section of a :doc:`data file <read_data>`.
+
+- Fix property/atom is useful if the data is optional or should be
+  entered by the user, or accessed as a (named) custom property. In this
+  case the fix should be entered as part of the input (and not
+  internally) which allows to enter and store its content with data files.
+
+- Fix STORE/ATOM should be used when the data should be accessed internally
+  only and thus the fix can be created internally.
 
 Fix contributions to instantaneous energy, virial, and cumulative energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -361,7 +388,7 @@ allocated as a 1d vector or 3d array.  Either way, the ordering of
 values within contiguous memory x fastest, then y, z slowest.
 
 For the ``3d decomposition`` of the grid, the global grid is
-partitioned into bricks that correspond to the sub-domains of the
+partitioned into bricks that correspond to the subdomains of the
 simulation box that each processor owns.  Often, this is a regular 3d
 array (Px by Py by Pz) of bricks, where P = number of processors =
 Px * Py * Pz.  More generally it can be a tiled decomposition, where

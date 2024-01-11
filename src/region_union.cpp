@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,9 +28,9 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), 
 {
   nregion = 0;
 
-  if (narg < 5) error->all(FLERR, "Illegal region command");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "region union", error);
   int n = utils::inumeric(FLERR, arg[2], false, lmp);
-  if (n < 2) error->all(FLERR, "Illegal region command");
+  if (n < 2) error->all(FLERR, "Illegal region union n: {}", n);
   options(narg - (n + 3), &arg[n + 3]);
 
   // build list of region indices to union
@@ -174,7 +174,7 @@ int RegUnion::surface_interior(double *x, double cutoff)
         n++;
       }
     }
-    // increment by cmax instead of tmax to insure
+    // increment by cmax instead of tmax to ensure
     // possible wall IDs for sub-regions are non overlapping
     walloffset += region->cmax;
   }

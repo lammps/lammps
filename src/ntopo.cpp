@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,6 +23,7 @@
 using namespace LAMMPS_NS;
 
 #define LB_FACTOR 1.5
+#define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,44 +53,52 @@ NTopo::~NTopo()
 
 void NTopo::allocate_bond()
 {
-  if (nprocs == 1) maxbond = atom->nbonds;
-  else maxbond = static_cast<int> (LB_FACTOR * atom->nbonds / nprocs);
-  memory->create(bondlist,maxbond,3,"neigh_topo:bondlist");
+  if (nprocs == 1)
+    maxbond = atom->nbonds;
+  else
+    maxbond = static_cast<int>(LB_FACTOR * atom->nbonds / nprocs);
+  memory->create(bondlist, maxbond, 3, "neigh_topo:bondlist");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void NTopo::allocate_angle()
 {
-  if (nprocs == 1) maxangle = atom->nangles;
-  else maxangle = static_cast<int> (LB_FACTOR * atom->nangles / nprocs);
-  memory->create(anglelist,maxangle,4,"neigh_topo:anglelist");
+  if (nprocs == 1)
+    maxangle = atom->nangles;
+  else
+    maxangle = static_cast<int>(LB_FACTOR * atom->nangles / nprocs);
+  memory->create(anglelist, maxangle, 4, "neigh_topo:anglelist");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void NTopo::allocate_dihedral()
 {
-  if (nprocs == 1) maxdihedral = atom->ndihedrals;
-  else maxdihedral = static_cast<int> (LB_FACTOR * atom->ndihedrals / nprocs);
-  memory->create(dihedrallist,maxdihedral,5,"neigh_topo:dihedrallist");
+  if (nprocs == 1)
+    maxdihedral = atom->ndihedrals;
+  else
+    maxdihedral = static_cast<int>(LB_FACTOR * atom->ndihedrals / nprocs);
+  memory->create(dihedrallist, maxdihedral, 5, "neigh_topo:dihedrallist");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void NTopo::allocate_improper()
 {
-  if (nprocs == 1) maximproper = atom->nimpropers;
-  else maximproper = static_cast<int> (LB_FACTOR * atom->nimpropers / nprocs);
-  memory->create(improperlist,maximproper,5,"neigh_topo:improperlist");
+  if (nprocs == 1)
+    maximproper = atom->nimpropers;
+  else
+    maximproper = static_cast<int>(LB_FACTOR * atom->nimpropers / nprocs);
+  memory->create(improperlist, maximproper, 5, "neigh_topo:improperlist");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void NTopo::bond_check()
 {
-  int i,j;
-  double dx,dy,dz,dxstart,dystart,dzstart;
+  int i, j;
+  double dx, dy, dz, dxstart, dystart, dzstart;
 
   double **x = atom->x;
   int flag = 0;
@@ -101,21 +109,21 @@ void NTopo::bond_check()
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
 
   int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all(FLERR,"Bond extent > half of periodic box length");
+  MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_SUM, world);
+  if (flag_all) error->all(FLERR, "Bond extent > half of periodic box length");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void NTopo::angle_check()
 {
-  int i,j,k;
-  double dx,dy,dz,dxstart,dystart,dzstart;
+  int i, j, k;
+  double dx, dy, dz, dxstart, dystart, dzstart;
 
   double **x = atom->x;
   int flag = 0;
@@ -130,31 +138,31 @@ void NTopo::angle_check()
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[i][0] - x[k][0];
     dystart = dy = x[i][1] - x[k][1];
     dzstart = dz = x[i][2] - x[k][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[j][0] - x[k][0];
     dystart = dy = x[j][1] - x[k][1];
     dzstart = dz = x[j][2] - x[k][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
 
   int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all(FLERR,"Angle extent > half of periodic box length");
+  MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_SUM, world);
+  if (flag_all) error->all(FLERR, "Angle extent > half of periodic box length");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void NTopo::dihedral_check(int nlist, int **list)
 {
-  int i,j,k,l;
-  double dx,dy,dz,dxstart,dystart,dzstart;
+  int i, j, k, l;
+  double dx, dy, dz, dxstart, dystart, dzstart;
 
   double **x = atom->x;
   int flag = 0;
@@ -170,39 +178,53 @@ void NTopo::dihedral_check(int nlist, int **list)
     dxstart = dx = x[i][0] - x[j][0];
     dystart = dy = x[i][1] - x[j][1];
     dzstart = dz = x[i][2] - x[j][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[i][0] - x[k][0];
     dystart = dy = x[i][1] - x[k][1];
     dzstart = dz = x[i][2] - x[k][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[i][0] - x[l][0];
     dystart = dy = x[i][1] - x[l][1];
     dzstart = dz = x[i][2] - x[l][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[j][0] - x[k][0];
     dystart = dy = x[j][1] - x[k][1];
     dzstart = dz = x[j][2] - x[k][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[j][0] - x[l][0];
     dystart = dy = x[j][1] - x[l][1];
     dzstart = dz = x[j][2] - x[l][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
     dxstart = dx = x[k][0] - x[l][0];
     dystart = dy = x[k][1] - x[l][1];
     dzstart = dz = x[k][2] - x[l][2];
-    domain->minimum_image(dx,dy,dz);
+    domain->minimum_image(dx, dy, dz);
     if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
   }
 
   int flag_all;
-  MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all)
-    error->all(FLERR,"Dihedral/improper extent > half of periodic box length");
+  MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_SUM, world);
+  if (flag_all) error->all(FLERR, "Dihedral/improper extent > half of periodic box length");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NTopo::add_temporary_bond(int i1, int i2, int btype)
+{
+  if (nbondlist == maxbond) {
+    maxbond += DELTA;
+    memory->grow(bondlist, maxbond, 3, "neigh_topo:bondlist");
+  }
+
+  bondlist[nbondlist][0] = i1;
+  bondlist[nbondlist][1] = i2;
+  bondlist[nbondlist][2] = btype;
+  nbondlist++;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -210,10 +232,9 @@ void NTopo::dihedral_check(int nlist, int **list)
 double NTopo::memory_usage()
 {
   double bytes = 0;
-  bytes += (double)3*maxbond * sizeof(int);
-  bytes += (double)4*maxangle * sizeof(int);
-  bytes += (double)5*maxdihedral * sizeof(int);
-  bytes += (double)5*maximproper * sizeof(int);
+  bytes += (double) 3 * maxbond * sizeof(int);
+  bytes += (double) 4 * maxangle * sizeof(int);
+  bytes += (double) 5 * maxdihedral * sizeof(int);
+  bytes += (double) 5 * maximproper * sizeof(int);
   return bytes;
 }
-

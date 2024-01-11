@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,29 +27,28 @@ namespace LAMMPS_NS {
 class Balance : public Command {
  public:
   class RCB *rcb;
-  class FixStore *fixstore;    // per-atom weights stored in FixStore
-  int wtflag;                  // 1 if particle weighting is used
-  int varflag;                 // 1 if weight style var(iable) is used
-  int outflag;                 // 1 for output of balance results to file
+  class FixStoreAtom *fixstore;    // per-atom weights stored in FixStorePeratom
+  int wtflag;                      // 1 if particle weighting is used
+  int varflag;                     // 1 if weight style var(iable) is used
+  int sortflag;                    // 1 if sorting of comm messages is done
+  int outflag;                     // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
   ~Balance() override;
   void command(int, char **) override;
-  void options(int, int, char **);
+  void options(int, int, char **, int);
   void weight_storage(char *);
   void init_imbalance(int);
   void set_weights();
   double imbalance_factor(double &);
-  void shift_setup(char *, int, double);
+  void shift_setup(const char *, int, double);
   int shift();
-  int *bisection(int sortflag = 0);
+  int *bisection();
   void dumpout(bigint);
 
   static constexpr int BSTR_SIZE = 3;
 
  private:
-  int me, nprocs;
-
   double thresh;                                      // threshold to perform LB
   int style;                                          // style of LB
   int xflag, yflag, zflag;                            // xyz LB flags
@@ -58,7 +57,7 @@ class Balance : public Command {
 
   int nitermax;    // params for shift LB
   double stopthresh;
-  char bstr[BSTR_SIZE + 1];
+  std::string bstr;
 
   int shift_allocate;       // 1 if SHIFT vectors have been allocated
   int ndim;                 // length of balance string bstr
@@ -83,15 +82,13 @@ class Balance : public Command {
   int firststep;
 
   double imbalance_splits();
-  void shift_setup_static(char *);
+  void shift_setup_static(const char *);
   void tally(int, int, double *);
   int adjust(int, double *);
 #ifdef BALANCE_DEBUG
   void debug_shift_output(int, int, int, double *);
 #endif
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

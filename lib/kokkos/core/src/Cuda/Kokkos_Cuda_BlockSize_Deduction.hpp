@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_CUDA_INTERNAL_HPP
 #define KOKKOS_CUDA_INTERNAL_HPP
@@ -53,13 +25,67 @@
 namespace Kokkos {
 namespace Impl {
 
+inline int cuda_warp_per_sm_allocation_granularity(
+    cudaDeviceProp const& properties) {
+  // Allocation granularity of warps in each sm
+  switch (properties.major) {
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 9: return 4;
+    case 6: return (properties.minor == 0 ? 2 : 4);
+    default:
+      throw_runtime_exception(
+          "Unknown device in cuda warp per sm allocation granularity");
+      return 0;
+  }
+}
+
+inline int cuda_max_warps_per_sm_registers(
+    cudaDeviceProp const& properties, cudaFuncAttributes const& attributes) {
+  // Maximum number of warps per sm as a function of register counts,
+  // subject to the constraint that warps are allocated with a fixed granularity
+  int const max_regs_per_block = properties.regsPerBlock;
+  int const regs_per_warp      = attributes.numRegs * properties.warpSize;
+  int const warp_granularity =
+      cuda_warp_per_sm_allocation_granularity(properties);
+  // The granularity of register allocation is chunks of 256 registers per warp,
+  // which implies a need to over-allocate, so we round up
+  int const allocated_regs_per_warp = 256 * ((regs_per_warp + 256 - 1) / 256);
+
+  // The maximum number of warps per SM is constrained from above by register
+  // allocation. To satisfy the constraint that warps per SM is allocated at a
+  // finite granularity, we need to round down.
+  int const max_warps_per_sm =
+      warp_granularity *
+      (max_regs_per_block / (allocated_regs_per_warp * warp_granularity));
+
+  return max_warps_per_sm;
+}
+
 inline int cuda_max_active_blocks_per_sm(cudaDeviceProp const& properties,
                                          cudaFuncAttributes const& attributes,
                                          int block_size, size_t dynamic_shmem) {
-  // Limits due do registers/SM
+  // Limits due to registers/SM
   int const regs_per_sm     = properties.regsPerMultiprocessor;
   int const regs_per_thread = attributes.numRegs;
-  int const max_blocks_regs = regs_per_sm / (regs_per_thread * block_size);
+  // The granularity of register allocation is chunks of 256 registers per warp
+  // -> 8 registers per thread
+  int const allocated_regs_per_thread = 8 * ((regs_per_thread + 8 - 1) / 8);
+  int max_blocks_regs = regs_per_sm / (allocated_regs_per_thread * block_size);
+
+  // Compute the maximum number of warps as a function of the number of
+  // registers
+  int const max_warps_per_sm_registers =
+      cuda_max_warps_per_sm_registers(properties, attributes);
+
+  // Correct the number of blocks to respect the maximum number of warps per
+  // SM, which is constrained to be a multiple of the warp allocation
+  // granularity defined in `cuda_warp_per_sm_allocation_granularity`.
+  while ((max_blocks_regs * block_size / properties.warpSize) >
+         max_warps_per_sm_registers)
+    max_blocks_regs--;
 
   // Limits due to shared memory/SM
   size_t const shmem_per_sm            = properties.sharedMemPerMultiprocessor;
@@ -157,9 +183,7 @@ int cuda_get_max_block_size(const CudaInternal* cuda_instance,
                             const FunctorType& f, const size_t vector_length,
                             const size_t shmem_block,
                             const size_t shmem_thread) {
-  (void)cuda_instance;
-
-  auto const& prop = Kokkos::Cuda().cuda_device_prop();
+  auto const& prop = cuda_instance->m_deviceProp;
 
   auto const block_size_to_dynamic_shmem = [&f, vector_length, shmem_block,
                                             shmem_thread](int block_size) {
@@ -183,9 +207,7 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
                             const FunctorType& f, const size_t vector_length,
                             const size_t shmem_block,
                             const size_t shmem_thread) {
-  (void)cuda_instance;
-
-  auto const& prop = Kokkos::Cuda().cuda_device_prop();
+  auto const& prop = cuda_instance->m_deviceProp;
 
   auto const block_size_to_dynamic_shmem = [&f, vector_length, shmem_block,
                                             shmem_thread](int block_size) {
@@ -203,40 +225,16 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
                                 LaunchBounds{});
 }
 
-// Assuming cudaFuncSetCacheConfig(MyKernel, cudaFuncCachePreferL1)
-// NOTE these number can be obtained several ways:
-// * One option is to download the CUDA Occupancy Calculator spreadsheet, select
-// "Compute Capability" first and check what is the smallest "Shared Memory
-// Size Config" that is available.  The "Shared Memory Per Multiprocessor" in
-// bytes is then to be found below in the summary.
-// * Another option would be to look for the information in the "Tuning
-// Guide(s)" of the CUDA Toolkit Documentation for each GPU architecture, in
-// the "Shared Memory" section (more tedious)
-inline size_t get_shmem_per_sm_prefer_l1(cudaDeviceProp const& properties) {
-  int const compute_capability = properties.major * 10 + properties.minor;
-  return [compute_capability]() {
-    switch (compute_capability) {
-      case 30:
-      case 32:
-      case 35: return 16;
-      case 37: return 80;
-      case 50:
-      case 53:
-      case 60:
-      case 62: return 64;
-      case 52:
-      case 61: return 96;
-      case 70:
-      case 80:
-      case 86: return 8;
-      case 75: return 32;
-      default:
-        Kokkos::Impl::throw_runtime_exception(
-            "Unknown device in cuda block size deduction");
-    }
-    return 0;
-  }() * 1024;
+// Thin version of cuda_get_opt_block_size for cases where there is no shared
+// memory
+template <class LaunchBounds>
+int cuda_get_opt_block_size_no_shmem(const cudaDeviceProp& prop,
+                                     const cudaFuncAttributes& attr,
+                                     LaunchBounds) {
+  return cuda_deduce_block_size(
+      false, prop, attr, [](int /*block_size*/) { return 0; }, LaunchBounds{});
 }
+
 }  // namespace Impl
 }  // namespace Kokkos
 

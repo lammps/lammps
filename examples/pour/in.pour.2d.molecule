@@ -34,7 +34,7 @@ fix		ywalls all wall/gran hertz/history 4000.0 NULL 100.0 NULL 0 1 &
 molecule        object molecule.vshape
 fix             3 all rigid/small molecule mol object
 
-# insure region size + molecule size does not overlap wall
+# ensure region size + molecule size does not overlap wall
 
 region          slab block 3.0 97.0 30 34.5 -0.5 0.5 units box
 fix             ins all pour 500 0 4767548 vol 0.8 10 &

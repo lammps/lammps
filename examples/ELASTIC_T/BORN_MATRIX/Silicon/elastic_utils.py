@@ -1,5 +1,5 @@
 import numpy as np
-from lammps import lammps, LAMMPS_INT, LMP_STYLE_GLOBAL, LMP_VAR_EQUAL, LMP_VAR_ATOM
+from lammps import lammps, LMP_VAR_EQUAL
 
 # method for rotating elastic constants
 

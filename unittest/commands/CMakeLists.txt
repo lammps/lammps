@@ -1,3 +1,4 @@
+# -*- CMake -*- file for testing LAMMPS commands
 
 add_executable(test_simple_commands test_simple_commands.cpp)
 
@@ -29,6 +30,15 @@ add_executable(test_delete_atoms test_delete_atoms.cpp)
 target_link_libraries(test_delete_atoms PRIVATE lammps GTest::GMock)
 add_test(NAME DeleteAtoms COMMAND test_delete_atoms)
 
+add_executable(test_set_property test_set_property.cpp)
+target_link_libraries(test_set_property PRIVATE lammps GTest::GMock)
+add_test(NAME SetProperty COMMAND test_set_property)
+
+add_executable(test_labelmap test_labelmap.cpp)
+target_compile_definitions(test_labelmap PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_labelmap PRIVATE lammps GTest::GMock)
+add_test(NAME Labelmap COMMAND test_labelmap)
+
 add_executable(test_variables test_variables.cpp)
 target_link_libraries(test_variables PRIVATE lammps GTest::GMock)
 add_test(NAME Variables COMMAND test_variables)
@@ -44,15 +54,22 @@ endif()
 target_link_libraries(test_kim_commands PRIVATE lammps GTest::GMock)
 add_test(NAME KimCommands COMMAND test_kim_commands)
 
-add_executable(test_reset_ids test_reset_ids.cpp)
-target_compile_definitions(test_reset_ids PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(test_reset_ids PRIVATE lammps GTest::GMock)
-add_test(NAME ResetIDs COMMAND test_reset_ids)
+add_executable(test_reset_atoms test_reset_atoms.cpp)
+target_compile_definitions(test_reset_atoms PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_reset_atoms PRIVATE lammps GTest::GMock)
+add_test(NAME ResetAtoms COMMAND test_reset_atoms)
 
-add_executable(test_compute_global test_compute_global.cpp)
-target_compile_definitions(test_compute_global PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(test_compute_global PRIVATE lammps GTest::GMock)
-add_test(NAME ComputeGlobal COMMAND test_compute_global)
+if(PKG_MOLECULE)
+  add_executable(test_compute_global test_compute_global.cpp)
+  target_compile_definitions(test_compute_global PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_compute_global PRIVATE lammps GTest::GMock)
+  add_test(NAME ComputeGlobal COMMAND test_compute_global)
+
+  add_executable(test_compute_chunk test_compute_chunk.cpp)
+  target_compile_definitions(test_compute_chunk PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_compute_chunk PRIVATE lammps GTest::GMock)
+  add_test(NAME ComputeChunk COMMAND test_compute_chunk)
+endif()
 
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)

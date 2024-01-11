@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,9 +24,10 @@ PairStyle(pace/kk/host,PairPACEKokkos<LMPHostType>);
 #define LMP_PAIR_PACE_KOKKOS_H
 
 #include "pair_pace.h"
-#include "ace_radial.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
+
+class SplineInterpolator;
 
 namespace LAMMPS_NS {
 
@@ -35,7 +36,6 @@ class PairPACEKokkos : public PairPACE {
  public:
   struct TagPairPACEComputeNeigh{};
   struct TagPairPACEComputeRadial{};
-  struct TagPairPACEComputeYlm{};
   struct TagPairPACEComputeAi{};
   struct TagPairPACEConjugateAi{};
   struct TagPairPACEComputeRho{};
@@ -66,9 +66,6 @@ class PairPACEKokkos : public PairPACE {
   void operator() (TagPairPACEComputeRadial,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeRadial>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairPACEComputeYlm,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeYlm>::member_type& team) const;
-
-  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeAi,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeAi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
@@ -95,7 +92,7 @@ class PairPACEKokkos : public PairPACE {
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
  protected:
-  int inum, maxneigh, chunk_size, chunk_offset, idx_rho_max;
+  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, idx_sph_max;
   int host_flag;
 
   int eflag, vflag;
@@ -120,6 +117,7 @@ class PairPACEKokkos : public PairPACE {
   tdual_fparams k_cutsq, k_scale;
   typedef Kokkos::View<F_FLOAT**, DeviceType> t_fparams;
   t_fparams d_cutsq, d_scale;
+  t_fparams d_cut_in, d_dcut_in; // inner cutoff
 
   typename AT::t_int_1d d_map;
 
@@ -156,12 +154,6 @@ class PairPACEKokkos : public PairPACE {
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
 
   KOKKOS_INLINE_FUNCTION
-  void compute_barplm(int, int, double, int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void compute_ylm(int, int, double, double, double, int) const;
-
-  KOKKOS_INLINE_FUNCTION
   void cutoff_func_poly(const double, const double, const double, double &, double &) const;
 
   KOKKOS_INLINE_FUNCTION
@@ -192,14 +184,18 @@ class PairPACEKokkos : public PairPACE {
 
   typedef Kokkos::View<int*, DeviceType> t_ace_1i;
   typedef Kokkos::View<int**, DeviceType> t_ace_2i;
+  typedef Kokkos::View<int**, Kokkos::LayoutRight, DeviceType> t_ace_2i_lr;
   typedef Kokkos::View<int***, DeviceType> t_ace_3i;
+  typedef Kokkos::View<int***, Kokkos::LayoutRight, DeviceType> t_ace_3i_lr;
   typedef Kokkos::View<int****, DeviceType> t_ace_4i;
   typedef Kokkos::View<double*, DeviceType> t_ace_1d;
   typedef Kokkos::View<double**, DeviceType> t_ace_2d;
+  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType> t_ace_2d_lr;
   typedef Kokkos::View<double*[3], DeviceType> t_ace_2d3;
   typedef Kokkos::View<double***, DeviceType> t_ace_3d;
   typedef Kokkos::View<double**[3], DeviceType> t_ace_3d3;
   typedef Kokkos::View<double**[4], DeviceType> t_ace_3d4;
+  typedef Kokkos::View<double**[4], Kokkos::LayoutRight, DeviceType> t_ace_3d4_lr;
   typedef Kokkos::View<double****, DeviceType> t_ace_4d;
   typedef Kokkos::View<complex*, DeviceType> t_ace_1c;
   typedef Kokkos::View<complex**, DeviceType> t_ace_2c;
@@ -207,6 +203,8 @@ class PairPACEKokkos : public PairPACE {
   typedef Kokkos::View<complex**[3], DeviceType> t_ace_3c3;
   typedef Kokkos::View<complex****, DeviceType> t_ace_4c;
   typedef Kokkos::View<complex***[3], DeviceType> t_ace_4c3;
+
+  typedef typename Kokkos::View<double*, DeviceType>::HostMirror th_ace_1d;
 
   t_ace_3d A_rank1;
   t_ace_4c A;
@@ -221,12 +219,16 @@ class PairPACEKokkos : public PairPACE {
   t_ace_2d rhos;
   t_ace_2d dF_drho;
 
+  t_ace_3c dB_flatten;
+
   // hard-core repulsion
   t_ace_1d rho_core;
-  t_ace_3c dB_flatten;
   t_ace_2d cr;
   t_ace_2d dcr;
   t_ace_1d dF_drho_core;
+  t_ace_1d dF_dfcut;
+  t_ace_1d d_corerep;
+  th_ace_1d h_corerep;
 
   // radial functions
   t_ace_4d fr;
@@ -240,22 +242,12 @@ class PairPACEKokkos : public PairPACE {
 
   void pre_compute_harmonics(int);
 
-  KOKKOS_INLINE_FUNCTION
-  void compute_barplm(double rz, int lmaxi);
-
-  KOKKOS_INLINE_FUNCTION
-  void compute_ylm(double rx, double ry, double rz, int lmaxi);
-
+  t_ace_4c A_sph;
+  t_ace_1d d_idx_sph;
   t_ace_1d alm;
   t_ace_1d blm;
   t_ace_1d cl;
   t_ace_1d dl;
-
-  t_ace_3d plm;
-  t_ace_3d dplm;
-
-  t_ace_3c ylm;
-  t_ace_4c3 dylm;
 
   // short neigh list
   t_ace_1i d_ncount;
@@ -264,24 +256,29 @@ class PairPACEKokkos : public PairPACE {
   t_ace_3d3 d_rhats;
   t_ace_2i d_nearest;
 
+  // for ZBL core-rep implementation
+  t_ace_1d  d_d_min; // [i] -> min-d for atom ii, d=d = r - (cut_in(mu_i, mu_j) - dcut_in(mu_i, mu_j))
+  t_ace_1i  d_jj_min; // [i] -> jj-index of nearest neigh (by r-(cut_in-dcut_in) criterion)
+  bool is_zbl;
+
   // per-type
   t_ace_1i d_ndensity;
   t_ace_1i d_npoti;
   t_ace_1d d_rho_core_cutoff;
   t_ace_1d d_drho_core_cutoff;
   t_ace_1d d_E0vals;
-  t_ace_2d d_wpre;
-  t_ace_2d d_mexp;
+  t_ace_2d_lr d_wpre;
+  t_ace_2d_lr d_mexp;
 
   // tilde
-  t_ace_1i d_idx_rho_count;
-  t_ace_2i d_rank;
-  t_ace_2i d_num_ms_combs;
-  t_ace_2i d_offsets;
-  t_ace_3i d_mus;
-  t_ace_3i d_ns;
-  t_ace_3i d_ls;
-  t_ace_3i d_ms_combs;
+  t_ace_1i d_idx_ms_combs_count;
+  t_ace_2i_lr d_rank;
+  t_ace_2i_lr d_num_ms_combs;
+  t_ace_2i_lr d_idx_funcs;
+  t_ace_3i_lr d_mus;
+  t_ace_3i_lr d_ns;
+  t_ace_3i_lr d_ls;
+  t_ace_3i_lr d_ms_combs;
   t_ace_3d d_ctildes;
 
   t_ace_3d3 f_ij;
@@ -291,28 +288,12 @@ class PairPACEKokkos : public PairPACE {
     int ntot, nlut, num_of_functions;
     double cutoff, deltaSplineBins, invrscalelookup, rscalelookup;
 
-    t_ace_3d4 lookupTable;
+    t_ace_3d4_lr lookupTable;
 
-    void operator=(const SplineInterpolator &spline) {
-      cutoff = spline.cutoff;
-      deltaSplineBins = spline.deltaSplineBins;
-      ntot = spline.ntot;
-      nlut = spline.nlut;
-      invrscalelookup = spline.invrscalelookup;
-      rscalelookup = spline.rscalelookup;
-      num_of_functions = spline.num_of_functions;
-
-      lookupTable = t_ace_3d4("lookupTable", ntot+1, num_of_functions);
-      auto h_lookupTable = Kokkos::create_mirror_view(lookupTable);
-      for (int i = 0; i < ntot+1; i++)
-        for (int j = 0; j < num_of_functions; j++)
-          for (int k = 0; k < 4; k++)
-            h_lookupTable(i, j, k) = spline.lookupTable(i, j, k);
-      Kokkos::deep_copy(lookupTable, h_lookupTable);
-    }
+    void operator=(const SplineInterpolator &spline);
 
     void deallocate() {
-      lookupTable = t_ace_3d4();
+      lookupTable = t_ace_3d4_lr();
     }
 
     double memory_usage() {

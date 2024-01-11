@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,8 +42,7 @@ class TemperNPT : public Command {
   int nswaps;                           // # of tempering swaps to perform
   int seed_swap;                        // 0 = toggle swaps, n = RNG for swap direction
   int seed_boltz;                       // seed for Boltz factor comparison
-  int whichfix;                         // index of temperature fix to use
-  int fixstyle;                         // what kind of temperature fix is used
+  class Fix *whichfix;                  // temperature fix to use
 
   int my_set_temp;     // which set temp I am simulating
   double *set_temp;    // static list of replica set temperatures

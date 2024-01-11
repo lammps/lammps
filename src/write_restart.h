@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,7 +28,7 @@ class WriteRestart : public Command {
  public:
   WriteRestart(class LAMMPS *);
   void command(int, char **) override;
-  void multiproc_options(int, int, int, char **);
+  void multiproc_options(int, int, char **);
   void write(const std::string &);
 
  private:
@@ -44,12 +44,6 @@ class WriteRestart : public Command {
   int fileproc;         // ID of proc in my cluster who writes to file
   int icluster;         // which cluster I am in
 
-  // MPI-IO values
-
-  int mpiioflag;                // 1 for MPIIO output, else 0
-  class RestartMPIIO *mpiio;    // MPIIO for restart file output
-  MPI_Offset headerOffset;
-
   void header();
   void type_arrays();
   void force_fields();
@@ -62,12 +56,10 @@ class WriteRestart : public Command {
   void write_int(int, int);
   void write_bigint(int, bigint);
   void write_double(int, double);
-  void write_string(int, const char *);
+  void write_string(int, const std::string &);
   void write_int_vec(int, int, int *);
   void write_double_vec(int, int, double *);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

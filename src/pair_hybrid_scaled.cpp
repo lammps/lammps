@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -276,6 +276,8 @@ void PairHybridScaled::settings(int narg, char **arg)
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair *[narg];
+  cutmax_style = new double[narg];
+  memset(cutmax_style, 0.0, narg * sizeof(double));
   keywords = new char *[narg];
   multiple = new int[narg];
 
@@ -514,7 +516,7 @@ void PairHybridScaled::coeff(int narg, char **arg)
     if (strcmp(arg[2], "none") == 0)
       none = 1;
     else
-      error->all(FLERR, "Pair coeff for hybrid has invalid style");
+      error->all(FLERR, "Pair coeff for hybrid has invalid style: {}", arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args

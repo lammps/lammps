@@ -6,20 +6,26 @@ compute born/matrix command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID born/matrix keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * born/matrix = style name of this compute command
-* zero or more keyword/value pairs may be appended
+* zero or more keywords or keyword/value pairs may be appended
 
   .. parsed-literal::
 
-     keyword = *numdiff*
+     keyword = *numdiff* or *pair* or *bond* or *angle* or *dihedral* or *improper*
        *numdiff* values = delta virial-ID
          delta = magnitude of strain (dimensionless)
          virial-ID = ID of pressure compute for virial (string)
+         (*numdiff* cannot be used with any other keyword)
+       *pair* = compute pair-wise contributions
+       *bond* = compute bonding contributions
+       *angle* = compute angle contributions
+       *dihedral* = compute dihedral contributions
+       *improper* = compute improper contributions
 
 Examples
 """"""""
@@ -33,9 +39,11 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 Define a compute that calculates
-:math:`\frac{\partial{}^2U}{\partial\varepsilon_{i}\partial\varepsilon_{j}}` the
-second derivatives of the potential energy :math:`U` w.r.t. strain
+:math:`\frac{\partial{}^2U}{\partial\varepsilon_{i}\partial\varepsilon_{j}},` the
+second derivatives of the potential energy :math:`U` with respect to the strain
 tensor :math:`\varepsilon` elements. These values are related to:
 
 .. math::
@@ -67,14 +75,14 @@ whose 21 independent elements are output in this order:
 
 .. math::
 
-    \begin{matrix}
+    \begin{bmatrix}
        C_{1}  & C_{7}   & C_{8}  & C_{9}  & C_{10} & C_{11} \\
        C_{7}  & C_{2}   & C_{12} & C_{13} & C_{14} & C_{15} \\
        \vdots & C_{12}  & C_{3}  & C_{16} & C_{17} & C_{18} \\
        \vdots & C_{13}  & C_{16} & C_{4}  & C_{19} & C_{20} \\
        \vdots & \vdots  & \vdots & C_{19} & C_{5}  & C_{21} \\
        \vdots & \vdots  & \vdots & \vdots & C_{21} & C_{6}
-    \end{matrix}
+    \end{bmatrix}
 
 in this matrix the indices of :math:`C_{k}` value are the corresponding element
 :math:`k` in the global vector output by this compute. Each term comes from the sum
@@ -167,7 +175,7 @@ requiring that it use the virial keyword e.g.
 **Output info:**
 
 This compute calculates a global vector with 21 values that are
-the second derivatives of the potential energy w.r.t. strain.
+the second derivatives of the potential energy with respect to strain.
 The values are in energy units.
 The values are ordered as explained above. These values can be used
 by any command that uses global values from a compute as input. See
@@ -186,7 +194,7 @@ the :doc:`Build package <Build_package>` page for more info.
 
 The Born term can be decomposed as a product of two terms. The first one is a
 general term which depends on the configuration. The second one is specific to
-every interaction composing your force field (non-bonded, bonds, angle...).
+every interaction composing your force field (non-bonded, bonds, angle, ...).
 Currently not all LAMMPS interaction styles implement the *born_matrix* method
 giving first and second order derivatives and LAMMPS will exit with an error if
 this compute is used with such interactions unless the *numdiff* option is

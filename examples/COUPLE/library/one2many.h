@@ -16,7 +16,7 @@ class One2Many {
  protected:
   int me,nprocs;
   MPI_Comm comm;
-  class Memory *memory;
+  class MemoryLib *memory;
   std::map<int,int> *hash;
   int nsrc;
 };

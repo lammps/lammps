@@ -13,7 +13,7 @@ fix momentum/chunk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID momentum N keyword values ...
 
@@ -69,7 +69,7 @@ the corresponding flag to 0.
 If the *angular* keyword is used, the angular momentum is zeroed by
 subtracting a rotational component from each atom.
 
-This command can be used to insure the entire collection of atoms (or
+This command can be used to ensure the entire collection of atoms (or
 a subset of them) does not drift or rotate during the simulation due
 to random perturbations (e.g. :doc:`fix langevin <fix_langevin>`
 thermostatting).

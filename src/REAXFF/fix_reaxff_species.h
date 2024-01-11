@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,7 +15,6 @@
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(reaxff/species,FixReaxFFSpecies);
-FixStyle(reax/c/species,FixReaxFFSpecies);
 // clang-format on
 #else
 
@@ -44,20 +43,26 @@ class FixReaxFFSpecies : public Fix {
   double compute_vector(int) override;
 
  protected:
-  int me, nprocs, nmax, nlocal, ntypes, ntotal;
-  int nrepeat, nfreq, posfreq, compressed;
+  int nmax, nlocal, ntypes, ntotal;
+  int nrepeat, nfreq, posfreq, compressed, ndelspec;
   int Nmoltype, vector_nmole, vector_nspec;
-  int *Name, *MolName, *NMol, *nd, *MolType, *molmap;
+  int *Name, *MolName, *NMol, *nd, *MolType, *molmap, *mark;
+  int *Mol2Spec;
   double *clusterID;
   AtomCoord *x0;
-
-  double bg_cut;
   double **BOCut;
 
-  FILE *fp, *pos;
+  std::vector<std::string> del_species;
+
+  FILE *fp, *pos, *fdel;
   int eleflag, posflag, multipos, padflag, setupflag;
-  int singlepos_opened, multipos_opened;
-  char *ele, **eletype, *filepos;
+  int delflag, specieslistflag, masslimitflag;
+  int delete_Nlimit, delete_Nlimit_varid;
+  std::string delete_Nlimit_varname;
+  int delete_Nsteps, *delete_Tcount;
+  double massmin, massmax;
+  int singlepos_opened, multipos_opened, del_opened;
+  char *ele, **eletype, *filepos, *filedel;
 
   void Output_ReaxFF_Bonds(bigint, FILE *);
   AtomCoord chAnchor(AtomCoord, AtomCoord);
@@ -65,6 +70,7 @@ class FixReaxFFSpecies : public Fix {
   void SortMolecule(int &);
   void FindSpecies(int, int &);
   void WriteFormulas(int, int);
+  void DeleteSpecies(int, int);
   int CheckExistence(int, int);
 
   int nint(const double &);

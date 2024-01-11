@@ -25,15 +25,15 @@ in parallel, follow these steps.
 
 Download and install a compatible MPI library binary package:
 
-* for 32-bit Windows: `mpich2-1.4.1p1-win-ia32.msi <http://download.lammps.org/thirdparty/mpich2-1.4.1p1-win-ia32.msi>`_
-* for 64-bit Windows: `mpich2-1.4.1p1-win-x86-64.msi <http://download.lammps.org/thirdparty/mpich2-1.4.1p1-win-x86-64.msi>`_
+* for 32-bit Windows: `mpich2-1.4.1p1-win-ia32.msi <https://download.lammps.org/thirdparty/mpich2-1.4.1p1-win-ia32.msi>`_
+* for 64-bit Windows: `mpich2-1.4.1p1-win-x86-64.msi <https://download.lammps.org/thirdparty/mpich2-1.4.1p1-win-x86-64.msi>`_
 
 The LAMMPS Windows installer packages will automatically adjust your
 path for the default location of this MPI package. After the
 installation of the MPICH2 software, it needs to be integrated into
 the system.  For this you need to start a Command Prompt in
 *Administrator Mode* (right click on the icon and select it). Change
-into the MPICH2 installation directory, then into the sub-directory
+into the MPICH2 installation directory, then into the subdirectory
 **bin** and execute **smpd.exe -install**\ . Exit the command window.
 
 * Get a new, regular command prompt by going to Start->Run... ,

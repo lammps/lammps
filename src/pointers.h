@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,6 +28,7 @@
 #include <cstddef>      // IWYU pragme: export
 #include <cstdio>       // IWYU pragma: export
 #include <string>       // IWYU pragma: export
+#include <vector>       // IWYU pragma: export
 
 #include "fmt/format.h" // IWYU pragma: export
 #include "lammps.h"     // IWYU pragma: export
@@ -91,9 +92,9 @@ class Pointers {
     atomKK(ptr->atomKK),
     memoryKK(ptr->memoryKK),
     python(ptr->python) {}
-  virtual ~Pointers() = default;
+  virtual ~Pointers() noexcept(false) {}
 
-  // remove default members execept for the copy constructor
+  // remove other default members
 
   Pointers() = delete;
   Pointers(const Pointers &) = default;

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,8 +33,8 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <utility>
 
-#define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 static constexpr double GOLD = 1.618034;
 
@@ -278,9 +278,13 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
   force->init();
 
   // set up grid
-  force->kspace->setup_grid();
 
-  // Re-init neighbor list. Probably only needed when redefining the pair style. Should happen after pair->init() to get pair style neighbor list request registered
+  force->kspace->reset_grid();
+
+  // re-init neighbor list
+  // probably only needed when redefining the pair style
+  // should happen after pair->init() to get pair style
+  //   neighbor list request registered
 
   neighbor->init();
 
@@ -298,8 +302,7 @@ void FixTuneKspace::adjust_rcut(double time)
   if (utils::strmatch(force->kspace_style,"^msm")) return;
   if (converged) return;
 
-  double temp;
-  const double TINY = 1.0e-20;
+  constexpr double TINY = 1.0e-20;
 
   // get the current cutoff
   int itmp;
@@ -324,8 +327,8 @@ void FixTuneKspace::adjust_rcut(double time)
       bx_brent = current_cutoff;
       fb_brent = time;
       if (fb_brent > fa_brent) {
-        SWAP(ax_brent,bx_brent);
-        SWAP(fb_brent,fa_brent);
+        std::swap(ax_brent,bx_brent);
+        std::swap(fb_brent,fa_brent);
         pair_cut_coul /= 4;
       } else {
         pair_cut_coul *= 2;

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,8 +19,8 @@
 namespace LAMMPS_NS {
 
 class Pair : protected Pointers {
-  friend class AngleSDK;
-  friend class AngleSDKOMP;
+  friend class AngleSPICA;
+  friend class AngleSPICAOMP;
   friend class BondQuartic;
   friend class BondQuarticOMP;
   friend class DihedralCharmm;
@@ -82,6 +82,7 @@ class Pair : protected Pointers {
   int tail_flag;          // pair_modify flag for LJ tail correction
   double etail, ptail;    // energy/pressure tail corrections
   double etail_ij, ptail_ij;
+  int trim_flag;    // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
   int eflag_either, eflag_global, eflag_atom;
@@ -118,11 +119,13 @@ class Pair : protected Pointers {
 
   int beyond_contact, nondefault_history_transfer;    // for granular styles
 
-  // KOKKOS host/device flag and data masks
+  // KOKKOS flags and variables
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
-  int kokkosable;    // 1 if Kokkos pair
+  int kokkosable;             // 1 if Kokkos pair
+  int reverse_comm_device;    // 1 if reverse comm on Device
+  int fuse_force_clear_flag;   // 1 if can fuse force clear with force compute
 
   Pair(class LAMMPS *);
   ~Pair() override;
@@ -176,6 +179,7 @@ class Pair : protected Pointers {
     du = du2 = 0.0;
   }
 
+  virtual void finish() {}
   virtual void settings(int, char **) = 0;
   virtual void coeff(int, char **) = 0;
 
@@ -199,6 +203,14 @@ class Pair : protected Pointers {
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void reset_grid() {}
+
+  virtual void pack_forward_grid(int, void *, int, int *) {}
+  virtual void unpack_forward_grid(int, void *, int, int *) {}
+  virtual void pack_reverse_grid(int, void *, int, int *) {}
+  virtual void unpack_reverse_grid(int, void *, int, int *) {}
+
   virtual double memory_usage();
 
   void set_copymode(int value) { copymode = value; }
@@ -206,24 +218,26 @@ class Pair : protected Pointers {
   // specific child-class methods for certain Pair styles
 
   virtual void *extract(const char *, int &) { return nullptr; }
+  virtual void *extract_peratom(const char *, int &) { return nullptr; }
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
-  virtual void transfer_history(double *, double *) {}
+  virtual void transfer_history(double *, double *, int, int) {}
   virtual double atom2cut(int) { return 0.0; }
   virtual double radii2cut(double, double) { return 0.0; }
 
   // management of callbacks to be run from ev_tally()
 
  protected:
-  int num_tally_compute;
+  int num_tally_compute, did_tally_flag;
   class Compute **list_tally_compute;
 
  public:
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
+  bool did_tally_callback() const { return did_tally_flag != 0; }
 
  protected:
   int instance_me;      // which Pair class instantiation I am

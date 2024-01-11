@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,7 +41,7 @@ struct API {
 
 extern void Allocate_Workspace(control_params *, storage *, int);
 extern void DeAllocate_System(reax_system *);
-extern void DeAllocate_Workspace(control_params *, storage *);
+extern void DeAllocate_Workspace(storage *);
 extern void PreAllocate_Space(reax_system *, storage *);
 extern void ReAllocate(reax_system *, control_params *, simulation_data *, storage *, reax_list **);
 
@@ -142,7 +142,7 @@ extern void Reset_Workspace(reax_system *, storage *);
 
 extern void *scalloc(LAMMPS_NS::Error *, rc_bigint, rc_bigint, const std::string &);
 extern void *smalloc(LAMMPS_NS::Error *, rc_bigint, const std::string &);
-extern void sfree(LAMMPS_NS::Error *, void *, const std::string &);
+extern void sfree(void *);
 
 // torsion angles
 

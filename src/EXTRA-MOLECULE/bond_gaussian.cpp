@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 1.0e-10
+static constexpr double SMALL = 2.0e-308;
 
 /* ---------------------------------------------------------------------- */
 
@@ -35,6 +35,7 @@ BondGaussian::BondGaussian(LAMMPS *lmp) :
     Bond(lmp), nterms(nullptr), bond_temperature(nullptr), alpha(nullptr), width(nullptr),
     r0(nullptr)
 {
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,15 +93,16 @@ void BondGaussian::compute(int eflag, int vflag)
     for (int i = 0; i < nterms[type]; i++) {
       dr = r - r0[type][i];
       prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
-      exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+      exponent = -2.0 * dr * dr / (width[type][i] * width[type][i]);
       g_i = prefactor * exp(exponent);
       sum_g_i += g_i;
       sum_numerator += g_i * dr / (width[type][i] * width[type][i]);
     }
 
-    // force & energy
-    if (sum_g_i < SMALL) sum_g_i = SMALL;
+    // avoid overflow
+    if (sum_g_i < sum_numerator * SMALL) sum_g_i = sum_numerator * SMALL;
 
+    // force & energy
     if (r > 0.0)
       fbond = -4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i) / r;
     else
@@ -153,14 +155,15 @@ void BondGaussian::allocate()
 
 void BondGaussian::coeff(int narg, char **arg)
 {
-  if (narg < 6) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "bond_coeff", error);
 
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
   double bond_temp_one = utils::numeric(FLERR, arg[1], false, lmp);
   int n = utils::inumeric(FLERR, arg[2], false, lmp);
-  if (narg != 3 * n + 3) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (n < 1) error->all(FLERR, "Invalid bond style gaussian value for n: {}", n);
+  if (narg != 3 * n + 3) utils::missing_cmd_args(FLERR, "bond_coeff", error);
 
   if (!allocated) allocate();
 
@@ -176,8 +179,11 @@ void BondGaussian::coeff(int narg, char **arg)
     r0[i] = new double[n];
     for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR, arg[3 + 3 * j], false, lmp);
+      if (alpha[i][j] <= 0.0) error->all(FLERR, "Invalid value for A_{}: {}", j, alpha[i][j]);
       width[i][j] = utils::numeric(FLERR, arg[4 + 3 * j], false, lmp);
+      if (width[i][j] <= 0.0) error->all(FLERR, "Invalid value for w_{}: {}", j, width[i][j]);
       r0[i][j] = utils::numeric(FLERR, arg[5 + 3 * j], false, lmp);
+      if (r0[i][j] <= 0.0) error->all(FLERR, "Invalid value for r0_{}: {}", j, r0[i][j]);
       setflag[i] = 1;
     }
     count++;
@@ -288,4 +294,46 @@ double BondGaussian::single(int type, double rsq, int /*i*/, int /*j*/, double &
     fforce = -4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i) / r;
 
   return -(force->boltz * bond_temperature[type]) * log(sum_g_i);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondGaussian::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+
+  // first derivative of energy with respect to distance
+  double sum_g_i = 0.0;
+  double sum_numerator = 0.0;
+  for (int i = 0; i < nterms[type]; i++) {
+    double dr = r - r0[type][i];
+    double prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
+    double exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+    double g_i = prefactor * exp(exponent);
+    sum_g_i += g_i;
+    sum_numerator += g_i * dr / (width[type][i] * width[type][i]);
+  }
+
+  if (sum_g_i < SMALL) sum_g_i = SMALL;
+  du = 4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i);
+
+  // second derivative of energy with respect to distance
+  sum_g_i = 0.0;
+  double sum_dg_i = 0.0;
+  double sum_d2g_i = 0.0;
+  for (int i = 0; i < nterms[type]; i++) {
+    double dr = r - r0[type][i];
+    double prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
+    double exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+    double g_i = prefactor * exp(exponent);
+    sum_g_i += g_i;
+    sum_dg_i -= 4.0 * g_i * dr / pow(width[type][i], 2);
+    sum_d2g_i += 4.0 *  g_i * (4.0 * pow(r0[type][i], 2) - 8.0 * r0[type][i] * r - pow(width[type][i], 2) + 4.0 * r * r) / pow(width[type][i], 4) ;
+  }
+
+  if (sum_g_i < SMALL) sum_g_i = SMALL;
+  double numerator = sum_d2g_i*sum_g_i - sum_dg_i*sum_dg_i;
+  double denominator = sum_g_i * sum_g_i;
+
+  du2 = - (force->boltz * bond_temperature[type]) * numerator / denominator;
 }

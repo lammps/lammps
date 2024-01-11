@@ -2,7 +2,7 @@
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,11 +46,36 @@ namespace ip_simd {
 
   typedef __mmask16 SIMD_mask;
 
+  inline bool any(const SIMD_mask &m) { return m != 0; }
+
   struct SIMD_int {
     __m512i v;
     SIMD_int() {}
     SIMD_int(const __m512i in) : v(in) {}
+    inline int & operator[](const int i) { return ((int *)&(v))[i]; }
+    inline const int & operator[](const int i) const
+      { return ((int *)&(v))[i]; }
     operator __m512i() const { return v;}
+  };
+
+  struct SIMD256_int {
+    __m256i v;
+    SIMD256_int() {}
+    SIMD256_int(const __m256i in) : v(in) {}
+    SIMD256_int(const int in) : v(_mm256_set1_epi32(in)) {}
+    inline int & operator[](const int i) { return ((int *)&(v))[i]; }
+    inline const int & operator[](const int i) const
+      { return ((int *)&(v))[i]; }
+#ifdef __INTEL_LLVM_COMPILER
+    inline SIMD256_int operator&=(const int i)
+      { v=_mm256_and_epi32(v, _mm256_set1_epi32(i)); return *this; };
+#else
+    inline SIMD256_int operator&=(const int i)
+      { v=_mm256_and_si256(v, _mm256_set1_epi32(i)); return *this; };
+#endif
+    inline SIMD256_int operator+=(const int i)
+      { v=_mm256_add_epi32(v, _mm256_set1_epi32(i)); return *this; };
+    operator __m256i() const { return v;}
   };
 
   struct SIMD_float {
@@ -64,7 +89,24 @@ namespace ip_simd {
     __m512d v;
     SIMD_double() {}
     SIMD_double(const __m512d in) : v(in) {}
+    SIMD_double(const double in) { v=_mm512_set1_pd(in); }
+    inline double & operator[](const int i) { return ((double *)&(v))[i]; }
+    inline const double & operator[](const int i) const
+      { return ((double *)&(v))[i]; }
     operator __m512d() const { return v;}
+
+    SIMD_double & operator=(const double i)
+      { _mm512_set1_pd(i); return *this; }
+    SIMD_double &operator=(const SIMD_double &i)
+      { v = i.v; return *this; }
+
+    SIMD_double operator-() { return _mm512_xor_pd(v, _mm512_set1_pd(-0.0)); }
+    SIMD_double & operator+=(const SIMD_double & two)
+      { v = _mm512_add_pd(v, two.v); return *this; }
+    SIMD_double & operator-=(const SIMD_double & two)
+      { v = _mm512_sub_pd(v, two.v); return *this; }
+    SIMD_double & operator*=(const SIMD_double & two)
+      { v = _mm512_mul_pd(v, two.v); return *this; }
   };
 
   template<class flt_t>
@@ -99,6 +141,12 @@ namespace ip_simd {
 
   // ------- Set Operations
 
+  inline SIMD256_int SIMD256_set(const int l0, const int l1, const int l2,
+                                 const int l3, const int l4, const int l5,
+                                 const int l6, const int l7) {
+    return _mm256_setr_epi32(l0,l1,l2,l3,l4,l5,l6,l7);
+  }
+
   inline SIMD_int SIMD_set(const int l0, const int l1, const int l2,
                            const int l3, const int l4, const int l5,
                            const int l6, const int l7, const int l8,
@@ -107,6 +155,10 @@ namespace ip_simd {
                            const int l15) {
     return _mm512_setr_epi32(l0,l1,l2,l3,l4,l5,l6,l7,
                              l8,l9,l10,l11,l12,l13,l14,l15);
+  }
+
+  inline SIMD256_int SIMD256_set(const int l) {
+    return _mm256_set1_epi32(l);
   }
 
   inline SIMD_int SIMD_set(const int l) {
@@ -119,6 +171,10 @@ namespace ip_simd {
 
   inline SIMD_double SIMD_set(const double l) {
     return _mm512_set1_pd(l);
+  }
+
+  inline SIMD256_int SIMD256_count() {
+    return SIMD256_set(0,1,2,3,4,5,6,7);
   }
 
   inline SIMD_int SIMD_zero_masked(const SIMD_mask &m, const SIMD_int &one) {
@@ -147,6 +203,10 @@ namespace ip_simd {
 
   // -------- Load Operations
 
+  inline SIMD256_int SIMD_load(const SIMD256_int *p) {
+    return _mm256_load_epi32((int *)p);
+  }
+
   inline SIMD_int SIMD_load(const int *p) {
     return _mm512_load_epi32(p);
   }
@@ -157,6 +217,10 @@ namespace ip_simd {
 
   inline SIMD_double SIMD_load(const double *p) {
     return _mm512_load_pd(p);
+  }
+
+  inline SIMD_double SIMD_load(const SIMD_double *p) {
+    return _mm512_load_pd((double *)p);
   }
 
   inline SIMD_int SIMD_loadz(const SIMD_mask &m, const int *p) {
@@ -171,12 +235,20 @@ namespace ip_simd {
     return _mm512_maskz_load_pd(m, p);
   }
 
+  inline SIMD256_int SIMD_gather(const int *p, const SIMD256_int &i) {
+    return _mm256_i32gather_epi32(p, i, _MM_SCALE_4);
+  }
+
   inline SIMD_int SIMD_gather(const int *p, const SIMD_int &i) {
     return _mm512_i32gather_epi32(i, p, _MM_SCALE_4);
   }
 
   inline SIMD_float SIMD_gather(const float *p, const SIMD_int &i) {
     return _mm512_i32gather_ps(i, p, _MM_SCALE_4);
+  }
+
+  inline SIMD_double SIMD_gather(const double *p, const SIMD256_int &i) {
+    return _mm512_i32gather_pd(i, p, _MM_SCALE_8);
   }
 
   inline SIMD_double SIMD_gather(const double *p, const SIMD_int &i) {
@@ -199,6 +271,12 @@ namespace ip_simd {
                                  const SIMD_int &i) {
     return _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
                                     _mm512_castsi512_si256(i), p, _MM_SCALE_8);
+  }
+
+  inline SIMD_double SIMD_gather(const SIMD_mask &m, const double *p,
+                                 const SIMD256_int &i) {
+    return _mm512_mask_i32gather_pd(_mm512_undefined_pd(), m,
+                                    i, p, _MM_SCALE_8);
   }
 
   template <typename T>
@@ -252,6 +330,15 @@ namespace ip_simd {
     return _mm512_store_pd(p,one);
   }
 
+  inline void SIMD_store(SIMD_double *p, const SIMD_double &one) {
+    return _mm512_store_pd((double *)p,one);
+  }
+
+  inline void SIMD_scatter(const SIMD_mask &m, int *p,
+                           const SIMD256_int &i, const SIMD256_int &vec) {
+    _mm256_mask_i32scatter_epi32(p, m, i, vec, _MM_SCALE_4);
+  }
+
   inline void SIMD_scatter(const SIMD_mask &m, int *p,
                            const SIMD_int &i, const SIMD_int &vec) {
     _mm512_mask_i32scatter_epi32(p, m, i, vec, _MM_SCALE_4);
@@ -268,7 +355,21 @@ namespace ip_simd {
                               _MM_SCALE_8);
   }
 
+  inline void SIMD_scatter(const SIMD_mask &m, double *p,
+                           const SIMD256_int &i, const SIMD_double &vec) {
+    _mm512_mask_i32scatter_pd(p, m, i, vec, _MM_SCALE_8);
+  }
+
+  inline void SIMD_scatter(double *p,
+                           const SIMD256_int &i, const SIMD_double &vec) {
+    _mm512_i32scatter_pd(p, i, vec, _MM_SCALE_8);
+  }
+
   // ------- Arithmetic Operations
+
+  inline SIMD256_int operator+(const SIMD256_int &one, const SIMD256_int &two) {
+    return _mm256_add_epi32(one,two);
+  }
 
   inline SIMD_int operator+(const SIMD_int &one, const SIMD_int &two) {
     return _mm512_add_epi32(one,two);
@@ -286,6 +387,10 @@ namespace ip_simd {
     return _mm512_add_epi32(one,SIMD_set(two));
   }
 
+  inline SIMD256_int operator+(const SIMD256_int &one, const int two) {
+    return _mm256_add_epi32(one,SIMD256_set(two));
+  }
+
   inline SIMD_float operator+(const SIMD_float &one, const float two) {
     return _mm512_add_ps(one,SIMD_set(two));
   }
@@ -299,6 +404,11 @@ namespace ip_simd {
     return _mm512_mask_add_epi32(one,m,one,SIMD_set(two));
   }
 
+  inline SIMD256_int SIMD_add(const SIMD_mask &m,
+                           const SIMD256_int &one, const int two) {
+    return _mm256_mask_add_epi32(one,m,one,SIMD256_set(two));
+  }
+
   inline SIMD_float SIMD_add(const SIMD_mask &m,
                              const SIMD_float &one, const float two) {
     return _mm512_mask_add_ps(one,m,one,SIMD_set(two));
@@ -307,6 +417,11 @@ namespace ip_simd {
   inline SIMD_double SIMD_add(const SIMD_mask &m,
                               const SIMD_double &one, const double two) {
     return _mm512_mask_add_pd(one,m,one,SIMD_set(two));
+  }
+
+  inline SIMD_double SIMD_add(const SIMD_mask &m,
+                              const SIMD_double &one, const SIMD_double &two) {
+    return _mm512_mask_add_pd(one,m,one,two);
   }
 
   inline SIMD_int SIMD_add(const SIMD_int &s, const SIMD_mask &m,
@@ -387,6 +502,10 @@ namespace ip_simd {
     return _mm512_mul_pd(one,two);
   }
 
+  inline SIMD256_int operator*(const SIMD256_int &one, const int two) {
+    return _mm256_mullo_epi32(one,SIMD256_set(two));
+  }
+
   inline SIMD_int operator*(const SIMD_int &one, const int two) {
     return _mm512_mullo_epi32(one,SIMD_set(two));
   }
@@ -415,6 +534,12 @@ namespace ip_simd {
   inline SIMD_double SIMD_fma(const SIMD_double &one, const SIMD_double &two,
                               const SIMD_double &three) {
     return _mm512_fmadd_pd(one,two,three);
+  }
+
+  inline SIMD_double SIMD_fma(const SIMD_mask m, const SIMD_double &one,
+                              const SIMD_double &two,
+                              const SIMD_double &three) {
+    return _mm512_mask3_fmadd_pd(one,two,three,m);
   }
 
   inline SIMD_float SIMD_fms(const SIMD_float &one, const SIMD_float &two,
@@ -493,12 +618,28 @@ namespace ip_simd {
     return _mm512_pow_pd(one, two);
   }
 
+  inline SIMD_double SIMD_pow(const SIMD_double &one, const double two) {
+    return _mm512_pow_pd(one, SIMD_set(two));
+  }
+
   inline SIMD_float SIMD_exp(const SIMD_float &one) {
     return _mm512_exp_ps(one);
   }
 
   inline SIMD_double SIMD_exp(const SIMD_double &one) {
     return _mm512_exp_pd(one);
+  }
+
+  inline SIMD_double SIMD_cos(const SIMD_double &one) {
+    return _mm512_cos_pd(one);
+  }
+
+  inline SIMD_double SIMD_sin(const SIMD_double &one) {
+    return _mm512_sin_pd(one);
+  }
+
+  inline SIMD_double SIMD_tan(const SIMD_double &one) {
+    return _mm512_tan_pd(one);
   }
 
   // ------- Comparison operations
@@ -531,6 +672,14 @@ namespace ip_simd {
   inline SIMD_mask SIMD_lt(SIMD_mask m, const double one,
                            const SIMD_double &two) {
     return _mm512_mask_cmplt_pd_mask(m, SIMD_set(one), two);
+  }
+
+  inline SIMD_mask operator<(const SIMD256_int &one, const SIMD256_int &two) {
+    return _mm256_cmplt_epi32_mask(one,two);
+  }
+
+  inline SIMD_mask operator<(const int one, const SIMD256_int &two) {
+    return _mm256_cmplt_epi32_mask(SIMD256_set(one),two);
   }
 
   inline SIMD_mask operator<(const SIMD_int &one, const SIMD_int &two) {
@@ -577,6 +726,10 @@ namespace ip_simd {
     return _mm512_cmple_ps_mask(SIMD_set(one), two);
   }
 
+  inline SIMD_mask operator<=(const SIMD_double &one, const SIMD_double &two) {
+    return _mm512_cmple_pd_mask(one, two);
+  }
+
   inline SIMD_mask operator<=(const double one, const SIMD_double &two) {
     return _mm512_cmple_pd_mask(SIMD_set(one), two);
   }
@@ -591,6 +744,14 @@ namespace ip_simd {
 
   inline SIMD_mask operator>(const SIMD_double &one, const SIMD_double &two) {
     return _mm512_cmplt_pd_mask(two,one);
+  }
+
+  inline SIMD_mask operator>(const SIMD_double &one, const double two) {
+    return _mm512_cmplt_pd_mask(SIMD_set(two),one);
+  }
+
+  inline SIMD_mask operator==(const SIMD256_int &one, const int two) {
+    return _mm256_cmpeq_epi32_mask(one,_mm256_set1_epi32(two));
   }
 
   inline SIMD_mask operator==(const SIMD_int &one, const SIMD_int &two) {

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -175,7 +175,8 @@ void FixElectronStopping::post_force(int /*vflag*/)
     if (energy < Ecut) continue;
     if (energy < elstop_ranges[0][0]) continue;
     if (energy > elstop_ranges[0][table_entries - 1])
-      error->one(FLERR, "Atom kinetic energy too high for fix electron/stopping");
+      error->one(FLERR, "Fix electron/stopping: kinetic energy too high for atom {}: {} vs {}",
+                 atom->tag[i], energy, elstop_ranges[0][table_entries - 1]);
 
     if (region) {
       // Only apply in the given region

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -54,10 +54,10 @@ static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
 
 static const char cite_fix_qeq_reaxff[] =
-  "fix qeq/reaxff command:\n\n"
+  "fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
-  " author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},\n"
-  " title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},\n"
+  " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
+  " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
   " journal = {Parallel Computing},\n"
   " year =    2012,\n"
   " volume =  38,\n"
@@ -141,7 +141,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = dynamic_cast<PairReaxFF *>( force->pair_match("^reax..",0));
+  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
 
   s_hist = t_hist = nullptr;
   atom->add_callback(Atom::GROW);
@@ -163,7 +163,7 @@ FixQEqReaxFF::~FixQEqReaxFF()
   memory->destroy(t_hist);
 
   FixQEqReaxFF::deallocate_storage();
-  deallocate_matrix();
+  FixQEqReaxFF::deallocate_matrix();
 
   memory->destroy(shld);
 
@@ -205,10 +205,9 @@ int FixQEqReaxFF::setmask()
 
 void FixQEqReaxFF::pertype_parameters(char *arg)
 {
-  // match either new keyword "reaxff" or old keyword "reax/c"
-  if (utils::strmatch(arg,"^reax..$")) {
+  if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
-    Pair *pair = force->pair_match("^reax..",0);
+    Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
 
     int tmp;
@@ -395,7 +394,7 @@ void FixQEqReaxFF::init()
 
   efield = nullptr;
   auto fixes = modify->get_fix_by_style("^efield");
-  if (fixes.size() == 1) efield = dynamic_cast<FixEfield *>( fixes.front());
+  if (fixes.size() == 1) efield = dynamic_cast<FixEfield *>(fixes.front());
   else if (fixes.size() > 1)
     error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
 
@@ -404,9 +403,15 @@ void FixQEqReaxFF::init()
     efield->init();
     if (strcmp(update->unit_style,"real") != 0)
       error->all(FLERR,"Must use unit_style real with fix {} and external fields", style);
-    if (efield->varflag != FixEfield::CONSTANT)
-      error->all(FLERR,"Cannot (yet) use fix {} with variable efield", style);
 
+    if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
+      error->all(FLERR,"Atom-style external electric field requires atom-style "
+                       "potential variable when used with fix {}", style);
+    if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
+         ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
+         ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
+      error->all(FLERR,"Must not have electric field component in direction of periodic "
+                       "boundary when using charge equilibration with ReaxFF.");
     if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
          ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
          ((fabs(efield->ez) > SMALL) && domain->zperiodic))
@@ -423,7 +428,7 @@ void FixQEqReaxFF::init()
   init_taper();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -640,7 +645,7 @@ void FixQEqReaxFF::compute_H()
   int jnum;
   int i, j, ii, jj, flag;
   double dx, dy, dz, r_sqr;
-  const double SMALL = 0.0001;
+  constexpr double EPSILON = 0.0001;
 
   int *type = atom->type;
   tagint *tag = atom->tag;
@@ -671,10 +676,10 @@ void FixQEqReaxFF::compute_H()
           if (j < atom->nlocal) flag = 1;
           else if (tag[i] < tag[j]) flag = 1;
           else if (tag[i] == tag[j]) {
-            if (dz > SMALL) flag = 1;
-            else if (fabs(dz) < SMALL) {
-              if (dy > SMALL) flag = 1;
-              else if (fabs(dy) < SMALL && dx > SMALL)
+            if (dz > EPSILON) flag = 1;
+            else if (fabs(dz) < EPSILON) {
+              if (dy > EPSILON) flag = 1;
+              else if (fabs(dy) < EPSILON && dx > EPSILON)
                 flag = 1;
             }
           }
@@ -691,8 +696,8 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,fmt::format("Fix qeq/reaxff H matrix size has been "
-                                 "exceeded: m_fill={} H.m={}\n", m_fill, H.m));
+    error->all(FLERR,"Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -766,9 +771,8 @@ int FixQEqReaxFF::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff CG convergence failed "
-                                     "after {} iterations at step {}",
-                                     i,update->ntimestep));
+    error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
+                   i,update->ntimestep);
   return i;
 }
 
@@ -1101,26 +1105,36 @@ void FixQEqReaxFF::get_chi_field()
 
   // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
 
-  const double factor = -1.0/force->qe2f;
+  const double qe2f = force->qe2f;
+  const double factor = -1.0/qe2f;
 
-  // currently we only support constant efield
+
+  if (efield->varflag != FixEfield::CONSTANT)
+    efield->update_efield_variables();
+
   // atom selection is for the group of fix efield
 
-  if (efield->varflag == FixEfield::CONSTANT) {
-    double unwrap[3];
-    const double fx = efield->ex;
-    const double fy = efield->ey;
-    const double fz = efield->ez;
-    const int efgroupbit = efield->groupbit;
+  double unwrap[3];
+  const double ex = efield->ex;
+  const double ey = efield->ey;
+  const double ez = efield->ez;
+  const int efgroupbit = efield->groupbit;
 
     // charge interactions
     // force = qE, potential energy = F dot x in unwrapped coords
-
+  if (efield->varflag != FixEfield::ATOM) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & efgroupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         domain->unmap(x[i],image[i],unwrap);
-        chi_field[i] = factor*(fx*unwrap[0] + fy*unwrap[1] + fz*unwrap[2]);
+        chi_field[i] = factor*(ex*unwrap[0] + ey*unwrap[1] + ez*unwrap[2]);
+      }
+    }
+  } else { // must use atom-style potential from FixEfield
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & efgroupbit) {
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
+        chi_field[i] = -efield->efield[i][3];
       }
     }
   }

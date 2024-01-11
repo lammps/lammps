@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,6 +29,7 @@ FixNVEKokkos<DeviceType>::FixNVEKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
   kokkosable = 1;
+  fuse_integrate_flag = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -159,6 +160,66 @@ void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
   }
 }
 
+/* ----------------------------------------------------------------------
+   allow for both per-type and per-atom mass
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNVEKokkos<DeviceType>::fused_integrate(int /*vflag*/)
+{
+  atomKK->sync(execution_space,datamask_read);
+
+  x = atomKK->k_x.view<DeviceType>();
+  v = atomKK->k_v.view<DeviceType>();
+  f = atomKK->k_f.view<DeviceType>();
+  rmass = atomKK->k_rmass.view<DeviceType>();
+  mass = atomKK->k_mass.view<DeviceType>();
+  type = atomKK->k_type.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
+  int nlocal = atomKK->nlocal;
+  if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
+
+  if (rmass.data()) {
+    FixNVEKokkosFusedIntegrateFunctor<DeviceType,1> functor(this);
+    Kokkos::parallel_for(nlocal,functor);
+  } else {
+    FixNVEKokkosFusedIntegrateFunctor<DeviceType,0> functor(this);
+    Kokkos::parallel_for(nlocal,functor);
+  }
+
+  atomKK->modified(execution_space,datamask_modify);
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNVEKokkos<DeviceType>::fused_integrate_item(int i) const
+{
+  if (mask[i] & groupbit) {
+    const double dtfm = 2.0 * dtf / mass[type[i]];
+    v(i,0) += dtfm * f(i,0);
+    v(i,1) += dtfm * f(i,1);
+    v(i,2) += dtfm * f(i,2);
+    x(i,0) += dtv * v(i,0);
+    x(i,1) += dtv * v(i,1);
+    x(i,2) += dtv * v(i,2);
+  }
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNVEKokkos<DeviceType>::fused_integrate_rmass_item(int i) const
+{
+  if (mask[i] & groupbit) {
+    const double dtfm = 2.0 * dtf / rmass[i];
+    v(i,0) += dtfm * f(i,0);
+    v(i,1) += dtfm * f(i,1);
+    v(i,2) += dtfm * f(i,2);
+    x(i,0) += dtv * v(i,0);
+    x(i,1) += dtv * v(i,1);
+    x(i,2) += dtv * v(i,2);
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -167,6 +228,8 @@ void FixNVEKokkos<DeviceType>::cleanup_copy()
   id = style = nullptr;
   vatom = nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class FixNVEKokkos<LMPDeviceType>;

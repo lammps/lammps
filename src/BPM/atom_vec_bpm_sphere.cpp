@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,10 +17,8 @@
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_adapt.h"
 #include "math_const.h"
 #include "modify.h"
-#include "utils.h"
 
 #include <cstring>
 
@@ -34,6 +32,7 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
   mass_type = PER_ATOM;
   molecular = Atom::MOLECULAR;
   bonds_allow = 1;
+  radvary = 0;
 
   atom->molecule_flag = 1;
   atom->sphere_flag = 1;
@@ -99,16 +98,12 @@ void AtomVecBPMSphere::init()
 
   // check if optional radvary setting should have been set to 1
 
-  for (auto ifix : modify->get_fix_by_style("^adapt")) {
-    if (radvary == 0) {
-      if ((strcmp(ifix->style, "adapt") == 0) && (dynamic_cast<FixAdapt *>(ifix)->diamflag))
-        error->all(FLERR, "Fix adapt changes atom radii but atom_style bpm/sphere is not dynamic");
-      // cannot properly check for fix adapt/fep since its header is optional
-      if ((strcmp(ifix->style, "adapt/fep") == 0) && (comm->me == 0))
-        error->warning(
-            FLERR, "Fix adapt/fep may change atom radii but atom_style bpm/sphere is not dynamic");
+  if (radvary == 0)
+    for (const auto &ifix : modify->get_fix_by_style("^adapt")) {
+      if (ifix->diam_flag)
+        error->all(FLERR, "Fix {} changes atom radii but atom_style bpm/sphere is not dynamic",
+                   ifix->style);
     }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -149,7 +144,7 @@ void AtomVecBPMSphere::create_atom_post(int ilocal)
 
 void AtomVecBPMSphere::pack_restart_pre(int ilocal)
 {
-  // insure bond_negative vector is needed length
+  // ensure bond_negative vector is needed length
 
   if (bond_per_atom < atom->bond_per_atom) {
     delete[] bond_negative;

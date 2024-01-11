@@ -6,7 +6,7 @@ fix_modify AtC track_displacement command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> track_displacement <on|off>
 

@@ -8,10 +8,11 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.3.2.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "836f5da400d8cff0f0e4435640f9454f" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.16.tar.gz" CACHE STRING "URL for MDI tarball")
+  set(MDI_MD5 "407db44e2d79447ab5c1233af1965f65" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
+  GetFallbackURL(MDI_URL MDI_FALLBACK)
   enable_language(C)
 
   # only ON/OFF are allowed for "mpi" flag when building MDI library
@@ -25,15 +26,16 @@ if(DOWNLOAD_MDI)
 
   # detect if we have python development support and thus can enable python plugins
   set(MDI_USE_PYTHON_PLUGINS OFF)
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    find_package(PythonLibs QUIET) # Deprecated since version 3.12
-    if(PYTHONLIBS_FOUND)
-      set(MDI_USE_PYTHON_PLUGINS ON)
-    endif()
-  else()
-    find_package(Python QUIET COMPONENTS Development)
-    if(Python_Development_FOUND)
-      set(MDI_USE_PYTHON_PLUGINS ON)
+  find_package(Python QUIET COMPONENTS Development)
+  if(Python_Development_FOUND)
+    set(MDI_USE_PYTHON_PLUGINS ON)
+  endif()
+  # python plugins are not supported and thus must be always off on Windows
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    unset(Python_Development_FOUND)
+    set(MDI_USE_PYTHON_PLUGINS OFF)
+    if(CMAKE_CROSSCOMPILING)
+      set(CMAKE_INSTALL_LIBDIR lib)
     endif()
   endif()
 
@@ -42,10 +44,11 @@ if(DOWNLOAD_MDI)
   # support cross-compilation and ninja-build
   include(ExternalProject)
   ExternalProject_Add(mdi_build
-    URL     ${MDI_URL}
+    URL     ${MDI_URL} ${MDI_FALLBACK}
     URL_MD5 ${MDI_MD5}
-    CMAKE_ARGS ${CMAKE_REQUEST_PIC}
-    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext
+    CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
@@ -54,37 +57,34 @@ if(DOWNLOAD_MDI)
     -Dlanguage=C
     -Dlibtype=STATIC
     -Dmpi=${MDI_USE_MPI}
+    -Dplugins=ON
     -Dpython_plugins=${MDI_USE_PYTHON_PLUGINS}
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ""
-    BUILD_BYPRODUCTS "<BINARY_DIR>/MDI_Library/libmdi.a"
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext/src/mdi_build-build --target install
+    BUILD_BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext/${CMAKE_INSTALL_LIBDIR}/mdi/${CMAKE_STATIC_LIBRARY_PREFIX}mdi${CMAKE_STATIC_LIBRARY_SUFFIX}"
     )
 
   # where is the compiled library?
-  ExternalProject_get_property(mdi_build BINARY_DIR)
-  set(MDI_BINARY_DIR "${BINARY_DIR}/MDI_Library")
+  ExternalProject_get_property(mdi_build PREFIX)
   # workaround for older CMake versions
-  file(MAKE_DIRECTORY ${MDI_BINARY_DIR})
+  file(MAKE_DIRECTORY ${PREFIX}/${CMAKE_INSTALL_LIBDIR}/mdi)
+  file(MAKE_DIRECTORY ${PREFIX}/include/mdi)
 
   # create imported target for the MDI library
   add_library(LAMMPS::MDI UNKNOWN IMPORTED)
   add_dependencies(LAMMPS::MDI mdi_build)
   set_target_properties(LAMMPS::MDI PROPERTIES
-    IMPORTED_LOCATION "${MDI_BINARY_DIR}/libmdi.a"
-    INTERFACE_INCLUDE_DIRECTORIES ${MDI_BINARY_DIR}
-    )
+    IMPORTED_LOCATION "${PREFIX}/${CMAKE_INSTALL_LIBDIR}/mdi/${CMAKE_STATIC_LIBRARY_PREFIX}mdi${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    INTERFACE_INCLUDE_DIRECTORIES ${PREFIX}/include/mdi
+  )
 
   set(MDI_DEP_LIBS "")
   # if compiling with python plugins we need
   # to add python libraries as dependency.
   if(MDI_USE_PYTHON_PLUGINS)
-    if(CMAKE_VERSION VERSION_LESS 3.12)
-      list(APPEND MDI_DEP_LIBS ${PYTHON_LIBRARIES})
-    else()
-      list(APPEND MDI_DEP_LIBS Python::Python)
-    endif()
-
+    list(APPEND MDI_DEP_LIBS Python::Python)
   endif()
+
   # need to add support for dlopen/dlsym, except when compiling for Windows.
   if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     list(APPEND MDI_DEP_LIBS "${CMAKE_DL_LIBS}")

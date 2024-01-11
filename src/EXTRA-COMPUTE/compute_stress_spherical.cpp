@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,19 +19,15 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "lattice.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -46,11 +42,11 @@ using MathSpecial::square;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_sphere[] =
-    "compute stress/spherical:\n\n"
+    "compute stress/spherical: doi:10.48550/arXiv.2201.13060\n\n"
     "@article{galteland2022defining,\n"
-    "title={Defining the pressures of a fluid in a nanoporous, heterogeneous medium},\n"
+    "title={Defining the Pressures of a Fluid in a Nanoporous, Heterogeneous Medium},\n"
     "author={Galteland, Olav and Rauter, Michael T and Varughese, Kevin K and Bedeaux, Dick and "
-    "Kjelstrup, Signe},\n"
+    "   Kjelstrup, Signe},\n"
     "journal={arXiv preprint arXiv:2201.13060},\n"
     "year={2022}\n"
     "}\n\n";
@@ -235,7 +231,7 @@ void ComputeStressSpherical::compute_array()
   // loop over neighbors of my atoms
   // skip if I or J are not in group
   // for newton = 0 and J = ghost atom,
-  //   need to insure I,J pair is only output by one proc
+  //   need to ensure I,J pair is only output by one proc
   //   use same itag,jtag logic as in Neighbor::neigh_half_nsq()
   // for flag = 0, just count pair interactions within force cutoff
   // for flag = 1, calculate requested output fields

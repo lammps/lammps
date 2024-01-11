@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,6 +35,7 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr int MAXLOOP = 100;
 /* ---------------------------------------------------------------------- */
 
 ComputeAggregateAtom::ComputeAggregateAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -82,10 +83,8 @@ void ComputeAggregateAtom::init()
 
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style, "aggregate/atom") == 0) count++;
-  if (count > 1 && comm->me == 0) error->warning(FLERR, "More than one compute aggregate/atom");
+  if (modify->get_compute_by_style(style).size() > 1)
+    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,6 +111,11 @@ void ComputeAggregateAtom::compute_peratom()
     vector_atom = aggregateID;
   }
 
+  // communicate coords for ghost atoms if box can change, e.g. fix deform
+  // this ensures ghost atom coords are current
+
+  comm->forward_comm();
+
   // invoke full neighbor list (will copy or build if necessary)
   // on the first step of a run, set preflag to one in neighbor->build_one(...)
 
@@ -120,7 +124,7 @@ void ComputeAggregateAtom::compute_peratom()
   else
     neighbor->build_one(list);
 
-  // if group is dynamic, insure ghost atom masks are current
+  // if group is dynamic, ensure ghost atom masks are current
 
   if (group->dynamic[igroup]) {
     commflag = 0;
@@ -160,8 +164,11 @@ void ComputeAggregateAtom::compute_peratom()
 
   int change, done, anychange;
 
-  while (true) {
+  int counter = 0;
+  // stop after MAXLOOP iterations
+  while (counter < MAXLOOP) {
     comm->forward_comm(this);
+    ++counter;
 
     // reverse communication when bonds are not stored on every processor
 
@@ -220,6 +227,8 @@ void ComputeAggregateAtom::compute_peratom()
     MPI_Allreduce(&change, &anychange, 1, MPI_INT, MPI_MAX, world);
     if (!anychange) break;
   }
+  if ((comm->me == 0) && (counter >= MAXLOOP))
+    error->warning(FLERR, "Compute aggregate/atom did not converge after {} iterations", MAXLOOP);
 }
 
 /* ---------------------------------------------------------------------- */

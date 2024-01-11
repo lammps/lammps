@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -639,7 +639,7 @@ void PairOxrna2Xstk::coeff(int narg, char **arg)
         (0.5 * (cut_xst_lo_one - cut_xst_0_one) * (cut_xst_lo_one - cut_xst_0_one) -
         k_xst_one * 0.5 * (cut_xst_0_one -cut_xst_c_one) * (cut_xst_0_one - cut_xst_c_one)/k_xst_one);
 
-  cut_xst_lc_one = cut_xst_lo_one - 0.5 * (cut_xst_lo_one - cut_xst_0_one)/b_xst_lo_one;;
+  cut_xst_lc_one = cut_xst_lo_one - 0.5 * (cut_xst_lo_one - cut_xst_0_one)/b_xst_lo_one;
 
   b_xst_hi_one = 0.25 * (cut_xst_hi_one - cut_xst_0_one) * (cut_xst_hi_one - cut_xst_0_one)/
         (0.5 * (cut_xst_hi_one - cut_xst_0_one) * (cut_xst_hi_one - cut_xst_0_one) -

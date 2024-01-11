@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,7 @@
 
 #include "atom.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -40,17 +40,17 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{PAIR,KSPACE,ATOM};
-enum{DIAMETER,CHARGE};
+enum{PAIR, KSPACE, ATOM};
+enum{DIAMETER, CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
 FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix adapt/fep command");
+  if (narg < 5) utils::missing_cmd_args(FLERR,"fix adapt/fep", error);
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Illegal fix adapt/fep command");
+  if (nevery < 0) error->all(FLERR,"Illegal fix adapt/fep every value {}", nevery);
 
   dynamic_group_allow = 1;
   create_attribute = 1;
@@ -62,27 +62,26 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
+      if (iarg+6 > narg) utils::missing_cmd_args(FLERR,"fix adapt/fep pair", error);
       nadapt++;
       iarg += 6;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix adapt/fep kspace", error);
       nadapt++;
       iarg += 2;
     } else if (strcmp(arg[iarg],"atom") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix adapt/fep atom", error);
       nadapt++;
       iarg += 4;
     } else break;
   }
 
-  if (nadapt == 0) error->all(FLERR,"Illegal fix adapt/fep command");
+  if (nadapt == 0) error->all(FLERR,"Nothing to adapt in fix adapt/fep command");
   adapt = new Adapt[nadapt];
 
   // parse keywords
 
   nadapt = 0;
-  diamflag = 0;
   chgflag = 0;
 
   iarg = 4;
@@ -114,7 +113,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].which = ATOM;
       if (strcmp(arg[iarg+1],"diameter") == 0) {
         adapt[nadapt].aparam = DIAMETER;
-        diamflag = 1;
+        diam_flag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
@@ -137,11 +136,11 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix adapt/fep reset", error);
       resetflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix adapt/fep scale", error);
       scaleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"after") == 0) {
@@ -166,21 +165,21 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
 FixAdaptFEP::~FixAdaptFEP()
 {
   for (int m = 0; m < nadapt; m++) {
-    delete [] adapt[m].var;
+    delete[] adapt[m].var;
     if (adapt[m].which == PAIR) {
-      delete [] adapt[m].pstyle;
-      delete [] adapt[m].pparam;
+      delete[] adapt[m].pstyle;
+      delete[] adapt[m].pparam;
       memory->destroy(adapt[m].array_orig);
     }
   }
-  delete [] adapt;
+  delete[] adapt;
 
   // check nfix in case all fixes have already been deleted
 
   if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
   if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
-  delete [] id_fix_diam;
-  delete [] id_fix_chg;
+  delete[] id_fix_diam;
+  delete[] id_fix_chg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -201,7 +200,7 @@ int FixAdaptFEP::setmask()
 void FixAdaptFEP::post_constructor()
 {
   if (!resetflag) return;
-  if (!diamflag && !chgflag) return;
+  if (!diam_flag && !chgflag) return;
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
@@ -209,10 +208,10 @@ void FixAdaptFEP::post_constructor()
   id_fix_diam = nullptr;
   id_fix_chg = nullptr;
 
-  if (diamflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_DIAM {} STORE peratom 1 1", group->names[igroup]);
-    fix_diam = dynamic_cast<FixStore *>( modify->add_fix(cmd));
-
+  if (diam_flag && atom->radius_flag) {
+    id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
+    fix_diam = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_diam,group->names[igroup])));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -227,10 +226,10 @@ void FixAdaptFEP::post_constructor()
     }
   }
 
-  if (chgflag) {
-    auto cmd = fmt::format("{}_FIX_STORE_CHG {} STORE peratom 1 1", group->names[igroup]);
-    fix_chg = dynamic_cast<FixStore *>( modify->add_fix(cmd));
-
+  if (chgflag && atom->q_flag) {
+    id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
+    fix_chg = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1",id_fix_chg,group->names[igroup])));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;
@@ -268,9 +267,9 @@ void FixAdaptFEP::init()
 
     ad->ivar = input->variable->find(ad->var);
     if (ad->ivar < 0)
-      error->all(FLERR,"Variable name for fix adapt/fep does not exist");
+      error->all(FLERR,"Variable name {} for fix adapt/fep does not exist", ad->var);
     if (!input->variable->equalstyle(ad->ivar))
-      error->all(FLERR,"Variable for fix adapt/fep is invalid style");
+      error->all(FLERR,"Variable {} for fix adapt/fep is invalid style", ad->var);
 
     if (ad->which == PAIR) {
       anypair = 1;
@@ -286,15 +285,16 @@ void FixAdaptFEP::init()
       if (ptr == nullptr)
         error->all(FLERR,"Fix adapt/fep pair style param not supported");
 
-      ad->pdim = 2;
-      if (ad->pdim == 0) ad->scalar = (double *) ptr;
+      if (ad->pdim != 2)
+        error->all(FLERR,"Pair style parameter {} is not compatible with fix adapt/fep", ad->pparam);
+
       if (ad->pdim == 2) ad->array = (double **) ptr;
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
       if (ad->pdim == 2 && (strcmp(force->pair_style,"hybrid") == 0 ||
                             strcmp(force->pair_style,"hybrid/overlay") == 0)) {
-        auto pair = dynamic_cast<PairHybrid *>( force->pair);
+        auto pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
             if (!pair->check_ijtype(i,j,ad->pstyle))
@@ -333,18 +333,16 @@ void FixAdaptFEP::init()
   // fixes that store initial per-atom values
 
   if (id_fix_diam) {
-    int ifix = modify->find_fix(id_fix_diam);
-    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_diam = dynamic_cast<FixStore *>( modify->fix[ifix]);
+    fix_diam = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix_diam));
+    if (!fix_diam) error->all(FLERR,"Could not find fix adapt/fep storage fix ID {}", id_fix_diam);
   }
   if (id_fix_chg) {
-    int ifix = modify->find_fix(id_fix_chg);
-    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_chg = dynamic_cast<FixStore *>( modify->fix[ifix]);
+    fix_chg = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix_chg));
+    if (!fix_chg) error->all(FLERR,"Could not find fix adapt/fep storage fix ID {}", id_fix_chg);
   }
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -437,6 +435,8 @@ void FixAdaptFEP::change_settings()
 
     } else if (ad->which == ATOM) {
 
+      if (scaleflag)
+        error->all(FLERR, "Keyword 'scale yes' is not supported with fix adapt/fep for 'atom'");
       // reset radius from diameter
       // also scale rmass to new value
 
@@ -515,7 +515,7 @@ void FixAdaptFEP::restore_settings()
       *kspace_scale = 1.0;
 
     } else if (ad->which == ATOM) {
-      if (diamflag) {
+      if (diam_flag) {
         double density;
 
         double *vec = fix_diam->vstore;

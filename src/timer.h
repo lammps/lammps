@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -63,6 +63,7 @@ class Timer : protected Pointers {
   bool has_normal() const { return (_level >= NORMAL); }
   bool has_full() const { return (_level >= FULL); }
   bool has_sync() const { return (_sync != OFF); }
+  bool has_timeout() const { return (_timeout >= 0.0); }
 
   // flag if wallclock time is expired
   bool is_timeout() const { return (_timeout == 0.0); }

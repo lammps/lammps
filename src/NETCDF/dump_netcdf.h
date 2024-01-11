@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -65,6 +65,7 @@ class DumpNetCDF : public DumpCustom {
 
   int type_nc_real;    // netcdf type to use for real variables: float or double
   bool thermo;         // write thermo output to netcdf file
+  bool thermo_warn;    // warn (once) that thermo output is on incompatible step
 
   bigint n_buffer;          // size of buffer
   bigint *int_buffer;       // buffer for passing data to netcdf

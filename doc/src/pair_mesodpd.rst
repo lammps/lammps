@@ -1,13 +1,19 @@
 .. index:: pair_style edpd
+.. index:: pair_style edpd/gpu
 .. index:: pair_style mdpd
+.. index:: pair_style mdpd/gpu
 .. index:: pair_style mdpd/rhosum
 .. index:: pair_style tdpd
 
 pair_style edpd command
 =======================
 
+Accelerator Variants: *edpd/gpu*
+
 pair_style mdpd command
 =======================
+
+Accelerator Variants: *mdpd/gpu*
 
 pair_style mdpd/rhosum command
 ==============================
@@ -299,7 +305,7 @@ Restrictions
 """"""""""""
 
 The pair styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* are part of
-the DPD-MESO package. It is only enabled if LAMMPS was built with
+the DPD-MESO package. They are only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 

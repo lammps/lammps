@@ -23,9 +23,9 @@ applies to LAMMPS is in the LICENSE file included in the LAMMPS distribution.
 
 .. _lgpl: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 
-.. _gnuorg: http://www.gnu.org
+.. _gnuorg: https://www.gnu.org
 
-.. _opensource: http://www.opensource.org
+.. _opensource: https://www.opensource.org
 
 Here is a more specific summary of what the GPL means for LAMMPS users:
 

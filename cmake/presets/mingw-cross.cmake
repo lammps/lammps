@@ -1,4 +1,5 @@
 set(WIN_PACKAGES
+  AMOEBA
   ASPHERE
   ATC
   AWPMD
@@ -7,7 +8,7 @@ set(WIN_PACKAGES
   BPM
   BROWNIAN
   CG-DNA
-  CG-SDK
+  CG-SPICA
   CLASS2
   COLLOID
   COLVARS
@@ -34,7 +35,7 @@ set(WIN_PACKAGES
   INTEL
   INTERLAYER
   KSPACE
-  LATTE
+  LEPTON
   MACHDYN
   MANIFOLD
   MANYBODY
@@ -46,8 +47,9 @@ set(WIN_PACKAGES
   MISC
   ML-HDNNP
   ML-IAP
-  ML-SNAP
+  ML-POD
   ML-RANN
+  ML-SNAP
   MOFFF
   MOLECULE
   MOLFILE
@@ -56,6 +58,7 @@ set(WIN_PACKAGES
   ORIENT
   PERI
   PHONON
+  PLUGIN
   POEMS
   PTM
   QEQ
@@ -80,7 +83,6 @@ endforeach()
 
 # these two packages require a full MPI implementation
 if(BUILD_MPI)
-  set(PKG_MPIIO ON CACHE BOOL "" FORCE)
   set(PKG_LATBOLTZ ON CACHE BOOL "" FORCE)
 endif()
 

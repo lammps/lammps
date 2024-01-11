@@ -1,14 +1,26 @@
 .. index:: pair_style meam
+.. index:: pair_style meam/kk
+.. index:: pair_style meam/ms
+.. index:: pair_style meam/ms/kk
 
 pair_style meam command
 =========================
+
+Accelerator Variants: *meam/kk*
+
+pair_style meam/ms command
+==========================
+
+Accelerator Variants: *meam/ms/kk*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style meam
+   pair_style style
+
+* style = *meam* or *meam/ms*
 
 Examples
 """"""""
@@ -19,6 +31,9 @@ Examples
    pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
    pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
 
+   pair_style meam/ms
+   pair_coeff * * ../potentials/library.msmeam H Ga ../potentials/HGa.meam H Ga
+
 Description
 """""""""""
 
@@ -28,16 +43,23 @@ Description
    as of November 2010; see description below of the mixture_ref_t
    parameter
 
-Pair style *meam* computes non-bonded interactions for a variety of materials
-using the modified embedded-atom method (MEAM)
-:ref:`(Baskes) <Baskes>`.  Conceptually, it is an extension to the original
-:doc:`EAM method <pair_eam>` which adds angular forces.  It is
-thus suitable for modeling metals and alloys with fcc, bcc, hcp and
-diamond cubic structures, as well as materials with covalent interactions
-like silicon and carbon. This *meam* pair style is a translation of the
-original Fortran version to C++. It is functionally equivalent but more
-efficient and has additional features. The Fortran version of the *meam*
-pair style has been removed from LAMMPS after the 12 December 2018 release.
+Pair style *meam* computes non-bonded interactions for a variety of
+materials using the modified embedded-atom method (MEAM) :ref:`(Baskes)
+<Baskes>`.  Conceptually, it is an extension to the original :doc:`EAM
+method <pair_eam>` which adds angular forces.  It is thus suitable for
+modeling metals and alloys with fcc, bcc, hcp and diamond cubic
+structures, as well as materials with covalent interactions like silicon
+and carbon.
+
+The *meam* pair style is a translation of the original Fortran version
+to C++. It is functionally equivalent but more efficient and has
+additional features. The Fortran version of the *meam* pair style has
+been removed from LAMMPS after the 12 December 2018 release.
+
+Pair style *meam/ms* uses the multi-state MEAM (MS-MEAM) method
+according to :ref:`(Baskes2) <Baskes2>`, which is an extension to MEAM.
+This pair style is mostly equivalent to *meam* and differs only
+where noted in the documentation below.
 
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:
@@ -120,7 +142,7 @@ that will be used with other potentials.
    filenames can appear in any order, e.g. "Si C" or "C Si" in the
    example above.  However, if the second filename is **not** NULL (as in the
    example above), it contains settings that are indexed **by numbers**
-   for the elements that precede it.  Thus you need to insure that you list
+   for the elements that precede it.  Thus you need to ensure that you list
    the elements between the filenames in an order consistent with how the
    values in the second filename are indexed.  See details below on the
    syntax for settings in the second file.
@@ -235,6 +257,7 @@ The recognized keywords for the parameter file are as follows:
                    lin = linear structure (180 degree angle)
                    zig = zigzag structure with a uniform angle
                    tri = H2O-like structure that has an angle
+                   sc  = simple cubic
    nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
                  I-J pair (see for example :ref:`(Lee) <Lee>`).
                    0 = second-nearest neighbor formulation off
@@ -307,9 +330,9 @@ formulation of the partial electron density function.  In recent
 literature, an extra term is included in the expression for the
 third-order density in order to make the densities orthogonal (see for
 example :ref:`(Wang) <Wang2>`, equation 3d); this term is included in the
-MEAM implementation in lammps.  However, in earlier published work
+MEAM implementation in LAMMPS.  However, in earlier published work
 this term was not included when deriving parameters, including most of
-those provided in the ``library.meam`` file included with lammps, and to
+those provided in the ``library.meam`` file included with LAMMPS, and to
 account for this difference the parameter *t1* must be augmented by
 3/5\**t3*.  If *augt1* = 1, the default, this augmentation is done
 automatically.  When parameter values are fit using the modified
@@ -317,16 +340,16 @@ density function, as in more recent literature, augt1 should be set to
 0.
 
 The *mixture_ref_t* parameter is available to match results with those
-of previous versions of lammps (before January 2011).  Newer versions
-of lammps, by default, use the single-element values of the *t*
+of previous versions of LAMMPS (before January 2011).  Newer versions
+of LAMMPS, by default, use the single-element values of the *t*
 parameters to compute the background reference density.  This is the
-proper way to compute these parameters.  Earlier versions of lammps
+proper way to compute these parameters.  Earlier versions of LAMMPS
 used an alloy mixture averaged value of *t* to compute the background
 reference density.  Setting *mixture_ref_t* = 1 gives the old behavior.
 WARNING: using *mixture_ref_t* = 1 will give results that are demonstrably
 incorrect for second-neighbor MEAM, and non-standard for
 first-neighbor MEAM; this option is included only for matching with
-previous versions of lammps and should be avoided if possible.
+previous versions of LAMMPS and should be avoided if possible.
 
 The parameters *attrac* and *repuls*, along with the integer selection
 parameter *erose_form*, can be used to modify the Rose energy function
@@ -347,11 +370,27 @@ Most published MEAM parameter sets use the default values *attrac* = *repulse* =
 Setting *repuls* = *attrac* = *delta* corresponds to the form used in several
 recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
 
+Then using *meam/ms* pair style the multi-state MEAM (MS-MEAM) method is
+activated.  This requires 6 extra parameters in the MEAM library file,
+resulting in 25 parameters ordered that are ordered like this:
+
+elt, lat, z, ielement, atwt, alpha, b0, b1, b2, b3, b1m, b2m, b3m, alat, esub, asub,
+t0, t1, t2, t3, t1m, t2m, t3m, rozero, ibar
+
+The 6 extra MS-MEAM parameters are *b1m, b2m, b3m, t1m, t2m, t3m*.
+In the LAMMPS ``potentials`` folder, compatible files have an ".msmeam" extension.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 .. note::
 
    The default form of the *erose* expression in LAMMPS was corrected
    in March 2009.  The current version is correct, but may show different
-   behavior compared with earlier versions of lammps with the attrac
+   behavior compared with earlier versions of LAMMPS with the attrac
    and/or repuls parameters are non-zero.  To obtain the previous default
    form, use *erose_form* = 1 (this form does not seem to appear in the
    literature).  An alternative form (see e.g. :ref:`(Lee2) <Lee2>`) is
@@ -383,16 +422,15 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *meam* style is provided in the MEAM package. It is
-only enabled if LAMMPS was built with that package.
+The *meam* and *meam/ms* pair styles are provided in the MEAM
+package. They are only enabled if LAMMPS was built with that package.
 See the :doc:`Build package <Build_package>` page for more info.
 
-The maximum number of elements, that can be read from the MEAM
-library file, is determined at compile time. The default is 5.
-If you need support for more elements, you have to change the
-define for the constant 'maxelt' at the beginning of the file
-src/MEAM/meam.h and update/recompile LAMMPS. There is no
-limit on the number of atoms types.
+The maximum number of elements, that can be read from the MEAM library
+file, is determined at compile time. The default is 5.  If you need
+support for more elements, you have to change the the constant 'maxelt'
+at the beginning of the file ``src/MEAM/meam.h`` and update/recompile
+LAMMPS.  There is no limit on the number of atoms types.
 
 Related commands
 """"""""""""""""
@@ -411,12 +449,14 @@ none
 
 **(Baskes)** Baskes, Phys Rev B, 46, 2727-2742 (1992).
 
+.. _Baskes2:
+
+**(Baskes2)** Baskes, Phys Rev B, 75, 094113 (2007).
+
 .. _Gullet:
 
-**(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
-This report may be accessed on-line via `this link <sandreport_>`_.
-
-.. _sandreport: http://infoserve.sandia.gov/sand_doc/2003/038782.pdf
+**(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003). DOI:10.2172/918395
+This report may be accessed on-line via `this link <https://download.lammps.org/pdfs/MEAM_report_2003.pdf>`_.
 
 .. _Lee:
 

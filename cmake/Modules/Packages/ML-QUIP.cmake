@@ -16,6 +16,7 @@ if(DOWNLOAD_QUIP)
     set(temp "${temp}DEFINES += -DGETARG_F2003 -DFORTRAN_UNDERSCORE\n")
     set(temp "${temp}F95FLAGS += -fpp -free -fPIC\n")
     set(temp "${temp}F77FLAGS += -fpp -fixed -fPIC\n")
+    set(temp "${temp}F95_PRE_FILENAME_FLAG = -Tf\n")
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
     set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E -x f95-cpp-input\nOPTIM=${CMAKE_Fortran_FLAGS_${BTYPE}}\n")
     set(temp "${temp}DEFINES += -DGETARG_F2003 -DGETENV_F2003 -DGFORTRAN -DFORTRAN_UNDERSCORE\n")
@@ -58,12 +59,12 @@ if(DOWNLOAD_QUIP)
     BUILD_COMMAND env QUIP_ARCH=lammps make libquip
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE YES
-    BUILD_BYPRODUCTS <SOURCE_DIR>/build/lammps/libquip.a
+    BUILD_BYPRODUCTS <SOURCE_DIR>/build/lammps/${CMAKE_STATIC_LIBRARY_PREFIX}quip${CMAKE_STATIC_LIBRARY_SUFFIX}
   )
   ExternalProject_get_property(quip_build SOURCE_DIR)
   add_library(LAMMPS::QUIP UNKNOWN IMPORTED)
   set_target_properties(LAMMPS::QUIP PROPERTIES
-    IMPORTED_LOCATION "${SOURCE_DIR}/build/lammps/libquip.a"
+    IMPORTED_LOCATION "${SOURCE_DIR}/build/lammps/${CMAKE_STATIC_LIBRARY_PREFIX}quip${CMAKE_STATIC_LIBRARY_SUFFIX}"
     INTERFACE_LINK_LIBRARIES "${LAPACK_LIBRARIES}")
   target_link_libraries(lammps PRIVATE LAMMPS::QUIP)
   add_dependencies(LAMMPS::QUIP quip_build)

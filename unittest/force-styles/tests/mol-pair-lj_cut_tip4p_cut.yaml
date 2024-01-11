@@ -1,5 +1,6 @@
 ---
 lammps_version: 17 Feb 2022
+tags: unstable
 date_generated: Fri Mar 18 22:17:32 2022
 epsilon: 5e-10
 skip_tests:
@@ -21,6 +22,11 @@ pair_coeff: ! |
   4 4  0.015  3.1
   5 5  0.015  3.1
 extract: ! |
+  qdist 0
+  typeO 0
+  typeH 0
+  typeA 0
+  typeB 0
   epsilon 2
   sigma 2
   cut_coul 0

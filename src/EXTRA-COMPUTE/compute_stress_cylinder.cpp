@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,7 +21,6 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -29,7 +28,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <mpi.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -43,13 +41,14 @@ using MathSpecial::square;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_cylinder[] =
-    "compute stress/cylinder:\n\n"
+    "compute stress/cylinder: doi:10.1063/1.5037054\n\n"
     "@Article{Addington,\n"
-    " author = {C. K. Addington, Y. Long, K. E. Gubbins},\n"
-    " title = {The pressure in interfaces having cylindrical geometry},\n"
-    " journal = {J.~Chem.~Phys.},\n"
+    " author = {C. K. Addington and Y. Long and K. E. Gubbins},\n"
+    " title = {The Pressure in Interfaces Having Cylindrical Geometry},\n"
+    " journal = {J.~Chem.\\ Phys.},\n"
     " year =    2018,\n"
     " volume =  149,\n"
+    " number =  8,\n"
     " pages =   {084109}\n"
     "}\n\n";
 
@@ -322,7 +321,7 @@ void ComputeStressCylinder::compute_array()
   // loop over neighbors of my atoms
   // skip if I or J are not in group
   // for newton = 0 and J = ghost atom,
-  //   need to insure I,J pair is only output by one proc
+  //   need to ensure I,J pair is only output by one proc
   //   use same itag,jtag logic as in Neighbor::neigh_half_nsq()
   // for flag = 0, just count pair interactions within force cutoff
   // for flag = 1, calculate requested output fields

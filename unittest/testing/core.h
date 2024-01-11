@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,25 +26,18 @@
 #include <string>
 #include <vector>
 
-using namespace LAMMPS_NS;
+using LAMMPS_NS::Info;
+using LAMMPS_NS::LAMMPS;
+using LAMMPS_NS::LAMMPSException;
 
 using ::testing::ContainsRegex;
 
-#define TEST_FAILURE(errmsg, ...)                                                               \
-    if (Info::has_exceptions()) {                                                               \
-        ::testing::internal::CaptureStdout();                                                   \
-        ASSERT_ANY_THROW({__VA_ARGS__});                                                        \
-        auto mesg = ::testing::internal::GetCapturedStdout();                                   \
-        ASSERT_THAT(mesg, ContainsRegex(errmsg));                                               \
-    } else {                                                                                    \
-        if (platform::mpi_vendor() != "Open MPI") {                                             \
-            ::testing::internal::CaptureStdout();                                               \
-            ASSERT_DEATH({__VA_ARGS__}, "");                                                    \
-            auto mesg = ::testing::internal::GetCapturedStdout();                               \
-            ASSERT_THAT(mesg, ContainsRegex(errmsg));                                           \
-        } else {                                                                                \
-            std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n"; \
-        }                                                                                       \
+#define TEST_FAILURE(errmsg, ...)                             \
+    {                                                         \
+        ::testing::internal::CaptureStdout();                 \
+        ASSERT_ANY_THROW({__VA_ARGS__});                      \
+        auto mesg = ::testing::internal::GetCapturedStdout(); \
+        ASSERT_THAT(mesg, ContainsRegex(errmsg));             \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -52,7 +45,7 @@ extern bool verbose;
 
 class LAMMPSTest : public ::testing::Test {
 public:
-    void command(const std::string &line) { lmp->input->one(line.c_str()); }
+    void command(const std::string &line) { lmp->input->one(line); }
 
     void BEGIN_HIDE_OUTPUT()
     {
@@ -101,7 +94,7 @@ public:
 
     double get_variable_value(const std::string &name)
     {
-        char *str    = utils::strdup(fmt::format("v_{}", name));
+        char *str    = LAMMPS_NS::utils::strdup(fmt::format("v_{}", name));
         double value = lmp->input->variable->compute_equal(str);
         delete[] str;
         return value;
@@ -113,31 +106,21 @@ public:
     }
 
 protected:
-    std::string testbinary        = "LAMMPSTest";
-    std::vector<std::string> args = {"-log", "none", "-echo", "screen", "-nocite"};
+    std::string testbinary = "LAMMPSTest";
+    LAMMPS::argv args = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
 
     void SetUp() override
     {
-        int argc    = args.size() + 1;
-        char **argv = new char *[argc];
-        argv[0]     = utils::strdup(testbinary);
-        for (int i = 1; i < argc; i++) {
-            argv[i] = utils::strdup(args[i - 1]);
-        }
+        LAMMPS::argv full_args = {testbinary};
+        full_args.insert(full_args.end(), args.begin(), args.end());
 
         HIDE_OUTPUT([&] {
-            lmp  = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            lmp  = new LAMMPS(full_args, MPI_COMM_WORLD);
             info = new Info(lmp);
         });
         InitSystem();
-
-        for (int i = 0; i < argc; i++) {
-            delete[] argv[i];
-            argv[i] = nullptr;
-        }
-        delete[] argv;
     }
 
     virtual void InitSystem() {}

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,6 +32,7 @@ namespace LAMMPS_NS {
 // get access to number of threads and per-thread data structures via FixOMP
 #define NPAIR_OMP_INIT                 \
   const int nthreads = comm->nthreads; \
+  omp_set_num_threads(nthreads); \
   const int ifix = modify->find_fix("package_omp")
 
 // get thread id and then assign each thread a fixed chunk of atoms

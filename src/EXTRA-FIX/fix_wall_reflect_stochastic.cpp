@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,7 +31,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 enum{NONE,DIFFUSIVE,MAXWELL,CCL};
 
@@ -110,7 +109,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
       for (int dir = 0; dir < 3; dir++) {
         wallvel[nwall][dir]= utils::numeric(FLERR,arg[iarg+dir+3],false,lmp);
         int dim = wallwhich[nwall] / 2;
-        if ((wallvel[nwall][dir] !=0) & (dir == dim))
+        if ((wallvel[nwall][dir] != 0) & (dir == dim))
           error->all(FLERR,"The wall velocity must be tangential");
 
         // DIFFUSIVE = no accommodation coeffs

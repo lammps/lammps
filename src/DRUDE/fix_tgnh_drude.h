@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -63,8 +63,7 @@ class FixTGNHDrude : public Fix {
   double omega_mass[6];
   double p_current[6];
   int kspace_flag;               // 1 if KSpace invoked, 0 if not
-  int nrigid;                    // number of rigid fixes
-  int *rfix;                     // indices of rigid fixes
+  std::vector<Fix *> rfix;       // indices of rigid fixes
   class Irregular *irregular;    // for migrating atoms after box flips
 
   int nlevels_respa;

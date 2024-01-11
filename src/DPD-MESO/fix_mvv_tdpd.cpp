@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,8 +17,8 @@
    v and cc) using the modified velocity-Verlet (MVV) algorithm.
    Setting verlet = 0.5 recovers the standard velocity-Verlet algorithm.
 
-   Contributing author: Zhen Li (Brown University)
-   Email: zhen_li@brown.edu
+   Contributing author: Zhen Li (Clemson University)
+   Email: zli7@clemson.edu
 
    Please cite the related publication:
    Z. Li, A. Yazdani, A. Tartakovsky and G.E. Karniadakis. "Transport
@@ -27,11 +27,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mvv_tdpd.h"
-#include <cstring>
+
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -67,6 +69,18 @@ int FixMvvTDPD::setmask()
 
 void FixMvvTDPD::init()
 {
+  if (!atom->tdpd_flag) error->all(FLERR,"Fix mvv/tdpd requires atom style tdpd");
+
+  if (!force->pair_match("^tdpd",0)) {
+    if (force->pair_match("^hybrid",0)) {
+      if (!force->pair_match("^tdpd",0,1)) {
+        error->all(FLERR, "Must use pair style tdpd with fix mvv/tdpd");
+      }
+    } else {
+      error->all(FLERR, "Must use pair style tdpd with fix mvv/tdpd");
+    }
+  }
+
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }

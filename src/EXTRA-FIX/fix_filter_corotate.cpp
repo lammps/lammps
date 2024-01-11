@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
      LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
      https://www.lammps.org/, Sandia National Laboratories
-     Steve Plimpton, sjplimp@sandia.gov
+     LAMMPS development team: developers@lammps.org
 
      Copyright (2003) Sandia Corporation.  Under the terms of Contract
      DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,14 +46,14 @@ using namespace FixConst;
 #define MASSDELTA 0.1
 
 static const char cite_filter_corotate[] =
-  "Mollified Impulse Method with Corotational Filter:\n\n"
+  "Mollified Impulse Method with Corotational Filter: doi:10.1016/j.jcp.2016.12.024\n\n"
   "@Article{Fath2017,\n"
   " Title ="
-  "{A fast mollified impulse method for biomolecular atomistic simulations},\n"
-  " Author = {L. Fath and M. Hochbruck and C.V. Singh},\n"
+  "{A Fast Mollified Impulse Method for Biomolecular Atomistic Simulations},\n"
+  " Author = {L. Fath and M. Hochbruck and C. V. Singh},\n"
   " Journal = {Journal of Computational Physics},\n"
   " Year = {2017},\n"
-  " Pages = {180 - 198},\n"
+  " Pages = {180--198},\n"
   " Volume = {333},\n\n"
   " Doi = {https://doi.org/10.1016/j.jcp.2016.12.024},\n"
   " ISSN = {0021-9991},\n"
@@ -279,7 +279,7 @@ void FixFilterCorotate::init()
   // set ptrs to rRESPA variables
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
 
@@ -656,9 +656,9 @@ void FixFilterCorotate::pre_neighbor()
 
 void FixFilterCorotate::setup(int vflag)
 {
-  (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+  (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
   post_force_respa(vflag,nlevels_respa-1,0);
-  (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+  (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
 }
 
 void FixFilterCorotate::setup_pre_force_respa(int vflag,int ilevel) {

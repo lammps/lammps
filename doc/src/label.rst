@@ -6,7 +6,7 @@ label command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    label ID
 
@@ -38,7 +38,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-none
+:doc:`jump <jump>`, :doc:`next <next>`
 
 
 Default

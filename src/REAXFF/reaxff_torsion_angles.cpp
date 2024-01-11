@@ -11,7 +11,7 @@
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-  Algorithmic Techniques", Parallel Computing, in press.
+  Algorithmic Techniques", Parallel Computing, 38 (4-5), 245-259.
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -119,7 +119,6 @@ namespace ReaxFF {
     int type_i, type_j, type_k, type_l;
     int start_j, end_j;
     int start_pj, end_pj, start_pk, end_pk;
-    int num_frb_intrs = 0;
 
     double Delta_j, Delta_k;
     double r_ij, r_jk, r_kl, r_li;
@@ -242,7 +241,6 @@ namespace ReaxFF {
                   if (i != l && fbh->cnt &&
                        bo_kl->BO > control->thb_cut/*0*/ &&
                        bo_ij->BO * bo_jk->BO * bo_kl->BO > control->thb_cut/*0*/) {
-                    ++num_frb_intrs;
                     r_kl = pbond_kl->d;
                     BOA_kl = bo_kl->BO - control->thb_cut;
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,9 +28,9 @@ namespace platform {
   /*! Return the consumed CPU time for the current process in seconds
    *
    * This is a wrapper around the POSIX function getrusage() and its Windows equivalent.
-   * It is to be used in a similar fashion than MPI_Wtime(). Its resolution may
-   * be rather low so it can only be trusted when observing processes consuming at
-   * seconds or more of CPU time.
+   * It is to be used in a similar fashion than MPI_Wtime().  Its resolution may be rather
+   * low so it can only be trusted when observing processes consuming CPU time of at least
+   * a few seconds.
    *
    *  \return used CPU time in seconds */
 
@@ -38,8 +38,8 @@ namespace platform {
 
   /*! Return the wall clock state for the current process in seconds
    *
-   * This this clock is counting continuous time is initialized during
-   * Load of the executable/library. Its absolute value must be considered
+   * This this clock is counting continuous time and is initialized during
+   * load of the executable/library.  Its absolute value must be considered
    * arbitrary and thus elapsed wall times are measured in taking differences.
    * It is therefore to be used in a similar fashion as MPI_Wtime() but
    * has a different offset, usually leading to better resolution.
@@ -376,6 +376,15 @@ namespace platform {
    * \return true if file exists and is readable */
 
   bool file_is_readable(const std::string &path);
+
+  /*! Return free disk space in bytes of file system pointed to by path
+   *
+   * Returns -1.0 if the path is invalid or free space reporting not supported.
+   *
+   * \param path file or folder path in file system
+   * \return  */
+
+  double disk_free(const std::string &path);
 
   /*! Check if a file name ends in a known extension for a compressed file format
    *

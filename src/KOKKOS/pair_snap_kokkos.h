@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -97,6 +97,17 @@ class PairSNAPKokkos : public PairSNAP {
   static constexpr int tile_size_transform_bi = 2;
   static constexpr int tile_size_compute_yi = 2;
   static constexpr int team_size_compute_fused_deidrj = 2;
+#elif defined(KOKKOS_ENABLE_SYCL)
+  static constexpr int team_size_compute_neigh = 4;
+  static constexpr int tile_size_compute_ck = 4;
+  static constexpr int tile_size_pre_ui = 8;
+  static constexpr int team_size_compute_ui = 8;
+  static constexpr int tile_size_transform_ui = 8;
+  static constexpr int tile_size_compute_zi = 4;
+  static constexpr int tile_size_compute_bi = 4;
+  static constexpr int tile_size_transform_bi = 4;
+  static constexpr int tile_size_compute_yi = 8;
+  static constexpr int team_size_compute_fused_deidrj = 4;
 #else
   static constexpr int team_size_compute_neigh = 4;
   static constexpr int tile_size_compute_ck = 4;

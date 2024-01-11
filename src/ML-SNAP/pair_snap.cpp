@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -63,11 +63,8 @@ PairSNAP::~PairSNAP()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-
-  if (switchinnerflag) {
-    memory->destroy(sinnerelem);
-    memory->destroy(dinnerelem);
-  }
+  memory->destroy(sinnerelem);
+  memory->destroy(dinnerelem);
 
   memory->destroy(beta);
   memory->destroy(bispectrum);
@@ -129,7 +126,7 @@ void PairSNAP::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     snaptr->grow_rij(jnum);
 
@@ -302,7 +299,7 @@ void PairSNAP::compute_bispectrum()
     jlist = list->firstneigh[i];
     jnum = list->numneigh[i];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     snaptr->grow_rij(jnum);
 
@@ -402,7 +399,7 @@ void PairSNAP::coeff(int narg, char **arg)
     // ncoeffall should be (ncoeff+2)*(ncoeff+1)/2
     // so, ncoeff = floor(sqrt(2*ncoeffall))-1
 
-    ncoeff = sqrt(2*ncoeffall)-1;
+    ncoeff = sqrt(2.0*ncoeffall)-1;
     ncoeffq = (ncoeff*(ncoeff+1))/2;
     int ntmp = 1+ncoeff+ncoeffq;
     if (ntmp != ncoeffall) {
@@ -798,6 +795,8 @@ double PairSNAP::memory_usage()
 
   return bytes;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void *PairSNAP::extract(const char *str, int &dim)
 {

@@ -27,7 +27,6 @@ Examples
 .. code-block:: LAMMPS
 
    write_restart restart.equil
-   write_restart restart.equil.mpiio
    write_restart poly.%.* nfile 10
 
 Description
@@ -52,32 +51,6 @@ restart.P-1.  This creates smaller files and can be a fast mode of
 output and subsequent input on parallel machines that support parallel
 I/O.  The optional *fileper* and *nfile* keywords discussed below can
 alter the number of files written.
-
-The restart file can also be written in parallel as one large binary
-file via the MPI-IO library, which is part of the MPI standard for
-versions 2.0 and above.  Using MPI-IO requires two steps.  First,
-build LAMMPS with its MPIIO package installed, e.g.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         cmake . -DPKG_MPIIO=on  # enables the MPIIO package in the build folder
-         cmake --build .         # recompiles LAMMPS with the package code included
-
-   .. tab:: Traditional make
-
-      .. code-block:: bash
-
-         make yes-mpiio    # installs the MPIIO package
-         make mpi          # build LAMMPS for your platform
-
-Second, use a restart filename which contains ".mpiio".  Note that it
-does not have to end in ".mpiio", just contain those characters.
-Unlike MPI-IO dump files, a particular restart file must be both
-written and read using MPI-IO.
 
 Restart files can be read by a :doc:`read_restart <read_restart>`
 command to restart a simulation from a particular state.  Because the
@@ -127,9 +100,6 @@ This command requires inter-processor communication to migrate atoms
 before the restart file is written.  This means that your system must
 be ready to perform a simulation before using this command (force
 fields setup, atom masses initialized, etc).
-
-To write and read restart files in parallel with MPI-IO, the MPIIO
-package must be installed.
 
 Related commands
 """"""""""""""""

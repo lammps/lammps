@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -289,7 +289,7 @@ void PairCoulTT::init_style()
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (utils::strmatch(modify->fix[ifix]->style,"^drude")) break;
   if (ifix == modify->nfix) error->all(FLERR, "Pair coul/tt requires fix drude");
-  fix_drude = dynamic_cast<FixDrude *>( modify->fix[ifix]);
+  fix_drude = dynamic_cast<FixDrude *>(modify->fix[ifix]);
 
   neighbor->add_request(this);
 }

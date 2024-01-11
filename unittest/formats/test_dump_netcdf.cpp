@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,6 +31,7 @@ using ::testing::Eq;
 char *NCDUMP_EXECUTABLE = nullptr;
 bool verbose            = false;
 
+namespace LAMMPS_NS {
 class DumpNetCDFTest : public MeltTest {
     std::string dump_style = "netcdf";
 
@@ -386,6 +387,7 @@ TEST_F(DumpNetCDFTest, run0_mpi)
     }
     delete_file(dump_file);
 }
+} // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {
@@ -394,7 +396,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

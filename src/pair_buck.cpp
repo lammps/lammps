@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,6 +32,7 @@ using namespace MathConst;
 
 PairBuck::PairBuck(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -396,6 +397,34 @@ double PairBuck::single(int /*i*/, int /*j*/, int itype, int jtype,
   phibuck = a[itype][jtype]*rexp - c[itype][jtype]*r6inv -
     offset[itype][jtype];
   return factor_lj*phibuck;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBuck::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double rinv, r2inv, r6inv, r7inv, r8inv, du, du2;
+  double r, rexp;
+
+  r = sqrt(rsq);
+  rexp = exp(-r*rhoinv[itype][jtype]);
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r6inv = r2inv * r2inv * r2inv;
+  r7inv = r6inv * rinv;
+  r8inv = r6inv * r2inv;
+
+  // Reminder: buck1[itype][jtype] = a[itype][jtype]/rho[itype][jtype];
+  // Reminder: buck2[itype][jtype] = 6.0*c[itype][jtype];
+
+  du = buck2[itype][jtype] * r7inv - buck1[itype][jtype] * rexp;
+  du2 = (buck1[itype][jtype] / rho[itype][jtype]) * rexp - 7 * buck2[itype][jtype] * r8inv;
+
+  dupair = factor_lj * du;
+  du2pair = factor_lj * du2;
 }
 
 /* ---------------------------------------------------------------------- */

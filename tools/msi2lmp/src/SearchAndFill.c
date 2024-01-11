@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #if defined(_WIN32)
 #define strdup(x) _strdup(x)
@@ -48,6 +49,7 @@ const char *SearchAndCheck(const char *keyword)
       fprintf(stderr," Exiting....\n");
       exit(1);
     }
+    if (has_utf8(line)) utf8_subst(line);
     if (line[0] == '@') {
       if (string_match(strtok(line+1," '\t\n\r\f("),keyword)) {
         got_it = 1;
@@ -82,6 +84,7 @@ void SearchAndFill(struct FrcFieldItem *item)
       fprintf(stderr," Exiting....\n");
       exit(1);
     }
+    if (has_utf8(line)) utf8_subst(line);
     if (line[0] == '#') {
       if (string_match(strtok(line," '\t\r\n("),item->keyword)) got_it = 1;
     }
@@ -89,10 +92,14 @@ void SearchAndFill(struct FrcFieldItem *item)
   }
 
   file_pos = ftell(FrcF);
+  if (file_pos < 0) {
+    fprintf(stderr, "Could not obtain file stream position: %s\n", strerror(errno));
+    exit(2);
+  }
 
   /* Count the number of lines until next item is found */
 
-  while( strncmp(fgets(line,MAX_LINE_LENGTH,FrcF), "#", 1) != 0 )
+  while (strncmp(fgets(line,MAX_LINE_LENGTH,FrcF), "#", 1) != 0 )
     ctr++;
 
   /* Allocate the memory using calloc */
@@ -108,7 +115,10 @@ void SearchAndFill(struct FrcFieldItem *item)
 
   /* Read lines until keyword is found */
 
-  fseek(FrcF,file_pos,SEEK_SET);
+  if (fseek(FrcF,file_pos,SEEK_SET) < 0) {
+    fprintf(stderr, "Resetting file stream failed: %s\n", strerror(errno));
+    exit(2);
+  }
   strcpy(line,"empty");
 
   /* Read lines until data starts (when !--- is found) */
@@ -116,13 +126,16 @@ void SearchAndFill(struct FrcFieldItem *item)
   ctr = 0;
   while ( strncmp(line,"!---", 4) != 0 ) {
     fgets(line, MAX_LINE_LENGTH, FrcF);
+    if (has_utf8(line)) utf8_subst(line);
   }
 
   /* Get first line of data that isn't commented out */
 
   fgets(line, MAX_LINE_LENGTH, FrcF);
+  if (has_utf8(line)) utf8_subst(line);
   while (strncmp(line,"!",1) == 0) {
     fgets( line, MAX_LINE_LENGTH, FrcF);
+    if (has_utf8(line)) utf8_subst(line);
   }
 
   /* Read data into structure */
@@ -225,11 +238,13 @@ void SearchAndFill(struct FrcFieldItem *item)
       ctr++;
     }
     fgets( line, MAX_LINE_LENGTH, FrcF);
+    if (has_utf8(line)) utf8_subst(line);
+
     /*if blank line encountered, get next */
-    while((blank_line(line)) ||
-          (strncmp(line,"!",1) == 0)) {
+    while((blank_line(line)) || (strncmp(line,"!",1) == 0)) {
       status = fgets( line, MAX_LINE_LENGTH, FrcF);
       if (status == NULL) break;
+      if (has_utf8(line)) utf8_subst(line);
     }
   }
   item->entries = ctr;

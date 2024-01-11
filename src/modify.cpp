@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -80,6 +80,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   list_timeflag = nullptr;
 
+  restart_pbc_any = 0;
   nfix_restart_global = 0;
   id_restart_global = style_restart_global = nullptr;
   state_restart_global = nullptr;
@@ -190,11 +191,7 @@ void Modify::init()
 
   for (i = 0; i < ncompute; i++) {
     compute[i]->init();
-    compute[i]->invoked_scalar = -1;
-    compute[i]->invoked_vector = -1;
-    compute[i]->invoked_array = -1;
-    compute[i]->invoked_peratom = -1;
-    compute[i]->invoked_local = -1;
+    compute[i]->init_flags();
   }
   addstep_compute_all(update->ntimestep);
 
@@ -792,12 +789,25 @@ int Modify::min_reset_ref()
 }
 
 /* ----------------------------------------------------------------------
+   reset grids for any Fix or Compute that uses distributed grids
+   called by load balancer when proc sub-domains change
+------------------------------------------------------------------------- */
+
+void Modify::reset_grid()
+{
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->pergrid_flag) fix[i]->reset_grid();
+  for (int i = 0; i < ncompute; i++)
+    if (compute[i]->pergrid_flag) compute[i]->reset_grid();
+}
+
+/* ----------------------------------------------------------------------
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 
 Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 {
-  if (narg < 3) error->all(FLERR, "Illegal fix command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "fix", error);
 
   // cannot define fix before box exists unless style is in exception list
   // don't like this way of checking for exceptions by adding fixes to list,
@@ -806,8 +816,12 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   //   since some fixes access domain settings in their constructor
   // nullptr must be last entry in this list
 
-  const char *exceptions[] = {"GPU",   "OMP", "INTEL",      "property/atom", "cmap",
-                              "cmap3", "rx",  "deprecated", "STORE/KIM",     nullptr};
+  // clang-format off
+  const char *exceptions[] =
+    {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
+     "deprecated", "STORE/KIM", "amoeba/pitorsion", "amoeba/bitorsion",
+     nullptr};
+  // clang-format on
 
   if (domain->box_exist == 0) {
     int m;
@@ -844,8 +858,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     int match = 0;
     if (strcmp(arg[2], fix[ifix]->style) == 0) match = 1;
     if (!match && trysuffix && lmp->suffix_enable) {
-      if (lmp->suffix) {
-        std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+      if (lmp->non_pair_suffix()) {
+        std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
         if (estyle == fix[ifix]->style) match = 1;
       }
       if (lmp->suffix2) {
@@ -875,8 +889,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   fix[ifix] = nullptr;
 
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp, narg, arg);
@@ -921,8 +935,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   // if yes, pass state info to the Fix so it can reset itself
 
   for (int i = 0; i < nfix_restart_global; i++)
-    if (strcmp(id_restart_global[i], fix[ifix]->id) == 0 &&
-        strcmp(style_restart_global[i], fix[ifix]->style) == 0) {
+    if ((strcmp(id_restart_global[i], fix[ifix]->id) == 0) &&
+        (utils::strip_style_suffix(fix[ifix]->style, lmp) == style_restart_global[i])) {
       fix[ifix]->restart(state_restart_global[i]);
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
@@ -986,7 +1000,7 @@ Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuf
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
 
-  if (narg < 3) error->all(FLERR, "Illegal replace_fix invocation");
+  if (narg < 3) error->all(FLERR, "Not enough arguments for replace_fix invocation");
   if (get_fix_by_id(arg[0])) error->all(FLERR, "Replace_fix ID {} is already in use", arg[0]);
 
   delete[] oldfix->id;
@@ -1024,16 +1038,11 @@ Fix *Modify::replace_fix(const std::string &oldfix, const std::string &fixcmd, i
 
 void Modify::modify_fix(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal fix_modify command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify", error);
 
-  // lookup Fix ID
-
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(arg[0], fix[ifix]->id) == 0) break;
-  if (ifix == nfix) error->all(FLERR, "Could not find fix_modify ID {}", arg[0]);
-
-  fix[ifix]->modify_params(narg - 1, &arg[1]);
+  auto ifix = get_fix_by_id(arg[0]);
+  if (!ifix) error->all(FLERR, "Could not find fix_modify ID {}", arg[0]);
+  ifix->modify_params(narg - 1, &arg[1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1072,7 +1081,7 @@ int Modify::find_fix(const std::string &id)
 {
   if (id.empty()) return -1;
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (id == fix[ifix]->id) return ifix;
+    if (fix[ifix] && (id == fix[ifix]->id)) return ifix;
   return -1;
 }
 
@@ -1085,7 +1094,7 @@ Fix *Modify::get_fix_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (id == fix[ifix]->id) return fix[ifix];
+    if (fix[ifix] && (id == fix[ifix]->id)) return fix[ifix];
   return nullptr;
 }
 
@@ -1099,9 +1108,9 @@ const std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) cons
   std::vector<Fix *> matches;
   if (style.empty()) return matches;
 
-  for (int ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
-
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (fix[ifix] && utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
+  }
   return matches;
 }
 
@@ -1224,13 +1233,11 @@ int Modify::check_rigid_list_overlap(int *select)
 
 Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute", error);
 
   // error check
 
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(arg[0], compute[icompute]->id) == 0)
-      error->all(FLERR, "Reuse of compute ID '{}'", arg[0]);
+  if (get_compute_by_id(arg[0])) error->all(FLERR, "Reuse of compute ID '{}'", arg[0]);
 
   // extend Compute list if necessary
 
@@ -1246,8 +1253,8 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
   compute[ncompute] = nullptr;
 
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp, narg, arg);
@@ -1297,16 +1304,13 @@ Compute *Modify::add_compute(const std::string &computecmd, int trysuffix)
 
 void Modify::modify_compute(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal compute_modify command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "compute_modify", error);
 
   // lookup Compute ID
 
-  int icompute;
-  for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(arg[0], compute[icompute]->id) == 0) break;
-  if (icompute == ncompute) error->all(FLERR, "Could not find compute_modify ID {}", arg[0]);
-
-  compute[icompute]->modify_params(narg - 1, &arg[1]);
+  auto icompute = get_compute_by_id(arg[0]);
+  if (!icompute) error->all(FLERR, "Could not find compute_modify ID {}", arg[0]);
+  icompute->modify_params(narg - 1, &arg[1]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1341,7 +1345,7 @@ int Modify::find_compute(const std::string &id)
 {
   if (id.empty()) return -1;
   for (int icompute = 0; icompute < ncompute; icompute++)
-    if (id == compute[icompute]->id) return icompute;
+    if (compute[icompute] && (id == compute[icompute]->id)) return icompute;
   return -1;
 }
 
@@ -1354,7 +1358,7 @@ Compute *Modify::get_compute_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (int icompute = 0; icompute < ncompute; icompute++)
-    if (id == compute[icompute]->id) return compute[icompute];
+    if (compute[icompute] && (id == compute[icompute]->id)) return compute[icompute];
   return nullptr;
 }
 
@@ -1368,9 +1372,10 @@ const std::vector<Compute *> Modify::get_compute_by_style(const std::string &sty
   std::vector<Compute *> matches;
   if (style.empty()) return matches;
 
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (utils::strmatch(compute[icompute]->style, style)) matches.push_back(compute[icompute]);
-
+  for (int icompute = 0; icompute < ncompute; icompute++) {
+    if (compute[icompute] && utils::strmatch(compute[icompute]->style, style))
+      matches.push_back(compute[icompute]);
+  }
   return matches;
 }
 
@@ -1454,9 +1459,10 @@ void Modify::write_restart(FILE *fp)
         n = strlen(fix[i]->id) + 1;
         fwrite(&n, sizeof(int), 1, fp);
         fwrite(fix[i]->id, sizeof(char), n, fp);
-        n = strlen(fix[i]->style) + 1;
+        auto fix_style = utils::strip_style_suffix(fix[i]->style, lmp);
+        n = fix_style.size() + 1;
         fwrite(&n, sizeof(int), 1, fp);
-        fwrite(fix[i]->style, sizeof(char), n, fp);
+        fwrite(fix_style.c_str(), sizeof(char), n, fp);
       }
       fix[i]->write_restart(fp);
     }

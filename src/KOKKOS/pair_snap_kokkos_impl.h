@@ -63,10 +63,6 @@ PairSNAPKokkos<DeviceType, real_type, vector_length>::PairSNAPKokkos(LAMMPS *lmp
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  k_cutsq = tdual_fparams("PairSNAPKokkos::cutsq",atom->ntypes+1,atom->ntypes+1);
-  auto d_cutsq = k_cutsq.template view<DeviceType>();
-  rnd_cutsq = d_cutsq;
-
   host_flag = (execution_space == Host);
 }
 
@@ -106,9 +102,9 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
   neighflag = lmp->kokkos->neighflag;
 
   auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair snap/kk");
 }
@@ -546,6 +542,9 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::allocate()
 
   int n = atom->ntypes;
   MemKK::realloc_kokkos(d_map,"PairSNAPKokkos::map",n+1);
+
+  MemKK::realloc_kokkos(k_cutsq,"PairSNAPKokkos::cutsq",n+1,n+1);
+  rnd_cutsq = k_cutsq.template view<DeviceType>();
 }
 
 

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_CORE_FWD_HPP
 #define KOKKOS_CORE_FWD_HPP
@@ -54,6 +26,7 @@
 // and compiler environment then sets a collection of #define macros.
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_Printf.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 
@@ -62,11 +35,15 @@
 #endif
 
 //----------------------------------------------------------------------------
-// Have assumed a 64bit build (8byte pointers) throughout the code base.
-
+// Have assumed a 64-bit build (8-byte pointers) throughout the code base.
+// 32-bit build allowed but unsupported.
+#ifdef KOKKOS_IMPL_32BIT
+static_assert(sizeof(void *) == 4,
+              "Kokkos assumes 64-bit build; i.e., 4-byte pointers");
+#else
 static_assert(sizeof(void *) == 8,
               "Kokkos assumes 64-bit build; i.e., 8-byte pointers");
-
+#endif
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
@@ -134,8 +111,7 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Cuda;
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
     Experimental::OpenMPTarget;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
-using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
-    Experimental::HIP;
+using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = HIP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
     Experimental::SYCL;
@@ -153,7 +129,7 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Serial;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::Experimental::HIP, Kokkos::Experimental::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::Experimental::OpenACC, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::HIP, Kokkos::Experimental::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::Experimental::OpenACC, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
@@ -183,6 +159,50 @@ using DefaultHostExecutionSpace KOKKOS_IMPL_DEFAULT_HOST_EXEC_SPACE_ANNOTATION =
 #else
 #error \
     "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
+#endif
+
+// check for devices that support sharedSpace
+#if defined(KOKKOS_ENABLE_CUDA)
+using SharedSpace = CudaUVMSpace;
+#define KOKKOS_HAS_SHARED_SPACE
+#elif defined(KOKKOS_ENABLE_HIP)
+using SharedSpace = HIPManagedSpace;
+#define KOKKOS_HAS_SHARED_SPACE
+#elif defined(KOKKOS_ENABLE_SYCL)
+using SharedSpace = Experimental::SYCLSharedUSMSpace;
+#define KOKKOS_HAS_SHARED_SPACE
+// if only host compile point to HostSpace
+#elif !defined(KOKKOS_ENABLE_OPENACC) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+using SharedSpace               = HostSpace;
+#define KOKKOS_HAS_SHARED_SPACE
+#endif
+
+inline constexpr bool has_shared_space =
+#if defined KOKKOS_HAS_SHARED_SPACE
+    true;
+#else
+    false;
+#endif
+
+#if defined(KOKKOS_ENABLE_CUDA)
+using SharedHostPinnedSpace = CudaHostPinnedSpace;
+#define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
+#elif defined(KOKKOS_ENABLE_HIP)
+using SharedHostPinnedSpace = HIPHostPinnedSpace;
+#define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
+#elif defined(KOKKOS_ENABLE_SYCL)
+    using SharedHostPinnedSpace = Experimental::SYCLHostUSMSpace;
+#define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
+#elif !defined(KOKKOS_ENABLE_OPENACC) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+    using SharedHostPinnedSpace = HostSpace;
+#define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
+#endif
+
+inline constexpr bool has_shared_host_pinned_space =
+#if defined KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
+    true;
+#else
+    false;
 #endif
 
 }  // namespace Kokkos
@@ -241,42 +261,6 @@ KOKKOS_FUNCTION void runtime_check_memory_access_violation(
               msg);))
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA) && \
-    defined(KOKKOS_ENABLE_CUDA)
-using ActiveExecutionMemorySpace KOKKOS_DEPRECATED = Kokkos::CudaSpace;
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL)
-using ActiveExecutionMemorySpace KOKKOS_DEPRECATED =
-    Kokkos::Experimental::SYCLDeviceUSMSpace;
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
-using ActiveExecutionMemorySpace KOKKOS_DEPRECATED =
-    Kokkos::Experimental::HIPSpace;
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-using ActiveExecutionMemorySpace KOKKOS_DEPRECATED = Kokkos::HostSpace;
-#else
-using ActiveExecutionMemorySpace KOKKOS_DEPRECATED = void;
-#endif
-
-template <typename DstMemorySpace, typename SrcMemorySpace>
-struct MemorySpaceAccess;
-
-template <typename DstMemorySpace, typename SrcMemorySpace,
-          bool = Kokkos::Impl::MemorySpaceAccess<DstMemorySpace,
-                                                 SrcMemorySpace>::accessible>
-struct verify_space {
-  KOKKOS_DEPRECATED KOKKOS_FUNCTION static void check() {}
-};
-
-template <typename DstMemorySpace, typename SrcMemorySpace>
-struct verify_space<DstMemorySpace, SrcMemorySpace, false> {
-  KOKKOS_DEPRECATED KOKKOS_FUNCTION static void check() {
-    Kokkos::abort(
-        "Kokkos::View ERROR: attempt to access inaccessible memory space");
-  };
-};
-#endif
-
 }  // namespace Impl
 
 namespace Experimental {
@@ -285,16 +269,6 @@ class LogicalMemorySpace;
 }
 
 }  // namespace Kokkos
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-#define KOKKOS_RESTRICT_EXECUTION_TO_DATA(DATA_SPACE, DATA_PTR)        \
-  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
-                             DATA_SPACE>::check();
-
-#define KOKKOS_RESTRICT_EXECUTION_TO_(DATA_SPACE)                      \
-  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
-                             DATA_SPACE>::check();
-#endif
 
 //----------------------------------------------------------------------------
 
@@ -324,12 +298,9 @@ template <class DstSpace, class SrcSpace,
           class Enable         = void>
 struct DeepCopy;
 
-template <typename ExecutionSpace, class DT, class... DP>
-struct ZeroMemset;
-
 template <class ViewType, class Layout = typename ViewType::array_layout,
           class ExecSpace = typename ViewType::execution_space,
-          int Rank = ViewType::Rank, typename iType = int64_t>
+          int Rank = ViewType::rank, typename iType = int64_t>
 struct ViewFill;
 
 template <class ViewTypeA, class ViewTypeB, class Layout, class ExecSpace,
@@ -356,10 +327,13 @@ class ParallelFor;
 ///
 /// This is an implementation detail of parallel_reduce.  Users should
 /// skip this and go directly to the nonmember function parallel_reduce.
-template <class FunctorType, class ExecPolicy, class ReducerType = InvalidType,
-          class ExecutionSpace = typename Impl::FunctorPolicyExecutionSpace<
-              FunctorType, ExecPolicy>::execution_space>
+template <typename CombinedFunctorReducerType, typename PolicyType,
+          typename ExecutionSpaceType>
 class ParallelReduce;
+
+template <typename FunctorType, typename FunctorAnalysisReducerType,
+          typename Enable = void>
+class CombinedFunctorReducer;
 
 /// \class ParallelScan
 /// \brief Implementation detail of parallel_scan.

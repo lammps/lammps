@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 #include <TestCuda_Category.hpp>
@@ -260,20 +232,18 @@ TEST(cuda, space_access) {
 }
 
 TEST(cuda, uvm) {
-  if (Kokkos::CudaUVMSpace::available()) {
-    int *uvm_ptr = static_cast<int *>(
-        Kokkos::kokkos_malloc<Kokkos::CudaUVMSpace>("uvm_ptr", sizeof(int)));
+  int *uvm_ptr = static_cast<int *>(
+      Kokkos::kokkos_malloc<Kokkos::CudaUVMSpace>("uvm_ptr", sizeof(int)));
 
-    *uvm_ptr = 42;
+  *uvm_ptr = 42;
 
-    Kokkos::Cuda().fence();
-    test_cuda_spaces_int_value<<<1, 1>>>(uvm_ptr);
-    Kokkos::Cuda().fence();
+  Kokkos::fence();
+  test_cuda_spaces_int_value<<<1, 1>>>(uvm_ptr);
+  Kokkos::fence();
 
-    EXPECT_EQ(*uvm_ptr, int(2 * 42));
+  EXPECT_EQ(*uvm_ptr, int(2 * 42));
 
-    Kokkos::kokkos_free<Kokkos::CudaUVMSpace>(uvm_ptr);
-  }
+  Kokkos::kokkos_free<Kokkos::CudaUVMSpace>(uvm_ptr);
 }
 
 template <class MemSpace, class ExecSpace>
@@ -370,6 +340,72 @@ struct TestViewCudaTexture {
 TEST(cuda, impl_view_texture) {
   TestViewCudaTexture<Kokkos::CudaSpace>::run();
   TestViewCudaTexture<Kokkos::CudaUVMSpace>::run();
+}
+
+// couldn't create a random-access subview of a view of const T in Kokkos::Cuda
+namespace issue_5594 {
+
+template <typename View>
+struct InitFunctor {
+  InitFunctor(const View &view) : view_(view) {}
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i) const { view_(i) = i; }
+  View view_;
+};
+
+template <typename V1, typename V2>
+struct Issue5594Functor {
+  Issue5594Functor(const V1 &v1) : v1_(v1) {}
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int i, int &lerr) const {
+    V2 v2(&v1_(0),
+          v1_.size());  // failure here -- create subview in execution space
+    lerr += v1_(i) != v2(i);  // check that subview is correct
+  }
+  V1 v1_;
+};
+
+template <typename View>
+View create_view() {
+  using execution_space = typename View::execution_space;
+  View view("", 10);
+  // MSVC+CUDA errors on CTAD here
+  InitFunctor<View> iota(view);
+  Kokkos::parallel_for("test_view_subview_const_randomaccess",
+                       Kokkos::RangePolicy<execution_space>(0, view.extent(0)),
+                       iota);
+  return view;
+}
+
+// creating a RandomAccess subview of a view of const T in Kokkos::Cuda
+template <typename Exec, typename Mem>
+void test_view_subview_const_randomaccess() {
+  using view_t         = Kokkos::View<int *, Mem>;
+  using view_const_t   = Kokkos::View<const int *, Mem>;
+  using u_view_const_t = Kokkos::View<
+      const int *, Mem,
+      Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess>>;
+
+  // create non-const view with known values
+  view_t nonConst = create_view<view_t>();
+  // get a const version of the values
+  view_const_t view(nonConst);
+
+  // create a subview in the execution space and check that it worked
+  Issue5594Functor<view_const_t, u_view_const_t> checker(view);
+  int errCount;
+  Kokkos::parallel_reduce("test_view_subview_const_randomaccess",
+                          Kokkos::RangePolicy<Exec>(0, view.extent(0)), checker,
+                          errCount);
+  EXPECT_TRUE(0 == errCount);
+}
+}  // namespace issue_5594
+
+TEST(cuda, view_subview_const_randomaccess) {
+  issue_5594::test_view_subview_const_randomaccess<Kokkos::Cuda,
+                                                   Kokkos::CudaSpace>();
+  issue_5594::test_view_subview_const_randomaccess<Kokkos::Cuda,
+                                                   Kokkos::CudaUVMSpace>();
 }
 
 }  // namespace Test

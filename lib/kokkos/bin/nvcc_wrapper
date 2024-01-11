@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This shell script (nvcc_wrapper) wraps both the host compiler and
 # NVCC, if you are building legacy C or C++ code with CUDA enabled.
@@ -229,11 +229,11 @@ do
     fi
     ;;
   #Handle known nvcc args
-  --dryrun|--verbose|--keep|--source-in-ptx|-src-in-ptx|--keep-dir*|-G|-lineinfo|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
+  --dryrun|--verbose|--keep|--source-in-ptx|-src-in-ptx|--keep-dir*|-G|-lineinfo|-extended-lambda|-expt-extended-lambda|-expt-relaxed-constexpr|--resource-usage|--fmad=*|--use_fast_math|--Wext-lambda-captures-this|-Wext-lambda-captures-this)
     cuda_args="$cuda_args $1"
     ;;
   #Handle more known nvcc args
-  --expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler)
+  --extended-lambda|--expt-extended-lambda|--expt-relaxed-constexpr|--Wno-deprecated-gpu-targets|-Wno-deprecated-gpu-targets|-allow-unsupported-compiler|--allow-unsupported-compiler)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
@@ -338,6 +338,24 @@ do
     std_flag=$corrected_std_flag
     shared_args="$shared_args $std_flag"
     ;;
+  --std=c++20|-std=c++20)
+    if [ -n "$std_flag" ]; then
+      warn_std_flag
+      shared_args=${shared_args/ $std_flag/}
+    fi
+    # NVCC only has C++20 from version 12 on
+    cuda_main_version=$([[ $(${nvcc_compiler} --version) =~ V([0-9]+) ]] && echo ${BASH_REMATCH[1]})
+    if [ ${cuda_main_version} -lt 12 ]; then
+      fallback_std_flag="-std=c++14"
+      # this is hopefully just occurring in a downstream project during CMake feature tests
+      # we really have no choice here but to accept the flag and change  to an accepted C++ standard
+      echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++14 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
+      std_flag=$fallback_std_flag
+    else
+      std_flag=$1
+    fi
+    shared_args="$shared_args $std_flag"
+    ;;
   --std=c++17|-std=c++17)
     if [ -n "$std_flag" ]; then
       warn_std_flag
@@ -389,7 +407,7 @@ do
   -Woverloaded-virtual)
     ;;
   #strip -Xcompiler because we add it
-  -Xcompiler)
+  -Xcompiler|--compiler-options)
     if [[ $2 != "-o" ]]; then
       if [ $first_xcompiler_arg -eq 1 ]; then
         xcompiler_args="$2"

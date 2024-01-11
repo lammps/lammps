@@ -4,7 +4,7 @@
 
 // Non Returning Atomic Operations
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(type,asm_type,reg_type) \
-inline __device__ void atomic_add(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ void device_atomic_add(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   asm volatile( \
           "{\n\t" \
           ".reg .pred p;\n\t" \
@@ -16,7 +16,7 @@ inline __device__ void atomic_add(type* dest, type value, __DESUL_IMPL_CUDA_ASM_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(type,asm_type,reg_type) \
-inline __device__ void atomic_sub(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ void device_atomic_sub(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   type neg_value = -value; \
   asm volatile( \
           "{\n\t" \
@@ -29,7 +29,7 @@ inline __device__ void atomic_sub(type* dest, type value, __DESUL_IMPL_CUDA_ASM_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_MIN(type,asm_type,reg_type) \
-inline __device__ void atomic_min(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ void device_atomic_min(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   asm volatile( \
           "{\n\t" \
           ".reg .pred p;\n\t" \
@@ -41,7 +41,7 @@ inline __device__ void atomic_min(type* dest, type value, __DESUL_IMPL_CUDA_ASM_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_MAX(type,asm_type,reg_type) \
-inline __device__ void atomic_max(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ void device_atomic_max(type* dest, type value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   asm volatile( \
           "{\n\t" \
           ".reg .pred p;\n\t" \
@@ -53,7 +53,7 @@ inline __device__ void atomic_max(type* dest, type value, __DESUL_IMPL_CUDA_ASM_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_INC(type,asm_type,reg_type) \
-inline __device__ void atomic_inc(type* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ void device_atomic_inc(type* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   type limit = desul::Impl::numeric_limits_max<type>::value; \
   asm volatile( \
           "{\n\t" \
@@ -66,7 +66,7 @@ inline __device__ void atomic_inc(type* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_DEC(type,asm_type,reg_type) \
-inline __device__ void atomic_dec(type* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ void device_atomic_dec(type* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   type limit = desul::Impl::numeric_limits_max<type>::value; \
   asm volatile( \
           "{\n\t" \
@@ -78,29 +78,48 @@ inline __device__ void atomic_dec(type* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER
     :: "l"(dest),reg_type(limit) : "memory"); \
 }
 
-// Group ops for integer types
-#define __DESUL_IMPL_CUDA_ASM_ATOMIC_INTEGER_OP(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_MIN(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_MAX(type,asm_type,reg_type)
-
-#define __DESUL_IMPL_CUDA_ASM_ATOMIC_UNSIGNED_OP(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_MIN(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_MAX(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_INC(type,asm_type,reg_type) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_DEC(type,asm_type,reg_type)
-
 // Instantiate Functions
+
+// General comments:
+//  - float/double only support add
+//  - inc/dec only supported with uint32_t
+//  - int64_t does not support add
+
+// floating point types
 __DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(float,".f32","f")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(float,".f32","f")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(double,".f64","d")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(double,".f64","d")
 
-__DESUL_IMPL_CUDA_ASM_ATOMIC_UNSIGNED_OP(uint32_t,".u32","r")
+// uint32_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(uint32_t,".u32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(uint32_t,".u32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MIN(uint32_t,".u32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MAX(uint32_t,".u32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_INC(uint32_t,".u32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_DEC(uint32_t,".u32","r")
 
-__DESUL_IMPL_CUDA_ASM_ATOMIC_INTEGER_OP(int64_t,".u64","l")
-__DESUL_IMPL_CUDA_ASM_ATOMIC_INTEGER_OP(int32_t,".s32","r")
-//__DESUL_IMPL_CUDA_ASM_ATOMIC_INTEGER_OP(int64_t,".s64","l")
+// uint64_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(uint64_t,".u64","l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(uint64_t,".u64","l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MIN(uint64_t,".u64","l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MAX(uint64_t,".u64","l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_INC(uint64_t,".u64","l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_DEC(uint64_t,".u64","l")
+
+// int32_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(int32_t,".s32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(int32_t,".s32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MIN(int32_t,".s32","r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MAX(int32_t,".s32","r")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_INC(int32_t,".s32","r")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_DEC(int32_t,".s32","r")
+
+// int64_t note: add/sub are using unsigned register!
+__DESUL_IMPL_CUDA_ASM_ATOMIC_ADD(int64_t,".u64","l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_SUB(int64_t,".u64","l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MIN(int64_t,".s64","l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_MAX(int64_t,".s64","l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_INC(int64_t,".s64","l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_DEC(int64_t,".s64","l")
+

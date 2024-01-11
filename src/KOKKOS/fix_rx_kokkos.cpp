@@ -130,9 +130,9 @@ void FixRxKokkos<DeviceType>::init()
   // built whenever re-neighboring occurs
 
   auto request = neighbor->add_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (lmp->kokkos->neighflag == FULL) request->enable_full();
 }
 

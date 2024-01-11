@@ -32,21 +32,12 @@ using LAMMPS_NS::LAMMPSException;
 
 using ::testing::ContainsRegex;
 
-#define TEST_FAILURE(errmsg, ...)                                                               \
-    if (Info::has_exceptions()) {                                                               \
-        ::testing::internal::CaptureStdout();                                                   \
-        ASSERT_ANY_THROW({__VA_ARGS__});                                                        \
-        auto mesg = ::testing::internal::GetCapturedStdout();                                   \
-        ASSERT_THAT(mesg, ContainsRegex(errmsg));                                               \
-    } else {                                                                                    \
-        if (LAMMPS_NS::platform::mpi_vendor() != "Open MPI") {                                             \
-            ::testing::internal::CaptureStdout();                                               \
-            ASSERT_DEATH({__VA_ARGS__}, "");                                                    \
-            auto mesg = ::testing::internal::GetCapturedStdout();                               \
-            ASSERT_THAT(mesg, ContainsRegex(errmsg));                                           \
-        } else {                                                                                \
-            std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n"; \
-        }                                                                                       \
+#define TEST_FAILURE(errmsg, ...)                             \
+    {                                                         \
+        ::testing::internal::CaptureStdout();                 \
+        ASSERT_ANY_THROW({__VA_ARGS__});                      \
+        auto mesg = ::testing::internal::GetCapturedStdout(); \
+        ASSERT_THAT(mesg, ContainsRegex(errmsg));             \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -115,31 +106,21 @@ public:
     }
 
 protected:
-    std::string testbinary        = "LAMMPSTest";
-    std::vector<std::string> args = {"-log", "none", "-echo", "screen", "-nocite"};
+    std::string testbinary = "LAMMPSTest";
+    LAMMPS::argv args = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
 
     void SetUp() override
     {
-        int argc    = args.size() + 1;
-        char **argv = new char *[argc];
-        argv[0]     = LAMMPS_NS::utils::strdup(testbinary);
-        for (int i = 1; i < argc; i++) {
-            argv[i] = LAMMPS_NS::utils::strdup(args[i - 1]);
-        }
+        LAMMPS::argv full_args = {testbinary};
+        full_args.insert(full_args.end(), args.begin(), args.end());
 
         HIDE_OUTPUT([&] {
-            lmp  = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            lmp  = new LAMMPS(full_args, MPI_COMM_WORLD);
             info = new Info(lmp);
         });
         InitSystem();
-
-        for (int i = 0; i < argc; i++) {
-            delete[] argv[i];
-            argv[i] = nullptr;
-        }
-        delete[] argv;
     }
 
     virtual void InitSystem() {}

@@ -1,52 +1,29 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_SYCL_INSTANCE_HPP_
 #define KOKKOS_SYCL_INSTANCE_HPP_
 
 #include <optional>
+// FIXME_SYCL
+#if __has_include(<sycl/sycl.hpp>)
+#include <sycl/sycl.hpp>
+#else
 #include <CL/sycl.hpp>
+#endif
 
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Profiling.hpp>
@@ -68,11 +45,14 @@ class SYCLInternal {
 
   sycl::device_ptr<void> scratch_space(const std::size_t size);
   sycl::device_ptr<void> scratch_flags(const std::size_t size);
-  sycl::device_ptr<void> resize_team_scratch_space(std::int64_t bytes,
+  int acquire_team_scratch_space();
+  sycl::device_ptr<void> resize_team_scratch_space(int scratch_pool_id,
+                                                   std::int64_t bytes,
                                                    bool force_shrink = false);
+  void register_team_scratch_event(int scratch_pool_id, sycl::event event);
 
   uint32_t impl_get_instance_id() const;
-  int m_syclDev = 0;
+  static int m_syclDev;
 
   size_t m_maxWorkgroupSize   = 0;
   uint32_t m_maxConcurrency   = 0;
@@ -85,8 +65,12 @@ class SYCLInternal {
   // mutex to access shared memory
   mutable std::mutex m_mutexScratchSpace;
 
-  int64_t m_team_scratch_current_size       = 0;
-  sycl::device_ptr<void> m_team_scratch_ptr = nullptr;
+  // Team Scratch Level 1 Space
+  static constexpr int m_n_team_scratch                               = 10;
+  mutable int64_t m_team_scratch_current_size[m_n_team_scratch]       = {};
+  mutable sycl::device_ptr<void> m_team_scratch_ptr[m_n_team_scratch] = {};
+  mutable int m_current_team_scratch                                  = 0;
+  mutable sycl::event m_team_scratch_event[m_n_team_scratch]          = {};
   mutable std::mutex m_team_scratch_mutex;
 
   uint32_t m_instance_id = Kokkos::Tools::Experimental::Impl::idForInstance<
@@ -346,10 +330,29 @@ struct sycl::is_device_copyable<
     Kokkos::Experimental::Impl::SYCLFunctionWrapper<Functor, Storage, false>>
     : std::true_type {};
 
+// FIXME_SYCL Remove when this specialization when specializations for
+// sycl::device_copyable also apply to const-qualified types.
+template <typename>
+struct NonTriviallyCopyableAndDeviceCopyable {
+  NonTriviallyCopyableAndDeviceCopyable(
+      const NonTriviallyCopyableAndDeviceCopyable&) {}
+};
+
+template <typename T>
+struct sycl::is_device_copyable<NonTriviallyCopyableAndDeviceCopyable<T>>
+    : std::true_type {};
+
+static_assert(
+    !std::is_trivially_copyable_v<
+        NonTriviallyCopyableAndDeviceCopyable<void>> &&
+    sycl::is_device_copyable_v<NonTriviallyCopyableAndDeviceCopyable<void>>);
+
 template <typename Functor, typename Storage>
 struct sycl::is_device_copyable<
     const Kokkos::Experimental::Impl::SYCLFunctionWrapper<Functor, Storage,
-                                                          false>>
+                                                          false>,
+    std::enable_if_t<!sycl::is_device_copyable_v<
+        const NonTriviallyCopyableAndDeviceCopyable<Functor>>>>
     : std::true_type {};
 #endif
 #endif

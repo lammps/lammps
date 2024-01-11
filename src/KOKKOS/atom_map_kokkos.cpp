@@ -215,7 +215,7 @@ void AtomKokkos::map_set()
     const tagint tag_i = l_tag_sorted(ii);
 
     int i_min = i;
-    int i_closest = MAXTAGINT;
+    int i_closest = MAXSMALLINT;
 
     // search atoms with same tag in the forward direction
 

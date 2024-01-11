@@ -183,4 +183,4 @@ Related commands
 Default
 """""""
 
-The option defaults are error = hard, message = yes, and path = ".".
+The option defaults are error = soft, message = yes, and path = ".".

@@ -24,6 +24,8 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr char special_chars[] = "{}[],&:*#?|-<>=!%@\\";
+
 /* ---------------------------------------------------------------------- */
 DumpYAML::DumpYAML(class LAMMPS *_lmp, int narg, char **args) :
     DumpCustom(_lmp, narg, args), thermo(false)
@@ -67,7 +69,12 @@ void DumpYAML::write_header(bigint ndump)
       const auto &fields = th->get_fields();
 
       thermo_data += "thermo:\n  - keywords: [ ";
-      for (int i = 0; i < nfield; ++i) thermo_data += fmt::format("{}, ", keywords[i]);
+      for (int i = 0; i < nfield; ++i) {
+        if (keywords[i].find_first_of(special_chars) == std::string::npos)
+          thermo_data += fmt::format("{}, ", keywords[i]);
+        else
+          thermo_data += fmt::format("'{}', ", keywords[i]);
+      }
       thermo_data += "]\n  - data: [ ";
 
       for (int i = 0; i < nfield; ++i) {
@@ -107,7 +114,12 @@ void DumpYAML::write_header(bigint ndump)
     if (domain->triclinic) fmt::print(fp, "  - [ {}, {}, {} ]\n", boxxy, boxxz, boxyz);
 
     fmt::print(fp, "keywords: [ ");
-    for (const auto &item : utils::split_words(columns)) fmt::print(fp, "{}, ", item);
+    for (const auto &item : utils::split_words(columns)) {
+      if (item.find_first_of(special_chars) == std::string::npos)
+        fmt::print(fp, "{}, ", item);
+      else
+        fmt::print(fp, "'{}', ", item);
+    }
     fputs(" ]\ndata:\n", fp);
   } else    // reset so that the remainder of the output is not multi-proc
     filewriter = 0;

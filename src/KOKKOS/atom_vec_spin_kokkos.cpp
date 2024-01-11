@@ -586,6 +586,38 @@ int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int n
   }
 }
 
+/* ----------------------------------------------------------------------
+   clear extra forces starting at atom N
+   nbytes = # of bytes to clear for a per-atom vector
+   include f b/c this is invoked from within SPIN pair styles
+------------------------------------------------------------------------- */
+
+void AtomVecSpinKokkos::force_clear(int n, size_t nbytes)
+{
+  int nzero = (double)nbytes/sizeof(double);
+
+  if (nzero) {
+    atomKK->k_fm.clear_sync_state(); // will be cleared below
+    atomKK->k_fm_long.clear_sync_state(); // will be cleared below
+
+    // local variables for lambda capture
+
+    auto l_fm = atomKK->k_fm.d_view;
+    auto l_fm_long = atomKK->k_fm_long.d_view;
+
+    Kokkos::parallel_for(nzero, LAMMPS_LAMBDA(int i) {
+      l_fm(i,0) = 0.0;
+      l_fm(i,1) = 0.0;
+      l_fm(i,2) = 0.0;
+      l_fm_long(i,0) = 0.0;
+      l_fm_long(i,1) = 0.0;
+      l_fm_long(i,2) = 0.0;
+    });
+
+    atomKK->modified(Device,FM_MASK|FML_MASK);
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomVecSpinKokkos::sync(ExecutionSpace space, unsigned int mask)

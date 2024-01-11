@@ -331,9 +331,9 @@ void PairEAMAlloyKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 
@@ -1477,7 +1477,7 @@ void PairEAMAlloyKokkos<DeviceType>::file2array_alloy()
 template<typename DeviceType>
 template<class TAG>
 struct PairEAMAlloyKokkos<DeviceType>::policyInstance {
-  KOKKOS_INLINE_FUNCTION
+
   static auto get(int inum) {
     auto policy = Kokkos::RangePolicy<DeviceType, TAG>(0,inum);
     return policy;
@@ -1488,7 +1488,7 @@ struct PairEAMAlloyKokkos<DeviceType>::policyInstance {
 template<>
 template<class TAG>
 struct PairEAMAlloyKokkos<Kokkos::Experimental::HIP>::policyInstance {
-  KOKKOS_INLINE_FUNCTION
+
   static auto get(int inum) {
     static_assert(t_ffloat_2d_n7::static_extent(2) == 7,
                   "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");

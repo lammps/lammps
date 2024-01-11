@@ -77,35 +77,44 @@ for individual fixes for info on which ones can be restarted.
 
 ----------
 
-Some fixes calculate one or more of four styles of quantities: global,
-per-atom, local, or per-grid, which can be used by other commands or
-output as described below.  A global quantity is one or more
-system-wide values, e.g. the energy of a wall interacting with
-particles.  A per-atom quantity is one or more values per atom,
-e.g. the displacement vector for each atom since time 0.  Per-atom
-values are set to 0.0 for atoms not in the specified fix group.  Local
-quantities are calculated by each processor based on the atoms it
-owns, but there may be zero or more per atoms.  Per-grid quantities
-are calculated on a regular 2d or 3d grid which overlays a 2d or 3d
-simulation domain.  The grid points and the data they store are
-distributed across processors; each processor owns the grid points
-which fall within its subdomain.
+Some fixes calculate and store any of four *styles* of quantities:
+global, per-atom, local, or per-grid.
 
-Note that a single fix typically produces either global or per-atom or
-local or per-grid values (or none at all).  It does not produce both
-global and per-atom.  It can produce local or per-grid values in
-tandem with global or per-atom values.  The fix doc page will explain
-the details.
+A global quantity is one or more system-wide values, e.g. the energy
+of a wall interacting with particles.  A per-atom quantity is one or
+more values per atom, e.g. the original coordinates of each atom at
+time 0.  Per-atom values are set to 0.0 for atoms not in the specified
+fix group.  Local quantities are calculated by each processor based on
+the atoms it owns, but there may be zero or more per atom, e.g. values
+for each bond.  Per-grid quantities are calculated on a regular 2d or
+3d grid which overlays a 2d or 3d simulation domain.  The grid points
+and the data they store are distributed across processors; each
+processor owns the grid points which fall within its subdomain.
 
-Global, per-atom, local, and per-grid quantities come in three kinds:
-a single scalar value, a vector of values, or a 2d array of values.
-The doc page for each fix describes the style and kind of values it
-produces, e.g. a per-atom vector.  Some fixes produce more than one
-kind of a single style, e.g. a global scalar and a global vector.
+As a general rule of thumb, fixes that produce per-atom quantities
+have the word "atom" at the end of their style, e.g. *ave/atom*\ .
+Fixes that produce local quantities have the word "local" at the end
+of their style, e.g. *store/local*\ .  Fixes that produce per-grid
+quantities have the word "grid" at the end of their style,
+e.g. *ave/grid*\ .
 
-When a fix quantity is accessed, as in many of the output commands
-discussed below, it can be referenced via the following bracket
-notation, where ID is the ID of the fix:
+Global, per-atom, local, and per-grid quantities can also be of three
+*kinds*: a single scalar value (global only), a vector of values, or a
+2d array of values.  For per-atom, local, and per-grid quantities, a
+"vector" means a single value for each atom, each local entity
+(e.g. bond), or grid cell.  Likewise an "array", means multiple values
+for each atom, each local entity, or each grid cell.
+
+Note that a single fix can produce any combination of global,
+per-atom, local, or per-grid values.  Likewise it can produce any
+combination of scalar, vector, or array output for each style.  The
+exception is that for per-atom, local, and per-grid output, either a
+vector or array can be produced, but not both.  The doc page for each
+fix explains the values it produces, if any.
+
+When a fix output is accessed by another input script command it is
+referenced via the following bracket notation, where ID is the ID of
+the fix:
 
 +-------------+--------------------------------------------+
 | f_ID        | entire scalar, vector, or array            |
@@ -116,19 +125,23 @@ notation, where ID is the ID of the fix:
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the
-quantity once (vector :math:`\to` scalar, array :math:`\to` vector).  Using two
-brackets reduces the dimension twice (array :math:`\to` scalar).  Thus, a
-command that uses scalar fix values as input can also process elements of a
-vector or array.
+quantity once (vector :math:`\to` scalar, array :math:`\to` vector).
+Using two brackets reduces the dimension twice (array :math:`\to`
+scalar).  Thus, for example, a command that uses global scalar fix
+values as input can also process elements of a vector or array.
+Depending on the command, this can either be done directly using the
+syntax in the table, or by first defining a :doc:`variable <variable>`
+of the appropriate style to store the quantity, then using the
+variable as an input to the command.
 
-Note that commands and :doc:`variables <variable>` that use fix
-quantities typically do not allow for all kinds (e.g., a command may
-require a vector of values, not a scalar), and even if they do, the context
-in which they are called can be used to resolve which output is being
-requested.  This means there is no
-ambiguity about referring to a fix quantity as f_ID even if it
-produces, for example, both a scalar and vector.  The doc pages for
-various commands explain the details.
+Note that commands and :doc:`variables <variable>` which take fix
+outputs as input typically do not allow for all styles and kinds of
+data (e.g., a command may require global but not per-atom values, or
+it may require a vector of values, not a scalar).  This means there is
+typically no ambiguity about referring to a fix output as c_ID even if
+it produces, for example, both a scalar and vector.  The doc pages for
+various commands explain the details, including how any ambiguities
+are resolved.
 
 ----------
 
@@ -268,13 +281,13 @@ accelerated styles exist.
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms
 * :doc:`move <fix_move>` - move atoms in a prescribed fashion
-* :doc:`mscg <fix_mscg>` - apply MSCG method for force-matching to generate coarse grain models
 * :doc:`msst <fix_msst>` - multi-scale shock technique (MSST) integration
 * :doc:`mvv/dpd <fix_mvv_dpd>` - DPD using the modified velocity-Verlet integration algorithm
 * :doc:`mvv/edpd <fix_mvv_dpd>` - constant energy DPD using the modified velocity-Verlet algorithm
 * :doc:`mvv/tdpd <fix_mvv_dpd>` - constant temperature DPD using the modified velocity-Verlet algorithm
 * :doc:`neb <fix_neb>` - nudged elastic band (NEB) spring forces
 * :doc:`neb/spin <fix_neb_spin>` - nudged elastic band (NEB) spring forces for spins
+* :doc:`nonaffine/displacement <fix_nonaffine_displacement>` - calculate nonaffine displacement of atoms
 * :doc:`nph <fix_nh>` - constant NPH time integration via Nose/Hoover
 * :doc:`nph/asphere <fix_nph_asphere>` - NPH for aspherical particles
 * :doc:`nph/body <fix_nph_body>` - NPH for body particles
@@ -334,6 +347,7 @@ accelerated styles exist.
 * :doc:`pour <fix_pour>` - pour new atoms/molecules into a granular simulation domain
 * :doc:`precession/spin <fix_precession_spin>` - apply a precession torque to each magnetic spin
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by Berendsen barostat
+* :doc:`press/langevin <fix_press_langevin>` - pressure control by Langevin barostat
 * :doc:`print <fix_print>` - print text and variables during a simulation
 * :doc:`propel/self <fix_propel_self>` - model self-propelled particles
 * :doc:`property/atom <fix_property_atom>` - add customized per-atom values

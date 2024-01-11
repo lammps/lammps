@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 /// \file Kokkos_UnorderedMap.hpp
 /// \brief Declaration and definition of Kokkos::UnorderedMap.
@@ -62,8 +34,7 @@
 
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_UnorderedMap_impl.hpp>
-
-#include <iostream>
+#include <impl/Kokkos_ViewCtor.hpp>
 
 #include <cstdint>
 
@@ -147,6 +118,36 @@ class UnorderedMapInsertResult {
   uint32_t m_status;
 };
 
+/// \class UnorderedMapInsertOpTypes
+///
+/// \brief Operations applied to the values array upon subsequent insertions.
+///
+/// The default behavior when a k,v pair already exists in the UnorderedMap is
+/// to perform no operation. Alternatively, the caller may select to
+/// instantiate the UnorderedMap with the AtomicAdd insert operator such that
+/// duplicate keys accumulate values into the given values array entry.
+/// \tparam ValueTypeView The UnorderedMap value array type.
+/// \tparam ValuesIdxType The index type for lookups in the value array.
+///
+/// Supported operations:
+///   NoOp:      the first key inserted stores the associated value.
+///   AtomicAdd: duplicate key insertions sum values together.
+template <class ValueTypeView, class ValuesIdxType>
+struct UnorderedMapInsertOpTypes {
+  using value_type = typename ValueTypeView::non_const_value_type;
+  struct NoOp {
+    KOKKOS_FUNCTION
+    void op(ValueTypeView, ValuesIdxType, const value_type) const {}
+  };
+  struct AtomicAdd {
+    KOKKOS_FUNCTION
+    void op(ValueTypeView values, ValuesIdxType values_idx,
+            const value_type v) const {
+      Kokkos::atomic_add(values.data() + values_idx, v);
+    }
+  };
+};
+
 /// \class UnorderedMap
 /// \brief Thread-safe, performance-portable lookup table.
 ///
@@ -214,7 +215,6 @@ class UnorderedMap {
  public:
   //! \name Public types and constants
   //@{
-
   // key_types
   using declared_key_type = Key;
   using key_type          = std::remove_const_t<declared_key_type>;
@@ -260,7 +260,6 @@ class UnorderedMap {
       UnorderedMap<Key, Value, host_mirror_space, Hasher, EqualTo>;
 
   using histogram_type = Impl::UnorderedMapHistogram<const_map_type>;
-
   //@}
 
  private:
@@ -291,42 +290,89 @@ class UnorderedMap {
  public:
   //! \name Public member functions
   //@{
+  using default_op_type =
+      typename UnorderedMapInsertOpTypes<value_type_view, uint32_t>::NoOp;
 
   /// \brief Constructor
   ///
   /// \param capacity_hint [in] Initial guess of how many unique keys will be
-  /// inserted into the map \param hash [in] Hasher function for \c Key
-  /// instances.  The
-  ///   default value usually suffices.
+  ///                           inserted into the map.
+  /// \param hash          [in] Hasher function for \c Key instances.  The
+  ///                           default value usually suffices.
+  /// \param equal_to      [in] The operator used for determining if two
+  ///                           keys are equal.
   UnorderedMap(size_type capacity_hint = 0, hasher_type hasher = hasher_type(),
                equal_to_type equal_to = equal_to_type())
-      : m_bounded_insert(true),
-        m_hasher(hasher),
-        m_equal_to(equal_to),
-        m_size(),
-        m_available_indexes(calculate_capacity(capacity_hint)),
-        m_hash_lists(view_alloc(WithoutInitializing, "UnorderedMap hash list"),
-                     Impl::find_hash_size(capacity())),
-        m_next_index(view_alloc(WithoutInitializing, "UnorderedMap next index"),
-                     capacity() + 1)  // +1 so that the *_at functions can
-                                      // always return a valid reference
-        ,
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-        m_keys("UnorderedMap keys", capacity() + 1),
-        m_values("UnorderedMap values", (is_set ? 1 : capacity() + 1)),
-#else
-        m_keys("UnorderedMap keys", capacity()),
-        m_values("UnorderedMap values", (is_set ? 0 : capacity())),
-#endif
-        m_scalars("UnorderedMap scalars") {
+      : UnorderedMap(Kokkos::view_alloc(), capacity_hint, hasher, equal_to) {}
+
+  template <class... P>
+  UnorderedMap(const Impl::ViewCtorProp<P...> &arg_prop,
+               size_type capacity_hint = 0, hasher_type hasher = hasher_type(),
+               equal_to_type equal_to = equal_to_type())
+      : m_bounded_insert(true), m_hasher(hasher), m_equal_to(equal_to) {
     if (!is_insertable_map) {
       Kokkos::Impl::throw_runtime_exception(
           "Cannot construct a non-insertable (i.e. const key_type) "
           "unordered_map");
     }
 
-    Kokkos::deep_copy(m_hash_lists, invalid_index);
-    Kokkos::deep_copy(m_next_index, invalid_index);
+    //! Ensure that allocation properties are consistent.
+    using alloc_prop_t = std::decay_t<decltype(arg_prop)>;
+    static_assert(alloc_prop_t::initialize,
+                  "Allocation property 'initialize' should be true.");
+    static_assert(
+        !alloc_prop_t::has_pointer,
+        "Allocation properties should not contain the 'pointer' property.");
+
+    /// Update allocation properties with 'label' and 'without initializing'
+    /// properties.
+    const auto prop_copy =
+        Impl::with_properties_if_unset(arg_prop, std::string("UnorderedMap"));
+    const auto prop_copy_noinit =
+        Impl::with_properties_if_unset(prop_copy, Kokkos::WithoutInitializing);
+
+    //! Initialize member views.
+    m_size = shared_size_t(Kokkos::view_alloc(
+        Kokkos::DefaultHostExecutionSpace{},
+        Impl::get_property<Impl::LabelTag>(prop_copy) + " - size"));
+
+    m_available_indexes =
+        bitset_type(Kokkos::Impl::with_updated_label(prop_copy, " - bitset"),
+                    calculate_capacity(capacity_hint));
+
+    m_hash_lists = size_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy_noinit, " - hash list"),
+        Impl::find_hash_size(capacity()));
+
+    m_next_index = size_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy_noinit, " - next index"),
+        capacity() + 1);  // +1 so that the *_at functions can always return a
+                          // valid reference
+
+    m_keys = key_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy, " - keys"), capacity());
+
+    m_values = value_type_view(
+        Kokkos::Impl::with_updated_label(prop_copy, " - values"),
+        is_set ? 0 : capacity());
+
+    m_scalars =
+        scalars_view(Kokkos::Impl::with_updated_label(prop_copy, " - scalars"));
+
+    /**
+     * Deep copies should also be done using the space instance if given.
+     * Instead of the if/else we could use the
+     * @c get_property_or_default, but giving even the default execution space
+     * instance will change the behavior of @c deep_copy.
+     */
+    if constexpr (alloc_prop_t::has_execution_space) {
+      const auto &space = Impl::get_property<Impl::ExecutionSpaceTag>(arg_prop);
+      Kokkos::deep_copy(space, m_hash_lists, invalid_index);
+      Kokkos::deep_copy(space, m_next_index, invalid_index);
+    } else {
+      Kokkos::deep_copy(m_hash_lists, invalid_index);
+      Kokkos::deep_copy(m_next_index, invalid_index);
+    }
   }
 
   void reset_failed_insert_flag() { reset_flag(failed_insert_idx); }
@@ -347,24 +393,13 @@ class UnorderedMap {
       const key_type tmp = key_type();
       Kokkos::deep_copy(m_keys, tmp);
     }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (is_set) {
-      const impl_value_type tmp = impl_value_type();
-      Kokkos::deep_copy(m_values, tmp);
-    }
-#endif
     Kokkos::deep_copy(m_scalars, 0);
-    m_size = 0;
+    m_size() = 0;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    return (m_keys.is_allocated() && m_values.is_allocated() &&
-            m_scalars.is_allocated());
-#else
     return (m_keys.is_allocated() && (is_set || m_values.is_allocated()) &&
             m_scalars.is_allocated());
-#endif
   }
 
   /// \brief Change the capacity of the the map
@@ -413,10 +448,10 @@ class UnorderedMap {
   size_type size() const {
     if (capacity() == 0u) return 0u;
     if (modified()) {
-      m_size = m_available_indexes.count();
+      m_size() = m_available_indexes.count();
       reset_flag(modified_idx);
     }
-    return m_size;
+    return m_size();
   }
 
   /// \brief The current number of failed insert() calls.
@@ -486,9 +521,18 @@ class UnorderedMap {
   /// \param v [in] The corresponding value to attempt to insert.  If
   ///   using this class as a set (with Value = void), then you need not
   ///   provide this value.
-  KOKKOS_INLINE_FUNCTION
-  insert_result insert(key_type const &k,
-                       impl_value_type const &v = impl_value_type()) const {
+  /// \param insert_op [in] The operator used for combining values if a
+  ///                       key already exists. See
+  ///                       Kokkos::UnorderedMapInsertOpTypes for more ops.
+  template <typename InsertOpType = default_op_type>
+  KOKKOS_INLINE_FUNCTION insert_result
+  insert(key_type const &k, impl_value_type const &v = impl_value_type(),
+         [[maybe_unused]] InsertOpType arg_insert_op = InsertOpType()) const {
+    if constexpr (is_set) {
+      static_assert(std::is_same_v<InsertOpType, default_op_type>,
+                    "Insert Operations are not supported on sets.");
+    }
+
     insert_result result;
 
     if (!is_insertable_map || capacity() == 0u ||
@@ -571,11 +615,14 @@ class UnorderedMap {
           // Previously claimed an unused entry that was not inserted.
           // Release this unused entry immediately.
           if (!m_available_indexes.reset(new_index)) {
-            KOKKOS_IMPL_DO_NOT_USE_PRINTF("Unable to free existing\n");
+            Kokkos::printf("Unable to free existing\n");
           }
         }
 
         result.set_existing(curr, free_existing);
+        if constexpr (!is_set) {
+          arg_insert_op.op(m_values, curr, v);
+        }
         not_done = false;
       }
       //------------------------------------------------------------
@@ -702,25 +749,9 @@ class UnorderedMap {
       !std::is_void<Dummy>::value,  // !is_set
       std::conditional_t<has_const_value, impl_value_type, impl_value_type &>>
   value_at(size_type i) const {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    return m_values[i < capacity() ? i : capacity()];
-#else
     KOKKOS_EXPECTS(i < capacity());
     return m_values[i];
-#endif
   }
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  template <typename Dummy = value_type>
-  KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Calling value_at for value_type==void is deprecated!")
-  KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
-      std::is_void<Dummy>::value,  // is_set
-      std::conditional_t<has_const_value, impl_value_type,
-                         impl_value_type &>> value_at(size_type /*i*/) const {
-    return m_values[0];
-  }
-#endif
 
   /// \brief Get the key with \c i as its direct index.
   ///
@@ -730,12 +761,8 @@ class UnorderedMap {
   /// kernel.
   KOKKOS_FORCEINLINE_FUNCTION
   key_type key_at(size_type i) const {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    return m_keys[i < capacity() ? i : capacity()];
-#else
     KOKKOS_EXPECTS(i < capacity());
     return m_keys[i];
-#endif
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
@@ -789,7 +816,7 @@ class UnorderedMap {
       tmp.m_bounded_insert    = src.m_bounded_insert;
       tmp.m_hasher            = src.m_hasher;
       tmp.m_equal_to          = src.m_equal_to;
-      tmp.m_size              = src.size();
+      tmp.m_size()            = src.m_size();
       tmp.m_available_indexes = bitset_type(src.capacity());
       tmp.m_hash_lists        = size_type_view(
           view_alloc(WithoutInitializing, "UnorderedMap hash list"),
@@ -882,7 +909,8 @@ class UnorderedMap {
   bool m_bounded_insert;
   hasher_type m_hasher;
   equal_to_type m_equal_to;
-  mutable size_type m_size;
+  using shared_size_t = View<size_type, Kokkos::DefaultHostExecutionSpace>;
+  shared_size_t m_size;
   bitset_type m_available_indexes;
   size_type_view m_hash_lists;
   size_type_view m_next_index;

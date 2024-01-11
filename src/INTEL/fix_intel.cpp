@@ -20,6 +20,7 @@
 #include "fix_intel.h"
 
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "neighbor.h"
@@ -470,6 +471,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
 
   int need_tag = 0;
   if (atom->molecular != Atom::ATOMIC || three_body_neighbor()) need_tag = 1;
+  if (domain->triclinic && force->newton_pair) need_tag = 1;
 
   // Clear buffers used for pair style
   char kmode[80];
@@ -551,6 +553,9 @@ void FixIntel::kspace_init_check()
 
   if (intel_pair == 0)
     error->all(FLERR,"Intel styles for kspace require intel pair style.");
+
+  if (utils::strmatch(update->integrate_style, "^verlet/split"))
+    error->all(FLERR,"Intel styles for kspace are not compatible with run_style verlet/split");
 }
 
 /* ---------------------------------------------------------------------- */

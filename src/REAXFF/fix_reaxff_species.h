@@ -15,7 +15,6 @@
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(reaxff/species,FixReaxFFSpecies);
-FixStyle(reax/c/species,FixReaxFFSpecies);
 // clang-format on
 #else
 
@@ -51,8 +50,6 @@ class FixReaxFFSpecies : public Fix {
   int *Mol2Spec;
   double *clusterID;
   AtomCoord *x0;
-
-  double bg_cut;
   double **BOCut;
 
   std::vector<std::string> del_species;

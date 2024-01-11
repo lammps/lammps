@@ -659,7 +659,7 @@ void DynMat::Define_Conversion_Factor()
 
    if (fabs(boltz - 1.) <= ZERO){        // LJ Unit
       eml2f = eml2fc = 1.;
-      delete funit;
+      delete[] funit;
       funit = new char[27];
       strcpy(funit,"sqrt(epsilon/(m.sigma^2))");
 

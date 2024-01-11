@@ -41,7 +41,7 @@ warning.
 LATTE package
 -------------
 
-.. deprecated:: TBD
+.. deprecated:: 15Jun2023
 
 The LATTE package with the fix latte command was removed from LAMMPS.
 This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`
@@ -85,6 +85,35 @@ The same functionality is available through
 :doc:`bond style mesocnt <bond_mesocnt>` and
 :doc:`angle style mesocnt <angle_mesocnt>`.
 
+MPIIO package
+-------------
+
+.. deprecated:: 21Nov2023
+
+The MPIIO package has been removed from LAMMPS since it was unmaintained
+for many years and thus not updated to incorporate required changes that
+had been applied to the corresponding non-MPIIO commands. As a
+consequence the MPIIO commands had become unreliable and sometimes
+crashing LAMMPS or corrupting data.  Similar functionality is available
+through the :ref:`ADIOS package <PKG-ADIOS>` and the :ref:`NETCDF
+package <PKG-NETCDF>`.  Also, the :doc:`dump_modify nfile or dump_modify
+fileper <dump_modify>` keywords may be used for an efficient way of
+writing out dump files when running on large numbers of processors.
+Similarly, the "nfile" and "fileper" keywords exist for restarts:
+see :doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
+:doc:`write_restart <write_restart>`.
+
+
+MSCG package
+------------
+
+.. deprecated:: 21Nov2023
+
+The MSCG package has been removed from LAMMPS since it was unmaintained
+for many years and instead superseded by the `OpenMSCG software
+<https://software.rcc.uchicago.edu/mscg/>`_ of the Voth group at the
+University of Chicago, which can be used independent from LAMMPS.
+
 REAX package
 ------------
 
@@ -96,6 +125,17 @@ threading parallelization through KOKKOS.  The new pair styles are not
 syntax compatible with the removed reax pair style, so input files will
 have to be adapted.  The REAXFF package was originally called
 USER-REAXC.
+
+USER-REAXC package
+------------------
+
+.. deprecated:: TBD
+
+The USER-REAXC package has been renamed to :ref:`REAXFF <PKG-REAXFF>`.
+In the process also the pair style and related fixes were renamed to use
+the "reaxff" string instead of "reax/c". For a while LAMMPS was maintaining
+backward compatibility by providing aliases for the styles.  These have
+been removed, so using "reaxff" is now *required*.
 
 USER-CUDA package
 -----------------

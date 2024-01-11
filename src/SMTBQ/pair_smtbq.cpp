@@ -204,7 +204,7 @@ PairSMTBQ::~PairSMTBQ()
   memory->destroy(potcov);
 
   memory->destroy(nvsm);
-  memory->destroy(vsm);;
+  memory->destroy(vsm);
   memory->destroy(flag_QEq);
 
   memory->destroy(nQEqall);
@@ -446,7 +446,7 @@ void PairSMTBQ::read_file(char *file)
       params[i].chi = values.next_double();
       params[i].dj = values.next_double();
 
-      if (strcmp(params[i].nom, "O") !=0) {
+      if (strcmp(params[i].nom, "O") != 0) {
         params[i].R = values.next_double();
         if ((comm->me == 0) && VERBOSE)
           utils::logmesg(lmp, " {} {} {} {} {}\n",label,params[i].ne,params[i].chi,
@@ -782,7 +782,7 @@ void PairSMTBQ::read_file(char *file)
         if (intparams[m].intsm == 0) continue;
 
         intparams[m].neig_cut = 1.2*intparams[m].r0;
-        if (strcmp(intparams[m].typepot,"second_moment") == 0 )
+        if (strcmp(intparams[m].typepot,"second_moment") == 0)
           if ((comm->me == 0) && VERBOSE)
             utils::logmesg(lmp, " Rc 1er voisin, typepot {} -> {} Ang\n",
                            intparams[m].typepot,intparams[m].neig_cut);
@@ -1020,7 +1020,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
       //    ----------------------------------------------
       if ( strcmp(intparams[m].typepot,"buck") == 0 ||
-           strcmp(intparams[m].typepot,"buckPlusAttr") ==0) {
+           strcmp(intparams[m].typepot,"buckPlusAttr") == 0) {
         //    ----------------------------------------------
 
         evdwl = 0.0; fpair =0.0;
@@ -1070,7 +1070,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
 
       //    -----------------------------------------------------------------
-      if (strcmp(intparams[m].typepot,"second_moment") != 0 ) continue;
+      if (strcmp(intparams[m].typepot,"second_moment") != 0) continue;
       //    -----------------------------------------------------------------
 
 
@@ -2575,7 +2575,7 @@ void PairSMTBQ::Charge()
   if (me == 0 && strcmp(Bavard,"false") != 0) {
     for (gp = 0; gp < nteam+1; gp++) {
       printf (" ++++ Groupe %d - Nox %d Ncat %d\n",gp,nQEqaall[gp],nQEqcall[gp]);
-      if (nQEqcall[gp] !=0 && nQEqaall[gp] !=0 )
+      if (nQEqcall[gp] != 0 && nQEqaall[gp] !=0 )
         printf (" neutralite des charges %f\n qtotc %f qtota %f\n",
                 qtotll,qtotcll[gp]/nQEqcall[gp],qtotall[gp]/nQEqaall[gp]);
       printf (" ---------------------------- \n");}
@@ -2641,7 +2641,7 @@ void PairSMTBQ::Charge()
 
     for (i = 0; i < nteam+1; i++) {
 
-      if (nQEqall[i] !=0) TransfAll[i] /= static_cast<double>(nQEqall[i]);
+      if (nQEqall[i] != 0) TransfAll[i] /= static_cast<double>(nQEqall[i]);
       enegchk[i] = enegmax[i] = 0.0;
     }
 
@@ -2665,7 +2665,7 @@ void PairSMTBQ::Charge()
 
 
     for (gp = 0; gp < nteam+1; gp++) {
-      if (nQEqall[gp] !=0) {
+      if (nQEqall[gp] != 0) {
         enegchk[gp] = enegchkall[gp]/static_cast<double>(nQEqall[gp]);
         enegmax[gp] = enegmaxall[gp];
       }
@@ -2729,7 +2729,7 @@ void PairSMTBQ::Charge()
   //   Statistique (ecart type)
   //   ------------------------
   for (i=0; i<nteam+1; i++) {
-    if (nQEqcall[i] !=0)
+    if (nQEqcall[i] != 0)
       { TransfAll[i+cluster] /= static_cast<double>(nQEqcall[i]) ;
         TransfAll[i+2*cluster] /= static_cast<double>(nQEqaall[i]) ;}
     sigmaa[i] = sigmac[i] = 0.0;

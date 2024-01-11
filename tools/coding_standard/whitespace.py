@@ -30,6 +30,7 @@ include:
     - lib/**
     - tools/coding_standard
     - tools/python
+    - tools/lammps-gui
     - unittest/**
 exclude:
     - lib/colvars/Install.py

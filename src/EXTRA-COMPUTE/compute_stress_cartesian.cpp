@@ -14,6 +14,7 @@
 #include "compute_stress_cartesian.h"
 
 #include "atom.h"
+#include "bond.h"
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"
@@ -61,14 +62,12 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_stress_cartesian);
 
-  // narg == 5 for one-dimensional and narg == 7 for two-dimensional
-  if (narg == 5)
-    dims = 1;
-  else if (narg == 7)
-    dims = 2;
-  else
-    error->all(FLERR, "Illegal compute stress/cartesian command. Illegal number of arguments.");
+  if (narg < 7) utils::missing_cmd_args(FLERR, "compute stress/cartesian", error);
 
+  // no triclinic boxes
+  if (domain->triclinic) error->all(FLERR, "Compute stress/cartesian requires an orthogonal box");
+
+  // Direction of first dimension
   if (strcmp(arg[3], "x") == 0)
     dir1 = 0;
   else if (strcmp(arg[3], "y") == 0)
@@ -78,14 +77,8 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
   else
     error->all(FLERR, "Illegal compute stress/cartesian direction: {}", arg[3]);
 
-  dir2 = 0;
   bin_width1 = utils::numeric(FLERR, arg[4], false, lmp);
-  bin_width2 = domain->boxhi[dir2] - domain->boxlo[dir2];
   nbins1 = (int) ((domain->boxhi[dir1] - domain->boxlo[dir1]) / bin_width1);
-  nbins2 = 1;
-
-  // no triclinic boxes
-  if (domain->triclinic) error->all(FLERR, "Compute stress/cartesian requires an orthogonal box");
 
   // adjust bin width if not a perfect match
   double tmp_binwidth = (domain->boxhi[dir1] - domain->boxlo[dir1]) / nbins1;
@@ -93,14 +86,23 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
     utils::logmesg(lmp, "Adjusting first bin width for compute {} from {:.6f} to {:.6f}\n", style,
                    bin_width1, tmp_binwidth);
   bin_width1 = tmp_binwidth;
+  invV = bin_width1;
 
   if (bin_width1 <= 0.0)
     error->all(FLERR, "Illegal compute stress/cartesian command. First bin width must be > 0");
   else if (bin_width1 > domain->boxhi[dir1] - domain->boxlo[dir1])
     error->all(FLERR, "Illegal compute stress/cartesian command. First bin width > box.");
 
-  invV = bin_width1;
-  if (dims == 2) {
+  // Direction of second dimension
+  if (strcmp(arg[5], "NULL") == 0) {
+    dims = 1;
+    dir2 = 0;
+    bin_width2 = domain->boxhi[dir2] - domain->boxlo[dir2];
+    nbins2 = 1;
+  } else {
+    dims = 2;
+
+    // Direction of first dimension
     if (strcmp(arg[5], "x") == 0)
       dir2 = 0;
     else if (strcmp(arg[5], "y") == 0)
@@ -134,7 +136,7 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 
   // check for variable box dimension
   int box_incompatible = 0;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (((dir1 == 0) && (ifix->box_change & Fix::BOX_CHANGE_X)) ||
         ((dir1 == 1) && (ifix->box_change & Fix::BOX_CHANGE_Y)) ||
         ((dir1 == 2) && (ifix->box_change & Fix::BOX_CHANGE_Z)))
@@ -148,6 +150,25 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
   }
   if (box_incompatible)
     error->all(FLERR, "Must not use compute stress/cartesian on variable box dimension");
+
+  // process optional args
+  if (narg > 7) {
+    compute_ke = false;
+    compute_pair = false;
+    compute_bond = false;
+    int iarg = 7;
+    while (iarg < narg) {
+      if (strcmp(arg[iarg], "ke") == 0)
+        compute_ke = true;
+      else if (strcmp(arg[iarg], "pair") == 0)
+        compute_pair = true;
+      else if (strcmp(arg[iarg], "bond") == 0)
+        compute_bond = true;
+      else
+        error->all(FLERR, "Unknown compute stress/cartesian keyword: {}", arg[iarg]);
+      iarg++;
+    }
+  }
 
   for (int i = 0; i < 3; i++)
     if ((dims == 1 && i != dir1) || (dims == 2 && (i != dir1 && i != dir2)))
@@ -229,13 +250,6 @@ void ComputeStressCartesian::init_list(int /* id */, NeighList *ptr)
 
 void ComputeStressCartesian::compute_array()
 {
-  int i, j, ii, jj, inum, jnum, itype, jtype;
-  int bin, bin1, bin2;
-  tagint itag, jtag;
-  double xtmp, ytmp, ztmp, delx, dely, delz;
-  double rsq, fpair, factor_coul, factor_lj;
-  int *ilist, *jlist, *numneigh, **firstneigh;
-
   double **x = atom->x;
   double **v = atom->v;
   double *mass = atom->mass;
@@ -251,13 +265,13 @@ void ComputeStressCartesian::compute_array()
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
+  int inum = list->inum;
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
 
   // Zero arrays
-  for (bin = 0; bin < nbins1 * nbins2; bin++) {
+  for (int bin = 0; bin < nbins1 * nbins2; bin++) {
     tdens[bin] = 0;
     tpkxx[bin] = 0;
     tpkyy[bin] = 0;
@@ -268,105 +282,129 @@ void ComputeStressCartesian::compute_array()
   }
 
   // calculate number density and kinetic contribution to pressure
-  for (i = 0; i < nlocal; i++) {
-    bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
-    bin2 = 0;
-    if (dims == 2) bin2 = (int) ((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
+  if (compute_ke) {
+    for (int i = 0; i < nlocal; i++) {
+      int bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
+      int bin2 = 0;
+      if (dims == 2) bin2 = (int) ((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
 
-    // Apply periodic boundary conditions and avoid out of range access
-    if (domain->periodicity[dir1] == 1) {
-      if (bin1 < 0)
-        bin1 = (bin1 + nbins1) % nbins1;
+      // Apply periodic boundary conditions and avoid out of range access
+      if (domain->periodicity[dir1] == 1) {
+        if (bin1 < 0)
+          bin1 = (bin1 + nbins1) % nbins1;
+        else if (bin1 >= nbins1)
+          bin1 = (bin1 - nbins1) % nbins1;
+      } else if (bin1 < 0)
+        bin1 = 0;
       else if (bin1 >= nbins1)
-        bin1 = (bin1 - nbins1) % nbins1;
-    } else if (bin1 < 0)
-      bin1 = 0;
-    else if (bin1 >= nbins1)
-      bin1 = nbins1 - 1;
+        bin1 = nbins1 - 1;
 
-    if (domain->periodicity[dir2] == 1) {
-      if (bin2 < 0)
-        bin2 = (bin2 + nbins2) % nbins2;
+      if (domain->periodicity[dir2] == 1) {
+        if (bin2 < 0)
+          bin2 = (bin2 + nbins2) % nbins2;
+        else if (bin2 >= nbins2)
+          bin2 = (bin2 - nbins2) % nbins2;
+      } else if (bin2 < 0)
+        bin2 = 0;
       else if (bin2 >= nbins2)
-        bin2 = (bin2 - nbins2) % nbins2;
-    } else if (bin2 < 0)
-      bin2 = 0;
-    else if (bin2 >= nbins2)
-      bin2 = nbins2 - 1;
+        bin2 = nbins2 - 1;
 
-    j = bin1 + bin2 * nbins1;
-    tdens[j] += 1;
-    tpkxx[j] += mass[type[i]] * v[i][0] * v[i][0];
-    tpkyy[j] += mass[type[i]] * v[i][1] * v[i][1];
-    tpkzz[j] += mass[type[i]] * v[i][2] * v[i][2];
+      int j = bin1 + bin2 * nbins1;
+      tdens[j] += 1;
+      tpkxx[j] += mass[type[i]] * v[i][0] * v[i][0];
+      tpkyy[j] += mass[type[i]] * v[i][1] * v[i][1];
+      tpkzz[j] += mass[type[i]] * v[i][2] * v[i][2];
+    }
   }
 
   // loop over neighbors of my atoms
-  // skip if I or J are not in group
-  // for newton = 0 and J = ghost atom,
-  //   need to ensure I,J pair is only output by one proc
-  //   use same itag,jtag logic as in Neighbor::neigh_half_nsq()
-  // for flag = 0, just count pair interactions within force cutoff
-  // for flag = 1, calculate requested output fields
+  if (compute_pair && force->pair) {
+    for (int ii = 0; ii < inum; ii++) {
+      int i = ilist[ii];
 
-  Pair *pair = force->pair;
-  double **cutsq = force->pair->cutsq;
+      // skip if I or J are not in group
+      if (!(mask[i] & groupbit)) continue;
 
-  double xi1, xi2;
+      double xi1 = x[i][dir1] - boxlo[dir1];
+      double xi2 = x[i][dir2] - boxlo[dir2];
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
+      for (int jj = 0; jj < numneigh[i]; jj++) {
+        int j = firstneigh[i][jj];
+        double factor_lj = special_lj[sbmask(j)];
+        double factor_coul = special_coul[sbmask(j)];
+        j &= NEIGHMASK;
+        if (!(mask[j] & groupbit)) continue;
 
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    xi1 = x[i][dir1] - boxlo[dir1];
-    xi2 = x[i][dir2] - boxlo[dir2];
-    itag = tag[i];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
-      j &= NEIGHMASK;
-      if (!(mask[j] & groupbit)) continue;
-
-      // itag = jtag is possible for long cutoffs that include images of self
-      // do calculation only on appropriate processor
-      if (newton_pair == 0 && j >= nlocal) {
-        jtag = tag[j];
-        if (itag > jtag) {
-          if ((itag + jtag) % 2 == 0) continue;
-        } else if (itag < jtag) {
-          if ((itag + jtag) % 2 == 1) continue;
-        } else {
-          if (x[j][2] < ztmp) continue;
-          if (x[j][2] == ztmp) {
-            if (x[j][1] < ytmp) continue;
-            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+        // for newton = 0 and J = ghost atom, need to ensure I,J pair is only output by one proc
+        // use same tag[i],tag[j] logic as in Neighbor::neigh_half_nsq()
+        if (newton_pair == 0 && j >= nlocal) {
+          if (tag[i] > tag[j]) {
+            if ((tag[i] + tag[j]) % 2 == 0) continue;
+          } else if (tag[i] < tag[j]) {
+            if ((tag[i] + tag[j]) % 2 == 1) continue;
+          } else {
+            // tag[i] = tag[j] is possible for long cutoffs that include images of self
+            if (x[j][2] < x[i][2]) continue;
+            if (x[j][2] == x[i][2]) {
+              if (x[j][1] < x[i][1]) continue;
+              if (x[j][1] == x[i][1] && x[j][0] < x[i][0]) continue;
+            }
           }
         }
+
+        double delx = x[j][0] - x[i][0];
+        double dely = x[j][1] - x[i][1];
+        double delz = x[j][2] - x[i][2];
+        double rsq = delx * delx + dely * dely + delz * delz;
+
+        // Check if inside cut-off
+        int itype = type[i];
+        int jtype = type[j];
+        if (rsq >= force->pair->cutsq[itype][jtype]) continue;
+
+        double fpair;
+        force->pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
+        compute_pressure(fpair, xi1, xi2, delx, dely, delz);
       }
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
+    }
+  }
 
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
+  // Loop over all bonds
+  if (compute_bond && force->bond) {
+    for (int i_bond = 0; i_bond < neighbor->nbondlist; i_bond++) {
+      // i == atom1, j == atom2
+      int i = neighbor->bondlist[i_bond][0];
+      int j = neighbor->bondlist[i_bond][1];
+      int btype = neighbor->bondlist[i_bond][2];
 
-      // Check if inside cut-off
-      if (rsq >= cutsq[itype][jtype]) continue;
-      pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
-      compute_pressure(fpair, xi1, xi2, delx, dely, delz);
+      // Skip if one of both atoms is not in group
+      if (!(mask[i] & groupbit)) continue;
+      if (!(mask[j] & groupbit)) continue;
+
+      // if newton_bond is off and atom2 is a ghost atom, only compute this on one processor
+      if (!force->newton_bond && j >= nlocal) {
+        if (tag[i] > tag[j]) {
+          if ((tag[i] + tag[j]) % 2 == 0) continue;
+        } else if (tag[i] < tag[j]) {
+          if ((tag[i] < tag[j]) % 2 == 1) continue;
+        }
+      }
+
+      double dx = x[j][0] - x[i][0];
+      double dy = x[j][1] - x[i][1];
+      double dz = x[j][2] - x[i][2];
+      double rsq = dx * dx + dy * dy + dz * dz;
+      double xi = x[i][dir1] - boxlo[dir1];
+      double yi = x[i][dir2] - boxlo[dir2];
+
+      double fbond;
+      force->bond->single(btype, rsq, i, j, fbond);
+      compute_pressure(fbond, xi, yi, dx, dy, dz);
     }
   }
 
   // normalize pressure
-  for (bin = 0; bin < nbins1 * nbins2; bin++) {
+  for (int bin = 0; bin < nbins1 * nbins2; bin++) {
     tdens[bin] *= invV;
     tpkxx[bin] *= invV;
     tpkyy[bin] *= invV;
@@ -386,9 +424,9 @@ void ComputeStressCartesian::compute_array()
   MPI_Allreduce(tpczz, pczz, nbins1 * nbins2, MPI_DOUBLE, MPI_SUM, world);
 
   // populate array to output.
-  for (bin = 0; bin < nbins1 * nbins2; bin++) {
-    array[bin][0] = (bin % nbins1 + 0.5) * bin_width1;
-    if (dims == 2) array[bin][1] = ((int) (bin / nbins1) + 0.5) * bin_width2;
+  for (int bin = 0; bin < nbins1 * nbins2; bin++) {
+    array[bin][0] = (bin % nbins1 + 0.5) * bin_width1 + boxlo[dir1];
+    if (dims == 2) array[bin][1] = ((int) (bin / nbins1) + 0.5) * bin_width2 + boxlo[dir2];
     array[bin][0 + dims] = dens[bin];
     array[bin][1 + dims] = pkxx[bin];
     array[bin][2 + dims] = pkyy[bin];
@@ -402,25 +440,26 @@ void ComputeStressCartesian::compute_array()
 void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi, double delx,
                                               double dely, double delz)
 {
-  int bin1, bin2, next_bin1, next_bin2;
   double la = 0.0, lb = 0.0, l_sum = 0.0;
   double rij[3] = {delx, dely, delz};
-  double l1 = 0.0, l2, rij1, rij2;
-  rij1 = rij[dir1];
-  rij2 = rij[dir2];
+  double rij1 = rij[dir1];
+  double rij2 = rij[dir2];
 
-  next_bin1 = (int) floor(xi / bin_width1);
-  next_bin2 = (int) floor(yi / bin_width2);
+  int next_bin1 = (int) floor(xi / bin_width1);
+  int next_bin2 = (int) floor(yi / bin_width2);
 
   // Integrating along line
   while (lb < 1.0) {
-    bin1 = next_bin1;
-    bin2 = next_bin2;
+    int bin1 = next_bin1;
+    int bin2 = next_bin2;
 
+    double l1;
     if (rij1 > 0)
       l1 = ((bin1 + 1) * bin_width1 - xi) / rij1;
     else
       l1 = (bin1 * bin_width1 - xi) / rij1;
+
+    double l2;
     if (rij2 > 0)
       l2 = ((bin2 + 1) * bin_width2 - yi) / rij2;
     else

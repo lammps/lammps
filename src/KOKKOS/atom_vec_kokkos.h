@@ -139,6 +139,8 @@ class AtomVecKokkos : virtual public AtomVec {
 
   DAT::tdual_int_1d k_count;
 
+ public:
+
   #ifdef LMP_KOKKOS_GPU
   template<class ViewType>
   Kokkos::View<typename ViewType::data_type,
@@ -149,7 +151,7 @@ class AtomVecKokkos : virtual public AtomVec {
     typedef Kokkos::View<typename ViewType::data_type,
                  typename ViewType::array_layout,
                  typename std::conditional<
-                   std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
+                   std::is_same_v<typename ViewType::execution_space,LMPDeviceType>,
                    LMPPinnedHostType,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
@@ -167,7 +169,7 @@ class AtomVecKokkos : virtual public AtomVec {
     typedef Kokkos::View<typename ViewType::data_type,
                  typename ViewType::array_layout,
                  typename std::conditional<
-                   std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
+                   std::is_same_v<typename ViewType::execution_space,LMPDeviceType>,
                    LMPPinnedHostType,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {

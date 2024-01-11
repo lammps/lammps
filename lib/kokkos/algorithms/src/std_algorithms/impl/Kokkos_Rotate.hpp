@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_STD_ALGORITHMS_ROTATE_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_ROTATE_IMPL_HPP
@@ -48,6 +20,7 @@
 #include <Kokkos_Core.hpp>
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
+#include "Kokkos_Reverse.hpp"
 #include <std_algorithms/Kokkos_Move.hpp>
 #include <std_algorithms/Kokkos_Distance.hpp>
 #include <string>
@@ -193,15 +166,17 @@ IteratorType rotate_with_pivot_in_right_half(const std::string& label,
 }
 
 template <class ExecutionSpace, class IteratorType>
-IteratorType rotate_impl(const std::string& label, const ExecutionSpace& ex,
-                         IteratorType first, IteratorType n_first,
-                         IteratorType last) {
+IteratorType rotate_exespace_impl(const std::string& label,
+                                  const ExecutionSpace& ex, IteratorType first,
+                                  IteratorType n_first, IteratorType last) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
   Impl::expect_valid_range(first, n_first);
   Impl::expect_valid_range(n_first, last);
 
+  // might be worth checking if for exespace we should do
+  // something similar to what we do for team since it avoids a new allocation
   namespace KE                     = ::Kokkos::Experimental;
   const auto num_elements          = KE::distance(first, last);
   const auto n_distance_from_first = KE::distance(first, n_first);
@@ -210,6 +185,31 @@ IteratorType rotate_impl(const std::string& label, const ExecutionSpace& ex,
   } else {
     return rotate_with_pivot_in_right_half(label, ex, first, n_first, last);
   }
+}
+
+template <class TeamHandleType, class IteratorType>
+KOKKOS_FUNCTION IteratorType rotate_team_impl(const TeamHandleType& teamHandle,
+                                              IteratorType first,
+                                              IteratorType n_first,
+                                              IteratorType last) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+  Impl::expect_valid_range(first, n_first);
+  Impl::expect_valid_range(n_first, last);
+
+  namespace KE = ::Kokkos::Experimental;
+
+  auto result = first + (last - n_first);
+  // first reverse the whole range
+  KE::Impl::reverse_team_impl(teamHandle, first, last);
+  // re-reverse each piece
+  KE::Impl::reverse_team_impl(teamHandle, first, result);
+  KE::Impl::reverse_team_impl(teamHandle, result, last);
+
+  // no need for barrier here since reverse already calls it
+
+  return result;
 }
 
 }  // namespace Impl

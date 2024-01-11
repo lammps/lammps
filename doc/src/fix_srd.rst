@@ -6,7 +6,7 @@ fix srd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
 
@@ -61,24 +61,30 @@ Description
 Treat a group of particles as stochastic rotation dynamics (SRD)
 particles that serve as a background solvent when interacting with big
 (colloidal) particles in groupbig-ID.  The SRD formalism is described
-in :ref:`(Hecht) <Hecht>`.  The key idea behind using SRD particles as a
-cheap coarse-grained solvent is that SRD particles do not interact
-with each other, but only with the solute particles, which in LAMMPS
-can be spheroids, ellipsoids, or line segments, or triangles, or rigid
-bodies containing multiple spheroids or ellipsoids or line segments
-or triangles.  The collision and rotation properties of the model
-imbue the SRD particles with fluid-like properties, including an
-effective viscosity.  Thus simulations with large solute particles can
-be run more quickly, to measure solute properties like diffusivity
-and viscosity in a background fluid.  The usual LAMMPS fixes for such
-simulations, such as :doc:`fix deform <fix_deform>`, :doc:`fix viscosity <fix_viscosity>`, and :doc:`fix nvt/sllod <fix_nvt_sllod>`,
-can be used in conjunction with the SRD model.
+in :ref:`(Hecht) <Hecht>`.  The same methodology is also called
+multi-particle collision dynamics (MPCD) in the literature.
 
-For more details on how the SRD model is implemented in LAMMPS, :ref:`this paper <Petersen1>` describes the implementation and usage of pure SRD
-fluids.  :ref:`This paper <Lechman>`, which is nearly complete, describes
-the implementation and usage of mixture systems (solute particles in
-an SRD fluid).  See the examples/srd directory for sample input
-scripts using SRD particles in both settings.
+The key idea behind using SRD particles as a cheap coarse-grained
+solvent is that SRD particles do not interact with each other, but
+only with the solute particles, which in LAMMPS can be spheroids,
+ellipsoids, or line segments, or triangles, or rigid bodies containing
+multiple spheroids or ellipsoids or line segments or triangles.  The
+collision and rotation properties of the model imbue the SRD particles
+with fluid-like properties, including an effective viscosity.  Thus
+simulations with large solute particles can be run more quickly, to
+measure solute properties like diffusivity and viscosity in a
+background fluid.  The usual LAMMPS fixes for such simulations, such
+as :doc:`fix deform <fix_deform>`, :doc:`fix viscosity
+<fix_viscosity>`, and :doc:`fix nvt/sllod <fix_nvt_sllod>`, can be
+used in conjunction with the SRD model.
+
+These 3 papers give more details on how the SRD model is implemented
+in LAMMPS.  :ref:`(Petersen) <Petersen1>` describes pure SRD fluid
+systems.  :ref:`(Bolintineanu1) <Bolintineanu1>` describes models
+where pure SRD fluids interact with boundary walls.
+:ref:`(Bolintineanu2) <Bolintineanu2>` describes mixture models where
+large colloidal particles are solvated by an SRD fluid.  See the
+``examples/srd`` directory for sample input scripts.
 
 This fix does two things:
 
@@ -357,28 +363,28 @@ These are the 12 quantities.  All are values for the current timestep,
 except for quantity 5 and the last three, each of which are
 cumulative quantities since the beginning of the run.
 
-* (1) # of SRD/big collision checks performed
-* (2) # of SRDs which had a collision
-* (3) # of SRD/big collisions (including multiple bounces)
-* (4) # of SRD particles inside a big particle
-* (5) # of SRD particles whose velocity was rescaled to be < Vmax
-* (6) # of bins for collision searching
-* (7) # of bins for SRD velocity rotation
-* (8) # of bins in which SRD temperature was computed
-* (9) SRD temperature
-* (10) # of SRD particles which have undergone max # of bounces
-* (11) max # of bounces any SRD particle has had in a single step
-* (12) # of reneighborings due to SRD particles moving too far
+(1) # of SRD/big collision checks performed
+(2) # of SRDs which had a collision
+(3) # of SRD/big collisions (including multiple bounces)
+(4) # of SRD particles inside a big particle
+(5) # of SRD particles whose velocity was rescaled to be < Vmax
+(6) # of bins for collision searching
+(7) # of bins for SRD velocity rotation
+(8) # of bins in which SRD temperature was computed
+(9) SRD temperature
+(10) # of SRD particles which have undergone max # of bounces
+(11) max # of bounces any SRD particle has had in a single step
+(12) # of reneighborings due to SRD particles moving too far
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This command can only be used if LAMMPS was built with the SRD
-package.  See the :doc:`Build package <Build_package>` doc
-page for more info.
+This command can only be used if LAMMPS was built with the SRD package.
+See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
@@ -404,6 +410,12 @@ no, and rescale = yes.
 **(Petersen)** Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
 Chem Phys, 132, 174106 (2010).
 
-.. _Lechman:
+.. _Bolintineanu1:
 
-**(Lechman)** Lechman, et al, in preparation (2010).
+**(Bolintineanu1)**
+Bolintineanu, Lechman, Plimpton, Grest, Phys Rev E, 86, 066703 (2012).
+
+.. _Bolintineanu2:
+
+**(Bolintineanu2)** Bolintineanu, Grest, Lechman, Pierce, Plimpton,
+Schunk, Comp Particle Mechanics, 1, 321-356 (2014).

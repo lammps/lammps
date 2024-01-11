@@ -94,7 +94,7 @@ namespace Granular_NS {
     void coeffs_to_local() override;
     void mix_coeffs(double *, double *) override;
    private:
-    int mixed_coefficients;    
+    int mixed_coefficients;
   };
 
   /* ---------------------------------------------------------------------- */
@@ -110,7 +110,7 @@ namespace Granular_NS {
    protected:
     double k, cohesion;
     double F_pulloff, Fne;
-    int mixed_coefficients;        
+    int mixed_coefficients;
   };
 
   /* ---------------------------------------------------------------------- */
@@ -129,7 +129,7 @@ namespace Granular_NS {
    protected:
     double k, cohesion;
     double Emix, F_pulloff, Fne;
-    int mixed_coefficients;    
+    int mixed_coefficients;
   };
 
 }    // namespace Granular_NS

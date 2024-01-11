@@ -37,12 +37,13 @@
 #endif
 
 /* The following enums must be kept in sync with the equivalent enums
- * or constants in python/lammps/constants.py, fortran/lammps.f90,
- * tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
+ * or constants in src/library.h, src/lmptype.h, python/lammps/constants.py,
+ * fortran/lammps.f90, and tools/swig/lammps.i */
 
 /* Data type constants for extracting data from atoms, computes and fixes */
 
 enum _LMP_DATATYPE_CONST {
+  LAMMPS_NONE = -1,     /*!< no data type assigned (yet) */
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
   LAMMPS_INT_2D = 1,    /*!< two-dimensional 32-bit integer array */
   LAMMPS_DOUBLE = 2,    /*!< 64-bit double (array) */
@@ -105,7 +106,7 @@ typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
 
-#define LAMMPSPLUGIN_ABI_VERSION 1
+#define LAMMPSPLUGIN_ABI_VERSION 2
 struct _liblammpsplugin {
   int abiversion;
   int has_exceptions;
@@ -126,13 +127,14 @@ struct _liblammpsplugin {
 
   void (*error)(void *, int, const char *);
 
-  void (*file)(void *, char *);
+  void (*file)(void *, const char *);
   char *(*command)(void *, const char *);
   void (*commands_list)(void *, int, const char **);
   void (*commands_string)(void *, const char *);
 
   double (*get_natoms)(void *);
   double (*get_thermo)(void *, const char *);
+  void *(*last_thermo)(void *, const char *, int);
 
   void (*extract_box)(void *, double *, double *,
                       double *, double *, double *, int *, int *);
@@ -153,6 +155,7 @@ struct _liblammpsplugin {
   void *(*extract_variable)(void *, const char *, char *);
   int (*extract_variable_datatype)(void *, const char *);
   int (*set_variable)(void *, char *, char *);
+  int (*variable_info)(void *, int, char *, int);
 
   void (*gather_atoms)(void *, const char *, int, int, void *);
   void (*gather_atoms_concat)(void *, const char *, int, int, void *);
@@ -237,7 +240,7 @@ struct _liblammpsplugin {
 
   void (*free)(void *);
 
-  void (*is_running)(void *);
+  int (*is_running)(void *);
   void (*force_timeout)(void *);
 
   int (*has_error)(void *);

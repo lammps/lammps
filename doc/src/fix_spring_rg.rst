@@ -6,7 +6,7 @@ fix spring/rg command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID spring/rg K RG0
 

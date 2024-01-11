@@ -111,9 +111,6 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
 Output::~Output()
 {
-  if (thermo) delete thermo;
-  delete[] var_thermo;
-
   memory->destroy(mode_dump);
   memory->destroy(every_dump);
   memory->destroy(every_time_dump);
@@ -134,6 +131,10 @@ Output::~Output()
   delete restart;
 
   delete dump_map;
+
+  if (thermo) delete thermo;
+  delete[] var_thermo;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,6 +190,32 @@ void Output::init()
 void Output::setup(int memflag)
 {
   bigint ntimestep = update->ntimestep;
+
+  // print memory usage unless being called between multiple runs
+
+  if (memflag) memory_usage();
+
+  // set next_thermo to multiple of every or variable eval if var defined
+  // ensure thermo output on last step of run
+  // thermo may invoke computes so wrap with clear/add
+
+  modify->clearstep_compute();
+
+  thermo->header();
+  thermo->compute(0);
+  last_thermo = ntimestep;
+
+  if (var_thermo) {
+    next_thermo = static_cast<bigint>
+      (input->variable->compute_equal(ivar_thermo));
+    if (next_thermo <= ntimestep)
+      error->all(FLERR,"Thermo every variable returned a bad timestep");
+  } else if (thermo_every) {
+    next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
+    next_thermo = MIN(next_thermo,update->laststep);
+  } else next_thermo = update->laststep;
+
+  modify->addstep_compute(next_thermo);
 
   // consider all dumps
   // decide whether to write snapshot and/or calculate next step for dump
@@ -257,7 +284,7 @@ void Output::setup(int memflag)
       next_dump_any = MIN(next_dump_any,next_dump[idump]);
     }
 
-  // if no dumps, set next_dump_any to last+1 so will not influence next
+    // if no dumps, set next_dump_any to last+1 so will not influence next
 
   } else next_dump_any = update->laststep + 1;
 
@@ -276,7 +303,8 @@ void Output::setup(int memflag)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_single));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} vs {}",
+                     nextrestart, ntimestep);
         next_restart_single = nextrestart;
       }
     } else next_restart_single = update->laststep + 1;
@@ -289,38 +317,13 @@ void Output::setup(int memflag)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_double));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} vs {}",
+                     nextrestart, ntimestep);
         next_restart_double = nextrestart;
       }
     } else next_restart_double = update->laststep + 1;
     next_restart = MIN(next_restart_single,next_restart_double);
   } else next_restart = update->laststep + 1;
-
-  // print memory usage unless being called between multiple runs
-
-  if (memflag) memory_usage();
-
-   // set next_thermo to multiple of every or variable eval if var defined
-   // ensure thermo output on last step of run
-   // thermo may invoke computes so wrap with clear/add
-
-  modify->clearstep_compute();
-
-  thermo->header();
-  thermo->compute(0);
-  last_thermo = ntimestep;
-
-  if (var_thermo) {
-    next_thermo = static_cast<bigint>
-      (input->variable->compute_equal(ivar_thermo));
-    if (next_thermo <= ntimestep)
-      error->all(FLERR,"Thermo every variable returned a bad timestep");
-  } else if (thermo_every) {
-    next_thermo = (ntimestep/thermo_every)*thermo_every + thermo_every;
-    next_thermo = MIN(next_thermo,update->laststep);
-  } else next_thermo = update->laststep;
-
-  modify->addstep_compute(next_thermo);
 
   // next = next timestep any output will be done
 
@@ -336,6 +339,24 @@ void Output::setup(int memflag)
 
 void Output::write(bigint ntimestep)
 {
+  // ensure next_thermo forces output on last step of run
+  // thermo may invoke computes so wrap with clear/add
+
+  if (next_thermo == ntimestep) {
+    modify->clearstep_compute();
+    if (last_thermo != ntimestep) thermo->compute(1);
+    last_thermo = ntimestep;
+    if (var_thermo) {
+      next_thermo = static_cast<bigint>
+        (input->variable->compute_equal(ivar_thermo));
+      if (next_thermo <= ntimestep)
+        error->all(FLERR,"Thermo every variable returned a bad timestep");
+    } else if (thermo_every) next_thermo += thermo_every;
+    else next_thermo = update->laststep;
+    next_thermo = MIN(next_thermo,update->laststep);
+    modify->addstep_compute(next_thermo);
+  }
+
   // perform dump if its next_dump = current ntimestep
   //   but not if it was already written on this step
   // set next_dump and also next_time_dump for mode_dump = 1
@@ -401,7 +422,8 @@ void Output::write(bigint ntimestep)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_single));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} vs {}",
+                     nextrestart, ntimestep);
         next_restart_single = nextrestart;
         modify->addstep_compute(next_restart_single);
       }
@@ -424,31 +446,14 @@ void Output::write(bigint ntimestep)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_double));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} <= {}",
+                     nextrestart, ntimestep);
         next_restart_double = nextrestart;
         modify->addstep_compute(next_restart_double);
       }
     }
     last_restart = ntimestep;
     next_restart = MIN(next_restart_single,next_restart_double);
-  }
-
-  // ensure next_thermo forces output on last step of run
-  // thermo may invoke computes so wrap with clear/add
-
-  if (next_thermo == ntimestep) {
-    modify->clearstep_compute();
-    if (last_thermo != ntimestep) thermo->compute(1);
-    last_thermo = ntimestep;
-    if (var_thermo) {
-      next_thermo = static_cast<bigint>
-        (input->variable->compute_equal(ivar_thermo));
-      if (next_thermo <= ntimestep)
-        error->all(FLERR,"Thermo every variable returned a bad timestep");
-    } else if (thermo_every) next_thermo += thermo_every;
-    else next_thermo = update->laststep;
-    next_thermo = MIN(next_thermo,update->laststep);
-    modify->addstep_compute(next_thermo);
   }
 
   // next = next timestep any output will be done
@@ -647,7 +652,8 @@ void Output::reset_timestep(bigint ntimestep)
       auto  nextrestart = static_cast<bigint>
         (input->variable->compute_equal(ivar_restart_single));
       if (nextrestart < ntimestep)
-        error->all(FLERR,"Restart variable returned a bad timestep");
+        error->all(FLERR,"Restart variable returned a bad next timestep: {} <= {}",
+                   nextrestart, ntimestep);
       update->ntimestep++;
       next_restart_single = nextrestart;
       modify->addstep_compute(next_restart_single);
@@ -666,7 +672,8 @@ void Output::reset_timestep(bigint ntimestep)
       auto  nextrestart = static_cast<bigint>
         (input->variable->compute_equal(ivar_restart_double));
       if (nextrestart < ntimestep)
-        error->all(FLERR,"Restart variable returned a bad timestep");
+        error->all(FLERR,"Restart variable returned a bad next timestep: {} <= {}",
+                   nextrestart, ntimestep);
       update->ntimestep++;
       next_restart_double = nextrestart;
       modify->addstep_compute(next_restart_double);
@@ -988,22 +995,12 @@ void Output::create_restart(int narg, char **arg)
       error->all(FLERR,"Both restart files must use % or neither");
   }
 
-  int mpiioflag;
-  if (utils::strmatch(arg[1],"\\.mpiio$")) mpiioflag = 1;
-  else mpiioflag = 0;
-  if (nfile == 2) {
-    if (mpiioflag && !utils::strmatch(arg[2],"\\.mpiio$"))
-      error->all(FLERR,"Both restart files must use MPI-IO or neither");
-    if (!mpiioflag && utils::strmatch(arg[2],"\\.mpiio$"))
-      error->all(FLERR,"Both restart files must use MPI-IO or neither");
-  }
-
   // setup output style and process optional args
 
   delete restart;
   restart = new WriteRestart(lmp);
   int iarg = nfile+1;
-  restart->multiproc_options(multiproc,mpiioflag,narg-iarg,&arg[iarg]);
+  restart->multiproc_options(multiproc,narg-iarg,&arg[iarg]);
 }
 
 /* ----------------------------------------------------------------------

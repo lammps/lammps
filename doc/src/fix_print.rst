@@ -6,7 +6,7 @@ fix print command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID print N string keyword value ...
 
@@ -44,7 +44,7 @@ one word.  If it contains variables it must be enclosed in double
 quotes to ensure they are not evaluated when the input script line is
 read, but will instead be evaluated each time the string is printed.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
    support for vector style variables
 

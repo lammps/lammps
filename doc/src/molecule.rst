@@ -6,7 +6,7 @@ molecule command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule ID file1 keyword values ... file2 keyword values ... fileN ...
 
@@ -154,21 +154,25 @@ These are the recognized header keywords.  Header lines can come in
 any order.  The numeric value(s) are read from the beginning of the
 line.  The keyword should appear at the end of the line.  All these
 settings have default values, as explained below.  A line need only
-appear if the value(s) are different than the default.
+appear if the value(s) are different than the default, except when
+defining a *body* particle, which requires setting the number of
+*atoms* to 1, and setting the *inertia* in a specific section (see below).
 
 * N *atoms* = # of atoms N in molecule, default = 0
 * Nb *bonds* = # of bonds Nb in molecule, default = 0
 * Na *angles* = # of angles Na in molecule, default = 0
 * Nd *dihedrals* = # of dihedrals Nd in molecule, default = 0
 * Ni *impropers* = # of impropers Ni in molecule, default = 0
-* Nf *fragments* = # of fragments in molecule, default = 0
+* Nf *fragments* = # of fragments Nf in molecule, default = 0
+* Ninteger Ndouble *body* = # of integer and floating-point values
+  in body particle, default = 0
 * Mtotal *mass* = total mass of molecule
 * Xc Yc Zc *com* = coordinates of center-of-mass of molecule
 * Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
 
 For *mass*, *com*, and *inertia*, the default is for LAMMPS to
 calculate this quantity itself if needed, assuming the molecules
-consists of a set of point particles or finite-size particles (with a
+consist of a set of point particles or finite-size particles (with a
 non-zero diameter) that do not overlap.  If finite-size particles in
 the molecule do overlap, LAMMPS will not account for the overlap
 effects when calculating any of these 3 quantities, so you should
@@ -188,6 +192,7 @@ These are the allowed section keywords for the body of the file.
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
+* *Body Integers, Body Doubles* = body-property sections
 
 For the Types, Bonds, Angles, Dihedrals, and Impropers sections, each
 atom/bond/angle/etc type can be specified either as a number (numeric
@@ -512,6 +517,67 @@ non-central atom (value d in the Shake Atoms section).
 
 See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.
+
+----------
+
+*Body Integers* section:
+
+* one line
+* line syntax: N E F
+* N = number of sub-particles or number or vertices
+* E,F = number of edges and faces
+
+This section is only needed when the molecule is a body particle. the other
+Body section must also appear in the file.
+
+The total number of values that must appear is determined by the body style, and
+must be equal to the Ninteger value given in the *body* header.
+
+For *nparticle* and *rounded/polygon*, only the number of sub-particles or
+vertices N is required, and Ninteger should have a value of 1.
+
+For *rounded/polyhedron*, the number of edges E and faces F is required, and
+Ninteger should have a value of 3.
+
+See the :doc:`Howto body <Howto_body>` page for a further description of
+the file format.
+
+----------
+
+*Body Doubles* section:
+
+* first line
+* line syntax: Ixx Iyy Izz Ixy Ixz Iyz
+* Ixx Iyy Izz Ixy Ixz Iyz = 6 components of inertia tensor of body particle
+* one line per sub-particle or vertex
+* line syntax: x y z
+* x, y, z = coordinates of sub-particle or vertex
+* one line per edge
+* line syntax: N1 N2
+* N1, N2 = vertex indices
+* one line per face
+* line syntax: N1 N2 N3 N4
+* N1, N2, N3, N4 = vertex indices
+* last line
+* line syntax: diam
+* diam = rounded diameter that surrounds each vertex
+
+This section is only needed when the molecule is a body particle. the other
+Body section must also appear in the file.
+
+The total number of values that must appear is determined by the body style, and
+must be equal to the Ndouble value given in the *body* header. The 6 moments of
+inertia and the 3N coordinates of the sub-particles or vertices are required
+for all body styles.
+
+For *rounded/polygon*, the E = 6 + 3*N + 1 edges are automatically determined
+from the vertices.
+
+For *rounded/polyhedron*, the 2E vertex indices for the end points of the edges
+and 4F vertex indices defining the faces are required.
+
+See the :doc:`Howto body <Howto_body>` page for a further description of
+the file format.
 
 ----------
 

@@ -3,8 +3,8 @@ extern "C" {
 #endif
 #include "lmp_f2c.h"
 static integer c__1 = 1;
-static real c_b176 = (float)0.;
-static real c_b177 = (float)1.;
+static real c_b179 = (float)0.;
+static real c_b180 = (float)1.;
 static integer c__0 = 0;
 integer ilaenv_(integer *ispec, char *name__, char *opts, integer *n1, integer *n2, integer *n3,
                 integer *n4, ftnlen name_len, ftnlen opts_len)
@@ -200,6 +200,12 @@ L50:
                 nb = 64;
             } else {
                 nb = 64;
+            }
+        } else if (s_lmp_cmp(subnam + 3, (char *)"QP3RK", (ftnlen)4, (ftnlen)5) == 0) {
+            if (sname) {
+                nb = 32;
+            } else {
+                nb = 32;
             }
         }
     } else if (s_lmp_cmp(c2, (char *)"PO", (ftnlen)2, (ftnlen)2) == 0) {
@@ -402,6 +408,12 @@ L60:
             } else {
                 nbmin = 2;
             }
+        } else if (s_lmp_cmp(subnam + 3, (char *)"QP3RK", (ftnlen)4, (ftnlen)5) == 0) {
+            if (sname) {
+                nbmin = 2;
+            } else {
+                nbmin = 2;
+            }
         }
     } else if (s_lmp_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
         if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
@@ -493,6 +505,12 @@ L70:
             } else {
                 nx = 128;
             }
+        } else if (s_lmp_cmp(subnam + 3, (char *)"QP3RK", (ftnlen)4, (ftnlen)5) == 0) {
+            if (sname) {
+                nx = 128;
+            } else {
+                nx = 128;
+            }
         }
     } else if (s_lmp_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
         if (sname && s_lmp_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
@@ -555,13 +573,13 @@ L130:
 L140:
     ret_val = 1;
     if (ret_val == 1) {
-        ret_val = ieeeck_(&c__1, &c_b176, &c_b177);
+        ret_val = ieeeck_(&c__1, &c_b179, &c_b180);
     }
     return ret_val;
 L150:
     ret_val = 1;
     if (ret_val == 1) {
-        ret_val = ieeeck_(&c__0, &c_b176, &c_b177);
+        ret_val = ieeeck_(&c__0, &c_b179, &c_b180);
     }
     return ret_val;
 L160:

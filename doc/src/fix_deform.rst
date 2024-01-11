@@ -9,7 +9,7 @@ Accelerator Variants: *deform/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID deform N parameter args ... keyword value ...
 

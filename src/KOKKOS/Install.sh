@@ -96,6 +96,8 @@ action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
 action compute_erotate_sphere_kokkos.cpp
 action compute_erotate_sphere_kokkos.h
+action compute_composition_atom_kokkos.cpp compute_composition_atom.cpp
+action compute_composition_atom_kokkos.h compute_composition_atom.h
 action compute_orientorder_atom_kokkos.cpp
 action compute_orientorder_atom_kokkos.h
 action compute_temp_deform_kokkos.cpp
@@ -127,6 +129,8 @@ action fix_dt_reset_kokkos.cpp
 action fix_dt_reset_kokkos.h
 action fix_enforce2d_kokkos.cpp
 action fix_enforce2d_kokkos.h
+action fix_efield_kokkos.cpp
+action fix_efield_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h
 action fix_freeze_kokkos.cpp fix_freeze.cpp
@@ -161,6 +165,8 @@ action fix_qeq_reaxff_kokkos.cpp fix_qeq_reaxff.cpp
 action fix_qeq_reaxff_kokkos.h fix_qeq_reaxff.h
 action fix_reaxff_bonds_kokkos.cpp fix_reaxff_bonds.cpp
 action fix_reaxff_bonds_kokkos.h fix_reaxff_bonds.h
+action compute_reaxff_atom_kokkos.cpp compute_reaxff_atom.cpp
+action compute_reaxff_atom_kokkos.h compute_reaxff_atom.h
 action fix_reaxff_species_kokkos.cpp fix_reaxff_species.cpp
 action fix_reaxff_species_kokkos.h fix_reaxff_species.h
 action fix_rx_kokkos.cpp fix_rx.cpp
@@ -171,6 +177,12 @@ action fix_shake_kokkos.cpp fix_shake.cpp
 action fix_shake_kokkos.h fix_shake.h
 action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
+action fix_spring_self_kokkos.cpp
+action fix_spring_self_kokkos.h
+action fix_temp_berendsen_kokkos.cpp
+action fix_temp_berendsen_kokkos.h
+action fix_temp_rescale_kokkos.cpp
+action fix_temp_rescale_kokkos.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
@@ -361,6 +373,8 @@ action pair_vashishta_kokkos.cpp pair_vashishta.cpp
 action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_yukawa_kokkos.cpp
 action pair_yukawa_kokkos.h
+action pair_yukawa_colloid_kokkos.cpp pair_yukawa_colloid.cpp
+action pair_yukawa_colloid_kokkos.h pair_yukawa_colloid.h
 action pair_zbl_kokkos.cpp
 action pair_zbl_kokkos.h
 action pppm_kokkos.cpp pppm.cpp

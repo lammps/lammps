@@ -417,7 +417,7 @@ void FixElectrodeConp::post_constructor()
   input->variable->set(fmt::format("{} equal f_{}[{}]", var_vtop, fixname, 1 + top_group));
   input->variable->set(fmt::format("{} equal (v_{}-v_{})/lz", var_efield, var_vbot, var_vtop));
   // check for other efields and warn if found
-  if (modify->get_fix_by_style("efield").size() > 0 && comm->me == 0)
+  if (modify->get_fix_by_style("^efield").size() > 0 && comm->me == 0)
     error->warning(FLERR, "Other efield fixes found -- please make sure this is intended!");
   // call fix command:
   // fix [varstem]_efield all efield 0.0 0.0 [var_vdiff]/lz
@@ -859,7 +859,7 @@ void FixElectrodeConp::update_charges()
 
 std::vector<double> FixElectrodeConp::ele_ele_interaction(const std::vector<double> &q_local)
 {
-  assert((int)q_local.size() == nlocalele);
+  assert((int) q_local.size() == nlocalele);
   assert(algo == Algo::CG || algo == Algo::MATRIX_CG);
   if (algo == Algo::CG) {
     set_charges(q_local);
@@ -873,7 +873,7 @@ std::vector<double> FixElectrodeConp::ele_ele_interaction(const std::vector<doub
 
 void FixElectrodeConp::set_charges(std::vector<double> q_local)
 {
-  assert((int)q_local.size() == nlocalele);
+  assert((int) q_local.size() == nlocalele);
   double *q = atom->q;
   for (int i = 0; i < nlocalele; i++) q[atom->map(taglist_local[i])] = q_local[i];
   comm->forward_comm(this);
@@ -942,7 +942,7 @@ std::vector<double> FixElectrodeConp::scale_vector(double alpha, std::vector<dou
 
 std::vector<double> FixElectrodeConp::add_nlocalele(std::vector<double> a, std::vector<double> b)
 {
-  assert(((int)a.size() == nlocalele) && ((int)b.size() == nlocalele));
+  assert(((int) a.size() == nlocalele) && ((int) b.size() == nlocalele));
   for (int i = 0; i < nlocalele; i++) a[i] += b[i];
   return a;
 }
@@ -951,7 +951,7 @@ std::vector<double> FixElectrodeConp::add_nlocalele(std::vector<double> a, std::
 
 double FixElectrodeConp::dot_nlocalele(std::vector<double> a, std::vector<double> b)
 {
-  assert(((int)a.size() == nlocalele) && ((int)b.size() == nlocalele));
+  assert(((int) a.size() == nlocalele) && ((int) b.size() == nlocalele));
   double out = 0.;
   for (int i = 0; i < nlocalele; i++) out += a[i] * b[i];
   MPI_Allreduce(MPI_IN_PLACE, &out, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -962,7 +962,7 @@ double FixElectrodeConp::dot_nlocalele(std::vector<double> a, std::vector<double
 
 std::vector<double> FixElectrodeConp::times_elastance(std::vector<double> x)
 {
-  assert((int)x.size() == ngroup);
+  assert((int) x.size() == ngroup);
   auto out = std::vector<double>(nlocalele, 0.);
   for (int i = 0; i < nlocalele; i++) {
     double *_noalias row = elastance[list_iele[i]];
@@ -1209,8 +1209,8 @@ FixElectrodeConp::~FixElectrodeConp()
     } catch (std::exception &) {
     }
   }
-  if (!modify->get_fix_by_id(id))             // avoid segfault if derived fixes' ctor throws err
-    atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms
+
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id, Atom::GROW);
 
   delete[] recvcounts;
   delete[] displs;
@@ -1412,7 +1412,7 @@ void FixElectrodeConp::gather_list_iele()
     }
   }
   nlocalele = static_cast<int>(taglist_local.size());    // just for safety
-  assert((int)iele_to_group_local.size() == nlocalele);
+  assert((int) iele_to_group_local.size() == nlocalele);
 
   if (matrix_algo) {
     MPI_Allgather(&nlocalele, 1, MPI_INT, recvcounts, 1, MPI_INT, world);

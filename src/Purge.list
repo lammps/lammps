@@ -8,6 +8,7 @@ style_compute.h
 style_dihedral.h
 style_dump.h
 style_fix.h
+style_gran_sub_mod.h
 style_improper.h
 style_integrate.h
 style_kspace.h
@@ -32,6 +33,7 @@ packages_compute.h
 packages_dihedral.h
 packages_dump.h
 packages_fix.h
+packages_gran_sub_mod.h
 packages_improper.h
 packages_integrate.h
 packages_kspace.h
@@ -51,6 +53,20 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed in August 2023
+dump_atom_mpiio.cpp
+dump_atom_mpiio.h
+dump_cfg_mpiio.cpp
+dump_cfg_mpiio.h
+dump_custom_mpiio.cpp
+dump_custom_mpiio.h
+dump_xyz_mpiio.cpp
+dump_xyz_mpiio.h
+restart_mpiio.cpp
+restart_mpiio.h
+# removed on 3 August 2023
+fix_mscg.cpp
+fix_mscg.h
 # removed on 29 March 2023
 fix_latte.cpp
 fix_latte.h

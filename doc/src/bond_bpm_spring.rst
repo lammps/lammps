@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/spring keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break/no*
+* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break*
 
   .. parsed-literal::
 
@@ -72,13 +72,13 @@ particles based on a model described by Clemmer and Robbins
 where :math:`k` is a stiffness, :math:`r` is the current distance
 and :math:`r_0` is the initial distance between the two particles, and
 :math:`w` is an optional smoothing factor discussed below. Bonds will
-break at a strain of :math:`\epsilon_c`.  This is done by setting by
-setting its type to 0 such that forces are no longer computed.
+break at a strain of :math:`\epsilon_c`.  This is done by setting
+the bond type to 0 such that forces are no longer computed.
 
 An additional damping force is applied to the bonded
 particles.  This forces is proportional to the difference in the
 normal velocity of particles using a similar construction as
-dissipative particle dynamics (:ref:`(Groot) <Groot4>`):
+dissipative particle dynamics :ref:`(Groot) <Groot4>`:
 
 .. math::
 
@@ -88,9 +88,10 @@ where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
 radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles.
 
-The smoothing factor :math:`w` can be added or removed using the
-*smooth* keyword. It is constructed such that forces smoothly go
-to zero, avoiding discontinuities, as bonds approach the critical strain
+The smoothing factor :math:`w` can be added or removed by setting the
+*smooth* keyword to *yes* or *no*, respectively. It is constructed such
+that forces smoothly go to zero, avoiding discontinuities, as bonds
+approach the critical strain
 
 .. math::
 
@@ -105,21 +106,22 @@ the data file or restart files read by the :doc:`read_data
 * :math:`\epsilon_c`    (unit less)
 * :math:`\gamma`        (force/velocity units)
 
-However, the *normalize* option will normalize the elastic bond force by
-:math:`r_0` such that :math:`k` is unit less.
+If the *normalize* keyword is set to *yes*, the elastic bond force will be
+normalized by :math:`r_0` such that :math:`k` must be given in force units.
 
 By default, pair forces are not calculated between bonded particles.
-Pair forces can alternatively be overlaid on top of bond forces using
-the *overlay/pair* option. These settings require specific
+Pair forces can alternatively be overlaid on top of bond forces by setting
+the *overlay/pair* keyword to *yes*. These settings require specific
 :doc:`special_bonds <special_bonds>` settings described in the
-restrictions.  Further details can be found in the `:doc: how to
-<Howto_BPM>` page on BPMs.
+restrictions.  Further details can be found in the :doc:`how to
+<Howto_bpm>` page on BPMs.
 
 .. versionadded:: 28Mar2023
 
-If the *break* option is used, then LAMMPS assumes bonds should not break
+If the *break* keyword is set to *no*, LAMMPS assumes bonds should not break
 during a simulation run. This will prevent some unnecessary calculation.
-However, if a bond does break, it will trigger an error.
+However, if a bond reaches a strain greater than :math:`\epsilon_c`,
+it will trigger an error.
 
 If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
@@ -189,16 +191,15 @@ This bond style is part of the BPM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-By default if pair interactions are to be disabled, this bond style
-requires setting
+By default if pair interactions between bonded atoms are to be disabled,
+this bond style requires setting
 
 .. code-block:: LAMMPS
 
    special_bonds lj 0 1 1 coul 1 1 1
 
-and :doc:`newton <newton>` must be set to bond off.  If the
-*overlay/pair* option is used, this bond style alternatively requires
-setting
+and :doc:`newton <newton>` must be set to bond off.  If the *overlay/pair*
+keyword is set to *yes*, this bond style alternatively requires setting
 
 .. code-block:: LAMMPS
 

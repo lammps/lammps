@@ -124,17 +124,6 @@ Description
 Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
 
-As explained on the :doc:`dump <dump>` doc page, the *atom/mpiio*,
-*custom/mpiio*, and *xyz/mpiio* dump styles are identical in command
-syntax and in the format of the dump files they create, to the
-corresponding styles without "mpiio", except the single dump file they
-produce is written in parallel via the MPI-IO library.  Thus if a
-dump_modify option below is valid for the *atom* style, it is also
-valid for the *atom/mpiio* style, and similarly for the other styles
-which allow for use of MPI-IO.
-
-----------
-
 Unless otherwise noted, the following keywords apply to all the
 various dump styles, including the :doc:`dump image <dump_image>` and
 :doc:`dump movie <dump_image>` styles.
@@ -181,19 +170,20 @@ extra buffering.
 .. versionadded:: 4May2022
 
 The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, *cfg*, and *local* and their compressed,
-ADIOS, and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
+for dump styles: *atom*, *custom*, *cfg*, and *local* and their
+compressed, ADIOS variants.  The setting for *ID string* replaces the
+default text with the provided string.  *ID* can be a positive integer
+when it represents the column number counting from the left, a negative
+integer when it represents the column number from the right (i.e. -1 is
+the last column/keyword), or a custom dump keyword (or compute, fix,
+property, or variable reference) and then it replaces the string for
+that specific keyword. For *atom* dump styles only the keywords "id",
+"type", "x", "y", "z", "ix", "iy", "iz" can be accessed via string
+regardless of whether scaled or unwrapped coordinates were enabled or
+disabled, and it always assumes 8 columns for indexing regardless of
+whether image flags are enabled or not.  For dump style *cfg* only
+changes to the "auxiliary" keywords (6th or later keyword) will become
+visible.
 
 The *colname* keyword can be used multiple times. If multiple *colname*
 settings refer to the same keyword, the last setting has precedence.  A
@@ -417,10 +407,10 @@ performed with dump style *xtc*\ .
 
 ----------
 
-The *format* keyword can be used to change the default numeric format output
-by the text-based dump styles: *atom*, *local*, *custom*, *cfg*, and
-*xyz* styles, and their MPIIO variants. Only the *line* or *none*
-options can be used with the *atom* and *xyz* styles.
+The *format* keyword can be used to change the default numeric format
+output by the text-based dump styles: *atom*, *local*, *custom*, *cfg*,
+and *xyz* styles. Only the *line* or *none* options can be used with the
+*atom* and *xyz* styles.
 
 All the specified format strings are C-style formats, such as used by
 the C/C++ printf() command.  The *line* keyword takes a single
@@ -753,9 +743,13 @@ run, this option is ignored since the output is already balanced.
 ----------
 
 The *thermo* keyword only applies the dump styles *netcdf* and *yaml*.
-It triggers writing of :doc:`thermo <thermo>` information to the dump file
-alongside per-atom data.  The values included in the dump file are
-identical to the values specified by :doc:`thermo_style <thermo_style>`.
+It triggers writing of :doc:`thermo <thermo>` information to the dump
+file alongside per-atom data.  The values included in the dump file are
+cached values from the last thermo output and include the exact same the
+values as specified by the :doc:`thermo_style <thermo_style>` command.
+Because these are cached values, they are only up-to-date when dump
+output is on a timestep that also has thermo output. Dump style *yaml*
+will skip thermo output on incompatible steps.
 
 ----------
 

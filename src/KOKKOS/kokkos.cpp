@@ -34,46 +34,10 @@
 #endif
 
 #ifdef LMP_KOKKOS_GPU
-
-// for detecting GPU-aware MPI support:
-// the variable int have_gpu_aware
-// - is  1 if GPU-aware MPI support is available
-// - is  0 if GPU-aware MPI support is unavailable
-// - is -1 if GPU-aware MPI support is unknown
-
-#define GPU_AWARE_UNKNOWN static int have_gpu_aware = -1;
-
-// TODO HIP: implement HIP-aware MPI support (UCX) detection
-#if defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
-GPU_AWARE_UNKNOWN
-#elif defined(KOKKOS_ENABLE_CUDA)
-
-// OpenMPI supports detecting GPU-aware MPI as of version 2.0.0
-
-#if (OPEN_MPI)
-#if (OMPI_MAJOR_VERSION >= 2)
-
+#if (OPEN_MPI) && (OMPI_MAJOR_VERSION >= 2)
 #include <mpi-ext.h>
-
-#if defined(MPIX_CUDA_AWARE_SUPPORT) && MPIX_CUDA_AWARE_SUPPORT
-static int have_gpu_aware = 1;
-#elif defined(MPIX_CUDA_AWARE_SUPPORT) && !MPIX_CUDA_AWARE_SUPPORT
-static int have_gpu_aware = 0;
-#else
-GPU_AWARE_UNKNOWN
-#endif // defined(MPIX_CUDA_AWARE_SUPPORT)
-
-#else // old OpenMPI
-GPU_AWARE_UNKNOWN
-#endif // (OMPI_MAJOR_VERSION >=2)
-
-#else // unknown MPI library
-GPU_AWARE_UNKNOWN
-#endif // OPEN_MPI
-
-#endif // KOKKOS_ENABLE_CUDA
-
-#endif // LMP_ENABLE_DEVICE
+#endif
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -104,7 +68,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   int me = 0;
   MPI_Comm_rank(world,&me);
-  if (me == 0) error->message(FLERR,"KOKKOS mode is enabled");
+  if (me == 0)
+    error->message(FLERR,"KOKKOS mode with Kokkos version {}.{}.{} is enabled",
+                   KOKKOS_VERSION / 10000, (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
 
   // process any command-line args that invoke Kokkos settings
 
@@ -142,6 +108,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         device = local_rank % ngpus;
         if (device >= skip_gpu) device++;
         set_flag = 1;
+      }
+      if ((str = getenv("FLUX_TASK_LOCAL_ID"))) {
+        if (ngpus > 0) {
+          int local_rank = atoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("MPT_LRANK"))) {
         if (ngpus > 0) {
@@ -235,8 +209,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // default settings for package kokkos command
 
   binsize = 0.0;
-#ifdef KOKKOS_ENABLE_CUDA
-  // TODO HIP: implement HIP-aware MPI testing
+#if defined(LMP_KOKKOS_GPU)
   gpu_aware_flag = 1;
 #else
   gpu_aware_flag = 0;
@@ -274,70 +247,111 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 #ifdef LMP_KOKKOS_GPU
 
   // check and warn about GPU-aware MPI availability when using multiple MPI tasks
-  // change default only if we can safely detect that GPU-aware MPI is not available
+  // change default only if we can detect that GPU-aware MPI is not available
 
   int nmpi = 0;
   MPI_Comm_size(world,&nmpi);
   if (nmpi > 1) {
 
-#if defined(MPI_VERSION) && (MPI_VERSION > 2)
-    // Check for IBM Spectrum MPI
+    // for detecting GPU-aware MPI support:
+    // the variable int have_gpu_aware
+    // - is  1 if GPU-aware MPI support is available
+    // - is  0 if GPU-aware MPI support is unavailable
+    // - is -1 if GPU-aware MPI support is unknown
 
-    int len;
-    char mpi_version[MPI_MAX_LIBRARY_VERSION_STRING];
-    MPI_Get_library_version(mpi_version, &len);
-    if (strstr(&mpi_version[0], "Spectrum") != nullptr) {
-      gpu_aware_flag = 0;
-      char* str;
-      if ((str = getenv("OMPI_MCA_pml_pami_enable_cuda")))
-        if ((strcmp(str,"1") == 0)) {
-          have_gpu_aware = 1;
-          gpu_aware_flag = 1;
-        }
+    int have_gpu_aware = -1;
 
-      if (!gpu_aware_flag)
-        if (me == 0)
-          error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling GPU-aware MPI");
-    }
+    // OpenMPI
+
+#if (OPEN_MPI)
+#if (OMPI_MAJOR_VERSION >= 2)
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#if defined(OMPI_HAVE_MPI_EXT_CUDA) && OMPI_HAVE_MPI_EXT_CUDA
+    have_gpu_aware = MPIX_Query_cuda_support();
 #endif
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+#if defined(OMPI_HAVE_MPI_EXT_ROCM) && OMPI_HAVE_MPI_EXT_ROCM
+    have_gpu_aware = MPIX_Query_rocm_support();
+#elif (OMPI_MAJOR_VERSION < 5)
+    have_gpu_aware = 0;
+#endif
+#endif
+
+#else
+    have_gpu_aware = 0;
+#endif // OMPI_MAJOR_VERSION >= 2
 
     if (gpu_aware_flag == 1 && have_gpu_aware == 0) {
       if (me == 0)
         error->warning(FLERR,"Turning off GPU-aware MPI since it is not detected, "
                        "use '-pk kokkos gpu/aware on' to override");
       gpu_aware_flag = 0;
-    } else if (have_gpu_aware == -1) { // maybe we are dealing with MPICH, MVAPICH2 or some derivative?
-    // MVAPICH2
+    }
+
+#endif // OPEN_MPI
+
+    // IBM Spectrum MPI
+
+#if defined(MPI_VERSION) && (MPI_VERSION > 2)
+
+    int len;
+    char mpi_version[MPI_MAX_LIBRARY_VERSION_STRING];
+    MPI_Get_library_version(mpi_version, &len);
+    if (strstr(&mpi_version[0], "Spectrum") != nullptr) {
+      char* str;
+      have_gpu_aware = 0;
+      if ((str = getenv("OMPI_MCA_pml_pami_enable_cuda")))
+        if ((strcmp(str,"1") == 0))
+          have_gpu_aware = 1;
+
+      if (!have_gpu_aware) {
+        if (me == 0)
+          error->warning(FLERR,"The Spectrum MPI '-gpu' flag is not set. Disabling GPU-aware MPI");
+        gpu_aware_flag = 0;
+      }
+    }
+#endif
+
+    if (have_gpu_aware == -1) {
+      // MVAPICH2
 #if defined(MPICH) && defined(MVAPICH2_VERSION)
       char* str;
-      gpu_aware_flag = 0;
+      have_gpu_aware = 0;
       if ((str = getenv("MV2_USE_CUDA")))
         if ((strcmp(str,"1") == 0))
-          gpu_aware_flag = 1;
+          have_gpu_aware = 1;
 
-      if (!gpu_aware_flag)
+      if (!have_gpu_aware) {
         if (me == 0)
           error->warning(FLERR,"MVAPICH2 'MV2_USE_CUDA' environment variable is not set. Disabling GPU-aware MPI");
-    // pure MPICH or some unsupported MPICH derivative
+        gpu_aware_flag = 0;
+      }
+      // pure MPICH or some MPICH derivative
+      // check for Cray MPICH which has GPU-aware support
 #elif defined(MPICH) && !defined(MVAPICH2_VERSION)
       char* str;
-      gpu_aware_flag = 0;
+      have_gpu_aware = 0;
       if ((str = getenv("MPICH_GPU_SUPPORT_ENABLED")))
         if ((strcmp(str,"1") == 0))
-          gpu_aware_flag = 1;
+          have_gpu_aware = 1;
 
-      if (!gpu_aware_flag && me == 0)
-        error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
+      if (!have_gpu_aware) {
+        if (me == 0)
+          error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
+        gpu_aware_flag = 0;
+      }
 #else
-  if (me == 0)
-    error->warning(FLERR,"Kokkos with GPU-enabled backend assumes GPU-aware MPI is available,"
-                   " but cannot determine if this is the case\n         try"
-                   " '-pk kokkos gpu/aware off' if getting segmentation faults");
-
+      if (me == 0)
+        error->warning(FLERR,"Kokkos with GPU-enabled backend assumes GPU-aware MPI is available,"
+                       " but cannot determine if this is the case\n         try"
+                       " '-pk kokkos gpu/aware off' if getting segmentation faults");
 #endif
-    } // if (-1 == have_gpu_aware)
+    }
   } // nmpi > 0
-#endif // LMP_ENABLE_DEVICE
+#endif // LMP_KOKKOS_GPU
 
 #ifdef KILL_KOKKOS_ON_SIGSEGV
   signal(SIGSEGV, my_signal_handler);
@@ -594,8 +608,8 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
 
-  if (neigh_thread && neighflag != FULL)
-    error->all(FLERR,"Must use KOKKOS package option 'neigh full' with 'neigh/thread on'");
+  if (neigh_thread && newtonflag)
+    error->all(FLERR,"Must use KOKKOS package option 'newton off' with 'neigh/thread on'");
 
   neighbor->binsize_user = binsize;
   if (binsize <= 0.0) neighbor->binsizeflag = 0;

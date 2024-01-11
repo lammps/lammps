@@ -6,7 +6,7 @@
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_AND() \
 template<class ctype> \
-inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type atomic_fetch_and(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type device_atomic_fetch_and(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   uint32_t asm_value = reinterpret_cast<uint32_t&>(value); \
   uint32_t asm_result = 0u; \
   asm volatile( \
@@ -20,7 +20,7 @@ inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type atomic_
   return reinterpret_cast<ctype&>(asm_result); \
 } \
 template<class ctype> \
-inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type atomic_fetch_and(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type device_atomic_fetch_and(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   uint64_t asm_value = reinterpret_cast<uint64_t&>(value); \
   uint64_t asm_result = 0u; \
   asm volatile( \
@@ -36,7 +36,7 @@ inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type atomic_
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_OR() \
 template<class ctype> \
-inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type atomic_fetch_or(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type device_atomic_fetch_or(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   uint32_t asm_value = reinterpret_cast<uint32_t&>(value); \
   uint32_t asm_result = 0u; \
   asm volatile( \
@@ -50,7 +50,7 @@ inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type atomic_
   return reinterpret_cast<ctype&>(asm_result); \
 } \
 template<class ctype> \
-inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type atomic_fetch_or(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type device_atomic_fetch_or(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   uint64_t asm_value = reinterpret_cast<uint64_t&>(value); \
   uint64_t asm_result = 0u; \
   asm volatile( \
@@ -66,7 +66,7 @@ inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type atomic_
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_XOR() \
 template<class ctype> \
-inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type atomic_fetch_xor(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type device_atomic_fetch_xor(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   uint32_t asm_value = reinterpret_cast<uint32_t&>(value); \
   uint32_t asm_result = 0u; \
   asm volatile( \
@@ -80,7 +80,7 @@ inline __device__ typename std::enable_if<sizeof(ctype)==4, ctype>::type atomic_
   return reinterpret_cast<ctype&>(asm_result); \
 } \
 template<class ctype> \
-inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type atomic_fetch_xor(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type device_atomic_fetch_xor(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   uint64_t asm_value = reinterpret_cast<uint64_t&>(value); \
   uint64_t asm_result = 0u; \
   asm volatile( \
@@ -96,7 +96,7 @@ inline __device__ typename std::enable_if<sizeof(ctype)==8, ctype>::type atomic_
 
 // Fetch atomics
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-inline __device__ ctype atomic_fetch_add(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_add(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result=0; \
   asm volatile( \
           "{\n\t" \
@@ -110,7 +110,7 @@ inline __device__ ctype atomic_fetch_add(ctype* dest, ctype value, __DESUL_IMPL_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-inline __device__ ctype atomic_fetch_sub(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_sub(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result=0; \
   ctype neg_value = -value; \
   asm volatile( \
@@ -125,7 +125,7 @@ inline __device__ ctype atomic_fetch_sub(ctype* dest, ctype value, __DESUL_IMPL_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-inline __device__ ctype atomic_fetch_min(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_min(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result=0; \
   asm volatile( \
           "{\n\t" \
@@ -139,7 +139,7 @@ inline __device__ ctype atomic_fetch_min(ctype* dest, ctype value, __DESUL_IMPL_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-inline __device__ ctype atomic_fetch_max(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_max(ctype* dest, ctype value, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result=0; \
   asm volatile( \
           "{\n\t" \
@@ -153,7 +153,7 @@ inline __device__ ctype atomic_fetch_max(ctype* dest, ctype value, __DESUL_IMPL_
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-inline __device__ ctype atomic_fetch_inc(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_inc(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result = 0; \
   ctype limit = desul::Impl::numeric_limits_max<ctype>::value; \
   asm volatile( \
@@ -166,7 +166,7 @@ inline __device__ ctype atomic_fetch_inc(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMO
     : reg_ret_ctype(result) : "l"(dest),reg_ctype(limit) : "memory"); \
   return result; \
 } \
-inline __device__ ctype atomic_fetch_inc_mod(ctype* dest, ctype limit, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_inc_mod(ctype* dest, ctype limit, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result = 0; \
   asm volatile( \
           "{\n\t" \
@@ -180,7 +180,7 @@ inline __device__ ctype atomic_fetch_inc_mod(ctype* dest, ctype limit, __DESUL_I
 }
 
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-inline __device__ ctype atomic_fetch_dec(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_dec(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result = 0; \
   ctype limit = desul::Impl::numeric_limits_max<ctype>::value; \
   asm volatile( \
@@ -193,7 +193,7 @@ inline __device__ ctype atomic_fetch_dec(ctype* dest, __DESUL_IMPL_CUDA_ASM_MEMO
     : reg_ret_ctype(result) : "l"(dest),reg_ctype(limit) : "memory"); \
   return result; \
 } \
-inline __device__ ctype atomic_fetch_dec_mod(ctype* dest, ctype limit, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
+inline __device__ ctype device_atomic_fetch_dec_mod(ctype* dest, ctype limit, __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER, __DESUL_IMPL_CUDA_ASM_MEMORY_SCOPE) { \
   ctype result = 0; \
   asm volatile( \
           "{\n\t" \
@@ -206,19 +206,6 @@ inline __device__ ctype atomic_fetch_dec_mod(ctype* dest, ctype limit, __DESUL_I
   return result; \
 }
 
-// Group ops for integer ctypes
-#define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INTEGER_OP(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(ctype,asm_ctype,reg_ctype,reg_ret_ctype)
-
-#define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_UNSIGNED_OP(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(ctype,asm_ctype,reg_ctype,reg_ret_ctype) \
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(ctype,asm_ctype,reg_ctype,reg_ret_ctype)
-
 #define __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP() \
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_AND() \
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_OR() \
@@ -226,18 +213,49 @@ __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_XOR()
 
 
 // Instantiate Functions
+
+// General comments:
+//  - float/double only support add
+//  - inc/dec only supported with uint32_t
+//  - int64_t does not support add
+
+// floating point types
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(float,".f32","f","=f")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(float,".f32","f","=f")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(double,".f64","d","=d")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(double,".f64","d","=d")
 
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_UNSIGNED_OP(uint32_t,".u32","r","=r")
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_UNSIGNED_OP(uint64_t,".u64","l","=l")
-__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INTEGER_OP(int32_t,".s32","r","=r")
-//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INTEGER_OP(int64_t,".s64","l","=l")
-
+// uint32_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(uint32_t,".u32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(uint32_t,".u32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(uint32_t,".u32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(uint32_t,".u32","r","=r")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(uint32_t,".u32","r","=r")
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(uint32_t,".u32","r","=r")
+
+// uint64_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(uint64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(uint64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(uint64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(uint64_t,".u64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(uint64_t,".u64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(uint64_t,".u64","l","=l")
+
+// int32_t
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(int32_t,".s32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(int32_t,".s32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(int32_t,".s32","r","=r")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(int32_t,".s32","r","=r")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(int32_t,".s32","r","=r")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(int32_t,".s32","r","=r")
+
+// int64_t note: add/sub is using unsigned register
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_ADD(int64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_SUB(int64_t,".u64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MIN(int64_t,".s64","l","=l")
+__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_MAX(int64_t,".s64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_INC(int64_t,".s64","l","=l")
+//__DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_DEC(int64_t,".s64","l","=l")
 
 __DESUL_IMPL_CUDA_ASM_ATOMIC_FETCH_BIN_OP()
 

@@ -1,4 +1,5 @@
 .. index:: fix efield
+.. index:: fix efield/kk
 .. index:: fix efield/tip4p
 
 fix efield command
@@ -10,7 +11,7 @@ fix efield/tip4p command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style ex ey ez keyword value ...
 
@@ -136,7 +137,7 @@ due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx\^2.  If you don't do this correctly, the
 minimization will not converge properly.
 
-.. versionadded:: TBD
+.. versionadded:: 15Jun2023
 
 The *potential* keyword can be used as an alternative to the *energy* keyword
 to specify the name of an atom-style variable, which is used to compute the
@@ -209,6 +210,12 @@ the iteration count during the minimization.
    added forces to be included in the total potential energy of the
    system (the quantity being minimized), you MUST enable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

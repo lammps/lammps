@@ -27,58 +27,62 @@ Examples
 Description
 """""""""""
 
-Define a computation that will be performed on a group of atoms.
-Quantities calculated by a compute are instantaneous values, meaning
-they are calculated from information about atoms on the current
-timestep or iteration, though a compute may internally store some
-information about a previous state of the system.  Defining a compute
-does not perform a computation.  Instead computes are invoked by other
-LAMMPS commands as needed (e.g., to calculate a temperature needed for
-a thermostat fix or to generate thermodynamic or dump file output).
-See the :doc:`Howto output <Howto_output>` page for a summary of
-various LAMMPS output options, many of which involve computes.
+Define a diagnostic computation that will be performed on a group of
+atoms.  Quantities calculated by a compute are instantaneous values,
+meaning they are calculated from information about atoms on the
+current timestep or iteration, though internally a compute may store
+some information about a previous state of the system.  Defining a
+compute does not perform the computation.  Instead computes are
+invoked by other LAMMPS commands as needed (e.g., to calculate a
+temperature needed for a thermostat fix or to generate thermodynamic
+or dump file output).  See the :doc:`Howto output <Howto_output>` page
+for a summary of various LAMMPS output options, many of which involve
+computes.
 
 The ID of a compute can only contain alphanumeric characters and
 underscores.
 
 ----------
 
-Computes calculate one or more of four styles of quantities: global,
-per-atom, local, or per-atom.  A global quantity is one or more
-system-wide values, e.g. the temperature of the system.  A per-atom
-quantity is one or more values per atom, e.g. the kinetic energy of
-each atom.  Per-atom values are set to 0.0 for atoms not in the
-specified compute group.  Local quantities are calculated by each
-processor based on the atoms it owns, but there may be zero or more
-per atom, e.g. a list of bond distances.  Per-grid quantities are
-calculated on a regular 2d or 3d grid which overlays a 2d or 3d
-simulation domain.  The grid points and the data they store are
-distributed across processors; each processor owns the grid points
-which fall within its subdomain.
+Computes calculate and store any of four *styles* of quantities:
+global, per-atom, local, or per-grid.
 
-Computes that produce per-atom quantities have the word "atom" at the
-end of their style, e.g. *ke/atom*\ .  Computes that produce local
-quantities have the word "local" at the end of their style,
-e.g. *bond/local*\ .  Computes that produce per-grid quantities have
-the word "grid" at the end of their style, e.g. *property/grid*\ .
-Styles with neither "atom" or "local" or "grid" at the end of their
-style name produce global quantities.
+A global quantity is one or more system-wide values, e.g. the
+temperature of the system.  A per-atom quantity is one or more values
+per atom, e.g. the kinetic energy of each atom.  Per-atom values are
+set to 0.0 for atoms not in the specified compute group.  Local
+quantities are calculated by each processor based on the atoms it
+owns, but there may be zero or more per atom, e.g. a list of bond
+distances.  Per-grid quantities are calculated on a regular 2d or 3d
+grid which overlays a 2d or 3d simulation domain.  The grid points and
+the data they store are distributed across processors; each processor
+owns the grid points which fall within its subdomain.
 
-Note that a single compute typically produces either global or
-per-atom or local or per-grid values.  It does not compute both global
-and per-atom values.  It can produce local values or per-grid values
-in tandem with global or per-atom quantities.  The compute doc page
-will explain the details.
+As a general rule of thumb, computes that produce per-atom quantities
+have the word "atom" at the end of their style, e.g. *ke/atom*\ .
+Computes that produce local quantities have the word "local" at the
+end of their style, e.g. *bond/local*\ .  Computes that produce
+per-grid quantities have the word "grid" at the end of their style,
+e.g. *property/grid*\ .  And styles with neither "atom" or "local" or
+"grid" at the end of their style name produce global quantities.
 
-Global, per-atom, local, and per-grid quantities come in three kinds:
-a single scalar value, a vector of values, or a 2d array of values.
-The doc page for each compute describes the style and kind of values
-it produces, e.g. a per-atom vector.  Some computes produce more than
-one kind of a single style, e.g. a global scalar and a global vector.
+Global, per-atom, local, and per-grid quantities can also be of three
+*kinds*: a single scalar value (global only), a vector of values, or a
+2d array of values.  For per-atom, local, and per-grid quantities, a
+"vector" means a single value for each atom, each local entity
+(e.g. bond), or grid cell.  Likewise an "array", means multiple values
+for each atom, each local entity, or each grid cell.
 
-When a compute quantity is accessed, as in many of the output commands
-discussed below, it can be referenced via the following bracket
-notation, where ID is the ID of the compute:
+Note that a single compute can produce any combination of global,
+per-atom, local, or per-grid values.  Likewise it can produce any
+combination of scalar, vector, or array output for each style.  The
+exception is that for per-atom, local, and per-grid output, either a
+vector or array can be produced, but not both.  The doc page for each
+compute explains the values it produces.
+
+When a compute output is accessed by another input script command it
+is referenced via the following bracket notation, where ID is the ID
+of the compute:
 
 +-------------+--------------------------------------------+
 | c_ID        | entire scalar, vector, or array            |
@@ -89,17 +93,23 @@ notation, where ID is the ID of the compute:
 +-------------+--------------------------------------------+
 
 In other words, using one bracket reduces the dimension of the
-quantity once (vector :math:`\to` scalar, array :math:`\to` vector).  Using two
-brackets reduces the dimension twice (array :math:`\to` scalar).  Thus a
-command that uses scalar compute values as input can also process elements of a
-vector or array.
+quantity once (vector :math:`\to` scalar, array :math:`\to` vector).
+Using two brackets reduces the dimension twice (array :math:`\to`
+scalar).  Thus, for example, a command that uses global scalar compute
+values as input can also process elements of a vector or array.
+Depending on the command, this can either be done directly using the
+syntax in the table, or by first defining a :doc:`variable <variable>`
+of the appropriate style to store the quantity, then using the
+variable as an input to the command.
 
-Note that commands and :doc:`variables <variable>` which use compute
-quantities typically do not allow for all kinds (e.g., a command may
-require a vector of values, not a scalar).  This means there is no
-ambiguity about referring to a compute quantity as c_ID even if it
-produces, for example, both a scalar and vector.  The doc pages for
-various commands explain the details.
+Note that commands and :doc:`variables <variable>` which take compute
+outputs as input typically do not allow for all styles and kinds of
+data (e.g., a command may require global but not per-atom values, or
+it may require a vector of values, not a scalar).  This means there is
+typically no ambiguity about referring to a compute output as c_ID
+even if it produces, for example, both a scalar and vector.  The doc
+pages for various commands explain the details, including how any
+ambiguities are resolved.
 
 ----------
 
@@ -245,6 +255,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`composition/atom <compute_composition_atom>` - local composition for each atom
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
@@ -253,6 +264,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`nbond/atom <compute_nbond_atom>` - calculates number of bonds per atom
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql
+* :doc:`pace <compute_pace>` - atomic cluster expansion descriptors and related quantities
 * :doc:`pair <compute_pair>` - values computed by a pair style
 * :doc:`pair/local <compute_pair_local>` - distance/energy/force of each pairwise interaction
 * :doc:`pe <compute_pe>` - potential energy
@@ -268,12 +280,15 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`property/grid <compute_property_grid>` - convert per-grid attributes to per-grid vectors/arrays
 * :doc:`property/local <compute_property_local>` - convert local attributes to local vectors/arrays
 * :doc:`ptm/atom <compute_ptm_atom>` - determines the local lattice structure based on the Polyhedral Template Matching method
+* :doc:`rattlers/atom <compute_rattlers_atom>` - identify under-coordinated rattler atoms
 * :doc:`rdf <compute_rdf>` - radial distribution function :math:`g(r)` histogram of group of atoms
+* :doc:`reaxff/atom <compute_reaxff_atom>` - extract ReaxFF bond information
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
+* :doc:`slcsa/atom <compute_slcsa_atom>` - perform Supervised Learning Crystal Structure Analysis (SL-CSA)
 * :doc:`slice <compute_slice>` - extract values from global vector or array
 * :doc:`smd/contact/radius <compute_smd_contact_radius>` - contact radius for Smooth Mach Dynamics
 * :doc:`smd/damage <compute_smd_damage>` - damage status of SPH particles in Smooth Mach Dynamics
@@ -307,11 +322,11 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`sph/t/atom <compute_sph_t_atom>` - per-atom internal temperature of Smooth-Particle Hydrodynamics atoms
 * :doc:`spin <compute_spin>` - magnetic quantities for a system of atoms having spins
 * :doc:`stress/atom <compute_stress_atom>` - stress tensor for each atom
-* :doc:`stress/cartesian <compute_stress_profile>` - stress tensor in cartesian coordinates
-* :doc:`stress/cylinder <compute_stress_profile>` - stress tensor in cylindrical coordinates
+* :doc:`stress/cartesian <compute_stress_cartesian>` - stress tensor in cartesian coordinates
+* :doc:`stress/cylinder <compute_stress_curvilinear>` - stress tensor in cylindrical coordinates
 * :doc:`stress/mop <compute_stress_mop>` - normal components of the local stress tensor using the method of planes
 * :doc:`stress/mop/profile <compute_stress_mop>` - profile of the normal components of the local stress tensor using the method of planes
-* :doc:`stress/spherical <compute_stress_profile>` - stress tensor in spherical coordinates
+* :doc:`stress/spherical <compute_stress_curvilinear>` - stress tensor in spherical coordinates
 * :doc:`stress/tally <compute_tally>` - stress between two groups of atoms via the tally callback mechanism
 * :doc:`tdpd/cc/atom <compute_tdpd_cc_atom>` - per-atom chemical concentration of a specified species for each tDPD particle
 * :doc:`temp <compute_temp>` - temperature of group of atoms

@@ -62,12 +62,11 @@ void Special::build()
   if (me == 0) {
     const double * const special_lj   = force->special_lj;
     const double * const special_coul = force->special_coul;
-    auto mesg = fmt::format("Finding 1-2 1-3 1-4 neighbors ...\n"
-                            "  special bond factors lj:    {:<8} {:<8} {:<8}\n"
-                            "  special bond factors coul:  {:<8} {:<8} {:<8}\n",
-                            special_lj[1],special_lj[2],special_lj[3],
-                            special_coul[1],special_coul[2],special_coul[3]);
-    utils::logmesg(lmp,mesg);
+    utils::logmesg(lmp, "Finding 1-2 1-3 1-4 neighbors ...\n"
+                   "  special bond factors lj:    {:<8} {:<8} {:<8}\n"
+                   "  special bond factors coul:  {:<8} {:<8} {:<8}\n",
+                   special_lj[1],special_lj[2],special_lj[3],
+                   special_coul[1],special_coul[2],special_coul[3]);
   }
 
   // set onefive_flag if special_bonds command set it
@@ -162,7 +161,7 @@ void Special::build()
   if (onefive_flag) {
     onefive_build();
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("{:>6} = max # of 1-5 neighbors\n",maxall));
+      utils::logmesg(lmp,"{:>6} = max # of 1-5 neighbors\n",maxall);
   }
 
   // finish processing the onetwo, onethree, onefour, onefive lists
@@ -958,7 +957,7 @@ void Special::combine()
 
 void Special::angle_trim()
 {
-  int i,j,k,m;;
+  int i,j,k,m;
 
   int *num_angle = atom->num_angle;
   int *num_dihedral = atom->num_dihedral;

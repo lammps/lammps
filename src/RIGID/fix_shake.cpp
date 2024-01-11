@@ -207,8 +207,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   if (output_every) {
     int nb = atom->nbondtypes + 1;
-    b_count = new int[nb];
-    b_count_all = new int[nb];
+    b_count = new bigint[nb];
+    b_count_all = new bigint[nb];
     b_ave = new double[nb];
     b_ave_all = new double[nb];
     b_max = new double[nb];
@@ -217,8 +217,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     b_min_all = new double[nb];
 
     int na = atom->nangletypes + 1;
-    a_count = new int[na];
-    a_count_all = new int[na];
+    a_count = new bigint[na];
+    a_count_all = new bigint[na];
     a_ave = new double[na];
     a_ave_all = new double[na];
     a_max = new double[na];
@@ -2682,12 +2682,12 @@ void FixShake::stats()
 
   // sum across all procs
 
-  MPI_Allreduce(b_count,b_count_all,nb,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(b_count,b_count_all,nb,MPI_LMP_BIGINT,MPI_SUM,world);
   MPI_Allreduce(b_ave,b_ave_all,nb,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(b_max,b_max_all,nb,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(b_min,b_min_all,nb,MPI_DOUBLE,MPI_MIN,world);
 
-  MPI_Allreduce(a_count,a_count_all,na,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(a_count,a_count_all,na,MPI_LMP_BIGINT,MPI_SUM,world);
   MPI_Allreduce(a_ave,a_ave_all,na,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(a_max,a_max_all,na,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(a_min,a_min_all,na,MPI_DOUBLE,MPI_MIN,world);

@@ -4697,7 +4697,7 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 
   // if requested, compute energy and virial contribution
 
-  bigint ngridtotal = (bigint) nx_p * ny_p * nz_p;  
+  bigint ngridtotal = (bigint) nx_p * ny_p * nz_p;
   double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 

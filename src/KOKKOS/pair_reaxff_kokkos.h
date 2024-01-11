@@ -185,7 +185,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   // Returns if we need to populate d_d* functions or not
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  bool build_bo_list(int, int, int, int, int, int&, int&) const;
+  bool build_bo_list(int, int, int, int&, int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;

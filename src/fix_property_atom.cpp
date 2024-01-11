@@ -46,6 +46,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   rmass_flag = 0;
   temperature_flag = 0;
   heatflow_flag = 0;
+  nmax_old = 0;
 
   nvalue = 0;
   values_peratom = 0;
@@ -198,14 +199,21 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   astyle = utils::strdup(atom->atom_style);
 
-  // perform initial allocation of atom-based array
   // register with Atom class
 
-  nmax_old = 0;
-  if (!lmp->kokkos) FixPropertyAtom::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
   if (border) atom->add_callback(Atom::BORDER);
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixPropertyAtom::post_constructor()
+{
+  // perform initial allocation of atom-based array
+
+  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */

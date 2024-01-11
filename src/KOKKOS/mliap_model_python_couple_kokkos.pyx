@@ -25,6 +25,7 @@ cdef extern from "mliap_data_kokkos.h" namespace "LAMMPS_NS":
     cdef cppclass MLIAPDataKokkosDevice:
         # Array shapes
         int nlistatoms
+        int nlocal
         int ndescriptors
 
         # Input data
@@ -130,14 +131,14 @@ cdef create_array(device, void *pointer, shape,is_int):
                 return numpy.asarray(<int[:shape[0],:shape[1]]>pointer)
             else:
                 return numpy.asarray(<double[:shape[0],:shape[1]]>pointer)
-                
+
 
 cdef public void MLIAPPYKokkos_compute_gradients(MLIAPModelPythonKokkosDevice * c_model, MLIAPDataKokkosDevice * data) with gil:
 
     dev=data.dev
 
     torch.cuda.nvtx.range_push("set data fields")
-    model = retrieve(c_model) 
+    model = retrieve(c_model)
     n_d = data.ndescriptors
     n_a = data.nlistatoms
 
@@ -148,7 +149,7 @@ cdef public void MLIAPPYKokkos_compute_gradients(MLIAPModelPythonKokkosDevice * 
     beta_cp = create_array(dev, data.betas, (n_a, n_d), False)
     desc_cp = create_array(dev, data.descriptors, (n_a, n_d), False)
     torch.cuda.nvtx.range_pop()
-    
+
     # Invoke python model on numpy arrays.
     torch.cuda.nvtx.range_push("call model")
     model(elem_cp,desc_cp,beta_cp,en_cp,dev==1)

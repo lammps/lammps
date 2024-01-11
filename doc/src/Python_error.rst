@@ -1,11 +1,11 @@
 Handling LAMMPS errors
-*******************************
+**********************
 
-Compiling the shared library with :ref:`C++ exception support <exceptions>` provides a better error
-handling experience. Without exceptions the LAMMPS code will terminate the
-current Python process with an error message.  C++ exceptions allow capturing
-them on the C++ side and rethrowing them on the Python side. This way
-LAMMPS errors can be handled through the Python exception handling mechanism.
+LAMMPS and the LAMMPS library are compiled with :ref:`C++ exception support
+<exceptions>` to provide a better error handling experience.  LAMMPS errors
+trigger throwing a C++ exception. These exceptions allow capturing errors on
+the C++ side and rethrowing them on the Python side.  This way LAMMPS errors
+can be handled through the Python exception handling mechanism.
 
 .. code-block:: python
 
@@ -15,9 +15,7 @@ LAMMPS errors can be handled through the Python exception handling mechanism.
 
    try:
       # LAMMPS will normally terminate itself and the running process if an error
-      # occurs. This would kill the Python interpreter. To avoid this, make sure to
-      # compile with LAMMPS_EXCEPTIONS enabled. This ensures the library API calls
-      # will not terminate the parent process. Instead, the library wrapper will
+      # occurs. This would kill the Python interpreter.  The library wrapper will
       # detect that an error has occured and throw a Python exception
 
       lmp.command('unknown')
@@ -31,6 +29,6 @@ LAMMPS errors can be handled through the Python exception handling mechanism.
 .. warning::
 
    Capturing a LAMMPS exception in Python can still mean that the
-   current LAMMPS process is in an illegal state and must be terminated. It is
-   advised to save your data and terminate the Python instance as quickly as
-   possible.
+   current LAMMPS process is in an illegal state and must be
+   terminated. It is advised to save your data and terminate the Python
+   instance as quickly as possible when running in parallel with MPI.

@@ -23,10 +23,23 @@ coordinated.
 
 ----------
 
-The content for this manual is part of the LAMMPS distribution.  The
-online version always corresponds to the latest feature release version.
-If needed, you can build a local copy of the manual as HTML pages or a
-PDF file by following the steps on the :doc:`Build_manual` page.  If you
+The content for this manual is part of the LAMMPS distribution in its
+doc directory.
+
+* The version of the manual on the LAMMPS website corresponds to the
+  latest LAMMPS feature release.  It is available at:
+  `https://docs.lammps.org/ <https://docs.lammps.org/>`_.
+* A version of the manual corresponding to the latest LAMMPS stable
+  release (state of the *stable* branch on GitHub) is available online
+  at: `https://docs.lammps.org/stable/
+  <https://docs.lammps.org/stable/>`_
+* A version of the manual with the features most recently added to
+  LAMMPS (state of the *develop* branch on GitHub) is available at:
+  `https://docs.lammps.org/latest/ <https://docs.lammps.org/latest/>`_
+
+If needed, you can build a copy on your local machine of the manual
+(HTML pages or PDF file) for the version of LAMMPS you have
+downloaded.  Follow the steps on the :doc:`Build_manual` page.  If you
 have difficulties viewing the pages, please :ref:`see this note
 <webbrowser>`.
 

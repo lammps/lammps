@@ -41,14 +41,20 @@ Dump *Dump::dumpptr;
 #define BIG 1.0e20
 #define EPSILON 1.0e-6
 
-enum{ASCEND,DESCEND};
+enum { ASCEND, DESCEND };
 
 /* ---------------------------------------------------------------------- */
 
-Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
+Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
+    Pointers(lmp), multiname(nullptr), refresh(nullptr), skipvar(nullptr), format(nullptr),
+    format_default(nullptr), format_line_user(nullptr), format_float_user(nullptr),
+    format_int_user(nullptr), format_bigint_user(nullptr), format_column_user(nullptr), fp(nullptr),
+    nameslist(nullptr), buf(nullptr), sbuf(nullptr), ids(nullptr), bufsort(nullptr),
+    idsort(nullptr), index(nullptr), proclist(nullptr), xpbc(nullptr), vpbc(nullptr),
+    imagepbc(nullptr), irregular(nullptr)
 {
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
 
   id = utils::strdup(arg[0]);
 
@@ -64,17 +70,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   first_flag = 0;
   flush_flag = 1;
 
-  format = nullptr;
-  format_default = nullptr;
-
-  format_line_user = nullptr;
-  format_float_user = nullptr;
-  format_int_user = nullptr;
-  format_bigint_user = nullptr;
-  format_column_user = nullptr;
-
   refreshflag = 0;
-  refresh = nullptr;
 
   clearstep = 0;
   sort_flag = 0;
@@ -92,25 +88,15 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   has_id = 1;
 
   skipflag = 0;
-  skipvar = nullptr;
 
   maxfiles = -1;
   numfiles = 0;
   fileidx = 0;
-  nameslist = nullptr;
 
   maxbuf = maxids = maxsort = maxproc = 0;
-  buf = bufsort = nullptr;
-  ids = idsort = nullptr;
-  index = proclist = nullptr;
-  irregular = nullptr;
-
   maxsbuf = 0;
-  sbuf = nullptr;
 
   maxpbc = -1;
-  xpbc = vpbc = nullptr;
-  imagepbc = nullptr;
 
   // parse filename for special syntax
   // if contains '%', write one file per proc and replace % with proc-ID
@@ -120,23 +106,20 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   //   else if ends in .gz or other known extensions -> compressed text file
   //   else ASCII text file
 
-  fp = nullptr;
   singlefile_opened = 0;
   compressed = 0;
   binary = 0;
   multifile = 0;
+  size_one = 0;
 
   multiproc = 0;
   nclusterprocs = nprocs;
   filewriter = 0;
   if (me == 0) filewriter = 1;
   fileproc = 0;
-  multiname = nullptr;
 
   char *ptr;
   if ((ptr = strchr(filename,'%'))) {
-    if (strstr(style,"mpiio"))
-      error->all(FLERR,"Dump file MPI-IO output not allowed with % in filename");
     multiproc = 1;
     nclusterprocs = 1;
     filewriter = 1;

@@ -205,10 +205,9 @@ int FixQEqReaxFF::setmask()
 
 void FixQEqReaxFF::pertype_parameters(char *arg)
 {
-  // match either new keyword "reaxff" or old keyword "reax/c"
-  if (utils::strmatch(arg,"^reax..$")) {
+  if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
-    Pair *pair = force->pair_match("^reax..",0);
+    Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
 
     int tmp;
@@ -697,8 +696,8 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,fmt::format("Fix qeq/reaxff H matrix size has been "
-                                 "exceeded: m_fill={} H.m={}\n", m_fill, H.m));
+    error->all(FLERR,"Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -772,9 +771,8 @@ int FixQEqReaxFF::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff CG convergence failed "
-                                     "after {} iterations at step {}",
-                                     i,update->ntimestep));
+    error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
+                   i,update->ntimestep);
   return i;
 }
 

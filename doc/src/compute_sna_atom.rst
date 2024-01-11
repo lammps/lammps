@@ -26,7 +26,7 @@ compute sna/grid/local command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID sna/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
    compute ID group-ID snad/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
@@ -45,7 +45,7 @@ Syntax
 * w_1, w_2,... = list of neighbor weights, one for each type
 * nx, ny, nz = number of grid points in x, y, and z directions (positive integer)
 * zero or more keyword/value pairs may be appended
-* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner* or *dgradflag*
+* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner* or *dgradflag* or *nnn* or *wmode* or *delta*
 
   .. parsed-literal::
 
@@ -82,6 +82,16 @@ Syntax
           *0* = descriptor gradients are summed over atoms of each type
           *1* = descriptor gradients are listed separately for each atom pair
 
+* additional keyword = *nnn* or *wmode* or *delta*
+
+  .. parsed-literal::
+
+       *nnn* value = number of considered nearest neighbors to compute the bispectrum over a target specific number of neighbors (only implemented for compute sna/atom)
+       *wmode* value = weight function for finding optimal cutoff to match the target number of neighbors (required if nnn used, only implemented for compute sna/atom)
+          *0* = heavyside weight function
+          *1* = hyperbolic tangent weight function
+       *delta* value = transition interval centered at cutoff distance for hyperbolic tangent weight function (ignored if wmode=0, required if wmode=1, only implemented for compute sna/atom)
+
 Examples
 """"""""
 
@@ -94,6 +104,7 @@ Examples
    compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 chem 2 0 1
    compute snap all snap 1.0 0.99363 6 3.81 3.83 1.0 0.93 switchinnerflag 1 sinner 1.35 1.6 dinner 0.25 0.3
    compute bgrid all sna/grid/local 200 200 200 1.4 0.95 6 2.0 1.0
+   compute bnnn all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1 delta 0.2
 
 Description
 """""""""""
@@ -433,6 +444,25 @@ requires that *bikflag=1*.
    The rerun script can use a :doc:`special_bonds <special_bonds>`
    command that includes all pairs in the neighbor list.
 
+The keyword *nnn* allows for the calculation of the bispectrum over a
+specific target number of neighbors. This option is only implemented for
+the compute *sna/atom*\ .  An optimal cutoff radius for defining the
+neighborhood of the central atom is calculated by means of a dichotomy
+algorithm.  This iterative process allows to assign weights to
+neighboring atoms in order to match the total sum of weights with the
+target number of neighbors.  Depending on the radial weight function
+used in that process, the cutoff radius can fluctuate a lot in the
+presence of thermal noise.  Therefore, in addition to the *nnn* keyword,
+the keyword *wmode* allows to choose whether a Heaviside (*wmode* = 0)
+function or a Hyperbolic tangent function (*wmode* = 1) should be used.
+If the Heaviside function is used, the cutoff radius exactly matches the
+distance between the central atom an its *nnn*'th neighbor.  However, in
+the case of the hyperbolic tangent function, the dichotomy algorithm
+allows to span the weights over a distance *delta* in order to reduce
+fluctuations in the resulting local atomic environment fingerprint.  The
+detailed formalism is given in the paper by Lafourcade et
+al. :ref:`(Lafourcade) <Lafourcade2023_2>`.
+
 ----------
 
 Output info
@@ -585,6 +615,7 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_style snap <pair_snap>`
+:doc:`compute slcsa/atom <compute_slcsa_atom>`
 
 Default
 """""""
@@ -592,6 +623,7 @@ Default
 The optional keyword defaults are *rmin0* = 0,
 *switchflag* = 1, *bzeroflag* = 1, *quadraticflag* = 0,
 *bnormflag* = 0, *wselfallflag* = 0, *switchinnerflag* = 0,
+*nnn* = -1, *wmode* = 0, *delta* = 1.e-3
 
 ----------
 
@@ -623,3 +655,8 @@ of Angular Momentum, World Scientific, Singapore (1987).
 .. _Ellis2021:
 
 **(Ellis)** Ellis, Fiedler, Popoola, Modine, Stephens, Thompson, Cangi, Rajamanickam,  Phys Rev B, 104, 035120, (2021)
+
+.. _Lafourcade2023_2:
+
+**(Lafourcade)** Lafourcade, Maillet, Denoual, Duval, Allera, Goryaeva, and Marinica,
+`Comp. Mat. Science, 230, 112534 (2023) <https://doi.org/10.1016/j.commatsci.2023.112534>`_

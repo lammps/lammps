@@ -25,6 +25,18 @@ using namespace LAMMPS_NS;
 
 enum { CONSTANT, VARIABLE };
 
+static double GetRoot2D(double r0, double z0, double z1, double g);
+static double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g);
+
+static double DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0,
+                                   double &x1);
+static double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1,
+                                     double y2, double &x0, double &x1, double &x2);
+
+static constexpr int maxIterations =
+    std::numeric_limits<double>::digits - std::numeric_limits<double>::min_exponent;
+static constexpr double EPSILON = std::numeric_limits<double>::epsilon() * 2.0;
+
 /* ---------------------------------------------------------------------- */
 
 RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
@@ -190,8 +202,8 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
     double b_r = b - cutoff;
     double c_r = c - cutoff;
     double delx_r = b_r * c_r * (x[0] - xc);
-    double dely_r = a_r * c_r * (x[1] - xc);
-    double delz_r = a_r * b_r * (x[2] - xc);
+    double dely_r = a_r * c_r * (x[1] - yc);
+    double delz_r = a_r * b_r * (x[2] - zc);
     double r_r = delx_r * delx_r + dely_r * dely_r + delz_r * delz_r;
     double rc_r = a_r * a_r * b_r * b_r * c_r * c_r;
 
@@ -217,9 +229,9 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
       contact[0].r = DistancePointEllipsoid(
           axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]],
           coords[sorting[1]], coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
-      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
-      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
-      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
+      contact[0].delx = x[0] - (copysign(x0[0], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[1], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[2], x[2] - zc) + zc);
       //      contact[0].radius = -radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -236,7 +248,7 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
     double a_r = a - cutoff;
     double b_r = b - cutoff;
     double delx_r = b_r * (x[0] - xc);
-    double dely_r = a_r * (x[1] - xc);
+    double dely_r = a_r * (x[1] - yc);
     double r_r = delx_r * delx_r + dely_r * dely_r;
     double rc_r = a_r * a_r * b_r * b_r;
 
@@ -281,8 +293,8 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
     double b_r = b + cutoff;
     double c_r = c + cutoff;
     double delx_r = b_r * c_r * (x[0] - xc);
-    double dely_r = a_r * c_r * (x[1] - xc);
-    double delz_r = a_r * b_r * (x[2] - xc);
+    double dely_r = a_r * c_r * (x[1] - yc);
+    double delz_r = a_r * b_r * (x[2] - zc);
     double r_r = delx_r * delx_r + dely_r * dely_r + delz_r * delz_r;
     double rc_r = a_r * a_r * b_r * b_r * c_r * c_r;
 
@@ -308,9 +320,9 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
       contact[0].r = DistancePointEllipsoid(
           axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]],
           coords[sorting[1]], coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
-      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
-      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
-      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
+      contact[0].delx = x[0] - (copysign(x0[0], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[1], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[2], x[2] - zc) + zc);
       //      contact[0].radius = radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -327,7 +339,7 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
     double a_r = a + cutoff;
     double b_r = b + cutoff;
     double delx_r = b_r * (x[0] - xc);
-    double dely_r = a_r * (x[1] - xc);
+    double dely_r = a_r * (x[1] - yc);
     double r_r = delx_r * delx_r + dely_r * dely_r;
     double rc_r = a_r * a_r * b_r * b_r;
 
@@ -436,26 +448,24 @@ void RegEllipsoid::variable_check()
 // ------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   functions for the 2D case
+   static helper functions for the 2D case
 ------------------------------------------------------------------------- */
 
-double RegEllipsoid::GetRoot2D(double r0, double z0, double z1, double g)
+double GetRoot2D(double r0, double z0, double z1, double g)
 {
-  int maxIterations =
-      std::numeric_limits<double>::digits - std::numeric_limits<double>::min_exponent;
-  double n0 = r0 * z0;
-  double s0 = z1 - 1;
-  double s1 = (g < 0 ? 0 : sqrt(n0 * n0 + z1 * z1) - 1);
-  double s = 0;
+  const double n0 = r0 * z0;
+  double s0 = z1 - 1.0;
+  double s1 = (g < 0.0 ? 0.0 : sqrt(n0 * n0 + z1 * z1) - 1.0);
+  double s = 0.0;
   for (int i = 0; i < maxIterations; ++i) {
-    s = (s0 + s1) / 2;
+    s = (s0 + s1) / 2.0;
     if (s == s0 || s == s1) { break; }
-    double ratio0 = n0 / (s + r0);
-    double ratio1 = z1 / (s + 1);
-    g = ratio0 * ratio0 + ratio1 * ratio1 - 1;
-    if (g > 0) {
+    const double ratio0 = n0 / (s + r0);
+    const double ratio1 = z1 / (s + 1.0);
+    g = ratio0 * ratio0 + ratio1 * ratio1 - 1.0;
+    if ((g > 0.0) && (g > EPSILON)) {
       s0 = s;
-    } else if (g < 0) {
+    } else if ((g < 0.0) && (g < -EPSILON)) {
       s1 = s;
     } else {
       break;
@@ -464,28 +474,27 @@ double RegEllipsoid::GetRoot2D(double r0, double z0, double z1, double g)
   return s;
 }
 
-double RegEllipsoid::DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0,
-                                          double &x1)
+double DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0, double &x1)
 {
   double distance;
-  if (y1 > 0) {
-    if (y0 > 0) {
+  if (y1 > 0.0) {
+    if (y0 > 0.0) {
       double z0 = y0 / e0;
       double z1 = y1 / e1;
-      double g = z0 * z0 + z1 * z1 - 1;
-      if (g != 0) {
+      double g = z0 * z0 + z1 * z1 - 1.0;
+      if (g != 0.0) {
         double r0 = (e0 * e0) / (e1 * e1);
         double sbar = GetRoot2D(r0, z0, z1, g);
         x0 = r0 * y0 / (sbar + r0);
-        x1 = y1 / (sbar + 1);
+        x1 = y1 / (sbar + 1.0);
         distance = sqrt((x0 - y0) * (x0 - y0) + (x1 - y1) * (x1 - y1));
       } else {
         x0 = y0;
         x1 = y1;
-        distance = 0;
+        distance = 0.0;
       }
     } else {
-      x0 = 0;
+      x0 = 0.0;
       x1 = e1;
       distance = fabs(y1 - e1);
     }
@@ -499,7 +508,7 @@ double RegEllipsoid::DistancePointEllipse(double e0, double e1, double y0, doubl
       distance = sqrt((x0 - y0) * (x0 - y0) + x1 * x1);
     } else {
       x0 = e0;
-      x1 = 0;
+      x1 = 0.0;
       distance = fabs(y0 - e0);
     }
   }
@@ -507,28 +516,26 @@ double RegEllipsoid::DistancePointEllipse(double e0, double e1, double y0, doubl
 }
 
 /* ----------------------------------------------------------------------
-   functions for the 3D case
+   static helper functions for the 3D case
 ------------------------------------------------------------------------- */
 
-double RegEllipsoid::GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g)
+double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g)
 {
-  int maxIterations =
-      std::numeric_limits<double>::digits - std::numeric_limits<double>::min_exponent;
-  double n0 = r0 * z0;
-  double n1 = r1 * z1;
-  double s0 = z2 - 1;
-  double s1 = (g < 0 ? 0 : sqrt(n0 * n0 + n1 * n1 + z2 * z2) - 1);
-  double s = 0;
+  const double n0 = r0 * z0;
+  const double n1 = r1 * z1;
+  double s0 = z2 - 1.0;
+  double s1 = (g < 0.0 ? 0.0 : sqrt(n0 * n0 + n1 * n1 + z2 * z2) - 1.0);
+  double s = 0.0;
   for (int i = 0; i < maxIterations; ++i) {
-    s = (s0 + s1) / 2;
+    s = (s0 + s1) / 2.0;
     if (s == s0 || s == s1) { break; }
-    double ratio0 = n0 / (s + r0);
-    double ratio1 = n1 / (s + r1);
-    double ratio2 = z2 / (s + 1);
-    g = ratio0 * ratio0 + ratio1 * ratio1 + ratio2 * ratio2 - 1;
-    if (g > 0) {
+    const double ratio0 = n0 / (s + r0);
+    const double ratio1 = n1 / (s + r1);
+    const double ratio2 = z2 / (s + 1.0);
+    g = ratio0 * ratio0 + ratio1 * ratio1 + ratio2 * ratio2 - 1.0;
+    if ((g > 0.0) && (g > EPSILON)) {
       s0 = s;
-    } else if (g < 0) {
+    } else if ((g < 0.0) && (g < -EPSILON)) {
       s1 = s;
     } else {
       break;
@@ -537,42 +544,42 @@ double RegEllipsoid::GetRoot3D(double r0, double r1, double z0, double z1, doubl
   return s;
 }
 
-double RegEllipsoid::DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1,
-                                            double y2, double &x0, double &x1, double &x2)
+double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1, double y2,
+                              double &x0, double &x1, double &x2)
 {
   double distance;
-  if (y2 > 0) {
-    if (y1 > 0) {
-      if (y0 > 0) {
+  if (y2 > 0.0) {
+    if (y1 > 0.0) {
+      if (y0 > 0.0) {
         double z0 = y0 / e0;
         double z1 = y1 / e1;
         double z2 = y2 / e2;
-        double g = z0 * z0 + z1 * z1 + z2 * z2 - 1;
-        if (g != 0) {
+        double g = z0 * z0 + z1 * z1 + z2 * z2 - 1.0;
+        if (g != 0.0) {
           double r0 = e0 * e0 / (e2 * e2);
           double r1 = e1 * e1 / (e2 * e2);
           double sbar = GetRoot3D(r0, r1, z0, z1, z2, g);
           x0 = r0 * y0 / (sbar + r0);
           x1 = r1 * y1 / (sbar + r1);
-          x2 = y2 / (sbar + 1);
+          x2 = y2 / (sbar + 1.0);
           distance = sqrt((x0 - y0) * (x0 - y0) + (x1 - y1) * (x1 - y1) + (x2 - y2) * (x2 - y2));
         } else {
           x0 = y0;
           x1 = y1;
           x2 = y2;
-          distance = 0;
+          distance = 0.0;
         }
       } else {
-        x0 = 0;
+        x0 = 0.0;
         distance = DistancePointEllipse(e1, e2, y1, y2, x1, x2);
       }
     } else {
-      if (y0 > 0) {
-        x1 = 0;
+      if (y0 > 0.0) {
+        x1 = 0.0;
         distance = DistancePointEllipse(e0, e2, y0, y2, x0, x2);
       } else {
-        x0 = 0;
-        x1 = 0;
+        x0 = 0.0;
+        x1 = 0.0;
         x2 = e2;
         distance = fabs(y2 - e2);
       }
@@ -588,8 +595,8 @@ double RegEllipsoid::DistancePointEllipsoid(double e0, double e1, double e2, dou
       double xde1 = numer1 / denom1;
       double xde0sqr = xde0 * xde0;
       double xde1sqr = xde1 * xde1;
-      double discr = 1 - xde0sqr - xde1sqr;
-      if (discr > 0) {
+      double discr = 1.0 - xde0sqr - xde1sqr;
+      if (discr > 0.0) {
         x0 = e0 * xde0;
         x1 = e1 * xde1;
         x2 = e2 * sqrt(discr);
@@ -598,7 +605,7 @@ double RegEllipsoid::DistancePointEllipsoid(double e0, double e1, double e2, dou
       }
     }
     if (!computed) {
-      x2 = 0;
+      x2 = 0.0;
       distance = DistancePointEllipse(e0, e1, y0, y1, x0, x1);
     }
   }

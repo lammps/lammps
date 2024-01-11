@@ -1,43 +1,17 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
 /// \file Kokkos_Pair.hpp
@@ -88,8 +62,7 @@ struct pair {
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
-#ifdef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC bug in NVHPC regarding constexpr
-                              // constructors used in device code
+#if defined(KOKKOS_COMPILER_NVHPC) && KOKKOS_COMPILER_NVHPC < 230700
   KOKKOS_FORCEINLINE_FUNCTION
 #else
   KOKKOS_FORCEINLINE_FUNCTION constexpr
@@ -101,8 +74,7 @@ struct pair {
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-#ifdef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC bug in NVHPC regarding constexpr
-                              // constructors used in device code
+#if defined(KOKKOS_COMPILER_NVHPC) && KOKKOS_COMPILER_NVHPC < 230700
   KOKKOS_FORCEINLINE_FUNCTION
 #else
   KOKKOS_FORCEINLINE_FUNCTION constexpr
@@ -111,13 +83,16 @@ struct pair {
       : first(p.first), second(p.second) {
   }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   /// \brief Copy constructor.
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr pair(const volatile pair<U, V>& p)
+  KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION constexpr pair(
+      const volatile pair<U, V>& p)
       : first(p.first), second(p.second) {}
+#endif
 
   /// \brief Assignment operator.
   ///
@@ -130,6 +105,7 @@ struct pair {
     return *this;
   }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   /// \brief Assignment operator, for volatile <tt>*this</tt>.
   ///
   /// \param p [in] Input; right-hand side of the assignment.
@@ -142,13 +118,14 @@ struct pair {
   /// practice, this means that you should not chain assignments with
   /// volatile lvalues.
   template <class U, class V>
-  KOKKOS_FORCEINLINE_FUNCTION void operator=(
+  KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION void operator=(
       const volatile pair<U, V>& p) volatile {
     first  = p.first;
     second = p.second;
     // We deliberately do not return anything here.  See explanation
     // in public documentation above.
   }
+#endif
 
   // from std::pair<U,V>
   template <class U, class V>

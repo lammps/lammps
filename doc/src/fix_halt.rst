@@ -6,7 +6,7 @@ fix halt command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID halt N attribute operator avalue keyword value ...
 
@@ -183,4 +183,4 @@ Related commands
 Default
 """""""
 
-The option defaults are error = hard, message = yes, and path = ".".
+The option defaults are error = soft, message = yes, and path = ".".

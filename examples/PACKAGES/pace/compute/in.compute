@@ -1,0 +1,22 @@
+#info all out log
+units  metal
+atom_style  atomic
+boundary    p p p
+atom_modify    map hash
+boundary  p p p
+read_data  latte_cell_0.data
+mass  1 1.00
+mass  2 14.00
+mass  3 15.999
+
+        # potential settings
+
+pair_style     zero 5.7
+pair_coeff     * *
+
+compute     pace all pace coupling_coefficients.yace 1 0
+
+thermo 1 
+thermo_style  custom step temp c_pace[1][183]
+
+run 0

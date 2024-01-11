@@ -9,7 +9,7 @@ Accelerator Variants: *reaxff/species/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID reaxff/species Nevery Nrepeat Nfreq filename keyword value ...
 

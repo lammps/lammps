@@ -146,7 +146,7 @@ void BondOxdnaFene::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, doub
 void BondOxdnaFene::compute(int eflag, int vflag)
 {
   int a, b, in, type;
-  double delf[3], delta[3], deltb[3];    // force, torque increment;;
+  double delf[3], delta[3], deltb[3];    // force, torque increment
   double delr[3], ebond, fbond;
   double rsq, Deltasq, rlogarg;
   double r, rr0, rr0sq;

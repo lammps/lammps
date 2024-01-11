@@ -1,4 +1,5 @@
 .. index:: fix efield
+.. index:: fix efield/kk
 .. index:: fix efield/tip4p
 
 fix efield command
@@ -10,7 +11,7 @@ fix efield/tip4p command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style ex ey ez keyword value ...
 
@@ -209,6 +210,12 @@ the iteration count during the minimization.
    added forces to be included in the total potential energy of the
    system (the quantity being minimized), you MUST enable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

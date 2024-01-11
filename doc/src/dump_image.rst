@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *ssao*
+* keyword = *atom* or *adiam* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *fsaa* or *ssao*
 
   .. parsed-literal::
 
@@ -85,6 +85,8 @@ Syntax
          diam = diameter of subdomain lines as fraction of shortest box length
        *shiny* value = sfactor = shinyness of spheres and cylinders
          sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
+       *fsaa* arg = yes/no
+         yes/no = do or do not apply anti-aliasing
        *ssao* value = shading seed dfactor = SSAO depth shading
          shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
@@ -98,7 +100,7 @@ dump_modify options for dump image/movie
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump_modify dump-ID keyword values ...
 
@@ -227,7 +229,7 @@ details have to be looked up in the `FFmpeg documentation
 described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
-support for the corresponding JPEG or PNG library. To convert images
+support for the corresponding JPEG or PNG library.  To convert images
 into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
 flag. See the :doc:`Build settings <Build_settings>` page for
 details.
@@ -597,13 +599,47 @@ image will appear.  The *sfactor* value must be a value 0.0 <=
 *sfactor* <= 1.0, where *sfactor* = 1 is a highly reflective surface
 and *sfactor* = 0 is a rough non-shiny surface.
 
-The *ssao* keyword turns on/off a screen space ambient occlusion
-(SSAO) model for depth shading.  If *yes* is set, then atoms further
-away from the viewer are darkened via a randomized process, which is
-perceived as depth.  The calculation of this effect can increase the
-cost of computing the image by roughly 2x.  The strength of the effect
-can be scaled by the *dfactor* parameter.  If *no* is set, no depth
-shading is performed.
+.. versionadded:: 21Nov2023
+
+The *fsaa* keyword can be used with the dump image command to improve
+the image quality by enabling full scene anti-aliasing.  Internally the
+image is rendered at twice the width and height and then scaled down by
+computing the average of each 2x2 block of pixels to produce a single
+pixel in the final image at the original size. This produces images with
+smoother, less ragged edges.  The application of this algorithm can
+increase the cost of computing the image by about 3x or more.
+
+The *ssao* keyword turns on/off a screen space ambient occlusion (SSAO)
+model for depth shading.  If *yes* is set, then atoms further away from
+the viewer are darkened via a randomized process, which is perceived as
+depth.  The strength of the effect can be scaled by the *dfactor*
+parameter.  If *no* is set, no depth shading is performed.  The
+calculation of this effect can increase the cost of computing the image
+substantially by 5x or more, especially with larger images.  When used
+in combination with the *fsaa* keyword the computational cost of depth
+shading is particularly large.
+
+----------
+
+Image Quality Settings
+""""""""""""""""""""""
+
+The two keywords *fsaa* and *ssao* can be used to improve the image
+quality at the expense of additional computational cost to render the
+images. The images below show from left to right the same render with
+default settings, with *fsaa* added, with *ssao* added, and with both
+keywords added.
+
+.. |imagequality1| image:: JPG/image.default.png
+   :width: 24%
+.. |imagequality2| image:: JPG/image.fsaa.png
+   :width: 24%
+.. |imagequality3| image:: JPG/image.ssao.png
+   :width: 24%
+.. |imagequality4| image:: JPG/image.both.png
+   :width: 24%
+
+|imagequality1|  |imagequality2|  |imagequality3|  |imagequality4|
 
 ----------
 
@@ -1051,6 +1087,7 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * boxcolor = yellow
 * color = 140 color names are pre-defined as listed below
 * framerate = 24
+* fsaa = no
 * gmap = min max cf 0.0 2 min blue max red
 
 ----------

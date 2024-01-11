@@ -93,6 +93,7 @@ Miscellaneous tools
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
+   * :ref:`LAMMPS GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
    * :ref:`singularity/apptainer <singularity_tool>`
@@ -631,6 +632,212 @@ write a section of the command history to a file (Example:
 (Example: ``|vim in.run``) and then the file read back in and tried out
 (Example: ``source in.run``).  If the input also creates a system box,
 you first need to use the :doc:`clear` command.
+
+----------
+
+.. _lammps_gui:
+
+LAMMPS GUI
+----------
+
+.. versionadded:: 2Aug2023
+
+Overview
+^^^^^^^^
+
+LAMMPS GUI is a graphical text editor customized for editing LAMMPS
+input files that is linked to the :ref:`LAMMPS C-library <lammps_c_api>`
+and thus can run LAMMPS directly using the contents of the editor's text
+buffer as input.  It can retrieve and display information from LAMMPS
+while it is running, display visualizations created with the :doc:`dump
+image command <dump_image>`, and is adapted specifically for editing
+LAMMPS input files through text completion and reformatting, and linking
+to the online LAMMPS documentation for known LAMMPS commands and styles.
+
+This is similar to what people traditionally would do to run LAMMPS:
+using a regular text editor to edit the input and run the necessary
+commands, possibly including the text editor, too, from a command line
+terminal window.  This similarity is a design goal. While making it easy
+for beginners to start with LAMMPS, it is also the intention to simplify
+the transition to workflows like most experienced LAMMPS users do.
+
+All features have been extensively exposed to keyboard shortcuts, so
+that there is also appeal for experienced LAMMPS users for prototyping
+and testing simulations setups.
+
+Features
+^^^^^^^^
+
+A detailed discussion and explanation of all features and functionality
+are in the :doc:`Howto_lammps_gui` tutorial Howto page.
+
+Here are a few highlights of LAMMPS GUI
+
+- Text editor with syntax highlighting customized for LAMMPS
+- Text editor will switch working directory to folder of file in buffer
+- Text editor will remember up to 5 recent files
+- Context specific LAMMPS command help via online documentation
+- LAMMPS is running in a concurrent thread, so the GUI remains responsive
+- Support for most accelerator packages
+- Progress bar indicates how far a run command is completed
+- LAMMPS can be started and stopped with a hotkey
+- Screen output is captured in a Log Window
+- Thermodynamic output is captured and displayed as line graph in a Chart Window
+- Indicator for currently executed command
+- Indicator for line that caused an error
+- Visualization of current state in Image Viewer (via :doc:`dump image <dump_image>`)
+- Many adjustable settings and preferences that are persistent
+- Dialog to set variables from the LAMMPS command line
+
+Parallelization
+^^^^^^^^^^^^^^^
+
+Due to its nature as a graphical application, it is not possible to use
+the LAMMPS GUI in parallel with MPI, but OpenMP multi-threading and GPU
+acceleration is available and enabled by default.
+
+Prerequisites and portability
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+LAMMPS GUI is programmed in C++ based on the C++11 standard and using
+the `Qt GUI framework <https://www.qt.io/product/framework>`_.
+Currently, Qt version 5.12 or later is required; Qt 5.15LTS is
+recommended; support for Qt version 6.x is under active development and
+thus far only tested with Qt 6.5LTS on Linux.  Building LAMMPS with
+CMake is required.
+
+The LAMMPS GUI has been successfully compiled and tested on:
+
+- Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
+- Fedora Linux 38 x86\_64 using GCC 13 and Clang 16, Qt version 5.15LTS
+- Fedora Linux 38 x86\_64 using GCC 13, Qt version 6.5LTS
+- Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
+- Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
+- Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
+
+.. _lammps_gui_install:
+
+
+Pre-compiled executables
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pre-compiled LAMMPS executable packages that include the GUI are currently
+available from https://download.lammps.org/static or
+https://github.com/lammps/lammps/releases.  You can unpack the archives
+(or mount the macOS disk image) and run the GUI directly in place. The
+folder may also be moved around and added to the ``PATH`` environment
+variable so the executables will be found automatically.  The LAMMPS GUI
+executable is called ``lammps-gui`` and either takes no arguments or
+attempts to load the first argument as LAMMPS input file.
+
+Compilation
+^^^^^^^^^^^
+
+The source for the LAMMPS GUI is included with the LAMMPS source code
+distribution in the folder ``tools/lammps-gui`` and thus it can be can
+be built as part of a regular LAMMPS compilation.  :doc:`Using CMake
+<Howto_cmake>` is required.  To enable its compilation, the CMake
+variable ``-D BUILD_LAMMPS_GUI=on`` must be set when creating the CMake
+configuration.  All other settings (compiler, flags, compile type) for
+LAMMPS GUI are then inherited from the regular LAMMPS build.  If the Qt
+library is packaged for Linux distributions, then its location is
+typically auto-detected since the required CMake configuration files are
+stored in a location where CMake can find them without additional help.
+Otherwise, the location of the Qt library installation must be indicated
+by setting ``-D Qt5_DIR=/path/to/qt5/lib/cmake/Qt5``, which is a path to
+a folder inside the Qt installation that contains the file
+``Qt5Config.cmake``. Similarly, for Qt6 the location of the Qt library
+installation can be indicated by setting ``-D Qt6_DIR=/path/to/qt6/lib/cmake/Qt6``,
+if necessary.  When both, Qt5 and Qt6 are available, Qt6 will be preferred
+unless ``-D LAMMPS_GUI_USE_QT5=yes`` is set.
+
+It should be possible to build the LAMMPS GUI as a standalone
+compilation (e.g. when LAMMPS has been compiled with traditional make),
+then the CMake configuration needs to be told where to find the LAMMPS
+headers and the LAMMPS library, via ``-D
+LAMMPS_SOURCE_DIR=/path/to/lammps/src``.  CMake will try to guess a
+build folder with the LAMMPS library from that path, but it can also be
+set with ``-D LAMMPS_LIB_DIR=/path/to/lammps/lib``.
+
+Rather than linking to the LAMMPS library during compilation, it is also
+possible to compile the GUI with a plugin loader library that will load
+the LAMMPS library dynamically at runtime during the start of the GUI
+from a shared library; e.g. ``liblammps.so`` or ``liblammps.dylib`` or
+``liblammps.dll`` (depending on the operating system).  This has the
+advantage that the LAMMPS library can be updated LAMMPS without having
+to recompile the GUI.  The ABI of the LAMMPS C-library interface is very
+stable and generally backward compatible.  This feature is enabled by
+setting ``-D LAMMPS_GUI_USE_PLUGIN=on`` and then ``-D
+LAMMPS_PLUGINLIB_DIR=/path/to/lammps/plugin/loader``. Typically, this
+would be the ``examples/COUPLE/plugin`` folder of the LAMMPS
+distribution.
+
+Platform notes
+^^^^^^^^^^^^^^
+
+macOS
+"""""
+
+When building on macOS, the build procedure will try to manufacture a
+drag-n-drop installer, LAMMPS-macOS-multiarch.dmg, when using the 'dmg'
+target (i.e. ``cmake --build <build dir> --target dmg`` or ``make dmg``.
+
+To build multi-arch executables that will run on both, arm64 and x86_64
+architectures natively, it is necessary to set the CMake variable ``-D
+CMAKE_OSX_ARCHITECTURES=arm64;x86_64``.  To achieve wide compatibility
+with different macOS versions, you can also set ``-D
+CMAKE_OSX_DEPLOYMENT_TARGET=11.0`` which will set compatibility to macOS
+11 (Big Sur) and later, even if you are compiling on a more recent macOS
+version.
+
+Windows
+"""""""
+
+On Windows either native compilation from within Visual Studio 2022 with
+Visual C++ is supported and tested, or compilation with the MinGW / GCC
+cross-compiler environment on Fedora Linux.
+
+**Visual Studio**
+
+Using CMake and Ninja as build system are required.  Qt needs to be
+installed, tested was a binary package downloaded from
+https://www.qt.io, which installs into the ``C:\\Qt`` folder by default.
+There is a custom `x64-GUI-MSVC` build configuration provided in the
+``CMakeSettings.json`` file that Visual Studio uses to store different
+compilation settings for project.  Choosing this configuration will
+activate building the `lammps-gui.exe` executable in addition to LAMMPS
+through importing package selection from the ``windows.cmake`` preset
+file and enabling building the LAMMPS GUI and disabling building with MPI.
+When requesting an installation from the `Build` menu in Visual Studio,
+it will create a compressed ``LAMMPS-Win10-amd64.zip`` zip file with the
+executables and required dependent .dll files.  This zip file can be
+uncompressed and ``lammps-gui.exe`` run directly from there.  The
+uncompressed folder can be added to the ``PATH`` environment and LAMMPS
+and LAMMPS GUI can be launched from anywhere from the command line.
+
+**MinGW64 Cross-compiler**
+
+The standard CMake build procedure can be applied and the
+``mingw-cross.cmake`` preset used. By using ``mingw64-cmake`` the CMake
+command will automatically include a suitable CMake toolset file (the
+regular cmake command can be used after that).  After building the
+libraries and executables, you can build the target 'zip'
+(i.e. ``cmake --build <build dir> --target zip`` or ``make zip``
+to stage all installed files into a LAMMPS_GUI folder and then
+run a script to copy all required dependencies, some other files,
+and create a zip file from it.
+
+Linux
+"""""
+
+Version 5.12 or later of the Qt library is required. Those are provided
+by, e.g., Ubuntu 20.04LTS.  Thus older Linux distributions are not
+likely to be supported, while more recent ones will work, even for
+pre-compiled executables (see above).  After compiling with
+``cmake --build <build folder>``, use ``cmake --build <build
+folder> --target tgz`` or ``make tgz`` to build a
+``LAMMPS-Linux-amd64.tar.gz`` file with the executables and their
+support libraries.
 
 ----------
 

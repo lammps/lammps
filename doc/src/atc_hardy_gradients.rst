@@ -6,7 +6,7 @@ fix_modify AtC gradients command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> gradients <add|delete> <list_of_fields>
 

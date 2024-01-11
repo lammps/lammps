@@ -113,7 +113,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_stencil_info()
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (ns->last_stencil != last_stencil_old) {
+  if (ns->last_stencil != last_stencil_old || ns->last_stencil == update->ntimestep) {
     // copy stencil to device as it may have changed
 
     last_stencil_old = ns->last_stencil;
@@ -155,6 +155,8 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
 
   list->grow(nall);
 
+  const double delta = 0.01 * force->angstrom;
+
   NeighborKokkosExecute<DeviceType>
     data(*list,
          k_cutneighsq.view<DeviceType>(),
@@ -176,7 +178,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
          atomKK->molecular,
          nbinx,nbiny,nbinz,mbinx,mbiny,mbinz,mbinxlo,mbinylo,mbinzlo,
          bininvx,bininvy,bininvz,
-         exclude, nex_type,
+         delta, exclude, nex_type,
          k_ex1_type.view<DeviceType>(),
          k_ex2_type.view<DeviceType>(),
          k_ex_type.view<DeviceType>(),
@@ -217,6 +219,8 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
       atomKK->sync(Device,X_MASK|RADIUS_MASK|TYPE_MASK);
   }
 
+  if (HALF && NEWTON && TRI) atomKK->sync(Device,TAG_MASK);
+
   data.special_flag[0] = special_flag[0];
   data.special_flag[1] = special_flag[1];
   data.special_flag[2] = special_flag[2];
@@ -240,25 +244,28 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
       // assumes newton off
 
       NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef LMP_KOKKOS_GPU
-      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-        int team_size = atoms_per_bin*factor;
-        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-        if (team_size <= team_size_max) {
-          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-          Kokkos::parallel_for(config, f);
-        } else { // fall back to flat method
-          f.sharedsize = 0;
-          Kokkos::parallel_for(nall, f);
-        }
-      } else
-        Kokkos::parallel_for(nall, f);
-#else
+
+// temporarily disable team policy for ghost due to known bug
+
+//#ifdef LMP_KOKKOS_GPU
+//      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
+//        int team_size = atoms_per_bin*factor;
+//        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+//        if (team_size <= team_size_max) {
+//          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+//          Kokkos::parallel_for(config, f);
+//        } else { // fall back to flat method
+//          f.sharedsize = 0;
+//          Kokkos::parallel_for(nall, f);
+//        }
+//      } else
+//        Kokkos::parallel_for(nall, f);
+//#else
       Kokkos::parallel_for(nall, f);
-#endif
+//#endif
     } else {
       if (SIZE) {
-        NPairKokkosBuildFunctorSize<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);
+        NPairKokkosBuildFunctorSize<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 7 * sizeof(X_FLOAT) * factor);
 #ifdef LMP_KOKKOS_GPU
         if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
           int team_size = atoms_per_bin*factor;
@@ -276,7 +283,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
         Kokkos::parallel_for(nall, f);
 #endif
       } else {
-        NPairKokkosBuildFunctor<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+        NPairKokkosBuildFunctor<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);
 #ifdef LMP_KOKKOS_GPU
         if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
           int team_size = atoms_per_bin*factor;
@@ -411,6 +418,8 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
   const int itype = type(i);
+  tagint itag;
+  if (HalfNeigh && Newton && Tri) itag = tag(i);
 
   const int ibin = c_atom2bin(i);
 
@@ -481,13 +490,29 @@ void NeighborKokkosExecute<DeviceType>::
 
         if (HalfNeigh && !Newton && j <= i) continue;
         if (!HalfNeigh && j == i) continue;
+
+        // for triclinic, bin stencil is full in all 3 dims
+        // must use itag/jtag to eliminate half the I/J interactions
+        // cannot use I/J exact coord comparision
+        //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+        //   with an added PBC offset can shift all 3 coords by epsilon
+
         if (HalfNeigh && Newton && Tri) {
-          if (x(j,2) < ztmp) continue;
-          if (x(j,2) == ztmp) {
-            if (x(j,1) < ytmp) continue;
-            if (x(j,1) == ytmp) {
-              if (x(j,0) < xtmp) continue;
-              if (x(j,0) == xtmp && j <= i) continue;
+          if (j <= i) continue;
+          if (j >= nlocal) {
+            const tagint jtag = tag(j);
+            if (itag > jtag) {
+              if ((itag+jtag) % 2 == 0) continue;
+            } else if (itag < jtag) {
+              if ((itag+jtag) % 2 == 1) continue;
+            } else {
+              if (fabs(x(j,2)-ztmp) > delta) {
+                if (x(j,2) < ztmp) continue;
+              } else if (fabs(x(j,1)-ytmp) > delta) {
+                if (x(j,1) < ytmp) continue;
+              } else {
+                if (x(j,0) < xtmp) continue;
+              }
             }
           }
         }
@@ -565,8 +590,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
                                                       size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
-  /* loop over atoms in i's bin,
-  */
+
+  // loop over atoms in i's bin
+
   const int atoms_per_bin = c_bins.extent(1);
   const int BINS_PER_TEAM = dev.team_size()/atoms_per_bin <1?1:dev.team_size()/atoms_per_bin;
   const int TEAMS_PER_BIN = atoms_per_bin/dev.team_size()<1?1:atoms_per_bin/dev.team_size();
@@ -576,15 +602,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
 
   if (ibin >= mbins) return;
 
-  X_FLOAT* other_x = sharedmem + 5*atoms_per_bin*MY_BIN;
-  int* other_id = (int*) &other_x[4 * atoms_per_bin];
+  X_FLOAT* other_x = sharedmem + 6*atoms_per_bin*MY_BIN;
+  int* other_id = (int*) &other_x[5 * atoms_per_bin];
 
   int bincount_current = c_bincount[ibin];
 
   for (int kk = 0; kk < TEAMS_PER_BIN; kk++) {
     const int MY_II = dev.team_rank()%atoms_per_bin+kk*dev.team_size();
     const int i = MY_II < bincount_current ? c_bins(ibin, MY_II) : -1;
-    /* if necessary, goto next page and add pages */
 
     int n = 0;
 
@@ -592,6 +617,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
     X_FLOAT ytmp;
     X_FLOAT ztmp;
     int itype;
+    tagint itag;
     const int index = (i >= 0 && i < nlocal) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
@@ -605,6 +631,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
+      if (HalfNeigh && Newton && Tri) {
+        itag = tag(i);
+        other_x[MY_II + 4 * atoms_per_bin] = itag;
+      }
     }
     other_id[MY_II] = i;
 
@@ -692,6 +722,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
+        if (HalfNeigh && Newton && Tri)
+          other_x[MY_II + 4 * atoms_per_bin] = tag(j);
       }
 
       other_id[MY_II] = j;
@@ -705,13 +737,29 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
 
           if (HalfNeigh && !Newton && j <= i) continue;
           if (!HalfNeigh && j == i) continue;
+
+          // for triclinic, bin stencil is full in all 3 dims
+          // must use itag/jtag to eliminate half the I/J interactions
+          // cannot use I/J exact coord comparision
+          //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+          //   with an added PBC offset can shift all 3 coords by epsilon
+
           if (HalfNeigh && Newton && Tri) {
-            if (x(j,2) < ztmp) continue;
-            if (x(j,2) == ztmp) {
-              if (x(j,1) < ytmp) continue;
-              if (x(j,1) == ytmp) {
-                if (x(j,0) < xtmp) continue;
-                if (x(j,0) == xtmp && j <= i) continue;
+            if (j <= i) continue;
+            if (j >= nlocal) {
+              const tagint jtag = other_x[m + 4 * atoms_per_bin];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x(j,2)-ztmp) > delta) {
+                  if (x(j,2) < ztmp) continue;
+                } else if (fabs(x(j,1)-ytmp) > delta) {
+                  if (x(j,1) < ytmp) continue;
+                } else {
+                  if (x(j,0) < xtmp) continue;
+                }
               }
             }
           }
@@ -902,6 +950,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
                                                       size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
+
   // loop over atoms in i's bin
 
   const int atoms_per_bin = c_bins.extent(1);
@@ -1081,6 +1130,8 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ztmp = x(i, 2);
   const X_FLOAT radi = radius(i);
   const int itype = type(i);
+  tagint itag;
+  if (HalfNeigh && Newton && Tri) itag = tag(i);
 
   const int ibin = c_atom2bin(i);
 
@@ -1164,13 +1215,29 @@ void NeighborKokkosExecute<DeviceType>::
 
       if (HalfNeigh && !Newton && j <= i) continue;
       if (!HalfNeigh && j == i) continue;
+
+      // for triclinic, bin stencil is full in all 3 dims
+      // must use itag/jtag to eliminate half the I/J interactions
+      // cannot use I/J exact coord comparision
+      //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+      //   with an added PBC offset can shift all 3 coords by epsilon
+
       if (HalfNeigh && Newton && Tri) {
-        if (x(j,2) < ztmp) continue;
-        if (x(j,2) == ztmp) {
-          if (x(j,1) < ytmp) continue;
-          if (x(j,1) == ytmp) {
-            if (x(j,0) < xtmp) continue;
-            if (x(j,0) == xtmp && j <= i) continue;
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          const tagint jtag = tag(j);
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (fabs(x(j,2)-ztmp) > delta) {
+              if (x(j,2) < ztmp) continue;
+            } else if (fabs(x(j,1)-ytmp) > delta) {
+              if (x(j,1) < ytmp) continue;
+            } else {
+              if (x(j,0) < xtmp) continue;
+            }
           }
         }
       }
@@ -1242,8 +1309,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
                                                           size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
-  /* loop over atoms in i's bin,
-   */
+
+  // loop over atoms in i's bin
+
   const int atoms_per_bin = c_bins.extent(1);
   const int BINS_PER_TEAM = dev.team_size()/atoms_per_bin <1?1:dev.team_size()/atoms_per_bin;
   const int TEAMS_PER_BIN = atoms_per_bin/dev.team_size()<1?1:atoms_per_bin/dev.team_size();
@@ -1253,15 +1321,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
   if (ibin >= mbins) return;
 
-  X_FLOAT* other_x = sharedmem + 6*atoms_per_bin*MY_BIN;
-  int* other_id = (int*) &other_x[5 * atoms_per_bin];
+  X_FLOAT* other_x = sharedmem + 7*atoms_per_bin*MY_BIN;
+  int* other_id = (int*) &other_x[6 * atoms_per_bin];
 
   int bincount_current = c_bincount[ibin];
 
   for (int kk = 0; kk < TEAMS_PER_BIN; kk++) {
     const int MY_II = dev.team_rank()%atoms_per_bin+kk*dev.team_size();
     const int i = MY_II < bincount_current ? c_bins(ibin, MY_II) : -1;
-    /* if necessary, goto next page and add pages */
 
     int n = 0;
 
@@ -1270,6 +1337,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     X_FLOAT ztmp;
     X_FLOAT radi;
     int itype;
+    tagint itag;
     const int index = (i >= 0 && i < nlocal) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
@@ -1286,6 +1354,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
       other_x[MY_II + 4 * atoms_per_bin] = radi;
+      if (HalfNeigh && Newton && Tri) {
+        itag = tag(i);
+        other_x[MY_II + 5 * atoms_per_bin] = itag;
+      }
     }
     other_id[MY_II] = i;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
@@ -1378,6 +1450,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
         other_x[MY_II + 4 * atoms_per_bin] = radius(j);
+        if (HalfNeigh && Newton && Tri)
+          other_x[MY_II + 5 * atoms_per_bin] = tag(j);
       }
 
       other_id[MY_II] = j;
@@ -1391,13 +1465,29 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
           if (HalfNeigh && !Newton && j <= i) continue;
           if (!HalfNeigh && j == i) continue;
+
+          // for triclinic, bin stencil is full in all 3 dims
+          // must use itag/jtag to eliminate half the I/J interactions
+          // cannot use I/J exact coord comparision
+          //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+          //   with an added PBC offset can shift all 3 coords by epsilon
+
           if (HalfNeigh && Newton && Tri) {
-            if (x(j,2) < ztmp) continue;
-            if (x(j,2) == ztmp) {
-              if (x(j,1) < ytmp) continue;
-              if (x(j,1) == ytmp) {
-                if (x(j,0) < xtmp) continue;
-                if (x(j,0) == xtmp && j <= i) continue;
+            if (j <= i) continue;
+            if (j >= nlocal) {
+              const tagint jtag = other_x[m + 5 * atoms_per_bin];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x(j,2)-ztmp) > delta) {
+                  if (x(j,2) < ztmp) continue;
+                } else if (fabs(x(j,1)-ytmp) > delta) {
+                  if (x(j,1) < ytmp) continue;
+                } else {
+                  if (x(j,0) < xtmp) continue;
+                }
               }
             }
           }

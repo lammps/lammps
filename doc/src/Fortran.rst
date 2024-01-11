@@ -56,17 +56,6 @@ C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
    and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
    need to be installed or the Linux updated.
 
-.. versionchanged:: 8Feb2023
-
-.. note::
-
-   A contributed Fortran interface is available in the
-   ``examples/COUPLE/fortran2`` folder.  However, since the completion
-   of the :f:mod:`LIBLAMMPS` module, this interface is now deprecated,
-   no longer actively maintained and will likely be removed in the
-   future.  Please see the ``README`` file in that folder for more
-   information about it and how to contact its author and maintainer.
-
 ----------
 
 Creating or deleting a LAMMPS object
@@ -2289,19 +2278,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   In case of an error, LAMMPS will either abort or throw a C++ exception.
-   The latter has to be :ref:`enabled at compile time <exceptions>`.
-   This function checks if exceptions were enabled.
-
-   When using the library interface with C++ exceptions enabled, the library
-   interface functions will "catch" them, and the error status can then be
-   checked by calling :f:func:`has_error`. The most recent error message can be
-   retrieved via :f:func:`get_last_error_message`.
-   This can allow one to restart a calculation or delete and recreate
-   the LAMMPS instance when a C++ exception occurs.  One application
-   of using exceptions this way is the :ref:`lammps_shell`.  If C++
-   exceptions are disabled and an error happens during a call to
-   LAMMPS or the Fortran API, the application will terminate.
+   When using the library interface, the library interface functions
+   will "catch" exceptions, and then the error status can be checked by
+   calling :f:func:`has_error`.  The most recent error message can be
+   retrieved via :f:func:`get_last_error_message`.  This allows to
+   restart a calculation or delete and recreate the LAMMPS instance when
+   a C++ exception occurs.  One application of using exceptions this way
+   is the :ref:`lammps_shell`.
 
    :to: :cpp:func:`lammps_config_has_exceptions`
    :r has_exceptions:
@@ -3055,14 +3038,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function can be used to query if an error inside of LAMMPS
    has thrown a :ref:`C++ exception <exceptions>`.
 
-   .. note::
-
-      This function will always report "no error" when the LAMMPS library
-      has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
-      errors aborting LAMMPS into C++ exceptions. You can use the library
-      function :cpp:func:`lammps_config_has_exceptions` to check if this is
-      the case.
-
    :to: :cpp:func:`lammps_has_error`
    :r has_error: ``.TRUE.`` if there is an error.
    :rtype has_error: logical
@@ -3084,13 +3059,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    MPI ranks and is often recoverable, while a "2" indicates an abort that
    would happen only in a single MPI rank and thus may not be recoverable, as
    other MPI ranks may be waiting on the failing MPI rank(s) to send messages.
-
-   .. note::
-
-      This function will do nothing when the LAMMPS library has been
-      compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
-      LAMMPS into C++ exceptions.  You can use the function
-      :f:func:`config_has_exceptions` to check whether this is the case.
 
    :p character(len=\*) buffer: string buffer to copy the error message into
    :o integer(c_int) status [optional]: 1 when all ranks had the error,

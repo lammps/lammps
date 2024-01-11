@@ -211,7 +211,7 @@ void HippoT::compute_repulsion(const int /*ago*/, const int inum_full,
 
   if (inum_full>this->_max_tep_size) {
     this->_max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    this->_tep.resize(this->_max_tep_size*4);
+    this->_tep.resize(this->_max_tep_size*3);
   }
   *tep_ptr=this->_tep.host.begin();
 
@@ -226,7 +226,7 @@ void HippoT::compute_repulsion(const int /*ago*/, const int inum_full,
   repulsion(this->_eflag,this->_vflag);
 
   // copy tep from device to host
-  this->_tep.update_host(this->_max_tep_size*4,false);
+  this->_tep.update_host(this->_max_tep_size*3,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -366,7 +366,7 @@ void HippoT::compute_multipole_real(const int /*ago*/, const int inum_full,
 
   if (inum_full>this->_max_tep_size) {
     this->_max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    this->_tep.resize(this->_max_tep_size*4);
+    this->_tep.resize(this->_max_tep_size*3);
   }
   *tep_ptr=this->_tep.host.begin();
 
@@ -376,7 +376,7 @@ void HippoT::compute_multipole_real(const int /*ago*/, const int inum_full,
   multipole_real(this->_eflag,this->_vflag);
 
   // copy tep from device to host
-  this->_tep.update_host(this->_max_tep_size*4,false);
+  this->_tep.update_host(this->_max_tep_size*3,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -434,6 +434,10 @@ void HippoT::compute_udirect2b(int * /*host_amtype*/, int * /*host_amgroup*/, do
   this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, host_pval);
   this->atom->add_extra_data();
 
+  if (this->_max_tep_size>this->_max_fieldp_size) {
+    this->_max_fieldp_size = this->_max_tep_size;
+    this->_fieldp.resize(this->_max_fieldp_size*6);
+  }
   *fieldp_ptr=this->_fieldp.host.begin();
 
   this->_off2_polar = off2_polar;
@@ -442,7 +446,7 @@ void HippoT::compute_udirect2b(int * /*host_amtype*/, int * /*host_amgroup*/, do
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
-  this->_fieldp.update_host(this->_max_fieldp_size*8,false);
+  this->_fieldp.update_host(this->_max_fieldp_size*6,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -580,7 +584,7 @@ void HippoT::compute_polar_real(int * /*host_amtype*/, int * /*host_amgroup*/, d
   this->device->add_ans_object(this->ans);
 
   // copy tep from device to host
-  this->_tep.update_host(this->_max_tep_size*4,false);
+  this->_tep.update_host(this->_max_tep_size*3,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -599,13 +603,7 @@ int HippoT::polar_real(const int eflag, const int vflag) {
 
   const int BX=this->block_size();
   const int GX=static_cast<int>(ceil(static_cast<double>(ainum)/(BX/this->_threads_per_atom)));
-  /*
-  const int cus = this->device->gpu->cus();
-  while (GX < cus && GX > 1) {
-    BX /= 2;
-    GX=static_cast<int>(ceil(static_cast<double>(ainum)/(BX/this->_threads_per_atom)));
-  }
-  */
+
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet

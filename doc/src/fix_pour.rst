@@ -6,7 +6,7 @@ fix pour command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID pour N type seed keyword values ...
 
@@ -123,15 +123,17 @@ command which also appears in your input script.
 
 .. note::
 
-   If you wish the new rigid molecules (and other rigid molecules)
-   to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
-   or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
-   inform that fix that the molecule count will vary dynamically.
+   If you wish the new rigid molecules (and other rigid molecules) to be
+   thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>` or
+   :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
+   :doc:`fix_modify dynamic/dof yes <fix_modify>` command for the rigid
+   fix.  This is to inform that fix that the molecule count will vary
+   dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
 their bonds or angles constrained via SHAKE, use the *shake* keyword,
-specifying as its value the ID of a separate :doc:`fix shake <fix_shake>` command which also appears in your input script.
+specifying as its value the ID of a separate :doc:`fix shake
+<fix_shake>` command which also appears in your input script.
 
 Each timestep particles are inserted, they are placed randomly inside
 the insertion volume so as to mimic a stream of poured particles.  If
@@ -148,10 +150,10 @@ many timesteps until the desired # of particles has been inserted.
 
 .. note::
 
-   If you are monitoring the temperature of a system where the
-   particle count is changing due to adding particles, you typically
-   should use the :doc:`compute_modify dynamic yes <compute_modify>`
-   command for the temperature compute you are using.
+   If you are monitoring the temperature of a system where the particle
+   count is changing due to adding particles, you typically should use
+   the :doc:`compute_modify dynamic/dof yes <compute_modify>` command
+   for the temperature compute you are using.
 
 ----------
 
@@ -243,8 +245,9 @@ produce the same behavior if you adjust the fix pour parameters
 appropriately.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
+fix.  This fix computes a global scalar, which can be accessed by various
+output commands.  The scalar is the cumulative number of insertions.  The
+scalar value calculated by this fix is "intensive".  No parameter
 of this fix can be used with the *start/stop* keywords of the
 :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 

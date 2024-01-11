@@ -674,7 +674,7 @@ void FixSRD::pre_neighbor()
           hi = nbin2z - 1;
         }
 
-        for (iz = lo; iz < hi; iz++)
+        for (iz = lo; iz <= hi; iz++)
           for (ix = 0; ix < nbin2x; ix++)
             for (iy = 0; iy < nbin2y; iy++) {
               ibin = iz * nbin2y * nbin2x + iy * nbin2x + ix;
@@ -1423,6 +1423,7 @@ void FixSRD::collisions_multi()
   tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  Big* bigfirst;
 
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
@@ -1432,6 +1433,7 @@ void FixSRD::collisions_multi()
 
     ibounce = 0;
     jlast = -1;
+    typefirst = -1;
     dt = dt_big;
 
     while (true) {
@@ -1443,8 +1445,8 @@ void FixSRD::collisions_multi()
         k = binbig[ibin][m];
         big = &biglist[k];
         j = big->index;
-        if (j == jlast) continue;
         type = big->type;
+        if ((j == jlast) && (type == typefirst)) continue;
 
         if (type == SPHERE)
           inside = inside_sphere(x[i], x[j], big);
@@ -1498,6 +1500,7 @@ void FixSRD::collisions_multi()
             t_first = t_remain;
             jfirst = j;
             typefirst = type;
+            bigfirst = big;
             xscollfirst[0] = xscoll[0];
             xscollfirst[1] = xscoll[1];
             xscollfirst[2] = xscoll[2];
@@ -1514,6 +1517,7 @@ void FixSRD::collisions_multi()
       if (t_first == 0.0) break;
       j = jlast = jfirst;
       type = typefirst;
+      big = bigfirst;
       xscoll[0] = xscollfirst[0];
       xscoll[1] = xscollfirst[1];
       xscoll[2] = xscollfirst[2];
@@ -2645,7 +2649,6 @@ void FixSRD::parameterize()
         if (radius && radius[i] > 0.0) {
           double r = radfactor * radius[i];
           volbig += 4.0 / 3.0 * MY_PI * r * r * r;
-          ;
         } else if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
           volbig += 4.0 / 3.0 * MY_PI * shape[0] * shape[1] * shape[2] * radfactor * radfactor *
@@ -2658,7 +2661,7 @@ void FixSRD::parameterize()
           MathExtra::sub3(c2, c1, c2mc1);
           MathExtra::sub3(c3, c1, c3mc1);
           MathExtra::cross3(c2mc1, c3mc1, cross);
-          volbig += 0.5 * MathExtra::len3(cross);
+          volbig += 0.5 * MathExtra::len3(cross) * WIDTH;
         }
       }
   } else {

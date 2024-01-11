@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 // Experimental unified task-data parallel manycore LDRD
 
@@ -202,17 +174,15 @@ class TaskBase {
 
     // Assign dependence to m_next.  It will be processed in the subsequent
     // call to schedule.  Error if the dependence is reset.
-    if (lock != Kokkos::Impl::desul_atomic_exchange(
-                    &m_next, dep, Kokkos::Impl::MemoryOrderSeqCst(),
-                    Kokkos::Impl::MemoryScopeDevice())) {
+    if (lock != desul::atomic_exchange(&m_next, dep, desul::MemoryOrderSeqCst(),
+                                       desul::MemoryScopeDevice())) {
       Kokkos::abort("TaskScheduler ERROR: resetting task dependence");
     }
     if (nullptr != dep) {
       // The future may be destroyed upon returning from this call
       // so increment reference count to track this assignment.
-      Kokkos::Impl::desul_atomic_inc(&(dep->m_ref_count),
-                                     Kokkos::Impl::MemoryOrderSeqCst(),
-                                     Kokkos::Impl::MemoryScopeDevice());
+      desul::atomic_inc(&(dep->m_ref_count), desul::MemoryOrderSeqCst(),
+                        desul::MemoryScopeDevice());
     }
   }
 
@@ -236,6 +206,7 @@ class TaskBase {
 // the number of full task types that fit into a cache line.  We'll leave it
 // here for now, though, since we're probably going to be ripping all of the
 // old TaskBase stuff out eventually anyway.
+#ifndef KOKKOS_IMPL_32BIT
 constexpr size_t unpadded_task_base_size = 44 + 2 * sizeof(int16_t);
 // don't forget padding:
 constexpr size_t task_base_misalignment =
@@ -259,7 +230,7 @@ static constexpr
 
 static_assert(sizeof(TaskBase) == expected_task_base_size,
               "Verifying expected sizeof(TaskBase)");
-
+#endif
 // </editor-fold> end Verify the size of TaskBase is as expected }}}2
 //------------------------------------------------------------------------------
 

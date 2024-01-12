@@ -19,11 +19,14 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_bond_history.h"
 #include "force.h"
 #include "group.h"
 #include "modify.h"
 #include "special.h"
+
+#if defined(LMP_BPM)
+#include "fix_bond_history.h"
+#endif
 
 #include <cstring>
 
@@ -118,9 +121,11 @@ void DeleteBonds::command(int narg, char **arg)
     iarg++;
   }
 
+#if defined(LMP_BPM)
   // find instances of bond history to delete data
   auto histories = modify->get_fix_by_style("BOND_HISTORY");
   int n_histories = histories.size();
+#endif
 
   // border swap to ensure type and mask is current for off-proc atoms
   // enforce PBC before in case atoms are outside box
@@ -337,11 +342,13 @@ void DeleteBonds::command(int narg, char **arg)
               n = atom->num_bond[i];
               atom->bond_type[i][m] = atom->bond_type[i][n-1];
               atom->bond_atom[i][m] = atom->bond_atom[i][n-1];
+#if defined(LMP_BPM)
               if (n_histories > 0)
                 for (auto &ihistory: histories) {
                   dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,m,n-1);
                   dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,n-1);
                 }
+#endif
               atom->num_bond[i]--;
             } else m++;
           } else m++;

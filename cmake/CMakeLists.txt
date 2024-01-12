@@ -662,9 +662,14 @@ foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH MC MISC PHONON QEQ OPENMP KOKKOS OPT 
   endif()
 endforeach()
 
-if(PKG_PLUGIN)
-  target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
-endif()
+######################################################################
+# packages with defines to disable package specific code
+######################################################################
+foreach(PKG_WITH_DEF  BPM PLUGIN)
+  if(PKG_${PKG_WITH_DEF})
+    target_compile_definitions(lammps PRIVATE -DLMP_${PKG_WITH_DEF})
+  endif()
+endforeach()
 
 # link with -ldl or equivalent for plugin loading; except on Windows
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")

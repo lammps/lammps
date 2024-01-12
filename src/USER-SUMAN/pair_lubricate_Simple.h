@@ -27,9 +27,10 @@ namespace LAMMPS_NS {
 class PairLubricateSimple : public PairLubricate {
  public:
   PairLubricateSimple(class LAMMPS *);
-  ~PairLubricateSimple() {}
+  ~PairLubricateSimple() override;
   void compute(int, int);
   void init_style();
+  void allocate() override;
 };
 
 }

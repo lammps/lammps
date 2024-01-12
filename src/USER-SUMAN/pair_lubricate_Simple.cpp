@@ -30,9 +30,6 @@ See the README file in the top-level LAMMPS directory.
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#if 0
-#include "neigh_request.h"
-#endif
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
@@ -62,6 +59,13 @@ enum{EDGE,CONSTANT,VARIABLE};
 PairLubricateSimple::PairLubricateSimple(LAMMPS *lmp) : PairLubricate(lmp)
 {
 	no_virial_fdotr_compute = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairLubricateSimple::~PairLubricateSimple()
+{
+  if (copymode) return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -331,13 +335,7 @@ void PairLubricateSimple::init_style()
 		if (radius[i] == 0.0)
 			error->one(FLERR,"Pair lubricate/poly requires extended particles");
 
-#if 1
 	neighbor->add_request(this, NeighConst::REQ_FULL);
-#else
-	int irequest = neighbor->request(this,instance_me);
-	neighbor->requests[irequest]->half = 0;
-	neighbor->requests[irequest]->full = 1;
-#endif
 
 	// set the isotropic constants that depend on the volume fraction
 	// vol_T = total volume
@@ -395,4 +393,14 @@ void PairLubricateSimple::init_style()
 	Ef[0][0] = Ef[0][1] = Ef[0][2] = 0.0;
 	Ef[1][0] = Ef[1][1] = Ef[1][2] = 0.0;
 	Ef[2][0] = Ef[2][1] = Ef[2][2] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   allocate all arrays; overiding here so Kokkos can overide
+   ------------------------------------------------------------------------- */
+
+void PairLubricateSimple::allocate()
+{
+  printf("Inside PairLubricateSimple::allocate()\n");
+  PairLubricate::allocate();
 }

@@ -224,7 +224,7 @@ void BondBPM::settings(int narg, char **arg)
 
       ifix = modify->get_fix_by_id(id_fix_prop_atom);
       if (!ifix)
-        ifix = modify->add_fix(fmt::format("{} all property/atom {} {} {} ghost yes",
+        ifix = modify->add_fix(fmt::format("{} all property/atom d_{} d_{} d_{} ghost yes",
                                            id_fix_prop_atom, x_ref_id, y_ref_id, z_ref_id));
 
       int type_flag;

@@ -25,12 +25,15 @@
 #include "kokkos_base.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_property_atom_kokkos.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp),
+mapBinner(1, 0.0, 1.0), // no default constructor, these values are not used
+mapSorter(d_tag_sorted, 0, 1, mapBinner, true)
 {
   avecKK = nullptr;
 
@@ -299,7 +302,7 @@ void AtomKokkos::grow(unsigned int mask)
 
 int AtomKokkos::add_custom(const char *name, int flag, int cols)
 {
-  int index;
+  int index = -1;
 
   if (flag == 0 && cols == 0) {
     index = nivector;

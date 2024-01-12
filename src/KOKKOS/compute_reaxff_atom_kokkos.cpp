@@ -87,7 +87,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_bonds()
 
   nbuf = ((store_bonds ? maxnumbonds*2 : 0) + 3)*nlocal;
 
-  if (!buf || k_buf.extent(0) < nbuf) {
+  if (!buf || ((int)k_buf.extent(0) < nbuf)) {
     memoryKK->destroy_kokkos(k_buf, buf);
     memoryKK->create_kokkos(k_buf, buf, nbuf, "reaxff/atom:buf");
   }

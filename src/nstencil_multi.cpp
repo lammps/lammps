@@ -115,9 +115,9 @@ void NStencilMulti<HALF, DIM_3D, TRI>::create()
             if (HALF && (!TRI)) {
               if (half_flag) {
                 if (DIM_3D) {
-                  if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
+                  if (k <= 0 && j <= 0 && (j != 0 || i <= 0)) continue;
                 } else {
-                  if (! (j > 0 || (j == 0 && i > 0))) continue;
+                  if (j <= 0 && (j != 0 || i <= 0)) continue;
                 }
               }
             }

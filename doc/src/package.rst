@@ -344,12 +344,10 @@ specify additional flags for the runtime build.
 
 ----------
 
-The *intel* style invokes settings associated with the use of the
-INTEL package.  All of its settings, except the *omp* and *mode*
-keywords, are ignored if LAMMPS was not built with Xeon Phi
-co-processor support.  All of its settings, including the *omp* and
-*mode* keyword are applicable if LAMMPS was built with co-processor
-support.
+The *intel* style invokes settings associated with the use of the INTEL
+package.  The keywords *balance*, *ghost*, *tpc*, and *tptask* are
+**only** applicable if LAMMPS was built with Xeon Phi co-processor
+support and are otherwise ignored.
 
 The *Nphi* argument sets the number of co-processors per node.
 This can be set to any value, including 0, if LAMMPS was not
@@ -474,13 +472,13 @@ If the *neigh/thread* keyword is set to *off*, then the KOKKOS package
 threads only over atoms. However, for small systems, this may not expose
 enough parallelism to keep a GPU busy. When this keyword is set to *on*,
 the KOKKOS package threads over both atoms and neighbors of atoms. When
-using *neigh/thread* *on*, a full neighbor list must also be used. Using
-*neigh/thread* *on* may be slower for large systems, so this this option
-is turned on by default only when there are 16K atoms or less owned by
-an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled
-potentials support this keyword yet, and only thread over atoms. Many
-simple pairwise potentials such as Lennard-Jones do support threading
-over both atoms and neighbors.
+using *neigh/thread* *on*, the :doc:`newton pair <newton>` setting must
+be "off". Using *neigh/thread* *on* may be slower for large systems, so
+this this option is turned on by default only when running on one or
+more GPUs and there are 16k atoms or less owned by an MPI rank. Not all
+KOKKOS-enabled potentials support this keyword yet, and only thread over
+atoms. Many simple pairwise potentials such as Lennard-Jones do support
+threading over both atoms and neighbors.
 
 If the *neigh/transpose* keyword is set to *off*, then the KOKKOS
 package will use the same memory layout for building the neighbor list on
@@ -732,7 +730,7 @@ comm = device, sort = device, neigh/transpose = off, gpu/aware = on. When
 LAMMPS can safely detect that GPU-aware MPI is not available, the default value
 of gpu/aware becomes "off". For CPUs or Xeon Phis, the option defaults are
 neigh = half, neigh/qeq = half, newton = on, binsize = 0.0, comm = no, and sort
-= no.  The option neigh/thread = on when there are 16K atoms or less on an MPI
+= no. For GPUs, option neigh/thread = on when there are 16k atoms or less on an MPI
 rank, otherwise it is "off". These settings are made automatically by the
 required "-k on" :doc:`command-line switch <Run_options>`. You can change them
 by using the package kokkos command in your input script or via the :doc:`-pk

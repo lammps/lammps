@@ -1,9 +1,20 @@
+
 #ifdef FFTW3
-#include <map>
+
 #include "phonopy.h"
-#include "math.h"
-#include "kpath.h"
-#include "fftw3.h"
+
+#include "global.h"
+#include "dynmat.h"
+#include "input.h"
+#include "memory.h"
+
+#include <fftw3.h>
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <map>
 
 /* ----------------------------------------------------------------------------
  * Class Phonopy is designed to interface with phonopy.
@@ -14,13 +25,16 @@ Phonopy::Phonopy(DynMat *dynmat)
    memory = new Memory();
    sysdim = dm->sysdim;
    fftdim = dm->fftdim;
+   input  = dm->input;
    fftdim2 = fftdim * fftdim;
    nucell = dm->nucell;
    nx = ny = nz = 5;
    write(1);
 
    char str[MAXLINE];
-   if (count_words(fgets(str,MAXLINE,stdin)) >= 3){
+   if (input == NULL) input = new UserInput(0);
+   input->read_stdin(str);
+   if (count_words(str) >= 3){
       nx = atoi(strtok(str," \t\n\r\f"));
       ny = atoi(strtok(NULL," \t\n\r\f"));
       nz = atoi(strtok(NULL," \t\n\r\f"));
@@ -36,7 +50,7 @@ Phonopy::Phonopy(DynMat *dynmat)
 
    memory->create(mass, nucell, "Phonopy:mass");
    for (int i = 0; i < nucell; ++i){
-      double m = 1./dm->M_inv_sqrt[i];
+      double m = 1.0/dm->M_inv_sqrt[i];
       mass[i] = m * m;
    }
 
@@ -68,7 +82,7 @@ return;
 void Phonopy::write(int flag)
 {
    if (flag == 1){  // basic information
-      for (int ii = 0; ii < 80; ++ii) printf("="); printf("\n");
+      puts("================================================================================");
       printf("Now to prepare the input files for phonopy.\n");
       printf("The dimension of your present supercell is   : %d x %d x %d.\n", dm->nx, dm->ny, dm->nz);
       printf("The size of the force constant matrix will be: %d x %d.\n", dm->npt*3, dm->npt*3);
@@ -84,19 +98,18 @@ void Phonopy::write(int flag)
    } else if (flag == 4){
       printf("Done!\nThe force constants information is extracted and written to FORCE_CONSTANTS,\n");
       printf("the primitive cell is written to POSCAR.primitive, and the input file for\n");
-      printf("phonopy band evaluation is written to band.conf.\n");
-      printf("One should be able to obtain the phonon band structure after correcting\n");
-      printf("the element names in POSCAR.primitive and band.conf by running\n");
-      printf("`phonopy --readfc -c POSCAR.primitive -p band.conf`.\n");
-      for (int ii = 0; ii < 80; ++ii) printf("-");
-      printf("\n***          Remember to change the element names.           ***\n");
-#ifdef UseSPG
-      for (int ii = 0; ii < 80; ++ii) printf("-");
-#endif
+      printf("phonopy band evaluation is written to band.conf.\n\n");
+      printf("One should be able to obtain the phonon band structure after\n");
+      printf("  1) Correcting the `element names` in POSCAR.primitive and band.conf;\n");
+      printf("  2) Running `phonopy --readfc -c POSCAR.primitive -p band.conf`.\n\n");
+      printf("Or the phonon density of states after\n");
+      printf("  1) Correcting the `element names` in POSCAR.primitive and mesh.conf;\n");
+      printf("  2) Running `phonopy --readfc -c POSCAR.primitive -p mesh.conf`.\n");
+      puts("--------------------------------------------------------------------------------");
+      printf("***         Remember to modify the `element names`.          ***\n");
 
    } else if (flag == 5){
-      for (int ii = 0; ii < 80; ++ii) printf("="); printf("\n");
-
+      puts("================================================================================");
    }
 return;
 }
@@ -162,7 +175,9 @@ void Phonopy::phonopy()
    memory->destroy(out);
 
    // in POSCAR, atoms are sorted/aggregated by type, while for LAMMPS there is no such requirment
-   int type_id[nucell], num_type[nucell], ntype = 0;
+   int *type_id = new int[nucell];
+   int *num_type = new int[nucell];
+   int ntype = 0;
    for (int i = 0; i < nucell; ++i) num_type[i] = 0;
    for (int i = 0; i < nucell; ++i){
       int ip = ntype;
@@ -221,14 +236,22 @@ void Phonopy::phonopy()
    // write the primitive cell in POSCAR format
    fp = fopen("POSCAR.primitive", "w");
    fprintf(fp, "Fix-phonon unit cell");
-   for (int ip = 0; ip < ntype; ++ip) fprintf(fp, ", Elem-%d: %lg", type_id[ip], mass[ip]);
+   for (int ip = 0; ip < ntype; ++ip){
+     for (int i = 0; i < nucell; ++i){
+       if (dm->attyp[i] == type_id[ip]){
+         fprintf(fp, ", Elem-%d: %lg", type_id[ip], mass[i]);
+         break;
+       }
+     }
+   }
    fprintf(fp, "\n1.\n"); 
    int ndim = 0;
    for (int idim = 0; idim < 3; ++idim){
       for (int jdim = 0; jdim < 3; ++jdim) fprintf(fp, "%lg ", dm->basevec[ndim++]);
       fprintf(fp, "\n");
    }
-   for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "Elem-%d ", type_id[ip]); fprintf(fp, "\n");
+   for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "Elem-%d ", type_id[ip]);
+   fprintf(fp, "\n");
    for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "%d ", num_type[ip]);
    fprintf(fp, "\nDirect\n");
    for (int ip = 0; ip < ntype; ++ip){
@@ -240,57 +263,48 @@ void Phonopy::phonopy()
    }
    fclose(fp);
 
-#ifdef UseSPG
-  // Get high symmetry k-path
-   QNodes *q = new QNodes();
-   kPath *kp = new kPath(dm, q);
-   kp->kpath();
-#endif
-   
+   // mesh.conf
+   fp = fopen("mesh.conf", "w");
+   fprintf(fp, "# From Fix-phonon");
+   for (int ip = 0; ip < ntype; ++ip){
+     for (int i = 0; i < nucell; ++i){
+       if (dm->attyp[i] == type_id[ip]){
+         fprintf(fp, ", Elem-%d: %lg", type_id[ip], mass[i]);
+         break;
+       }
+     }
+   }
+   fprintf(fp, "\n\nATOM_NAME = ");
+   for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "Elem-%d ", type_id[ip]);
+   fprintf(fp, "\nDIM = %d %d %d\n", nx, ny, nz);
+   fprintf(fp, "MP  = 31 31 31\nFORCE_CONSTANTS = READ\n");
+   fprintf(fp, "#FC_SYMMETRY = .TRUE.\n#SYMMETRY_TOLERANCE = 0.01\n");
+   fclose(fp);
+
+
    // band.conf
    fp = fopen("band.conf", "w");
    fprintf(fp, "# From Fix-phonon");
-   for (int ip = 0; ip < ntype; ++ip) fprintf(fp, ", Elem-%d: %lg", type_id[ip], mass[ip]);
+   for (int ip = 0; ip < ntype; ++ip){
+     for (int i = 0; i < nucell; ++i){
+       if (dm->attyp[i] == type_id[ip]){
+         fprintf(fp, ", Elem-%d: %lg", type_id[ip], mass[i]);
+         break;
+       }
+     }
+   }
    fprintf(fp, "\n\nATOM_NAME = ");
    for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "Elem-%d ", type_id[ip]);
-   fprintf(fp, "\nDIM = %d %d %d\nBAND = ", nx, ny, nz);
-#ifdef UseSPG
-   int nsect = q->qs.size();
-   for (int i = 0; i < nsect; ++i){
-      fprintf(fp, " %lg %lg %lg", q->qs[i][0], q->qs[i][1], q->qs[i][2]);
-      if (i+1 < nsect){
-         double dq = 0.;
-         for (int j = 0; j < 3; ++j) dq += (q->qe[i][j] - q->qs[i+1][j]) * (q->qe[i][j] - q->qs[i+1][j]);
-         if (dq > ZERO) {
-            fprintf(fp, " %lg %lg %lg,", q->qe[i][0], q->qe[i][1], q->qe[i][2]);
-         }
-      } else if (i+1 == nsect){
-         fprintf(fp, " %lg %lg %lg\n", q->qe[i][0], q->qe[i][1], q->qe[i][2]);
-      }
-   }
-#endif
-   fprintf(fp, "\nBAND_POINTS = 21\nBAND_LABELS =");
-#ifdef UseSPG
-   for (int i = 0; i < q->ndstr.size(); ++i){
-      std::size_t found = q->ndstr[i].find("{/Symbol G}");
-      if (found != std::string::npos) q->ndstr[i].replace(found, found+11, "$\\Gamma$");
-      found = q->ndstr[i].find("/");
-      if (found != std::string::npos) q->ndstr[i].replace(found, found, " ");
-      fprintf(fp, " %s", q->ndstr[i].c_str());
-   }
-#endif
-   fprintf(fp, "\nFORCE_CONSTANTS = READ\nBAND_CONNECTION = .TRUE.\n");
+   fprintf(fp, "\nDIM = %d %d %d\nBAND = AUTO\n", nx, ny, nz);
+   fprintf(fp, "BAND_POINTS = 21\nFORCE_CONSTANTS = READ\nBAND_CONNECTION = .TRUE.\n");
+   fprintf(fp, "#FC_SYMMETRY = .TRUE.\n#SYMMETRY_TOLERANCE = 0.01\n");
 
    // output info
    write(4);
-#ifdef UseSPG
-   kp->show_path();
-   delete kp;
-   delete q;
-#endif
    write(5);
-
-return;
+   delete[] type_id;
+   delete[] num_type;
+   return;
 }
 
 /*------------------------------------------------------------------------------
@@ -304,7 +318,7 @@ int Phonopy::count_words(const char *line)
    strcpy(copy,line);
   
    char *ptr;
-   if (ptr = strchr(copy,'#')) *ptr = '\0';
+   if ((ptr = strchr(copy,'#'))) *ptr = '\0';
   
    if (strtok(copy," \t\n\r\f") == NULL) {
      memory->destroy(copy);
@@ -314,7 +328,7 @@ int Phonopy::count_words(const char *line)
    while (strtok(NULL," \t\n\r\f")) n++;
   
    memory->destroy(copy);
-return n;
+   return n;
 }
 /*----------------------------------------------------------------------------*/
 #endif

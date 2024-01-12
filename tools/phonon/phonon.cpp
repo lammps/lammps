@@ -1,9 +1,18 @@
-#include <vector>
-#include "string.h"
+
 #include "phonon.h"
-#include "green.h"
-#include "timer.h"
+
 #include "global.h"
+#include "dynmat.h"
+#include "green.h"
+#include "input.h"
+#include "memory.h"
+#include "timer.h"
+#include "zheevd.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef UseSPG
 extern "C"{
@@ -27,6 +36,7 @@ Phonon::Phonon(DynMat *dm)
    dynmat = dm;
    sysdim = dynmat->sysdim;
    ndim   = dynmat->fftdim;
+   input  = dm->input;
    dos  = NULL;
    ldos = NULL;
    qpts = NULL;
@@ -42,10 +52,7 @@ Phonon::Phonon(DynMat *dm)
    // display the menu
    char str[MAXLINE];
    while ( 1 ){
-      printf("\n");
-      for (int i = 0; i < 37; ++i) printf("=");
-      printf(" Menu ");
-      for (int i = 0; i < 37; ++i) printf("="); printf("\n");
+      puts("\n===================================== Menu =====================================");
       printf("  1. Phonon DOS evaluation;\n");
       printf("  2. Phonon dispersion curves;\n");
       printf("  3. Dynamical matrix at arbitrary q;\n");
@@ -64,9 +71,10 @@ Phonon::Phonon(DynMat *dm)
       // read user choice
       int job = 0;
       printf("Your choice [0]: ");
-      if (count_words(fgets(str,MAXLINE,stdin)) > 0) job = atoi(strtok(str," \t\n\r\f"));
+      input->read_stdin(str);
+      if (count_words(str) > 0) job = atoi(strtok(str," \t\n\r\f"));
       printf("\nYour  selection: %d\n", job);
-      for (int i = 0; i < 80; ++i) printf("=");printf("\n\n");
+      puts("================================================================================\n");
   
       // now to do the job according to user's choice
       if      (job == 1) pdos();
@@ -138,7 +146,8 @@ void Phonon::pdos()
    // Now to ask for the output frequency range
    printf("\nThe frequency range of all q-points are: [%g %g]\n", fmin, fmax);
    printf("Please input the desired range to get DOS [%g %g]: ", fmin, fmax);
-   if (count_words(fgets(str,MAXLINE,stdin)) >= 2){
+   input->read_stdin(str);
+   if (count_words(str) >= 2){
       fmin = atof(strtok(str," \t\n\r\f"));
       fmax = atof(strtok(NULL," \t\n\r\f"));
    }
@@ -147,7 +156,8 @@ void Phonon::pdos()
  
    ndos = 201;
    printf("Please input the number of intervals [%d]: ", ndos);
-   if (count_words(fgets(str,MAXLINE,stdin)) > 0) ndos = atoi(strtok(str," \t\n\r\f"));
+   input->read_stdin(str);
+   if (count_words(str) > 0) ndos = atoi(strtok(str," \t\n\r\f"));
    ndos += (ndos+1)%2; ndos = MAX(2,ndos);
  
    
@@ -170,7 +180,8 @@ void Phonon::pdos()
  
    // smooth dos ?
    printf("Would you like to smooth the phonon dos? (y/n)[n]: ");
-   if (count_words(fgets(str,MAXLINE,stdin)) > 0){
+   input->read_stdin(str);
+   if (count_words(str) > 0){
       char *flag = strtok(str," \t\n\r\f");
       if (strcmp(flag,"y") == 0 || strcmp(flag,"Y") == 0) smooth(dos, ndos);
    }
@@ -194,7 +205,8 @@ void Phonon::writeDOS()
    char str[MAXLINE];
    // now to output the phonon DOS
    printf("\nPlease input the filename to write DOS [pdos.dat]: ");
-   if (count_words(fgets(str,MAXLINE,stdin)) < 1) strcpy(str, "pdos.dat");
+   input->read_stdin(str);
+   if (count_words(str) < 1) strcpy(str, "pdos.dat");
    char *fname = strtok(str," \t\n\r\f");
  
    printf("The total phonon DOS will be written to file: %s\n", fname);
@@ -234,7 +246,7 @@ void Phonon::writeLDOS()
    const double one3 = 1./double(sysdim);
    char str[MAXLINE];
    for (int ilocal = 0; ilocal < nlocal; ++ilocal){
-      sprintf(str,"pldos_%d.dat", locals[ilocal]);
+      snprintf(str, MAXLINE-1, "pldos_%d.dat", locals[ilocal]);
       char *fname = strtok(str," \t\n\r\f");
   
       FILE *fp = fopen(fname, "w"); fname = NULL;
@@ -281,7 +293,7 @@ void Phonon::ldos_rsgf()
   
       fmin = fmax = egvs[0];
       for (int i = 1; i < ndim; ++i){fmin = MIN(fmin, egvs[i]); fmax = MAX(fmax, egvs[i]);}
-      delete []egvs;
+      delete[] egvs;
 
    } else {
      fmin = 0.; fmax = 20.;
@@ -297,7 +309,8 @@ void Phonon::ldos_rsgf()
       printf("\nThere are %d atoms in each unit cell of your lattice.\n", dynmat->nucell);
       printf("Please input the index/index range/index range and increment of atom(s)\n");
       printf("in the unit cell to evaluate LDOS, q to exit [%d]: ", ik);
-      int nr = count_words( fgets(str,MAXLINE,stdin) );
+      input->read_stdin(str);
+      int nr = count_words(str);
       if (nr < 1){
          istr = iend = ik;
          iinc = 1;
@@ -327,7 +340,8 @@ void Phonon::ldos_rsgf()
       }
   
       printf("Please input the frequency range to evaluate LDOS [%g %g]: ", fmin, fmax);
-      if (count_words(fgets(str,MAXLINE,stdin)) >= 2){
+      input->read_stdin(str);
+      if (count_words(str) >= 2){
          fmin = atof(strtok(str," \t\n\r\f"));
          fmax = atof(strtok(NULL," \t\n\r\f"));
       }
@@ -335,16 +349,19 @@ void Phonon::ldos_rsgf()
       printf("The frequency range for your LDOS is [%g %g].\n", fmin, fmax);
   
       printf("Please input the desired number of points in LDOS [%d]: ", ndos);
-      if (count_words(fgets(str,MAXLINE,stdin)) > 0) ndos = atoi(strtok(str," \t\n\r\f"));
+      input->read_stdin(str);
+      if (count_words(str) > 0) ndos = atoi(strtok(str," \t\n\r\f"));
       if (ndos < 2) break;
       ndos += (ndos+1)%2;
   
       printf("Please input the maximum # of Lanczos iterations  [%d]: ", nit);
-      if (count_words(fgets(str,MAXLINE,stdin)) > 0) nit = atoi(strtok(str," \t\n\r\f"));
+      input->read_stdin(str);
+      if (count_words(str) > 0) nit = atoi(strtok(str," \t\n\r\f"));
       if (nit < 1) break;
   
       printf("Please input the value of epsilon for delta-function [%g]: ", eps);
-      if (count_words(fgets(str,MAXLINE,stdin)) > 0) eps = atof(strtok(str," \t\n\r\f"));
+      input->read_stdin(str);
+      if (count_words(str) > 0) eps = atof(strtok(str," \t\n\r\f"));
       if (eps <= 0.) break;
       
       // prepare array for local pdos
@@ -395,8 +412,11 @@ void Phonon::dmanyq()
 {
    char str[MAXLINE];
    double q[3];
-   do printf("Please input the q-point to output the dynamical matrix:");
-   while (count_words(fgets(str,MAXLINE,stdin)) < 3);
+   while ( 1 ){
+      printf("Please input the q-point to output the dynamical matrix: ");
+      input->read_stdin(str);
+      if (count_words(str) >= 3) break;
+   }
    q[0] = atof(strtok(str," \t\n\r\f"));
    q[1] = atof(strtok(NULL," \t\n\r\f"));
    q[2] = atof(strtok(NULL," \t\n\r\f"));
@@ -413,11 +433,13 @@ void Phonon::dmanyq()
 void Phonon::vfanyq()
 {
    char str[MAXLINE];
-   double q[3], egvs[ndim];
+   double q[3];
+   double *egvs = new double[ndim];
    
    while ( 1 ){
       printf("Please input the q-point to compute the frequencies, q to exit: ");
-      if (count_words(fgets(str,MAXLINE,stdin)) < 3) break;
+      input->read_stdin(str);
+      if (count_words(str) < 3) break;
   
       q[0] = atof(strtok(str, " \t\n\r\f"));
       q[1] = atof(strtok(NULL," \t\n\r\f"));
@@ -427,9 +449,11 @@ void Phonon::vfanyq()
       dynmat->geteigen(egvs, 0);
       printf("q-point: [%lg %lg %lg], ", q[0], q[1], q[2]);
       printf("vibrational frequencies at this q-point:\n");
-      for (int i = 0; i < ndim; ++i) printf("%lg ", egvs[i]); printf("\n\n");
+      for (int i = 0; i < ndim; ++i) printf("%lg ", egvs[i]);
+      printf("\n\n");
    }
- 
+
+   delete[] egvs;
    return;
 }
 
@@ -439,15 +463,18 @@ void Phonon::vfanyq()
 void Phonon::vecanyq()
 {
    char str[MAXLINE];
-   double q[3], egvs[ndim];
+   double q[3];
+   double *egvs = new double[ndim];
    doublecomplex **eigvec = dynmat->DM_q;
    printf("Please input the filename to output the result [eigvec.dat]: ");
-   if (count_words(fgets(str,MAXLINE,stdin)) < 1) strcpy(str,"eigvec.dat");
+   input->read_stdin(str);
+   if (count_words(str) < 1) strcpy(str,"eigvec.dat");
    FILE *fp = fopen(strtok(str," \t\n\r\f"), "w");
  
    while ( 1 ){
       printf("Please input the q-point to compute the frequencies, q to exit: ");
-      if (count_words(fgets(str,MAXLINE,stdin)) < 3) break;
+      input->read_stdin(str);
+      if (count_words(str) < 3) break;
   
       q[0] = atof(strtok(str, " \t\n\r\f"));
       q[1] = atof(strtok(NULL," \t\n\r\f"));
@@ -475,6 +502,7 @@ void Phonon::vecanyq()
       fprintf(fp,"\n");
    }
    fclose(fp);
+   delete[] egvs;
    eigvec = NULL;
    return;
 }
@@ -488,7 +516,8 @@ void Phonon::DMdisp()
    char str[MAXLINE];
  
    printf("Please input the filename to output the DM data [DMDisp.dat]: ");
-   if (count_words(fgets(str,MAXLINE,stdin)) < 1) strcpy(str, "DMDisp.dat");
+   input->read_stdin(str);
+   if (count_words(str) < 1) strcpy(str, "DMDisp.dat");
    char *fname = strtok(str," \t\n\r\f");
  
    FILE *fp = fopen(fname, "w"); fname = NULL;
@@ -503,7 +532,8 @@ void Phonon::DMdisp()
       for (int i = 0; i < 3; ++i) qstr[i] = qend[i];
   
       printf("\nPlease input the start q-point in unit of B1->B3, q to exit [%g %g %g]: ", qstr[0], qstr[1], qstr[2]);
-      int n = count_words(fgets(str,MAXLINE,stdin));
+      input->read_stdin(str);
+      int n = count_words(str);
       char *ptr = strtok(str," \t\n\r\f");
       if ((n == 1) && (strcmp(ptr,"q") == 0)) break;
       else if (n >= 3){
@@ -512,14 +542,18 @@ void Phonon::DMdisp()
          qstr[2] = atof(strtok(NULL," \t\n\r\f"));
       }
   
-      do printf("Please input the end q-point in unit of B1->B3: ");
-      while (count_words(fgets(str,MAXLINE,stdin)) < 3);
+      while ( 1 ){
+         printf("Please input the end q-point in unit of B1->B3: ");
+         input->read_stdin(str);
+         if (count_words(str) >= 3) break;
+      }
       qend[0] = atof(strtok(str," \t\n\r\f"));
       qend[1] = atof(strtok(NULL," \t\n\r\f"));
       qend[2] = atof(strtok(NULL," \t\n\r\f"));
   
       printf("Please input the # of points along the line [%d]: ", nq);
-      if (count_words(fgets(str,MAXLINE,stdin)) > 0) nq = atoi(strtok(str," \t\n\r\f"));
+      input->read_stdin(str);
+      if (count_words(str) > 0) nq = atoi(strtok(str," \t\n\r\f"));
       nq = MAX(nq,2);
   
       for (int i=0; i<3; i++) qinc[i] = (qend[i]-qstr[i])/double(nq-1);
@@ -588,7 +622,8 @@ void Phonon::therm()
    char str[MAXLINE];
  
    printf("\nPlease input the filename to output thermal properties [therm.dat]:");
-   if (count_words(fgets(str,MAXLINE,stdin)) < 1) strcpy(str, "therm.dat");
+   input->read_stdin(str);
+   if (count_words(str) < 1) strcpy(str, "therm.dat");
    char *fname = strtok(str," \t\n\r\f");
    FILE *fp = fopen(fname, "a"); fname = NULL;
    // header line 
@@ -630,7 +665,8 @@ void Phonon::therm()
       fprintf(fp,"%lg %lg %lg %lg %lg %lg\n", T, Uvib, Svib, Fvib, ZPE, Cvib);
   
       printf("Please input the desired temperature (K), enter to exit: ");
-      if (count_words(fgets(str,MAXLINE,stdin)) < 1) break;
+      input->read_stdin(str);
+      if (count_words(str) < 1) break;
       T = atof(strtok(str," \t\n\r\f"));
   
    } while (T > 0.);
@@ -646,12 +682,14 @@ void Phonon::local_therm()
 {
    char str[MAXLINE];
    printf("\nWould you like to compute the local thermal properties (y/n)[n]: ");
-   if (count_words(fgets(str,MAXLINE,stdin)) < 1) return;
+   input->read_stdin(str);
+   if (count_words(str) < 1) return;
    char *ptr = strtok(str," \t\n\r\f");
    if (strcmp(ptr,"y") != 0 && strcmp(ptr, "Y") != 0 && strcmp(ptr, "yes") != 0) return;
  
    printf("Please input the filename to output vibrational thermal info [localtherm.dat]: ");
-   if (count_words(fgets(str,MAXLINE,stdin)) < 1) strcpy(str, "localtherm.dat");
+   input->read_stdin(str);
+   if (count_words(str) < 1) strcpy(str, "localtherm.dat");
  
    FILE *fp = fopen(strtok(str," \t\n\r\f"), "w");
    fprintf(fp,"# atom Temp  U_vib (eV)    S_vib (kB)    F_vib (eV)    C_vib (kB)     ZPE (eV)\n");
@@ -672,7 +710,8 @@ void Phonon::local_therm()
    while ( 1 ){
       printf("\nPlease input the temperature at which to evaluate the local vibrational\n");
       printf("thermal properties, non-positive number to exit [%g]: ", T);
-      if (count_words(fgets(str,MAXLINE,stdin)) > 0){
+      input->read_stdin(str);
+      if (count_words(str) > 0){
          T = atoi(strtok(str," \t\n\r\f"));
          if (T <= 0.) break;
       }
@@ -765,7 +804,8 @@ void Phonon::QMesh()
    printf("\nThe q-mesh size from the read dynamical matrix is: %d x %d x %d\n", nx, ny, nz);
    printf("A denser mesh can be interpolated, but NOTE a too dense mesh can cause segmentation fault.\n");
    printf("Please input your desired q-mesh size [%d %d %d]: ", nx, ny, nz);
-   if (count_words(fgets(str,MAXLINE,stdin)) >= 3){
+   input->read_stdin(str);
+   if (count_words(str) >= 3){
       nx = atoi(strtok(str," \t\n\r\f"));
       ny = atoi(strtok(NULL," \t\n\r\f"));
       nz = atoi(strtok(NULL," \t\n\r\f"));
@@ -780,7 +820,8 @@ void Phonon::QMesh()
    int method = 2;
    printf("Please select your method to generate the q-points:\n");
    printf("  1. uniform;\n  2. Monkhost-Pack mesh;\nYour choice [2]: ");
-   if (count_words(fgets(str,MAXLINE,stdin)) > 0) method = atoi(strtok(str," \t\n\r\f"));
+   input->read_stdin(str);
+   if (count_words(str) > 0) method = atoi(strtok(str," \t\n\r\f"));
    method = 2 - method%2;
    printf("Your  selection: %d\n", method);
 #endif
@@ -831,7 +872,7 @@ void Phonon::QMesh()
       for (int idim = 0; idim < sysdim; ++idim) atpos[i][idim] = dynmat->basis[i][idim];
   
       // display the unit cell info read
-      printf("\n");for (int ii = 0; ii < 80; ++ii) printf("="); printf("\n");
+      puts("\n================================================================================");
       printf("The basis vectors of the unit cell:\n");
       for (int idim = 0; idim < 3; ++idim)
          printf("  A%d = %lg %lg %lg\n", idim+1, latvec[0][idim], latvec[1][idim], latvec[2][idim]);
@@ -845,14 +886,21 @@ void Phonon::QMesh()
       mesh[0] = nx; mesh[1] = ny; mesh[2] = nz;
       shift[0] = shift[1] = shift[2] = 0;
       int num_grid = mesh[0]*mesh[1]*mesh[2];
-      int grid_point[num_grid][3], map[num_grid];
-      double symprec = 1.e-4, pos[num_atom][3];
+      int **grid_point;
+      memory->create(grid_point, num_grid, 3, "phonon:grid_point");
+      int *map = new int[num_grid];
+      double symprec = 1.0e-3;
+      double **pos;
+      memory->create(pos, num_atom, 3, "phonon:pos");
+      if (dynmat->symprec > 0.) symprec = dynmat->symprec;
   
       for (int i = 0; i < num_atom; ++i)
-      for (int j = 0; j < 3; ++j) pos[i][j] = atpos[i][j];
+          for (int j = 0; j < 3; ++j)
+              pos[i][j] = atpos[i][j];
   
       // if spglib >= 1.0.3 is used
-      nq = spg_get_ir_reciprocal_mesh(grid_point, map, mesh, shift, is_time_reversal, latvec, pos, attyp, num_atom, symprec);
+      nq = spg_get_ir_reciprocal_mesh((int (*)[3])grid_point, map, mesh, shift, is_time_reversal,
+                                      latvec, (double (*)[3])pos, attyp, num_atom, symprec);
   
       memory->create(wt,   nq, "QMesh:wt");
       memory->create(qpts, nq,3,"QMesh:qpts");
@@ -873,11 +921,14 @@ void Phonon::QMesh()
             qpts[numq][2] = double(grid_point[i][2])/double(mesh[2]);
             numq++;
          }
-         wt[iq2idx[iq]] += 1.;
+         wt[iq2idx[iq]] += 1.0;
       }
-      delete []iq2idx;
-  
-      double wsum = 0.;
+      delete[] iq2idx;
+      delete[] map;
+      memory->destroy(grid_point);
+      memory->destroy(pos);
+
+      double wsum = 0.0;
       for (int iq = 0; iq < nq; ++iq) wsum += wt[iq];
       for (int iq = 0; iq < nq; ++iq) wt[iq] /= wsum;
       
@@ -898,7 +949,8 @@ void Phonon::ldos_egv()
    char str[MAXLINE], *ptr;
    printf("\nThe # of atoms per cell is: %d, please input the atom IDs to compute\n", dynmat->nucell);
    printf("local PDOS, IDs begin with 0: ");
-   int nmax = count_words(fgets(str,MAXLINE,stdin));
+   input->read_stdin(str);
+   int nmax = count_words(str);
    if (nmax < 1) return;
  
    memory->destroy(locals);
@@ -920,7 +972,8 @@ void Phonon::ldos_egv()
  
    fmin = 0.; fmax = 10.;
    printf("Please input the freqency (nv, THz) range to compute PDOS [%g %g]: ", fmin, fmax);
-   if (count_words(fgets(str,MAXLINE,stdin)) >= 2) {
+   input->read_stdin(str);
+   if (count_words(str) >= 2) {
       fmin = atof(strtok(str," \t\n\r\f"));
       fmax = atof(strtok(NULL," \t\n\r\f"));
    }
@@ -928,7 +981,8 @@ void Phonon::ldos_egv()
  
    ndos = 201;
    printf("Please input your desired # of points in PDOS [%d]: ", ndos);
-   if (count_words(fgets(str,MAXLINE,stdin)) > 0) ndos = atoi(strtok(str," \t\n\r\f"));
+   input->read_stdin(str);
+   if (count_words(str) > 0) ndos = atoi(strtok(str," \t\n\r\f"));
    if (ndos < 2) return;
    ndos += (ndos+1)%2;
  
@@ -957,7 +1011,8 @@ void Phonon::ldos_egv()
    Timer *time = new Timer();
  
    // memory and pointer for eigenvalues and eigenvectors
-   double egval[ndim], offset=fmin-0.5*df;
+   double offset=fmin-0.5*df;
+   double *egval = new double[ndim];
    doublecomplex **egvec = dynmat->DM_q;
  
    printf("\nNow to compute the phonons and DOSs "); fflush(stdout);
@@ -985,6 +1040,7 @@ void Phonon::ldos_egv()
          }
       }
    }
+   delete[] egval;
    egvec = NULL;
    printf("Done!\nNow to normalize the DOSs ..."); fflush(stdout);
  
@@ -1008,10 +1064,7 @@ void Phonon::ldos_egv()
  * ---------------------------------------------------------------------------- */
 void Phonon::ShowCell()
 {
-   printf("\n");
-   for (int i = 0; i < 30; ++i) printf("=");
-   printf("   Unit Cell Info   ");
-   for (int i = 0; i < 30; ++i) printf("="); printf("\n");
+   puts("==============================   Unit Cell Info   ==============================");
    printf("Number of atoms in the unit cell: %d\n", dynmat->nucell);
    printf("Basis  vectors  of the unit cell:\n");
    printf("  %15.8f  %15.8f  %15.8f\n", dynmat->basevec[0],  dynmat->basevec[1],  dynmat->basevec[2]);
@@ -1024,8 +1077,7 @@ void Phonon::ShowCell()
    printf("Atomic type and fractional coordinates:\n");
    for (int i = 0; i < dynmat->nucell; ++i)
      printf("%4d %12.8f %12.8f %12.8f\n", dynmat->attyp[i], dynmat->basis[i][0], dynmat->basis[i][1], dynmat->basis[i][2]);
-   for (int i = 0; i < 80; ++i) printf("=");
-   printf("\n");
+   puts("================================================================================");
  
    return;
 }
@@ -1101,7 +1153,7 @@ int Phonon::count_words(const char *line)
    strcpy(copy,line);
  
    char *ptr;
-   if (ptr = strchr(copy,'#')) *ptr = '\0';
+   if ((ptr = strchr(copy,'#'))) *ptr = '\0';
  
    if (strtok(copy," \t\n\r\f") == NULL) {
       memory->destroy(copy);

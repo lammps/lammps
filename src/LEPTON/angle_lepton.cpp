@@ -320,7 +320,7 @@ void AngleLepton::read_restart(FILE *fp)
       utils::sfread(FLERR, buf, sizeof(char), len, fp, nullptr, error);
     }
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
-    expressions.push_back(buf);
+    expressions.emplace_back(buf);
   }
 
   delete[] buf;
@@ -360,7 +360,7 @@ double AngleLepton::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   double dtheta = acos(c) - theta0[type];
-  auto expr = expressions[type2expression[type]];
+  const auto &expr = expressions[type2expression[type]];
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto anglepot = parsed.createCompiledExpression();
   anglepot.getVariableReference("theta") = dtheta;

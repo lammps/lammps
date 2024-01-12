@@ -63,6 +63,7 @@ class Timer : protected Pointers {
   bool has_normal() const { return (_level >= NORMAL); }
   bool has_full() const { return (_level >= FULL); }
   bool has_sync() const { return (_sync != OFF); }
+  bool has_timeout() const { return (_timeout >= 0.0); }
 
   // flag if wallclock time is expired
   bool is_timeout() const { return (_timeout == 0.0); }

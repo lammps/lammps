@@ -159,4 +159,3 @@ template class ComputeTempKokkos<LMPDeviceType>;
 template class ComputeTempKokkos<LMPHostType>;
 #endif
 }
-

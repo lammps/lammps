@@ -29,7 +29,11 @@ FUNCTION(kokkos_set_cxx_standard_feature standard)
   ELSEIF(NOT KOKKOS_USE_CXX_EXTENSIONS AND ${STANDARD_NAME})
     MESSAGE(STATUS "Using ${${STANDARD_NAME}} for C++${standard} standard as feature")
     IF (KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA AND (KOKKOS_CXX_HOST_COMPILER_ID STREQUAL GNU OR KOKKOS_CXX_HOST_COMPILER_ID STREQUAL Clang))
-      SET(SUPPORTED_NVCC_FLAGS "-std=c++14;-std=c++17")
+      IF(${KOKKOS_CXX_COMPILER_VERSION} VERSION_LESS 12.0.0)
+        SET(SUPPORTED_NVCC_FLAGS "-std=c++17")
+      ELSE()
+        SET(SUPPORTED_NVCC_FLAGS "-std=c++17" "-std=c++20")
+      ENDIF()
       IF (NOT ${${STANDARD_NAME}} IN_LIST SUPPORTED_NVCC_FLAGS)
         MESSAGE(FATAL_ERROR "CMake wants to use ${${STANDARD_NAME}} which is not supported by NVCC. Using a more recent host compiler or a more recent CMake version might help.")
       ENDIF()
@@ -58,21 +62,7 @@ FUNCTION(kokkos_set_cxx_standard_feature standard)
   ENDIF()
 ENDFUNCTION()
 
-
-IF (KOKKOS_CXX_STANDARD AND CMAKE_CXX_STANDARD)
-  #make sure these are consistent
-  IF (NOT KOKKOS_CXX_STANDARD STREQUAL CMAKE_CXX_STANDARD)
-    MESSAGE(WARNING "Specified both CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD} and KOKKOS_CXX_STANDARD=${KOKKOS_CXX_STANDARD}, but they don't match")
-    SET(CMAKE_CXX_STANDARD ${KOKKOS_CXX_STANDARD} CACHE STRING "C++ standard" FORCE)
-  ENDIF()
-ENDIF()
-
-
-IF(KOKKOS_CXX_STANDARD STREQUAL "14")
-  kokkos_set_cxx_standard_feature(14)
-  SET(KOKKOS_CXX_INTERMEDIATE_STANDARD "1Y")
-  SET(KOKKOS_ENABLE_CXX14 ON)
-ELSEIF(KOKKOS_CXX_STANDARD STREQUAL "17")
+IF(KOKKOS_CXX_STANDARD STREQUAL "17")
   kokkos_set_cxx_standard_feature(17)
   SET(KOKKOS_CXX_INTERMEDIATE_STANDARD "1Z")
   SET(KOKKOS_ENABLE_CXX17 ON)
@@ -80,34 +70,36 @@ ELSEIF(KOKKOS_CXX_STANDARD STREQUAL "20")
   kokkos_set_cxx_standard_feature(20)
   SET(KOKKOS_CXX_INTERMEDIATE_STANDARD "2A")
   SET(KOKKOS_ENABLE_CXX20 ON)
-ELSEIF(KOKKOS_CXX_STANDARD STREQUAL "98" OR KOKKOS_CXX_STANDARD STREQUAL "11")
-  MESSAGE(FATAL_ERROR "Kokkos requires C++14 or newer!")
+ELSEIF(KOKKOS_CXX_STANDARD STREQUAL "23")
+  kokkos_set_cxx_standard_feature(23)
+  SET(KOKKOS_CXX_INTERMEDIATE_STANDARD "2B")
+  SET(KOKKOS_ENABLE_CXX23 ON)
 ELSE()
-  MESSAGE(FATAL_ERROR "Unknown C++ standard ${KOKKOS_CXX_STANDARD} - must be 14, 17, or 20")
+  MESSAGE(FATAL_ERROR "Kokkos requires C++17 or newer but requested ${KOKKOS_CXX_STANDARD}!")
 ENDIF()
 
-# Enforce that we can compile a simple C++14 program
+# Enforce that we can compile a simple C++17 program
 
-TRY_COMPILE(CAN_COMPILE_CPP14
+TRY_COMPILE(CAN_COMPILE_CPP17
   ${KOKKOS_TOP_BUILD_DIR}/corner_cases
-  ${KOKKOS_SOURCE_DIR}/cmake/compile_tests/cplusplus14.cpp
+  ${KOKKOS_SOURCE_DIR}/cmake/compile_tests/cplusplus17.cpp
   OUTPUT_VARIABLE ERROR_MESSAGE
-  CXX_STANDARD 14
+  CXX_STANDARD 17
 )
-if (NOT CAN_COMPILE_CPP14)
-  UNSET(CAN_COMPILE_CPP14 CACHE) #make sure CMake always re-runs this
-  MESSAGE(FATAL_ERROR "C++${KOKKOS_CXX_STANDARD}-compliant compiler detected, but unable to compile C++14 or later program. Verify that ${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION} is set up correctly (e.g., check that correct library headers are being used).\nFailing output:\n ${ERROR_MESSAGE}")
+if (NOT CAN_COMPILE_CPP17)
+  UNSET(CAN_COMPILE_CPP17 CACHE) #make sure CMake always re-runs this
+  MESSAGE(FATAL_ERROR "C++${KOKKOS_CXX_STANDARD}-compliant compiler detected, but unable to compile C++17 or later program. Verify that ${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION} is set up correctly (e.g., check that correct library headers are being used).\nFailing output:\n ${ERROR_MESSAGE}")
 ENDIF()
-UNSET(CAN_COMPILE_CPP14 CACHE) #make sure CMake always re-runs this
+UNSET(CAN_COMPILE_CPP17 CACHE) #make sure CMake always re-runs this
 
 
 # Enforce that extensions are turned off for nvcc_wrapper.
 # For compiling CUDA code using nvcc_wrapper, we will use the host compiler's
-# flags for turning on C++14.  Since for compiler ID and versioning purposes
+# flags for turning on C++17.  Since for compiler ID and versioning purposes
 # CMake recognizes the host compiler when calling nvcc_wrapper, this just
-# works.  Both NVCC and nvcc_wrapper only recognize '-std=c++14' which means
+# works.  Both NVCC and nvcc_wrapper only recognize '-std=c++17' which means
 # that we can only use host compilers for CUDA builds that use those flags.
-# It also means that extensions (gnu++14) can't be turned on for CUDA builds.
+# It also means that extensions (gnu++17) can't be turned on for CUDA builds.
 
 IF(KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA)
   IF(NOT DEFINED CMAKE_CXX_EXTENSIONS)
@@ -128,8 +120,12 @@ IF(KOKKOS_ENABLE_CUDA)
     ELSEIF(CMAKE_CXX_EXTENSIONS)
       MESSAGE(FATAL_ERROR "Compiling CUDA code with clang doesn't support C++ extensions.  Set -DCMAKE_CXX_EXTENSIONS=OFF")
     ENDIF()
-  ELSEIF(NOT KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA AND NOT KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
-    MESSAGE(FATAL_ERROR "Invalid compiler for CUDA.  The compiler must be nvcc_wrapper or Clang or NVC++ or use kokkos_launch_compiler, but compiler ID was ${KOKKOS_CXX_COMPILER_ID}")
+  ELSEIF(NOT KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA AND NOT (Kokkos_ENABLE_IMPL_NVHPC_AS_DEVICE_COMPILER AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC))
+    IF(KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+      MESSAGE(FATAL_ERROR "Invalid compiler for CUDA. To allow nvc++ as Cuda compiler, Kokkos_ENABLE_IMPL_NVHPC_AS_DEVICE_COMPILER=ON must be set!")
+    ELSE()
+      MESSAGE(FATAL_ERROR "Invalid compiler for CUDA. The compiler must be nvcc_wrapper or Clang or NVC++ or use kokkos_launch_compiler, but compiler ID was ${KOKKOS_CXX_COMPILER_ID}")
+    ENDIF()
   ENDIF()
 ENDIF()
 

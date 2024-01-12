@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 
@@ -188,9 +160,8 @@ struct functor_teamvector_for {
     shared_int values         = shared_int(team.team_shmem(), shmemSize);
 
     if (values.data() == nullptr || values.extent(0) < shmemSize) {
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "FAILED to allocate shared memory of size %u\n",
-          static_cast<unsigned int>(shmemSize));
+      Kokkos::printf("FAILED to allocate shared memory of size %u\n",
+                     static_cast<unsigned int>(shmemSize));
     } else {
       // Initialize shared memory.
       Kokkos::parallel_for(Kokkos::TeamVectorRange(team, 131),
@@ -223,10 +194,9 @@ struct functor_teamvector_for {
         }
 
         if (test != value) {
-          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-              "FAILED teamvector_parallel_for %i %i %lf %lf\n",
-              team.league_rank(), team.team_rank(), static_cast<double>(test),
-              static_cast<double>(value));
+          Kokkos::printf("FAILED teamvector_parallel_for %i %i %lf %lf\n",
+                         team.league_rank(), team.team_rank(),
+                         static_cast<double>(test), static_cast<double>(value));
           flag() = 1;
         }
       });
@@ -290,7 +260,7 @@ struct functor_teamvector_reduce {
 
       if (test != value) {
         if (team.league_rank() == 0) {
-          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          Kokkos::printf(
               "FAILED teamvector_parallel_reduce %i %i %lf %lf %lu\n",
               (int)team.league_rank(), (int)team.team_rank(),
               static_cast<double>(test), static_cast<double>(value),
@@ -301,7 +271,7 @@ struct functor_teamvector_reduce {
       }
       if (test != shared_value(0)) {
         if (team.league_rank() == 0) {
-          KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          Kokkos::printf(
               "FAILED teamvector_parallel_reduce with shared result %i %i %lf "
               "%lf %lu\n",
               static_cast<int>(team.league_rank()),
@@ -363,7 +333,7 @@ struct functor_teamvector_reduce_reducer {
       }
 
       if (test != value) {
-        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+        Kokkos::printf(
             "FAILED teamvector_parallel_reduce_reducer %i %i %lf %lf\n",
             team.league_rank(), team.team_rank(), static_cast<double>(test),
             static_cast<double>(value));
@@ -371,7 +341,7 @@ struct functor_teamvector_reduce_reducer {
         flag() = 1;
       }
       if (test != shared_value(0)) {
-        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+        Kokkos::printf(
             "FAILED teamvector_parallel_reduce_reducer shared value %i %i %lf "
             "%lf\n",
             team.league_rank(), team.team_rank(), static_cast<double>(test),
@@ -443,8 +413,8 @@ bool Test(int test) {
 #else
   int team_size = 33;
 #endif
-  if (team_size > int(ExecutionSpace::concurrency()))
-    team_size = int(ExecutionSpace::concurrency());
+  int const concurrency = ExecutionSpace().concurrency();
+  if (team_size > concurrency) team_size = concurrency;
   passed = passed && test_scalar<int, ExecutionSpace>(317, team_size, test);
   passed = passed &&
            test_scalar<long long int, ExecutionSpace>(317, team_size, test);
@@ -466,6 +436,12 @@ namespace Test {
 
 TEST(TEST_CATEGORY, team_teamvector_range) {
   ASSERT_TRUE((TestTeamVectorRange::Test<TEST_EXECSPACE>(0)));
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>) {
+    GTEST_SKIP() << "Disabling 2/3rd of the test for now";
+  }
+#endif
   ASSERT_TRUE((TestTeamVectorRange::Test<TEST_EXECSPACE>(1)));
   // FIXME_OPENMPTARGET - Use of kokkos reducers currently results in runtime
   // memory errors.

@@ -63,6 +63,7 @@
 #include "fix_store_kim.h"
 #include "force.h"
 #include "input.h"
+#include "kim_units.h"
 #include "modify.h"
 #include "pair_kim.h"
 #include "variable.h"
@@ -77,61 +78,7 @@ extern "C"
 }
 
 using namespace LAMMPS_NS;
-
-/* ---------------------------------------------------------------------- */
-
-namespace
-{
-void get_kim_unit_names(
-    char const *const system,
-    KIM_LengthUnit &lengthUnit,
-    KIM_EnergyUnit &energyUnit,
-    KIM_ChargeUnit &chargeUnit,
-    KIM_TemperatureUnit &temperatureUnit,
-    KIM_TimeUnit &timeUnit,
-    Error *error)
-{
-  const std::string system_str(system);
-  if (system_str == "real") {
-    lengthUnit = KIM_LENGTH_UNIT_A;
-    energyUnit = KIM_ENERGY_UNIT_kcal_mol;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_fs;
-  } else if (system_str == "metal") {
-    lengthUnit = KIM_LENGTH_UNIT_A;
-    energyUnit = KIM_ENERGY_UNIT_eV;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_ps;
-  } else if (system_str == "si") {
-    lengthUnit = KIM_LENGTH_UNIT_m;
-    energyUnit = KIM_ENERGY_UNIT_J;
-    chargeUnit = KIM_CHARGE_UNIT_C;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_s;
-  } else if (system_str == "cgs") {
-    lengthUnit = KIM_LENGTH_UNIT_cm;
-    energyUnit = KIM_ENERGY_UNIT_erg;
-    chargeUnit = KIM_CHARGE_UNIT_statC;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_s;
-  } else if (system_str == "electron") {
-    lengthUnit = KIM_LENGTH_UNIT_Bohr;
-    energyUnit = KIM_ENERGY_UNIT_Hartree;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((system_str == "lj") ||
-             (system_str == "micro") ||
-             (system_str == "nano")) {
-    error->all(FLERR, "LAMMPS unit_style {} not supported "
-                                  "by KIM models", system_str);
-  } else {
-    error->all(FLERR, "Unknown unit_style");
-  }
-}
-} // namespace
+using kim_units::get_kim_unit_names;
 
 /* ---------------------------------------------------------------------- */
 
@@ -159,20 +106,17 @@ void KimParam::command(int narg, char **arg)
     error->all(FLERR, "Incorrect arguments in 'kim param' command.\n"
                "'kim param get/set' is mandatory");
 
-  int const ifix = modify->find_fix("KIM_MODEL_STORE");
-  if (ifix >= 0) {
-    auto fix_store = reinterpret_cast<FixStoreKIM *>(modify->fix[ifix]);
-
-    KIM_SimulatorModel *simulatorModel =
-        reinterpret_cast<KIM_SimulatorModel *>(
-            fix_store->getptr("simulator_model"));
+  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+  if (fix_store) {
+    auto *simulatorModel = reinterpret_cast<KIM_SimulatorModel *>(
+      fix_store->getptr("simulator_model"));
 
     if (simulatorModel)
       error->all(FLERR, "'kim param' can only be used with a KIM Portable Model");
   }
 
-  input->write_echo(fmt::format("#=== BEGIN kim param {} ==================="
-                                "==================\n", kim_param_get_set));
+  input->write_echo(fmt::format("#=== BEGIN kim param {} =====================================\n",
+                                kim_param_get_set));
 
   KIM_Model *pkim = nullptr;
 
@@ -431,6 +375,6 @@ void KimParam::command(int narg, char **arg)
   } else
     error->all(FLERR, "This model has No mutable parameters");
 
-  input->write_echo(fmt::format("#=== END kim param {} ====================="
-                                "==================\n", kim_param_get_set));
+  input->write_echo(fmt::format("#=== END kim param {} =======================================\n",
+                                kim_param_get_set));
 }

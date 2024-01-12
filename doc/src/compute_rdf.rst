@@ -202,7 +202,7 @@ change from zero to one at the location of the spike in :math:`g(r)`.
    parallel efficiency and scaling. For systems, where only the type
    of atoms changes (e.g., when using :doc:`fix atom/swap <fix_atom_swap>`),
    you need to explicitly request the dynamic normalization updates
-   via :doc:`compute_modify dynamic yes <compute_modify>`
+   via :doc:`compute_modify dynamic/dof yes <compute_modify>`
 
 Related commands
 """"""""""""""""

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -856,7 +856,7 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
     memoryKK->create_kokkos(m_clisttot_i, nlocal, m_nmax, m_numYlms, "MLIAP_SO3Kokkos:m_clisttot_i");
     int num_of_temp = std::min(nlocal, m_chunk_size);
     int delta=num_of_temp-m_ulist_r.extent(0);
-    if (delta > 0 ){
+    if (delta > 0){
       memoryKK->destroy_kokkos(m_ulist_r);
       memoryKK->create_kokkos(m_ulist_r, num_of_temp, m_idxu_count, "MLIAP_SO3Kokkos:m_ulist_r");
       memoryKK->destroy_kokkos(m_ulist_i);

@@ -86,7 +86,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLeptonCoul::eval()
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
       pairforce.back().getVariableReference("r");
-      have_q.emplace_back(std::make_pair(true, true));
+      have_q.emplace_back(true, true);
 
       // check if there are references to charges
       try {
@@ -242,7 +242,7 @@ void PairLeptonCoul::read_restart_settings(FILE *fp)
 double PairLeptonCoul::single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
                               double /* factor_lj */, double &fforce)
 {
-  auto expr = expressions[type2expression[itype][jtype]];
+  const auto &expr = expressions[type2expression[itype][jtype]];
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp), functions);
   auto pairpot = parsed.createCompiledExpression();
   auto pairforce = parsed.differentiate("r").createCompiledExpression();

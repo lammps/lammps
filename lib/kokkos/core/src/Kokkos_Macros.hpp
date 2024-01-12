@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_MACROS_HPP
 #define KOKKOS_MACROS_HPP
@@ -54,15 +26,36 @@
  *  KOKKOS_ENABLE_OPENMP              Kokkos::OpenMP execution space
  *  KOKKOS_ENABLE_OPENMPTARGET        Kokkos::Experimental::OpenMPTarget
  *                                    execution space
- *  KOKKOS_ENABLE_HIP                 Kokkos::Experimental::HIP execution space
+ *  KOKKOS_ENABLE_HIP                 Kokkos::HIP execution space
  *  KOKKOS_ENABLE_SYCL                Kokkos::Experimental::SYCL execution space
  *  KOKKOS_ENABLE_HWLOC               HWLOC library is available.
  *  KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK  Insert array bounds checks, is expensive!
  *  KOKKOS_ENABLE_CUDA_UVM            Use CUDA UVM for Cuda memory space.
  */
 
+#define KOKKOS_VERSION_LESS(MAJOR, MINOR, PATCH) \
+  (KOKKOS_VERSION < ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+
+#define KOKKOS_VERSION_LESS_EQUAL(MAJOR, MINOR, PATCH) \
+  (KOKKOS_VERSION <= ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+
+#define KOKKOS_VERSION_GREATER(MAJOR, MINOR, PATCH) \
+  (KOKKOS_VERSION > ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+
+#define KOKKOS_VERSION_GREATER_EQUAL(MAJOR, MINOR, PATCH) \
+  (KOKKOS_VERSION >= ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+
+#define KOKKOS_VERSION_EQUAL(MAJOR, MINOR, PATCH) \
+  (KOKKOS_VERSION == ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+
+#if !KOKKOS_VERSION_EQUAL(KOKKOS_VERSION_MAJOR, KOKKOS_VERSION_MINOR, \
+                          KOKKOS_VERSION_PATCH)
+#error implementation bug
+#endif
+
 #ifndef KOKKOS_DONT_INCLUDE_CORE_CONFIG_H
 #include <KokkosCore_config.h>
+#include <impl/Kokkos_NvidiaGpuArchitectures.hpp>
 #endif
 
 //----------------------------------------------------------------------------
@@ -73,19 +66,12 @@
  *  KOKKOS_COMPILER_NVCC
  *  KOKKOS_COMPILER_GNU
  *  KOKKOS_COMPILER_INTEL
- *  KOKKOS_COMPILER_IBM
+ *  KOKKOS_COMPILER_INTEL_LLVM
  *  KOKKOS_COMPILER_CRAYC
  *  KOKKOS_COMPILER_APPLECC
  *  KOKKOS_COMPILER_CLANG
- *  KOKKOS_COMPILER_PGI
+ *  KOKKOS_COMPILER_NVHPC
  *  KOKKOS_COMPILER_MSVC
- *
- *  Macros for which compiler extension to use for atomics on intrinsic types
- *
- *  KOKKOS_ENABLE_CUDA_ATOMICS
- *  KOKKOS_ENABLE_GNU_ATOMICS
- *  KOKKOS_ENABLE_INTEL_ATOMICS
- *  KOKKOS_ENABLE_OPENMP_ATOMICS
  *
  *  A suite of 'KOKKOS_ENABLE_PRAGMA_...' are defined for internal use.
  *
@@ -117,15 +103,18 @@
 // Code is parsed and separated into host and device code.
 // Host code is compiled again with another compiler.
 // Device code is compile to 'ptx'.
-#define KOKKOS_COMPILER_NVCC __NVCC__
+// NOTE: There is no __CUDACC_VER_PATCH__ officially, its __CUDACC_VER_BUILD__
+// which does have more than one digit (potentially undefined number of them).
+// This macro definition is in line with our other compiler defs
+#define KOKKOS_COMPILER_NVCC \
+  __CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10
 #endif  // #if defined( __NVCC__ )
 
 #if !defined(KOKKOS_LAMBDA)
 #define KOKKOS_LAMBDA [=]
 #endif
 
-#if (defined(KOKKOS_ENABLE_CXX17) || defined(KOKKOS_ENABLE_CXX20)) && \
-    !defined(KOKKOS_CLASS_LAMBDA)
+#if !defined(KOKKOS_CLASS_LAMBDA)
 #define KOKKOS_CLASS_LAMBDA [ =, *this ]
 #endif
 
@@ -135,65 +124,46 @@
 
 #if defined(__INTEL_COMPILER)
 #define KOKKOS_COMPILER_INTEL __INTEL_COMPILER
+
 #elif defined(__INTEL_LLVM_COMPILER)
-#define KOKKOS_COMPILER_INTEL __INTEL_LLVM_COMPILER
-#elif defined(__ICC)
-// Old define
-#define KOKKOS_COMPILER_INTEL __ICC
-#elif defined(__ECC)
-// Very old define
-#define KOKKOS_COMPILER_INTEL __ECC
-#endif
+#define KOKKOS_COMPILER_INTEL_LLVM __INTEL_LLVM_COMPILER
 
+// Cray compiler for device offload code
+#elif defined(__cray__) && defined(__clang__)
+#define KOKKOS_COMPILER_CRAY_LLVM \
+  __cray_major__ * 100 + __cray_minor__ * 10 + __cray_patchlevel__
+
+#elif defined(_CRAYC)
 // CRAY compiler for host code
-#if defined(_CRAYC)
 #define KOKKOS_COMPILER_CRAYC _CRAYC
-#endif
 
-#if defined(__IBMCPP__)
-// IBM C++
-#define KOKKOS_COMPILER_IBM __IBMCPP__
-#elif defined(__IBMC__)
-#define KOKKOS_COMPILER_IBM __IBMC__
-#elif defined(__ibmxl_vrm__)  // xlclang++
-#define KOKKOS_COMPILER_IBM __ibmxl_vrm__
-#endif
-
-#if defined(__APPLE_CC__)
+#elif defined(__APPLE_CC__)
 #define KOKKOS_COMPILER_APPLECC __APPLE_CC__
-#endif
 
-#if defined(__clang__) && !defined(KOKKOS_COMPILER_INTEL) && \
-    !defined(KOKKOS_COMPILER_IBM)
+#elif defined(__NVCOMPILER)
+#define KOKKOS_COMPILER_NVHPC                                 \
+  __NVCOMPILER_MAJOR__ * 10000 + __NVCOMPILER_MINOR__ * 100 + \
+      __NVCOMPILER_PATCHLEVEL__
+
+#elif defined(__clang__)
+// Check this after the Clang-based proprietary compilers which will also define
+// __clang__
 #define KOKKOS_COMPILER_CLANG \
   __clang_major__ * 100 + __clang_minor__ * 10 + __clang_patchlevel__
-#endif
 
-#if !defined(__clang__) && !defined(KOKKOS_COMPILER_INTEL) && defined(__GNUC__)
+#elif defined(__GNUC__)
+// Check this here because many compilers (at least Clang variants and Intel
+// classic) define `__GNUC__` for compatibility
 #define KOKKOS_COMPILER_GNU \
   __GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__
 
-#if (530 > KOKKOS_COMPILER_GNU)
-#error "Compiling with GCC version earlier than 5.3.0 is not supported."
-#endif
-#endif
-
-#if defined(__PGIC__)
-#define KOKKOS_COMPILER_PGI \
-  __PGIC__ * 100 + __PGIC_MINOR__ * 10 + __PGIC_PATCHLEVEL__
-
-#if (1740 > KOKKOS_COMPILER_PGI)
-#error "Compiling with PGI version earlier than 17.4 is not supported."
-#endif
+#if (820 > KOKKOS_COMPILER_GNU)
+#error "Compiling with GCC version earlier than 8.2.0 is not supported."
 #endif
 
-#if defined(__NVCOMPILER)
-#define KOKKOS_COMPILER_NVHPC                              \
-  __NVCOMPILER_MAJOR__ * 100 + __NVCOMPILER_MINOR__ * 10 + \
-      __NVCOMPILER_PATCHLEVEL__
-#endif
-
-#if defined(_MSC_VER) && !defined(KOKKOS_COMPILER_INTEL)
+#elif defined(_MSC_VER)
+// Check this after Intel and Clang because those define _MSC_VER for
+// compatibility
 #define KOKKOS_COMPILER_MSVC _MSC_VER
 #endif
 
@@ -204,37 +174,16 @@
 //  of the supported OpenMP API version.
 #endif  // #if defined( _OPENMP )
 
-#if defined(KOKKOS_ENABLE_CXX17)
-#define KOKKOS_IMPL_FALLTHROUGH [[fallthrough]];
-#elif defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU >= 710)
-#define KOKKOS_IMPL_FALLTHROUGH [[gnu::fallthrough]];
-#elif defined(KOKKOS_COMPILER_CLANG)
-#define KOKKOS_IMPL_FALLTHROUGH [[clang::fallthrough]];
-#else
-#define KOKKOS_IMPL_FALLTHROUGH
-#endif
-
 //----------------------------------------------------------------------------
 // Intel compiler macros
 
-#if defined(KOKKOS_COMPILER_INTEL)
-// FIXME_SYCL
-#if !defined(KOKKOS_ENABLE_SYCL)
+#if defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)
+#if defined(KOKKOS_COMPILER_INTEL_LLVM) && \
+    KOKKOS_COMPILER_INTEL_LLVM >= 20230100
 #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
 #define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 #define KOKKOS_ENABLE_PRAGMA_VECTOR 1
-#endif
-#if (1800 > KOKKOS_COMPILER_INTEL)
-#define KOKKOS_ENABLE_PRAGMA_SIMD 1
-#endif
 
-// FIXME Workaround for ICE with intel 17,18,19,20,21 in Trilinos
-#if (KOKKOS_COMPILER_INTEL <= 2100)
-#define KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
-#endif
-
-// FIXME_SYCL
-#if !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
 #endif
 
@@ -256,8 +205,8 @@
 #endif
 #endif
 
-#if (1700 > KOKKOS_COMPILER_INTEL)
-#error "Compiling with Intel version earlier than 17.0 is not supported."
+#if defined(KOKKOS_COMPILER_INTEL) && (1900 > KOKKOS_COMPILER_INTEL)
+#error "Compiling with Intel version earlier than 19.0.5 is not supported."
 #endif
 
 #if !defined(KOKKOS_ENABLE_ASM) && !defined(_WIN32)
@@ -274,17 +223,6 @@
 #endif
 #endif
 
-#if defined(KOKKOS_ARCH_AVX512MIC)
-#define KOKKOS_ENABLE_RFO_PREFETCH 1
-#if (KOKKOS_COMPILER_INTEL < 1800) && !defined(KOKKOS_KNL_USE_ASM_WORKAROUND)
-#define KOKKOS_KNL_USE_ASM_WORKAROUND 1
-#endif
-#endif
-
-#if (1800 > KOKKOS_COMPILER_INTEL)
-#define KOKKOS_IMPL_INTEL_WORKAROUND_NOEXCEPT_SPECIFICATION_VIRTUAL_FUNCTION
-#endif
-
 #if defined(__MIC__)
 // Compiling for Xeon Phi
 #endif
@@ -297,21 +235,6 @@
 #endif
 
 //----------------------------------------------------------------------------
-// IBM Compiler macros
-
-#if defined(KOKKOS_COMPILER_IBM)
-#define KOKKOS_ENABLE_PRAGMA_UNROLL 1
-//#define KOKKOS_ENABLE_PRAGMA_IVDEP 1
-//#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
-//#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
-//#define KOKKOS_ENABLE_PRAGMA_SIMD 1
-
-#if !defined(KOKKOS_ENABLE_ASM)
-#define KOKKOS_ENABLE_ASM 1
-#endif
-#endif
-
-//----------------------------------------------------------------------------
 // CLANG compiler macros
 
 #if defined(KOKKOS_COMPILER_CLANG)
@@ -319,7 +242,6 @@
 //#define KOKKOS_ENABLE_PRAGMA_IVDEP 1
 //#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 //#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
-//#define KOKKOS_ENABLE_PRAGMA_SIMD 1
 
 #if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
 #define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
@@ -341,11 +263,6 @@
 //#define KOKKOS_ENABLE_PRAGMA_IVDEP 1
 //#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 //#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
-//#define KOKKOS_ENABLE_PRAGMA_SIMD 1
-
-#if defined(KOKKOS_ARCH_AVX512MIC)
-#define KOKKOS_ENABLE_RFO_PREFETCH 1
-#endif
 
 #if !defined(KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION)
 #define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION \
@@ -364,12 +281,11 @@
 
 //----------------------------------------------------------------------------
 
-#if defined(KOKKOS_COMPILER_PGI)
+#if defined(KOKKOS_COMPILER_NVHPC)
 #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
 //#define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 #define KOKKOS_ENABLE_PRAGMA_VECTOR 1
-//#define KOKKOS_ENABLE_PRAGMA_SIMD 1
 #endif
 
 //----------------------------------------------------------------------------
@@ -408,11 +324,11 @@
 #endif
 
 #if !defined(KOKKOS_INLINE_FUNCTION_DELETED)
-#define KOKKOS_INLINE_FUNCTION_DELETED inline
+#define KOKKOS_INLINE_FUNCTION_DELETED
 #endif
 
 #if !defined(KOKKOS_DEFAULTED_FUNCTION)
-#define KOKKOS_DEFAULTED_FUNCTION inline
+#define KOKKOS_DEFAULTED_FUNCTION
 #endif
 
 #if !defined(KOKKOS_IMPL_HOST_FUNCTION)
@@ -426,7 +342,7 @@
 // Temporary solution for SYCL not supporting printf in kernels.
 // Might disappear at any point once we have found another solution.
 #if !defined(KOKKOS_IMPL_DO_NOT_USE_PRINTF)
-#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) printf(__VA_ARGS__)
+#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) ::printf(__VA_ARGS__)
 #endif
 
 //----------------------------------------------------------------------------
@@ -476,6 +392,7 @@
 #if 1 < ((defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA) ? 1 : 0) +         \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP) ? 1 : 0) +          \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL) ? 1 : 0) +         \
+         (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENACC) ? 1 : 0) +      \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET) ? 1 : 0) + \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP) ? 1 : 0) +       \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS) ? 1 : 0) +      \
@@ -485,10 +402,12 @@
 #endif
 
 // If default is not specified then chose from enabled execution spaces.
-// Priority: CUDA, HIP, SYCL, OPENMPTARGET, OPENMP, THREADS, HPX, SERIAL
+// Priority: CUDA, HIP, SYCL, OPENACC, OPENMPTARGET, OPENMP, THREADS, HPX,
+// SERIAL
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL)
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENACC)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
@@ -500,6 +419,8 @@
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP
 #elif defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL
+#elif defined(KOKKOS_ENABLE_OPENACC)
+#define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENACC
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET
 #elif defined(KOKKOS_ENABLE_OPENMP)
@@ -514,6 +435,7 @@
 
 //----------------------------------------------------------------------------
 // Determine for what space the code is being compiled:
+#if defined(KOKKOS_ENABLE_DEPRECATED_CODE_3)
 
 #if defined(__CUDACC__) && defined(__CUDA_ARCH__) && defined(KOKKOS_ENABLE_CUDA)
 #define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA
@@ -526,6 +448,7 @@
 #define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
 #endif
 
+#endif
 //----------------------------------------------------------------------------
 
 // Remove surrounding parentheses if present
@@ -574,6 +497,30 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #endif
 #endif
 
+#ifdef KOKKOS_ENABLE_OPENACC
+#ifdef KOKKOS_COMPILER_NVHPC
+#define KOKKOS_IF_ON_DEVICE(CODE)   \
+  if (__builtin_is_device_code()) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)  \
+  }
+#define KOKKOS_IF_ON_HOST(CODE)      \
+  if (!__builtin_is_device_code()) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)   \
+  }
+#else
+#include <openacc.h>
+// FIXME_OPENACC acc_on_device is a non-constexpr function
+#define KOKKOS_IF_ON_DEVICE(CODE)                     \
+  if constexpr (acc_on_device(acc_device_not_host)) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)                    \
+  }
+#define KOKKOS_IF_ON_HOST(CODE)                   \
+  if constexpr (acc_on_device(acc_device_host)) { \
+    KOKKOS_IMPL_STRIP_PARENS(CODE)                \
+  }
+#endif
+#endif
+
 #if !defined(KOKKOS_IF_ON_HOST) && !defined(KOKKOS_IF_ON_DEVICE)
 #if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)) ||         \
     (defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)) || \
@@ -603,14 +550,13 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #define KOKKOS_ENABLE_TASKDAG
 #endif
 
+#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_DEPRECATED_CODE_4)
+#define KOKKOS_ENABLE_CUDA_LDG_INTRINSIC
+#endif
+
 #define KOKKOS_INVALID_INDEX (~std::size_t(0))
 
 #define KOKKOS_IMPL_CTOR_DEFAULT_ARG KOKKOS_INVALID_INDEX
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-#define KOKKOS_CONSTEXPR_14 constexpr
-#define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE
-#endif
 
 // Guard intel compiler version 19 and older
 // intel error #2651: attribute does not apply to any entity
@@ -637,23 +583,13 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #define KOKKOS_IMPL_WARNING(desc) KOKKOS_IMPL_DO_PRAGMA(message(#desc))
 #endif
 
-// DJS 05/28/2019: Bugfix: Issue 2155
-// Use KOKKOS_ENABLE_CUDA_LDG_INTRINSIC to avoid memory leak in RandomAccess
-// View
-#if defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_CUDA_LDG_INTRINSIC)
-#define KOKKOS_ENABLE_CUDA_LDG_INTRINSIC
-#endif
-
-#if defined(KOKKOS_ENABLE_CXX17) || defined(KOKKOS_ENABLE_CXX20)
 #define KOKKOS_ATTRIBUTE_NODISCARD [[nodiscard]]
-#else
-#define KOKKOS_ATTRIBUTE_NODISCARD
-#endif
 
-#if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||  \
-     defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_PGI)) && \
-    !defined(_WIN32)
-#if (!defined(__linux__) || defined(__GLIBC_MINOR__))
+#if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||        \
+     defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM) || \
+     defined(KOKKOS_COMPILER_NVHPC)) &&                                       \
+    !defined(_WIN32) && !defined(__ANDROID__)
+#if __has_include(<execinfo.h>)
 #define KOKKOS_IMPL_ENABLE_STACKTRACE
 #endif
 #define KOKKOS_IMPL_ENABLE_CXXABI
@@ -664,11 +600,6 @@ static constexpr bool kokkos_omp_on_host() { return false; }
 #if defined(__CUDA_ARCH__) && !defined(__CUDACC__) && \
     !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_CUDA)
 #undef __CUDA_ARCH__
-#endif
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-#define KOKKOS_THREAD_LOCAL \
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use thread_local instead!") thread_local
 #endif
 
 #if (defined(KOKKOS_IMPL_WINDOWS_CUDA) || defined(KOKKOS_COMPILER_MSVC)) && \

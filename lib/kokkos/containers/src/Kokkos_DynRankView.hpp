@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 /// \file Kokkos_DynRankView.hpp
 /// \brief Declaration and definition of Kokkos::DynRankView.
@@ -249,7 +221,7 @@ KOKKOS_INLINE_FUNCTION bool dyn_rank_view_verify_operator_bounds(
     return (size_t(i) < map.extent(R)) &&
            dyn_rank_view_verify_operator_bounds<R + 1>(rank, map, args...);
   } else if (i != 0) {
-    KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+    Kokkos::printf(
         "DynRankView Debug Bounds Checking Error: at rank %u\n  Extra "
         "arguments beyond the rank must be zero \n",
         R);
@@ -374,7 +346,7 @@ class ViewMapping<
     dst.m_map.m_impl_handle = Kokkos::Impl::ViewDataHandle<DstTraits>::assign(
         src.m_map.m_impl_handle, src.m_track.m_tracker);
     dst.m_track.assign(src.m_track.m_tracker, DstTraits::is_managed);
-    dst.m_rank = src.Rank;
+    dst.m_rank = Kokkos::View<ST, SP...>::rank();
   }
 };
 
@@ -402,6 +374,9 @@ struct is_dyn_rank_view : public std::false_type {};
 template <class D, class... P>
 struct is_dyn_rank_view<Kokkos::DynRankView<D, P...>> : public std::true_type {
 };
+
+template <class T>
+inline constexpr bool is_dyn_rank_view_v = is_dyn_rank_view<T>::value;
 
 template <typename DataType, class... Properties>
 class DynRankView : public ViewTraits<DataType, Properties...> {
@@ -1053,7 +1028,7 @@ class DynRankView : public ViewTraits<DataType, Properties...> {
   // Copy/Assign View to DynRankView
   template <class RT, class... RP>
   KOKKOS_INLINE_FUNCTION DynRankView(const View<RT, RP...>& rhs)
-      : m_track(), m_map(), m_rank(rhs.Rank) {
+      : m_track(), m_map(), m_rank(View<RT, RP...>::rank()) {
     using SrcTraits = typename View<RT, RP...>::traits;
     using Mapping =
         Kokkos::Impl::ViewMapping<traits, SrcTraits,
@@ -1099,21 +1074,11 @@ class DynRankView : public ViewTraits<DataType, Properties...> {
         m_rank(Impl::DynRankDimTraits<typename traits::specialize>::
                    template computeRank<typename traits::array_layout, P...>(
                        arg_prop, arg_layout)) {
-    // Append layout and spaces if not input
-    using alloc_prop_input = Kokkos::Impl::ViewCtorProp<P...>;
-
-    // use 'std::integral_constant<unsigned,I>' for non-types
-    // to avoid duplicate class error.
-    using alloc_prop = Kokkos::Impl::ViewCtorProp<
-        P...,
-        std::conditional_t<alloc_prop_input::has_label,
-                           std::integral_constant<unsigned, 0>, std::string>,
-        std::conditional_t<alloc_prop_input::has_memory_space,
-                           std::integral_constant<unsigned, 1>,
-                           typename traits::device_type::memory_space>,
-        std::conditional_t<alloc_prop_input::has_execution_space,
-                           std::integral_constant<unsigned, 2>,
-                           typename traits::device_type::execution_space>>;
+    // Copy the input allocation properties with possibly defaulted properties
+    auto prop_copy = Impl::with_properties_if_unset(
+        arg_prop, std::string{}, typename traits::device_type::memory_space{},
+        typename traits::device_type::execution_space{});
+    using alloc_prop = decltype(prop_copy);
 
     static_assert(traits::is_managed,
                   "View allocation constructor requires managed memory");
@@ -1127,39 +1092,11 @@ class DynRankView : public ViewTraits<DataType, Properties...> {
           "execution space");
     }
 
-    // Copy the input allocation properties with possibly defaulted properties
-    alloc_prop prop_copy(arg_prop);
-
-//------------------------------------------------------------
-#if defined(KOKKOS_ENABLE_CUDA)
-    // If allocating in CudaUVMSpace must fence before and after
-    // the allocation to protect against possible concurrent access
-    // on the CPU and the GPU.
-    // Fence using the trait's executon space (which will be Kokkos::Cuda)
-    // to avoid incomplete type errors from usng Kokkos::Cuda directly.
-    if (std::is_same<Kokkos::CudaUVMSpace,
-                     typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence(
-          "Kokkos::DynRankView<>::DynRankView: fence before UVM allocation");
-    }
-#endif
-    //------------------------------------------------------------
-
     Kokkos::Impl::SharedAllocationRecord<>* record = m_map.allocate_shared(
         prop_copy,
         Impl::DynRankDimTraits<typename traits::specialize>::
             template createLayout<traits, P...>(arg_prop, arg_layout),
         Impl::ViewCtorProp<P...>::has_execution_space);
-
-//------------------------------------------------------------
-#if defined(KOKKOS_ENABLE_CUDA)
-    if (std::is_same<Kokkos::CudaUVMSpace,
-                     typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence(
-          "Kokkos::DynRankView<>::DynRankView: fence after UVM allocation");
-    }
-#endif
-    //------------------------------------------------------------
 
     // Setup and initialization complete, start tracking
     m_track.assign_allocated_record_to_uninitialized(record);
@@ -1614,7 +1551,7 @@ struct DynRankViewFill {
 };
 
 template <class OutputView>
-struct DynRankViewFill<OutputView, std::enable_if_t<OutputView::Rank == 0>> {
+struct DynRankViewFill<OutputView, std::enable_if_t<OutputView::rank == 0>> {
   DynRankViewFill(const OutputView& dst,
                   const typename OutputView::const_value_type& src) {
     Kokkos::Impl::DeepCopy<typename OutputView::memory_space,
@@ -2011,10 +1948,8 @@ inline typename DynRankView<T, P...>::HostMirror create_mirror(
       "The view constructor arguments passed to Kokkos::create_mirror must "
       "not explicitly allow padding!");
 
-  using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
-  alloc_prop prop_copy(arg_prop);
-  static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
-      std::string(src.label()).append("_mirror");
+  auto prop_copy = Impl::with_properties_if_unset(
+      arg_prop, std::string(src.label()).append("_mirror"));
 
   return dst_type(prop_copy, Impl::reconstructLayout(src.layout(), src.rank()));
 }
@@ -2044,10 +1979,8 @@ inline auto create_mirror(
       "The view constructor arguments passed to Kokkos::create_mirror must "
       "not explicitly allow padding!");
 
-  using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
-  alloc_prop prop_copy(arg_prop);
-  static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
-      std::string(src.label()).append("_mirror");
+  auto prop_copy = Impl::with_properties_if_unset(
+      arg_prop, std::string(src.label()).append("_mirror"));
 
   return dst_type(prop_copy, Impl::reconstructLayout(src.layout(), src.rank()));
 }
@@ -2308,30 +2241,17 @@ auto create_mirror_view_and_copy(
   using Space  = typename alloc_prop_input::memory_space;
   using Mirror = typename Impl::MirrorDRViewType<Space, T, P...>::view_type;
 
-  // Add some properties if not provided to avoid need for if constexpr
-  using alloc_prop = Impl::ViewCtorProp<
-      ViewCtorArgs...,
-      std::conditional_t<alloc_prop_input::has_label,
-                         std::integral_constant<unsigned int, 12>, std::string>,
-      std::conditional_t<!alloc_prop_input::initialize,
-                         std::integral_constant<unsigned int, 13>,
-                         Impl::WithoutInitializing_t>,
-      std::conditional_t<alloc_prop_input::has_execution_space,
-                         std::integral_constant<unsigned int, 14>,
-                         typename Space::execution_space>>;
-  alloc_prop arg_prop_copy(arg_prop);
+  auto arg_prop_copy = Impl::with_properties_if_unset(
+      arg_prop, std::string{}, WithoutInitializing,
+      typename Space::execution_space{});
 
-  std::string& label =
-      static_cast<Impl::ViewCtorProp<void, std::string>&>(arg_prop_copy).value;
+  std::string& label = Impl::get_property<Impl::LabelTag>(arg_prop_copy);
   if (label.empty()) label = src.label();
   auto mirror = typename Mirror::non_const_type{
       arg_prop_copy, Impl::reconstructLayout(src.layout(), src.rank())};
-  if (alloc_prop_input::has_execution_space) {
-    using ExecutionSpace = typename alloc_prop::execution_space;
-    deep_copy(
-        static_cast<Impl::ViewCtorProp<void, ExecutionSpace>&>(arg_prop_copy)
-            .value,
-        mirror, src);
+  if constexpr (alloc_prop_input::has_execution_space) {
+    deep_copy(Impl::get_property<Impl::ExecutionSpaceTag>(arg_prop_copy),
+              mirror, src);
   } else
     deep_copy(mirror, src);
   return mirror;
@@ -2374,27 +2294,18 @@ inline void impl_resize(const Impl::ViewCtorProp<ViewCtorArgs...>& arg_prop,
                 "The view constructor arguments passed to Kokkos::resize must "
                 "not include a memory space instance!");
 
-  // Add execution space here to avoid the need for if constexpr below
-  using alloc_prop = Impl::ViewCtorProp<
-      ViewCtorArgs..., std::string,
-      std::conditional_t<alloc_prop_input::has_execution_space,
-                         std::integral_constant<unsigned int, 10>,
-                         typename drview_type::execution_space>>;
-  alloc_prop prop_copy(arg_prop);
-  static_cast<Impl::ViewCtorProp<void, std::string>&>(prop_copy).value =
-      v.label();
+  auto prop_copy = Impl::with_properties_if_unset(
+      arg_prop, v.label(), typename drview_type::execution_space{});
 
   drview_type v_resized(prop_copy, n0, n1, n2, n3, n4, n5, n6, n7);
 
-  if (alloc_prop_input::has_execution_space)
+  if constexpr (alloc_prop_input::has_execution_space)
     Kokkos::Impl::DynRankViewRemap<drview_type, drview_type>(
-        static_cast<const Impl::ViewCtorProp<
-            void, typename alloc_prop::execution_space>&>(prop_copy)
-            .value,
-        v_resized, v);
-  else
+        Impl::get_property<Impl::ExecutionSpaceTag>(prop_copy), v_resized, v);
+  else {
     Kokkos::Impl::DynRankViewRemap<drview_type, drview_type>(v_resized, v);
-
+    Kokkos::fence("Kokkos::resize(DynRankView)");
+  }
   v = v_resized;
 }
 
@@ -2462,10 +2373,7 @@ inline void impl_realloc(DynRankView<T, P...>& v, const size_t n0,
                 "The view constructor arguments passed to Kokkos::realloc must "
                 "not include a memory space instance!");
 
-  using alloc_prop = Impl::ViewCtorProp<ViewCtorArgs..., std::string>;
-  alloc_prop arg_prop_copy(arg_prop);
-  static_cast<Kokkos::Impl::ViewCtorProp<void, std::string>&>(arg_prop_copy)
-      .value = v.label();
+  auto arg_prop_copy = Impl::with_properties_if_unset(arg_prop, v.label());
 
   v = drview_type();  // Deallocate first, if the only view to allocation
   v = drview_type(arg_prop_copy, n0, n1, n2, n3, n4, n5, n6, n7);

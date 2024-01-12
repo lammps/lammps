@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,31 +25,29 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  gamma(nullptr)
+FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), gamma(nullptr)
 {
   dynamic_group_allow = 1;
 
-  if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
+  if (narg < 4) error->all(FLERR, "Illegal fix viscous command");
 
-  double gamma_one = utils::numeric(FLERR,arg[3],false,lmp);
-  gamma = new double[atom->ntypes+1];
+  double gamma_one = utils::numeric(FLERR, arg[3], false, lmp);
+  gamma = new double[atom->ntypes + 1];
   for (int i = 1; i <= atom->ntypes; i++) gamma[i] = gamma_one;
 
   // optional args
 
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix viscous command");
-      int itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      double scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (itype <= 0 || itype > atom->ntypes)
-        error->all(FLERR,"Illegal fix viscous command");
+    if (strcmp(arg[iarg], "scale") == 0) {
+      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix viscous command");
+      int itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      double scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      if (itype <= 0 || itype > atom->ntypes) error->all(FLERR, "Illegal fix viscous command");
       gamma[itype] = gamma_one * scale;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix viscous command");
+    } else
+      error->all(FLERR, "Illegal fix viscous command");
   }
 
   respa_level_support = 1;
@@ -63,7 +60,7 @@ FixViscous::~FixViscous()
 {
   if (copymode) return;
 
-  delete [] gamma;
+  delete[] gamma;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,9 +80,9 @@ void FixViscous::init()
 {
   int max_respa = 0;
 
-  if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = max_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
-    if (respa_level >= 0) ilevel_respa = MIN(respa_level,max_respa);
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    ilevel_respa = max_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level, max_respa);
   }
 }
 
@@ -93,11 +90,11 @@ void FixViscous::init()
 
 void FixViscous::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
     (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
-    post_force_respa(vflag,ilevel_respa,0);
+    post_force_respa(vflag, ilevel_respa, 0);
     (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
@@ -128,9 +125,9 @@ void FixViscous::post_force(int /*vflag*/)
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       drag = gamma[type[i]];
-      f[i][0] -= drag*v[i][0];
-      f[i][1] -= drag*v[i][1];
-      f[i][2] -= drag*v[i][2];
+      f[i][0] -= drag * v[i][0];
+      f[i][1] -= drag * v[i][1];
+      f[i][2] -= drag * v[i][2];
     }
 }
 

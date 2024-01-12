@@ -52,7 +52,7 @@ enum {NONE,CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(nullptr), history_one(nullptr),
+  Fix(lmp, narg, arg), idregion(nullptr), tstr(nullptr), history_one(nullptr),
   fix_rigid(nullptr), mass_rigid(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
@@ -126,9 +126,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   else use_history = restart_peratom = 1;
 
   // wallstyle args
-
-  idregion = nullptr;
-  tstr = nullptr;
 
   if (iarg >= narg) error->all(FLERR, "Illegal fix wall/gran command");
 
@@ -247,13 +244,11 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  history_one = nullptr;
   FixWallGran::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
   nmax = 0;
-  mass_rigid = nullptr;
 
   // initialize history as if particle is not touching region
   // history_one will be a null pointer for wallstyle = REGION
@@ -276,6 +271,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallGran::~FixWallGran()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
@@ -323,7 +320,6 @@ void FixWallGran::init()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
@@ -452,7 +448,7 @@ void FixWallGran::post_force(int /*vflag*/)
   }
 
   for (int i = 0; i < nlocal; i++) {
-    if ((!mask[i]) & groupbit) continue;
+    if (!(mask[i] & groupbit)) continue;
 
     dx = dy = dz = 0.0;
 
@@ -548,7 +544,10 @@ void FixWallGran::post_force(int /*vflag*/)
   }
 }
 
-void FixWallGran::clear_stored_contacts() {
+/* ---------------------------------------------------------------------- */
+
+void FixWallGran::clear_stored_contacts()
+{
   const int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     for (int m = 0; m < size_peratom_cols; m++) {

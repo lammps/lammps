@@ -14,7 +14,7 @@ fix ttm/mod command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz keyword value ...
    fix ID group-ID ttm/mod seed init_file Nx Ny Nz keyword value ...

@@ -740,7 +740,7 @@ static void receiveints(int buf[], const int num_of_ints, int num_of_bits,
   }
   for (i = num_of_ints-1; i > 0; i--) {
     num = 0;
-    for (j = num_of_bytes-1; j >=0; j--) {
+    for (j = num_of_bytes-1; j >= 0; j--) {
       num = (num << 8) | bytes[j];
       p = num / sizes[i];
       bytes[j] = p;
@@ -1046,7 +1046,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
         sizesmall[0] = sizesmall[1] = sizesmall[2] = magicints[smallidx];
       }
     }
-    if (buf[1] != 0) buf[0]++;;
+    if (buf[1] != 0) buf[0]++;
     xdr_int(xdrs, &(buf[0])); /* buf[0] holds the length in bytes */
     return errval * (xdr_opaque(xdrs, (caddr_t)&(buf[3]), (u_int)buf[0]));
   } else {

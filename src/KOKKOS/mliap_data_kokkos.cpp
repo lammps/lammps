@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -85,6 +85,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   // clear gradforce and elems arrays
 
   int nall = atom->nlocal + atom->nghost;
+  nlocal = atom->nlocal;
   ntotal = nall;
   if (gradgradflag > -1){
     auto d_gradforce = k_gradforce.template view<DeviceType>();

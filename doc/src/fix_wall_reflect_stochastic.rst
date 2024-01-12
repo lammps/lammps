@@ -6,7 +6,7 @@ fix wall/reflect/stochastic command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/reflect/stochastic rstyle seed face args ... keyword value ...
 

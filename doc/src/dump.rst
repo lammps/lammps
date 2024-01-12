@@ -14,10 +14,6 @@
 .. index:: dump custom/gz
 .. index:: dump local/gz
 .. index:: dump xyz/gz
-.. index:: dump atom/mpiio
-.. index:: dump cfg/mpiio
-.. index:: dump custom/mpiio
-.. index:: dump xyz/mpiio
 .. index:: dump atom/zstd
 .. index:: dump cfg/zstd
 .. index:: dump custom/zstd
@@ -63,7 +59,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *custom/adios* or *dcd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
+* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
 * N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
 * attribute1,attribute2,... = list of attributes for a particular style
@@ -74,13 +70,11 @@ Syntax
        *atom/adios* attributes = none,  discussed on :doc:`dump atom/adios <dump_adios>` page
        *atom/gz* attributes = none
        *atom/zstd* attributes = none
-       *atom/mpiio* attributes = none
        *cfg* attributes = same as *custom* attributes, see below
        *cfg/gz* attributes = same as *custom* attributes, see below
        *cfg/zstd* attributes = same as *custom* attributes, see below
-       *cfg/mpiio* attributes = same as *custom* attributes, see below
        *cfg/uef* attributes = same as *custom* attributes, discussed on :doc:`dump cfg/uef <dump_cfg_uef>` page
-       *custom*, *custom/gz*, *custom/zstd*, *custom/mpiio* attributes = see below
+       *custom*, *custom/gz*, *custom/zstd* attributes = see below
        *custom/adios* attributes = same as *custom* attributes, discussed on :doc:`dump custom/adios <dump_adios>` page
        *dcd* attributes = none
        *h5md* attributes = discussed on :doc:`dump h5md <dump_h5md>` page
@@ -97,10 +91,9 @@ Syntax
        *xyz* attributes = none
        *xyz/gz* attributes = none
        *xyz/zstd* attributes = none
-       *xyz/mpiio* attributes = none
        *yaml* attributes = same as *custom* attributes, see below
 
-* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* attributes:
+* *custom* or *custom/gz* or *custom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* attributes:
 
   .. parsed-literal::
 
@@ -179,11 +172,9 @@ Examples
 .. code-block:: LAMMPS
 
    dump myDump all atom 100 dump.lammpstrj
-   dump myDump all atom/mpiio 100 dump.atom.mpiio
    dump myDump all atom/gz 100 dump.atom.gz
    dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
-   dump 2 subgroup atom/mpiio 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4a all custom 100 dump.myvel.lammpsbin id type x y z vx vy vz
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
@@ -622,27 +613,10 @@ when running on large numbers of processors.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-For styles that end with *mpiio* an ".mpiio" must appear somewhere in
-the specified filename.  These styles write their dump file in
-parallel via the MPI-IO library, which is part of the MPI standard for
-versions 2.0 and above.  Note these styles are identical in command
-syntax to the corresponding styles without "mpiio".  Likewise, the
-dump files produced by these MPI-IO styles are identical in format to
-the files produced by their non-MPI-IO style counterparts.  This means
-you can write a dump file using MPI-IO and use the :doc:`read_dump
-<read_dump>` command or perform other post-processing, just as if the
-dump file was not written using MPI-IO.
+.. deprecated:: 21Nov2023
 
-Because MPI-IO dump files are one large file which all processors
-write to, you cannot use the "%" wildcard character described above in
-the filename.  However you can use the ".bin" or ".lammpsbin" suffix
-described below.  Again, this file will be written in parallel and
-have the same binary format as if it were written without MPI-IO.
-
-.. warning::
-
-   The MPIIO package within LAMMPS is currently unmaintained and has
-   become unreliable. Use with caution.
+The MPIIO package and the the corresponding "/mpiio" dump styles, except
+for the unrelated "netcdf/mpiio" style were removed from LAMMPS.
 
 ----------
 
@@ -831,16 +805,16 @@ computes, fixes, or variables when they are evaluated, so this is a very
 general means of creating quantities to output to a dump file.
 
 The *i_name*, *d_name*, *i2_name*, *d2_name* attributes refer to
-per-atom integer and floating-point vectors or arrays that have been
-added via the :doc:`fix property/atom <fix_property_atom>` command.
-When that command is used specific names are given to each attribute
-which are the "name" portion of these keywords.  For arrays *i2_name*
-and *d2_name*, the column of the array must also be included following
-the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where :math:`i` is
-in the range from 1 to :math:`M`, where :math:`M` is the number of
-columns in the custom array). See the discussion above for how :math:`i`
-can be specified with a wildcard asterisk to effectively specify
-multiple values.
+custom per-atom integer and floating-point vectors or arrays that have
+been added via the :doc:`fix property/atom <fix_property_atom>`
+command.  When that command is used specific names are given to each
+attribute which are the "name" portion of these keywords.  For arrays
+*i2_name* and *d2_name*, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where
+:math:`i` is in the range from 1 to :math:`M`, where :math:`M` is the
+number of columns in the custom array).  See the discussion above for
+how :math:`i` can be specified with a wildcard asterisk to effectively
+specify multiple values.
 
 See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities
@@ -956,11 +930,6 @@ the COMPRESS package.  They are only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
-The *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and *xyz/mpiio* styles
-are part of the MPIIO package.  They are only enabled if LAMMPS was
-built with that package.  See the :doc:`Build package <Build_package>`
-page for more info.
-
 The *xtc*, *dcd*, and *yaml* styles are part of the EXTRA-DUMP package.
 They are only enabled if LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
@@ -971,6 +940,7 @@ Related commands
 :doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`,
 :doc:`dump cfg/uef <dump_cfg_uef>`, :doc:`dump h5md <dump_h5md>`,
 :doc:`dump image <dump_image>`, :doc:`dump molfile <dump_molfile>`,
+:doc:`dump netcdf <dump_netcdf>`, :doc:`dump netcdf/mpiio <dump_netcdf>`,
 :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`,
 :doc:`write_dump <write_dump>`
 

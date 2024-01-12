@@ -43,13 +43,8 @@ BondFENEKokkos<DeviceType>::BondFENEKokkos(LAMMPS *lmp) : BondFENE(lmp)
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
-  k_warning_flag = DAT::tdual_int_scalar("Bond:warning_flag");
-  d_warning_flag = k_warning_flag.view<DeviceType>();
-  h_warning_flag = k_warning_flag.h_view;
-
-  k_error_flag = DAT::tdual_int_scalar("Bond:error_flag");
-  d_error_flag = k_error_flag.view<DeviceType>();
-  h_error_flag = k_error_flag.h_view;
+  d_flag = typename AT::t_int_scalar("bond:flag");
+  h_flag = HAT::t_int_scalar("bond:flag_mirror");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,13 +94,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
 
-  h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
-  k_warning_flag.template sync<DeviceType>();
-
-  h_error_flag() = 0;
-  k_error_flag.template modify<LMPHostType>();
-  k_error_flag.template sync<DeviceType>();
+  Kokkos::deep_copy(d_flag,0);
 
   copymode = 1;
 
@@ -127,14 +116,11 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
-  if (h_warning_flag())
-    error->warning(FLERR,"FENE bond too long");
+  Kokkos::deep_copy(h_flag,d_flag);
 
-  k_error_flag.template modify<DeviceType>();
-  k_error_flag.template sync<LMPHostType>();
-  if (h_error_flag())
+  if (h_flag() == 1)
+    error->warning(FLERR,"FENE bond too long");
+  else if (h_flag() == 2)
     error->one(FLERR,"Bad FENE bond");
 
   if (eflag_global) energy += ev.evdwl;
@@ -165,8 +151,6 @@ template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
-  if (d_error_flag()) return;
-
   // The f array is atomic
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
@@ -178,10 +162,15 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   const F_FLOAT dely = x(i1,1) - x(i2,1);
   const F_FLOAT delz = x(i1,2) - x(i2,2);
 
+  const F_FLOAT r0 = d_r0[type];
+  const F_FLOAT k = d_k[type];
+  const F_FLOAT sigma = d_sigma[type];
+  const F_FLOAT epsilon = d_epsilon[type];
+
   // force from log term
 
   const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const F_FLOAT r0sq = d_r0[type] * d_r0[type];
+  const F_FLOAT r0sq = r0 * r0;
   F_FLOAT rlogarg = 1.0 - rsq/r0sq;
 
   // if r -> r0, then rlogarg < 0.0 which is an error
@@ -189,31 +178,32 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   // if r > 2*r0 something serious is wrong, abort
 
   if (rlogarg < 0.1) {
-    if (!d_warning_flag())
-      d_warning_flag() = 1;
-    if (rlogarg <= -3.0 && !d_error_flag())
-      d_error_flag() = 1;
+    if (rlogarg <= -3.0)
+      d_flag() = 2;
+    else
+      d_flag() = 1;
     rlogarg = 0.1;
   }
 
-  F_FLOAT fbond = -d_k[type]/rlogarg;
+  F_FLOAT fbond = -k/rlogarg;
 
   // force from LJ term
 
   F_FLOAT sr6 = 0.0;
-  if (rsq < MY_CUBEROOT2*d_sigma[type]*d_sigma[type]) {
-    const F_FLOAT sr2 = d_sigma[type]*d_sigma[type]/rsq;
+  F_FLOAT sigma2 = sigma*sigma;
+  if (rsq < MY_CUBEROOT2*sigma2) {
+    const F_FLOAT sr2 = sigma2/rsq;
     sr6 = sr2*sr2*sr2;
-    fbond += 48.0*d_epsilon[type]*sr6*(sr6-0.5)/rsq;
+    fbond += 48.0*epsilon*sr6*(sr6-0.5)/rsq;
   }
 
   // energy
 
   F_FLOAT ebond = 0.0;
   if (eflag) {
-    ebond = -0.5 * d_k[type]*r0sq*log(rlogarg);
-    if (rsq < MY_CUBEROOT2*d_sigma[type]*d_sigma[type])
-      ebond += 4.0*d_epsilon[type]*sr6*(sr6-1.0) + d_epsilon[type];
+    ebond = -0.5 * k*r0sq*log(rlogarg);
+    if (rsq < MY_CUBEROOT2*sigma2)
+      ebond += 4.0*epsilon*sr6*(sr6-1.0) + epsilon;
   }
 
   // apply force to each of 2 atoms

@@ -275,7 +275,7 @@ void BondLepton::read_restart(FILE *fp)
       utils::sfread(FLERR, buf, sizeof(char), len, fp, nullptr, error);
     }
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
-    expressions.push_back(buf);
+    expressions.emplace_back(buf);
   }
 
   delete[] buf;
@@ -298,7 +298,7 @@ double BondLepton::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   const double r = sqrt(rsq);
   const double dr = r - r0[type];
 
-  auto expr = expressions[type2expression[type]];
+  const auto &expr = expressions[type2expression[type]];
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto bondpot = parsed.createCompiledExpression();
   auto bondforce = parsed.differentiate("r").createCompiledExpression();

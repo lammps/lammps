@@ -9,7 +9,7 @@ Accelerator Variants: *dt/reset/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ...
 

@@ -180,9 +180,9 @@ void PairReaxFFKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list with pair style reaxff/kk");
 
@@ -382,8 +382,7 @@ void PairReaxFFKokkos<DeviceType>::init_md()
   if (swb < 0)
     error->one(FLERR,"Negative upper Taper-radius cutoff");
   else if (swb < 5)
-    error->one(FLERR,fmt::format("Warning: very low Taper-radius cutoff: "
-                                 "{}\n", swb));
+    error->one(FLERR,"Warning: very low Taper-radius cutoff: {}\n", swb);
 
   d1 = swb - swa;
   d7 = powint(d1,7);
@@ -2711,14 +2710,14 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int &apack, EV_FLOAT_REAX& ev) const {
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
 
-  auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
-  auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   F_FLOAT temp, temp_bo_jt, pBOjt7;
   F_FLOAT p_val1, p_val2, p_val3, p_val4, p_val5;
@@ -2972,14 +2971,14 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int &tpack, EV_FLOAT_REAX& ev) const {
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
-  auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
-  //auto a_Cdbo = dup_Cdbo.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   // in reaxff_torsion_angles: j = i, k = j, i = k;
 
@@ -4163,22 +4162,23 @@ double PairReaxFFKokkos<DeviceType>::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds)
+void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds, int groupbit)
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondZero>(0,nmax),*this);
 
   bo_cut_bond = api->control->bg_cut;
 
-  atomKK->sync(execution_space,TAG_MASK);
+  atomKK->sync(execution_space,TAG_MASK|MASK_MASK);
   tag = atomKK->k_tag.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
 
   const int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_ilist = k_list->d_ilist;
 
   numbonds = 0;
-  PairReaxKokkosFindBondFunctor<DeviceType> find_bond_functor(this);
+  PairReaxKokkosFindBondFunctor<DeviceType> find_bond_functor(this, groupbit);
   Kokkos::parallel_reduce(inum,find_bond_functor,numbonds);
   copymode = 0;
 }
@@ -4195,24 +4195,28 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondZero, const int
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds) const
+void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds, int groupbit) const
 {
   const int i = d_ilist[ii];
   int nj = 0;
 
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-  for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    const tagint jtag = tag[j];
-    const int j_index = jj - j_start;
-    double bo_tmp = d_BO(i,j_index);
+  if (mask[i] & groupbit) {
+    const int j_start = d_bo_first[i];
+    const int j_end = j_start + d_bo_num[i];
+    for (int jj = j_start; jj < j_end; jj++) {
+      int j = d_bo_list[jj];
+      j &= NEIGHMASK;
+      if (mask[j] & groupbit) {
+        const tagint jtag = tag[j];
+        const int j_index = jj - j_start;
+        double bo_tmp = d_BO(i,j_index);
 
-    if (bo_tmp > bo_cut_bond) {
-      d_neighid(i,nj) = jtag;
-      d_abo(i,nj) = bo_tmp;
-      nj++;
+        if (bo_tmp > bo_cut_bond) {
+          d_neighid(i,nj) = jtag;
+          d_abo(i,nj) = bo_tmp;
+          nj++;
+        }
+      }
     }
   }
   d_numneigh_bonds[i] = nj;
@@ -4247,6 +4251,36 @@ void PairReaxFFKokkos<DeviceType>::PackBondBuffer(DAT::tdual_ffloat_1d k_buf, in
   k_nbuf_local.sync<LMPHostType>();
   nbuf_local = k_nbuf_local.h_view();
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxFFKokkos<DeviceType>::PackReducedBondBuffer(DAT::tdual_ffloat_1d k_buf, int &nbuf_local, bool store_bonds)
+{
+  d_buf = k_buf.view<DeviceType>();
+  k_params_sing.template sync<DeviceType>();
+
+  copymode = 1;
+  nlocal = atomKK->nlocal;
+  if (store_bonds) {
+    PairReaxKokkosPackReducedBondBufferFunctor<DeviceType, true> pack_bond_buffer_functor(this);
+    Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  } else {
+    PairReaxKokkosPackReducedBondBufferFunctor<DeviceType, false> pack_bond_buffer_functor(this);
+    Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  }
+
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+  k_nbuf_local.modify<DeviceType>();
+
+  k_buf.sync<LMPHostType>();
+  k_nbuf_local.sync<LMPHostType>();
+  nbuf_local = k_nbuf_local.h_view();
+}
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -4284,6 +4318,42 @@ void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bo
     }
   }
   j += (1+numbonds);
+
+  if (final && i == nlocal-1)
+    k_nbuf_local.view<DeviceType>()() = j - 1;
+}
+
+template<class DeviceType>
+template<bool STORE_BONDS>
+KOKKOS_INLINE_FUNCTION
+void PairReaxFFKokkos<DeviceType>::pack_reduced_bond_buffer_item(int i, int &j, const bool &final) const
+{
+  const int numbonds = d_numneigh_bonds[i];
+  if (final) {
+    d_buf[j] = d_total_bo[i];
+    d_buf[j+1] = paramssing(type[i]).nlp_opt - d_Delta_lp[i];
+    d_buf[j+2] = numbonds;
+  }
+
+  j += 3;
+
+  if constexpr(STORE_BONDS) {
+    if (final) {
+      for (int k = 0; k < numbonds; ++k) {
+        d_buf[j+k] = d_neighid(i,k);
+      }
+    }
+
+    j += numbonds;
+
+    if (final) {
+      for (int k = 0; k < numbonds; k++) {
+        d_buf[j+k] = d_abo(i,k);
+      }
+    }
+
+    j += numbonds;
+  }
 
   if (final && i == nlocal-1)
     k_nbuf_local.view<DeviceType>()() = j - 1;

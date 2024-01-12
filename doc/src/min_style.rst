@@ -27,7 +27,7 @@ min_style fire command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    min_style style
 

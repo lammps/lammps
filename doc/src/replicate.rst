@@ -6,7 +6,7 @@ replicate command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    replicate nx ny nz *keyword*
 

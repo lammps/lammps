@@ -905,7 +905,7 @@ inline flt_t frebo_pij(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i, int j,
       flt_t rho_k = ka->params.rho[ktype][1];
       flt_t rho_j = ka->params.rho[jtype][1];
       flt_t lamdajik = 4 * itype * ((rho_k - rikmag) - (rho_j - rijmag));
-      flt_t ex_lam = exp(lamdajik);
+      flt_t ex_lam = overloaded::exp(lamdajik);
       flt_t rcminik = ka->params.rcmin[itype][ktype];
       flt_t rcmaxik = ka->params.rcmax[itype][ktype];
       flt_t dwik;

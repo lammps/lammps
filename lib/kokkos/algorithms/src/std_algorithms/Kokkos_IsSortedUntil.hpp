@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_STD_ALGORITHMS_IS_SORTED_UNTIL_HPP
 #define KOKKOS_STD_ALGORITHMS_IS_SORTED_UNTIL_HPP
@@ -51,58 +23,78 @@
 namespace Kokkos {
 namespace Experimental {
 
-template <class ExecutionSpace, class IteratorType>
+//
+// overload set accepting execution space
+//
+template <
+    typename ExecutionSpace, typename IteratorType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 IteratorType is_sorted_until(const ExecutionSpace& ex, IteratorType first,
                              IteratorType last) {
-  return Impl::is_sorted_until_impl(
+  return Impl::is_sorted_until_exespace_impl(
       "Kokkos::is_sorted_until_iterator_api_default", ex, first, last);
 }
 
-template <class ExecutionSpace, class IteratorType>
+template <
+    typename ExecutionSpace, typename IteratorType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 IteratorType is_sorted_until(const std::string& label, const ExecutionSpace& ex,
                              IteratorType first, IteratorType last) {
-  return Impl::is_sorted_until_impl(label, ex, first, last);
+  return Impl::is_sorted_until_exespace_impl(label, ex, first, last);
 }
 
-template <class ExecutionSpace, class DataType, class... Properties>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto is_sorted_until(const ExecutionSpace& ex,
                      const ::Kokkos::View<DataType, Properties...>& view) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::is_sorted_until_impl("Kokkos::is_sorted_until_view_api_default",
-                                    ex, KE::begin(view), KE::end(view));
+  return Impl::is_sorted_until_exespace_impl(
+      "Kokkos::is_sorted_until_view_api_default", ex, KE::begin(view),
+      KE::end(view));
 }
 
-template <class ExecutionSpace, class DataType, class... Properties>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto is_sorted_until(const std::string& label, const ExecutionSpace& ex,
                      const ::Kokkos::View<DataType, Properties...>& view) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::is_sorted_until_impl(label, ex, KE::begin(view), KE::end(view));
+  return Impl::is_sorted_until_exespace_impl(label, ex, KE::begin(view),
+                                             KE::end(view));
 }
 
-template <class ExecutionSpace, class IteratorType, class ComparatorType>
+template <
+    typename ExecutionSpace, typename IteratorType, typename ComparatorType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 IteratorType is_sorted_until(const ExecutionSpace& ex, IteratorType first,
                              IteratorType last, ComparatorType comp) {
   Impl::static_assert_is_not_openmptarget(ex);
-  return Impl::is_sorted_until_impl(
+  return Impl::is_sorted_until_exespace_impl(
       "Kokkos::is_sorted_until_iterator_api_default", ex, first, last,
       std::move(comp));
 }
 
-template <class ExecutionSpace, class IteratorType, class ComparatorType>
+template <
+    typename ExecutionSpace, typename IteratorType, typename ComparatorType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 IteratorType is_sorted_until(const std::string& label, const ExecutionSpace& ex,
                              IteratorType first, IteratorType last,
                              ComparatorType comp) {
   Impl::static_assert_is_not_openmptarget(ex);
 
-  return Impl::is_sorted_until_impl(label, ex, first, last, std::move(comp));
+  return Impl::is_sorted_until_exespace_impl(label, ex, first, last,
+                                             std::move(comp));
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class ComparatorType>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    typename ComparatorType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto is_sorted_until(const ExecutionSpace& ex,
                      const ::Kokkos::View<DataType, Properties...>& view,
                      ComparatorType comp) {
@@ -110,13 +102,15 @@ auto is_sorted_until(const ExecutionSpace& ex,
   Impl::static_assert_is_not_openmptarget(ex);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::is_sorted_until_impl("Kokkos::is_sorted_until_view_api_default",
-                                    ex, KE::begin(view), KE::end(view),
-                                    std::move(comp));
+  return Impl::is_sorted_until_exespace_impl(
+      "Kokkos::is_sorted_until_view_api_default", ex, KE::begin(view),
+      KE::end(view), std::move(comp));
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class ComparatorType>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    typename ComparatorType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto is_sorted_until(const std::string& label, const ExecutionSpace& ex,
                      const ::Kokkos::View<DataType, Properties...>& view,
                      ComparatorType comp) {
@@ -124,8 +118,57 @@ auto is_sorted_until(const std::string& label, const ExecutionSpace& ex,
   Impl::static_assert_is_not_openmptarget(ex);
 
   namespace KE = ::Kokkos::Experimental;
-  return Impl::is_sorted_until_impl(label, ex, KE::begin(view), KE::end(view),
-                                    std::move(comp));
+  return Impl::is_sorted_until_exespace_impl(label, ex, KE::begin(view),
+                                             KE::end(view), std::move(comp));
+}
+
+//
+// overload set accepting team handle
+//
+template <typename TeamHandleType, typename IteratorType,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION IteratorType is_sorted_until(const TeamHandleType& teamHandle,
+                                             IteratorType first,
+                                             IteratorType last) {
+  return Impl::is_sorted_until_team_impl(teamHandle, first, last);
+}
+
+template <typename TeamHandleType, typename DataType, typename... Properties,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION auto is_sorted_until(
+    const TeamHandleType& teamHandle,
+    const ::Kokkos::View<DataType, Properties...>& view) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
+
+  namespace KE = ::Kokkos::Experimental;
+  return Impl::is_sorted_until_team_impl(teamHandle, KE::begin(view),
+                                         KE::end(view));
+}
+
+template <typename TeamHandleType, typename IteratorType,
+          typename ComparatorType,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION IteratorType is_sorted_until(const TeamHandleType& teamHandle,
+                                             IteratorType first,
+                                             IteratorType last,
+                                             ComparatorType comp) {
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+  return Impl::is_sorted_until_team_impl(teamHandle, first, last,
+                                         std::move(comp));
+}
+
+template <typename TeamHandleType, typename DataType, typename... Properties,
+          typename ComparatorType,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION auto is_sorted_until(
+    const TeamHandleType& teamHandle,
+    const ::Kokkos::View<DataType, Properties...>& view, ComparatorType comp) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
+  Impl::static_assert_is_not_openmptarget(teamHandle);
+
+  namespace KE = ::Kokkos::Experimental;
+  return Impl::is_sorted_until_team_impl(teamHandle, KE::begin(view),
+                                         KE::end(view), std::move(comp));
 }
 
 }  // namespace Experimental

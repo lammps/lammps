@@ -294,21 +294,16 @@ int DumpVTK::count()
   }
 
   // invoke Computes for per-atom quantities
-  // only if within a run or minimize
-  // else require that computes are current
-  // this prevents a compute from being invoked by the WriteDump class
+  // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->whichflag == 0) {
-      for (i = 0; i < ncompute; i++)
-        if (compute[i]->invoked_peratom != update->ntimestep)
-          error->all(FLERR,"Compute used in dump between runs is not current");
-    } else {
-      for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
-          compute[i]->compute_peratom();
-          compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
-        }
+    for (i = 0; i < ncompute; i++) {
+      if (!compute[i]->is_initialized())
+        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
+          compute[i]->id);
+      if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
+        compute[i]->compute_peratom();
+        compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
       }
     }
   }
@@ -1939,7 +1934,7 @@ void DumpVTK::identify_vectors()
     // assume components are grouped together and in correct order
     if (name.count(it->first + 1) && name.count(it->first + 2)) { // more attributes?
       if (it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
-         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0 )
+         it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0)
       {
         it->second.erase(it->second.length()-1);
         std::ostringstream oss;

@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL) - original Tersoff implementation
-                        Wengen Ouyang (TAU)  - Shift addition
+                        Wengen Ouyang (WHU)  - Shift addition
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff.h"

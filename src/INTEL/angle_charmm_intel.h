@@ -59,7 +59,7 @@ class AngleCharmmIntel : public AngleCharmm {
 
     fc_packed1 *fc;
     ForceConst() : fc(nullptr), _nangletypes(0) {}
-    ~ForceConst() { set_ntypes(0, nullptr); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nangletypes, Memory *memory);
 

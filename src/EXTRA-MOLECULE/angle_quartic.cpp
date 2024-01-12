@@ -37,7 +37,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleQuartic::AngleQuartic(LAMMPS *lmp) : Angle(lmp) {}
+AngleQuartic::AngleQuartic(LAMMPS *lmp) : Angle(lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -285,4 +288,40 @@ double AngleQuartic::single(int type, int i1, int i2, int i3)
   double dtheta3 = dtheta2 * dtheta;
   double dtheta4 = dtheta3 * dtheta;
   return k2[type] * dtheta2 + k3[type] * dtheta3 + k4[type] * dtheta4;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleQuartic::born_matrix(int type, int i1, int i2, int i3, double &du, double &du2)
+{
+  double **x = atom->x;
+
+  double delx1 = x[i1][0] - x[i2][0];
+  double dely1 = x[i1][1] - x[i2][1];
+  double delz1 = x[i1][2] - x[i2][2];
+  domain->minimum_image(delx1,dely1,delz1);
+  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
+
+  double delx2 = x[i3][0] - x[i2][0];
+  double dely2 = x[i3][1] - x[i2][1];
+  double delz2 = x[i3][2] - x[i2][2];
+  domain->minimum_image(delx2,dely2,delz2);
+  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
+
+  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  c /= r1*r2;
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+  double theta = acos(c);
+
+  double s = sqrt(1.0 - c*c);
+  if (s < SMALL) s = SMALL;
+
+  double dtheta = theta - theta0[type];
+  double dtheta2 = dtheta * dtheta;
+  double dtheta3 = dtheta2 * dtheta;
+
+  du = -(2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 4.0 * k4[type] * dtheta3) / s;
+  du2 = (2.0 * k2[type] + 6.0 * k3[type] * dtheta + 12.0 * k4[type] * dtheta2) / (s*s) -
+          (2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 4.0 * k4[type] * dtheta3) * c / (s*s*s);
 }

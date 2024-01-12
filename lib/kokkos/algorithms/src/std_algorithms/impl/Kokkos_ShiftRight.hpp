@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_STD_ALGORITHMS_SHIFT_RIGHT_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_SHIFT_RIGHT_IMPL_HPP
@@ -57,10 +29,9 @@ namespace Experimental {
 namespace Impl {
 
 template <class ExecutionSpace, class IteratorType>
-IteratorType shift_right_impl(const std::string& label,
-                              const ExecutionSpace& ex, IteratorType first,
-                              IteratorType last,
-                              typename IteratorType::difference_type n) {
+IteratorType shift_right_exespace_impl(
+    const std::string& label, const ExecutionSpace& ex, IteratorType first,
+    IteratorType last, typename IteratorType::difference_type n) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
@@ -128,6 +99,60 @@ IteratorType shift_right_impl(const std::string& label,
                          step2_func_type(begin(tmp_view), first + n));
 
   ex.fence("Kokkos::shift_right: fence after operation");
+
+  return first + n;
+}
+
+template <class Iterator>
+struct StdShiftRightTeamSingleFunctor {
+  Iterator m_first;
+  Iterator m_last;
+  std::size_t m_shift;
+
+  KOKKOS_FUNCTION
+  void operator()() const {
+    // the impl function calling this functor guarantees that
+    // - m_shift is non-negative
+    // - m_first, m_last identify a valid range with m_last > m_first
+    // - m_shift is less than m_last - m_first
+    // so I can safely use std::size_t here
+  }
+
+  KOKKOS_FUNCTION
+  StdShiftRightTeamSingleFunctor(Iterator _first, Iterator _last, std::size_t n)
+      : m_first(std::move(_first)), m_last(std::move(_last)), m_shift(n) {}
+};
+
+template <class TeamHandleType, class IteratorType>
+KOKKOS_FUNCTION IteratorType shift_right_team_impl(
+    const TeamHandleType& teamHandle, IteratorType first, IteratorType last,
+    typename IteratorType::difference_type n) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+  KOKKOS_EXPECTS(n >= 0);
+
+  // handle trivial cases
+  if (n == 0) {
+    return first;
+  }
+
+  if (n >= Kokkos::Experimental::distance(first, last)) {
+    return last;
+  }
+
+  // we cannot use here a new allocation like we do for the
+  // execution space impl because for this team impl we are
+  // within a parallel region, so for now we solve serially
+
+  const std::size_t numElementsToMove =
+      ::Kokkos::Experimental::distance(first, last - n);
+  Kokkos::single(Kokkos::PerTeam(teamHandle), [=]() {
+    for (std::size_t i = 0; i < numElementsToMove; ++i) {
+      last[-i - 1] = std::move(last[-n - i - 1]);
+    }
+  });
+  teamHandle.team_barrier();
 
   return first + n;
 }

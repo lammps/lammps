@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_THREADSTEAM_HPP
 #define KOKKOS_THREADSTEAM_HPP
@@ -74,6 +46,7 @@ class ThreadsExecTeamMember {
  public:
   using execution_space      = Kokkos::Threads;
   using scratch_memory_space = execution_space::scratch_memory_space;
+  using team_handle          = ThreadsExecTeamMember;
 
  private:
   using space = execution_space::scratch_memory_space;
@@ -782,7 +755,7 @@ class TeamPolicyInternal<Kokkos::Threads, Properties...>
  private:
   /** \brief finalize chunk_size if it was set to AUTO*/
   inline void set_auto_chunk_size() {
-    int64_t concurrency = traits::execution_space::concurrency() / m_team_alloc;
+    int64_t concurrency = space().concurrency() / m_team_alloc;
     if (concurrency == 0) concurrency = 1;
 
     if (m_chunk_size > 0) {
@@ -1003,16 +976,19 @@ parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<
  * lambda(iType i, ValueType & val, bool final) for each i=0..N-1.
  *
  */
-template <typename iType, class FunctorType>
+template <typename iType, class FunctorType, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::TeamThreadRangeBoundariesStruct<
         iType, Impl::ThreadsExecTeamMember>& loop_bounds,
-    const FunctorType& lambda) {
-  using value_type = typename Kokkos::Impl::FunctorAnalysis<
-      Kokkos::Impl::FunctorPatternInterface::SCAN, void,
-      FunctorType>::value_type;
+    const FunctorType& lambda, ValueType& return_val) {
+  // Extract ValueType from the Closure
+  using closure_value_type = typename Kokkos::Impl::FunctorAnalysis<
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
+      void>::value_type;
+  static_assert(std::is_same_v<closure_value_type, ValueType>,
+                "Non-matching value types of closure and return type");
 
-  auto scan_val = value_type{};
+  auto scan_val = ValueType{};
 
   // Intra-member scan
 #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
@@ -1033,6 +1009,21 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
        i += loop_bounds.increment) {
     lambda(i, scan_val, true);
   }
+
+  return_val = scan_val;
+}
+
+template <typename iType, class FunctorType>
+KOKKOS_INLINE_FUNCTION void parallel_scan(
+    const Impl::TeamThreadRangeBoundariesStruct<
+        iType, Impl::ThreadsExecTeamMember>& loop_bounds,
+    const FunctorType& lambda) {
+  using value_type = typename Kokkos::Impl::FunctorAnalysis<
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
+      void>::value_type;
+
+  value_type scan_val;
+  parallel_scan(loop_bounds, lambda, scan_val);
 }
 
 /** \brief  Intra-thread vector parallel exclusive prefix sum. Executes
@@ -1047,17 +1038,20 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
  * final==true. Scan_val will be set to the final sum value over all vector
  * lanes.
  */
-template <typename iType, class FunctorType>
+template <typename iType, class FunctorType, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::ThreadVectorRangeBoundariesStruct<
         iType, Impl::ThreadsExecTeamMember>& loop_boundaries,
-    const FunctorType& lambda) {
-  using value_type =
+    const FunctorType& lambda, ValueType& return_val) {
+  // Extract ValueType from the Closure
+  using closure_value_type =
       typename Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
-                                     TeamPolicy<Threads>,
-                                     FunctorType>::value_type;
+                                     TeamPolicy<Threads>, FunctorType,
+                                     void>::value_type;
+  static_assert(std::is_same<closure_value_type, ValueType>::value,
+                "Non-matching value types of closure and return type");
 
-  value_type scan_val = value_type();
+  ValueType scan_val = ValueType();
 
 #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep
@@ -1066,6 +1060,22 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
        i += loop_boundaries.increment) {
     lambda(i, scan_val, true);
   }
+
+  return_val = scan_val;
+}
+
+template <typename iType, class FunctorType>
+KOKKOS_INLINE_FUNCTION void parallel_scan(
+    const Impl::ThreadVectorRangeBoundariesStruct<
+        iType, Impl::ThreadsExecTeamMember>& loop_boundaries,
+    const FunctorType& lambda) {
+  using value_type =
+      typename Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
+                                     TeamPolicy<Threads>, FunctorType,
+                                     void>::value_type;
+
+  value_type scan_val;
+  parallel_scan(loop_boundaries, lambda, scan_val);
 }
 
 /** \brief  Intra-thread vector parallel scan with reducer

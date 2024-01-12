@@ -6,7 +6,7 @@ fix alchemy command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID alchemy v_name
 
@@ -24,7 +24,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 This fix command enables an "alchemical transformation" to be performed
 between two systems, whereby one system slowly transforms into the other

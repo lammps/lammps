@@ -329,7 +329,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
   double fdothall,fdothme,hme,hmax,hmaxall;
   double de_ideal,de;
   double delfh,engprev,relerr,alphaprev,fhprev,fh,alpha0;
-  double dot[2],dotall[2];
+  double dot,dotall;
   double *xatom,*x0atom,*fatom,*hatom;
   double alphamax;
 
@@ -417,10 +417,9 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
 
     // compute new fh, alpha, delfh
 
-    dot[0] = dot[1] = 0.0;
+    dot = 0.0;
     for (i = 0; i < nvec; i++) {
-      dot[0] += fvec[i]*fvec[i];
-      dot[1] += fvec[i]*h[i];
+      dot += fvec[i]*h[i];
     }
     if (nextra_atom)
       for (m = 0; m < nextra_atom; m++) {
@@ -428,18 +427,16 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
         hatom = hextra_atom[m];
         n = extra_nlen[m];
         for (i = 0; i < n; i++) {
-          dot[0] += fatom[i]*fatom[i];
-          dot[1] += fatom[i]*hatom[i];
+          dot += fatom[i]*hatom[i];
         }
       }
-    MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
     if (nextra_global) {
       for (i = 0; i < nextra_global; i++) {
-        dotall[0] += fextra[i]*fextra[i];
-        dotall[1] += fextra[i]*hextra[i];
+        dotall += fextra[i]*hextra[i];
       }
     }
-    fh = dotall[1];
+    fh = dotall;
     if (output->thermo->normflag) fh /= atom->natoms;
 
     delfh = fh - fhprev;

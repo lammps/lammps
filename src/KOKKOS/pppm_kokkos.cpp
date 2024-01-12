@@ -1371,8 +1371,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_brick2fft, const int &ii) const
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_ik()
 {
-  int j;
-
   // transform charge density (r -> k)
 
   copymode = 1;
@@ -1393,7 +1391,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
       copymode = 1;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik2>(0,nfft),*this,ev);
       copymode = 0;
-      for (j = 0; j < 6; j++) virial[j] += ev.v[j];
+      for (int j = 0; j < 6; j++) virial[j] += ev.v[j];
       energy += ev.ecoul;
     } else {
       copymode = 1;

@@ -147,8 +147,8 @@ By default, pair forces are not calculated between bonded particles.
 Pair forces can alternatively be overlaid on top of bond forces by setting
 the *overlay/pair* keyword to *yes*. These settings require specific
 :doc:`special_bonds <special_bonds>` settings described in the
-restrictions.  Further details can be found in the :doc:`how to
-<Howto_bpm>` page on BPMs.
+restrictions.  Further details can be found in the :doc:`how to <Howto_bpm>`
+page on BPMs.
 
 .. versionadded:: 28Mar2023
 

@@ -83,6 +83,15 @@ void AtomVecRHEO::force_clear(int n, size_t nbytes)
 }
 
 /* ----------------------------------------------------------------------
+   initialize non-zero atom quantities
+------------------------------------------------------------------------- */
+
+void AtomVecRHEO::create_atom_post(int ilocal)
+{
+  rho[ilocal] = 1.0;
+}
+
+/* ----------------------------------------------------------------------
    modify what AtomVec::data_atom() just unpacked
    or initialize other atom quantities
 ------------------------------------------------------------------------- */

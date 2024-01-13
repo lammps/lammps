@@ -60,7 +60,7 @@ fix rigid/nph/small command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style bodystyle args keyword values ...
 
@@ -80,7 +80,7 @@ Syntax
          groupID1, groupID2, ... = list of N group IDs
 
 * zero or more keyword/value pairs may be appended
-* keyword = *langevin* or *reinit* or *temp* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity*
+* keyword = *langevin* or *reinit* or *temp*  or *mol* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity*
 
   .. parsed-literal::
 
@@ -92,6 +92,8 @@ Syntax
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
+       *mol* value = template-ID
+         template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *iso* or *aniso* values = Pstart Pstop Pdamp
          Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
          Pdamp = pressure damping parameter (time units)
@@ -610,10 +612,12 @@ such attributes: the total mass of the rigid body, its center-of-mass
 position, its 6 moments of inertia, its center-of-mass velocity, and
 the 3 image flags of the center-of-mass position.  For rigid bodies
 consisting of point particles or non-overlapping finite-size
-particles, LAMMPS can compute these values accurately.  However, for
-rigid bodies consisting of finite-size particles which overlap each
-other, LAMMPS will ignore the overlaps when computing these 4
-attributes.  The amount of error this induces depends on the amount of
+particles, LAMMPS can compute these values accurately.
+
+However, for rigid bodies consisting of finite-size particles which
+overlap each other, LAMMPS will ignore the overlaps when computing
+these 4 attributes, which means the dynamics of the bodies will be
+incorrect.  The amount of error this induces depends on the amount of
 overlap.  To avoid this issue, the values can be pre-computed
 (e.g. using Monte Carlo integration).
 
@@ -676,6 +680,28 @@ cross periodic boundaries during the simulation.
    using an *infile* keyword and the appropriate filename.  Note that the
    auxiliary file will contain one line for every rigid body, even if the
    original file only listed a subset of the rigid bodies.
+
+If the system has rigid bodies with finite-size overlapping particles
+and the model uses the :doc:`fix gravity <fix_gravity>` command to
+apply a gravitational force to the rigid bodies, then the *gravity*
+keyword should be used in the following manner.
+
+First, the group specified for the :doc:`fix gravity <fix_gravity>`
+command should not include any atoms in rigid bodies which have
+overlapping particles.  It can be empty (see the :doc:`group empty
+<group>` command) or only contain single particles not in rigid
+bodies, e.g. background particles.
+
+Second, the *infile* keyword should be used to specify the total mass
+and other properties of the rigid bodies with overlaps, so that their
+dynamics will be modeled correctly, as explained above.
+
+Third, the *gravity* keyword should be used the with the ID of the
+:doc:`fix gravity <fix_gravity>` command as its argument.  The rigid
+fixes will access the gravity fix to extract the current direction of
+the gravity vector at each timestep (which can be static or dynamic).
+A gravity force will then be applied to each rigid body at its
+center-of-mass position using its total mass.
 
 ----------
 
@@ -819,7 +845,7 @@ stress/atom <compute_stress_atom>` commands.  The former can be
 accessed by :doc:`thermodynamic output <thermo_style>`.  The default
 setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
-All of the *rigid* styles (not the *rigid/small* styles) compute a
+All of the *rigid* styles (but not the *rigid/small* styles) compute a
 global array of values which can be accessed by various :doc:`output
 commands <Howto_output>`.  Similar information about the bodies
 defined by the *rigid/small* styles can be accessed via the
@@ -863,7 +889,8 @@ Restrictions
 """"""""""""
 
 These fixes are all part of the RIGID package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Assigning a temperature via the :doc:`velocity create <velocity>`
 command to a system with :doc:`rigid bodies <fix_rigid>` may not have

@@ -15,10 +15,7 @@
 #define LMP_ERROR_H
 
 #include "pointers.h"
-
-#ifdef LAMMPS_EXCEPTIONS
 #include "exceptions.h"
-#endif
 
 namespace LAMMPS_NS {
 
@@ -65,17 +62,14 @@ class Error : protected Pointers {
   void set_maxwarn(int val) { maxwarn = val; }
   void set_allwarn(int val) { allwarn = val; }
 
-#ifdef LAMMPS_EXCEPTIONS
   std::string get_last_error() const;
   ErrorType get_last_error_type() const;
-  void set_last_error(const std::string &msg, ErrorType type = ERROR_NORMAL);
+  void set_last_error(const char *msg, ErrorType type = ERROR_NORMAL);
 
  private:
   std::string last_error_message;
   ErrorType last_error_type;
-#endif
 
- private:
   int numwarn, maxwarn, allwarn;
   // internal versions that accept explicit fmtlib arguments
   [[noreturn]] void _all(const std::string &, int, fmt::string_view, fmt::format_args args);

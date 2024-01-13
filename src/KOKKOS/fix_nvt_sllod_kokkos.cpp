@@ -91,7 +91,7 @@ void FixNVTSllodKokkos<DeviceType>::init()
   if (deform.size() < 1)
     this->error->all(FLERR,"Using fix nvt/sllod/kk with no fix deform defined");
 
-  for (auto ifix : deform) {
+  for (auto &ifix : deform) {
     auto f = dynamic_cast<FixDeform *>(ifix);
     if (f && (f->remapflag != Domain::V_REMAP))
       this->error->all(FLERR,"Using fix ntv/sllod/kk with inconsistent fix deform remap option");
@@ -128,7 +128,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
 
   d_h_two = Few<double, 6>(h_two);
 
-  if (vdelu.extent(0) < atomKK->nmax)
+  if ((int)vdelu.extent(0) < atomKK->nmax)
     vdelu = typename AT::t_v_array(Kokkos::NoInit("nvt/sllod/kk:vdelu"), atomKK->nmax);
 
   if (!this->psllod_flag) {

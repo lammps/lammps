@@ -178,7 +178,7 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delz1 = x[i1].z - x[i2].z;
 
       const flt_t rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-      flt_t ir12 = (flt_t)1.0/sqrt(rsq1);
+      flt_t ir12 = (flt_t)1.0/std::sqrt(rsq1);
 
       // 2nd bond
 
@@ -187,7 +187,7 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delz2 = x[i3].z - x[i2].z;
 
       const flt_t rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-      ir12 *= (flt_t)1.0/sqrt(rsq2);
+      ir12 *= (flt_t)1.0/std::sqrt(rsq2);
 
       // Urey-Bradley bond
 
@@ -196,7 +196,7 @@ void AngleCharmmIntel::eval(const int vflag,
       const flt_t delzUB = x[i3].z - x[i1].z;
 
       const flt_t rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
-      const flt_t irUB = (flt_t)1.0/sqrt(rsqUB);
+      const flt_t irUB = (flt_t)1.0/std::sqrt(rsqUB);
 
       // Urey-Bradley force & energy
 
@@ -219,12 +219,12 @@ void AngleCharmmIntel::eval(const int vflag,
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
 
       const flt_t sd = (flt_t)1.0 - c * c;
-      flt_t s = (flt_t)1.0 / sqrt(sd);
+      flt_t s = (flt_t)1.0 / std::sqrt(sd);
       if (sd < SMALL2) s = INVSMALL;
 
       // harmonic force & energy
 
-      const flt_t dtheta = acos(c) - fc.fc[type].theta0;
+      const flt_t dtheta = std::acos(c) - fc.fc[type].theta0;
       const flt_t tk = fc.fc[type].k * dtheta;
 
       if (EFLAG) eangle += tk*dtheta;

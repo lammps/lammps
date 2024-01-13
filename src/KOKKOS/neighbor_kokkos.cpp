@@ -59,8 +59,6 @@ NeighborKokkos::~NeighborKokkos()
     memoryKK->destroy_kokkos(k_ex_type,ex_type);
     memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
     memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
-    memoryKK->destroy_kokkos(k_ex1_group,ex1_group);
-    memoryKK->destroy_kokkos(k_ex2_group,ex2_group);
     memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
     memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
     memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
@@ -310,7 +308,8 @@ void NeighborKokkos::build_kokkos(int topoflag)
   for (i = 0; i < npair_perpetual; i++) {
     m = plist[i];
     if (!lists[m]->kokkos) atomKK->sync(Host,ALL_MASK);
-    if (!lists[m]->copy) lists[m]->grow(nlocal,nall);
+    if (!lists[m]->copy || lists[m]->trim || lists[m]->kk2cpu)
+      lists[m]->grow(nlocal,nall);
     neigh_pair[m]->build_setup();
     neigh_pair[m]->build(lists[m]);
   }
@@ -335,14 +334,6 @@ void NeighborKokkos::modify_ex_type_grow_kokkos() {
   k_ex1_type.modify<LMPHostType>();
   memoryKK->grow_kokkos(k_ex2_type,ex2_type,maxex_type,"neigh:ex2_type");
   k_ex2_type.modify<LMPHostType>();
-}
-
-/* ---------------------------------------------------------------------- */
-void NeighborKokkos::modify_ex_group_grow_kokkos() {
-  memoryKK->grow_kokkos(k_ex1_group,ex1_group,maxex_group,"neigh:ex1_group");
-  k_ex1_group.modify<LMPHostType>();
-  memoryKK->grow_kokkos(k_ex2_group,ex2_group,maxex_group,"neigh:ex2_group");
-  k_ex2_group.modify<LMPHostType>();
 }
 
 /* ---------------------------------------------------------------------- */

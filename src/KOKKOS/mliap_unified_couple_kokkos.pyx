@@ -59,6 +59,7 @@ cdef extern from "mliap_data_kokkos.h" namespace "LAMMPS_NS":
 
         int ntotal              # total number of owned and ghost atoms on this proc
         int nlistatoms          # current number of atoms in local atom lists
+        int nlocal
         int natomneigh          # current number of atoms and ghosts in atom neighbor arrays
         int * numneighs         # neighbors count for each atom
         int * iatoms            # index of each atom
@@ -133,14 +134,14 @@ cdef create_array(device, void *pointer, shape,is_int):
                 return np.asarray(<int[:shape[0],:shape[1]]>pointer)
             else:
                 return np.asarray(<double[:shape[0],:shape[1]]>pointer)
-            
+
 
 
 # Cython implementation of MLIAPData
 # Automatically converts between C arrays and numpy when needed
 cdef class MLIAPDataPy:
     cdef MLIAPDataKokkosDevice * data
-    
+
     def __cinit__(self):
         self.data = NULL
 
@@ -157,7 +158,7 @@ cdef class MLIAPDataPy:
             ptr = eij.data.ptr
         except:
             ptr = eij.data_ptr()
-        update_pair_energy(self.data, <double*>ptr)  
+        update_pair_energy(self.data, <double*>ptr)
     def update_pair_energy(self, eij):
         if self.data.dev==0:
             self.update_pair_energy_cpu(eij)
@@ -177,7 +178,7 @@ cdef class MLIAPDataPy:
             ptr = fij.data.ptr
         except:
             ptr = fij.data_ptr()
-        update_pair_forces(self.data, <double*>ptr)  
+        update_pair_forces(self.data, <double*>ptr)
     def update_pair_forces(self, fij):
         if self.data.dev==0:
             self.update_pair_forces_cpu(fij)
@@ -189,11 +190,11 @@ cdef class MLIAPDataPy:
             return None
         return create_array(self.data.dev, self.data.f, [self.ntotal, 3],False)
 
-    
+
     @property
     def size_gradforce(self):
         return self.data.size_gradforce
- 
+
     @write_only_property
     def gradforce(self, value):
         if self.data.gradforce is NULL:
@@ -202,7 +203,7 @@ cdef class MLIAPDataPy:
         cdef double[:, :] value_view = value
         gradforce_view[:] = value_view
         print("This code has not been tested or optimized for the GPU, if you are getting this warning optimize gradforce")
- 
+
     @write_only_property
     def betas(self, value):
         if self.data.betas is NULL:
@@ -280,7 +281,7 @@ cdef class MLIAPDataPy:
     @property
     def ntotal(self):
         return self.data.ntotal
-    
+
     @property
     def elems(self):
         if self.data.elems is NULL:
@@ -290,7 +291,11 @@ cdef class MLIAPDataPy:
     @property
     def nlistatoms(self):
         return self.data.nlistatoms
-    
+
+    @property
+    def nlocal(self):
+        return self.data.nlocal
+
     @property
     def natomneigh(self):
         return self.data.natomneigh
@@ -306,7 +311,7 @@ cdef class MLIAPDataPy:
         if self.data.iatoms is NULL:
             return None
         return create_array(self.data.dev, self.data.iatoms, [self.natomneigh],True)
-    
+
     @property
     def ielems(self):
         if self.data.ielems is NULL:
@@ -322,7 +327,7 @@ cdef class MLIAPDataPy:
         if self.data.pair_i is NULL:
             return None
         return create_array(self.data.dev, self.data.pair_i, [self.npairs],True)
-    
+
     @property
     def pair_j(self):
         return self.jatoms
@@ -332,7 +337,7 @@ cdef class MLIAPDataPy:
         if self.data.jatoms is NULL:
             return None
         return create_array(self.data.dev, self.data.jatoms, [self.npairs],True)
-    
+
     @property
     def jelems(self):
         if self.data.jelems is NULL:
@@ -345,6 +350,16 @@ cdef class MLIAPDataPy:
         if self.data.rij is NULL:
             return None
         return create_array(self.data.dev, self.data.rij, [self.npairs,3],False)
+
+    @property
+    def rij_max(self):
+        if self.data.rij is NULL:
+            return None
+        return create_array(self.data.dev, self.data.rij, [self.nneigh_max,3], False)
+
+    @property
+    def nneigh_max(self):
+        return self.data.nneigh_max
 
     @write_only_property
     def graddesc(self, value):
@@ -373,13 +388,13 @@ cdef class MLIAPUnifiedInterfaceKokkos:
         self.model = NULL
         self.descriptor = NULL
         self.unified_impl = unified_impl
-    
+
     def compute_gradients(self, data):
         self.unified_impl.compute_gradients(data)
-    
+
     def compute_descriptors(self, data):
         self.unified_impl.compute_descriptors(data)
-    
+
     def compute_forces(self, data):
         self.unified_impl.compute_forces(data)
 
@@ -433,7 +448,7 @@ cdef public object mliap_unified_connect_kokkos(char *fname, MLIAPDummyModel * m
 
     if unified.element_types is None:
         raise ValueError("no element type set")
-    
+
     cdef int nelements = <int>len(unified.element_types)
     cdef char **elements = <char**>malloc(nelements * sizeof(char*))
 

@@ -40,6 +40,7 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
 {
   overlay_flag = 0;
   prop_atom_flag = 0;
+  break_flag = 1;
   nvalues = 0;
 
   r0_max_estimate = 0.0;
@@ -93,10 +94,10 @@ void BondBPM::init_style()
   }
 
   if (overlay_flag) {
-    if (force->special_lj[1] != 1.0)
+    if (force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
+        force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
       error->all(FLERR,
-                 "With overlay/pair, BPM bond styles require special_bonds weight of 1.0 for "
-                 "first neighbors");
+                 "With overlay/pair yes, BPM bond styles require a value of 1.0 for all special_bonds weights");
     if (id_fix_update) {
       modify->delete_fix(id_fix_update);
       delete[] id_fix_update;
@@ -104,21 +105,21 @@ void BondBPM::init_style()
     }
   } else {
     // Require atoms know about all of their bonds and if they break
-    if (force->newton_bond)
-      error->all(FLERR, "Without overlay/pair, BPM bond styles require Newton bond off");
+    if (force->newton_bond && break_flag)
+      error->all(FLERR, "With overlay/pair no, or break yes, BPM bond styles require Newton bond off");
 
     // special lj must be 0 1 1 to censor pair forces between bonded particles
-    // special coulomb must be 1 1 1 to ensure all pairs are included in the
-    //   neighbor list and 1-3 and 1-4 special bond lists are skipped
     if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
       error->all(FLERR,
-                 "Without overlay/pair, BPM bond sytles requires special LJ weights = 0,1,1");
-    if (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
-        force->special_coul[3] != 1.0)
+                 "With overlay/pair no, BPM bond styles require special LJ weights = 0,1,1");
+    // if bonds can break, special coulomb must be 1 1 1 to ensure all pairs are included in the
+    //    neighbor list and 1-3 and 1-4 special bond lists are skipped
+    if (break_flag && (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
+        force->special_coul[3] != 1.0))
       error->all(FLERR,
-                 "Without overlay/pair, BPM bond sytles requires special Coulomb weights = 1,1,1");
+                 "With overlay/pair no, and break yes, BPM bond styles requires special Coulomb weights = 1,1,1");
 
-    if (id_fix_dummy) {
+    if (id_fix_dummy && break_flag) {
       id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");
       fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(modify->replace_fix(
           id_fix_dummy, fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update), 1));
@@ -186,8 +187,13 @@ void BondBPM::settings(int narg, char **arg)
         iarg++;
       }
     } else if (strcmp(arg[iarg], "overlay/pair") == 0) {
-      overlay_flag = 1;
-      iarg++;
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for overlay/pair");
+      overlay_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "break") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for break");
+      break_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
     } else {
       leftover_iarg.push_back(iarg);
       iarg++;
@@ -218,7 +224,7 @@ void BondBPM::settings(int narg, char **arg)
 
       ifix = modify->get_fix_by_id(id_fix_prop_atom);
       if (!ifix)
-        ifix = modify->add_fix(fmt::format("{} all property/atom {} {} {} ghost yes",
+        ifix = modify->add_fix(fmt::format("{} all property/atom d_{} d_{} d_{} ghost yes",
                                            id_fix_prop_atom, x_ref_id, y_ref_id, z_ref_id));
 
       int type_flag;
@@ -328,6 +334,8 @@ void BondBPM::read_restart(FILE *fp)
 
 void BondBPM::process_broken(int i, int j)
 {
+  if (!break_flag)
+    error->one(FLERR, "BPM bond broke with break no option");
   if (fix_store_local) {
     for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
 

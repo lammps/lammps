@@ -1,0 +1,31 @@
+#Carbon SNAP example: 216 atom diamond unit cell simulated NVT at ~1,000GPa and 5,000K
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#      Crystal orientation and MD box creation       #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+lattice diamond 2.845
+region Bbox block 0 3 0 3 0 3
+create_box 1 Bbox
+create_atoms 1 region Bbox basis 1 1
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#         Interatomic potential parameters           #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Specify hybrid with SNAP, ZBL, and long-range C_SNAP_2021.10.15.quadratic.ulomb
+
+pair_style hybrid/overlay zbl 0.1 0.2 snap
+pair_coeff 1 1 zbl 10 10
+pair_coeff * * snap C_SNAP_2021.10.15.quadratic.snapcoeff C_SNAP_2021.10.15.quadratic.snapparam C
+
+mass * 12.01
+velocity all create 8000.0 3412461  loop geom
+
+fix     NVE all nve
+fix     NVT all langevin 5000.0 5000.0 0.1 3216548
+thermo  50
+thermo_style    custom step temp ke pe etotal press pxx pyy pzz
+run 500

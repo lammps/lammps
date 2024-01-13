@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -311,6 +311,8 @@ void DumpGrid::init_style()
 
 void DumpGrid::write_header(bigint ndump)
 {
+  if (!header_choice) error->all(FLERR, "Must not use 'run pre no' after creating a new dump");
+
   if (multiproc) (this->*header_choice)(ndump);
   else if (me == 0) (this->*header_choice)(ndump);
 }
@@ -522,21 +524,16 @@ int DumpGrid::count()
   }
 
   // invoke Computes for per-grid quantities
-  // only if within a run or minimize
-  // else require that computes are current
-  // this prevents a compute from being invoked by the WriteDump class
+  // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->whichflag == 0) {
-      for (i = 0; i < ncompute; i++)
-        if (compute[i]->invoked_pergrid != update->ntimestep)
-          error->all(FLERR,"Compute {} used in dump between runs is not current", compute[i]->id);
-    } else {
-      for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERGRID)) {
-          compute[i]->compute_pergrid();
-          compute[i]->invoked_flag |= Compute::INVOKED_PERGRID;
-        }
+    for (i = 0; i < ncompute; i++) {
+      if (!compute[i]->is_initialized())
+        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
+          compute[i]->id);
+      if (!(compute[i]->invoked_flag & Compute::INVOKED_PERGRID)) {
+        compute[i]->compute_pergrid();
+        compute[i]->invoked_flag |= Compute::INVOKED_PERGRID;
       }
     }
   }

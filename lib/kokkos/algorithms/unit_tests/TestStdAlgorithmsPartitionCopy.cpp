@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -158,12 +130,12 @@ void verify_data(const std::string& name, ResultType my_result,
   const std::size_t my_diff_true = my_result.first - KE::begin(view_dest_true);
   const std::size_t my_diff_false =
       my_result.second - KE::begin(view_dest_false);
-  EXPECT_EQ(std_diff_true, my_diff_true);
-  EXPECT_EQ(std_diff_false, my_diff_false);
+  ASSERT_EQ(std_diff_true, my_diff_true);
+  ASSERT_EQ(std_diff_false, my_diff_false);
 
   auto view_dest_true_h = create_host_space_copy(view_dest_true);
   for (std::size_t i = 0; i < std_diff_true; ++i) {
-    EXPECT_EQ(std_vec_true[i], view_dest_true_h(i));
+    ASSERT_EQ(std_vec_true[i], view_dest_true_h(i));
     // std::cout << "i= " << i << " "
     // 	      << " std_true = " << std_vec_true[i] << " "
     // 	      << " mine     = " << view_dest_true_h(i) << '\n';
@@ -171,45 +143,45 @@ void verify_data(const std::string& name, ResultType my_result,
 
   auto view_dest_false_h = create_host_space_copy(view_dest_false);
   for (std::size_t i = 0; i < std_diff_false; ++i) {
-    EXPECT_EQ(std_vec_false[i], view_dest_false_h(i));
+    ASSERT_EQ(std_vec_false[i], view_dest_false_h(i));
     // std::cout << "i= " << i << " "
     // 	      << " std_false = " << std_vec_false[i] << " "
     // 	      << " mine     = " << view_dest_false_h(i) << '\n';
   }
 
   if (name == "empty") {
-    EXPECT_EQ(my_diff_true, 0u);
-    EXPECT_EQ(my_diff_false, 0u);
+    ASSERT_EQ(my_diff_true, 0u);
+    ASSERT_EQ(my_diff_false, 0u);
   }
 
   else if (name == "one-element-a") {
-    EXPECT_EQ(my_diff_true, 0u);
-    EXPECT_EQ(my_diff_false, 1u);
+    ASSERT_EQ(my_diff_true, 0u);
+    ASSERT_EQ(my_diff_false, 1u);
   }
 
   else if (name == "one-element-b") {
-    EXPECT_EQ(my_diff_true, 1u);
-    EXPECT_EQ(my_diff_false, 0u);
+    ASSERT_EQ(my_diff_true, 1u);
+    ASSERT_EQ(my_diff_false, 0u);
   }
 
   else if (name == "two-elements-a") {
-    EXPECT_EQ(my_diff_true, 1u);
-    EXPECT_EQ(my_diff_false, 1u);
+    ASSERT_EQ(my_diff_true, 1u);
+    ASSERT_EQ(my_diff_false, 1u);
   }
 
   else if (name == "two-elements-b") {
-    EXPECT_EQ(my_diff_true, 1u);
-    EXPECT_EQ(my_diff_false, 1u);
+    ASSERT_EQ(my_diff_true, 1u);
+    ASSERT_EQ(my_diff_false, 1u);
   }
 
   else if (name == "small-b") {
-    EXPECT_EQ(my_diff_true, 13u);
-    EXPECT_EQ(my_diff_false, 0u);
+    ASSERT_EQ(my_diff_true, 13u);
+    ASSERT_EQ(my_diff_false, 0u);
   }
 
   else if (name == "small-c") {
-    EXPECT_EQ(my_diff_true, 0u);
-    EXPECT_EQ(my_diff_false, 15u);
+    ASSERT_EQ(my_diff_true, 0u);
+    ASSERT_EQ(my_diff_false, 15u);
   }
 }
 

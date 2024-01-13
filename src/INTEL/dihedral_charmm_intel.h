@@ -68,7 +68,7 @@ class DihedralCharmmIntel : public DihedralCharmm {
     flt_t *weight;
 
     ForceConst() : ljp(nullptr), fc(nullptr), weight(nullptr), _npairtypes(0), _ndihderaltypes(0) {}
-    ~ForceConst() { set_ntypes(0, 0, nullptr); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, 0, nullptr); }
 
     void set_ntypes(const int npairtypes, const int ndihderaltypes, Memory *memory);
 

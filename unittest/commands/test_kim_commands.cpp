@@ -92,14 +92,14 @@ TEST_F(KimCommandsTest, kim_interactions)
 {
     if (!LAMMPS::is_installed_pkg("KIM")) GTEST_SKIP();
 
-    TEST_FAILURE(".*ERROR: Illegal 'kim interactions' command.*", command("kim interactions"););
+    TEST_FAILURE(".*ERROR: Illegal kim interactions command: missing argument.*",
+                 command("kim interactions"););
 
     BEGIN_HIDE_OUTPUT();
     command("kim init LennardJones_Ar real");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR: Must use 'kim interactions' command "
-                 "after simulation box is defined.*",
+    TEST_FAILURE(".*ERROR: Use of 'kim interactions' before simulation box is defined.*",
                  command("kim interactions Ar"););
 
     BEGIN_HIDE_OUTPUT();
@@ -410,11 +410,11 @@ TEST_F(KimCommandsTest, kim_property)
                      "3 >= 3.6 support.*",
                      command("kim property"););
     } else {
-        TEST_FAILURE(".*ERROR: Invalid 'kim property' command.*", command("kim property"););
-        TEST_FAILURE(".*ERROR: Invalid 'kim property' command.*", command("kim property create"););
-        TEST_FAILURE(".*ERROR: Incorrect arguments in 'kim property' command."
-                     "\n'kim property create/destroy/modify/remove/dump' "
-                     "is mandatory.*",
+        TEST_FAILURE(".*ERROR: Illegal kim property command: missing argument.*",
+                     command("kim property"););
+        TEST_FAILURE(".*ERROR: Illegal kim property command: missing argument.*",
+                     command("kim property create"););
+        TEST_FAILURE(".*ERROR: Incorrect first argument unknown to 'kim property' command.*",
                      command("kim property unknown 1 atomic-mass"););
     }
 #if defined(KIM_EXTRA_UNITTESTS)
@@ -682,9 +682,6 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

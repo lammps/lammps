@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -69,22 +41,94 @@ void test_is_specialization_of() {
                 "");
 }
 
-template <std::size_t... Idxs, class... Args>
-std::size_t do_comma_emulation_test(std::integer_sequence<std::size_t, Idxs...>,
-                                    Args... args) {
-  // Count the bugs, since ASSERT_EQ is a statement and not an expression
-  std::size_t bugs = 0;
-  // Ensure in-order evaluation
-  std::size_t i = 0;
-  KOKKOS_IMPL_FOLD_COMMA_OPERATOR(bugs += std::size_t(Idxs != i++) /*, ...*/);
-  // Ensure expansion of multiple packs works
-  KOKKOS_IMPL_FOLD_COMMA_OPERATOR(bugs += std::size_t(Idxs != args) /*, ...*/);
-  return bugs;
+namespace {
+enum Enum { EZero, EOne };
+enum EnumBool : bool { EBFalse, EBTrue };
+enum class ScopedEnum { SEZero, SEOne };
+enum class ScopedEnumShort : short { SESZero, SESOne };
+class Class {};
+
+template <typename Base, typename Derived>
+inline constexpr bool is_public_unambiguous_base_of_v =
+    std::is_convertible_v<Derived*, Base*> && !std::is_same_v<Derived, Base>;
+}  // namespace
+
+void test_to_underlying() {
+  using Kokkos::Impl::to_underlying;
+
+  constexpr auto e0 = to_underlying(EZero);
+  static_assert(e0 == 0);
+
+  constexpr auto e1 = to_underlying(EOne);
+  static_assert(e1 == 1);
+
+  constexpr auto eb0 = to_underlying(EBFalse);
+  constexpr bool b0  = false;
+  static_assert(std::is_same_v<decltype(eb0), decltype(b0)>);
+  static_assert(eb0 == b0);
+
+  constexpr auto eb1 = to_underlying(EBTrue);
+  constexpr bool b1  = true;
+  static_assert(std::is_same_v<decltype(eb1), decltype(b1)>);
+  static_assert(eb1 == b1);
+
+  constexpr auto se0 = to_underlying(ScopedEnum::SEZero);
+  static_assert(se0 == 0);
+
+  constexpr auto se1 = to_underlying(ScopedEnum::SEOne);
+  static_assert(se1 == 1);
+
+  constexpr auto ses0 = to_underlying(ScopedEnumShort::SESZero);
+  constexpr short s0  = 0;
+  static_assert(std::is_same_v<decltype(ses0), decltype(s0)>);
+  static_assert(ses0 == s0);
+
+  constexpr auto ses1 = to_underlying(ScopedEnumShort::SESOne);
+  constexpr short s1  = 1;
+  static_assert(std::is_same_v<decltype(ses1), decltype(s1)>);
+  static_assert(ses1 == s1);
 }
 
-TEST(utilities, comma_operator_emulation) {
-  ASSERT_EQ(0u, do_comma_emulation_test(std::make_index_sequence<5>{}, 0, 1, 2,
-                                        3, 4));
+void test_is_scoped_enum() {
+  using Kokkos::Impl::is_scoped_enum;
+  using Kokkos::Impl::is_scoped_enum_v;
+
+  static_assert(!is_scoped_enum<int>{});
+  static_assert(!is_scoped_enum<int>::value);
+  static_assert(!is_scoped_enum_v<int>);
+  static_assert(
+      is_public_unambiguous_base_of_v<std::false_type, is_scoped_enum<int>>);
+
+  static_assert(!is_scoped_enum<Class>{});
+  static_assert(!is_scoped_enum<Class>::value);
+  static_assert(!is_scoped_enum_v<Class>);
+  static_assert(
+      is_public_unambiguous_base_of_v<std::false_type, is_scoped_enum<Class>>);
+
+  static_assert(!is_scoped_enum<Enum>{});
+  static_assert(!is_scoped_enum<Enum>::value);
+  static_assert(!is_scoped_enum_v<Enum>);
+  static_assert(
+      is_public_unambiguous_base_of_v<std::false_type, is_scoped_enum<Enum>>);
+
+  static_assert(!is_scoped_enum<EnumBool>{});
+  static_assert(!is_scoped_enum<EnumBool>::value);
+  static_assert(!is_scoped_enum_v<EnumBool>);
+  static_assert(is_public_unambiguous_base_of_v<std::false_type,
+                                                is_scoped_enum<EnumBool>>);
+
+  static_assert(is_scoped_enum<ScopedEnum>{});
+  static_assert(is_scoped_enum<ScopedEnum>::value);
+  static_assert(is_scoped_enum_v<ScopedEnum>);
+  static_assert(is_public_unambiguous_base_of_v<std::true_type,
+                                                is_scoped_enum<ScopedEnum>>);
+
+  static_assert(is_scoped_enum<ScopedEnumShort>{});
+  static_assert(is_scoped_enum<ScopedEnumShort>::value);
+  static_assert(is_scoped_enum_v<ScopedEnumShort>);
+  static_assert(
+      is_public_unambiguous_base_of_v<std::true_type,
+                                      is_scoped_enum<ScopedEnumShort>>);
 }
 
 }  // namespace Test

@@ -1,7 +1,7 @@
 .. index:: improper_style amoeba
 
-improper_style harmonic command
-===============================
+improper_style amoeba command
+=============================
 
 Syntax
 """"""
@@ -68,8 +68,8 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`improper_coeff <improper_coeff>`, `improper_harmonic
-:doc:<improper_harmonic>`
+:doc:`improper_coeff <improper_coeff>`,
+:doc:`improper_harmonic <improper_harmonic>`
 
 Default
 """""""

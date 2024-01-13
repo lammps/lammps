@@ -227,6 +227,8 @@ for header in headers:
                     register_style(reader,style,info)
                 elif m[0] == 'Region':
                     register_style(region,style,info)
+                elif m[0] == 'GranSubMod':
+                    pass  # ignore GranSubMod styles for now
                 else:
                     print("Skipping over: ",m)
 

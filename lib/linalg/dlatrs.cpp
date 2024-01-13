@@ -16,7 +16,7 @@ int dlatrs_(char *uplo, char *trans, char *diag, char *normin, integer *n, doubl
     extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, integer *);
     doublereal xbnd;
     integer imax;
-    doublereal tmax, tjjs, xmax, grow, sumj;
+    doublereal tmax, tjjs, xmax, grow, sumj, work[1];
     extern int dscal_(integer *, doublereal *, doublereal *, integer *);
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
     doublereal tscal, uscal;
@@ -100,7 +100,7 @@ int dlatrs_(char *uplo, char *trans, char *diag, char *normin, integer *n, doubl
                 i__1 = *n;
                 for (j = 2; j <= i__1; ++j) {
                     i__2 = j - 1;
-                    d__1 = dlange_((char *)"M", &i__2, &c__1, &a[j * a_dim1 + 1], &c__1, &sumj, (ftnlen)1);
+                    d__1 = dlange_((char *)"M", &i__2, &c__1, &a[j * a_dim1 + 1], &c__1, work, (ftnlen)1);
                     tmax = max(d__1, tmax);
                 }
             } else {
@@ -108,7 +108,7 @@ int dlatrs_(char *uplo, char *trans, char *diag, char *normin, integer *n, doubl
                 for (j = 1; j <= i__1; ++j) {
                     i__2 = *n - j;
                     d__1 =
-                        dlange_((char *)"M", &i__2, &c__1, &a[j + 1 + j * a_dim1], &c__1, &sumj, (ftnlen)1);
+                        dlange_((char *)"M", &i__2, &c__1, &a[j + 1 + j * a_dim1], &c__1, work, (ftnlen)1);
                     tmax = max(d__1, tmax);
                 }
             }

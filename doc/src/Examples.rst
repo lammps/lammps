@@ -94,8 +94,6 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | kim         | use of potentials from the `OpenKIM Repository <openkim_>`_      |
 +-------------+------------------------------------------------------------------+
-| latte       | examples for using fix latte for DFTB via the LATTE library      |
-+-------------+------------------------------------------------------------------+
 | mdi         | use of the MDI package and MolSSI MDI code coupling library      |
 +-------------+------------------------------------------------------------------+
 | meam        | MEAM test for SiC and shear (same as shear examples)             |
@@ -105,8 +103,6 @@ Lowercase directories
 | micelle     | self-assembly of small lipid-like molecules into 2d bilayers     |
 +-------------+------------------------------------------------------------------+
 | min         | energy minimization of 2d LJ melt                                |
-+-------------+------------------------------------------------------------------+
-| mscg        | parameterize a multi-scale coarse-graining (MSCG) model          |
 +-------------+------------------------------------------------------------------+
 | msst        | MSST shock dynamics                                              |
 +-------------+------------------------------------------------------------------+

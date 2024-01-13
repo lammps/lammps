@@ -6,7 +6,7 @@ compute smd/vol command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/vol
 

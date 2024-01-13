@@ -6,7 +6,7 @@ fix pafi command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID pafi compute-ID Temp Tdamp seed keyword values...
 

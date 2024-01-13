@@ -24,6 +24,8 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr char special_chars[] = "{}[],&:*#?|-<>=!%@\\";
+
 /* ---------------------------------------------------------------------- */
 DumpYAML::DumpYAML(class LAMMPS *_lmp, int narg, char **args) :
     DumpCustom(_lmp, narg, args), thermo(false)
@@ -60,21 +62,34 @@ void DumpYAML::write_header(bigint ndump)
   std::string thermo_data;
   if (thermo) {
     Thermo *th = output->thermo;
-    thermo_data += "thermo:\n  - keywords: [ ";
-    for (int i = 0; i < th->nfield; ++i) thermo_data += fmt::format("{}, ", th->keyword[i]);
-    thermo_data += "]\n  - data: [ ";
+    // output thermo data only on timesteps where it was computed
+    if (update->ntimestep == *th->get_timestep()) {
+      int nfield = *th->get_nfield();
+      const auto &keywords = th->get_keywords();
+      const auto &fields = th->get_fields();
 
-    for (int i = 0; i < th->nfield; ++i) {
-      th->call_vfunc(i);
-      if (th->vtype[i] == Thermo::FLOAT)
-        thermo_data += fmt::format("{}, ", th->dvalue);
-      else if (th->vtype[i] == Thermo::INT)
-        thermo_data += fmt::format("{}, ", th->ivalue);
-      else if (th->vtype[i] == Thermo::BIGINT)
-        thermo_data += fmt::format("{}, ", th->bivalue);
+      thermo_data += "thermo:\n  - keywords: [ ";
+      for (int i = 0; i < nfield; ++i) {
+        if (keywords[i].find_first_of(special_chars) == std::string::npos)
+          thermo_data += fmt::format("{}, ", keywords[i]);
+        else
+          thermo_data += fmt::format("'{}', ", keywords[i]);
+      }
+      thermo_data += "]\n  - data: [ ";
+
+      for (int i = 0; i < nfield; ++i) {
+        if (fields[i].type == multitype::LAMMPS_DOUBLE)
+          thermo_data += fmt::format("{}, ", fields[i].data.d);
+        else if (fields[i].type == multitype::LAMMPS_INT)
+          thermo_data += fmt::format("{}, ", fields[i].data.i);
+        else if (fields[i].type == multitype::LAMMPS_INT64)
+          thermo_data += fmt::format("{}, ", fields[i].data.b);
+        else
+          thermo_data += ", ";
+      }
+      thermo_data += "]\n";
+      MPI_Barrier(world);
     }
-    thermo_data += "]\n";
-    MPI_Barrier(world);
   }
 
   if (comm->me == 0) {
@@ -85,7 +100,7 @@ void DumpYAML::write_header(bigint ndump)
 
     fmt::print(fp, "natoms: {}\n", ndump);
     fputs("boundary: [ ", fp);
-    for (const auto bflag : boundary) {
+    for (const auto &bflag : boundary) {
       if (bflag == ' ') continue;
       fmt::print(fp, "{}, ", bflag);
     }
@@ -99,7 +114,12 @@ void DumpYAML::write_header(bigint ndump)
     if (domain->triclinic) fmt::print(fp, "  - [ {}, {}, {} ]\n", boxxy, boxxz, boxyz);
 
     fmt::print(fp, "keywords: [ ");
-    for (const auto &item : utils::split_words(columns)) fmt::print(fp, "{}, ", item);
+    for (const auto &item : utils::split_words(columns)) {
+      if (item.find_first_of(special_chars) == std::string::npos)
+        fmt::print(fp, "{}, ", item);
+      else
+        fmt::print(fp, "'{}', ", item);
+    }
     fputs(" ]\ndata:\n", fp);
   } else    // reset so that the remainder of the output is not multi-proc
     filewriter = 0;

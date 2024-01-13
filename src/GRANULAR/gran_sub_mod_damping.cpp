@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,13 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #include "gran_sub_mod_damping.h"
+
 #include "gran_sub_mod_normal.h"
 #include "granular_model.h"
 #include "math_special.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
-using namespace MathSpecial;
+
+using MathSpecial::cube;
+using MathSpecial::powint;
+using MathSpecial::square;
 
 /* ----------------------------------------------------------------------
    Default damping model
@@ -31,14 +34,17 @@ GranSubModDamping::GranSubModDamping(GranularModel *gm, LAMMPS *lmp) : GranSubMo
 
 void GranSubModDamping::init()
 {
-  damp = gm->normal_model->damp;
+  damp = gm->normal_model->get_damp();
 }
 
 /* ----------------------------------------------------------------------
    No model
 ------------------------------------------------------------------------- */
 
-GranSubModDampingNone::GranSubModDampingNone(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp) {}
+GranSubModDampingNone::GranSubModDampingNone(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,7 +58,10 @@ double GranSubModDampingNone::calculate_forces()
    Velocity damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingVelocity::GranSubModDampingVelocity(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp) {}
+GranSubModDampingVelocity::GranSubModDampingVelocity(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,7 +75,10 @@ double GranSubModDampingVelocity::calculate_forces()
    Mass velocity damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingMassVelocity::GranSubModDampingMassVelocity(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp) {}
+GranSubModDampingMassVelocity::GranSubModDampingMassVelocity(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -80,16 +92,17 @@ double GranSubModDampingMassVelocity::calculate_forces()
    Default, viscoelastic damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingViscoelastic::GranSubModDampingViscoelastic(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp)
+GranSubModDampingViscoelastic::GranSubModDampingViscoelastic(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
 {
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 double GranSubModDampingViscoelastic::calculate_forces()
 {
-  damp_prefactor = damp * gm->meff * gm->area;
+  damp_prefactor = damp * gm->meff * gm->contact_radius;
   return -damp_prefactor * gm->vnnr;
 }
 
@@ -97,7 +110,8 @@ double GranSubModDampingViscoelastic::calculate_forces()
    Tsuji damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingTsuji::GranSubModDampingTsuji(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp)
+GranSubModDampingTsuji::GranSubModDampingTsuji(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
 {
   allow_cohesion = 0;
 }
@@ -106,10 +120,10 @@ GranSubModDampingTsuji::GranSubModDampingTsuji(GranularModel *gm, LAMMPS *lmp) :
 
 void GranSubModDampingTsuji::init()
 {
-  double tmp = gm->normal_model->damp;
+  double tmp = gm->normal_model->get_damp();
   damp = 1.2728 - 4.2783 * tmp + 11.087 * square(tmp);
   damp += -22.348 * cube(tmp) + 27.467 * powint(tmp, 4);
-  damp += -18.022 * powint(tmp, 5) + 4.8218 * powint(tmp,6);
+  damp += -18.022 * powint(tmp, 5) + 4.8218 * powint(tmp, 6);
 }
 
 /* ---------------------------------------------------------------------- */

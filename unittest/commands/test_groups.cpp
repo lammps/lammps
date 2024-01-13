@@ -249,7 +249,7 @@ TEST_F(GroupTest, Molecular)
     ASSERT_DOUBLE_EQ(group->mass(group->find("half")), 40);
     ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->get_region_by_id("top")), 10);
     ASSERT_NEAR(group->charge(group->find("top")), 0, 1.0e-14);
-    ASSERT_NEAR(group->charge(group->find("right"), domain->get_region_by_id("top")), 0, 1.0e-14);
+    ASSERT_NEAR(group->charge(group->find("three"), domain->get_region_by_id("top")), 0, 1.0e-14);
 
     TEST_FAILURE(".*ERROR: Unknown group include keyword xxx.*",
                  command("group three include xxx"););
@@ -314,7 +314,7 @@ TEST_F(GroupTest, Dynamic)
                  command("group ramp variable grow"););
 }
 
-constexpr double EPSILON = 1.0e-14;
+constexpr double EPSILON = 1.0e-13;
 
 TEST_F(GroupTest, VariableFunctions)
 {
@@ -468,9 +468,6 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

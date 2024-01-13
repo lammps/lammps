@@ -9,28 +9,27 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #ifndef DESUL_ATOMICS_COMPARE_EXCHANGE_HPP_
 #define DESUL_ATOMICS_COMPARE_EXCHANGE_HPP_
 
-#include "desul/atomics/Compare_Exchange_ScopeCaller.hpp"
-#include "desul/atomics/Macros.hpp"
+#include <desul/atomics/Macros.hpp>
 
 #ifdef DESUL_HAVE_GCC_ATOMICS
-#include "desul/atomics/Compare_Exchange_GCC.hpp"
+#include <desul/atomics/Compare_Exchange_GCC.hpp>
 #endif
 #ifdef DESUL_HAVE_MSVC_ATOMICS
-#include "desul/atomics/Compare_Exchange_MSVC.hpp"
-#endif
-#ifdef DESUL_HAVE_SERIAL_ATOMICS
-#include "desul/atomics/Compare_Exchange_Serial.hpp"
+#include <desul/atomics/Compare_Exchange_MSVC.hpp>
 #endif
 #ifdef DESUL_HAVE_CUDA_ATOMICS
-#include "desul/atomics/Compare_Exchange_CUDA.hpp"
+#include <desul/atomics/Compare_Exchange_CUDA.hpp>
 #endif
 #ifdef DESUL_HAVE_HIP_ATOMICS
-#include "desul/atomics/Compare_Exchange_HIP.hpp"
+#include <desul/atomics/Compare_Exchange_HIP.hpp>
 #endif
 #ifdef DESUL_HAVE_OPENMP_ATOMICS
-#include "desul/atomics/Compare_Exchange_OpenMP.hpp"
+#include <desul/atomics/Compare_Exchange_OpenMP.hpp>
 #endif
 #ifdef DESUL_HAVE_SYCL_ATOMICS
-#include "desul/atomics/Compare_Exchange_SYCL.hpp"
+#include <desul/atomics/Compare_Exchange_SYCL.hpp>
 #endif
+
+#include <desul/atomics/Compare_Exchange_ScopeCaller.hpp>
+
 #endif

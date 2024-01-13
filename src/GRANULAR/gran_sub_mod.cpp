@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,7 +22,6 @@
 
 #include "gran_sub_mod.h"
 #include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
@@ -42,7 +40,7 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
   allow_cohesion = 1;
   beyond_contact = 0;
   num_coeffs = 0;
-  area_flag = 0;
+  contact_radius_flag = 0;
 
   nondefault_history_transfer = 0;
   transfer_history_factor = nullptr;
@@ -53,8 +51,8 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
 
 GranSubMod::~GranSubMod()
 {
-  if (allocated) delete [] coeffs;
-  delete [] transfer_history_factor;
+  if (allocated) delete[] coeffs;
+  delete[] transfer_history_factor;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,10 +65,9 @@ void GranSubMod::allocate_coeffs()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubMod::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubMod::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  for (int i = 0; i < num_coeffs; i++)
-    coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
+  for (int i = 0; i < num_coeffs; i++) coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
   coeffs_to_local();
 }
 
@@ -78,8 +75,7 @@ void GranSubMod::mix_coeffs(double* icoeffs, double* jcoeffs)
    mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */
 
-double GranSubMod::mix_stiffnessE(double E1, double E2,
-                                    double poiss1, double poiss2)
+double GranSubMod::mix_stiffnessE(double E1, double E2, double poiss1, double poiss2)
 {
   double factor1 = (1 - poiss1 * poiss1) / E1;
   double factor2 = (1 - poiss2 * poiss2) / E2;
@@ -90,8 +86,7 @@ double GranSubMod::mix_stiffnessE(double E1, double E2,
    mixing of shear modulus (G)
 ------------------------------------------------------------------------ */
 
-double GranSubMod::mix_stiffnessG(double E1, double E2,
-                                    double poiss1, double poiss2)
+double GranSubMod::mix_stiffnessG(double E1, double E2, double poiss1, double poiss2)
 {
   double factor1 = 2 * (2 - poiss1) * (1 + poiss1) / E1;
   double factor2 = 2 * (2 - poiss2) * (1 + poiss2) / E2;
@@ -125,4 +120,11 @@ double GranSubMod::mix_stiffnessG_wall(double E, double poiss)
 double GranSubMod::mix_geom(double val1, double val2)
 {
   return sqrt(val1 * val2);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double GranSubMod::mix_mean(double val1, double val2)
+{
+  return 0.5 * (val1 + val2);
 }

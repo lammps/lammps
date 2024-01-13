@@ -42,7 +42,7 @@ geometric center times the net charge from the computed dipole
 vector.  Both per-atom charges and per-atom dipole moments, if present,
 contribute to the computed dipole.
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 Compute *dipole/tip4p* includes adjustments for the charge carrying
 point M in molecules with TIP4P water geometry.  The corresponding

@@ -6,7 +6,7 @@ fix sph command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID sph
 

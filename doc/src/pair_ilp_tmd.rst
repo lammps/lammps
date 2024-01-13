@@ -26,8 +26,8 @@ Examples
 
    pair_style  hybrid/overlay sw/mod sw/mod ilp/tmd 16.0
    pair_coeff  * * sw/mod 1  tmd.sw.mod Mo S S NULL NULL NULL
-   pair_coeff  * * sw/mod 2  tmd.sw.mod NULL NULL NULL Mo S S
-   pair_coeff  * * ilp/tmd   TMD.ILP    Mo S S Mo S S
+   pair_coeff  * * sw/mod 2  tmd.sw.mod NULL NULL NULL W Se Se
+   pair_coeff  * * ilp/tmd   TMD.ILP   Mo S S W Se Se
 
 Description
 """""""""""
@@ -36,7 +36,7 @@ Description
 
 The *ilp/tmd* style computes the registry-dependent interlayer
 potential (ILP) potential for transition metal dichalcogenides (TMD)
-as described in :ref:`(Ouyang7) <Ouyang7>`.
+as described in :ref:`(Ouyang7) <Ouyang7>` and :ref:`(Jiang) <Jiang>`.
 
 .. math::
 
@@ -135,8 +135,8 @@ interactions.
 
 The TMD.ILP potential file provided with LAMMPS (see the potentials
 directory) are parameterized for *metal* units.  You can use this
-potential with any LAMMPS units, but you would need to create your
-BNCH.ILP potential file with coefficients listed in the appropriate
+potential with any LAMMPS units, but you would need to create your own
+custom TMD.ILP potential file with coefficients listed in the appropriate
 units, if your simulation does not use *metal* units.
 
 Related commands
@@ -164,3 +164,7 @@ tap_flag = 1
 .. _Ouyang7:
 
 **(Ouyang7)** W. Ouyang, et al., J. Chem. Theory Comput. 17, 7237 (2021).
+
+.. _Jiang:
+
+**(Jiang)** W. Jiang, et al., J. Phys. Chem. A, 127, 46, 9820-9830 (2023).

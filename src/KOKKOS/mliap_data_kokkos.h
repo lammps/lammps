@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -118,6 +118,7 @@ public:
     egradient(nullptr),
     ntotal(base.ntotal),
     nlistatoms(base.nlistatoms),
+    nlocal(base.nlocal),
     natomneigh(base.natomneigh),
     numneighs(base.numneighs),
     iatoms(base.k_iatoms.d_view.data()),
@@ -171,6 +172,7 @@ public:
   // Neighborlist stuff
   const int ntotal;
   const int nlistatoms;
+  const int nlocal;
   const int natomneigh;
   int *numneighs;
   int *iatoms;
@@ -191,7 +193,7 @@ public:
   int dev;
 
 #ifdef LMP_KOKKOS_GPU
-  MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPHostType> &base) : ndescriptors(-1),nparams(-1),nelements(-1),ntotal(-1),nlistatoms(-1),natomneigh(-1),
+  MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPHostType> &base) : ndescriptors(-1),nparams(-1),nelements(-1),ntotal(-1),nlistatoms(-1),nlocal(-1),natomneigh(-1),
       nneigh_max(-1),npairs(-1)
   {
     // It cannot get here, but needed for compilation

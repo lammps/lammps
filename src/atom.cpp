@@ -89,7 +89,7 @@ are updated by the AtomVec class as needed.
  *
  * \param  _lmp  pointer to the base LAMMPS class */
 
-Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
+Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), avec_map(nullptr)
 {
   natoms = 0;
   nlocal = nghost = nmax = 0;
@@ -186,7 +186,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   // MESO package
 
   cc = cc_flux = nullptr;
-  edpd_temp = edpd_flux = edpd_cv = nullptr;
+  edpd_temp = edpd_flux = edpd_cv = vest_temp = nullptr;
 
   // MACHDYN package
 
@@ -278,9 +278,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
 
   unique_tags = nullptr;
   reset_image_flag[0] = reset_image_flag[1] = reset_image_flag[2] = false;
-
-  atom_style = nullptr;
-  avec = nullptr;
 
   avec_map = new AtomVecCreatorMap();
 
@@ -838,9 +835,9 @@ void Atom::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "atom_modify map", error);
       if (domain->box_exist)
         error->all(FLERR,"Atom_modify map command after simulation box is defined");
-      if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
-      else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
-      else if (strcmp(arg[iarg+1],"yes") == 0) map_user = 3;
+      if (strcmp(arg[iarg+1],"array") == 0) map_user = MAP_ARRAY;
+      else if (strcmp(arg[iarg+1],"hash") == 0) map_user = MAP_HASH;
+      else if (strcmp(arg[iarg+1],"yes") == 0) map_user = MAP_YES;
       else error->all(FLERR,"Illegal atom_modify map command argument {}", arg[iarg+1]);
       map_style = map_user;
       iarg += 2;
@@ -981,10 +978,10 @@ void Atom::bonus_check()
   bigint local_bodies = 0, num_global;
 
   for (int i = 0; i < nlocal; ++i) {
-    if (ellipsoid && (ellipsoid[i] >=0)) ++local_ellipsoids;
-    if (line && (line[i] >=0)) ++local_lines;
-    if (tri && (tri[i] >=0)) ++local_tris;
-    if (body && (body[i] >=0)) ++local_bodies;
+    if (ellipsoid && (ellipsoid[i] >= 0)) ++local_ellipsoids;
+    if (line && (line[i] >= 0)) ++local_lines;
+    if (tri && (tri[i] >= 0)) ++local_tris;
+    if (body && (body[i] >= 0)) ++local_bodies;
   }
 
   MPI_Allreduce(&local_ellipsoids,&num_global,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -1833,17 +1830,16 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
 void Atom::data_fix_compute_variable(int nprev, int nnew)
 {
-  for (const auto &fix : modify->get_fix_list()) {
-    if (fix->create_attribute)
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->create_attribute)
       for (int i = nprev; i < nnew; i++)
-        fix->set_arrays(i);
+        ifix->set_arrays(i);
   }
 
-  for (int m = 0; m < modify->ncompute; m++) {
-    Compute *compute = modify->compute[m];
-    if (compute->create_attribute)
+  for (const auto &icompute : modify->get_compute_list()) {
+    if (icompute->create_attribute)
       for (int i = nprev; i < nnew; i++)
-        compute->set_arrays(i);
+        icompute->set_arrays(i);
   }
 
   for (int i = nprev; i < nnew; i++)
@@ -1959,16 +1955,17 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
     error->all(file,line, "Cannot set per-type atom mass for atom style {}", atom_style);
 
   char *typestr = utils::expand_type(file, line, arg[0], Atom::ATOM, lmp);
-  if (typestr) arg[0] = typestr;
+  const std::string str = typestr ? typestr : arg[0];
+  delete[] typestr;
 
   int lo, hi;
-  utils::bounds(file, line, arg[0], 1, ntypes, lo, hi, error);
+  utils::bounds(file, line, str, 1, ntypes, lo, hi, error);
   if ((lo < 1) || (hi > ntypes))
-    error->all(file, line, "Invalid atom type {} for atom mass", arg[0]);
+    error->all(file, line, "Invalid atom type {} for atom mass", str);
 
   const double value = utils::numeric(FLERR, arg[1], false, lmp);
   if (value <= 0.0)
-    error->all(file, line, "Invalid atom mass value {} for type {}", value, arg[0]);
+    error->all(file, line, "Invalid atom mass value {} for type {}", value, str);
 
   for (int itype = lo; itype <= hi; itype++) {
     mass[itype] = value;
@@ -2143,14 +2140,18 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 
   // initialize custom per-atom properties to zero if present
 
-  for (int i = 0; i < nivector; ++i) ivector[i][ilocal] = 0;
-  for (int i = 0; i < ndvector; ++i) dvector[i][ilocal] = 0.0;
+  for (int i = 0; i < nivector; ++i)
+    if (ivname[i]) ivector[i][ilocal] = 0;
+  for (int i = 0; i < ndvector; ++i)
+    if (dvname[i]) dvector[i][ilocal] = 0.0;
   for (int i = 0; i < niarray; ++i)
-    for (int j = 0; j < icols[i]; ++j)
-      iarray[i][ilocal][j] = 0;
+    if (ianame[i])
+      for (int j = 0; j < icols[i]; ++j)
+        iarray[i][ilocal][j] = 0;
   for (int i = 0; i < ndarray; ++i)
-    for (int j = 0; j < dcols[i]; ++j)
-      darray[i][ilocal][j] = 0.0;
+    if (daname[i])
+      for (int j = 0; j < dcols[i]; ++j)
+        darray[i][ilocal][j] = 0.0;
 
   if (molecular != Atom::MOLECULAR) return;
 
@@ -2285,6 +2286,10 @@ void Atom::sort()
 
   for (i = 0; i < nbins; i++) binhead[i] = -1;
 
+  // for triclinic, atoms must be in box coords (not lamda) to match bbox
+
+  if (domain->triclinic) domain->lamda2x(nlocal);
+
   for (i = nlocal-1; i >= 0; i--) {
     ix = static_cast<int> ((x[i][0]-bboxlo[0])*bininvx);
     iy = static_cast<int> ((x[i][1]-bboxlo[1])*bininvy);
@@ -2299,6 +2304,10 @@ void Atom::sort()
     next[i] = binhead[ibin];
     binhead[ibin] = i;
   }
+
+  // convert back to lamda coords
+
+  if (domain->triclinic) domain->x2lamda(nlocal);
 
   // permute = desired permutation of atoms
   // permute[I] = J means Ith new atom will be Jth old atom
@@ -2687,7 +2696,6 @@ int Atom::add_custom(const char *name, int flag, int cols)
     ianame[index] = utils::strdup(name);
     iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),"atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
-
     icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
     icols[index] = cols;
 
@@ -2698,10 +2706,10 @@ int Atom::add_custom(const char *name, int flag, int cols)
     daname[index] = utils::strdup(name);
     darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),"atom:darray");
     memory->create(darray[index],nmax,cols,"atom:darray");
-
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");
     dcols[index] = cols;
   }
+
   if (index < 0)
     error->all(FLERR,"Invalid call to Atom::add_custom()");
   return index;

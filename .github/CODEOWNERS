@@ -61,12 +61,14 @@ src/GPU/pair_vashishta_gpu.*        @andeplane
 src/KOKKOS/pair_vashishta_kokkos.*  @andeplane
 src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
+src/MANYBODY/pair_nb3b_screened.*   @flodesani
 src/REPLICA/*_grem.*                @dstelter92
 src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
 src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/MISC/*_tracker.*                @jtclemm
 src/MC/fix_gcmc.*                   @athomps
 src/MC/fix_sgcmc.*                  @athomps
+src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
 
 # core LAMMPS classes
 src/lammps.*              @sjplimp
@@ -134,6 +136,7 @@ src/timer.*               @akohlmey
 src/utils.*               @akohlmey @rbberger
 src/verlet.*              @sjplimp @stanmoore1
 src/math_eigen_impl.h     @jewettaij
+src/fix_press_langevin.*  @Bibobu
 
 # tools
 tools/coding_standard/* @akohlmey @rbberger
@@ -150,12 +153,12 @@ tools/vim/*           @hammondkd
 unittest/*            @akohlmey
 
 # cmake
-cmake/*               @rbberger
+cmake/*               @akohlmey
 cmake/Modules/LAMMPSInterfacePlugin.cmake @akohlmey
 cmake/Modules/MPI4WIN.cmake @akohlmey
 cmake/Modules/OpenCLLoader.cmake @akohlmey
-cmake/Modules/Packages/COLVARS.cmake @rbberger @giacomofiorin
-cmake/Modules/Packages/KIM.cmake @rbberger @ellio167
+cmake/Modules/Packages/COLVARS.cmake @giacomofiorin
+cmake/Modules/Packages/KIM.cmake @ellio167
 cmake/presets/*.cmake @akohlmey
 
 # python

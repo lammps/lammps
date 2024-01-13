@@ -1,5 +1,8 @@
 # Setup tool for oxDNA input in LAMMPS format.
 
+# for python2/3 compatibility
+from __future__ import print_function
+
 import math,numpy as np,sys,os
 
 # system size

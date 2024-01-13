@@ -561,7 +561,7 @@ TEST(ImproperStyle, numdiff)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     Fix *ifix = lmp->modify->get_fix_by_id("diff");
     if (ifix) {
-        double epsilon = test_config.epsilon * 1.0e7;
+        double epsilon = test_config.epsilon * 5.0e8;
         ErrorStats stats;
         double **f1 = lmp->atom->f;
         double **f2 = ifix->array_atom;

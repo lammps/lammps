@@ -25,7 +25,9 @@
 #include "respa.h"
 #include "update.h"
 
+#if defined(LMP_BPM)
 #include "fix_bond_history.h"
+#endif
 
 #include <cstring>
 
@@ -261,9 +263,11 @@ void FixBondBreak::post_integrate()
   commflag = 1;
   comm->forward_comm(this,2);
 
+#if defined(LMP_BPM)
   // find instances of bond history to delete data
   auto histories = modify->get_fix_by_style("BOND_HISTORY");
   int n_histories = histories.size();
+#endif
 
   // break bonds
   // if both atoms list each other as winning bond partner
@@ -299,13 +303,17 @@ void FixBondBreak::post_integrate()
         for (k = m; k < num_bond[i]-1; k++) {
           bond_atom[i][k] = bond_atom[i][k+1];
           bond_type[i][k] = bond_type[i][k+1];
+#if defined(LMP_BPM)
           if (n_histories > 0)
             for (auto &ihistory: histories)
               dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,k,k+1);
+#endif
         }
+#if defined(LMP_BPM)
         if (n_histories > 0)
           for (auto &ihistory: histories)
             dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,num_bond[i]-1);
+#endif
         num_bond[i]--;
         break;
       }

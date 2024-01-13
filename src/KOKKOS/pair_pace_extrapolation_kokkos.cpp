@@ -900,7 +900,6 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
                [&](const int offset, minloc_value_type &min_d_dist) {
                  int j = d_nearest(ii,offset);
                  j &= NEIGHMASK;
-                 const int jtype = type(j);
                  auto r = d_rnorms(ii,offset);
                  const int mu_j = d_map(type(j));
                  const F_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));

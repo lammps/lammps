@@ -99,6 +99,7 @@ fi
 
 if (test $1 = "EXTRA-PAIR") then
   depend GPU
+  depend KOKKOS
   depend OPENMP
 fi
 

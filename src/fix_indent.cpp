@@ -332,21 +332,10 @@ void FixIndent::post_force(int /*vflag*/)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (cdim == 0) {
-          delx = 0;
-          dely = x[i][1] - ctr[1];
-          delz = x[i][2] - ctr[2];
-        } else if (cdim == 1) {
-          delx = x[i][0] - ctr[0];
-          dely = 0;
-          delz = x[i][2] - ctr[2];
-        } else {
-          delx = x[i][0] - ctr[0];
-          dely = x[i][1] - ctr[1];
-          delz = 0;
-        }
-        domain->minimum_image(delx,dely,delz);
-        r = sqrt(delx*delx + dely*dely + delz*delz);
+        double del[3] {x[i][0] - ctr[0], x[i][1] - ctr[1], x[i][2] - ctr[2]};
+        del[cdim] = 0;
+        domain->minimum_image(del[0], del[1], del[2]);
+        r = sqrt(del[0]*del[0] + del[1]*del[1] + del[2]*del[2]);
         if (side == OUTSIDE) {
           dr = r - radius;
           fmag = k*dr*dr;
@@ -355,9 +344,9 @@ void FixIndent::post_force(int /*vflag*/)
           fmag = -k*dr*dr;
         }
         if (dr >= 0.0) continue;
-        fx = delx*fmag/r;
-        fy = dely*fmag/r;
-        fz = delz*fmag/r;
+        fx = del[0]*fmag/r;
+        fy = del[1]*fmag/r;
+        fz = del[2]*fmag/r;
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;

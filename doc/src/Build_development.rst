@@ -122,32 +122,39 @@ Code Coverage and Unit Testing (CMake only)
 -------------------------------------------
 
 The LAMMPS code is subject to multiple levels of automated testing
-during development: integration testing (i.e. whether the code compiles
-on various platforms and with a variety of settings), unit testing
-(i.e. whether certain individual parts of the code produce the expected
-results for given inputs), run testing (whether selected complete input
-decks run without crashing for multiple configurations), and regression
-testing (i.e. whether selected input examples reproduce the same
-results over a given number of steps and operations within a given
-error margin).  The status of this automated testing can be viewed on
-`https://ci.lammps.org <https://ci.lammps.org>`_.
+during development:
+
+- Integration testing (i.e. whether the code compiles
+  on various platforms and with a variety of compilers and settings),
+- Unit testing (i.e. whether certain functions or classes of the code
+  produce the expected results for given inputs),
+- Run testing (i.e. whether selected input decks can run to completion
+  without crashing for multiple configurations),
+- Regression testing (i.e. whether selected input examples reproduce the
+  same results over a given number of steps and operations within a
+  given error margin).
+
+The status of this automated testing can be viewed on `https://ci.lammps.org
+<https://ci.lammps.org>`_.
 
 The scripts and inputs for integration, run, and regression testing
 are maintained in a
 `separate repository <https://github.com/lammps/lammps-testing>`_
-of the LAMMPS project on GitHub.
+of the LAMMPS project on GitHub.  A few tests are also run as GitHub
+Actions and their configuration files are in the ``.github/workflows/``
+folder of the LAMMPS git tree.
 
-The unit testing facility is integrated into the CMake build process
-of the LAMMPS source code distribution itself.  It can be enabled by
+The unit testing facility is integrated into the CMake build process of
+the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `YAML <https://pyyaml.org/>`_ library and development
-headers (if those are not found locally a recent version will be
-downloaded and compiled along with LAMMPS and the test program) to
-compile and will download and compile a specific recent version of the
-`Googletest <https://github.com/google/googletest/>`_ C++ test framework
-for implementing the tests.
+It requires the `YAML <https://pyyaml.org/>`_ library and matching
+development headers to compile (if those are not found locally a recent
+version of that library will be downloaded and compiled along with
+LAMMPS and the test programs) and will download and compile a specific
+version of the `GoogleTest <https://github.com/google/googletest/>`_ C++
+test framework that is used to implement the tests.
 
-.. admonition:: Software version requirements for testing
+.. admonition:: Software version and LAMMPS configuration requirements
    :class: note
 
    The compiler and library version requirements for the testing
@@ -155,7 +162,7 @@ for implementing the tests.
    example the default GNU C++ and Fortran compilers of RHEL/CentOS 7.x
    (version 4.8.x) are not sufficient.  The CMake configuration will try
    to detect incompatible versions and either skip incompatible tests or
-   stop with an error.  Also the number of tests will depend on
+   stop with an error.  Also the number of available tests will depend on
    installed LAMMPS packages, development environment, operating system,
    and configuration settings.
 
@@ -234,12 +241,14 @@ will be skipped if prerequisite features are not available in LAMMPS.
    time.  Preference is given to parts of the code base that are easy to
    test or commonly used.
 
-Tests for styles of the same kind of style (e.g. pair styles or bond
-styles) are performed with the same test executable using different
-input files in YAML format.  So to add a test for another style of the
-same kind it may be sufficient to add a suitable YAML file.
-:doc:`Detailed instructions for adding tests <Developer_unittest>` are
-provided in the Programmer Guide part of the manual.
+Many tests have special test programs that test individual functions or
+classes.  There are also special cases for the Fortran and Python
+module.  Tests for force computing or modifying styles (e.g. pair styles
+or bond styles) are performed with the same test executable using input
+files in YAML format.  So to add a test for another style of this kind
+it may be sufficient to add a suitable YAML file.  :doc:`Detailed
+instructions for adding tests <Developer_unittest>` are provided in the
+Programmer Guide part of the manual.
 
 Unit tests for force styles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

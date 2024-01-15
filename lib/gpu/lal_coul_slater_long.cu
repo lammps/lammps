@@ -102,6 +102,7 @@ __kernel void k_coul_slater_long(const __global numtyp4 *restrict x_,
         numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
         _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
         fetch(prefactor,j,q_tex);
+        prefactor *= qqrd2e * scale[mtype] * qtmp/r;
         numtyp rlamdainv = r * lamdainv;
         numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
         numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));

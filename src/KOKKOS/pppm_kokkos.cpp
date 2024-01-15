@@ -1383,7 +1383,8 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   // global energy and virial contribution
 
-  scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  scaleinv = 1.0/ngridtotal;
   s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {

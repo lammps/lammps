@@ -633,7 +633,9 @@ void PPPMElectrode::project_psi(double *vec, int sensor_grpbit)
   // project u_brick with weight matrix
   double **x = atom->x;
   int *mask = atom->mask;
-  double const scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+  const bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  const double scaleinv = 1.0 / ngridtotal;
+
   for (int i = 0; i < atom->nlocal; i++) {
     if (!(mask[i] & sensor_grpbit)) continue;
     double v = 0.;
@@ -1362,7 +1364,7 @@ double PPPMElectrode::compute_qopt()
   // each proc calculates contributions from every Pth grid point
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  int nxy_pppm = nx_pppm * ny_pppm;
+  bigint nxy_pppm = (bigint) nx_pppm * ny_pppm;
 
   double qopt = 0.0;
 

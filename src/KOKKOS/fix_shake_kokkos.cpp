@@ -525,7 +525,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLA
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShakeKokkos<DeviceType>::dof(int igroup)
+bigint FixShakeKokkos<DeviceType>::dof(int igroup)
 {
   d_mask = atomKK->k_mask.view<DeviceType>();
   d_tag = atomKK->k_tag.view<DeviceType>();
@@ -538,7 +538,7 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
   // count dof in a cluster if and only if
   // the central atom is in group and atom i is the central atom
 
-  int n = 0;
+  bigint n = 0;
   {
     // local variables for lambda capture
 
@@ -549,7 +549,7 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
     auto groupbit = group->bitmask[igroup];
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-     LAMMPS_LAMBDA(const int& i, int& n) {
+     LAMMPS_LAMBDA(const int& i, bigint& n) {
       if (!(mask[i] & groupbit)) return;
       if (d_shake_flag[i] == 0) return;
       if (d_shake_atom(i,0) != tag[i]) return;
@@ -560,8 +560,8 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
     },n);
   }
 
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
   return nall;
 }
 

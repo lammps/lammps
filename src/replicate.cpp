@@ -57,7 +57,12 @@ void Replicate::command(int narg, char **arg)
     error->all(FLERR, "Illegal replication grid {}x{}x{}. All replications must be > 0",
                nx, ny, nz);
 
-  int nrep = nx*ny*nz;
+  bigint nrepbig = (bigint) nx * ny * nz;
+  if (nrepbig > MAXSMALLINT)
+    error->all(FLERR, "Total # of replica is too large: {}x{}x{} = {}. "
+               "Please use replicate multiple times", nx, ny, nz, nrepbig);
+
+  int nrep = (int) nrepbig;
   if (me == 0)
     utils::logmesg(lmp, "Replication is creating a {}x{}x{} = {} times larger system...\n",
                    nx, ny, nz, nrep);

@@ -2696,7 +2696,7 @@ This function is called, e.g. from :doc:`fix property/atom <fix_property_atom>`.
  * \param name Name of the property (w/o a "i_" or "d_" or "i2_" or "d2_" prefix)
  * \param flag Data type of property: 0 for int, 1 for double
  * \param cols Number of values: 0 for a single value, 1 or more for a vector of values
- * \param ghost Whether property is communicated to ghost atoms: 0 for no, 1 for yes 
+ * \param ghost Whether property is communicated to ghost atoms: 0 for no, 1 for yes
  * \return index of property in the respective list of properties
  */
 int Atom::add_custom(const char *name, int flag, int cols, int ghost)

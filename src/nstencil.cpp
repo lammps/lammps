@@ -84,6 +84,7 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
 
   flag_half_multi = nullptr;
   flag_skip_multi = nullptr;
+  flag_same_multi = nullptr;
   bin_collection_multi = nullptr;
 
   maxcollections = 0;
@@ -122,6 +123,7 @@ NStencil::~NStencil()
     memory->destroy(maxstencil_multi);
     memory->destroy(flag_half_multi);
     memory->destroy(flag_skip_multi);
+    memory->destroy(flag_same_multi);
     memory->destroy(bin_collection_multi);
 
     memory->destroy(stencil_sx_multi);
@@ -289,6 +291,7 @@ void NStencil::create_setup()
       memory->destroy(maxstencil_multi);
       memory->destroy(flag_half_multi);
       memory->destroy(flag_skip_multi);
+      memory->destroy(flag_same_multi);
       memory->destroy(bin_collection_multi);
       memory->destroy(stencil_sx_multi);
       memory->destroy(stencil_sy_multi);
@@ -307,6 +310,8 @@ void NStencil::create_setup()
                      "neighstencil:flag_half_multi");
       memory->create(flag_skip_multi, n, n,
                      "neighstencil:flag_skip_multi");
+      memory->create(flag_same_multi, n, n,
+                     "neighstencil:flag_same_multi");
       memory->create(bin_collection_multi, n, n,
                      "neighstencil:bin_collection_multi");
 

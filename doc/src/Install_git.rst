@@ -28,16 +28,16 @@ provides `limited support for subversion clients <svn_>`_.
 
 You can follow the LAMMPS development on 4 different git branches:
 
-* **release**  :  this branch is updated with every patch or feature release;
-  updates are always "fast-forward" merges from *develop*
-* **develop**  :  this branch follows the ongoing development and
-  is updated with every merge commit of a pull request
-* **stable**   :  this branch is updated from the *release* branch with
-  every stable release version and also has selected bug fixes with every
-  update release when the *maintenance* branch is merged into it
-* **maintenance**  :  this branch collects back-ported bug fixes from the
-  *develop* branch to the *stable* branch. It is used to update *stable*
-  for update releases and it synchronized with *stable* at each stable release.
+* **develop** : this branch follows the ongoing development and is
+  updated with every merge commit of a pull request
+* **release** : this branch is updated with every "feature release";
+   updates are always "fast-forward" merges from *develop*
+* **maintenance** : this branch collects back-ported bug fixes from the
+  *develop* branch to the *stable* branch.  It is used to update the
+  *stable* branch for "stable update releases".
+* **stable** : this branch is updated from the *release* branch with
+  every "stable release" version and also has selected bug fixes with
+  every "update release" when the *maintenance* branch is merged into it
 
 To access the git repositories on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:

@@ -1338,7 +1338,8 @@ void PPPMDipole::poisson_ik_dipole()
 
   // global energy and virial contribution
 
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {

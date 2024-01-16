@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_trim.h"
+
 #include "atom.h"
 #include "error.h"
 #include "my_page.h"

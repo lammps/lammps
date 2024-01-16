@@ -67,12 +67,15 @@ class MLIAPData : protected Pointers {
   int *numneighs;                // neighbors count for each atom
   int *iatoms;                   // index of each atom
   int *ielems;                   // element of each atom
+  int *itypes;                   // LAMMPS type of each atom for external evaluators
   int nneigh_max;                // number of ij neighbors allocated
   int npairs;                    // number of ij neighbor pairs
   int *pair_i;                   // index of each i atom for each ij pair
   int *jatoms;                   // index of each neighbor
   int *jelems;                   // element of each neighbor
   int *elems;                    // element of each atom in or not in the neighborlist
+  int **cpy_frstngh;             // index of each neighbor for external evaluators
+  double **ix;                   // neighbor positions for external evaluators
   double **rij;                  // distance vector of each neighbor
   double ***graddesc;            // descriptor gradient w.r.t. each neighbor
   int eflag;                     // indicates if energy is needed

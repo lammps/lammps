@@ -278,7 +278,7 @@ TEST_F(MoleculeFileTest, twofiles)
         ContainsRegex(".*Read molecule template twomols:.*\n.*Water.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
                       ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"
-                      ".*Read molecule template twomols:.*\n.*1 molecules.*\n"
+                      ".*Read molecule template twomols:.*\n.*CO2.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     BEGIN_CAPTURE_OUTPUT();

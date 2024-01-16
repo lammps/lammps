@@ -147,7 +147,7 @@ protected:
         fclose(fp);
 
         command(fmt::format("molecule {} {} {}", name, file, args));
-        remove(file.c_str());
+        platform::unlink(file.c_str());
     }
 };
 
@@ -186,7 +186,7 @@ TEST_F(MoleculeFileTest, badargs)
     TEST_FAILURE(
         ".*Illegal molecule command.*",
         run_mol_cmd(test_name, "scale", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    remove("badargs.mol");
+    platform::unlink("moltest_badargs.mol");
 }
 
 TEST_F(MoleculeFileTest, noatom)
@@ -195,14 +195,14 @@ TEST_F(MoleculeFileTest, noatom)
                  run_mol_cmd(test_name, "",
                              "Comment\n0 atoms\n1 bonds\n\n"
                              " Coords\n\nBonds\n\n 1 1 2\n"););
-    remove("noatom.mol");
+    platform::unlink("moltest_noatom.mol");
 }
 
 TEST_F(MoleculeFileTest, empty)
 {
     TEST_FAILURE(".*ERROR: Unexpected end of molecule file.*",
                  run_mol_cmd(test_name, "", "Comment\n\n"););
-    remove("empty.mol");
+    platform::unlink("moltest_empty.mol");
 }
 
 TEST_F(MoleculeFileTest, nospecial)
@@ -212,7 +212,7 @@ TEST_F(MoleculeFileTest, nospecial)
                              "Comment\n3 atoms\n\n2 bonds\n\n"
                              " Coords\n\n 1 1.0 1.0 1.0\n 2 1.0 1.0 0.0\n 3 1.0 0.0 1.0\n"
                              " Bonds\n\n 1 1 1 2\n 2 1 1 3\n"););
-    remove("nospecial.mol");
+    platform::unlink("moltest_nospecial.mol");
 }
 
 TEST_F(MoleculeFileTest, minimal)

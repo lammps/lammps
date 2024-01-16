@@ -40,7 +40,7 @@ class PairRHEOReact : public Pair {
   void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
-  double **cut, **cutbond, **cutbsq, **k, **eps, **gamma, **t_form, **rlimit;
+  double **cutbond, **cutbsq, **k, **eps, **gamma, **t_form, **rlimit;
 
   void allocate();
   void transfer_history(double*, double*);

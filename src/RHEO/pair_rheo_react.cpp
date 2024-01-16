@@ -89,7 +89,6 @@ PairRHEOReact::~PairRHEOReact()
     memory->destroy(cutsq);
     memory->destroy(cutbsq);
 
-    memory->destroy(cut);
     memory->destroy(cutbond);
     memory->destroy(k);
     memory->destroy(eps);
@@ -301,10 +300,9 @@ void PairRHEOReact::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cut, n + 1, n + 1, "pair:cut");
   memory->create(cutbond, n + 1, n + 1, "pair:cutbond");
-  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
   memory->create(cutbsq, n + 1, n + 1, "pair:cutbsq");
+  memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
   memory->create(k, n + 1, n + 1, "pair:k");
   memory->create(eps, n + 1, n + 1, "pair:eps");
   memory->create(gamma, n + 1, n + 1, "pair:gamma");
@@ -333,24 +331,21 @@ void PairRHEOReact::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi,error);
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi,error);
 
-  double cut_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double k_one = utils::numeric(FLERR, arg[2], false, lmp);
   double cutb_one = utils::numeric(FLERR, arg[3], false, lmp);
-  double k_one = utils::numeric(FLERR, arg[4], false, lmp);
-  double eps_one = utils::numeric(FLERR, arg[5], false, lmp);
-  double gamma_one = utils::numeric(FLERR, arg[6], false, lmp);
-  double t_form_one = utils::numeric(FLERR, arg[7], false, lmp);
-  double rlimit_one = utils::numeric(FLERR, arg[8], false, lmp);
+  double eps_one = utils::numeric(FLERR, arg[4], false, lmp);
+  double gamma_one = utils::numeric(FLERR, arg[5], false, lmp);
+  double t_form_one = utils::numeric(FLERR, arg[6], false, lmp);
+  double rlimit_one = utils::numeric(FLERR, arg[7], false, lmp);
 
-  if (k_one < 0.0 || eps_one < 0.0 ||
-   t_form_one < 0.0 || (1.0 + eps_one) * cutb_one > cut_one)
+  if (k_one < 0.0 || eps_one < 0.0 || t_form_one < 0.0)
      error->all(FLERR, "Illegal pair_style command");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      cut[i][j] = cut_one;
-      cutbond[i][j] = cutb_one;
       k[i][j] = k_one;
+      cutbond[i][j] = cutb_one;
       eps[i][j] = eps_one;
       gamma[i][j] = gamma_one;
       t_form[i][j] = t_form_one;
@@ -411,7 +406,6 @@ double PairRHEOReact::init_one(int i, int j)
   cutbsq[i][j] = cutbond[i][j] * cutbond[i][j];
 
   cutbsq[j][i] = cutbsq[i][j];
-  cut[j][i] = cut[i][j];
   cutbond[j][i] = cutbond[i][j];
   k[j][i] = k[i][j];
   eps[j][i] = eps[i][j];
@@ -419,7 +413,9 @@ double PairRHEOReact::init_one(int i, int j)
   t_form[j][i] = t_form[i][j];
   rlimit[j][i] = rlimit[i][j];
 
-  return cut[i][j];
+  double cut = cutbond[i][j] * (1.0 + eps[i][j]);
+
+  return cut;
 }
 
 /* ----------------------------------------------------------------------
@@ -435,9 +431,8 @@ void PairRHEOReact::write_restart(FILE *fp)
     for (j = i; j <= atom->ntypes; j++)
       fwrite(&setflag[i][j], sizeof(int), 1, fp);
       if (setflag[i][j]) {
-        fwrite(&cut[i][j], sizeof(double), 1, fp);
-        fwrite(&cutbond[i][j], sizeof(double), 1, fp);
         fwrite(&k[i][j], sizeof(double), 1, fp);
+        fwrite(&cutbond[i][j], sizeof(double), 1, fp);
         fwrite(&eps[i][j], sizeof(double), 1, fp);
         fwrite(&gamma[i][j], sizeof(double), 1, fp);
         fwrite(&t_form[i][j], sizeof(double), 1, fp);
@@ -458,21 +453,19 @@ void PairRHEOReact::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j], sizeof(int), 1, fp);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&cut[i][j], sizeof(double), 1, fp);
-          fread(&cutbond[i][j], sizeof(double), 1, fp);
-          fread(&k[i][j], sizeof(double), 1, fp);
-          fread(&eps[i][j], sizeof(double), 1, fp);
-          fread(&gamma[i][j], sizeof(double), 1, fp);
-          fread(&t_form[i][j], sizeof(double), 1, fp);
-          fread(&rlimit[i][j], sizeof(double), 1, fp);
+          utils::sfread(FLERR, &k[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &cutbond[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &eps[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &gamma[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &t_form[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &rlimit[i][j], sizeof(double), 1, fp, nullptr, error);
         }
-        MPI_Bcast(&cut[i][j], 1,MPI_DOUBLE, 0, world);
-        MPI_Bcast(&cutbond[i][j], 1,MPI_DOUBLE, 0, world);
         MPI_Bcast(&k[i][j], 1,MPI_DOUBLE, 0, world);
+        MPI_Bcast(&cutbond[i][j], 1,MPI_DOUBLE, 0, world);
         MPI_Bcast(&eps[i][j], 1,MPI_DOUBLE, 0, world);
         MPI_Bcast(&gamma[i][j], 1,MPI_DOUBLE, 0, world);
         MPI_Bcast(&t_form[i][j], 1,MPI_DOUBLE, 0, world);

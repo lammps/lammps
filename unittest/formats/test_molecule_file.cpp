@@ -32,6 +32,8 @@ using testing::StrEq;
 
 using utils::split_words;
 
+const double EPSILON = 5.0e-14;
+
 #define test_name test_info_->name()
 
 static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
@@ -402,6 +404,60 @@ TEST_F(MoleculeFileTest, bonds)
     EXPECT_DOUBLE_EQ(mol->maxextent, sqrt(2.0));
     EXPECT_EQ(mol->comatom, 1);
     END_HIDE_OUTPUT();
+}
+
+TEST_F(MoleculeFileTest, dipoles)
+{
+    if (!LAMMPS::is_installed_pkg("DIPOLE")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style dipole");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 2 box");
+    run_mol_cmd(test_name, "",
+                "# Dumbbell with dipole molecule file.\n\n"
+                "2 atoms\n\n"
+                "Coords\n\n1 -1.0 0.0 0.0\n2  1.0 0.0 0.0\n\n"
+                "Types\n\n1 1\n2 2\n\n"
+                "Dipoles\n\n1 1.0 0.0 0.0\n2 1.0 1.0 0.0\n\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*2 atoms.*type.*2.*\n"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("mass * 1.0");
+    command("create_atoms 0 single 0.5 0.5 0.5 mol dipoles 67235 rotate 90.0 0.0 0.0 1.0");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Created 2 atoms.*"));
+
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->natoms, 2);
+    ASSERT_EQ(lmp->atom->natoms, 2);
+    mol->compute_mass();
+    mol->compute_com();
+    EXPECT_NEAR(mol->masstotal, 2.0, EPSILON);
+    EXPECT_NEAR(mol->com[0], 0.0, EPSILON);
+    EXPECT_NEAR(mol->com[1], 0.0, EPSILON);
+    EXPECT_NEAR(mol->com[2], 0.0, EPSILON);
+    EXPECT_EQ(mol->comatom, 1);
+    ASSERT_NE(mol->mu, nullptr);
+    EXPECT_NEAR(mol->mu[0][0], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[0][1], 0.0, EPSILON);
+    EXPECT_NEAR(mol->mu[0][2], 0.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][0], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][1], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][2], 0.0, EPSILON);
+    EXPECT_NEAR(mol->maxextent, 2.0, EPSILON);
+    // dipoles should be rotated by 90 degrees clockwise around the z axis
+    double **mu = lmp->atom->mu;
+    ASSERT_NE(mu, nullptr);
+    EXPECT_NEAR(mu[0][0], 0.0, EPSILON);
+    EXPECT_NEAR(mu[0][1], 1.0, EPSILON);
+    EXPECT_NEAR(mu[0][2], 0.0, EPSILON);
+    EXPECT_NEAR(mu[0][3], 1.0, EPSILON);
+    EXPECT_NEAR(mu[1][0], -1.0, EPSILON);
+    EXPECT_NEAR(mu[1][1], 1.0, EPSILON);
+    EXPECT_NEAR(mu[1][2], 0.0, EPSILON);
+    EXPECT_NEAR(mu[1][3], sqrt(2.0), EPSILON);
 }
 
 int main(int argc, char **argv)

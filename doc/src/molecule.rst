@@ -188,7 +188,7 @@ internally.
 
 These are the allowed section keywords for the body of the file.
 
-* *Coords, Types, Molecules, Fragments, Charges, Diameters, Masses* = atom-property sections
+* *Coords, Types, Molecules, Fragments, Charges, Diameters, Dipoles, Masses* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
@@ -300,6 +300,19 @@ on each atom in the molecule is 0.0.
 This section is only allowed for :doc:`atom styles <atom_style>` that
 support finite-size spherical particles, e.g. atom_style sphere.  If
 not listed, the default diameter of each atom in the molecule is 1.0.
+
+----------
+
+*Dipoles* section:
+
+* one line per atom
+* line syntax: ID mux muy muz
+* mux,muy,muz = x-, y-, and z-component of point dipole vector of atom
+
+This section is only allowed for :doc:`atom styles <atom_style>` that
+support particles with point dipoles, e.g. atom_style dipole.  If not
+listed, the default dipole component of each atom in the molecule is set
+to 0.0.
 
 ----------
 

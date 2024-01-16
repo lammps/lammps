@@ -41,7 +41,7 @@ class Molecule : protected Pointers {
 
   // 1 if attribute defined in file, 0 if not
 
-  int xflag, typeflag, moleculeflag, fragmentflag, qflag, radiusflag, rmassflag;
+  int xflag, typeflag, moleculeflag, fragmentflag, qflag, radiusflag, muflag, rmassflag;
   int bondflag, angleflag, dihedralflag, improperflag;
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
@@ -63,6 +63,7 @@ class Molecule : protected Pointers {
   double *q;           // charge on each atom
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
+  double **mu;         // dipole vector of each atom
 
   int *num_bond;    // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
@@ -142,6 +143,7 @@ class Molecule : protected Pointers {
   void fragments(char *);
   void charges(char *);
   void diameters(char *);
+  void dipoles(char *);
   void masses(char *);
   void bonds(int, char *);
   void angles(int, char *);

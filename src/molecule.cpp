@@ -154,16 +154,18 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   // stats
 
+  if (title.empty()) title = "(no title)";
   if (me == 0)
     utils::logmesg(lmp,
-                   "Read molecule template {}:\n  {} molecules\n"
+                   "Read molecule template {}:\n{}\n"
+                   "  {} molecules\n"
                    "  {} fragments\n"
                    "  {} atoms with max type {}\n"
                    "  {} bonds with max type {}\n"
                    "  {} angles with max type {}\n"
                    "  {} dihedrals with max type {}\n"
                    "  {} impropers with max type {}\n",
-                   id, nmolecules, nfragments, natoms, ntypes, nbonds, nbondtypes, nangles,
+                   id, title, nmolecules, nfragments, natoms, ntypes, nbonds, nbondtypes, nangles,
                    nangletypes, ndihedrals, ndihedraltypes, nimpropers, nimpropertypes);
 }
 
@@ -423,6 +425,8 @@ void Molecule::read(int flag)
     eof = fgets(line, MAXLINE, fp);
     if (eof == nullptr) error->one(FLERR, "Unexpected end of molecule file");
   }
+
+  if (flag == 0) title = utils::trim(line);
 
   // read header lines
   // skip blank lines or lines that start with "#"
@@ -1911,6 +1915,7 @@ void Molecule::check_attributes()
 
 void Molecule::initialize()
 {
+  title.clear();
   natoms = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   ntypes = 0;

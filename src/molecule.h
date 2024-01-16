@@ -25,6 +25,8 @@ class Molecule : protected Pointers {
                // else 0 if not first in set
   int last;    // 1 if last molecule in set, else 0
 
+  std::string title;    // title string of the molecule file
+
   // number of atoms,bonds,etc in molecule
   // nibody,ndbody = # of integer/double fields in body
 

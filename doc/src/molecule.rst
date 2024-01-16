@@ -201,7 +201,7 @@ defining a *body* particle, which requires setting the number of
       * - Number(s)
         - Keyword
         - Meaning
-        - Default
+        - Default Value
       * - N
         - atoms
         - # of atoms N in molecule

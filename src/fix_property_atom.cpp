@@ -51,7 +51,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   nvalue = 0;
   values_peratom = 0;
 
-  // get "ghost" first for settings
+  // check for ghost keyword to use as add_custom() arg
 
   border = 0;
   while (iarg < narg) {
@@ -182,7 +182,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "ghost") == 0) {
+    if (strcmp(arg[iarg], "ghost") == 0) { // skip here, since handled earlier
       iarg += 2;
     } else if (strcmp(arg[iarg], "writedata") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");

@@ -831,17 +831,21 @@ void PairAmoeba::init_style()
     "xyzaxis", "polaxe", "pval"};
   int const flag_check[6] = {0, 0, 1, 1, 0, 1}; // correct type (0 int, 1 dbl)
   int const cols_check[6] = {0, 0, 0, 3, 0, 0}; // xyzaxis 3 cols, all others 0
-  int const border_check[6] = {1, 0, 0, 0, 0, 0}; // which types need ghost
-  int flag, cols, border;
+  int const ghost_check[6] = {1, 0, 0, 0, 0, 0}; // which types need ghost
+  int flag, cols, ghost;
   int index[6];
 
   for (int i = 0; i < 6; i++) {
-    index[i] = atom->find_custom(names[i], flag, cols, border);
+    if (ghost_check[i]) {
+      index[i] = atom->find_custom_ghost(names[i], flag, cols, ghost);
+    } else {
+      index[i] = atom->find_custom(names[i], flag, cols);
+    }
     std::string err = "";
     if (index[i] < 0) err = "was not defined";
     else if (flag_check[i] != flag) err = "has the wrong type";
     else if (cols_check[i] != cols) err = "has the wrong number of columns";
-    else if (border_check[i] && !border) err = "must be set by fix property/atom with ghost yes";
+    else if (ghost_check[i] && !ghost) err = "must be set by fix property/atom with ghost yes";
     if (err != "")
       error->all(FLERR,"Pair {} per-atom variable {} {}", mystyle, names[i], err);
   }

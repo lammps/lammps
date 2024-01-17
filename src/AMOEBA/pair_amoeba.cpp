@@ -429,7 +429,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   // output FF settings to screen and logfile
   //   delay until here because RMS force accuracy is computed based on rpole
 
-  if (first_flag_compute && (comm->me == 0)) print_settings();
+  if (first_flag_compute) print_settings();
   first_flag_compute = 0;
 
   if (amoeba) pbc_xred();
@@ -1076,79 +1076,86 @@ void PairAmoeba::init_style()
 void PairAmoeba::print_settings()
 {
   std::string mesg = utils::uppercase(mystyle) + " force field settings\n";
-
-  if (amoeba) {
-    choose(HAL);
-    mesg += fmt::format("  hal: cut {} taper {} vscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
-                        special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
-  } else {
-    choose(REPULSE);
-    mesg += fmt::format("  repulsion: cut {} taper {} rscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
-                        special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
-
-    choose(QFER);
-    mesg += fmt::format("  qxfer: cut {} taper {} mscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
-                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
-
-    if (use_dewald) {
-      choose(DISP_LONG);
-      mesg += fmt::format("  dispersion: cut {} aewald {} bsorder {} FFT {} {} {} "
-                          "dspscale {} {} {} {}\n", sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
-                          special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
-    } else {
-      choose(DISP);
-      mesg += fmt::format("  dispersion: cut {} aewald {} dspscale {} {} {} {}\n",
-                          sqrt(off2),aewald,special_disp[1],
-                          special_disp[2],special_disp[3],special_disp[4]);
-    }
-  }
+  double estimated_mpole_accuracy = 0.0;
 
   if (use_ewald) {
     choose(MPOLE_LONG);
-    double estimated_accuracy = final_accuracy_mpole();
-    mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} FFT {} {} {}; "
-                        "estimated absolute RMS force accuracy = {:.8g}; "
-                        "estimated relative RMS force accuracy = {:.8g}; "
-                        "mscale {} {} {} {}\n",
-                        sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
-                        estimated_accuracy,estimated_accuracy/two_charge_force,
-                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
-  } else {
-    choose(MPOLE);
-    mesg += fmt::format("  multipole: cut {} aewald {} mscale {} {} {} {}\n", sqrt(off2),aewald,
-                        special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+    estimated_mpole_accuracy = final_accuracy_mpole();
   }
 
-  if (use_ewald) {
-    choose(POLAR_LONG);
-    mesg += fmt::format("  polar: cut {} aewald {} bsorder {} FFT {} {} {}\n",
-                        sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3);
-    mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
-                        "wscale {} {} {} {} d/u scale {} {}\n",
-                        special_polar_pscale[1],special_polar_pscale[2],
-                        special_polar_pscale[3],special_polar_pscale[4],
-                        special_polar_piscale[1],special_polar_piscale[2],
-                        special_polar_piscale[3],special_polar_piscale[4],
-                        special_polar_wscale[1],special_polar_wscale[2],
-                        special_polar_wscale[3],special_polar_wscale[4],
-                        polar_dscale,polar_uscale);
-  } else {
-    choose(POLAR);
-    mesg += fmt::format("  polar: cut {} aewald {}\n",sqrt(off2),aewald);
-    mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
-                        "wscale {} {} {} {} d/u scale {} {}\n",
-                        special_polar_pscale[1],special_polar_pscale[2],
-                        special_polar_pscale[3],special_polar_pscale[4],
-                        special_polar_piscale[1],special_polar_piscale[2],
-                        special_polar_piscale[3],special_polar_piscale[4],
-                        special_polar_wscale[1],special_polar_wscale[2],
-                        special_polar_wscale[3],special_polar_wscale[4],
-                        polar_dscale,polar_uscale);
-  }
+  if (comm->me == 0) {
+    if (amoeba) {
+      choose(HAL);
+      mesg += fmt::format("  hal: cut {} taper {} vscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
+                          special_hal[1],special_hal[2],special_hal[3],special_hal[4]);
+    } else {
+      choose(REPULSE);
+      mesg += fmt::format("  repulsion: cut {} taper {} rscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
+                          special_repel[1],special_repel[2],special_repel[3],special_repel[4]);
 
-  choose(USOLV);
-  mesg += fmt::format("  precondition: cut {}\n",sqrt(off2));
-  utils::logmesg(lmp, mesg);
+      choose(QFER);
+      mesg += fmt::format("  qxfer: cut {} taper {} mscale {} {} {} {}\n", sqrt(off2),sqrt(cut2),
+                          special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+
+      if (use_dewald) {
+        choose(DISP_LONG);
+        mesg += fmt::format("  dispersion: cut {} aewald {} bsorder {} FFT {} {} {} "
+                            "dspscale {} {} {} {}\n", sqrt(off2),aewald,bsdorder,ndfft1,ndfft2,ndfft3,
+                            special_disp[1],special_disp[2],special_disp[3],special_disp[4]);
+      } else {
+        choose(DISP);
+        mesg += fmt::format("  dispersion: cut {} aewald {} dspscale {} {} {} {}\n",
+                            sqrt(off2),aewald,special_disp[1],
+                            special_disp[2],special_disp[3],special_disp[4]);
+      }
+    }
+
+    if (use_ewald) {
+      choose(MPOLE_LONG);
+      mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} FFT {} {} {}; "
+                          "estimated absolute RMS force accuracy = {:.8g}; "
+                          "estimated relative RMS force accuracy = {:.8g}; "
+                          "mscale {} {} {} {}\n",
+                          sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
+                          estimated_mpole_accuracy,estimated_mpole_accuracy/two_charge_force,
+                          special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+    } else {
+      choose(MPOLE);
+      mesg += fmt::format("  multipole: cut {} aewald {} mscale {} {} {} {}\n", sqrt(off2),aewald,
+                          special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);
+    }
+
+    if (use_ewald) {
+      choose(POLAR_LONG);
+      mesg += fmt::format("  polar: cut {} aewald {} bsorder {} FFT {} {} {}\n",
+                          sqrt(off2),aewald,bsporder,nefft1,nefft2,nefft3);
+      mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
+                          "wscale {} {} {} {} d/u scale {} {}\n",
+                          special_polar_pscale[1],special_polar_pscale[2],
+                          special_polar_pscale[3],special_polar_pscale[4],
+                          special_polar_piscale[1],special_polar_piscale[2],
+                          special_polar_piscale[3],special_polar_piscale[4],
+                          special_polar_wscale[1],special_polar_wscale[2],
+                          special_polar_wscale[3],special_polar_wscale[4],
+                          polar_dscale,polar_uscale);
+    } else {
+      choose(POLAR);
+      mesg += fmt::format("  polar: cut {} aewald {}\n",sqrt(off2),aewald);
+      mesg += fmt::format("         pscale {} {} {} {} piscale {} {} {} {} "
+                          "wscale {} {} {} {} d/u scale {} {}\n",
+                          special_polar_pscale[1],special_polar_pscale[2],
+                          special_polar_pscale[3],special_polar_pscale[4],
+                          special_polar_piscale[1],special_polar_piscale[2],
+                          special_polar_piscale[3],special_polar_piscale[4],
+                          special_polar_wscale[1],special_polar_wscale[2],
+                          special_polar_wscale[3],special_polar_wscale[4],
+                          polar_dscale,polar_uscale);
+    }
+
+    choose(USOLV);
+    mesg += fmt::format("  precondition: cut {}\n",sqrt(off2));
+    utils::logmesg(lmp, mesg);
+  }
 }
 
 /* ----------------------------------------------------------------------

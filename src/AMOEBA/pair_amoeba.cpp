@@ -831,7 +831,7 @@ void PairAmoeba::init_style()
     "xyzaxis", "polaxe", "pval"};
   int const flag_check[6] = {0, 0, 1, 1, 0, 1}; // correct type (0 int, 1 dbl)
   int const cols_check[6] = {0, 0, 0, 3, 0, 0}; // xyzaxis 3 cols, all others 0
-  int const ghost_check[6] = {1, 0, 0, 0, 0, 0}; // which types need ghost
+  int const ghost_check[6] = {1, 1, 0, 0, 0, 1}; // which types need ghost; TO-DO: check
   int flag, cols, ghost;
   int index[6];
 

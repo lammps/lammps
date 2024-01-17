@@ -22,6 +22,7 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_bond_history.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -30,10 +31,6 @@
 #include "pair.h"
 #include "random_mars.h"
 #include "update.h"
-
-#if defined(LMP_BPM)
-#include "fix_bond_history.h"
-#endif
 
 #include <cmath>
 #include <cstring>
@@ -470,11 +467,9 @@ void FixBondSwap::post_integrate()
   if (!accept) return;
   naccept++;
 
-#if defined(LMP_BPM)
   // find instances of bond/history to reset history
   auto histories = modify->get_fix_by_style("BOND_HISTORY");
   int n_histories = histories.size();
-#endif
 
   // change bond partners of affected atoms
   // on atom i: bond i-inext changes to i-jnext
@@ -484,38 +479,30 @@ void FixBondSwap::post_integrate()
 
   for (ibond = 0; ibond < num_bond[i]; ibond++)
     if (bond_atom[i][ibond] == tag[inext]) {
-#if defined(LMP_BPM)
       if (n_histories > 0)
         for (auto &ihistory: histories)
           dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,ibond);
-#endif
       bond_atom[i][ibond] = tag[jnext];
     }
   for (jbond = 0; jbond < num_bond[j]; jbond++)
     if (bond_atom[j][jbond] == tag[jnext]) {
-#if defined(LMP_BPM)
       if (n_histories > 0)
         for (auto &ihistory: histories)
           dynamic_cast<FixBondHistory *>(ihistory)->delete_history(j,jbond);
-#endif
       bond_atom[j][jbond] = tag[inext];
     }
   for (ibond = 0; ibond < num_bond[inext]; ibond++)
     if (bond_atom[inext][ibond] == tag[i]) {
-#if defined(LMP_BPM)
       if (n_histories > 0)
         for (auto &ihistory: histories)
           dynamic_cast<FixBondHistory *>(ihistory)->delete_history(inext,ibond);
-#endif
       bond_atom[inext][ibond] = tag[j];
     }
   for (jbond = 0; jbond < num_bond[jnext]; jbond++)
     if (bond_atom[jnext][jbond] == tag[j]) {
-#if defined(LMP_BPM)
       if (n_histories > 0)
         for (auto &ihistory: histories)
           dynamic_cast<FixBondHistory *>(ihistory)->delete_history(jnext,jbond);
-#endif
       bond_atom[jnext][jbond] = tag[i];
     }
 

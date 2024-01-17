@@ -154,7 +154,7 @@ void FixUpdateSpecialBonds::pre_exchange()
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 {
-  int ilist, nlist, i1, i2, j, jj, jnum;
+  int i1, i2, j, jj, jnum;
   int *jlist, *numneigh, **firstneigh;
   tagint tag1, tag2;
   NeighList *list;

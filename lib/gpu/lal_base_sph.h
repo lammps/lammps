@@ -15,7 +15,7 @@
  ***************************************************************************/
 
 #ifndef LAL_BASE_SPH_H
-#define LAL_BASE_DPD_H
+#define LAL_BASE_SPH_H
 
 #include "lal_device.h"
 #include "lal_balance.h"

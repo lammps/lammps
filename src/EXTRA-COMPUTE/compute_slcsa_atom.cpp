@@ -33,21 +33,20 @@
 
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
 static const char cite_compute_slcsa_atom_c[] =
-    "compute slcsa/atom command: doi:10.1088/0965-0393/21/5/055020\n\n"
+    "compute slcsa/atom command: doi:10.1016/j.commatsci.2023.112534\n\n"
     "@Article{Lafourcade2023,\n"
     " author = {P. Lafourcade and J.-B. Maillet and C. Denoual and E. Duval and A. Allera and A. "
     "M. Goryaeva and M.-C. Marinica},\n"
     " title = {Robust crystal structure identification at extreme conditions using a "
     "density-independent spectral descriptor and supervised learning},\n"
     " journal = {Computational Materials Science},\n"
-    " year =    2023,\n"
-    " volume =  XX,\n"
-    " pages =   {XXXXXX}\n"
+    " year = 2023,\n"
+    " volume = 230,\n"
+    " pages = 112534\n"
     "}\n\n";
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +77,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   // matrix with nclasses rows x nclasses-1 cols
   // # LR bias vector
   // vector with 1 row x nclasses cols
+
+  if (lmp->citeme) lmp->citeme->add(cite_compute_slcsa_atom_c);
 
   if (narg != 11) utils::missing_cmd_args(FLERR, "compute slcsa/atom", error);
 

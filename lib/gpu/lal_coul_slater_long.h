@@ -13,8 +13,8 @@
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
-#ifndef LAL_Coul_Slater_Long_H
-#define LAL_Coul_Slater_Long_H
+#ifndef LAL_COUL_SLATER_LONG_H
+#define LAL_COUL_SLATER_LONG_H
 
 #include "lal_base_charge.h"
 

@@ -348,6 +348,8 @@
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp
 /fix_nve_bpm_sphere.h
+/fix_update_special_bonds.cpp
+/fix_update_special_bonds.h
 /pair_bpm_spring.cpp
 /pair_bpm_spring.h
 

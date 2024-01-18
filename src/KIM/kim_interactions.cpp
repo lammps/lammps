@@ -70,6 +70,8 @@
 #include "modify.h"
 #include "update.h"
 
+#include "fmt/ranges.h"
+
 #include <cstring>
 #include <vector>
 

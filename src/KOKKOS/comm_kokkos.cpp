@@ -864,7 +864,7 @@ void CommKokkos::exchange_device()
         if (nrecv) {
 
           if (atom->nextra_grow) {
-            if (k_indices.extent(0) < nrecv/data_size)
+            if ((int) k_indices.extent(0) < nrecv/data_size)
               MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
           } else if (k_indices.h_view.data())
            k_indices = DAT::tdual_int_1d();
@@ -931,6 +931,7 @@ void CommKokkos::exchange_device()
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
                 k_buf_recv,k_indices,nrecv/data_size,
+                nrecv1/data_size,nextrarecv1,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }

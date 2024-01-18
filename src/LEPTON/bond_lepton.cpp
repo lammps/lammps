@@ -82,10 +82,17 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
 {
   std::vector<Lepton::CompiledExpression> bondforce;
   std::vector<Lepton::CompiledExpression> bondpot;
+  std::vector<bool> has_ref;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
       bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      has_ref.push_back(true);
+      try {
+        bondforce.back().getVariableReference("r");
+      } catch (Lepton::Exception &) {
+        has_ref.back() = false;
+      }
       if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
@@ -116,7 +123,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
 
     double fbond = 0.0;
     if (r > 0.0) {
-      bondforce[idx].getVariableReference("r") = dr;
+      if (has_ref[idx]) bondforce[idx].getVariableReference("r") = dr;
       fbond = -bondforce[idx].evaluate() / r;
     }
 
@@ -136,7 +143,11 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
 
     double ebond = 0.0;
     if (EFLAG) {
-      bondpot[idx].getVariableReference("r") = dr;
+      try {
+        bondpot[idx].getVariableReference("r") = dr;
+      } catch (Lepton::Exception &) {
+        ;    // ignore -> constant potential
+      }
       ebond = bondpot[idx].evaluate() - offset[type];
     }
     if (EVFLAG) ev_tally(i1, i2, nlocal, NEWTON_BOND, ebond, fbond, delx, dely, delz);
@@ -179,8 +190,18 @@ void BondLepton::coeff(int narg, char **arg)
     auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
     auto bondpot = parsed.createCompiledExpression();
     auto bondforce = parsed.differentiate("r").createCompiledExpression();
-    bondpot.getVariableReference("r") = 0.0;
-    bondforce.getVariableReference("r") = 0.0;
+    try {
+      bondpot.getVariableReference("r") = 0.0;
+    } catch (Lepton::Exception &e) {
+      if (comm->me == 0)
+        error->warning(FLERR, "Lepton potential expression {} does not depend on 'r'", exp_one);
+    }
+    try {
+      bondforce.getVariableReference("r") = 0.0;
+    } catch (Lepton::Exception &e) {
+      if (comm->me == 0)
+        error->warning(FLERR, "Force from Lepton expression {} does not depend on 'r'", exp_one);
+    }
     offset_one = bondpot.evaluate();
     bondforce.evaluate();
   } catch (std::exception &e) {
@@ -302,8 +323,12 @@ double BondLepton::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto bondpot = parsed.createCompiledExpression();
   auto bondforce = parsed.differentiate("r").createCompiledExpression();
-  bondforce.getVariableReference("r") = dr;
-  bondpot.getVariableReference("r") = dr;
+  try {
+    bondpot.getVariableReference("r") = dr;
+    bondforce.getVariableReference("r") = dr;
+  } catch (Lepton::Exception &) {
+    ;    // ignore -> constant potential or force
+  }
 
   // force and energy
 

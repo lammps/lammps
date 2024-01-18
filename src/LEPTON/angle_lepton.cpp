@@ -90,10 +90,21 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void AngleLepton::eval()
 {
   std::vector<Lepton::CompiledExpression> angleforce;
   std::vector<Lepton::CompiledExpression> anglepot;
-  for (const auto &expr : expressions) {
-    auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
-    angleforce.emplace_back(parsed.differentiate("theta").createCompiledExpression());
-    if (EFLAG) anglepot.emplace_back(parsed.createCompiledExpression());
+  std::vector<bool> has_ref;
+  try {
+    for (const auto &expr : expressions) {
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+      angleforce.emplace_back(parsed.differentiate("theta").createCompiledExpression());
+      has_ref.push_back(true);
+      try {
+        angleforce.back().getVariableReference("theta");
+      } catch (Lepton::Exception &) {
+        has_ref.back() = false;
+      }
+      if (EFLAG) anglepot.emplace_back(parsed.createCompiledExpression());
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR, e.what());
   }
 
   const double *const *const x = atom->x;
@@ -142,8 +153,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void AngleLepton::eval()
 
     const double dtheta = acos(c) - theta0[type];
     const int idx = type2expression[type];
-    angleforce[idx].getVariableReference("theta") = dtheta;
-
+    if (has_ref[idx]) angleforce[idx].getVariableReference("theta") = dtheta;
     const double a = -angleforce[idx].evaluate() * s;
     const double a11 = a * c / rsq1;
     const double a12 = -a / (r1 * r2);
@@ -179,7 +189,11 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void AngleLepton::eval()
 
     double eangle = 0.0;
     if (EFLAG) {
-      anglepot[idx].getVariableReference("theta") = dtheta;
+      try {
+        anglepot[idx].getVariableReference("theta") = dtheta;
+      } catch (Lepton::Exception &) {
+        ;    // ignore -> constant force
+      }
       eangle = anglepot[idx].evaluate() - offset[type];
     }
     if (EVFLAG)
@@ -224,8 +238,19 @@ void AngleLepton::coeff(int narg, char **arg)
     auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
     auto anglepot = parsed.createCompiledExpression();
     auto angleforce = parsed.differentiate("theta").createCompiledExpression();
-    anglepot.getVariableReference("theta") = 0.0;
-    angleforce.getVariableReference("theta") = 0.0;
+    try {
+      anglepot.getVariableReference("theta") = 0.0;
+    } catch (Lepton::Exception &) {
+      if (comm->me == 0)
+        error->warning(FLERR, "Lepton potential expression {} does not depend on 'theta'", exp_one);
+    }
+    try {
+      angleforce.getVariableReference("theta") = 0.0;
+    } catch (Lepton::Exception &) {
+      if (comm->me == 0)
+        error->warning(FLERR, "Force from Lepton expression {} does not depend on 'theta'",
+                       exp_one);
+    }
     offset_one = anglepot.evaluate();
     angleforce.evaluate();
   } catch (std::exception &e) {
@@ -363,7 +388,11 @@ double AngleLepton::single(int type, int i1, int i2, int i3)
   const auto &expr = expressions[type2expression[type]];
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto anglepot = parsed.createCompiledExpression();
-  anglepot.getVariableReference("theta") = dtheta;
+  try {
+    anglepot.getVariableReference("theta") = dtheta;
+  } catch (Lepton::Exception &) {
+    ;    // ignore -> constant potential
+  }
   return anglepot.evaluate() - offset[type];
 }
 

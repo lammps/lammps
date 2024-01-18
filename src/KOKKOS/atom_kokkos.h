@@ -103,7 +103,8 @@ class AtomKokkos : public Atom {
 
   using MapKeyViewType = decltype(d_tag_sorted);
   using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
-  Kokkos::BinSort<MapKeyViewType, BinOpMap> Sorter;
+  BinOpMap mapBinner;
+  Kokkos::BinSort<MapKeyViewType, BinOpMap> mapSorter;
 
   class AtomVecKokkos* avecKK;
 

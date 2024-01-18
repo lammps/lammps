@@ -178,7 +178,7 @@ class Compute : protected Pointers {
 
   double natoms_temp;    // # of atoms used for temperature calculation
   double extra_dof;      // extra DOF for temperature computes
-  int fix_dof;           // DOF due to fixes
+  double fix_dof;        // DOF due to fixes
   int dynamic;           // recount atoms for temperature computes
   int dynamic_user;      // user request for temp compute to be dynamic
 

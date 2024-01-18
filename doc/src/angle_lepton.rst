@@ -53,7 +53,7 @@ angle coefficient.  For example `"200.0*theta^2"` represents a
 
 .. versionchanged:: TBD
 
-By default the potential energy U is shifted so that he value U is 0.0
+By default the potential energy U is shifted so that the value U is 0.0
 for $theta = theta_0$.  This is equivalent to using the optional keyword
 *auto_offset*.  When using the keyword *no_offset* instead, the
 potential energy is not shifted.

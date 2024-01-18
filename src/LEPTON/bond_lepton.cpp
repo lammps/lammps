@@ -37,6 +37,7 @@ BondLepton::BondLepton(LAMMPS *_lmp) :
 {
   writedata = 1;
   reinitflag = 0;
+  auto_offset = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,6 +170,24 @@ void BondLepton::allocate()
 }
 
 /* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void BondLepton::settings(int narg, char **arg)
+{
+  auto_offset = 1;
+  if (narg > 0) {
+    if (strcmp(arg[0],"auto_offset") == 0) {
+      auto_offset = 1;
+    } else if (strcmp(arg[0],"no_offset") == 0) {
+      auto_offset = 0;
+    } else {
+      error->all(FLERR, "Unknown bond style lepton setting {}", arg[0]);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
@@ -202,7 +221,7 @@ void BondLepton::coeff(int narg, char **arg)
       if (comm->me == 0)
         error->warning(FLERR, "Force from Lepton expression {} does not depend on 'r'", exp_one);
     }
-    offset_one = bondpot.evaluate();
+    if (auto_offset) offset_one = bondpot.evaluate();
     bondforce.evaluate();
   } catch (std::exception &e) {
     error->all(FLERR, e.what());
@@ -260,6 +279,7 @@ void BondLepton::write_restart(FILE *fp)
     fwrite(&n, sizeof(int), 1, fp);
     fwrite(exp.c_str(), sizeof(char), n, fp);
   }
+  fwrite(&auto_offset, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -298,6 +318,9 @@ void BondLepton::read_restart(FILE *fp)
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
     expressions.emplace_back(buf);
   }
+
+  if (comm->me == 0) utils::sfread(FLERR, &auto_offset, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&auto_offset, 1, MPI_INT, 0, world);
 
   delete[] buf;
 }

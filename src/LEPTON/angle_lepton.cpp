@@ -44,6 +44,7 @@ AngleLepton::AngleLepton(LAMMPS *_lmp) :
 {
   writedata = 1;
   reinitflag = 0;
+  auto_offset = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,6 +218,24 @@ void AngleLepton::allocate()
 }
 
 /* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void AngleLepton::settings(int narg, char **arg)
+{
+  auto_offset = 1;
+  if (narg > 0) {
+    if (strcmp(arg[0],"auto_offset") == 0) {
+      auto_offset = 1;
+    } else if (strcmp(arg[0],"no_offset") == 0) {
+      auto_offset = 0;
+    } else {
+      error->all(FLERR, "Unknown angle style lepton setting {}", arg[0]);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
@@ -251,7 +270,7 @@ void AngleLepton::coeff(int narg, char **arg)
         error->warning(FLERR, "Force from Lepton expression {} does not depend on 'theta'",
                        exp_one);
     }
-    offset_one = anglepot.evaluate();
+    if (auto_offset) offset_one = anglepot.evaluate();
     angleforce.evaluate();
   } catch (std::exception &e) {
     error->all(FLERR, e.what());
@@ -309,6 +328,7 @@ void AngleLepton::write_restart(FILE *fp)
     fwrite(&n, sizeof(int), 1, fp);
     fwrite(exp.c_str(), sizeof(char), n, fp);
   }
+  fwrite(&auto_offset, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -347,6 +367,9 @@ void AngleLepton::read_restart(FILE *fp)
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
     expressions.emplace_back(buf);
   }
+
+  if (comm->me == 0) utils::sfread(FLERR, &auto_offset, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&auto_offset, 1, MPI_INT, 0, world);
 
   delete[] buf;
 }

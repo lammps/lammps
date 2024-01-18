@@ -419,6 +419,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, con
 template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int /*nrecv1*/, int /*nextrarecv1*/,
   ExecutionSpace /*space*/)
 {
   d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
@@ -429,7 +430,6 @@ void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
   d_history_one = k_history_one.template view<DeviceType>();
 
   copymode = 1;
-
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranUnpackExchange>(0,nrecv),*this);
 

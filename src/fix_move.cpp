@@ -1279,7 +1279,6 @@ void FixMove::set_arrays(int i)
   double *quat;
 
   double **x = atom->x;
-  double **quat_atom = atom->quat;
   imageint *image = atom->image;
   int *ellipsoid = atom->ellipsoid;
   int *line = atom->line;
@@ -1372,6 +1371,7 @@ void FixMove::set_arrays(int i)
           // qoriginal = f(quat,-delta);   // NOTE: edit this line
         }
       } else if (quat_atom_flag) {
+        // double **quat_atom = atom->quat;
         // qoriginal[0] = quat_atom[i][0]; // NOTE: edit this line
         // qoriginal[1] = quat_atom[i][1]; // NOTE: edit this line
         // qoriginal[2] = quat_atom[i][2]; // NOTE: edit this line
@@ -1434,6 +1434,7 @@ void FixMove::set_arrays(int i)
           // qoriginal = f(quat,-delta);   // NOTE: edit this line
         }
       } else if (quat_atom_flag) {
+        // double **quat_atom = atom->quat;
         // qoriginal[0] = quat_atom[i][0]; // NOTE: edit this line
         // qoriginal[1] = quat_atom[i][1]; // NOTE: edit this line
         // qoriginal[2] = quat_atom[i][2]; // NOTE: edit this line

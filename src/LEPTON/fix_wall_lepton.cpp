@@ -13,6 +13,7 @@
 
 #include "fix_wall_lepton.h"
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 
 #include "Lepton.h"
@@ -41,8 +42,18 @@ void FixWallLepton::post_constructor()
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
       auto wallpot = parsed.createCompiledExpression();
       auto wallforce = parsed.differentiate("r").createCompiledExpression();
-      wallpot.getVariableReference("r") = 0.0;
-      wallforce.getVariableReference("r") = 0.0;
+      try {
+        wallpot.getVariableReference("r") = 0.0;
+      } catch (Lepton::Exception &) {
+        if (comm->me == 0)
+          error->warning(FLERR, "Lepton potential expression {} does not depend on 'r'", exp_one);
+      }
+      try {
+        wallforce.getVariableReference("r") = 0.0;
+      } catch (Lepton::Exception &) {
+        if (comm->me == 0)
+          error->warning(FLERR, "Force from Lepton expression {} does not depend on 'r'", exp_one);
+      }
       wallpot.evaluate();
       wallforce.evaluate();
     } catch (std::exception &e) {

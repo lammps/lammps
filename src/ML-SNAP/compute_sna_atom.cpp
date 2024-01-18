@@ -580,58 +580,56 @@ void ComputeSNAAtom::select3(int k, int n, double *arr, int *iarr, double **arr3
   }
 }
 
-double * ComputeSNAAtom::weights(double * rsq, double rcut, int ncounts)
+double *ComputeSNAAtom::weights(double *rsq, double rcut, int ncounts)
 {
-  double * w=nullptr;
+  double *w=nullptr;
   memory->destroy(w);
   memory->create(w, ncounts, "snann:gauss_weights");
   double rloc=0.;
-  for (int i=0; i<ncounts; i++)
-    {
-      rloc = sqrt(rsq[i]);
-      if (rloc > rcut){
-        w[i]=0.;
-      } else {
-        w[i]=1.;
-      }
+  for (int i=0; i<ncounts; i++) {
+    rloc = sqrt(rsq[i]);
+    if (rloc > rcut){
+      w[i]=0.;
+    } else {
+      w[i]=1.;
     }
+  }
   return w;
 }
 
-double * ComputeSNAAtom::tanh_weights(double * rsq, double rcut, double delta, int ncounts)
+double *ComputeSNAAtom::tanh_weights(double *rsq, double rcut, double delta, int ncounts)
 {
-  double * w=nullptr;
+  double *w=nullptr;
   memory->destroy(w);
   memory->create(w, ncounts, "snann:gauss_weights");
   double rloc=0.;
 
-  for (int i=0; i<ncounts; i++)
-    {
-      rloc = sqrt(rsq[i]);
-      w[i] = 0.5*(1.-tanh((rloc-rcut)/delta));
-    }
+  for (int i=0; i<ncounts; i++) {
+    rloc = sqrt(rsq[i]);
+    w[i] = 0.5*(1.-tanh((rloc-rcut)/delta));
+  }
   return w;
 }
 
-double ComputeSNAAtom::sum_weights(double * /*rsq*/, double * w, int ncounts)
+double ComputeSNAAtom::sum_weights(double * /*rsq*/, double *w, int ncounts)
 {
-  double S=0.;
-  for (int i=0; i<ncounts; i++)
-    {
-      S += w[i];
-    }
+  double S=0.0;
+  for (int i=0; i<ncounts; i++) {
+    S += w[i];
+  }
   return S;
 }
 
-double ComputeSNAAtom::get_target_rcut(double S_target, double * rsq, double rcut, int ncounts, int weightmode, double delta)
+double ComputeSNAAtom::get_target_rcut(double S_target, double *rsq, double rcut, int ncounts,
+                                       int weightmode, double delta)
 {
   double S_sol = 0.0;
   if (weightmode == 0) {
-    double * www = weights(rsq, rcut, ncounts);
+    double *www = weights(rsq, rcut, ncounts);
     S_sol = sum_weights(rsq, www, ncounts);
     memory->destroy(www);
   } else if (weightmode == 1) {
-    double * www = tanh_weights(rsq, rcut, delta, ncounts);
+    double *www = tanh_weights(rsq, rcut, delta, ncounts);
     S_sol = sum_weights(rsq, www, ncounts);
     memory->destroy(www);
   }
@@ -639,38 +637,31 @@ double ComputeSNAAtom::get_target_rcut(double S_target, double * rsq, double rcu
   return err;
 }
 
-double * ComputeSNAAtom::dichotomie(double S_target, double a, double b, double e, double * rsq, int ncounts, int weightmode, double delta)
+double *ComputeSNAAtom::dichotomie(double S_target, double a, double b, double e, double *rsq,
+                                   int ncounts, int weightmode, double delta)
 {
 
   double d=b-a;
-  double * sol = nullptr;
+  double *sol = nullptr;
   memory->destroy(sol);
   memory->create(sol, 2, "snann:sol");
-  double m=0.;
+  double m=0.0;
 
-  int cnt=0;
-  do
-    {
-      m = ( a + b ) / 2.;
-      d = fabs( b - a );
-      double f_ra = get_target_rcut(S_target, rsq, a, ncounts, weightmode, delta);
-      double f_rm = get_target_rcut(S_target, rsq, m, ncounts, weightmode, delta);
-      if (f_rm == 0.)
-        {
-          sol[0]=m;
-          sol[1]=m;
-          return sol;
-        }
-      else if (f_rm*f_ra > 0.)
-        {
-          a = m;
-        }
-      else
-        {
-          b = m;
-        }
-      cnt+=1;
-    } while ( d > e );
+  do {
+    m = (a + b) / 2.0;
+    d = fabs(b - a);
+    double f_ra = get_target_rcut(S_target, rsq, a, ncounts, weightmode, delta);
+    double f_rm = get_target_rcut(S_target, rsq, m, ncounts, weightmode, delta);
+    if (f_rm == 0.0) {
+      sol[0]=m;
+      sol[1]=m;
+      return sol;
+    } else if (f_rm*f_ra > 0.0) {
+      a = m;
+    } else {
+      b = m;
+    }
+  } while (d > e);
   sol[0]=a;
   sol[1]=b;
   return sol;

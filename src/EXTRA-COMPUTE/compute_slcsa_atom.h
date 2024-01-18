@@ -53,14 +53,12 @@ class ComputeSLCSAAtom : public Compute {
   value_t descriptorval;
   int nmax;
   int ncols;
-  int nevery;
   int ncomps;
   int nclasses;
   const char *database_mean_descriptor_file;
   const char *lda_scalings_file;
   const char *lr_decision_file;
   const char *lr_bias_file;
-  const char *covmat_file;
   const char *maha_file;
   class NeighList *list;
 

@@ -1581,8 +1581,8 @@ void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offs
     else offset++;
   } else {
 
-    d_buf[mysend] = nsend + offset;
     int m = nsend + offset;
+    d_buf[mysend] = m;
     d_buf[m++] = flag;
     if (flag == 1) {
       d_buf[m++] = d_shake_atom(i,0);
@@ -1703,6 +1703,8 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
 
   if (index > -1) {
     int m = d_buf[i];
+    if (i >= nrecv1)
+      m = nextrarecv1 + d_buf[nextrarecv1 + i - nrecv1];
 
     int flag = d_shake_flag[index] = static_cast<int> (d_buf[m++]);
     if (flag == 1) {
@@ -1739,6 +1741,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
 template <class DeviceType>
 void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int nrecv1, int nextrarecv1,
   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
@@ -1748,6 +1751,9 @@ void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
+
+  this->nrecv1 = nrecv1;
+  this->nextrarecv1 = nextrarecv1;
 
   k_shake_flag.template sync<DeviceType>();
   k_shake_atom.template sync<DeviceType>();

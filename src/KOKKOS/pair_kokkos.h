@@ -948,9 +948,9 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
 
     static int vectorsize = 0;
     static int atoms_per_team = 0;
-    static int lastcall = -1;
 
 #if defined(LMP_KOKKOS_GPU)
+    static int lastcall = -1;
     if (!vectorsize || lastcall < fpair->lmp->neighbor->lastcall) {
       lastcall = fpair->lmp->update->ntimestep;
       vectorsize = GetMaxNeighs(list);

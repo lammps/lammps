@@ -36,9 +36,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 256
-#define CHUNK 1024
-#define ATTRIBUTE_PERLINE 4
+static constexpr int MAXLINE = 256;
+static constexpr int CHUNK = 1024;
+static constexpr int ATTRIBUTE_PERLINE = 4;
 
 enum { DEFAULT, TERSE, VERBOSE };
 

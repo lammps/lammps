@@ -35,7 +35,7 @@ using MathConst::MY_PI;
 using MathSpecial::cube;
 using MathSpecial::powint;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 MLPOD::podstruct::podstruct() :
     twobody{4, 8, 6}, threebody{4, 8, 5, 4}, fourbody{0, 0, 0, 0}, pbc(nullptr),

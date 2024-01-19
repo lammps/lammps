@@ -34,8 +34,8 @@
 using namespace LAMMPS_NS;
 using namespace ip_simd;
 
-#define MAXLINE 1024
-#define MAXWORD 3
+static constexpr int MAXLINE = 1024;
+static constexpr int MAXWORD = 3;
 
 /* ---------------------------------------------------------------------- */
 

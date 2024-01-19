@@ -31,11 +31,11 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 256
-#define EPSILON 1.0e-7
-#define BIG 1.0e20
+static constexpr int MAXLINE = 1024;
+static constexpr double EPSILON = 1.0e-7;
+static constexpr double BIG = 1.0e20;
 
-#define SINERTIA 0.4    // moment of inertia prefactor for sphere
+static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 

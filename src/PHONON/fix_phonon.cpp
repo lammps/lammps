@@ -45,7 +45,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAXLINE 512
+static constexpr int MAXLINE = 512;
 
 enum{FORWARD=-1,BACKWARD=1};
 

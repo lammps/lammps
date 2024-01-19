@@ -35,7 +35,7 @@ using MathConst::DEG2RAD;
 using MathConst::RAD2DEG;
 
 static constexpr double epsilon = 6.5e-6;
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 /* ---------------------------------------------------------------------- */
 
 void AngleWrite::command(int narg, char **arg)

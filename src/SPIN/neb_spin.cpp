@@ -62,10 +62,11 @@ static const char cite_neb_spin[] =
   "doi={10.1016/j.cpc.2015.07.001}\n"
   "}\n\n";
 
-#define MAXLINE 256
-#define CHUNK 1024
+static constexpr int MAXLINE = 256;
+static constexpr int CHUNK = 1024;
+
 // 8 attributes: tag, spin norm, position (3), spin direction (3)
-#define ATTRIBUTE_PERLINE 8
+static constexpr int ATTRIBUTE_PERLINE = 8;
 
 /* ---------------------------------------------------------------------- */
 

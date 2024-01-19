@@ -41,7 +41,7 @@ using MathConst::MY_PI;
 
 enum{NONE,RLINEAR,RSQ};
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 static const char cite_pair_multi_lucy[] =
   "pair_style multi/lucy command: doi:10.1063/1.4942520\n\n"

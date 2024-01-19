@@ -34,14 +34,14 @@ enum{MUTUAL,OPT,TCG,DIRECT};
 enum{NOFRAME,ZONLY,ZTHENX,BISECTOR,ZBISECT,THREEFOLD};
 enum{GEAR,ASPC,LSQR};
 
-#define MAXLINE 65536              // crazy big for TORSION-TORSION section
-#define MAX_TYPE_PER_GROUP 6       // max types per AMOEBA group
-#define MAX_FRAME_PER_TYPE 32      // max multipole frames for any AMOEBA type
+static constexpr int MAXLINE = 65536;             // crazy big for TORSION-TORSION section
+static constexpr int MAX_TYPE_PER_GROUP = 6;     // max types per AMOEBA group
+static constexpr int MAX_FRAME_PER_TYPE = 32;    // max multipole frames for any AMOEBA type
 
-#define DELTA_TYPE_CLASS 32
-#define DELTA_VDWL_PAIR 16
+static constexpr int DELTA_TYPE_CLASS = 32;
+static constexpr int DELTA_VDWL_PAIR = 16;
 
-#define BOHR 0.52917721067         // Bohr in Angstroms
+static constexpr double BOHR = 0.52917721067;    // Bohr in Angstroms
 
 // methods to read, parse, and store info from force field file
 

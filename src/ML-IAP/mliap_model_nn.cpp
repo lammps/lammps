@@ -28,7 +28,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 /* ---------------------------------------------------------------------- */
 

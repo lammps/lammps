@@ -55,14 +55,14 @@ static const char cite_user_bocs_package[] =
   "}\n\n";
 
 
-#define DELTAFLIP 0.1
-#define TILTMAX 1.5
 
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
 
-const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction file
+static constexpr double DELTAFLIP = 0.1;
+static constexpr double TILTMAX = 1.5;
+static constexpr int NUM_INPUT_DATA_COLUMNS = 2;    // columns in the pressure correction file
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion

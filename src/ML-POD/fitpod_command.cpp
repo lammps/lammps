@@ -33,8 +33,7 @@
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
 
-#define MAXLINE 1024
-
+static constexpr int MAXLINE = 1024;
 static constexpr double SMALL = 1.0e-10;
 
 FitPOD::FitPOD(LAMMPS *_lmp) : Command(_lmp), podptr(nullptr)

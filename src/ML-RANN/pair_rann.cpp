@@ -55,7 +55,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "rann_fingerprint_radialscreenedspin.h"
 #include "rann_fingerprint_radialspin.h"
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 using namespace LAMMPS_NS;
 

@@ -77,11 +77,12 @@ static const char cite_fix_bond_react[] =
   " pages =   {9953--9961}\n"
   "}\n\n";
 
-#define BIG 1.0e20
-#define DELTA 16
-#define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
-#define MAXCONARGS 14 // max # of arguments for any type of constraint + rxnID
-#define NUMVARVALS 5 // max # of keyword values that have variables as input
+    "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, "
+static constexpr double BIG = 1.0e20;
+static constexpr int DELTA = 16;
+static constexpr int MAXGUESS = 20;      // max # of guesses allowed by superimpose algorithm
+static constexpr int MAXCONARGS = 14;    // max # of arguments for any type of constraint + rxnID
+static constexpr int NUMVARVALS = 5;     // max # of keyword values that have variables as input
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template

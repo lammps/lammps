@@ -91,7 +91,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   omega_mass_flag = 0;
   etap_mass_flag = 0;
   flipflag = 1;
-  dlm_flag = 0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;

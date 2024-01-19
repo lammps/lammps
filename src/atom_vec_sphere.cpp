@@ -60,13 +60,10 @@ AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecSphere::process_args(int narg, char **arg)
 {
-  if (narg != 0 && narg != 1) error->all(FLERR, "Illegal atom_style sphere command");
+  if (narg > 1) error->all(FLERR, "Illegal atom_style sphere command");
 
   radvary = 0;
-  if (narg == 1) {
-    radvary = utils::numeric(FLERR, arg[0], true, lmp);
-    if (radvary < 0 || radvary > 1) error->all(FLERR, "Illegal atom_style sphere command");
-  }
+  if (narg == 1) radvary = utils::logical(FLERR, arg[0], true, lmp);
 
   // dynamic particle radius and mass must be communicated every step
 

@@ -38,7 +38,7 @@ enum { LJ93, LJ126, LJ1043, COLLOID, HARMONIC, MORSE };
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), idregion(nullptr), region(nullptr)
 {
-  if (narg < 8) error->all(FLERR, "Illegal fix wall/region command");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "fix wall/region", error);
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -70,12 +70,12 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[4], "morse") == 0)
     style = MORSE;
   else
-    error->all(FLERR, "Illegal fix wall/region command");
+    error->all(FLERR, "Unknown fix wall/region style {}", arg[4]);
 
   if (style != COLLOID) dynamic_group_allow = 1;
 
   if (style == MORSE) {
-    if (narg != 9) error->all(FLERR, "Illegal fix wall/region command");
+    if (narg != 9) error->all(FLERR, "Illegal fix wall/region morse command");
 
     epsilon = utils::numeric(FLERR, arg[5], false, lmp);
     alpha = utils::numeric(FLERR, arg[6], false, lmp);

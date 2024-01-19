@@ -81,7 +81,7 @@ FixWallGranOld::FixWallGranOld(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[3],"hooke/history") == 0) pairstyle = HOOKE_HISTORY;
   else if (strcmp(arg[3],"hertz/history") == 0) pairstyle = HERTZ_HISTORY;
   else if (strcmp(arg[3],"granular") == 0) pairstyle = GRANULAR;
-  else error->all(FLERR,"Invalid fix wall/gran interaction style");
+  else error->all(FLERR,"Invalid fix {} interaction style: {}", style, arg[3]);
 
   use_history = restart_peratom = 1;
   if (pairstyle == HOOKE) use_history = restart_peratom = 0;

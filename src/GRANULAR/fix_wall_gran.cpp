@@ -55,7 +55,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), idregion(nullptr), tstr(nullptr), history_one(nullptr),
   fix_rigid(nullptr), mass_rigid(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix wall/gran", error);
 
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix wall/gran requires atom style sphere");
@@ -110,7 +110,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         model->limit_damping = 1;
         iarg += 1;
       } else {
-        error->all(FLERR, "Illegal fix wall/gran command");
+        error->all(FLERR, "Unknown fix wall/gran keyword {}", arg[iarg]);
       }
     }
   }
@@ -281,8 +281,8 @@ FixWallGran::~FixWallGran()
   // delete local storage
 
   delete model;
-  delete [] tstr;
-  delete [] idregion;
+  delete[] tstr;
+  delete[] idregion;
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
 }

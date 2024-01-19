@@ -39,8 +39,7 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-enum{NONE,RLINEAR,RSQ};
-
+enum { NONE, RLINEAR, RSQ };
 static constexpr int MAXLINE = 1024;
 
 static const char cite_pair_multi_lucy[] =

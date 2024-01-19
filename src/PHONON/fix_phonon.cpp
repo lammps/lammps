@@ -47,7 +47,7 @@ using namespace FixConst;
 
 static constexpr int MAXLINE = 512;
 
-enum{FORWARD=-1,BACKWARD=1};
+enum{ FORWARD=-1, BACKWARD=1 };
 
 static const char cite_fix_phonon[] =
   "fix phonon command: doi:10.1016/j.cpc.2011.04.019\n\n"

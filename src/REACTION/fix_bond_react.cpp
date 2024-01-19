@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
 LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 https://www.lammps.org/, Sandia National Laboratories
@@ -58,26 +57,26 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
-  "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, doi:10.1021/acs.macromol.0c02012\n\n"
-  "@Article{Gissinger17,\n"
-  " author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},\n"
-  " title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},\n"
-  " journal = {Polymer},\n"
-  " year =    2017,\n"
-  " volume =  128,\n"
-  " pages =   {211--217}\n"
-  "}\n\n"
-  "@Article{Gissinger20,\n"
-  " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
-  " title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},\n"
-  " journal = {Macromolecules},\n"
-  " year =    2020,\n"
-  " volume =  53,\n"
-  " number =  22,\n"
-  " pages =   {9953--9961}\n"
-  "}\n\n";
-
     "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, "
+    "doi:10.1021/acs.macromol.0c02012\n\n"
+    "@Article{Gissinger17,\n"
+    " author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},\n"
+    " title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},\n"
+    " journal = {Polymer},\n"
+    " year =    2017,\n"
+    " volume =  128,\n"
+    " pages =   {211--217}\n"
+    "}\n\n"
+    "@Article{Gissinger20,\n"
+    " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
+    " title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},\n"
+    " journal = {Macromolecules},\n"
+    " year =    2020,\n"
+    " volume =  53,\n"
+    " number =  22,\n"
+    " pages =   {9953--9961}\n"
+    "}\n\n";
+
 static constexpr double BIG = 1.0e20;
 static constexpr int DELTA = 16;
 static constexpr int MAXGUESS = 20;      // max # of guesses allowed by superimpose algorithm
@@ -91,24 +90,25 @@ static constexpr int NUMVARVALS = 5;     // max # of keyword values that have va
 // CONTINUE: a neighbor has been assigned, skip to next neighbor
 // GUESSFAIL: a guess has failed (if no more restore points, status = 'REJECT')
 // RESTORE: restore mode, load most recent restore point
-enum{ACCEPT,REJECT,PROCEED,CONTINUE,GUESSFAIL,RESTORE};
+enum { ACCEPT, REJECT, PROCEED, CONTINUE, GUESSFAIL, RESTORE };
 
 // types of available reaction constraints
-enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD,CUSTOM};
+enum { DISTANCE, ANGLE, DIHEDRAL, ARRHENIUS, RMSD, CUSTOM };
 
 // ID type used by constraint
-enum{ATOM,FRAG};
+enum { ATOM, FRAG };
 
 // keyword values that accept variables as input
-enum{NEVERY,RMIN,RMAX,PROB,NRATE};
+enum { NEVERY, RMIN, RMAX, PROB, NRATE };
 
 // flag for one-proc vs shared reaction sites
-enum{LOCAL,GLOBAL};
+enum { LOCAL, GLOBAL };
 
 // values for molecule_keyword
-enum{OFF,INTER,INTRA};
+enum { OFF, INTER, INTRA };
 
 /* ---------------------------------------------------------------------- */
+// clang-format off
 
 FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)

@@ -38,8 +38,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathSpecial;
 
-enum{NONE,HARMONIC};
-enum{LUCY};
+enum { NONE, HARMONIC };
+enum { LUCY };
 
 static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;

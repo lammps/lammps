@@ -41,7 +41,7 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-enum{NONE,RLINEAR,RSQ};
+enum{ NONE, RLINEAR, RSQ };
 
 static constexpr int MAXLINE = 1024;
 
@@ -488,11 +488,8 @@ void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
   // open file
 
   FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR, "Cannot open file {}: {}",file,utils::getsyserror());
 
   // loop until section found with matching keyword
 

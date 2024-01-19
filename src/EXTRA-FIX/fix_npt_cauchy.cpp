@@ -91,7 +91,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   omega_mass_flag = 0;
   etap_mass_flag = 0;
   flipflag = 1;
-  dipole_flag = 0;
   dlm_flag = 0;
 
   tcomputeflag = 0;
@@ -327,14 +326,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
-      else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
-        dipole_flag = 1;
-        dlm_flag = 1;
-      } else error->all(FLERR,"Illegal fix npt/cauchy command");
-      iarg += 2;
     } else if (strcmp(arg[iarg],"alpha") == 0) {
       alpha = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
@@ -452,13 +443,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix npt/cauchy pressure settings");
-
-  if (dipole_flag) {
-    if (!atom->sphere_flag)
-      error->all(FLERR,"Using update dipole flag requires atom style sphere");
-    if (!atom->mu_flag)
-      error->all(FLERR,"Using update dipole flag requires atom attribute mu");
-  }
 
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||

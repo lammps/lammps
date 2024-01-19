@@ -32,10 +32,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-// same as fix_wall.cpp
-
-enum{EDGE,CONSTANT,VARIABLE};
-
 /* ---------------------------------------------------------------------- */
 
 PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *_lmp) :
@@ -74,7 +70,7 @@ void PairLubricatePolyOMP::compute(int eflag, int vflag)
          for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE) {
+           if (wallfix->xstyle[m] == FixWall::VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];

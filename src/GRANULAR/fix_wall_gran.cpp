@@ -57,8 +57,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix wall/gran requires atom style sphere");
+  if (!atom->omega_flag) error->all(FLERR,"Fix wall/gran requires atom attribute omega");
+  if (!atom->radius_flag) error->all(FLERR,"Fix wall/gran requires atom attribute radius");
 
   create_attribute = 1;
 

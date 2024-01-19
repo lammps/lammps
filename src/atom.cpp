@@ -619,7 +619,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   labelmapflag = 0;
-  sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   quat_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;

@@ -442,10 +442,16 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Invalid fix {} pressure settings", style);
 
   if (dipole_flag) {
-    if (!atom->sphere_flag)
-      error->all(FLERR,"Using update dipole flag requires atom style sphere");
-    if (!atom->mu_flag)
-      error->all(FLERR,"Using update dipole flag requires atom attribute mu");
+    if (strstr(style, "/sphere")) {
+      if (!atom->omega_flag)
+        error->all(FLERR,"Using update dipole flag requires atom attribute omega");
+      if (!atom->radius_flag)
+        error->all(FLERR,"Using update dipole flag requires atom attribute radius");
+      if (!atom->mu_flag)
+        error->all(FLERR,"Using update dipole flag requires atom attribute mu");
+    } else {
+      error->all(FLERR, "Must use a '/sphere' Nose-Hoover fix style for updating dipoles");
+    }
   }
 
   if ((tstat_flag && t_period <= 0.0) ||

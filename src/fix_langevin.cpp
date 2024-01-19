@@ -240,8 +240,10 @@ void FixLangevin::init()
     if (flag) error->all(FLERR, "Fix langevin gjf should come before fix nve");
   }
 
-  if (oflag && !atom->sphere_flag)
-    error->all(FLERR, "Fix langevin omega requires atom style sphere");
+  if (oflag && !atom->omega_flag)
+    error->all(FLERR, "Fix langevin omega requires atom attribute omega");
+  if (oflag && !atom->radius_flag)
+    error->all(FLERR, "Fix langevin omega requires atom attribute radius");
   if (ascale && !atom->ellipsoid_flag)
     error->all(FLERR, "Fix langevin angmom requires atom style ellipsoid");
 

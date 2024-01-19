@@ -52,7 +52,7 @@ FixNVEBPMSphere::FixNVEBPMSphere(LAMMPS *_lmp, int narg, char **arg) : FixNVE(_l
 
   // error checks
 
-  if (!atom->quat_flag || !atom->sphere_flag)
+  if (!atom->quat_flag || !atom->radius_flag || !atom->omega_flag)
     error->all(FLERR, "Fix nve/bpm/sphere requires atom style bpm/sphere");
 }
 

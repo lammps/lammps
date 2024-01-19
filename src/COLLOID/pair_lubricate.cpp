@@ -531,8 +531,10 @@ void PairLubricate::coeff(int narg, char **arg)
 
 void PairLubricate::init_style()
 {
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair lubricate requires atom style sphere");
+  if (!atom->omega_flag)
+    error->all(FLERR,"Pair lubricate requires atom attribute omega");
+  if (!atom->radius_flag)
+    error->all(FLERR,"Pair lubricate requires atom attribute radius");
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair lubricate requires ghost atoms store velocity");
 

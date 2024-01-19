@@ -266,13 +266,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix bocs on a non-periodic dimension");
 
-  if (dipole_flag) {
-    if (!atom->sphere_flag)
-      error->all(FLERR,"Using update dipole flag requires atom style sphere");
-    if (!atom->mu_flag)
-      error->all(FLERR,"Using update dipole flag requires atom attribute mu");
-  }
-
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||

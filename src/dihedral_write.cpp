@@ -148,7 +148,7 @@ void DihedralWrite::command(int narg, char **arg)
     writer->input->one("mass * 1.0");
     writer->input->one(fmt::format("dihedral_style {}", force->dihedral_style));
     FILE *coeffs;
-    char line[MAXLINE];
+    char line[MAXLINE] = {'\0'};
     coeffs = fopen(coeffs_file.c_str(), "r");
     for (int i = 0; i < atom->ndihedraltypes; ++i) {
       fgets(line, MAXLINE, coeffs);

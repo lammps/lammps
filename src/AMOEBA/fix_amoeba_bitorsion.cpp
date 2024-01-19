@@ -724,7 +724,7 @@ double FixAmoebaBiTorsion::compute_scalar()
 
 void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   char *eof;
 
   FILE *fp = nullptr;

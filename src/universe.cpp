@@ -69,7 +69,7 @@ Universe::~Universe()
 
 void Universe::reorder(char *style, char *arg)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   if (uworld != uorig) MPI_Comm_free(&uworld);
 

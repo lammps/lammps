@@ -3922,7 +3922,8 @@ read map file
 void FixBondReact::read_map_file(int myrxn)
 {
   int rv;
-  char line[MAXLINE],keyword[MAXLINE];
+  char line[MAXLINE] = {'\0'};
+  char keyword[MAXLINE] = {'\0'};
   char *eof,*ptr;
 
   // skip 1st line of file

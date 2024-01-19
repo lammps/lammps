@@ -555,7 +555,7 @@ void FixPhonon::readmap()
   }
 
   // read from map file for others
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   FILE *fp = fopen(mapfile, "r");
   if (fp == nullptr)
     error->all(FLERR,"Cannot open input map file {}: {}", mapfile, utils::getsyserror());

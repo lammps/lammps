@@ -416,7 +416,7 @@ void Molecule::compute_inertia()
 
 void Molecule::read(int flag)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   char *eof;
 
   // skip 1st line of file
@@ -2134,7 +2134,7 @@ void Molecule::readline(char *line)
 
 std::string Molecule::parse_keyword(int flag, char *line)
 {
-  char line2[MAXLINE];
+  char line2[MAXLINE] = {'\0'};
   if (flag) {
 
     // read upto non-blank line plus 1 following line

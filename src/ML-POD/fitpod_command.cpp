@@ -150,7 +150,8 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
 
   // loop through lines of training data file and parse keywords
 
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
   while (true) {
     if (comm->me == 0) {
@@ -251,7 +252,8 @@ int FitPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, 
       error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
   }
 
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
   int num_configs = 0;
   num_atom_sum = 0;
@@ -323,7 +325,8 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
       error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
   }
 
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
   int cfi = 0;
   int nat = 0;

@@ -79,7 +79,7 @@ void PairAmoeba::read_prmfile(char *filename)
 
   int me = comm->me;
   FILE *fptr;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   if (me == 0) {
     fptr = utils::open_potential(filename, lmp, nullptr);
@@ -179,8 +179,7 @@ void PairAmoeba::read_prmfile(char *filename)
       for (int i = 1; i <= n_amtype; i++) nmultiframe[i] = 0;
     }
 
-    char next[MAXLINE];
-    next[0] = '\0';
+    char next[MAXLINE] = {'\0'};
     bool has_next = false;
     int n;
     while (true) {
@@ -381,7 +380,7 @@ void PairAmoeba::read_keyfile(char *filename)
 
   int me = comm->me;
   FILE *fptr;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   if (me == 0) {
     fptr = utils::open_potential(filename, lmp, nullptr);
     if (fptr == nullptr)

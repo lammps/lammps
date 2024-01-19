@@ -437,7 +437,7 @@ void NEB::readfile(char *file, int flag)
   int i, nchunk, eofflag, nlines;
   tagint tag;
   char *eof, *start, *next, *buf;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   double delx, dely, delz;
 
   if (me_universe == 0 && universe->uscreen)

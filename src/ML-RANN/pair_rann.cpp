@@ -616,7 +616,8 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
 
 void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp,char *filename,int *linenum) {
   int i,j,l;
-  char linetemp[MAXLINE],*ptr;
+  char linetemp[MAXLINE] = {'\0'};
+  char *ptr;
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
       if (net[l].layers==0)error->one(filename,*linenum-1,"networklayers must be defined before biases.");

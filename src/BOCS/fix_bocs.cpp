@@ -616,8 +616,8 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     // Data file lines hold two floating point numbers.
     // Line length we allocate should be long enough without being too long.
     // 128 seems safe for a line we expect to be < 30 chars.
-    const int MAX_F_TABLE_LINE_LENGTH = 128;
-    char line[MAX_F_TABLE_LINE_LENGTH];
+    constexpr int MAX_F_TABLE_LINE_LENGTH = 128;
+    char line[MAX_F_TABLE_LINE_LENGTH] = {'\0'};
     std::vector<std::string> inputLines;
     while (fgets(line, MAX_F_TABLE_LINE_LENGTH, fpi)) {
       inputLines.emplace_back(line);

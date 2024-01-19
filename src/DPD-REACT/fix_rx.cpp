@@ -250,7 +250,8 @@ void FixRX::post_constructor()
   // Assign species names to tmpspecies array and determine the number of unique species
 
   int n;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
   char * word;
 
@@ -784,7 +785,8 @@ void FixRX::read_file(char *file)
   // Count the number of reactions from kinetics file
 
   int n,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {

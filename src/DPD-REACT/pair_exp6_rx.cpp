@@ -728,7 +728,8 @@ void PairExp6rx::read_file(char *file)
   // one set of params can span multiple lines
 
   int n,nwords,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {
@@ -835,7 +836,8 @@ void PairExp6rx::read_file2(char *file)
 
   // one set of params can span multiple lines
   int n,nwords;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {

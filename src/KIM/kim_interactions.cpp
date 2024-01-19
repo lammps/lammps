@@ -281,7 +281,8 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
     if (fp == nullptr) error->one(FLERR, "Parameter file {} not found", filename);
   }
 
-  char line[MAXLINE], *ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int n, eof = 0;
 
   while (true) {

@@ -375,7 +375,7 @@ void NEBSpin::readfile(char *file, int flag)
   int i,nchunk,eofflag,nlines;
   tagint tag;
   char *eof,*start,*next,*buf;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   double musp,xx,yy,zz,spx,spy,spz;
 
   if (me_universe == 0 && universe->uscreen)

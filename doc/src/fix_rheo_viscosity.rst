@@ -8,16 +8,16 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo/viscosity vstyle args
+   fix ID group-ID rheo/viscosity types style args ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo/viscosity = style name of this fix command
-* vstyle = *constant* or *type* or *power*
+* types = lists of types (see below)
+* style = *constant* or *power*
 
   .. parsed-literal::
 
-       *constant* arg = viscosity (mass/(length*time))
-       *type* args = list of viscosity values, one per atom type (mass/(length*time))
+       *constant* args = viscosity (mass/(length*time))
        *power* args = *eta* *gd0* *K* *npow* *tau0*
          *eta* = (units)
          *gd0* = (units)
@@ -30,8 +30,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all rheo/viscosity constant 1.0
-   fix 1 all rheo/viscosity power 0.1 1e-2 0.5 0.01
+   fix 1 all rheo/viscosity * constant 1.0
+   fix 1 all rheo/viscosity 1 constant 1.0 2 power 0.1 1e-2 0.5 0.01
 
 Description
 """""""""""

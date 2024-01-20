@@ -8,11 +8,12 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo/pressure pstyle args
+   fix ID group-ID rheo/pressure style args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo/pressure = style name of this fix command
-* pstyle = *linear* or *taitwater* or *cubic*
+* types = lists of types (see below)
+* style = *linear* or *taitwater* or *cubic*
 
   .. parsed-literal::
 
@@ -25,8 +26,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all rheo/pressure linear
-   fix 1 all rheo/pressure cubic 10.0
+   fix 1 all rheo/pressure * linear
+   fix 1 all rheo/pressure 1 linear 2 cubic 10.0
 
 Description
 """""""""""

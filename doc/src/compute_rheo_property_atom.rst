@@ -17,11 +17,13 @@ Syntax
   .. parsed-literal::
 
        possible attributes = phase, chi, surface, surface/r,
-                             surface/divr, surface/nx, surface/ny,
-                             surface/nz, coordination, cv, shift/vx,
-                             shift/vy, shift/vz, temperature, heatflow,
-                             conductivity, viscosity, pressure, status,
-                             rho
+                             surface/divr, surface/n/x, surface/n/y,
+                             surface/n/z, coordination, cv, shift/v/x,
+                             shift/v/y, shift/v/z, energy, temperature, heatflow,
+                             conductivity, cv, viscosity, pressure,
+                             status, rho, grad/v/xx, grad/v/xy, grad/v/xz,
+                             grad/v/yx, grad/v/yy/, grad/v/yz, grad/v/zx,
+                             grad/v/zy, grad/v/zz
 
   .. parsed-literal::
 
@@ -30,16 +32,19 @@ Syntax
            *surface* = atom surface status
            *surface/r* = atom distance from the surface
            *surface/divr* = divergence of position at atom position
-           *surface/nx,  surface/ny, surface/nz* = surface normal vector
+           *surface/n/\** = surface normal vector
            *coordination* = coordination number
-           *shift/vx, shift/vy, shift/vz* = atom shifting velocity
+           *shift/v/\** = atom shifting velocity
+           *energy* = atom energy
            *temperature* = atom temperature
            *heatflow* = atom heat flow
            *conductivity* = atom conductivity
+           *cv* = atom specific heat
            *viscosity* = atom viscosity
            *pressure* = atom pressure
            *status* = atom full status
            *rho* = atom density
+           *grad/v/\** = atom velocity gradient
 
 Examples
 """"""""

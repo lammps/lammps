@@ -1,6 +1,6 @@
-.. index:: pair_style rheo
+.. index:: pair_style rheo/solid
 
-pair_style rheo command
+pair_style rheo/solid command
 =========================
 
 Syntax
@@ -8,34 +8,24 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style rheo cutoff keyword values
-
-* cutoff = global cutoff for kernel (distance units)
-* zero or more keyword/value pairs may be appended to args
-* keyword = *rho/damp* or *artificial/visc* or *harmonic/means*
-
-.. parsed-literal::
-
-     *rho/damp* args = density damping prefactor :math:`\xi` (units?)
-     *artificial/visc* args = artificial viscosity prefactor :math:`\zeta` (units?)
-     *harmonic/means* args = none
+   pair_style rheo/solid
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style rheo 1.0 quintic rho/damp 1.0 artificial/visc 2.0
-   pair_coeff * *
+   pair_style rheo/solid
+   pair_coeff * * 1.0 1.5 1.0
 
 Description
 """""""""""
 
 pair style...
 
-No coefficients are defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples
-above.
+* :math:`k` (force/distance units)
+* :math:`\sigma` (distance units)
+* :math:`\gamma` (force/velocity units)
 
 ----------
 
@@ -60,12 +50,9 @@ Related commands
 """"""""""""""""
 
 :doc:`fix rheo <fix_rheo>`,
-:doc:`fix rheo/pressure <fix_rheo_pressure>`,
-:doc:`fix rheo/thermal <fix_rheo_thermal>`,
-:doc:`fix rheo/viscosity <fix_rheo_viscosity>`,
-:doc:`compute rheo/property/atom <compute_rheo_property_atom>`
+:doc:`pair bpm/spring <pair_bpm_spring>`,
 
 Default
 """""""
 
-Density damping and artificial viscous forces are not calculated. Arithmetic means are used for mixing particle properties.
+none

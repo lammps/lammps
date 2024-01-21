@@ -276,6 +276,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
       citeflag = 0;
+      inflag = 1;               // skip inflag check
+      infile = stdin;           // and corresponding warning
       iarg += 1;
 
     } else if (strcmp(arg[iarg],"-in") == 0 ||
@@ -385,6 +387,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                             "Cannot use both -restart2data and -restart2dump");
       restart2data = 1;
       restartfile = arg[iarg+1];
+      inflag = 1;                // skip inflag check
+      infile = stdin;            // and corresponding warning
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
@@ -407,6 +411,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                             "Cannot use both -restart2data and -restart2dump");
       restart2dump = 1;
       restartfile = arg[iarg+1];
+      inflag = 1;                // skip inflag check
+      infile = stdin;            // and corresponding warning
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)

@@ -276,8 +276,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
       citeflag = 0;
-      inflag = 1;               // skip inflag check
-      infile = stdin;           // and corresponding warning
+      inflag = -1;              // skip inflag check
       iarg += 1;
 
     } else if (strcmp(arg[iarg],"-in") == 0 ||
@@ -387,8 +386,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                             "Cannot use both -restart2data and -restart2dump");
       restart2data = 1;
       restartfile = arg[iarg+1];
-      inflag = 1;                // skip inflag check
-      infile = stdin;            // and corresponding warning
+      inflag = -1;               // skip inflag check
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
@@ -411,8 +409,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                             "Cannot use both -restart2data and -restart2dump");
       restart2dump = 1;
       restartfile = arg[iarg+1];
-      inflag = 1;                // skip inflag check
-      infile = stdin;            // and corresponding warning
+      inflag = -1;               // skip inflag check
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
@@ -541,7 +538,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     world = universe->uworld;
 
     if (universe->me == 0) {
-      if (inflag == 0) infile = stdin;
+      if (inflag <= 0) infile = stdin;
       else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)

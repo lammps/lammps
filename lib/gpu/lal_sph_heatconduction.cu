@@ -238,7 +238,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
           // Lucy Kernel, 2d
           wfd = (numtyp)-19.098593171027440292 * wfd * wfd * ihsq * ihsq * ihsq;
         }
-        
+
         // total thermal energy increment
         numtyp D = coeffx; // alpha[itype][jtype]  diffusion coefficient
         numtyp deltaE = (numtyp)2.0 * mass_itype * mass_jtype / (mass_itype + mass_jtype);

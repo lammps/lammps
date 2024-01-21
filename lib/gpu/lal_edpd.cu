@@ -324,8 +324,8 @@ __kernel void k_edpd(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         // heat transfer
-        
-        if (r < coeff2w) {  
+
+        if (r < coeff2w) {
           numtyp wrT = (numtyp)1.0 - r/coeff2w;
           wrT = MAX((numtyp)0.0,MIN((numtyp)1.0,wrT));
           wrT = ucl_pow(wrT, (numtyp)0.5*coeff2z); // powerT[itype][jtype]
@@ -565,7 +565,7 @@ __kernel void k_edpd_fast(const __global numtyp4 *restrict x_,
 
         // heat transfer
 
-        if (r < coeff2w) {  
+        if (r < coeff2w) {
           numtyp wrT = (numtyp)1.0 - r/coeff2w;
           wrT = MAX((numtyp)0.0,MIN((numtyp)1.0,wrT));
           wrT = ucl_pow(wrT, (numtyp)0.5*coeff2z); // powerT[itype][jtype]
@@ -579,10 +579,10 @@ __kernel void k_edpd_fast(const __global numtyp4 *restrict x_,
             factor += kcx*T_pow.x +  kcy*T_pow.y + kcz*T_pow.z + kcw*T_pow.w;
             kappaT *= factor;
           }
-          
+
           numtyp kij = cvi*cvj*kappaT * T_ij*T_ij;
           numtyp alphaij = ucl_sqrt((numtyp)2.0*kboltz*kij);
-         
+
           numtyp dQc = kij * wrT*wrT * (Tj - Ti )/(Ti*Tj);
           numtyp dQd = wr*wr*( GammaIJ * vijeij*vijeij - SigmaIJ*SigmaIJ/mass_itype ) - SigmaIJ * wr *vijeij *randnum;
           dQd /= (cvi+cvj);

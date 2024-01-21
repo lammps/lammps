@@ -1768,7 +1768,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (refreshflag) error->all(FLERR,"Dump_modify can only have one refresh");
 
     refreshflag = 1;
-    refresh = argi.copy_name();
+    idrefresh = argi.copy_name();
     return 2;
   }
 

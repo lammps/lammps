@@ -1225,7 +1225,9 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
+#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_charge();
+#endif
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
@@ -1410,7 +1412,9 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
+#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_charge();
+#endif
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;

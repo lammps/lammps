@@ -501,7 +501,7 @@ void Neighbor::init()
   // fixchecklist = other classes that can induce reneighboring in decide()
 
   fixchecklist.clear();
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (ifix->force_reneighbor) {
       fixchecklist.push_back(ifix);
       must_check = 1;
@@ -1596,10 +1596,16 @@ void Neighbor::init_topology()
 
   int bond_off = 0;
   int angle_off = 0;
-  for (i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^shake")
-        || utils::strmatch(modify->fix[i]->style,"^rattle"))
+  int dihedral_off = 0;
+  int improper_off = 0;
+
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle"))
       bond_off = angle_off = 1;
+    if (utils::strmatch(ifix->style,"gcmc"))
+      bond_off = angle_off = dihedral_off = improper_off = 1;
+  }
+
   if (force->bond)
     if (force->bond->partial_flag)
       bond_off = 1;
@@ -1620,7 +1626,6 @@ void Neighbor::init_topology()
     }
   }
 
-  int dihedral_off = 0;
   if (atom->avec->dihedrals_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (dihedral_off) break;
@@ -1629,7 +1634,6 @@ void Neighbor::init_topology()
     }
   }
 
-  int improper_off = 0;
   if (atom->avec->impropers_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (improper_off) break;
@@ -1637,10 +1641,6 @@ void Neighbor::init_topology()
         if (atom->improper_type[i][m] <= 0) improper_off = 1;
     }
   }
-
-  for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
-      bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs
 

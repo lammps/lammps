@@ -38,13 +38,8 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#ifdef FFT_SINGLE
-static constexpr FFT_SCALAR ZEROF = 0.0f;
-static constexpr FFT_SCALAR ONEF =  1.0f;
-#else
 static constexpr FFT_SCALAR ZEROF = 0.0;
 static constexpr FFT_SCALAR ONEF =  1.0;
-#endif
 
 #define EPS_HOC 1.0e-7
 

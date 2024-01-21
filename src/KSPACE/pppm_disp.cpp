@@ -55,13 +55,8 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
      FORWARD_IK_NONE,FORWARD_AD_NONE,FORWARD_IK_PERATOM_NONE,
      FORWARD_AD_PERATOM_NONE};
 
-#ifdef FFT_SINGLE
-static constexpr FFT_SCALAR ZEROF = 0.0f;
-static constexpr FFT_SCALAR ONEF =  1.0f;
-#else
 static constexpr FFT_SCALAR ZEROF = 0.0;
 static constexpr FFT_SCALAR ONEF =  1.0;
-#endif
 
 /* ---------------------------------------------------------------------- */
 

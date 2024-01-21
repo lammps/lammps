@@ -37,12 +37,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#ifdef FFT_SINGLE
-static constexpr FFT_SCALAR ZEROF = 0.0f;
-#else
 static constexpr FFT_SCALAR ZEROF = 0.0;
-#endif
-
 #define OFFSET 16384
 
 /* ---------------------------------------------------------------------- */

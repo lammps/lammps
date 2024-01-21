@@ -44,13 +44,8 @@ static constexpr double SMALL = 0.00001;
 enum{REVERSE_MU};
 enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
-#ifdef FFT_SINGLE
-static constexpr FFT_SCALAR ZEROF = 0.0f;
-static constexpr FFT_SCALAR ONEF =  1.0f;
-#else
 static constexpr FFT_SCALAR ZEROF = 0.0;
 static constexpr FFT_SCALAR ONEF =  1.0;
-#endif
 
 /* ---------------------------------------------------------------------- */
 

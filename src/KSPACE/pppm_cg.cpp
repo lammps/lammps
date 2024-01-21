@@ -40,11 +40,7 @@ static constexpr double SMALLQ = 0.00001;
 enum{REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
-#ifdef FFT_SINGLE
-static constexpr FFT_SCALAR ZEROF = 0.0f;
-#else
 static constexpr FFT_SCALAR ZEROF = 0.0;
-#endif
 
 /* ---------------------------------------------------------------------- */
 

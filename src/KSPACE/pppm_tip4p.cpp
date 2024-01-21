@@ -29,15 +29,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define OFFSET 16384
-
-#ifdef FFT_SINGLE
-static constexpr FFT_SCALAR ZEROF = 0.0f;
-static constexpr FFT_SCALAR ONEF =  1.0f;
-#else
 static constexpr FFT_SCALAR ZEROF = 0.0;
 static constexpr FFT_SCALAR ONEF =  1.0;
-#endif
+#define OFFSET 16384
 
 /* ---------------------------------------------------------------------- */
 

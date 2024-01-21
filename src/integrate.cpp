@@ -107,7 +107,8 @@ void Integrate::ev_set(bigint ntimestep)
 
   flag = 0;
   int eflag_global = 0;
-  for (auto &icompute : elist_global) icompute->matchstep(ntimestep);
+  for (auto &icompute : elist_global)
+    if (icompute->matchstep(ntimestep)) flag = 1;
   if (flag) eflag_global = ENERGY_GLOBAL;
 
   flag = 0;

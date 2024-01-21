@@ -122,9 +122,7 @@ void FixNHAsphere::nve_x()
       shape = bonus[ellipsoid[i]].shape;
       quat = bonus[ellipsoid[i]].quat;
 
-      inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
-      inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
-      inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration

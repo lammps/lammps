@@ -110,10 +110,7 @@ double ComputeERotateAsphere::compute_scalar()
         quat = ebonus[ellipsoid[i]].quat;
 
         // principal moments of inertia
-
-        inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
-        inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
-        inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+        MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
         // wbody = angular velocity in body frame
 

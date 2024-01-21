@@ -26,8 +26,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
-
 /* ---------------------------------------------------------------------- */
 
 FixNVEDot::FixNVEDot(LAMMPS *lmp, int narg, char **arg) :
@@ -113,9 +111,7 @@ void FixNVEDot::initial_integrate(int /*vflag*/)
       conjqm[3] += dt * fquat[3];
 
       // principal moments of inertia
-      inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-      inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-      inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
       // rotate quaternion and quaternion 4-momentum by full step
       no_squish_rotate(3,conjqm,quat,inertia,dthlf);

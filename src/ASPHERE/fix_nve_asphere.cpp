@@ -26,8 +26,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
-
 /* ---------------------------------------------------------------------- */
 
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
@@ -101,9 +99,7 @@ void FixNVEAsphere::initial_integrate(int /*vflag*/)
       shape = bonus[ellipsoid[i]].shape;
       quat = bonus[ellipsoid[i]].quat;
 
-      inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-      inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-      inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration

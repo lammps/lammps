@@ -787,9 +787,7 @@ void FixRigidNHOMP::set_xv_thr()
         quatatom = ebonus[ellipsoid[i]].quat;
         MathExtra::quatquat(quat[ibody],orient[i],quatatom);
         MathExtra::qnormalize(quatatom);
-        ione[0] = EINERTIA*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
-        ione[1] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
-        ione[2] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
+        MathExtra::inertia_ellipsoid_principal(shape, rmass[i], ione);
         MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
         MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
                                    angmom_one[i]);
@@ -971,9 +969,7 @@ void FixRigidNHOMP::set_v_thr()
       } else if (eflags[i] & ELLIPSOID) {
         shape = ebonus[ellipsoid[i]].shape;
         quatatom = ebonus[ellipsoid[i]].quat;
-        ione[0] = EINERTIA*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
-        ione[1] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
-        ione[2] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
+        MathExtra::inertia_ellipsoid_principal(shape, rmass[i], ione);
         MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
         MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
                                    angmom_one[i]);

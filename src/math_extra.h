@@ -114,7 +114,8 @@ void BuildRyMatrix(double R[3][3], const double angle);
 void BuildRzMatrix(double R[3][3], const double angle);
 
 // moment of inertia operations
-
+void inertia_ellipsoid_principal(double *shape, double mass, double *inertia,
+                                 double *block = nullptr, bool flag_super = false);
 void inertia_ellipsoid(double *shape, double *quat, double mass, double *inertia,
                        double *block = nullptr, bool flag_super = false);
 void inertia_line(double length, double theta, double mass, double *inertia);

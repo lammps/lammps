@@ -33,8 +33,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
-
 /* ---------------------------------------------------------------------- */
 
 FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
@@ -188,9 +186,7 @@ void FixNVEDotcLangevin::initial_integrate(int /*vflag*/)
       conjqm[3] += dt * fquat[3];
 
       // principal moments of inertia
-      inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-      inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-      inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
       M = inertia[0]*inertia[1]*inertia[2];
       M /= inertia[1]*inertia[2]+inertia[0]*inertia[2]+inertia[0]*inertia[1];

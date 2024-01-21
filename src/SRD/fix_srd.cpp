@@ -52,8 +52,6 @@ enum { BIG_MOVE, SRD_MOVE, SRD_ROTATE };
 enum { CUBIC_ERROR, CUBIC_WARN };
 enum { SHIFT_NO, SHIFT_YES, SHIFT_POSSIBLE };
 
-#define EINERTIA 0.2    // moment of inertia prefactor for ellipsoid
-
 #define ATOMPERBIN 30
 #define BIG 1.0e20
 #define VBINSIZE 5
@@ -2964,9 +2962,7 @@ void FixSRD::big_dynamic()
       quat = ebonus[ellipsoid[i]].quat;
       MathExtra::q_to_exyz(quat, biglist[k].ex, biglist[k].ey, biglist[k].ez);
       shape = ebonus[ellipsoid[i]].shape;
-      inertiaone[0] = EINERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
-      inertiaone[1] = EINERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
-      inertiaone[2] = EINERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
+      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertiaone);
       MathExtra::angmom_to_omega(angmom[i], biglist[k].ex, biglist[k].ey, biglist[k].ez, inertiaone,
                                  biglist[k].omega);
 

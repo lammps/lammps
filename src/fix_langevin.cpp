@@ -47,7 +47,6 @@ enum { NOBIAS, BIAS };
 enum { CONSTANT, EQUAL, ATOM };
 
 #define SINERTIA 0.4    // moment of inertia prefactor for sphere
-#define EINERTIA 0.2    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
@@ -888,9 +887,7 @@ void FixLangevin::angmom_thermostat()
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       shape = bonus[ellipsoid[i]].shape;
-      inertia[0] = EINERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-      inertia[1] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-      inertia[2] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
       quat = bonus[ellipsoid[i]].quat;
       MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
 

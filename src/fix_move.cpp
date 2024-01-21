@@ -42,8 +42,6 @@ using namespace MathConst;
 enum { LINEAR, WIGGLE, ROTATE, VARIABLE, TRANSROT };
 enum { EQUAL, ATOM };
 
-#define INERTIA 0.2    // moment of inertia prefactor for ellipsoid
-
 /* ---------------------------------------------------------------------- */
 
 FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
@@ -719,12 +717,7 @@ void FixMove::initial_integrate(int /*vflag*/)
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
               shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
-              inertia_ellipsoid[0] =
-                  INERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
-              inertia_ellipsoid[1] =
-                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
-              inertia_ellipsoid[2] =
-                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
+              MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia_ellipsoid);
               inertia = inertia_ellipsoid;
             } else if (tri_flag && tri[i] >= 0) {
               quat = avec_tri->bonus[tri[i]].quat;
@@ -850,12 +843,7 @@ void FixMove::initial_integrate(int /*vflag*/)
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
               shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
-              inertia_ellipsoid[0] =
-                  INERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
-              inertia_ellipsoid[1] =
-                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
-              inertia_ellipsoid[2] =
-                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
+              MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia_ellipsoid);
               inertia = inertia_ellipsoid;
             } else if (tri_flag && tri[i] >= 0) {
               quat = avec_tri->bonus[tri[i]].quat;

@@ -29,7 +29,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_PI;
+using MathConst::MY_4PI3;
 
 #define EPSBLOCK2 1.0e-3
 
@@ -724,7 +724,7 @@ double AtomVecEllipsoid::compute_radcirc(double *shape, double *block, bool flag
 
 double AtomVecEllipsoid::compute_volume(double *shape, double *block, bool flag_super)
 {
-  double unitvol = 4.0 * MY_PI / 3.0;
+  double unitvol = MY_4PI3;
 
   // super-ellipsoid, Eq. (12) of Jaklic and Solina, 2003, for p = q = r = 0
 

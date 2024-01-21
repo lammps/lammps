@@ -17,8 +17,11 @@
 ------------------------------------------------------------------------- */
 
 #include "math_extra.h"
+#include "math_special.h"
 #include <cstdio>
 #include <cstring>
+
+using namespace LAMMPS_NS;
 
 namespace MathExtra {
 
@@ -453,16 +456,38 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
 ------------------------------------------------------------------------- */
 
 void inertia_ellipsoid(double *radii, double *quat, double mass,
-                       double *inertia)
+                       double *inertia, double *block, bool flag_super)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
   double idiag[3];
+  double rsq0 = radii[0] * radii[0];
+  double rsq1 = radii[1] * radii[1];
+  double rsq2 = radii[2] * radii[2];
 
   quat_to_mat(quat,p);
   quat_to_mat_trans(quat,ptrans);
-  idiag[0] = 0.2*mass * (radii[1]*radii[1] + radii[2]*radii[2]);
-  idiag[1] = 0.2*mass * (radii[0]*radii[0] + radii[2]*radii[2]);
-  idiag[2] = 0.2*mass * (radii[0]*radii[0] + radii[1]*radii[1]);
+
+  if (flag_super) {
+    // super-ellipsoid, Eq. (12) of Jaklic and Solina, 2003
+    double e1 = 2.0 / block[0], e2 = 2.0 / block[1];
+    double dens = mass / (MathSpecial::beta(0.5 * e1, 1.0 + e1) *
+                          MathSpecial::beta(0.5 * e2, 0.5 * e2));
+    double m0 = rsq0 * MathSpecial::beta(0.5 * e1, 1 + 2 * e1) *
+                       MathSpecial::beta(0.5 * e2, 1.5 * e2);
+    double m1 = rsq1 * MathSpecial::beta(0.5 * e1, 1 + 2 * e1) *
+                       MathSpecial::beta(1.5 * e2, 0.5 * e2);
+    double m2 = rsq2 * MathSpecial::beta(1.5 * e1, 1 + e1) *
+                       MathSpecial::beta(0.5 * e2, 0.5 * e2);
+    idiag[0] = dens * (m1 + m2);
+    idiag[1] = dens * (m0 + m2);
+    idiag[2] = dens * (m0 + m1);
+  }
+  else {
+    idiag[0] = 0.2*mass * (rsq1 + rsq2);
+    idiag[1] = 0.2*mass * (rsq0 + rsq2);
+    idiag[2] = 0.2*mass * (rsq0 + rsq1);
+  }
+
   diag_times3(idiag,ptrans,itemp);
   times3(p,itemp,tensor);
   inertia[0] = tensor[0][0];

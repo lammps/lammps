@@ -216,21 +216,21 @@ void Dump::init()
     index = proclist = nullptr;
     irregular = nullptr;
     if ((has_id == 0) && (me == 0))
-      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
-                     "post-processing tasks or visualization", id);
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. "
+                     "This may complicate post-processing tasks or visualization", id);
   }
 
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot sort dump when 'nfile' or 'fileper' keywords are set to non-default values");
+                 "Cannot sort dump when 'nfile' or 'fileper' keywords have non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR,"Cannot sort dump on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
-      error->all(FLERR,"Dump sort column is invalid");
+      error->all(FLERR,"Dump sort column index {} is invalid", sortcol);
     if ((sortcol != 0) && (has_id == 0) && (me == 0))
-      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
-                     "post-processing tasks or visualization", id);
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. "
+                     "This may complicate post-processing tasks or visualization", id);
     if (nprocs > 1 && irregular == nullptr)
       irregular = new Irregular(lmp);
 

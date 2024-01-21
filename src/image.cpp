@@ -46,7 +46,7 @@ using MathConst::MY_PI4;
 
 #define NCOLORS 140
 #define NELEMENTS 109
-#define EPSILON 1.0e-6
+static constexpr double EPSILON = 1.0e-6;
 
 enum{NUMERIC,MINVALUE,MAXVALUE};
 enum{CONTINUOUS,DISCRETE,SEQUENTIAL};

@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace FixConst;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 #define MASSDELTA 0.1
 
 static const char cite_filter_corotate[] =

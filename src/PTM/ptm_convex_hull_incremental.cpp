@@ -20,7 +20,7 @@ namespace ptm {
 #define VISIBLE 1
 #define INVISIBLE 2
 #define BOTH 3
-#define TOLERANCE 1E-8
+static constexpr double TOLERANCE = 1E-8;
 
 static double norm_squared(double *p)
 {

@@ -50,7 +50,7 @@ using namespace MathConst;
 
 #define VARDELTA 4
 #define MAXLEVEL 4
-#define MAXLINE 256
+static constexpr int MAXLINE = 256;
 #define CHUNK 1024
 #define MAXFUNCARG 6
 

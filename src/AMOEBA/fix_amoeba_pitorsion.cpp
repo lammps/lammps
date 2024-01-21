@@ -34,7 +34,7 @@ using namespace MathConst;
 
 #define PITORSIONMAX 6   // max # of PiTorsion terms stored by one atom
 #define LISTDELTA 8196
-#define LB_FACTOR 1.5
+static constexpr double LB_FACTOR = 1.5;
 
 /* ---------------------------------------------------------------------- */
 

@@ -20,11 +20,10 @@
 
 using namespace LAMMPS_NS;
 
-#define BUFFACTOR 1.5
-#define BUFFACTOR 1.5
-#define BUFMIN 1000
-#define BUFEXTRA 1000
-#define EPSILON 1.0e-6
+static constexpr double BUFFACTOR = 1.5;
+static constexpr int BUFMIN = 1000;
+static constexpr int BUFEXTRA = 1000;
+static constexpr double EPSILON = 1.0e-6;
 
 #define DELTA_PROCS 16
 

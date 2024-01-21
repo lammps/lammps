@@ -42,7 +42,7 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace MathExtra;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 // XYZ PLANE need to be 0,1,2
 

@@ -52,12 +52,12 @@ enum { BIG_MOVE, SRD_MOVE, SRD_ROTATE };
 enum { CUBIC_ERROR, CUBIC_WARN };
 enum { SHIFT_NO, SHIFT_YES, SHIFT_POSSIBLE };
 
-#define EINERTIA 0.2    // moment of inertia prefactor for ellipsoid
+static constexpr double EINERTIA = 0.2;    // moment of inertia prefactor for ellipsoid
 
 #define ATOMPERBIN 30
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 #define VBINSIZE 5
-#define TOLERANCE 0.00001
+static constexpr double TOLERANCE = 0.00001;
 #define MAXITER 20
 
 static const char cite_fix_srd[] =

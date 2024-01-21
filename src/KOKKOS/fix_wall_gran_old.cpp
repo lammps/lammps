@@ -45,8 +45,8 @@ using namespace MathConst;
 #define THREEQUARTERS 0.75                 // 3/4
 #define TWOPI 6.28318530717959             // 2*PI
 
-#define BIG 1.0e20
-#define EPSILON 1e-10
+static constexpr double BIG = 1.0e20;
+static constexpr double EPSILON = 1e-10;
 
 // XYZ PLANE need to be 0,1,2
 

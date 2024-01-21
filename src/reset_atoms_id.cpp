@@ -39,7 +39,7 @@ static int compare_coords(const int, const int, void *);
 #endif
 
 #define PERBIN 10
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 

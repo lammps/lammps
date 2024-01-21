@@ -39,7 +39,7 @@ using namespace FixConst;
 #define DELTABIAS 16
 #define COEFFINIT 1.0
 #define FCCBONDS 12
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 enum{STRAIN,STRAINDOMAIN,BIASFLAG,BIASCOEFF};
 enum{IGNORE,WARN,ERROR};

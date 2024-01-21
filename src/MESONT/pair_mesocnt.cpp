@@ -43,9 +43,9 @@ using namespace MathExtra;
 using MathConst::MY_2PI;
 using MathConst::MY_PI;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 #define SELF_CUTOFF 3
-#define SMALL 1.0e-6
+static constexpr double SMALL = 1.0e-6;
 #define SWITCH 1.0e-4
 #define RHOMIN 10.0
 

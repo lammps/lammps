@@ -42,7 +42,7 @@ using namespace MathConst;
 
 #define MAXORDER 7
 #define OFFSET 16384
-#define SMALL 0.00001
+static constexpr double SMALL = 0.00001;
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
@@ -50,11 +50,11 @@ enum{REVERSE_RHO_GPU,REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 #ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
+static constexpr FFT_SCALAR ZEROF = 0.0f;
+static constexpr FFT_SCALAR ONEF =  1.0f;
 #else
-#define ZEROF 0.0
-#define ONEF  1.0
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 #endif
 
 // external functions from cuda library for atom decomposition

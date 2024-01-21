@@ -22,8 +22,8 @@
 using namespace LAMMPS_NS;
 
 #define MYHUGE 1.0e30
-#define TINY 1.0e-6
-#define DELTA 16384
+static constexpr double TINY = 1.0e-6;
+static constexpr int DELTA = 16384;
 
 // prototypes for non-class functions
 

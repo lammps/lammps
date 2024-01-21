@@ -32,11 +32,11 @@ using namespace MathConst;
 #define OFFSET 16384
 
 #ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
+static constexpr FFT_SCALAR ZEROF = 0.0f;
+static constexpr FFT_SCALAR ONEF =  1.0f;
 #else
-#define ZEROF 0.0
-#define ONEF  1.0
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 #endif
 
 /* ---------------------------------------------------------------------- */
@@ -490,7 +490,7 @@ void PPPMDispTIP4P::fieldforce_c_peratom()
   Fix handling of TIP4P dipole compared to PPPMDisp::slabcorr
 ------------------------------------------------------------------------- */
 
-#define SMALL 0.00001
+static constexpr double SMALL = 0.00001;
 
 void PPPMDispTIP4P::slabcorr(int /*eflag*/)
 {

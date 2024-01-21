@@ -36,7 +36,7 @@
 using namespace LAMMPS_NS;
 
 #define BONDDELTA 10000
-#define LB_FACTOR 1.5
+static constexpr double LB_FACTOR = 1.5;
 
 /* ---------------------------------------------------------------------- */
 

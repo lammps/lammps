@@ -39,8 +39,8 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-#define MAXLINE 1024
-#define DELTA 4
+static constexpr int MAXLINE = 1024;
+static constexpr int DELTA = 4;
 
 #define GRIDSTART 0.1
 #define GRIDDENSITY_FCUTOFF 5000

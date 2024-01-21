@@ -55,7 +55,7 @@
 using namespace LAMMPS_NS;
 
 #define DELTALINE 256
-#define DELTA 4
+static constexpr int DELTA = 4;
 
 // maximum nesting level of input files
 static constexpr int LMP_MAXFILE = 16;

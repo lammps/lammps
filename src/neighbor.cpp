@@ -61,7 +61,7 @@ using namespace NeighConst;
 #define EXDELTA 1
 #define DELTA_PERATOM 64
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 enum{NONE,ALL,PARTIAL,TEMPLATE};
 

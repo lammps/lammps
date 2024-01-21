@@ -38,7 +38,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 1
+static constexpr int DELTA = 1;
 #define EPSDT 1.0e-6
 
 enum {SETUP, WRITE, RESET_DT};

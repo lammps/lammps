@@ -40,11 +40,11 @@ enum{REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 #ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
+static constexpr FFT_SCALAR ZEROF = 0.0f;
+static constexpr FFT_SCALAR ONEF =  1.0f;
 #else
-#define ZEROF 0.0
-#define ONEF  1.0
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 #endif
 
 /* ---------------------------------------------------------------------- */

@@ -59,11 +59,11 @@ enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 enum : bool { ELECTRODE = true, ELECTROLYTE = false };
 
 #ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF 1.0f
+static constexpr FFT_SCALAR ZEROF = 0.0f;
+static constexpr FFT_SCALAR ONEF = 1.0f;
 #else
-#define ZEROF 0.0
-#define ONEF 1.0
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF = 1.0;
 #endif
 
 static const char cite_pppm_electrode[] =

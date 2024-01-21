@@ -39,11 +39,11 @@ using namespace MathConst;
 using namespace MathSpecial;
 
 #ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
+static constexpr FFT_SCALAR ZEROF = 0.0f;
+static constexpr FFT_SCALAR ONEF =  1.0f;
 #else
-#define ZEROF 0.0
-#define ONEF  1.0
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 #endif
 
 #define EPS_HOC 1.0e-7

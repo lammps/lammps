@@ -471,8 +471,8 @@ void inertia_ellipsoid_principal(double *shape, double mass, double *idiag,
     double beta_tmp2 = MathSpecial::beta(0.5 * e2, 0.5 * e2);
     double beta_tmp3 = MathSpecial::beta(0.5 * e2, 1.5 * e2);
     double dens = mass / (MathSpecial::beta(0.5 * e1, 1.0 + e1) * beta_tmp2);
-    double m0 = rsq0 * beta_tmp1 * beta_tmp3;
-    double m1 = rsq1 * beta_tmp1 * beta_tmp3;
+    double m0 = 0.5 * rsq0 * beta_tmp1 * beta_tmp3;
+    double m1 = 0.5 * rsq1 * beta_tmp1 * beta_tmp3;
     double m2 = rsq2 * MathSpecial::beta(1.5 * e1, 1 + e1) * beta_tmp2;
     idiag[0] = dens * (m1 + m2);
     idiag[1] = dens * (m0 + m2);

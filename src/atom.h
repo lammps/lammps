@@ -18,8 +18,6 @@
 
 #include <map>
 #include <set>
-#include <array>
-#include <vector>
 
 namespace LAMMPS_NS {
 

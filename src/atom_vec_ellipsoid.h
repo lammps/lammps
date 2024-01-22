@@ -30,6 +30,7 @@ class AtomVecEllipsoid : public AtomVec {
     double shape[3];
     double quat[4];
     double block[3];
+    double inertia[3];
     double radcirc;
     bool flag_super;
     int ilocal;
@@ -67,7 +68,6 @@ class AtomVecEllipsoid : public AtomVec {
   void set_shape(int, double, double, double);
   void set_block(int, double, double);
   double compute_radcirc(double *, double *, bool);
-  double compute_volume(double *, double *, bool);
 
   int nlocal_bonus;
 

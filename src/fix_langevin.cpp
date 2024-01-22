@@ -881,13 +881,13 @@ void FixLangevin::angmom_thermostat()
   // gives correct rotational diffusivity behavior if (nearly) spherical
   // any value will be incorrect for rotational diffusivity if aspherical
 
-  double inertia[3],omega[3],tran[3];
-  double *shape,*quat;
+  double omega[3],tran[3];
+  double *shape,*quat,*inertia;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       shape = bonus[ellipsoid[i]].shape;
-      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
+      inertia = bonus[ellipsoid[i]].inertia;
       quat = bonus[ellipsoid[i]].quat;
       MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
 

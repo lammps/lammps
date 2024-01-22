@@ -59,8 +59,8 @@ void FixNVEAsphere::init()
 void FixNVEAsphere::initial_integrate(int /*vflag*/)
 {
   double dtfm;
-  double inertia[3],omega[3];
-  double *shape,*quat;
+  double omega[3];
+  double *inertia,*quat;
 
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
@@ -96,10 +96,8 @@ void FixNVEAsphere::initial_integrate(int /*vflag*/)
 
       // principal moments of inertia
 
-      shape = bonus[ellipsoid[i]].shape;
+      inertia = bonus[ellipsoid[i]].inertia;
       quat = bonus[ellipsoid[i]].quat;
-
-      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration

@@ -35,8 +35,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
-
 #define ME_qnormalize(q)                                                \
 {                                                                       \
   double norm = 1.0 /                                                   \
@@ -384,14 +382,13 @@ double FixNVEAsphereGPU::reset_dt_omp(const int ifrom, const int ito,
       _dtfm[n++] = dtfir;
       _dtfm[n++] = dtfir;
       _dtfm[n++] = dtfir;
-      double *shape = bonus[ellipsoid[i]].shape;
-      double idot = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+      double idot = bonus[ellipsoid[i]].inertia[0];
       if (idot != 0.0) idot = 1.0 / idot;
       _inertia0[i] = idot;
-      idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+      idot = bonus[ellipsoid[i]].inertia[1];
       if (idot != 0.0) idot = 1.0 / idot;
       _inertia1[i] = idot;
-      idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      idot = bonus[ellipsoid[i]].inertia[2];
       if (idot != 0.0) idot = 1.0 / idot;
       _inertia2[i] = idot;
     }
@@ -404,14 +401,13 @@ double FixNVEAsphereGPU::reset_dt_omp(const int ifrom, const int ito,
         _dtfm[n++] = dtfir;
         _dtfm[n++] = dtfir;
         _dtfm[n++] = dtfir;
-        double *shape = bonus[ellipsoid[i]].shape;
-        double idot = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+        double idot = bonus[ellipsoid[i]].inertia[0];
         if (idot != 0.0) idot = 1.0 / idot;
         _inertia0[i] = idot;
-        idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+        idot = bonus[ellipsoid[i]].inertia[1];
         if (idot != 0.0) idot = 1.0 / idot;
         _inertia1[i] = idot;
-        idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        idot = bonus[ellipsoid[i]].inertia[2];
         if (idot != 0.0) idot = 1.0 / idot;
         _inertia2[i] = idot;
       } else {

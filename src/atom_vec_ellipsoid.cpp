@@ -29,7 +29,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_4PI3;
 
 #define EPSBLOCK2 1.0e-3
 
@@ -41,8 +40,8 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   bonus_flag = 1;
 
   size_forward_bonus = 4;
-  size_border_bonus = 10;
-  size_restart_bonus_one = 10;
+  size_border_bonus = 13;
+  size_restart_bonus_one = 13;
   size_data_bonus = 10;
 
   atom->ellipsoid_flag = 1;
@@ -194,8 +193,7 @@ void AtomVecEllipsoid::unpack_comm_bonus(int n, int first, double *buf)
 int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
 {
   int i, j, m;
-  double *shape, *quat;
-  double *block;
+  double *shape, *quat, *block, *inertia;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -207,6 +205,7 @@ int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
       shape = bonus[ellipsoid[j]].shape;
       quat = bonus[ellipsoid[j]].quat;
       block = bonus[ellipsoid[j]].block;
+      inertia = bonus[ellipsoid[j]].inertia;
       buf[m++] = shape[0];
       buf[m++] = shape[1];
       buf[m++] = shape[2];
@@ -216,6 +215,9 @@ int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
       buf[m++] = quat[3];
       buf[m++] = block[0];
       buf[m++] = block[1];
+      buf[m++] = inertia[0];
+      buf[m++] = inertia[1];
+      buf[m++] = inertia[2];
     }
   }
 
@@ -227,8 +229,7 @@ int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
 int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
 {
   int i, j, m, last;
-  double *shape, *quat;
-  double *block;
+  double *shape, *quat, *block, *inertia;
   bool flag_super;
 
   m = 0;
@@ -252,6 +253,9 @@ int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
       block[0] = buf[m++];
       block[1] = buf[m++];
       block[2] = block[0] / block[1];
+      inertia[0] = buf[m++];
+      inertia[1] = buf[m++];
+      inertia[2] = buf[m++];
       flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
       bonus[j].flag_super = flag_super;
       bonus[j].ilocal = i;
@@ -281,6 +285,7 @@ int AtomVecEllipsoid::pack_exchange_bonus(int i, double *buf)
     double *shape = bonus[j].shape;
     double *quat = bonus[j].quat;
     double *block = bonus[j].block;
+    double *inertia = bonus[j].inertia;
     buf[m++] = shape[0];
     buf[m++] = shape[1];
     buf[m++] = shape[2];
@@ -290,6 +295,9 @@ int AtomVecEllipsoid::pack_exchange_bonus(int i, double *buf)
     buf[m++] = quat[3];
     buf[m++] = block[0];
     buf[m++] = block[1];
+    buf[m++] = inertia[0];
+    buf[m++] = inertia[1];
+    buf[m++] = inertia[2];
   }
 
   return m;
@@ -308,6 +316,7 @@ int AtomVecEllipsoid::unpack_exchange_bonus(int ilocal, double *buf)
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
     double *block = bonus[nlocal_bonus].block;
+    double *inertia = bonus[nlocal_bonus].inertia;
     bool &flag_super = bonus[nlocal_bonus].flag_super;
     shape[0] = buf[m++];
     shape[1] = buf[m++];
@@ -319,6 +328,9 @@ int AtomVecEllipsoid::unpack_exchange_bonus(int ilocal, double *buf)
     block[0] = buf[m++];
     block[1] = buf[m++];
     block[2] = block[0] / block[1];
+    inertia[0] = buf[m++];
+    inertia[1] = buf[m++];
+    inertia[2] = buf[m++];
     flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = ilocal;
@@ -373,6 +385,9 @@ int AtomVecEllipsoid::pack_restart_bonus(int i, double *buf)
     buf[m++] = bonus[j].quat[3];
     buf[m++] = bonus[j].block[0];
     buf[m++] = bonus[j].block[1];
+    buf[m++] = bonus[j].inertia[0];
+    buf[m++] = bonus[j].inertia[1];
+    buf[m++] = bonus[j].inertia[2];
   }
 
   return m;
@@ -394,6 +409,7 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
     double *block = bonus[nlocal_bonus].block;
+    double *inertia = bonus[nlocal_bonus].inertia;
     bool &flag_super = bonus[nlocal_bonus].flag_super;
     shape[0] = buf[m++];
     shape[1] = buf[m++];
@@ -405,6 +421,9 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
     block[0] = buf[m++];
     block[1] = buf[m++];
     block[2] = block[0] / block[1];
+    inertia[0] = buf[m++];
+    inertia[1] = buf[m++];
+    inertia[2] = buf[m++];
     flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = ilocal;
@@ -452,12 +471,16 @@ void AtomVecEllipsoid::data_atom_bonus(int m, const std::vector<std::string> &va
     block[1] = utils::numeric(FLERR, values[ivalue++], true, lmp);
     flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
   }
-  block[2] = block[0] / block[1]; // ASSUMES EVEN NUMBERS ONLY?
+  block[2] = block[0] / block[1];
 
   // reset ellipsoid mass
   // previously stored density in rmass
 
-  rmass[m] *= compute_volume(shape, block, flag_super);
+  rmass[m] *= MathExtra::volume_ellipsoid(shape, block, flag_super);
+
+  // Principal moments of inertia
+
+  MathExtra::inertia_ellipsoid_principal(shape, rmass[m], bonus[nlocal_bonus].inertia, block, flag_super);
 
   bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
   bonus[nlocal_bonus].ilocal = m;
@@ -529,7 +552,7 @@ void AtomVecEllipsoid::pack_data_pre(int ilocal)
     shape = bonus[ellipsoid_flag].shape;
     block = bonus[ellipsoid_flag].block;
     flag_super = bonus[ellipsoid_flag].flag_super;
-    rmass[ilocal] /= compute_volume(shape, block, flag_super);
+    rmass[ilocal] /= MathExtra::volume_ellipsoid(shape, block, flag_super);
   }
 }
 
@@ -605,6 +628,7 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
     double *block = bonus[nlocal_bonus].block;
+    double *inertia = bonus[nlocal_bonus].inertia;
     bool &flag_super = bonus[nlocal_bonus].flag_super;
     shape[0] = shapex;
     shape[1] = shapey;
@@ -616,6 +640,7 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     block[0] = 2;
     block[1] = 2;
     flag_super = false;
+    MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = i;
     ellipsoid[i] = nlocal_bonus++;
@@ -626,10 +651,12 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
   } else {
     double *shape = bonus[ellipsoid[i]].shape;
     double *block = bonus[ellipsoid[i]].block;
+    double *inertia = bonus[nlocal_bonus].inertia;
     bool flag_super = bonus[ellipsoid[i]].flag_super;
     shape[0] = shapex;
     shape[1] = shapey;
     shape[2] = shapez;
+    MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia, block, flag_super);
     bonus[ellipsoid[i]].radcirc = compute_radcirc(shape, block, flag_super);
   }
 }
@@ -647,6 +674,7 @@ void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
     double *shape = bonus[nlocal_bonus].shape;
     double *quat = bonus[nlocal_bonus].quat;
     double *block = bonus[nlocal_bonus].block;
+    double *inertia = bonus[nlocal_bonus].inertia;
     bool &flag_super = bonus[nlocal_bonus].flag_super;
     shape[0] = 0.5;
     shape[1] = 0.5;
@@ -660,16 +688,19 @@ void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
     quat[3] = 0.0;
     bonus[nlocal_bonus].ilocal = i;
     flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) || (std::fabs(blockn2 - 2) > EPSBLOCK2));
+    MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia, block, flag_super);
     bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     ellipsoid[i] = nlocal_bonus++;
   } else {
     double *shape = bonus[ellipsoid[i]].shape;
     double *block = bonus[ellipsoid[i]].block;
+    double *inertia = bonus[nlocal_bonus].inertia;
     bool &flag_super = bonus[ellipsoid[i]].flag_super;
     block[0] = blockn1;
     block[1] = blockn2;
     block[2] = blockn1 / blockn2;
     flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) || (std::fabs(blockn2 - 2) > EPSBLOCK2));
+    MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia, block, flag_super);
     bonus[ellipsoid[i]].radcirc = compute_radcirc(shape, block, flag_super);
   }
 }
@@ -718,20 +749,4 @@ double AtomVecEllipsoid::compute_radcirc(double *shape, double *block, bool flag
   */
 }
 
-/* ----------------------------------------------------------------------
-   compute the volume of the ellipsoid
-------------------------------------------------------------------------- */
 
-double AtomVecEllipsoid::compute_volume(double *shape, double *block, bool flag_super)
-{
-  double unitvol = MY_4PI3;
-
-  // super-ellipsoid, Eq. (12) of Jaklic and Solina, 2003, for p = q = r = 0
-
-  if (flag_super) {
-    double e1 = 2.0 / block[0], e2 = 2.0 / block[1];
-    unitvol = e1 * e2 * MathSpecial::beta(0.5 * e1, 1.0 + e1) *
-                        MathSpecial::beta(0.5 * e2, 0.5 * e2);
-  }
-  return unitvol * shape[0] * shape[1] * shape[2];
-}

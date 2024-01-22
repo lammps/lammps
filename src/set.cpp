@@ -983,24 +983,28 @@ void Set::set(int keyword)
     // if area > 0.0, treat as tri
     // else set rmass to density directly
 
+    // set ellipsoid inertia
+
     else if (keyword == DENSITY) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid density in set command");
       if (atom->radius_flag && atom->radius[i] > 0.0)
         if (discflag)
           atom->rmass[i] = MY_PI*atom->radius[i]*atom->radius[i] * dvalue;
         else
-          atom->rmass[i] = 4.0*MY_PI/3.0 *
+          atom->rmass[i] = MY_4PI3 *
             atom->radius[i]*atom->radius[i]*atom->radius[i] * dvalue;
       else if (atom->ellipsoid_flag && atom->ellipsoid[i] >= 0) {
         double *shape = avec_ellipsoid->bonus[atom->ellipsoid[i]].shape;
         double *block = avec_ellipsoid->bonus[atom->ellipsoid[i]].block;
+        double *inertia = avec_ellipsoid->bonus[atom->ellipsoid[i]].inertia;
         bool flag_super = avec_ellipsoid->bonus[atom->ellipsoid[i]].flag_super;
         // enable 2d ellipse (versus 3d ellipsoid) when time integration
         //   options (fix nve/asphere, fix nh/asphere) are also implemented
         // if (discflag)
         // atom->rmass[i] = MY_PI*shape[0]*shape[1] * dvalue;
         // else
-        atom->rmass[i] = avec_ellipsoid->compute_volume(shape, block, flag_super) * dvalue;
+        atom->rmass[i] = MathExtra::volume_ellipsoid(shape, block, flag_super) * dvalue;
+        MathExtra::inertia_ellipsoid_principal(shape, atom->rmass[i], inertia);
       } else if (atom->line_flag && atom->line[i] >= 0) {
         double length = avec_line->bonus[atom->line[i]].length;
         atom->rmass[i] = length * dvalue;

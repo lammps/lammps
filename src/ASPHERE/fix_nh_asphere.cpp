@@ -111,18 +111,15 @@ void FixNHAsphere::nve_x()
   // returns new normalized quaternion
   // principal moments of inertia
 
-  double *shape,*quat;
-  double inertia[3];
+  double *inertia,*quat;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
 
       // principal moments of inertia
 
-      shape = bonus[ellipsoid[i]].shape;
+      inertia = bonus[ellipsoid[i]].inertia;
       quat = bonus[ellipsoid[i]].quat;
-
-      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration

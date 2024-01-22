@@ -98,7 +98,6 @@ double ComputeERotateAsphere::compute_scalar()
   // no point particles since divide by inertia
 
   double length;
-  double *shape, *quat;
   double wbody[3], inertia[3];
   double rot[3][3];
   double erotate = 0.0;
@@ -106,15 +105,16 @@ double ComputeERotateAsphere::compute_scalar()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       if (ellipsoid && ebonus && (ellipsoid[i] >= 0)) {
-        shape = ebonus[ellipsoid[i]].shape;
-        quat = ebonus[ellipsoid[i]].quat;
 
         // principal moments of inertia
-        MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
+
+        inertia[0] = ebonus[ellipsoid[i]].inertia[0];
+        inertia[1] = ebonus[ellipsoid[i]].inertia[1];
+        inertia[2] = ebonus[ellipsoid[i]].inertia[2];
 
         // wbody = angular velocity in body frame
 
-        MathExtra::quat_to_mat(quat,rot);
+        MathExtra::quat_to_mat(ebonus[ellipsoid[i]].quat,rot);
         MathExtra::transpose_matvec(rot,angmom[i],wbody);
         wbody[0] /= inertia[0];
         wbody[1] /= inertia[1];

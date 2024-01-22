@@ -104,7 +104,6 @@ void FixNHAsphereOMP::nve_x()
   auto * _noalias const x = (dbl3_t *) atom->x[0];
   const auto * _noalias const v = (dbl3_t *) atom->v[0];
   auto * _noalias const angmom = (dbl3_t *) atom->angmom[0];
-  const double * _noalias const rmass = atom->rmass;
   const int * _noalias const mask = atom->mask;
   AtomVecEllipsoid::Bonus * _noalias const bonus = avec->bonus;
   const int * _noalias const ellipsoid = atom->ellipsoid;
@@ -124,7 +123,7 @@ void FixNHAsphereOMP::nve_x()
 #endif
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      double omega[3], inertia[3];
+      double omega[3];
 
       x[i].x += dtv * v[i].x;
       x[i].y += dtv * v[i].y;
@@ -132,10 +131,8 @@ void FixNHAsphereOMP::nve_x()
 
       // principal moments of inertia
 
-      double * const shape = bonus[ellipsoid[i]].shape;
+      double * const inertia = bonus[ellipsoid[i]].inertia;
       double * const quat = bonus[ellipsoid[i]].quat;
-
-      MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration

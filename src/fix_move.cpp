@@ -506,7 +506,7 @@ void FixMove::initial_integrate(int /*vflag*/)
   double ddotr, dx, dy, dz;
   double dtfm, theta_new;
   double xold[3], a[3], b[3], c[3], d[3], disp[3], w[3], ex[3], ey[3], ez[3];
-  double inertia_ellipsoid[3], qrotate[4];
+  double qrotate[4];
   double *quat, *inertia, *shape;
 
   double delta = (update->ntimestep - time_origin) * dt;
@@ -717,8 +717,7 @@ void FixMove::initial_integrate(int /*vflag*/)
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
               shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
-              MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia_ellipsoid);
-              inertia = inertia_ellipsoid;
+              inertia = avec_ellipsoid->bonus[ellipsoid[i]].inertia;
             } else if (tri_flag && tri[i] >= 0) {
               quat = avec_tri->bonus[tri[i]].quat;
               inertia = avec_tri->bonus[tri[i]].inertia;
@@ -843,8 +842,7 @@ void FixMove::initial_integrate(int /*vflag*/)
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
               shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
-              MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia_ellipsoid);
-              inertia = inertia_ellipsoid;
+              inertia = avec_ellipsoid->bonus[ellipsoid[i]].inertia;
             } else if (tri_flag && tri[i] >= 0) {
               quat = avec_tri->bonus[tri[i]].quat;
               inertia = avec_tri->bonus[tri[i]].inertia;

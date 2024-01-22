@@ -204,7 +204,7 @@ double ComputeTempAsphere::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double *shape,*quat;
+  double *quat;
   double wbody[3],inertia[3];
   double rot[3][3];
 
@@ -220,10 +220,11 @@ double ComputeTempAsphere::compute_scalar()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
         quat = bonus[ellipsoid[i]].quat;
 
-        MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
         // wbody = angular velocity in body frame
 
@@ -243,10 +244,11 @@ double ComputeTempAsphere::compute_scalar()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
         quat = bonus[ellipsoid[i]].quat;
 
-        MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
         // wbody = angular velocity in body frame
 
@@ -292,7 +294,7 @@ void ComputeTempAsphere::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double *shape,*quat;
+  double *quat;
   double wbody[3],inertia[3],t[6];
   double rot[3][3];
   double massone;
@@ -315,10 +317,11 @@ void ComputeTempAsphere::compute_vector()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
-        quat = bonus[ellipsoid[i]].quat;
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
-        MathExtra::inertia_ellipsoid_principal(shape, massone, inertia);
+        quat = bonus[ellipsoid[i]].quat;
 
         // wbody = angular velocity in body frame
 
@@ -344,11 +347,12 @@ void ComputeTempAsphere::compute_vector()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
         quat = bonus[ellipsoid[i]].quat;
         massone = rmass[i];
 
-        MathExtra::inertia_ellipsoid_principal(shape, massone, inertia);
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
         // wbody = angular velocity in body frame
 

@@ -30,8 +30,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
-
 /* ---------------------------------------------------------------------- */
 
 FixNVEAsphereIntel::FixNVEAsphereIntel(LAMMPS *lmp, int narg, char **arg) :
@@ -202,14 +200,19 @@ void FixNVEAsphereIntel::reset_dt() {
       _dtfm[n++] = dtf / rmass[i];
       _dtfm[n++] = dtf / rmass[i];
       _dtfm[n++] = dtf / rmass[i];
-      double *shape = bonus[ellipsoid[i]].shape;
-      double idot = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+      if (inertia[0] != 0.0) inertia[0] = 1.0 / inertia[0];
+      _inertia0[i] = inertia[0];
+      if (inertia[1] != 0.0) inertia[1] = 1.0 / inertia[1];
+      _inertia1[i] = inertia[1];
+      if (inertia[2] != 0.0) inertia[2] = 1.0 / inertia[2];
+      _inertia2[i] = inertia[2];
+      double idot = bonus[ellipsoid[i]].inertia[0];
       if (idot != 0.0) idot = 1.0 / idot;
       _inertia0[i] = idot;
-      idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+      idot = bonus[ellipsoid[i]].inertia[1];
       if (idot != 0.0) idot = 1.0 / idot;
       _inertia1[i] = idot;
-      idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      idot = bonus[ellipsoid[i]].inertia[2];
       if (idot != 0.0) idot = 1.0 / idot;
       _inertia2[i] = idot;
     }
@@ -221,14 +224,13 @@ void FixNVEAsphereIntel::reset_dt() {
         _dtfm[n++] = dtf / rmass[i];
         _dtfm[n++] = dtf / rmass[i];
         _dtfm[n++] = dtf / rmass[i];
-        double *shape = bonus[ellipsoid[i]].shape;
-        double idot = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+        double idot = bonus[ellipsoid[i]].inertia[0];
         if (idot != 0.0) idot = 1.0 / idot;
         _inertia0[i] = idot;
-        idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+        idot = bonus[ellipsoid[i]].inertia[1];
         if (idot != 0.0) idot = 1.0 / idot;
         _inertia1[i] = idot;
-        idot = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        idot = bonus[ellipsoid[i]].inertia[2];
         if (idot != 0.0) idot = 1.0 / idot;
         _inertia2[i] = idot;
       } else {

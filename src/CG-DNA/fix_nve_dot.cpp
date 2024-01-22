@@ -58,7 +58,7 @@ void FixNVEDot::init()
 
 void FixNVEDot::initial_integrate(int /*vflag*/)
 {
-  double *shape,*quat;
+  double *quat;
   double fquat[4],conjqm[4],inertia[3];
 
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
@@ -83,7 +83,6 @@ void FixNVEDot::initial_integrate(int /*vflag*/)
 
       dthlfm = dthlf / rmass[i];
       quat = bonus[ellipsoid[i]].quat;
-      shape = bonus[ellipsoid[i]].shape;
 
       // update momentum by 1/2 step
       v[i][0] += dthlfm * f[i][0];
@@ -111,7 +110,9 @@ void FixNVEDot::initial_integrate(int /*vflag*/)
       conjqm[3] += dt * fquat[3];
 
       // principal moments of inertia
-      inertia_ellipsoid_principal(shape, rmass[i], inertia);
+      inertia[0] = bonus[ellipsoid[i]].inertia[0];
+      inertia[1] = bonus[ellipsoid[i]].inertia[1];
+      inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
       // rotate quaternion and quaternion 4-momentum by full step
       no_squish_rotate(3,conjqm,quat,inertia,dthlf);

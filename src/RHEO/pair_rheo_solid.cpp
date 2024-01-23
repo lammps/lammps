@@ -96,13 +96,11 @@ void PairRHEOSolid::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      if (!(status[j] & STATUS_SOLID)) continue;
-
       factor_lj = special_lj[sbmask(j)];
-
       if (factor_lj == 0) continue;
-
       j &= NEIGHMASK;
+
+      if (!(status[j] & STATUS_SOLID)) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

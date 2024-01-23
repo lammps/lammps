@@ -422,6 +422,12 @@ void FixRHEO::pre_force(int /*vflag*/)
     if (mask[i] & groupbit)
       status[i] &= OPTIONSMASK;
 
+  // Reinstate temporary options
+  for (int i = 0; i < nall; i++)
+    if (mask[i] & groupbit)
+      if (status[i] & STATUS_SOLID)
+        status[i] |= STATUS_NO_SHIFT;
+
   // Calculate surfaces, update status
   if (surface_flag) {
     compute_surface->compute_peratom();

@@ -374,7 +374,6 @@ void FixRHEOThermal::post_integrate()
         }
       }
     }
-
   }
 
   int n_melt_all, n_freeze_all;
@@ -558,7 +557,7 @@ void FixRHEOThermal::create_bonds()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      j &= SPECIALMASK;
+      j &= NEIGHMASK;
 
       if (!(status[j] & STATUS_SOLID)) continue;
       if (!(status[i] & STATUS_FREEZING) && !(status[j] & STATUS_FREEZING)) continue;

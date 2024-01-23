@@ -14,7 +14,8 @@ Syntax
 * rheo = style name of this fix command
 * cut = *quintic* or *RK0* or *RK1* or *RK2*
 * zero or more keyword/value pairs may be appended to args
-* keyword = *shift* or *thermal* or *surface/detection* or *interface/reconstruction* or *rho/sum* or *density* or *sound/squared*
+* keyword = *shift* or *thermal* or *surface/detection* or *interface/reconstruction* or
+            *rho/sum* or *density* or *sound/squared*
 
   .. parsed-literal::
 

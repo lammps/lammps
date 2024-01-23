@@ -8,42 +8,59 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo/thermal keyword values ...
+   fix ID group-ID rheo/thermal attribute values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* rheo/viscosity = style name of this fix command
+* rheo/thermal = style name of this fix command
 * one or more attributes may be appended
-* attribute = *conductivity* or *specific/heat* or *Tfreeze*
+* attribute = *conductivity* or *specific/heat* or *latent/heat* or *Tfreeze* or *react*
 
   .. parsed-literal::
 
-       *conductivity* args = style param
-         style = *constant* or *type*
+       *conductivity* args = types style args
+         types = lists of types (see below)
+         style = *constant*
            *constant* arg = conductivity (power/temperature)
-           *type* args = list of conductivity values, one per type (power/temperature)
-       *specific/heat* args = style param
-         style = *constant* or *type*
+       *specific/heat* args = types style args
+         types = lists of types (see below)
+         style = *constant*
            *constant* arg = specific heat (energy/(mass*temperature))
-           *type* args = list of specific heat values, one per atom type (energy/(mass*temperature))
-       *Tfreeze* args = style param
-         style = *constant* or *type*
+       *latent/heat* args = types style args
+         types = lists of types (see below)
+         style = *constant*
+           *constant* arg = latent heat (energy/mass)
+       *Tfreeze* args = types style args
+         types = lists of types (see below)
+         style = *constant*
            *constant* arg = freezing temperature (temperature)
-           *type* args = list of freezing temperature values, one per type (temperature)
+       *react* args = cut type
+         cut = maximum bond distance
+         type = bond type
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all rheo/thermal conductivity constant 1.0 specific/heat constant 1.0 Tfreeze constant 1.0
-   fix 1 all rheo/pressure conductivity constant 1.0 specific/heat type 1.0 2.0
+   fix 1 all rheo/thermal conductivity * constant 1.0 specific/heat * constant 1.0 Tfreeze * constant 1.0
+   fix 1 all rheo/pressure conductivity 1*2 constant 1.0 conductivity 3*4 constant 2.0 specific/heat * constant 1.0
 
 Description
 """""""""""
 
 This fix...
 
-While the *Tfreeze* keyword is optional, the *conducitivity* and
+Each list consists of a series of type
+ranges separated by commas. The range can be specified as a
+single numeric value, or a wildcard asterisk can be used to specify a range
+of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
+example, if M = the number of atom types, then an asterisk with no numeric
+values means all types from 1 to M.  A leading asterisk means all types
+from 1 to n (inclusive).  A trailing asterisk means all types from n to M
+(inclusive).  A middle asterisk means all types from m to n (inclusive).
+Note that all atom types must be included in exactly one of the N collections.
+
+While the *Tfreeze* keyword is optional, the *conductivity* and
 *specific/heat* keywords are mandatory.
 
 Multiple instances of this fix may be defined to apply different

@@ -1,6 +1,6 @@
-.. index:: pair_style rheo
+.. index:: pair_style rheo/react
 
-pair_style rheo command
+pair_style rheo/react command
 =========================
 
 Syntax
@@ -8,34 +8,33 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style rheo cutoff keyword values
-
-* cutoff = global cutoff for kernel (distance units)
-* zero or more keyword/value pairs may be appended to args
-* keyword = *rho/damp* or *artificial/visc* or *harmonic/means*
-
-.. parsed-literal::
-
-     *rho/damp* args = density damping prefactor :math:`\xi` (units?)
-     *artificial/visc* args = artificial viscosity prefactor :math:`\zeta` (units?)
-     *harmonic/means* args = none
+   pair_style rheo/react
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style rheo 1.0 quintic rho/damp 1.0 artificial/visc 2.0
-   pair_coeff * *
+   pair_style rheo/react
+   pair_coeff * * 1.0 1.5 1.0 0.05 1.0 100 2.0
 
 Description
 """""""""""
 
 pair style...
 
-No coefficients are defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples
-above.
+The following coefficients must be defined for each pair of atom types
+via the :doc:`pair_coeff <pair_coeff>` command as in the example above,
+or in the data file or restart files read by the
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+commands, or by mixing as described below:
+
+* :math:`k` (force/distance units)
+* :math:`r_max` (distance units)
+* :math:`\epsilon` (unitless)
+* :math:`\gamma` (force/velocity units)
+* :math:`t_form` (time units)
+* :math:`r_from_surface` (distance units)
 
 ----------
 
@@ -60,12 +59,9 @@ Related commands
 """"""""""""""""
 
 :doc:`fix rheo <fix_rheo>`,
-:doc:`fix rheo/pressure <fix_rheo_pressure>`,
-:doc:`fix rheo/thermal <fix_rheo_thermal>`,
-:doc:`fix rheo/viscosity <fix_rheo_viscosity>`,
 :doc:`compute rheo/property/atom <compute_rheo_property_atom>`
 
 Default
 """""""
 
-Density damping and artificial viscous forces are not calculated. Arithmetic means are used for mixing particle properties.
+none

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,7 +35,7 @@ class FixDeformPressure : public FixDeform {
 
  protected:
   int pcouple, dimension;
-  double *h_rate, *h_ratelo, max_h_rate;
+  double max_h_rate;
   int strain_flag;               // 1 if strain-based option is used, 0 if not
   int pressure_flag;             // 1 if pressure tensor used, 0 if not
   int volume_flag;               // 1 if VOLUME option is used, 0 if not

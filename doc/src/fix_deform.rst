@@ -597,4 +597,4 @@ Related commands
 Default
 """""""
 
-The option defaults are remap = x, flip = yes, units = lattice
+The option defaults are remap = x, flip = yes, and units = lattice.

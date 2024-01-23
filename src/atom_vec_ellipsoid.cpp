@@ -243,6 +243,7 @@ int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
       shape = bonus[j].shape;
       quat = bonus[j].quat;
       block = bonus[j].block;
+      inertia = bonus[j].inertia;
       shape[0] = buf[m++];
       shape[1] = buf[m++];
       shape[2] = buf[m++];

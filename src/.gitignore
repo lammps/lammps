@@ -724,6 +724,8 @@
 /fix_cmap.h
 /fix_damping_cundall.cpp
 /fix_damping_cundall.h
+/fix_deform_pressure.cpp
+/fix_deform_pressure.h
 /fix_dpd_energy.cpp
 /fix_dpd_energy.h
 /fix_electron_stopping.cpp

@@ -12,7 +12,7 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword =  *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
+* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 
@@ -131,24 +131,24 @@ with their specified level at the beginning of a r-RESPA run.
 The *dynamic/dof* keyword determines whether the number of atoms N in
 the fix group and their associated degrees of freedom are re-computed
 each time a temperature is computed.  Only fix styles that calculate
-their own internal temperature use this option.  Currently this is
-only the :doc:`fix rigid/nvt/small <fix_rigid>` and :doc:`fix
-rigid/npt/small <fix_rigid>` commands for the purpose of
-thermostatting rigid body translation and rotation.  By default, N and
-their DOF are assumed to be constant.  If you are adding atoms or
-molecules to the system (see the :doc:`fix pour <fix_pour>`, :doc:`fix
-deposit <fix_deposit>`, and :doc:`fix gcmc <fix_gcmc>` commands) or
-expect atoms or molecules to be lost (e.g. due to exiting the
-simulation box or via :doc:`fix evaporate <fix_evaporate>`), then this
-option should be used to insure the temperature is correctly
-normalized.
+their own internal temperature use this option.  Currently this is only
+the :doc:`fix rigid/nvt/small <fix_rigid>` and :doc:`fix rigid/npt/small
+<fix_rigid>` commands for the purpose of thermostatting rigid body
+translation and rotation.  By default, N and their DOF are assumed to be
+constant.  If you are adding atoms or molecules to the system (see the
+:doc:`fix pour <fix_pour>`, :doc:`fix deposit <fix_deposit>`, and
+:doc:`fix gcmc <fix_gcmc>` commands) or expect atoms or molecules to be
+lost (e.g. due to exiting the simulation box or via :doc:`fix evaporate
+<fix_evaporate>`), then this option should be used to ensure the
+temperature is correctly normalized.
 
 .. note::
 
-   Other thermostatting fixes, such as :doc:`fix nvt <fix_nh>`, do
-   not use the *dynamic/dof* keyword because they use a temperature
-   compute to calculate temperature.  See the :doc:`compute_modify dynamic/dof <compute_modify>` command for a similar way to insure
-   correct temperature normalization for those thermostats.
+   Other thermostatting fixes, such as :doc:`fix nvt <fix_nh>`, do not
+   use the *dynamic/dof* keyword because they use a temperature compute
+   to calculate temperature.  See the :doc:`compute_modify dynamic/dof
+   <compute_modify>` command for a similar way to ensure correct
+   temperature normalization for those thermostats.
 
 The *bodyforces* keyword determines whether the forces and torques
 acting on rigid bodies are computed *early* at the post-force stage of
@@ -156,7 +156,8 @@ each timestep (right after per-atom forces have been computed and
 communicated among processors), or *late* at the final-integrate stage
 of each timestep (after any other fixes have finished their post-force
 tasks).  Only the rigid-body integration fixes use this option, which
-includes :doc:`fix rigid <fix_rigid>` and :doc:`fix rigid/small <fix_rigid>`, and their variants, and also :doc:`fix poems <fix_poems>`.
+includes :doc:`fix rigid <fix_rigid>` and :doc:`fix rigid/small
+<fix_rigid>`, and their variants, and also :doc:`fix poems <fix_poems>`.
 
 The default is *late*\ .  If there are other fixes that add forces to
 individual atoms, then the rigid-body constraints will include these

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,14 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_trim_omp.h"
+#include "npair_omp.h"
+#include "omp_compat.h"
 
 #include "atom.h"
 #include "error.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "npair_omp.h"
-
-#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 
@@ -43,10 +42,9 @@ void NPairTrimOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(inum_copy);
 
-  int i,j,ii,jj,n,jnum,joriginal;
-  int *neighptr,*jlist;
-  double xtmp,ytmp,ztmp;
-  double delx,dely,delz,rsq;
+  int i, j, ii, jj, n, jnum, joriginal;
+  int *neighptr, *jlist;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
 
   double **x = atom->x;
 
@@ -100,8 +98,7 @@ void NPairTrimOmp::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
   NPAIR_OMP_CLOSE;
   list->inum = inum_copy;

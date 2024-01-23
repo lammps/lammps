@@ -108,7 +108,7 @@ void lje_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       LJEMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                    offset, shift);
-    LJEMF.device->gpu_barrier();
+    LJEMF.device->serialize_init();
   }
 }
 

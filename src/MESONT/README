@@ -9,33 +9,20 @@ is provided in the papers listed below.
 
 --
 
-This package was created by Maxim Shugaev (mvs9t@virginia.edu)
+This package was originally created by Maxim Shugaev (mvs9t@virginia.edu)
 at the University of Virginia.
 The Fortran library implementing basic level functions describing stretching,
 bending, and intertube components of the mesoscopic CNT force field, used
-by this package is developed by Alexey N. Volkov (avolkov1@ua.edu)
+by this package was developed by Alexey N. Volkov (avolkov1@ua.edu)
 at the University of Alabama.
 
---
+Since then the functionality has been re-implemented in C++ by
+Philipp Kloza (U Cambridge) with some additions and the Fortran
+implementation was removed in early 2023 since C++ version is
+faster and easier to compile and maintain.
 
-The following commands are contained in this package:
-
-atom_style mesont
-  This command enables mesont atom_style containing variables used for
-  further commands in MESONT.
-
-pair_style mesont/tpm cut table_path BendingMode TPMType
-  This command activates a pair_style describing CNT mesoscopic tubular
-  potential model (TPM) force field. "cut" is cutoff distance that should
-  be set to be at least max(2.0*L, sqrt(L^2/2 + (2.0*R + Tcut)^2)),
-  where L is the maximum segment length, R is the maximum tube radius,
-  and Tcut = 10.2 A is the maximum distance between surfaces of interacting
-  segments. However, the recommended cutoff is 3L.
-
-compute mesont
-  This command allows evaluation of per atom and total values of stretching,
-  bending, and intertube interaction components of energies. Use the following
-  flags: 'estretch', 'ebend', 'etube'.
+Please see the LAMMPS manual for more information about this package
+and how to install and use it.
 
 --
 

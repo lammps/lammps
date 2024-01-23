@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,6 +18,7 @@
 #include "fmt/chrono.h"
 
 #include <cstring>
+#include <ctime>
 
 using namespace LAMMPS_NS;
 
@@ -183,7 +184,7 @@ void Timer::print_timeout(FILE *fp)
 bool Timer::_check_timeout()
 {
   double walltime = platform::walltime() - timeout_start;
-  // broadcast time to insure all ranks act the same.
+  // broadcast time to ensure all ranks act the same.
   MPI_Bcast(&walltime, 1, MPI_DOUBLE, 0, world);
 
   if (walltime < _timeout) {
@@ -248,8 +249,8 @@ void Timer::modify_params(int narg, char **arg)
     // format timeout setting
     std::string timeout = "off";
     if (_timeout >= 0) {
-      std::time_t tv = _timeout;
-      timeout = fmt::format("{:%H:%M:%S}", fmt::gmtime(tv));
+      std::tm tv = fmt::gmtime((std::time_t) _timeout);
+      timeout = fmt::format("{:02d}:{:%M:%S}", tv.tm_yday * 24 + tv.tm_hour, tv);
     }
 
     utils::logmesg(lmp, "New timer settings: style={}  mode={}  timeout={}\n", timer_style[_level],

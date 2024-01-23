@@ -2,7 +2,7 @@
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -86,8 +86,6 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_MAX_STENCIL_CHECK 4096
 #define INTEL_P3M_MAXORDER 8
 #define INTEL_P3M_ALIGNED_MAXORDER 8
-// PRECOMPUTE VALUES IN TABLE (DOESN'T AFFECT ACCURACY)
-#define INTEL_P3M_TABLE 1
 
 #ifdef __INTEL_COMPILER
 #ifdef __AVX__
@@ -134,6 +132,9 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #undef INTEL_VECTOR_WIDTH
 #define INTEL_VECTOR_WIDTH 1
 #define INTEL_COMPILE_WIDTH 1
+#if defined(__AVX512F__) && !defined(INTEL_VMASK)
+#define INTEL_VMASK 1
+#endif
 
 #endif
 

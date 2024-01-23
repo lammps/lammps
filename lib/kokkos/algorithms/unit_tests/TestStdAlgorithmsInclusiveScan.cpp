@@ -1,50 +1,20 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_Numeric.hpp>
 #include <utility>
 
 namespace Test {
@@ -78,10 +48,16 @@ struct UnifDist<int> {
   int operator()() { return m_dist(m_gen); }
 };
 
-template <class ViewType>
-void fill_zero(ViewType view) {
-  Kokkos::parallel_for(view.extent(0), FillZeroFunctor<ViewType>(view));
-}
+template <>
+struct UnifDist<CustomValueType> {
+  using dist_type = std::uniform_real_distribution<double>;
+  std::mt19937 m_gen;
+  dist_type m_dist;
+
+  UnifDist() : m_dist(0.05, 1.2) { m_gen.seed(1034343); }
+
+  CustomValueType operator()() { return m_dist(m_gen); }
+};
 
 template <class ViewType>
 void fill_view(ViewType dest_view, const std::string& name) {
@@ -195,15 +171,17 @@ void verify_data(ViewType1 data_view,  // contains data
       //           << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
 
       if (std::is_same<gold_view_value_type, int>::value) {
-        EXPECT_TRUE(gold_h(i) == test_view_h(i));
+        ASSERT_EQ(gold_h(i), test_view_h(i));
       } else {
-        const auto error = std::abs(gold_h(i) - test_view_h(i));
+        const auto error =
+            std::abs(static_cast<double>(gold_h(i) - test_view_h(i)));
         if (error > 1e-10) {
           std::cout << i << " " << std::setprecision(15) << data_view_h(i)
                     << " " << gold_h(i) << " " << test_view_h(i) << " "
-                    << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
+                    << std::abs(static_cast<double>(gold_h(i) - test_view_h(i)))
+                    << std::endl;
         }
-        EXPECT_TRUE(error < 1e-10);
+        EXPECT_LT(error, 1e-10);
       }
     }
     // std::cout << " last el: " << test_view_h(ext-1) << std::endl;
@@ -216,24 +194,12 @@ struct MultiplyFunctor {
   ValueType operator()(const ValueType& a, const ValueType& b) const {
     return (a * b);
   }
-
-  KOKKOS_INLINE_FUNCTION
-  ValueType operator()(const volatile ValueType& a,
-                       const volatile ValueType& b) const {
-    return (a * b);
-  }
 };
 
 template <class ValueType>
 struct SumFunctor {
   KOKKOS_INLINE_FUNCTION
   ValueType operator()(const ValueType& a, const ValueType& b) const {
-    return (a + b);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  ValueType operator()(const volatile ValueType& a,
-                       const volatile ValueType& b) const {
     return (a + b);
   }
 };
@@ -258,7 +224,7 @@ void run_single_scenario_default_op(const InfoType& scenario_info) {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan(exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest));
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
@@ -266,21 +232,21 @@ void run_single_scenario_default_op(const InfoType& scenario_info) {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan("label", exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest));
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan(exespace(), view_from, view_dest);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan("label", exespace(), view_from, view_dest);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, default_op());
   }
 
@@ -313,7 +279,7 @@ void run_single_scenario_custom_op(const InfoType& scenario_info, BinaryOp bop,
     auto r = KE::inclusive_scan(exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest), bop,
                                 args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
@@ -322,14 +288,14 @@ void run_single_scenario_custom_op(const InfoType& scenario_info, BinaryOp bop,
     auto r = KE::inclusive_scan("label", exespace(), KE::cbegin(view_from),
                                 KE::cend(view_from), KE::begin(view_dest), bop,
                                 args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
   {
     fill_zero(view_dest);
     auto r = KE::inclusive_scan(exespace(), view_from, view_dest, bop, args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
@@ -337,7 +303,7 @@ void run_single_scenario_custom_op(const InfoType& scenario_info, BinaryOp bop,
     fill_zero(view_dest);
     auto r = KE::inclusive_scan("label", exespace(), view_from, view_dest, bop,
                                 args...);
-    EXPECT_TRUE(r == KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, bop, args...);
   }
 
@@ -354,7 +320,7 @@ void run_inclusive_scan_all_scenarios() {
   for (const auto& it : scenarios) {
     run_single_scenario_default_op<Tag, ValueType>(it);
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
     // the sum custom op is always run
     using sum_binary_op = SumFunctor<ValueType>;
     sum_binary_op sbop;
@@ -383,6 +349,47 @@ TEST(std_algorithms_numeric_ops_test, inclusive_scan) {
   run_inclusive_scan_all_scenarios<StridedThreeTag, double>();
   run_inclusive_scan_all_scenarios<DynamicTag, int>();
   run_inclusive_scan_all_scenarios<StridedThreeTag, int>();
+  run_inclusive_scan_all_scenarios<DynamicTag, CustomValueType>();
+  run_inclusive_scan_all_scenarios<StridedThreeTag, CustomValueType>();
+}
+
+TEST(std_algorithms_numeric_ops_test, inclusive_scan_functor) {
+  using view_type = Kokkos::View<int*, exespace>;
+  view_type dummy_view("dummy_view", 0);
+  using functor_type = Kokkos::Experimental::Impl::InclusiveScanDefaultFunctor<
+      exespace, int, int, view_type, view_type>;
+  functor_type functor(dummy_view, dummy_view);
+  using value_type = functor_type::value_type;
+
+  value_type value1;
+  functor.init(value1);
+  ASSERT_EQ(value1.val, 0);
+  ASSERT_EQ(value1.is_initial, true);
+
+  value_type value2;
+  value2.val        = 1;
+  value2.is_initial = false;
+  functor.join(value1, value2);
+  ASSERT_EQ(value1.val, 1);
+  ASSERT_EQ(value1.is_initial, false);
+
+  functor.init(value1);
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 1);
+  ASSERT_EQ(value2.is_initial, false);
+
+  functor.init(value2);
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 0);
+  ASSERT_EQ(value2.is_initial, true);
+
+  value1.val        = 1;
+  value1.is_initial = false;
+  value2.val        = 2;
+  value2.is_initial = false;
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 3);
+  ASSERT_EQ(value2.is_initial, false);
 }
 
 }  // namespace IncScan

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,7 +23,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 #ifndef LMP_PPPM_KOKKOS_H
 #define LMP_PPPM_KOKKOS_H
 
-#include "gridcomm_kokkos.h"
+#include "grid3d_kokkos.h"
 #include "remap_kokkos.h"
 #include "fft3d_kokkos.h"
 #include "kokkos_base_fft.h"
@@ -33,7 +33,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 
 // clang-format off
 
-// fix up FFT defines for KOKKOS with CUDA
+// fix up FFT defines for KOKKOS with CUDA and HIP
 
 #ifdef KOKKOS_ENABLE_CUDA
 # if defined(FFT_FFTW)
@@ -46,6 +46,19 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 #  undef FFT_MKL
 # endif
 # if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
+#  define FFT_KISSFFT
+# endif
+#elif defined(KOKKOS_ENABLE_HIP)
+# if defined(FFT_FFTW)
+#  undef FFT_FFTW
+# endif
+# if defined(FFT_FFTW3)
+#  undef FFT_FFTW3
+# endif
+# if defined(FFT_MKL)
+#  undef FFT_MKL
+# endif
+# if !defined(FFT_HIPFFT) && !defined(FFT_KISSFFT)
 #  define FFT_KISSFFT
 # endif
 #endif
@@ -124,8 +137,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   ~PPPMKokkos() override;
   void init() override;
   void setup() override;
-  void setup_grid() override;
-  void settings(int, char **) override;
   void compute(int, int) override;
   int timing_1d(int, double &) override;
   int timing_3d(int, double &) override;
@@ -324,7 +335,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   Few<double,6> h, h_inv;
 
   KOKKOS_INLINE_FUNCTION
-  void x2lamdaT(double* v, double* lamda) const
+  void x2lamdaT_kokkos(double* v, double* lamda) const
   {
     double lamda_tmp[3];
 
@@ -352,8 +363,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
-
-  int factors[3];
 
   typename FFT_AT::t_FFT_SCALAR_3d d_density_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
@@ -387,7 +396,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   FFT3dKokkos<DeviceType> *fft1,*fft2;
   RemapKokkos<DeviceType> *remap;
-  GridCommKokkos<DeviceType> *gc;
+  Grid3dKokkos<DeviceType> *gc;
 
   FFT_DAT::tdual_FFT_SCALAR_1d k_gc_buf1,k_gc_buf2;
   int ngc_buf1,ngc_buf2,npergrid;
@@ -395,23 +404,15 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   //int **part2grid;             // storage for particle -> grid mapping
   typename AT::t_int_1d_3 d_part2grid;
 
-  //double *boxlo;
   double boxlo[3];
 
-  void set_grid_global() override;
   void set_grid_local() override;
-  void adjust_gewald();
-  double newton_raphson_f() override;
-  double derivf();
-  double final_accuracy();
 
   void allocate() override;
   void allocate_peratom() override;
   void deallocate() override;
   void deallocate_peratom() override;
-  int factorable(int);
-  double compute_df_kspace() override;
-  double estimate_ik_error(double, double, bigint);
+  double estimate_ik_error(double, double, bigint) override;
   void compute_gf_denom() override;
   void compute_gf_ik() override;
 
@@ -419,7 +420,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void make_rho() override;
   void brick2fft() override;
 
-  void poisson() override;
   void poisson_ik() override;
 
   void fieldforce() override;
@@ -427,7 +427,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   void poisson_peratom() override;
   void fieldforce_peratom() override;
-  void procs2grid2d(int,int,int,int *, int*);
 
   KOKKOS_INLINE_FUNCTION
   void compute_rho1d(const int i, const FFT_SCALAR &, const FFT_SCALAR &,
@@ -444,7 +443,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   // triclinic
 
-  int triclinic;               // domain settings, orthog or triclinic
   void setup_triclinic();
   void compute_gf_ik_triclinic();
   void poisson_ik_triclinic();

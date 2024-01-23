@@ -1,0 +1,239 @@
+LAMMPS (23 Jun 2022 - Update 4)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+read_data       ./gra_water.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (46.92336 44.331078 200)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  936 atoms
+  reading velocities ...
+  936 velocities
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  96 bonds
+  reading angles ...
+  48 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.017 seconds
+mass            1 12.0107   # carbon   	mass (g/mole)
+mass            2 15.9994   # oxygen    mass (g/mole)
+mass            3 1.008     # hydrogen 	mass (g/mole)
+# Separate atom groups
+group 		gr    molecule 1
+792 atoms in group gr
+group 		water molecule 2
+144 atoms in group water
+######################## Potential defition ##############################
+# Interlayer potential
+pair_style  hybrid/overlay  aip/water/2dm 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
+####################################################################
+pair_coeff  1 1   none
+pair_coeff  2 2   lj/cut/tip4p/long    8.0313e-3  3.1589          # O-O
+pair_coeff  2 3   lj/cut/tip4p/long    0.0 0.0  		  # O-H
+pair_coeff  3 3   lj/cut/tip4p/long    0.0 0.0  	          # H-H
+pair_coeff  * *   aip/water/2dm        COH.aip.water.2dm C Ow Hw  # C-H2O
+Reading aip/water/2dm potential file COH.aip.water.2dm with DATE: 2022-12-02
+# bond and angle
+bond_style  	  harmonic
+bond_coeff  	  1 	0.0  0.9572
+angle_style 	  harmonic
+angle_coeff 	  1 	0.0  104.52
+# define kspace calculation
+kspace_style      pppm/tip4p 1E-5
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify every 1 delay 5 check yes page 1000000 one 100000
+####################################################################
+# Calculate pair energy
+compute   	1 all pair lj/cut/tip4p/long
+compute   	2 all pair aip/water/2dm
+compute		wt water temp
+variable  	TIP4P  equal  c_1
+variable  	EILP   equal  c_2     # total interlayer energy
+variable	temp_wt equal c_wt
+############# Output ##############
+thermo_style    custom step etotal pe ke v_TIP4P v_EILP  v_temp_wt
+thermo          100
+thermo_modify   lost error
+
+fix		subf gr setforce 0.0 0.0 0.0
+fix 		1    water shake 0.0001 20 100 b 1 a 1
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+      48 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+
+timestep	1e-3
+velocity  	water create 300.0 12345 dist gaussian mom yes rot yes
+fix		2 water nve
+run		1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848
+@Article{Ouyang2018
+ author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},
+ title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},
+ journal = {Nano Letters},
+ volume =  18,
+ pages =   6009,
+ year =    2018,
+}
+
+- ilp/tmd potential doi:10.1021/acs.jctc.1c00782
+@Article{Ouyang2021
+  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and
+    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},
+  title = {Anisotropic Interlayer Force Field for Transition
+    Metal Dichalcogenides: The Case of Molybdenum Disulfide},
+  journal = {J.~Chem.\ Theory Comput.},
+ volume   = 17,
+ pages    = {7237--7245}
+ year     = 2021,
+}
+
+- ilp/water/2dm potential doi/10.1021/acs.jpcc.2c08464
+@Article{Feng2023
+ author = {Z. Feng, Y. Yao, J. Liu, B. Wu, Z. Liu, and W. Ouyang},
+ title = {Registry-Dependent Potential for Interfaces of Water with Graphene},
+ journal = {J. Phys. Chem. C},
+ volume =  127,
+ pages =   {8704-8713}
+ year =    2023,
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  extracting TIP4P info from pair style
+  using 12-bit tables for long-range coulomb (../kspace.cpp:342)
+  G vector (1/distance) = 0.28684806
+  grid = 25 24 80
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0001640931
+  estimated relative force accuracy = 1.1395635e-05
+  using single precision MKL FFT
+  3d grid and FFT values/proc = 30685 12480
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:239)
+WARNING: Communication cutoff 0 is shorter than a bond length based estimate of 3.4358. This may lead to errors. (../comm.cpp:727)
+WARNING: Increasing communication cutoff to 11.6118 for TIP4P pair style (../pair_lj_cut_tip4p_long.cpp:484)
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 100000, page size: 1000000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 6 5 23
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair aip/water/2dm, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) pair lj/cut/tip4p/long, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Communication cutoff adjusted to 18 (../comm.cpp:736)
+SHAKE stats (type/ave/delta/count) on step 0
+Bond:   1   0.957201  2.19705e-06       96
+Angle:  1   104.52    0.000203056       48
+Per MPI rank memory allocation (min/avg/max) = 25.22 | 25.25 | 25.29 Mbytes
+   Step         TotEng         PotEng         KinEng        v_TIP4P         v_EILP       v_temp_wt   
+         0  -16.131263     -19.815178      3.6839141      189.37246     -1.903543       300          
+SHAKE stats (type/ave/delta/count) on step 100
+Bond:   1   0.9572    9.54949e-07       96
+Angle:  1   104.52    6.01522e-05       48
+       100  -17.494869     -20.796995      3.3021253      188.4955      -1.8981262      268.90898    
+SHAKE stats (type/ave/delta/count) on step 200
+Bond:   1   0.9572    9.63922e-07       96
+Angle:  1   104.52    7.7021e-05        48
+       200  -17.48627      -21.194892      3.7086213      188.14561     -1.9871708      302.01203    
+SHAKE stats (type/ave/delta/count) on step 300
+Bond:   1   0.9572    1.4264e-06        96
+Angle:  1   104.52    6.48393e-05       48
+       300  -17.502843     -20.993703      3.4908599      188.23268     -1.8457229      284.27861    
+SHAKE stats (type/ave/delta/count) on step 400
+Bond:   1   0.9572    1.33728e-06       96
+Angle:  1   104.52    7.6239e-05        48
+       400  -17.495285     -20.82835       3.333065       188.48003     -1.8429074      271.42856    
+SHAKE stats (type/ave/delta/count) on step 500
+Bond:   1   0.9572    1.14685e-06       96
+Angle:  1   104.52    8.58621e-05       48
+       500  -17.491436     -20.443043      2.9516075      188.7589      -1.8566335      240.36452    
+SHAKE stats (type/ave/delta/count) on step 600
+Bond:   1   0.9572    9.17601e-07       96
+Angle:  1   104.52    8.24517e-05       48
+       600  -17.505683     -20.608456      3.1027734      188.72078     -1.9560795      252.67474    
+SHAKE stats (type/ave/delta/count) on step 700
+Bond:   1   0.9572    9.50425e-07       96
+Angle:  1   104.52    5.62422e-05       48
+       700  -17.496706     -21.072664      3.575958       188.2777      -1.9833951      291.20858    
+SHAKE stats (type/ave/delta/count) on step 800
+Bond:   1   0.9572    1.15256e-06       96
+Angle:  1   104.52    7.02177e-05       48
+       800  -17.478628     -20.819507      3.340879       188.37868     -1.9113009      272.06489    
+SHAKE stats (type/ave/delta/count) on step 900
+Bond:   1   0.9572    9.14163e-07       96
+Angle:  1   104.52    6.98849e-05       48
+       900  -17.480865     -20.728504      3.2476386      188.5902      -1.8922108      264.47185    
+SHAKE stats (type/ave/delta/count) on step 1000
+Bond:   1   0.9572    1.00568e-06       96
+Angle:  1   104.52    0.000111707       48
+      1000  -17.498474     -20.331607      2.833133       188.87466     -1.8121689      230.71654    
+Loop time of 9.05361 on 4 procs for 1000 steps with 936 atoms
+
+Performance: 9.543 ns/day, 2.515 hours/ns, 110.453 timesteps/s
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.462      | 4.2266     | 7.1075     |  89.3 | 46.68
+Bond    | 0.00018424 | 0.00019878 | 0.00022125 |   0.0 |  0.00
+Kspace  | 1.4698     | 4.338      | 6.1001     |  87.8 | 47.91
+Neigh   | 0.39462    | 0.39489    | 0.39518    |   0.0 |  4.36
+Comm    | 0.043753   | 0.055826   | 0.062746   |   3.1 |  0.62
+Output  | 0.00048755 | 0.00053971 | 0.00062785 |   0.0 |  0.01
+Modify  | 0.027255   | 0.028664   | 0.030278   |   0.7 |  0.32
+Other   |            | 0.008904   |            |       |  0.10
+
+Nlocal:            234 ave         302 max         198 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Nghost:         2876.5 ave        3122 max        2632 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:       107846 ave      150684 max       82181 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 431382
+Ave neighs/atom = 460.87821
+Ave special neighs/atom = 0.30769231
+Neighbor list builds = 28
+Dangerous builds = 0
+Total wall time: 0:00:09

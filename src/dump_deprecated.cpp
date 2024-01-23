@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,6 +27,9 @@ DumpDeprecated::DumpDeprecated(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, na
   if (my_style == "DEPRECATED") {
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nDump style 'DEPRECATED' is a dummy style\n\n");
     return;
+  } else if (utils::strmatch(my_style, "/mpiio$")) {
+    utils::logmesg(lmp, "\nThe MPIIO and thus dump style {} have been removed from LAMMPS.\n\n",
+                   my_style);
   }
   error->all(FLERR, "This dump style is no longer available");
 }

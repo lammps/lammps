@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,6 +30,7 @@
 #include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "atom_vec_kokkos.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -57,7 +58,7 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
 {
   kokkosable = 1;
   comm_forward = comm_reverse = 2; // fused
-  forward_comm_device = 2;
+  forward_comm_device = exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -67,6 +68,7 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   nmax = m_cap = 0;
   allocated_flag = 0;
   nprev = 4;
+  maxexchange = nprev*2;
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -102,9 +104,9 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
 
   neighflag = lmp->kokkos->neighflag_qeq;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 
   int ntypes = atom->ntypes;
@@ -175,8 +177,6 @@ void FixQEqReaxFFKokkos<DeviceType>::init_hist()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
 {
-  //neighbor->build_one(list);
-
   pre_force(vflag);
 }
 
@@ -1339,6 +1339,118 @@ void FixQEqReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 }
 
 /* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_s_hist.sync_device();
+  k_t_hist.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_s_hist.d_view);
+  Sorter.sort(LMPDeviceType(), k_t_hist.d_view);
+
+  k_s_hist.modify_device();
+  k_t_hist.modify_device();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackExchange, const int &mysend) const {
+  const int i = d_exchange_sendlist(mysend);
+
+  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + m) = d_s_hist(i,m);
+  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + nprev+m) = d_t_hist(i,m);
+
+  const int j = d_copylist(mysend);
+
+  if (j > -1) {
+    for (int m = 0; m < nprev; m++) d_s_hist(i,m) = d_s_hist(j,m);
+    for (int m = 0; m < nprev; m++) d_t_hist(i,m) = d_t_hist(j,m);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
+   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
+   ExecutionSpace /*space*/)
+{
+  k_buf.sync<DeviceType>();
+  k_copylist.sync<DeviceType>();
+  k_exchange_sendlist.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_copylist = k_copylist.view<DeviceType>();
+  d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
+  this->nsend = nsend;
+
+  k_s_hist.template sync<DeviceType>();
+  k_t_hist.template sync<DeviceType>();
+
+  copymode = 1;
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqPackExchange>(0,nsend),*this);
+
+  copymode = 0;
+
+  k_s_hist.template modify<DeviceType>();
+  k_t_hist.template modify<DeviceType>();
+
+  return nsend*nprev*2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int &i) const
+{
+  int index = d_indices(i);
+  if (index > -1) {
+    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = d_buf(i*nprev*2 + m);
+    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = d_buf(i*nprev*2 + nprev+m);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
+  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  ExecutionSpace /*space*/)
+{
+  k_buf.sync<DeviceType>();
+  k_indices.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_indices = k_indices.view<DeviceType>();
+
+  k_s_hist.template sync<DeviceType>();
+  k_t_hist.template sync<DeviceType>();
+
+  copymode = 1;
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqUnpackExchange>(0,nrecv),*this);
+
+  copymode = 0;
+
+  k_s_hist.template modify<DeviceType>();
+  k_t_hist.template modify<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
@@ -1350,6 +1462,10 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange(int i, double *buf)
 
   for (int m = 0; m < nprev; m++) buf[m] = s_hist[i][m];
   for (int m = 0; m < nprev; m++) buf[nprev+m] = t_hist[i][m];
+
+  k_s_hist.template modify<LMPHostType>();
+  k_t_hist.template modify<LMPHostType>();
+
   return nprev*2;
 }
 

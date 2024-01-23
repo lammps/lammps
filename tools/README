@@ -33,7 +33,6 @@ lmp2arc                convert LAMMPS output to Accelrys Insight format
 lmp2cfg                convert LAMMPS output to CFG files for AtomEye viz
 magic                  patterns to detect LAMMPS files with the file(1) command
 matlab                 MatLab scripts for post-processing LAMMPS output
-mesont                 Tools for use with the MESONT package
 micelle2d              create a data file of small lipid chains in solvent
 moltemplate            Instructions for installing the Moltemplate builder program
 msi2lmp                use Accelrys Insight code to setup LAMMPS input
@@ -48,6 +47,7 @@ smd                    convert Smooth Mach Dynamics triangles to VTK
 spin                   perform a cubic polynomial interpolation of a GNEB MEP
 stl_bin2txt            convert binary STL files to ASCII
 swig                   Interface file and demo scripts for SWIG wrappers for the LAMMPS C library interface
+tabulate               Python scripts to generate tabulated potential files for LAMMPS
 tinker2lmp.py          convert Tinker input files to LAMMPS input files
 valgrind               suppression files for use with valgrind's memcheck tool
 vim                    add-ons to VIM editor for editing LAMMPS input scripts

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,6 +25,7 @@
 #include "mliap_model_nn.h"
 #include "mliap_model_quadratic.h"
 #ifdef MLIAP_PYTHON
+#include "mliap_unified.h"
 #include "mliap_model_python.h"
 #endif
 
@@ -48,7 +49,10 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) :
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  is_child = false;
   centroidstressflag = CENTROID_NOTAVAIL;
+  model=nullptr;
+  descriptor=nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,10 +64,13 @@ PairMLIAP::~PairMLIAP()
   delete model;
   delete descriptor;
   delete data;
-
+  model=nullptr;
+  descriptor=nullptr;
+  data=nullptr;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(cutghost);
     memory->destroy(map);
   }
 }
@@ -76,12 +83,13 @@ void PairMLIAP::compute(int eflag, int vflag)
 {
 
   // consistency checks
-
   if (data->ndescriptors != model->ndescriptors)
-    error->all(FLERR, "Incompatible model and descriptor descriptor count");
+    error->all(FLERR, "Inconsistent model and descriptor descriptor count: {} vs {}",
+               model->ndescriptors, data->ndescriptors);
 
   if (data->nelements != model->nelements)
-    error->all(FLERR, "Incompatible model and descriptor element count");
+    error->all(FLERR, "Inconsistent model and descriptor element count: {} vs {}",
+               model->nelements, data->nelements);
 
   ev_init(eflag, vflag);
   data->generate_neighdata(list, eflag, vflag);
@@ -93,11 +101,11 @@ void PairMLIAP::compute(int eflag, int vflag)
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
   model->compute_gradients(data);
-  e_tally(data);
 
   // calculate force contributions beta_i*dB_i/dR_j
 
   descriptor->compute_forces(data);
+  e_tally(data);
 
   // calculate stress
 
@@ -115,6 +123,7 @@ void PairMLIAP::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutghost,n+1,n+1,"pair:cutghost");
   memory->create(map,n+1,"pair:map");
 }
 
@@ -124,63 +133,80 @@ void PairMLIAP::allocate()
 
 void PairMLIAP::settings(int narg, char ** arg)
 {
-  if (narg < 4)
-    error->all(FLERR,"Illegal pair_style command");
 
-  // set flags for required keywords
-
-  int modelflag = 0;
-  int descriptorflag = 0;
-  delete model;
-  delete descriptor;
+  // This is needed because the unit test calls settings twice
+  if (!is_child) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style mliap", error);
+    delete model;
+    model = nullptr;
+    delete descriptor;
+    descriptor = nullptr;
+  }
 
   // process keywords
-
   int iarg = 0;
-
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model", error);
+      if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (strcmp(arg[iarg+1],"linear") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model linear", error);
         model = new MLIAPModelLinear(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model quadratic", error);
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"nn") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model nn", error);
         model = new MLIAPModelNN(lmp,arg[iarg+2]);
         iarg += 3;
-#ifdef MLIAP_PYTHON
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+#ifdef MLIAP_PYTHON
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap mliappy", error);
         model = new MLIAPModelPython(lmp,arg[iarg+2]);
         iarg += 3;
+#else
+        error->all(FLERR,"Using pair_style mliap model mliappy requires ML-IAP with python support");
 #endif
-      } else error->all(FLERR,"Illegal pair_style mliap command");
-      modelflag = 1;
+      } else error->all(FLERR,"Unknown pair_style mliap model keyword: {}", arg[iarg]);
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor", error);
+      if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (strcmp(arg[iarg+1],"sna") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor sna", error);
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"so3") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor so3", error);
         descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
 
       } else error->all(FLERR,"Illegal pair_style mliap command");
-      descriptorflag = 1;
+    } else if (strcmp(arg[iarg], "unified") == 0) {
+#ifdef MLIAP_PYTHON
+      if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
+      if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);
+      MLIAPBuildUnified_t build = build_unified(arg[iarg+1], data, lmp);
+      if (iarg+3 > narg) {
+        ghostneigh = 0;
+      } else {
+        ghostneigh = utils::logical(FLERR, arg[iarg+2], false, lmp);
+      }
+
+      iarg += 3;
+      model = build.model;
+      descriptor = build.descriptor;
+#else
+      error->all(FLERR,"Using pair_style mliap unified requires ML-IAP with python support");
+#endif
     } else
-      error->all(FLERR,"Illegal pair_style mliap command");
+      error->all(FLERR,"Unknown pair_style mliap keyword: {}", arg[iarg]);
   }
 
-  if (modelflag == 0 || descriptorflag == 0)
-    error->all(FLERR,"Illegal pair_style command");
-
+  if (model == nullptr || descriptor == nullptr)
+    error->all(FLERR,"Incomplete pair_style mliap setup: need model and descriptor, or unified");
 }
 
 /* ----------------------------------------------------------------------
@@ -192,14 +218,7 @@ void PairMLIAP::coeff(int narg, char **arg)
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  char* type1 = arg[0];
-  char* type2 = arg[1];
   char** elemtypes = &arg[2];
-
-  // insure I,J args are * *
-
-  if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
@@ -241,7 +260,7 @@ void PairMLIAP::coeff(int narg, char **arg)
 
   model->init();
   descriptor->init();
-  int gradgradflag = -1;
+  constexpr int gradgradflag = -1;
   delete data;
   data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
   data->init();
@@ -313,7 +332,11 @@ void PairMLIAP::init_style()
 
   // need a full neighbor list
 
-  neighbor->add_request(this, NeighConst::REQ_FULL);
+  if (ghostneigh == 1) {
+    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
+  } else {
+    neighbor->add_request(this, NeighConst::REQ_FULL);
+  }
 }
 
 
@@ -324,7 +347,9 @@ void PairMLIAP::init_style()
 double PairMLIAP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  return sqrt(descriptor->cutsq[map[i]][map[j]]);
+  double cutmax = sqrt(descriptor->cutsq[map[i]][map[j]]);
+  cutghost[i][j] = cutghost[j][i] = 2.0 * cutmax + neighbor->skin;
+  return cutmax;
 }
 
 /* ----------------------------------------------------------------------
@@ -338,6 +363,7 @@ double PairMLIAP::memory_usage()
   int n = atom->ntypes+1;
   bytes += (double)n*n*sizeof(int);            // setflag
   bytes += (double)n*n*sizeof(int);            // cutsq
+  bytes += (double)n*n*sizeof(int);            // cutghost
   bytes += (double)n*sizeof(int);              // map
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object

@@ -314,10 +314,10 @@ explanation of why this sign choice makes sense.
 
 The *econserve* keyword is the sum of the potential and kinetic energy
 of the system as well as the energy that has been transferred by
-thermostatting or barostatting to their coupling reservoirs.  I.e. it
-is *pe* + *ke* + *econserve*\ .  Ideally, for a simulation in the NVE,
-NPH, or NPT ensembles, the *econserve* quantity should remain constant
-over time.
+thermostatting or barostatting to their coupling reservoirs -- that is,
+*econserve* = *pe* + *ke* + *ecouple*\ .  Ideally, for a simulation in
+the NVT, NPH, or NPT ensembles, the *econserve* quantity should remain
+constant over time even though *etotal* may change.
 
 The *fmax* and *fnorm* keywords are useful for monitoring the progress
 of an :doc:`energy minimization <minimize>`.  The *fmax* keyword
@@ -334,7 +334,7 @@ the number of re-builds that LAMMPS considered potentially
 the :doc:`neigh_modify <neigh_modify>` command), then dangerous
 reneighborings are those that were triggered on the first timestep
 atom movement was checked for.  If this count is non-zero you may wish
-to reduce the delay factor to insure no force interactions are missed
+to reduce the delay factor to ensure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
 takes place.
 
@@ -385,19 +385,20 @@ creates a global vector with 6 values.
 The *c_ID* and *c_ID[I]* and *c_ID[I][J]* keywords allow global values
 calculated by a compute to be output.  As discussed on the
 :doc:`compute <compute>` doc page, computes can calculate global,
-per-atom, or local values.  Only global values can be referenced by
-this command.  However, per-atom compute values for an individual atom
-can be referenced in a :doc:`variable <variable>` and the variable
-referenced by thermo_style custom, as discussed below.  See the
-discussion above for how the I in *c_ID[I]* can be specified with a
-wildcard asterisk to effectively specify multiple values from a global
-compute vector.
+per-atom, local, and per-grid values.  Only global values can be
+referenced by this command.  However, per-atom compute values for an
+individual atom can be referenced in a :doc:`equal-style variable
+<variable>` and the variable referenced by thermo_style custom, as
+discussed below.  See the discussion above for how the I in *c_ID[I]*
+can be specified with a wildcard asterisk to effectively specify
+multiple values from a global compute vector.
 
 The ID in the keyword should be replaced by the actual ID of a compute
 that has been defined elsewhere in the input script.  See the
-:doc:`compute <compute>` command for details.  If the compute calculates
-a global scalar, vector, or array, then the keyword formats with 0, 1,
-or 2 brackets will reference a scalar value from the compute.
+:doc:`compute <compute>` command for details.  If the compute
+calculates a global scalar, vector, or array, then the keyword formats
+with 0, 1, or 2 brackets will reference a scalar value from the
+compute.
 
 Note that some computes calculate "intensive" global quantities like
 temperature; others calculate "extensive" global quantities like
@@ -410,13 +411,14 @@ norm <thermo_modify>` option being used.
 
 The *f_ID* and *f_ID[I]* and *f_ID[I][J]* keywords allow global values
 calculated by a fix to be output.  As discussed on the :doc:`fix
-<fix>` doc page, fixes can calculate global, per-atom, or local
-values.  Only global values can be referenced by this command.
-However, per-atom fix values can be referenced for an individual atom
-in a :doc:`variable <variable>` and the variable referenced by
-thermo_style custom, as discussed below.  See the discussion above for
-how the I in *f_ID[I]* can be specified with a wildcard asterisk to
-effectively specify multiple values from a global fix vector.
+<fix>` doc page, fixes can calculate global, per-atom, local, and
+per-grid values.  Only global values can be referenced by this
+command.  However, per-atom fix values can be referenced for an
+individual atom in a :doc:`equal-style variable <variable>` and the
+variable referenced by thermo_style custom, as discussed below.  See
+the discussion above for how the I in *f_ID[I]* can be specified with
+a wildcard asterisk to effectively specify multiple values from a
+global fix vector.
 
 The ID in the keyword should be replaced by the actual ID of a fix
 that has been defined elsewhere in the input script.  See the
@@ -438,14 +440,15 @@ output.  The name in the keyword should be replaced by the variable
 name that has been defined elsewhere in the input script.  Only
 equal-style and vector-style variables can be referenced; the latter
 requires a bracketed term to specify the Ith element of the vector
-calculated by the variable.  However, an atom-style variable can be
-referenced for an individual atom by an equal-style variable and that
-variable referenced.  See the :doc:`variable <variable>` command for
-details.  Variables of style *equal* and *vector* and *atom* define a
-formula which can reference per-atom properties or thermodynamic
-keywords, or they can invoke other computes, fixes, or variables when
-evaluated, so this is a very general means of creating thermodynamic
-output.
+calculated by the variable.  However, an equal-style variable can use
+an atom-style variable in its formula indexed by the ID of an
+individual atom.  This is a way to output a specific atom's per-atom
+coordinates or other per-atom properties in thermo output.  See the
+:doc:`variable <variable>` command for details.  Note that variables
+of style *equal* and *vector* and *atom* define a formula which can
+reference per-atom properties or thermodynamic keywords, or they can
+invoke other computes, fixes, or variables when evaluated, so this is
+a very general means of creating thermodynamic output.
 
 Note that equal-style and vector-style variables are assumed to
 produce "intensive" global quantities, which are thus printed as-is,

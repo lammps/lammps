@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -120,7 +120,7 @@ void FixDampingCundall::init()
   }
 
   bool fflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (fflag && (comm->me == 0) && (ifix->setmask() & POST_FORCE))
       error->warning(FLERR, "Fix {} alters forces after fix damping/cundall", ifix->id);
     if (ifix == this) fflag = true;

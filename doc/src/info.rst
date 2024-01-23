@@ -6,7 +6,7 @@ info command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    info args
 

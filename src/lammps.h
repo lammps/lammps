@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,6 +16,8 @@
 
 #include <cstdio>
 #include <mpi.h>
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -49,6 +51,8 @@ class LAMMPS {
                           // that is constructed so that will be greater
                           // for newer versions in numeric or string
                           // value comparisons
+  int restart_ver;        // -1 or numeric version id of LAMMPS version in restart
+                          // file, in case LAMMPS was initialized from a restart
                           //
   MPI_Comm world;         // MPI communicator
   FILE *infile;           // infile
@@ -58,9 +62,11 @@ class LAMMPS {
   double initclock;       // wall clock at instantiation
   int skiprunflag;        // 1 inserts timer command to skip run and minimize loops
 
-  char *suffix, *suffix2, *suffixp;    // suffixes to add to input script style names
-  int suffix_enable;                   // 1 if suffixes are enabled, 0 if disabled
-  char *exename;                       // pointer to argv[0]
+  char *suffix, *suffix2;    // suffixes to add to input script style names
+  int suffix_enable;         // 1 if suffixes are enabled, 0 if disabled
+  int pair_only_flag;        // 1 if only force field pair styles are accelerated, 0 if all
+  const char *non_pair_suffix() const;
+  char *exename;             // pointer to argv[0]
 
   char ***packargs;    // arguments for cmdline package commands
   int num_package;     // number of cmdline package commands
@@ -80,8 +86,12 @@ class LAMMPS {
   static const char *git_branch();
   static const char *git_descriptor();
 
+  using argv = std::vector<std::string>;
+  static std::vector<char*> argv_pointers(argv & args);
+
+  LAMMPS(argv & args, MPI_Comm);
   LAMMPS(int, char **, MPI_Comm);
-  ~LAMMPS();
+  ~LAMMPS() noexcept(false);
   void create();
   void post_create();
   void init();

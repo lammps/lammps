@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,6 +37,7 @@ using namespace MathConst;
 
 PairNMCutCoulCut::PairNMCutCoulCut(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -223,8 +224,7 @@ void PairNMCutCoulCut::settings(int narg, char **arg)
 
 void PairNMCutCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 8)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -238,8 +238,8 @@ void PairNMCutCoulCut::coeff(int narg, char **arg)
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
-  if (narg >= 7) cut_coul_one = cut_lj_one = utils::numeric(FLERR,arg[4],false,lmp);
-  if (narg == 8) cut_coul_one = utils::numeric(FLERR,arg[5],false,lmp);
+  if (narg >= 7) cut_coul_one = cut_lj_one = utils::numeric(FLERR,arg[6],false,lmp);
+  if (narg == 8) cut_coul_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -478,6 +478,38 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairNMCutCoulCut::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                            double factor_coul, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double r, rinv, r2inv, r3inv;
+  double du_lj, du2_lj, du_coul, du2_coul;
+
+  double *q = atom->q;
+  double qqrd2e = force->qqrd2e;
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r3inv = r2inv * rinv;
+  r = sqrt(rsq);
+
+  double prefactor = e0nm[itype][jtype]*nm[itype][jtype];
+
+  du_lj = prefactor *
+          (r0m[itype][jtype]/pow(r,mm[itype][jtype]) - r0n[itype][jtype]/pow(r,nn[itype][jtype])) / r;
+  du2_lj = prefactor *
+          (r0n[itype][jtype]*(nn[itype][jtype] + 1.0) / pow(r,nn[itype][jtype]) -
+           r0m[itype][jtype]*(mm[itype][jtype] + 1.0) / pow(r,mm[itype][jtype])) / rsq;
+
+  du_coul = -qqrd2e * q[i] * q[j] * r2inv;
+  du2_coul = 2.0 * qqrd2e * q[i] * q[j] * r3inv;
+
+  dupair = factor_lj * du_lj + factor_coul * du_coul;
+  du2pair = factor_lj * du2_lj + factor_coul * du2_coul;
 }
 
 /* ---------------------------------------------------------------------- */

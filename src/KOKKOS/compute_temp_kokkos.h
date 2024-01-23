@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -54,16 +54,6 @@ class ComputeTempKokkos : public ComputeTemp {
       t5 += rhs.t5;
       return *this;
     }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile s_CTEMP &rhs) volatile {
-      t0 += rhs.t0;
-      t1 += rhs.t1;
-      t2 += rhs.t2;
-      t3 += rhs.t3;
-      t4 += rhs.t4;
-      t5 += rhs.t5;
-    }
   };
 
   typedef s_CTEMP CTEMP;
@@ -85,15 +75,14 @@ class ComputeTempKokkos : public ComputeTemp {
   void operator()(TagComputeTempVector<RMASS>, const int&, CTEMP&) const;
 
  protected:
-  typename ArrayTypes<DeviceType>::t_v_array_randomread v;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread mask;
+  typename AT::t_v_array_randomread v;
+  typename AT::t_float_1d_randomread rmass;
+  typename AT::t_float_1d_randomread mass;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d_randomread mask;
 };
 
 }
 
 #endif
 #endif
-

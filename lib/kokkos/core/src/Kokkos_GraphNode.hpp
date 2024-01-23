@@ -1,47 +1,24 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#endif
 #ifndef KOKKOS_KOKKOS_GRAPHNODE_HPP
 #define KOKKOS_KOKKOS_GRAPHNODE_HPP
 
@@ -70,13 +47,10 @@ class GraphNodeRef {
   // Note: because of these assertions, instantiating this class template is not
   //       intended to be SFINAE-safe, so do validation before you instantiate.
 
-// WORKAROUND Could not get it to compile with IBM XL V16.1.1
-#ifndef KOKKOS_COMPILER_IBM
   static_assert(
       std::is_same<Predecessor, TypeErasedTag>::value ||
           Kokkos::Impl::is_specialization_of<Predecessor, GraphNodeRef>::value,
       "Invalid predecessor template parameter given to GraphNodeRef");
-#endif
 
   static_assert(
       Kokkos::is_execution_space<ExecutionSpace>::value,
@@ -225,7 +199,7 @@ class GraphNodeRef {
 
   template <
       class OtherKernel, class OtherPredecessor,
-      typename std::enable_if_t<
+      std::enable_if_t<
           // Not a copy/move constructor
           !std::is_same<GraphNodeRef, GraphNodeRef<execution_space, OtherKernel,
                                                    OtherPredecessor>>::value &&
@@ -256,12 +230,12 @@ class GraphNodeRef {
 
   template <
       class Policy, class Functor,
-      typename std::enable_if<
+      std::enable_if_t<
           // equivalent to:
           //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
           is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
           // --------------------
-          int>::type = 0>
+          int> = 0>
   auto then_parallel_for(std::string arg_name, Policy&& arg_policy,
                          Functor&& functor) const {
     //----------------------------------------
@@ -298,12 +272,12 @@ class GraphNodeRef {
 
   template <
       class Policy, class Functor,
-      typename std::enable_if<
+      std::enable_if_t<
           // equivalent to:
           //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
           is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
           // --------------------
-          int>::type = 0>
+          int> = 0>
   auto then_parallel_for(Policy&& policy, Functor&& functor) const {
     // needs to static assert constraint: DataParallelFunctor<Functor>
     return this->then_parallel_for("", (Policy &&) policy,
@@ -333,12 +307,12 @@ class GraphNodeRef {
 
   template <
       class Policy, class Functor, class ReturnType,
-      typename std::enable_if<
+      std::enable_if_t<
           // equivalent to:
           //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
           is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
           // --------------------
-          int>::type = 0>
+          int> = 0>
   auto then_parallel_reduce(std::string arg_name, Policy&& arg_policy,
                             Functor&& functor,
                             ReturnType&& return_value) const {
@@ -353,8 +327,7 @@ class GraphNodeRef {
     // needs static assertion of constraint:
     //   DataParallelReductionFunctor<Functor, ReturnType>
 
-    using policy_t = typename std::remove_cv<
-        typename std::remove_reference<Policy>::type>::type;
+    using policy_t = std::remove_cv_t<std::remove_reference_t<Policy>>;
     static_assert(
         std::is_same<typename policy_t::execution_space,
                      execution_space>::value,
@@ -380,8 +353,8 @@ class GraphNodeRef {
 
     //----------------------------------------
     // This is a disaster, but I guess it's not a my disaster to fix right now
-    using return_type_remove_cvref = typename std::remove_cv<
-        typename std::remove_reference<ReturnType>::type>::type;
+    using return_type_remove_cvref =
+        std::remove_cv_t<std::remove_reference_t<ReturnType>>;
     static_assert(Kokkos::is_view<return_type_remove_cvref>::value ||
                       Kokkos::is_reducer<return_type_remove_cvref>::value,
                   "Output argument to parallel reduce in a graph must be a "
@@ -403,25 +376,41 @@ class GraphNodeRef {
     auto policy = Experimental::require((Policy &&) arg_policy,
                                         Kokkos::Impl::KernelInGraphProperty{});
 
+    using passed_reducer_type = typename return_value_adapter::reducer_type;
+
+    using reducer_selector = Kokkos::Impl::if_c<
+        std::is_same<InvalidType, passed_reducer_type>::value, functor_type,
+        passed_reducer_type>;
+    using analysis = Kokkos::Impl::FunctorAnalysis<
+        Kokkos::Impl::FunctorPatternInterface::REDUCE, Policy,
+        typename reducer_selector::type,
+        typename return_value_adapter::value_type>;
+    typename analysis::Reducer final_reducer(
+        reducer_selector::select(functor, return_value));
+    Kokkos::Impl::CombinedFunctorReducer<functor_type,
+                                         typename analysis::Reducer>
+        functor_reducer(functor, final_reducer);
+
     using next_policy_t = decltype(policy);
-    using next_kernel_t = Kokkos::Impl::GraphNodeKernelImpl<
-        ExecutionSpace, next_policy_t, functor_type, Kokkos::ParallelReduceTag,
-        typename return_value_adapter::reducer_type>;
+    using next_kernel_t =
+        Kokkos::Impl::GraphNodeKernelImpl<ExecutionSpace, next_policy_t,
+                                          decltype(functor_reducer),
+                                          Kokkos::ParallelReduceTag>;
 
     return this->_then_kernel(next_kernel_t{
         std::move(arg_name), graph_impl_ptr->get_execution_space(),
-        (Functor &&) functor, (Policy &&) policy,
+        functor_reducer, (Policy &&) policy,
         return_value_adapter::return_value(return_value, functor)});
   }
 
   template <
       class Policy, class Functor, class ReturnType,
-      typename std::enable_if<
+      std::enable_if_t<
           // equivalent to:
           //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
           is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
           // --------------------
-          int>::type = 0>
+          int> = 0>
   auto then_parallel_reduce(Policy&& arg_policy, Functor&& functor,
                             ReturnType&& return_value) const {
     return this->then_parallel_reduce("", (Policy &&) arg_policy,

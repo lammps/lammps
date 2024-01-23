@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -593,9 +593,9 @@ void PairComb3::read_file(char *file)
 
       if (params[nparams].lambda < 0.0 || params[nparams].powern < 0.0 ||
           params[nparams].beta < 0.0 || params[nparams].alpha1 < 0.0 ||
-          params[nparams].bigB1< 0.0 || params[nparams].bigA< 0.0 ||
-          params[nparams].bigB2< 0.0 || params[nparams].alpha2 <0.0 ||
-          params[nparams].bigB3< 0.0 || params[nparams].alpha3 <0.0 ||
+          params[nparams].bigB1 < 0.0 || params[nparams].bigA < 0.0 ||
+          params[nparams].bigB2 < 0.0 || params[nparams].alpha2 < 0.0 ||
+          params[nparams].bigB3 < 0.0 || params[nparams].alpha3 < 0.0 ||
           params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
           params[nparams].bigd > params[nparams].bigr ||
           params[nparams].powerm - params[nparams].powermint != 0.0 ||

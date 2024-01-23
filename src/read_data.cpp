@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,6 +41,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace LAMMPS_NS;
@@ -335,8 +336,8 @@ void ReadData::command(int narg, char **arg)
     error->all(FLERR, "Cannot run 2d simulation with nonperiodic Z dimension");
   if ((domain->nonperiodic == 2) && utils::strmatch(force->kspace_style, "^msm"))
     error->all(FLERR,
-               "Reading a data file with shrinkwrap boundaries is "
-               "not compatible with a MSM KSpace style");
+               "Reading a data file with shrinkwrap boundaries is not "
+               "compatible with a MSM KSpace style");
   if (domain->box_exist && !addflag)
     error->all(FLERR, "Cannot use read_data without add keyword after simulation box is defined");
   if (!domain->box_exist && addflag)
@@ -363,7 +364,7 @@ void ReadData::command(int narg, char **arg)
   // check if data file is available and readable
 
   if (!platform::file_is_readable(arg[0]))
-    error->all(FLERR, fmt::format("Cannot open file {}: {}", arg[0], utils::getsyserror()));
+    error->all(FLERR, "Cannot open file {}: {}", arg[0], utils::getsyserror());
 
   // reset so we can warn about reset image flags exactly once per data file
 
@@ -374,6 +375,16 @@ void ReadData::command(int narg, char **arg)
   if (addflag == NONE) {
     domain->box_exist = 1;
     update->ntimestep = 0;
+  } else {
+
+    // clear global->local map for owned and ghost atoms
+    // clear ghost count and any ghost bonus data internal to AtomVec
+    // same logic as beginning of Comm::exchange()
+    // do it now b/c adding atoms will overwrite ghost atoms
+
+    if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
+    atom->nghost = 0;
+    atom->avec->clear_bonus();
   }
 
   // compute atomID and optionally moleculeID offset for addflag = APPEND
@@ -500,7 +511,7 @@ void ReadData::command(int narg, char **arg)
     // problem setup using info from header
     // only done once, if firstpass and first data file
     // apply extra settings before grow(), even if no topology in file
-    // deallocate() insures new settings are used for topology arrays
+    // deallocate() ensures new settings are used for topology arrays
     // if per-atom topology is in file, another grow() is done below
 
     if (firstpass && addflag == NONE) {
@@ -550,12 +561,33 @@ void ReadData::command(int narg, char **arg)
     // only done if firstpass and not first data file
 
     if (firstpass && addflag != NONE) {
+      double oldboxlo[3] = {domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};
+      double oldboxhi[3] = {domain->boxhi[0], domain->boxhi[1], domain->boxhi[2]};
       domain->boxlo[0] = MIN(domain->boxlo[0], boxlo[0] + shift[0]);
       domain->boxhi[0] = MAX(domain->boxhi[0], boxhi[0] + shift[0]);
       domain->boxlo[1] = MIN(domain->boxlo[1], boxlo[1] + shift[1]);
       domain->boxhi[1] = MAX(domain->boxhi[1], boxhi[1] + shift[1]);
       domain->boxlo[2] = MIN(domain->boxlo[2], boxlo[2] + shift[2]);
       domain->boxhi[2] = MAX(domain->boxhi[2], boxhi[2] + shift[2]);
+
+      // check of box has changed. If yes, warn about non-zero image flags
+      if ((oldboxlo[0] != domain->boxlo[0]) || (oldboxlo[1] != domain->boxlo[1]) ||
+          (oldboxlo[2] != domain->boxlo[2]) || (oldboxhi[0] != domain->boxhi[0]) ||
+          (oldboxhi[1] != domain->boxhi[1]) || (oldboxhi[2] != domain->boxhi[2])) {
+        int iflag = 1;
+        for (int i = 0; i < atom->nlocal; ++i) {
+          int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
+          int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+          int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
+          if (xbox != 0) iflag = 1;
+          if (ybox != 0) iflag = 1;
+          if (zbox != 0) iflag = 1;
+        }
+        int flag_all;
+        MPI_Allreduce(&iflag, &flag_all, 1, MPI_INT, MPI_SUM, world);
+        if ((flag_all > 0) && (comm->me == 0))
+          error->warning(FLERR, "Non-zero image flags with growing box leads to bad coordinates");
+      }
 
       // NOTE: not sure what to do about tilt value in subsequent data files
       //if (triclinic) {
@@ -585,8 +617,9 @@ void ReadData::command(int narg, char **arg)
         atomflag = 1;
         if (firstpass) {
           if (me == 0 && !style_match(style, atom->atom_style))
-            error->warning(FLERR,
-                           "Atom style in data file differs from currently defined atom style");
+            error->warning(
+                FLERR, "Atom style in data file {} differs from currently defined atom style {}",
+                style, atom->atom_style);
           atoms();
         } else
           skip_lines(natoms);
@@ -664,8 +697,9 @@ void ReadData::command(int narg, char **arg)
         if (force->pair == nullptr) error->all(FLERR, "Must define pair_style before Pair Coeffs");
         if (firstpass) {
           if (me == 0 && !style_match(style, force->pair_style))
-            error->warning(FLERR,
-                           "Pair style in data file differs from currently defined pair style");
+            error->warning(
+                FLERR, "Pair style {} in data file differs from currently defined pair style {}",
+                style, force->pair_style);
           paircoeffs();
         } else
           skip_lines(ntypes);
@@ -674,9 +708,9 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR, "Must define pair_style before PairIJ Coeffs");
         if (firstpass) {
           if (me == 0 && !style_match(style, force->pair_style))
-            error->warning(FLERR,
-                           "Pair style in data file differs "
-                           "from currently defined pair style");
+            error->warning(
+                FLERR, "Pair style {} in data file differs from currently defined pair style {}",
+                style, force->pair_style);
           pairIJcoeffs();
         } else
           skip_lines(ntypes * (ntypes + 1) / 2);
@@ -686,8 +720,9 @@ void ReadData::command(int narg, char **arg)
         if (force->bond == nullptr) error->all(FLERR, "Must define bond_style before Bond Coeffs");
         if (firstpass) {
           if (me == 0 && !style_match(style, force->bond_style))
-            error->warning(FLERR,
-                           "Bond style in data file differs from currently defined bond style");
+            error->warning(
+                FLERR, "Bond style {} in data file differs from currently defined bond style {}",
+                style, force->bond_style);
           bondcoeffs();
         } else
           skip_lines(nbondtypes);
@@ -698,8 +733,9 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR, "Must define angle_style before Angle Coeffs");
         if (firstpass) {
           if (me == 0 && !style_match(style, force->angle_style))
-            error->warning(FLERR,
-                           "Angle style in data file differs from currently defined angle style");
+            error->warning(
+                FLERR, "Angle style {} in data file differs from currently defined angle style {}",
+                style, force->angle_style);
           anglecoeffs(0);
         } else
           skip_lines(nangletypes);
@@ -710,9 +746,10 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR, "Must define dihedral_style before Dihedral Coeffs");
         if (firstpass) {
           if (me == 0 && !style_match(style, force->dihedral_style))
-            error->warning(FLERR,
-                           "Dihedral style in data file differs "
-                           "from currently defined dihedral style");
+            error->warning(
+                FLERR,
+                "Dihedral style {} in data file differs from currently defined dihedral style {}",
+                style, force->dihedral_style);
           dihedralcoeffs(0);
         } else
           skip_lines(ndihedraltypes);
@@ -723,9 +760,10 @@ void ReadData::command(int narg, char **arg)
           error->all(FLERR, "Must define improper_style before Improper Coeffs");
         if (firstpass) {
           if (me == 0 && !style_match(style, force->improper_style))
-            error->warning(FLERR,
-                           "Improper style in data file differs "
-                           "from currently defined improper style");
+            error->warning(
+                FLERR,
+                "Improper style {} in data file differs from currently defined improper style {}",
+                style, force->improper_style);
           impropercoeffs(0);
         } else
           skip_lines(nimpropertypes);
@@ -875,10 +913,13 @@ void ReadData::command(int narg, char **arg)
         int i;
         for (i = 0; i < nfix; i++)
           if (strcmp(keyword, fix_section[i]) == 0) {
-            if (firstpass)
+            if (firstpass) {
               fix(fix_index[i], keyword);
-            else
-              skip_lines(fix_index[i]->read_data_skip_lines(keyword));
+            } else {
+              auto nskip = fix_index[i]->read_data_skip_lines(keyword);
+              if (nskip < 0) nskip = natoms;
+              skip_lines(nskip);
+            }
             break;
           }
         if (i == nfix)
@@ -999,7 +1040,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // for atom style template systems
-  // insure nbondtypes,etc are still consistent with template molecules,
+  // ensure nbondtypes,etc are still consistent with template molecules,
   //   in case data file re-defined them
 
   if (atom->molecular == Atom::TEMPLATE) {
@@ -1113,6 +1154,14 @@ void ReadData::header(int firstpass)
   if (me == 0) {
     char *eof = utils::fgets_trunc(line, MAXLINE, fp);
     if (eof == nullptr) error->one(FLERR, "Unexpected end of data file");
+
+    // check for units keyword in first line and print warning on mismatch
+    auto units = Tokenizer(utils::strfind(line, "units = \\w+")).as_vector();
+    if (units.size() > 2) {
+      if (units[2] != update->unit_style)
+        error->warning(FLERR, "Inconsistent units in data file: current = {}, data file = {}",
+                       update->unit_style, units[2]);
+    }
   }
 
   while (true) {
@@ -1950,7 +1999,8 @@ void ReadData::paircoeffs()
     next = strchr(buf, '\n');
     *next = '\0';
     parse_coeffs(buf, nullptr, 1, 2, toffset, tlabelflag, lmap->lmap2lmap.atom);
-    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in PairCoeffs section");
+    if (ncoeffarg == 0)
+      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", ntypes);
     force->pair->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }
@@ -1971,9 +2021,7 @@ void ReadData::pairIJcoeffs()
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR,
-               "Label map is incomplete: "
-               "all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (i = 0; i < ntypes; i++)
@@ -1981,7 +2029,8 @@ void ReadData::pairIJcoeffs()
       next = strchr(buf, '\n');
       *next = '\0';
       parse_coeffs(buf, nullptr, 0, 2, toffset, tlabelflag, lmap->lmap2lmap.atom);
-      if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in PairCoeffs section");
+      if (ncoeffarg == 0)
+        error->all(FLERR, "Unexpected empty line in PairIJCoeffs section. Expected {} lines.", nsq);
       force->pair->coeff(ncoeffarg, coeffarg);
       buf = next + 1;
     }
@@ -2001,16 +2050,16 @@ void ReadData::bondcoeffs()
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   if (blabelflag && !lmap->is_complete(Atom::BOND))
-    error->all(FLERR,
-               "Label map is incomplete: "
-               "all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (int i = 0; i < nbondtypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     parse_coeffs(buf, nullptr, 0, 1, boffset, blabelflag, lmap->lmap2lmap.bond);
-    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in BondCoeffs section");
+    if (ncoeffarg == 0)
+      error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
+                 nbondtypes);
     force->bond->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }
@@ -2030,9 +2079,7 @@ void ReadData::anglecoeffs(int which)
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   if (alabelflag && !lmap->is_complete(Atom::ANGLE))
-    error->all(FLERR,
-               "Label map is incomplete: "
-               "all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (int i = 0; i < nangletypes; i++) {
@@ -2066,9 +2113,7 @@ void ReadData::dihedralcoeffs(int which)
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   if (dlabelflag && !lmap->is_complete(Atom::DIHEDRAL))
-    error->all(FLERR,
-               "Label map is incomplete: "
-               "all types must be assigned a unique type label");
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (int i = 0; i < ndihedraltypes; i++) {
@@ -2225,6 +2270,7 @@ void ReadData::fix(Fix *ifix, char *keyword)
   int nchunk, eof;
 
   bigint nline = ifix->read_data_skip_lines(keyword);
+  if (nline < 0) nline = natoms;
 
   bigint nread = 0;
   while (nread < nline) {
@@ -2401,13 +2447,13 @@ void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag, int nof
   if (noffset) {
     int value = utils::inumeric(FLERR, coeffarg[0], false, lmp);
     if (labelmode) value = ilabel[value - 1];
-    sprintf(argoffset1, "%d", value + offset);
-    coeffarg[0] = argoffset1;
+    argoffset1 = std::to_string(value + offset);
+    coeffarg[0] = (char *) argoffset1.c_str();
     if (noffset == 2) {
       value = utils::inumeric(FLERR, coeffarg[1], false, lmp);
       if (labelmode) value = ilabel[value - 1];
-      sprintf(argoffset2, "%d", value + offset);
-      coeffarg[1] = argoffset2;
+      argoffset2 = std::to_string(value + offset);
+      coeffarg[1] = (char *) argoffset2.c_str();
     }
   }
 }

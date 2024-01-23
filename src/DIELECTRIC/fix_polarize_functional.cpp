@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -55,9 +55,11 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathExtra;
-using namespace MathConst;
-using namespace MathSpecial;
+using MathConst::MY_PI;
+using MathConst::MY_PIS;
+using MathSpecial::square;
+
+//#define _POLARIZE_DEBUG
 
 enum { REAL2SCALED = 0, SCALED2REAL = 1 };
 
@@ -263,7 +265,7 @@ void FixPolarizeFunctional::init()
   // need a full neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   if (force->kspace)
     g_ewald = force->kspace->g_ewald;
@@ -356,7 +358,7 @@ void FixPolarizeFunctional::pre_force(int)
 
 void FixPolarizeFunctional::update_induced_charges()
 {
-  // convert all ions from scaled charges (q) to real q by multiplying with epsilon
+  // convert all ion charges from scaled (q_scaled) to real q by multiplying with epsilon
 
   charge_rescaled(SCALED2REAL);
 
@@ -375,13 +377,13 @@ void FixPolarizeFunctional::update_induced_charges()
 
   // assign charges to the particles in the group
 
-  double *q = atom->q;
+  double *q_scaled = atom->q_scaled;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) continue;
     int idx = induced_charge_idx[i];
-    q[i] = -induced_charges[idx] / (4 * MY_PI);
+    q_scaled[i] = -induced_charges[idx] / (4 * MY_PI);
   }
 
   // revert to scaled charges to calculate forces
@@ -396,18 +398,20 @@ void FixPolarizeFunctional::update_induced_charges()
 
 void FixPolarizeFunctional::charge_rescaled(int scaled2real)
 {
+  double *q_scaled = atom->q_scaled;
   double *q = atom->q;
-  double *q_real = atom->q_unscaled;
   double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
 
-  if (scaled2real) {
+  if (scaled2real == SCALED2REAL) {
     for (int i = 0; i < nlocal; i++)
-      if (induced_charge_idx[i] < 0) q[i] = q_real[i];
+      if (induced_charge_idx[i] < 0) q_scaled[i] = q[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (induced_charge_idx[i] < 0) q[i] = q_real[i] / epsilon[i];
+      if (induced_charge_idx[i] < 0) q_scaled[i] = q[i] / epsilon[i];
   }
+
+  // communicate q_scaled to neighboring procs
 
   comm->forward_comm(this);
 }
@@ -484,11 +488,11 @@ int FixPolarizeFunctional::modify_param(int narg, char **arg)
       int set_charge = 0;
       double ediff = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       double emean = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      if (strcmp(arg[iarg + 3], "nullptr") != 0)
+      if (strcmp(arg[iarg + 3], "NULL") != 0)
         epsiloni = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-      if (strcmp(arg[iarg + 4], "nullptr") != 0)
+      if (strcmp(arg[iarg + 4], "NULL") != 0)
         areai = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
-      if (strcmp(arg[iarg + 5], "nullptr") != 0) {
+      if (strcmp(arg[iarg + 5], "NULL") != 0) {
         q_unscaled = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
         set_charge = 1;
       }
@@ -530,7 +534,7 @@ int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int 
                                              int * /*pbc*/)
 {
   int m;
-  for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  for (m = 0; m < n; m++) buf[m] = atom->q_scaled[list[m]];
   return n;
 }
 
@@ -539,7 +543,7 @@ int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int 
 void FixPolarizeFunctional::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
-  for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  for (m = 0, i = first; m < n; m++, i++) atom->q_scaled[i] = buf[m];
 }
 
 /* ----------------------------------------------------------------------
@@ -818,7 +822,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   double **x = atom->x;
-  double *q = atom->q_unscaled;
+  double *q = atom->q_scaled;
   double *epsilon = atom->epsilon;
   double *area = atom->area;
   double **norm = atom->mu;
@@ -1027,7 +1031,7 @@ void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean, do
   double *area = atom->area;
   double *ed = atom->ed;
   double *em = atom->em;
-  double *q_unscaled = atom->q_unscaled;
+  double *q = atom->q;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1038,7 +1042,7 @@ void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean, do
       em[i] = emean;
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
-      if (set_charge) q_unscaled[i] = qvalue;
+      if (set_charge) q[i] = qvalue;
     }
   }
 }

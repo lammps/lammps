@@ -1,0 +1,8 @@
+# -*- makefile -*-
+
+CC=mpicxx
+CXXFLAGS=-D_DEFAULT_SOURCE -O2 -Wall -fPIC -std=c++11
+AR=ar
+ARFLAGS=rc
+
+include Common.mk

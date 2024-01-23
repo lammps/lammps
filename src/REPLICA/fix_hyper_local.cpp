@@ -2,7 +2,7 @@
  /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1058,7 +1058,7 @@ void FixHyperLocal::build_bond_list(int natom)
   for (i = 0; i < nlocal; i++) numbond[i] = 0;
 
   // trigger neighbor list builds for both lists
-  // insure the I loops in both are from 1 to nlocal
+  // ensure the I loops in both are from 1 to nlocal
 
   neighbor->build_one(listfull);
   neighbor->build_one(listhalf);

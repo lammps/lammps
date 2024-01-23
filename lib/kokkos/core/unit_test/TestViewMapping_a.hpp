@@ -1,51 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
 #include <cstddef>
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -249,11 +220,11 @@ void test_view_mapping() {
     ASSERT_EQ(layout.dimension[0], 2u);
     ASSERT_EQ(layout.dimension[1], 3u);
     ASSERT_EQ(layout.dimension[2], 4u);
-    ASSERT_EQ(layout.dimension[3], 1u);
-    ASSERT_EQ(layout.dimension[4], 1u);
-    ASSERT_EQ(layout.dimension[5], 1u);
-    ASSERT_EQ(layout.dimension[6], 1u);
-    ASSERT_EQ(layout.dimension[7], 1u);
+    ASSERT_EQ(layout.dimension[3], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[4], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[5], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[6], KOKKOS_INVALID_INDEX);
+    ASSERT_EQ(layout.dimension[7], KOKKOS_INVALID_INDEX);
 
     ASSERT_EQ(stride3.m_dim.rank, 3u);
     ASSERT_EQ(stride3.m_dim.N0, 2u);
@@ -447,8 +418,8 @@ void test_view_mapping() {
     Kokkos::Impl::ViewDimension<N0, N1, N2, N3> dim;
 
     SubviewExtents tmp(dim, N0 / 2, Kokkos::ALL,
-                       std::pair<int, int>(N2 / 4, 10 + N2 / 4),
-                       Kokkos::pair<int, int>(N3 / 4, 20 + N3 / 4));
+                       std::pair<size_t, size_t>(N2 / 4, 10 + N2 / 4),
+                       Kokkos::pair<size_t, size_t>(N3 / 4, 20 + N3 / 4));
 
     ASSERT_EQ(tmp.domain_offset(0), N0 / 2);
     ASSERT_EQ(tmp.domain_offset(1), 0u);
@@ -632,8 +603,7 @@ void test_view_mapping() {
 
     using a_const_int_r1 = ViewDataAnalysis<const int[], void>;
 
-    static_assert(
-        std::is_same<typename a_const_int_r1::specialize, void>::value, "");
+    static_assert(std::is_void<typename a_const_int_r1::specialize>::value, "");
     static_assert(std::is_same<typename a_const_int_r1::dimension,
                                Kokkos::Impl::ViewDimension<0> >::value,
                   "");
@@ -664,8 +634,7 @@ void test_view_mapping() {
 
     using a_const_int_r3 = ViewDataAnalysis<const int* * [4], void>;
 
-    static_assert(
-        std::is_same<typename a_const_int_r3::specialize, void>::value, "");
+    static_assert(std::is_void<typename a_const_int_r3::specialize>::value, "");
 
     static_assert(std::is_same<typename a_const_int_r3::dimension,
                                Kokkos::Impl::ViewDimension<0, 0, 4> >::value,
@@ -744,7 +713,7 @@ void test_view_mapping() {
                               typename Space::memory_space>::value));
     ASSERT_TRUE((std::is_same<typename T::reference_type, int&>::value));
 
-    ASSERT_EQ(T::Rank, 1);
+    ASSERT_EQ(T::rank, size_t(1));
 
     ASSERT_TRUE((std::is_same<typename C::data_type, const int*>::value));
     ASSERT_TRUE((std::is_same<typename C::const_data_type, const int*>::value));
@@ -765,7 +734,7 @@ void test_view_mapping() {
                               typename Space::memory_space>::value));
     ASSERT_TRUE((std::is_same<typename C::reference_type, const int&>::value));
 
-    ASSERT_EQ(C::Rank, 1);
+    ASSERT_EQ(C::rank, size_t(1));
 
     ASSERT_EQ(vr1.extent(0), size_t(N));
 
@@ -812,7 +781,7 @@ void test_view_mapping() {
     ASSERT_TRUE((std::is_same<typename T::memory_space,
                               typename Space::memory_space>::value));
     ASSERT_TRUE((std::is_same<typename T::reference_type, int&>::value));
-    ASSERT_EQ(T::Rank, 1);
+    ASSERT_EQ(T::rank, size_t(1));
 
     ASSERT_EQ(vr1.extent(0), size_t(N));
 
@@ -1069,10 +1038,7 @@ void test_view_mapping() {
     ASSERT_EQ(a.use_count(), 1);
     ASSERT_EQ(b.use_count(), 0);
 
-// TODO: a.use_count() and x.use_count() are 0 with the asynchronous HPX
-// backend. Why?
-#if !defined(KOKKOS_ENABLE_CUDA_LAMBDA) && \
-    !(defined(KOKKOS_ENABLE_HPX) && defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH))
+#if !defined(KOKKOS_ENABLE_CUDA) || !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
     // Cannot launch host lambda when CUDA lambda is enabled.
 
     using host_exec_space =

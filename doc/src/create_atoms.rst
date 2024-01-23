@@ -28,7 +28,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *overlap* or *maxtry* or *units*
+* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
 
   .. parsed-literal::
 
@@ -108,7 +108,7 @@ atom types 1, 2, and 3, then each created molecule will have atom types
 
 For the *box* style, the create_atoms command fills the entire
 simulation box with particles on the lattice.  If your simulation box
-is periodic, you should insure its size is a multiple of the lattice
+is periodic, you should ensure its size is a multiple of the lattice
 spacings, to avoid unwanted atom overlaps at the box boundaries.  If
 your box is periodic and a multiple of the lattice spacing in a
 particular dimension, LAMMPS is careful to put exactly one particle at
@@ -121,7 +121,7 @@ and also consistent with the region volume.  See the :doc:`region
 that its "volume" is either inside or outside its geometric boundary.
 Also note that if a region is the same size as a periodic simulation
 box (in some dimension), LAMMPS does NOT implement the same logic
-described above for the *box* style, to insure exactly one particle at
+described above for the *box* style, to ensure exactly one particle at
 periodic boundaries.  If this is desired, you should either use the
 *box* style, or tweak the region size to get precisely the particles
 you want.
@@ -189,6 +189,10 @@ to the area of that triangle.
    beneficial to exclude computing interactions between the created
    particles using :doc:`neigh_modify exclude <neigh_modify>`.
 
+.. versionchanged:: 2Jun2022
+
+The *porosity* style has been renamed to *random* with added functionality.
+
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
@@ -218,7 +222,7 @@ to the simulation.  For example, grain boundaries can be created, by
 interleaving the create_atoms command with :doc:`lattice <lattice>`
 commands specifying different orientations.
 
-When this command is used, care should be taken to insure the
+When this command is used, care should be taken to ensure the
 resulting system does not contain particles that are highly
 overlapped.  Such overlaps will cause many interatomic potentials to
 compute huge energies and forces, leading to bad dynamics.  There are
@@ -312,7 +316,7 @@ inserting particles, which may be limited by the *region* style or the
 fraction of them (:math:`0 \le f \le 1`) will be assigned particles.
 For the *subset* keyword only the specified *Nsubset* of them will be
 assigned particles.  In both cases the assigned lattice sites are
-chosen randomly.  An iterative algorithm is used that insures the
+chosen randomly.  An iterative algorithm is used that ensures the
 correct number of particles are inserted, in a perfectly random
 fashion.  Which lattice sites are selected will change with the number
 of processors used.
@@ -417,6 +421,8 @@ non-overlapping criterion.
    above about systems with overlapped particles for alternate
    strategies that allow for overlapped insertions.
 
+.. versionadded:: 2Jun2022
+
 The *maxtry* keyword only applies to the *random* style.  It limits
 the number of attempts to generate valid coordinates for a single new
 particle that satisfy all requirements imposed by the *region*, *var*,
@@ -460,7 +466,7 @@ The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
 style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
 *box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring{A}}` for
+:doc:`units <units>` command (e.g., :math:`\AA` for
 units = *real* or *metal*\ .  A *lattice* value means the distance units are in
 lattice spacings.
 

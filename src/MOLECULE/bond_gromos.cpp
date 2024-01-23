@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,7 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondGromos::BondGromos(LAMMPS *_lmp) : Bond(_lmp) {}
+BondGromos::BondGromos(LAMMPS *_lmp) : Bond(_lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -189,6 +192,16 @@ double BondGromos::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   double dr = rsq - r0[type] * r0[type];
   fforce = -4.0 * k[type] * dr;
   return k[type] * dr * dr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondGromos::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  du = 0.0;
+  du2 = 4 * k[type] * (3 * rsq - r0[type] * r0[type]);
+  if (r > 0.0) du = 4 * k[type] * r * (rsq - r0[type] * r0[type]);
 }
 
 /* ----------------------------------------------------------------------

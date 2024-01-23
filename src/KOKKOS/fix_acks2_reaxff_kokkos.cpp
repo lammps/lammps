@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -49,6 +49,7 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixACKS2ReaxFF(lmp, narg, arg)
 {
   kokkosable = 1;
+  sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -100,9 +101,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::init()
 
   neighflag = lmp->kokkos->neighflag_qeq;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 
   int ntypes = atom->ntypes;
@@ -1238,7 +1239,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
   rnorm = sqrt(norm_sqr);
 
   if (bnorm == 0.0 ) bnorm = 1.0;
-  deep_copy(d_r_hat,d_r);
+  Kokkos::deep_copy(d_r_hat,d_r);
   omega = 1.0;
   rho = 1.0;
 
@@ -1910,6 +1911,25 @@ void FixACKS2ReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 
   k_s_hist.template modify<LMPHostType>();
   k_s_hist_X.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_s_hist.sync_device();
+  k_s_hist_X.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_s_hist.d_view);
+  Sorter.sort(LMPDeviceType(), k_s_hist_X.d_view);
+
+  k_s_hist.modify_device();
+  k_s_hist_X.modify_device();
 }
 
 /* ----------------------------------------------------------------------

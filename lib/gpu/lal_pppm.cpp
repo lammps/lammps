@@ -79,6 +79,8 @@ grdtyp *PPPMT::init(const int nlocal, const int nall, FILE *_screen,
     return nullptr;
   }
 
+  if (ucl_device!=device->gpu) _compiled=false;
+
   ucl_device=device->gpu;
   atom=&device->atom;
 
@@ -304,7 +306,8 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
                            const double delxinv, const double delyinv,
                            const double delzinv) {
   if (!_precompute_done) {
-    atom->acc_timers();
+    if (device->time_device())
+      atom->acc_timers();
     _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
                 delyinv,delzinv);
   }

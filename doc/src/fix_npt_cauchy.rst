@@ -6,14 +6,14 @@ fix npt/cauchy command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style_name keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *npt/cauchy*
 * one or more keyword/value pairs may be appended
-* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint*
+* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *alpha* or *continue* or *fixedpoint*
 
   .. parsed-literal::
 
@@ -311,7 +311,7 @@ flipping the box when it is exceeded.  If the *flip* value is set to
 applied stress induces large deformations (e.g. in a liquid), this
 means the box shape can tilt dramatically and LAMMPS will run less
 efficiently, due to the large volume of communication needed to
-acquire ghost atoms around a processor's irregular-shaped sub-domain.
+acquire ghost atoms around a processor's irregular-shaped subdomain.
 For extreme values of tilt, LAMMPS may also lose atoms and generate an
 error.
 

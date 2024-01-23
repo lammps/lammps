@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -67,7 +67,7 @@ int MDI_Plugin_init_lammps(void *plugin_state)
   // find the -in argument
 
   int iarg = 0;
-  char *filename;
+  char *filename = nullptr;
   bool found_filename = false;
   while (iarg < mdi_argc && !found_filename) {
 

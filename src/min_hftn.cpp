@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1598,14 +1598,9 @@ void MinHFTN::open_hftn_print_file_()
   int  nMyRank;
   MPI_Comm_rank (world, &nMyRank);
 
-  char  szTmp[50];
-  sprintf (szTmp, "progress_MinHFTN_%d.txt", nMyRank);
-  _fpPrint = fopen (szTmp, "w");
-  if (_fpPrint == nullptr) {
-    printf ("*** MinHFTN cannot open file '%s'\n", szTmp);
-    printf ("*** continuing...\n");
-    return;
-  }
+  auto szTmp = fmt::format("progress_MinHFTN_{}.txt", nMyRank);
+  _fpPrint = fopen (szTmp.c_str(), "w");
+  if (_fpPrint == nullptr) return;
 
   fprintf (_fpPrint, "  Iter   Evals      Energy         |F|_2"
            "    Step   TR used    |step|_2      ared      pred\n");

@@ -57,12 +57,20 @@ struct _lgpu_float2 {
   float x; float y;
 };
 
+struct _lgpu_float3 {
+  float x; float y; float z;
+};
+
 struct _lgpu_float4 {
   float x; float y; float z; float w;
 };
 
 struct _lgpu_double2 {
   double x; double y;
+};
+
+struct _lgpu_double3 {
+  double x; double y; double z;
 };
 
 struct _lgpu_double4 {
@@ -75,6 +83,11 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_float2 &v) {
   return out;
 }
 
+inline std::ostream & operator<<(std::ostream &out, const _lgpu_float3 &v) {
+  out << v.x << " " << v.y << " " << v.z;
+  return out;
+}
+
 inline std::ostream & operator<<(std::ostream &out, const _lgpu_float4 &v) {
   out << v.x << " " << v.y << " " << v.z;
   return out;
@@ -82,6 +95,11 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_float4 &v) {
 
 inline std::ostream & operator<<(std::ostream &out, const _lgpu_double2 &v) {
   out << v.x << " " << v.y;
+  return out;
+}
+
+inline std::ostream & operator<<(std::ostream &out, const _lgpu_double3 &v) {
+  out << v.x << " " << v.y << " " << v.z;
   return out;
 }
 
@@ -97,8 +115,10 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_double4 &v) {
 #define PRECISION float
 #define ACC_PRECISION double
 #define numtyp2 _lgpu_float2
+#define numtyp3 _lgpu_float3
 #define numtyp4 _lgpu_float4
 #define acctyp2 _lgpu_double2
+#define acctyp3 _lgpu_double3
 #define acctyp4 _lgpu_double4
 #endif
 
@@ -107,8 +127,10 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_double4 &v) {
 #define PRECISION double
 #define ACC_PRECISION double
 #define numtyp2 _lgpu_double2
+#define numtyp3 _lgpu_double3
 #define numtyp4 _lgpu_double4
 #define acctyp2 _lgpu_double2
+#define acctyp3 _lgpu_double3
 #define acctyp4 _lgpu_double4
 #endif
 
@@ -117,8 +139,10 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_double4 &v) {
 #define PRECISION float
 #define ACC_PRECISION float
 #define numtyp2 _lgpu_float2
+#define numtyp3 _lgpu_float3
 #define numtyp4 _lgpu_float4
 #define acctyp2 _lgpu_float2
+#define acctyp3 _lgpu_float3
 #define acctyp4 _lgpu_float4
 #endif
 

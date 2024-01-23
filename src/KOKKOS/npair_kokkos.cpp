@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
 
   last_stencil_old = -1;
 
@@ -49,8 +49,8 @@ NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NP
    copy needed info from Neighbor class to this build class
    ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_neighbor_info()
 {
   NPair::copy_neighbor_info();
 
@@ -58,7 +58,6 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   // general params
 
-  newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
 
   // overwrite per-type Neighbor cutoffs with custom value set by requestor
@@ -80,8 +79,6 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
   k_ex1_type = neighborKK->k_ex1_type;
   k_ex2_type = neighborKK->k_ex2_type;
   k_ex_type = neighborKK->k_ex_type;
-  k_ex1_group = neighborKK->k_ex1_group;
-  k_ex2_group = neighborKK->k_ex2_group;
   k_ex1_bit = neighborKK->k_ex1_bit;
   k_ex2_bit = neighborKK->k_ex2_bit;
   k_ex_mol_group = neighborKK->k_ex_mol_group;
@@ -93,8 +90,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
  copy per-atom and per-bin vectors from NBin class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_bin_info()
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_bin_info()
 {
   NPair::copy_bin_info();
 
@@ -110,13 +107,13 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_bin_info()
  copy needed info from NStencil class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_stencil_info()
 {
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
 
-  if (ns->last_stencil != last_stencil_old) {
+  if (ns->last_stencil != last_stencil_old || ns->last_stencil == update->ntimestep) {
     // copy stencil to device as it may have changed
 
     last_stencil_old = ns->last_stencil;
@@ -145,8 +142,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
 {
   NeighListKokkos<DeviceType>* list = (NeighListKokkos<DeviceType>*) list_;
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
@@ -157,6 +154,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   if (nall == 0) return;
 
   list->grow(nall);
+
+  const double delta = 0.01 * force->angstrom;
 
   NeighborKokkosExecute<DeviceType>
     data(*list,
@@ -179,13 +178,11 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
          atomKK->molecular,
          nbinx,nbiny,nbinz,mbinx,mbiny,mbinz,mbinxlo,mbinylo,mbinzlo,
          bininvx,bininvy,bininvz,
-         exclude, nex_type,
+         delta, exclude, nex_type,
          k_ex1_type.view<DeviceType>(),
          k_ex2_type.view<DeviceType>(),
          k_ex_type.view<DeviceType>(),
          nex_group,
-         k_ex1_group.view<DeviceType>(),
-         k_ex2_group.view<DeviceType>(),
          k_ex1_bit.view<DeviceType>(),
          k_ex2_bit.view<DeviceType>(),
          nex_mol,
@@ -201,8 +198,6 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   k_ex1_type.sync<DeviceType>();
   k_ex2_type.sync<DeviceType>();
   k_ex_type.sync<DeviceType>();
-  k_ex1_group.sync<DeviceType>();
-  k_ex2_group.sync<DeviceType>();
   k_ex1_bit.sync<DeviceType>();
   k_ex2_bit.sync<DeviceType>();
   k_ex_mol_group.sync<DeviceType>();
@@ -224,6 +219,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       atomKK->sync(Device,X_MASK|RADIUS_MASK|TYPE_MASK);
   }
 
+  if (HALF && NEWTON && TRI) atomKK->sync(Device,TAG_MASK);
+
   data.special_flag[0] = special_flag[0];
   data.special_flag[1] = special_flag[1];
   data.special_flag[2] = special_flag[2];
@@ -244,100 +241,65 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
 
     if (GHOST) {
-      NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef LMP_KOKKOS_GPU
-      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-        int team_size = atoms_per_bin*factor;
-        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-        if (team_size <= team_size_max) {
-          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-          Kokkos::parallel_for(config, f);
-        } else { // fall back to flat method
-          f.sharedsize = 0;
-          Kokkos::parallel_for(nall, f);
-        }
-      } else
-        Kokkos::parallel_for(nall, f);
-#else
+      // assumes newton off
+
+      NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+
+// temporarily disable team policy for ghost due to known bug
+
+//#ifdef LMP_KOKKOS_GPU
+//      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
+//        int team_size = atoms_per_bin*factor;
+//        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+//        if (team_size <= team_size_max) {
+//          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+//          Kokkos::parallel_for(config, f);
+//        } else { // fall back to flat method
+//          f.sharedsize = 0;
+//          Kokkos::parallel_for(nall, f);
+//        }
+//      } else
+//        Kokkos::parallel_for(nall, f);
+//#else
       Kokkos::parallel_for(nall, f);
-#endif
+//#endif
     } else {
-      if (newton_pair) {
-        if (SIZE) {
-          NPairKokkosBuildFunctorSize<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);
+      if (SIZE) {
+        NPairKokkosBuildFunctorSize<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 7 * sizeof(X_FLOAT) * factor);
 #ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
+        if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
+          int team_size = atoms_per_bin*factor;
+          int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+          if (team_size <= team_size_max) {
+            Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+            Kokkos::parallel_for(config, f);
+          } else { // fall back to flat method
+            f.sharedsize = 0;
             Kokkos::parallel_for(nall, f);
-#else
+          }
+        } else
           Kokkos::parallel_for(nall, f);
-#endif
-        } else {
-          NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
-            Kokkos::parallel_for(nall, f);
 #else
-          Kokkos::parallel_for(nall, f);
+        Kokkos::parallel_for(nall, f);
 #endif
-        }
       } else {
-        if (SIZE) {
-          NPairKokkosBuildFunctorSize<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+        NPairKokkosBuildFunctor<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);
 #ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
+        if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
+          int team_size = atoms_per_bin*factor;
+          int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+          if (team_size <= team_size_max) {
+            Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+            Kokkos::parallel_for(config, f);
+          } else { // fall back to flat method
+            f.sharedsize = 0;
             Kokkos::parallel_for(nall, f);
-#else
+          }
+        } else
           Kokkos::parallel_for(nall, f);
-#endif
-        } else {
-          NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
-            Kokkos::parallel_for(nall, f);
 #else
-          Kokkos::parallel_for(nall, f);
+        Kokkos::parallel_for(nall, f);
 #endif
-        }
       }
     }
     Kokkos::deep_copy(h_scalars, d_scalars);
@@ -443,7 +405,6 @@ KOKKOS_FUNCTION
 void NeighborKokkosExecute<DeviceType>::
    build_Item(const int &i) const
 {
-  /* if necessary, goto next page and add pages */
   int n = 0;
   int which = 0;
   int moltemplate;
@@ -457,30 +418,39 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
   const int itype = type(i);
+  tagint itag;
+  if (HalfNeigh && Newton && Tri) itag = tag(i);
 
   const int ibin = c_atom2bin(i);
 
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
     = d_stencil;
 
-  // loop over all bins in neighborhood (includes ibin)
-  if (HalfNeigh)
+  // loop over rest of atoms in i's bin, ghosts are at end of linked list
+  // if j is owned atom, store it, since j is beyond i in linked list
+  // if j is ghost, only store if j coords are "above and to the right" of i
+
+  if (HalfNeigh && Newton && !Tri)
   for (int m = 0; m < c_bincount(ibin); m++) {
     const int j = c_bins(ibin,m);
-    const int jtype = type(j);
 
-    //for same bin as atom i skip j if i==j and skip atoms "below and to the left" if using HalfNeighborlists
-    if ((j == i) || (HalfNeigh && !Newton && (j < i))  ||
-        (HalfNeigh && Newton && ((j < i) || ((j >= nlocal) &&
-                                       ((x(j, 2) < ztmp) || (x(j, 2) == ztmp && x(j, 1) < ytmp) ||
-                                        (x(j, 2) == ztmp && x(j, 1)  == ytmp && x(j, 0) < xtmp)))))
-      ) continue;
+    if (j <= i) continue;
+    if (j >= nlocal) {
+      if (x(j,2) < ztmp) continue;
+      if (x(j,2) == ztmp) {
+        if (x(j,1) < ytmp) continue;
+        if (x(j,1) == ytmp && x(j,0) < xtmp) continue;
+      }
+    }
+
+    const int jtype = type(j);
     if (exclude && exclusion(i,j,itype,jtype)) continue;
 
     const X_FLOAT delx = xtmp - x(j, 0);
     const X_FLOAT dely = ytmp - x(j, 1);
     const X_FLOAT delz = ztmp - x(j, 2);
     const X_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
     if (rsq <= cutneighsq(itype,jtype)) {
       if (molecular != Atom::ATOMIC) {
         if (!moltemplate)
@@ -511,26 +481,43 @@ void NeighborKokkosExecute<DeviceType>::
   for (int k = 0; k < nstencil; k++) {
     const int jbin = ibin + stencil[k];
 
+    if (HalfNeigh && Newton && !Tri && (ibin == jbin)) continue;
     // get subview of jbin
-    if (HalfNeigh && (ibin==jbin)) continue;
     //const ArrayTypes<DeviceType>::t_int_1d_const_um =Kokkos::subview<t_int_1d_const_um>(bins,jbin,ALL);
       for (int m = 0; m < c_bincount(jbin); m++) {
 
         const int j = c_bins(jbin,m);
-        const int jtype = type(j);
 
-        if (HalfNeigh && !Newton && (j < i)) continue;
-        if (!HalfNeigh && j==i) continue;
-        if (Tri) {
-          if (x(j,2) < ztmp) continue;
-          if (x(j,2) == ztmp) {
-            if (x(j,1) < ytmp) continue;
-            if (x(j,1) == ytmp) {
-              if (x(j,0) < xtmp) continue;
-              if (x(j,0) == xtmp && j <= i) continue;
+        if (HalfNeigh && !Newton && j <= i) continue;
+        if (!HalfNeigh && j == i) continue;
+
+        // for triclinic, bin stencil is full in all 3 dims
+        // must use itag/jtag to eliminate half the I/J interactions
+        // cannot use I/J exact coord comparision
+        //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+        //   with an added PBC offset can shift all 3 coords by epsilon
+
+        if (HalfNeigh && Newton && Tri) {
+          if (j <= i) continue;
+          if (j >= nlocal) {
+            const tagint jtag = tag(j);
+            if (itag > jtag) {
+              if ((itag+jtag) % 2 == 0) continue;
+            } else if (itag < jtag) {
+              if ((itag+jtag) % 2 == 1) continue;
+            } else {
+              if (fabs(x(j,2)-ztmp) > delta) {
+                if (x(j,2) < ztmp) continue;
+              } else if (fabs(x(j,1)-ytmp) > delta) {
+                if (x(j,1) < ytmp) continue;
+              } else {
+                if (x(j,0) < xtmp) continue;
+              }
             }
           }
         }
+
+        const int jtype = type(j);
         if (exclude && exclusion(i,j,itype,jtype)) continue;
 
         const X_FLOAT delx = xtmp - x(j, 0);
@@ -563,7 +550,6 @@ void NeighborKokkosExecute<DeviceType>::
             else n++;
           }
         }
-
       }
   }
 
@@ -604,8 +590,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
                                                       size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
-  /* loop over atoms in i's bin,
-  */
+
+  // loop over atoms in i's bin
+
   const int atoms_per_bin = c_bins.extent(1);
   const int BINS_PER_TEAM = dev.team_size()/atoms_per_bin <1?1:dev.team_size()/atoms_per_bin;
   const int TEAMS_PER_BIN = atoms_per_bin/dev.team_size()<1?1:atoms_per_bin/dev.team_size();
@@ -615,15 +602,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
 
   if (ibin >= mbins) return;
 
-  X_FLOAT* other_x = sharedmem + 5*atoms_per_bin*MY_BIN;
-  int* other_id = (int*) &other_x[4 * atoms_per_bin];
+  X_FLOAT* other_x = sharedmem + 6*atoms_per_bin*MY_BIN;
+  int* other_id = (int*) &other_x[5 * atoms_per_bin];
 
   int bincount_current = c_bincount[ibin];
 
   for (int kk = 0; kk < TEAMS_PER_BIN; kk++) {
     const int MY_II = dev.team_rank()%atoms_per_bin+kk*dev.team_size();
     const int i = MY_II < bincount_current ? c_bins(ibin, MY_II) : -1;
-    /* if necessary, goto next page and add pages */
 
     int n = 0;
 
@@ -631,6 +617,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
     X_FLOAT ytmp;
     X_FLOAT ztmp;
     int itype;
+    tagint itag;
     const int index = (i >= 0 && i < nlocal) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
@@ -644,6 +631,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
       other_x[MY_II + atoms_per_bin] = ytmp;
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
+      if (HalfNeigh && Newton && Tri) {
+        itag = tag(i);
+        other_x[MY_II + 4 * atoms_per_bin] = itag;
+      }
     }
     other_id[MY_II] = i;
 
@@ -658,31 +649,28 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
     dev.team_barrier();
 #endif
 
+  // loop over rest of atoms in i's bin, ghosts are at end of linked list
+  // if j is owned atom, store it, since j is beyond i in linked list
+  // if j is ghost, only store if j coords are "above and to the right" of i
+
+    if (HalfNeigh && Newton && !Tri)
     if (i >= 0 && i < nlocal) {
       #pragma unroll 4
       for (int m = 0; m < bincount_current; m++) {
         int j = other_id[m];
-        const int jtype = other_x[m + 3 * atoms_per_bin];
 
-        //for same bin as atom i skip j if i==j and skip atoms "below and to the left" if using halfneighborlists
-        if ((j == i) ||
-           (HalfNeigh && !Newton && (j < i))  ||
-           (HalfNeigh && Newton &&
-              ((j < i) ||
-              ((j >= nlocal) && ((x(j, 2) < ztmp) || (x(j, 2) == ztmp && x(j, 1) < ytmp) ||
-                (x(j, 2) == ztmp && x(j, 1)  == ytmp && x(j, 0) < xtmp)))))
-          ) continue;
-          if (Tri) {
-            if (x(j,2) < ztmp) continue;
-            if (x(j,2) == ztmp) {
-              if (x(j,1) < ytmp) continue;
-              if (x(j,1) == ytmp) {
-                if (x(j,0) < xtmp) continue;
-                if (x(j,0) == xtmp && j <= i) continue;
-              }
-            }
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          if (x(j,2) < ztmp) continue;
+          if (x(j,2) == ztmp) {
+            if (x(j,1) < ytmp) continue;
+            if (x(j,1) == ytmp && x(j,0) < xtmp) continue;
           }
+        }
+
+        const int jtype = other_x[m + 3 * atoms_per_bin];
         if (exclude && exclusion(i,j,itype,jtype)) continue;
+
         const X_FLOAT delx = xtmp - other_x[m];
         const X_FLOAT dely = ytmp - other_x[m + atoms_per_bin];
         const X_FLOAT delz = ztmp - other_x[m + 2 * atoms_per_bin];
@@ -724,7 +712,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
     for (int k = 0; k < nstencil; k++) {
       const int jbin = ibin + stencil[k];
 
-      if (ibin == jbin) continue;
+      if (HalfNeigh && Newton && !Tri && (ibin == jbin)) continue;
 
       bincount_current = c_bincount[jbin];
       int j = MY_II < bincount_current ? c_bins(jbin, MY_II) : -1;
@@ -734,6 +722,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
         other_x[MY_II + atoms_per_bin] = x(j, 1);
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
+        if (HalfNeigh && Newton && Tri)
+          other_x[MY_II + 4 * atoms_per_bin] = tag(j);
       }
 
       other_id[MY_II] = j;
@@ -744,21 +734,37 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
         #pragma unroll 8
         for (int m = 0; m < bincount_current; m++) {
           const int j = other_id[m];
-          const int jtype = other_x[m + 3 * atoms_per_bin];
 
-          //if(HalfNeigh && (j < i))  continue;
-          if (HalfNeigh && !Newton && (j < i)) continue;
-          if (!HalfNeigh && j==i) continue;
-          if (Tri) {
-            if (x(j,2) < ztmp) continue;
-            if (x(j,2) == ztmp) {
-              if (x(j,1) < ytmp) continue;
-              if (x(j,1) == ytmp) {
-                if (x(j,0) < xtmp) continue;
-                if (x(j,0) == xtmp && j <= i) continue;
+          if (HalfNeigh && !Newton && j <= i) continue;
+          if (!HalfNeigh && j == i) continue;
+
+          // for triclinic, bin stencil is full in all 3 dims
+          // must use itag/jtag to eliminate half the I/J interactions
+          // cannot use I/J exact coord comparision
+          //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+          //   with an added PBC offset can shift all 3 coords by epsilon
+
+          if (HalfNeigh && Newton && Tri) {
+            if (j <= i) continue;
+            if (j >= nlocal) {
+              const tagint jtag = other_x[m + 4 * atoms_per_bin];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x(j,2)-ztmp) > delta) {
+                  if (x(j,2) < ztmp) continue;
+                } else if (fabs(x(j,1)-ytmp) > delta) {
+                  if (x(j,1) < ytmp) continue;
+                } else {
+                  if (x(j,0) < xtmp) continue;
+                }
               }
             }
           }
+
+          const int jtype = other_x[m + 3 * atoms_per_bin];
           if (exclude && exclusion(i,j,itype,jtype)) continue;
 
           const X_FLOAT delx = xtmp - other_x[m];
@@ -944,6 +950,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
                                                       size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
+
   // loop over atoms in i's bin
 
   const int atoms_per_bin = c_bins.extent(1);
@@ -1123,26 +1130,35 @@ void NeighborKokkosExecute<DeviceType>::
   const X_FLOAT ztmp = x(i, 2);
   const X_FLOAT radi = radius(i);
   const int itype = type(i);
+  tagint itag;
+  if (HalfNeigh && Newton && Tri) itag = tag(i);
 
   const int ibin = c_atom2bin(i);
 
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
     = d_stencil;
 
-  const int mask_history = 3 << SBBITS;
+  const int mask_history = 1 << HISTBITS;
 
   // loop over all bins in neighborhood (includes ibin)
-  if (HalfNeigh)
+  // loop over rest of atoms in i's bin, ghosts are at end of linked list
+  // if j is owned atom, store it, since j is beyond i in linked list
+  // if j is ghost, only store if j coords are "above and to the right" of i
+
+  if (HalfNeigh && Newton && !Tri)
   for (int m = 0; m < c_bincount(ibin); m++) {
     const int j = c_bins(ibin,m);
-    const int jtype = type(j);
 
-    //for same bin as atom i skip j if i==j and skip atoms "below and to the left" if using HalfNeighborlists
-    if ((j == i) || (HalfNeigh && !Newton && (j < i))  ||
-        (HalfNeigh && Newton && ((j < i) || ((j >= nlocal) &&
-                                       ((x(j, 2) < ztmp) || (x(j, 2) == ztmp && x(j, 1) < ytmp) ||
-                                        (x(j, 2) == ztmp && x(j, 1)  == ytmp && x(j, 0) < xtmp)))))
-      ) continue;
+    if (j <= i) continue;
+    if (j >= nlocal) {
+      if (x(j,2) < ztmp) continue;
+      if (x(j,2) == ztmp) {
+        if (x(j,1) < ytmp) continue;
+        if (x(j,1) == ytmp && x(j,0) < xtmp) continue;
+      }
+    }
+
+    const int jtype = type(j);
     if (exclude && exclusion(i,j,itype,jtype)) continue;
 
     const X_FLOAT delx = xtmp - x(j, 0);
@@ -1154,8 +1170,34 @@ void NeighborKokkosExecute<DeviceType>::
 
     if (rsq <= cutsq) {
       if (n < neigh_list.maxneighs) {
-        if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-        else neighbors_i(n++) = j;
+        int jh = j;
+        if (neigh_list.history && rsq < radsum*radsum)
+          jh = jh ^ mask_history;
+
+        if (molecular != Atom::ATOMIC) {
+          int which = 0;
+          if (!moltemplate)
+            which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+          /* else if (imol >= 0) */
+          /*   which = find_special(onemols[imol]->special[iatom], */
+          /*                        onemols[imol]->nspecial[iatom], */
+          /*                        tag[j]-tagprev); */
+          /* else which = 0; */
+          if (which == 0) {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+            else n++;
+          } else if (minimum_image_check(delx,dely,delz)) {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+            else n++;
+          }
+          else if (which > 0) {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+            else n++;
+          }
+        } else {
+          if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+          else n++;
+        }
       }
       else n++;
     }
@@ -1164,26 +1206,43 @@ void NeighborKokkosExecute<DeviceType>::
   for (int k = 0; k < nstencil; k++) {
     const int jbin = ibin + stencil[k];
 
+    if (HalfNeigh && Newton && !Tri && (ibin == jbin)) continue;
     // get subview of jbin
-    if (HalfNeigh && (ibin==jbin)) continue;
     //const ArrayTypes<DeviceType>::t_int_1d_const_um =Kokkos::subview<t_int_1d_const_um>(bins,jbin,ALL);
     for (int m = 0; m < c_bincount(jbin); m++) {
 
       const int j = c_bins(jbin,m);
-      const int jtype = type(j);
 
-      if (HalfNeigh && !Newton && (j < i)) continue;
-      if (!HalfNeigh && j==i) continue;
-      if (Tri) {
-        if (x(j,2) < ztmp) continue;
-        if (x(j,2) == ztmp) {
-          if (x(j,1) < ytmp) continue;
-          if (x(j,1) == ytmp) {
-            if (x(j,0) < xtmp) continue;
-            if (x(j,0) == xtmp && j <= i) continue;
+      if (HalfNeigh && !Newton && j <= i) continue;
+      if (!HalfNeigh && j == i) continue;
+
+      // for triclinic, bin stencil is full in all 3 dims
+      // must use itag/jtag to eliminate half the I/J interactions
+      // cannot use I/J exact coord comparision
+      //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+      //   with an added PBC offset can shift all 3 coords by epsilon
+
+      if (HalfNeigh && Newton && Tri) {
+        if (j <= i) continue;
+        if (j >= nlocal) {
+          const tagint jtag = tag(j);
+          if (itag > jtag) {
+            if ((itag+jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag+jtag) % 2 == 1) continue;
+          } else {
+            if (fabs(x(j,2)-ztmp) > delta) {
+              if (x(j,2) < ztmp) continue;
+            } else if (fabs(x(j,1)-ytmp) > delta) {
+              if (x(j,1) < ytmp) continue;
+            } else {
+              if (x(j,0) < xtmp) continue;
+            }
           }
         }
       }
+
+      const int jtype = type(j);
       if (exclude && exclusion(i,j,itype,jtype)) continue;
 
       const X_FLOAT delx = xtmp - x(j, 0);
@@ -1195,8 +1254,35 @@ void NeighborKokkosExecute<DeviceType>::
 
       if (rsq <= cutsq) {
         if (n < neigh_list.maxneighs) {
-          if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-          else neighbors_i(n++) = j;
+
+          int jh = j;
+          if (neigh_list.history && rsq < radsum*radsum)
+            jh = jh ^ mask_history;
+
+          if (molecular != Atom::ATOMIC) {
+            int which = 0;
+            if (!moltemplate)
+              which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+            /* else if (imol >= 0) */
+            /*   which = find_special(onemols[imol]->special[iatom], */
+            /*                        onemols[imol]->nspecial[iatom], */
+            /*                        tag[j]-tagprev); */
+            /* else which = 0; */
+            if (which == 0) {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+              else n++;
+            } else if (minimum_image_check(delx,dely,delz)) {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+              else n++;
+            }
+            else if (which > 0) {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+              else n++;
+            }
+          } else {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+            else n++;
+          }
         }
         else n++;
       }
@@ -1223,8 +1309,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
                                                           size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
-  /* loop over atoms in i's bin,
-   */
+
+  // loop over atoms in i's bin
+
   const int atoms_per_bin = c_bins.extent(1);
   const int BINS_PER_TEAM = dev.team_size()/atoms_per_bin <1?1:dev.team_size()/atoms_per_bin;
   const int TEAMS_PER_BIN = atoms_per_bin/dev.team_size()<1?1:atoms_per_bin/dev.team_size();
@@ -1234,15 +1321,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
   if (ibin >= mbins) return;
 
-  X_FLOAT* other_x = sharedmem + 6*atoms_per_bin*MY_BIN;
-  int* other_id = (int*) &other_x[5 * atoms_per_bin];
+  X_FLOAT* other_x = sharedmem + 7*atoms_per_bin*MY_BIN;
+  int* other_id = (int*) &other_x[6 * atoms_per_bin];
 
   int bincount_current = c_bincount[ibin];
 
   for (int kk = 0; kk < TEAMS_PER_BIN; kk++) {
     const int MY_II = dev.team_rank()%atoms_per_bin+kk*dev.team_size();
     const int i = MY_II < bincount_current ? c_bins(ibin, MY_II) : -1;
-    /* if necessary, goto next page and add pages */
 
     int n = 0;
 
@@ -1251,10 +1337,11 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     X_FLOAT ztmp;
     X_FLOAT radi;
     int itype;
+    tagint itag;
     const int index = (i >= 0 && i < nlocal) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
-    const int mask_history = 3 << SBBITS;
+    const int mask_history = 1 << HISTBITS;
 
     if (i >= 0) {
       xtmp = x(i, 0);
@@ -1267,6 +1354,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       other_x[MY_II + 2 * atoms_per_bin] = ztmp;
       other_x[MY_II + 3 * atoms_per_bin] = itype;
       other_x[MY_II + 4 * atoms_per_bin] = radi;
+      if (HalfNeigh && Newton && Tri) {
+        itag = tag(i);
+        other_x[MY_II + 5 * atoms_per_bin] = itag;
+      }
     }
     other_id[MY_II] = i;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
@@ -1280,30 +1371,22 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     dev.team_barrier();
 #endif
 
+    if (HalfNeigh && Newton && !Tri)
     if (i >= 0 && i < nlocal) {
       #pragma unroll 4
       for (int m = 0; m < bincount_current; m++) {
         int j = other_id[m];
-        const int jtype = other_x[m + 3 * atoms_per_bin];
 
-        //for same bin as atom i skip j if i==j and skip atoms "below and to the left" if using halfneighborlists
-        if ((j == i) ||
-           (HalfNeigh && !Newton && (j < i))  ||
-           (HalfNeigh && Newton &&
-            ((j < i) ||
-             ((j >= nlocal) && ((x(j, 2) < ztmp) || (x(j, 2) == ztmp && x(j, 1) < ytmp) ||
-                                (x(j, 2) == ztmp && x(j, 1)  == ytmp && x(j, 0) < xtmp)))))
-           ) continue;
-        if (Tri) {
+        if (j <= i) continue;
+        if (j >= nlocal) {
           if (x(j,2) < ztmp) continue;
           if (x(j,2) == ztmp) {
             if (x(j,1) < ytmp) continue;
-            if (x(j,1) == ytmp) {
-              if (x(j,0) < xtmp) continue;
-              if (x(j,0) == xtmp && j <= i) continue;
-            }
+            if (x(j,1) == ytmp && x(j,0) < xtmp) continue;
           }
         }
+
+        const int jtype = other_x[m + 3 * atoms_per_bin];
         if (exclude && exclusion(i,j,itype,jtype)) continue;
         const X_FLOAT delx = xtmp - other_x[m];
         const X_FLOAT dely = ytmp - other_x[m + atoms_per_bin];
@@ -1314,8 +1397,35 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
         if (rsq <= cutsq) {
           if (n < neigh_list.maxneighs) {
-            if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-            else neighbors_i(n++) = j;
+
+            int jh = j;
+            if (neigh_list.history && rsq < radsum*radsum)
+              jh = jh ^ mask_history;
+
+            if (molecular != Atom::ATOMIC) {
+              int which = 0;
+              if (!moltemplate)
+                which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+              /* else if (imol >= 0) */
+              /*   which = find_special(onemols[imol]->special[iatom], */
+              /*                        onemols[imol]->nspecial[iatom], */
+              /*                        tag[j]-tagprev); */
+              /* else which = 0; */
+              if (which == 0) {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                else n++;
+              } else if (minimum_image_check(delx,dely,delz)) {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                else n++;
+              }
+              else if (which > 0) {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+                else n++;
+              }
+            } else {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+              else n++;
+            }
           }
           else n++;
         }
@@ -1329,6 +1439,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       const int jbin = ibin + stencil[k];
 
       if (ibin == jbin) continue;
+      if (HalfNeigh && Newton && !Tri && (ibin == jbin)) continue;
 
       bincount_current = c_bincount[jbin];
       int j = MY_II < bincount_current ? c_bins(jbin, MY_II) : -1;
@@ -1339,6 +1450,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
         other_x[MY_II + 2 * atoms_per_bin] = x(j, 2);
         other_x[MY_II + 3 * atoms_per_bin] = type(j);
         other_x[MY_II + 4 * atoms_per_bin] = radius(j);
+        if (HalfNeigh && Newton && Tri)
+          other_x[MY_II + 5 * atoms_per_bin] = tag(j);
       }
 
       other_id[MY_II] = j;
@@ -1349,21 +1462,37 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
         #pragma unroll 8
         for (int m = 0; m < bincount_current; m++) {
           const int j = other_id[m];
-          const int jtype = other_x[m + 3 * atoms_per_bin];
 
-          if (HalfNeigh && (j < i))  continue;
-          if (HalfNeigh && !Newton && (j < i)) continue;
-          if (!HalfNeigh && j==i) continue;
-          if (Tri) {
-            if (x(j,2) < ztmp) continue;
-            if (x(j,2) == ztmp) {
-              if (x(j,1) < ytmp) continue;
-              if (x(j,1) == ytmp) {
-                if (x(j,0) < xtmp) continue;
-                if (x(j,0) == xtmp && j <= i) continue;
+          if (HalfNeigh && !Newton && j <= i) continue;
+          if (!HalfNeigh && j == i) continue;
+
+          // for triclinic, bin stencil is full in all 3 dims
+          // must use itag/jtag to eliminate half the I/J interactions
+          // cannot use I/J exact coord comparision
+          //   b/c transforming orthog -> lambda -> orthog for ghost atoms
+          //   with an added PBC offset can shift all 3 coords by epsilon
+
+          if (HalfNeigh && Newton && Tri) {
+            if (j <= i) continue;
+            if (j >= nlocal) {
+              const tagint jtag = other_x[m + 5 * atoms_per_bin];
+              if (itag > jtag) {
+                if ((itag+jtag) % 2 == 0) continue;
+              } else if (itag < jtag) {
+                if ((itag+jtag) % 2 == 1) continue;
+              } else {
+                if (fabs(x(j,2)-ztmp) > delta) {
+                  if (x(j,2) < ztmp) continue;
+                } else if (fabs(x(j,1)-ytmp) > delta) {
+                  if (x(j,1) < ytmp) continue;
+                } else {
+                  if (x(j,0) < xtmp) continue;
+                }
               }
             }
           }
+
+          const int jtype = other_x[m + 3 * atoms_per_bin];
           if (exclude && exclusion(i,j,itype,jtype)) continue;
 
           const X_FLOAT delx = xtmp - other_x[m];
@@ -1375,8 +1504,35 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
           if (rsq <= cutsq) {
             if (n < neigh_list.maxneighs) {
-              if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-              else neighbors_i(n++) = j;
+
+              int jh = j;
+              if (neigh_list.history && rsq < radsum*radsum)
+                jh = jh ^ mask_history;
+
+              if (molecular != Atom::ATOMIC) {
+                int which = 0;
+                if (!moltemplate)
+                  which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+                /* else if (imol >= 0) */
+                /*   which = find_special(onemols[imol]->special[iatom], */
+                /*                        onemols[imol]->nspecial[iatom], */
+                /*                        tag[j]-tagprev); */
+                /* else which = 0; */
+                if (which == 0) {
+                  if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                  else n++;
+                } else if (minimum_image_check(delx,dely,delz)) {
+                  if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                  else n++;
+                }
+                else if (which > 0) {
+                  if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+                  else n++;
+                }
+              } else {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                else n++;
+              }
             }
             else n++;
           }
@@ -1402,20 +1558,30 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 }
 
 namespace LAMMPS_NS {
-template class NPairKokkos<LMPDeviceType,0,0,0,0>;
-template class NPairKokkos<LMPDeviceType,0,1,0,0>;
-template class NPairKokkos<LMPDeviceType,1,0,0,0>;
-template class NPairKokkos<LMPDeviceType,1,1,0,0>;
-template class NPairKokkos<LMPDeviceType,1,0,1,0>;
-template class NPairKokkos<LMPDeviceType,1,0,0,1>;
-template class NPairKokkos<LMPDeviceType,1,0,1,1>;
+template class NPairKokkos<LMPDeviceType,0,0,0,0,0>;
+template class NPairKokkos<LMPDeviceType,0,0,1,0,0>;
+template class NPairKokkos<LMPDeviceType,1,1,0,0,0>;
+template class NPairKokkos<LMPDeviceType,1,0,0,0,0>;
+template class NPairKokkos<LMPDeviceType,1,1,1,0,0>;
+template class NPairKokkos<LMPDeviceType,1,0,1,0,0>;
+template class NPairKokkos<LMPDeviceType,1,1,0,1,0>;
+template class NPairKokkos<LMPDeviceType,1,0,0,1,0>;
+template class NPairKokkos<LMPDeviceType,1,1,0,0,1>;
+template class NPairKokkos<LMPDeviceType,1,0,0,0,1>;
+template class NPairKokkos<LMPDeviceType,1,1,0,1,1>;
+template class NPairKokkos<LMPDeviceType,1,0,0,1,1>;
 #ifdef LMP_KOKKOS_GPU
-template class NPairKokkos<LMPHostType,0,0,0,0>;
-template class NPairKokkos<LMPHostType,0,1,0,0>;
-template class NPairKokkos<LMPHostType,1,0,0,0>;
-template class NPairKokkos<LMPHostType,1,1,0,0>;
-template class NPairKokkos<LMPHostType,1,0,1,0>;
-template class NPairKokkos<LMPHostType,1,0,0,1>;
-template class NPairKokkos<LMPHostType,1,0,1,1>;
+template class NPairKokkos<LMPHostType,0,0,0,0,0>;
+template class NPairKokkos<LMPHostType,0,0,1,0,0>;
+template class NPairKokkos<LMPHostType,1,1,0,0,0>;
+template class NPairKokkos<LMPHostType,1,0,0,0,0>;
+template class NPairKokkos<LMPHostType,1,1,1,0,0>;
+template class NPairKokkos<LMPHostType,1,0,1,0,0>;
+template class NPairKokkos<LMPHostType,1,1,0,1,0>;
+template class NPairKokkos<LMPHostType,1,0,0,1,0>;
+template class NPairKokkos<LMPHostType,1,1,0,0,1>;
+template class NPairKokkos<LMPHostType,1,0,0,0,1>;
+template class NPairKokkos<LMPHostType,1,1,0,1,1>;
+template class NPairKokkos<LMPHostType,1,0,0,1,1>;
 #endif
 }

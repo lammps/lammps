@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -243,12 +243,7 @@ void FixNVEAsphereGPU::initial_integrate(int /*vflag*/)
     // update angular momentum by 1/2 step
     if (igroup == 0) {
       #if (LAL_USE_OMP_SIMD == 1)
-        // Workaround for compiler bug
-        #ifdef __INTEL_COMPILER
-        #pragma simd
-        #else
-        #pragma omp simd
-        #endif
+      #pragma omp simd
       #endif
       for (int i = ifrom; i < ito; i++) {
         double *quat = bonus[ellipsoid[i]].quat;
@@ -257,12 +252,7 @@ void FixNVEAsphereGPU::initial_integrate(int /*vflag*/)
       }
     } else {
       #if (LAL_USE_OMP_SIMD == 1)
-        // Workaround for compiler bug
-        #ifdef __INTEL_COMPILER
-        #pragma simd
-        #else
-        #pragma omp simd
-        #endif
+      #pragma omp simd
       #endif
       for (int i = ifrom; i < ito; i++) {
         if (mask[i] & groupbit) {

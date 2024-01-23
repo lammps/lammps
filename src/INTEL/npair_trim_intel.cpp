@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -88,7 +88,6 @@ void NPairTrimIntel::build_t(NeighList *list,
       for (int jj = 0; jj < jnum; jj++) {
         const int joriginal = jlist[jj];
         const int j = joriginal & NEIGHMASK;
-        int addme = 1;
 
         // trim to shorter cutoff
 
@@ -97,9 +96,7 @@ void NPairTrimIntel::build_t(NeighList *list,
         const flt_t delz = ztmp - x[j].z;
         const flt_t rsq = delx * delx + dely * dely + delz * delz;
 
-        if (rsq > cutsq_custom) addme = 0;
-
-        if (addme)
+        if (rsq <= cutsq_custom)
           neighptr[n++] = joriginal;
       }
 

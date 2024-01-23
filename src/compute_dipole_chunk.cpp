@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,8 +21,6 @@
 #include "force.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -36,13 +33,10 @@ enum { MASSCENTER, GEOMCENTER };
 /* ---------------------------------------------------------------------- */
 
 ComputeDipoleChunk::ComputeDipoleChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), chrgproc(nullptr),
-  chrgtotal(nullptr), com(nullptr),
-  comall(nullptr), dipole(nullptr), dipoleall(nullptr)
+    ComputeChunk(lmp, narg, arg), massproc(nullptr), masstotal(nullptr), chrgproc(nullptr),
+    chrgtotal(nullptr), com(nullptr), comall(nullptr), dipole(nullptr), dipoleall(nullptr)
 {
-  if ((narg != 4) && (narg != 5))
-    error->all(FLERR,"Illegal compute dipole/chunk command");
+  if ((narg != 4) && (narg != 5)) error->all(FLERR, "Illegal compute dipole/chunk command");
 
   array_flag = 1;
   size_array_cols = 4;
@@ -50,32 +44,25 @@ ComputeDipoleChunk::ComputeDipoleChunk(LAMMPS *lmp, int narg, char **arg) :
   size_array_rows_variable = 1;
   extarray = 0;
 
-  // ID of compute chunk/atom
-
-  idchunk = utils::strdup(arg[3]);
-
   usecenter = MASSCENTER;
 
   if (narg == 5) {
-    if (strncmp(arg[4],"geom",4) == 0) usecenter = GEOMCENTER;
-    else if (strcmp(arg[4],"mass") == 0) usecenter = MASSCENTER;
-    else error->all(FLERR,"Illegal compute dipole/chunk command");
+    if (strncmp(arg[4], "geom", 4) == 0)
+      usecenter = GEOMCENTER;
+    else if (strcmp(arg[4], "mass") == 0)
+      usecenter = MASSCENTER;
+    else
+      error->all(FLERR, "Illegal compute dipole/chunk command");
   }
 
   ComputeDipoleChunk::init();
-
-  // chunk-based data
-
-  nchunk = 1;
-  maxchunk = 0;
-  allocate();
+  ComputeDipoleChunk::allocate();
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDipoleChunk::~ComputeDipoleChunk()
 {
-  delete [] idchunk;
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(chrgproc);
@@ -90,39 +77,22 @@ ComputeDipoleChunk::~ComputeDipoleChunk()
 
 void ComputeDipoleChunk::init()
 {
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for "
-               "compute dipole/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
-  if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Compute dipole/chunk does not use chunk/atom compute");
+  ComputeChunk::init();
 
-  if ((force->pair_match("/tip4p/",0) != nullptr) && (comm->me == 0))
-    error->warning(FLERR,"Computed dipole moments may be incorrect when "
-                   "using a tip4p pair style");
+  if ((force->pair_match("tip4p/", 0) != nullptr) && (comm->me == 0))
+    error->warning(FLERR, "Dipole moments may be incorrect when sing a TIP4P pair style");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeDipoleChunk::compute_array()
 {
-  int i,index;
+  int i, index;
   double massone;
   double unwrap[3];
 
-  invoked_array = update->ntimestep;
-
-  // compute chunk/atom assigns atoms to chunk IDs
-  // extract ichunk index vector from compute
-  // ichunk = 1 to Nchunk for included atoms, 0 for excluded atoms
-
-  nchunk = cchunk->setup_chunks();
-  cchunk->compute_ichunk();
+  ComputeChunk::compute_array();
   int *ichunk = cchunk->ichunk;
-
-  if (nchunk > maxchunk) allocate();
-  size_array_rows = nchunk;
 
   // zero local per-chunk values
 
@@ -147,14 +117,17 @@ void ComputeDipoleChunk::compute_array()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      index = ichunk[i]-1;
+      index = ichunk[i] - 1;
       if (index < 0) continue;
       if (usecenter == MASSCENTER) {
-        if (rmass) massone = rmass[i];
-        else massone = mass[type[i]];
-      } else massone = 1.0;     // usecenter == GEOMCENTER
+        if (rmass)
+          massone = rmass[i];
+        else
+          massone = mass[type[i]];
+      } else
+        massone = 1.0;    // usecenter == GEOMCENTER
 
-      domain->unmap(x[i],image[i],unwrap);
+      domain->unmap(x[i], image[i], unwrap);
       massproc[index] += massone;
       if (atom->q_flag) chrgproc[index] += atom->q[i];
       com[index][0] += unwrap[0] * massone;
@@ -162,9 +135,9 @@ void ComputeDipoleChunk::compute_array()
       com[index][2] += unwrap[2] * massone;
     }
 
-  MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(chrgproc,chrgtotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(massproc, masstotal, nchunk, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(chrgproc, chrgtotal, nchunk, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&com[0][0], &comall[0][0], 3 * nchunk, MPI_DOUBLE, MPI_SUM, world);
 
   for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
@@ -178,13 +151,13 @@ void ComputeDipoleChunk::compute_array()
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      index = ichunk[i]-1;
+      index = ichunk[i] - 1;
       if (index < 0) continue;
-      domain->unmap(x[i],image[i],unwrap);
+      domain->unmap(x[i], image[i], unwrap);
       if (atom->q_flag) {
-        dipole[index][0] += q[i]*unwrap[0];
-        dipole[index][1] += q[i]*unwrap[1];
-        dipole[index][2] += q[i]*unwrap[2];
+        dipole[index][0] += q[i] * unwrap[0];
+        dipole[index][1] += q[i] * unwrap[1];
+        dipole[index][2] += q[i] * unwrap[2];
       }
       if (atom->mu_flag) {
         dipole[index][0] += mu[i][0];
@@ -194,83 +167,25 @@ void ComputeDipoleChunk::compute_array()
     }
   }
 
-  MPI_Allreduce(&dipole[0][0],&dipoleall[0][0],4*nchunk,
-                MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&dipole[0][0], &dipoleall[0][0], 4 * nchunk, MPI_DOUBLE, MPI_SUM, world);
 
   for (i = 0; i < nchunk; i++) {
     // correct for position dependence with charged chunks
-    dipoleall[i][0] -= chrgtotal[i]*comall[i][0];
-    dipoleall[i][1] -= chrgtotal[i]*comall[i][1];
-    dipoleall[i][2] -= chrgtotal[i]*comall[i][2];
+    dipoleall[i][0] -= chrgtotal[i] * comall[i][0];
+    dipoleall[i][1] -= chrgtotal[i] * comall[i][1];
+    dipoleall[i][2] -= chrgtotal[i] * comall[i][2];
     // compute total dipole moment
-    dipoleall[i][3] = sqrt(square(dipoleall[i][0])
-                           + square(dipoleall[i][1])
-                           + square(dipoleall[i][2]));
+    dipoleall[i][3] =
+        sqrt(square(dipoleall[i][0]) + square(dipoleall[i][1]) + square(dipoleall[i][2]));
   }
 }
-
-/* ----------------------------------------------------------------------
-   lock methods: called by fix ave/time
-   these methods insure vector/array size is locked for Nfreq epoch
-     by passing lock info along to compute chunk/atom
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
-   increment lock counter
-------------------------------------------------------------------------- */
-
-void ComputeDipoleChunk::lock_enable()
-{
-  cchunk->lockcount++;
-}
-
-/* ----------------------------------------------------------------------
-   decrement lock counter in compute chunk/atom, it if still exists
-------------------------------------------------------------------------- */
-
-void ComputeDipoleChunk::lock_disable()
-{
-  int icompute = modify->find_compute(idchunk);
-  if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
-    cchunk->lockcount--;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   calculate and return # of chunks = length of vector/array
-------------------------------------------------------------------------- */
-
-int ComputeDipoleChunk::lock_length()
-{
-  nchunk = cchunk->setup_chunks();
-  return nchunk;
-}
-
-/* ----------------------------------------------------------------------
-   set the lock from startstep to stopstep
-------------------------------------------------------------------------- */
-
-void ComputeDipoleChunk::lock(Fix *fixptr, bigint startstep, bigint stopstep)
-{
-  cchunk->lock(fixptr,startstep,stopstep);
-}
-
-/* ----------------------------------------------------------------------
-   unset the lock
-------------------------------------------------------------------------- */
-
-void ComputeDipoleChunk::unlock(Fix *fixptr)
-{
-  cchunk->unlock(fixptr);
-}
-
 /* ----------------------------------------------------------------------
    free and reallocate per-chunk arrays
 ------------------------------------------------------------------------- */
 
 void ComputeDipoleChunk::allocate()
 {
+  ComputeChunk::allocate();
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(chrgproc);
@@ -280,14 +195,14 @@ void ComputeDipoleChunk::allocate()
   memory->destroy(dipole);
   memory->destroy(dipoleall);
   maxchunk = nchunk;
-  memory->create(massproc,maxchunk,"dipole/chunk:massproc");
-  memory->create(masstotal,maxchunk,"dipole/chunk:masstotal");
-  memory->create(chrgproc,maxchunk,"dipole/chunk:chrgproc");
-  memory->create(chrgtotal,maxchunk,"dipole/chunk:chrgtotal");
-  memory->create(com,maxchunk,3,"dipole/chunk:com");
-  memory->create(comall,maxchunk,3,"dipole/chunk:comall");
-  memory->create(dipole,maxchunk,4,"dipole/chunk:dipole");
-  memory->create(dipoleall,maxchunk,4,"dipole/chunk:dipoleall");
+  memory->create(massproc, maxchunk, "dipole/chunk:massproc");
+  memory->create(masstotal, maxchunk, "dipole/chunk:masstotal");
+  memory->create(chrgproc, maxchunk, "dipole/chunk:chrgproc");
+  memory->create(chrgtotal, maxchunk, "dipole/chunk:chrgtotal");
+  memory->create(com, maxchunk, 3, "dipole/chunk:com");
+  memory->create(comall, maxchunk, 3, "dipole/chunk:comall");
+  memory->create(dipole, maxchunk, 4, "dipole/chunk:dipole");
+  memory->create(dipoleall, maxchunk, 4, "dipole/chunk:dipoleall");
   array = dipoleall;
 }
 
@@ -297,8 +212,9 @@ void ComputeDipoleChunk::allocate()
 
 double ComputeDipoleChunk::memory_usage()
 {
-  double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (double)maxchunk * 2*3 * sizeof(double);
-  bytes += (double)maxchunk * 2*4 * sizeof(double);
+  double bytes = ComputeChunk::memory_usage();
+  bytes += (bigint) maxchunk * 2 * sizeof(double);
+  bytes += (double) maxchunk * 2 * 3 * sizeof(double);
+  bytes += (double) maxchunk * 2 * 4 * sizeof(double);
   return bytes;
 }

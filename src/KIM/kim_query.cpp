@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -136,11 +136,9 @@ void KimQuery::command(int narg, char **arg)
   // check the query_args format (a series of keyword=value pairs)
   for (int i = 2; i < narg; ++i) {
     if (!utils::strmatch(arg[i], "[=][\\[].*[\\]]"))
-      error->all(FLERR, "Illegal query format.\nInput argument "
-                                    "of `{}` to 'kim query' is wrong. The "
-                                    "query format is the keyword=[value], "
-                                    "where value is always an array of one or "
-                                    "more comma-separated items", arg[i]);
+      error->all(FLERR, "Illegal query format.\nInput argument of `{}` to 'kim query' is wrong. "
+                 "The query format is the keyword=[value], where value is always an array of one "
+                 "or more comma-separated items", arg[i]);
   }
 
   if (query_function != "get_available_models") {
@@ -156,15 +154,13 @@ void KimQuery::command(int narg, char **arg)
     // if the model name is not provided by the user
     if (model_name.empty()) {
       // check if we had a kim init command by finding fix STORE/KIM
-      const int ifix = modify->find_fix("KIM_MODEL_STORE");
-      if (ifix >= 0) {
-        auto fix_store = dynamic_cast<FixStoreKIM *>(modify->fix[ifix]);
+      auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+      if (fix_store) {
         char *model_name_c = (char *) fix_store->getptr("model_name");
         model_name = model_name_c;
       } else {
-        error->all(FLERR, "Illegal query format.\nMust use 'kim init' "
-                   "before 'kim query' or must provide the model name "
-                   "after query function with the format of "
+        error->all(FLERR, "Illegal query format.\nMust use 'kim init' before 'kim query' "
+                   "or must provide the model name after query function with the format of "
                    "'model=[model_name]'");
       }
     }
@@ -179,16 +175,14 @@ void KimQuery::command(int narg, char **arg)
   // and then the error message that was returned by the web server
 
   if (strlen(value) == 0) {
-    auto msg = fmt::format("OpenKIM query failed: {}", value + 1);
-    delete [] value;
-    error->all(FLERR, msg);
+    error->all(FLERR, "OpenKIM query failed: {}", value + 1);
+    delete[] value;
   } else if (strcmp(value, "EMPTY") == 0) {
-    delete [] value;
+    delete[] value;
     error->all(FLERR, "OpenKIM query returned no results");
   }
 
-  input->write_echo("#=== BEGIN kim-query =================================="
-                    "=======\n");
+  input->write_echo("#=== BEGIN kim-query =========================================\n");
   // trim list of models to those that are installed on the system
   if (query_function == "get_available_models") {
     Tokenizer vals(value, ", \"");
@@ -199,7 +193,7 @@ void KimQuery::command(int narg, char **arg)
     KIM_CollectionItemType typ;
 
     if (KIM_Collections_Create(&collections)) {
-      delete [] value;
+      delete[] value;
       error->all(FLERR, "Unable to access KIM Collections to find Model");
     }
 
@@ -219,7 +213,7 @@ void KimQuery::command(int narg, char **arg)
       fmt::format("# Missing OpenKIM models:   {}\n\n", missing));
 
     if (available.empty()) {
-      delete [] value;
+      delete[] value;
       error->all(FLERR,"There are no matching OpenKIM models installed on the system");
     }
 
@@ -262,13 +256,12 @@ void KimQuery::command(int narg, char **arg)
     input->variable->set(setcmd);
     input->write_echo(fmt::format("variable {}\n", setcmd));
   }
-  input->write_echo("#=== END kim-query ===================================="
-                    "=======\n\n");
+  input->write_echo("#=== END kim-query ===========================================\n\n");
 
-  delete [] value;
+  delete[] value;
 #else
-  error->all(FLERR, "Cannot use 'kim query' command when KIM package "
-                    "is compiled without support for libcurl");
+  error->all(FLERR, "Cannot use 'kim query' command when KIM package is compiled without "
+             "support for libcurl");
 #endif
 }
 

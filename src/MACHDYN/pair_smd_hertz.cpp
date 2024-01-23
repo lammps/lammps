@@ -13,7 +13,7 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS development team: developers@lammps.org
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -263,7 +263,7 @@ void PairHertz::coeff(int narg, char **arg) {
         utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
         utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-        double bulkmodulus_one = atof(arg[2]);
+        double bulkmodulus_one = utils::numeric(FLERR,arg[2],false,lmp);
 
         // set short-range force constant
         double kn_one = 0.0;

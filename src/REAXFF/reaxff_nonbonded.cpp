@@ -233,8 +233,8 @@ namespace ReaxFF {
         flag = 0;
 
         /* kinetic energy terms */
-        double xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
-                            + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
+        double xcut = 0.5 * (system->reax_param.sbp[system->my_atoms[i].type].bcut_acks2
+                             + system->reax_param.sbp[system->my_atoms[j].type].bcut_acks2);
 
         if(nbr_pj->d <= xcut) {
           if (j < natoms) flag = 1;
@@ -409,8 +409,8 @@ namespace ReaxFF {
         flag = 0;
 
         /* kinetic energy terms */
-        double xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
-                            + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
+        double xcut = 0.5 * (system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
+                             + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2);
 
         if(nbr_pj->d <= xcut) {
           if (j < natoms) flag = 1;

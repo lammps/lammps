@@ -6,7 +6,7 @@ fix viscous/sphere command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID viscous/sphere gamma keyword values ...
 

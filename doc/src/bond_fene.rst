@@ -51,7 +51,7 @@ in the same form as in pair style :doc:`nm/cut <pair_nm>`. The bond energy is th
 
 .. math::
 
-  E = -0.5 K r_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] + \frac{E_0}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - n \left(\frac{r_0}{r}\right)^m \right]
+  E = -0.5 K R_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] + \frac{E_0}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - n \left(\frac{r_0}{r}\right)^m \right]
 
 Similar to the *fene* style, the generalized Lennard-Jones is cut off at
 the potential minimum, :math:`r_0`, to be repulsive only.  The following

@@ -551,8 +551,6 @@ protected:
   size_t         runave_stride;
   /// Name of the file to write the running average
   std::string    runave_outfile;
-  /// File to write the running average
-  std::ostream  *runave_os;
   /// Current value of the running average
   colvarvalue    runave;
   /// Current value of the square deviation from the running average

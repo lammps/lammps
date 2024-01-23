@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -539,7 +539,7 @@ void DihedralTableCut::coeff(int narg, char **arg)
       ffile_tmp[i] = tb->ffile[i];
       if ((i>0) && (phifile_tmp[i] < phifile_tmp[i-1])) {
         //There should only be at most one discontinuity, because we have
-        //insured that the data was sorted before imaging, and because the
+        //ensured that the data was sorted before imaging, and because the
         //range of angle values does not exceed 2*PI.
         i_discontinuity = i;
       }

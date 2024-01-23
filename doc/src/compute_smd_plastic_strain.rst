@@ -6,7 +6,7 @@ compute smd/plastic/strain command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/plastic/strain
 
@@ -27,7 +27,7 @@ Define a computation that outputs the equivalent plastic strain per
 particle.  This command is only meaningful if a material model with
 plasticity is defined.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
 **Output Info:**

@@ -1,6 +1,6 @@
 # Custom minimal -*- CMake -*- file for libyaml
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(libyaml VERSION 0.2.5
   DESCRIPTION "LibYAML a YAML parser and emitter library"
   LANGUAGES C

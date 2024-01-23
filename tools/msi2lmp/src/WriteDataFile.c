@@ -1,6 +1,6 @@
 /*
-*  This function creates and writes the data file to be used with LAMMPS
-*/
+ *  This function creates and writes the data file to be used with LAMMPS
+ */
 
 #include "msi2lmp.h"
 

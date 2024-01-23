@@ -1,11 +1,12 @@
-This directory contains Fortran code which interface LAMMPS as a library
-and allows the LAMMPS library interface to be invoked from Fortran codes.
-It requires a Fortran compiler that supports the Fortran 2003 standard.
+This directory contains Fortran code that acts as an interface to LAMMPS as a
+library and allows the LAMMPS library interface to be invoked from Fortran
+code.  It requires a Fortran compiler that supports the Fortran 2003 standard
+sufficiently well. For example GNU Fortran 9.x or later is currently required.
 
 This interface is based on and supersedes the previous Fortran interfaces
-in the examples/COUPLE/fortran* folders.  But is fully supported by the
+in the examples/COUPLE/fortran* folders, but it is fully supported by the
 LAMMPS developers and included in the documentation and unit testing.
 
 Details on this Fortran interface and how to build programs using it
-are in the manual in the doc/html/pg_fortran.html file.
+are in the manual in the doc/html/Fortran.html file.
 

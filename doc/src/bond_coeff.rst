@@ -21,7 +21,7 @@ Examples
    bond_coeff 5 80.0 1.2
    bond_coeff * 30.0 1.5 1.0 1.0
    bond_coeff 1*4 30.0 1.5 1.0 1.0
-   bond_coeff 1 harmonic 200.0 1.0 (for bond_style hybrid)
+   bond_coeff 1 harmonic 200.0 1.0 # (for bond_style hybrid)
 
    labelmap bond 5 carbonyl
    bond_coeff carbonyl 80.0 1.2

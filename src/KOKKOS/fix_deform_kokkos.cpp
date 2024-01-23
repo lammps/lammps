@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -120,11 +120,11 @@ void FixDeformKokkos::end_of_step()
     } else if (set[i].style == WIGGLE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = set[i].lo_start -
-        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(MY_2PI*delt/set[i].tperiod);
       set[i].hi_target = set[i].hi_start +
-        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-      h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
-        cos(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(MY_2PI*delt/set[i].tperiod);
+      h_rate[i] = MY_2PI/set[i].tperiod * set[i].amplitude *
+        cos(MY_2PI*delt/set[i].tperiod);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == VARIABLE) {
       double del = input->variable->compute_equal(set[i].hvar);
@@ -212,9 +212,9 @@ void FixDeformKokkos::end_of_step()
       } else if (set[i].style == WIGGLE) {
         double delt = (update->ntimestep - update->beginstep) * update->dt;
         set[i].tilt_target = set[i].tilt_start +
-          set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-        h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
-          cos(TWOPI*delt/set[i].tperiod);
+          set[i].amplitude * sin(MY_2PI*delt/set[i].tperiod);
+        h_rate[i] = MY_2PI/set[i].tperiod * set[i].amplitude *
+          cos(MY_2PI*delt/set[i].tperiod);
       } else if (set[i].style == VARIABLE) {
         double delta_tilt = input->variable->compute_equal(set[i].hvar);
         set[i].tilt_target = set[i].tilt_start + delta_tilt;
@@ -315,14 +315,13 @@ void FixDeformKokkos::end_of_step()
     int nlocal = atom->nlocal;
 
     domainKK->x2lamda(nlocal);
-    //for (i = 0; i < nlocal; i++)
-    //  if (mask[i] & groupbit)
-    //    domain->x2lamda(x[i],x[i]);
 
-    if (rfix.size() > 0)
-      error->all(FLERR,"Cannot (yet) use rigid bodies with fix deform and Kokkos");
-      //for (i = 0; i < nrigid; i++)
-      //  modify->fix[rfix[i]]->deform(0);
+    if (rfix.size() > 0) {
+      atomKK->sync(Host,ALL_MASK);
+      for (auto &ifix : rfix)
+        ifix->deform(0);
+      atomKK->modified(Host,ALL_MASK);
+    }
   }
 
   // reset global and local box to new size/shape
@@ -355,13 +354,13 @@ void FixDeformKokkos::end_of_step()
     int nlocal = atom->nlocal;
 
     domainKK->lamda2x(nlocal);
-    //for (i = 0; i < nlocal; i++)
-    //  if (mask[i] & groupbit)
-    //    domain->lamda2x(x[i],x[i]);
 
-    //if (nrigid)
-    //  for (i = 0; i < nrigid; i++)
-    //    modify->fix[rfix[i]]->deform(1);
+    if (rfix.size() > 0) {
+      atomKK->sync(Host,ALL_MASK);
+      for (auto &ifix : rfix)
+        ifix->deform(1);
+      atomKK->modified(Host,ALL_MASK);
+    }
   }
 
   // redo KSpace coeffs since box has changed

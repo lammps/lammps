@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +26,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -227,7 +227,7 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
+  gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
@@ -243,21 +243,21 @@ void PPPMIntel::compute_first(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),FORWARD_AD,
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
                      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),FORWARD_IK,
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
                      gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
-                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 }
 
@@ -953,18 +953,18 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       const flt_t s1 = x[i].x * hx_inv;
       const flt_t s2 = x[i].y * hy_inv;
       const flt_t s3 = x[i].z * hz_inv;
-      flt_t sf = fsf_coeff0 * sin(ftwo_pi * s1);
-      sf += fsf_coeff1 * sin(ffour_pi * s1);
+      flt_t sf = fsf_coeff0 * std::sin(ftwo_pi * s1);
+      sf += fsf_coeff1 * std::sin(ffour_pi * s1);
       sf *= twoqsq;
       f[i].x += qfactor * particle_ekx[i] - fqqrd2es * sf;
 
-      sf = fsf_coeff2 * sin(ftwo_pi * s2);
-      sf += fsf_coeff3 * sin(ffour_pi * s2);
+      sf = fsf_coeff2 * std::sin(ftwo_pi * s2);
+      sf += fsf_coeff3 * std::sin(ffour_pi * s2);
       sf *= twoqsq;
       f[i].y += qfactor * particle_eky[i] - fqqrd2es * sf;
 
-      sf = fsf_coeff4 * sin(ftwo_pi * s3);
-      sf += fsf_coeff5 * sin(ffour_pi * s3);
+      sf = fsf_coeff4 * std::sin(ftwo_pi * s3);
+      sf += fsf_coeff5 * std::sin(ffour_pi * s3);
       sf *= twoqsq;
 
       if (slabflag != 2) f[i].z += qfactor * particle_ekz[i] - fqqrd2es * sf;

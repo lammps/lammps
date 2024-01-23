@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,10 +46,11 @@ class FixEfield : public Fix {
  protected:
   double ex, ey, ez;
   int varflag;
-  char *xstr, *ystr, *zstr, *estr;
+  char *xstr, *ystr, *zstr, *estr, *pstr;
   char *idregion;
   class Region *region;
-  int xvar, yvar, zvar, evar, xstyle, ystyle, zstyle, estyle;
+  int xvar, yvar, zvar, xstyle, ystyle, zstyle;
+  int evar, pvar, estyle, pstyle;
   int ilevel_respa;
   double qe2f;
   int qflag, muflag;
@@ -59,9 +60,8 @@ class FixEfield : public Fix {
 
   int force_flag;
   double fsum[4], fsum_all[4];
+  void update_efield_variables();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

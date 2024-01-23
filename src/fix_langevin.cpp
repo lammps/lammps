@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -203,7 +203,7 @@ FixLangevin::~FixLangevin()
   if (gjfflag) {
     memory->destroy(franprev);
     memory->destroy(lv);
-    atom->delete_callback(id, Atom::GROW);
+    if (modify->get_fix_by_id(id)) atom->delete_callback(id, Atom::GROW);
   }
 }
 
@@ -215,7 +215,7 @@ int FixLangevin::setmask()
   if (gjfflag) mask |= INITIAL_INTEGRATE;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-  mask |= END_OF_STEP;
+  if (tallyflag || gjfflag) mask |= END_OF_STEP;
   return mask;
 }
 
@@ -915,8 +915,6 @@ void FixLangevin::angmom_thermostat()
 
 void FixLangevin::end_of_step()
 {
-  if (!tallyflag && !gjfflag) return;
-
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

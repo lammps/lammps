@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,11 +35,20 @@ class FixAveCorrelate : public Fix {
   double compute_array(int, int) override;
 
  private:
-  int me, nvalues;
-  int nrepeat, nfreq;
+  struct value_t {
+    int which;         // type of data: COMPUTE, FIX, VARIABLE
+    int argindex;      // 1-based index if data is vector, else 0
+    std::string id;    // compute/fix/variable ID
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+
+  int nvalues, nrepeat, nfreq;
   bigint nvalid, nvalid_last;
-  int *which, *argindex, *value2index;
-  char **ids;
   FILE *fp;
 
   int type, ave, startstep, overwrite;
@@ -52,7 +61,7 @@ class FixAveCorrelate : public Fix {
 
   int npair;    // number of correlation pairs to calculate
   int *count;
-  double **values, **corr;
+  double **cvalues, **corr;
 
   int *save_count;    // saved values at Nfreq for output via compute_array()
   double **save_corr;

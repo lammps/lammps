@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -100,12 +100,12 @@
    normalize a vector, return in ans
 ------------------------------------------------------------------------- */
 
-#define ME_normalize3(v0, v1, v2, ans)                  \
-{                                                       \
-  flt_t scale = (flt_t)1.0 / sqrt(v0*v0+v1*v1+v2*v2);   \
-  ans##_0 = v0 * scale;                                 \
-  ans##_1 = v1 * scale;                                 \
-  ans##_2 = v2 * scale;                                 \
+#define ME_normalize3(v0, v1, v2, ans)                          \
+{                                                               \
+  flt_t scale = (flt_t)1.0 / std::sqrt(v0*v0+v1*v1+v2*v2);      \
+  ans##_0 = v0 * scale;                                         \
+  ans##_1 = v1 * scale;                                         \
+  ans##_2 = v2 * scale;                                         \
 }
 
 /* ----------------------------------------------------------------------
@@ -359,7 +359,7 @@
 #define ME_qnormalize(q)                                                \
 {                                                                       \
   double norm = 1.0 /                                                   \
-    sqrt(q##_w*q##_w + q##_i*q##_i + q##_j*q##_j + q##_k*q##_k);        \
+    std::sqrt(q##_w*q##_w + q##_i*q##_i + q##_j*q##_j + q##_k*q##_k);   \
   q##_w *= norm;                                                        \
   q##_i *= norm;                                                        \
   q##_j *= norm;                                                        \

@@ -1,47 +1,24 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#endif
 #ifndef KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
 #define KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP
 
@@ -190,7 +167,7 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   template <class... OtherProperties>
   friend struct MDRangePolicy;
 
-  static_assert(!std::is_same<typename traits::iteration_pattern, void>::value,
+  static_assert(!std::is_void<typename traits::iteration_pattern>::value,
                 "Kokkos Error: MD iteration pattern not defined");
 
   using iteration_pattern = typename traits::iteration_pattern;
@@ -199,6 +176,7 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   using member_type       = typename range_policy::member_type;
 
   static constexpr int rank = iteration_pattern::rank;
+  static_assert(rank < 7, "Kokkos MDRangePolicy Error: Unsupported rank...");
 
   using index_type       = typename traits::index_type;
   using array_index_type = std::int64_t;
@@ -381,19 +359,5 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 };
 
 }  // namespace Kokkos
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-// For backward compatibility
-namespace Kokkos {
-namespace Experimental {
-using Iterate KOKKOS_DEPRECATED = Kokkos::Iterate;
-template <typename... Properties>
-using MDRangePolicy KOKKOS_DEPRECATED = Kokkos::MDRangePolicy<Properties...>;
-template <unsigned N, Kokkos::Iterate OuterDir = Kokkos::Iterate::Default,
-          Kokkos::Iterate InnerDir = Kokkos::Iterate::Default>
-using Rank KOKKOS_DEPRECATED = Kokkos::Rank<N, OuterDir, InnerDir>;
-}  // namespace Experimental
-}  // namespace Kokkos
-#endif
 
 #endif  // KOKKOS_CORE_EXP_MD_RANGE_POLICY_HPP

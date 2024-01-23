@@ -1,324 +1,133 @@
 
 $(COLVARS_OBJ_DIR)colvaratoms.o: colvaratoms.cpp colvarmodule.h \
  colvars_version.h colvarproxy.h colvartypes.h colvarvalue.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvarparse.h colvarparams.h \
- colvaratoms.h colvardeps.h
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvarparse.h colvarparams.h colvaratoms.h \
+ colvardeps.h
 $(COLVARS_OBJ_DIR)colvarbias_abf.o: colvarbias_abf.cpp colvarmodule.h \
  colvars_version.h colvar.h colvarvalue.h colvartypes.h colvarparse.h \
- colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarbias_abf.h colvarproxy.h colvarproxy_tcl.h colvarproxy_volmaps.h \
- colvarbias.h colvargrid.h colvar_UIestimator.h
+ colvarparams.h colvardeps.h colvarbias_abf.h colvarproxy.h \
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvarbias.h colvargrid.h colvar_UIestimator.h
 $(COLVARS_OBJ_DIR)colvarbias_alb.o: colvarbias_alb.cpp colvarmodule.h \
  colvars_version.h colvarbias.h colvar.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarbias_alb.h
+ colvarparse.h colvarparams.h colvardeps.h colvarbias_alb.h
 $(COLVARS_OBJ_DIR)colvarbias.o: colvarbias.cpp colvarmodule.h \
  colvars_version.h colvarproxy.h colvartypes.h colvarvalue.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvarbias.h colvar.h \
- colvarparse.h colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvargrid.h
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvarbias.h colvar.h colvarparse.h colvarparams.h \
+ colvardeps.h colvargrid.h
 $(COLVARS_OBJ_DIR)colvarbias_histogram.o: colvarbias_histogram.cpp \
  colvarmodule.h colvars_version.h colvarproxy.h colvartypes.h \
- colvarvalue.h colvarproxy_tcl.h colvarproxy_volmaps.h colvar.h \
- colvarparse.h colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
+ colvarvalue.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvar.h colvarparse.h colvarparams.h colvardeps.h \
  colvarbias_histogram.h colvarbias.h colvargrid.h
 $(COLVARS_OBJ_DIR)colvarbias_histogram_reweight_amd.o: \
  colvarbias_histogram_reweight_amd.cpp \
  colvarbias_histogram_reweight_amd.h colvarbias_histogram.h colvarbias.h \
  colvar.h colvarmodule.h colvars_version.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvargrid.h colvarproxy.h colvarproxy_tcl.h colvarproxy_volmaps.h
+ colvarparse.h colvarparams.h colvardeps.h colvargrid.h colvarproxy.h \
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h
 $(COLVARS_OBJ_DIR)colvarbias_meta.o: colvarbias_meta.cpp colvarmodule.h \
  colvars_version.h colvarproxy.h colvartypes.h colvarvalue.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvar.h colvarparse.h \
- colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvar.h colvarparse.h colvarparams.h colvardeps.h \
  colvarbias_meta.h colvarbias.h colvargrid.h
 $(COLVARS_OBJ_DIR)colvarbias_restraint.o: colvarbias_restraint.cpp \
  colvarmodule.h colvars_version.h colvarproxy.h colvartypes.h \
- colvarvalue.h colvarproxy_tcl.h colvarproxy_volmaps.h \
- colvarbias_restraint.h colvarbias.h colvar.h colvarparse.h \
- colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h
+ colvarvalue.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvarbias_restraint.h colvarbias.h colvar.h \
+ colvarparse.h colvarparams.h colvardeps.h
 $(COLVARS_OBJ_DIR)colvarcomp_alchlambda.o: colvarcomp_alchlambda.cpp \
  colvarmodule.h colvars_version.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvar.h colvardeps.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
+ colvarparse.h colvarparams.h colvar.h colvardeps.h colvarcomp.h \
+ colvaratoms.h colvarproxy.h colvarproxy_io.h colvarproxy_system.h \
+ colvarproxy_tcl.h colvarproxy_volmaps.h colvar_arithmeticpath.h \
+ colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_angles.o: colvarcomp_angles.cpp \
  colvarmodule.h colvars_version.h colvar.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
+ colvarparse.h colvarparams.h colvardeps.h colvarcomp.h colvaratoms.h \
+ colvarproxy.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
  colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_apath.o: colvarcomp_apath.cpp colvarmodule.h \
  colvars_version.h colvarvalue.h colvartypes.h colvarparse.h \
- colvarparams.h colvar.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
+ colvarparams.h colvar.h colvardeps.h colvarcomp.h colvaratoms.h \
+ colvarproxy.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
  colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_coordnums.o: colvarcomp_coordnums.cpp \
  colvarmodule.h colvars_version.h colvarparse.h colvarvalue.h \
  colvartypes.h colvarparams.h colvaratoms.h colvarproxy.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvardeps.h colvar.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvar_arithmeticpath.h colvar_geometricpath.h
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvardeps.h colvar.h colvarcomp.h \
+ colvar_arithmeticpath.h colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp.o: colvarcomp.cpp colvarmodule.h \
  colvars_version.h colvarvalue.h colvartypes.h colvar.h colvarparse.h \
- colvarparams.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
+ colvarparams.h colvardeps.h colvarcomp.h colvaratoms.h colvarproxy.h \
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
  colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_distances.o: colvarcomp_distances.cpp \
  colvarmodule.h colvars_version.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvar.h colvardeps.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
+ colvarparse.h colvarparams.h colvar.h colvardeps.h colvarcomp.h \
+ colvaratoms.h colvarproxy.h colvarproxy_io.h colvarproxy_system.h \
+ colvarproxy_tcl.h colvarproxy_volmaps.h colvar_arithmeticpath.h \
+ colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_gpath.o: colvarcomp_gpath.cpp colvarmodule.h \
  colvars_version.h colvarvalue.h colvartypes.h colvarparse.h \
- colvarparams.h colvar.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
+ colvarparams.h colvar.h colvardeps.h colvarcomp.h colvaratoms.h \
+ colvarproxy.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
  colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_neuralnetwork.o: \
  colvarcomp_neuralnetwork.cpp colvarmodule.h colvars_version.h \
  colvarvalue.h colvartypes.h colvarparse.h colvarparams.h colvar.h \
- colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h \
+ colvardeps.h colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_io.h \
+ colvarproxy_system.h colvarproxy_tcl.h colvarproxy_volmaps.h \
+ colvar_arithmeticpath.h colvar_geometricpath.h \
  colvar_neuralnetworkcompute.h
 $(COLVARS_OBJ_DIR)colvarcomp_combination.o: colvarcomp_combination.cpp \
  colvarcomp.h colvarmodule.h colvars_version.h colvar.h colvarvalue.h \
- colvartypes.h colvarparse.h colvarparams.h colvardeps.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvaratoms.h colvarproxy.h colvarproxy_tcl.h colvarproxy_volmaps.h \
- colvar_arithmeticpath.h colvar_geometricpath.h
+ colvartypes.h colvarparse.h colvarparams.h colvardeps.h colvaratoms.h \
+ colvarproxy.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_protein.o: colvarcomp_protein.cpp \
  colvarmodule.h colvars_version.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvar.h colvardeps.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
+ colvarparse.h colvarparams.h colvar.h colvardeps.h colvarcomp.h \
+ colvaratoms.h colvarproxy.h colvarproxy_io.h colvarproxy_system.h \
+ colvarproxy_tcl.h colvarproxy_volmaps.h colvar_arithmeticpath.h \
+ colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_rotations.o: colvarcomp_rotations.cpp \
  colvarmodule.h colvars_version.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvar.h colvardeps.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
+ colvarparse.h colvarparams.h colvar.h colvardeps.h colvarcomp.h \
+ colvaratoms.h colvarproxy.h colvarproxy_io.h colvarproxy_system.h \
+ colvarproxy_tcl.h colvarproxy_volmaps.h colvar_arithmeticpath.h \
+ colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvarcomp_volmaps.o: colvarcomp_volmaps.cpp \
  colvarmodule.h colvars_version.h colvarvalue.h colvartypes.h \
- colvarparse.h colvarparams.h colvar.h colvardeps.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h
+ colvarparse.h colvarparams.h colvar.h colvardeps.h colvarcomp.h \
+ colvaratoms.h colvarproxy.h colvarproxy_io.h colvarproxy_system.h \
+ colvarproxy_tcl.h colvarproxy_volmaps.h colvar_arithmeticpath.h \
+ colvar_geometricpath.h
 $(COLVARS_OBJ_DIR)colvar.o: colvar.cpp colvarmodule.h colvars_version.h \
  colvarvalue.h colvartypes.h colvarparse.h colvarparams.h colvar.h \
- colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h \
- colvarscript.h colvarbias.h colvarscript_commands.h \
- colvarscript_commands_colvar.h colvarscript_commands_bias.h
+ colvardeps.h colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_io.h \
+ colvarproxy_system.h colvarproxy_tcl.h colvarproxy_volmaps.h \
+ colvar_arithmeticpath.h colvar_geometricpath.h colvarscript.h \
+ colvarbias.h colvarscript_commands.h colvarscript_commands_colvar.h \
+ colvarscript_commands_bias.h
 $(COLVARS_OBJ_DIR)colvardeps.o: colvardeps.cpp colvarmodule.h \
  colvars_version.h colvarproxy.h colvartypes.h colvarvalue.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvardeps.h colvarparse.h \
- colvarparams.h
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvardeps.h colvarparse.h colvarparams.h
 $(COLVARS_OBJ_DIR)colvargrid.o: colvargrid.cpp colvarmodule.h \
  colvars_version.h colvarvalue.h colvartypes.h colvarparse.h \
- colvarparams.h colvar.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarcomp.h colvaratoms.h colvarproxy.h colvarproxy_tcl.h \
+ colvarparams.h colvar.h colvardeps.h colvarcomp.h colvaratoms.h \
+ colvarproxy.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
  colvarproxy_volmaps.h colvar_arithmeticpath.h colvar_geometricpath.h \
- colvargrid.h
+ colvargrid.h colvargrid_def.h
 $(COLVARS_OBJ_DIR)colvarmodule.o: colvarmodule.cpp colvarmodule.h \
  colvars_version.h colvarparse.h colvarvalue.h colvartypes.h \
- colvarparams.h colvarproxy.h colvarproxy_tcl.h colvarproxy_volmaps.h \
- colvar.h colvardeps.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
+ colvarparams.h colvarproxy.h colvarproxy_io.h colvarproxy_system.h \
+ colvarproxy_tcl.h colvarproxy_volmaps.h colvar.h colvardeps.h \
  colvarbias.h colvarbias_abf.h colvargrid.h colvar_UIestimator.h \
  colvarbias_alb.h colvarbias_histogram.h \
  colvarbias_histogram_reweight_amd.h colvarbias_meta.h \
@@ -333,90 +142,52 @@ $(COLVARS_OBJ_DIR)colvarparse.o: colvarparse.cpp colvarmodule.h \
  colvarparams.h
 $(COLVARS_OBJ_DIR)colvarproxy.o: colvarproxy.cpp colvarmodule.h \
  colvars_version.h colvarproxy.h colvartypes.h colvarvalue.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvarscript.h colvarbias.h \
- colvar.h colvarparse.h colvarparams.h colvardeps.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarscript_commands.h colvarscript_commands_colvar.h \
- colvarscript_commands_bias.h colvaratoms.h colvarmodule_utils.h
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvarscript.h colvarbias.h colvar.h colvarparse.h \
+ colvarparams.h colvardeps.h colvarscript_commands.h \
+ colvarscript_commands_colvar.h colvarscript_commands_bias.h \
+ colvaratoms.h colvarmodule_utils.h
+$(COLVARS_OBJ_DIR)colvarproxy_io.o: colvarproxy_io.cpp colvarmodule.h \
+ colvars_version.h colvarproxy_io.h
 $(COLVARS_OBJ_DIR)colvarproxy_replicas.o: colvarproxy_replicas.cpp \
  colvarmodule.h colvars_version.h colvarproxy.h colvartypes.h \
- colvarvalue.h colvarproxy_tcl.h colvarproxy_volmaps.h
+ colvarvalue.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h
+$(COLVARS_OBJ_DIR)colvarproxy_system.o: colvarproxy_system.cpp \
+ colvarmodule.h colvars_version.h colvartypes.h colvarproxy_system.h
 $(COLVARS_OBJ_DIR)colvarproxy_tcl.o: colvarproxy_tcl.cpp colvarmodule.h \
  colvars_version.h colvarproxy.h colvartypes.h colvarvalue.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvaratoms.h colvarparse.h \
- colvarparams.h colvardeps.h
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvaratoms.h colvarparse.h colvarparams.h \
+ colvardeps.h
 $(COLVARS_OBJ_DIR)colvarproxy_volmaps.o: colvarproxy_volmaps.cpp \
  colvarmodule.h colvars_version.h colvarproxy_volmaps.h \
  colvarmodule_utils.h
 $(COLVARS_OBJ_DIR)colvarscript.o: colvarscript.cpp colvarproxy.h \
  colvarmodule.h colvars_version.h colvartypes.h colvarvalue.h \
- colvarproxy_tcl.h colvarproxy_volmaps.h colvardeps.h colvarparse.h \
- colvarparams.h colvarscript.h colvarbias.h colvar.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarscript_commands.h colvarscript_commands_colvar.h \
- colvarscript_commands_bias.h
+ colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvardeps.h colvarparse.h colvarparams.h \
+ colvarscript.h colvarbias.h colvar.h colvarscript_commands.h \
+ colvarscript_commands_colvar.h colvarscript_commands_bias.h
 $(COLVARS_OBJ_DIR)colvarscript_commands.o: colvarscript_commands.cpp \
  colvarproxy.h colvarmodule.h colvars_version.h colvartypes.h \
- colvarvalue.h colvarproxy_tcl.h colvarproxy_volmaps.h colvardeps.h \
- colvarparse.h colvarparams.h colvarscript.h colvarbias.h colvar.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarscript_commands.h colvarscript_commands_colvar.h \
- colvarscript_commands_bias.h
+ colvarvalue.h colvarproxy_io.h colvarproxy_system.h colvarproxy_tcl.h \
+ colvarproxy_volmaps.h colvardeps.h colvarparse.h colvarparams.h \
+ colvarscript.h colvarbias.h colvar.h colvarscript_commands.h \
+ colvarscript_commands_colvar.h colvarscript_commands_bias.h
 $(COLVARS_OBJ_DIR)colvarscript_commands_bias.o: \
  colvarscript_commands_bias.cpp colvarproxy.h colvarmodule.h \
- colvars_version.h colvartypes.h colvarvalue.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvardeps.h colvarparse.h colvarparams.h \
- colvarscript.h colvarbias.h colvar.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarscript_commands.h colvarscript_commands_colvar.h \
+ colvars_version.h colvartypes.h colvarvalue.h colvarproxy_io.h \
+ colvarproxy_system.h colvarproxy_tcl.h colvarproxy_volmaps.h \
+ colvardeps.h colvarparse.h colvarparams.h colvarscript.h colvarbias.h \
+ colvar.h colvarscript_commands.h colvarscript_commands_colvar.h \
  colvarscript_commands_bias.h
 $(COLVARS_OBJ_DIR)colvarscript_commands_colvar.o: \
  colvarscript_commands_colvar.cpp colvarproxy.h colvarmodule.h \
- colvars_version.h colvartypes.h colvarvalue.h colvarproxy_tcl.h \
- colvarproxy_volmaps.h colvardeps.h colvarparse.h colvarparams.h \
- colvarscript.h colvarbias.h colvar.h lepton/include/Lepton.h \
- lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
- colvarscript_commands.h colvarscript_commands_colvar.h \
+ colvars_version.h colvartypes.h colvarvalue.h colvarproxy_io.h \
+ colvarproxy_system.h colvarproxy_tcl.h colvarproxy_volmaps.h \
+ colvardeps.h colvarparse.h colvarparams.h colvarscript.h colvarbias.h \
+ colvar.h colvarscript_commands.h colvarscript_commands_colvar.h \
  colvarscript_commands_bias.h
 $(COLVARS_OBJ_DIR)colvartypes.o: colvartypes.cpp colvarmodule.h \
  colvars_version.h colvartypes.h colvarparse.h colvarvalue.h \
@@ -425,14 +196,6 @@ $(COLVARS_OBJ_DIR)colvarvalue.o: colvarvalue.cpp colvarmodule.h \
  colvars_version.h colvarvalue.h colvartypes.h
 $(COLVARS_OBJ_DIR)colvar_neuralnetworkcompute.o: \
  colvar_neuralnetworkcompute.cpp colvar_neuralnetworkcompute.h \
- lepton/include/Lepton.h lepton/include/lepton/CompiledExpression.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/windowsIncludes.h \
- lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/ExpressionProgram.h \
- lepton/include/lepton/ExpressionTreeNode.h \
- lepton/include/lepton/Operation.h lepton/include/lepton/CustomFunction.h \
- lepton/include/lepton/Exception.h \
- lepton/include/lepton/ParsedExpression.h lepton/include/lepton/Parser.h \
  colvarparse.h colvarmodule.h colvars_version.h colvarvalue.h \
- colvartypes.h colvarparams.h
+ colvartypes.h colvarparams.h colvarproxy.h colvarproxy_io.h \
+ colvarproxy_system.h colvarproxy_tcl.h colvarproxy_volmaps.h

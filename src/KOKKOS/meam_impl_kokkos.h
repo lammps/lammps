@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,6 +58,14 @@ MEAMKokkos<DeviceType>::~MEAMKokkos()
   memoryKK->destroy_kokkos(k_scrfcn,scrfcn);
   memoryKK->destroy_kokkos(k_dscrfcn,dscrfcn);
   memoryKK->destroy_kokkos(k_fcpair,fcpair);
+
+  // msmeam
+
+  memoryKK->destroy_kokkos(k_arho2mb, arho2mb);
+  memoryKK->destroy_kokkos(k_arho1m, arho1m);
+  memoryKK->destroy_kokkos(k_arho2m, arho2m);
+  memoryKK->destroy_kokkos(k_arho3m, arho3m);
+  memoryKK->destroy_kokkos(k_arho3mb, arho3mb);
 }
 
 #include "meam_setup_done_kokkos.h"

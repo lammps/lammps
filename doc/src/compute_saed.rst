@@ -6,7 +6,7 @@ compute saed command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID saed lambda type1 type2 ... typeN keyword value ...
 
@@ -68,7 +68,7 @@ reciprocal lattice nodes. The mesh spacing is defined either (a)  by
 the entire simulation domain or (b) manually using selected values as
 shown in the 2D diagram below.
 
-.. image:: img/saed_mesh.jpg
+.. image:: img/saed_mesh.png
    :scale: 75%
    :align: center
 
@@ -86,7 +86,7 @@ will defined using the *c* values for the spacing along each reciprocal
 lattice axis. Note that manual mapping of the reciprocal space mesh is
 good for comparing diffraction results from  multiple simulations; however
 it can reduce the likelihood that Bragg reflections will be satisfied
-unless small spacing parameters (:math:`<0.05~\mathrm{\mathring A}^-1`)
+unless small spacing parameters (:math:`<0.05~\AA^-1`)
 are implemented.  Meshes with manual spacing do not require a periodic
 boundary.
 
@@ -246,8 +246,9 @@ All array values calculated by this compute are "intensive".
 Restrictions
 """"""""""""
 
-This compute is part of the DIFFRACTION package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This compute is part of the DIFFRACTION package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 The compute_saed command does not work for triclinic cells.
 

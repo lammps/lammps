@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,7 +13,7 @@
 
 // lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
+//   before lmptype.h can set flags to ensure it is done correctly
 
 #include "thermo.h"
 
@@ -47,6 +47,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -110,6 +111,10 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
+  firststep = 0;
+  ntimestep = -1;
+  nline = -1;
+  image_fname.clear();
 
   // set style and corresponding lineflag
   // custom style builds its own line of keywords, including wildcard expansion
@@ -200,12 +205,22 @@ void Thermo::init()
   ValueTokenizer *format_line = nullptr;
   if (format_line_user.size()) format_line = new ValueTokenizer(format_line_user);
 
+  field_data.clear();
+  field_data.resize(nfield);
   std::string format_this, format_line_user_def;
   for (int i = 0; i < nfield; i++) {
 
     format[i].clear();
     format_this.clear();
     format_line_user_def.clear();
+
+    if (vtype[i] == FLOAT) {
+      field_data[i] = (double) 0.0;
+    } else if (vtype[i] == INT) {
+      field_data[i] = (int) 0;
+    } else if (vtype[i] == BIGINT) {
+      field_data[i] = (bigint) 0;
+    }
 
     if ((lineflag == MULTILINE) && ((i % 3) == 0)) format[i] += "\n";
     if ((lineflag == YAMLLINE) && (i == 0)) format[i] += "  - [";
@@ -360,7 +375,7 @@ void Thermo::compute(int flag)
   int i;
 
   firststep = flag;
-  bigint ntimestep = update->ntimestep;
+  ntimestep = update->ntimestep;
 
   // check for lost atoms
   // turn off normflag if natoms = 0 to avoid divide by 0
@@ -404,18 +419,23 @@ void Thermo::compute(int flag)
   }
 
   // add each thermo value to line with its specific format
+  field_data.clear();
+  field_data.resize(nfield);
 
   for (ifield = 0; ifield < nfield; ifield++) {
     (this->*vfunc[ifield])();
     if (vtype[ifield] == FLOAT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), dvalue);
       line += fmtbuf;
+      field_data[ifield] = dvalue;
     } else if (vtype[ifield] == INT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), ivalue);
       line += fmtbuf;
+      field_data[ifield] = ivalue;
     } else if (vtype[ifield] == BIGINT) {
       snprintf(fmtbuf, sizeof(fmtbuf), format[ifield].c_str(), bivalue);
       line += fmtbuf;
+      field_data[ifield] = bivalue;
     }
   }
 
@@ -430,16 +450,6 @@ void Thermo::compute(int flag)
   // e.g. via variables in print command
 
   firststep = 1;
-}
-
-/* ----------------------------------------------------------------------
-   call function to compute property
-------------------------------------------------------------------------- */
-
-void Thermo::call_vfunc(int ifield_in)
-{
-  ifield = ifield_in;
-  (this->*vfunc[ifield])();
 }
 
 /* ----------------------------------------------------------------------
@@ -678,6 +688,20 @@ void Thermo::modify_params(int narg, char **arg)
             format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
+      } else if (utils::strmatch(arg[iarg + 1], "^\\d*\\*\\d*$")) {
+        // handles cases such as 2*6; currently doesn't allow negatives
+        int nlo, nhi;
+        utils::bounds(FLERR, arg[iarg + 1], 1, nfield_initial, nlo, nhi, error);
+        int icol = -1;
+        for (int i = nlo - 1; i < nhi; i++) {
+          if (i < 0)
+            icol = nfield_initial + i + 1;    // doesn't happen currently
+          else
+            icol = i;
+          if (icol < 0 || (icol >= nfield_initial))
+            error->all(FLERR, "Invalid thermo_modify format argument: {}", arg[iarg + 1]);
+          format_column_user[icol] = arg[iarg + 2];
+        }
       } else {
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
@@ -691,7 +715,7 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if (icol < 0 || icol >= nfield_initial + 1)
+        if ((icol < 0) || (icol >= nfield_initial))
           error->all(FLERR, "Invalid thermo_modify format argument: {}", arg[iarg + 1]);
         format_column_user[icol] = arg[iarg + 2];
       }
@@ -1048,6 +1072,8 @@ void Thermo::parse_fields(const std::string &str)
       }
     }
   }
+  field_data.clear();
+  field_data.resize(nfield);
 }
 
 /* ----------------------------------------------------------------------
@@ -1104,7 +1130,7 @@ int Thermo::add_variable(const char *id)
 }
 
 /* ----------------------------------------------------------------------
-  check whether temperature compute is defined, available, and current
+   check whether temperature compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_temp(const std::string &keyword)
@@ -1112,18 +1138,17 @@ void Thermo::check_temp(const std::string &keyword)
   if (!temperature)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init temperature",
                keyword);
-  if (update->whichflag == 0) {
-    if (temperature->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 temperature->style, temperature->id);
-  } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
+  if (!temperature->is_initialized())
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
+  if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
     temperature->compute_scalar();
     temperature->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether potential energy compute is defined, available, and current
+   check whether potential energy compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_pe(const std::string &keyword)
@@ -1133,47 +1158,44 @@ void Thermo::check_pe(const std::string &keyword)
   if (!pe)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
                keyword);
-  if (update->whichflag == 0) {
-    if (pe->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pe->style, pe->id);
-  } else {
+  if (!pe->is_initialized())
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
+  if (!(pe->invoked_flag & Compute::INVOKED_SCALAR)) {
     pe->compute_scalar();
     pe->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether scalar pressure compute is defined, available, and current
+   check whether scalar pressure compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_press_scalar(const std::string &keyword)
 {
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
-  if (update->whichflag == 0) {
-    if (pressure->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pressure->style, pressure->id);
-  } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
+  if (!pressure->is_initialized())
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
+  if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
     pressure->compute_scalar();
     pressure->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether pressure tensor compute is defined, available, and current
+   check whether tensor pressure compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_press_vector(const std::string &keyword)
 {
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
-  if (update->whichflag == 0) {
-    if (pressure->invoked_vector != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pressure->style, pressure->id);
-  } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
+  if (!pressure->is_initialized())
+    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+               keyword);
+  if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;
   }
@@ -1200,8 +1222,6 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   // invoke a lo-level thermo routine to compute the variable value
   // if keyword requires a compute, error if thermo doesn't use the compute
-  // if inbetween runs and needed compute is not current, error
-  // if in middle of run and needed compute is not current, invoke it
   // for keywords that use energy (evdwl, ebond, etc):
   //   check if energy was tallied on this timestep and set pe->invoked_flag
   //   this will trigger next timestep for energy tallying via addstep()
@@ -1216,13 +1236,13 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "elapsed") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword elapsed cannot be used between runs");
     compute_elapsed();
     dvalue = bivalue;
 
   } else if (word == "elaplong") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword elaplong cannot be used between runs");
     compute_elapsed_long();
     dvalue = bivalue;
 
@@ -1234,22 +1254,22 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "cpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword cpu cannot be used between runs");
     compute_cpu();
 
   } else if (word == "tpcpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword tpcpu cannot be used between runs");
     compute_tpcpu();
 
   } else if (word == "spcpu") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword spcpu cannot be used between runs");
     compute_spcpu();
 
   } else if (word == "cpuremain") {
     if (update->whichflag == 0)
-      error->all(FLERR, "This variable thermo keyword cannot be used between runs");
+      error->all(FLERR, "The variable thermo keyword cpuremain cannot be used between runs");
     compute_cpuremain();
 
   } else if (word == "part") {
@@ -1338,7 +1358,7 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   } else if (word == "etail") {
     if (update->eflag_global != update->ntimestep)
-      error->all(FLERR, "Energy was not tallied on needed timestep");
+      error->all(FLERR, "Energy was not tallied on needed timestep for thermo keyword etail");
     compute_etail();
 
   } else if (word == "enthalpy") {

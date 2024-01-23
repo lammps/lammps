@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -66,7 +66,7 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
   if (!freehead || !chunksize) errorflag = 1;
   if (errorflag) return;
 
-  // insure nbin*binsize spans minchunk to maxchunk inclusive
+  // ensure nbin*binsize spans minchunk to maxchunk inclusive
 
   binsize = (maxchunk - minchunk + 1) / nbin;
   if (minchunk + nbin * binsize <= maxchunk) binsize++;

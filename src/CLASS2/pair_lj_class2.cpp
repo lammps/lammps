@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
@@ -33,6 +33,7 @@ using namespace MathConst;
 PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
+  born_matrix_enable = 1;
   writedata = 1;
   centroidstressflag = CENTROID_SAME;
   cut_respa = nullptr;
@@ -680,6 +681,30 @@ double PairLJClass2::single(int /*i*/, int /*j*/, int itype, int jtype, double r
 
   philj = r6inv * (lj3[itype][jtype] * r3inv - lj4[itype][jtype]) - offset[itype][jtype];
   return factor_lj * philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJClass2::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double rinv, r2inv, r3inv, r7inv, r8inv, du, du2;
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r3inv = r2inv * rinv;
+  r7inv = r3inv * r3inv * rinv;
+  r8inv = r7inv * rinv;
+
+  // Reminder: lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j], 9.0);
+  // Reminder: lj2[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j], 6.0);
+
+  du = r7inv * (lj2[itype][jtype] - lj1[itype][jtype] * r3inv);
+  du2 = r8inv * (10 * lj1[itype][jtype] * r3inv - 7 * lj2[itype][jtype]);
+
+  dupair = factor_lj * du;
+  du2pair = factor_lj * du2;
 }
 
 /* ---------------------------------------------------------------------- */

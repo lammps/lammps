@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,7 +14,6 @@
 /* ----------------------------------------------------------------------
    Contributing author: Rodrigo Canales (RWTH Aachen University)
 ------------------------------------------------------------------------- */
-
 
 #ifdef PAIR_CLASS
 // clang-format off
@@ -78,7 +77,7 @@ class PairBuckCoulCutIntel : public PairBuckCoulCut {
     c_cut_t **c_cut;
 
     ForceConst() : _ntypes(0), _ntable(0) {}
-    ~ForceConst() { set_ntypes(0, 0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, 0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, const int ntable, Memory *memory, const int cop);
 

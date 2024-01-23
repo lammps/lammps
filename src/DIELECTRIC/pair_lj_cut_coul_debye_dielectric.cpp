@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -75,7 +75,7 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
@@ -197,6 +197,7 @@ double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype, 
 {
   double r2inv, r6inv, forcecoul, forcelj, phicoul, ei, ej, philj;
   double r, rinv, screening;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
@@ -204,7 +205,7 @@ double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype, 
     r = sqrt(rsq);
     rinv = 1.0 / r;
     screening = exp(-kappa * r);
-    forcecoul = force->qqrd2e * atom->q[i] * atom->q[j] * screening * (kappa + rinv) * eps[i];
+    forcecoul = force->qqrd2e * q[i] * q[j] * screening * (kappa + rinv) * eps[i];
   } else
     forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
@@ -224,7 +225,7 @@ double PairLJCutCoulDebyeDielectric::single(int i, int j, int itype, int jtype, 
   else
     ej = eps[j];
   if (rsq < cut_coulsq[itype][jtype]) {
-    phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * rinv * screening;
+    phicoul = force->qqrd2e * q[i] * q[j] * rinv * screening;
     phicoul *= 0.5 * (ei + ej);
     eng += factor_coul * phicoul;
   }

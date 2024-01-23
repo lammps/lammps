@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   read_restart file flag
+   read_restart file
 
 * file = name of binary restart file to read in
 
@@ -19,7 +19,6 @@ Examples
 
    read_restart save.10000
    read_restart restart.*
-   read_restart restart.*.mpiio
 
 Description
 """""""""""
@@ -36,6 +35,13 @@ processors in the current simulation and the settings of the
 :doc:`processors <processors>` command.  The partitioning can later be
 changed by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands.
+
+.. deprecated:: 23Jun2022
+
+Atom coordinates that are found to be outside the simulation box when
+reading the restart will be remapped back into the box and their image
+flags updated accordingly.  This previously required specifying the
+*remap* option, but that is no longer required.
 
 Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
@@ -112,22 +118,6 @@ the files.  The number of processors which created the set can be
 different the number of processors in the current LAMMPS simulation.
 This can be a fast mode of input on parallel machines that support
 parallel I/O.
-
-A restart file can also be read in parallel as one large binary file
-via the MPI-IO library, assuming it was also written with MPI-IO.
-MPI-IO is part of the MPI standard for versions 2.0 and above.  Using
-MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
-installed, e.g.
-
-.. code-block:: bash
-
-   make yes-mpiio    # installs the MPIIO package
-   make mpi          # build LAMMPS for your platform
-
-Second, use a restart filename which contains ".mpiio".  Note that it
-does not have to end in ".mpiio", just contain those characters.
-Unlike MPI-IO dump files, a particular restart file must be both
-written and read using MPI-IO.
 
 ----------
 
@@ -261,8 +251,7 @@ information about these bonds is written to the restart file.
 Restrictions
 """"""""""""
 
-To write and read restart files in parallel with MPI-IO, the MPIIO
-package must be installed.
+none
 
 Related commands
 """"""""""""""""

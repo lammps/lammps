@@ -6,7 +6,7 @@ run command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run N keyword values ...
 
@@ -104,7 +104,7 @@ must be done.
 .. note::
 
    If your input script changes the system between 2 runs, then the
-   initial setup must be performed to insure the change is recognized by
+   initial setup must be performed to ensure the change is recognized by
    all parts of the code that are affected.  Examples are adding a
    :doc:`fix <fix>` or :doc:`dump <dump>` or :doc:`compute <compute>`, changing
    a :doc:`neighbor <neigh_modify>` list parameter, or writing restart file

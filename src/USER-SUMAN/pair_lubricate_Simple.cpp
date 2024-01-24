@@ -73,7 +73,7 @@ PairLubricateSimple::~PairLubricateSimple()
 void PairLubricateSimple::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double rsq,r,h_sep,beta0,beta1,radi,radj;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3;

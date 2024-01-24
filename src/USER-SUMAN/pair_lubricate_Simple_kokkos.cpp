@@ -185,12 +185,6 @@ void PairLubricateSimpleKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     
     EV_FLOAT ev;
 
-    // printf("pair::compute()  flagfld= %i  shearing= %i  nlocal= %i  inum= %i  vxmu2f= %f  prd= %f %f %f\n",flagfld,shearing,atom->nlocal,inum,vxmu2f,xprd,yprd,zprd);
-    // printf("                 h_rate= %f %f %f %f %f %f\n",h_rate[0],h_rate[1],h_rate[2],h_rate[3],h_rate[4],h_rate[5]);
-    // printf("                 h_ratelo= %f %f %f\n",h_ratelo[0],h_ratelo[1],h_ratelo[2]);
-    // printf("                 Ef= %f %f %f %f %f %f\n",Ef[0][0],Ef[1][1],Ef[2][2],Ef[0][1],Ef[0][2],Ef[1][2]);
-    
-#if 1
     domainKK->x2lamda(atom->nlocal);
     if(shearing && vflag_either) {
       if (neighflag == HALF) {
@@ -218,7 +212,7 @@ void PairLubricateSimpleKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       virial[4] += ev.v[4];
       virial[5] += ev.v[5];
     }
-#endif
+
   }
 
   EV_FLOAT ev;
@@ -328,7 +322,7 @@ void PairLubricateSimpleKokkos<DeviceType>::operator()(TagPairLubricateSimpleCom
   // set Ef from h_rate in strain units
 
   if(SHEARING){
-    double vRS0 = 1.0; //-vxmu2f * RS0*radi3;
+    double vRS0 = -vxmu2f * RS0*radi3;
     v_tally_tensor<NEIGHFLAG, NEWTON_PAIR>(ev,i,i,
   					   vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
   					   vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
@@ -504,13 +498,6 @@ void PairLubricateSimpleKokkos<DeviceType>::operator()(TagPairLubricateSimpleCom
 	F_FLOAT ttx = YC12*(wdx-wddotn*nx);
 	F_FLOAT tty = YC12*(wdy-wddotn*ny);
 	F_FLOAT ttz = YC12*(wdz-wddotn*nz);
-
-	// if(i == 1) printf("i= %i  x= %f %f %f  x= %f %f %f  rsq= %f  tq= %f %f %f\n",i,
-	// 		  x(i,0),x(i,1),x(i,2),
-	// 		  x(j,0),x(j,1),x(j,2), rsq, tx,ty,tz);
-	// if(j == 1) printf("  j= %i  x= %f %f %f  x= %f %f %f  rsq= %f tq= %f %f %f\n",i,
-	// 		  x(i,0),x(i,1),x(i,2),
-	// 		  x(j,0),x(j,1),x(j,2), rsq, tx,ty,tz);
 	
 	// torque is same on both particles ?
 	

@@ -418,6 +418,5 @@ void PairLubricateSimple::init_style()
 
 void PairLubricateSimple::allocate()
 {
-  printf("Inside PairLubricateSimple::allocate()\n");
   PairLubricate::allocate();
 }

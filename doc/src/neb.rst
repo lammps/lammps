@@ -10,7 +10,7 @@ Syntax
 
    neb etol ftol N1 N2 Nevery file-style arg keyword values
 
-* etol = stopping tolerance for energy (energy units)
+* etol = stopping tolerance for energy (dimensionless)
 * ftol = stopping tolerance for force (force units)
 * N1 = max # of iterations (timesteps) to run initial NEB
 * N2 = max # of iterations (timesteps) to run barrier-climbing NEB

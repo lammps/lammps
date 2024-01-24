@@ -77,7 +77,10 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::numeric(FLERR, arg[3], false, lmp);         // Number of MD steps per MC step
   int seed = utils::numeric(FLERR, arg[4], false, lmp);       // Seed for random number generation
   double temp = utils::numeric(FLERR, arg[5], false, lmp);    // System temperature
-
+  if (seed <= 0)
+    error->all(FLERR, "Illegal fix hmc seed argument: {}. Seed must be greater than 0.0", seed);
+  if (temp <= 0)
+    error->all(FLERR, "Illegal fix hmc temp argument: {}. Temp must be greater than 0.0", temp);
   // Retrieve the molecular dynamics integrator type:
 
   mdi = arg[6];

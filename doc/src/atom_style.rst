@@ -49,9 +49,20 @@ Examples
 Description
 """""""""""
 
-Define what style of atoms to use in a simulation.  This determines
-what attributes are associated with the atoms.  This command must be
-used before a simulation is setup via a :doc:`read_data <read_data>`,
+The *atom_style* command selects which per-atom attributes are
+associated with atoms in a LAMMPS simulation and thus stored and
+communicated with those atoms and read from and stored in data and
+restart files.  Different models (e.g. :doc:`pair styles <pair_style>`)
+require access to specific per-atom attributes and thus require a
+specific atom style (for instance, to compute Coulomb interactions, the
+atom must have a "charge" (aka "q") attribute.
+
+A number of distinct atom styles exist that combine attributes.  Some
+atom styles are supersets of others.  Further attributes may be added to
+atoms either via using a hybrid style and thus providing a union of the
+attributes of the sub-styles, or via :doc:`fix property/atom
+<fix_property_atom>`.  The *atom_style* command must be used before a
+simulation is setup via a :doc:`read_data <read_data>`,
 :doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
 command.
 
@@ -61,114 +72,198 @@ command.
    LAMMPS was built with a specific package, as listed below in the
    Restrictions section.
 
-Once a style is assigned, it cannot be changed, so use a style general
-enough to encompass all attributes.  E.g. with style *bond*, angular
-terms cannot be used or added later to the model.  It is OK to use a
-style more general than needed, though it may be slightly inefficient.
+Once a style is selected and the simulation box defined, it cannot be
+changed but only augmented with the :doc:`fix property/atom
+<fix_property_atom>` command.  So one should select an atom style
+general enough to encompass all attributes required.  E.g. with atom
+style *bond*, it is not possible to define angles and use angle styles.
 
-The choice of style affects what quantities are stored by each atom,
-what quantities are communicated between processors to enable forces
-to be computed, and what quantities are listed in the data file read
-by the :doc:`read_data <read_data>` command.
+It is OK to use a style more general than needed, though it may be
+slightly inefficient and allocate and communicate additional, otherwise
+unused data.
 
-These are the additional attributes of each style and the typical
-kinds of physical systems they are used to model.  All styles store
-coordinates, velocities, atom IDs and types.  See the
-:doc:`read_data <read_data>`, :doc:`create_atoms <create_atoms>`, and
-:doc:`set <set>` commands for info on how to set these various
-quantities.
+Atom style attributes
+"""""""""""""""""""""
 
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *amoeba*     | molecular + charge + 1/5 neighbors                  | AMOEBA/HIPPO polarized force fields  |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *angle*      | bonds and angles                                    | bead-spring polymers with stiffness  |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *atomic*     | only the default values                             | coarse-grain liquids, solids, metals |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *body*       | mass, inertia moments, quaternion, angular momentum | arbitrary bodies                     |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *bond*       | bonds                                               | bead-spring polymers                 |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *charge*     | charge                                              | atomic system with charges           |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *dielectric* | normx normy normz area/patch ed em epsilon curv     | system with surface polarization     |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *dipole*     | charge and dipole moment                            | system with dipolar particles        |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *dpd*        | internal temperature and internal energies          | DPD particles                        |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *edpd*       | temperature and heat capacity                       | eDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *electron*   | charge and spin and eradius                         | electronic force field               |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *ellipsoid*  | shape, quaternion, angular momentum                 | aspherical particles                 |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *full*       | molecular + charge                                  | bio-molecules                        |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *line*       | end points, angular velocity                        | rigid bodies                         |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *mdpd*       | density                                             | mDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *oxdna*      | nucleotide polarity                                 | coarse-grained DNA and RNA models    |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *peri*       | mass, volume                                        | mesoscopic Peridynamic models        |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *smd*        | volume, kernel diameter, contact radius, mass       | solid and fluid SPH particles        |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *sph*        | rho, esph, cv                                       | SPH particles                        |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *sphere*     | diameter, mass, angular velocity                    | granular models                      |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *bpm/sphere* | diameter, mass, angular velocity, quaternion        | granular bonded particle models (BPM)|
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *spin*       | magnetic moment                                     | system with magnetic particles       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *tdpd*       | chemical concentration                              | tDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *template*   | template index, template atom                       | small molecules with fixed topology  |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *tri*        | corner points, angular momentum                     | rigid bodies                         |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *wavepacket* | charge, spin, eradius, etag, cs_re, cs_im           | AWPMD                                |
-+--------------+-----------------------------------------------------+--------------------------------------+
+The atom style *atomic* has the minimum subset of per-atom attributes
+and is also the default setting.  It encompasses the following per-atom
+attributes (name of the array in the :doc:`Atom class <Classes_atom>` is
+given in parenthesis): atom-ID (tag), type (type), position (x),
+velocities (v), forces (f), image flags (image), group membership
+(mask).  Since all atom styles are supersets of *atomic* they all
+include these attributes.
 
 .. note::
 
-   It is possible to add some attributes, such as a molecule ID, to
-   atom styles that do not have them via the :doc:`fix property/atom
-   <fix_property_atom>` command.  This command also allows new custom
-   attributes consisting of extra integer or floating-point values to
-   be added to atoms.  See the :doc:`fix property/atom
-   <fix_property_atom>` page for examples of cases where this is
-   useful and details on how to initialize, access, and output the
-   custom values.
+   The atomic mass (mass) is generally indexed with the atom *type* and
+   **not** the atom *index*.  A per-atom mass attribute (rmass) is
+   available for select atom styles or can be added through using
+   :doc:`fix property/atom <fix_property_atom>`.  If both are defined
+   the per-atom mass takes precedence.
 
-All of the above styles define point particles, except the *sphere*,
-*bpm/sphere*, *ellipsoid*, *electron*, *peri*, *wavepacket*, *line*,
-*tri*, and *body* styles, which define finite-size particles.  See the
+Below is a table with additional atom styles, which attributes they
+provide, which :doc:`package <Packages>` is required to use them, and
+what typical applications are that use them.  See the :doc:`read_data
+<read_data>`, :doc:`create_atoms <create_atoms>`, and :doc:`set <set>`
+commands for details on how to set these various quantities.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Atom style
+     - Attributes
+     - Required package
+     - Applications
+   * - *amoeba*
+     - *full* + "1-5 special neighbor data"
+     - :ref:`AMOEBA <PKG-AMOEBA>`
+     - AMOEBA/HIPPO force fields
+   * - *angle*
+     - *bond* + "angle data"
+     - :ref:`MOLECULE <PKG-MOLECULE>`
+     - bead-spring polymers with stiffness
+   * - *atomic*
+     - tag, type, x, v, f, image, mask
+     -
+     - atomic liquids, solids, metals
+   * - *body*
+     - *atomic* + radius, rmass, angmom, torque, body
+     - :ref:`BODY <PKG-BODY>`
+     - arbitrary bodies, see :doc:`body howto <Howto_body>`
+   * - *bond*
+     - *atomic* + molecule, nspecial, special + "bond data"
+     - :ref:`MOLECULE <PKG-MOLECULE>`
+     - bead-spring polymers
+   * - *bpm/sphere*
+     - *bond* + radius, rmass, omega, torque, quat
+     - :ref:`BPM <PKG-BPM>`
+     - granular bonded particle models, see :doc:`BPM howto <Howto_bpm>`
+   * - *charge*
+     - *atomic* + q
+     -
+     - atomic systems with charges
+   * - *dielectric*
+     - *full* + mu, area, ed, em, epsilon, curvature, q_scaled
+     - :ref:`DIELECTRIC <PKG-DIELECTRIC>`
+     - systems with surface polarization
+   * - *dipole*
+     - *charge* + mu
+     - :ref:`DIPOLE <PKG-DIPOLE>`
+     - atomic systems with charges and point dipoles
+   * - *dpd*
+     - *atomic* + rho + "reactive DPD data"
+     - :ref:`DPD-REACT <PKG-DPD-REACT>`
+     - reactive DPD
+   * - *edpd*
+     - *atomic* + "eDPD data"
+     - :ref:`DPD-MESO <PKG-DPD-MESO>`
+     - Energy conservative DPD (eDPD)
+   * - *electron*
+     - *charge* + espin, eradius, ervel, erforce
+     - :ref:`EFF <PKG-EFF>`
+     - Electron force field systems
+   * - *ellipsoid*
+     - *atomic* + rmass, angmom, torque, ellipsoid
+     -
+     - aspherical particles
+   * - *full*
+     - *molecular* + q
+     - :ref:`MOLECULE <PKG-MOLECULE>`
+     - molecular force fields
+   * - *line*
+     - *atomic* + molecule, radius, rmass, omega, torque, line
+     -
+     - 2-d rigid body particles
+   * - *mdpd*
+     - *atomic* + rho, drho, vest
+     - :ref:`DPD-MESO <PKG-DPD-MESO>`
+     - Many-body DPD (mDPD)
+   * - *molecular*
+     - *angle* + "dihedral and improper data"
+     - :ref:`MOLECULE <PKG-MOLECULE>`
+     - apolar and uncharged molecules
+   * - *oxdna*
+     - *atomic* + id5p
+     - :ref:`CG-DNA <PKG-CG-DNA>`
+     - coarse-grained DNA and RNA models
+   * - *peri*
+     - *atomic* + rmass, vfrac, s0, x0
+     - :ref:`PERI <PKG-PERI>`
+     - mesoscopic Peridynamics models
+   * - *smd*
+     - *atomic* + molecule, radius, rmass + "smd data"
+     - :ref:`MACHDYN <PKG-MACHDYN>`
+     - Smooth Mach Dynamics models
+   * - *sph*
+     - *atomic* + "sph data"
+     - :ref:`SPH <PKG-SPH>`
+     - Smoothed particle hydrodynamics models
+   * - *sphere*
+     - *atomic* + radius, rmass, omega, torque
+     -
+     - finite size spherical particles, e.g. granular models
+   * - *spin*
+     - *atomic* + "magnetic moment data"
+     - :ref:`SPIN <PKG-SPIN>`
+     - magnetic particles
+   * - *tdpd*
+     - *atomic* + cc, cc_flux, vest
+     - :ref:`DPD-MESO <PKG-DPD-MESO>`
+     - Transport DPD (tDPD)
+   * - *template*
+     - *atomic* + molecule, molindex, molatom
+     - :ref:`MOLECULE <PKG-MOLECULE>`
+     - molecular systems where attributes are taken from :doc:`molecule files <molecule>`
+   * - *tri*
+     - *sphere* + molecule, angmom, tri
+     -
+     - 3-d triangulated rigid body LJ particles
+   * - *wavepacket*
+     - *charge* + "wavepacket data"
+     - :ref:`AWPMD <PKG-AWPMD>`
+     - Antisymmetrized wave packet MD
+
+.. note::
+
+   It is possible to add some attributes, such as a molecule ID, to atom
+   styles that do not have them built in using the :doc:`fix
+   property/atom <fix_property_atom>` command.  This command also allows
+   new custom attributes consisting of extra integer or floating-point
+   values or vectors to be added to atoms.  See the :doc:`fix property/atom
+   <fix_property_atom>` page for examples of cases where this is useful
+   and details on how to initialize, access, and output these custom
+   values.
+
+All of the above atyle styles define point particles unless that have
+the *radius* property and then define finite-size particles.  See the
 :doc:`Howto spherical <Howto_spherical>` page for an overview of using
-finite-size particle models with LAMMPS.
+finite-size particle models with LAMMPS.  The *radius* property may need
+to be entered as *diameter* (e.g. in :doc:`molecule files <molecule>`
+or :doc:`data files <read_data>`).
 
-All of the point-particle styles assign mass to particles on a
-per-type basis, using the :doc:`mass <mass>` command, The finite-size
-particle styles assign mass to individual particles on a per-particle
-basis.
+Unless an atom style has the *rmass* attribute, the atomic masses are
+defined on a per-type basis, using the :doc:`mass <mass>` command.  Atom
+styles that have a per-atom mass may define it indirectly through
+setting particle diameter and density on a per-particle basis.  If the
+*rmass* attribute is added through :doc:`fix property/atom <fix_property_atom>`
+it is usually needed to define both, per-type and per-atom masses, however
+the per-atom mass will usually take precedence.
 
-For the *sphere* and *bpm/sphere* styles, the particles are spheres
-and each stores a per-particle diameter and mass.  If the diameter >
-0.0, the particle is a finite-size sphere.  If the diameter = 0.0, it
-is a point particle.  Note that by use of the *disc* keyword with the
-:doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere
-<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`,
+For the atom style *sphere* and *bpm/sphere* styles, the particles may
+be either point particles or finite-size particles.  If the *radius*
+attribute is > 0.0, the particle is a finite-size sphere.  If the
+diameter = 0.0, it is a point particle.  Note that by using the *disc*
+keyword with the :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix
+nvt/sphere <fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`,
 :doc:`fix npt/sphere <fix_npt_sphere>` commands for the *sphere* style,
 spheres can be effectively treated as 2d discs for a 2d simulation if
 desired.  See also the :doc:`set density/disc <set>` command.  These
-styles take an optional 0 or 1 argument.  A value of 0 means the
-radius of each sphere is constant for the duration of the simulation.
-A value of 1 means the radii may vary dynamically during the simulation,
-e.g. due to use of the :doc:`fix adapt <fix_adapt>` command.
+styles also take an optional 0 or 1 argument.  A value of 0 means the
+radius of each sphere is constant for the duration of the simulation
+(this is the default).  A value of 1 means the radii may vary
+dynamically during the simulation, e.g. due to use of the :doc:`fix
+adapt <fix_adapt>` command.
 
 For the *ellipsoid* style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
@@ -194,11 +289,14 @@ and interface particles is only meaningful when :doc:`fix polarize
 style is part of the DIELECTRIC package.
 
 For the *dipole* style, a point dipole is defined for each point
-particle.  Note that if you wish the particles to be finite-size
-spheres as in a Stockmayer potential for a dipolar fluid, so that the
-particles can rotate due to dipole-dipole interactions, then you need
-to use atom_style hybrid sphere dipole, which will assign both a
-diameter and dipole moment to each particle.
+particle.  Note that if you wish the particles to be finite-size spheres
+as in a Stockmayer potential for a dipolar fluid, so that the particles
+can rotate due to dipole-dipole interactions, then you need to use the
+command `atom_style hybrid sphere dipole`, which will assign both a
+diameter and dipole moment to each particle.  This also requires using
+an integrator with a "/sphere" suffix like :doc:`fix nve/sphere
+<fix_nve_sphere>` or :doc:`fix nvt/sphere <fix_nh_sphere>` and the
+"update dipole" or "update dlm" parameters to the fix commands.
 
 For the *electron* style, the particles representing electrons are 3d
 Gaussians with a specified position and bandwidth or uncertainty in
@@ -207,45 +305,42 @@ position, which is represented by the eradius = electron size.
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
 
-The *bpm/sphere* style is part of the BPM package.
-
 The *oxdna* style is for coarse-grained nucleotides and stores the
 3'-to-5' polarity of the nucleotide strand, which is set through
 the bond topology in the data file. The first (second) atom in a
 bond definition is understood to point towards the 3'-end (5'-end)
-of the strand. Note that this style is part of the CG-DNA package.
+of the strand.
 
-The *dpd* style is for dissipative particle dynamics (DPD) particles.
-Note that it is part of the DPD-REACT package, and is not for use with
-the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
-simply use atom_style atomic.  Atom_style dpd extends DPD particle
-properties with internal temperature (dpdTheta), internal conductive
-energy (uCond), internal mechanical energy (uMech), and internal
-chemical energy (uChem).
+The *dpd* style is for reactive dissipative particle dynamics (DPD)
+particles.  Note that it is part of the DPD-REACT package, and is not
+required for use with the :doc:`pair_style dpd or dpd/stat <pair_dpd>`
+commands, which only require the attributes from atom_style *atomic*.
+Atom_style *dpd* extends DPD particle properties with internal
+temperature (dpdTheta), internal conductive energy (uCond), internal
+mechanical energy (uMech), and internal chemical energy (uChem).
 
 The *edpd* style is for energy-conserving dissipative particle
 dynamics (eDPD) particles which store a temperature (edpd_temp), and
 heat capacity(edpd_cv).
 
 The *mdpd* style is for many-body dissipative particle dynamics (mDPD)
-particles which store a density (rho) for considering
-density-dependent many-body interactions.
+particles which store a density (rho) for considering density-dependent
+many-body interactions.
 
 The *tdpd* style is for transport dissipative particle dynamics (tDPD)
 particles which store a set of chemical concentration. An integer
 "cc_species" is required to specify the number of chemical species
 involved in a tDPD system.
 
-The *sph* style is for smoothed particle hydrodynamics (SPH)
-particles which store a density (rho), energy (esph), and heat capacity
-(cv).
+The *sph* style is for smoothed particle hydrodynamics (SPH) particles
+which store a density (rho), energy (esph), and heat capacity (cv).
 
-The *smd* style is for a general formulation of Smooth Particle
-Hydrodynamics.  Both fluids and solids can be modeled.  Particles
-store the mass and volume of an integration point, a kernel diameter
-used for calculating the field variables (e.g. stress and deformation)
-and a contact radius for calculating repulsive forces which prevent
-individual physical bodies from penetrating each other.
+The *smd* style is for Smooth Particle Mach dynamics.  Both fluids and
+solids can be modeled.  Particles store the mass and volume of an
+integration point, a kernel diameter used for calculating the field
+variables (e.g. stress and deformation) and a contact radius for
+calculating repulsive forces which prevent individual physical bodies
+from penetrating each other.
 
 For the *spin* style, a magnetic spin is associated to each atom.
 Those spins have a norm (their magnetic moment) and a direction.
@@ -267,15 +362,15 @@ points of the triangle).
 The *template* style allows molecular topology (bonds,angles,etc) to be
 defined via a molecule template using the :doc:`molecule <molecule>`
 command.  The template stores one or more molecules with a single copy
-of the topology info (bonds,angles,etc) of each.  Individual atoms
-only store a template index and template atom to identify which
-molecule and which atom-within-the-molecule they represent.  Using the
-*template* style instead of the *bond*, *angle*, *molecular* styles
-can save memory for systems comprised of a large number of small
-molecules, all of a single type (or small number of types).  See the
-paper by Grime and Voth, in :ref:`(Grime) <Grime>`, for examples of how this
-can be advantageous for large-scale coarse-grained systems.
-The ``examples/template`` directory has a few demo inputs and examples
+of the topology info (bonds,angles,etc) of each.  Individual atoms only
+store a template index and template atom to identify which molecule and
+which atom-within-the-molecule they represent.  Using the *template*
+style instead of the *bond*, *angle*, *molecular* styles can save memory
+for systems comprised of a large number of small molecules, all of a
+single type (or small number of types).  See the paper by Grime and
+Voth, in :ref:`(Grime) <Grime>`, for examples of how this can be
+advantageous for large-scale coarse-grained systems.  The
+``examples/template`` directory has a few demo inputs and examples
 showing the use of the *template* atom style versus *molecular*.
 
 .. note::
@@ -326,11 +421,12 @@ dipole".  When a hybrid style is used, atoms store and communicate the
 union of all quantities implied by the individual styles.
 
 When using the *hybrid* style, you cannot combine the *template* style
-with another molecular style that stores bond,angle,etc info on a
+with another molecular style that stores bond, angle, etc info on a
 per-atom basis.
 
-LAMMPS can be extended with new atom styles as well as new body
-styles; see the :doc:`Modify <Modify>` doc page.
+LAMMPS can be extended with new atom styles as well as new body styles;
+see the corresponding manual page on :doc:`modifying & extending LAMMPS
+<Modify_atom>`.
 
 ----------
 
@@ -346,53 +442,19 @@ This command cannot be used after the simulation box is defined by a
 
 Many of the styles listed above are only enabled if LAMMPS was built
 with a specific package, as listed below.  See the :doc:`Build package
-<Build_package>` page for more info.
-
-The *amoeba* style is part of the AMOEBA package.
-
-The *angle*, *bond*, *full*, *molecular*, and *template* styles are
-part of the MOLECULE package.
-
-The *line* and *tri* styles are part of the ASPHERE package.
-
-The *body* style is part of the BODY package.
-
-The *dipole* style is part of the DIPOLE package.
-
-The *peri* style is part of the PERI package for Peridynamics.
-
-The *oxdna* style is part of the CG-DNA package for coarse-grained
-simulation of DNA and RNA.
-
-The *electron* style is part of the EFF package for :doc:`electronic
-force fields <pair_eff>`.
-
-The *dpd* style is part of the DPD-REACT package for dissipative
-particle dynamics (DPD).
-
-The *edpd*, *mdpd*, and *tdpd* styles are part of the DPD-MESO package
-for energy-conserving dissipative particle dynamics (eDPD), many-body
-dissipative particle dynamics (mDPD), and transport dissipative particle
-dynamics (tDPD), respectively.
-
-The *sph* style is part of the SPH package for smoothed particle
-hydrodynamics (SPH).  See `this PDF guide
-<PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
-
-The *spin* style is part of the SPIN package.
-
-The *wavepacket* style is part of the AWPMD package for the
-:doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
+<Build_package>` page for more info.  The table above lists which package
+is required for individual atom styles.
 
 Related commands
 """"""""""""""""
 
-:doc:`read_data <read_data>`, :doc:`pair_style <pair_style>`
+:doc:`read_data <read_data>`, :doc:`pair_style <pair_style>`,
+:doc:`fix property/atom <fix_property_atom>`, :doc:`set <set>`
 
 Default
 """""""
 
-The default atom style is atomic.  If atom_style sphere is used its
+The default atom style is *atomic*.  If atom_style *sphere* is used, its
 default argument is 0.
 
 ----------

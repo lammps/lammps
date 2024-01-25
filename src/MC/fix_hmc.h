@@ -75,6 +75,7 @@ class FixHMC : public Fix {
   double **stored_dorient;
 
   int resample_on_accept_flag, mom_flag;
+  int first_init_complete, first_setup_complete;
 
   std::string mdi;
   class FixRigidSmall *fix_rigid;

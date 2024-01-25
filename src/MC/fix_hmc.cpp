@@ -133,6 +133,14 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 5;
   force_reneighbor = 1;
   next_reneighbor = -1;
+  first_init_complete = false;
+  first_setup_complete = true;
+
+  // initialize quantities
+  nattempts = 0;
+  naccepts = 0;
+  DeltaPE = 0;
+  DeltaKE = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -461,36 +469,42 @@ void FixHMC::init()
       error->all(FLERR, "fix hmc cannot precede fixes that modify the system pressure");
     }
     if (!strcmp(ifix->id, id)) past_this_fix = true;
-    if (rigid_flag && !strcmp(ifix->id, fix_rigid->id)) past_rigid = true;
+     if (rigid_flag && !strcmp(ifix->id, fix_rigid->id)) past_rigid = true;
   }
 
-  // Look for computes with active peatomflag, press_flag, or pressatomflag:
-  peatom_flag = 0;
-  press_flag = 0;
-  pressatom_flag = 0;
-  for (const auto &icompute : modify->get_compute_list())
-    if (strncmp(icompute->id, "hmc_", 4)) {
-      peatom_flag = peatom_flag | icompute->peatomflag;
-      press_flag = press_flag | icompute->pressflag;
-      pressatom_flag = pressatom_flag | icompute->pressatomflag;
-    }
+  if (!first_init_complete)
+  {
+    // Look for computes with active peatomflag, press_flag, or pressatomflag:
+    peatom_flag = 0;
+    press_flag = 0;
+    pressatom_flag = 0;
+    for (const auto &icompute : modify->get_compute_list())
+      if (strncmp(icompute->id, "hmc_", 4)) {
+        peatom_flag = peatom_flag | icompute->peatomflag;
+        press_flag = press_flag | icompute->pressflag;
+        pressatom_flag = pressatom_flag | icompute->pressatomflag;
+      }
 
-  // Initialize arrays and pointers for saving/restoration of states:
-  setup_arrays_and_pointers();
+    // Initialize arrays and pointers for saving/restoration of states:
+    setup_arrays_and_pointers();
 
-  // Count per-atom properties to be exchanged:
-  nvalues = 0;
-  if (peatom_flag) nvalues += ne;
-  if (pressatom_flag) nvalues += 6 * nv;
+    // Count per-atom properties to be exchanged:
+    nvalues = 0;
+    if (peatom_flag) nvalues += ne;
+    if (pressatom_flag) nvalues += 6 * nv;
+
+    // Activate potential energy and other necessary calculations at setup:
+    pe->addstep(ntimestep);
+    if (peatom_flag) peatom->addstep(ntimestep);
+    if (press_flag) press->addstep(ntimestep);
+    if (pressatom_flag) pressatom->addstep(ntimestep);
+
+    first_init_complete = true;
+  }
+
 
   // (Re)allocate array of per-atom properties:
   grow_arrays(atom->nmax);
-
-  // Activate potential energy and other necessary calculations at setup:
-  pe->addstep(ntimestep);
-  if (peatom_flag) peatom->addstep(ntimestep);
-  if (press_flag) press->addstep(ntimestep);
-  if (pressatom_flag) pressatom->addstep(ntimestep);
 }
 
 /* ----------------------------------------------------------------------
@@ -499,31 +513,30 @@ void FixHMC::init()
 
 void FixHMC::setup(int vflag)
 {
-  // initialize rigid first to avoid saving uninitialized state
-  if (rigid_flag) fix_rigid->setup(vflag);
+  if (!first_setup_complete) {
+    // initialize rigid first to avoid saving uninitialized state
+    if (rigid_flag) fix_rigid->setup(vflag);
 
-  // Compute properties of the initial state:
-  nattempts = 0;
-  naccepts = 0;
-  DeltaPE = 0;
-  DeltaKE = 0;
-  if (rigid_flag) {
-    rigid_body_random_velocities();
-  } else {
-    random_velocities();
+    // Compute properties of the initial state:
+
+    if (rigid_flag) {
+      rigid_body_random_velocities();
+    } else {
+      random_velocities();
+    }
+
+    update->eflag_global = update->ntimestep;
+    PE = pe->compute_scalar();
+    KE = ke->compute_scalar();
+    save_current_state();
+
+    // Activate potential energy and other necessary calculations:
+    int nextstep = update->ntimestep + nevery;
+    pe->addstep(nextstep);
+    if (peatom_flag) peatom->addstep(nextstep);
+    if (press_flag) press->addstep(nextstep);
+    if (pressatom_flag) pressatom->addstep(nextstep);
   }
-
-  update->eflag_global = update->ntimestep;
-  PE = pe->compute_scalar();
-  KE = ke->compute_scalar();
-  save_current_state();
-
-  // Activate potential energy and other necessary calculations:
-  int nextstep = update->ntimestep + nevery;
-  pe->addstep(nextstep);
-  if (peatom_flag) peatom->addstep(nextstep);
-  if (press_flag) press->addstep(nextstep);
-  if (pressatom_flag) pressatom->addstep(nextstep);
 }
 
 /* ----------------------------------------------------------------------

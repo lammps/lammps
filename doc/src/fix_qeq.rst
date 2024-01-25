@@ -232,8 +232,6 @@ These fixes are part of the QEQ package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-These qeq fixes are not compatible with the GPU and USER-INTEL packages.
-
 These qeq fixes will ignore electric field contributions from
 :doc:`fix efield <fix_efield>`.
 

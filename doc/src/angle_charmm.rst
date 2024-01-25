@@ -70,7 +70,9 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`, :doc:`pair_style lj/charmm variants <pair_charmm>`,
+:doc:`dihedral_style charmm <dihedral_charmm>`,
+:doc:`dihedral_style charmmfsw <dihedral_charmm>`, :doc:`fix cmap <fix_cmap>`
 
 Default
 """""""

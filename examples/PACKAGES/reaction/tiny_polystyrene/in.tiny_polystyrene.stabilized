@@ -51,7 +51,7 @@ fix 1 statted_grp_REACT nvt temp $T $T 100
 
 fix 4 bond_react_MASTER_group temp/rescale 1 $T $T 1 1
 
-thermo_style custom step temp press density f_rxn1[1] f_rxn1[2] f_rxn1[3]
+thermo_style custom step temp press density f_rxn1[*]
 
 run 10000
 

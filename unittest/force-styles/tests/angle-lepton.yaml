@@ -9,7 +9,7 @@ prerequisites: ! |
 pre_commands: ! ""
 post_commands: ! ""
 input_file: in.fourmol
-angle_style: lepton
+angle_style: lepton auto_offset
 angle_coeff: ! |
   1 110.1 "k*theta^2; k=75.0"
   2 111.0 "k*theta^2; k=45.0"

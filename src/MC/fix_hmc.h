@@ -29,7 +29,6 @@ class FixHMC : public Fix {
  public:
   FixHMC(class LAMMPS *, int, char **);
   ~FixHMC() override;
-  void post_constructor() override;
   int setmask() override;
   void init() override;
   void setup(int) override;

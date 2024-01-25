@@ -70,7 +70,8 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
 
   mom_flag = 1;
   resample_on_accept_flag = 0;
-  if (narg < 7) utils::missing_cmd_args(FLERR, "fix hmc", error);
+  rigid_flag = false;
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix hmc", error);
 
   // Retrieve user-defined options:
 
@@ -81,11 +82,6 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Illegal fix hmc seed argument: {}. Seed must be greater than 0.0", seed);
   if (temp <= 0)
     error->all(FLERR, "Illegal fix hmc temp argument: {}. Temp must be greater than 0.0", temp);
-  // Retrieve the molecular dynamics integrator type:
-
-  mdi = arg[6];
-  if ((mdi != "rigid") && (mdi != "flexible"))
-    error->all(FLERR, "Unsupported or unknown fix hmc MD integrator type {}", mdi);
 
   KT = force->boltz * temp / force->mvv2e;    // K*T in mvv units
   mbeta = -1.0 / (force->boltz * temp);       // -1/(K*T) in energy units
@@ -101,6 +97,12 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "ra") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc ra", error);
       resample_on_accept_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "rigid") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc rigid", error);
+      fix_rigid = (FixRigidSmall*) modify->get_fix_by_id(arg[iarg + 1]);
+      if (fix_rigid == nullptr) error->all(FLERR, "Unknown rigid fix id {}", arg[iarg + 1]);
+      rigid_flag = true;
       iarg += 2;
     } else {
       error->all(FLERR, "Unknown fix hmc keyword {}", arg[iarg]);
@@ -134,7 +136,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   force_reneighbor = 1;
   next_reneighbor = -1;
   first_init_complete = false;
-  first_setup_complete = true;
+  first_setup_complete = false;
 
   // initialize quantities
   nattempts = 0;
@@ -167,7 +169,6 @@ FixHMC::~FixHMC()
   modify->delete_compute(std::string("hmc_peatom_") + id);
   modify->delete_compute(std::string("hmc_press_") + id);
   modify->delete_compute(std::string("hmc_pressatom_") + id);
-  modify->delete_fix(std::string("hmc_mdi_") + id);
 
   memory->destroy(stored_tag);
   memory->destroy(stored_bodyown);
@@ -183,20 +184,6 @@ FixHMC::~FixHMC()
     free(stored_peratom_member.address);
     free(stored_peratom_member.address_maxcols);
     free(stored_peratom_member.address_length);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixHMC::post_constructor()
-{
-  if (mdi == "flexible") {
-    modify->add_fix(fmt::format("hmc_mdi_{} {} nve", id, group->names[igroup]));
-    rigid_flag = 0;
-  } else {
-    fix_rigid = (FixRigidSmall *) modify->add_fix(
-        fmt::format("hmc_mdi_{} {} rigid/small molecule", id, group->names[igroup]));
-    rigid_flag = 1;
   }
 }
 
@@ -796,6 +783,7 @@ void FixHMC::restore_saved_state()
 
   // restore tag and peratom body data
   memcpy(atom->tag, stored_tag, stored_ntotal * sizeof(tagint));
+
   if (rigid_flag) {
     memcpy(fix_rigid->bodyown, stored_bodyown, ntotal * sizeof(int));
     memcpy(fix_rigid->bodytag, stored_bodytag, ntotal * sizeof(tagint));

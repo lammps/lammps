@@ -2460,8 +2460,13 @@ static int set_variable_deprecated_flag = 1;
 .. deprecated:: TBD
 
 This function assigns a new value from the string str to the
-string-style variable *name*. Returns -1 if a variable of that
-name does not exist or is not a string-style variable, otherwise 0.
+string-style variable *name*.  This is a way to directly change the
+string value of a LAMMPS variable that was previous defined with a
+:doc:`variable name string <variable>` command without using any
+LAMMPS commands to delete and redefine the variable.
+
+Returns -1 if a variable of that name does not exist or if it is not
+a string-style variable, otherwise 0.
 
 .. warning::
 
@@ -2493,8 +2498,13 @@ int lammps_set_variable(void *handle, const char *name, const char *str)
 .. versionadded:: TBD
 
 This function assigns a new value from the string str to the
-string-style variable *name*.  Returns -1 if a variable of that
-name does not exist or is not a string-style variable, otherwise 0.
+string-style variable *name*.  This is a way to directly change the
+string value of a LAMMPS variable that was previous defined with a
+:doc:`variable name string <variable>` command without using any
+LAMMPS commands to delete and redefine the variable.
+
+Returns -1 if a variable of that name does not exist or if it is not
+a string-style variable, otherwise 0.
 
 \endverbatim
 
@@ -2521,10 +2531,19 @@ int lammps_set_string_variable(void *handle, const char *name, const char *str)
 
 /** Set the value of an internal-style variable.
  *
- * This function assigns a new value value to an internal-style variable.
- * Returns -1 if a variable of that name does not exist or is not an
- * internal-style variable, otherwise 0.
- *
+\verbatim embed:rst
+
+This function assigns a new value from the floating point number *value*
+to the internal-style variable *name*.  This is a way to directly change
+the numerical value of such a LAMMPS variable that was previous defined
+with a :doc:`variable name internal <variable>` command without using
+any LAMMPS commands to delete and redefine the variable.
+
+Returns -1 if a variable of that name does not exist or is not an
+internal-style variable, otherwise 0.
+
+\endverbatim
+
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  name    name of the variable
  * \param  value   new value of the variable

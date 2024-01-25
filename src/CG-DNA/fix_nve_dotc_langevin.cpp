@@ -33,8 +33,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
-
 /* ---------------------------------------------------------------------- */
 
 FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
@@ -129,7 +127,7 @@ void FixNVEDotcLangevin::compute_target()
 
 void FixNVEDotcLangevin::initial_integrate(int /*vflag*/)
 {
-  double *shape,*quat;
+  double *quat;
   double fquat[4],conjqm[4],inertia[3];
   double slq_conjqm[3];
 
@@ -160,7 +158,6 @@ void FixNVEDotcLangevin::initial_integrate(int /*vflag*/)
 
       dthlfm = dthlf / rmass[i];
       quat = bonus[ellipsoid[i]].quat;
-      shape = bonus[ellipsoid[i]].shape;
 
       // update momentum by 1/2 step
       v[i][0] += dthlfm * f[i][0];
@@ -188,9 +185,9 @@ void FixNVEDotcLangevin::initial_integrate(int /*vflag*/)
       conjqm[3] += dt * fquat[3];
 
       // principal moments of inertia
-      inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-      inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-      inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      inertia[0] = bonus[ellipsoid[i]].inertia[0];
+      inertia[1] = bonus[ellipsoid[i]].inertia[1];
+      inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
       M = inertia[0]*inertia[1]*inertia[2];
       M /= inertia[1]*inertia[2]+inertia[0]*inertia[2]+inertia[0]*inertia[1];

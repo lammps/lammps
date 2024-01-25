@@ -47,7 +47,6 @@ enum { NOBIAS, BIAS };
 enum { CONSTANT, EQUAL, ATOM };
 
 #define SINERTIA 0.4    // moment of inertia prefactor for sphere
-#define EINERTIA 0.2    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
@@ -882,15 +881,13 @@ void FixLangevin::angmom_thermostat()
   // gives correct rotational diffusivity behavior if (nearly) spherical
   // any value will be incorrect for rotational diffusivity if aspherical
 
-  double inertia[3],omega[3],tran[3];
-  double *shape,*quat;
+  double omega[3],tran[3];
+  double *shape,*quat,*inertia;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       shape = bonus[ellipsoid[i]].shape;
-      inertia[0] = EINERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-      inertia[1] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-      inertia[2] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      inertia = bonus[ellipsoid[i]].inertia;
       quat = bonus[ellipsoid[i]].quat;
       MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
 

@@ -17,8 +17,13 @@
 ------------------------------------------------------------------------- */
 
 #include "math_extra.h"
+#include "math_special.h"
+#include "math_const.h"
 #include <cstdio>
 #include <cstring>
+
+using namespace LAMMPS_NS;
+using MathConst::MY_4PI3;
 
 namespace MathExtra {
 
@@ -446,23 +451,59 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
 }
 
 /* ----------------------------------------------------------------------
-   compute space-frame inertia tensor of an ellipsoid
-   radii = 3 radii of ellipsoid
+   compute principal moments of inertia of an ellipsoid
+   shape = 3 radii of ellipsoid
    quat = orientiation quaternion of ellipsoid
-   return symmetric inertia tensor as 6-vector in Voigt ordering
+   block = blockiness exponents of super-ellipsoid
+   return principal moments of inertia as 3-vector
 ------------------------------------------------------------------------- */
 
-void inertia_ellipsoid(double *radii, double *quat, double mass,
+void inertia_ellipsoid_principal(double *shape, double mass, double *idiag,
+                                 double *block, bool flag_super)
+{
+  double rsq0 = shape[0] * shape[0];
+  double rsq1 = shape[1] * shape[1];
+  double rsq2 = shape[2] * shape[2];
+  if (flag_super) {
+    // super-ellipsoid, Eq. (12) of Jaklic and Solina, 2003
+    double e1 = 2.0 / block[0], e2 = 2.0 / block[1];
+    double beta_tmp1 = MathSpecial::beta(0.5 * e1, 1 + 2 * e1);
+    double beta_tmp2 = MathSpecial::beta(0.5 * e2, 0.5 * e2);
+    double beta_tmp3 = MathSpecial::beta(0.5 * e2, 1.5 * e2);
+    double dens = mass / (MathSpecial::beta(0.5 * e1, 1.0 + e1) * beta_tmp2);
+    double m0 = 0.5 * rsq0 * beta_tmp1 * beta_tmp3;
+    double m1 = 0.5 * rsq1 * beta_tmp1 * beta_tmp3;
+    double m2 = rsq2 * MathSpecial::beta(1.5 * e1, 1 + e1) * beta_tmp2;
+    idiag[0] = dens * (m1 + m2);
+    idiag[1] = dens * (m0 + m2);
+    idiag[2] = dens * (m0 + m1);
+  }
+  else {
+    double dens = 0.2 * mass;
+    idiag[0] = dens * (rsq1 + rsq2);
+    idiag[1] = dens * (rsq0 + rsq2);
+    idiag[2] = dens * (rsq0 + rsq1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute space-frame inertia tensor of an ellipsoid
+   shape = 3 radii of ellipsoid
+   quat = orientiation quaternion of ellipsoid
+   block = blockiness exponents of super-ellipsoid
+   return symmetric inertia tensor as 6-vector in Voigt ordering
+
+   THIS IS EXACTLY THE SAME FUNCTION AS INERTIA_TRIANGLE
+   TAKES DIAG PRINCIPA INERTIA AND ROTATES IT. SHOULD WE CONSOLIDATE ???
+------------------------------------------------------------------------- */
+
+void inertia_ellipsoid(double *idiag, double *quat, double /*mass*/,
                        double *inertia)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
-  double idiag[3];
 
   quat_to_mat(quat,p);
   quat_to_mat_trans(quat,ptrans);
-  idiag[0] = 0.2*mass * (radii[1]*radii[1] + radii[2]*radii[2]);
-  idiag[1] = 0.2*mass * (radii[0]*radii[0] + radii[2]*radii[2]);
-  idiag[2] = 0.2*mass * (radii[0]*radii[0] + radii[1]*radii[1]);
   diag_times3(idiag,ptrans,itemp);
   times3(p,itemp,tensor);
   inertia[0] = tensor[0][0];
@@ -574,6 +615,27 @@ void inertia_triangle(double *idiag, double *quat, double /*mass*/,
   inertia[3] = tensor[1][2];
   inertia[4] = tensor[0][2];
   inertia[5] = tensor[0][1];
+}
+
+/* ----------------------------------------------------------------------
+   compute the volume of the ellipsoid
+   shape = 3 radii of ellipsoid
+   block = blockiness exponents of super-ellipsoid
+   return volume of the ellipsoid
+------------------------------------------------------------------------- */
+
+double volume_ellipsoid(double *shape, double *block, bool flag_super)
+{
+  double unitvol = MY_4PI3;
+
+  // super-ellipsoid, Eq. (12) of Jaklic and Solina, 2003, for p = q = r = 0
+
+  if (flag_super) {
+    double e1 = 2.0 / block[0], e2 = 2.0 / block[1];
+    unitvol = e1 * e2 * MathSpecial::beta(0.5 * e1, 1.0 + e1) *
+                        MathSpecial::beta(0.5 * e2, 0.5 * e2);
+  }
+  return unitvol * shape[0] * shape[1] * shape[2];
 }
 
 /* ----------------------------------------------------------------------

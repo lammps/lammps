@@ -64,7 +64,25 @@ namespace MathSpecial {
 
   extern double erfcx_y100(const double y100);
 
-  /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+   /* Beta function
+   *
+   * This function computes the Beta function of two real, positive arguments.
+   * Necessary to compute the beta function for super-ellipsoid volume and
+   * moments of inertia. This function is used because std::beta() is C++17
+   * standard and core LAMMPS code has to be C++11 compatible.
+   *
+   * This implementation is restricted to positive arguments for 2 reasons:
+   * 1. Super-ellipsoid calculations only require positive arguments.
+   * 2. Negative arguments require tracking signs of the gamma function so that
+   * std::lgamma() and std::tgamma() functions cannot be used as is, this would
+   * require more implementation than desired for this function.
+   *
+   *  \param   x, y arguments
+   *  \return  value of beta(x) */
+
+  extern double beta(double x, double y);
+
+ /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
    *
    *  This is a portable fast implementation of exp(x*x)*erfc(x) that can be used
    *  in coul/long pair styles as a replacement for the polynomial expansion that
@@ -178,6 +196,7 @@ namespace MathSpecial {
 
     return yy;
   }
+
 }    // namespace MathSpecial
 }    // namespace LAMMPS_NS
 

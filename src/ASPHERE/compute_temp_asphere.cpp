@@ -33,8 +33,6 @@ using namespace LAMMPS_NS;
 
 enum{ROTATE,ALL};
 
-#define INERTIA 0.2          // moment of inertia prefactor for ellipsoid
-
 /* ---------------------------------------------------------------------- */
 
 ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
@@ -206,7 +204,7 @@ double ComputeTempAsphere::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double *shape,*quat;
+  double *quat;
   double wbody[3],inertia[3];
   double rot[3][3];
 
@@ -222,12 +220,11 @@ double ComputeTempAsphere::compute_scalar()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
         quat = bonus[ellipsoid[i]].quat;
 
-        inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-        inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-        inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
         // wbody = angular velocity in body frame
 
@@ -247,12 +244,11 @@ double ComputeTempAsphere::compute_scalar()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
         quat = bonus[ellipsoid[i]].quat;
 
-        inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-        inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-        inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
         // wbody = angular velocity in body frame
 
@@ -298,7 +294,7 @@ void ComputeTempAsphere::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double *shape,*quat;
+  double *quat;
   double wbody[3],inertia[3],t[6];
   double rot[3][3];
   double massone;
@@ -321,12 +317,11 @@ void ComputeTempAsphere::compute_vector()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
-        quat = bonus[ellipsoid[i]].quat;
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
-        inertia[0] = INERTIA*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-        inertia[1] = INERTIA*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-        inertia[2] = INERTIA*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
+        quat = bonus[ellipsoid[i]].quat;
 
         // wbody = angular velocity in body frame
 
@@ -352,13 +347,12 @@ void ComputeTempAsphere::compute_vector()
 
         // principal moments of inertia
 
-        shape = bonus[ellipsoid[i]].shape;
         quat = bonus[ellipsoid[i]].quat;
         massone = rmass[i];
 
-        inertia[0] = INERTIA*massone * (shape[1]*shape[1]+shape[2]*shape[2]);
-        inertia[1] = INERTIA*massone * (shape[0]*shape[0]+shape[2]*shape[2]);
-        inertia[2] = INERTIA*massone * (shape[0]*shape[0]+shape[1]*shape[1]);
+        inertia[0] = bonus[ellipsoid[i]].inertia[0];
+        inertia[1] = bonus[ellipsoid[i]].inertia[1];
+        inertia[2] = bonus[ellipsoid[i]].inertia[2];
 
         // wbody = angular velocity in body frame
 

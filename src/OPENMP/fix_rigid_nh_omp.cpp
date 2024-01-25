@@ -757,9 +757,9 @@ void FixRigidNHOMP::set_xv_thr()
   // XXX: extended particle info not yet multi-threaded
 
   if (extended) {
-    double *shape,*quatatom,*inertiaatom;
+    double *quatatom,*inertiaatom;
     double theta_body,theta;
-    double ione[3],exone[3],eyone[3],ezone[3],p[3][3];
+    double exone[3],eyone[3],ezone[3],p[3][3];
 
     AtomVecEllipsoid::Bonus *ebonus;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
@@ -783,16 +783,13 @@ void FixRigidNHOMP::set_xv_thr()
         omega_one[i][1] = omega[ibody][1];
         omega_one[i][2] = omega[ibody][2];
       } else if (eflags[i] & ELLIPSOID) {
-        shape = ebonus[ellipsoid[i]].shape;
+        inertiaatom = ebonus[ellipsoid[i]].inertia;
         quatatom = ebonus[ellipsoid[i]].quat;
         MathExtra::quatquat(quat[ibody],orient[i],quatatom);
         MathExtra::qnormalize(quatatom);
-        ione[0] = EINERTIA*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
-        ione[1] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
-        ione[2] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
         MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
-        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
-                                   angmom_one[i]);
+        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,
+                                   inertiaatom,angmom_one[i]);
       } else if (eflags[i] & LINE) {
         if (quat[ibody][3] >= 0.0) theta_body = 2.0*acos(quat[ibody][0]);
         else theta_body = -2.0*acos(quat[ibody][0]);
@@ -948,8 +945,8 @@ void FixRigidNHOMP::set_v_thr()
   // XXX: extended particle info not yet multi-threaded
 
   if (extended) {
-    double *shape,*quatatom,*inertiaatom;
-    double ione[3],exone[3],eyone[3],ezone[3];
+    double *quatatom,*inertiaatom;
+    double exone[3],eyone[3],ezone[3];
 
     AtomVecEllipsoid::Bonus *ebonus;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
@@ -969,14 +966,11 @@ void FixRigidNHOMP::set_v_thr()
         omega_one[i][1] = omega[ibody][1];
         omega_one[i][2] = omega[ibody][2];
       } else if (eflags[i] & ELLIPSOID) {
-        shape = ebonus[ellipsoid[i]].shape;
+        inertiaatom = ebonus[ellipsoid[i]].inertia;
         quatatom = ebonus[ellipsoid[i]].quat;
-        ione[0] = EINERTIA*rmass[i] * (shape[1]*shape[1] + shape[2]*shape[2]);
-        ione[1] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[2]*shape[2]);
-        ione[2] = EINERTIA*rmass[i] * (shape[0]*shape[0] + shape[1]*shape[1]);
         MathExtra::q_to_exyz(quatatom,exone,eyone,ezone);
-        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,ione,
-                                   angmom_one[i]);
+        MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,
+                                   inertiaatom,angmom_one[i]);
       } else if (eflags[i] & LINE) {
         omega_one[i][0] = omega[ibody][0];
         omega_one[i][1] = omega[ibody][1];

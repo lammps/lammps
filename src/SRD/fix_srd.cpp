@@ -52,8 +52,6 @@ enum { BIG_MOVE, SRD_MOVE, SRD_ROTATE };
 enum { CUBIC_ERROR, CUBIC_WARN };
 enum { SHIFT_NO, SHIFT_YES, SHIFT_POSSIBLE };
 
-#define EINERTIA 0.2    // moment of inertia prefactor for ellipsoid
-
 #define ATOMPERBIN 30
 #define BIG 1.0e20
 #define VBINSIZE 5
@@ -2648,10 +2646,10 @@ void FixSRD::parameterize()
       if (mask[i] & biggroupbit) {
         if (radius && radius[i] > 0.0) {
           double r = radfactor * radius[i];
-          volbig += 4.0 / 3.0 * MY_PI * r * r * r;
+          volbig += MY_4PI3 * r * r * r;
         } else if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
-          volbig += 4.0 / 3.0 * MY_PI * shape[0] * shape[1] * shape[2] * radfactor * radfactor *
+          volbig += MathExtra::volume_ellipsoid(shape) * radfactor * radfactor *
               radfactor;
         } else if (tri && tri[i] >= 0) {
           double *c1 = tbonus[tri[i]].c1;
@@ -2929,8 +2927,7 @@ void FixSRD::big_static()
 void FixSRD::big_dynamic()
 {
   int i;
-  double *shape, *quat, *inertia;
-  double inertiaone[3];
+  double *quat, *inertia;
 
   AtomVecEllipsoid::Bonus *ebonus;
   if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
@@ -2963,11 +2960,8 @@ void FixSRD::big_dynamic()
     } else if (biglist[k].type == ELLIPSOID) {
       quat = ebonus[ellipsoid[i]].quat;
       MathExtra::q_to_exyz(quat, biglist[k].ex, biglist[k].ey, biglist[k].ez);
-      shape = ebonus[ellipsoid[i]].shape;
-      inertiaone[0] = EINERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
-      inertiaone[1] = EINERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
-      inertiaone[2] = EINERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
-      MathExtra::angmom_to_omega(angmom[i], biglist[k].ex, biglist[k].ey, biglist[k].ez, inertiaone,
+      inertia = ebonus[ellipsoid[i]].inertia;
+      MathExtra::angmom_to_omega(angmom[i], biglist[k].ex, biglist[k].ey, biglist[k].ez, inertia,
                                  biglist[k].omega);
 
       // line

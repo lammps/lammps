@@ -114,13 +114,17 @@ void BuildRyMatrix(double R[3][3], const double angle);
 void BuildRzMatrix(double R[3][3], const double angle);
 
 // moment of inertia operations
-
-void inertia_ellipsoid(double *shape, double *quat, double mass, double *inertia);
+void inertia_ellipsoid_principal(double *shape, double mass, double *idiag,
+                                 double *block = nullptr, bool flag_super = false);
+void inertia_ellipsoid(double *idiag, double *quat, double mass, double *inertia);
 void inertia_line(double length, double theta, double mass, double *inertia);
 void inertia_triangle(double *v0, double *v1, double *v2, double mass, double *inertia);
 void inertia_triangle(double *idiag, double *quat, double mass, double *inertia);
 
-// triclinic bounding box of a spher
+// volumes
+double volume_ellipsoid(double *shape, double *block = nullptr, bool flag_super = false);
+
+// triclinic bounding box of a sphere
 
 void tribbox(double *, double, double *);
 

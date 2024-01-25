@@ -40,8 +40,6 @@ namespace LAMMPS_NS {
 
     // moment of inertia prefactor for sphere
     static constexpr double SINERTIA = 0.4;
-    // moment of inertia prefactor for ellipsoid
-    static constexpr double EINERTIA = 0.2;
     // moment of inertia prefactor for line segment
     static constexpr double LINERTIA = 1.0/12.0;
 

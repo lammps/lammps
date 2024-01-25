@@ -66,14 +66,13 @@ void FixNVEAsphereNoforce::initial_integrate(int /*vflag*/)
   double **x = atom->x;
   double **v = atom->v;
   double **angmom = atom->angmom;
-  double *rmass = atom->rmass;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  double *shape,*quat;
-  double inertia[3],omega[3];
+  double *inertia,*quat;
+  double omega[3];
 
   // update positions and quaternions for all particles
 
@@ -86,12 +85,8 @@ void FixNVEAsphereNoforce::initial_integrate(int /*vflag*/)
 
       // principal moments of inertia
 
-      shape = bonus[ellipsoid[i]].shape;
+      inertia = bonus[ellipsoid[i]].inertia;
       quat = bonus[ellipsoid[i]].quat;
-
-      inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
-      inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
-      inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration

@@ -81,7 +81,6 @@ PairLubricateSimpleKokkos<DeviceType>::~PairLubricateSimpleKokkos()
 template<class DeviceType>
 void PairLubricateSimpleKokkos<DeviceType>::init_style()
 {
-  printf("Inside PairLubricateSimpleKokkos::init_style()\n");
   PairLubricateSimple::init_style();
 
   // error if rRESPA with inner levels
@@ -98,14 +97,9 @@ void PairLubricateSimpleKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  //  auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  //if (neighflag == FULL) request->enable_full();
-  // if (neighflag != FULL)
-  //   error->all(FLERR,"Must use full neighbor list style with lubricate/simple/kk");
-  printf("Leaving PairLubricateSimpleKokkos::init_style()  shearing= %i\n",shearing);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -692,9 +686,7 @@ void PairLubricateSimpleKokkos<DeviceType>::v_tally_tensor(EV_FLOAT & ev, int i,
 
 template<class DeviceType>
 void PairLubricateSimpleKokkos<DeviceType>::allocate()
-{
-  printf("Inside PairLubricateSimpleKokkos::allocate()\n");
-  
+{  
   PairLubricateSimple::allocate();
 
   int n = atom->ntypes;

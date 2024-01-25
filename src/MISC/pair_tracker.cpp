@@ -519,26 +519,6 @@ void PairTracker::transfer_history(double *source, double *target, int /*itype*/
   for (int i = 0; i < size_history; i++) target[i] = source[i];
 }
 
-/* ----------------------------------------------------------------------
-   self-interaction range of particle if finite particles
-------------------------------------------------------------------------- */
-
-double PairTracker::atom2cut(int i)
-{
-  double cut = atom->radius[i] * 2;
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairTracker::radii2cut(double r1, double r2)
-{
-  double cut = r1 + r2;
-  return cut;
-}
-
 /* ---------------------------------------------------------------------- */
 
 void PairTracker::process_data(int i, int j, double *input_data)

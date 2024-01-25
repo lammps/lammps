@@ -39,11 +39,11 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER   7
-#define OFFSET 16384
-#define SMALL 0.00001
-#define LARGE 10000.0
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER =   7;
+static constexpr int OFFSET = 16384;
+static constexpr double SMALL = 0.00001;
+static constexpr double LARGE = 10000.0;
+static constexpr double EPS_HOC = 1.0e-7;
 
 enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};
 enum{REVERSE_RHO, REVERSE_RHO_G, REVERSE_RHO_A, REVERSE_RHO_NONE};

@@ -38,7 +38,7 @@ using namespace MathConst;
 using namespace MathSpecial;
 
 static constexpr double SMALL = 0.001;
-#define CHUNK 8
+static constexpr int CHUNK = 8;
 
 /* ---------------------------------------------------------------------- */
 

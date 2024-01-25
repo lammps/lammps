@@ -40,7 +40,7 @@ using namespace MathConst;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
 static constexpr FFT_SCALAR ONEF =  1.0;
-#define OFFSET 16384
+static constexpr int OFFSET = 16384;
 
 
 /* ---------------------------------------------------------------------- */

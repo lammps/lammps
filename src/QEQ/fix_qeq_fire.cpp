@@ -34,7 +34,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELAYSTEP 0
+static constexpr int DELAYSTEP = 0;
 #define DT_GROW 1.1
 #define DT_SHRINK 0.5
 #define ALPHA0 0.8

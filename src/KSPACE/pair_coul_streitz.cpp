@@ -37,7 +37,7 @@ using namespace MathConst;
 
 static constexpr int DELTA = 4;
 static constexpr int PGDELTA = 1;
-#define MAXNEIGH 24
+static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 

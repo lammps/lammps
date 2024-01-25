@@ -40,11 +40,11 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXORDER 7
-#define OFFSET 16384
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
 static constexpr double SMALL = 0.00001;
-#define LARGE 10000.0
-#define EPS_HOC 1.0e-7
+static constexpr double LARGE = 10000.0;
+static constexpr double EPS_HOC = 1.0e-7;
 
 enum{REVERSE_RHO_GPU,REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};

@@ -36,7 +36,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define CHUNK 1000
+static constexpr int CHUNK = 1000;
 static constexpr int MAXLINE = 256;
 
 /* ---------------------------------------------------------------------- */

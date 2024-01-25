@@ -48,7 +48,7 @@ static const char cite_pair_agni[] =
   "}\n\n";
 
 static constexpr int MAXLINE = 10240;
-#define MAXWORD 40
+static constexpr int MAXWORD = 40;
 
 /* ---------------------------------------------------------------------- */
 

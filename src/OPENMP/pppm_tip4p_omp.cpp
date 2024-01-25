@@ -41,8 +41,8 @@ using namespace MathSpecial;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-#define EPS_HOC 1.0e-7
-#define OFFSET 16384
+static constexpr double EPS_HOC = 1.0e-7;
+static constexpr int OFFSET = 16384;
 
 /* ---------------------------------------------------------------------- */
 

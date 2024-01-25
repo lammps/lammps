@@ -41,7 +41,7 @@ using namespace MathSpecial;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 static constexpr FFT_SCALAR ONEF =  1.0;
 
-#define EPS_HOC 1.0e-7
+static constexpr double EPS_HOC = 1.0e-7;
 
 /* ---------------------------------------------------------------------- */
 

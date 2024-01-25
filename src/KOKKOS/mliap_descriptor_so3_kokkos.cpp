@@ -32,7 +32,7 @@
 using namespace LAMMPS_NS;
 
 static constexpr int MAXLINE = 1024;
-#define MAXWORD 3
+static constexpr int MAXWORD = 3;
 
 /* ---------------------------------------------------------------------- */
 template <class DeviceType>

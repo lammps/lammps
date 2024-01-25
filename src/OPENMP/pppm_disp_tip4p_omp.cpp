@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
-#define OFFSET 16384
+static constexpr int OFFSET = 16384;
 
 /* ---------------------------------------------------------------------- */
 

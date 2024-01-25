@@ -1410,7 +1410,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. warning::
 
-      This subroutine is deprecated and :f:subr:`set_string_variable` 
+      This subroutine is deprecated and :f:subr:`set_string_variable`
       should be used instead.
 
    :p character(len=*) name: name of the variable

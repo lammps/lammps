@@ -48,9 +48,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 1
-#define EPSILON 1.0e-6
-#define MAXLINE 256
+static constexpr int DELTA = 1;
+static constexpr double EPSILON = 1.0e-6;
+static constexpr int MAXLINE = 256;
 
 /* ----------------------------------------------------------------------
    one instance per AtomVec style in style_atom.h

@@ -41,12 +41,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define TOL 1E-3   // tolerance for conjugate gradient
-
-// same as fix_wall.cpp
-
-enum{EDGE,CONSTANT,VARIABLE};
-
+static constexpr double TOL = 1e-3;   // tolerance for conjugate gradient
 
 /* ---------------------------------------------------------------------- */
 
@@ -365,7 +360,7 @@ void PairLubricateUPoly::compute_Fh(double **x)
          for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE) {
+           if (wallfix->xstyle[m] == FixWall::VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -640,7 +635,7 @@ void PairLubricateUPoly::compute_RU(double **x)
          for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE) {
+           if (wallfix->xstyle[m] == FixWall::VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -1162,9 +1157,7 @@ void PairLubricateUPoly::init_style()
       flagdeform = 1;
     else if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
-        error->all(FLERR,
-                   "Cannot use multiple fix wall commands with "
-                   "pair lubricateU");
+        error->all(FLERR, "Cannot use multiple fix wall commands with pair lubricateU/poly");
       flagwall = 1; // Walls exist
       wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
@@ -1185,7 +1178,7 @@ void PairLubricateUPoly::init_style()
     for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE) {
+      if (wallfix->xstyle[m] == FixWall::VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
@@ -1215,14 +1208,8 @@ void PairLubricateUPoly::init_style()
 
   if (!flagVF) vol_f = 0;
 
-  if (!comm->me) {
-    if (logfile)
-      fprintf(logfile, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
-          vol_f,vol_P,vol_T);
-    if (screen)
-      fprintf(screen, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
-          vol_f,vol_P,vol_T);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "lubricateU: vol_f = {}, vol_p = {}, vol_T = {}\n", vol_f, vol_P, vol_T);
 
   // Set the isotropic constant
 

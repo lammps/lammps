@@ -66,9 +66,9 @@ static const char cite_fix_charge_regulation[] =
 enum{CONSTANT,EQUAL}; // parsing input variables
 
 // large energy value used to signal overlap
-#define MAXENERGYSIGNAL 1.0e100
-#define MAXENERGYTEST 1.0e50
-#define SMALL 0.0000001
+static constexpr double MAXENERGYSIGNAL = 1.0e100;
+static constexpr double MAXENERGYTEST = 1.0e50;
+static constexpr double SMALL = 0.0000001;
 #define NA_RHO0 0.602214 // Avogadro's constant times reference concentration  (N_A * mol / liter)  [nm^-3]
 
 /* ---------------------------------------------------------------------- */

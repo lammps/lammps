@@ -42,7 +42,7 @@ FixDampingCundall::FixDampingCundall(LAMMPS *_lmp, int narg, char **arg) :
 
   if (!atom->omega_flag) error->all(FLERR, "Fix damping/cundall requires atom attribute omega");
 
-  if (narg < 5) error->all(FLERR, "Illegal fix damping/cundall command");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix damping/cundall", error);
 
   gamma_lin = utils::numeric(FLERR, arg[3], false, lmp);
   gamma_ang = utils::numeric(FLERR, arg[4], false, lmp);

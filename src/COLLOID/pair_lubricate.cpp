@@ -41,10 +41,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-// same as fix_wall.cpp
-
-enum{NONE=0,EDGE,CONSTANT,VARIABLE};
-
 /* ---------------------------------------------------------------------- */
 
 PairLubricate::PairLubricate(LAMMPS *lmp) : Pair(lmp)
@@ -169,7 +165,7 @@ void PairLubricate::compute(int eflag, int vflag)
          for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE) {
+           if (wallfix->xstyle[m] == FixWall::VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -595,7 +591,7 @@ void PairLubricate::init_style()
     for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE) {
+      if (wallfix->xstyle[m] == FixWall::VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);

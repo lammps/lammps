@@ -36,9 +36,9 @@ static int compare_standalone(const void *, const void *);
 static int compare_standalone(const int, const int, void *);
 #endif
 
-#define BUFFACTOR 1.5
-#define BUFMIN 1024
-#define BUFEXTRA 1024
+static constexpr double BUFFACTOR = 1.5;
+static constexpr int BUFMIN = 1024;
+static constexpr int BUFEXTRA = 1024;
 
 /* ---------------------------------------------------------------------- */
 

@@ -633,9 +633,8 @@ namespace overloaded {
     compared to original code.
    ---------------------------------------------------------------------- */
 
-#define CARBON 0
-#define HYDROGEN 1
-#define TOL 1.0e-9
+enum { CARBON, HYDROGEN };
+static constexpr double TOL = 1.0e-9;
 
 template<typename T>
 inline T fmin_nonan(T a, T b) {

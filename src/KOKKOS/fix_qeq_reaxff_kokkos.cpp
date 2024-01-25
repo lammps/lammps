@@ -46,7 +46,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define SMALL 0.0001
+static constexpr double SMALL = 0.0001;
 #define EV_TO_KCAL_PER_MOL 14.4
 
 /* ---------------------------------------------------------------------- */

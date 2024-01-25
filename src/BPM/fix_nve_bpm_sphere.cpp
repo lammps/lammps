@@ -28,7 +28,7 @@ using namespace MathExtra;
 
 FixNVEBPMSphere::FixNVEBPMSphere(LAMMPS *_lmp, int narg, char **arg) : FixNVE(_lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR, "Illegal fix nve/bpm/sphere command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "fix nve/bpm/sphere", error);
 
   time_integrate = 1;
 
@@ -45,7 +45,7 @@ FixNVEBPMSphere::FixNVEBPMSphere(LAMMPS *_lmp, int narg, char **arg) : FixNVE(_l
         error->all(FLERR, "Fix nve/bpm/sphere disc requires 2d simulation");
       iarg++;
     } else
-      error->all(FLERR, "Illegal fix nve/bpm/sphere command");
+      error->all(FLERR, "Illegal fix nve/bpm/sphere keyword {}", arg[iarg]);
   }
 
   inv_inertia = 1.0 / inertia;

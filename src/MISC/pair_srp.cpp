@@ -47,8 +47,8 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 
 using namespace LAMMPS_NS;
 
-#define SMALL 1.0e-10
-#define BIG 1e10
+static constexpr double SMALL = 1.0e-10;
+static constexpr double BIG = 1e10;
 #define ONETWOBIT 0x40000000
 
 static const char cite_srp[] =

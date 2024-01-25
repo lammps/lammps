@@ -28,12 +28,12 @@
 #include <cmath>
 #include <cstring>
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 #ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
+static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
 #else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
+static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #endif
 
 using namespace LAMMPS_NS;
@@ -318,7 +318,8 @@ void FixEOStableRX::read_file(char *file)
 
   // one set of params can span multiple lines
   int n,nwords,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {
@@ -414,7 +415,7 @@ void FixEOStableRX::free_table(Table *tb)
 
 void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 

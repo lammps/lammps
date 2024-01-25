@@ -115,9 +115,17 @@ class Modify : protected Pointers {
   int find_fix(const std::string &);
   // new API
   Fix *get_fix_by_id(const std::string &) const;
-  Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
+  Fix *get_fix_by_index(int idx) const {
+    return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr;
+  }
   const std::vector<Fix *> get_fix_by_style(const std::string &) const;
   const std::vector<Fix *> &get_fix_list();
+  int get_fix_mask(Fix *ifix) const {
+    for (int i = 0; i < nfix; ++i) {
+      if (fix[i] == ifix) return fmask[i];
+    }
+    return 0;
+  }
 
   Compute *add_compute(int, char **, int trysuffix = 1);
   Compute *add_compute(const std::string &, int trysuffix = 1);

@@ -42,7 +42,7 @@ using namespace MathConst;
 enum { LINEAR, WIGGLE, ROTATE, VARIABLE, TRANSROT };
 enum { EQUAL, ATOM };
 
-#define INERTIA 0.2    // moment of inertia prefactor for ellipsoid
+static constexpr double INERTIA = 0.2;    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 

@@ -36,7 +36,7 @@ using namespace MathExtra;
 using MathConst::MY_PI;
 
 #define SELF_CUTOFF 3
-#define RHOMIN 10.0
+static constexpr double RHOMIN = 10.0;
 
 #define QUAD_FINF 129
 #define QUAD_FSEMI 10

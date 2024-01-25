@@ -151,8 +151,6 @@ void PPPMIntel::compute(int eflag, int vflag)
 
 void PPPMIntel::compute_first(int eflag, int vflag)
 {
-  int i,j;
-
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
@@ -460,7 +458,6 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
     const flt_t xi = delxinv;
     const flt_t yi = delyinv;
     const flt_t zi = delzinv;
-    const flt_t fshift = shift;
     const flt_t fshiftone = shiftone;
     const flt_t fdelvolinv = delvolinv;
 

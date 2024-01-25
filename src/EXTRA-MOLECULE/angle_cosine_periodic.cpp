@@ -120,7 +120,7 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
     tn = 1.0;
     tn_1 = 1.0;
     tn_2 = 0.0;
-    un = 1.0;
+    un = (m==1) ? 2.0 : 1.0;
     un_1 = 2.0;
     un_2 = 0.0;
 

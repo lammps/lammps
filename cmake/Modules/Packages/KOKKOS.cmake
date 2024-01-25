@@ -16,11 +16,6 @@ endif()
 if(Kokkos_ENABLE_OPENMP)
   if(NOT BUILD_OMP)
     message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
-  else()
-    # NVHPC/(AMD)Clang does not seem to provide a detectable OpenMP version, but is far beyond version 3.1
-    if((OpenMP_CXX_VERSION VERSION_LESS 3.1) AND NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")))
-      message(FATAL_ERROR "Compiler must support OpenMP 3.1 or later with Kokkos_ENABLE_OPENMP")
-    endif()
   endif()
 endif()
 ########################################################################

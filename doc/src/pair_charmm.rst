@@ -16,6 +16,7 @@
 .. index:: pair_style lj/charmm/coul/msm/omp
 .. index:: pair_style lj/charmmfsw/coul/charmmfsh
 .. index:: pair_style lj/charmmfsw/coul/long
+.. index:: pair_style lj/charmmfsw/coul/long/kk
 
 pair_style lj/charmm/coul/charmm command
 ========================================
@@ -42,6 +43,8 @@ pair_style lj/charmmfsw/coul/charmmfsh command
 
 pair_style lj/charmmfsw/coul/long command
 =========================================
+
+Accelerator Variants: *lj/charmmfsw/coul/long/kk*
 
 Syntax
 """"""
@@ -281,7 +284,9 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`angle_style charmm <angle_charmm>`,
+:doc:`dihedral_style charmm <dihedral_charmm>`,
+:doc:`dihedral_style charmmfsw <dihedral_charmm>`, :doc:`fix cmap <fix_cmap>`
 
 Default
 """""""

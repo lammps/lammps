@@ -46,8 +46,8 @@ using MathConst::MY_PI;
 static constexpr int MAXLINE = 1024;
 #define SELF_CUTOFF 3
 static constexpr double SMALL = 1.0e-6;
-#define SWITCH 1.0e-4
-#define RHOMIN 10.0
+static constexpr double SWITCH = 1.0e-4;
+static constexpr double RHOMIN = 10.0;
 
 #define QUAD_FINF 129
 #define QUAD_FSEMI 10

@@ -42,7 +42,7 @@ using MathConst::MY_PI;
 static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;
 
-#define GRIDSTART 0.1
+static constexpr double GRIDSTART = 0.1;
 #define GRIDDENSITY_FCUTOFF 5000
 #define GRIDDENSITY_EXP 12000
 #define GRIDDENSITY_GTETA 12000

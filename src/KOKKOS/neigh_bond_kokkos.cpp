@@ -35,7 +35,7 @@
 #include <cstring>
 using namespace LAMMPS_NS;
 
-#define BONDDELTA 10000
+static constexpr int BONDDELTA = 10000;
 static constexpr double LB_FACTOR = 1.5;
 
 /* ---------------------------------------------------------------------- */

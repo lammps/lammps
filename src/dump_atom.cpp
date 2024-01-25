@@ -24,7 +24,7 @@
 
 using namespace LAMMPS_NS;
 
-#define ONELINE 256
+static constexpr int ONELINE = 256;
 static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */

@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-#define UNWRAPEXPAND 10.0
+static constexpr double UNWRAPEXPAND = 10.0;
 static constexpr int ONEFIELD = 32;
 static constexpr int DELTA = 1048576;
 

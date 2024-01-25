@@ -39,7 +39,7 @@ static constexpr int DELAYSTEP = 0;
 #define DT_SHRINK 0.5
 #define ALPHA0 0.8
 #define ALPHA_SHRINK 0.10
-#define TMAX 10.0
+static constexpr double TMAX = 10.0;
 
 /* ---------------------------------------------------------------------- */
 

@@ -52,14 +52,14 @@ using namespace MathConst;
 
 // large energy value used to signal overlap
 
-#define MAXENERGYSIGNAL 1.0e100
+static constexpr double MAXENERGYSIGNAL = 1.0e100;
 
 // this must be lower than MAXENERGYSIGNAL
 // by a large amount, so that it is still
 // less than total energy when negative
 // energy contributions are added to MAXENERGYSIGNAL
 
-#define MAXENERGYTEST 1.0e50
+static constexpr double MAXENERGYTEST = 1.0e50;
 
 enum { EXCHATOM, EXCHMOL };          // exchmode
 enum { NONE, MOVEATOM, MOVEMOL };    // movemode

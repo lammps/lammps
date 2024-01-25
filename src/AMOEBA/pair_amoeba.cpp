@@ -47,7 +47,7 @@ enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 enum{MUTUAL,OPT,TCG,DIRECT};
 enum{GEAR,ASPC,LSQR};
 
-#define DELTASTACK 16
+static constexpr int DELTASTACK = 16;
 #define DEBUG_AMOEBA 0
 
 /* ---------------------------------------------------------------------- */

@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 
 static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;
-#define HALF 0.5
+static constexpr double HALF = 0.5;
 
 // inline functions
 static inline double dot(double const *x, double const *y)

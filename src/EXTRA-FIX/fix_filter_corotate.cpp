@@ -43,7 +43,7 @@ using namespace MathConst;
 using namespace FixConst;
 
 static constexpr double BIG = 1.0e20;
-#define MASSDELTA 0.1
+static constexpr double MASSDELTA = 0.1;
 
 static const char cite_filter_corotate[] =
   "Mollified Impulse Method with Corotational Filter: doi:10.1016/j.jcp.2016.12.024\n\n"

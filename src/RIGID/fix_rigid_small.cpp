@@ -49,7 +49,7 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-#define RVOUS 1   // 0 for irregular, 1 for all2all
+static constexpr int RVOUS = 1;   // 0 for irregular, 1 for all2all
 
 /* ---------------------------------------------------------------------- */
 

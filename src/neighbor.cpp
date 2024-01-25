@@ -57,9 +57,9 @@
 using namespace LAMMPS_NS;
 using namespace NeighConst;
 
-#define RQDELTA 1
-#define EXDELTA 1
-#define DELTA_PERATOM 64
+static constexpr int RQDELTA = 1;
+static constexpr int EXDELTA = 1;
+static constexpr int DELTA_PERATOM = 64;
 
 static constexpr double BIG = 1.0e20;
 

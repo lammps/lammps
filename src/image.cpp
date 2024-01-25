@@ -44,8 +44,8 @@ using MathConst::DEG2RAD;
 using MathConst::MY_PI;
 using MathConst::MY_PI4;
 
-#define NCOLORS 140
-#define NELEMENTS 109
+static constexpr int NCOLORS = 140;
+static constexpr int NELEMENTS = 109;
 static constexpr double EPSILON = 1.0e-6;
 
 enum{NUMERIC,MINVALUE,MAXVALUE};

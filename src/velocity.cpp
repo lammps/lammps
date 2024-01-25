@@ -38,7 +38,7 @@ enum{ALL,LOCAL,GEOM};
 enum{UNIFORM,GAUSSIAN};
 enum{NONE,CONSTANT,EQUAL,ATOM};
 
-#define WARMUP 100
+static constexpr int WARMUP = 100;
 static constexpr double SMALL =  0.001;
 
 /* ---------------------------------------------------------------------- */

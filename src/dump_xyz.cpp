@@ -23,7 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define ONELINE 128
+static constexpr int ONELINE = 128;
 static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */

@@ -42,8 +42,8 @@ using namespace LAMMPS_NS;
 static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;
 
-#define GRIDDENSITY 8000
-#define GRIDSTART 0.1
+static constexpr int GRIDDENSITY = 8000;
+static constexpr double GRIDSTART = 0.1;
 
 // max number of interaction per atom for f(Z) environment potential
 

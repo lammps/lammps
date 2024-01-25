@@ -17,10 +17,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 namespace ptm {
 
-#define VISIBLE 1
-#define INVISIBLE 2
-#define BOTH 3
-#define TOLERANCE 1E-8
+enum { VISIBLE=1, INVISIBLE, BOTH };
+static constexpr double TOLERANCE = 1E-8;
 
 static double norm_squared(double *p)
 {

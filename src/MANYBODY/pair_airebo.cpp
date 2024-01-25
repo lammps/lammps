@@ -41,8 +41,8 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
-#define TOL 1.0e-9
-#define PGDELTA 1
+static constexpr double TOL = 1.0e-9;
+static constexpr int PGDELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 

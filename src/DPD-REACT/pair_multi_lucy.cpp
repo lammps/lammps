@@ -39,9 +39,8 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-enum{NONE,RLINEAR,RSQ};
-
-#define MAXLINE 1024
+enum { NONE, RLINEAR, RSQ };
+static constexpr int MAXLINE = 1024;
 
 static const char cite_pair_multi_lucy[] =
   "pair_style multi/lucy command: doi:10.1063/1.4942520\n\n"
@@ -344,7 +343,7 @@ double PairMultiLucy::init_one(int i, int j)
 
 void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 

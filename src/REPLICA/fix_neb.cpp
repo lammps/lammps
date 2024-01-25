@@ -40,7 +40,7 @@ using namespace MathConst;
 enum { SINGLE_PROC_DIRECT, SINGLE_PROC_MAP, MULTI_PROC };
 enum { NEIGHBOR, IDEAL, EQUAL };
 
-#define BUFSIZE 8
+static constexpr int BUFSIZE = 8;
 
 /* ---------------------------------------------------------------------- */
 
@@ -139,7 +139,15 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   uworld = universe->uworld;
 
-  if ((neb_mode == IDEAL) || (neb_mode == EQUAL)) {
+  // set comm mode for inter-replica exchange of coords
+  // may change from SINGLE_PROC_MAP to SINGLE_PROC_DIRECT only in Fix::init()
+
+  if (nreplica == nprocs_universe)
+    cmode = SINGLE_PROC_MAP;
+  else
+    cmode = MULTI_PROC;
+
+  if (cmode == MULTI_PROC) {
     int *iroots = new int[nreplica];
     MPI_Group uworldgroup, rootgroup;
 
@@ -150,7 +158,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
     if (rootgroup != MPI_GROUP_NULL) MPI_Group_free(&rootgroup);
     if (uworldgroup != MPI_GROUP_NULL) MPI_Group_free(&uworldgroup);
     delete[] iroots;
-  }
+  } else rootworld = MPI_COMM_NULL;
 
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all
@@ -193,8 +201,10 @@ FixNEB::~FixNEB()
   memory->destroy(counts);
   memory->destroy(displacements);
 
-  if ((neb_mode == IDEAL) || (neb_mode == EQUAL)) {
+  if (cmode == MULTI_PROC)
     if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
+
+  if ((neb_mode == IDEAL) || (neb_mode == EQUAL)) {
     memory->destroy(nlenall);
   }
   if (neb_mode == EQUAL) memory->destroy(vengall);
@@ -227,14 +237,10 @@ void FixNEB::init()
   if (count > MAXSMALLINT) error->all(FLERR, "Too many active NEB atoms");
   nebatoms = count;
 
-  // comm mode for inter-replica exchange of coords
+  // change comm mode for inter-replica exchange of coords to direct if possible
 
-  if (nreplica == nprocs_universe && nebatoms == atom->natoms && atom->sortfreq == 0)
+  if ((cmode == SINGLE_PROC_MAP) && (nebatoms == atom->natoms) && (atom->sortfreq == 0))
     cmode = SINGLE_PROC_DIRECT;
-  else if (nreplica == nprocs_universe)
-    cmode = SINGLE_PROC_MAP;
-  else
-    cmode = MULTI_PROC;
 
   // ntotal = total # of atoms in system, NEB atoms or not
 
@@ -298,9 +304,8 @@ void FixNEB::min_post_force(int /*vflag*/)
       int procFirst;
       procFirst = universe->root_proc[0];
       MPI_Bcast(&vIni, 1, MPI_DOUBLE, procFirst, uworld);
-    } else {
+    } else { // cmode == MULTI_PROC
       if (me == 0) MPI_Bcast(&vIni, 1, MPI_DOUBLE, 0, rootworld);
-
       MPI_Bcast(&vIni, 1, MPI_DOUBLE, 0, world);
     }
   }
@@ -812,7 +817,7 @@ void FixNEB::calculate_ideal_positions()
   if ((neb_mode == EQUAL) && (rclimber > 0.0)) {
     if ((cmode == SINGLE_PROC_DIRECT) || (cmode == SINGLE_PROC_MAP)) {
       MPI_Allgather(&veng, 1, MPI_DOUBLE, &vengall[0], 1, MPI_DOUBLE, uworld);
-    } else {
+    } else { // cmode == MULTI_PROC
       if (me == 0) MPI_Allgather(&veng, 1, MPI_DOUBLE, &vengall[0], 1, MPI_DOUBLE, rootworld);
       MPI_Bcast(vengall, nreplica, MPI_DOUBLE, 0, world);
     }
@@ -823,7 +828,7 @@ void FixNEB::calculate_ideal_positions()
   } else if ((neb_mode == IDEAL) || (neb_mode == EQUAL)) {
     if ((cmode == SINGLE_PROC_DIRECT) || (cmode == SINGLE_PROC_MAP)) {
       MPI_Allgather(&nlen, 1, MPI_DOUBLE, &nlenall[0], 1, MPI_DOUBLE, uworld);
-    } else {
+    } else { // cmode == MULTI_PROC
       if (me == 0) MPI_Allgather(&nlen, 1, MPI_DOUBLE, &nlenall[0], 1, MPI_DOUBLE, rootworld);
       MPI_Bcast(nlenall, nreplica, MPI_DOUBLE, 0, world);
     }

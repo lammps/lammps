@@ -34,8 +34,8 @@ using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL,ATOM};
-#define SINERTIA 0.4          // moment of inertia prefactor for sphere
-#define EINERTIA 0.2          // moment of inertia prefactor for ellipsoid
+static constexpr double SINERTIA = 0.4;          // moment of inertia prefactor for sphere
+static constexpr double EINERTIA = 0.2;          // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 

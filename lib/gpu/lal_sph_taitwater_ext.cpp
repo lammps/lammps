@@ -114,10 +114,10 @@ void sph_taitwater_gpu_compute(const int ago, const int inum_full, const int nal
                         int **firstneigh, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         const double cpu_time, bool &success, tagint *host_tag,
-                        double **host_v, const int nlocal) {
+                        double **host_v) {
   SPHTaitwaterMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
                   firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
-                  host_tag, host_v, nlocal);
+                  host_tag, host_v);
 }
 
 void sph_taitwater_gpu_get_extra_data(double *host_rho) {

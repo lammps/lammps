@@ -47,8 +47,8 @@ static const char cite_pair_agni[] =
   " year      = {2019},\n"
   "}\n\n";
 
-#define MAXLINE 10240
-#define MAXWORD 40
+static constexpr int MAXLINE = 10240;
+static constexpr int MAXWORD = 40;
 
 /* ---------------------------------------------------------------------- */
 

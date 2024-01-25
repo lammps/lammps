@@ -54,7 +54,7 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
-#define MAXELEMENT 118
+static constexpr int MAXELEMENT = 118;
 
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine

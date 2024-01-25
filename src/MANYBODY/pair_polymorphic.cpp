@@ -38,8 +38,8 @@
 using namespace LAMMPS_NS;
 using namespace MathExtra;
 
-#define MAXLINE 1024
-#define DELTA 4
+static constexpr int MAXLINE = 1024;
+static constexpr int DELTA = 4;
 
 
 /* ---------------------------------------------------------------------- */

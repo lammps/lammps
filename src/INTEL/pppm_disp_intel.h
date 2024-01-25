@@ -86,137 +86,137 @@ class PPPMDispIntel : public PPPMDisp {
 #endif
 
   template <class flt_t, class acc_t>
-  void particle_map(double, double, double, double, int **, int, int, int, int, int, int, int, int,
-                    IntelBuffers<flt_t, acc_t> *buffers);
+  void particle_map_intel(double, double, double, double, int **, int, int, int, int, int, int, int, int,
+                          IntelBuffers<flt_t, acc_t> *buffers);
 
   template <class flt_t, class acc_t, int use_table>
-  void make_rho_c(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void make_rho_c(IntelBuffers<flt_t, acc_t> *buffers)
+  void make_rho_c_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void make_rho_c_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      make_rho_c<flt_t, acc_t, 1>(buffers);
+      make_rho_c_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      make_rho_c<flt_t, acc_t, 0>(buffers);
+      make_rho_c_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void make_rho_g(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void make_rho_g(IntelBuffers<flt_t, acc_t> *buffers)
+  void make_rho_g_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void make_rho_g_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      make_rho_g<flt_t, acc_t, 1>(buffers);
+      make_rho_g_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      make_rho_g<flt_t, acc_t, 0>(buffers);
+      make_rho_g_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void make_rho_a(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void make_rho_a(IntelBuffers<flt_t, acc_t> *buffers)
+  void make_rho_a_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void make_rho_a_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      make_rho_a<flt_t, acc_t, 1>(buffers);
+      make_rho_a_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      make_rho_a<flt_t, acc_t, 0>(buffers);
+      make_rho_a_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void make_rho_none(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void make_rho_none(IntelBuffers<flt_t, acc_t> *buffers)
+  void make_rho_none_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void make_rho_none_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      make_rho_none<flt_t, acc_t, 1>(buffers);
+      make_rho_none_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      make_rho_none<flt_t, acc_t, 0>(buffers);
+      make_rho_none_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_c_ik(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_c_ik(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_c_ik_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_c_ik_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_c_ik<flt_t, acc_t, 1>(buffers);
+      fieldforce_c_ik_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_c_ik<flt_t, acc_t, 0>(buffers);
+      fieldforce_c_ik_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_c_ad(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_c_ad(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_c_ad_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_c_ad_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_c_ad<flt_t, acc_t, 1>(buffers);
+      fieldforce_c_ad_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_c_ad<flt_t, acc_t, 0>(buffers);
+      fieldforce_c_ad_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_g_ik(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_g_ik(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_g_ik_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_g_ik_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_g_ik<flt_t, acc_t, 1>(buffers);
+      fieldforce_g_ik_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_g_ik<flt_t, acc_t, 0>(buffers);
+      fieldforce_g_ik_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_g_ad(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_g_ad(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_g_ad_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_g_ad_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_g_ad<flt_t, acc_t, 1>(buffers);
+      fieldforce_g_ad_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_g_ad<flt_t, acc_t, 0>(buffers);
+      fieldforce_g_ad_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_a_ik(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_a_ik(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_a_ik_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_a_ik_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_a_ik<flt_t, acc_t, 1>(buffers);
+      fieldforce_a_ik_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_a_ik<flt_t, acc_t, 0>(buffers);
+      fieldforce_a_ik_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_a_ad(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_a_ad(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_a_ad_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_a_ad_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_a_ad<flt_t, acc_t, 1>(buffers);
+      fieldforce_a_ad_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_a_ad<flt_t, acc_t, 0>(buffers);
+      fieldforce_a_ad_intel<flt_t, acc_t, 0>(buffers);
     }
   }
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_none_ik(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_none_ik(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_none_ik_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_none_ik_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_none_ik<flt_t, acc_t, 1>(buffers);
+      fieldforce_none_ik_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_none_ik<flt_t, acc_t, 0>(buffers);
+      fieldforce_none_ik_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 
   template <class flt_t, class acc_t, int use_table>
-  void fieldforce_none_ad(IntelBuffers<flt_t, acc_t> *buffers);
-  template <class flt_t, class acc_t> void fieldforce_none_ad(IntelBuffers<flt_t, acc_t> *buffers)
+  void fieldforce_none_ad_intel(IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t> void fieldforce_none_ad_intel(IntelBuffers<flt_t, acc_t> *buffers)
   {
     if (_use_table == 1) {
-      fieldforce_none_ad<flt_t, acc_t, 1>(buffers);
+      fieldforce_none_ad_intel<flt_t, acc_t, 1>(buffers);
     } else {
-      fieldforce_none_ad<flt_t, acc_t, 0>(buffers);
+      fieldforce_none_ad_intel<flt_t, acc_t, 0>(buffers);
     }
   }
 

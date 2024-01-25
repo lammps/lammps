@@ -93,8 +93,8 @@ enum{X,Y,Z, // required for vtk, must come first
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
-#define ONEFIELD 32
-#define DELTA 1048576
+static constexpr int ONEFIELD = 32;
+static constexpr int DELTA = 1048576;
 
 #if (VTK_MAJOR_VERSION < 5) || (VTK_MAJOR_VERSION > 9)
 #error This code has only been tested with VTK 5, 6, 7, 8, and 9
@@ -2096,7 +2096,7 @@ int DumpVTK::modify_param(int narg, char **arg)
     if (refreshflag) error->all(FLERR,"Dump_modify can only have one refresh");
 
     refreshflag = 1;
-    refresh = argi.copy_name();
+    idrefresh = argi.copy_name();
     return 2;
   }
 

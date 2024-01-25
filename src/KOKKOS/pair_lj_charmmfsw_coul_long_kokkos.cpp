@@ -13,10 +13,15 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ray Shan (SNL)
-------------------------------------------------------------------------- */
+   Contributing author: Mitch Murphy (alphataubio)
 
-#include "pair_lj_charmm_coul_long_kokkos.h"
+   Based on serial kspace lj-fsw sections (force-switched) provided by
+   Robert Meissner and Lucio Colombi Ciacchi of Bremen University, Germany,
+   with additional assistance from Robert A. Latour, Clemson University
+
+ ------------------------------------------------------------------------- */
+
+#include "pair_lj_charmmfsw_coul_long_kokkos.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -47,7 +52,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairLJCharmmCoulLongKokkos<DeviceType>::PairLJCharmmCoulLongKokkos(LAMMPS *lmp):PairLJCharmmCoulLong(lmp)
+PairLJCharmmfswCoulLongKokkos<DeviceType>::PairLJCharmmfswCoulLongKokkos(LAMMPS *lmp):PairLJCharmmfswCoulLong(lmp)
 {
   respa_enable = 0;
 
@@ -61,7 +66,7 @@ PairLJCharmmCoulLongKokkos<DeviceType>::PairLJCharmmCoulLongKokkos(LAMMPS *lmp):
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairLJCharmmCoulLongKokkos<DeviceType>::~PairLJCharmmCoulLongKokkos()
+PairLJCharmmfswCoulLongKokkos<DeviceType>::~PairLJCharmmfswCoulLongKokkos()
 {
   if (copymode) return;
 
@@ -75,7 +80,7 @@ PairLJCharmmCoulLongKokkos<DeviceType>::~PairLJCharmmCoulLongKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+void PairLJCharmmfswCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -127,10 +132,10 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
   if (ncoultablebits)
-    ev = pair_compute<PairLJCharmmCoulLongKokkos<DeviceType>,CoulLongTable<1> >
+    ev = pair_compute<PairLJCharmmfswCoulLongKokkos<DeviceType>,CoulLongTable<1> >
       (this,(NeighListKokkos<DeviceType>*)list);
   else
-    ev = pair_compute<PairLJCharmmCoulLongKokkos<DeviceType>,CoulLongTable<0> >
+    ev = pair_compute<PairLJCharmmfswCoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
@@ -168,12 +173,12 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+F_FLOAT PairLJCharmmfswCoulLongKokkos<DeviceType>::
 compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT forcelj, switch1, switch2, englj;
+  F_FLOAT forcelj, switch1;
 
   forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
@@ -182,11 +187,7 @@ compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
   if (rsq > cut_lj_innersq) {
     switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-    switch2 = 12.0*rsq * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-    englj = r6inv *
-            ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-             (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
-    forcelj = forcelj*switch1 + englj*switch2;
+    forcelj = forcelj*switch1;
   }
 
   return forcelj*r2inv;
@@ -198,21 +199,29 @@ compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+F_FLOAT PairLJCharmmfswCoulLongKokkos<DeviceType>::
 compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj, switch1;
-
-  englj = r6inv *
-    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-     (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
+  const F_FLOAT r = sqrt(rsq);
+  const F_FLOAT rinv = 1.0/r;
+  const F_FLOAT r3inv = rinv*rinv*rinv;
+  F_FLOAT englj, englj12, englj6;
 
   if (rsq > cut_lj_innersq) {
-    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-    englj *= switch1;
+    englj12 = (STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*cut_lj6*
+      denom_lj12 * (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
+    englj6 = -(STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)*
+      cut_lj3*denom_lj6 * (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
+    englj = englj12 + englj6;
+  } else {
+    englj12 = r6inv*(STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
+    (STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*cut_lj_inner6inv*cut_lj6inv;
+    englj6 = -(STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)*r6inv +
+      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)*
+      cut_lj_inner3inv*cut_lj3inv;
+    englj = englj12 + englj6;
   }
   return englj;
 }
@@ -223,7 +232,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
 template<class DeviceType>
 template<bool STACKPARAMS,  class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+F_FLOAT PairLJCharmmfswCoulLongKokkos<DeviceType>::
 compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
               const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
@@ -261,7 +270,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+F_FLOAT PairLJCharmmfswCoulLongKokkos<DeviceType>::
 compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
   if (Specialisation::DoTable && rsq > tabinnersq) {
@@ -295,9 +304,9 @@ compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::allocate()
+void PairLJCharmmfswCoulLongKokkos<DeviceType>::allocate()
 {
-  PairLJCharmmCoulLong::allocate();
+  PairLJCharmmfswCoulLong::allocate();
 
   int n = atom->ntypes;
 
@@ -309,12 +318,12 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::allocate()
 
   d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
 
-  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmCoulLong::params",n+1,n+1);
+  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmfswCoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }
 
 template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
+void PairLJCharmmfswCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
 {
   Pair::init_tables(cut_coul,cut_respa);
 
@@ -421,9 +430,9 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCharmmCoulLongKokkos<DeviceType>::init_style()
+void PairLJCharmmfswCoulLongKokkos<DeviceType>::init_style()
 {
-  PairLJCharmmCoulLong::init_style();
+  PairLJCharmmfswCoulLong::init_style();
 
   Kokkos::deep_copy(d_cut_ljsq,cut_ljsq);
   Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
@@ -453,9 +462,9 @@ void PairLJCharmmCoulLongKokkos<DeviceType>::init_style()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-double PairLJCharmmCoulLongKokkos<DeviceType>::init_one(int i, int j)
+double PairLJCharmmfswCoulLongKokkos<DeviceType>::init_one(int i, int j)
 {
-  double cutone = PairLJCharmmCoulLong::init_one(i,j);
+  double cutone = PairLJCharmmfswCoulLong::init_one(i,j);
 
   k_params.h_view(i,j).lj1 = lj1[i][j];
   k_params.h_view(i,j).lj2 = lj2[i][j];
@@ -481,8 +490,8 @@ double PairLJCharmmCoulLongKokkos<DeviceType>::init_one(int i, int j)
 }
 
 namespace LAMMPS_NS {
-template class PairLJCharmmCoulLongKokkos<LMPDeviceType>;
+template class PairLJCharmmfswCoulLongKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class PairLJCharmmCoulLongKokkos<LMPHostType>;
+template class PairLJCharmmfswCoulLongKokkos<LMPHostType>;
 #endif
 }

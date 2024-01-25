@@ -195,7 +195,7 @@ void BaseSPHT::compute(const int f_ago, const int inum_full, const int nall,
                        int **firstneigh, const bool eflag_in, const bool vflag_in,
                        const bool eatom, const bool vatom, int &host_start,
                        const double cpu_time, bool &success, tagint *tag,
-                       double **host_v, const int nlocal) {
+                       double **host_v) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;

@@ -89,10 +89,11 @@ potentials, and the starting configuration when the neb command is
 issued should be the same for every replica.
 
 In a NEB calculation each replica is connected to other replicas by
-inter-replica nudging forces.  These forces are imposed by the :doc:`fix neb <fix_neb>` command, which must be used in conjunction with the
-neb command.  The group used to define the fix neb command defines the
-NEB atoms which are the only ones that inter-replica springs are
-applied to.  If the group does not include all atoms, then non-NEB
+inter-replica nudging forces.  These forces are imposed by the
+:doc:`fix neb <fix_neb>` command, which must be used in conjunction
+with the neb command.  The group used to define the fix neb command
+defines the NEB atoms which are the only ones that inter-replica springs
+are applied to.  If the group does not include all atoms, then non-NEB
 atoms have no inter-replica springs and the forces they feel and their
 motion is computed in the usual way due only to other atoms within
 their replica.  Conceptually, the non-NEB atoms provide a background
@@ -445,7 +446,7 @@ Related commands
 """"""""""""""""
 
 :doc:`prd <prd>`, :doc:`temper <temper>`, :doc:`fix langevin <fix_langevin>`,
-:doc:`fix viscous <fix_viscous>`
+:doc:`fix viscous <fix_viscous>`, :doc:`fix neb <fix_neb>`
 
 Default
 """""""

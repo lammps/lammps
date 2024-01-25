@@ -28,7 +28,7 @@ using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 
-#define INERTIA 0.4          // moment of inertia prefactor for sphere
+static constexpr double INERTIA = 0.4;          // moment of inertia prefactor for sphere
 
 typedef struct { double x,y,z; } dbl3_t;
 

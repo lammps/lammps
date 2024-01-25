@@ -43,7 +43,7 @@ enum {CONSTANT,EQUAL,ATOM};
 enum {NO_FLIP, FLIP_RESCALE, FLIP_HARD, FLIP_SOFT};
 //#define FFL_DEBUG 1
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 /* syntax for fix_ffl:
  * fix nfix id-group ffl tau Tstart Tstop seed [flip_type]

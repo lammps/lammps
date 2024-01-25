@@ -26,8 +26,8 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 4
-#define BIG MAXTAGINT
+static constexpr int DELTA = 4;
+static constexpr double BIG = MAXTAGINT;
 
 // allocate space for static class instance variable and initialize it
 

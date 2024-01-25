@@ -145,9 +145,9 @@ __kernel void k_sph_taitwater(const __global numtyp4 *restrict x_,
           // Lucy Kernel, 2d
           wfd = (numtyp)-19.098593171027440292 * wfd * wfd * ihsq * ihsq * ihsq;
         }
-       
+
         // compute pressure  of atom j with Tait EOS
-        
+
         numtyp tmp = rhoj / rho0_jtype;
         numtyp fj = tmp * tmp * tmp;
         fj = B_jtype * (fj * fj * tmp - (numtyp)1.0);
@@ -321,7 +321,7 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
           wfd = (numtyp)-19.098593171027440292 * wfd * wfd * ihsq * ihsq * ihsq;
         }
 
-        // compute pressure  of atom j with Tait EOS       
+        // compute pressure  of atom j with Tait EOS
         numtyp tmp = rhoj / rho0_jtype;
         numtyp fj = tmp * tmp * tmp;
         fj = B_jtype * (fj * fj * tmp - (numtyp)1.0);
@@ -356,7 +356,7 @@ __kernel void k_sph_taitwater_fast(const __global numtyp4 *restrict x_,
         drhoEacc.y += deltaE;
 
         if (EVFLAG && eflag) {
-          numtyp e = (numtyp)0;          
+          numtyp e = (numtyp)0;
           energy+=e;
         }
         if (EVFLAG && vflag) {

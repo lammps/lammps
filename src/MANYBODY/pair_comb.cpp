@@ -43,9 +43,9 @@ using namespace MathConst;
 using namespace MathExtra;
 using namespace MathSpecial;
 
-#define DELTA 4
-#define PGDELTA 1
-#define MAXNEIGH 24
+static constexpr int DELTA = 4;
+static constexpr int PGDELTA = 1;
+static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 

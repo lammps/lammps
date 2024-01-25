@@ -35,11 +35,11 @@ enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
 #ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
+static constexpr FFT_SCALAR ZEROF = 0.0f;
+static constexpr FFT_SCALAR ONEF =  1.0f;
 #else
-#define ZEROF 0.0
-#define ONEF  1.0
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 #endif
 
 /* ----------------------------------------------------------------------

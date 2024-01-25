@@ -54,8 +54,8 @@ void tersoff_gpu_compute(const int ago, const int nlocal, const int nall, const 
                          int &host_start, const double cpu_time, bool &success);
 double tersoff_gpu_bytes();
 
-#define MAXLINE 1024
-#define DELTA 4
+static constexpr int MAXLINE = 1024;
+static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 

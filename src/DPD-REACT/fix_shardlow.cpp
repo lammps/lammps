@@ -59,7 +59,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace random_external_state;
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 #define EPSILON_SQUARED ((EPSILON) * (EPSILON))
 
 static const char cite_fix_shardlow[] =

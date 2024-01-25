@@ -42,7 +42,7 @@ using namespace MathConst;
 enum{ATOM,MOLECULE};
 enum{DIST_UNIFORM,DIST_GAUSSIAN};
 
-#define EPSILON 1.0e6
+static constexpr double EPSILON = 1.0e6;
 
 /* ---------------------------------------------------------------------- */
 

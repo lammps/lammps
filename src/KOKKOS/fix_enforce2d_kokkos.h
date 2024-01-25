@@ -36,7 +36,7 @@ class FixEnforce2DKokkos : public FixEnforce2D {
   void setup(int) override;
   void post_force(int) override;
 
-  template <int omega_flag, int angmom_flag, int torque_flag>
+  template <int OMEGA_FLAG, int ANGMOM_FLAG, int TORQUE_FLAG>
   KOKKOS_INLINE_FUNCTION
   void post_force_item(const int i) const;
 

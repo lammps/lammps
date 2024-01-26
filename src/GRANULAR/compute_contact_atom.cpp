@@ -50,7 +50,7 @@ ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (!atom->sphere_flag) error->all(FLERR, "Compute contact/atom requires atom style sphere");
+  if (!atom->radius_flag) error->all(FLERR, "Compute contact/atom requires atom attribute radius");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1121,12 +1121,13 @@ void PairLubricateUPoly::settings(int narg, char **arg)
 void PairLubricateUPoly::init_style()
 {
   if (force->newton_pair == 1)
-    error->all(FLERR,"Pair lubricateU/poly requires newton pair off");
+    error->all(FLERR, "Pair lubricateU/poly requires newton pair off");
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,
-               "Pair lubricateU/poly requires ghost atoms store velocity");
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair lubricate/poly requires atom style sphere");
+    error->all(FLERR, "Pair lubricateU/poly requires ghost atoms store velocity");
+  if (!atom->omega_flag)
+    error->all(FLERR, "Pair lubricateU/poly requires atom attribute omega");
+  if (!atom->radius_flag)
+    error->all(FLERR, "Pair lubricateU/poly requires atom attribute radius");
 
   // ensure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style
@@ -1136,7 +1137,7 @@ void PairLubricateUPoly::init_style()
 
   for (int i = 0; i < nlocal; i++)
     if (radius[i] == 0.0)
-      error->one(FLERR,"Pair lubricate/poly requires extended particles");
+      error->one(FLERR,"Pair lubricateU/poly requires extended particles");
 
   // Set the isotropic constants depending on the volume fraction
 

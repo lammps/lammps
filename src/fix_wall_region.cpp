@@ -127,7 +127,7 @@ void FixWallRegion::init()
   // ensure all particles in group are extended particles
 
   if (style == COLLOID) {
-    if (!atom->sphere_flag) error->all(FLERR, "Fix wall/region colloid requires atom style sphere");
+    if (!atom->radius_flag) error->all(FLERR, "Fix wall/region colloid requires atom attribute radius");
 
     double *radius = atom->radius;
     int *mask = atom->mask;
@@ -140,7 +140,7 @@ void FixWallRegion::init()
 
     int flagall;
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-    if (flagall) error->all(FLERR, "Fix wall/region colloid requires extended particles");
+    if (flagall) error->all(FLERR, "Fix wall/region colloid requires only extended particles");
   }
 
   // setup coefficients for each style

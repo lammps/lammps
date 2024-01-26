@@ -318,8 +318,8 @@ void PairBrownianPoly::init_style()
 {
   if (force->newton_pair == 1)
     error->all(FLERR,"Pair brownian/poly requires newton pair off");
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair brownian/poly requires atom style sphere");
+  if (!atom->radius_flag)
+    error->all(FLERR,"Pair brownian/poly requires atom attribute radius");
 
   // ensure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style

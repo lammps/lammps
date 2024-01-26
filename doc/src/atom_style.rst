@@ -58,19 +58,19 @@ require a specific atom style.  For example, to compute Coulomb
 interactions, the atom must have a "charge" (aka "q") attribute.
 
 A number of distinct atom styles exist that combine attributes.  Some
-atom styles are supersets of others.  Further attributes may be added
-to atoms either via using a hybrid style which provides a union of the
-attributes of the sub-styles, or via the :doc:`fix property/atom
-<fix_property_atom>` command.  The *atom_style* command must be used
-before a simulation is setup via a :doc:`read_data <read_data>`,
-:doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
-command.
+atom styles are a superset of other atom styles.  Further attributes
+may be added to atoms either via using a hybrid style which provides a
+union of the attributes of the sub-styles, or via the :doc:`fix
+property/atom <fix_property_atom>` command.  The *atom_style* command
+must be used before a simulation is setup via a :doc:`read_data
+<read_data>`, :doc:`read_restart <read_restart>`, or :doc:`create_box
+<create_box>` command.
 
 .. note::
 
-   Many of the atom styles discussed here are only enabled if
-   LAMMPS was built with a specific package, as listed below in the
-   Restrictions section.
+   Many of the atom styles discussed here are only enabled if LAMMPS was
+   built with a specific package, as listed below in the Restrictions
+   section.
 
 Once a style is selected and the simulation box defined, it cannot be
 changed but only augmented with the :doc:`fix property/atom
@@ -86,12 +86,12 @@ Atom style attributes
 """""""""""""""""""""
 
 The atom style *atomic* has the minimum subset of per-atom attributes
-and is also the default setting.  It encompasses the following
-per-atom attributes (name of the vector or array in the :doc:`Atom
-class <Classes_atom>` is given in parenthesis): atom-ID (tag), type
-(type), position (x), velocities (v), forces (f), image flags (image),
-group membership (mask).  Since all atom styles are supersets of
-*atomic* they all include these attributes.
+and is also the default setting.  It encompasses the following per-atom
+attributes (name of the vector or array in the :doc:`Atom class
+<Classes_atom>` is given in parenthesis): atom-ID (tag), type (type),
+position (x), velocities (v), forces (f), image flags (image), group
+membership (mask).  Since all atom styles are a superset of atom style
+*atomic*\ , they all include these attributes.
 
 This table lists all the available atom styles, which attributes they
 provide, which :doc:`package <Packages>` is required to use them, and
@@ -306,7 +306,7 @@ particles can rotate due to dipole-dipole interactions, then you need
 to use the command `atom_style hybrid sphere dipole`, which will
 assign both a diameter and dipole moment to each particle.  This also
 requires using an integrator with a "/sphere" suffix like :doc:`fix
-nve/sphere <fix_nve_sphere>` or :doc:`fix nvt/sphere <fix_nh_sphere>`
+nve/sphere <fix_nve_sphere>` or :doc:`fix nvt/sphere <fix_nvt_sphere>`
 and the "update dipole" or "update dlm" parameters to the fix
 commands.
 

@@ -124,7 +124,7 @@ OPT.
    *
    *
    * :doc:`charmm (iko) <dihedral_charmm>`
-   * :doc:`charmmfsw <dihedral_charmm>`
+   * :doc:`charmmfsw (k) <dihedral_charmm>`
    * :doc:`class2 (ko) <dihedral_class2>`
    * :doc:`cosine/shift/exp (o) <dihedral_cosine_shift_exp>`
    * :doc:`fourier (io) <dihedral_fourier>`

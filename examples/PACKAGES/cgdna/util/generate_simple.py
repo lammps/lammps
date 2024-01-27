@@ -1,5 +1,8 @@
 # Setup tool for oxDNA input in LAMMPS format.
 
+# for python2/3 compatibility
+from __future__ import print_function
+
 import math,numpy as np,sys,os
 
 # system size
@@ -250,59 +253,59 @@ def duplex_array():
       qrot3=math.sin(0.5*twist)
 
       for letter in strand[2]:
-	temp1=[]
-	temp2=[]
+        temp1=[]
+        temp2=[]
 
-	temp1.append(nt2num[letter])
-	temp2.append(compnt2num[letter])
+        temp1.append(nt2num[letter])
+        temp2.append(compnt2num[letter])
 
-	temp1.append([posx1,posy1,posz1])
-	temp2.append([posx2,posy2,posz2])
+        temp1.append([posx1,posy1,posz1])
+        temp2.append([posx2,posy2,posz2])
 
-	vel=[0,0,0,0,0,0]
-	temp1.append(vel)
-	temp2.append(vel)
+        vel=[0,0,0,0,0,0]
+        temp1.append(vel)
+        temp2.append(vel)
 
-	temp1.append(shape)
-	temp2.append(shape)
+        temp1.append(shape)
+        temp2.append(shape)
 
-	temp1.append(quat1)
-	temp2.append(quat2)
+        temp1.append(quat1)
+        temp2.append(quat2)
 
-	quat1_0 = quat1[0]*qrot0 - quat1[1]*qrot1 - quat1[2]*qrot2 - quat1[3]*qrot3 
-	quat1_1 = quat1[0]*qrot1 + quat1[1]*qrot0 + quat1[2]*qrot3 - quat1[3]*qrot2 
-	quat1_2 = quat1[0]*qrot2 + quat1[2]*qrot0 + quat1[3]*qrot1 - quat1[1]*qrot3 
-	quat1_3 = quat1[0]*qrot3 + quat1[3]*qrot0 + quat1[1]*qrot2 + quat1[2]*qrot1 
+        quat1_0 = quat1[0]*qrot0 - quat1[1]*qrot1 - quat1[2]*qrot2 - quat1[3]*qrot3
+        quat1_1 = quat1[0]*qrot1 + quat1[1]*qrot0 + quat1[2]*qrot3 - quat1[3]*qrot2
+        quat1_2 = quat1[0]*qrot2 + quat1[2]*qrot0 + quat1[3]*qrot1 - quat1[1]*qrot3
+        quat1_3 = quat1[0]*qrot3 + quat1[3]*qrot0 + quat1[1]*qrot2 + quat1[2]*qrot1
 
-	quat1 = [quat1_0,quat1_1,quat1_2,quat1_3]
+        quat1 = [quat1_0,quat1_1,quat1_2,quat1_3]
 
-	posx1=axisx - dcomh*(quat1[0]**2+quat1[1]**2-quat1[2]**2-quat1[3]**2)
-	posy1=axisy - dcomh*(2*(quat1[1]*quat1[2]+quat1[0]*quat1[3]))
-	posz1=posz1+risez
+        posx1=axisx - dcomh*(quat1[0]**2+quat1[1]**2-quat1[2]**2-quat1[3]**2)
+        posy1=axisy - dcomh*(2*(quat1[1]*quat1[2]+quat1[0]*quat1[3]))
+        posz1=posz1+risez
 
-	quat2_0 = quat2[0]*qrot0 - quat2[1]*qrot1 - quat2[2]*qrot2 + quat2[3]*qrot3 
-	quat2_1 = quat2[0]*qrot1 + quat2[1]*qrot0 - quat2[2]*qrot3 - quat2[3]*qrot2 
-	quat2_2 = quat2[0]*qrot2 + quat2[2]*qrot0 + quat2[3]*qrot1 + quat2[1]*qrot3 
-	quat2_3 =-quat2[0]*qrot3 + quat2[3]*qrot0 + quat2[1]*qrot2 + quat2[2]*qrot1 
+        quat2_0 = quat2[0]*qrot0 - quat2[1]*qrot1 - quat2[2]*qrot2 + quat2[3]*qrot3
+        quat2_1 = quat2[0]*qrot1 + quat2[1]*qrot0 - quat2[2]*qrot3 - quat2[3]*qrot2
+        quat2_2 = quat2[0]*qrot2 + quat2[2]*qrot0 + quat2[3]*qrot1 + quat2[1]*qrot3
+        quat2_3 =-quat2[0]*qrot3 + quat2[3]*qrot0 + quat2[1]*qrot2 + quat2[2]*qrot1
 
-	quat2 = [quat2_0,quat2_1,quat2_2,quat2_3]
+        quat2 = [quat2_0,quat2_1,quat2_2,quat2_3]
 
-	posx2=axisx + dcomh*(quat1[0]**2+quat1[1]**2-quat1[2]**2-quat1[3]**2)
-	posy2=axisy + dcomh*(2*(quat1[1]*quat1[2]+quat1[0]*quat1[3]))
-	posz2=posz1
+        posx2=axisx + dcomh*(quat1[0]**2+quat1[1]**2-quat1[2]**2-quat1[3]**2)
+        posy2=axisy + dcomh*(2*(quat1[1]*quat1[2]+quat1[0]*quat1[3]))
+        posz2=posz1
 
-	if (len(nucleotide)+1 > strandstart):
-	  topology.append([1,len(nucleotide),len(nucleotide)+1])
-	  comptopo.append([1,len(nucleotide)+len(strand[2]),len(nucleotide)+len(strand[2])+1])
+        if (len(nucleotide)+1 > strandstart):
+          topology.append([1,len(nucleotide),len(nucleotide)+1])
+          comptopo.append([1,len(nucleotide)+len(strand[2]),len(nucleotide)+len(strand[2])+1])
 
-	nucleotide.append(temp1)
-	compstrand.append(temp2)
+        nucleotide.append(temp1)
+        compstrand.append(temp2)
 
       for ib in range(len(compstrand)):
-	nucleotide.append(compstrand[len(compstrand)-1-ib])
+        nucleotide.append(compstrand[len(compstrand)-1-ib])
 
       for ib in range(len(comptopo)):
-	topology.append(comptopo[ib])
+        topology.append(comptopo[ib])
 
   return
 

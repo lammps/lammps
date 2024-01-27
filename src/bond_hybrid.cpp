@@ -24,7 +24,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EXTRA 1000
+static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 

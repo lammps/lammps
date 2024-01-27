@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -14,28 +13,28 @@
 
 #include "compute_temp_sphere.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "domain.h"
-#include "modify.h"
-#include "group.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-enum{ROTATE,ALL};
+enum { ROTATE, ALL };
 
-#define INERTIA 0.4          // moment of inertia prefactor for sphere
+static constexpr double INERTIA = 0.4;    // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  id_bias(nullptr)
+    Compute(lmp, narg, arg), id_bias(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute temp/sphere command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute temp/sphere", error);
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -48,20 +47,22 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/sphere command");
+    if (strcmp(arg[iarg], "bias") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute temp/sphere bias", error);
       tempbias = 1;
-      id_bias = utils::strdup(arg[iarg+1]);
+      id_bias = utils::strdup(arg[iarg + 1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dof") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute temp/sphere command");
-      if (strcmp(arg[iarg+1],"rotate") == 0) mode = ROTATE;
-      else if (strcmp(arg[iarg+1],"all") == 0) mode = ALL;
-      else error->all(FLERR,"Illegal compute temp/sphere command");
+    } else if (strcmp(arg[iarg], "dof") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute temp/sphere dof", error);
+      if (strcmp(arg[iarg + 1], "rotate") == 0)
+        mode = ROTATE;
+      else if (strcmp(arg[iarg + 1], "all") == 0)
+        mode = ALL;
+      else
+        error->all(FLERR, "Unknown compute temp/sphere dof keyword {}", arg[iarg + 1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute temp/sphere command");
+    } else
+      error->all(FLERR, "Unknown compute temp/sphere keyword {}", arg[iarg]);
   }
 
   // when computing only the rotational temperature,
@@ -73,16 +74,18 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Compute temp/sphere requires atom style sphere");
+  if (!atom->omega_flag)
+    error->all(FLERR,"Compute temp/sphere requires atom attribute omega");
+  if (!atom->radius_flag)
+    error->all(FLERR,"Compute temp/sphere requires atom attribute radius");
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeTempSphere::~ComputeTempSphere()
 {
-  delete [] id_bias;
-  delete [] vector;
+  delete[] id_bias;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,18 +93,16 @@ ComputeTempSphere::~ComputeTempSphere()
 void ComputeTempSphere::init()
 {
   if (tempbias) {
-    int i = modify->find_compute(id_bias);
-    if (i < 0)
-      error->all(FLERR,"Could not find compute ID for temperature bias");
-    tbias = modify->compute[i];
-    if (tbias->tempflag == 0)
-      error->all(FLERR,"Bias compute does not calculate temperature");
-    if (tbias->tempbias == 0)
-      error->all(FLERR,"Bias compute does not calculate a velocity bias");
+    tbias = modify->get_compute_by_id(id_bias);
+    if (!tbias) error->all(FLERR, "Could not find compute {} for temperature bias", id_bias);
+    if (tbias->tempflag == 0) error->all(FLERR, "Bias compute does not calculate temperature");
+    if (tbias->tempbias == 0) error->all(FLERR, "Bias compute does not calculate a velocity bias");
     if (tbias->igroup != igroup)
-      error->all(FLERR,"Bias compute group does not match compute group");
-    if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
-    else tempbias = 1;
+      error->all(FLERR, "Bias compute group does not match compute group");
+    if (strcmp(tbias->style, "temp/region") == 0)
+      tempbias = 2;
+    else
+      tempbias = 1;
 
     // init and setup bias compute because
     // this compute's setup()->dof_compute() may be called first
@@ -124,7 +125,7 @@ void ComputeTempSphere::setup()
 
 void ComputeTempSphere::dof_compute()
 {
-  int count,count_all;
+  int count, count_all;
 
   adjust_dof_fix();
   natoms_temp = group->count(igroup);
@@ -146,8 +147,10 @@ void ComputeTempSphere::dof_compute()
         if (radius[i] == 0.0) {
           if (mode == ALL) count += 3;
         } else {
-          if (mode == ALL) count += 6;
-          else count += 3;
+          if (mode == ALL)
+            count += 6;
+          else
+            count += 3;
         }
       }
   } else {
@@ -156,13 +159,15 @@ void ComputeTempSphere::dof_compute()
         if (radius[i] == 0.0) {
           if (mode == ALL) count += 2;
         } else {
-          if (mode == ALL) count += 3;
-          else count += 1;
+          if (mode == ALL)
+            count += 3;
+          else
+            count += 1;
         }
       }
   }
 
-  MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&count, &count_all, 1, MPI_INT, MPI_SUM, world);
   dof = count_all;
 
   // additional adjustments to dof
@@ -181,8 +186,10 @@ void ComputeTempSphere::dof_compute()
             if (radius[i] == 0.0) {
               if (mode == ALL) count += 3;
             } else {
-              if (mode == ALL) count += 6;
-              else count += 3;
+              if (mode == ALL)
+                count += 6;
+              else
+                count += 3;
             }
           }
         }
@@ -193,20 +200,24 @@ void ComputeTempSphere::dof_compute()
             if (radius[i] == 0.0) {
               if (mode == ALL) count += 2;
             } else {
-              if (mode == ALL) count += 3;
-              else count += 1;
+              if (mode == ALL)
+                count += 3;
+              else
+                count += 1;
             }
           }
         }
     }
 
-    MPI_Allreduce(&count,&count_all,1,MPI_INT,MPI_SUM,world);
+    MPI_Allreduce(&count, &count_all, 1, MPI_INT, MPI_SUM, world);
     dof -= count_all;
   }
 
   dof -= extra_dof + fix_dof;
-  if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
-  else tfactor = 0.0;
+  if (dof > 0)
+    tfactor = force->mvv2e / (dof * force->boltz);
+  else
+    tfactor = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -231,6 +242,8 @@ double ComputeTempSphere::compute_scalar()
 
   double t = 0.0;
 
+  // clang-format off
+
   if (mode == ALL) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -244,13 +257,14 @@ double ComputeTempSphere::compute_scalar()
         t += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
               omega[i][2]*omega[i][2]) * INERTIA*rmass[i]*radius[i]*radius[i];
   }
+  // clang-format on
 
   if (tempbias) tbias->restore_bias_all();
 
-  MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&t, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
   if (dynamic || tempbias == 2) dof_compute();
   if (dof < 0.0 && natoms_temp > 0.0)
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
+    error->all(FLERR, "Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
@@ -275,44 +289,44 @@ void ComputeTempSphere::compute_vector()
 
   // point particles will not contribute rotation due to radius = 0
 
-  double massone,inertiaone,t[6];
+  double massone, inertiaone, t[6];
   for (auto &ti : t) ti = 0.0;
 
   if (mode == ALL) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         massone = rmass[i];
-        t[0] += massone * v[i][0]*v[i][0];
-        t[1] += massone * v[i][1]*v[i][1];
-        t[2] += massone * v[i][2]*v[i][2];
-        t[3] += massone * v[i][0]*v[i][1];
-        t[4] += massone * v[i][0]*v[i][2];
-        t[5] += massone * v[i][1]*v[i][2];
+        t[0] += massone * v[i][0] * v[i][0];
+        t[1] += massone * v[i][1] * v[i][1];
+        t[2] += massone * v[i][2] * v[i][2];
+        t[3] += massone * v[i][0] * v[i][1];
+        t[4] += massone * v[i][0] * v[i][2];
+        t[5] += massone * v[i][1] * v[i][2];
 
-        inertiaone = INERTIA*rmass[i]*radius[i]*radius[i];
-        t[0] += inertiaone * omega[i][0]*omega[i][0];
-        t[1] += inertiaone * omega[i][1]*omega[i][1];
-        t[2] += inertiaone * omega[i][2]*omega[i][2];
-        t[3] += inertiaone * omega[i][0]*omega[i][1];
-        t[4] += inertiaone * omega[i][0]*omega[i][2];
-        t[5] += inertiaone * omega[i][1]*omega[i][2];
+        inertiaone = INERTIA * rmass[i] * radius[i] * radius[i];
+        t[0] += inertiaone * omega[i][0] * omega[i][0];
+        t[1] += inertiaone * omega[i][1] * omega[i][1];
+        t[2] += inertiaone * omega[i][2] * omega[i][2];
+        t[3] += inertiaone * omega[i][0] * omega[i][1];
+        t[4] += inertiaone * omega[i][0] * omega[i][2];
+        t[5] += inertiaone * omega[i][1] * omega[i][2];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        inertiaone = INERTIA*rmass[i]*radius[i]*radius[i];
-        t[0] += inertiaone * omega[i][0]*omega[i][0];
-        t[1] += inertiaone * omega[i][1]*omega[i][1];
-        t[2] += inertiaone * omega[i][2]*omega[i][2];
-        t[3] += inertiaone * omega[i][0]*omega[i][1];
-        t[4] += inertiaone * omega[i][0]*omega[i][2];
-        t[5] += inertiaone * omega[i][1]*omega[i][2];
+        inertiaone = INERTIA * rmass[i] * radius[i] * radius[i];
+        t[0] += inertiaone * omega[i][0] * omega[i][0];
+        t[1] += inertiaone * omega[i][1] * omega[i][1];
+        t[2] += inertiaone * omega[i][2] * omega[i][2];
+        t[3] += inertiaone * omega[i][0] * omega[i][1];
+        t[4] += inertiaone * omega[i][0] * omega[i][2];
+        t[5] += inertiaone * omega[i][1] * omega[i][2];
       }
   }
 
   if (tempbias) tbias->restore_bias_all();
 
-  MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(t, vector, 6, MPI_DOUBLE, MPI_SUM, world);
   for (int i = 0; i < 6; i++) vector[i] *= force->mvv2e;
 }
 
@@ -322,7 +336,7 @@ void ComputeTempSphere::compute_vector()
 
 void ComputeTempSphere::remove_bias(int i, double *v)
 {
-  tbias->remove_bias(i,v);
+  tbias->remove_bias(i, v);
 }
 
 /* ----------------------------------------------------------------------
@@ -331,7 +345,7 @@ void ComputeTempSphere::remove_bias(int i, double *v)
 
 void ComputeTempSphere::remove_bias_thr(int i, double *v, double *b)
 {
-  tbias->remove_bias_thr(i,v,b);
+  tbias->remove_bias_thr(i, v, b);
 }
 
 /* ----------------------------------------------------------------------
@@ -341,7 +355,7 @@ void ComputeTempSphere::remove_bias_thr(int i, double *v, double *b)
 
 void ComputeTempSphere::restore_bias(int i, double *v)
 {
-  tbias->restore_bias(i,v);
+  tbias->restore_bias(i, v);
 }
 
 /* ----------------------------------------------------------------------
@@ -351,5 +365,5 @@ void ComputeTempSphere::restore_bias(int i, double *v)
 
 void ComputeTempSphere::restore_bias_thr(int i, double *v, double *b)
 {
-  tbias->restore_bias_thr(i,v,b);
+  tbias->restore_bias_thr(i, v, b);
 }

@@ -26,6 +26,7 @@
 #include "input.h"
 #include "label_map.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
@@ -47,9 +48,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 1
-#define EPSILON 1.0e-6
-#define MAXLINE 256
+static constexpr int DELTA = 1;
+static constexpr double EPSILON = 1.0e-6;
+static constexpr int MAXLINE = 256;
 
 /* ----------------------------------------------------------------------
    one instance per AtomVec style in style_atom.h
@@ -618,7 +619,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   labelmapflag = 0;
-  sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   quat_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
@@ -2112,6 +2113,15 @@ std::vector<Molecule *>Atom::get_molecule_by_id(const std::string &id)
 void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint offset)
 {
   if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
+  if (onemol->muflag && mu_flag) {
+    double r[3], rotmat[3][3];
+    MathExtra::quat_to_mat(onemol->quat_external, rotmat);
+    MathExtra::matvec(rotmat, onemol->mu[iatom], r);
+    mu[ilocal][0] = r[0];
+    mu[ilocal][1] = r[1];
+    mu[ilocal][2] = r[2];
+    mu[ilocal][3] = sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
+  }
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
   if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
   else if (rmass_flag)

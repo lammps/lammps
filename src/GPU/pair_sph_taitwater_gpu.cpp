@@ -53,7 +53,7 @@ void sph_taitwater_gpu_compute(const int ago, const int inum_full, const int nal
                         int **firstneigh, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         const double cpu_time, bool &success, tagint *tag,
-                        double **host_v, const int nlocal);
+                        double **host_v);
 void sph_taitwater_gpu_get_extra_data(double *host_rho);
 void sph_taitwater_gpu_update_drhoE(void **drhoE_ptr);
 double sph_taitwater_gpu_bytes();
@@ -118,7 +118,7 @@ void PairSPHTaitwaterGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
     sph_taitwater_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
                        eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success,
-                       atom->tag, atom->v, atom->nlocal);
+                       atom->tag, atom->v);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 

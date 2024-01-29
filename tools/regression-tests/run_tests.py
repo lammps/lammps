@@ -40,6 +40,7 @@ Original plan: using the LAMMPS Python module
 import os
 import sys
 import re, yaml
+import numpy as np
 import subprocess
 
 import sys
@@ -97,7 +98,7 @@ def extract_thermo(yamlFileName):
 '''
   return the list of installed packages
 '''
-def get_installed_packages(lmp_binary):
+def get_lammps_build_configuration(lmp_binary):
   cmd_str = lmp_binary + " -h"
   p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
   output = p.stdout.split('\n')
@@ -111,8 +112,14 @@ def get_installed_packages(lmp_binary):
       if reading == True and row > n:
         packages = l.strip()
         break
+    if "OS:" in l:
+      OS = l
+    if "Git info" in l:
+      GitInfo = l
+ 
     row += 1
-  return packages.split(" ")
+
+  return packages.split(" "), OS, GitInfo
 
 '''
   launch LAMMPS using the configuration defined in the dictionary config with an input file
@@ -161,9 +168,12 @@ def has_markers(input):
   return False
 
 '''
-  Iterate over a list of input files
+  Iterate over a list of input files using the testing configuration
 '''
-def iterate(input_list, removeAnnotatedInput=False):
+def iterate(input_list, config, removeAnnotatedInput=False):
+  EPSILON = np.float64(config['epsilon'])
+  nugget = float(config['nugget'])
+
   num_tests = len(input_list)
   test_id = 0
   # iterative over the input scripts
@@ -206,8 +216,8 @@ def iterate(input_list, removeAnnotatedInput=False):
 
     num_runs = len(thermo)
     if num_runs == 0:
-       print(f"Failed with {input_test}\n")
-       continue 
+      print(f"Failed with {input_test}\n")
+      continue 
 
     print(f"Number of runs: {num_runs}")
 
@@ -215,27 +225,58 @@ def iterate(input_list, removeAnnotatedInput=False):
     thermo_ref_file = 'thermo.' + input + '.yaml'
     file_exist = os.path.isfile(thermo_ref_file)
     if file_exist == True:
-        thermo_ref = extract_thermo(thermo_ref_file)
-        # comparing output vs reference values
-        width = 20
-        print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Absolute Diff.".center(width))
-        irun = 0
-        num_fields = len(thermo[irun]['keywords'])
+      thermo_ref = extract_thermo(thermo_ref_file)
+      # comparing output vs reference values
+      width = 20
+      print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
+      irun = 0
+      num_fields = len(thermo[irun]['keywords'])
+      
+      # get the total number of the thermo output lines
+      nthermo_steps = len(thermo[irun]['data'])
+      # get the output at thelast timestep
+      thermo_step = nthermo_steps - 1
+      print(f"nthermo_steps = {nthermo_steps}")
+      num_abs_failed = 0
+      num_rel_failed = 0
+      for i in range(num_fields):
+        quantity = thermo[0]['keywords'][i]
+
+        val = thermo[irun]['data'][thermo_step][i]
+        ref = thermo_ref[irun]['data'][thermo_step][i]
+        abs_diff = abs(float(val) - float(ref))
         
-        # get the total number of the thermo output lines
-        nthermo_steps = len(thermo[irun]['data'])
-        # get the output at thelast timestep
-        thermo_step = nthermo_steps - 1
-        print(f"nthermo_steps = {nthermo_steps}")
-        for i in range(num_fields):
-          val = thermo[irun]['data'][thermo_step][i]
-          ref = thermo_ref[irun]['data'][thermo_step][i]
-          diff = abs(float(val) - float(ref))
-          print(f"{thermo[0]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {str(diff).rjust(20)}")
-        print("-"*(4*width+3))
+        if abs(float(ref)) > EPSILON:
+          rel_diff = abs(float(val) - float(ref))/abs(float(ref))
+        else:
+          rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+        
+
+        abs_diff_check = "PASSED"
+        rel_diff_check = "PASSED"
+
+        if quantity in config['tolerance']:
+          if abs_diff > float(config['tolerance'][quantity]['abs']):
+            abs_diff_check = "FAILED"
+            num_abs_failed = num_abs_failed + 1
+          if rel_diff > float(config['tolerance'][quantity]['rel']):
+            rel_diff_check = "FAILED"
+            num_rel_failed = num_rel_failed + 1
+        else:
+          abs_diff_check = "N/A"
+          rel_diff_check = "N/A"
+
+        print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+      if num_abs_failed > 0:
+        print(f"{num_abs_failed} abs checks failed")
+      elif num_rel_failed > 0:
+        print(f"{num_rel_failed} rel checks failed")
+      else:
+        print("All checks passed. (N/A means tolerance not defined in the config file.)")
     else:
       print(f"SKIPPED: {thermo_ref_file} does not exist")
 
+    print("-"*(5*width+4))
     test_id = test_id + 1
 
     # remove the annotated input script
@@ -272,7 +313,7 @@ if __name__ == "__main__":
   # read in the configuration of the tests
   with open(configFileName, 'r') as f:
     config = yaml.load(f, Loader=Loader)
-    print(f"Using configuration {configFileName}: {config}")
+    print(f"Using the testing configuration defined in {configFileName}")
  
   # check if lmp_binary is specified in the config yaml
   if lmp_binary == "":
@@ -282,9 +323,12 @@ if __name__ == "__main__":
     else:
        lmp_binary = config['lmp_binary']
 
-  packages = get_installed_packages(lmp_binary)
+ 
+  packages, OS, GitInfo = get_lammps_build_configuration(lmp_binary)
+  print(OS)
+  print(GitInfo)
   print(f"List of installed packages: {packages}")
-
+  
   # Using inplace input scripts
 
   example_subfolders = []
@@ -335,5 +379,6 @@ if __name__ == "__main__":
 
   else:
     # or using the input scripts in the working directory
-    input_list=['in.lj', 'in.rhodo', 'in.eam']
-    iterate(input_list)
+    #input_list=['in.lj', 'in.rhodo', 'in.eam']
+    input_list=['in.lj']
+    iterate(input_list, config)

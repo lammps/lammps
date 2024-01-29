@@ -836,7 +836,7 @@ void PairAmoeba::init_style()
   int flag, cols, ghost, index[6];
 
   // clang-format off
-  
+
   for (int i = 0; i < 6; i++) {
     if (ghost_check[i]) {
       index[i] = atom->find_custom_ghost(names[i], flag, cols, ghost);

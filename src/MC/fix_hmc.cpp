@@ -88,7 +88,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
 
   // Check optional keywords:
 
-  int iarg = 7;
+  int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "mom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "hmc mom", error);
@@ -546,7 +546,7 @@ void FixHMC::end_of_step()
   // Apply the Metropolis criterion:
   double DeltaE = DeltaPE + DeltaKE;
   int accept = DeltaE < 0.0;
-  if (~accept) {
+  if (!accept) {
     accept = random_equal->uniform() <= exp(mbeta * DeltaE);
     MPI_Bcast(&accept, 1, MPI_INT, 0, world);
   }
@@ -562,7 +562,7 @@ void FixHMC::end_of_step()
   }
 
   // Choose new velocities and compute kinetic energy:
-  if (~accept || resample_on_accept_flag) {
+  if (!accept || resample_on_accept_flag) {
     if (rigid_flag)
       rigid_body_random_velocities();
     else

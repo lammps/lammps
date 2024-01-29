@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -39,16 +38,18 @@ using namespace LAMMPS_NS;
 
 using MathSpecial::powint;
 
-enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP,PVAL};  // forward comm
-enum{FIELD,ZRSD,TORQUE,UFLD};                                   // reverse comm
-enum{ARITHMETIC,GEOMETRIC,CUBIC_MEAN,R_MIN,SIGMA,DIAMETER,HARMONIC,HHG,W_H};
-enum{HAL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
-enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
-enum{MUTUAL,OPT,TCG,DIRECT};
-enum{GEAR,ASPC,LSQR};
+enum { INDUCE, RSD, SETUP_AMOEBA, SETUP_HIPPO, KMPOLE, AMGROUP, PVAL };    // forward comm
+enum { FIELD, ZRSD, TORQUE, UFLD };                                        // reverse comm
+enum { ARITHMETIC, GEOMETRIC, CUBIC_MEAN, R_MIN, SIGMA, DIAMETER, HARMONIC, HHG, W_H };
+enum { HAL, REPULSE, QFER, DISP, MPOLE, POLAR, USOLV, DISP_LONG, MPOLE_LONG, POLAR_LONG };
+enum { MPOLE_GRID, POLAR_GRID, POLAR_GRIDC, DISP_GRID, INDUCE_GRID, INDUCE_GRIDC };
+enum { MUTUAL, OPT, TCG, DIRECT };
+enum { GEAR, ASPC, LSQR };
 
 #define DELTASTACK 16
 #define DEBUG_AMOEBA 0
+
+// clang-format off
 
 /* ---------------------------------------------------------------------- */
 
@@ -827,14 +828,15 @@ void PairAmoeba::init_style()
 
   // check if all custom atom arrays were set via fix property/atom
 
-  char const * names[6] = {"amtype", "amgroup", "redID",
-    "xyzaxis", "polaxe", "pval"};
-  int const flag_check[6] = {0, 0, 1, 1, 0, 1}; // correct type (0 int, 1 dbl)
-  int const cols_check[6] = {0, 0, 0, 3, 0, 0}; // xyzaxis 3 cols, all others 0
-  int const ghost_check[6] = {1, 1, 1, 0, 0, 1}; // which types need ghost; TO-DO: check
-  int flag, cols, ghost;
-  int index[6];
+  // clang-format on
+  const char *names[6] = {"amtype", "amgroup", "redID", "xyzaxis", "polaxe", "pval"};
+  const int flag_check[6] = {0, 0, 1, 1, 0, 1};     // correct type (0 int, 1 dbl)
+  const int cols_check[6] = {0, 0, 0, 3, 0, 0};     // xyzaxis 3 cols, all others 0
+  const int ghost_check[6] = {1, 1, 1, 0, 0, 1};    // which types need ghost; TO-DO: check
+  int flag, cols, ghost, index[6];
 
+  // clang-format off
+  
   for (int i = 0; i < 6; i++) {
     if (ghost_check[i]) {
       index[i] = atom->find_custom_ghost(names[i], flag, cols, ghost);

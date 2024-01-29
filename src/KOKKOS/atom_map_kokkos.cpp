@@ -25,7 +25,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EXTRA 1000
+static constexpr int EXTRA = 1000;
 
 /* ----------------------------------------------------------------------
    allocate and initialize array or hash table for global -> local map
@@ -273,6 +273,7 @@ void AtomKokkos::map_set()
     error->one(FLERR,"Failed to insert into Kokkos hash atom map");
 
   k_sametag.modify_device();
+  k_sametag.sync_host();
 
   if (map_style == MAP_ARRAY)
     k_map_array.modify_device();

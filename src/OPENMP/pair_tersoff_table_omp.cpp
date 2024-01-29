@@ -26,7 +26,7 @@
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
 
-#define GRIDSTART 0.1
+static constexpr double GRIDSTART = 0.1;
 #define GRIDDENSITY_FCUTOFF 5000
 #define GRIDDENSITY_EXP 12000
 #define GRIDDENSITY_GTETA 12000

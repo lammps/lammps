@@ -33,7 +33,7 @@
 
 using namespace LAMMPS_NS;
 
-#define CHUNK 16384
+static constexpr int CHUNK = 16384;
 
 enum { NOADD, YESADD, KEEPADD };
 

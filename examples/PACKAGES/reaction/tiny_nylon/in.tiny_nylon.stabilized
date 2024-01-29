@@ -50,7 +50,7 @@ fix 1 statted_grp_REACT nvt temp 300 300 100
 # by using the internally-created 'bond_react_MASTER_group', like so:
 fix 4 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 
-thermo_style custom step temp press density f_myrxns[1] f_myrxns[2]
+thermo_style custom step temp press density f_myrxns[*]
 
 # restart 100 restart1 restart2
 

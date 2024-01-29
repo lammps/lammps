@@ -58,6 +58,7 @@ class FixSpringSelfKokkos : public FixSpringSelf, public KokkosBase {
 
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
+                              int nrecv1,int nrecv1extra,
                               ExecutionSpace space) override;
 
 
@@ -65,6 +66,8 @@ class FixSpringSelfKokkos : public FixSpringSelf, public KokkosBase {
   int unpack_exchange(int, double *) override;
 
  protected:
+  int nrecv1,nextrarecv1;
+
   DAT::tdual_x_array k_xoriginal;
   typename AT::t_x_array d_xoriginal;
 

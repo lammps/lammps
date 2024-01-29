@@ -55,7 +55,7 @@ void mdpd_gpu_compute(const int ago, const int inum_full, const int nall, double
 void mdpd_gpu_get_extra_data(double *host_rho);
 double mdpd_gpu_bytes();
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 

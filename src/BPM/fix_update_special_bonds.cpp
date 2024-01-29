@@ -19,8 +19,8 @@
 #include "error.h"
 #include "force.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 #include "pair.h"
 
 #include <utility>
@@ -28,7 +28,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTA 10000
+static constexpr int DELTA = 10000;
 
 /* ---------------------------------------------------------------------- */
 
@@ -62,7 +62,8 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
   // Require atoms know about all of their bonds and if they break
   if (force->newton_bond) error->all(FLERR, "Fix update/special/bonds requires Newton bond off");
 
-  if (!atom->avec->bonds_allow) error->all(FLERR, "Fix update/special/bonds requires atom bonds");
+  if (!atom->avec->bonds_allow)
+    error->all(FLERR, "Fix update/special/bonds requires an atom style supporting bonds");
 
   // special lj must be 0 1 1 to censor pair forces between bonded particles
   // special coulomb must be 1 1 1 to ensure all pairs are included in the
@@ -153,7 +154,7 @@ void FixUpdateSpecialBonds::pre_exchange()
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 {
-  int ilist, nlist, i1, i2, j, jj, jnum;
+  int i1, i2, j, jj, jnum;
   int *jlist, *numneigh, **firstneigh;
   tagint tag1, tag2;
   NeighList *list;
@@ -164,7 +165,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
   // In theory could communicate a list of broken bonds to neighboring processors here
   // to remove restriction that users use Newton bond off
 
-  for (int ilist = 0; ilist < neighbor->nlist; ilist ++) {
+  for (int ilist = 0; ilist < neighbor->nlist; ilist++) {
     list = neighbor->lists[ilist];
 
     // Skip copied lists, will update original
@@ -202,30 +203,40 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
     }
   }
 
-  for (auto const &it : new_created_pairs) {
-    tag1 = it.first;
-    tag2 = it.second;
-    i1 = atom->map(tag1);
-    i2 = atom->map(tag2);
+  for (int ilist = 0; ilist < neighbor->nlist; ilist++) {
+    list = neighbor->lists[ilist];
 
-    // Loop through atoms of owned atoms i j and update SB bits
-    if (i1 < nlocal) {
-      jlist = firstneigh[i1];
-      jnum = numneigh[i1];
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
-        if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
+    // Skip copied lists, will update original
+    if (list->copy) continue;
+
+    numneigh = list->numneigh;
+    firstneigh = list->firstneigh;
+
+    for (auto const &it : new_created_pairs) {
+      tag1 = it.first;
+      tag2 = it.second;
+      i1 = atom->map(tag1);
+      i2 = atom->map(tag2);
+
+      // Loop through atoms of owned atoms i j and update SB bits
+      if (i1 < nlocal) {
+        jlist = firstneigh[i1];
+        jnum = numneigh[i1];
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+          if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
+        }
       }
-    }
 
-    if (i2 < nlocal) {
-      jlist = firstneigh[i2];
-      jnum = numneigh[i2];
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
-        if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
+      if (i2 < nlocal) {
+        jlist = firstneigh[i2];
+        jnum = numneigh[i2];
+        for (jj = 0; jj < jnum; jj++) {
+          j = jlist[jj];
+          if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+          if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
+        }
       }
     }
   }

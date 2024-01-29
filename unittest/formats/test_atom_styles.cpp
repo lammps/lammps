@@ -156,7 +156,6 @@ struct AtomState {
     int extra_dihedral_per_atom = 0;
     int extra_improper_per_atom = 0;
 
-    int sphere_flag                  = 0;
     int ellipsoid_flag               = 0;
     int line_flag                    = 0;
     int tri_flag                     = 0;
@@ -293,7 +292,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->extra_dihedral_per_atom, expected.extra_dihedral_per_atom);
     ASSERT_EQ(atom->extra_improper_per_atom, expected.extra_improper_per_atom);
 
-    ASSERT_EQ(atom->sphere_flag, expected.sphere_flag);
     ASSERT_EQ(atom->ellipsoid_flag, expected.ellipsoid_flag);
     ASSERT_EQ(atom->line_flag, expected.line_flag);
     ASSERT_EQ(atom->tri_flag, expected.tri_flag);
@@ -882,7 +880,6 @@ TEST_F(AtomStyleTest, sphere)
     expected.atom_style  = "sphere";
     expected.molecular   = Atom::ATOMIC;
     expected.tag_enable  = 1;
-    expected.sphere_flag = 1;
     expected.rmass_flag  = 1;
     expected.radius_flag = 1;
     expected.omega_flag  = 1;
@@ -1391,7 +1388,6 @@ TEST_F(AtomStyleTest, line)
     expected.atom_style    = "line";
     expected.molecular     = Atom::ATOMIC;
     expected.tag_enable    = 1;
-    expected.sphere_flag   = 1;
     expected.molecule_flag = 1;
     expected.line_flag     = 1;
     expected.rmass_flag    = 1;
@@ -1661,7 +1657,6 @@ TEST_F(AtomStyleTest, tri)
     expected.atom_style    = "tri";
     expected.molecular     = Atom::ATOMIC;
     expected.tag_enable    = 1;
-    expected.sphere_flag   = 1;
     expected.molecule_flag = 1;
     expected.tri_flag      = 1;
     expected.rmass_flag    = 1;

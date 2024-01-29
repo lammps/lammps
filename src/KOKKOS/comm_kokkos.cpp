@@ -36,9 +36,9 @@
 
 using namespace LAMMPS_NS;
 
-#define BUFFACTOR 1.5
-#define BUFMIN 10000
-#define BUFEXTRA 1000
+static constexpr double BUFFACTOR = 1.5;
+static constexpr int BUFMIN = 10000;
+static constexpr int BUFEXTRA = 1000;
 
 /* ----------------------------------------------------------------------
    setup MPI and allocate buffer space
@@ -931,6 +931,7 @@ void CommKokkos::exchange_device()
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
                 k_buf_recv,k_indices,nrecv/data_size,
+                nrecv1/data_size,nextrarecv1,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }

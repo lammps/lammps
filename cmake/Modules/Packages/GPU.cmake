@@ -1,3 +1,10 @@
+
+# Silence CMake warnings about FindCUDA being obsolete.
+# We may need to eventually rewrite this section to use enable_language(CUDA)
+if(POLICY CMP0146)
+  cmake_policy(SET CMP0146 OLD)
+endif()
+
 set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
 set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h

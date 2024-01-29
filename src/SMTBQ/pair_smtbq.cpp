@@ -70,11 +70,11 @@ using namespace MathConst;
 using namespace MathExtra;
 using namespace MathSpecial;
 
-#define MAXLINE 2048
-#define MAXTOKENS 2048
-#define DELTA 4
-#define PGDELTA 1
-#define MAXNEIGH 24
+static constexpr int MAXLINE = 2048;
+static constexpr int MAXTOKENS = 2048;
+static constexpr int DELTA = 4;
+static constexpr int PGDELTA = 1;
+static constexpr int MAXNEIGH = 24;
 
 static constexpr char SMTBQ_SEPARATORS[] = "' \t\n\r";
 

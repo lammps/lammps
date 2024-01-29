@@ -109,7 +109,7 @@ Note that in this case the specified *Kspring* is in
 force/distance units.
 
 With a value of *ideal*, the spring force is computed as suggested in
-ref`(WeinanE) <WeinanE>`
+:ref:`(WeinanE) <WeinanE>`
 
 .. math::
 
@@ -120,18 +120,18 @@ and :math:`RD_{ideal}` is the ideal *RD* for which all the images are
 equally spaced.  I.e. :math:`RD_{ideal} = (i-1) \cdot meanDist` when the
 climbing replica is off, where *i* is the replica number).  The
 *meanDist* is the average distance between replicas.  Note that in this
-case the specified *Kspring* is in force units. When the climbing replica
-is on, :math:`RD_{ideal}` and :math:`meanDist` are calculated separately
-each side of the climbing image. Note that the *ideal* form of nudging
-can often be more effective at keeping the replicas equally spaced before
-climbing, then equally spaced either side of the climbing image whilst
-climbing.
+case the specified *Kspring* is in force units. When the climbing
+replica is on, :math:`RD_{ideal}` and :math:`meanDist` are calculated
+separately each side of the climbing image. Note that the *ideal* form
+of nudging can often be more effective at keeping the replicas equally
+spaced before climbing, then equally spaced either side of the climbing
+image whilst climbing.
 
-With a value of *equal* the spring force is computed as for *ideal*
-when the climbing replica is off, promoting equidistance. When the climbing
+With a value of *equal* the spring force is computed as for *ideal* when
+the climbing replica is off, promoting equidistance. When the climbing
 replica is on, the spring force is computed to promote equidistant
-absolute differences in energy, rather than distance, each side of
-the climbing image:
+absolute differences in energy, rather than distance, each side of the
+climbing image:
 
 .. math::
 
@@ -143,23 +143,22 @@ where *ED* is the cumulative sum of absolute energy differences:
 
    ED = \sum_{i<N} \left|E(R_{i+1}) - E(R_i)\right|,
 
-*meanEdist* is the average absolute energy difference between
-replicas up to the climbing image or from the climbing image
-to the final image, for images before or after the climbing
-image respectively. :math:`ED_{ideal}` is the corresponding
-cumulative sum of average absolute energy differences in
-each case, in close analogy to *ideal*. This form of nudging
-is to aid schemes which integrate forces along, or near to,
-NEB pathways such as :doc:`fix_pafi <fix_pafi>`.
+*meanEdist* is the average absolute energy difference between replicas
+up to the climbing image or from the climbing image to the final image,
+for images before or after the climbing image
+respectively. :math:`ED_{ideal}` is the corresponding cumulative sum of
+average absolute energy differences in each case, in close analogy to
+*ideal*. This form of nudging is to aid schemes which integrate forces
+along, or near to, NEB pathways such as :doc:`fix_pafi <fix_pafi>`.
 
 ----------
 
-The keyword *perp* specifies if and how a perpendicular nudging force
-is computed.  It adds a spring force perpendicular to the path in
-order to prevent the path from becoming too strongly kinked.  It can
+The keyword *perp* specifies if and how a perpendicular nudging force is
+computed.  It adds a spring force perpendicular to the path in order to
+prevent the path from becoming too strongly kinked.  It can
 significantly improve the convergence of the NEB calculation when the
-resolution is poor.  I.e. when few replicas are used; see
-:ref:`(Maras) <Maras1>` for details.
+resolution is poor.  I.e. when few replicas are used; see :ref:`(Maras)
+<Maras1>` for details.
 
 The perpendicular spring force is given by
 
@@ -181,10 +180,10 @@ force is added.
 
 By default, no additional forces act on the first and last replicas
 during the NEB relaxation, so these replicas simply relax toward their
-respective local minima.  By using the key word *end*, additional
-forces can be applied to the first and/or last replicas, to enable
-them to relax toward a MEP while constraining their energy E to the
-target energy ETarget.
+respective local minima.  By using the key word *end*, additional forces
+can be applied to the first and/or last replicas, to enable them to
+relax toward a MEP while constraining their energy E to the target
+energy ETarget.
 
 If :math:`E_{Target} > E`, the interatomic force :math:`F_i` for the
 specified replica becomes:
@@ -197,33 +196,33 @@ specified replica becomes:
 The "spring" constant on the difference in energies is the specified
 *Kspring3* value.
 
-When *estyle* is specified as *first*, the force is applied to the
-first replica.  When *estyle* is specified as *last*, the force is
-applied to the last replica.  Note that the *end* keyword can be used
-twice to add forces to both the first and last replicas.
+When *estyle* is specified as *first*, the force is applied to the first
+replica.  When *estyle* is specified as *last*, the force is applied to
+the last replica.  Note that the *end* keyword can be used twice to add
+forces to both the first and last replicas.
 
 For both these *estyle* settings, the target energy *ETarget* is set
 to the initial energy of the replica (at the start of the NEB
 calculation).
 
 If the *estyle* is specified as *last/efirst* or *last/efirst/middle*,
-force is applied to the last replica, but the target energy *ETarget*
-is continuously set to the energy of the first replica, as it evolves
+force is applied to the last replica, but the target energy *ETarget* is
+continuously set to the energy of the first replica, as it evolves
 during the NEB relaxation.
 
 The difference between these two *estyle* options is as follows.  When
 *estyle* is specified as *last/efirst*, no change is made to the
-inter-replica force applied to the intermediate replicas (neither
-first or last).  If the initial path is too far from the MEP, an
-intermediate replica may relax "faster" and reach a lower energy than
-the last replica.  In this case the intermediate replica will be
-relaxing toward its own local minima.  This behavior can be prevented
-by specifying *estyle* as *last/efirst/middle* which will alter the
-inter-replica force applied to intermediate replicas by removing the
-contribution of the gradient to the inter-replica force.  This will
-only be done if a particular intermediate replica has a lower energy
-than the first replica.  This should effectively prevent the
-intermediate replicas from over-relaxing.
+inter-replica force applied to the intermediate replicas (neither first
+or last).  If the initial path is too far from the MEP, an intermediate
+replica may relax "faster" and reach a lower energy than the last
+replica.  In this case the intermediate replica will be relaxing toward
+its own local minima.  This behavior can be prevented by specifying
+*estyle* as *last/efirst/middle* which will alter the inter-replica
+force applied to intermediate replicas by removing the contribution of
+the gradient to the inter-replica force.  This will only be done if a
+particular intermediate replica has a lower energy than the first
+replica.  This should effectively prevent the intermediate replicas from
+over-relaxing.
 
 After converging a NEB calculation using an *estyle* of
 *last/efirst/middle*, you should check that all intermediate replicas
@@ -237,9 +236,10 @@ target energy.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.  No global or per-atom quantities are stored by
+this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 

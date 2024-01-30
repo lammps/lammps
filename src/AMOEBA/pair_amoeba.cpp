@@ -1114,10 +1114,10 @@ void PairAmoeba::print_settings()
 
     if (use_ewald) {
       choose(MPOLE_LONG);
-      mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} FFT {} {} {}; "
-                          "estimated absolute RMS force accuracy = {:.8g}; "
-                          "estimated relative RMS force accuracy = {:.8g}; "
-                          "mscale {} {} {} {}\n",
+      mesg += fmt::format("  multipole: cut {} aewald {} bsorder {} FFT {} {} {}\n"
+                          "             estimated absolute RMS force accuracy = {:.8g}\n"
+                          "             estimated relative RMS force accuracy = {:.8g}\n"
+                          "             mscale {} {} {} {}\n",
                           sqrt(off2),aewald,bseorder,nefft1,nefft2,nefft3,
                           estimated_mpole_accuracy,estimated_mpole_accuracy/two_charge_force,
                           special_mpole[1],special_mpole[2],special_mpole[3],special_mpole[4]);

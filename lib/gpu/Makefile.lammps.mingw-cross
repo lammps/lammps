@@ -2,5 +2,5 @@
 # settings for OpenCL builds
 gpu_SYSINC =
 gpu_SYSLIB = -Wl,--enable-stdcall-fixup -L../../tools/mingw-cross$(LIBOBJDIR) -Wl,-Bdynamic,-lOpenCL,-Bstatic
-gpu_SYSPATH = 
+gpu_SYSPATH =
 

@@ -127,6 +127,7 @@ antisymmetry
 anton
 Antonelli
 api
+apolar
 Apoorva
 Appl
 Appshaw
@@ -812,6 +813,7 @@ dlabel
 dlambda
 DLAMMPS
 dll
+dlm
 dlopen
 dm
 dmax
@@ -1029,6 +1031,7 @@ Ercolessi
 Erdmann
 erf
 erfc
+erforce
 Erhart
 erorate
 erose
@@ -2249,8 +2252,10 @@ Mohd
 Mohles
 mol
 Mol
+molatom
 molfile
 Molfile
+molindex
 MolPairStyle
 moltemplate
 momb
@@ -2583,6 +2588,7 @@ ns
 Ns
 Nsample
 Nskip
+nspecial
 Nspecies
 nsq
 Nstart
@@ -3895,6 +3901,7 @@ versa
 Verstraelen
 ves
 vflag
+vfrac
 vhi
 vibrational
 Vij

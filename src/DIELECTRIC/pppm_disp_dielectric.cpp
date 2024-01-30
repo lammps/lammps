@@ -33,11 +33,11 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXORDER   7
-#define OFFSET 16384
-#define SMALL 0.00001
-#define LARGE 10000.0
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER =   7;
+static constexpr int OFFSET = 16384;
+static constexpr double SMALL = 0.00001;
+static constexpr double LARGE = 10000.0;
+static constexpr double EPS_HOC = 1.0e-7;
 
 enum{REVERSE_RHO,REVERSE_RHO_GEOM,REVERSE_RHO_ARITH,REVERSE_RHO_NONE};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
@@ -48,13 +48,8 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
      FORWARD_IK_NONE,FORWARD_AD_NONE,FORWARD_IK_PERATOM_NONE,
      FORWARD_AD_PERATOM_NONE};
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 
 /* ---------------------------------------------------------------------- */
 

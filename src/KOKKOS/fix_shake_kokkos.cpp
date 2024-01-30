@@ -41,10 +41,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define RVOUS 1   // 0 for irregular, 1 for all2all
+static constexpr int RVOUS = 1;   // 0 for irregular, 1 for all2all
 
-#define BIG 1.0e20
-#define MASSDELTA 0.1
+static constexpr double BIG = 1.0e20;
+static constexpr double MASSDELTA = 0.1;
 
 /* ---------------------------------------------------------------------- */
 

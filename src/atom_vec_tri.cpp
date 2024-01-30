@@ -47,7 +47,6 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   atom->molecule_flag = atom->rmass_flag = 1;
   atom->radius_flag = atom->omega_flag = atom->angmom_flag = 1;
   atom->torque_flag = 1;
-  atom->sphere_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = nullptr;

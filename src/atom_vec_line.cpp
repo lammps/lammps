@@ -44,7 +44,6 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
   atom->line_flag = 1;
   atom->molecule_flag = atom->rmass_flag = 1;
   atom->radius_flag = atom->omega_flag = atom->torque_flag = 1;
-  atom->sphere_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = nullptr;

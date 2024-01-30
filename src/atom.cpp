@@ -48,10 +48,10 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 1
-#define EPSILON 1.0e-6
-#define EPS_ZCOORD 1.0e-12
-#define MAXLINE 256
+static constexpr int DELTA = 1;
+static constexpr double EPSILON = 1.0e-6;
+static constexpr double EPS_ZCOORD = 1.0e-12;
+static constexpr int MAXLINE = 256;
 
 /* ----------------------------------------------------------------------
    one instance per AtomVec style in style_atom.h
@@ -620,7 +620,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   labelmapflag = 0;
-  sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   quat_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;

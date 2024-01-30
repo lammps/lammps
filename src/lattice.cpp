@@ -27,7 +27,7 @@
 using namespace LAMMPS_NS;
 using namespace MathExtra;
 
-#define BIG 1.0e30
+static constexpr double BIG = 1.0e30;
 
 /* ---------------------------------------------------------------------- */
 

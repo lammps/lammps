@@ -35,7 +35,7 @@ using namespace FixConst;
 
 enum { DIPOLE, VELOCITY, QUAT };
 
-#define TOL 1e-14
+static constexpr double TOL = 1e-14;
 
 /* ---------------------------------------------------------------------- */
 

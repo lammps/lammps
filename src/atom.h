@@ -180,7 +180,7 @@ class Atom : protected Pointers {
   // 1 if variable is used, 0 if not
 
   int labelmapflag, types_style;
-  int sphere_flag, ellipsoid_flag, line_flag, tri_flag, body_flag;
+  int ellipsoid_flag, line_flag, tri_flag, body_flag;
   int peri_flag, electron_flag;
   int wavepacket_flag, sph_flag;
 

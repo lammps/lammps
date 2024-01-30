@@ -39,7 +39,7 @@
 
 using namespace LAMMPS_NS;
 
-#define SMALL     0.001
+static constexpr double SMALL =     0.001;
 
 enum { X, Y, Z };
 enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE, DIHEDRAL };
@@ -773,7 +773,7 @@ void ComputeStressMop::compute_angles()
 
       // only left bond crossing the plane
 
-      if (!right_cross && left_cross) {
+      else if (!right_cross && left_cross) {
         double sgn = copysign(1.0, x_angle_left[dir] - pos);
         dcos_theta[0] = -sgn * (dx_left[0] * cos_theta / r1 + dx_right[0] / r2) / r1;
         dcos_theta[1] = -sgn * (dx_left[1] * cos_theta / r1 + dx_right[1] / r2) / r1;
@@ -782,7 +782,7 @@ void ComputeStressMop::compute_angles()
 
       // both bonds crossing the plane
 
-      if (right_cross && left_cross) {
+      else if (right_cross && left_cross) {
 
         // due to right bond
 
@@ -1042,9 +1042,12 @@ void ComputeStressMop::compute_dihedrals()
       f3[1] = sy2 - f4[1];
       f3[2] = sz2 - f4[2];
 
-      // only right bond crossing the plane
-      if (right_cross && !middle_cross && !left_cross)
-      {
+      // no bonds crossing the plane
+
+      if (!right_cross && !middle_cross && !left_cross) continue;
+
+      // onPly right bond crossing the plane
+      if (right_cross && !middle_cross && !left_cross) {
         double sgn = copysign(1.0, x_atom_1[dir] - pos);
         df[0] = sgn * f1[0];
         df[1] = sgn * f1[1];
@@ -1052,8 +1055,7 @@ void ComputeStressMop::compute_dihedrals()
       }
 
       // only middle bond crossing the plane
-      if (!right_cross && middle_cross && !left_cross)
-      {
+      else if (!right_cross && middle_cross && !left_cross) {
         double sgn = copysign(1.0, x_atom_2[dir] - pos);
         df[0] = sgn * (f2[0] + f1[0]);
         df[1] = sgn * (f2[1] + f1[1]);
@@ -1061,8 +1063,7 @@ void ComputeStressMop::compute_dihedrals()
       }
 
       // only left bond crossing the plane
-      if (!right_cross && !middle_cross && left_cross)
-      {
+      else if (!right_cross && !middle_cross && left_cross) {
         double sgn = copysign(1.0, x_atom_4[dir] - pos);
         df[0] = sgn * f4[0];
         df[1] = sgn * f4[1];
@@ -1070,8 +1071,7 @@ void ComputeStressMop::compute_dihedrals()
       }
 
       // only right & middle bonds crossing the plane
-      if (right_cross && middle_cross && !left_cross)
-      {
+      else if (right_cross && middle_cross && !left_cross) {
         double sgn = copysign(1.0, x_atom_2[dir] - pos);
         df[0] = sgn * f2[0];
         df[1] = sgn * f2[1];
@@ -1079,8 +1079,7 @@ void ComputeStressMop::compute_dihedrals()
       }
 
       // only right & left bonds crossing the plane
-      if (right_cross && !middle_cross && left_cross)
-      {
+      else if (right_cross && !middle_cross && left_cross) {
         double sgn = copysign(1.0, x_atom_1[dir] - pos);
         df[0] = sgn * (f1[0] + f4[0]);
         df[1] = sgn * (f1[1] + f4[1]);
@@ -1088,8 +1087,7 @@ void ComputeStressMop::compute_dihedrals()
       }
 
       // only middle & left bonds crossing the plane
-      if (!right_cross && middle_cross && left_cross)
-      {
+      else if (!right_cross && middle_cross && left_cross) {
         double sgn = copysign(1.0, x_atom_3[dir] - pos);
         df[0] = sgn * f3[0];
         df[1] = sgn * f3[1];
@@ -1097,14 +1095,12 @@ void ComputeStressMop::compute_dihedrals()
       }
 
       // all three bonds crossing the plane
-      if (right_cross && middle_cross && left_cross)
-      {
+      else if (right_cross && middle_cross && left_cross) {
         double sgn = copysign(1.0, x_atom_1[dir] - pos);
         df[0] = sgn * (f1[0] + f3[0]);
         df[1] = sgn * (f1[1] + f3[1]);
         df[2] = sgn * (f1[2] + f3[2]);
       }
-
       local_contribution[0] += df[0]/area*nktv2p;
       local_contribution[1] += df[1]/area*nktv2p;
       local_contribution[2] += df[2]/area*nktv2p;

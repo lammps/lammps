@@ -152,9 +152,11 @@ struct _liblammpsplugin {
 
   void *(*extract_compute)(void *, const char *, int, int);
   void *(*extract_fix)(void *, const char *, int, int, int, int);
-  void *(*extract_variable)(void *, const char *, char *);
+  void *(*extract_variable)(void *, const char *, const char *);
   int (*extract_variable_datatype)(void *, const char *);
-  int (*set_variable)(void *, char *, char *);
+  int (*set_variable)(void *, const char *, const char *);
+  int (*set_string_variable)(void *, const char *, const char *);
+  int (*set_internal_variable)(void *, const char *, double);
   int (*variable_info)(void *, int, char *, int);
 
   void (*gather_atoms)(void *, const char *, int, int, void *);

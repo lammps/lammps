@@ -1004,7 +1004,7 @@ void Set::set(int keyword)
         // atom->rmass[i] = MY_PI*shape[0]*shape[1] * dvalue;
         // else
         atom->rmass[i] = MathExtra::volume_ellipsoid(shape, block, flag_super) * dvalue;
-        MathExtra::inertia_ellipsoid_principal(shape, atom->rmass[i], inertia);
+        MathExtra::inertia_ellipsoid_principal(shape, atom->rmass[i], inertia, block, flag_super);
       } else if (atom->line_flag && atom->line[i] >= 0) {
         double length = avec_line->bonus[atom->line[i]].length;
         atom->rmass[i] = length * dvalue;

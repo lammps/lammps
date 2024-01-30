@@ -38,12 +38,11 @@ Original plan: using the LAMMPS Python module
 
 #from lammps import lammps
 import os
-import sys
+import fnmatch
 import re, yaml
 import numpy as np
 import subprocess
 
-import sys
 from argparse import ArgumentParser
 
 try:
@@ -94,6 +93,47 @@ def extract_thermo(yamlFileName):
     thermo = list(yaml.load_all(docs, Loader=Loader))
     return thermo
 
+
+'''
+  Convert an existing log.lammps file into a thermo yaml style log
+  inputFileName = a provided log file in an examples folder (e.g. examples/melt/log.8Apr21.melt.g++.4)
+  return a YAML data structure as if loaded from a thermo yaml file
+'''
+def convert_log_to_yaml(inputFileName):
+  with open(inputFileName, 'r') as file:
+    data = file.read()
+    lines = data.splitlines()
+    reading = False
+    data = []
+    for line in lines:
+      if "Step" in line:
+        line.strip()
+        keywords = line.split()
+        reading = True
+      if "Loop" in line:
+        reading = False
+        break
+      if reading == True and "Step" not in line:
+        data.append(line.split())
+      
+    docs = "---\n"
+    docs += str("keywords: [")
+    for word in enumerate(keywords):
+      docs += "'" + word[1] + "', "
+    docs += "]\n"
+    docs += "data:\n"
+    for line in enumerate(data):
+      docs += " - ["
+      for field in enumerate(line[1]):
+        docs += field[1] + ", "
+      docs += "]\n"
+
+    docs += "..."
+    #print(docs)
+
+    # load the docs into a YAML data struture
+    thermo = list(yaml.load_all(docs, Loader=Loader))
+    return thermo
 
 '''
   return the list of installed packages
@@ -174,6 +214,8 @@ def iterate(input_list, config, removeAnnotatedInput=False):
   EPSILON = np.float64(config['epsilon'])
   nugget = float(config['nugget'])
 
+  nprocs = int(config['nprocs'])
+
   num_tests = len(input_list)
   test_id = 0
   # iterative over the input scripts
@@ -221,60 +263,75 @@ def iterate(input_list, config, removeAnnotatedInput=False):
 
     print(f"Number of runs: {num_runs}")
 
-    # read in the thermo yaml output
-    thermo_ref_file = 'thermo.' + input + '.yaml'
-    file_exist = os.path.isfile(thermo_ref_file)
-    if file_exist == True:
-      thermo_ref = extract_thermo(thermo_ref_file)
-      # comparing output vs reference values
-      width = 20
-      print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
-      irun = 0
-      num_fields = len(thermo[irun]['keywords'])
-      
-      # get the total number of the thermo output lines
-      nthermo_steps = len(thermo[irun]['data'])
-      # get the output at thelast timestep
-      thermo_step = nthermo_steps - 1
-      print(f"nthermo_steps = {nthermo_steps}")
-      num_abs_failed = 0
-      num_rel_failed = 0
-      for i in range(num_fields):
-        quantity = thermo[0]['keywords'][i]
+    # check if a log file exists in the current folder
+    logfile_exist = False
+    pattern = f'log.*.{nprocs}'
+    for file in os.listdir('.'):
+      if fnmatch.fnmatch(file, pattern):
+        logfile_exist = True
+        break
 
-        val = thermo[irun]['data'][thermo_step][i]
-        ref = thermo_ref[irun]['data'][thermo_step][i]
-        abs_diff = abs(float(val) - float(ref))
-        
-        if abs(float(ref)) > EPSILON:
-          rel_diff = abs(float(val) - float(ref))/abs(float(ref))
-        else:
-          rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
-        
-
-        abs_diff_check = "PASSED"
-        rel_diff_check = "PASSED"
-
-        if quantity in config['tolerance']:
-          if abs_diff > float(config['tolerance'][quantity]['abs']):
-            abs_diff_check = "FAILED"
-            num_abs_failed = num_abs_failed + 1
-          if rel_diff > float(config['tolerance'][quantity]['rel']):
-            rel_diff_check = "FAILED"
-            num_rel_failed = num_rel_failed + 1
-        else:
-          abs_diff_check = "N/A"
-          rel_diff_check = "N/A"
-
-        print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
-      if num_abs_failed > 0:
-        print(f"{num_abs_failed} abs checks failed")
-      elif num_rel_failed > 0:
-        print(f"{num_rel_failed} rel checks failed")
-      else:
-        print("All checks passed. (N/A means tolerance not defined in the config file.)")
+    if logfile_exist:
+      print(f"reading {file}")
+      thermo_ref = convert_log_to_yaml(file)
     else:
-      print(f"SKIPPED: {thermo_ref_file} does not exist")
+      # read in the thermo yaml output from the working directory
+      thermo_ref_file = 'thermo.' + input + '.yaml'
+      file_exist = os.path.isfile(thermo_ref_file)
+      if file_exist == True:
+        thermo_ref = extract_thermo(thermo_ref_file)
+      else:
+        print(f"SKIPPED: {thermo_ref_file} does not exist")
+        return
+
+    # comparing output vs reference values
+    width = 20
+    print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
+    irun = 0
+    num_fields = len(thermo[irun]['keywords'])
+    
+    # get the total number of the thermo output lines
+    nthermo_steps = len(thermo[irun]['data'])
+    # get the output at thelast timestep
+    thermo_step = nthermo_steps - 1
+    print(f"nthermo_steps = {nthermo_steps}")
+    num_abs_failed = 0
+    num_rel_failed = 0
+    for i in range(num_fields):
+      quantity = thermo[0]['keywords'][i]
+
+      val = thermo[irun]['data'][thermo_step][i]
+      ref = thermo_ref[irun]['data'][thermo_step][i]
+      abs_diff = abs(float(val) - float(ref))
+      
+      if abs(float(ref)) > EPSILON:
+        rel_diff = abs(float(val) - float(ref))/abs(float(ref))
+      else:
+        rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+      
+
+      abs_diff_check = "PASSED"
+      rel_diff_check = "PASSED"
+
+      if quantity in config['tolerance']:
+        if abs_diff > float(config['tolerance'][quantity]['abs']):
+          abs_diff_check = "FAILED"
+          num_abs_failed = num_abs_failed + 1
+        if rel_diff > float(config['tolerance'][quantity]['rel']):
+          rel_diff_check = "FAILED"
+          num_rel_failed = num_rel_failed + 1
+      else:
+        abs_diff_check = "N/A"
+        rel_diff_check = "N/A"
+
+      print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+    if num_abs_failed > 0:
+      print(f"{num_abs_failed} abs checks failed")
+    elif num_rel_failed > 0:
+      print(f"{num_rel_failed} rel checks failed")
+    else:
+      print("All checks passed. (N/A means tolerance not defined in the config file.)")
+    
 
     print("-"*(5*width+4))
     test_id = test_id + 1
@@ -324,8 +381,8 @@ if __name__ == "__main__":
        lmp_binary = config['lmp_binary']
 
  
-  packages, OS, GitInfo = get_lammps_build_configuration(lmp_binary)
-  print(OS)
+  packages, operating_system, GitInfo = get_lammps_build_configuration(lmp_binary)
+  print(operating_system)
   print(GitInfo)
   print(f"List of installed packages: {packages}")
   
@@ -334,12 +391,12 @@ if __name__ == "__main__":
   example_subfolders = []
   example_subfolders.append("../../examples/melt")
 
-  if 'MOLECULE' in packages:
-    molecule_package = True
-    example_subfolders.append('../../examples/micelle')
+  #if 'MOLECULE' in packages:
+  #  molecule_package = True
+  #  example_subfolders.append('../../examples/micelle')
 
 
-  inplace_input = False
+  inplace_input = True
   if inplace_input == True:
 
     # save current working dir
@@ -366,9 +423,9 @@ if __name__ == "__main__":
 
       print("List of input scripts:")
       print(input_list)
-      
+
       # iterate through the input scripts
-      iterate(input_list)
+      iterate(input_list, config)
 
       # unlink the symbolic link
       cmd_str = "unlink lmp"
@@ -379,6 +436,8 @@ if __name__ == "__main__":
 
   else:
     # or using the input scripts in the working directory
-    #input_list=['in.lj', 'in.rhodo', 'in.eam']
-    input_list=['in.lj']
+    input_list=['in.lj', 'in.rhodo', 'in.eam']
     iterate(input_list, config)
+
+    
+

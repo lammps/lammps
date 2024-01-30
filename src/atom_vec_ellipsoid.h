@@ -31,7 +31,6 @@ class AtomVecEllipsoid : public AtomVec {
     double quat[4];
     double block[3];
     double inertia[3];
-    double radcirc;
     bool flag_super;
     int ilocal;
   };
@@ -73,7 +72,7 @@ class AtomVecEllipsoid : public AtomVec {
 
  private:
   int *ellipsoid;
-  double *rmass;
+  double *radius, *rmass;
   double **angmom;
 
   int nghost_bonus, nmax_bonus;

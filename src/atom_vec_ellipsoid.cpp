@@ -47,6 +47,9 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   atom->ellipsoid_flag = 1;
   atom->rmass_flag = atom->angmom_flag = atom->torque_flag = 1;
 
+  // Circumscribed radius, not physical radius
+  atom->radius_flag = 1;
+
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = nullptr;
 
@@ -55,15 +58,15 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"rmass", "angmom", "torque", "ellipsoid"};
-  fields_copy = {"rmass", "angmom"};
+  fields_grow = {"radius", "rmass", "angmom", "torque", "ellipsoid"};
+  fields_copy = {"radius", "rmass", "angmom"};
   fields_comm_vel = {"angmom"};
   fields_reverse = {"torque"};
-  fields_border = {"rmass"};
-  fields_border_vel = {"rmass", "angmom"};
-  fields_exchange = {"rmass", "angmom"};
-  fields_restart = {"rmass", "angmom"};
-  fields_create = {"rmass", "angmom", "ellipsoid"};
+  fields_border = {"radius", "rmass"};
+  fields_border_vel = {"radius", "rmass", "angmom"};
+  fields_exchange = {"radius", "rmass", "angmom"};
+  fields_restart = {"radius", "rmass", "angmom"};
+  fields_create = {"radius", "rmass", "angmom", "ellipsoid"};
   fields_data_atom = {"id", "type", "ellipsoid", "rmass", "x"};
   fields_data_vel = {"id", "v", "angmom"};
 
@@ -85,6 +88,7 @@ AtomVecEllipsoid::~AtomVecEllipsoid()
 void AtomVecEllipsoid::grow_pointers()
 {
   ellipsoid = atom->ellipsoid;
+  radius = atom->radius;
   rmass = atom->rmass;
   angmom = atom->angmom;
 }
@@ -260,7 +264,6 @@ int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
       flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
       bonus[j].flag_super = flag_super;
       bonus[j].ilocal = i;
-      bonus[j].radcirc = compute_radcirc(shape, block, flag_super);
       ellipsoid[i] = j;
       nghost_bonus++;
     }
@@ -333,7 +336,6 @@ int AtomVecEllipsoid::unpack_exchange_bonus(int ilocal, double *buf)
     inertia[1] = buf[m++];
     inertia[2] = buf[m++];
     flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
-    bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = ilocal;
     ellipsoid[ilocal] = nlocal_bonus++;
   }
@@ -426,7 +428,6 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
     inertia[1] = buf[m++];
     inertia[2] = buf[m++];
     flag_super = ((std::fabs(block[0] - 2) > EPSBLOCK2) || (std::fabs(block[1] - 2) > EPSBLOCK2));
-    bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = ilocal;
     ellipsoid[ilocal] = nlocal_bonus++;
   }
@@ -483,7 +484,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, const std::vector<std::string> &va
 
   MathExtra::inertia_ellipsoid_principal(shape, rmass[m], bonus[nlocal_bonus].inertia, block, flag_super);
 
-  bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
+  radius[m] = MathExtra::radius_ellipsoid(shape, block, flag_super);
   bonus[nlocal_bonus].ilocal = m;
   ellipsoid[m] = nlocal_bonus++;
 }
@@ -506,6 +507,7 @@ double AtomVecEllipsoid::memory_usage_bonus()
 void AtomVecEllipsoid::create_atom_post(int ilocal)
 {
   rmass[ilocal] = 1.0;
+  radius[ilocal] = 0.0;
   ellipsoid[ilocal] = -1;
 }
 
@@ -642,13 +644,14 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     block[1] = 2;
     flag_super = false;
     MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia);
-    bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
+    radius[i] = MathExtra::radius_ellipsoid(shape, block, flag_super);
     bonus[nlocal_bonus].ilocal = i;
     ellipsoid[i] = nlocal_bonus++;
   } else if (shapex == 0.0 && shapey == 0.0 && shapez == 0.0) {
     copy_bonus_all(nlocal_bonus - 1, ellipsoid[i]);
     nlocal_bonus--;
     ellipsoid[i] = -1;
+    radius[i] = 0.0;
   } else {
     double *shape = bonus[ellipsoid[i]].shape;
     double *block = bonus[ellipsoid[i]].block;
@@ -658,7 +661,7 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     shape[1] = shapey;
     shape[2] = shapez;
     MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia, block, flag_super);
-    bonus[ellipsoid[i]].radcirc = compute_radcirc(shape, block, flag_super);
+    radius[i] = MathExtra::radius_ellipsoid(shape, block, flag_super);
   }
 }
 
@@ -690,7 +693,7 @@ void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
     bonus[nlocal_bonus].ilocal = i;
     flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) || (std::fabs(blockn2 - 2) > EPSBLOCK2));
     MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia, block, flag_super);
-    bonus[nlocal_bonus].radcirc = compute_radcirc(shape, block, flag_super);
+    radius[i] = MathExtra::radius_ellipsoid(shape, block, flag_super);
     ellipsoid[i] = nlocal_bonus++;
   } else {
     double *shape = bonus[ellipsoid[i]].shape;
@@ -702,52 +705,6 @@ void AtomVecEllipsoid::set_block(int i, double blockn1, double blockn2)
     block[2] = blockn1 / blockn2;
     flag_super = ((std::fabs(blockn1 - 2) > EPSBLOCK2) || (std::fabs(blockn2 - 2) > EPSBLOCK2));
     MathExtra::inertia_ellipsoid_principal(shape, rmass[i], inertia, block, flag_super);
-    bonus[ellipsoid[i]].radcirc = compute_radcirc(shape, block, flag_super);
+    radius[i] = MathExtra::radius_ellipsoid(shape, block, flag_super);
   }
 }
-
-/* ----------------------------------------------------------------------
-   compute the circumscribed radius to the ellipsoid
-------------------------------------------------------------------------- */
-
-double AtomVecEllipsoid::compute_radcirc(double *shape, double *block, bool flag_super)
-{
-  if (!flag_super) return std::max(std::max(shape[0], shape[1]), shape[2]);
-
-  // Super ellipsoid
-  double a = shape[0], b = shape[1], c = shape[2];
-  double n1 = block[0], n2 = block[1], n1divn2 = block[2];
-  if (shape[0] < shape[1]) {a = shape[1]; b = shape[0];}
-
-  // Cylinder approximation for n2=2
-
-  if (std::fabs(n2 - 2.0) < EPSBLOCK2) return sqrt(a * a + c * c);
-
-  // Ellipsoid approximation for n1=2
-
-  if (std::fabs(n1 - 2.0) < EPSBLOCK2) return std::max(c, sqrt(a * a + b * b));
-
-  // Bounding box approximation when n1>2 and n2>2
-
-  return sqrt(a * a + b * b + c * c);
-
-  // General super-ellipsoid, Eq. (12) of Podlozhnyuk et al. 2017
-  // Not sure if exact solution worth it compared to boundig box diagonal
-  // If both blockiness exponents are greater than 2, the exact radius does not
-  // seem significantly smaller than the bounding box diagonal. At most sqrt(3)~ 70% too large
-  /*
-  double x, y, z, alpha, beta, gamma, xtilde;
-  double small = 0.1; // TO AVOID OVERFLOW IN POW
-
-  alpha = std::fabs(n2 - 2.0) > small ? std::pow(b / a, 2.0 / (n2 - 2.0)) : 0.0;
-  gamma = std::fabs(n1divn2 - 1.0) > small ? std::pow((1.0 + std::pow(alpha, n2)), n1divn2 - 1.0) : 1.0;
-  beta = std::pow(gamma * c * c / (a * a), 1.0 / std::max(n1 - 2.0, small));
-  xtilde = 1.0 / std::pow(std::pow(1.0 + std::pow(alpha, n2), n1divn2) + std::pow(beta, n1), 1.0 / n1);
-  x = a * xtilde;
-  y = alpha * b * xtilde;
-  z = beta * c * xtilde;
-  return sqrt(x * x + y * y + z * z);
-  */
-}
-
-

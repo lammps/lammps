@@ -121,8 +121,9 @@ void inertia_line(double length, double theta, double mass, double *inertia);
 void inertia_triangle(double *v0, double *v1, double *v2, double mass, double *inertia);
 void inertia_triangle(double *idiag, double *quat, double mass, double *inertia);
 
-// volumes
+// volumes and circumscribed radius
 double volume_ellipsoid(double *shape, double *block = nullptr, bool flag_super = false);
+double radius_ellipsoid(double *shape, double *block, bool flag_super);
 
 // triclinic bounding box of a sphere
 

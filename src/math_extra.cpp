@@ -19,6 +19,7 @@
 #include "math_extra.h"
 #include "math_special.h"
 #include "math_const.h"
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -636,6 +637,54 @@ double volume_ellipsoid(double *shape, double *block, bool flag_super)
                         MathSpecial::beta(0.5 * e2, 0.5 * e2);
   }
   return unitvol * shape[0] * shape[1] * shape[2];
+}
+
+
+/* ----------------------------------------------------------------------
+   compute the circumscribed radius to the ellipsoid
+   shape = 3 radii of ellipsoid
+   block = blockiness exponents of super-ellipsoid
+   return circumscribed radius of the ellipsoid
+------------------------------------------------------------------------- */
+
+double radius_ellipsoid(double *shape, double *block, bool flag_super)
+{
+  if (!flag_super) return std::max(std::max(shape[0], shape[1]), shape[2]);
+
+  // Super ellipsoid
+  double a = shape[0], b = shape[1], c = shape[2];
+  double n1 = block[0], n2 = block[1], n1divn2 = block[2];
+  if (shape[0] < shape[1]) {a = shape[1]; b = shape[0];}
+
+  // Cylinder approximation for n2=2
+
+  if (n2 < 2.01) return sqrt(a * a + c * c);
+
+  // Ellipsoid approximation for n1=2
+
+  if (n1 < 2.01) return std::max(c, sqrt(a * a + b * b));
+
+  // Bounding box approximation when n1>2 and n2>2
+
+  return sqrt(a * a + b * b + c * c);
+
+  // General super-ellipsoid, Eq. (12) of Podlozhnyuk et al. 2017
+  // Not sure if exact solution worth it compared to boundig box diagonal
+  // If both blockiness exponents are greater than 2, the exact radius does not
+  // seem significantly smaller than the bounding box diagonal. At most sqrt(3)~ 70% too large
+  /*
+  double x, y, z, alpha, beta, gamma, xtilde;
+  double small = 0.1; // TO AVOID OVERFLOW IN POW
+
+  alpha = std::fabs(n2 - 2.0) > small ? std::pow(b / a, 2.0 / (n2 - 2.0)) : 0.0;
+  gamma = std::fabs(n1divn2 - 1.0) > small ? std::pow((1.0 + std::pow(alpha, n2)), n1divn2 - 1.0) : 1.0;
+  beta = std::pow(gamma * c * c / (a * a), 1.0 / std::max(n1 - 2.0, small));
+  xtilde = 1.0 / std::pow(std::pow(1.0 + std::pow(alpha, n2), n1divn2) + std::pow(beta, n1), 1.0 / n1);
+  x = a * xtilde;
+  y = alpha * b * xtilde;
+  z = beta * c * xtilde;
+  return sqrt(x * x + y * y + z * z);
+  */
 }
 
 /* ----------------------------------------------------------------------

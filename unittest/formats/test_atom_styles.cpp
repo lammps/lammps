@@ -1054,6 +1054,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     expected.molecular      = Atom::ATOMIC;
     expected.tag_enable     = 1;
     expected.ellipsoid_flag = 1;
+    expected.radius_flag    = 1;
     expected.rmass_flag     = 1;
     expected.angmom_flag    = 1;
     expected.torque_flag    = 1;
@@ -1145,6 +1146,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     auto type      = lmp->atom->type;
     auto ellipsoid = lmp->atom->ellipsoid;
     auto rmass     = lmp->atom->rmass;
+    auto radius    = lmp->atom->radius;
     auto avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
     auto bonus     = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
@@ -1238,10 +1240,10 @@ TEST_F(AtomStyleTest, ellipsoid)
     EXPECT_NEAR(bonus[2].block[1], 2.0, EPSILON);
     EXPECT_NEAR(bonus[3].block[0], 2.0, EPSILON);
     EXPECT_NEAR(bonus[3].block[1], 2.0, EPSILON);
-    EXPECT_NEAR(bonus[0].radcirc, 0.5, EPSILON);
-    EXPECT_NEAR(bonus[1].radcirc, 0.5, EPSILON);
-    EXPECT_NEAR(bonus[2].radcirc, 1.5, EPSILON);
-    EXPECT_NEAR(bonus[3].radcirc, 1.5, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(1)], 0.5, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(2)], 0.5, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(3)], 1.5, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(4)], 1.5, EPSILON);
     ASSERT_FALSE(bonus[0].flag_super);
     ASSERT_FALSE(bonus[1].flag_super);
     ASSERT_FALSE(bonus[2].flag_super);
@@ -1263,8 +1265,8 @@ TEST_F(AtomStyleTest, ellipsoid)
     EXPECT_NEAR(bonus[4].block[1], 8.0, EPSILON);
     EXPECT_NEAR(bonus[5].block[0], 4.0, EPSILON);
     EXPECT_NEAR(bonus[5].block[1], 2.0, EPSILON);
-    EXPECT_NEAR(bonus[4].radcirc, 0.5*sqrt(3.0), EPSILON);
-    EXPECT_NEAR(bonus[5].radcirc, sqrt(4.64), EPSILON);
+    EXPECT_NEAR(radius[GETIDX(5)], 0.5*sqrt(3.0), EPSILON);
+    EXPECT_NEAR(radius[GETIDX(6)], sqrt(4.64), EPSILON);
     ASSERT_TRUE(bonus[4].flag_super);
     ASSERT_TRUE(bonus[5].flag_super);
     BEGIN_HIDE_OUTPUT();
@@ -4207,6 +4209,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     expected.tag_enable     = 1;
     expected.molecule_flag  = 1;
     expected.ellipsoid_flag = 1;
+    expected.radius_flag    = 1;
     expected.q_flag         = 1;
     expected.rmass_flag     = 1;
     expected.torque_flag    = 1;
@@ -4862,6 +4865,7 @@ TEST_F(AtomStyleTest, oxdna)
     expected.tag_enable     = 1;
     expected.molecule_flag  = 1;
     expected.ellipsoid_flag = 1;
+    expected.radius_flag    = 1;
     expected.rmass_flag     = 1;
     expected.torque_flag    = 1;
     expected.angmom_flag    = 1;

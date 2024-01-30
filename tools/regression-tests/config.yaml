@@ -3,9 +3,7 @@
   nprocs: "4"
   args: "-cite none -sc none"
   mpiexec: "mpirun"
-  mpiexec_numproc_flag: "-n"
-  accelerator_packages:
-    omp
+  mpiexec_numproc_flag: "-np"
   tolerance:
     PotEng:
       abs: 1e-4
@@ -24,4 +22,4 @@
       rel: 1e-7
   nugget: 1.0
   epsilon: 1e-16
-   
+ 

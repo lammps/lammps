@@ -1,12 +1,18 @@
 '''
-UPDATE: Dec 10, 2023:
+UPDATE: Jan 30, 2024:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
+  Comparing the output thermo with that in the existing log file (with the same nprocs)
+    + data in the log files are extracted and converted into yaml data structure
+    + using the in place input scripts, no need to add REG markers to the input scripts
   This way we can:
     + launch tests with mpirun with multiple procs
     + specify what LAMMPS binary version to test 
     + simplify the build configuration
   Example usage:
-    python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=config.yaml --gen-ref=False
+    1) Simple use:
+         python3 run_tests.py --lmp-bin=/path/to/lmp_binary
+    2) Use a custom testing configuration
+         python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
 
 
 --------------------------------------------------------------------------------------------------------------
@@ -99,39 +105,37 @@ def extract_thermo(yamlFileName):
   inputFileName = a provided log file in an examples folder (e.g. examples/melt/log.8Apr21.melt.g++.4)
   return a YAML data structure as if loaded from a thermo yaml file
 '''
-def convert_log_to_yaml(inputFileName):
+def extract_data_to_yaml(inputFileName):
   with open(inputFileName, 'r') as file:
     data = file.read()
     lines = data.splitlines()
     reading = False
     data = []
+    docs = ""
     for line in lines:
       if "Step" in line:
         line.strip()
         keywords = line.split()
         reading = True
+        docs += "---\n"
+        docs += str("keywords: [")
+        for word in enumerate(keywords):
+          docs += "'" + word[1] + "', "
+        docs += "]\n"
+        docs += "data:\n"
       if "Loop" in line:
         reading = False
-        break
-      if reading == True and "Step" not in line:
-        data.append(line.split())
-      
-    docs = "---\n"
-    docs += str("keywords: [")
-    for word in enumerate(keywords):
-      docs += "'" + word[1] + "', "
-    docs += "]\n"
-    docs += "data:\n"
-    for line in enumerate(data):
-      docs += " - ["
-      for field in enumerate(line[1]):
-        docs += field[1] + ", "
-      docs += "]\n"
+        docs += "...\n"
 
-    docs += "..."
-    #print(docs)
+      if reading == True and "Step" not in line:
+        data = line.split()
+        docs += " - ["
+        for field in enumerate(data):
+          docs += field[1] + ", "
+        docs += "]\n"
 
     # load the docs into a YAML data struture
+    #print(docs)
     thermo = list(yaml.load_all(docs, Loader=Loader))
     return thermo
 
@@ -153,13 +157,22 @@ def get_lammps_build_configuration(lmp_binary):
         packages = l.strip()
         break
     if "OS:" in l:
-      OS = l
+      operating_system = l
     if "Git info" in l:
       GitInfo = l
  
     row += 1
 
-  return packages.split(" "), OS, GitInfo
+  row = 0
+  compile_flags = ""
+  for l in output:
+    if l != "":
+      if "-DLAMMPS" in l:
+        compile_flags += " " + l.strip()
+ 
+    row += 1
+
+  return packages.split(" "), operating_system, GitInfo, compile_flags
 
 '''
   launch LAMMPS using the configuration defined in the dictionary config with an input file
@@ -170,7 +183,7 @@ def get_lammps_build_configuration(lmp_binary):
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
   cmd_str = config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
   cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
-  print(f"Execute: {cmd_str}")
+  print(f"Executing: {cmd_str}")
   p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
   output = p.stdout.split('\n')
 
@@ -218,31 +231,35 @@ def iterate(input_list, config, removeAnnotatedInput=False):
 
   num_tests = len(input_list)
   test_id = 0
-  # iterative over the input scripts
+  using_markers = False
+  
+  # iterate over the input scripts
   for input in input_list:
-    input_test = 'test.' + input
-    
-    if os.path.isfile(input) == True:
-      if has_markers(input):
-        process_markers(input, input_test)
-    
-      else:
-        print(f"SKIPPED: {input} does not have REG markers")
-        continue
 
-        input_markers = input + '.markers'
-        # if the .test file with the REG markers does not exist
-        #   attempt to plug in the REG markers before each run command
-        if os.path.isfile(input_markers) == False:
-          
-          cmd_str = "cp " + input + " " + input_markers
-          os.system(cmd_str)
-          generate_markers(input, input_markers)
-          process_markers(input_markers, input_test)
-    
-    # input.test should be ready for testing without markers but with the inserted thermo lines
+    str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
 
-    str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
+    if using_markers == True:
+      input_test = 'test.' + input
+      if os.path.isfile(input) == True:
+        if has_markers(input):
+          process_markers(input, input_test)
+      
+        else:
+          print(f"WARNING: {input} does not have REG markers")
+          input_markers = input + '.markers'
+          # if the input file with the REG markers does not exist
+          #   attempt to plug in the REG markers before each run command
+          if os.path.isfile(input_markers) == False:
+            
+            cmd_str = "cp " + input + " " + input_markers
+            os.system(cmd_str)
+            generate_markers(input, input_markers)
+            process_markers(input_markers, input_test)
+      
+            str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
+    else:
+      input_test = input
+
     print(str_t)
     print(f"-"*len(str_t))
 
@@ -254,26 +271,26 @@ def iterate(input_list, config, removeAnnotatedInput=False):
     execute(lmp_binary, config, input_test)
 
     # process thermo output
-    thermo = extract_thermo("log.lammps")
+    #thermo = extract_thermo("log.lammps")
+    thermo = extract_data_to_yaml("log.lammps")
 
     num_runs = len(thermo)
     if num_runs == 0:
-      print(f"Failed with {input_test}\n")
+      print(f"Failed with {input_test}. Check if the run with this input script completed normally.\n")
       continue 
 
-    print(f"Number of runs: {num_runs}")
-
-    # check if a log file exists in the current folder
+    # check if a log file exists in the current folder: log.[date].basename.[nprocs]
+    basename = input_test.replace('in.','')    
     logfile_exist = False
-    pattern = f'log.*.{nprocs}'
+    pattern = f'log.*.{basename}.*.{nprocs}'
     for file in os.listdir('.'):
       if fnmatch.fnmatch(file, pattern):
         logfile_exist = True
         break
 
     if logfile_exist:
-      print(f"reading {file}")
-      thermo_ref = convert_log_to_yaml(file)
+      thermo_ref = extract_data_to_yaml(file)
+      num_runs_ref = len(thermo_ref)
     else:
       # read in the thermo yaml output from the working directory
       thermo_ref_file = 'thermo.' + input + '.yaml'
@@ -282,8 +299,13 @@ def iterate(input_list, config, removeAnnotatedInput=False):
         thermo_ref = extract_thermo(thermo_ref_file)
       else:
         print(f"SKIPPED: {thermo_ref_file} does not exist")
-        return
+        continue
 
+    print(f"Comparing thermo output from log.lammps with the reference log {file}")
+    if num_runs != num_runs_ref:
+      print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
+      continue
+    
     # comparing output vs reference values
     width = 20
     print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
@@ -292,9 +314,9 @@ def iterate(input_list, config, removeAnnotatedInput=False):
     
     # get the total number of the thermo output lines
     nthermo_steps = len(thermo[irun]['data'])
-    # get the output at thelast timestep
+    # get the output at the last timestep
     thermo_step = nthermo_steps - 1
-    print(f"nthermo_steps = {nthermo_steps}")
+    #print(f"nthermo_steps = {nthermo_steps}")
     num_abs_failed = 0
     num_rel_failed = 0
     for i in range(num_fields):
@@ -370,7 +392,8 @@ if __name__ == "__main__":
   # read in the configuration of the tests
   with open(configFileName, 'r') as f:
     config = yaml.load(f, Loader=Loader)
-    print(f"Using the testing configuration defined in {configFileName}")
+    absolute_path = os.path.abspath(configFileName)
+    print(f"Regression tests with settings defined in {absolute_path}")
  
   # check if lmp_binary is specified in the config yaml
   if lmp_binary == "":
@@ -380,23 +403,25 @@ if __name__ == "__main__":
     else:
        lmp_binary = config['lmp_binary']
 
- 
-  packages, operating_system, GitInfo = get_lammps_build_configuration(lmp_binary)
-  print(operating_system)
-  print(GitInfo)
-  print(f"List of installed packages: {packages}")
+  # print out the binary info
+  packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
+  print("LAMMPS build info:")
+  print(f"- {operating_system}")
+  print(f"- {GitInfo}")
+  print(f"- Active compile flags: {compile_flags}")
+  print(f"- List of installed packages: {packages}")
   
-  # Using inplace input scripts
+  # Using in place input scripts
+  inplace_input = True
 
   example_subfolders = []
   example_subfolders.append("../../examples/melt")
 
-  #if 'MOLECULE' in packages:
-  #  molecule_package = True
-  #  example_subfolders.append('../../examples/micelle')
+  # append the example subfolders depending on the installed packages
+  if 'MOLECULE' in packages:
+    molecule_package = True
+    example_subfolders.append('../../examples/micelle')
 
-
-  inplace_input = True
   if inplace_input == True:
 
     # save current working dir
@@ -409,7 +434,7 @@ if __name__ == "__main__":
 
     for directory in example_subfolders:
 
-      print("Entering " + directory)
+      print("\nEntering " + directory)
       os.chdir(directory)
 
       # create a symbolic link to the lammps binary at the present directory

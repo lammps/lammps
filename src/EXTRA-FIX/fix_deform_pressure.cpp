@@ -138,12 +138,6 @@ id_temp(nullptr), id_press(nullptr)
 
   options(narg - iarg, &arg[iarg]);
 
-  // repeat: check triclinic
-
-  dimension = domain->dimension;
-  if (triclinic == 0 && (set[3].style || set[4].style || set[5].style))
-    error->all(FLERR, "Fix deform tilt factors require triclinic box");
-
   // repeat: setup dimflags used by other classes to check for volume-change conflicts
 
   for (int i = 0; i < 6; i++)

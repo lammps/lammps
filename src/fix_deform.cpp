@@ -75,6 +75,8 @@ irregular(nullptr), set(nullptr)
 
   // parse arguments
 
+  triclinic = domain->triclinic;
+
   int index;
   int iarg = 4;
   while (iarg < narg) {
@@ -86,6 +88,7 @@ irregular(nullptr), set(nullptr)
       else if (strcmp(arg[iarg], "y") == 0) index = 1;
       else if (strcmp(arg[iarg], "z") == 0) index = 2;
 
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform", error);
       if (strcmp(arg[iarg + 1], "final") == 0) {
         if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform final", error);
         set[index].style = FINAL;
@@ -152,10 +155,14 @@ irregular(nullptr), set(nullptr)
                strcmp(arg[iarg], "xz") == 0 ||
                strcmp(arg[iarg], "yz") == 0) {
 
+
+      if (triclinic == 0)
+        error->all(FLERR,"Fix deform tilt factors require triclinic box");
       if (strcmp(arg[iarg], "xy") == 0) index = 5;
       else if (strcmp(arg[iarg], "xz") == 0) index = 4;
       else if (strcmp(arg[iarg], "yz") == 0) index = 3;
 
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform", error);
       if (strcmp(arg[iarg + 1], "final") == 0) {
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform final", error);
         set[index].style = FINAL;
@@ -217,15 +224,9 @@ irregular(nullptr), set(nullptr)
     } else break;
   }
 
-  // reparse all arguments for optional keywords
+  // read options from end of input line
 
-  options(narg - 4, &arg[4]);
-
-  // check triclinic
-
-  triclinic = domain->triclinic;
-  if (triclinic == 0 && (set[3].style || set[4].style || set[5].style))
-    error->all(FLERR, "Fix deform tilt factors require triclinic box");
+  options(narg - iarg, &arg[iarg]);
 
   // no x remap effectively moves atoms within box, so set restart_pbc
 
@@ -787,7 +788,7 @@ void FixDeform::apply_volume()
 
     if (set[i].substyle == ONE_FROM_ONE) {
       shift = 0.5 * (v0 / (set[dynamic1].hi_target - set[dynamic1].lo_target) /
-             (set[fixed].hi_start-set[fixed].lo_start));
+             (set[fixed].hi_start - set[fixed].lo_start));
     } else if (set[i].substyle == ONE_FROM_TWO) {
       shift = 0.5 * (v0 / (set[dynamic1].hi_target - set[dynamic1].lo_target) /
              (set[dynamic2].hi_target - set[dynamic2].lo_target));

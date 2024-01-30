@@ -33,21 +33,20 @@
 
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
 static const char cite_compute_slcsa_atom_c[] =
-    "compute slcsa/atom command: doi:10.1088/0965-0393/21/5/055020\n\n"
+    "compute slcsa/atom command: doi:10.1016/j.commatsci.2023.112534\n\n"
     "@Article{Lafourcade2023,\n"
     " author = {P. Lafourcade and J.-B. Maillet and C. Denoual and E. Duval and A. Allera and A. "
     "M. Goryaeva and M.-C. Marinica},\n"
     " title = {Robust crystal structure identification at extreme conditions using a "
     "density-independent spectral descriptor and supervised learning},\n"
     " journal = {Computational Materials Science},\n"
-    " year =    2023,\n"
-    " volume =  XX,\n"
-    " pages =   {XXXXXX}\n"
+    " year = 2023,\n"
+    " volume = 230,\n"
+    " pages = 112534\n"
     "}\n\n";
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +77,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   // matrix with nclasses rows x nclasses-1 cols
   // # LR bias vector
   // vector with 1 row x nclasses cols
+
+  if (lmp->citeme) lmp->citeme->add(cite_compute_slcsa_atom_c);
 
   if (narg != 11) utils::missing_cmd_args(FLERR, "compute slcsa/atom", error);
 
@@ -305,84 +306,84 @@ void ComputeSLCSAAtom::compute_peratom()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double **compute_array;
 
   if (descriptorval.which == ArgInfo::COMPUTE) {
     if (!(descriptorval.val.c->invoked_flag & Compute::INVOKED_PERATOM)) {
       descriptorval.val.c->compute_peratom();
       descriptorval.val.c->invoked_flag |= Compute::INVOKED_PERATOM;
     }
-    compute_array = descriptorval.val.c->array_atom;
-  }
+    double **compute_array = descriptorval.val.c->array_atom;
 
-  memory->create(full_descriptor, ncomps, "slcsa/atom:local descriptor");
-  memory->create(projected_descriptor, nclasses - 1, "slcsa/atom:reduced descriptor");
-  memory->create(scores, nclasses, "slcsa/atom:scores");
-  memory->create(probas, nclasses, "slcsa/atom:probas");
-  memory->create(prodright, nclasses - 1, "slcsa/atom:prodright");
-  memory->create(dmaha, nclasses, "slcsa/atom:prodright");
+    memory->create(full_descriptor, ncomps, "slcsa/atom:local descriptor");
+    memory->create(projected_descriptor, nclasses - 1, "slcsa/atom:reduced descriptor");
+    memory->create(scores, nclasses, "slcsa/atom:scores");
+    memory->create(probas, nclasses, "slcsa/atom:probas");
+    memory->create(prodright, nclasses - 1, "slcsa/atom:prodright");
+    memory->create(dmaha, nclasses, "slcsa/atom:prodright");
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      for (int j = 0; j < ncomps; j++) { full_descriptor[j] = compute_array[i][j]; }
-      // Here comes the LDA + LR process
-      // 1st step : Retrieve mean database descriptor
-      for (int j = 0; j < ncomps; j++) { full_descriptor[j] -= database_mean_descriptor[j]; }
-      // 2nd step : Matrix multiplication to go from ncompsx1 -> (nclasses-1)*1
-      for (int j = 0; j < nclasses - 1; j++) {
-        projected_descriptor[j] = 0.;
-        for (int k = 0; k < ncomps; k++) {
-          projected_descriptor[j] += full_descriptor[k] * lda_scalings[k][j];
-        }
-      }
-      // 3rd step : Matrix multiplication
-      for (int j = 0; j < nclasses; j++) {
-        scores[j] = lr_bias[j];
-        for (int k = 0; k < nclasses - 1; k++) {
-          scores[j] += lr_decision[j][k] * projected_descriptor[k];
-        }
-      }
-      // 4th step : Matrix multiplication
-      double sumexpscores = 0.;
-      for (int j = 0; j < nclasses; j++) sumexpscores += exp(scores[j]);
-      for (int j = 0; j < nclasses; j++) { probas[j] = exp(scores[j]) / sumexpscores; }
-
-      classification[i][nclasses] = argmax(probas, nclasses);
-
-      // 5th step : Mahalanobis distance
-      for (int j = 0; j < nclasses; j++) {
-        prodright[0] = 0.;
-        prodright[1] = 0.;
-        prodright[2] = 0.;
-        for (int k = 0; k < nclasses - 1; k++) {
-          for (int l = 0; l < nclasses - 1; l++) {
-            prodright[k] +=
-                (icov_list[j][k][l] * (projected_descriptor[k] - mean_projected_descriptors[j][k]));
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        for (int j = 0; j < ncomps; j++) full_descriptor[j] = compute_array[i][j];
+        // Here comes the LDA + LR process
+        // 1st step : Retrieve mean database descriptor
+        for (int j = 0; j < ncomps; j++) full_descriptor[j] -= database_mean_descriptor[j];
+        // 2nd step : Matrix multiplication to go from ncompsx1 -> (nclasses-1)*1
+        for (int j = 0; j < nclasses - 1; j++) {
+          projected_descriptor[j] = 0.0;
+          for (int k = 0; k < ncomps; k++) {
+            projected_descriptor[j] += full_descriptor[k] * lda_scalings[k][j];
           }
         }
-        double prodleft = 0.;
-        for (int k = 0; k < nclasses - 1; k++) {
-          prodleft += (prodright[k] * (projected_descriptor[k] - mean_projected_descriptors[j][k]));
+        // 3rd step : Matrix multiplication
+        for (int j = 0; j < nclasses; j++) {
+          scores[j] = lr_bias[j];
+          for (int k = 0; k < nclasses - 1; k++) {
+            scores[j] += lr_decision[j][k] * projected_descriptor[k];
+          }
         }
-        classification[i][j] = sqrt(prodleft);
-      }
-      // 6th step : Sanity check
-      int locclass = classification[i][nclasses];
+        // 4th step : Matrix multiplication
+        double sumexpscores = 0.0;
+        for (int j = 0; j < nclasses; j++) sumexpscores += exp(scores[j]);
+        for (int j = 0; j < nclasses; j++) probas[j] = exp(scores[j]) / sumexpscores;
 
-      if (classification[i][locclass] > maha_thresholds[locclass]) {
-        classification[i][nclasses] = -1.;
-      }
+        classification[i][nclasses] = argmax(probas, nclasses);
 
-    } else {
-      for (int j = 0; j < ncols; j++) { classification[i][j] = -1.; }
+        // 5th step : Mahalanobis distance
+        for (int j = 0; j < nclasses; j++) {
+          prodright[0] = 0.0;
+          prodright[1] = 0.0;
+          prodright[2] = 0.0;
+          for (int k = 0; k < nclasses - 1; k++) {
+            for (int l = 0; l < nclasses - 1; l++) {
+              prodright[k] += (icov_list[j][k][l] *
+                               (projected_descriptor[k] - mean_projected_descriptors[j][k]));
+            }
+          }
+          double prodleft = 0.0;
+          for (int k = 0; k < nclasses - 1; k++) {
+            prodleft +=
+                (prodright[k] * (projected_descriptor[k] - mean_projected_descriptors[j][k]));
+          }
+          classification[i][j] = sqrt(prodleft);
+        }
+        // 6th step : Sanity check
+        int locclass = classification[i][nclasses];
+
+        if (classification[i][locclass] > maha_thresholds[locclass]) {
+          classification[i][nclasses] = -1.0;
+        }
+
+      } else {
+        for (int j = 0; j < ncols; j++) classification[i][j] = -1.0;
+      }
     }
+    memory->destroy(full_descriptor);
+    memory->destroy(projected_descriptor);
+    memory->destroy(scores);
+    memory->destroy(probas);
+    memory->destroy(prodright);
+    memory->destroy(dmaha);
   }
-  memory->destroy(full_descriptor);
-  memory->destroy(projected_descriptor);
-  memory->destroy(scores);
-  memory->destroy(probas);
-  memory->destroy(prodright);
-  memory->destroy(dmaha);
 }
 
 int ComputeSLCSAAtom::compute_ncomps(int twojmax)

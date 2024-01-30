@@ -30,8 +30,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 10000
-#define SMALL 0.001
+static constexpr int DELTA = 10000;
+static constexpr double SMALL = 0.001;
 
 enum{PHI,VARIABLE};
 

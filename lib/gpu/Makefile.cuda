@@ -134,11 +134,11 @@ $(OBJ_DIR)/scan_app.cu_o: cudpp_mini/scan_app.cu
 $(GPU_LIB): $(OBJS) $(CUDPP)
 	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)
 	@cp $(EXTRAMAKE) Makefile.lammps
- 
+
 # test app for querying device info
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
-	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
+	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda
 
 clean:
 	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CUHS) *.linkinfo

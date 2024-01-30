@@ -40,9 +40,9 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-#define MAXLINE 1024
-#define DELTA 4
-#define PGDELTA 1
+static constexpr int MAXLINE = 1024;
+static constexpr int DELTA = 4;
+static constexpr int PGDELTA = 1;
 
 static const char cite_kc[] =
     "kolmogorov/crespi/full potential doi:10.1021/acs.nanolett.8b02848\n"
@@ -590,7 +590,7 @@ void PairKolmogorovCrespiFull::calc_FRep(int eflag, int /* vflag */)
           delki[1] = x[k][1] - x[i][1];
           delki[2] = x[k][2] - x[i][2];
           if (evflag)
-            ev_tally_xyz(k, j, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delki[0],
+            ev_tally_xyz(k, i, nlocal, newton_pair, 0.0, 0.0, fk[0], fk[1], fk[2], delki[0],
                          delki[1], delki[2]);
         }
 

@@ -28,7 +28,7 @@ using namespace FixConst;
 
 enum{NOBIAS,BIAS};
 
-#define INERTIA 0.4          // moment of inertia prefactor for sphere
+static constexpr double INERTIA = 0.4;          // moment of inertia prefactor for sphere
 
 typedef struct { double x,y,z; } dbl3_t;
 
@@ -37,8 +37,8 @@ typedef struct { double x,y,z; } dbl3_t;
 FixNHSphereOMP::FixNHSphereOMP(LAMMPS *lmp, int narg, char **arg) :
   FixNHOMP(lmp, narg, arg)
 {
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix nvt/nph/npt sphere requires atom style sphere");
+  if (!atom->omega_flag) error->all(FLERR,"Fix {} requires atom attribute omega", style);
+  if (!atom->radius_flag) error->all(FLERR,"Fix {} requires atom attribute radius", style);
 }
 
 /* ---------------------------------------------------------------------- */

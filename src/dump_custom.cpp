@@ -47,8 +47,8 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      COMPUTE,FIX,VARIABLE,IVEC,DVEC,IARRAY,DARRAY};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 
-#define ONEFIELD 32
-#define DELTA 1048576
+static constexpr int ONEFIELD = 32;
+static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */
 
@@ -1768,7 +1768,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (refreshflag) error->all(FLERR,"Dump_modify can only have one refresh");
 
     refreshflag = 1;
-    refresh = argi.copy_name();
+    idrefresh = argi.copy_name();
     return 2;
   }
 

@@ -1598,7 +1598,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
   F_FLOAT total_bo_i = 0.0;
 
-  int j_index,i_index;
   d_bo_first[i] = i*maxbo;
   const int bo_first_i = d_bo_first[i];
 
@@ -1675,7 +1674,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 
       int ii_index = -1;
       int jj_index = -1;
-      if (build_bo_list<NEIGHFLAG>(bo_first_i, i, j, i_index, j_index, ii_index, jj_index)) {
+      if (build_bo_list<NEIGHFLAG>(bo_first_i, i, j, ii_index, jj_index)) {
 
         // from BondOrder1
 
@@ -1743,7 +1742,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
 
-  int j_index,i_index;
   d_bo_first[i] = i*maxbo;
   const int bo_first_i = d_bo_first[i];
 
@@ -1821,7 +1819,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
 
       int ii_index = -1;
       int jj_index = -1;
-      build_bo_list<NEIGHFLAG>(bo_first_i, i, j, i_index, j_index, ii_index, jj_index);
+      build_bo_list<NEIGHFLAG>(bo_first_i, i, j, ii_index, jj_index);
     }
   }
 }
@@ -1842,7 +1840,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
 
-  int j_index,i_index;
   d_bo_first[i] = i*maxbo;
   const int bo_first_i = d_bo_first[i];
 
@@ -1891,7 +1888,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
     int ii_index = -1;
     int jj_index = -1;
 
-    build_bo_list<NEIGHFLAG>(bo_first_i, i, j, i_index, j_index, ii_index, jj_index);
+    build_bo_list<NEIGHFLAG>(bo_first_i, i, j, ii_index, jj_index);
   }
 }
 
@@ -1942,7 +1939,8 @@ void PairReaxFFKokkos<DeviceType>::build_hb_list(F_FLOAT rsq, int i, int hb_firs
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-bool PairReaxFFKokkos<DeviceType>::build_bo_list(int bo_first_i, int i, int j, int i_index, int j_index, int& ii_index, int& jj_index) const {
+bool PairReaxFFKokkos<DeviceType>::build_bo_list(int bo_first_i, int i, int j, int& ii_index, int& jj_index) const {
+   int i_index, j_index;
 
   if (NEIGHFLAG == HALF) {
     j_index = bo_first_i + d_bo_num[i];
@@ -2509,8 +2507,6 @@ void PairReaxFFKokkos<DeviceType>::compute_angular_sbo(int i, int itype, int j_s
   F_FLOAT prod_SBO = 1.0;
 
   for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
     const int j_index = jj - j_start;
     const F_FLOAT bo_ij = d_BO(i,j_index);
 
@@ -2919,8 +2915,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   a_CdDelta[k] += CEcoa5;
 
   for (int ll = j_start; ll < j_end; ll++) {
-    int l = d_bo_list[ll];
-    l &= NEIGHMASK;
     const int l_index = ll - j_start;
 
     temp_bo_jt = d_BO(i,l_index);
@@ -4162,22 +4156,23 @@ double PairReaxFFKokkos<DeviceType>::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds)
+void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds, int groupbit)
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondZero>(0,nmax),*this);
 
   bo_cut_bond = api->control->bg_cut;
 
-  atomKK->sync(execution_space,TAG_MASK);
+  atomKK->sync(execution_space,TAG_MASK|MASK_MASK);
   tag = atomKK->k_tag.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
 
   const int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_ilist = k_list->d_ilist;
 
   numbonds = 0;
-  PairReaxKokkosFindBondFunctor<DeviceType> find_bond_functor(this);
+  PairReaxKokkosFindBondFunctor<DeviceType> find_bond_functor(this, groupbit);
   Kokkos::parallel_reduce(inum,find_bond_functor,numbonds);
   copymode = 0;
 }
@@ -4194,24 +4189,28 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondZero, const int
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds) const
+void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds, int groupbit) const
 {
   const int i = d_ilist[ii];
   int nj = 0;
 
-  const int j_start = d_bo_first[i];
-  const int j_end = j_start + d_bo_num[i];
-  for (int jj = j_start; jj < j_end; jj++) {
-    int j = d_bo_list[jj];
-    j &= NEIGHMASK;
-    const tagint jtag = tag[j];
-    const int j_index = jj - j_start;
-    double bo_tmp = d_BO(i,j_index);
+  if (mask[i] & groupbit) {
+    const int j_start = d_bo_first[i];
+    const int j_end = j_start + d_bo_num[i];
+    for (int jj = j_start; jj < j_end; jj++) {
+      int j = d_bo_list[jj];
+      j &= NEIGHMASK;
+      if (mask[j] & groupbit) {
+        const tagint jtag = tag[j];
+        const int j_index = jj - j_start;
+        double bo_tmp = d_BO(i,j_index);
 
-    if (bo_tmp > bo_cut_bond) {
-      d_neighid(i,nj) = jtag;
-      d_abo(i,nj) = bo_tmp;
-      nj++;
+        if (bo_tmp > bo_cut_bond) {
+          d_neighid(i,nj) = jtag;
+          d_abo(i,nj) = bo_tmp;
+          nj++;
+        }
+      }
     }
   }
   d_numneigh_bonds[i] = nj;
@@ -4246,6 +4245,36 @@ void PairReaxFFKokkos<DeviceType>::PackBondBuffer(DAT::tdual_ffloat_1d k_buf, in
   k_nbuf_local.sync<LMPHostType>();
   nbuf_local = k_nbuf_local.h_view();
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxFFKokkos<DeviceType>::PackReducedBondBuffer(DAT::tdual_ffloat_1d k_buf, int &nbuf_local, bool store_bonds)
+{
+  d_buf = k_buf.view<DeviceType>();
+  k_params_sing.template sync<DeviceType>();
+
+  copymode = 1;
+  nlocal = atomKK->nlocal;
+  if (store_bonds) {
+    PairReaxKokkosPackReducedBondBufferFunctor<DeviceType, true> pack_bond_buffer_functor(this);
+    Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  } else {
+    PairReaxKokkosPackReducedBondBufferFunctor<DeviceType, false> pack_bond_buffer_functor(this);
+    Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  }
+
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+  k_nbuf_local.modify<DeviceType>();
+
+  k_buf.sync<LMPHostType>();
+  k_nbuf_local.sync<LMPHostType>();
+  nbuf_local = k_nbuf_local.h_view();
+}
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -4283,6 +4312,42 @@ void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bo
     }
   }
   j += (1+numbonds);
+
+  if (final && i == nlocal-1)
+    k_nbuf_local.view<DeviceType>()() = j - 1;
+}
+
+template<class DeviceType>
+template<bool STORE_BONDS>
+KOKKOS_INLINE_FUNCTION
+void PairReaxFFKokkos<DeviceType>::pack_reduced_bond_buffer_item(int i, int &j, const bool &final) const
+{
+  const int numbonds = d_numneigh_bonds[i];
+  if (final) {
+    d_buf[j] = d_total_bo[i];
+    d_buf[j+1] = paramssing(type[i]).nlp_opt - d_Delta_lp[i];
+    d_buf[j+2] = numbonds;
+  }
+
+  j += 3;
+
+  if constexpr(STORE_BONDS) {
+    if (final) {
+      for (int k = 0; k < numbonds; ++k) {
+        d_buf[j+k] = d_neighid(i,k);
+      }
+    }
+
+    j += numbonds;
+
+    if (final) {
+      for (int k = 0; k < numbonds; k++) {
+        d_buf[j+k] = d_abo(i,k);
+      }
+    }
+
+    j += numbonds;
+  }
 
   if (final && i == nlocal-1)
     k_nbuf_local.view<DeviceType>()() = j - 1;

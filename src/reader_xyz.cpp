@@ -23,7 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024        // max line length in dump file
+static constexpr int MAXLINE = 1024;        // max line length in dump file
 
 /* ---------------------------------------------------------------------- */
 

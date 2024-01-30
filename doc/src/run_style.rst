@@ -329,7 +329,8 @@ Restrictions
 The *verlet/split* style can only be used if LAMMPS was built with the
 REPLICA package. Correspondingly the *respa/omp* style is available
 only if the OPENMP package was included. See the :doc:`Build package
-<Build_package>` page for more info.
+<Build_package>` page for more info.  It is not compatible with
+kspace styles from the INTEL package.
 
 Whenever using rRESPA, the user should experiment with trade-offs in
 speed and accuracy for their system, and verify that they are

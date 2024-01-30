@@ -36,10 +36,10 @@ requests.
 MUST be submitted as a pull request to GitHub.  All changes to the
 "develop" branch must be made exclusively through merging pull requests.
 The "release" and "stable" branches, respectively, are only to be
-updated upon feature or stable releases based on the associated
-tags.  Updates to the stable release in between stable releases
+updated upon "feature releases" or "stable releases" based on the
+associated tags.  Updates to the stable release in between stable releases
 (for example, back-ported bug fixes) are first merged into the "maintenance"
-branch and then into the "stable" branch as update releases.
+branch and then into the "stable" branch as "stable update releases".
 
 Pull requests may also be submitted to (long-running) feature branches
 created by LAMMPS developers inside the LAMMPS project, if needed. Those
@@ -131,7 +131,7 @@ testing -- that the code in the branch "develop" does not get easily
 broken.  These tests are run after every update to a pull request.  More
 extensive and time-consuming tests (including regression testing) are
 performed after code is merged to the "develop" branch.  There are feature
-releases of LAMMPS made about every 4-6 weeks at a point, when the LAMMPS
+releases of LAMMPS made about every 4-8 weeks at a point, when the LAMMPS
 developers feel, that a sufficient number of changes have been included
 and all post-merge testing has been successful.  These feature releases are
 marked with a `patch_<version date>` tag and the "release" branch

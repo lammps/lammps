@@ -146,6 +146,7 @@ def get_lammps_build_configuration(lmp_binary):
   cmd_str = lmp_binary + " -h"
   p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
   output = p.stdout.split('\n')
+  packages = ""
   reading = False
   row = 0
   for l in output:
@@ -153,15 +154,19 @@ def get_lammps_build_configuration(lmp_binary):
       if l == "Installed packages:":
         reading = True
         n = row
+      if "List of individual style options" in l:
+        reading = False
       if reading == True and row > n:
-        packages = l.strip()
-        break
+        packages += l.strip() + " "
+
     if "OS:" in l:
       operating_system = l
     if "Git info" in l:
       GitInfo = l
  
     row += 1
+
+  packages = packages.strip()
 
   row = 0
   compile_flags = ""
@@ -292,6 +297,7 @@ def iterate(input_list, config, removeAnnotatedInput=False):
       thermo_ref = extract_data_to_yaml(file)
       num_runs_ref = len(thermo_ref)
     else:
+      print(f"Cannot find reference log file with {pattern}")
       # read in the thermo yaml output from the working directory
       thermo_ref_file = 'thermo.' + input + '.yaml'
       file_exist = os.path.isfile(thermo_ref_file)
@@ -385,7 +391,7 @@ if __name__ == "__main__":
 
   args = parser.parse_args()
 
-  lmp_binary = args.lmp_binary
+  lmp_binary = os.path.abspath(args.lmp_binary)
   config_file= args.config_file
   genref = args.genref
   
@@ -419,15 +425,26 @@ if __name__ == "__main__":
 
   # append the example subfolders depending on the installed packages
   if 'MOLECULE' in packages:
-    molecule_package = True
     example_subfolders.append('../../examples/micelle')
+
+  #if 'ASPHERE' in packages:
+  #  example_subfolders.append('../../examples/ASPHERE/ellipsoid')
+
+  if 'COLLOID' in packages:
+    example_subfolders.append('../../examples/colloid')
+
+  if 'DIPOLE' in packages:
+    example_subfolders.append('../../examples/dipole')
+
+  if 'MANYBODY' in packages:
+    example_subfolders.append('../../examples/tersoff')
 
   if inplace_input == True:
 
     # save current working dir
     p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
     pwd = p.stdout.split('\n')[0]
-    print("Working dir" + pwd)
+    print("Working directory: " + pwd)
 
     # change dir to a folder under examples/
     # TODO: loop through the subfolders under examples/, depending on the installed packages

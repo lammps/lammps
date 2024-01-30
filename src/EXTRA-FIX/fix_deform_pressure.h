@@ -31,6 +31,8 @@ class FixDeformPressure : public FixDeform {
   void init() override;
   void setup(int) override;
   void end_of_step() override;
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
   int modify_param(int, char **) override;
 
  protected:
@@ -46,10 +48,22 @@ class FixDeformPressure : public FixDeform {
   class Compute *temperature, *pressure;
   int tflag, pflag;
 
+  struct SetExtra {
+    double ptarget, pgain;
+    double prior_pressure, prior_rate;
+    double cumulative_strain;
+    int saved;
+    char *pstr;
+    int pvar, pvar_flag;
+    int coupled_flag;
+  };
+  SetExtra *set_extra;
+  Set set_box;
+
   void options(int, char **);
-  void set_pressure();
-  void set_volume();
-  void set_iso();
+  void apply_volume() override;
+  void apply_pressure();
+  void apply_box();
   void couple();
   void adjust_linked_rates(double&, double&, double, double, double);
 };

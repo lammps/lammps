@@ -35,8 +35,8 @@ class FixDeform : public Fix {
   void init() override;
   void pre_exchange() override;
   void end_of_step() override;
-  void write_restart(FILE *) override;
-  void restart(char *buf) override;
+  void virtual write_restart(FILE *) override;
+  void virtual restart(char *buf) override;
   double memory_usage() override;
 
  protected:
@@ -59,22 +59,16 @@ class FixDeform : public Fix {
     double tilt_initial, tilt_start, tilt_stop, tilt_target, tilt_flip;
     double tilt_min, tilt_max;
     double vol_initial, vol_start;
-    double ptarget, pgain;
-    double prior_pressure, prior_rate;
-    double cumulative_strain;
-    int saved;
     int fixed, dynamic1, dynamic2;
-    char *hstr, *hratestr, *pstr;
+    char *hstr, *hratestr;
     int hvar, hratevar;
-    int pvar, pvar_flag;
-    int coupled_flag;
   };
   Set *set;
 
   void options(int, char **);
-  void set_strain();
-  void set_volume();
-  void apply_deformation();
+  void virtual apply_volume();
+  void apply_strain();
+  void update_domain();
 };
 
 }    // namespace LAMMPS_NS

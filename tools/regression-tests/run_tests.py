@@ -10,47 +10,24 @@ UPDATE: Jan 30, 2024:
     + simplify the build configuration (no need to build the Python module)
   NOTE: Need to allow to tolerances specified for invidual input scripts,
         or each config.yaml is for a set of example folders
+
   Example usage:
-    1) Simple use:
-         python3 run_tests.py --lmp-bin=/path/to/lmp_binary
+    1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary
     2) Use a custom testing configuration
-         python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
-
-
---------------------------------------------------------------------------------------------------------------
-Original plan: using the LAMMPS Python module
-  The following steps are for setting up regression tests with the LAMMPS Python module
-
-  0) Create a virtual environment, and activate it
-
-    python -m venv lmp-venv
-    source lmp-venv/bin/activate
-    PYTHON_EXECUTABLE=`which python`
-    INSTALL_PREFIX=$(${PYTHON_EXECUTABLE} -c "import sys; print(sys.prefix)")
-
-  1) Build LAMMPS as a shared lib and install the LAMMPS python module into the virtual environment
-
-    git clone https://github.com/lammps/lammps.git lammps
-    cd lammps
-    mkdir build && cd build
-    cmake ../cmake/presets/basic.cmake -DBUILD_SHARED_LIBS=on -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX
-    make -j4
-    make install-python
-
-  2) Run this script, after activating the virtual environment and having the input scripts with markers ready:
-
-    source lmp-venv/bin/activate
-    python3 run_tests.py
-
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
+    3) Specify a list of example folders with a modifed configuration (e.g. different tolerances)
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary \
+          --example-folders="/path/to/examples/folder1;/path/to/examples/folder2" \
+          --config-file=/path/to/config/file/config.yaml 
 '''
 
-#from lammps import lammps
 import os
 import fnmatch
-import re, yaml
-import numpy as np
 import subprocess
+import yaml
 
+import numpy as np
 from argparse import ArgumentParser
 
 try:
@@ -461,38 +438,46 @@ if __name__ == "__main__":
   # Using in place input scripts
   inplace_input = True
 
-  example_subfolders.append("../../examples/melt")
+  # if the example folders are not specified from the command-line argument -example-folders
+  if len(example_subfolders) == 0:
 
-  # append the example subfolders depending on the installed packages
-  if 'MOLECULE' in packages:
-    example_subfolders.append('../../examples/micelle')
-    # peptide thermo_style as multi
-    #example_subfolders.append('../../examples/peptide')
+    example_subfolders.append("../../examples/melt")
 
-  #if 'ASPHERE' in packages:
-  #  example_subfolders.append('../../examples/ASPHERE/ellipsoid')
+    if 'ASPHERE' in packages:
+    #  example_subfolders.append('../../examples/ASPHERE/ellipsoid')
+      example_subfolders.append('../../examples/ellipse')
 
-  if 'AMOEBA' in packages:
-    example_subfolders.append('../../examples/amoeba')
+    # append the example subfolders depending on the installed packages
+    if 'MOLECULE' in packages:
+      example_subfolders.append('../../examples/micelle')
+      # peptide thermo_style as multi
+      #example_subfolders.append('../../examples/peptide')
 
-  if 'BODY' in packages:
-    example_subfolders.append('../../examples/body')
+    if 'AMOEBA' in packages:
+      example_subfolders.append('../../examples/amoeba')
 
-  if 'DIELECTRIC' in packages:
-    example_subfolders.append('../../examples/PACKAGES/dielectric')
+    if 'BODY' in packages:
+      example_subfolders.append('../../examples/body')
 
-  if 'COLLOID' in packages:
-    example_subfolders.append('../../examples/colloid')
+    if 'COLLOID' in packages:
+      example_subfolders.append('../../examples/colloid')
 
-  if 'DIPOLE' in packages:
-    example_subfolders.append('../../examples/dipole')
+    if 'DIELECTRIC' in packages:
+      example_subfolders.append('../../examples/PACKAGES/dielectric')
 
-  if 'MANYBODY' in packages:
-    example_subfolders.append('../../examples/tersoff')
-    example_subfolders.append('../../examples/vashishta')
+    if 'DIPOLE' in packages:
+      example_subfolders.append('../../examples/dipole')
 
-  if 'RIGID' in packages:
-    example_subfolders.append('../../examples/rigid')
+    if 'MANYBODY' in packages:
+      example_subfolders.append('../../examples/tersoff')
+      example_subfolders.append('../../examples/vashishta')
+      example_subfolders.append('../../examples/threebody')
+
+    if 'RIGID' in packages:
+      example_subfolders.append('../../examples/rigid')
+
+    if 'SRD' in packages:
+      example_subfolders.append('../../examples/srd')
 
   if inplace_input == True:
 
@@ -531,7 +516,7 @@ if __name__ == "__main__":
 
 
   else:
-    # or using the input scripts in the working directory
+    # or using the input scripts in the working directory -- for debugging purposes
     input_list=['in.lj', 'in.rhodo', 'in.eam']
     total_tests = len(input_list)
     passed_tests = iterate(input_list, config)

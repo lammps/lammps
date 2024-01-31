@@ -6,8 +6,10 @@ UPDATE: Jan 30, 2024:
     + using the in place input scripts, no need to add REG markers to the input scripts
   This way we can:
     + launch tests with mpirun with multiple procs
-    + specify what LAMMPS binary version to test 
-    + simplify the build configuration
+    + specify what LAMMPS binary version to test (e.g., testing separate builds)
+    + simplify the build configuration (no need to build the Python module)
+  NOTE: Need to allow to tolerances specified for invidual input scripts,
+        or each config.yaml is for a set of example folders
   Example usage:
     1) Simple use:
          python3 run_tests.py --lmp-bin=/path/to/lmp_binary
@@ -191,6 +193,9 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
   print(f"Executing: {cmd_str}")
   p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
   output = p.stdout.split('\n')
+  # process output to handle failed runs
+
+  return cmd_str
 
 
 '''
@@ -310,7 +315,7 @@ def iterate(input_list, config, removeAnnotatedInput=False):
     #  lmp.file(input_test)
     
     # or more customizable with config.yaml
-    execute(lmp_binary, config, input_test)
+    cmd_str = execute(lmp_binary, config, input_test)
 
     # restore the nprocs value in the configuration
     config['nprocs'] = saved_nprocs
@@ -320,7 +325,7 @@ def iterate(input_list, config, removeAnnotatedInput=False):
 
     num_runs = len(thermo)
     if num_runs == 0:
-      print(f"Failed with the running with {input_test}. Check if the run with this input script completed normally.\n")
+      print(f"Failed with the running with {input_test}. Check if the run with this input script completed normally:")
       continue 
 
     print(f"Comparing thermo output from log.lammps with the reference log {thermo_ref_file}")
@@ -409,6 +414,7 @@ if __name__ == "__main__":
   # default values
   lmp_binary = ""
   configFileName = "config.yaml"
+  example_subfolders = []
   genref = False
 
   # parse the arguments
@@ -416,6 +422,7 @@ if __name__ == "__main__":
   parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
   parser.add_argument("--config-file", dest="config_file", default="config.yaml",
                     help="Configuration YAML file")
+  parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
   parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                     help="Generating reference data")
 
@@ -423,8 +430,12 @@ if __name__ == "__main__":
 
   lmp_binary = os.path.abspath(args.lmp_binary)
   config_file= args.config_file
-  genref = args.genref
-  
+  if args.example_folders != "":
+    example_subfolders = args.example_folders.split(';')
+    print("Example folders:")
+    print(example_subfolders)
+  genref = args.genref 
+
   # read in the configuration of the tests
   with open(configFileName, 'r') as f:
     config = yaml.load(f, Loader=Loader)
@@ -450,7 +461,6 @@ if __name__ == "__main__":
   # Using in place input scripts
   inplace_input = True
 
-  example_subfolders = []
   example_subfolders.append("../../examples/melt")
 
   # append the example subfolders depending on the installed packages
@@ -462,8 +472,8 @@ if __name__ == "__main__":
   #if 'ASPHERE' in packages:
   #  example_subfolders.append('../../examples/ASPHERE/ellipsoid')
 
-  #if 'AMOEBA' in packages:
-  #  example_subfolders.append('../../examples/amoeba')
+  if 'AMOEBA' in packages:
+    example_subfolders.append('../../examples/amoeba')
 
   if 'BODY' in packages:
     example_subfolders.append('../../examples/body')

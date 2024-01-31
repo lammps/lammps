@@ -34,7 +34,15 @@
 
 // set strings for library info output
 
-#if defined(FFT_FFTW3)
+#if defined(FFT_HEFFTE)
+#if defined(FFT_HEFFTE_FFTW)
+#define LMP_FFT_LIB "HeFFTe(FFTW3)"
+#elif defined(FFT_HEFFTE_MKL)
+#define LMP_FFT_LIB "HeFFTe(MKL)"
+#else
+#define LMP_FFT_LIB "HeFFTe(native)"
+#endif
+#elif defined(FFT_FFTW3)
 #define LMP_FFT_LIB "FFTW3"
 #elif defined(FFT_MKL)
 #define LMP_FFT_LIB "MKL FFT"
@@ -42,14 +50,6 @@
 #define LMP_FFT_LIB "cuFFT"
 #elif defined(FFT_HIPFFT)
 #define LMP_FFT_LIB "hipFFT"
-#elif defined(FFT_HEFFT)
-#if defined(FFT_HEFFTE_FFTW)
-#define LMP_FFT_LIB "HeFFTe (FFTW3)"
-#elif defined(FFT_HEFFTE_MKL)
-#define LMP_FFT_LIB "HeFFTe (MKL)"
-#else
-#define LMP_FFT_LIB "HeFFTe (native)"
-#endif
 #else
 #define LMP_FFT_LIB "KISS FFT"
 #endif

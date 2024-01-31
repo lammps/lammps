@@ -160,17 +160,17 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < 3; i++)
     if (set_box.style && (domain->boundary[i][0] >= 2 || domain->boundary[i][1] >= 2))
-      error->all(FLERR, "Cannot use fix deform on a shrink-wrapped boundary");
+      error->all(FLERR, "Cannot use fix deform/pressure on a shrink-wrapped boundary");
 
   // repeat: no tilt deformation on shrink-wrapped 2nd dim
   // b/c shrink wrap will change tilt factor in domain::reset_box()
 
   if (set[3].style && (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
-    error->all(FLERR, "Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+    error->all(FLERR, "Cannot use fix deform/pressure tilt on a shrink-wrapped 2nd dim");
   if (set[4].style && (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
-    error->all(FLERR, "Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+    error->all(FLERR, "Cannot use fix deform/pressure tilt on a shrink-wrapped 2nd dim");
   if (set[5].style && (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
-    error->all(FLERR, "Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+    error->all(FLERR, "Cannot use fix deform/pressure tilt on a shrink-wrapped 2nd dim");
 
   // repeat: set varflag
 
@@ -184,7 +184,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
     irregular = new Irregular(lmp);
   }
 
-  // set initial values at time fix deform is issued
+  // set initial values at time fix deform/pressure is issued
 
   set_box.vol_initial = domain->xprd * domain->yprd * domain->zprd;
 

@@ -46,21 +46,22 @@ using namespace MathConst;
 FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 irregular(nullptr), set(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal fix deform command");
+  const std::string thiscmd = fmt::format("fix {}", style);
+  if (narg < 4) utils::missing_cmd_args(FLERR, thiscmd, error);
 
   no_change_box = 1;
   restart_global = 1;
   pre_exchange_migrate = 1;
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (nevery <= 0) error->all(FLERR, "Illegal fix deform command");
+  if (nevery <= 0) error->all(FLERR, "Fix {} Nevery must be > 0", style);
 
   // arguments for child classes
 
   std::unordered_set<std::string> child_parameters;
   std::unordered_map<std::string, int> child_styles;
   int nskip;
-  if (utils::strmatch(style, "pressure$")) {
+  if (utils::strmatch(style, "^deform/pressure")) {
     child_parameters.insert("box");
     child_styles.insert({{"pressure", 4}, {"pressure/mean", 4}, {"volume", 3}});
   }
@@ -76,45 +77,46 @@ irregular(nullptr), set(nullptr)
 
   int index;
   int iarg = 4;
+
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "x") == 0 ||
-        strcmp(arg[iarg], "y") == 0 ||
-        strcmp(arg[iarg], "z") == 0) {
+    if ((strcmp(arg[iarg], "x") == 0)
+        || (strcmp(arg[iarg], "y") == 0)
+        || (strcmp(arg[iarg], "z") == 0)) {
 
       if (strcmp(arg[iarg], "x") == 0) index = 0;
       else if (strcmp(arg[iarg], "y") == 0) index = 1;
       else if (strcmp(arg[iarg], "z") == 0) index = 2;
 
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, thiscmd, error);
       if (strcmp(arg[iarg + 1], "final") == 0) {
-        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform final", error);
+        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, thiscmd + " final", error);
         set[index].style = FINAL;
         set[index].flo = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         set[index].fhi = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         iarg += 4;
       } else if (strcmp(arg[iarg + 1], "delta") == 0) {
-        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform delta", error);
+        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, thiscmd + " delta", error);
         set[index].style = DELTA;
         set[index].dlo = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         set[index].dhi = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         iarg += 4;
       } else if (strcmp(arg[iarg + 1], "scale") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform scale", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " scale", error);
         set[index].style = SCALE;
         set[index].scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "vel") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform vel", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " vel", error);
         set[index].style = VEL;
         set[index].vel = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "erate") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform erate", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " erate", error);
         set[index].style = ERATE;
         set[index].rate = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "trate") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform trate", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " trate", error);
         set[index].style = TRATE;
         set[index].rate = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
@@ -122,20 +124,20 @@ irregular(nullptr), set(nullptr)
         set[index].style = VOLUME;
         iarg += 2;
       } else if (strcmp(arg[iarg + 1], "wiggle") == 0) {
-        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform wiggle", error);
+        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, thiscmd + " wiggle", error);
         set[index].style = WIGGLE;
         set[index].amplitude = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         set[index].tperiod = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         if (set[index].tperiod <= 0.0)
-          error->all(FLERR, "Illegal fix deform wiggle period, must be positive");
+          error->all(FLERR, "Illegal fix {} wiggle period, must be positive", style);
         iarg += 4;
       } else if (strcmp(arg[iarg + 1], "variable") == 0) {
-        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform variable", error);
+        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, thiscmd + " variable", error);
         set[index].style = VARIABLE;
         if (strstr(arg[iarg + 2], "v_") != arg[iarg + 2])
-          error->all(FLERR, "Illegal fix deform variable name {}", arg[iarg + 2]);
+          error->all(FLERR, "Illegal fix {} variable name {}", style, arg[iarg + 2]);
         if (strstr(arg[iarg + 3], "v_") != arg[iarg + 3])
-          error->all(FLERR, "Illegal fix deform variable name {}", arg[iarg + 3]);
+          error->all(FLERR, "Illegal fix {} variable name {}", style, arg[iarg + 3]);
         delete[] set[index].hstr;
         delete[] set[index].hratestr;
         set[index].hstr = utils::strdup(&arg[iarg + 2][2]);
@@ -146,60 +148,58 @@ irregular(nullptr), set(nullptr)
         if (iarg + nskip > narg)
           utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
         iarg += nskip;
-      } else error->all(FLERR, "Illegal fix deform command argument: {}", arg[iarg + 1]);
+      } else error->all(FLERR, "Illegal fix {} command argument: {}", style, arg[iarg + 1]);
 
-    } else if (strcmp(arg[iarg], "xy") == 0 ||
-               strcmp(arg[iarg], "xz") == 0 ||
-               strcmp(arg[iarg], "yz") == 0) {
+    } else if ((strcmp(arg[iarg], "xy") == 0)
+               || (strcmp(arg[iarg], "xz") == 0)
+               || (strcmp(arg[iarg], "yz") == 0)) {
 
-
-      if (triclinic == 0)
-        error->all(FLERR,"Fix deform tilt factors require triclinic box");
+      if (triclinic == 0) error->all(FLERR,"Fix {} tilt factors require triclinic box", style);
       if (strcmp(arg[iarg], "xy") == 0) index = 5;
       else if (strcmp(arg[iarg], "xz") == 0) index = 4;
       else if (strcmp(arg[iarg], "yz") == 0) index = 3;
 
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, thiscmd, error);
       if (strcmp(arg[iarg + 1], "final") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform final", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " final", error);
         set[index].style = FINAL;
         set[index].ftilt = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "delta") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform delta", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " delta", error);
         set[index].style = DELTA;
         set[index].dtilt = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "vel") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform vel", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " vel", error);
         set[index].style = VEL;
         set[index].vel = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "erate") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform erate", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " erate", error);
         set[index].style = ERATE;
         set[index].rate = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "trate") == 0) {
-        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform trate", error);
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, thiscmd + " trate", error);
         set[index].style = TRATE;
         set[index].rate = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "wiggle") == 0) {
-        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform wiggle", error);
+        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, thiscmd + " wiggle", error);
         set[index].style = WIGGLE;
         set[index].amplitude = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         set[index].tperiod = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         if (set[index].tperiod <= 0.0)
-          error->all(FLERR, "Illegal fix deform wiggle period, must be positive");
+          error->all(FLERR, "Illegal fix {} wiggle period, must be positive", style);
         iarg += 4;
       } else if (strcmp(arg[iarg + 1], "variable") == 0) {
-        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform variable", error);
+        if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, thiscmd + " variable", error);
         set[index].style = VARIABLE;
         if (strstr(arg[iarg + 2], "v_") != arg[iarg + 2])
-          error->all(FLERR, "Illegal fix deform variable name {}", arg[iarg + 2]);
+          error->all(FLERR, "Illegal fix {} variable name {}", style, arg[iarg + 2]);
         if (strstr(arg[iarg + 3], "v_") != arg[iarg + 3])
-          error->all(FLERR, "Illegal fix deform variable name {}", arg[iarg + 3]);
+          error->all(FLERR, "Illegal fix {} variable name {}", style, arg[iarg + 3]);
         delete[] set[index].hstr;
         delete[] set[index].hratestr;
         set[index].hstr = utils::strdup(&arg[iarg + 2][2]);
@@ -210,7 +210,7 @@ irregular(nullptr), set(nullptr)
         if (iarg + nskip > narg)
          utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
         iarg += nskip;
-      } else error->all(FLERR, "Illegal fix deform command argument: {}", arg[iarg + 1]);
+      } else error->all(FLERR, "Illegal fix {} command argument: {}", style, arg[iarg + 1]);
     } else if (child_parameters.find(arg[iarg]) != child_parameters.end()) {
       if (child_styles.find(arg[iarg + 1]) != child_styles.end()) {
         nskip = child_styles[arg[iarg + 1]];
@@ -247,17 +247,17 @@ irregular(nullptr), set(nullptr)
 
   for (int i = 0; i < 3; i++)
     if (set[i].style && (domain->boundary[i][0] >= 2 || domain->boundary[i][1] >= 2))
-      error->all(FLERR, "Cannot use fix deform on a shrink-wrapped boundary");
+      error->all(FLERR, "Cannot use fix {} on a shrink-wrapped boundary", style);
 
   // no tilt deformation on shrink-wrapped 2nd dim
   // b/c shrink wrap will change tilt factor in domain::reset_box()
 
   if (set[3].style && (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
-    error->all(FLERR, "Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+    error->all(FLERR, "Cannot use fix {} tilt on a shrink-wrapped 2nd dim", style);
   if (set[4].style && (domain->boundary[2][0] >= 2 || domain->boundary[2][1] >= 2))
-    error->all(FLERR, "Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+    error->all(FLERR, "Cannot use fix {} tilt on a shrink-wrapped 2nd dim", style);
   if (set[5].style && (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
-    error->all(FLERR, "Cannot use fix deform tilt on a shrink-wrapped 2nd dim");
+    error->all(FLERR, "Cannot use fix {} tilt on a shrink-wrapped 2nd dim", style);
 
   // apply scaling to FINAL,DELTA,VEL,WIGGLE since they have dist/vel units
 
@@ -312,7 +312,7 @@ irregular(nullptr), set(nullptr)
     // Cannot use VOLUME option without at least one deformed dimension
     if (set[other1].style == NONE || set[other1].style == VOLUME)
       if (set[other2].style == NONE || set[other2].style == VOLUME)
-        error->all(FLERR, "Fix deform volume setting is invalid");
+        error->all(FLERR, "Fix {} volume setting is invalid", style);
 
     if (set[other1].style == NONE) {
       set[i].substyle = ONE_FROM_ONE;
@@ -435,14 +435,14 @@ void FixDeform::init()
     if (set[i].style != VARIABLE) continue;
     set[i].hvar = input->variable->find(set[i].hstr);
     if (set[i].hvar < 0)
-      error->all(FLERR, "Variable name {} for fix deform does not exist", set[i].hstr);
+      error->all(FLERR, "Variable name {} for fix {} does not exist", set[i].hstr, style);
     if (!input->variable->equalstyle(set[i].hvar))
-      error->all(FLERR, "Variable {} for fix deform is invalid style", set[i].hstr);
+      error->all(FLERR, "Variable {} for fix {} is invalid style", set[i].hstr, style);
     set[i].hratevar = input->variable->find(set[i].hratestr);
     if (set[i].hratevar < 0)
-      error->all(FLERR, "Variable name {} for fix deform does not exist", set[i].hratestr);
+      error->all(FLERR, "Variable name {} for fix {} does not exist", set[i].hratestr, style);
     if (!input->variable->equalstyle(set[i].hratevar))
-      error->all(FLERR, "Variable {} for fix deform is invalid style", set[i].hratestr);
+      error->all(FLERR, "Variable {} for fix {} is invalid style", set[i].hratestr, style);
   }
 
   // set start/stop values for box size and shape
@@ -480,7 +480,7 @@ void FixDeform::init()
       set[i].lo_stop = set[i].lo_start - shift;
       set[i].hi_stop = set[i].hi_start + shift;
       if (set[i].hi_stop <= set[i].lo_stop)
-        error->all(FLERR, "Final box dimension due to fix deform is < 0.0");
+        error->all(FLERR, "Final box dimension due to fix {} is < 0.0", style);
     } else if (set[i].style == TRATE) {
       double shift = 0.5 * ((set[i].hi_start - set[i].lo_start) * exp(set[i].rate * delt));
       set[i].lo_stop = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
@@ -556,7 +556,7 @@ void FixDeform::init()
 
   for (int i = 3; i < 6; i++)
     if (set[i].style == TRATE && set[i].tilt_start == 0.0)
-      error->all(FLERR, "Cannot use fix deform trate on a box with zero tilt");
+      error->all(FLERR, "Cannot use fix {} trate on a box with zero tilt", style);
 
   // if yz changes and will cause box flip, then xy cannot be changing
   // yz = [3], xy = [5]
@@ -571,7 +571,7 @@ void FixDeform::init()
     int flag = 0;
     double lo,hi;
     if (flipflag && set[3].style == VARIABLE)
-      error->all(FLERR, "Fix deform cannot use yz variable with xy");
+      error->all(FLERR, "Fix {} cannot use yz variable with xy", style);
     if (set[3].style == WIGGLE) {
       lo = set[3].tilt_min;
       hi = set[3].tilt_max;
@@ -584,7 +584,7 @@ void FixDeform::init()
             hi / (set[1].hi_stop - set[1].lo_stop) > 0.5) flag = 1;
       }
       if (flag)
-        error->all(FLERR, "Fix deform is changing yz too much with xy");
+        error->all(FLERR, "Fix {} is changing yz too much with xy", style);
     }
   }
 
@@ -989,14 +989,15 @@ void FixDeform::restart(char *buf)
       samestyle = 0;
   }
   if (!samestyle)
-    error->all(FLERR, "Fix deform settings not consistent with restart");
+    error->all(FLERR, "Fix {} settings not consistent with restart", style);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixDeform::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR, "Illegal fix deform command");
+  const std::string thiscmd = fmt::format("fix {}", style);
+  if (narg < 0) utils::missing_cmd_args(FLERR, thiscmd, error);
 
   remapflag = Domain::X_REMAP;
   scaleflag = 1;
@@ -1006,26 +1007,30 @@ void FixDeform::options(int narg, char **arg)
 
   std::unordered_map<std::string, int> child_options;
   int nskip;
-  if (utils::strmatch(style, "pressure$"))
-    child_options.insert({{"couple", 2}, {"max/rate", 2}, {"normalize/pressure", 2}, {"vol/balance/p", 2}});
+  if (utils::strmatch(style, "^deform/pressure")) {
+    child_options.insert({{"couple", 2},
+                          {"max/rate", 2},
+                          {"normalize/pressure", 2},
+                          {"vol/balance/p", 2}});
+  }
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "remap") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform remap", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, thiscmd + " remap", error);
       if (strcmp(arg[iarg + 1], "x") == 0) remapflag = Domain::X_REMAP;
       else if (strcmp(arg[iarg + 1], "v") == 0) remapflag = Domain::V_REMAP;
       else if (strcmp(arg[iarg + 1], "none") == 0) remapflag = Domain::NO_REMAP;
-      else error->all(FLERR, "Illegal fix deform remap command: {}", arg[iarg + 1]);
+      else error->all(FLERR, "Illegal fix {} remap command: {}", style, arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "units") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform units", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, thiscmd + " units", error);
       if (strcmp(arg[iarg + 1], "box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg + 1], "lattice") == 0) scaleflag = 1;
-      else error->all(FLERR, "Illegal fix deform units command: {}", arg[iarg + 1]);
+      else error->all(FLERR, "Illegal fix {} units command: {}", style, arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "flip") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform flip", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, thiscmd + " flip", error);
       flipflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (child_options.find(arg[iarg]) != child_options.end()) {
@@ -1033,7 +1038,7 @@ void FixDeform::options(int narg, char **arg)
       if (iarg + nskip > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg]), error);
       iarg += nskip;
-    } else error->all(FLERR, "Illegal fix deform command: {}", arg[iarg]);
+    } else error->all(FLERR, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }
 }
 

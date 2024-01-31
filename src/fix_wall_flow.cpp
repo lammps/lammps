@@ -45,14 +45,15 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 static const char cite_fix_wall_flow_c[] =
-  "fix wall/flow command: doi:{tba}\n\n"
-  "@Article{Pavlov-etal-IJHPCA-2023,\n"
+  "fix wall/flow command: doi:10.1177/10943420231213013\n\n"
+  "@Article{Pavlov-etal-IJHPCA-2024,\n"
   " author = {Daniil Pavlov and Vladislav Galigerov and Daniil Kolotinskii and Vsevolod Nikolskiy and Vladimir Stegailov},\n"
-  " title = {GPU-based Molecular Dynamics of Fluid Flows: Reaching for Turbulence},\n"
-  " journal = {International Journal of High Performance Computing Applications},\n"
-  " year =    2023,\n"
-  " volume =  {tba},\n"
-  " pages =   {tba}\n"
+  " title = {GPU-based molecular dynamics of fluid flows: Reaching for turbulence},\n"
+  " journal = {The International Journal of High Performance Computing Applications},\n"
+  " year =    2024,\n"
+  " volume =  38,\n"
+  " number =  1,\n"
+  " pages =   34-49\n"
   "}\n\n";
 
 FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :

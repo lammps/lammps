@@ -741,8 +741,6 @@ void FixDeform::apply_strain()
   // for other styles, target is linear value between start and stop values
 
   if (triclinic) {
-    double *h = domain->h;
-
     for (int i = 3; i < 6; i++) {
       if (set[i].style == NONE) {
         if (i == 5) set[i].tilt_target = domain->xy;
@@ -775,8 +773,6 @@ void FixDeform::apply_strain()
 
 void FixDeform::apply_volume()
 {
-  double e1, e2;
-
   for (int i = 0; i < 3; i++) {
     if (set[i].style != VOLUME) continue;
 

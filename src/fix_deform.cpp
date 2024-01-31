@@ -149,7 +149,7 @@ irregular(nullptr), set(nullptr)
         if (iarg + nskip > narg)
           utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
         iarg += nskip;
-      } error->all(FLERR, "Illegal fix deform command argument: {}", arg[iarg + 1]);
+      } else error->all(FLERR, "Illegal fix deform command argument: {}", arg[iarg + 1]);
 
     } else if (strcmp(arg[iarg], "xy") == 0 ||
                strcmp(arg[iarg], "xz") == 0 ||
@@ -213,7 +213,7 @@ irregular(nullptr), set(nullptr)
         if (iarg + nskip > narg)
          utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
         iarg += nskip;
-      } error->all(FLERR, "Illegal fix deform command argument: {}", arg[iarg + 1]);
+      } else error->all(FLERR, "Illegal fix deform command argument: {}", arg[iarg + 1]);
     } else if (child_parameters.find(arg[iarg]) != child_parameters.end()) {
       if (child_styles.find(arg[iarg + 1]) != child_styles.end()) {
         nskip = child_styles[arg[iarg + 1]];

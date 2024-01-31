@@ -41,9 +41,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{NONE=0,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
-enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
-
 /* ---------------------------------------------------------------------- */
 
 FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),

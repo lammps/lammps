@@ -41,9 +41,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{NONE=0,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE,PRESSURE,PMEAN};
-enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
-enum{NOCOUPLE=0,XYZ,XY,YZ,XZ};
+enum{ NOCOUPLE=0, XYZ, XY, YZ, XZ };
 
 /* ---------------------------------------------------------------------- */
 

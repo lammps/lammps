@@ -341,6 +341,8 @@ def iterate(input_list, config, removeAnnotatedInput=False):
     #print(f"nthermo_steps = {nthermo_steps}")
     num_abs_failed = 0
     num_rel_failed = 0
+    failed_abs_output = []
+    failed_rel_output = []
     for i in range(num_fields):
       quantity = thermo[0]['keywords'][i]
 
@@ -360,10 +362,14 @@ def iterate(input_list, config, removeAnnotatedInput=False):
         abs_tol = float(config['tolerance'][quantity]['abs'])
         rel_tol = float(config['tolerance'][quantity]['rel'])
         if abs_diff > abs_tol:
-          abs_diff_check = f"actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
+          abs_diff_check = "FAILED"
+          reason = f"{quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
+          failed_abs_output.append(f"{reason}")
           num_abs_failed = num_abs_failed + 1
         if rel_diff > rel_tol:
-          rel_diff_check = f"actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
+          rel_diff_check = "FAILED"
+          reason = f"{quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
+          failed_rel_output.append(f"{reason}")
           num_rel_failed = num_rel_failed + 1
 
       else:
@@ -374,9 +380,13 @@ def iterate(input_list, config, removeAnnotatedInput=False):
 
     if num_abs_failed > 0:
       print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
-    elif num_rel_failed > 0:
+      for i in failed_abs_output:
+        print(f"- {i}")
+    if num_rel_failed > 0:
       print(f"{num_rel_failed} relative diff checks failed with the specified tolerances.")
-    else:
+      for i in failed_rel_output:
+        print(f"- {i}")
+    if num_abs_failed == 0 and num_rel_failed == 0:
       print("All checks passed. (N/A means tolerance not defined in the config file.)")
       num_passed = num_passed + 1
 

@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 #define B4 -5.80844129e-3
 #define B5 1.14652755e-1
 
-#define EPSILON 1.0e-20
+static constexpr double EPSILON = 1.0e-20;
 #define EPS_EWALD 1.0e-6
 #define EPS_EWALD_SQR 1.0e-12
 

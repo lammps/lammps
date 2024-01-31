@@ -8,8 +8,8 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.16.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "407db44e2d79447ab5c1233af1965f65" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.26.tar.gz" CACHE STRING "URL for MDI tarball")
+  set(MDI_MD5 "3124bb85259471e2a53a891f04bf697a" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
   GetFallbackURL(MDI_URL MDI_FALLBACK)

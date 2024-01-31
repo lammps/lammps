@@ -43,7 +43,9 @@ double f_lammps_extract_variable_internal();
 double f_lammps_extract_variable_equal();
 double f_lammps_extract_variable_atom(int);
 double f_lammps_extract_variable_vector(int);
-void f_lammps_set_variable_string();
+void f_lammps_set_string_variable();
+void f_lammps_set_internal_variable();
+
 char *c_path_join(const char *, const char *);
 }
 
@@ -155,7 +157,7 @@ TEST_F(LAMMPS_extract_variable, string)
     char *fstr = f_lammps_extract_variable_string();
     EXPECT_STREQ(fstr, "this is a string");
     std::free(fstr);
-    f_lammps_set_variable_string();
+    f_lammps_set_string_variable();
     fstr = f_lammps_extract_variable_string();
     EXPECT_STREQ(fstr, "this is the new string");
     std::free(fstr);
@@ -254,6 +256,8 @@ TEST_F(LAMMPS_extract_variable, internal)
 {
     f_lammps_setup_extract_variable();
     EXPECT_DOUBLE_EQ(f_lammps_extract_variable_internal(), 4.0);
+    f_lammps_set_internal_variable();
+    EXPECT_DOUBLE_EQ(f_lammps_extract_variable_internal(), -2.5);
 };
 
 TEST_F(LAMMPS_extract_variable, equal)

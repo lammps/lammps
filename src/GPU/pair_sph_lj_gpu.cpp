@@ -53,7 +53,7 @@ void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall,
                         int **firstneigh, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         const double cpu_time, bool &success, tagint *host_tag,
-                        double **host_v, const int nlocal);
+                        double **host_v);
 void sph_lj_gpu_get_extra_data(double *host_rho, double *host_esph,
                                double *host_cv);
 void sph_lj_gpu_update_drhoE(void **drhoE_ptr);
@@ -123,7 +123,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
     sph_lj_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                        ilist, numneigh, firstneigh, eflag, vflag,
                        eflag_atom, vflag_atom, host_start, cpu_time, success,
-                       atom->tag, atom->v, atom->nlocal);
+                       atom->tag, atom->v);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 

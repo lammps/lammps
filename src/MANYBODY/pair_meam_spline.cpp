@@ -440,7 +440,7 @@ void PairMEAMSpline::coeff(int narg, char **arg)
   }
 }
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 void PairMEAMSpline::read_file(const char* filename)
 {

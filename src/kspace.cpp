@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-#define SMALL 0.00001
+static constexpr double SMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 

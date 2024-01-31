@@ -49,7 +49,7 @@
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 enum{NUMERIC,ATOM,TYPE,ELEMENT,ATTRIBUTE};
 enum{SPHERE,LINE,TRI};           // also in some Body and Fix child classes

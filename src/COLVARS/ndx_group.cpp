@@ -26,8 +26,8 @@
 #include "tokenizer.h"
 
 using namespace LAMMPS_NS;
-#define BUFLEN 4096
-#define DELTA 16384
+static constexpr int BUFLEN = 4096;
+static constexpr int DELTA = 16384;
 
 // read file until next section "name" or any next section if name == ""
 

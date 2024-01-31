@@ -52,8 +52,8 @@ using namespace LAMMPS_NS;
 #define FC_PACKED2_T typename ForceConst<flt_t>::fc_packed2
 #define FC_PACKED3_T typename ForceConst<flt_t>::fc_packed3
 
-#define MAXLINE 1024
-#define DELTA 4
+static constexpr int MAXLINE = 1024;
+static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 

@@ -121,8 +121,8 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 
 void PairYukawaColloid::init_style()
 {
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair yukawa/colloid requires atom style sphere");
+  if (!atom->radius_flag)
+    error->all(FLERR,"Pair yukawa/colloid requires atom attribute radius");
 
   neighbor->add_request(this);
 

@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 #define BACKTRACK_SLOPE 0.4
 #define QUADRATIC_TOL 0.1
 //#define EMACH 1.0e-8
-#define EMACH 1.0e-8
+static constexpr double EMACH = 1.0e-8;
 #define EPS_QUAD 1.0e-28
 
 /* ---------------------------------------------------------------------- */

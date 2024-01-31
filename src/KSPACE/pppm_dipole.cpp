@@ -40,22 +40,17 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double LARGE = 10000.0;
+static constexpr double SMALL = 0.00001;
+static constexpr double EPS_HOC = 1.0e-7;
 
 enum{REVERSE_MU};
 enum{FORWARD_MU,FORWARD_MU_PERATOM};
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -1338,7 +1333,8 @@ void PPPMDipole::poisson_ik_dipole()
 
   // global energy and virial contribution
 
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {

@@ -545,7 +545,7 @@ void WriteRestart::force_fields()
    all procs call this method, only proc 0 writes to file
 ------------------------------------------------------------------------- */
 
-void WriteRestart::file_layout(int send_size)
+void WriteRestart::file_layout(int /*send_size*/)
 {
   if (me == 0) write_int(MULTIPROC,multiproc);
 

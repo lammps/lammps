@@ -35,7 +35,7 @@ using MathConst::MY_PI;
 using MathSpecial::cube;
 using MathSpecial::powint;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 MLPOD::podstruct::podstruct() :
     twobody{4, 8, 6}, threebody{4, 8, 5, 4}, fourbody{0, 0, 0, 0}, pbc(nullptr),
@@ -302,7 +302,8 @@ void MLPOD::read_pod(const std::string &pod_file)
 
   // loop through lines of POD file and parse keywords
 
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
   while (true) {
     if (comm->me == 0) {
@@ -639,7 +640,8 @@ void MLPOD::read_coeff_file(const std::string &coeff_file)
 
   // check format for first line of file
 
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
   int nwords = 0;
   while (nwords == 0) {

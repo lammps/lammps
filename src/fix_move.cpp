@@ -42,7 +42,7 @@ using namespace MathConst;
 enum { LINEAR, WIGGLE, ROTATE, VARIABLE, TRANSROT };
 enum { EQUAL, ATOM };
 
-#define INERTIA 0.2    // moment of inertia prefactor for ellipsoid
+static constexpr double INERTIA = 0.2;    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
@@ -276,10 +276,11 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   line_flag = atom->line_flag;
   tri_flag = atom->tri_flag;
   body_flag = atom->body_flag;
+  quat_atom_flag = atom->quat_flag;
 
   theta_flag = quat_flag = 0;
   if (line_flag) theta_flag = 1;
-  if (ellipsoid_flag || tri_flag || body_flag) quat_flag = 1;
+  if (ellipsoid_flag || tri_flag || body_flag || quat_atom_flag) quat_flag = 1;
 
   extra_flag = 0;
   if (omega_flag || angmom_flag || theta_flag || quat_flag) extra_flag = 1;
@@ -329,7 +330,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (quat_flag) {
+  if (quat_flag && !quat_atom_flag) {
     double *quat;
     for (int i = 0; i < nlocal; i++) {
       quat = nullptr;
@@ -348,6 +349,16 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
         qoriginal[i][3] = quat[3];
       } else
         qoriginal[i][0] = qoriginal[i][1] = qoriginal[i][2] = qoriginal[i][3] = 0.0;
+    }
+  } else if (quat_atom_flag) {
+    double **quat_atom = atom->quat;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        qoriginal[i][0] = quat_atom[i][0];
+        qoriginal[i][1] = quat_atom[i][1];
+        qoriginal[i][2] = quat_atom[i][2];
+        qoriginal[i][3] = quat_atom[i][3];
+      }
     }
   }
 
@@ -521,6 +532,7 @@ void FixMove::initial_integrate(int /*vflag*/)
   double *radius = atom->radius;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
+  double **quat_atom = atom->quat;
   int *type = atom->type;
   int *ellipsoid = atom->ellipsoid;
   int *line = atom->line;
@@ -749,9 +761,9 @@ void FixMove::initial_integrate(int /*vflag*/)
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
 
-          // quats for ellipsoids, tris, and bodies
+          // quats for ellipsoids, tris, bodies, and bpm/sphere
 
-          if (quat_flag) {
+          if (quat_flag && !quat_atom_flag) {
             quat = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0)
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
@@ -760,6 +772,8 @@ void FixMove::initial_integrate(int /*vflag*/)
             else if (body_flag && body[i] >= 0)
               quat = avec_body->bonus[body[i]].quat;
             if (quat) MathExtra::quatquat(qrotate, qoriginal[i], quat);
+          } else if (quat_atom_flag) {
+            MathExtra::quatquat(qrotate, qoriginal[i], quat_atom[i]);
           }
         }
 
@@ -880,9 +894,9 @@ void FixMove::initial_integrate(int /*vflag*/)
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
 
-          // quats for ellipsoids, tris, and bodies
+          // quats for ellipsoids, tris, bodies, and bpm/sphere
 
-          if (quat_flag) {
+          if (quat_flag && !quat_atom_flag) {
             quat = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0)
               quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
@@ -891,6 +905,8 @@ void FixMove::initial_integrate(int /*vflag*/)
             else if (body_flag && body[i] >= 0)
               quat = avec_body->bonus[body[i]].quat;
             if (quat) MathExtra::quatquat(qrotate, qoriginal[i], quat);
+          } else if (quat_atom_flag) {
+            MathExtra::quatquat(qrotate, qoriginal[i], quat_atom[i]);
           }
         }
 
@@ -1341,9 +1357,9 @@ void FixMove::set_arrays(int i)
         toriginal[i] = theta - 0.0;    // NOTE: edit this line
       }
 
-      // quats for ellipsoids, tris, and bodies
+      // quats for ellipsoids, tris, bodies, and bpm/sphere
 
-      if (quat_flag) {
+      if (quat_flag & !quat_atom_flag) {
         quat = nullptr;
         if (ellipsoid_flag && ellipsoid[i] >= 0)
           quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
@@ -1354,6 +1370,12 @@ void FixMove::set_arrays(int i)
         if (quat) {
           // qoriginal = f(quat,-delta);   // NOTE: edit this line
         }
+      } else if (quat_atom_flag) {
+        // double **quat_atom = atom->quat;
+        // qoriginal[0] = quat_atom[i][0]; // NOTE: edit this line
+        // qoriginal[1] = quat_atom[i][1]; // NOTE: edit this line
+        // qoriginal[2] = quat_atom[i][2]; // NOTE: edit this line
+        // qoriginal[3] = quat_atom[i][3]; // NOTE: edit this line
       }
     }
     xoriginal[i][0] -= vx * delta;
@@ -1400,7 +1422,7 @@ void FixMove::set_arrays(int i)
 
       // quats for ellipsoids, tris, and bodies
 
-      if (quat_flag) {
+      if (quat_flag && !quat_atom_flag) {
         quat = nullptr;
         if (ellipsoid_flag && ellipsoid[i] >= 0)
           quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
@@ -1411,6 +1433,12 @@ void FixMove::set_arrays(int i)
         if (quat) {
           // qoriginal = f(quat,-delta);   // NOTE: edit this line
         }
+      } else if (quat_atom_flag) {
+        // double **quat_atom = atom->quat;
+        // qoriginal[0] = quat_atom[i][0]; // NOTE: edit this line
+        // qoriginal[1] = quat_atom[i][1]; // NOTE: edit this line
+        // qoriginal[2] = quat_atom[i][2]; // NOTE: edit this line
+        // qoriginal[3] = quat_atom[i][3]; // NOTE: edit this line
       }
     }
   }

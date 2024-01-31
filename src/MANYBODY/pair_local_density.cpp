@@ -34,7 +34,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 static const char cite_pair_local_density[] =
   "pair_style local/density command: doi:10.1063/1.4958629, doi:10.1021/acs.jpcb.7b12446\n\n"

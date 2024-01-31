@@ -55,9 +55,9 @@ void NStencilBin<HALF, DIM_3D, TRI>::create()
 
         // Now only include "upper right" bins for half and ortho stencils
         if (HALF && (!DIM_3D) && (!TRI))
-          if (! (j > 0 || (j == 0 && i > 0))) continue;
+          if (j <= 0 && (j != 0 || i <= 0)) continue;
         if (HALF && DIM_3D && (!TRI))
-          if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
+          if (k <= 0 && j <= 0 && (j != 0 || i <= 0)) continue;
 
         if (bin_distance(i, j, k) < cutneighmaxsq)
           stencil[nstencil++] = k * mbiny * mbinx + j * mbinx + i;

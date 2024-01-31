@@ -320,7 +320,7 @@ def iterate(input_list, config, removeAnnotatedInput=False):
 
     num_runs = len(thermo)
     if num_runs == 0:
-      print(f"Failed with the unning with {input_test}. Check if the run with this input script completed normally.\n")
+      print(f"Failed with the running with {input_test}. Check if the run with this input script completed normally.\n")
       continue 
 
     print(f"Comparing thermo output from log.lammps with the reference log {thermo_ref_file}")
@@ -357,11 +357,13 @@ def iterate(input_list, config, removeAnnotatedInput=False):
       rel_diff_check = "PASSED"
 
       if quantity in config['tolerance']:
-        if abs_diff > float(config['tolerance'][quantity]['abs']):
-          abs_diff_check = "FAILED"
+        abs_tol = float(config['tolerance'][quantity]['abs'])
+        rel_tol = float(config['tolerance'][quantity]['rel'])
+        if abs_diff > abs_tol:
+          abs_diff_check = f"actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
           num_abs_failed = num_abs_failed + 1
-        if rel_diff > float(config['tolerance'][quantity]['rel']):
-          rel_diff_check = "FAILED"
+        if rel_diff > rel_tol:
+          rel_diff_check = f"actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
           num_rel_failed = num_rel_failed + 1
 
       else:
@@ -425,7 +427,7 @@ if __name__ == "__main__":
        print("Needs a valid LAMMPS binary")
        quit()
     else:
-       lmp_binary = config['lmp_binary']
+       lmp_binary = os.path.abspath(config['lmp_binary'])
 
   # print out the binary info
   packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
@@ -492,11 +494,6 @@ if __name__ == "__main__":
       print("\nEntering " + directory)
       os.chdir(directory)
 
-      # create a symbolic link to the lammps binary at the present directory
-      if os.path.isfile("lmp") == False:
-        cmd_str = "ln -s " + lmp_binary + " lmp"
-        os.system(cmd_str)
-
       cmd_str = "ls in.*"
       p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
       input_list = p.stdout.split('\n')
@@ -508,10 +505,6 @@ if __name__ == "__main__":
       # iterate through the input scripts
       num_passed = iterate(input_list, config)
       passed_tests += num_passed
-
-      # unlink the symbolic link
-      cmd_str = "unlink lmp"
-      os.system(cmd_str)
 
       # get back to the working dir
       os.chdir(pwd)

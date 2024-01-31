@@ -41,12 +41,12 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{ NOCOUPLE=0, XYZ, XY, YZ, XZ };
+enum { NOCOUPLE = 0, XYZ, XY, YZ, XZ };
 
 /* ---------------------------------------------------------------------- */
 
-FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) : FixDeform(lmp, narg, arg),
-id_temp(nullptr), id_press(nullptr)
+FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
+    FixDeform(lmp, narg, arg), id_temp(nullptr), id_press(nullptr)
 {
   // set defaults
 
@@ -198,8 +198,6 @@ id_temp(nullptr), id_press(nullptr)
 
     int coupled_indices[3] = {0};
     int j = -1;
-    double couple_gain, coupled_pressure;
-    char *couple_str;
 
     if (pcouple == XYZ || pcouple == XY || pcouple == XZ)
       coupled_indices[0] = 1;
@@ -626,14 +624,14 @@ void FixDeformPressure::apply_volume()
             e2 = (Vi - V * (1 + e1 * dt)) / (V * (1 + e1 * dt) * dt);
 
             // If strain rate exceeds limit in either dimension, cap it at the maximum compatible rate
-            if (max_h_rate != 0)
-              if (fabs(e1) > max_h_rate || fabs(e2) > max_h_rate)
+            if (max_h_rate != 0) {
+              if ((fabs(e1) > max_h_rate) || (fabs(e2) > max_h_rate)) {
                 if (fabs(e1) > fabs(e2))
                   adjust_linked_rates(e1, e2, e3, Vi, V);
                 else
                   adjust_linked_rates(e2, e1, e3, Vi, V);
-
-
+              }
+            }
             shift = 0.5 * L1i * (1.0 + e1 * dt);
             linked_pressure = 1;
           } else {

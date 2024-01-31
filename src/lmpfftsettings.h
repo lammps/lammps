@@ -16,11 +16,19 @@
 #ifndef LMP_FFT_SETTINGS_H
 #define LMP_FFT_SETTINGS_H
 
-// if user set FFTW, it means FFTW3
+// if a user sets FFTW, it means FFTW3
 
 #ifdef FFT_FFTW
 #ifndef FFT_FFTW3
 #define FFT_FFTW3
+#endif
+#endif
+
+#ifdef LMP_KOKKOS
+#ifdef FFT_KOKKOS_FFTW
+#ifndef FFT_KOKKOS_FFTW3
+#define FFT_KOKKOS_FFTW3
+#endif
 #endif
 #endif
 
@@ -36,6 +44,20 @@
 #define LMP_FFT_LIB "hipFFT"
 #else
 #define LMP_FFT_LIB "KISS FFT"
+#endif
+
+#ifdef LMP_KOKKOS
+#if defined(FFT_KOKKOS_FFTW3)
+#define LMP_FFT_KOKKOS_LIB "FFTW3"
+#elif defined(FFT_KOKKOS_MKL)
+#define LMP_FFT_KOKKOS_LIB "MKL FFT"
+#elif defined(FFT_KOKKOS_CUFFT)
+#define LMP_FFT_KOKKOS_LIB "cuFFT"
+#elif defined(FFT_KOKKOS_HIPFFT)
+#define LMP_FFT_KOKKOS_LIB "hipFFT"
+#else
+#define LMP_FFT_KOKKOS_LIB "KISS FFT"
+#endif
 #endif
 
 #ifdef FFT_SINGLE

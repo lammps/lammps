@@ -12,29 +12,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+// data types for 2d/3d FFTs
+
+#ifndef LMP_FFT_DATA_KOKKOS_H
+#define LMP_FFT_DATA_KOKKOS_H
+
 #include "kokkos_type.h"
 
 #ifndef MAX
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 #endif
 
-// data types for 2d/3d FFTs
-
-#ifndef LMP_FFT_DATA_KOKKOS_H
-#define LMP_FFT_DATA_KOKKOS_H
-
-#include "lmpfftsettings_kokkos.h"
+#include "lmpfftsettings.h"
 
 // -------------------------------------------------------------------------
-
-// Data types for single-precision complex
-
-#if FFT_PRECISION == 1
-#elif FFT_PRECISION == 2
-#else
-#error "FFT_PRECISION needs to be either 1 (=single) or 2 (=double)"
-#endif
-
 
 // with KOKKOS in CUDA or HIP mode we can only have
 // CUFFT/HIPFFT or KISSFFT, thus undefine all other

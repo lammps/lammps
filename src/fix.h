@@ -99,8 +99,8 @@ class Fix : protected Pointers {
   int size_local_cols;    // 0 = vector, N = columns in local array
   int local_freq;         // frequency local data is available at
 
-  int pergrid_flag;       // 0/1 if per-grid data is stored
-  int pergrid_freq;       // frequency per-grid data is available at
+  int pergrid_flag;    // 0/1 if per-grid data is stored
+  int pergrid_freq;    // frequency per-grid data is available at
 
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
@@ -129,11 +129,11 @@ class Fix : protected Pointers {
 
   // KOKKOS flags and variables
 
-  int kokkosable;             // 1 if Kokkos fix
-  int forward_comm_device;    // 1 if forward comm on Device
-  int exchange_comm_device;   // 1 if exchange comm on Device
-  int fuse_integrate_flag;    // 1 if can fuse initial integrate with final integrate
-  int sort_device;            // 1 if sort on Device
+  int kokkosable;              // 1 if Kokkos fix
+  int forward_comm_device;     // 1 if forward comm on Device
+  int exchange_comm_device;    // 1 if exchange comm on Device
+  int fuse_integrate_flag;     // 1 if can fuse initial integrate with final integrate
+  int sort_device;             // 1 if sort on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
 
@@ -223,7 +223,7 @@ class Fix : protected Pointers {
   virtual void unpack_reverse_grid(int, void *, int, int *){};
   virtual void pack_remap_grid(int, void *, int, int *){};
   virtual void unpack_remap_grid(int, void *, int, int *){};
-  virtual int unpack_read_grid(int, char *) {return 0;};
+  virtual int unpack_read_grid(int, char *) { return 0; };
   virtual void pack_write_grid(int, void *){};
   virtual void unpack_write_grid(int, void *, int *){};
 
@@ -236,7 +236,7 @@ class Fix : protected Pointers {
   virtual double compute_vector(int) { return 0.0; }
   virtual double compute_array(int, int) { return 0.0; }
 
-  virtual int dof(int) { return 0; }
+  virtual bigint dof(int) { return 0; }
   virtual void deform(int) {}
   virtual void reset_target(double) {}
   virtual void reset_dt() {}

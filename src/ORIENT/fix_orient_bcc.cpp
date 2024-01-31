@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define BIG 1000000000
+static constexpr int BIG = 1000000000;
 
 static const char cite_fix_orient_bcc[] =
   "fix orient/bcc command: doi:10.1016/j.commatsci.2016.02.016\n\n"

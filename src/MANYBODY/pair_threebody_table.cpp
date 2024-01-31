@@ -35,7 +35,7 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-#define DELTA 4
+static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 

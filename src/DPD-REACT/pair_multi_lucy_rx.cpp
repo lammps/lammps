@@ -41,14 +41,14 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-enum{NONE,RLINEAR,RSQ};
+enum{ NONE, RLINEAR, RSQ };
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 #ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
+static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
 #else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
+static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #endif
 
 #define oneFluidParameter (-1)
@@ -483,16 +483,13 @@ double PairMultiLucyRX::init_one(int i, int j)
 
 void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 
   FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR, "Cannot open file {}: {}",file,utils::getsyserror());
 
   // loop until section found with matching keyword
 

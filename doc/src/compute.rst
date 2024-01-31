@@ -264,6 +264,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`nbond/atom <compute_nbond_atom>` - calculates number of bonds per atom
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql
+* :doc:`pace <compute_pace>` - atomic cluster expansion descriptors and related quantities
 * :doc:`pair <compute_pair>` - values computed by a pair style
 * :doc:`pair/local <compute_pair_local>` - distance/energy/force of each pairwise interaction
 * :doc:`pe <compute_pe>` - potential energy
@@ -279,12 +280,15 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`property/grid <compute_property_grid>` - convert per-grid attributes to per-grid vectors/arrays
 * :doc:`property/local <compute_property_local>` - convert local attributes to local vectors/arrays
 * :doc:`ptm/atom <compute_ptm_atom>` - determines the local lattice structure based on the Polyhedral Template Matching method
+* :doc:`rattlers/atom <compute_rattlers_atom>` - identify under-coordinated rattler atoms
 * :doc:`rdf <compute_rdf>` - radial distribution function :math:`g(r)` histogram of group of atoms
+* :doc:`reaxff/atom <compute_reaxff_atom>` - extract ReaxFF bond information
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
+* :doc:`slcsa/atom <compute_slcsa_atom>` - perform Supervised Learning Crystal Structure Analysis (SL-CSA)
 * :doc:`slice <compute_slice>` - extract values from global vector or array
 * :doc:`smd/contact/radius <compute_smd_contact_radius>` - contact radius for Smooth Mach Dynamics
 * :doc:`smd/damage <compute_smd_damage>` - damage status of SPH particles in Smooth Mach Dynamics

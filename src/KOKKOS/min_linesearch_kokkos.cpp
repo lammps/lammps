@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 #define BACKTRACK_SLOPE 0.4
 #define QUADRATIC_TOL 0.1
 //#define EMACH 1.0e-8
-#define EMACH 1.0e-8
+static constexpr double EMACH = 1.0e-8;
 #define EPS_QUAD 1.0e-28
 
 /* ---------------------------------------------------------------------- */
@@ -59,8 +59,8 @@ MinLineSearchKokkos::MinLineSearchKokkos(LAMMPS *lmp) : MinKokkos(lmp)
 
 MinLineSearchKokkos::~MinLineSearchKokkos()
 {
-  delete [] gextra;
-  delete [] hextra;
+  delete[] gextra;
+  delete[] hextra;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,8 +171,8 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
 {
   double fdothall,fdothme,hme,hmaxall;
   double de_ideal,de;
-  double delfh,engprev,relerr,alphaprev,fhprev,ff,fh,alpha0;
-  double dot[2],dotall[2];
+  double delfh,engprev,relerr,alphaprev,fhprev,fh,alpha0;
+  double dot,dotall;
   double alphamax;
 
   fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
@@ -280,22 +280,16 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
         sdot.d1 += l_fvec[i]*l_h[i];
       },sdot);
     }
-    dot[0] = sdot.d0;
-    dot[1] = sdot.d1;
+    dot = sdot.d1;
 
-    MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
     if (nextra_global) {
       for (int i = 0; i < nextra_global; i++) {
-        dotall[0] += fextra[i]*fextra[i];
-        dotall[1] += fextra[i]*hextra[i];
+        dotall += fextra[i]*hextra[i];
       }
     }
-    ff = dotall[0];
-    fh = dotall[1];
-    if (output->thermo->normflag) {
-      ff /= atom->natoms;
-      fh /= atom->natoms;
-    }
+    fh = dotall;
+    if (output->thermo->normflag) fh /= atom->natoms;
 
     delfh = fh - fhprev;
 

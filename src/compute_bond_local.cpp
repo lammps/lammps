@@ -31,8 +31,8 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
-#define EPSILON 1.0e-12
+static constexpr int DELTA = 10000;
+static constexpr double EPSILON = 1.0e-12;
 
 enum{DIST,DX,DY,DZ,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE,BN};
 

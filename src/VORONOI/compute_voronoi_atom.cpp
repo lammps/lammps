@@ -35,7 +35,7 @@
 using namespace LAMMPS_NS;
 using namespace voro;
 
-#define FACESDELTA 10000
+static constexpr int FACESDELTA = 10000;
 
 /* ---------------------------------------------------------------------- */
 

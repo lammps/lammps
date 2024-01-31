@@ -27,7 +27,7 @@ using namespace FixConst;
 
 enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 
-#define MAXELEMENT 118
+static constexpr int MAXELEMENT = 118;
 
 // prototype for non-class compare function for sorting QM IDs
 
@@ -47,6 +47,17 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) :
 
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR, "Fix mdi/qm requires an atom map be defined");
+
+  // initialize class members
+
+  plugin = 0;
+  natoms_exists = 0;
+  celldispl_exists = 0;
+  elements_exists = 0;
+  types_exists = 0;
+  stress_exists = 0;
+  pe_exists = 0;
+  keelec_exists = 0;
 
   // confirm LAMMPS is being run as a driver
 

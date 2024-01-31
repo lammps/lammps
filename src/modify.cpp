@@ -33,8 +33,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTA 4
-#define BIG 1.0e20
+static constexpr int DELTA = 4;
+static constexpr double BIG = 1.0e20;
 
 // template for factory function:
 // there will be one instance for each style keyword in the respective style_xxx.h files

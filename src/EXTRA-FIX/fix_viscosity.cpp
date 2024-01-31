@@ -32,7 +32,7 @@ using namespace FixConst;
 
 // needs to be big, but not so big that lose precision when subtract velocity
 
-#define BIG 1.0e10
+static constexpr double BIG = 1.0e10;
 
 /* ---------------------------------------------------------------------- */
 
@@ -120,14 +120,14 @@ int FixViscosity::setmask()
 
 void FixViscosity::init()
 {
-  // warn if any fix ave/spatial comes after this fix
+  // warn if any fix ave/chunk comes after this fix
   // can cause glitch in averaging since ave will happen after swap
 
   int foundme = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i] == this) foundme = 1;
-    if (foundme && strcmp(modify->fix[i]->style,"ave/spatial") == 0 && me == 0)
-      error->warning(FLERR,"Fix viscosity comes before fix ave/spatial");
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix == this) foundme = 1;
+    if (foundme && utils::strmatch(ifix->style,"^ave/chunk") && (me == 0))
+      error->warning(FLERR,"Fix viscosity comes before fix ave/chunk");
   }
 
   // set bounds of 2 slabs in pdim

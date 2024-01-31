@@ -38,7 +38,7 @@ using namespace MathConst;
 
 #define EPS_ENERGY 1.0e-8
 
-#define DELAYSTEP 5
+static constexpr int DELAYSTEP = 5;
 
 /* ---------------------------------------------------------------------- */
 

@@ -36,8 +36,10 @@ using namespace MathExtra;
 FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix nvt/nph/npt sphere requires atom style sphere");
+  if (!atom->omega_flag)
+    error->all(FLERR,"Fix {} requires atom attribute omega", style);
+  if (!atom->radius_flag)
+    error->all(FLERR,"Fix {} requires atom attribute radius", style);
 
   // inertia = moment of inertia prefactor for sphere or disc
 

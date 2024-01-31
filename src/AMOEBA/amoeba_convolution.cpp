@@ -47,13 +47,8 @@ enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 //#define SCALE 1
 #define SCALE 0
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF =  1.0;
 
 /* ----------------------------------------------------------------------
    partition an FFT grid across processors

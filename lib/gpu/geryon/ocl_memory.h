@@ -108,7 +108,7 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
     return UCL_MEMORY_ERROR;
   *mat.host_ptr() = (typename mat_type::data_type*)
     clEnqueueMapBuffer(cm.cq(),mat.cbegin(),CL_TRUE,
-		       map_perm,0,n,0,NULL,NULL,NULL);
+                       map_perm,0,n,0,NULL,NULL,NULL);
 
   mat.cq()=cm.cq();
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));

@@ -214,9 +214,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
       (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
     englj *= switch1;
   }
-
   return englj;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -488,4 +486,3 @@ template class PairLJCharmmCoulLongKokkos<LMPDeviceType>;
 template class PairLJCharmmCoulLongKokkos<LMPHostType>;
 #endif
 }
-

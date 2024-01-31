@@ -25,7 +25,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EXTRA 1000
+static constexpr int EXTRA = 1000;
 
 /* ----------------------------------------------------------------------
    allocate and initialize array or hash table for global -> local map
@@ -146,7 +146,7 @@ void AtomKokkos::map_set()
   int nmax = atom->nmax;
 
   int realloc_flag = 0;
-  if (d_tag_sorted.extent(0) < nmax) {
+  if (!d_tag_sorted.data() || (int)d_tag_sorted.extent(0) < nmax) {
     MemKK::realloc_kokkos(d_tag_sorted,"atom:tag_sorted",nmax);
     MemKK::realloc_kokkos(d_i_sorted,"atom:i_sorted",nmax);
     realloc_flag = 1;
@@ -179,25 +179,25 @@ void AtomKokkos::map_set()
   using MapKeyViewType = decltype(d_tag_sorted);
   using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
 
-  auto binner = BinOpMap(nall, min, max);
+  mapBinner = BinOpMap(nall, min, max);
 
-  if (!Sorter.bin_offsets.data() || realloc_flag) {
-    Sorter = Kokkos::BinSort<MapKeyViewType, BinOpMap>(d_tag_sorted, 0, nall, binner, true);
-    MemKK::realloc_kokkos(Sorter.bin_count_atomic,"Kokkos::SortImpl::BinSortFunctor::bin_count",nmax+1);
-    Kokkos::deep_copy(Sorter.bin_count_atomic,0);
-    Sorter.bin_count_const = Sorter.bin_count_atomic;
-    MemKK::realloc_kokkos(Sorter.bin_offsets,"Kokkos::SortImpl::BinSortFunctor::bin_offsets",nmax+1);
-    MemKK::realloc_kokkos(Sorter.sort_order,"Kokkos::SortImpl::BinSortFunctor::sort_order",nmax);
+  if (realloc_flag) {
+    mapSorter = Kokkos::BinSort<MapKeyViewType, BinOpMap>(d_tag_sorted, 0, nall, mapBinner, true);
+    MemKK::realloc_kokkos(mapSorter.bin_count_atomic,"Kokkos::SortImpl::BinSortFunctor::bin_count",nmax+1);
+    Kokkos::deep_copy(mapSorter.bin_count_atomic,0);
+    mapSorter.bin_count_const = mapSorter.bin_count_atomic;
+    MemKK::realloc_kokkos(mapSorter.bin_offsets,"Kokkos::SortImpl::BinSortFunctor::bin_offsets",nmax+1);
+    MemKK::realloc_kokkos(mapSorter.sort_order,"Kokkos::SortImpl::BinSortFunctor::sort_order",nmax);
   } else {
-    Kokkos::deep_copy(Sorter.bin_count_atomic,0);
-    Sorter.bin_op = binner;
-    Sorter.range_begin = 0;
-    Sorter.range_end = nall;
+    Kokkos::deep_copy(mapSorter.bin_count_atomic,0);
+    mapSorter.bin_op = mapBinner;
+    mapSorter.range_begin = 0;
+    mapSorter.range_end = nall;
   }
 
-  Sorter.create_permute_vector(LMPDeviceType());
-  Sorter.sort(LMPDeviceType(), d_tag_sorted, 0, nall);
-  Sorter.sort(LMPDeviceType(), d_i_sorted, 0, nall);
+  mapSorter.create_permute_vector(LMPDeviceType());
+  mapSorter.sort(LMPDeviceType(), d_tag_sorted, 0, nall);
+  mapSorter.sort(LMPDeviceType(), d_i_sorted, 0, nall);
 
   auto d_map_array = k_map_array.d_view;
   auto d_map_hash = k_map_hash.d_view;
@@ -273,6 +273,7 @@ void AtomKokkos::map_set()
     error->one(FLERR,"Failed to insert into Kokkos hash atom map");
 
   k_sametag.modify_device();
+  k_sametag.sync_host();
 
   if (map_style == MAP_ARRAY)
     k_map_array.modify_device();

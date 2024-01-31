@@ -49,14 +49,17 @@ simulation.  An example set of statistics is shown here:
 ----------
 
 The first section provides a global loop timing summary. The *loop time*
-is the total wall-clock time for the simulation to run.  The
-*Performance* line is provided for convenience to help predict how long
-it will take to run a desired physical simulation and to have numbers
-useful for performance comparison between different simulation settings
-or system sizes.  The *CPU use* line provides the CPU utilization per
-MPI task; it should be close to 100% times the number of OpenMP threads
-(or 1 of not using OpenMP).  Lower numbers correspond to delays due to
-file I/O or insufficient thread utilization.
+is the total wall-clock time for the MD steps of the simulation run,
+excluding the time for initialization and setup (i.e. the parts that may
+be skipped with :doc:`run N pre no <run>`).  The *Performance* line is
+provided for convenience to help predict how long it will take to run a
+desired physical simulation and to have numbers useful for performance
+comparison between different simulation settings or system sizes.  The
+*CPU use* line provides the CPU utilization per MPI task; it should be
+close to 100% times the number of OpenMP threads (or 1 if not using
+OpenMP).  Lower numbers correspond to delays due to file I/O or
+insufficient thread utilization from parts of the code that have not
+been multi-threaded.
 
 ----------
 

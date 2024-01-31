@@ -37,8 +37,8 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL,ATOM};
 
-#define SINERTIA 0.4          // moment of inertia prefactor for sphere
-#define EINERTIA 0.2          // moment of inertia prefactor for ellipsoid
+static constexpr double SINERTIA = 0.4;          // moment of inertia prefactor for sphere
+static constexpr double EINERTIA = 0.2;          // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
@@ -137,7 +137,7 @@ void FixLangevinEff::post_force_no_tally()
   dof = domain->dimension * particles;
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+    fix_dof += (int)modify->fix[i]->dof(igroup);
 
   // extra_dof = domain->dimension
   dof -= domain->dimension + fix_dof;
@@ -306,7 +306,7 @@ void FixLangevinEff::post_force_tally()
   dof = domain->dimension * particles;
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+    fix_dof += (int)modify->fix[i]->dof(igroup);
 
   // extra_dof = domain->dimension
   dof -= domain->dimension + fix_dof;

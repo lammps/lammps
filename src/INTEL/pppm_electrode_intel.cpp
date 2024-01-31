@@ -48,23 +48,18 @@
 using namespace LAMMPS_NS;
 using namespace std;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double LARGE = 10000.0;
+static constexpr double SMALL = 0.00001;
+static constexpr double EPS_HOC = 1.0e-7;
 
 enum { REVERSE_RHO };
 enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 enum : bool { ELECTRODE = true, ELECTROLYTE = false };
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF 1.0f
-#else
-#define ZEROF 0.0
-#define ONEF 1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr FFT_SCALAR ONEF = 1.0;
 
 static const char cite_pppm_electrode[] =
     "kspace_style pppm/electrode command:\n\n"
@@ -420,7 +415,9 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
 #endif
   {
     int *mask = atom->mask;
-    const flt_t scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+
+    const bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+    const flt_t scaleinv = 1.0 / ngridtotal;
 
     const flt_t lo0 = boxlo[0];
     const flt_t lo1 = boxlo[1];

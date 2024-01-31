@@ -27,6 +27,7 @@ class FixWall : public Fix {
   int xstyle[6];
   int xindex[6];
   char *xstr[6];
+  enum { NONE = 0, EDGE, CONSTANT, VARIABLE };
 
   FixWall(class LAMMPS *, int, char **);
   ~FixWall() override;

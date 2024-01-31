@@ -215,18 +215,16 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     } else if ((strcmp(arg[iarg], "eta") == 0)) {
       if (iarg + 2 > narg) error->all(FLERR, "Need two arguments after eta command");
       etaflag = true;
-      int is_double, cols;
-      eta_index = atom->find_custom(arg[++iarg] + 2, is_double, cols);
+      int is_double, cols, ghost;
+      eta_index = atom->find_custom_ghost(arg[++iarg] + 2, is_double, cols, ghost);
       if (eta_index == -1)
         error->all(FLERR, "eta keyword requires name of previously defined property");
       if (!is_double) error->all(FLERR, "eta keyword requires double-valued property/atom vector");
       if (cols != 0) error->all(FLERR, "eta keyword requires property/atom vector not an array");
-      if (!atom->nextra_border)
-        error->all(FLERR,
-                   "There is no fix with ghost on, but the eta keyword requires a property/atom "
-                   "fix with ghost on");
-      // toggle parameters
-    } else if ((strcmp(arg[iarg], "etypes") == 0)) {
+      if (!ghost) error->all(FLERR, "eta keyword requires property/atom fix with ghost on");
+    }
+    // toggle parameters
+    else if ((strcmp(arg[iarg], "etypes") == 0)) {
       etypes_neighlists = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if ((strncmp(arg[iarg], "symm", 4) == 0)) {
       symm = utils::logical(FLERR, arg[++iarg], false, lmp);

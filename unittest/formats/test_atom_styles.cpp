@@ -695,6 +695,112 @@ TEST_F(AtomStyleTest, atomic)
     EXPECT_NEAR(x[GETIDX(16)][2], 7.9, EPSILON);
 }
 
+TEST_F(AtomStyleTest, no_tags)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("atom_modify id no");
+    command("create_box 2 box");
+    command("create_atoms 1 single -2.0  2.0  0.1");
+    command("create_atoms 1 single -2.0 -2.0 -0.1");
+    command("create_atoms 2 single  2.0  2.0 -0.1");
+    command("create_atoms 2 single  2.0 -2.0  0.1");
+    command("mass 1 4.0");
+    command("mass 2 2.4");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
+
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+
+    ASSERT_NE(lmp->atom->mass, nullptr);
+    ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_EQ(lmp->atom->sametag, nullptr);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style atomic");
+    command("pair_style zero 4.0");
+    command("atom_modify id no");
+    command("units real");
+    command("read_data test_atom_styles.data");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+
+    ASSERT_NEAR(lmp->atom->mass[1], 4.0, EPSILON);
+    ASSERT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff * *");
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+
+    ASSERT_NEAR(lmp->atom->mass[1], 4.0, EPSILON);
+    ASSERT_NEAR(lmp->atom->mass[2], 2.4, EPSILON);
+    ASSERT_EQ(lmp->atom->mass_setflag[1], 1);
+    ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_user, Atom::MAP_NONE);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("comm_style tiled");
+    command("change_box all triclinic");
+    command("replicate 2 2 2");
+    END_HIDE_OUTPUT();
+
+    ASSERT_EQ(lmp->atom->natoms, 32);
+    ASSERT_EQ(lmp->atom->nlocal, 32);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 0);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 2);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 0);
+    ASSERT_EQ(lmp->atom->map_tag_max, -1);
+
+    TEST_FAILURE(".*ERROR: Cannot use reset_atoms id unless atoms have IDs.*",
+                 command("reset_atoms id"););
+}
+
 TEST_F(AtomStyleTest, charge)
 {
     BEGIN_HIDE_OUTPUT();

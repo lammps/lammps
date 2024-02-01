@@ -1465,7 +1465,22 @@ void ReadData::atoms()
 
 void ReadData::velocities()
 {
+  bigint nread = 0;
   int nchunk, eof;
+
+  // cannot map velocities to atoms without atom IDs
+
+  if (!atom->tag_enable) {
+    if (me == 0) utils::logmesg(lmp, "  skipping velocities without atom IDs ...\n");
+
+    while (nread < natoms) {
+      nchunk = MIN(natoms - nread, CHUNK);
+      eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
+      if (eof) error->all(FLERR, "Unexpected end of data file");
+      nread += nchunk;
+    }
+    return;
+  }
 
   if (me == 0) utils::logmesg(lmp, "  reading velocities ...\n");
 
@@ -1475,8 +1490,6 @@ void ReadData::velocities()
     atom->map_init();
     atom->map_set();
   }
-
-  bigint nread = 0;
 
   while (nread < natoms) {
     nchunk = MIN(natoms - nread, CHUNK);

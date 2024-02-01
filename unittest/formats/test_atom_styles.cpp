@@ -632,7 +632,7 @@ TEST_F(AtomStyleTest, atomic)
     ASSERT_EQ(lmp->atom->map_user, Atom::MAP_HASH);
     ASSERT_EQ(lmp->atom->map_tag_max, 3);
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 2);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -846,7 +846,7 @@ TEST_F(AtomStyleTest, charge)
     ASSERT_EQ(lmp->atom->mass_setflag[2], 1);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     command("change_box all triclinic");
     command("replicate 2 2 2 bbox");
     END_HIDE_OUTPUT();
@@ -1004,7 +1004,7 @@ TEST_F(AtomStyleTest, sphere)
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2");
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -1310,7 +1310,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -1600,7 +1600,7 @@ TEST_F(AtomStyleTest, line)
     EXPECT_NEAR(bonus[3].theta, MathConst::MY_PI / 6.0, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nlines, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2008,7 +2008,7 @@ TEST_F(AtomStyleTest, tri)
     EXPECT_NEAR(bonus[3].c3[2], -0.15731490073748589, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->ntris, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2583,7 +2583,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     ASSERT_NE(bonus[3].dvalue, nullptr);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nbodies, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -2968,7 +2968,7 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(molatom[GETIDX(24)], -1);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
@@ -3396,7 +3396,7 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(molatom[GETIDX(24)], -1);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 16);
@@ -3742,7 +3742,7 @@ TEST_F(AtomStyleTest, bond)
 
     BEGIN_HIDE_OUTPUT();
     command("delete_bonds all bond 2");
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -4119,7 +4119,7 @@ TEST_F(AtomStyleTest, angle)
 
     BEGIN_HIDE_OUTPUT();
     command("delete_bonds all angle 2");
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
     ASSERT_EQ(lmp->atom->map_tag_max, 8);
@@ -4479,7 +4479,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
     ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
@@ -4775,7 +4775,7 @@ TEST_F(AtomStyleTest, property_atom)
     EXPECT_NEAR(three[GETIDX(3)], 0.5, EPSILON);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     command("change_box all triclinic");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->map_tag_max, 2);

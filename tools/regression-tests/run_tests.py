@@ -316,22 +316,26 @@ def iterate(input_list, config, removeAnnotatedInput=False):
       print(f"Failed with the running with {input_test}. Check if the run with this input script completed normally:")
       continue 
 
-    print(f"Comparing thermo output from log.lammps with the reference log {thermo_ref_file}")
+    print(f"Comparing thermo output from log.lammps with the reference log file {thermo_ref_file}")
     if num_runs != num_runs_ref:
       print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
       continue
 
     # comparing output vs reference values
     width = 20
-    print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
+    if verbose == True:
+      print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
+    
+    # arbitrary for now, can iterate through all num_runs
     irun = 0
     num_fields = len(thermo[irun]['keywords'])
 
     # get the total number of the thermo output lines
     nthermo_steps = len(thermo[irun]['data'])
+
     # get the output at the last timestep
     thermo_step = nthermo_steps - 1
-    #print(f"nthermo_steps = {nthermo_steps}")
+
     num_abs_failed = 0
     num_rel_failed = 0
     failed_abs_output = []
@@ -369,7 +373,8 @@ def iterate(input_list, config, removeAnnotatedInput=False):
         abs_diff_check = "N/A"
         rel_diff_check = "N/A"
 
-      print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+      if verbose == True:
+        print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
 
     if num_abs_failed > 0:
       print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
@@ -380,7 +385,9 @@ def iterate(input_list, config, removeAnnotatedInput=False):
       for i in failed_rel_output:
         print(f"- {i}")
     if num_abs_failed == 0 and num_rel_failed == 0:
-      print("All checks passed. (N/A means tolerance not defined in the config file.)")
+      print("All checks passed.")
+      if verbose == True:
+         print("  N/A means that tolerances are not defined in the config file.")
       num_passed = num_passed + 1
 
     print("-"*(5*width+4))
@@ -414,7 +421,7 @@ if __name__ == "__main__":
   parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
   parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                       help="Generating reference data")
-  parser.add_argument("--verbose",dest="verbose", action='store_true', default=True,
+  parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
                       help="Verbose output")
 
   args = parser.parse_args()

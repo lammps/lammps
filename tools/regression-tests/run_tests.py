@@ -107,6 +107,8 @@ def extract_data_to_yaml(inputFileName):
         docs += "...\n"
 
       if reading == True and "Step" not in line:
+        if  "WARNING" in line:
+          continue
         data = line.split()
         docs += " - ["
         for field in enumerate(data):
@@ -115,7 +117,16 @@ def extract_data_to_yaml(inputFileName):
 
     # load the docs into a YAML data struture
     #print(docs)
-    thermo = list(yaml.load_all(docs, Loader=Loader))
+    try:
+       yaml_struct = yaml.load_all(docs, Loader=Loader)
+       thermo = list(yaml_struct)
+    except yaml.YAMLError as exc:
+       if hasattr(exc, 'problem_mark'):
+         mark = exc.problem_mark
+         print(f"Error parsing {inputFileName} at line {mark.line}, column {mark.column+1}.")
+       else:
+         print (f"Something went wrong while parsing {inputFileName}.")
+       print(docs)
     return thermo
 
 '''
@@ -393,15 +404,18 @@ if __name__ == "__main__":
   configFileName = "config.yaml"
   example_subfolders = []
   genref = False
+  verbose = False
 
   # parse the arguments
   parser = ArgumentParser()
   parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
   parser.add_argument("--config-file", dest="config_file", default="config.yaml",
-                    help="Configuration YAML file")
+                      help="Configuration YAML file")
   parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
   parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
-                    help="Generating reference data")
+                      help="Generating reference data")
+  parser.add_argument("--verbose",dest="verbose", action='store_true', default=True,
+                      help="Verbose output")
 
   args = parser.parse_args()
 
@@ -411,7 +425,8 @@ if __name__ == "__main__":
     example_subfolders = args.example_folders.split(';')
     print("Example folders:")
     print(example_subfolders)
-  genref = args.genref 
+  genref = args.genref
+  verbose = args.verbose
 
   # read in the configuration of the tests
   with open(configFileName, 'r') as f:
@@ -452,6 +467,10 @@ if __name__ == "__main__":
       example_subfolders.append('../../examples/micelle')
       # peptide thermo_style as multi
       #example_subfolders.append('../../examples/peptide')
+
+    if 'GRANULAR' in packages:
+      example_subfolders.append('../../examples/granular')
+      example_subfolders.append('../../examples/pour')
 
     if 'AMOEBA' in packages:
       example_subfolders.append('../../examples/amoeba')

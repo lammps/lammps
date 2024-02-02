@@ -200,7 +200,10 @@ bool Timer::_check_timeout()
 /* ---------------------------------------------------------------------- */
 double Timer::get_timeout_remain()
 {
-  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - platform::walltime();
+  double remain = _timeout + timeout_start - platform::walltime();
+  // flag timeout if the timer expires right now
+  if (remain < 0.0) remain = 0.0;
+  return (_timeout < 0.0) ? 0.0 : remain;
 }
 
 /* ----------------------------------------------------------------------

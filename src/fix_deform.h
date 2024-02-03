@@ -68,6 +68,9 @@ class FixDeform : public Fix {
   };
   Set *set;
 
+  std::vector<int> leftover_iarg;
+  int iarg_options_start;
+
   void options(int, char **);
   void virtual apply_volume();
   void apply_strain();

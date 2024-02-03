@@ -36,6 +36,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -56,9 +57,10 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
 
   // parse child-specific arguments
 
-  int index;
-  int iarg = 4;
-  while (iarg < narg) {
+  int index, iarg;
+  int i = 0;
+  while (i < leftover_iarg.size()) {
+    iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "x") == 0 ||
         strcmp(arg[iarg], "y") == 0 ||
         strcmp(arg[iarg], "z") == 0) {
@@ -78,7 +80,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
           set_extra[index].pvar_flag = 1;
         }
         set_extra[index].pgain = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        iarg += 4;
+        i += 4;
       } else if (strcmp(arg[iarg + 1], "pressure/mean") == 0) {
         if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure pressure/mean", error);
         set[index].style = PMEAN;
@@ -89,7 +91,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
           set_extra[index].pvar_flag = 1;
         }
         set_extra[index].pgain = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        iarg += 4;
+        i += 4;
       } else error->all(FLERR, "Illegal fix deform/pressure command argument: {}", arg[iarg + 1]);
 
     } else if (strcmp(arg[iarg], "xy") == 0 ||
@@ -111,12 +113,12 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
           set_extra[index].pvar_flag = 1;
         }
         set_extra[index].pgain = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        iarg += 4;
+        i += 4;
       } else error->all(FLERR, "Illegal fix deform/pressure command: {}", arg[iarg + 1]);
     } else if (strcmp(arg[iarg], "box") == 0) {
       if (strcmp(arg[iarg + 1], "volume") == 0) {
         set_box.style = VOLUME;
-        iarg += 2;
+        i += 2;
       } else if (strcmp(arg[iarg + 1], "pressure") == 0) {
         if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure pressure", error);
         set_box.style = PRESSURE;
@@ -127,14 +129,16 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
           set_extra[6].pvar_flag = 1;
         }
         set_extra[6].pgain = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        iarg += 4;
+        i += 4;
       } else error->all(FLERR, "Illegal fix deform/pressure command argument: {}", arg[iarg + 1]);
     } else break;
   }
 
   // read options from end of input line
+  // shift arguments before reading
 
-  options(narg - iarg, &arg[iarg]);
+  iarg = iarg_options_start;
+  options(i, narg - iarg, &arg[iarg]);
 
   // repeat: setup dimflags used by other classes to check for volume-change conflicts
 
@@ -171,6 +175,42 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Cannot use fix deform/pressure tilt on a shrink-wrapped 2nd dim");
   if (set[5].style && (domain->boundary[1][0] >= 2 || domain->boundary[1][1] >= 2))
     error->all(FLERR, "Cannot use fix deform/pressure tilt on a shrink-wrapped 2nd dim");
+
+  // for VOLUME, setup links to other dims
+  // fixed, dynamic1, dynamic2
+
+  for (int i = 0; i < 3; i++) {
+    if (set[i].style != VOLUME) continue;
+    int other1 = (i + 1) % 3;
+    int other2 = (i + 2) % 3;
+
+    // Cannot use VOLUME option without at least one deformed dimension
+    if (set[other1].style == NONE || set[other1].style == VOLUME)
+      if (set[other2].style == NONE || set[other2].style == VOLUME)
+        error->all(FLERR, "Fix {} volume setting is invalid", style);
+
+    if (set[other1].style == NONE) {
+      set[i].substyle = ONE_FROM_ONE;
+      set[i].fixed = other1;
+      set[i].dynamic1 = other2;
+    } else if (set[other2].style == NONE) {
+      set[i].substyle = ONE_FROM_ONE;
+      set[i].fixed = other2;
+      set[i].dynamic1 = other1;
+    } else if (set[other1].style == VOLUME) {
+      set[i].substyle = TWO_FROM_ONE;
+      set[i].fixed = other1;
+      set[i].dynamic1 = other2;
+    } else if (set[other2].style == VOLUME) {
+      set[i].substyle = TWO_FROM_ONE;
+      set[i].fixed = other2;
+      set[i].dynamic1 = other1;
+    } else {
+      set[i].substyle = ONE_FROM_TWO;
+      set[i].dynamic1 = other1;
+      set[i].dynamic2 = other2;
+    }
+  }
 
   // repeat: set varflag
 
@@ -221,6 +261,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Must specify deformation style for at least one coupled dimension");
 
     // Copy or compare data for each coupled dimension
+
     for (int i = 0; i < 3; i++) {
       if (coupled_indices[i]) {
         // Copy coupling information if dimension style is undefined
@@ -814,17 +855,16 @@ void FixDeformPressure::restart(char *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixDeformPressure::options(int narg, char **arg)
+void FixDeformPressure::options(int i, int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR, "Illegal fix deform/pressure command");
-
   pcouple = NOCOUPLE;
   max_h_rate = 0.0;
   vol_balance_flag = 0;
   normalize_pressure_flag = 0;
 
-  int iarg = 0;
-  while (iarg < narg) {
+  int iarg, nskip;
+  while (i < leftover_iarg.size()) {
+    iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "couple") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure couple", error);
       if (strcmp(arg[iarg + 1], "xyz") == 0) pcouple = XYZ;
@@ -833,21 +873,21 @@ void FixDeformPressure::options(int narg, char **arg)
       else if (strcmp(arg[iarg + 1], "xz") == 0) pcouple = XZ;
       else if (strcmp(arg[iarg + 1], "none") == 0) pcouple = NOCOUPLE;
       else error->all(FLERR, "Illegal fix deform/pressure couple command: {}", arg[iarg + 1]);
-      iarg += 2;
+      i += 2;
     } else if (strcmp(arg[iarg], "max/rate") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure max/rate", error);
       max_h_rate = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (max_h_rate <= 0.0)
         error->all(FLERR, "Maximum strain rate must be a positive, non-zero value");
-      iarg += 2;
+      i += 2;
     } else if (strcmp(arg[iarg], "normalize/pressure") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure normalize/pressure", error);
       normalize_pressure_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
+      i += 2;
     } else if (strcmp(arg[iarg], "vol/balance/p") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure vol/balance/p", error);
       vol_balance_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
+      i += 2;
     } else error->all(FLERR, "Illegal fix deform/pressure command: {}", arg[iarg]);
   }
 }

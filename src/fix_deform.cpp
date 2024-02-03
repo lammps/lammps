@@ -36,6 +36,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -147,6 +148,7 @@ irregular(nullptr), set(nullptr)
         nskip = child_styles[arg[iarg + 1]];
         if (iarg + nskip > narg)
           utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
+        for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
         iarg += nskip;
       } else error->all(FLERR, "Illegal fix {} command argument: {}", style, arg[iarg + 1]);
 
@@ -209,6 +211,7 @@ irregular(nullptr), set(nullptr)
         nskip = child_styles[arg[iarg + 1]];
         if (iarg + nskip > narg)
          utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
+        for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
         iarg += nskip;
       } else error->all(FLERR, "Illegal fix {} command argument: {}", style, arg[iarg + 1]);
     } else if (child_parameters.find(arg[iarg]) != child_parameters.end()) {
@@ -216,6 +219,7 @@ irregular(nullptr), set(nullptr)
         nskip = child_styles[arg[iarg + 1]];
         if (iarg + nskip > narg)
          utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
+        for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
         iarg += nskip;
       } error->all(FLERR, "Illegal fix {} command argument: {}", style, arg[iarg + 1]);
     } else break;
@@ -223,6 +227,7 @@ irregular(nullptr), set(nullptr)
 
   // read options from end of input line
 
+  iarg_options_start = iarg;
   options(narg - iarg, &arg[iarg]);
 
   // no x remap effectively moves atoms within box, so set restart_pbc
@@ -303,37 +308,40 @@ irregular(nullptr), set(nullptr)
 
   // for VOLUME, setup links to other dims
   // fixed, dynamic1, dynamic2
+  // only check for parent, otherwise child will check
 
-  for (int i = 0; i < 3; i++) {
-    if (set[i].style != VOLUME) continue;
-    int other1 = (i + 1) % 3;
-    int other2 = (i + 2) % 3;
+  if (strcmp(style, "deform") == 0) {
+    for (int i = 0; i < 3; i++) {
+      if (set[i].style != VOLUME) continue;
+      int other1 = (i + 1) % 3;
+      int other2 = (i + 2) % 3;
 
-    // Cannot use VOLUME option without at least one deformed dimension
-    if (set[other1].style == NONE || set[other1].style == VOLUME)
-      if (set[other2].style == NONE || set[other2].style == VOLUME)
-        error->all(FLERR, "Fix {} volume setting is invalid", style);
+      // Cannot use VOLUME option without at least one deformed dimension
+      if (set[other1].style == NONE || set[other1].style == VOLUME)
+        if (set[other2].style == NONE || set[other2].style == VOLUME)
+          error->all(FLERR, "Fix {} volume setting is invalid", style);
 
-    if (set[other1].style == NONE) {
-      set[i].substyle = ONE_FROM_ONE;
-      set[i].fixed = other1;
-      set[i].dynamic1 = other2;
-    } else if (set[other2].style == NONE) {
-      set[i].substyle = ONE_FROM_ONE;
-      set[i].fixed = other2;
-      set[i].dynamic1 = other1;
-    } else if (set[other1].style == VOLUME) {
-      set[i].substyle = TWO_FROM_ONE;
-      set[i].fixed = other1;
-      set[i].dynamic1 = other2;
-    } else if (set[other2].style == VOLUME) {
-      set[i].substyle = TWO_FROM_ONE;
-      set[i].fixed = other2;
-      set[i].dynamic1 = other1;
-    } else {
-      set[i].substyle = ONE_FROM_TWO;
-      set[i].dynamic1 = other1;
-      set[i].dynamic2 = other2;
+      if (set[other1].style == NONE) {
+        set[i].substyle = ONE_FROM_ONE;
+        set[i].fixed = other1;
+        set[i].dynamic1 = other2;
+      } else if (set[other2].style == NONE) {
+        set[i].substyle = ONE_FROM_ONE;
+        set[i].fixed = other2;
+        set[i].dynamic1 = other1;
+      } else if (set[other1].style == VOLUME) {
+        set[i].substyle = TWO_FROM_ONE;
+        set[i].fixed = other1;
+        set[i].dynamic1 = other2;
+      } else if (set[other2].style == VOLUME) {
+        set[i].substyle = TWO_FROM_ONE;
+        set[i].fixed = other2;
+        set[i].dynamic1 = other1;
+      } else {
+        set[i].substyle = ONE_FROM_TWO;
+        set[i].dynamic1 = other1;
+        set[i].dynamic2 = other2;
+      }
     }
   }
 
@@ -1037,6 +1045,7 @@ void FixDeform::options(int narg, char **arg)
       nskip = child_options[arg[iarg]];
       if (iarg + nskip > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg]), error);
+        for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
       iarg += nskip;
     } else error->all(FLERR, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }

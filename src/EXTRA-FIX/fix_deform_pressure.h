@@ -60,7 +60,7 @@ class FixDeformPressure : public FixDeform {
   SetExtra *set_extra;
   Set set_box;
 
-  void options(int, char **);
+  void options(int, int, char **);
   void apply_volume() override;
   void apply_pressure();
   void apply_box();

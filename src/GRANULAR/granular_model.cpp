@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
+ 
 /* ----------------------------------------------------------------------
    This class contains a series of tools for DEM contacts
    Multiple models can be defined and used to calculate forces

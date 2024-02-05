@@ -40,7 +40,7 @@
 #elif defined(FFT_HEFFTE_MKL)
 #define LMP_FFT_LIB "HeFFTe(MKL)"
 #else
-#define LMP_FFT_LIB "HeFFTe(native)"
+#define LMP_FFT_LIB "HeFFTe(builtin)"
 #endif
 #elif defined(FFT_FFTW3)
 #define LMP_FFT_LIB "FFTW3"
@@ -55,14 +55,14 @@
 #endif
 
 #ifdef LMP_KOKKOS
-#if defined(FFT_KOKKOS_FFTW3)
-#define LMP_FFT_KOKKOS_LIB "FFTW3"
-#elif defined(FFT_KOKKOS_MKL)
-#define LMP_FFT_KOKKOS_LIB "MKL FFT"
-#elif defined(FFT_KOKKOS_CUFFT)
+#if defined(FFT_KOKKOS_CUFFT)
 #define LMP_FFT_KOKKOS_LIB "cuFFT"
 #elif defined(FFT_KOKKOS_HIPFFT)
 #define LMP_FFT_KOKKOS_LIB "hipFFT"
+#elif defined(FFT_KOKKOS_FFTW3)
+#define LMP_FFT_KOKKOS_LIB "FFTW3"
+#elif defined(FFT_KOKKOS_MKL)
+#define LMP_FFT_KOKKOS_LIB "MKL FFT"
 #else
 #define LMP_FFT_KOKKOS_LIB "KISS FFT"
 #endif

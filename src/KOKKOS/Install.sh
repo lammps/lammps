@@ -208,7 +208,6 @@ action kokkos_few.h
 action kokkos_type.h
 action kokkos.cpp
 action kokkos.h
-action lmpfftsettings_kokkos.h lmpfftsettings.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
 action meam_dens_final_kokkos.h meam_dens_final.cpp

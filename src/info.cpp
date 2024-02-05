@@ -97,6 +97,7 @@ enum {COMPUTES=1<<0,
       DUMP_STYLES=1<<24,
       COMMAND_STYLES=1<<25,
       ACCELERATOR=1<<26,
+      FFT=1<<27,
       ALL=~0};
 
 static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
@@ -205,6 +206,9 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if (strncmp(arg[idx],"accelerator",3) == 0) {
       flags |= ACCELERATOR;
+      ++idx;
+    } else if (strncmp(arg[idx],"fft",3) == 0) {
+      flags |= FFT;
       ++idx;
     } else if (strncmp(arg[idx],"styles",3) == 0) {
       if (idx+1 < narg) {
@@ -400,6 +404,42 @@ void Info::command(int narg, char **arg)
                  comm->procgrid[1], comm->procgrid[2]);
   }
 
+  if (flags & FFT) {
+    fputs("\nFFT information:\n",out);
+#if defined(FFT_HEFFTE)
+    fputs("FFT engine  = HeFFTe\n",out);
+#if defined(FFT_HEFFTE_MKL)
+    fputs("FFT library = MKL\n", out);
+#elif defined(FFT_HEFFTE_FFTW)
+    fputs("FFT library = FFTW\n", out);
+#else
+    fputs("FFT library = (builtin)\n", out);
+#endif
+#else
+    fputs("FFT engine  = mpiFFT\n",out);
+#if defined(FFT_MKL)
+    fputs("FFT library = MKL\n", out);
+#elif defined(FFT_FFTW3)
+    fputs("FFT library = FFTW3\n", out);
+#else
+    fputs("FFT library = KISS\n", out);
+#endif
+#endif
+#if defined(LMP_KOKKOS)
+    fputs("KOKKOS FFT engine  = mpiFFT\n",out);
+#if defined(FFT_KOKKOS_CUFFT)
+    fputs("KOKKOS FFT library = cuFFT\n", out);
+#elif defined(FFT_KOKKOS_HIPFFT)
+    fputs("KOKKOS FFT library = hipFFT\n", out);
+#elif defined(FFT_FFTW3)
+    fputs("KOKKOS FFT library = FFTW3\n", out);
+#elif defined(FFT_KOKKOS_MKL)
+    fputs("KOKKOS FFT library = MKL\n", out);
+#else
+    fputs("KOKKOS FFT library = KISS\n", out);
+#endif
+#endif
+  }
   if (flags & SYSTEM) {
     fputs("\nSystem information:\n",out);
     fmt::print(out,"Units         = {}\n", update->unit_style);

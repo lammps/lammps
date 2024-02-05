@@ -34,6 +34,7 @@
 #include "group.h"
 #include "improper.h"
 #include "input.h"
+#include "lmpfftsettings.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
@@ -406,40 +407,9 @@ void Info::command(int narg, char **arg)
 
   if (flags & FFT) {
     fputs("\nFFT information:\n",out);
-#if defined(FFT_HEFFTE)
-    fputs("FFT engine  = HeFFTe\n",out);
-#if defined(FFT_HEFFTE_MKL)
-    fputs("FFT library = MKL\n", out);
-#elif defined(FFT_HEFFTE_FFTW)
-    fputs("FFT library = FFTW\n", out);
-#else
-    fputs("FFT library = (builtin)\n", out);
-#endif
-#else
-    fputs("FFT engine  = mpiFFT\n",out);
-#if defined(FFT_MKL)
-    fputs("FFT library = MKL\n", out);
-#elif defined(FFT_FFTW3)
-    fputs("FFT library = FFTW3\n", out);
-#else
-    fputs("FFT library = KISS\n", out);
-#endif
-#endif
-#if defined(LMP_KOKKOS)
-    fputs("KOKKOS FFT engine  = mpiFFT\n",out);
-#if defined(FFT_KOKKOS_CUFFT)
-    fputs("KOKKOS FFT library = cuFFT\n", out);
-#elif defined(FFT_KOKKOS_HIPFFT)
-    fputs("KOKKOS FFT library = hipFFT\n", out);
-#elif defined(FFT_FFTW3)
-    fputs("KOKKOS FFT library = FFTW3\n", out);
-#elif defined(FFT_KOKKOS_MKL)
-    fputs("KOKKOS FFT library = MKL\n", out);
-#else
-    fputs("KOKKOS FFT library = KISS\n", out);
-#endif
-#endif
+    fputs(get_fft_info().c_str(),out);
   }
+
   if (flags & SYSTEM) {
     fputs("\nSystem information:\n",out);
     fmt::print(out,"Units         = {}\n", update->unit_style);
@@ -1304,6 +1274,68 @@ std::string Info::get_accelerator_info(const std::string &package)
     mesg += "\n";
   }
   return mesg;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string Info::get_fft_info()
+{
+  std::string fft_info;
+#if defined(FFT_SINGLE)
+  fft_info = "FFT precision  = single\n";
+#else
+  fft_info = "FFT precision  = double\n";
+#endif
+#if defined(FFT_HEFFTE)
+  fft_info += "FFT engine  = HeFFTe\n";
+#if defined(FFT_HEFFTE_MKL)
+  fft_info += "FFT library = MKL\n";
+#elif defined(FFT_HEFFTE_FFTW)
+  fft_info += "FFT library = FFTW\n";
+#else
+  fft_info += "FFT library = (builtin)\n";
+#endif
+#else
+  fft_info += "FFT engine  = mpiFFT\n";
+#if defined(FFT_MKL)
+#if defined(FFT_MKL_THREADS)
+  fft_info += "FFT library = MKL with threads\n";
+#else
+  fft_info += "FFT library = MKL\n";
+#endif
+#elif defined(FFT_FFTW3)
+#if defined(FFT_FFTW_THREADS)
+  fft_info += "FFT library = FFTW3 with threads\n";
+#else
+  fft_info += "FFT library = FFTW3\n";
+#endif
+#else
+  fft_info += "FFT library = KISS\n";
+#endif
+#endif
+#if defined(LMP_KOKKOS)
+  fft_info += "KOKKOS FFT engine  = mpiFFT\n";
+#if defined(FFT_KOKKOS_CUFFT)
+  fft_info += "KOKKOS FFT library = cuFFT\n";
+#elif defined(FFT_KOKKOS_HIPFFT)
+  fft_info += "KOKKOS FFT library = hipFFT\n";
+#elif defined(FFT_KOKKOS_FFTW3)
+#if defined(FFT_KOKKOS_FFTW_THREADS)
+  fft_info += "KOKKOS FFT library = FFTW3 with threads\n";
+#else
+  fft_info += "KOKKOS FFT library = FFTW3\n";
+#endif
+#elif defined(FFT_KOKKOS_MKL)
+#if defined(FFT_KOKKOS_MKL_THREADS)
+  fft_info += "KOKKOS FFT library = MKL with threads\n";
+#else
+  fft_info += "KOKKOS FFT library = MKL\n";
+#endif
+#else
+  fft_info += "KOKKOS FFT library = KISS\n";
+#endif
+#endif
+  return fft_info;
 }
 
 /* ---------------------------------------------------------------------- */

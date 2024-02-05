@@ -50,7 +50,7 @@ PairPOD::PairPOD(LAMMPS *lmp) :
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
-  peratom_warn = true;
+  peratom_warn = false;
 
   dim = 3;
   nablockmax = 1;
@@ -223,6 +223,8 @@ void PairPOD::compute(int eflag, int vflag)
 
       evdwl = fastpodptr->peratomenergyforce(fij, rij, tmpmem, ti, tj, nij);
 
+      if (eflag_atom) eatom[i] = evdwl;
+      
       // tally atomic energy to global energy
 
       ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
@@ -333,7 +335,7 @@ void PairPOD::init_style()
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // reset flag to print warning about per-atom energies or stresses
-  peratom_warn = true;
+  peratom_warn = false;
 }
 
 /* ----------------------------------------------------------------------

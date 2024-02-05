@@ -17,12 +17,18 @@
 #include "granular_model.h"
 #include "math_special.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 
 using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;
+
+static constexpr double PISQ = 9.86960440108935799230; 
+static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;
+static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;
 
 /* ----------------------------------------------------------------------
    Default damping model
@@ -129,6 +135,50 @@ void GranSubModDampingTsuji::init()
 /* ---------------------------------------------------------------------- */
 
 double GranSubModDampingTsuji::calculate_forces()
+{
+  damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
+  return -damp_prefactor * gm->vnnr;
+}
+
+/* ----------------------------------------------------------------------
+   enhooke damping
+------------------------------------------------------------------------- */
+
+GranSubModDampingEnHooke::GranSubModDampingEnHooke(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
+{
+}
+
+void GranSubModDampingEnHooke::init()
+{
+  double cor = gm->normal_model->get_damp();
+  double logcor = log(cor);
+  damp = -2*logcor/sqrt(PISQ + logcor*logcor);
+}
+
+double GranSubModDampingEnHooke::calculate_forces()
+{
+  damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
+  return -damp_prefactor * gm->vnnr;
+}
+
+/* ----------------------------------------------------------------------
+   enhertz damping
+------------------------------------------------------------------------- */
+
+GranSubModDampingEnHertz::GranSubModDampingEnHertz(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
+{
+}
+
+void GranSubModDampingEnHertz::init()
+{
+  double cor = gm->normal_model->get_damp();
+  double logcor = log(cor);
+  damp = -ROOTTHREEBYTWO*TWOROOTFIVEBYSIX*logcor/sqrt(PISQ + logcor*logcor);
+}
+
+double GranSubModDampingEnHertz::calculate_forces()
 {
   damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
   return -damp_prefactor * gm->vnnr;

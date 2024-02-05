@@ -70,7 +70,7 @@ libraries and better pipelining for packing and communication.
          the FFT library selected by the FFT_KOKKOS variable applies. Otherwise,
          the FFT library selected by the FFT variable applies.
          The same FFT settings apply to both. FFT_KOKKOS must be compatible with the
-         Kokkos backend - for example, when using the CUDA backend of Kokkos,
+         Kokkos back end - for example, when using the CUDA back end of Kokkos,
          you must use either CUFFT or KISS.
 
       Usually these settings are all that is needed.  If FFTW3 is
@@ -186,9 +186,10 @@ The Intel MKL math library is part of the Intel compiler suite.  It
 can be used with the Intel or GNU compiler (see the ``FFT_LIB`` setting
 above).
 
-The CUFFT and HIPFFT FFT libraries are packaged with NVIDIA's CUDA and AMD's
-HIP installations, respectively. These FFT libraries require the Kokkos acceleration
-package to be enabled and the Kokkos backend to be GPU-resident (ie, HIP or CUDA).
+The cuFFT and hipFFT FFT libraries are packaged with NVIDIA's CUDA and
+AMD's HIP installations, respectively. These FFT libraries require the
+Kokkos acceleration package to be enabled and the Kokkos back end to be
+GPU-resident (i.e., HIP or CUDA).
 
 Performing 3d FFTs in parallel can be time-consuming due to data access
 and required communication.  This cost can be reduced by performing
@@ -201,11 +202,11 @@ generally less than the difference in precision. Using the
 ``-DFFT_SINGLE`` setting trades off a little accuracy for reduced memory
 use and parallel communication costs for transposing 3d FFT data.
 
-When using ``-DFFT_SINGLE`` with FFTW3, you may need to build the FFTW
-library a second time with support for single-precision.
+When using ``-DFFT_SINGLE`` with FFTW3, you may need to ensure that
+the FFTW3 installation includes support for single-precision.
 
-For FFTW3, do the following, which should produce the additional
-library ``libfftw3f.a`` or ``libfftw3f.so``\ .
+When compiler FFTW3 from source, you can do the following, which should
+produce the additional libraries ``libfftw3f.a`` and/or ``libfftw3f.so``\ .
 
 .. code-block:: bash
 

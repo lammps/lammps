@@ -451,7 +451,7 @@ relative RMS error.
   assignment and force interpolation calculations, along with the FFTs
   themselves, on the GPU or (optionally) threaded on the CPU when
   using OpenMP and FFTW3. The specific FFT library is selected using
-  the FFT_KOKKOS CMake parameter. See the 
+  the FFT_KOKKOS CMake parameter. See the
   :doc:`Build settings <Build_settings>` doc page for how to select a
   3rd-party FFT library.
 

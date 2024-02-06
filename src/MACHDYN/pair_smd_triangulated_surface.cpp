@@ -46,8 +46,6 @@ using namespace std;
 using namespace LAMMPS_NS;
 using namespace Eigen;
 
-#define SQRT2 1.414213562e0
-
 /* ---------------------------------------------------------------------- */
 
 PairTriSurf::PairTriSurf(LAMMPS *lmp) :

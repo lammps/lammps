@@ -124,6 +124,7 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
+        forcecoul = forcecoul2 = forcelj = 0.0;
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
@@ -149,7 +150,7 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
               forcecoul -= (1.0-factor_coul)*prefactor;
             }
           }
-        } else forcecoul = 0.0;
+        }
 
         if (rsq < cut_ljsq[itype][jtype]) {
           // Lennard-Jones potential
@@ -160,7 +161,6 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
           if (lj2[itype][jtype]==0.0) {
             // This means a point charge is considered, so the correction is zero
             erfc2 = 0.0;
-            forcecoul2 = 0.0;
             prefactor2 = 0.0;
           } else {
             rrij = lj2[itype][jtype]*r;
@@ -169,7 +169,7 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
             prefactor2 = -qqrd2e*qtmp*q[j]/r;
             forcecoul2 = prefactor2*(erfc2+EWALD_F*rrij*expn2);
           }
-        } else forcelj = 0.0;
+        }
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq)
@@ -580,6 +580,8 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
 
   r2inv = 1.0/rsq;
   r = sqrt(rsq);
+  forcecoul = forcecoul2 = 0.0;
+
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq) {
       grij = g_ewald * r;
@@ -610,7 +612,6 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
     forcelj = r6inv*(12.0*lj3[itype][jtype]*r6inv-6.0*lj4[itype][jtype]);
     if (lj2[itype][jtype] == 0.0) {
       erfc2 = 0.0;
-      forcecoul2 = 0.0;
       prefactor2 = 0.0;
     } else {
       rrij = lj2[itype][jtype]*r;

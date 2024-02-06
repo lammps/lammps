@@ -42,15 +42,12 @@ using namespace MathSpecial;
 
 static constexpr int MAXORDER = 7;
 static constexpr int OFFSET = 16384;
-static constexpr double LARGE = 10000.0;
 static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
-
-enum{REVERSE_MU};
-enum{FORWARD_MU,FORWARD_MU_PERATOM};
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
-static constexpr FFT_SCALAR ONEF =  1.0;
+
+enum { REVERSE_MU };
+enum { FORWARD_MU, FORWARD_MU_PERATOM };
 
 /* ---------------------------------------------------------------------- */
 

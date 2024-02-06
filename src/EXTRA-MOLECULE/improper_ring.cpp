@@ -54,7 +54,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-static constexpr double TOLERANCE = 0.05;
 static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */

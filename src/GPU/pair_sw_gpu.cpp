@@ -49,9 +49,6 @@ void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln,
                     const double cpu_time, bool &success);
 double sw_gpu_bytes();
 
-static constexpr int MAXLINE = 1024;
-static constexpr int DELTA = 4;
-
 /* ---------------------------------------------------------------------- */
 
 PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)

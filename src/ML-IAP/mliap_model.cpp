@@ -27,7 +27,6 @@
 using namespace LAMMPS_NS;
 
 static constexpr int MAXLINE = 1024;
-static constexpr int MAXWORD = 3;
 
 /* ---------------------------------------------------------------------- */
 

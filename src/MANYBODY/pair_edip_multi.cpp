@@ -38,7 +38,6 @@
 using namespace LAMMPS_NS;
 using namespace MathExtra;
 
-static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;
 
 static const char cite_pair_edip[] =

@@ -23,7 +23,6 @@
 using namespace LAMMPS_NS;
 
 static constexpr double BIG =   1.0e20;
-static constexpr double SMALL = 1.0e-4;
 
 /* ---------------------------------------------------------------------- */
 

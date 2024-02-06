@@ -30,18 +30,17 @@
 #include "neighbor.h"
 #include "pair.h"
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAX_LEVELS 10
+static constexpr int MAX_LEVELS = 10;
 static constexpr int OFFSET = 16384;
-static constexpr double SMALL = 0.00001;
 
-enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
-enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
+enum { REVERSE_RHO, REVERSE_AD, REVERSE_AD_PERATOM };
+enum { FORWARD_RHO, FORWARD_AD, FORWARD_AD_PERATOM };
 
 /* ---------------------------------------------------------------------- */
 

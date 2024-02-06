@@ -20,6 +20,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fft3d_kokkos.h"
@@ -105,6 +106,13 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   fft1 = nullptr;
   fft2 = nullptr;
   remap = nullptr;
+
+#if defined (LMP_KOKKOS_GPU)
+  #if defined(FFT_KOKKOS_KISSFFT)
+    if (comm->me == 0)
+      error->warning(FLERR,"Using default KISS FFT with Kokkos GPU backends may give suboptimal performance");
+  #endif
+#endif
 }
 
 /* ----------------------------------------------------------------------

@@ -69,13 +69,6 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
     if (stack_size < 2048)
       cudaDeviceSetLimit(cudaLimitStackSize,2048);
   #endif
-
-  #if defined (LMP_KOKKOS_GPU)
-    int me;
-    MPI_Comm_rank(comm,&me);
-    if (me == 0)
-      lmp->warning(FLERR,"Using default KISS FFT with Kokkos GPU backends may give suboptimal performance");
-  #endif
 #endif
 
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,

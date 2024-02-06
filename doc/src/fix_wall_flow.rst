@@ -73,7 +73,7 @@ flow may differ from ones requested. The degree of such discrepancy is determine
 by how different from the ideal gas the simulated system is. Therefore, a calibration procedure is required for each system as described in :ref:`(Pavlov) <fbc-Pavlov2>`.
 
 The interactions between particles on different sides of a wall are not disabled or neglected and the
-particle positions aren't affected by the velocity reassignment.
+particle positions are not affected by the velocity reassignment.
 This removes the need to modify the force field to work correctly in cases when a particle is close
 to a wall (for example, if particle positions were uniformly redistributed across the surface of the wall,
 two particles could end up too close to each other, potentially causing the simulation to explode).

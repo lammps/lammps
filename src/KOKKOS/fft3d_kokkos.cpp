@@ -806,6 +806,27 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
 }
 
 /* ----------------------------------------------------------------------
+   divide n into 2 factors of as equal size as possible
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FFT3dKokkos<DeviceType>::bifactor(int n, int *factor1, int *factor2)
+{
+  int n1,n2,facmax;
+
+  facmax = static_cast<int> (sqrt((double) n));
+
+  for (n1 = facmax; n1 > 0; n1--) {
+    n2 = n/n1;
+    if (n1*n2 == n) {
+      *factor1 = n1;
+      *factor2 = n2;
+      return;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    perform just the 1d FFTs needed by a 3d FFT, no data movement
    used for timing purposes
 

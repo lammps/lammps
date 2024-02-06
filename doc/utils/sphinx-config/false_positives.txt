@@ -3797,6 +3797,7 @@ unimodal
 uninstall
 unitarg
 unitless
+unittest
 Universite
 unix
 unmaintained

@@ -241,14 +241,31 @@ will be skipped if prerequisite features are not available in LAMMPS.
    time.  Preference is given to parts of the code base that are easy to
    test or commonly used.
 
-Many tests have special test programs that test individual functions or
-classes.  There are also special cases for the Fortran and Python
-module.  Tests for force computing or modifying styles (e.g. pair styles
-or bond styles) are performed with the same test executable using input
-files in YAML format.  So to add a test for another style of this kind
-it may be sufficient to add a suitable YAML file.  :doc:`Detailed
+Tests as shown by the ``ctest`` program are command lines defined in the
+``CMakeLists.txt`` files in the ``unittest`` directory tree.  A few
+tests simply execute LAMMPS with specific command line flags and check
+the output to the screen for expected content.  A large number of unit
+tests are special tests programs using the `GoogleTest framework
+<https://github.com/google/googletest/>`_ and linked to the LAMMPS
+library that test individual functions or create a LAMMPS class
+instance, execute one or more commands and check data inside the LAMMPS
+class hierarchy.  There are also tests for the C-library, Fortran, and
+Python module interfaces to LAMMPS.  The Python tests use the Python
+"unittest" module in a similar fashion than the others use `GoogleTest`.
+These special test programs are structured to have perform multiple
+individual tests internally and each of those contains several checks
+(aka assertions) for internal data being changed as expected.
+
+Tests for force computing or modifying styles (e.g. styles for non-bonded
+and bonded interactions and selected fixes) are run by using a more generic
+test program that reads its input from files in YAML format. The YAML file
+provides the information on how to customized the test program to test
+a specific style and - if needed - with specific settings.
+To add a test for another, similar style (e.g. a new pair style) it is
+usually sufficient to add a suitable YAML file.  :doc:`Detailed
 instructions for adding tests <Developer_unittest>` are provided in the
-Programmer Guide part of the manual.
+Programmer Guide part of the manual.  A description of what happens
+during the tests is given below.
 
 Unit tests for force styles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

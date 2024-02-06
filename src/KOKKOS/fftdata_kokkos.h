@@ -27,54 +27,6 @@
 
 // -------------------------------------------------------------------------
 
-// with KOKKOS in CUDA or HIP mode we can only have
-// CUFFT/HIPFFT or KISSFFT, thus undefine all other
-// FFTs here, since they may be valid in fft3d.cpp
-
-#ifdef KOKKOS_ENABLE_CUDA
-# if defined(FFT_KOKKOS_FFTW)
-#  undef FFT_KOKKOS_FFTW
-# endif
-# if defined(FFT_KOKKOS_FFTW3)
-#  undef FFT_KOKKOS_FFTW3
-# endif
-# if defined(FFT_KOKKOS_MKL)
-#  undef FFT_KOKKOS_MKL
-# endif
-# if !defined(FFT_KOKKOS_CUFFT) && !defined(FFT_KOKKOS_KISSFFT)
-#  define FFT_KOKKOS_KISSFFT
-# endif
-#elif defined(KOKKOS_ENABLE_HIP)
-# if defined(FFT_KOKKOS_FFTW)
-#  undef FFT_KOKKOS_FFTW
-# endif
-# if defined(FFT_KOKKOS_FFTW3)
-#  undef FFT_KOKKOS_FFTW3
-# endif
-# if defined(FFT_KOKKOS_MKL)
-#  undef FFT_KOKKOS_MKL
-# endif
-# if !defined(FFT_KOKKOS_HIPFFT) && !defined(FFT_KOKKOS_KISSFFT)
-#  define FFT_KOKKOS_KISSFFT
-# endif
-#else
-# if defined(FFT_KOKKOS_CUFFT)
-#  error "Must enable CUDA with KOKKOS to use -DFFT_KOKKOS_CUFFT"
-# endif
-# if defined(FFT_KOKKOS_HIPFFT)
-#  error "Must enable HIP with KOKKOS to use -DFFT_KOKKOS_HIPFFT"
-# endif
-// if user set FFTW, it means FFTW3
-# ifdef FFT_KOKKOS_FFTW
-#  define FFT_KOKKOS_FFTW3
-# endif
-# ifdef FFT_KOKKOS_FFTW_THREADS
-#  if !defined(FFT_KOKKOS_FFTW3)
-#   error "Must use -DFFT_KOKKOS_FFTW3 with -DFFT_KOKKOS_FFTW_THREADS"
-#  endif
-# endif
-#endif
-
 #if defined(FFT_KOKKOS_MKL)
   #include "mkl_dfti.h"
   #if defined(FFT_SINGLE)

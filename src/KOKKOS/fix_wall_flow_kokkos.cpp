@@ -292,6 +292,7 @@ template <class DeviceType>
 void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(
    DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d &k_indices, int nrecv,
+   int /*nrecv1*/, int /*nextrarecv1*/,
    ExecutionSpace space)
 {
   d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(

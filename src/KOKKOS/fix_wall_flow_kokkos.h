@@ -75,6 +75,7 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
 
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
+                              int /*nrecv1*/, int /*nextrarecv1*/,
                               ExecutionSpace space) override;
  protected:
   typename AT::t_x_array d_x;

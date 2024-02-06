@@ -15,6 +15,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Stan Moore (SNL), Sam Mish (U.C. Davis), Nick Hagerty (ORNL)
 ------------------------------------------------------------------------- */
+
 #include "fft3d_kokkos.h"
 
 #include "error.h"
@@ -37,7 +38,7 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
              int scaled, int permute, int *nbuf, int usecollective,
-             int usecuda_aware) :
+             int usegpu_aware) :
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
@@ -73,7 +74,7 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                            scaled,permute,nbuf,usecollective,nthreads,usecuda_aware);
+                            scaled,permute,nbuf,usecollective,nthreads,usegpu_aware);
   if (plan == nullptr) error->one(FLERR,"Could not create 3d FFT plan");
 }
 
@@ -155,7 +156,7 @@ public:
     *(out_ptr++) *= norm;
 #elif defined(FFT_KOKKOS_MKL)
     d_out(i) *= norm;
-#else // FFT_KISS
+#else // FFT_KOKKOS_KISS
     d_out(i).re *= norm;
     d_out(i).im *= norm;
 #endif
@@ -375,7 +376,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
                           2 = permute twice = slow->fast, fast->mid, mid->slow
    nbuf                 returns size of internal storage buffers used by FFT
    usecollective        use collective MPI operations for remapping data
-   usecuda_aware        use CUDA-Aware MPI or not
+   usegpu_aware         use GPU-Aware MPI or not
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -386,7 +387,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
        int out_ilo, int out_ihi, int out_jlo, int out_jhi,
        int out_klo, int out_khi,
        int scaled, int permute, int *nbuf, int usecollective,
-       int nthreads, int usecuda_aware)
+       int nthreads, int usegpu_aware)
 {
   struct fft_plan_3d_kokkos<DeviceType> *plan;
   int me,nprocs;
@@ -418,7 +419,6 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   // not needed if all procs own entire fast axis initially
   // first indices = distribution after 1st set of FFTs
 
-
   if (in_ilo == 0 && in_ihi == nfast-1) flag = 0;
   else flag = 1;
 
@@ -444,7 +444,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
       remapKK->remap_3d_create_plan_kokkos(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                            first_ilo,first_ihi,first_jlo,first_jhi,
                            first_klo,first_khi,2,0,0,FFT_PRECISION,
-                           usecollective,usecuda_aware);
+                           usecollective,usegpu_aware);
     if (plan->pre_plan == nullptr) return nullptr;
   }
 
@@ -469,7 +469,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                            first_klo,first_khi,
                            second_ilo,second_ihi,second_jlo,second_jhi,
                            second_klo,second_khi,2,1,0,FFT_PRECISION,
-                           usecollective,usecuda_aware);
+                           usecollective,usegpu_aware);
   if (plan->mid1_plan == nullptr) return nullptr;
 
   // 1d FFTs along mid axis
@@ -510,7 +510,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                          second_ilo,second_ihi,
                          third_jlo,third_jhi,third_klo,third_khi,
                          third_ilo,third_ihi,2,1,0,FFT_PRECISION,
-                         usecollective,usecuda_aware);
+                         usecollective,usegpu_aware);
   if (plan->mid2_plan == nullptr) return nullptr;
 
   // 1d FFTs along slow axis
@@ -538,7 +538,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
                            third_jlo,third_jhi,
                            out_klo,out_khi,out_ilo,out_ihi,
                            out_jlo,out_jhi,2,(permute+1)%3,0,FFT_PRECISION,
-                           usecollective,usecuda_aware);
+                           usecollective,usegpu_aware);
     if (plan->post_plan == nullptr) return nullptr;
   }
 
@@ -714,17 +714,17 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   hipfftPlanMany(&(plan->plan_fast), 1, &nfast,
     &nfast,1,plan->length1,
     &nfast,1,plan->length1,
-    HIPFFT_KOKKOS_TYPE,plan->total1/plan->length1);
+    HIPFFT_TYPE,plan->total1/plan->length1);
 
   hipfftPlanMany(&(plan->plan_mid), 1, &nmid,
     &nmid,1,plan->length2,
     &nmid,1,plan->length2,
-    HIPFFT_KOKKOS_TYPE,plan->total2/plan->length2);
+    HIPFFT_TYPE,plan->total2/plan->length2);
 
   hipfftPlanMany(&(plan->plan_slow), 1, &nslow,
     &nslow,1,plan->length3,
     &nslow,1,plan->length3,
-    HIPFFT_KOKKOS_TYPE,plan->total3/plan->length3);
+    HIPFFT_TYPE,plan->total3/plan->length3);
 
 #else  /* FFT_KOKKOS_KISS */
 
@@ -806,27 +806,6 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
 }
 
 /* ----------------------------------------------------------------------
-   divide n into 2 factors of as equal size as possible
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FFT3dKokkos<DeviceType>::bifactor(int n, int *factor1, int *factor2)
-{
-  int n1,n2,facmax;
-
-  facmax = static_cast<int> (sqrt((double) n));
-
-  for (n1 = facmax; n1 > 0; n1--) {
-    n2 = n/n1;
-    if (n1*n2 == n) {
-      *factor1 = n1;
-      *factor2 = n2;
-      return;
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
    perform just the 1d FFTs needed by a 3d FFT, no data movement
    used for timing purposes
 
@@ -855,6 +834,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
 
   // fftw3 and Dfti in MKL encode the number of transforms
   // into the plan, so we cannot operate on a smaller data set
+
 #if defined(FFT_KOKKOS_MKL) || defined(FFT_KOKKOS_FFTW3)
   if ((total1 > nsize) || (total2 > nsize) || (total3 > nsize))
     return;

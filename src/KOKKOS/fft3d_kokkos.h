@@ -106,8 +106,6 @@ class FFT3dKokkos : protected Pointers {
   void fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<DeviceType> *);
 
   void fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_1d, int, int, struct fft_plan_3d_kokkos<DeviceType> *);
-
-  void bifactor(int, int *, int *);
 };
 
 }

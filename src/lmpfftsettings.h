@@ -62,7 +62,7 @@
 #ifdef LMP_KOKKOS
 
 // with KOKKOS in CUDA or HIP mode we can only have
-//  CUFFT/HIPFFT or KISSFFT, thus undefine all other
+//  CUFFT/HIPFFT or KISS, thus undefine all other
 //  FFTs here
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -75,8 +75,8 @@
 # if defined(FFT_KOKKOS_MKL)
 #  undef FFT_KOKKOS_MKL
 # endif
-# if !defined(FFT_KOKKOS_CUFFT) && !defined(FFT_KOKKOS_KISSFFT)
-#  define FFT_KOKKOS_KISSFFT
+# if !defined(FFT_KOKKOS_CUFFT) && !defined(FFT_KOKKOS_KISS)
+#  define FFT_KOKKOS_KISS
 # endif
 #elif defined(KOKKOS_ENABLE_HIP)
 # if defined(FFT_KOKKOS_FFTW)
@@ -88,8 +88,8 @@
 # if defined(FFT_KOKKOS_MKL)
 #  undef FFT_KOKKOS_MKL
 # endif
-# if !defined(FFT_KOKKOS_HIPFFT) && !defined(FFT_KOKKOS_KISSFFT)
-#  define FFT_KOKKOS_KISSFFT
+# if !defined(FFT_KOKKOS_HIPFFT) && !defined(FFT_KOKKOS_KISS)
+#  define FFT_KOKKOS_KISS
 # endif
 #else
 # if defined(FFT_KOKKOS_CUFFT)

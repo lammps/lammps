@@ -108,7 +108,7 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   remap = nullptr;
 
 #if defined (LMP_KOKKOS_GPU)
-  #if defined(FFT_KOKKOS_KISSFFT)
+  #if defined(FFT_KOKKOS_KISS)
     if (comm->me == 0)
       error->warning(FLERR,"Using default KISS FFT with Kokkos GPU backends may give suboptimal performance");
   #endif

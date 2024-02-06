@@ -77,8 +77,8 @@
     kiss_fft_scalar re;
     kiss_fft_scalar im;
   } FFT_KOKKOS_DATA;
-  #ifndef FFT_KOKKOS_KISSFFT
-  #define FFT_KOKKOS_KISSFFT
+  #ifndef FFT_KOKKOS_KISS
+  #define FFT_KOKKOS_KISS
   #endif
 #endif
 
@@ -159,7 +159,7 @@ typedef struct FFTArrayTypes<LMPDeviceType> FFT_DAT;
 typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
 
 
-#if defined(FFT_KOKKOS_KISSFFT)
+#if defined(FFT_KOKKOS_KISS)
 #include "kissfft_kokkos.h" // uses t_FFT_DATA_1d, needs to come last
 #endif
 

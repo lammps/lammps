@@ -11,7 +11,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/flow ax vf T seed N coords...
+   fix ID group-ID wall/flow ax vf T seed N coords ... keyword value
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/flow = style name of this fix command
@@ -21,6 +21,15 @@ Syntax
 * seed = random seed for stochasticity (positive integer)
 * N = number of walls (positive integer)
 * coords = set of N wall coordinates (box units) along *ax* axis arranged in ascending order. Note that an additional implicit wall is introduced at the boundary of the simulation domain, so the resulting system always has N+1 walls.
+
+* zero or more keyword/value pairs may be appended
+* keyword = *units*
+
+  .. parsed-literal::
+
+       *units* value = *lattice* or *box*
+         *lattice* = the wall positions are defined in lattice units
+         *box* = the wall positions are defined in simulation box units
 
 Examples
 """"""""
@@ -110,7 +119,7 @@ Related commands
 Default
 """""""
 
-none
+The default for the units keyword is lattice.
 
 ----------
 

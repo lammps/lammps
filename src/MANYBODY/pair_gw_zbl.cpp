@@ -32,7 +32,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */

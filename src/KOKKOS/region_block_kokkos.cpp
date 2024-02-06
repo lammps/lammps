@@ -18,12 +18,11 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr double BIG = 1.0e20;
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg) : RegBlock(lmp, narg, arg)
+RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg)
+  : RegBlock(lmp, narg, arg)
 {
   atomKK = (AtomKokkos*) atom;
 }

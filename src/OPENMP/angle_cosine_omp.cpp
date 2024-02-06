@@ -24,11 +24,8 @@
 #include "force.h"
 #include "neighbor.h"
 
-
 #include "suffix.h"
 using namespace LAMMPS_NS;
-
-static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 

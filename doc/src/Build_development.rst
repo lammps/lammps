@@ -252,7 +252,7 @@ instance, execute one or more commands and check data inside the LAMMPS
 class hierarchy.  There are also tests for the C-library, Fortran, and
 Python module interfaces to LAMMPS.  The Python tests use the Python
 "unittest" module in a similar fashion than the others use `GoogleTest`.
-These special test programs are structured to have perform multiple
+These special test programs are structured to perform multiple
 individual tests internally and each of those contains several checks
 (aka assertions) for internal data being changed as expected.
 

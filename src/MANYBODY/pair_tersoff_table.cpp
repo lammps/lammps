@@ -41,14 +41,14 @@ using MathConst::MY_PI;
 
 static constexpr int DELTA = 4;
 static constexpr double GRIDSTART = 0.1;
-#define GRIDDENSITY_FCUTOFF 5000
-#define GRIDDENSITY_EXP 12000
-#define GRIDDENSITY_GTETA 12000
-#define GRIDDENSITY_BIJ 7500
+static constexpr int GRIDDENSITY_FCUTOFF = 5000;
+static constexpr int GRIDDENSITY_EXP = 12000;
+static constexpr int GRIDDENSITY_GTETA = 12000;
+static constexpr int GRIDDENSITY_BIJ = 7500;
 
 // max number of interaction per atom for environment potential
 
-#define leadingDimensionInteractionList 64
+static constexpr int leadingDimensionInteractionList = 64;
 
 /* ---------------------------------------------------------------------- */
 

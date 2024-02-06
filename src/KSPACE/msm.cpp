@@ -1602,8 +1602,7 @@ void MSM::direct(int n)
         qtmp = qgridn[icz][icy][icx]; // charge on center grid point
 
         esum = 0.0;
-        if (vflag_either && !scalar_pressure_flag)
-          v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
+        v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
 
         // use hemisphere to avoid double computation of pair-wise
         //   interactions in direct sum (no computations in -z direction)

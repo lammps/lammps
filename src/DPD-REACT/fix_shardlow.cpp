@@ -59,8 +59,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace random_external_state;
 
-static constexpr double EPSILON = 1.0e-10;
-#define EPSILON_SQUARED ((EPSILON) * (EPSILON))
+static constexpr double EPSILON_SQUARED = 1.0e-20;
 
 static const char cite_fix_shardlow[] =
   "fix shardlow command: doi:10.1016/j.cpc.2014.03.029, doi:10.1063/1.3660209\n\n"

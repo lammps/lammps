@@ -42,7 +42,7 @@ Examples
 Description
 """""""""""
 
-This fix implements flow boundary conditions (FBC) introduced in :ref:`(Pavlov) <fbc-Pavlov1>` and :ref:`(Pavlov) <fbc-Pavlov2>`.
+This fix implements flow boundary conditions (FBC) introduced in :ref:`(Pavlov1) <fbc-Pavlov1>` and :ref:`(Pavlov2) <fbc-Pavlov2>`.
 The goal is to generate a stationary flow with a shifted Maxwell velocity distribution:
 
 .. math::
@@ -52,7 +52,7 @@ The goal is to generate a stationary flow with a shifted Maxwell velocity distri
 This is achieved by reassigning the velocity of each particle that passes a wall.
 Such reassigning represents an emission of a new particle into the system with
 simultaneous removal of a particle with the same position.
-The parallel velocity components parallel to the wall are re-assigned according
+The velocity components parallel to the wall are re-assigned according
 to the Maxwell velocity distribution. The perpendicular component is assigned
 according to the following velocity distribution:
 
@@ -65,7 +65,7 @@ distribution of particles between walls exactly as desired.
 
 Since in most cases simulated systems are not ideal gas,
 the need for multiple walls might arise, as a single wall may not be
-sufficient for maintaining a stationary flow without congestions
+sufficient for maintaining a stationary flow without congestion
 manifesting as areas with increased density located upstream from static obstacles.
 
 For the same reason, the actual temperature and velocity of the generated
@@ -125,8 +125,8 @@ The default for the units keyword is lattice.
 
 .. _fbc-Pavlov1:
 
-**(Pavlov)** Pavlov, Kolotinskii, Stegailov, “GPU-Based Molecular Dynamics of Turbulent Liquid Flows with OpenMM”, In: Proceedings of PPAM-2022, LNCS (Springer), vol. 13826, pp. 346–358 (2023)
+**(Pavlov1)** Pavlov, Kolotinskii, Stegailov, "GPU-Based Molecular Dynamics of Turbulent Liquid Flows with OpenMM", Proceedings of PPAM-2022, LNCS (Springer), vol. 13826, pp. 346-358 (2023)
 
 .. _fbc-Pavlov2:
 
-**(Pavlov)** Pavlov, Galigerov, Kolotinskii, Nikolskiy, Stegailov, "GPU-based Molecular Dynamics of Fluid Flows: Reaching for Turbulence”, Int. J. High Perf. Comp. Appl., (2024)
+**(Pavlov2)** Pavlov, Galigerov, Kolotinskii, Nikolskiy, Stegailov, "GPU-based Molecular Dynamics of Fluid Flows: Reaching for Turbulence", Int. J. High Perf. Comp. Appl., (2024)

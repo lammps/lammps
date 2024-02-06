@@ -38,7 +38,8 @@ typedef struct _mpi_double_int double_int;
 
 /* extra MPI_Datatypes registered by MPI_Type_contiguous */
 
-static constexpr int MAXEXTRA_DATATYPE = 16;
+#define MAXEXTRA_DATATYPE 16
+
 int nextra_datatype;
 MPI_Datatype *ptr_datatype[MAXEXTRA_DATATYPE];
 int index_datatype[MAXEXTRA_DATATYPE];

@@ -35,10 +35,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static constexpr int DELAYSTEP = 0;
-#define DT_GROW 1.1
-#define DT_SHRINK 0.5
-#define ALPHA0 0.8
-#define ALPHA_SHRINK 0.10
+static constexpr double DT_GROW = 1.1;
+static constexpr double DT_SHRINK = 0.5;
+static constexpr double ALPHA0 = 0.8;
+static constexpr double ALPHA_SHRINK = 0.10;
 static constexpr double TMAX = 10.0;
 
 /* ---------------------------------------------------------------------- */

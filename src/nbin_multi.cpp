@@ -27,7 +27,7 @@
 using namespace LAMMPS_NS;
 
 static constexpr double SMALL = 1.0e-6;
-#define CUT2BIN_RATIO 100
+static constexpr double CUT2BIN_RATIO = 100.0;
 
 /* ---------------------------------------------------------------------- */
 

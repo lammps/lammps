@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace Eigen;
 using namespace std;
-static constexpr int DELTA = 16384;
+
 static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */

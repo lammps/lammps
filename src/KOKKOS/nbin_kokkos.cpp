@@ -22,9 +22,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr double SMALL = 1.0e-6;
-#define CUT2BIN_RATIO 100
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

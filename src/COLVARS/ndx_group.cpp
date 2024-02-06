@@ -27,7 +27,6 @@
 
 using namespace LAMMPS_NS;
 static constexpr int BUFLEN = 4096;
-static constexpr int DELTA = 16384;
 
 // read file until next section "name" or any next section if name == ""
 

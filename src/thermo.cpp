@@ -93,7 +93,6 @@ static constexpr char id_press[] = "thermo_press";
 static constexpr char id_pe[] = "thermo_pe";
 
 static char fmtbuf[512];
-static constexpr int DELTA = 8;
 
 /* ---------------------------------------------------------------------- */
 

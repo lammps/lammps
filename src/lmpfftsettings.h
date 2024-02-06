@@ -20,6 +20,7 @@
 
 #ifdef FFT_FFTW
 #ifndef FFT_FFTW3
+#undef FFT_FFTW
 #define FFT_FFTW3
 #endif
 #endif
@@ -27,6 +28,7 @@
 #ifdef LMP_KOKKOS
 #ifdef FFT_KOKKOS_FFTW
 #ifndef FFT_KOKKOS_FFTW3
+#undef FFT_KOKKOS_FFTW
 #define FFT_KOKKOS_FFTW3
 #endif
 #endif
@@ -55,6 +57,37 @@
 #endif
 
 #ifdef LMP_KOKKOS
+
+// fix up FFT defines for KOKKOS with CUDA and HIP
+
+#ifdef KOKKOS_ENABLE_CUDA
+# if defined(FFT_KOKKOS_FFTW)
+#  undef FFT_KOKKOS_FFTW
+# endif
+# if defined(FFT_KOKKOS_FFTW3)
+#  undef FFT_KOKKOS_FFTW3
+# endif
+# if defined(FFT_KOKKOS_MKL)
+#  undef FFT_KOKKOS_MKL
+# endif
+# if !defined(FFT_KOKKOS_CUFFT) && !defined(FFT_KOKKOS_KISSFFT)
+#  define FFT_KOKKOS_KISSFFT
+# endif
+#elif defined(KOKKOS_ENABLE_HIP)
+# if defined(FFT_KOKKOS_FFTW)
+#  undef FFT_KOKKOS_FFTW
+# endif
+# if defined(FFT_KOKKOS_FFTW3)
+#  undef FFT_KOKKOS_FFTW3
+# endif
+# if defined(FFT_KOKKOS_MKL)
+#  undef FFT_KOKKOS_MKL
+# endif
+# if !defined(FFT_KOKKOS_HIPFFT) && !defined(FFT_KOKKOS_KISSFFT)
+#  define FFT_KOKKOS_KISSFFT
+# endif
+#endif
+
 #if defined(FFT_KOKKOS_CUFFT)
 #define LMP_FFT_KOKKOS_LIB "cuFFT"
 #elif defined(FFT_KOKKOS_HIPFFT)

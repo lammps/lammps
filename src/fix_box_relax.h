@@ -52,11 +52,12 @@ class FixBoxRelax : public Fix {
   double vmax, pv2e, pflagsum;
   int kspace_flag;
 
-  int current_lifo;       // LIFO stack pointer
-  double boxlo0[2][3];    // box bounds at start of line search
-  double boxhi0[2][3];
-  double boxtilt0[2][3];    // xy,xz,yz tilts at start of line search
-  double ds[6];             // increment in scale matrix
+  static constexpr int MAX_LIFO_DEPTH = 2;
+  int current_lifo;                      // LIFO stack pointer
+  double boxlo0[MAX_LIFO_DEPTH][3];      // low box bounds at start of line search
+  double boxhi0[MAX_LIFO_DEPTH][3];      // high box bounds at start of line search
+  double boxtilt0[MAX_LIFO_DEPTH][3];    // xy,xz,yz tilts at start of line search
+  double ds[6];                          // increment in scale matrix
 
   int scaleyz;    // 1 if yz scaled with lz
   int scalexz;    // 1 if xz scaled with lz

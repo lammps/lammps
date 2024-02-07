@@ -360,6 +360,7 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
     num_rel_failed = 0
     failed_abs_output = []
     failed_rel_output = []
+    num_checks = 0
     for i in range(num_fields):
       quantity = thermo[0]['keywords'][i]
 
@@ -374,10 +375,11 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
 
       abs_diff_check = "PASSED"
       rel_diff_check = "PASSED"
-
+      
       if quantity in config['tolerance']:
         abs_tol = float(config['tolerance'][quantity]['abs'])
         rel_tol = float(config['tolerance'][quantity]['rel'])
+        num_checks = num_checks + 2
         if abs_diff > abs_tol:
           abs_diff_check = "FAILED"
           reason = f"{quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
@@ -388,7 +390,6 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
           reason = f"{quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
           failed_rel_output.append(f"{reason}")
           num_rel_failed = num_rel_failed + 1
-
       else:
         abs_diff_check = "N/A"
         rel_diff_check = "N/A"
@@ -407,7 +408,7 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
       for i in failed_rel_output:
         print(f"- {i}")
     if num_abs_failed == 0 and num_rel_failed == 0:
-      print("All checks passed.")
+      print(f"All {num_checks} checks passed.")
       result.status = "passed"
       if verbose == True:
          print("  N/A means that tolerances are not defined in the config file.")
@@ -581,6 +582,7 @@ if __name__ == "__main__":
 
   print("Summary:")
   print(f" - {passed_tests} passed / {total_tests} tests")
+  print(f" - Details are given in {output_file}.")
 
   # generate a JUnit XML file
   with open(output_file, 'w') as f:
@@ -589,11 +591,11 @@ if __name__ == "__main__":
       #print(f"{result.name}: {result.status}")
       case = TestCase(name=result.name, classname=result.name)
       if result.status == "failed":
-        case.add_failure_info('failure')
+        case.add_failure_info(message="Expected value did not match.")
       if result.status == "skipped":
-        case.add_skipped_info('skipped')
+        case.add_skipped_info(message="Test was skipped.")
       if result.status == "error":
-        case.add_skipped_info('error')   
+        case.add_skipped_info(message="Test run had errors.")
       test_cases.append(case)
     
     current_timestamp = datetime.datetime.now()

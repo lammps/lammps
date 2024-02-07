@@ -50,6 +50,7 @@
 #include "npair_half_bin_newton_ssa.h"
 #include "pair_dpd_fdt.h"
 #include "pair_dpd_fdt_energy.h"
+#include "random_external_state.h"
 #include "update.h"
 
 #include <cstring>
@@ -84,8 +85,8 @@ static const char cite_fix_shardlow[] =
 /* ---------------------------------------------------------------------- */
 
 FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), pairDPD(nullptr), pairDPDE(nullptr), v_t0(nullptr)
-  ,rand_state(nullptr)
+  Fix(lmp, narg, arg), pairDPD(nullptr), pairDPDE(nullptr), v_t0(nullptr),
+  rand_state(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_shardlow);
 

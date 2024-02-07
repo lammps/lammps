@@ -49,6 +49,7 @@
 #include "neighbor.h"
 #include "npair_ssa_kokkos.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
+#include "random_external_state.h"
 #include "update.h"
 
 #include <cmath>

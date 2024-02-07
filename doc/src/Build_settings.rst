@@ -44,7 +44,7 @@ require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS, but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 Alternatively, LAMMPS can use the `heFFTe
 <https://icl-utk-edu.github.io/heffte/>`_ library for the MPI

@@ -51,7 +51,7 @@ angle coefficient.  For example `"200.0*theta^2"` represents a
 
    U_{angle,i} = K (\theta_i - \theta_0)^2 = K \theta^2 \qquad \theta = \theta_i - \theta_0
 
-.. versionchanged:: TBD
+.. versionchanged:: 7Feb2024
 
 By default the potential energy U is shifted so that the value U is 0.0
 for $theta = theta_0$.  This is equivalent to using the optional keyword

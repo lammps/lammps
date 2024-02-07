@@ -26,7 +26,7 @@ using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;
 
-static constexpr double PISQ = 9.86960440108935799230; 
+static constexpr double PISQ = 9.86960440108935799230;
 static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;
 static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;
 

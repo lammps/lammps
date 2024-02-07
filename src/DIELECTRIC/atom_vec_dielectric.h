@@ -35,9 +35,9 @@ class AtomVecDielectric : virtual public AtomVec {
   void grow_pointers() override;
   void create_atom_post(int) override;
   void data_atom_post(int) override;
-  void read_data_general_to_restricted(int, int);
-  void write_data_restricted_to_general();
-  void write_data_restore_restricted();
+  void read_data_general_to_restricted(int, int) override;
+  void write_data_restricted_to_general() override;
+  void write_data_restore_restricted() override;
 
   void unpack_restart_init(int) override;
   int property_atom(const std::string &) override;

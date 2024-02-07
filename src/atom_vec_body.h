@@ -66,9 +66,9 @@ class AtomVecBody : public AtomVec {
   int pack_data_bonus(double *, int) override;
   void write_data_bonus(FILE *, int, double *, int) override;
 
-  void read_data_general_to_restricted(int, int);
-  void write_data_restricted_to_general();
-  void write_data_restore_restricted();
+  void read_data_general_to_restricted(int, int) override;
+  void write_data_restricted_to_general() override;
+  void write_data_restore_restricted() override;
 
   // methods used by other classes to query/set body info
 

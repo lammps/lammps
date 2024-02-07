@@ -43,8 +43,8 @@ class AtomVecSMD : virtual public AtomVec {
   void force_clear(int, size_t) override;
   void create_atom_post(int) override;
   void data_atom_post(int) override;
-  void write_data_restricted_to_general();
-  void write_data_restore_restricted();
+  void write_data_restricted_to_general() override;
+  void write_data_restore_restricted() override;
 
  private:
   tagint *molecule;

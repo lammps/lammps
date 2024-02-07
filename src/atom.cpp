@@ -50,6 +50,7 @@ using namespace MathConst;
 
 static constexpr int DELTA = 1;
 static constexpr double EPSILON = 1.0e-6;
+static constexpr double EPS_ZCOORD = 1.0e-12;
 
 /* ----------------------------------------------------------------------
    one instance per AtomVec style in style_atom.h

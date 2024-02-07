@@ -375,7 +375,7 @@ void CreateAtoms::command(int narg, char **arg)
     } else if (style == MESH) {         // NOTE to Axel - here is the rescaling of both params
       if (mesh_style == BISECTION) {    //   by lattice spacings if units = lattice, similar to xone,overlap
         radthresh *= domain->lattice->xlattice;
-      } else if (mesh_style = QUASIRANDOM) {
+      } else if (mesh_style == QUASIRANDOM) {
         mesh_density /= (domain->lattice->xlattice * domain->lattice->xlattice);
       }
     }

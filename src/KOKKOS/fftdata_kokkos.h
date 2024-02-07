@@ -18,11 +18,6 @@
 #define LMP_FFT_DATA_KOKKOS_H
 
 #include "kokkos_type.h"
-
-#ifndef MAX
-#define MAX(A,B) ((A) > (B) ? (A) : (B))
-#endif
-
 #include "lmpfftsettings.h"
 
 // -------------------------------------------------------------------------

@@ -23,6 +23,7 @@ UPDATE: Jan 30, 2024:
 '''
 
 import os
+import datetime
 import fnmatch
 import subprocess
 import yaml
@@ -30,10 +31,20 @@ import yaml
 import numpy as np
 from argparse import ArgumentParser
 
+from junit_xml import TestSuite, TestCase
+
 try:
     from yaml import CSafeLoader as Loader
 except ImportError:
     from yaml import SafeLoader as Loader
+
+class TestResult:
+  def __init__(self, name, output=None, time=None, checks=0, status=None):
+    self.name = name
+    self.output = output
+    self.time = time
+    self.checks = 0
+    self.status = status
 
 '''
   inputFileName:  input file with comments #REG:ADD and #REG:SUB as markers
@@ -222,7 +233,7 @@ def has_markers(input):
   Iterate over a list of input files using the testing configuration
   return total number of tests, and the number of tests with failures
 '''
-def iterate(input_list, config, removeAnnotatedInput=False):
+def iterate(input_list, config, results, removeAnnotatedInput=False):
   EPSILON = np.float64(config['epsilon'])
   nugget = float(config['nugget'])
 
@@ -237,6 +248,8 @@ def iterate(input_list, config, removeAnnotatedInput=False):
   for input in input_list:
 
     str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
+
+    result = TestResult(name=input, output="", time="", status="passed")
 
     if using_markers == True:
       input_test = 'test.' + input
@@ -294,8 +307,11 @@ def iterate(input_list, config, removeAnnotatedInput=False):
       file_exist = os.path.isfile(thermo_ref_file)
       if file_exist == True:
         thermo_ref = extract_thermo(thermo_ref_file)
+        num_runs_ref = len(thermo_ref)
       else:
         print(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
+        result.status = "skipped"
+        results.append(result)
         continue
 
     # using the LAMMPS python module (for single-proc runs)
@@ -313,12 +329,16 @@ def iterate(input_list, config, removeAnnotatedInput=False):
 
     num_runs = len(thermo)
     if num_runs == 0:
-      print(f"Failed with the running with {input_test}. Check if the run with this input script completed normally:")
+      print(f"ERROR: Failed with the running with {input_test}. Check if the run with this input script completed normally:")
+      result.status = "error"
+      results.append(result)
       continue 
 
     print(f"Comparing thermo output from log.lammps with the reference log file {thermo_ref_file}")
     if num_runs != num_runs_ref:
       print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
+      result.status = "error"
+      results.append(result)
       continue
 
     # comparing output vs reference values
@@ -378,17 +398,22 @@ def iterate(input_list, config, removeAnnotatedInput=False):
 
     if num_abs_failed > 0:
       print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
+      result.status = "failed"
       for i in failed_abs_output:
         print(f"- {i}")
     if num_rel_failed > 0:
       print(f"{num_rel_failed} relative diff checks failed with the specified tolerances.")
+      result.status = "failed"
       for i in failed_rel_output:
         print(f"- {i}")
     if num_abs_failed == 0 and num_rel_failed == 0:
       print("All checks passed.")
+      result.status = "passed"
       if verbose == True:
          print("  N/A means that tolerances are not defined in the config file.")
       num_passed = num_passed + 1
+
+    results.append(result)
 
     print("-"*(5*width+4))
     test_id = test_id + 1
@@ -412,6 +437,7 @@ if __name__ == "__main__":
   example_subfolders = []
   genref = False
   verbose = False
+  output_file = "output.xml"
 
   # parse the arguments
   parser = ArgumentParser()
@@ -423,11 +449,13 @@ if __name__ == "__main__":
                       help="Generating reference data")
   parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
                       help="Verbose output")
+  parser.add_argument("--output",dest="output", default="output.xml", help="Output file")
 
   args = parser.parse_args()
 
   lmp_binary = os.path.abspath(args.lmp_binary)
-  config_file= args.config_file
+  config_file = args.config_file
+  output_file = args.output
   if args.example_folders != "":
     example_subfolders = args.example_folders.split(';')
     print("Example folders:")
@@ -459,17 +487,17 @@ if __name__ == "__main__":
   
   # Using in place input scripts
   inplace_input = True
+  test_cases = []
 
   # if the example folders are not specified from the command-line argument -example-folders
   if len(example_subfolders) == 0:
-
     example_subfolders.append("../../examples/melt")
 
+    # append the example subfolders depending on the installed packages
     if 'ASPHERE' in packages:
-    #  example_subfolders.append('../../examples/ASPHERE/ellipsoid')
+      #example_subfolders.append('../../examples/ASPHERE/ellipsoid')
       example_subfolders.append('../../examples/ellipse')
 
-    # append the example subfolders depending on the installed packages
     if 'MOLECULE' in packages:
       example_subfolders.append('../../examples/micelle')
       # peptide thermo_style as multi
@@ -504,7 +532,8 @@ if __name__ == "__main__":
 
     if 'SRD' in packages:
       example_subfolders.append('../../examples/srd')
-
+    
+  all_results = []
   if inplace_input == True:
 
     # save current working dir
@@ -534,21 +563,39 @@ if __name__ == "__main__":
       total_tests += len(input_list)
 
       # iterate through the input scripts
-      num_passed = iterate(input_list, config)
+      results = []
+      num_passed = iterate(input_list, config, results)
       passed_tests += num_passed
+
+      all_results.extend(results)
 
       # get back to the working dir
       os.chdir(pwd)
-
 
   else:
     # or using the input scripts in the working directory -- for debugging purposes
     input_list=['in.lj', 'in.rhodo', 'in.eam']
     total_tests = len(input_list)
-    passed_tests = iterate(input_list, config)
+    results = []
+    passed_tests = iterate(input_list, config, results)
 
   print("Summary:")
   print(f" - {passed_tests} passed / {total_tests} tests")
 
+  # generate a JUnit XML file
+  with open(output_file, 'w') as f:
+    test_cases = [] 
+    for result in all_results:
+      #print(f"{result.name}: {result.status}")
+      case = TestCase(name=result.name, classname=result.name)
+      if result.status == "failed":
+        case.add_failure_info('failure')
+      if result.status == "skipped":
+        case.add_skipped_info('skipped')
+      if result.status == "error":
+        case.add_skipped_info('error')   
+      test_cases.append(case)
     
-
+    current_timestamp = datetime.datetime.now()
+    ts = TestSuite(f"{config_file}", test_cases, timestamp=current_timestamp)
+    TestSuite.to_file(f, [ts], prettyprint=True)

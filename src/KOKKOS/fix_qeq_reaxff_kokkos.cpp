@@ -927,7 +927,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFL
 {
   int k = team.league_rank() * team.team_size() + team.team_rank();
   if (k < nn) {
-    // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+    // The q array is duplicated for OpenMP, atomic for GPU, and neither for Serial
     auto v_o = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
     auto a_o = v_o.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 

@@ -66,6 +66,7 @@
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
+#include "lmpfftsettings.h"
 
 #if defined(LAMMPS_UPDATE)
 #define UPDATE_STRING " - " LAMMPS_UPDATE
@@ -1446,7 +1447,10 @@ void LAMMPS::print_config(FILE *fp)
   fmt::print(fp,"Compatible GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
 #endif
 
-  fputs("Active compile time flags:\n\n",fp);
+  fputs("FFT information:\n\n",fp);
+  fputs(Info::get_fft_info().c_str(),fp);
+
+  fputs("\nActive compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);

@@ -28,8 +28,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr int DELTA = 10000;
-
 /* ---------------------------------------------------------------------- */
 
 FixUpdateSpecialBonds::FixUpdateSpecialBonds(LAMMPS *lmp, int narg, char **arg) :

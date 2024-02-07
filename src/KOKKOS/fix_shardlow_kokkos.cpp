@@ -58,7 +58,7 @@ using namespace FixConst;
 using namespace random_external_state;
 
 static constexpr double EPSILON = 1.0e-10;
-#define EPSILON_SQUARED ((EPSILON) * (EPSILON))
+static constexpr double EPSILON_SQUARED = EPSILON * EPSILON;
 
 /* ---------------------------------------------------------------------- */
 

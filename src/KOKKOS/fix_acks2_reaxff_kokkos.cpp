@@ -38,8 +38,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr double SMALL = 0.0001;
-#define EV_TO_KCAL_PER_MOL 14.4
+static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 
 /* ---------------------------------------------------------------------- */
 
@@ -866,7 +865,7 @@ template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, int &m_fill, const bool &final) const
 {
-  // The X_diag array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The X_diag array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
   auto a_X_diag = v_X_diag.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -944,7 +943,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
     int atoms_per_team, int vector_length) const {
 
-  // The X_diag array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The X_diag array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
   auto a_X_diag = v_X_diag.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -1458,7 +1457,7 @@ template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NEIGHFLAG>, const int &ii) const
 {
-  // The bb array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The bb array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_bb = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_bb),decltype(ndup_bb)>::get(dup_bb,ndup_bb);
   auto a_bb = v_bb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 

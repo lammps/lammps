@@ -31,8 +31,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr double SMALL = 0.00001;
-
 /* ---------------------------------------------------------------------- */
 
 EwaldOMP::EwaldOMP(LAMMPS *lmp) : Ewald(lmp), ThrOMP(lmp, THR_KSPACE)

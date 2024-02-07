@@ -50,8 +50,7 @@ FixNHSphere::FixNHSphere(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"disc") == 0) {
       inertia = 0.5;
       if (domain->dimension != 2)
-        error->all(FLERR,
-                   "Fix nvt/nph/npt sphere disc option requires 2d simulation");
+        error->all(FLERR, "Fix {} disc option requires 2d simulation", style);
     }
     iarg++;
   }

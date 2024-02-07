@@ -18,7 +18,9 @@ if(DOWNLOAD_QUIP)
     set(temp "${temp}F77FLAGS += -fpp -fixed -fPIC\n")
     set(temp "${temp}F95_PRE_FILENAME_FLAG = -Tf\n")
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
-    set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E -x f95-cpp-input\nOPTIM=${CMAKE_Fortran_FLAGS_${BTYPE}}\n")
+    # quip library uses GNU fortran extensions. If any more restrictive standards are set, reset them
+    string(REGEX REPLACE -std=f[0-9]+ -std=gnu _fopt "${CMAKE_Fortran_FLAGS_${BTYPE}}")
+    set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E -x f95-cpp-input\nOPTIM=${_fopt} -fmax-stack-var-size=6553600\n")
     set(temp "${temp}DEFINES += -DGETARG_F2003 -DGETENV_F2003 -DGFORTRAN -DFORTRAN_UNDERSCORE\n")
     set(temp "${temp}F95FLAGS += -x f95-cpp-input -ffree-line-length-none -ffree-form -fno-second-underscore -fPIC\n")
     set(temp "${temp}F77FLAGS += -x f77-cpp-input -fno-second-underscore -fPIC\n")
@@ -56,7 +58,7 @@ if(DOWNLOAD_QUIP)
     GIT_SUBMODULES "src/fox;src/GAP"
     PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/quip.config <SOURCE_DIR>/arch/Makefile.lammps
     CONFIGURE_COMMAND env QUIP_ARCH=lammps make config
-    BUILD_COMMAND env QUIP_ARCH=lammps make libquip
+    BUILD_COMMAND env QUIP_ARCH=lammps make -j1 libquip
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE YES
     BUILD_BYPRODUCTS <SOURCE_DIR>/build/lammps/${CMAKE_STATIC_LIBRARY_PREFIX}quip${CMAKE_STATIC_LIBRARY_SUFFIX}

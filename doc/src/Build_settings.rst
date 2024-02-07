@@ -59,15 +59,19 @@ libraries and better pipelining for packing and communication.
       .. code-block:: bash
 
          -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
+         -D FFT_KOKKOS=value       # FFTW3 or MKL or KISS or CUFFT or HIPFFT, default is KISS
          -D FFT_SINGLE=value       # yes or no (default), no = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
          -D FFT_USE_HEFFTE=value   # yes or no (default), yes links to heFFTe
 
       .. note::
 
-         The values for the FFT variable must be in upper-case.  This is
-         an exception to the rule that all CMake variables can be specified
-         with lower-case values.
+         When the Kokkos variant of a package is compiled and selected at run time,
+         the FFT library selected by the FFT_KOKKOS variable applies. Otherwise,
+         the FFT library selected by the FFT variable applies.
+         The same FFT settings apply to both. FFT_KOKKOS must be compatible with the
+         Kokkos back end - for example, when using the CUDA back end of Kokkos,
+         you must use either CUFFT or KISS.
 
       Usually these settings are all that is needed.  If FFTW3 is
       selected, then CMake will try to detect, if threaded FFTW
@@ -106,6 +110,8 @@ libraries and better pipelining for packing and communication.
 
          FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
                                        # default is KISS if not specified
+         FFT_INC = -DFFT_KOKKOS_CUFFT  # -DFFT_KOKKOS_{FFTW,FFTW3,MKL,CUFFT,HIPFFT,KISS}
+                                       # default is KISS if not specified
          FFT_INC = -DFFT_SINGLE        # do not specify for double precision
          FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
          FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
@@ -116,6 +122,8 @@ libraries and better pipelining for packing and communication.
 
          FFT_INC =       -I/usr/local/include
          FFT_PATH =      -L/usr/local/lib
+         FFT_LIB =       -lhipfft            # hipFFT either precision
+         FFT_LIB =       -lcufft             # cuFFT either precision
          FFT_LIB =       -lfftw3             # FFTW3 double precision
          FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
          FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
@@ -178,6 +186,11 @@ The Intel MKL math library is part of the Intel compiler suite.  It
 can be used with the Intel or GNU compiler (see the ``FFT_LIB`` setting
 above).
 
+The cuFFT and hipFFT FFT libraries are packaged with NVIDIA's CUDA and
+AMD's HIP installations, respectively. These FFT libraries require the
+Kokkos acceleration package to be enabled and the Kokkos back end to be
+GPU-resident (i.e., HIP or CUDA).
+
 Performing 3d FFTs in parallel can be time-consuming due to data access
 and required communication.  This cost can be reduced by performing
 single-precision FFTs instead of double precision.  Single precision
@@ -189,11 +202,11 @@ generally less than the difference in precision. Using the
 ``-DFFT_SINGLE`` setting trades off a little accuracy for reduced memory
 use and parallel communication costs for transposing 3d FFT data.
 
-When using ``-DFFT_SINGLE`` with FFTW3, you may need to build the FFTW
-library a second time with support for single-precision.
+When using ``-DFFT_SINGLE`` with FFTW3, you may need to ensure that
+the FFTW3 installation includes support for single-precision.
 
-For FFTW3, do the following, which should produce the additional
-library ``libfftw3f.a`` or ``libfftw3f.so``\ .
+When compiler FFTW3 from source, you can do the following, which should
+produce the additional libraries ``libfftw3f.a`` and/or ``libfftw3f.so``\ .
 
 .. code-block:: bash
 

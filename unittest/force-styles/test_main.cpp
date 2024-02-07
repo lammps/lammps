@@ -47,7 +47,7 @@ void EXPECT_STRESS(const std::string &name, double *stress, const stress_t &expe
     EXPECT_FP_LE_WITH_EPS(stress[3], expected_stress.xy, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[4], expected_stress.xz, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[5], expected_stress.yz, epsilon);
-    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
 void EXPECT_FORCES(const std::string &name, Atom *atom, const std::vector<coord_t> &f_ref,
@@ -64,7 +64,7 @@ void EXPECT_FORCES(const std::string &name, Atom *atom, const std::vector<coord_
         EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
         EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
     }
-    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
 void EXPECT_POSITIONS(const std::string &name, Atom *atom, const std::vector<coord_t> &x_ref,
@@ -81,7 +81,7 @@ void EXPECT_POSITIONS(const std::string &name, Atom *atom, const std::vector<coo
         EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
         EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
     }
-    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
 void EXPECT_VELOCITIES(const std::string &name, Atom *atom, const std::vector<coord_t> &v_ref,
@@ -98,7 +98,7 @@ void EXPECT_VELOCITIES(const std::string &name, Atom *atom, const std::vector<co
         EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
         EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
     }
-    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
 // common read_yaml_file function

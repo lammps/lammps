@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define MAXBODY 2    // currently 2 since only linear chains allowed
-static constexpr int DELTA = 128;
+
 static constexpr double TOLERANCE = 1.0e-6;
 static constexpr double EPSILON = 1.0e-7;
 

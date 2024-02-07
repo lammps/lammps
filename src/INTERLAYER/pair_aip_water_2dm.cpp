@@ -29,10 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAXLINE = 1024;
-static constexpr int DELTA = 4;
-static constexpr int PGDELTA = 1;
-
 static const char cite_aip_water[] =
     "aip/water/2dm potential doi/10.1021/acs.jpcc.2c08464\n"
     "@Article{Feng2023\n"

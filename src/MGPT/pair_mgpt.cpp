@@ -589,33 +589,30 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           double *e_s,double *e_p,double *e_t,double *e_q,
                           int evflag,int newton_pair) {
   Hash<bond_data,Doublet> bond_hash(100000);
-  int i,j,k,m,ix,jx,kx,mx,p;
+  int i,j,k,m,ix,jx,kx,p;
   double e_single,e_pair,e_triplet,e_triplet_c,e_quad;
   double volvir2;
-
-  double nbc = 0.0,tbl = 0.0,tbm = 0.0;
-  const int lmax_local = lmax;
-
-  //if(evflag) printf("##### ev flag is set... wasting cycles...\n");
 
   *e_s = -99.0;
   *e_p = -99.0;
   *e_t = -99.0;
   *e_q = -99.0;
 
-  double t0,t1;
-
-  t0 = gettime(1);
+#ifdef TIMING_ON
+  double t0 = gettime(1);
+#endif
   e_single = e_pair = e_triplet = e_triplet_c = e_quad = 0.0;
   volvir2 = 0.0;
 
   t_make_t = t_make_b = t_make_b2 = t_trace = 0.0;
   n_make = n_make_b2 = n_trace =  0.0;
 
-  double tx0,tx1,tsort = 0.0,tpair = 0.0,tlookup = 0.0;
+#ifdef TIMING_ON
+  double tx0,tx1,tpair = 0.0,tlookup = 0.0;
   double ttriplet = 0.0,tquad = 0.0,tmem = 0.0;
   double ntsort = 0.0,ntpair = 0.0,ntlookup = 0.0;
   double nttriplet = 0.0,ntquad = 0.0,ntmem = 0.0,ntquaditer = 0.0;
+#endif
   double mcount = 0.0,mcount2 = 0.0, qcount = 0.0;
 
   double fix,fjx,fkx,fmx,dfix,dfjx,dfkx,dfmx;
@@ -670,8 +667,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   double trd1y,trd2y,trd3y,trd4y;
   double trd1z,trd2z,trd3z,trd4z;
 
-
-  tx0 = gettime();
+#ifdef TIMING_ON
+  double tx0 = gettime();
+#endif
 
   double rhoinv;
   {
@@ -751,9 +749,11 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   first = (int *) memory->smalloc(sizeof(int) * (ntot+1),"mgpt: first");
   nlist_short = (int *) memory->smalloc(sizeof(int) * nneitot,"mgpt: nlist_short");
 
-  tx1 = gettime();
+#ifdef TIMING_ON
+  double tx1 = gettime();
   tmem += tx1-tx0;
   ntmem++;
+#endif
 
   //printf("[%3d] Starting calculation...\n",comm->me);
 
@@ -786,7 +786,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
     const int c1 = c1_outside(ss[i],triclinic,alpha);
 
+#ifdef TIMING_ON
     tx0 = gettime();
+#endif
     for (jx = 0; jx<nnei[i]; jx++) {
       fjx = fjy = fjz = 0.0;
 
@@ -885,9 +887,11 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     ff[i][1] += fiy * e_scale;
     ff[i][2] += fiz * e_scale;
 
+#ifdef TIMING_ON
     tx1 = gettime();
     tpair += tx1-tx0;
     ntpair += nnei[i];
+#endif
   }
 
   for (i = 0; i<ntot; i++) {
@@ -950,7 +954,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
             c_jk = 0;
           }
 
+#ifdef TIMING_ON
           tx0 = gettime();
+#endif
 
           w3 = get_weight(triclinic,ss[i],ss[j],ss[k]);
 
@@ -1246,16 +1252,20 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
               fkx = fkx+fsave[2][0]; fky = fky+fsave[2][1]; fkz = fkz+fsave[2][2];
             }
 
+#ifdef TIMING_ON
             tx1 = gettime();
             ttriplet += tx1 - tx0;
             nttriplet++;
+#endif
           } else {
             triplet_defer = 1;
           }
 
           if (four_body_energies || four_body_forces)
             if (j < i) { /* Search for quadruplet */
+#ifdef TIMING_ON
               tx0 = gettime();
+#endif
 
               mj = first[j];
               mk = first[k];
@@ -1479,10 +1489,12 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                 }
 
               }
+#ifdef TIMING_ON
               tx1 = gettime();
               tquad += tx1 - tx0;
               ntquad++;
               ntquaditer++;
+#endif
             }
 
 
@@ -1514,12 +1526,12 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
         for (int pp = 0; pp<3; pp++)
           vatom[i][pp] = vatom[i][pp] - rhoinv*splinepot.devol0*e_scale;
       }
-
     }
-
   }
 
+#ifdef TIMING_ON
   tx0 = gettime();
+#endif
   for (i = 0; i<ntot; i++)
     for (p = 0; p<3; p++)
       atom->f[i][p] = atom->f[i][p] + ff[i][p];
@@ -1529,20 +1541,16 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   if (ss != xx) memory->sfree(ss);
   memory->sfree(ff);
   memory->sfree(xx);
+#ifdef TIMING_ON
   tx1 = gettime();
   tmem += tx1-tx0;
   ntmem++;
 
-  t1 = gettime(1);
+  double t1 = gettime(1);
 
-  //printf("compute_x: c_p = %d    c_t = %d    c_q = %d\n",c_p,c_t,c_q);
-
-
-#ifdef TIMING_ON
   if (comm->me == 0) {
     double tsum = (tmem+tsort+tpair+tlookup+ttriplet+tquad);
     double nsum = (ntmem+ntsort+ntpair+ntlookup+nttriplet+ntquad);
-    //double adj = ((t1-t0)-tsum)/nsum;
     /* Use adj = 6ns for RDTSC, and 58ns for gettimeofday,
        on monkfish.llnl.gov, 2.4GHz Intel
 

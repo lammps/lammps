@@ -1602,9 +1602,6 @@ void ref_torsion_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i,
   flt_t thmin = ka->params.thmin;
   flt_t thmax = ka->params.thmax;
   int itype = map[x[i].w];
-  flt_t xtmp = x[i].x;
-  flt_t ytmp = x[i].y;
-  flt_t ztmp = x[i].z;
   int * REBO_neighs_i = &ka->neigh_rebo.entries[ka->neigh_rebo.offset[i]];
   int jnum = ka->neigh_rebo.num[i];
   int jtype = map[x[j].w];

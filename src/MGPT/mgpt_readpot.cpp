@@ -156,7 +156,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
 
 void potdata::readpot(const char *parmin_file,const char *potin_file,const double vol) {
   FILE *in;
-  double x0,x1,dx,dr;
+  double x0,x1,dx;
   int nx;
 
   double r0x,r1x,drx;
@@ -348,7 +348,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
     nrx = (int) ((r1x-r0x)/drx + 1.1); /* Really: 1+round((r1-r0)/dr) */
 
     if (ii == 0) {
-      r0 = r0x; r1 = r1x; dr = drx; nr = nrx;
+      r0 = r0x; r1 = r1x; nr = nrx;
       vpairtab = new double[nx*nr];
     } else {
       /* Check that {r0,r1,dr,nr}x == {r0,r1,dr,nr} */
@@ -373,15 +373,12 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
         double r0rws = r0rwstab[i];
         double r00 = r0rws*rws,rp = 1.8*rws;
         if (bscreen == 0) r0rws = 10.0;
-        double alp = al,alm = al;
-        if (mode == 2 || mode == 4 || mode == 6) alm = 125.0;
+        double alp = al;
         al = alp;
 
         double r = r0 + j*(r1-r0)/(nr-1);
 
         double rrws = r/rws;
-        //double rsqr = r*r;
-        // double fl(double r,int mode,double rp,double p1,double al,double r0)
         double flr = fl(r,mode,rp,p1,al,r00,pn);
         double fl2 = flr*flr;
         double v2a = vatab[i]*fl2*fl2;
@@ -392,15 +389,11 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
           double arg = rrws/r0rwstab[i];
           double arg1 = arg - 1.0;
           double arg12 = arg1*arg1;
-          double f,dp;
+          double f;
           if (mode <= 2) {
             f = fgauss(arg,al);
-            dp=2.*al*arg*arg1;
-          }
-          else {
+          } else {
             f = hgauss(arg,al);
-            double arg13 = arg1*arg12;
-            dp=2.0*al*al*arg*arg13/(1.+al*arg12);
           }
           fscr = f*f;
         }

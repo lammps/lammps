@@ -394,7 +394,6 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
             f = fgauss(arg,al);
           } else {
             f = hgauss(arg,al);
-            double arg13 = arg1*arg12;
           }
           fscr = f*f;
         }

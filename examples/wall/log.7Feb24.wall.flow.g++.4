@@ -1,0 +1,182 @@
+LAMMPS (21 Nov 2023 - Development - patch_21Nov2023-758-ge33590b2fc-modified)
+  using 1 OpenMP thread(s) per MPI task
+variable nrun equal 1000
+variable dump_count equal 10
+
+variable nwall equal 4
+variable w1 equal 67
+variable w2 equal 71
+variable w3 equal 75
+variable w4 equal 79
+
+variable x_cylinder equal 20
+variable y_cylinder equal 17
+variable r_cylinder equal 4
+
+variable MASS  equal 1
+variable TEMP  equal 0.4
+variable VFLOW equal 0.5
+
+units         lj
+atom_style    atomic
+
+lattice       fcc 0.3
+Lattice spacing in x,y,z = 2.3712622 2.3712622 2.3712622
+region        sim_box block 0 84 0 34 0 10
+
+boundary      p p p
+
+create_box    2 sim_box
+Created orthogonal box = (0 0 0) to (199.18603 80.622915 23.712622)
+  4 by 1 by 1 MPI processor grid
+region        reg_cylinder cylinder z ${x_cylinder} ${y_cylinder} ${r_cylinder} EDGE EDGE
+region        reg_cylinder cylinder z 20 ${y_cylinder} ${r_cylinder} EDGE EDGE
+region        reg_cylinder cylinder z 20 17 ${r_cylinder} EDGE EDGE
+region        reg_cylinder cylinder z 20 17 4 EDGE EDGE
+
+create_atoms  1 box
+Created 114240 atoms
+  using lattice units in orthogonal box = (0 0 0) to (199.18603 80.622915 23.712622)
+  create_atoms CPU = 0.003 seconds
+
+## setup obstacle ##
+group  g_obst region reg_cylinder
+1950 atoms in group g_obst
+group  g_flow subtract all g_obst
+112290 atoms in group g_flow
+set    group g_obst type 2
+Setting atom values ...
+  1950 settings made for type
+
+mass          1 ${MASS}
+mass          1 1
+mass          2 ${MASS}
+mass          2 1
+
+velocity  g_flow create ${TEMP} 4928459 rot yes dist gaussian
+velocity  g_flow create 0.4 4928459 rot yes dist gaussian
+velocity  g_obst set    0.0 0.0 0.0
+
+pair_style  lj/cut 1.122462
+pair_coeff  1 1 1.0 1.0
+pair_coeff  1 2 1.0 1.0
+pair_coeff  2 2 1.0 1.0
+pair_modify shift yes
+
+neighbor      0.3 bin
+neigh_modify  delay 0 every 20 check no
+
+fix    1     g_flow nve
+fix    2     g_flow wall/flow  x ${VFLOW} ${TEMP} 123 ${nwall} ${w1} ${w2} ${w3} ${w4}
+fix    2     g_flow wall/flow  x 0.5 ${TEMP} 123 ${nwall} ${w1} ${w2} ${w3} ${w4}
+fix    2     g_flow wall/flow  x 0.5 0.4 123 ${nwall} ${w1} ${w2} ${w3} ${w4}
+fix    2     g_flow wall/flow  x 0.5 0.4 123 4 ${w1} ${w2} ${w3} ${w4}
+fix    2     g_flow wall/flow  x 0.5 0.4 123 4 67 ${w2} ${w3} ${w4}
+fix    2     g_flow wall/flow  x 0.5 0.4 123 4 67 71 ${w3} ${w4}
+fix    2     g_flow wall/flow  x 0.5 0.4 123 4 67 71 75 ${w4}
+fix    2     g_flow wall/flow  x 0.5 0.4 123 4 67 71 75 79
+
+variable dump_every equal ${nrun}/${dump_count}
+variable dump_every equal 1000/${dump_count}
+variable dump_every equal 1000/10
+variable thermo_every equal ${dump_every}
+variable thermo_every equal 100
+variable restart_every equal ${nrun}/10
+variable restart_every equal 1000/10
+
+##### uncomment for grid aggregation #####
+#variable gr_Nx equal 42
+#variable gr_Ny equal 17
+#variable gr_Nz equal 1
+#variable gr_Nevery equal ${dump_every}
+#variable gr_Nrepeat equal 1
+#variable gr_Nfreq equal ${dump_every}
+#fix    3     g_flow ave/grid ${gr_Nevery} ${gr_Nrepeat} ${gr_Nfreq} ${gr_Nx} ${gr_Ny} ${gr_Nz} vx vy vz density/mass norm all ave one
+#compute ct_gridId g_flow property/grid ${gr_Nx} ${gr_Ny} ${gr_Nz} id
+#dump   dmp_grid  g_flow grid ${dump_every} grid.lammpstrj c_ct_gridId:grid:data f_3:grid:data[*]
+##########################################
+
+#dump   dmp_coord all atom ${dump_every} dump.lammpstrj
+
+#compute ct_Temp   g_flow temp/com
+#thermo_style custom step temp epair emol etotal press c_ct_Temp
+
+#restart  ${restart_every} flow.restart
+
+timestep 0.005
+thermo   ${thermo_every}
+thermo   100
+run      ${nrun}
+run      1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix wall/flow command: doi:10.1177/10943420231213013
+
+@Article{Pavlov-etal-IJHPCA-2024,
+ author = {Daniil Pavlov and Vladislav Galigerov and Daniil Kolotinskii and Vsevolod Nikolskiy and Vladimir Stegailov},
+ title = {GPU-based molecular dynamics of fluid flows: Reaching for turbulence},
+ journal = {The International Journal of High Performance Computing Applications},
+ year =    2024,
+ volume =  38,
+ number =  1,
+ pages =   34-49
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.422462
+  ghost atom cutoff = 1.422462
+  binsize = 0.711231, bins = 281 114 34
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 8.496 | 8.496 | 8.496 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0.39317221     0              0              0.58975315     0.11795063   
+       100   0.36726398     0.045386014    0              0.59627716     0.27402111   
+       200   0.37384538     0.036574547    0              0.5973377      0.24836729   
+       300   0.37487455     0.036519645    0              0.59882654     0.24691726   
+       400   0.37591417     0.036405755    0              0.60027207     0.24700641   
+       500   0.37654714     0.037008829    0              0.60182459     0.24883444   
+       600   0.3778008      0.03663706     0              0.6033333      0.24874392   
+       700   0.37851338     0.036714175    0              0.60447928     0.24881829   
+       800   0.37984876     0.036237049    0              0.6060052      0.24843003   
+       900   0.38022763     0.036847615    0              0.60718407     0.24987198   
+      1000   0.38084717     0.037139994    0              0.60840575     0.25070072   
+Loop time of 2.20347 on 4 procs for 1000 steps with 114240 atoms
+
+Performance: 196054.093 tau/day, 453.829 timesteps/s, 51.845 Matom-step/s
+95.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.67927    | 0.70882    | 0.73473    |   2.4 | 32.17
+Neigh   | 0.32928    | 0.34467    | 0.36084    |   2.0 | 15.64
+Comm    | 0.3211     | 0.36609    | 0.40741    |   6.1 | 16.61
+Output  | 0.0017748  | 0.0032465  | 0.0046508  |   2.1 |  0.15
+Modify  | 0.71135    | 0.74424    | 0.76001    |   2.3 | 33.78
+Other   |            | 0.03641    |            |       |  1.65
+
+Nlocal:          28560 ave       29169 max       27884 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:        6452.25 ave        6546 max        6368 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+Neighs:          40893 ave       42032 max       39445 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+
+Total # of neighbors = 163572
+Ave neighs/atom = 1.4318277
+Neighbor list builds = 50
+Dangerous builds not checked
+Total wall time: 0:00:02

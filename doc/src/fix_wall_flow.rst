@@ -42,6 +42,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 This fix implements flow boundary conditions (FBC) introduced in :ref:`(Pavlov1) <fbc-Pavlov1>` and :ref:`(Pavlov2) <fbc-Pavlov2>`.
 The goal is to generate a stationary flow with a shifted Maxwell velocity distribution:
 
@@ -107,6 +109,10 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
+
+Fix *wall_flow* is part of the EXTRA-FIX package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Flow boundary conditions should not be used with rigid bodies such as those
 defined by a "fix rigid" command.

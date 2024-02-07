@@ -1,4 +1,4 @@
-variable nrun equal 10000
+variable nrun equal 1000
 variable dump_count equal 10
 
 variable nwall equal 4

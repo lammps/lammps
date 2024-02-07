@@ -39,7 +39,7 @@
 
 using namespace LAMMPS_NS;
 
-//#define TIMING_ON
+// #define TIMING_ON
 
 #ifdef TIMING_ON
 #include <sys/time.h>
@@ -49,13 +49,11 @@ using namespace LAMMPS_NS;
 #include <hwi/include/bqc/A2_inlines.h>
 #endif
 
-static double gettime(int x = 0) {
+static double gettime() {
   if (1) {
-    /*
       struct timeval tv;
       gettimeofday(&tv,nullptr);
       return tv.tv_sec + 1e-6 * tv.tv_usec;
-    */
     /*
       const double x = 1.0 / CLOCKS_PER_SEC;
       return clock() * x;
@@ -68,16 +66,17 @@ static double gettime(int x = 0) {
       return x*invfreq;
     */
 
+    /*
     const double invfreq = 1.0 / 1.6e9;
     unsigned long long int x = GetTimeBase();
     return x*invfreq;
-
+    */
 
   } else
     return 0.0;
 }
 #else
-static double gettime(int /*x*/ = 0) { return 0.0; }
+static double gettime() { return 0.0; }
 #endif
 
 
@@ -569,6 +568,7 @@ void PairMGPT::force_debug_4(double xx[][3],
 #ifdef __bg__
 #define const
 #endif
+#ifdef TIMING_ON
 static int ntr_calls = 0;
 static trtrace3_fun tr_internal;
 static void tr_count(const double * restrict A,
@@ -578,6 +578,7 @@ static void tr_count(const double * restrict A,
   tr_internal(A,B1,t1,B2,t2,B3,t3);
   ntr_calls++;
 }
+#endif
 #ifdef __bg__
 #undef const
 #endif
@@ -592,14 +593,16 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   int i,j,k,m,ix,jx,kx,p;
   double e_single,e_pair,e_triplet,e_triplet_c,e_quad;
   double volvir2;
-
+#ifdef TIMING_ON
+  double nbc = 0.0,tbl = 0.0,tbm = 0.0;
+#endif
   *e_s = -99.0;
   *e_p = -99.0;
   *e_t = -99.0;
   *e_q = -99.0;
 
 #ifdef TIMING_ON
-  double t0 = gettime(1);
+  double t0 = gettime();
 #endif
   e_single = e_pair = e_triplet = e_triplet_c = e_quad = 0.0;
   volvir2 = 0.0;
@@ -608,12 +611,12 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   n_make = n_make_b2 = n_trace =  0.0;
 
 #ifdef TIMING_ON
-  double tx0,tx1,tpair = 0.0,tlookup = 0.0;
+  double tsort = 0.0, tpair = 0.0,tlookup = 0.0;
   double ttriplet = 0.0,tquad = 0.0,tmem = 0.0;
   double ntsort = 0.0,ntpair = 0.0,ntlookup = 0.0;
   double nttriplet = 0.0,ntquad = 0.0,ntmem = 0.0,ntquaditer = 0.0;
-#endif
   double mcount = 0.0,mcount2 = 0.0, qcount = 0.0;
+#endif
 
   double fix,fjx,fkx,fmx,dfix,dfjx,dfkx,dfmx;
   double fiy,fjy,fky,fmy,dfiy,dfjy,dfky,dfmy;
@@ -762,7 +765,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   fiy = fjy = fky = fmy = 0.0;
   fiz = fjz = fkz = fmz = 0.0;
 
+#ifdef TIMING_ON
   int c_p = 0, c_t = 0, c_q = 0;
+#endif
 
   if (false)
     if (domain->triclinic) {
@@ -816,8 +821,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
             if (pair_energies == 0) de_pair = 0.0;
             e_pair = e_pair + de_pair;
+#ifdef TIMING_ON
             c_p++;
-
+#endif
             if (pair_forces == 0) df = 0.0;
 
             if (volpres_flag && pair_energies) {
@@ -995,8 +1001,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                 vir3t = vir3t + dvir;
                 xvir3t = xvir3t + dvir;
               }
+#ifdef TIMING_ON
               mcount2++;
-
+#endif
               {
                 const double vc = splinepot.vc;
                 tr_trace3(&(bki->H.m[1][0]),
@@ -1048,8 +1055,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
             }
 
             if (T12 != nullptr) {
-              //printf("T12 i,j,k = %d,%d,%d\n",i,j,k);
+#ifdef TIMING_ON
               mcount++;
+#endif
               if (three_body_energies && evflag) {
                 tr1 = transtrace(T12->H1H2,T12->H1H2);
                 double dvir = (2.0*(dvir_ij + dvir_jk)*splinepot.vd +
@@ -1104,8 +1112,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
             }
 
             if (T23 != nullptr) {
-              //printf("T23 i,j,k = %d,%d,%d\n",i,j,k);
+#ifdef TIMING_ON
               mcount++;
+#endif
               if (three_body_energies && evflag) {
                 tr2 = transtrace(T23->H1H2,T23->H1H2);
                 double dvir = (2.0*(dvir_jk + dvir_ki)*splinepot.vd +
@@ -1160,8 +1169,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
             }
 
             if (T31 != nullptr) {
-              //printf("T31 i,j,k = %d,%d,%d\n",i,j,k);
+#ifdef TIMING_ON
               mcount++;
+#endif
               if (three_body_energies && evflag) {
                 tr3 = transtrace(T31->H1H2,T31->H1H2);
                 double dvir = (2.0*(dvir_ki + dvir_ij)*splinepot.vd +
@@ -1220,8 +1230,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
             double de_triplet = (splinepot.vc*v33 + splinepot.vd*v43) * e_scale * w3;
             e_triplet = e_triplet + de_triplet;
             e_triplet_c = e_triplet_c + splinepot.vc*v33 * e_scale * w3;
+#ifdef TIMING_ON
             c_t++;
-
+#endif
             //printf("xxxx %6d %6d %6d :: %20.10e\n",1,2,3,de_triplet);
 
             if (evflag) {
@@ -1352,8 +1363,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           vir4 = vir4 + dvir;
                           xvir4 = xvir4 + dvir;
                         }
+#ifdef TIMING_ON
                         qcount++;
-
+#endif
                         {
                           const double ve = splinepot.ve;
 
@@ -1381,8 +1393,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           vir4 = vir4 + dvir;
                           xvir4 = xvir4 + dvir;
                         }
+#ifdef TIMING_ON
                         qcount++;
-
+#endif
                         {
                           const double ve = splinepot.ve;
 
@@ -1411,8 +1424,9 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           vir4 = vir4 + dvir;
                           xvir4 = xvir4 + dvir;
                         }
+#ifdef TIMING_ON
                         qcount++;
-
+#endif
                         {
                           const double ve = splinepot.ve;
 
@@ -1435,11 +1449,13 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
                       double de_quad = splinepot.ve*(tr1 + tr2 + tr3)/anorm4 * e_scale * w4;
                       e_quad = e_quad + de_quad;
+#ifdef TIMING_ON
                       if ((T12 && T45) ||
                          (T23 && T56) ||
                          (T31 && T64)) {
                         c_q++;
                       }
+#endif
 
                       if (evflag) {
                         double drim[3],drjm[3],drkm[3];
@@ -1546,7 +1562,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   tmem += tx1-tx0;
   ntmem++;
 
-  double t1 = gettime(1);
+  double t1 = gettime();
 
   if (comm->me == 0) {
     double tsum = (tmem+tsort+tpair+tlookup+ttriplet+tquad);
@@ -1840,7 +1856,7 @@ void PairMGPT::coeff(int narg, char **arg)
   single_precision = 0;
 
   /* Parse arguments */ {
-    int volpres_tag = 0,precision_tag = 0,nbody_tag = 0;
+    int nbody_tag = 0;
 
     int iarg = 5;
     while (iarg < narg) {
@@ -1856,7 +1872,6 @@ void PairMGPT::coeff(int narg, char **arg)
                   "The value is \"%s\".\n",FLERR,arg[iarg+1]);
           error->all(FLERR,line);
         }
-        volpres_tag = 1;
         iarg += 2;
         if (comm->me == 0) printf("* volpress: volpres_flag = %d [%s %s]\n",volpres_flag,arg[iarg-2],arg[iarg-1]);
       } else if (strcmp(arg[iarg],"nbody") == 0) {
@@ -1892,7 +1907,6 @@ void PairMGPT::coeff(int narg, char **arg)
                   "The value is \"%s\".\n",FLERR,arg[iarg+1]);
           error->all(FLERR,line);
         }
-        precision_tag = 1;
         iarg += 2;
         if (comm->me == 0) printf("* precision: single_flag = %d [%s %s]\n",single_precision,arg[iarg-2],arg[iarg-1]);
       } else {

@@ -99,7 +99,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   // parsing wall count
   int wallcount = utils::inumeric(FLERR,arg[iarg],do_abort,lmp);
   if(wallcount <= 0) error->all(FLERR,"Illegal fix wall/flow argument: wall count must be positive integer");
-  
+
   ++iarg;
   // parsing walls
   if(narg - iarg != wallcount && narg - iarg != wallcount + 2) error->all(FLERR, "Wrong fix wall/flow wall count");
@@ -173,7 +173,7 @@ FixWallFlow::~FixWallFlow()
 int FixWallFlow::setmask()
 {
   int mask = 0;
- 
+
   mask |= END_OF_STEP;
 
   return mask;

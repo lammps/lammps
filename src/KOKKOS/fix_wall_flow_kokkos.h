@@ -107,16 +107,16 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void generate_velocity_kk(int atom_i) const;
 
-  KOKKOS_INLINE_FUNCTION 
+  KOKKOS_INLINE_FUNCTION
   int compute_current_segment_kk(double pos) const;
 
-  KOKKOS_INLINE_FUNCTION 
+  KOKKOS_INLINE_FUNCTION
   double get_mass(MassTag, int atom_i) const
   {
     return d_mass(d_type(atom_i));
   }
 
-  KOKKOS_INLINE_FUNCTION 
+  KOKKOS_INLINE_FUNCTION
   double get_mass(RMassTag, int atom_i) const
   {
     return d_rmass(atom_i);

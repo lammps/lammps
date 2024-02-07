@@ -706,7 +706,7 @@ library.  Ceil() is the smallest integer not less than its argument.
 Floor() if the largest integer not greater than its argument.  Round()
 is the nearest integer to its argument.
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 The ternary(x,y,z) function is the equivalent of the ternary operator
 (? and :) in C or C++.  It takes 3 arguments.  The first argument is a
@@ -1155,7 +1155,7 @@ variable by using the :doc:`compute property/atom
 Custom atom properties
 ----------------------
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 Custom atom properties refer to per-atom integer and floating point
 vectors or arrays that have been added via the :doc:`fix property/atom

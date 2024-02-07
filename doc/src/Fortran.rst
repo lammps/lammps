@@ -1402,7 +1402,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Set the value of a string-style variable.
 
-   .. deprecated:: TBD
+   .. deprecated:: 7Feb2024
 
    This function assigns a new value from the string *str* to the string-style
    variable *name*\ . If *name* does not exist or is not a string-style
@@ -1423,7 +1423,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Set the value of a string-style variable.
 
-   .. versionadded:: TBD
+   .. versionadded:: 7Feb2024
 
    This function assigns a new value from the string *str* to the string-style
    variable *name*\ . If *name* does not exist or is not a string-style
@@ -1439,7 +1439,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Set the value of a internal-style variable.
 
-   .. versionadded:: TBD
+   .. versionadded:: 7Feb2024
 
    This function assigns a new value from the floating-point number *val* to
    the internal-style variable *name*\ . If *name* does not exist or is not

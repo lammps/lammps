@@ -1,5 +1,5 @@
 '''
-UPDATE: Jan 30, 2024:
+UPDATE: Feb 8, 2024:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
   Comparing the output thermo with that in the existing log file (with the same nprocs)
     + data in the log files are extracted and converted into yaml data structure
@@ -26,11 +26,13 @@ import os
 import datetime
 import fnmatch
 import subprocess
-import yaml
-
-import numpy as np
 from argparse import ArgumentParser
 
+# need "pip install pyyaml numpy"
+import yaml
+import numpy as np
+
+# need "pip install junit_xml"
 from junit_xml import TestSuite, TestCase
 
 try:
@@ -75,9 +77,11 @@ def process_markers(inputFileName, outputFileName):
       file.write(line + "\n")
 
 '''
-  yamlFileName: input YAML file with thermo structured as described in https://docs.lammps.org/Howto_structured_data.html
-  return: thermo, which is a list containing a dictionary for each run where the tag "keywords" maps to the list
-    of thermo header strings and the tag “data” has a list of lists where the outer list represents the lines
+  yamlFileName: input YAML file with thermo structured
+    as described in https://docs.lammps.org/Howto_structured_data.html
+  return: thermo, which is a list containing a dictionary for each run
+    where the tag "keywords" maps to the list of thermo header strings
+    and the tag “data” has a list of lists where the outer list represents the lines
     of output and the inner list the values of the columns matching the header keywords for that step.
 '''
 def extract_thermo(yamlFileName):
@@ -347,55 +351,59 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
       print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
     
     # arbitrary for now, can iterate through all num_runs
-    irun = 0
-    num_fields = len(thermo[irun]['keywords'])
-
-    # get the total number of the thermo output lines
-    nthermo_steps = len(thermo[irun]['data'])
-
-    # get the output at the last timestep
-    thermo_step = nthermo_steps - 1
 
     num_abs_failed = 0
     num_rel_failed = 0
     failed_abs_output = []
     failed_rel_output = []
     num_checks = 0
-    for i in range(num_fields):
-      quantity = thermo[0]['keywords'][i]
 
-      val = thermo[irun]['data'][thermo_step][i]
-      ref = thermo_ref[irun]['data'][thermo_step][i]
-      abs_diff = abs(float(val) - float(ref))
+    for irun in range(num_runs):
+      num_fields = len(thermo[irun]['keywords'])
 
-      if abs(float(ref)) > EPSILON:
-        rel_diff = abs(float(val) - float(ref))/abs(float(ref))
-      else:
-        rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+      # get the total number of the thermo output lines
+      nthermo_steps = len(thermo[irun]['data'])
 
-      abs_diff_check = "PASSED"
-      rel_diff_check = "PASSED"
-      
-      if quantity in config['tolerance']:
-        abs_tol = float(config['tolerance'][quantity]['abs'])
-        rel_tol = float(config['tolerance'][quantity]['rel'])
-        num_checks = num_checks + 2
-        if abs_diff > abs_tol:
-          abs_diff_check = "FAILED"
-          reason = f"{quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
-          failed_abs_output.append(f"{reason}")
-          num_abs_failed = num_abs_failed + 1
-        if rel_diff > rel_tol:
-          rel_diff_check = "FAILED"
-          reason = f"{quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
-          failed_rel_output.append(f"{reason}")
-          num_rel_failed = num_rel_failed + 1
-      else:
-        abs_diff_check = "N/A"
-        rel_diff_check = "N/A"
+      # get the output at the last timestep
+      thermo_step = nthermo_steps - 1
 
-      if verbose == True:
-        print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+      # iterate over the fields
+      for i in range(num_fields):
+        quantity = thermo[irun]['keywords'][i]
+
+        val = thermo[irun]['data'][thermo_step][i]
+        ref = thermo_ref[irun]['data'][thermo_step][i]
+        abs_diff = abs(float(val) - float(ref))
+
+        if abs(float(ref)) > EPSILON:
+          rel_diff = abs(float(val) - float(ref))/abs(float(ref))
+        else:
+          rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+
+        abs_diff_check = "PASSED"
+        rel_diff_check = "PASSED"
+        
+        if quantity in config['tolerance']:
+          abs_tol = float(config['tolerance'][quantity]['abs'])
+          rel_tol = float(config['tolerance'][quantity]['rel'])
+          num_checks = num_checks + 2
+          if abs_diff > abs_tol:
+            abs_diff_check = "FAILED"
+            reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
+            failed_abs_output.append(f"{reason}")
+            num_abs_failed = num_abs_failed + 1
+          if rel_diff > rel_tol:
+            rel_diff_check = "FAILED"
+            reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
+            failed_rel_output.append(f"{reason}")
+            num_rel_failed = num_rel_failed + 1
+        else:
+          # N/A means that tolerances are not defined in the config file
+          abs_diff_check = "N/A"
+          rel_diff_check = "N/A"
+
+        if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
+          print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
 
     if num_abs_failed > 0:
       print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
@@ -409,9 +417,7 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
         print(f"- {i}")
     if num_abs_failed == 0 and num_rel_failed == 0:
       print(f"All {num_checks} checks passed.")
-      result.status = "passed"
-      if verbose == True:
-         print("  N/A means that tolerances are not defined in the config file.")
+      result.status = "passed"        
       num_passed = num_passed + 1
 
     results.append(result)
@@ -591,7 +597,7 @@ if __name__ == "__main__":
       #print(f"{result.name}: {result.status}")
       case = TestCase(name=result.name, classname=result.name)
       if result.status == "failed":
-        case.add_failure_info(message="Expected value did not match.")
+        case.add_failure_info(message="Actual values did not match expected ones.")
       if result.status == "skipped":
         case.add_skipped_info(message="Test was skipped.")
       if result.status == "error":

@@ -195,10 +195,12 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
   cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
   print(f"Executing: {cmd_str}")
   p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-  output = p.stdout.split('\n')
+
+  #output = p.stdout.split('\n')
+  output = p.stdout
   # process output to handle failed runs
 
-  return cmd_str
+  return cmd_str, output
 
 
 '''
@@ -323,7 +325,7 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
     #  lmp.file(input_test)
     
     # or more customizable with config.yaml
-    cmd_str = execute(lmp_binary, config, input_test)
+    cmd_str, output = execute(lmp_binary, config, input_test)
 
     # restore the nprocs value in the configuration
     config['nprocs'] = saved_nprocs
@@ -333,7 +335,8 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
 
     num_runs = len(thermo)
     if num_runs == 0:
-      print(f"ERROR: Failed with the running with {input_test}. Check if the run with this input script completed normally:")
+      print(f"ERROR: Failed with the running with {input_test}. The run terminated with the following output:\n")
+      print(f"{output}")
       result.status = "error"
       results.append(result)
       continue 
@@ -461,7 +464,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   lmp_binary = os.path.abspath(args.lmp_binary)
-  config_file = args.config_file
+  configFileName = args.config_file
   output_file = args.output
   if args.example_folders != "":
     example_subfolders = args.example_folders.split(';')
@@ -605,5 +608,5 @@ if __name__ == "__main__":
       test_cases.append(case)
     
     current_timestamp = datetime.datetime.now()
-    ts = TestSuite(f"{config_file}", test_cases, timestamp=current_timestamp)
+    ts = TestSuite(f"{configFileName}", test_cases, timestamp=current_timestamp)
     TestSuite.to_file(f, [ts], prettyprint=True)

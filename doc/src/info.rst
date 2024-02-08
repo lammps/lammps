@@ -92,7 +92,7 @@ The *accelerator* category prints out information about compile time
 settings of included accelerator support for the GPU, KOKKOS, INTEL,
 and OPENMP packages.
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 The *fft* category prints out information about the included 3d-FFT
 support.  This lists the 3d-FFT engine, FFT precision, FFT library

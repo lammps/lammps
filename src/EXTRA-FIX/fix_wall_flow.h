@@ -21,7 +21,7 @@ FixStyle(wall/flow,FixWallFlow);
 #define LMP_FIX_WALL_FLOW_H
 
 #include "fix.h"
-#include <vector>
+
 namespace LAMMPS_NS {
 
 class FixWallFlow : public Fix {

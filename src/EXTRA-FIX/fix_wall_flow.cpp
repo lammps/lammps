@@ -114,17 +114,16 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
       }
       return 0.0;
   };
-  double scale = getscale();
+  double scale = 0.0;
+  if(flowax == FlowAxis::AX_X) scale = domain->lattice->xlattice;
+  else if(flowax == FlowAxis::AX_Y) scale = domain->lattice->ylattice;
+  else if(flowax == FlowAxis::AX_Z) scale = domain->lattice->zlattice;
 
   if (narg - iarg == wallcount + 2)
   {
     if(strcmp(arg[narg - 2], "units") != 0) error->all(FLERR, "Wrong fix wall/flow units command");
     if (strcmp(arg[narg - 1], "box") == 0) scale = 1.0;
-    else if (strcmp(arg[narg - 1], "lattice") == 0)
-    {
-      scale = getscale();
-    }
-    else error->all(FLERR, "Wrong fix wall/flow units command");
+    else if (strcmp(arg[narg - 1], "lattice") != 0) error->all(FLERR, "Wrong fix wall/flow units command");
   }
 
   walls.resize(wallcount + 2);

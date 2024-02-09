@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class FixWallFlow : public Fix {
  public:
-  enum FlowAxis {AX_X = 0, AX_Y = 1, AX_Z = 2};
+  enum FlowAxis { AX_X = 0, AX_Y = 1, AX_Z = 2 };
 
   FixWallFlow(class LAMMPS *, int, char **);
   ~FixWallFlow() override;

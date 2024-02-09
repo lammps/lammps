@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,18 +18,16 @@
 
 #include "fix_wall_flow_kokkos.h"
 #include "atom_kokkos.h"
-#include "memory_kokkos.h"
-#include "math_const.h"
 #include "atom_masks.h"
 #include "force.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
 
 #include <iostream>
 
-// clang-format off
-
 using namespace LAMMPS_NS;
 
-template<class DeviceType>
+template <class DeviceType>
 FixWallFlowKokkos<DeviceType>::FixWallFlowKokkos(LAMMPS *lmp, int narg, char **arg) :
     FixWallFlow(lmp, narg, arg), rand_pool(rndseed + comm->me)
 {
@@ -47,22 +44,17 @@ FixWallFlowKokkos<DeviceType>::FixWallFlowKokkos(LAMMPS *lmp, int narg, char **a
 
   d_walls = d_walls_t("FixWallFlowKokkos::walls", walls.size());
   auto h_walls = Kokkos::create_mirror_view(d_walls);
-  for (int i = 0; i < walls.size(); ++i)
-  {
-    h_walls(i) = walls[i];
-  }
+  for (int i = 0; i < walls.size(); ++i) { h_walls(i) = walls[i]; }
   Kokkos::deep_copy(d_walls, h_walls);
 }
 
-template<class DeviceType>
-FixWallFlowKokkos<DeviceType>::~FixWallFlowKokkos()
+template <class DeviceType> FixWallFlowKokkos<DeviceType>::~FixWallFlowKokkos()
 {
   if (copymode) return;
   memoryKK->destroy_kokkos(k_current_segment, current_segment);
 }
 
-template <class DeviceType>
-void FixWallFlowKokkos<DeviceType>::init()
+template <class DeviceType> void FixWallFlowKokkos<DeviceType>::init()
 {
   atomKK->sync(execution_space, datamask_read);
   k_current_segment.template sync<DeviceType>();
@@ -83,8 +75,7 @@ KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWall
   d_current_segment(i) = compute_current_segment_kk(pos);
 }
 
-template <class DeviceType>
-void FixWallFlowKokkos<DeviceType>::end_of_step()
+template <class DeviceType> void FixWallFlowKokkos<DeviceType>::end_of_step()
 {
   atomKK->sync(execution_space, datamask_read);
   k_current_segment.template sync<DeviceType>();
@@ -111,26 +102,20 @@ void FixWallFlowKokkos<DeviceType>::end_of_step()
 
 template <class DeviceType>
 template <class MTag>
-KOKKOS_INLINE_FUNCTION
-void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowEndOfStep<MTag>,
+KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowEndOfStep<MTag>,
                                                                       const int &atom_i) const
 {
-  if (d_mask[atom_i] & groupbit)
-  {
+  if (d_mask[atom_i] & groupbit) {
     double pos = d_x(atom_i, flowax);
     int prev_segment = d_current_segment(atom_i);
     d_current_segment(atom_i) = compute_current_segment_kk(pos);
-    if (prev_segment != d_current_segment(atom_i))
-    {
-      generate_velocity_kk<MTag>(atom_i);
-    }
+    if (prev_segment != d_current_segment(atom_i)) { generate_velocity_kk<MTag>(atom_i); }
   }
 }
 
-template<class DeviceType>
-template<class MTag>
-KOKKOS_INLINE_FUNCTION
-void FixWallFlowKokkos<DeviceType>::generate_velocity_kk(int atom_i) const
+template <class DeviceType>
+template <class MTag>
+KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::generate_velocity_kk(int atom_i) const
 {
   const int newton_iteration_count = 10;
   double mass = get_mass(MTag(), atom_i);
@@ -163,15 +148,17 @@ void FixWallFlowKokkos<DeviceType>::generate_velocity_kk(int atom_i) const
   const double v = nu / gamma;
 
   d_v(atom_i, flowax) = v * direction;
-  d_v(atom_i, (flowax + 1) % 3) = /*random->gaussian()*/ rand_gen.normal() / (gamma * MathConst::MY_SQRT2);
-  d_v(atom_i, (flowax + 2) % 3) = /*random->gaussian()*/ rand_gen.normal() / (gamma * MathConst::MY_SQRT2);
+  d_v(atom_i, (flowax + 1) % 3) =
+      /*random->gaussian()*/ rand_gen.normal() / (gamma * MathConst::MY_SQRT2);
+  d_v(atom_i, (flowax + 2) % 3) =
+      /*random->gaussian()*/ rand_gen.normal() / (gamma * MathConst::MY_SQRT2);
 
   rand_pool.free_state(rand_gen);
 }
 
 template <class DeviceType>
-KOKKOS_INLINE_FUNCTION
-int FixWallFlowKokkos<DeviceType>::compute_current_segment_kk(double pos) const
+KOKKOS_INLINE_FUNCTION int
+FixWallFlowKokkos<DeviceType>::compute_current_segment_kk(double pos) const
 {
   int result = 0;
   for (; result < d_walls.extent(0) - 1; ++result) {
@@ -180,9 +167,7 @@ int FixWallFlowKokkos<DeviceType>::compute_current_segment_kk(double pos) const
   return -1;    // -1 is "out of box" region
 }
 
-
-template <class DeviceType>
-void FixWallFlowKokkos<DeviceType>::grow_arrays(int nmax)
+template <class DeviceType> void FixWallFlowKokkos<DeviceType>::grow_arrays(int nmax)
 {
   k_current_segment.template sync<DeviceType>();
   memoryKK->grow_kokkos(k_current_segment, current_segment, nmax, "WallFlowKK::current_segment");
@@ -192,8 +177,7 @@ void FixWallFlowKokkos<DeviceType>::grow_arrays(int nmax)
   h_current_segment = k_current_segment.template view<LMPHostType>();
 }
 
-template <class DeviceType>
-void FixWallFlowKokkos<DeviceType>::copy_arrays(int i, int j, int)
+template <class DeviceType> void FixWallFlowKokkos<DeviceType>::copy_arrays(int i, int j, int)
 {
   k_current_segment.template sync<LMPHostType>();
   h_current_segment(j) = h_current_segment(i);
@@ -204,7 +188,7 @@ void FixWallFlowKokkos<DeviceType>::copy_arrays(int i, int j, int)
    sort local atom-based arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
+template <class DeviceType>
 void FixWallFlowKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
   // always sort on the device
@@ -216,33 +200,31 @@ void FixWallFlowKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bin
   k_current_segment.modify_device();
 }
 
-template <class DeviceType>
-int FixWallFlowKokkos<DeviceType>::pack_exchange(int i, double *buf)
+template <class DeviceType> int FixWallFlowKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
   k_current_segment.sync_host();
   buf[0] = static_cast<double>(h_current_segment(i));
   return 1;
 }
 
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowPackExchange, const int &mysend) const {
+template <class DeviceType>
+KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowPackExchange,
+                                                                      const int &mysend) const
+{
   const int send_i = d_sendlist(mysend);
   const int segment = d_current_segment(send_i);
   d_buf(mysend) = static_cast<double>(segment);
 
   const int copy_i = d_copylist(mysend);
-  if (copy_i > -1) {
-    d_current_segment(send_i) = d_current_segment(copy_i);
-  }
+  if (copy_i > -1) { d_current_segment(send_i) = d_current_segment(copy_i); }
 }
 
 template <class DeviceType>
-int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(
-   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
-   DAT::tdual_int_1d k_sendlist,
-   DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space)
+int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(const int &nsend,
+                                                        DAT::tdual_xfloat_2d &k_buf,
+                                                        DAT::tdual_int_1d k_sendlist,
+                                                        DAT::tdual_int_1d k_copylist,
+                                                        ExecutionSpace space)
 {
   k_current_segment.template sync<DeviceType>();
 
@@ -253,13 +235,13 @@ int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(
   d_sendlist = k_sendlist.view<DeviceType>();
   d_copylist = k_copylist.view<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
-    k_buf.template view<DeviceType>().data(),
-    k_buf.extent(0)*k_buf.extent(1));
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(k_buf.template view<DeviceType>().data(),
+                                                          k_buf.extent(0) * k_buf.extent(1));
 
   copymode = 1;
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixWallFlowPackExchange>(0, nsend), *this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixWallFlowPackExchange>(0, nsend),
+                       *this);
 
   copymode = 0;
 
@@ -269,8 +251,7 @@ int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(
   return nsend;
 }
 
-template <class DeviceType>
-int FixWallFlowKokkos<DeviceType>::unpack_exchange(int i, double *buf)
+template <class DeviceType> int FixWallFlowKokkos<DeviceType>::unpack_exchange(int i, double *buf)
 {
   k_current_segment.sync_host();
   h_current_segment(i) = static_cast<int>(buf[0]);
@@ -278,30 +259,27 @@ int FixWallFlowKokkos<DeviceType>::unpack_exchange(int i, double *buf)
   return 1;
 }
 
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowUnpackExchange, const int &i) const
+template <class DeviceType>
+KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowUnpackExchange,
+                                                                      const int &i) const
 {
   int index = d_indices(i);
-  if (index > -1) {
-    d_current_segment(index) = static_cast<int>(d_buf(i));
-  }
+  if (index > -1) { d_current_segment(index) = static_cast<int>(d_buf(i)); }
 }
 
 template <class DeviceType>
-void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(
-   DAT::tdual_xfloat_2d &k_buf,
-   DAT::tdual_int_1d &k_indices, int nrecv,
-   int /*nrecv1*/, int /*nextrarecv1*/,
-   ExecutionSpace space)
+void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                                                           DAT::tdual_int_1d &k_indices, int nrecv,
+                                                           int /*nrecv1*/, int /*nextrarecv1*/,
+                                                           ExecutionSpace space)
 {
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
-    k_buf.template view<DeviceType>().data(),
-    k_buf.extent(0)*k_buf.extent(1));
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(k_buf.template view<DeviceType>().data(),
+                                                          k_buf.extent(0) * k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
 
   copymode = 1;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallFlowUnpackExchange>(0,nrecv),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixWallFlowUnpackExchange>(0, nrecv),
+                       *this);
   copymode = 0;
 
   k_current_segment.template modify<DeviceType>();

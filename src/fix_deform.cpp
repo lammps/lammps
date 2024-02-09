@@ -64,7 +64,7 @@ irregular(nullptr), set(nullptr)
   int nskip;
   if (utils::strmatch(style, "^deform/pressure")) {
     child_parameters.insert("box");
-    child_styles.insert({{"pressure", 4}, {"pressure/mean", 4}, {"volume", 3}});
+    child_styles.insert({{"pressure", 4}, {"pressure/mean", 4}, {"volume", 2}});
   }
 
   // set defaults
@@ -221,7 +221,7 @@ irregular(nullptr), set(nullptr)
          utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg + 1]), error);
         for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
         iarg += nskip;
-      } error->all(FLERR, "Illegal fix {} command argument: {}", style, arg[iarg + 1]);
+      } else error->all(FLERR, "Illegal fix {} command argument: {}", style, arg[iarg + 1]);
     } else break;
   }
 

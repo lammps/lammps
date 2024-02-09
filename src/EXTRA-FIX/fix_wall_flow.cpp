@@ -34,10 +34,8 @@
 #include "math_const.h"
 
 #include <cstring>
-#include <iostream>
 #include <algorithm>
 #include <functional>
-#include <fstream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -140,12 +138,6 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   {
     error->all(FLERR, "Wrong fix wall/flow wall ordering or some walls are outside simulation domain");
   }
-  std::cout << "Walls:\n";
-  for (auto w : walls)
-  {
-    std::cout << w << " ";
-  }
-  std::cout << std::endl;
 
   memory->grow(current_segment, atom->nmax, "WallFlow::current_segment");
   atom->add_callback(Atom::GROW);

@@ -205,7 +205,13 @@ void FixWallFlow::generate_velocity(int atom_i)
 {
   const int newton_iteration_count = 10;
   double *vel = atom->v[atom_i];
-  double mass = atom->mass[atom->type[atom_i]];
+
+  double *prmass = atom->rmass;
+  double *pmass = atom->mass;
+  double mass = 0.0;
+  if(prmass) mass = prmass[atom_i];
+  else mass = pmass[atom->type[atom_i]];
+
   const double gamma = 1.0 / std::sqrt(2.0 * kT / mass);
   double delta = gamma * flowvel;
 

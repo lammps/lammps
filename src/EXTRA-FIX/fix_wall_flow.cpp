@@ -101,19 +101,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   ++iarg;
   // parsing walls
   if(narg - iarg != wallcount && narg - iarg != wallcount + 2) error->all(FLERR, "Wrong fix wall/flow wall count");
-  auto getscale = [&]() -> double {
-      switch (flowax)
-      {
-        case FlowAxis::AX_X:
-          return domain->lattice->xlattice;
-        case FlowAxis::AX_Y:
-          return domain->lattice->ylattice;
-        case FlowAxis::AX_Z:
-          return domain->lattice->zlattice;
-        default: return 0.0;
-      }
-      return 0.0;
-  };
+
   double scale = 0.0;
   if(flowax == FlowAxis::AX_X) scale = domain->lattice->xlattice;
   else if(flowax == FlowAxis::AX_Y) scale = domain->lattice->ylattice;

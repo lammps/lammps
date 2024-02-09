@@ -163,8 +163,9 @@ int FixWallFlow::setmask()
 void FixWallFlow::init()
 {
   int nrigid = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
+
+  for (auto ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) nrigid++;
 
   if (nrigid && comm->me == 0)
     error->warning(FLERR,"FixWallFlow is not compatible with rigid bodies");

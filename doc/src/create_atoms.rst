@@ -536,6 +536,11 @@ command.
 A rotation vector specified for a single molecule must be in
 the z-direction for a 2d model.
 
+For :doc:`molecule templates <molecule>` that are created from multiple
+files, i.e. contain multiple molecule *sets*, only the first set is
+used.  To create multiple molecules the files currently need to be
+merged and different molecule IDs assigned with a Molecules section.
+
 Related commands
 """"""""""""""""
 

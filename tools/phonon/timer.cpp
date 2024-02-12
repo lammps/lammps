@@ -9,8 +9,6 @@ Timer::Timer()
 {
    flag = 0;
    start();
-
-   return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -20,7 +18,6 @@ void Timer::start()
 {
    t1 = clock();
    flag |= 1;
-   return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -32,8 +29,7 @@ void Timer::stop()
       t2 = clock();
       flag |= 2;
    }
-   return;
-}
+   }
 
 /* -----------------------------------------------------------------------------
  * public function, print the total time used after timer stops
@@ -44,8 +40,6 @@ void Timer::print()
 
    double cpu_time_used = ((double) (t2 - t1)) / CLOCKS_PER_SEC;
    printf("Total CPU time used: %g seconds.\n", cpu_time_used);
-
-   return;
 }
 
 /* -----------------------------------------------------------------------------

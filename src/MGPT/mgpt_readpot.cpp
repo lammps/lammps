@@ -387,8 +387,6 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
         if (bscreen == 1 && rrws >= r0rws) {
           double arg = rrws/r0rwstab[i];
-          double arg1 = arg - 1.0;
-          double arg12 = arg1*arg1;
           double f;
           if (mode <= 2) {
             f = fgauss(arg,al);

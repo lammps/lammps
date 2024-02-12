@@ -150,7 +150,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   if (has_git_info() && ((update_string == " - Development") || (update_string == " - Maintenance")))
     update_string += fmt::format(" - {}", git_descriptor());
 
-  external_comm = 0;
+  external_comm = MPI_COMM_NULL;
   mdicomm = nullptr;
 
   skiprunflag = 0;
@@ -807,7 +807,7 @@ LAMMPS::~LAMMPS() noexcept(false)
   // free a copy of uorig here, so check in universe destructor will still work
 
   MPI_Comm copy = universe->uorig;
-  if (external_comm) MPI_Comm_free(&copy);
+  if (external_comm != MPI_COMM_NULL) MPI_Comm_free(&copy);
 
   delete input;
   delete universe;
@@ -1267,7 +1267,7 @@ void _noopt LAMMPS::help()
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-skiprun                    : skip loops in run and minimize (-sr)\n"
-          "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
+          "-suffix gpu/intel/kk/opt/omp: style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 

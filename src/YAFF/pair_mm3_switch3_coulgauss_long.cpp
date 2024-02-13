@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -33,14 +34,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -130,6 +124,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
+        forcecoul = forcecoul2 = forcelj = 0.0;
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
@@ -155,7 +150,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
               forcecoul -= (1.0-factor_coul)*prefactor;
             }
           }
-        } else forcecoul = 0.0;
+        }
 
         if (rsq < cut_ljsq[itype][jtype]) {
           // Repulsive exponential part
@@ -170,7 +165,6 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
             // This means a point charge is considered, so the correction is zero
             expn2 = 0.0;
             erfc2 = 0.0;
-            forcecoul2 = 0.0;
             prefactor2 = 0.0;
           } else {
             rrij = lj2[itype][jtype]*r;
@@ -179,7 +173,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
             prefactor2 = -qqrd2e*qtmp*q[j]/r;
             forcecoul2 = prefactor2*(erfc2+EWALD_F*rrij*expn2);
           }
-        } else forcelj = 0.0;
+        }
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq)
@@ -587,6 +581,8 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
 
   r2inv = 1.0/rsq;
   r = sqrt(rsq);
+  forcecoul = forcecoul2 = 0.0;
+
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq) {
       grij = g_ewald * r;
@@ -610,7 +606,7 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
         forcecoul -= (1.0-factor_coul)*prefactor;
       }
     }
-  } else forcecoul = 0.0;
+  }
 
   if (rsq < cut_ljsq[itype][jtype]) {
     expb = lj3[itype][jtype]*exp(-lj1[itype][jtype]*r);
@@ -621,7 +617,6 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
     if (lj2[itype][jtype] == 0.0) {
       expn2 = 0.0;
       erfc2 = 0.0;
-      forcecoul2 = 0.0;
       prefactor2 = 0.0;
     } else {
       rrij = lj2[itype][jtype]*r;

@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-#define RVOUS 1   // 0 for irregular, 1 for all2all
+static constexpr int RVOUS = 1;   // 0 for irregular, 1 for all2all
 
 /* ---------------------------------------------------------------------- */
 

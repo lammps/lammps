@@ -20,14 +20,6 @@
 
 using namespace LAMMPS_NS;
 
-#define BUFFACTOR 1.5
-#define BUFFACTOR 1.5
-#define BUFMIN 1000
-#define BUFEXTRA 1000
-#define EPSILON 1.0e-6
-
-#define DELTA_PROCS 16
-
 /* ---------------------------------------------------------------------- */
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp) : CommTiled(_lmp) {}

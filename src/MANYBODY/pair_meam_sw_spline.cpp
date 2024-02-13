@@ -384,8 +384,6 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-#define MAXLINE 1024
-
 void PairMEAMSWSpline::read_file(const char* filename)
 {
   if (comm->me == 0) {

@@ -106,6 +106,8 @@ action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
+action dihedral_charmmfsw_kokkos.cpp dihedral_charmmfsw.cpp
+action dihedral_charmmfsw_kokkos.h dihedral_charmmfsw.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp
 action dihedral_class2_kokkos.h dihedral_class2.h
 action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
@@ -310,6 +312,8 @@ action pair_lj_charmm_coul_charmm_kokkos.cpp pair_lj_charmm_coul_charmm.cpp
 action pair_lj_charmm_coul_charmm_kokkos.h pair_lj_charmm_coul_charmm.h
 action pair_lj_charmm_coul_long_kokkos.cpp pair_lj_charmm_coul_long.cpp
 action pair_lj_charmm_coul_long_kokkos.h pair_lj_charmm_coul_long.h
+action pair_lj_charmmfsw_coul_long_kokkos.cpp pair_lj_charmmfsw_coul_long.cpp
+action pair_lj_charmmfsw_coul_long_kokkos.h pair_lj_charmmfsw_coul_long.h
 action pair_lj_class2_coul_cut_kokkos.cpp pair_lj_class2_coul_cut.cpp
 action pair_lj_class2_coul_cut_kokkos.h pair_lj_class2_coul_cut.h
 action pair_lj_class2_coul_long_kokkos.cpp pair_lj_class2_coul_long.cpp

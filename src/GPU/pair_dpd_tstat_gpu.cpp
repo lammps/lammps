@@ -55,7 +55,7 @@ void dpd_tstat_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamm
                                 double **host_sigma, double **host_cut);
 double dpd_tstat_gpu_bytes();
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 //#define _USE_UNIFORM_SARU_LCG
 //#define _USE_UNIFORM_SARU_TEA8

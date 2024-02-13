@@ -22,22 +22,22 @@
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
+#include "math_const.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
 
 #include <cmath>
 
-#define MY_PIS 1.77245385090551602729
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
+static constexpr double EWALD_P = 0.3275911;
+static constexpr double A1 = 0.254829592;
+static constexpr double A2 = -0.284496736;
+static constexpr double A3 = 1.421413741;
+static constexpr double A4 = -1.453152027;
+static constexpr double A5 = 1.061405429;
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PIS;
 
 // External functions from cuda library for atom decomposition
 

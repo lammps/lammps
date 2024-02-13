@@ -54,7 +54,7 @@ class FixRigidSmall : public Fix {
 
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
-  int dof(int) override;
+  bigint dof(int) override;
   void deform(int) override;
   void reset_dt() override;
   void zero_momentum() override;

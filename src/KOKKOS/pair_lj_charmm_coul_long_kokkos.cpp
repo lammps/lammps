@@ -21,6 +21,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
@@ -34,15 +35,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -214,9 +207,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
       (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
     englj *= switch1;
   }
-
   return englj;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -488,4 +479,3 @@ template class PairLJCharmmCoulLongKokkos<LMPDeviceType>;
 template class PairLJCharmmCoulLongKokkos<LMPHostType>;
 #endif
 }
-

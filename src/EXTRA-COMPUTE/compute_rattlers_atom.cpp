@@ -144,7 +144,6 @@ void ComputeRattlersAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
   int change_flag = 1;

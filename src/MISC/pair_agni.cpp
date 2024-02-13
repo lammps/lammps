@@ -47,9 +47,6 @@ static const char cite_pair_agni[] =
   " year      = {2019},\n"
   "}\n\n";
 
-#define MAXLINE 10240
-#define MAXWORD 40
-
 /* ---------------------------------------------------------------------- */
 
 PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)

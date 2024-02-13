@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "math_const.h"
@@ -29,14 +30,8 @@
 
 #include <cmath>
 
-static constexpr double EWALD_P = 0.3275911;
-static constexpr double A1 = 0.254829592;
-static constexpr double A2 = -0.284496736;
-static constexpr double A3 = 1.421413741;
-static constexpr double A4 = -1.453152027;
-static constexpr double A5 = 1.061405429;
-
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using MathConst::MY_PIS;
 
 // External functions from cuda library for atom decomposition

@@ -508,6 +508,9 @@ if __name__ == "__main__":
       #example_subfolders.append('../../examples/ASPHERE/ellipsoid')
       example_subfolders.append('../../examples/ellipse')
 
+    if 'CORESHELL' in packages:
+      example_subfolders.append('../../examples/coreshell')
+
     if 'MOLECULE' in packages:
       example_subfolders.append('../../examples/micelle')
       # peptide thermo_style as multi
@@ -523,6 +526,10 @@ if __name__ == "__main__":
     if 'BODY' in packages:
       example_subfolders.append('../../examples/body')
 
+    if 'BPM' in packages:
+      example_subfolders.append('../../examples/bpm/impact')
+      example_subfolders.append('../../examples/bpm/pour')
+
     if 'COLLOID' in packages:
       example_subfolders.append('../../examples/colloid')
 
@@ -531,6 +538,12 @@ if __name__ == "__main__":
 
     if 'DIPOLE' in packages:
       example_subfolders.append('../../examples/dipole')
+
+    if 'DPD-BASIC' in packages:
+      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd')
+      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext')
+      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd_tstat')
+      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext_tstat')
 
     if 'MANYBODY' in packages:
       example_subfolders.append('../../examples/tersoff')

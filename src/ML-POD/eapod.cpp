@@ -237,8 +237,6 @@ void EAPOD::read_pod_file(std::string pod_file)
         nrbf4 = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "fourbody_angular_degree")
         P4 = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "true4BodyDesc")
-        true4BodyDesc = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "fivebody_number_radial_basis_functions")
         nrbf33 = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "fivebody_angular_degree")
@@ -270,61 +268,9 @@ void EAPOD::read_pod_file(std::string pod_file)
   if (P4 < P44) error->all(FLERR,"seven-body angular degree must be equal or less than four-body angular degree");
 
   if (P3 > 12) error->all(FLERR,"three-body angular degree must be equal or less than 12");
-  //if (P34 > 6) error->all(FLERR,"six-body angular degree must be equal or less than 6");
-  //if (P44 > 6) error->all(FLERR,"seven-body angular degree must be equal or less than 6");
-
-  // four-body potential
-  if ((nrbf4 > 0) && (nrbf33 == 0)) {
-    if (P4 > 6) {
-      nrbf23 = nrbf4;
-      P23 = P4;
-      nrbf4 = 0;
-      P4 = 0;
-    }
-    else {
-      if (true4BodyDesc == 1) {
-        nrbf23 = 0;
-        P23 = 0;
-      }
-      else {
-        nrbf23 = nrbf4;
-        P23 = P4;
-        nrbf4 = 0;
-        P4 = 0;
-      }
-    }
-  }
-
-  // five-body potential
-  if ((nrbf33 > 0) && (nrbf34 == 0)) {
-    if (true4BodyDesc == 1) {
-      nrbf23 = 0;
-      P23 = 0;
-    }
-    else {
-      nrbf23 = nrbf4;
-      P23 = P4;
-      nrbf4 = 0;
-      P4 = 0;
-    }
-  }
-
-  // six-body potential or seven-body potential
-  if (nrbf34 > 0) {
-    if (true4BodyDesc == 1) {
-      nrbf23 = 0;
-      P23 = 0;
-    }
-    else {
-      nrbf23 = nrbf4;
-      P23 = P4;
-      nrbf4 = nrbf34;
-      P4 = P34;
-    }
-  }
+  if (P4 > 6) error->all(FLERR,"four-body angular degree must be equal or less than 6");  
 
   int Ne = nelements;
-
   memory->create(elemindex, Ne*Ne, "elemindex");
   int k = 0;
   for (int i1 = 0; i1<Ne; i1++)
@@ -339,7 +285,6 @@ void EAPOD::read_pod_file(std::string pod_file)
   init4body(P4);
 
   int nb[] = {1,     2,     4,     7,    11,    16,    23};
-  nabf23 = P23+1;
   nabf33 = P33+1;
   nabf34 = P34+1;
   nabf43 = nb[P34];

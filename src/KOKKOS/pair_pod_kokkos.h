@@ -109,7 +109,7 @@ class PairPODKokkos : public PairPOD {
   int nbesselpars;  // number of Bessel parameters
   int nCoeffPerElement; // number of coefficients per element = (nl1 + Mdesc*nClusters)
   int ns;      // number of snapshots for radial basis functions
-  int nl1, nl2, nl3, nl4, nl23, nl33, nl34, nl44, n23, n32, nl;   // number of local descriptors
+  int nl1, nl2, nl3, nl4, nl23, nl33, nl34, nl44, nl;   // number of local descriptors
   int nrbf2, nrbf3, nrbf4, nrbfmax;            // number of radial basis functions
   int nabf3, nabf4;                            // number of angular basis functions  
   int K3, K4, Q4;                                  // number of monomials
@@ -149,12 +149,12 @@ class PairPODKokkos : public PairPOD {
   t_pod_1d Proj; // PCA Projection matrix
   t_pod_1d Centroids; // centroids of the clusters  
   t_pod_1d bd;   // base descriptors ni x Mdesc
+  t_pod_1d cb;   // force coefficients for base descriptors ni x Mdesc
+  t_pod_1d pd;   // environment probability descriptors ni x (1 + nComponents + 3*nClusters)
   t_pod_1d bdd;  // base descriptors derivatives 3 x nij x Mdesc 
   t_pod_1d coefficients; // coefficients nCoeffPerElement x nelements
   t_pod_1i pq3, pn3, pc3; // arrays to compute 3-body angular basis functions
-  t_pod_1i pa4, pb4, pc4; // arrays to compute 4-body angular basis functions  
-  t_pod_1i ind23; // n23 
-  t_pod_1i ind32; // n32
+  t_pod_1i pa4, pb4, pc4; // arrays to compute 4-body angular basis functions    
   t_pod_1i ind33l, ind33r; // nl33
   t_pod_1i ind34l, ind34r; // nl34
   t_pod_1i ind44l, ind44r; // nl44
@@ -163,7 +163,6 @@ class PairPODKokkos : public PairPOD {
   void set_array_to_zero(t_pod_1d a, int N);
   
   int NeighborCount(t_pod_1i, double, int, int);
-  int NeighborCount(t_pod_1i, int);
     
   void NeighborList(t_pod_1d l_rij, t_pod_1i l_numij,  t_pod_1i l_typeai, t_pod_1i l_idxi, 
     t_pod_1i l_ai, t_pod_1i l_aj, t_pod_1i l_ti, t_pod_1i l_tj, double l_rcutsq, int gi1, int Ni);
@@ -179,48 +178,39 @@ class PairPODKokkos : public PairPOD {
    
   void radialangularsum(t_pod_1d l_sumU, t_pod_1d l_rbf, t_pod_1d l_abf, t_pod_1i l_tj, 
     t_pod_1i l_numij, const int l_nelements, const int l_nrbf3, const int l_K3, const int Ni, const int Nij);
-  
-  void twobodydescderiv(t_pod_1d d2, t_pod_1d dd2, t_pod_1d l_rbf, t_pod_1d l_rbfx, t_pod_1d l_rbfy, 
-    t_pod_1d l_rbfz, t_pod_1i l_idxi, t_pod_1i l_tj, int l_nrbfmax, int l_nrbf2, const int Ni, const int Nij); 
-  
+
+  void twobodydesc(t_pod_1d d2, t_pod_1d l_rbf, t_pod_1i l_idxi, t_pod_1i l_tj, int l_nrbf2, const int Ni, const int Nij); 
+    
   void threebodydesc(t_pod_1d d3, t_pod_1d l_sumU, t_pod_1i l_pc3, t_pod_1i l_pn3, 
         int l_nelements, int l_nrbf3, int l_nabf3, int l_K3, const int Ni);
   
-  void threebodydescderiv(t_pod_1d dd3, t_pod_1d l_rbf, t_pod_1d l_rbfx, 
-    t_pod_1d l_rbfy, t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz, 
-    t_pod_1d l_sumU, t_pod_1i l_idxi, t_pod_1i l_tj, t_pod_1i l_pc3, t_pod_1i l_pn3, t_pod_1i l_elemindex, 
-    int l_nelements, int l_nrbfmax, int l_nrbf3, int l_nabf3, int l_K3, int Ni, int Nij);
-    
   void fourbodydesc(t_pod_1d d4,  t_pod_1d l_sumU, t_pod_1i l_pa4, t_pod_1i l_pb4, t_pod_1i l_pc4, 
       int l_nelements, int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni);
-    
-  void fourbodydescderiv(t_pod_1d dd4, t_pod_1d l_rbf, t_pod_1d l_rbfx, t_pod_1d l_rbfy, t_pod_1d l_rbfz, 
-    t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz, t_pod_1d l_sumU, t_pod_1i l_idxi, 
-    t_pod_1i l_tj, t_pod_1i l_pa4, t_pod_1i l_pb4, t_pod_1i l_pc4, t_pod_1i l_elemindex, int l_nelements, 
-    int l_nrbfmax,  int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni, int Nij);
-  
-  void fourbodydesc23(t_pod_1d d23, t_pod_1d d2, t_pod_1d d3, t_pod_1i l_ind23,
-    t_pod_1i l_ind32, int l_n23, int l_n32, int Ni);
-  
-  void fourbodydescderiv23(t_pod_1d dd23, t_pod_1d d2, t_pod_1d d3, t_pod_1d dd2, 
-    t_pod_1d dd3,  t_pod_1i l_idxi, t_pod_1i l_ind23, t_pod_1i l_ind32, int l_n23, int l_n32, int Ni, int N);
-  
+     
   void crossdesc(t_pod_1d d12, t_pod_1d d1, t_pod_1d d2, t_pod_1i ind1, t_pod_1i ind2, int n12, int Ni);
+   
+  void crossdesc_reduction(t_pod_1d cb1, t_pod_1d cb2, t_pod_1d c12, t_pod_1d d1, 
+        t_pod_1d d2, t_pod_1i ind1, t_pod_1i ind2, int n12, int Ni);  
+  void blockatom_base_descriptors(t_pod_1d bd, int Ni, int Nij);
+  void blockatom_base_coefficients(t_pod_1d ei, t_pod_1d cb, t_pod_1d B, int Ni);
+  void blockatom_environment_descriptors(t_pod_1d ei, t_pod_1d cb, t_pod_1d B, int Ni);  
   
-  void crossdescderiv(t_pod_1d dd12, t_pod_1d d1, t_pod_1d d2, t_pod_1d dd1, t_pod_1d dd2,
-        t_pod_1i l_idxi, t_pod_1i ind1, t_pod_1i ind2, int n12, int Ni, int Nij);
+  void twobody_forces(t_pod_1d fij, t_pod_1d cb2, t_pod_1d l_rbfx, t_pod_1d l_rbfy, t_pod_1d l_rbfz, 
+          t_pod_1i l_idxi, t_pod_1i l_tj, int l_nrbf2, const int Ni, const int Nij);
+  void threebody_forces(t_pod_1d fij, t_pod_1d cb3, t_pod_1d l_rbf, t_pod_1d l_rbfx, 
+    t_pod_1d l_rbfy, t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz, 
+    t_pod_1d l_sumU, t_pod_1i l_idxi, t_pod_1i l_tj, t_pod_1i l_pc3, t_pod_1i l_pn3, t_pod_1i l_elemindex, 
+    int l_nelements, int l_nrbf3, int l_nabf3, int l_K3, int Ni, int Nij);
+  void fourbody_forces(t_pod_1d fij, t_pod_1d cb4, t_pod_1d l_rbf, t_pod_1d l_rbfx, t_pod_1d l_rbfy, 
+    t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz, t_pod_1d l_sumU, 
+    t_pod_1i l_idxi, t_pod_1i l_tj, t_pod_1i l_pa4, t_pod_1i l_pb4, t_pod_1i l_pc4, t_pod_1i l_elemindex, 
+    int l_nelements, int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni, int Nij);
   
-  void blockatom_base_descriptors(t_pod_1d bd, t_pod_1d bdd, int Ni, int Nij);
-  void blockatomenv_descriptors(t_pod_1d ei, t_pod_1d cb, t_pod_1d B, int Ni);
-  
-  void blockatomenergyforce(int Ni, int Nij);
-  
-  void tallyforce(int Nij);
-  
-  void tallyenergy(int istart, int Ni);
-
-  void tallystress(int Nij);  
-  
+  void blockatom_energyforce(t_pod_1d l_ei, t_pod_1d l_fij, int Ni, int Nij);
+  void tallyenergy(t_pod_1d l_ei, int istart, int Ni);
+  void tallyforce(t_pod_1d l_fij, t_pod_1i l_ai, t_pod_1i l_aj, int Nij); 
+  void tallystress(t_pod_1d l_fij, t_pod_1d l_rij, t_pod_1i l_ai, t_pod_1i l_aj, int Nij); 
+    
   void savematrix2binfile(std::string filename, t_pod_1d d_A, int nrows, int ncols);
   void saveintmatrix2binfile(std::string filename, t_pod_1i d_A, int nrows, int ncols);
   void savedatafordebugging();

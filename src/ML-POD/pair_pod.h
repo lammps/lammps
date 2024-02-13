@@ -54,25 +54,33 @@ public:
   void angularbasis(double *tm, double *tmu, double *tmv, double *tmw, int N);
   void radialangularsum(int Ni, int Nij);
   void radialangularsum2(int Ni, int Nij);
+  void twobodydesc(double *d2, int Ni, int Nij);
+  void twobodydescderiv(double *dd2, int Ni, int Nij);
   void twobodydescderiv(double *d2, double *dd2, int Ni, int Nij);
   void threebodydesc(double *d3, int Ni);
   void threebodydescderiv(double *dd3, int Ni, int Nij);
   void extractsumU(int Ni);
   void fourbodydesc(double *d4, int Ni);
   void fourbodydescderiv(double *dd4, int Ni, int Nij);
-  void fourbodydesc23(double *d23, double *d2, double *d3, int Ni);
-  void fourbodydescderiv23(double* dd23, double *d2, double *d3, double *dd2, double *dd3, int *idxi, int Ni, int N);
   void crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, int n12, int Ni);
   void crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2,
         int *ind1, int *ind2, int *idxi, int n12, int Ni, int Nij);
-  void crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, 
-        int n12, int nd1, int nd2, int Ni);
-  void crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2,
-        int *ind1, int *ind2, int *idxi, int n12, int nd1, int nd2, int Ni, int Nij);
-  void blockatombase_descriptors(double *bd1, double *bdd1, int Ni, int Nij);
-  void environment_descriptors(double *ei, double *cb, double *B, int Ni);
+  void blockatombase_descriptors(double *bd1, double *bdd1, int Ni, int Nij);  
   void blockatomenergyforce(double *ei, double *fij, int Ni, int Nij);
 
+  void crossdesc_reduction(double *cb1, double *cb2, double *c12, double *d1, 
+        double *d2, int *ind1, int *ind2, int n12, int Ni);  
+  void blockatom_base_descriptors(double *bd1, int Ni, int Nij);
+  void blockatom_base_coefficients(double *ei, double *cb, double *B, int Ni);
+  void blockatom_environment_descriptors(double *ei, double *cb, double *B, int Ni);
+  void blockatom_energyforce(double *ei, double *fij, int Ni, int Nij);
+  void blockatom_energies(double *ei, int Ni, int Nij);
+  void blockatom_forces(double *fij, int Ni, int Nij);  
+  
+  void twobody_forces(double *fij, double *cb2, int Ni, int Nij);
+  void threebody_forces(double *fij, double *cb3, int Ni, int Nij);
+  void fourbody_forces(double *fij, double *cb4, int Ni, int Nij);
+  
   void savematrix2binfile(std::string filename, double *A, int nrows, int ncols);
   void saveintmatrix2binfile(std::string filename, int *A, int nrows, int ncols);  
   void savedatafordebugging();    
@@ -99,7 +107,7 @@ protected:
   int nbesselpars;  // number of Bessel parameters
   int nCoeffPerElement; // number of coefficients per element = (nl1 + Mdesc*nClusters)
   int ns;      // number of snapshots for radial basis functions
-  int nl1, nl2, nl3, nl4, nl23, nl33, nl34, nl44, n23, n32, nl;   // number of local descriptors
+  int nl1, nl2, nl3, nl4, nl23, nl33, nl34, nl44, nl;   // number of local descriptors
   int nrbf2, nrbf3, nrbf4, nrbfmax;            // number of radial basis functions
   int nabf3, nabf4;                            // number of angular basis functions  
   int K3, K4, Q4;                                  // number of monomials
@@ -139,14 +147,13 @@ protected:
   double *Proj; // PCA Projection matrix
   double *Centroids; // centroids of the clusters  
   double *bd;   // base descriptors ni x Mdesc
-  double *bdd;  // base descriptors derivatives 3 x nij x Mdesc 
+  double *cb;   // force coefficients for base descriptors ni x Mdesc
   double *pd;   // environment probability descriptors ni x nClusters
+  double *bdd;  // base descriptors derivatives 3 x nij x Mdesc   
   double *pdd;  // environment probability descriptors derivatives 3 x nij x nClusters
   double *coefficients; // coefficients nCoeffPerElement x nelements
   int *pq3, *pn3, *pc3;       // arrays to compute 3-body angular basis functions
-  int *pa4, *pb4, *pc4; // arrays to compute 4-body angular basis functions  
-  int *ind23; // n23 
-  int *ind32; // n32
+  int *pa4, *pb4, *pc4; // arrays to compute 4-body angular basis functions    
   int *ind33l, *ind33r; // nl33
   int *ind34l, *ind34r; // nl34
   int *ind44l, *ind44r; // nl44

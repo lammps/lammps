@@ -35,22 +35,12 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER = 7;
 
-enum{REVERSE_MU};
-enum{FORWARD_MU,FORWARD_MU_PERATOM};
+enum { REVERSE_MU };
+enum { FORWARD_MU, FORWARD_MU_PERATOM };
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 

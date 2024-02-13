@@ -26,7 +26,7 @@
 #include <cmath>
 #include <cstring>
 
-#define EPSILON 1e-10
+static constexpr double EPSILON = 1e-10;
 
 using namespace LAMMPS_NS;
 

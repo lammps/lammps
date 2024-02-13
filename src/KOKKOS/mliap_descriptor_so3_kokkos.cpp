@@ -31,9 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-#define MAXWORD 3
-
 /* ---------------------------------------------------------------------- */
 template <class DeviceType>
 MLIAPDescriptorSO3Kokkos<DeviceType>::MLIAPDescriptorSO3Kokkos(LAMMPS *lmp, char *paramfilename)

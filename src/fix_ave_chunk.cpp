@@ -485,7 +485,7 @@ void FixAveChunk::init()
 
 /* ----------------------------------------------------------------------
    only does averaging if nvalid = current timestep
-   do not call setup_chunks(), even though fix ave/spatial called setup_bins()
+   do not call setup_chunks(), even though fix ave/chunk called setup_bins()
    b/c could cause nchunk to change if Nfreq epoch crosses 2 runs
    does mean that if change_box is used between runs to change box size,
      that nchunk may not track it

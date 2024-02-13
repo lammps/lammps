@@ -349,6 +349,8 @@ Some common LAMMPS specific variables
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
    * - ``FFT``
      - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
+   * - ``FFT_KOKKOS``
+     - select which FFT library to use in Kokkos-enabled styles: ``FFTW3``, ``MKL``, ``HIPFFT``, ``CUFFT``, ``KISS`` (default)
    * - ``FFT_SINGLE``
      - select whether to use single precision FFTs (default: ``off``)
    * - ``WITH_JPEG``

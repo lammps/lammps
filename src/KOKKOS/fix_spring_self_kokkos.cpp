@@ -184,12 +184,12 @@ void FixSpringSelfKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
+void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &/*final*/) const
 {
   const int i = d_exchange_sendlist(mysend);
 
-  d_buf[mysend] = nsend + offset;
   int m = nsend + offset;
+  d_buf[mysend] = m;
   d_buf[m++] = d_xoriginal(i,0);
   d_buf[m++] = d_xoriginal(i,1);
   d_buf[m++] = d_xoriginal(i,2);
@@ -258,6 +258,8 @@ void FixSpringSelfKokkos<DeviceType>::operator()(TagFixSpringSelfUnpackExchange,
 
   if (index > -1) {
     int m = d_buf[i];
+    if (i >= nrecv1)
+      m = nextrarecv1 + d_buf[nextrarecv1 + i - nrecv1];
 
     d_xoriginal(index,0) = static_cast<tagint> (d_buf[m++]);
     d_xoriginal(index,1) = static_cast<tagint> (d_buf[m++]);
@@ -270,6 +272,7 @@ void FixSpringSelfKokkos<DeviceType>::operator()(TagFixSpringSelfUnpackExchange,
 template <class DeviceType>
 void FixSpringSelfKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int nrecv1, int nextrarecv1,
   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
@@ -279,6 +282,9 @@ void FixSpringSelfKokkos<DeviceType>::unpack_exchange_kokkos(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
+
+  this->nrecv1 = nrecv1;
+  this->nextrarecv1 = nextrarecv1;
 
   k_xoriginal.template sync<DeviceType>();
 

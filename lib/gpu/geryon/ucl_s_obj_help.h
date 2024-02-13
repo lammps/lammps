@@ -53,7 +53,7 @@ template <> struct _ucl_s_obj_help<1> {
   }
 
   template <class t1, class t2, class t3, class mat_type>
-  static inline int alloc(t1 &host, t2 &device, t3 &_buffer,
+  static inline int alloc(t1 &host, t2 &device, t3 &/*_buffer*/,
                           const int cols, mat_type &cq,
                           const enum UCL_MEMOPT kind1,
                           const enum UCL_MEMOPT kind2) {
@@ -79,7 +79,7 @@ template <> struct _ucl_s_obj_help<1> {
   }
 
   template <class t1, class t2, class t3>
-  static inline int alloc(t1 &host, t2 &device, t3 &_buffer,
+  static inline int alloc(t1 &host, t2 &device, t3 &/*_buffer*/,
                           const int rows, const int cols, UCL_Device &acc,
                           const enum UCL_MEMOPT kind1,
                           const enum UCL_MEMOPT kind2) {
@@ -105,7 +105,7 @@ template <> struct _ucl_s_obj_help<1> {
   }
 
   template <class t1, class t2, class t3, class mat_type>
-  static inline int alloc(t1 &host, t2 &device, t3 &_buffer,
+  static inline int alloc(t1 &host, t2 &device, t3 &/*_buffer*/,
                           const int rows, const int cols, mat_type &cq,
                           const enum UCL_MEMOPT kind1,
                           const enum UCL_MEMOPT kind2) {
@@ -177,7 +177,7 @@ template <> struct _ucl_s_obj_help<1> {
   }
 
   template <class t1, class t2, class t3>
-  static inline int dev_resize(t1 &device, t2 &host, t3 &buff, const int rows,
+  static inline int dev_resize(t1 &device, t2 &host, t3 &/*buff*/, const int rows,
                                const int cols) {
     if (device.kind()==UCL_VIEW) {
       device.view(host);
@@ -369,7 +369,7 @@ template <int st> struct _ucl_s_obj_help {
   }
 
   template <class t1, class t2, class t3>
-  static inline int dev_resize(t1 &device, t2 &host, t3 &buff, const int rows,
+  static inline int dev_resize(t1 &device, t2 &/*host*/, t3 &buff, const int rows,
                                const int cols) {
     int err=buff.resize(rows,cols);
     if (err!=UCL_SUCCESS)

@@ -202,7 +202,7 @@ void FixNonaffineDisplacement::init()
     // need an occasional half neighbor list
 
     if (cut_style == RADIUS) {
-      auto req = neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
+      neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
     } else {
       auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
       if (cut_style == CUSTOM) {
@@ -233,7 +233,7 @@ void FixNonaffineDisplacement::init_list(int /*id*/, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNonaffineDisplacement::setup(int vflag)
+void FixNonaffineDisplacement::setup(int /*vflag*/)
 {
   post_force(0); // Save state if needed before starting the 1st timestep
 }
@@ -285,7 +285,6 @@ void FixNonaffineDisplacement::restart(char *buf)
 
 void FixNonaffineDisplacement::integrate_velocity()
 {
-  int i,n;
   dtv = update->dt;
 
   double **v = atom->v;
@@ -306,7 +305,6 @@ void FixNonaffineDisplacement::integrate_velocity()
 
 void FixNonaffineDisplacement::save_reference_state()
 {
-  int i, n;
   double **x = atom->x;
 
   int *mask = atom->mask;
@@ -354,15 +352,14 @@ void FixNonaffineDisplacement::calculate_D2Min()
 
   int i, j, k, l, ii, jj, inum, jnum, itype, jtype;
   double evol, j2, edev;
-  double r[3], r0[3], rsq, rsq0, radsum, temp[3];
+  double r[3], r0[3], rsq, radsum, temp[3];
   double X_tmp[3][3], Y_tmp[3][3], F_tmp[3][3], E[3][3];
-  double Y_inv[3][3] = {0.0}; // Zero for 2d since not all entries used
+  double Y_inv[3][3] = {{0.0,0.0,0.0},{0.0,0.0,0.0},{0.0,0.0,0.0}}; // Zero for 2d since not all entries used
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double **x = atom->x;
   double **x0 = array_atom;
   double *radius = atom->radius;
-  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

@@ -24,7 +24,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 16
+static constexpr int DELTA = 16;
 
 /* ----------------------------------------------------------------------
    NOTES:
@@ -635,7 +635,7 @@ void Grid3dKokkos<DeviceType>::setup_comm_tiled(int &nbuf1, int &nbuf2)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
+void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, int nper, int /*nbyte*/,
                             FFT_DAT::tdual_FFT_SCALAR_1d& k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d& k_buf2,
                             MPI_Datatype datatype)
 {
@@ -645,7 +645,7 @@ void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, in
   else
     forward_comm_kspace_tiled((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
   } else
-    error->all(FLERR,"Kokkos grid comm only supports Kspace");
+    error->all(FLERR,"Kokkos grid comm currently only supports Kspace");
 }
 
 /* ----------------------------------------------------------------------
@@ -775,7 +775,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void Grid3dKokkos<DeviceType>::reverse_comm(int caller, void *ptr, int which, int nper, int nbyte,
+void Grid3dKokkos<DeviceType>::reverse_comm(int caller, void *ptr, int which, int nper, int /*nbyte*/,
                             FFT_DAT::tdual_FFT_SCALAR_1d& k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d& k_buf2,
                             MPI_Datatype datatype)
 {
@@ -945,7 +945,7 @@ int Grid3dKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
-  if (k_list.extent(1) < nmax)
+  if ((int)k_list.extent(1) < nmax)
     k_list.resize(k_list.extent(0),nmax);
 
   if (nmax == 0) return 0;

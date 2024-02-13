@@ -146,7 +146,7 @@ OPT.
    * :doc:`lj/charmm/coul/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/charmm/coul/msm (o) <pair_charmm>`
    * :doc:`lj/charmmfsw/coul/charmmfsh <pair_charmm>`
-   * :doc:`lj/charmmfsw/coul/long <pair_charmm>`
+   * :doc:`lj/charmmfsw/coul/long (k) <pair_charmm>`
    * :doc:`lj/class2 (gko) <pair_class2>`
    * :doc:`lj/class2/coul/cut (ko) <pair_class2>`
    * :doc:`lj/class2/coul/cut/soft <pair_fep_soft>`

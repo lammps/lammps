@@ -32,7 +32,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define TOLERANCE 0.05
+static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 

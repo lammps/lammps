@@ -34,8 +34,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-
 #define FC_PACKED1_T typename ForceConst<flt_t>::fc_packed1
 #define FC_PACKED2_T typename ForceConst<flt_t>::fc_packed2
 

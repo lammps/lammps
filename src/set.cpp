@@ -52,8 +52,6 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
 
-#define BIG INT_MAX
-
 /* ---------------------------------------------------------------------- */
 
 void Set::command(int narg, char **arg)

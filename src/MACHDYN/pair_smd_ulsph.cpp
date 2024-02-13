@@ -48,7 +48,6 @@ using namespace SMD_Math;
 #include <Eigen/Eigen>
 using namespace Eigen;
 
-#define ARTIFICIAL_STRESS false
 #define FORMAT1 "%60s : %g\n"
 #define FORMAT2 "\n.............................. %s \n"
 

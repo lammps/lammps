@@ -29,9 +29,6 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
-#define TOLERANCE 0.05
-#define SMALL     0.001
-
 /* ---------------------------------------------------------------------- */
 
 ImproperClass2OMP::ImproperClass2OMP(class LAMMPS *lmp)

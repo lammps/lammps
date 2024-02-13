@@ -702,7 +702,7 @@ static const double fm_exp2_p[] = {
 };
 
 /* double precision constants */
-#define FM_DOUBLE_LOG2OFE  1.4426950408889634074
+static constexpr double FM_DOUBLE_LOG2OFE = 1.4426950408889634074;
 
 double MathSpecial::exp2_x86(double x)
 {

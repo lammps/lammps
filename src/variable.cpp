@@ -48,13 +48,13 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define VARDELTA 4
-#define MAXLEVEL 4
-#define MAXLINE 256
-#define CHUNK 1024
-#define MAXFUNCARG 6
+static constexpr int VARDELTA = 4;
+static constexpr int MAXLEVEL = 4;
+static constexpr int MAXLINE = 256;
+static constexpr int CHUNK = 1024;
+static constexpr int MAXFUNCARG = 6;
 
-#define MYROUND(a) (( (a)-floor(a) ) >= .5) ? ceil(a) : floor(a)
+static inline double MYROUND(double a) { return ((a - floor(a)) >= 0.5) ? ceil(a) : floor(a); }
 
 enum{ARG,OP};
 

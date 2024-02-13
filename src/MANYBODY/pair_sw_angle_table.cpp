@@ -39,7 +39,7 @@ using MathConst::DEG2RAD;
 using MathConst::MY_PI;
 using MathConst::RAD2DEG;
 
-#define DELTA 4
+static constexpr int DELTA = 4;
 
 enum { LINEAR, SPLINE };
 

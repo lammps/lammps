@@ -38,8 +38,8 @@ using MathConst::RAD2DEG;
 
 enum { LINEAR, SPLINE };
 
-#define SMALL 0.001
-#define TINY 1.E-10
+static constexpr double SMALL = 0.001;
+static constexpr double TINY = 1.E-10;
 
 /* ---------------------------------------------------------------------- */
 

@@ -13,8 +13,8 @@
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
-#ifndef LAL_SPH_LJ_H
-#define LAL_SPH_LJ_H
+#ifndef LAL_SPH_HEATCONDUCTION_H
+#define LAL_SPH_HEATCONDUCTION_H
 
 #include "lal_base_sph.h"
 

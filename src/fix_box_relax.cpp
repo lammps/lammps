@@ -35,10 +35,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO,TRICLINIC};
-
-#define MAX_LIFO_DEPTH 2     // 3 box0 arrays in *.h dimensioned to this
+enum { NONE, XYZ, XY, YZ, XZ };
+enum { ISO, ANISO, TRICLINIC };
 
 /* ---------------------------------------------------------------------- */
 

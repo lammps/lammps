@@ -622,7 +622,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
 int KokkosLMP::neigh_count(int m)
 {
-  int inum;
+  int inum = 0;
   int nneigh = 0;
 
   ArrayTypes<LMPHostType>::t_int_1d h_ilist;

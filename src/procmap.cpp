@@ -33,7 +33,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 128
+static constexpr int MAXLINE = 128;
 
 /* ---------------------------------------------------------------------- */
 
@@ -282,7 +282,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
   int me;
   MPI_Comm_rank(world,&me);
 
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   FILE *fp = nullptr;
 
   if (me == 0) {

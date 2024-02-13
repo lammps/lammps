@@ -440,8 +440,6 @@ void PairMEAMSpline::coeff(int narg, char **arg)
   }
 }
 
-#define MAXLINE 1024
-
 void PairMEAMSpline::read_file(const char* filename)
 {
   int nmultichoose2; // = (n+1)*n/2;

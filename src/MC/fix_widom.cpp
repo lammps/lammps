@@ -50,7 +50,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using MathConst::MY_2PI;
 
-#define MAXENERGYTEST 1.0e50
 enum { EXCHATOM, EXCHMOL };    // exchmode
 
 /* ---------------------------------------------------------------------- */

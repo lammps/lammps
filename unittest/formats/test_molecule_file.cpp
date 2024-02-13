@@ -32,6 +32,8 @@ using testing::StrEq;
 
 using utils::split_words;
 
+const double EPSILON = 5.0e-14;
+
 #define test_name test_info_->name()
 
 static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
@@ -145,7 +147,7 @@ protected:
         fclose(fp);
 
         command(fmt::format("molecule {} {} {}", name, file, args));
-        remove(file.c_str());
+        platform::unlink(file);
     }
 };
 
@@ -184,7 +186,7 @@ TEST_F(MoleculeFileTest, badargs)
     TEST_FAILURE(
         ".*Illegal molecule command.*",
         run_mol_cmd(test_name, "scale", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    remove("badargs.mol");
+    platform::unlink("moltest_badargs.mol");
 }
 
 TEST_F(MoleculeFileTest, noatom)
@@ -193,14 +195,14 @@ TEST_F(MoleculeFileTest, noatom)
                  run_mol_cmd(test_name, "",
                              "Comment\n0 atoms\n1 bonds\n\n"
                              " Coords\n\nBonds\n\n 1 1 2\n"););
-    remove("noatom.mol");
+    platform::unlink("moltest_noatom.mol");
 }
 
 TEST_F(MoleculeFileTest, empty)
 {
     TEST_FAILURE(".*ERROR: Unexpected end of molecule file.*",
                  run_mol_cmd(test_name, "", "Comment\n\n"););
-    remove("empty.mol");
+    platform::unlink("moltest_empty.mol");
 }
 
 TEST_F(MoleculeFileTest, nospecial)
@@ -210,7 +212,7 @@ TEST_F(MoleculeFileTest, nospecial)
                              "Comment\n3 atoms\n\n2 bonds\n\n"
                              " Coords\n\n 1 1.0 1.0 1.0\n 2 1.0 1.0 0.0\n 3 1.0 0.0 1.0\n"
                              " Bonds\n\n 1 1 1 2\n 2 1 1 3\n"););
-    remove("nospecial.mol");
+    platform::unlink("moltest_nospecial.mol");
 }
 
 TEST_F(MoleculeFileTest, minimal)
@@ -218,7 +220,7 @@ TEST_F(MoleculeFileTest, minimal)
     BEGIN_CAPTURE_OUTPUT();
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
                                       ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
 }
 
@@ -230,7 +232,7 @@ TEST_F(MoleculeFileTest, notype)
     command("create_box 1 box");
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
                                       ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
     TEST_FAILURE(".*ERROR: Create_atoms molecule must have atom types.*",
                  command("create_atoms 0 single 0.0 0.0 0.0 mol notype 542465"););
@@ -259,7 +261,7 @@ TEST_F(MoleculeFileTest, twomols)
                 " Coords\n\n 1 0.0 0.0 0.0\n 2 0.0 0.0 1.0\n"
                 " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*2 molecules.*\n"
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*2 molecules.*\n"
                                       ".*0 fragments.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
     ASSERT_EQ(lmp->atom->nmolecule, 1);
     auto mols = lmp->atom->get_molecule_by_id(test_name);
@@ -273,10 +275,10 @@ TEST_F(MoleculeFileTest, twofiles)
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(
         output,
-        ContainsRegex(".*Read molecule template twomols:.*\n.*1 molecules.*\n"
+        ContainsRegex(".*Read molecule template twomols:.*\n.*Water.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
                       ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"
-                      ".*Read molecule template twomols:.*\n.*1 molecules.*\n"
+                      ".*Read molecule template twomols:.*\n.*CO2.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     BEGIN_CAPTURE_OUTPUT();
@@ -306,7 +308,7 @@ TEST_F(MoleculeFileTest, labelmap)
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(
         output,
-        ContainsRegex(".*Read molecule template h2olabel:.*\n.*1 molecules.*\n"
+        ContainsRegex(".*Read molecule template h2olabel:.*\n.*Water.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
                       ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*"));
     BEGIN_CAPTURE_OUTPUT();
@@ -314,7 +316,7 @@ TEST_F(MoleculeFileTest, labelmap)
     output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(
         output,
-        ContainsRegex(".*Read molecule template co2label:.*\n.*1 molecules.*\n"
+        ContainsRegex(".*Read molecule template co2label:.*\n.*CO2.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     BEGIN_CAPTURE_OUTPUT();
@@ -328,12 +330,12 @@ TEST_F(MoleculeFileTest, labelmap)
     auto second = output.substr(mark);
     ASSERT_THAT(
         first,
-        ContainsRegex(".*Read molecule template h2onum:.*\n.*1 molecules.*\n"
+        ContainsRegex(".*Read molecule template h2onum:.*\n.*Water.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
                       ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"));
     ASSERT_THAT(
         second,
-        ContainsRegex(".*Read molecule template co2num:.*\n.*1 molecules.*\n"
+        ContainsRegex(".*Read molecule template co2num:.*\n.*CO2.*\n.*1 molecules.*\n"
                       ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     ASSERT_EQ(lmp->atom->nmolecule, 4);
@@ -379,7 +381,7 @@ TEST_F(MoleculeFileTest, bonds)
                 " 1 1 1 2\n"
                 " 2 2 1 3\n\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
                                       ".*0 fragments.*\n.*4 atoms.*type.*2.*\n"
                                       ".*2 bonds.*type.*2.*\n.*0 angles.*"));
 
@@ -402,6 +404,60 @@ TEST_F(MoleculeFileTest, bonds)
     EXPECT_DOUBLE_EQ(mol->maxextent, sqrt(2.0));
     EXPECT_EQ(mol->comatom, 1);
     END_HIDE_OUTPUT();
+}
+
+TEST_F(MoleculeFileTest, dipoles)
+{
+    if (!LAMMPS::is_installed_pkg("DIPOLE")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style dipole");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 2 box");
+    run_mol_cmd(test_name, "",
+                "# Dumbbell with dipole molecule file.\n\n"
+                "2 atoms\n\n"
+                "Coords\n\n1 -1.0 0.0 0.0\n2  1.0 0.0 0.0\n\n"
+                "Types\n\n1 1\n2 2\n\n"
+                "Dipoles\n\n1 1.0 0.0 0.0\n2 1.0 1.0 0.0\n\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Dumbbell.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*2 atoms.*type.*2.*\n"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("mass * 1.0");
+    command("create_atoms 0 single 0.5 0.5 0.5 mol dipoles 67235 rotate 90.0 0.0 0.0 1.0");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Created 2 atoms.*"));
+
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->natoms, 2);
+    ASSERT_EQ(lmp->atom->natoms, 2);
+    mol->compute_mass();
+    mol->compute_com();
+    EXPECT_NEAR(mol->masstotal, 2.0, EPSILON);
+    EXPECT_NEAR(mol->com[0], 0.0, EPSILON);
+    EXPECT_NEAR(mol->com[1], 0.0, EPSILON);
+    EXPECT_NEAR(mol->com[2], 0.0, EPSILON);
+    EXPECT_EQ(mol->comatom, 1);
+    ASSERT_NE(mol->mu, nullptr);
+    EXPECT_NEAR(mol->mu[0][0], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[0][1], 0.0, EPSILON);
+    EXPECT_NEAR(mol->mu[0][2], 0.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][0], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][1], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][2], 0.0, EPSILON);
+    EXPECT_NEAR(mol->maxextent, 2.0, EPSILON);
+    // dipoles should be rotated by 90 degrees clockwise around the z axis
+    double **mu = lmp->atom->mu;
+    ASSERT_NE(mu, nullptr);
+    EXPECT_NEAR(mu[0][0], 0.0, EPSILON);
+    EXPECT_NEAR(mu[0][1], 1.0, EPSILON);
+    EXPECT_NEAR(mu[0][2], 0.0, EPSILON);
+    EXPECT_NEAR(mu[0][3], 1.0, EPSILON);
+    EXPECT_NEAR(mu[1][0], -1.0, EPSILON);
+    EXPECT_NEAR(mu[1][1], 1.0, EPSILON);
+    EXPECT_NEAR(mu[1][2], 0.0, EPSILON);
+    EXPECT_NEAR(mu[1][3], sqrt(2.0), EPSILON);
 }
 
 int main(int argc, char **argv)

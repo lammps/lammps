@@ -185,12 +185,12 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     d_iatoms[ii] = i;
     d_ielems[ii] = ielem;
   });
-  
+
   Kokkos::parallel_for(nmax, KOKKOS_LAMBDA (int i)  {
     const int itype = type(i);
     d_elems(i) = map(itype);
   });
-  
+
   modified(execution_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
   eflag = eflag_in;
   vflag = vflag_in;
@@ -252,7 +252,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     contrib += count;
   }, npairs);
   modified(execution_space, NUMNEIGHS_MASK);
-  
+
   if (nneigh_max < npairs) {
     memoryKK->destroy_kokkos(k_jatoms,jatoms);
     memoryKK->create_kokkos(k_jatoms, jatoms, npairs, "mliap_data:jatoms");

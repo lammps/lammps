@@ -65,7 +65,7 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) : Point
   //read in file with CG coefficients or c_tilde coefficients
   //auto ctilde_file = utils::get_potential_file_path(yacefilename);
   //acemlimpl -> basis_set = new ACECTildeBasisSet(std::string(1,ctilde_file));
-  ctilde_file = yacefilename; 
+  ctilde_file = yacefilename;
   delete acemlimpl -> basis_set;
   acemlimpl -> basis_set = new ACECTildeBasisSet(ctilde_file);
   nelements = acemlimpl -> basis_set->nelements;
@@ -81,7 +81,7 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) : Point
   nelements = acemlimpl -> basis_set ->nelements;
 
   memory->destroy(cutsq);
-  
+
   if (allocated_elements) {
     for (int iielem = 0; iielem < nelements; iielem++) delete[] elements[iielem];
     delete[] elements;
@@ -95,12 +95,12 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) : Point
     }
     allocated_elements = 1;
   }
-  
+
   memory->create(cutsq,nelements+1,nelements+1,"mliap/descriptor/ace:cutsq");
   float icmax = 0.0;
   float icuti, icutj;
   for (int mui = 0; mui < acemlimpl -> basis_set ->nelements; mui++) {
-    icuti = acemlimpl -> basis_set->radial_functions->cut(mui, mui); 
+    icuti = acemlimpl -> basis_set->radial_functions->cut(mui, mui);
     if (icuti > icmax) icmax = icuti;
     for (int muj = mui+1; muj < acemlimpl -> basis_set ->nelements; muj++) {
       icutj = acemlimpl -> basis_set->radial_functions->cut(mui, muj);
@@ -113,7 +113,7 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) : Point
   for (int mui = 0; mui < acemlimpl -> basis_set ->nelements; mui++) {
     cuti = acemlimpl -> basis_set->radial_functions->cut(mui, mui);
     if (cuti > cutmax) cutmax = cuti;
-    
+
     cutsq[mui][mui] = ((2*cuti*cutfac)*(2*cuti*cutfac));
     for (int muj = mui + 1; muj < nelements; muj++) {
       cutj = acemlimpl -> basis_set->radial_functions->cut(mui, muj);
@@ -173,14 +173,14 @@ void MLIAPDescriptorACE::compute_descriptors(class MLIAPData *data)
         }
       }
     }
-    
-    
+
+
     acemlimpl -> ace->resize_neighbours_cache(jnum);
     acemlimpl -> ace->compute_atom(i, atom->x, atom->type, data->numneighs[ii], data->lmp_firstneigh[ii]);
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++){
       data->descriptors[ii][icoeff] = acemlimpl -> ace -> projections(icoeff);
     }
-  
+
   }
 }
 
@@ -391,7 +391,7 @@ void MLIAPDescriptorACE::compute_descriptor_gradients(class MLIAPData *data)
     ij = ij0;
     for (int jj = 0; jj < data->numneighs[ii]; jj++) {
       const int jt = data->jatoms[ij];
-      
+
       const int j = jlist[jj];
       int yoffset = ndescriptors;
       int zoffset = ndescriptors*2;
@@ -402,7 +402,7 @@ void MLIAPDescriptorACE::compute_descriptor_gradients(class MLIAPData *data)
       // Accumulate dB_k^i/dRi, dB_k^i/dRj
         data->graddesc[ij][iicoeff][0] = fx_dB;
         data->graddesc[ij][iicoeff][1] = fy_dB;
-        data->graddesc[ij][iicoeff][2] = fz_dB; 
+        data->graddesc[ij][iicoeff][2] = fz_dB;
 
       }
       ij++;

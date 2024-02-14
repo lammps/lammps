@@ -32,8 +32,6 @@ class MLIAPDescriptorACE : public MLIAPDescriptor {
   double rcutfac;
   int allocated=0;
   int max_num=0;
-  //char* ctilde_file_name = nullptr;
-  //char* ctilde_file ="coupling_coefficients.yace";
   char* ctilde_file;
 
  protected:

@@ -151,7 +151,6 @@ class PairPODKokkos : public PairPOD {
   t_pod_1d bd;   // base descriptors ni x Mdesc
   t_pod_1d cb;   // force coefficients for base descriptors ni x Mdesc
   t_pod_1d pd;   // environment probability descriptors ni x (1 + nComponents + 3*nClusters)
-  t_pod_1d bdd;  // base descriptors derivatives 3 x nij x Mdesc 
   t_pod_1d coefficients; // coefficients nCoeffPerElement x nelements
   t_pod_1i pq3, pn3, pc3; // arrays to compute 3-body angular basis functions
   t_pod_1i pa4, pb4, pc4; // arrays to compute 4-body angular basis functions    

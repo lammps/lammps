@@ -639,7 +639,7 @@ void PairPOD::grow_atoms(int Ni)
     memory->create(sumU, n , "pair_pod:sumU");
     memory->create(bd, nimax * Mdesc, "pair_pod:bd");
     memory->create(cb, nimax * Mdesc, "pair_pod:bd");
-    memory->create(pd, nimax * (1 + nComponents + 3*nClusters), "pair_pod:pd");    
+    if (nClusters > 1) memory->create(pd, nimax * (1 + nComponents + 3*nClusters), "pair_pod:pd");    
         
     for (int i=0; i<=nimax; i++) numij[i] = 0;
   }
@@ -663,8 +663,8 @@ void PairPOD::grow_pairs(int Nij)
     memory->destroy(abfx);
     memory->destroy(abfy);
     memory->destroy(abfz);    
-    memory->destroy(bdd);
-    memory->destroy(pdd);        
+//     memory->destroy(bdd);
+//     memory->destroy(pdd);        
     nijmax = Nij;
     memory->create(rij, 3 * nijmax,  "pair_pod:r_ij");
     memory->create(fij, 3 * nijmax,  "pair_pod:f_ij");  
@@ -682,8 +682,8 @@ void PairPOD::grow_pairs(int Nij)
     memory->create(abfx, nijmax * kmax, "pair_pod:abfx");
     memory->create(abfy, nijmax * kmax, "pair_pod:abfy");
     memory->create(abfz, nijmax * kmax, "pair_pod:abfz");  
-    memory->create(bdd, 3 * nijmax  * Mdesc, "pair_pod:bdd");
-    memory->create(pdd, 3 * nijmax * nClusters, "pair_pod:pdd");      
+//     memory->create(bdd, 3 * nijmax  * Mdesc, "pair_pod:bdd");
+//     memory->create(pdd, 3 * nijmax * nClusters, "pair_pod:pdd");      
   }
 }
 

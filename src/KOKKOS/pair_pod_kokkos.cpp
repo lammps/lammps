@@ -541,8 +541,7 @@ void PairPODKokkos<DeviceType>::grow_pairs(int Nij)
     MemKK::realloc_kokkos(abf, "pair_pod:abf", nijmax * kmax);
     MemKK::realloc_kokkos(abfx, "pair_pod:abfx", nijmax * kmax);
     MemKK::realloc_kokkos(abfy, "pair_pod:abfy", nijmax * kmax);
-    MemKK::realloc_kokkos(abfz, "pair_pod:abfz", nijmax * kmax);
-    MemKK::realloc_kokkos(bdd, "pair_pod:bdd", 3 * nijmax * Mdesc);
+    MemKK::realloc_kokkos(abfz, "pair_pod:abfz", nijmax * kmax);    
   }
 }
 
@@ -1693,7 +1692,6 @@ void PairPODKokkos<DeviceType>::savedatafordebugging()
   savematrix2binfile("podkkabfx.bin", abfx, kmax, nij);
   savematrix2binfile("podkkabfy.bin", abfy, kmax, nij);
   savematrix2binfile("podkkabfz.bin", abfz, kmax, nij);            
-  savematrix2binfile("podkkbdd.bin", bdd, 3*nij, Mdesc);      
   savematrix2binfile("podkkbd.bin", bd, ni, Mdesc);      
   savematrix2binfile("podkksumU.bin", sumU, nelements * K3 * nrbfmax, ni);      
   savematrix2binfile("podkkrij.bin", rij, 3, nij);

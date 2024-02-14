@@ -568,12 +568,12 @@ endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
 ########################################################################
-foreach(HEADER cmath)
-  check_include_file_cxx(${HEADER} FOUND_${HEADER})
-  if(NOT FOUND_${HEADER})
-    message(FATAL_ERROR "Could not find needed header - ${HEADER}")
-  endif(NOT FOUND_${HEADER})
-endforeach(HEADER)
+if (NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")))
+  check_include_file_cxx(cmath FOUND_CMATH)
+  if(NOT FOUND_CMATH)
+    message(FATAL_ERROR "Could not find the required 'cmath' header")
+  endif(NOT FOUND_CMATH)
+endif()
 
 # make the standard math library overrideable and autodetected (for systems that don't have it)
 find_library(STANDARD_MATH_LIB m DOC "Standard Math library")

@@ -33,7 +33,7 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in, class MLIAPM
     gamma(nullptr), gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
     numneighs(nullptr), iatoms(nullptr), ielems(nullptr), pair_i(nullptr), jatoms(nullptr),
     jelems(nullptr), elems(nullptr), rij(nullptr), graddesc(nullptr), model(nullptr),
-    descriptor(nullptr), list(nullptr), itypes(nullptr), ix(nullptr), cpy_frstngh(nullptr)
+    descriptor(nullptr), list(nullptr), itypes(nullptr),  lmp_firstneigh(nullptr)
 {
   gradgradflag = gradgradflag_in;
   map = map_in;
@@ -85,10 +85,9 @@ MLIAPData::~MLIAPData()
   memory->destroy(pair_i);
   memory->destroy(ielems);
   memory->destroy(itypes);
-  memory->destroy(ix);
   memory->destroy(numneighs);
   memory->destroy(jatoms);
-  memory->destroy(cpy_frstngh);
+  memory->destroy(lmp_firstneigh);
   memory->destroy(jelems);
   memory->destroy(elems);
   memory->destroy(rij);
@@ -186,7 +185,7 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
       int jtype = type[j];
       const int jelem = map[jtype];
 
-      cpy_frstngh[ii][jj] = firstneigh[i][jj];
+      lmp_firstneigh[ii][jj] = firstneigh[i][jj];
       if (rsq < descriptor->cutsq[ielem][jelem]) {
         pair_i[ij] = i;
         jatoms[ij] = j;
@@ -228,7 +227,6 @@ void MLIAPData::grow_neigharrays()
     memory->grow(iatoms, natomneigh, "MLIAPData:iatoms");
     memory->grow(ielems, natomneigh, "MLIAPData:ielems");
     memory->grow(itypes, natomneigh, "MLIAPData:itypes");
-    memory->grow(ix, natomneigh, 3, "MLIAPData:ix");
     memory->grow(numneighs, natomneigh, "MLIAPData:numneighs");
     natomneigh_max = natomneigh;
   }
@@ -248,9 +246,6 @@ void MLIAPData::grow_neigharrays()
     const double xtmp = x[i][0];
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
-    ix[i][0] = x[i][0];
-    ix[i][1] = x[i][1];
-    ix[i][2] = x[i][2];
     const int itype = type[i];
     const int ielem = map[itype];
 
@@ -275,7 +270,7 @@ void MLIAPData::grow_neigharrays()
   if (nneigh_max < nneigh) {
     memory->grow(pair_i, nneigh, "MLIAPData:pair_i");
     memory->grow(jatoms, nneigh, "MLIAPData:jatoms");
-    memory->grow(cpy_frstngh, natomneigh, nneigh, "MLIAPData:cpy_frstngh");
+    memory->grow(lmp_firstneigh, natomneigh, nneigh, "MLIAPData:lmp_firstneigh");
     memory->grow(jelems, nneigh, "MLIAPData:jelems");
     memory->grow(rij, nneigh, 3, "MLIAPData:rij");
     if (gradgradflag == 0) memory->grow(graddesc, nneigh, ndescriptors, 3, "MLIAPData:graddesc");
@@ -304,13 +299,12 @@ double MLIAPData::memory_usage()
   bytes += (double) natomneigh_max * sizeof(int);    // iatoms
   bytes += (double) natomneigh_max * sizeof(int);    // ielems
   bytes += (double) natomneigh_max * sizeof(int);    // itypes
-  bytes += (double) natomneigh_max * 3 * sizeof(int);// ix
   bytes += (double) natomneigh_max * sizeof(int);    // numneighs
 
   bytes += (double) nneigh_max * sizeof(int);                 // pair_i
   bytes += (double) nneigh_max * sizeof(int);                 // jatoms
   bytes += (double) nneigh_max * sizeof(int);                 // jelems
-  bytes += (double) nneigh_max * natomneigh_max * sizeof(int);// cpy_frstngh
+  bytes += (double) nneigh_max * natomneigh_max * sizeof(int);// lmp_firstneigh
   bytes += (double) nneigh_max * 3 * sizeof(double);          // rij"
 
   if (gradgradflag == 0)

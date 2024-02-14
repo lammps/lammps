@@ -34,7 +34,7 @@ class MLIAPDescriptorACE : public MLIAPDescriptor {
   int max_num=0;
   //char* ctilde_file_name = nullptr;
   //char* ctilde_file ="coupling_coefficients.yace";
-  //char *const ctilde_file = nullptr;
+  char* ctilde_file;
 
  protected:
   virtual void allocate();

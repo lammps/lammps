@@ -74,8 +74,7 @@ class MLIAPData : protected Pointers {
   int *jatoms;                   // index of each neighbor
   int *jelems;                   // element of each neighbor
   int *elems;                    // element of each atom in or not in the neighborlist
-  int **cpy_frstngh;             // index of each neighbor for external evaluators
-  double **ix;                   // neighbor positions for external evaluators
+  int **lmp_firstneigh;          // copy of list->firstneigh for external evaluators
   double **rij;                  // distance vector of each neighbor
   double ***graddesc;            // descriptor gradient w.r.t. each neighbor
   int eflag;                     // indicates if energy is needed

@@ -439,6 +439,21 @@ if(BUILD_OMP)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=${LAMMPS_OMP_COMPAT_LEVEL})
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
+
+  # this hack is required to correctly link with OpenMP support when using CrayClang version 15.0.2
+  # CrayClang is only directly recognized by version 3.28 and later
+  if(CMAKE_VERSION VERSION_LESS 3.28)
+    get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
+    if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
+      set(CMAKE_SHARED_LINKER_FLAGS_${BTYPE} "${CMAKE_SHARED_LINKER_FLAGS_${BTYPE} -fopenmp")
+      set(CMAKE_STATIC_LINKER_FLAGS_${BTYPE} "${CMAKE_STATIC_LINKER_FLAGS_${BTYPE} -fopenmp")
+    endif()
+  else()
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
+      set(CMAKE_SHARED_LINKER_FLAGS_${BTYPE} "${CMAKE_SHARED_LINKER_FLAGS_${BTYPE} -fopenmp")
+      set(CMAKE_STATIC_LINKER_FLAGS_${BTYPE} "${CMAKE_STATIC_LINKER_FLAGS_${BTYPE} -fopenmp")
+    endif()
+  endif()
 endif()
 
 # lower C++ standard for fmtlib sources when using Intel classic compiler

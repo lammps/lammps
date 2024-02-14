@@ -74,7 +74,7 @@ Syntax
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *gpu/aware* or *pair/only*
+         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
            *neigh* value = *full* or *half*
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
@@ -108,6 +108,9 @@ Syntax
            *sort* value = *no* or *device*
              *no* = perform atom sorting in non-KOKKOS mode
              *device* = perform atom sorting on device (e.g. on GPU)
+           *atom/map* value = *no* or *device*
+             *no* = build atom map in non-KOKKOS mode
+             *device* = build atom map on device (e.g. on GPU)
            *gpu/aware* = *off* or *on*
              *off* = do not use GPU-aware MPI
              *on* = use GPU-aware MPI (default)
@@ -576,6 +579,11 @@ effect if the simulation is running on the CPU. Not all fix styles with
 extra atom data support *device* mode and in that case a warning will be
 given and atom sorting will run in *no* mode instead.
 
+The *atom/map* keyword determines whether the host or device builds the
+atom_map, see the :doc:`atom_modify map <atom_modify>` command.  The
+value options for the *atom/map* keyword are identical to the *sort*
+keyword above.
+
 The *gpu/aware* keyword chooses whether GPU-aware MPI will be used. When
 this keyword is set to *on*, buffers in GPU memory are passed directly
 through MPI send/receive calls. This reduces overhead of first copying
@@ -724,17 +732,17 @@ made automatically if the "-sf intel" :doc:`command-line switch <Run_options>`
 is used.  If it is not used, you must invoke the package intel command in your
 input script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
 
-For the KOKKOS package, the option defaults for GPUs are neigh = full,
-neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default value,
-comm = device, sort = device, neigh/transpose = off, gpu/aware = on. When
-LAMMPS can safely detect that GPU-aware MPI is not available, the default value
-of gpu/aware becomes "off". For CPUs or Xeon Phis, the option defaults are
-neigh = half, neigh/qeq = half, newton = on, binsize = 0.0, comm = no, and sort
-= no. For GPUs, option neigh/thread = on when there are 16k atoms or less on an MPI
-rank, otherwise it is "off". These settings are made automatically by the
-required "-k on" :doc:`command-line switch <Run_options>`. You can change them
-by using the package kokkos command in your input script or via the :doc:`-pk
-kokkos command-line switch <Run_options>`.
+For the KOKKOS package, the option defaults for GPUs are neigh = full, neigh/qeq
+= full, newton = off, binsize for GPUs = 2x LAMMPS default value, comm = device,
+sort = device, atom/map = device, neigh/transpose = off, and gpu/aware = on.
+When LAMMPS can safely detect that GPU-aware MPI is not available, the default
+value of gpu/aware becomes "off". For CPUs or Xeon Phis, the option defaults are
+neigh = half, neigh/qeq = half, newton = on, binsize = 0.0, comm = no, sort =
+no, and atom/map = no. For GPUs, option neigh/thread = on when there are 16k
+atoms or less on an MPI rank, otherwise it is "off". These settings are made
+automatically by the required "-k on" :doc:`command-line switch <Run_options>`.
+You can change them by using the package kokkos command in your input script or
+via the :doc:`-pk kokkos command-line switch <Run_options>`.
 
 For the OMP package, the default is Nthreads = 0 and the option defaults are
 neigh = yes.  These settings are made automatically if the "-sf omp"

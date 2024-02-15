@@ -35,6 +35,8 @@ static constexpr int EXTRA = 1000;
      set entire array to -1 as initial values
    for hash option:
      map_nhash = length of hash table
+     map_nbucket = # of hash buckets, prime larger than map_nhash * 2
+       so buckets will only be filled with 0 or 1 atoms on average
 ------------------------------------------------------------------------- */
 
 void AtomKokkos::map_init(int check)
@@ -57,7 +59,19 @@ void AtomKokkos::map_init(int check)
   // for hash, set all buckets to empty, put all entries in free list
 
   if (!recreate) {
-    map_clear();
+    if (lmp->kokkos->atom_map_classic) {
+      if (map_style == MAP_ARRAY) {
+        for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+      } else {
+        for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
+        map_nused = 0;
+        map_free = 0;
+        for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
+        if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
+      }
+    } else { 
+      map_clear();
+    }
 
     // recreating: delete old map and create new one for array or hash
 
@@ -82,8 +96,35 @@ void AtomKokkos::map_init(int check)
       map_nhash *= 2;
       map_nhash = MAX(map_nhash, 1000);
 
+      if (lmp->kokkos->atom_map_classic) {
+        // map_nbucket = prime just larger than map_nhash
+        // next_prime() should be fast enough,
+        //   about 10% of odd integers are prime above 1M
+
+        map_nbucket = next_prime(map_nhash);
+
+        // set all buckets to empty
+        // set hash to map_nhash in length
+        // put all hash entries in free list and point them to each other
+
+        map_bucket = new int[map_nbucket];
+        for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
+
+        map_hash = new HashElem[map_nhash];
+        map_nused = 0;
+        map_free = 0;
+        for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
+        map_hash[map_nhash - 1].next = -1;
+
+      }
+
       k_map_hash = dual_hash_type(map_nhash);
     }
+  }
+
+  if (lmp->kokkos->atom_map_classic) {
+    k_sametag.modify_host();
+    if (map_style == Atom::MAP_ARRAY) k_map_array.modify_host();
   }
 }
 
@@ -107,6 +148,8 @@ void AtomKokkos::map_clear()
     if (lmp->kokkos->atom_map_classic) {
       k_map_hash.h_view.clear();
       k_map_hash.modify_host();
+
+      Atom::map_clear(); 
     } else {
       k_map_hash.d_view.clear();
       k_map_hash.modify_device();
@@ -428,6 +471,9 @@ void AtomKokkos::map_set_host()
 
 void AtomKokkos::map_one(tagint global, int local)
 {
+  if (lmp->kokkos->atom_map_classic)
+    return Atom::map_one(global,local);
+
   if (map_style == MAP_ARRAY) {
     k_map_array.sync_host();
     k_map_array.h_view[global] = local;
@@ -450,6 +496,9 @@ void AtomKokkos::map_one(tagint global, int local)
 
 int AtomKokkos::map_find_hash(tagint global)
 {
+  if (lmp->kokkos->atom_map_classic)
+    return Atom::map_find_hash(global);
+
   k_map_hash.sync_host();
   auto& h_map_hash = k_map_hash.h_view;
 
@@ -474,4 +523,7 @@ void AtomKokkos::map_delete()
     map_array = nullptr;
   } else
     k_map_hash = dual_hash_type();
+
+  if (lmp->kokkos->atom_map_classic)
+    Atom::map_delete();
 }

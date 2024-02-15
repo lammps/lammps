@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: James Goff (SNL)
 ------------------------------------------------------------------------- */
+#ifdef MLIAP_ACE
 
 #include "mliap_descriptor_ace.h"
 
@@ -427,3 +428,5 @@ double MLIAPDescriptorACE::memory_usage()
 
   return bytes;
 }
+
+#endif

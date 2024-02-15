@@ -10,6 +10,15 @@ endif()
 
 option(MLIAP_ENABLE_PYTHON "Build ML-IAP package with Python support" ${MLIAP_ENABLE_PYTHON_DEFAULT})
 
+# if ML-PACE package is included we may also include ML-PACE support in ML-IAP
+set(MLIAP_ENABLE_ACE_DEFAULT OFF)
+if(PKG_ML-PACE)
+  set(MLIAP_ENABLE_PYTHON_DEFAULT ON)
+endif()
+
+option(MLIAP_ENABLE_PYTHON "Build ML-IAP package with Python support" ${MLIAP_ENABLE_PYTHON_DEFAULT})
+option(MLIAP_ENABLE_ACE "Build ML-IAP package with ACE support" ${MLIAP_ENABLE_ACE_DEFAULT})
+
 if(MLIAP_ENABLE_PYTHON)
   find_package(Cythonize REQUIRED)
   find_package(Python COMPONENTS NumPy REQUIRED)
@@ -18,6 +27,12 @@ if(MLIAP_ENABLE_PYTHON)
   endif()
   if(Python_VERSION VERSION_LESS 3.6)
     message(FATAL_ERROR "Python support in ML-IAP requires Python 3.6 or later")
+  endif()
+  if(MLIAP_ENABLE_ACE)
+    if(NOT PKG_ML-PACE)
+      message(FATAL_ERROR "Must enable PYTHON package and ML-PACE package for including ACE support in ML-IAP")
+    endif()
+    target_compile_definitions(lammps PRIVATE -DMLIAP_ACE)
   endif()
 
   set(MLIAP_BINARY_DIR ${CMAKE_BINARY_DIR}/cython)

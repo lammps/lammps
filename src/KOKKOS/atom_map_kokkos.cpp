@@ -63,14 +63,24 @@ void AtomKokkos::map_init(int check)
       if (map_style == MAP_ARRAY) {
         for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
       } else {
+         for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
+         map_nused = 0;
+         map_free = 0;
+         for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
+         if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
+       }
+    } else { 
+      map_clear();
+    }
+
+    if (lmp->kokkos->atom_map_classic) {
+      if (map_style == MAP_HASH) {
         for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
         map_nused = 0;
         map_free = 0;
         for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
         if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
       }
-    } else { 
-      map_clear();
     }
 
     // recreating: delete old map and create new one for array or hash
@@ -81,9 +91,7 @@ void AtomKokkos::map_init(int check)
     if (map_style == MAP_ARRAY) {
       map_maxarray = map_tag_max;
       memoryKK->create_kokkos(k_map_array, map_array, map_maxarray + 1, "atom:map_array");
-      Kokkos::deep_copy(k_map_array.d_view,-1);
-      k_map_array.modify_device();
-
+      map_clear();
     } else {
 
       // map_nhash = max # of atoms that can be hashed on this proc
@@ -115,17 +123,13 @@ void AtomKokkos::map_init(int check)
         map_free = 0;
         for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
         map_hash[map_nhash - 1].next = -1;
-
       }
-
       k_map_hash = dual_hash_type(map_nhash);
     }
   }
 
-  if (lmp->kokkos->atom_map_classic) {
-    k_sametag.modify_host();
-    if (map_style == Atom::MAP_ARRAY) k_map_array.modify_host();
-  }
+  if (lmp->kokkos->atom_map_classic)
+    if (map_style == MAP_ARRAY) k_map_array.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -136,7 +140,7 @@ void AtomKokkos::map_init(int check)
 
 void AtomKokkos::map_clear()
 {
-  if (map_style == Atom::MAP_ARRAY) {
+  if (map_style == MAP_ARRAY) {
     if (lmp->kokkos->atom_map_classic) {
       Kokkos::deep_copy(k_map_array.h_view,-1);
       k_map_array.modify_host();
@@ -148,7 +152,6 @@ void AtomKokkos::map_clear()
     if (lmp->kokkos->atom_map_classic) {
       k_map_hash.h_view.clear();
       k_map_hash.modify_host();
-
       Atom::map_clear(); 
     } else {
       k_map_hash.d_view.clear();
@@ -352,7 +355,6 @@ void AtomKokkos::map_set_host()
   int nall = nlocal + nghost;
 
   atomKK->sync(Host, TAG_MASK);
-
   k_sametag.sync_host();
 
   if (map_style == MAP_ARRAY) {
@@ -456,9 +458,9 @@ void AtomKokkos::map_set_host()
   }
 
   k_sametag.modify_host();
-  if (map_style == Atom::MAP_ARRAY)
+  if (map_style == MAP_ARRAY)
     k_map_array.modify_host();
-  else if (map_style == Atom::MAP_HASH)
+  else if (map_style == MAP_HASH)
     k_map_hash.modify_host();
 }
 
@@ -496,9 +498,6 @@ void AtomKokkos::map_one(tagint global, int local)
 
 int AtomKokkos::map_find_hash(tagint global)
 {
-  if (lmp->kokkos->atom_map_classic)
-    return Atom::map_find_hash(global);
-
   k_map_hash.sync_host();
   auto& h_map_hash = k_map_hash.h_view;
 

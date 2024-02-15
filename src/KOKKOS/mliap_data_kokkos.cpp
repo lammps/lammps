@@ -216,7 +216,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     memoryKK->destroy_kokkos(k_ij);
     memoryKK->create_kokkos(k_ij, natomneigh_max, "mliap_data:ij");
     memoryKK->destroy_kokkos(k_numneighs,numneighs);
-    memoryKK->create_kokkos(k_numneighs, natomneigh_max, "mliap_data:numneighs");
+    memoryKK->create_kokkos(k_numneighs, numneighs, natomneigh_max, "mliap_data:numneighs");
   }
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);

@@ -569,15 +569,12 @@ performing the exchange pack/unpack on the host CPU can give speedup
 since it reduces the number of CUDA kernel launches.
 
 The *sort* keyword determines whether the host or device performs atom
-sorting, see the :doc:`atom_modify sort <atom_modify>` command.  The
-value options for the *sort* keyword are *no* or *device* similar to the
-*comm* keywords above. If a value of *host* is used it will be
-automatically be changed to *no* since the *sort* keyword does not
-support *host* mode. The value of *no* will also always be used when
-running on the CPU, i.e. setting the value to *device* will have no
-effect if the simulation is running on the CPU. Not all fix styles with
-extra atom data support *device* mode and in that case a warning will be
-given and atom sorting will run in *no* mode instead.
+sorting, see the :doc:`atom_modify sort <atom_modify>` command.  The value
+options for the *sort* keyword are *no* or *device* similar to the *comm*
+keywords above. If a value of *host* is used it will be automatically be
+changed to *no* since the *sort* keyword does not support *host* mode. Not
+all fix styles with extra atom data support *device* mode and in that case
+a warning will be given and atom sorting will run in *no* mode instead.
 
 The *atom/map* keyword determines whether the host or device builds the
 atom_map, see the :doc:`atom_modify map <atom_modify>` command.  The
@@ -601,12 +598,13 @@ for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
 Spectrum MPI when the "-gpu" flag is used.
 
 The *pair/only* keyword can change how the KOKKOS suffix "kk" is applied
-when using an accelerator device.  By default device acceleration is
-always used for all available styles.  With *pair/only* set to *on* the
-suffix setting will choose device acceleration only for pair styles and
-run all other force computations on the host CPU.
-The *comm* flags will also automatically be changed to *no*\ . This can
-result in better performance for certain configurations and system sizes.
+when using an accelerator device.  By default device acceleration is always
+used for all available styles.  With *pair/only* set to *on* the suffix
+setting will choose device acceleration only for pair styles and run all
+other force computations on the host CPU.  The *comm* flags, along with the
+*sort* and *atom/map* keywords will also automatically be changed to *no*\ .
+This can result in better performance for certain configurations and
+system sizes.
 
 ----------
 

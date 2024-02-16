@@ -67,7 +67,7 @@ void AtomKokkos::map_init(int check)
         for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
         if (map_nhash > 0) map_hash[map_nhash-1].next = -1;
       }
-    } else { 
+    } else {
       map_clear();
     }
 
@@ -463,9 +463,6 @@ void AtomKokkos::map_set_host()
 
 void AtomKokkos::map_one(tagint global, int local)
 {
-  if (lmp->kokkos->atom_map_classic)
-    return Atom::map_one(global,local);
-
   if (map_style == MAP_ARRAY) {
     k_map_array.sync_host();
     k_map_array.h_view[global] = local;

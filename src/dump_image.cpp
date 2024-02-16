@@ -49,7 +49,7 @@
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 enum{NUMERIC,ATOM,TYPE,ELEMENT,ATTRIBUTE};
 enum{SPHERE,LINE,TRI};           // also in some Body and Fix child classes
@@ -134,13 +134,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   }
   char *fixID = nullptr;
 
-  thetastr = phistr = nullptr;
   cflag = STATIC;
   cx = cy = cz = 0.5;
-  cxstr = cystr = czstr = nullptr;
 
-  upxstr = upystr = upzstr = nullptr;
-  zoomstr = nullptr;
   boxflag = YES;
   boxdiam = 0.02;
   axesflag = NO;
@@ -486,6 +482,16 @@ DumpImage::~DumpImage()
   memory->destroy(chooseghost);
   memory->destroy(bufcopy);
   memory->destroy(gbuf);
+
+  delete[] upxstr;
+  delete[] upystr;
+  delete[] upzstr;
+  delete[] zoomstr;
+  delete[] thetastr;
+  delete[] phistr;
+  delete[] cxstr;
+  delete[] cystr;
+  delete[] czstr;
 
   delete[] id_grid_compute;
   delete[] id_grid_fix;

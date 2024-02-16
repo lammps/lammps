@@ -36,7 +36,6 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
  public:
   struct TagPairPACEComputeNeigh{};
   struct TagPairPACEComputeRadial{};
-  struct TagPairPACEComputeYlm{};
   struct TagPairPACEComputeAi{};
   struct TagPairPACEConjugateAi{};
   struct TagPairPACEComputeRho{};
@@ -68,9 +67,6 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   void operator() (TagPairPACEComputeRadial,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeRadial>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairPACEComputeYlm,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeYlm>::member_type& team) const;
-
-  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeAi,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeAi>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
@@ -99,14 +95,9 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
-
-  void *extract(const char *str, int &dim) override;
-  void *extract_peratom(const char *str, int &ncol) override;
-
  protected:
-  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;
+  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max, idx_sph_max;
   int host_flag;
-  int gamma_flag;
 
   int eflag, vflag;
 
@@ -130,6 +121,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   tdual_fparams k_cutsq, k_scale;
   typedef Kokkos::View<F_FLOAT**, DeviceType> t_fparams;
   t_fparams d_cutsq, d_scale;
+  t_fparams d_cut_in, d_dcut_in; // inner cutoff
 
   typename AT::t_int_1d d_map;
 
@@ -166,12 +158,6 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
 
   KOKKOS_INLINE_FUNCTION
-  void compute_barplm(int, int, double, int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void compute_ylm(int, int, double, double, double, int) const;
-
-  KOKKOS_INLINE_FUNCTION
   void cutoff_func_poly(const double, const double, const double, double &, double &) const;
 
   KOKKOS_INLINE_FUNCTION
@@ -202,15 +188,19 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
 
   typedef Kokkos::View<int*, DeviceType> t_ace_1i;
   typedef Kokkos::View<int**, DeviceType> t_ace_2i;
+  typedef Kokkos::View<int**, Kokkos::LayoutRight, DeviceType> t_ace_2i_lr;
   typedef Kokkos::View<int***, DeviceType> t_ace_3i;
+  typedef Kokkos::View<int***, Kokkos::LayoutRight, DeviceType> t_ace_3i_lr;
   typedef Kokkos::View<int****, DeviceType> t_ace_4i;
   typedef Kokkos::View<double*, DeviceType> t_ace_1d;
   typedef Kokkos::View<double**, DeviceType> t_ace_2d;
+  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType> t_ace_2d_lr;
   typedef Kokkos::View<double*[3], DeviceType> t_ace_2d3;
   typedef Kokkos::View<double***, DeviceType> t_ace_3d;
   typedef Kokkos::View<const double***, DeviceType> tc_ace_3d;
   typedef Kokkos::View<double**[3], DeviceType> t_ace_3d3;
   typedef Kokkos::View<double**[4], DeviceType> t_ace_3d4;
+  typedef Kokkos::View<double**[4], Kokkos::LayoutRight, DeviceType> t_ace_3d4_lr;
   typedef Kokkos::View<double****, DeviceType> t_ace_4d;
   typedef Kokkos::View<complex*, DeviceType> t_ace_1c;
   typedef Kokkos::View<complex**, DeviceType> t_ace_2c;
@@ -234,12 +224,16 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   t_ace_2d rhos;
   t_ace_2d dF_drho;
 
+  t_ace_3c dB_flatten;
+
   // hard-core repulsion
   t_ace_1d rho_core;
-  t_ace_3c dB_flatten;
   t_ace_2d cr;
   t_ace_2d dcr;
   t_ace_1d dF_drho_core;
+  t_ace_1d dF_dfcut;
+  t_ace_1d d_corerep;
+  th_ace_1d h_corerep;
 
   // radial functions
   t_ace_4d fr;
@@ -256,24 +250,15 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   th_ace_1d h_gamma;
 
   // Spherical Harmonics
+
   void pre_compute_harmonics(int);
 
-  KOKKOS_INLINE_FUNCTION
-  void compute_barplm(double rz, int lmaxi);
-
-  KOKKOS_INLINE_FUNCTION
-  void compute_ylm(double rx, double ry, double rz, int lmaxi);
-
+  t_ace_4c A_sph;
+  t_ace_1d d_idx_sph;
   t_ace_1d alm;
   t_ace_1d blm;
   t_ace_1d cl;
   t_ace_1d dl;
-
-  t_ace_3d plm;
-  t_ace_3d dplm;
-
-  t_ace_3c ylm;
-  t_ace_4c3 dylm;
 
   // short neigh list
   t_ace_1i d_ncount;
@@ -282,26 +267,30 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   t_ace_3d3 d_rhats;
   t_ace_2i d_nearest;
 
+  // for ZBL core-rep implementation
+  t_ace_1d  d_d_min; // [i] -> min-d for atom ii, d=d = r - (cut_in(mu_i, mu_j) - dcut_in(mu_i, mu_j))
+  t_ace_1i  d_jj_min; // [i] -> jj-index of nearest neigh (by r-(cut_in-dcut_in) criterion)
+  bool is_zbl;
+
   // per-type
   t_ace_1i d_ndensity;
   t_ace_1i d_npoti;
   t_ace_1d d_rho_core_cutoff;
   t_ace_1d d_drho_core_cutoff;
   t_ace_1d d_E0vals;
-  t_ace_2d d_wpre;
-  t_ace_2d d_mexp;
+  t_ace_2d_lr d_wpre;
+  t_ace_2d_lr d_mexp;
 
   // tilde
   t_ace_1i d_idx_ms_combs_count;
   t_ace_1i d_total_basis_size;
-  t_ace_2i d_rank;
-  t_ace_2i d_num_ms_combs;
-  t_ace_2i d_func_inds;
-  t_ace_3i d_mus;
-  t_ace_3i d_ns;
-  t_ace_3i d_ls;
-  t_ace_3i d_ms_combs;
-//  t_ace_3d d_ctildes;
+  t_ace_2i_lr d_rank;
+  t_ace_2i_lr d_num_ms_combs;
+  t_ace_2i_lr d_idx_funcs;
+  t_ace_3i_lr d_mus;
+  t_ace_3i_lr d_ns;
+  t_ace_3i_lr d_ls;
+  t_ace_3i_lr d_ms_combs;
   t_ace_2d d_gen_cgs;
   t_ace_3d d_coeffs;
 
@@ -312,12 +301,12 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
     int ntot, nlut, num_of_functions;
     double cutoff, deltaSplineBins, invrscalelookup, rscalelookup;
 
-    t_ace_3d4 lookupTable;
+    t_ace_3d4_lr lookupTable;
 
     void operator=(const SplineInterpolator &spline);
 
     void deallocate() {
-      lookupTable = t_ace_3d4();
+      lookupTable = t_ace_3d4_lr();
     }
 
     double memory_usage() {

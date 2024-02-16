@@ -1,9 +1,7 @@
 # script for mgpt t=0 eos in bulk bcc structure
 
-echo screen
-
-units		electron
-atom_style	atomic
+units           electron
+atom_style      atomic
 
 # Atomic volume for MGPT potential in a.u.
 variable        atomic_vol equal 121.6
@@ -12,10 +10,10 @@ variable        atomic_vol equal 121.6
 variable        lattice_constant equal (${atomic_vol}*2.0)^(1.0/3.0)
 
 # Create bcc lattice with 5x5x5 unit cells (250 atoms)
-lattice		bcc ${lattice_constant}
-region		box block 0 5 0 5 0 5
-create_box	1 box
-create_atoms	1 box
+lattice         bcc ${lattice_constant}
+region          box block 0 5 0 5 0 5
+create_box      1 box
+create_atoms    1 box
 
 # Define potential for use in simulation
 pair_style      mgpt
@@ -26,20 +24,20 @@ pair_style      mgpt
 pair_coeff      * * Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin  ${atomic_vol}
 
 # Create velocities at 0 K
-velocity	all create 0.0 87287
+velocity        all create 0.0 87287
 
 # Set neighbor list parameters
-neighbor	0.1 bin
-neigh_modify	every 1 delay 0 check yes
+neighbor        0.1 bin
+neigh_modify    every 1 delay 0 check yes
 
 # Set up microcanonical integrator
-fix		1 all nve
+fix             1 all nve
 
 # Dump coordinates to file every 50 timesteps
-dump		id all atom 50 dump.bcc0
+#dump            id all atom 50 dump.bcc0
 
 # Output thermodynamical data every 10 timesteps
-thermo		10
+thermo          10
 
 # Set output quantities and output format
 thermo_style custom step vol temp pe etotal press
@@ -48,7 +46,7 @@ thermo_style custom step vol temp pe etotal press
 #thermo_modify format float %15.5e
 
 # Run 0 timesteps
-run		0
+run             0
  
 # Convert energy to rydbergs and pressure to gpa
 

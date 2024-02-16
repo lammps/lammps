@@ -38,9 +38,9 @@ using MathConst::DEG2RAD;
 
 enum{BOND,LBOUND,ANGLE,DIHEDRAL};
 
-#define TOLERANCE 0.05
-#define SMALL 0.001
-#define DELTA 1
+static constexpr double TOLERANCE = 0.05;
+static constexpr double SMALL = 0.001;
+static constexpr int DELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 

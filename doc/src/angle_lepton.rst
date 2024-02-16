@@ -11,7 +11,16 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   angle_style lepton
+   angle_style style args
+
+* style = *lepton*
+* args = optional arguments
+
+.. parsed-literal::
+
+   args = *auto_offset* or *no_offset*
+     *auto_offset* = offset the potential energy so that the value at theta0 is 0.0 (default)
+     *no_offset* = do not offset the potential energy
 
 Examples
 """"""""
@@ -19,6 +28,7 @@ Examples
 .. code-block:: LAMMPS
 
    angle_style lepton
+   angle_style lepton no_offset
 
    angle_coeff  1  120.0  "k*theta^2; k=250.0"
    angle_coeff  2   90.0  "k2*theta^2 + k3*theta^3 + k4*theta^4; k2=300.0; k3=-100.0; k4=50.0"
@@ -40,6 +50,13 @@ angle coefficient.  For example `"200.0*theta^2"` represents a
 .. math::
 
    U_{angle,i} = K (\theta_i - \theta_0)^2 = K \theta^2 \qquad \theta = \theta_i - \theta_0
+
+.. versionchanged:: 7Feb2024
+
+By default the potential energy U is shifted so that the value U is 0.0
+for $theta = theta_0$.  This is equivalent to using the optional keyword
+*auto_offset*.  When using the keyword *no_offset* instead, the
+potential energy is not shifted.
 
 The `Lepton library <https://simtk.org/projects/lepton>`_, that the
 *lepton* angle style interfaces with, evaluates this expression string

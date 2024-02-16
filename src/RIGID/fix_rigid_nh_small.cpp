@@ -219,7 +219,6 @@ void FixRigidNHSmall::init()
     }
   }
 
-  int icompute;
   if (tcomputeflag) {
     temperature = modify->get_compute_by_id(id_temp);
     if (!temperature)

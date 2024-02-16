@@ -315,6 +315,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_variable: function
    :f set_variable: :f:subr:`set_variable`
    :ftype set_variable: subroutine
+   :f set_string_variable: :f:subr:`set_set_string_variable`
+   :ftype set_string_variable: subroutine
+   :f set_internal_variable: :f:subr:`set_internal_variable`
+   :ftype set_internal_variable: subroutine
    :f gather_atoms: :f:subr:`gather_atoms`
    :ftype gather_atoms: subroutine
    :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
@@ -1398,7 +1402,28 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Set the value of a string-style variable.
 
-   .. versionadded:: 3Nov2022
+   .. deprecated:: 7Feb2024
+
+   This function assigns a new value from the string *str* to the string-style
+   variable *name*\ . If *name* does not exist or is not a string-style
+   variable, an error is generated.
+
+   .. warning::
+
+      This subroutine is deprecated and :f:subr:`set_string_variable`
+      should be used instead.
+
+   :p character(len=*) name: name of the variable
+   :p character(len=*) str:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_variable`
+
+--------
+
+.. f:subroutine:: set_string_variable(name, str)
+
+   Set the value of a string-style variable.
+
+   .. versionadded:: 7Feb2024
 
    This function assigns a new value from the string *str* to the string-style
    variable *name*\ . If *name* does not exist or is not a string-style
@@ -1406,7 +1431,23 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p character(len=*) name: name of the variable
    :p character(len=*) str:  new value to assign to the variable
-   :to: :cpp:func:`lammps_set_variable`
+   :to: :cpp:func:`lammps_set_string_variable`
+
+--------
+
+.. f:subroutine:: set_internal_variable(name, val)
+
+   Set the value of a internal-style variable.
+
+   .. versionadded:: 7Feb2024
+
+   This function assigns a new value from the floating-point number *val* to
+   the internal-style variable *name*\ . If *name* does not exist or is not
+   an internal-style variable, an error is generated.
+
+   :p character(len=*) name: name of the variable
+   :p read(c_double) val:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_internal_variable`
 
 --------
 
@@ -3038,14 +3079,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function can be used to query if an error inside of LAMMPS
    has thrown a :ref:`C++ exception <exceptions>`.
 
-   .. note::
-
-      This function will always report "no error" when the LAMMPS library
-      has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
-      errors aborting LAMMPS into C++ exceptions. You can use the library
-      function :cpp:func:`lammps_config_has_exceptions` to check if this is
-      the case.
-
    :to: :cpp:func:`lammps_has_error`
    :r has_error: ``.TRUE.`` if there is an error.
    :rtype has_error: logical
@@ -3067,13 +3100,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    MPI ranks and is often recoverable, while a "2" indicates an abort that
    would happen only in a single MPI rank and thus may not be recoverable, as
    other MPI ranks may be waiting on the failing MPI rank(s) to send messages.
-
-   .. note::
-
-      This function will do nothing when the LAMMPS library has been
-      compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
-      LAMMPS into C++ exceptions.  You can use the function
-      :f:func:`config_has_exceptions` to check whether this is the case.
 
    :p character(len=\*) buffer: string buffer to copy the error message into
    :o integer(c_int) status [optional]: 1 when all ranks had the error,

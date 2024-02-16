@@ -32,7 +32,7 @@
 
 using namespace LAMMPS_NS;
 
-#define SMALL 1.0e-10
+static constexpr double SMALL = 1.0e-10;
 /*-----------------------------------------------------------------------------------
   Contributing author: Olav Galteland (Norwegian University of Science and Technology)
                         olav.galteland@ntnu.no

@@ -254,6 +254,7 @@ compute_nbond_atom.html compute nbond/atom
 compute_omega_chunk.html compute omega/chunk
 compute_orientorder_atom.html compute orientorder/atom
 compute_orientorder_atom.html compute orientorder/atom/kk
+compute_pace.html compute pace
 compute_pair_local.html compute pair/local
 compute_pair.html compute pair
 compute_pe_atom.html compute pe/atom
@@ -267,13 +268,17 @@ compute_property_chunk.html compute property/chunk
 compute_property_grid.html compute property/grid
 compute_property_local.html compute property/local
 compute_ptm_atom.html compute ptm/atom
+compute_rattlers_atom.html compute rattlers/atom
 compute_rdf.html compute rdf
+compute_reaxff_atom.html compute reaxff/atom
+compute_reaxff_atom.html compute reaxff/atom/kk
 compute_reduce_chunk.html compute reduce/chunk
 compute_reduce.html compute reduce
 compute_reduce.html compute reduce/region
 compute_rigid_local.html compute rigid/local
 compute.html compute
 compute_saed.html compute saed
+compute_slcsa_atom.html compute slcsa/atom
 compute_slice.html compute slice
 compute_smd_contact_radius.html compute smd/contact/radius
 compute_smd_damage.html compute smd/damage
@@ -484,6 +489,7 @@ fix_drude_transform.html fix drude/transform/inverse
 fix_dt_reset.html fix dt/reset
 fix_dt_reset.html fix dt/reset/kk
 fix_efield.html fix efield
+fix_efield.html fix efield/kk
 fix_efield.html fix efield/tip4p
 fix_ehex.html fix ehex
 fix_electrode.html fix electrode/conp
@@ -565,6 +571,7 @@ fix_nh.html fix nvt/kk
 fix_nh.html fix nvt/omp
 fix_nh_uef.html fix npt/uef
 fix_nh_uef.html fix nvt/uef
+fix_nonaffine_displacement.html fix nonaffine/displacement
 fix_nph_asphere.html fix nph/asphere
 fix_nph_asphere.html fix nph/asphere/omp
 fix_nph_body.html fix nph/body
@@ -634,6 +641,7 @@ fix_polarize.html fix polarize/functional
 fix_pour.html fix pour
 fix_precession_spin.html fix precession/spin
 fix_press_berendsen.html fix press/berendsen
+fix_press_langevin.html fix press/langevin
 fix_print.html fix print
 fix_propel_self.html fix propel/self
 fix_property_atom.html fix property/atom
@@ -703,14 +711,17 @@ fix_spring_chunk.html fix spring/chunk
 fix_spring_rg.html fix spring/rg
 fix_spring.html fix spring
 fix_spring_self.html fix spring/self
+fix_spring_self.html fix spring/self/kk
 fix_srd.html fix srd
 fix_store_force.html fix store/force
 fix_store_state.html fix store/state
 fix_temp_berendsen.html fix temp/berendsen
+fix_temp_berendsen.html fix temp/berendsen/kk
 fix_temp_csvr.html fix temp/csld
 fix_temp_csvr.html fix temp/csvr
 fix_temp_rescale_eff.html fix temp/rescale/eff
 fix_temp_rescale.html fix temp/rescale
+fix_temp_rescale.html fix temp/rescale/kk
 fix_tfmc.html fix tfmc
 fix_tgnh_drude.html fix tgnpt/drude
 fix_tgnh_drude.html fix tgnvt/drude
@@ -980,6 +991,7 @@ pair_coul_shield.html pair_style coul/shield
 pair_coul_slater.html pair_style coul/slater
 pair_coul_slater.html pair_style coul/slater/cut
 pair_coul_slater.html pair_style coul/slater/long
+pair_coul_slater.html pair_style coul/slater/long/gpu
 pair_coul_tt.html pair_style coul/tt
 pair_cs.html pair_style born/coul/dsf/cs
 pair_cs.html pair_style born/coul/long/cs
@@ -1073,8 +1085,10 @@ pair_fep_soft.html pair_style lj/class2/coul/cut/soft
 pair_fep_soft.html pair_style lj/class2/coul/long/soft
 pair_fep_soft.html pair_style lj/class2/soft
 pair_fep_soft.html pair_style lj/cut/coul/cut/soft
+pair_fep_soft.html pair_style lj/cut/coul/cut/soft/gpu
 pair_fep_soft.html pair_style lj/cut/coul/cut/soft/omp
 pair_fep_soft.html pair_style lj/cut/coul/long/soft
+pair_fep_soft.html pair_style lj/cut/coul/long/soft/gpu
 pair_fep_soft.html pair_style lj/cut/coul/long/soft/omp
 pair_fep_soft.html pair_style lj/cut/soft
 pair_fep_soft.html pair_style lj/cut/soft/omp
@@ -1225,7 +1239,9 @@ pair_meam_sw_spline.html pair_style meam/sw/spline
 pair_mesocnt.html pair_style mesocnt
 pair_mesocnt.html pair_style mesocnt/viscous
 pair_mesodpd.html pair_style edpd
+pair_mesodpd.html pair_style edpd/gpu
 pair_mesodpd.html pair_style mdpd
+pair_mesodpd.html pair_style mdpd/gpu
 pair_mesodpd.html pair_style mdpd/rhosum
 pair_mesodpd.html pair_style tdpd
 pair_mgpt.html pair_style mgpt
@@ -1245,7 +1261,8 @@ pair_morse.html pair_style morse/smooth/linear/omp
 pair_multi_lucy.html pair_style multi/lucy
 pair_multi_lucy_rx.html pair_style multi/lucy/rx
 pair_multi_lucy_rx.html pair_style multi/lucy/rx/kk
-pair_nb3b_harmonic.html pair_style nb3b/harmonic
+pair_nb3b.html pair_style nb3b/harmonic
+pair_nb3b.html pair_style nb3b/screened
 pair_nm.html pair_style nm/cut
 pair_nm.html pair_style nm/cut/coul/cut
 pair_nm.html pair_style nm/cut/coul/cut/omp
@@ -1303,16 +1320,20 @@ pair_smd_triangulated_surface.html pair_style smd/tri_surface
 pair_smd_ulsph.html pair_style smd/ulsph
 pair_smtbq.html pair_style smtbq
 pair_snap.html pair_style snap
+pair_snap.html pair_style snap/intel
 pair_snap.html pair_style snap/kk
 pair_soft.html pair_style soft
 pair_soft.html pair_style soft/gpu
 pair_soft.html pair_style soft/omp
 pair_sph_heatconduction.html pair_style sph/heatconduction
+pair_sph_heatconduction.html pair_style sph/heatconduction/gpu
 pair_sph_idealgas.html pair_style sph/idealgas
 pair_sph_lj.html pair_style sph/lj
+pair_sph_lj.html pair_style sph/lj/gpu
 pair_sph_rhosum.html pair_style sph/rhosum
 pair_sph_taitwater_morris.html pair_style sph/taitwater/morris
 pair_sph_taitwater.html pair_style sph/taitwater
+pair_sph_taitwater.html pair_style sph/taitwater/gpu
 pair_spica.html pair_style lj/spica
 pair_spica.html pair_style lj/spica/coul/long
 pair_spica.html pair_style lj/spica/coul/long/gpu
@@ -1384,6 +1405,7 @@ pair_write.html pair_write
 pair_ylz.html pair_style ylz
 pair_yukawa_colloid.html pair_style yukawa/colloid
 pair_yukawa_colloid.html pair_style yukawa/colloid/gpu
+pair_yukawa_colloid.html pair_style yukawa/colloid/kk
 pair_yukawa_colloid.html pair_style yukawa/colloid/omp
 pair_yukawa.html pair_style yukawa
 pair_yukawa.html pair_style yukawa/gpu

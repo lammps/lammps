@@ -45,6 +45,7 @@ class NStencil : protected Pointers {
   // Arrays to store options for multi itype-jtype stencils
   bool **flag_half_multi;    // flag creation of a half stencil for icollection-jcollection
   bool **flag_skip_multi;    // skip creation of icollection-jcollection stencils (for newton on)
+  bool **flag_same_multi;    // flag same size collection (doesn't always correspond to a half, e.g. newton + tri)
   int **bin_collection_multi;    // what collection to use for bin information
 
   NStencil(class LAMMPS *);

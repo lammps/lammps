@@ -40,7 +40,7 @@ int dbdsqr_(char *uplo, integer *n, integer *ncvt, integer *nru, integer *ncc, d
     integer oldll;
     doublereal shift, sigmn, oldsn;
     extern int dswap_(integer *, doublereal *, integer *, doublereal *, integer *);
-    doublereal sminl, sigmx;
+    doublereal sigmx;
     logical lower;
     extern int dlasq1_(integer *, doublereal *, doublereal *, doublereal *, integer *),
         dlasv2_(doublereal *, doublereal *, doublereal *, doublereal *, doublereal *, doublereal *,
@@ -141,7 +141,7 @@ int dbdsqr_(char *uplo, integer *n, integer *ncvt, integer *nru, integer *ncc, d
         d__2 = smax, d__3 = (d__1 = e[i__], abs(d__1));
         smax = max(d__2, d__3);
     }
-    sminl = 0.;
+    smin = 0.;
     if (tol >= 0.) {
         sminoa = abs(d__[1]);
         if (sminoa == 0.) {
@@ -185,7 +185,6 @@ L60:
         d__[m] = 0.;
     }
     smax = (d__1 = d__[m], abs(d__1));
-    smin = smax;
     i__1 = m - 1;
     for (lll = 1; lll <= i__1; ++lll) {
         ll = m - lll;
@@ -197,7 +196,6 @@ L60:
         if (abse <= thresh) {
             goto L80;
         }
-        smin = min(smin, abss);
         d__1 = max(smax, abss);
         smax = max(d__1, abse);
     }
@@ -243,7 +241,7 @@ L90:
         }
         if (tol >= 0.) {
             mu = (d__1 = d__[ll], abs(d__1));
-            sminl = mu;
+            smin = mu;
             i__1 = m - 1;
             for (lll = ll; lll <= i__1; ++lll) {
                 if ((d__1 = e[lll], abs(d__1)) <= tol * mu) {
@@ -251,7 +249,7 @@ L90:
                     goto L60;
                 }
                 mu = (d__2 = d__[lll + 1], abs(d__2)) * (mu / (mu + (d__1 = e[lll], abs(d__1))));
-                sminl = min(sminl, mu);
+                smin = min(smin, mu);
             }
         }
     } else {
@@ -262,7 +260,7 @@ L90:
         }
         if (tol >= 0.) {
             mu = (d__1 = d__[m], abs(d__1));
-            sminl = mu;
+            smin = mu;
             i__1 = ll;
             for (lll = m - 1; lll >= i__1; --lll) {
                 if ((d__1 = e[lll], abs(d__1)) <= tol * mu) {
@@ -270,14 +268,14 @@ L90:
                     goto L60;
                 }
                 mu = (d__2 = d__[lll], abs(d__2)) * (mu / (mu + (d__1 = e[lll], abs(d__1))));
-                sminl = min(sminl, mu);
+                smin = min(smin, mu);
             }
         }
     }
     oldll = ll;
     oldm = m;
     d__1 = eps, d__2 = tol * .01;
-    if (tol >= 0. && *n * tol * (sminl / smax) <= max(d__1, d__2)) {
+    if (tol >= 0. && *n * tol * (smin / smax) <= max(d__1, d__2)) {
         shift = 0.;
     } else {
         if (idir == 1) {

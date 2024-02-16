@@ -106,6 +106,8 @@ action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
+action dihedral_charmmfsw_kokkos.cpp dihedral_charmmfsw.cpp
+action dihedral_charmmfsw_kokkos.h dihedral_charmmfsw.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp
 action dihedral_class2_kokkos.h dihedral_class2.h
 action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
@@ -165,6 +167,8 @@ action fix_qeq_reaxff_kokkos.cpp fix_qeq_reaxff.cpp
 action fix_qeq_reaxff_kokkos.h fix_qeq_reaxff.h
 action fix_reaxff_bonds_kokkos.cpp fix_reaxff_bonds.cpp
 action fix_reaxff_bonds_kokkos.h fix_reaxff_bonds.h
+action compute_reaxff_atom_kokkos.cpp compute_reaxff_atom.cpp
+action compute_reaxff_atom_kokkos.h compute_reaxff_atom.h
 action fix_reaxff_species_kokkos.cpp fix_reaxff_species.cpp
 action fix_reaxff_species_kokkos.h fix_reaxff_species.h
 action fix_rx_kokkos.cpp fix_rx.cpp
@@ -177,6 +181,10 @@ action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
 action fix_spring_self_kokkos.cpp
 action fix_spring_self_kokkos.h
+action fix_temp_berendsen_kokkos.cpp
+action fix_temp_berendsen_kokkos.h
+action fix_temp_rescale_kokkos.cpp
+action fix_temp_rescale_kokkos.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
@@ -304,6 +312,8 @@ action pair_lj_charmm_coul_charmm_kokkos.cpp pair_lj_charmm_coul_charmm.cpp
 action pair_lj_charmm_coul_charmm_kokkos.h pair_lj_charmm_coul_charmm.h
 action pair_lj_charmm_coul_long_kokkos.cpp pair_lj_charmm_coul_long.cpp
 action pair_lj_charmm_coul_long_kokkos.h pair_lj_charmm_coul_long.h
+action pair_lj_charmmfsw_coul_long_kokkos.cpp pair_lj_charmmfsw_coul_long.cpp
+action pair_lj_charmmfsw_coul_long_kokkos.h pair_lj_charmmfsw_coul_long.h
 action pair_lj_class2_coul_cut_kokkos.cpp pair_lj_class2_coul_cut.cpp
 action pair_lj_class2_coul_cut_kokkos.h pair_lj_class2_coul_cut.h
 action pair_lj_class2_coul_long_kokkos.cpp pair_lj_class2_coul_long.cpp

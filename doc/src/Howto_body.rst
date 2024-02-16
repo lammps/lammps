@@ -335,7 +335,7 @@ faces are listed, so that M = 6 + 3\*N + 1.
 The integer line has three values: number of vertices (N), number of
 edges (E) and number of faces (F). The floating point line(s) list 6
 moments of inertia followed by the coordinates of the N vertices (x1
-to zN) as 3N values, followed by 2N vertex indices corresponding to
+to zN) as 3N values, followed by 2E vertex indices corresponding to
 the end points of the E edges, then 4\*F vertex indices defining F
 faces.  The last value is the diameter value = the rounded diameter of
 the sphere that surrounds each vertex. The diameter value can be

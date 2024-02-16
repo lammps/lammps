@@ -66,6 +66,7 @@
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
+#include "lmpfftsettings.h"
 
 #if defined(LAMMPS_UPDATE)
 #define UPDATE_STRING " - " LAMMPS_UPDATE
@@ -276,6 +277,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
       citeflag = 0;
+      inflag = -1;              // skip inflag check
       iarg += 1;
 
     } else if (strcmp(arg[iarg],"-in") == 0 ||
@@ -385,6 +387,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                             "Cannot use both -restart2data and -restart2dump");
       restart2data = 1;
       restartfile = arg[iarg+1];
+      inflag = -1;               // skip inflag check
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
@@ -407,6 +410,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                             "Cannot use both -restart2data and -restart2dump");
       restart2dump = 1;
       restartfile = arg[iarg+1];
+      inflag = -1;               // skip inflag check
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
@@ -535,7 +539,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     world = universe->uworld;
 
     if (universe->me == 0) {
-      if (inflag == 0) infile = stdin;
+      if (inflag <= 0) infile = stdin;
       else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
@@ -1443,7 +1447,10 @@ void LAMMPS::print_config(FILE *fp)
   fmt::print(fp,"Compatible GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
 #endif
 
-  fputs("Active compile time flags:\n\n",fp);
+  fputs("FFT information:\n\n",fp);
+  fputs(Info::get_fft_info().c_str(),fp);
+
+  fputs("\nActive compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);

@@ -18,6 +18,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "neigh_list.h"
@@ -30,16 +31,8 @@ using namespace MathConst;
 
 using MathSpecial::square;
 
-enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
-enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+enum { FIELD, ZRSD, TORQUE, UFLD };    // reverse comm
+enum { VDWL, REPULSE, QFER, DISP, MPOLE, POLAR, USOLV, DISP_LONG, MPOLE_LONG, POLAR_LONG };
 
 /* ----------------------------------------------------------------------
    multipole = multipole interactions
@@ -999,4 +992,62 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
                           dampk4/63.0 + dampk5/945.0)*expk;
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   estimate the accuracy of m_kspace solver based on the monopoles
+   based on Ewald
+------------------------------------------------------------------------- */
+
+double PairAmoeba::final_accuracy_mpole()
+{
+  const int nlocal = atom->nlocal;
+  double qsqsum_local(0.0), qsqsum;
+  for (int i = 0; i < nlocal; i++) {
+    qsqsum_local += rpole[i][0]*rpole[i][0];
+  }
+  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
+  double q2 = qsqsum * force->qqrd2e;
+
+  const double * const prd = domain->prd;
+  const double xprd = prd[0];
+  const double yprd = prd[1];
+  const double zprd = prd[2];
+  const double slab_volfactor = 1.0;
+  const double zprd_slab = zprd*slab_volfactor;
+  bigint natoms = atom->natoms;
+
+  int nx_fft = m_kspace->nx;
+  int ny_fft = m_kspace->ny;
+  int nz_fft = m_kspace->nz;
+  double cutoff = mpolecut;
+
+  double lprx = rms(nx_fft,xprd,natoms,aeewald,q2);
+  double lpry = rms(ny_fft,yprd,natoms,aeewald,q2);
+  double lprz = rms(nz_fft,zprd_slab,natoms,aeewald,q2);
+  double lpr = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
+  double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd_slab);
+  double spr = 2.0 *q2_over_sqrt * exp(-aeewald*aeewald*cutoff*cutoff);
+  double tpr = 0;
+  double estimated_accuracy = sqrt(lpr*lpr + spr*spr + tpr*tpr);
+
+  two_charge_force = force->qqr2e *
+    (force->qelectron * force->qelectron) /
+    (force->angstrom * force->angstrom);
+
+  return estimated_accuracy;
+}
+
+/* ----------------------------------------------------------------------
+   compute RMS accuracy for a dimension
+------------------------------------------------------------------------- */
+
+double PairAmoeba::rms(int km, double prd, bigint natoms, double g_ewald, double q2)
+{
+  if (natoms == 0) natoms = 1;   // avoid division by zero
+  double value = 2.0*q2*g_ewald/prd *
+    sqrt(1.0/(MY_PI*km*natoms)) *
+    exp(-MY_PI*MY_PI*km*km/(g_ewald*g_ewald*prd*prd));
+
+  return value;
 }

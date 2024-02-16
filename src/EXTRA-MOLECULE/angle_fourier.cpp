@@ -29,16 +29,14 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define SMALL 0.001
 
 /* ---------------------------------------------------------------------- */
 
 AngleFourier::AngleFourier(LAMMPS *lmp) : Angle(lmp)
 {
+  born_matrix_enable = 1;
   k = nullptr;
   C0 = nullptr;
   C1 = nullptr;

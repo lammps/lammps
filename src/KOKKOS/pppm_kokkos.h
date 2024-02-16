@@ -33,36 +33,6 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 
 // clang-format off
 
-// fix up FFT defines for KOKKOS with CUDA and HIP
-
-#ifdef KOKKOS_ENABLE_CUDA
-# if defined(FFT_FFTW)
-#  undef FFT_FFTW
-# endif
-# if defined(FFT_FFTW3)
-#  undef FFT_FFTW3
-# endif
-# if defined(FFT_MKL)
-#  undef FFT_MKL
-# endif
-# if !defined(FFT_CUFFT) && !defined(FFT_KISSFFT)
-#  define FFT_KISSFFT
-# endif
-#elif defined(KOKKOS_ENABLE_HIP)
-# if defined(FFT_FFTW)
-#  undef FFT_FFTW
-# endif
-# if defined(FFT_FFTW3)
-#  undef FFT_FFTW3
-# endif
-# if defined(FFT_MKL)
-#  undef FFT_MKL
-# endif
-# if !defined(FFT_HIPFFT) && !defined(FFT_KISSFFT)
-#  define FFT_KISSFFT
-# endif
-#endif
-
 #include "pppm.h"
 
 namespace LAMMPS_NS {

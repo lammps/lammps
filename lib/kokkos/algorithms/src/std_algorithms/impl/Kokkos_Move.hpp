@@ -37,14 +37,15 @@ struct StdMoveFunctor {
     m_dest_first[i] = std::move(m_first[i]);
   }
 
-  StdMoveFunctor(InputIterator _first, OutputIterator _dest_first)
+  KOKKOS_FUNCTION StdMoveFunctor(InputIterator _first,
+                                 OutputIterator _dest_first)
       : m_first(std::move(_first)), m_dest_first(std::move(_dest_first)) {}
 };
 
 template <class ExecutionSpace, class InputIterator, class OutputIterator>
-OutputIterator move_impl(const std::string& label, const ExecutionSpace& ex,
-                         InputIterator first, InputIterator last,
-                         OutputIterator d_first) {
+OutputIterator move_exespace_impl(const std::string& label,
+                                  const ExecutionSpace& ex, InputIterator first,
+                                  InputIterator last, OutputIterator d_first) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first, d_first);
   Impl::static_assert_iterators_have_matching_difference_type(first, d_first);
@@ -60,6 +61,30 @@ OutputIterator move_impl(const std::string& label, const ExecutionSpace& ex,
                          RangePolicy<ExecutionSpace>(ex, 0, num_elements),
                          func_t(first, d_first));
   ex.fence("Kokkos::move: fence after operation");
+
+  // return
+  return d_first + num_elements;
+}
+
+template <class TeamHandleType, class InputIterator, class OutputIterator>
+KOKKOS_FUNCTION OutputIterator move_team_impl(const TeamHandleType& teamHandle,
+                                              InputIterator first,
+                                              InputIterator last,
+                                              OutputIterator d_first) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first, d_first);
+  Impl::static_assert_iterators_have_matching_difference_type(first, d_first);
+  Impl::expect_valid_range(first, last);
+
+  // aliases
+  using index_type = typename InputIterator::difference_type;
+  using func_t     = StdMoveFunctor<index_type, InputIterator, OutputIterator>;
+
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                         func_t(first, d_first));
+  teamHandle.team_barrier();
 
   // return
   return d_first + num_elements;

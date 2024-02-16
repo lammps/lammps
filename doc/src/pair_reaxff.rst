@@ -373,7 +373,8 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
 :doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix reaxff/bonds <fix_reaxff_bonds>`,
-:doc:`fix reaxff/species <fix_reaxff_species>`
+:doc:`fix reaxff/species <fix_reaxff_species>`,
+:doc:`compute reaxff/atom <compute_reaxff_atom>`
 
 Default
 """""""

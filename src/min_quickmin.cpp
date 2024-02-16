@@ -28,9 +28,8 @@ using namespace LAMMPS_NS;
 
 // EPS_ENERGY = minimum normalization for energy tolerance
 
-#define EPS_ENERGY 1.0e-8
-
-#define DELAYSTEP 5
+static constexpr double EPS_ENERGY = 1.0e-8;
+static constexpr int DELAYSTEP = 5;
 
 /* ---------------------------------------------------------------------- */
 

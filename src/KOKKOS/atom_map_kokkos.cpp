@@ -61,26 +61,16 @@ void AtomKokkos::map_init(int check)
   if (!recreate) {
     if (lmp->kokkos->atom_map_classic) {
       if (map_style == MAP_ARRAY) {
-        for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+        map_clear();
       } else {
-         for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
-         map_nused = 0;
-         map_free = 0;
-         for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
-         if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
-       }
-    } else { 
-      map_clear();
-    }
-
-    if (lmp->kokkos->atom_map_classic) {
-      if (map_style == MAP_HASH) {
         for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
         map_nused = 0;
         map_free = 0;
         for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
         if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
       }
+    } else { 
+      map_clear();
     }
 
     // recreating: delete old map and create new one for array or hash
@@ -124,6 +114,7 @@ void AtomKokkos::map_init(int check)
         for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
         map_hash[map_nhash - 1].next = -1;
       }
+
       k_map_hash = dual_hash_type(map_nhash);
     }
   }

@@ -49,10 +49,8 @@ void AtomKokkos::map_init(int check)
   int recreate = 0;
   if (check) recreate = map_style_set();
 
-  if (map_style == MAP_ARRAY && map_tag_max > map_maxarray)
-    recreate = 1;
-  else if (map_style == MAP_HASH && nlocal + nghost > map_nhash)
-    recreate = 1;
+  if (map_style == MAP_ARRAY && map_tag_max > map_maxarray) recreate = 1;
+  else if (map_style == MAP_HASH && nlocal+nghost > map_nhash) recreate = 1;
 
   // if not recreating:
   // for array, initialize current map_tag_max values
@@ -61,19 +59,19 @@ void AtomKokkos::map_init(int check)
   if (!recreate) {
     if (lmp->kokkos->atom_map_classic) {
       if (map_style == MAP_ARRAY) {
-        map_clear();
+        for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
       } else {
         for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
         map_nused = 0;
         map_free = 0;
-        for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
-        if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
+        for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
+        if (map_nhash > 0) map_hash[map_nhash-1].next = -1;
       }
     } else { 
       map_clear();
     }
 
-    // recreating: delete old map and create new one for array or hash
+  // recreating: delete old map and create new one for array or hash
 
   } else {
     map_delete();
@@ -82,6 +80,7 @@ void AtomKokkos::map_init(int check)
       map_maxarray = map_tag_max;
       memoryKK->create_kokkos(k_map_array, map_array, map_maxarray + 1, "atom:map_array");
       map_clear();
+
     } else {
 
       // map_nhash = max # of atoms that can be hashed on this proc
@@ -89,10 +88,10 @@ void AtomKokkos::map_init(int check)
       // multiply by 2, require at least 1000
       // doubling means hash table will need to be re-init only rarely
 
-      int nper = static_cast<int>(natoms / comm->nprocs);
-      map_nhash = MAX(nper, nmax);
+      int nper = static_cast<int> (natoms/comm->nprocs);
+      map_nhash = MAX(nper,nmax);
       map_nhash *= 2;
-      map_nhash = MAX(map_nhash, 1000);
+      map_nhash = MAX(map_nhash,1000);
 
       if (lmp->kokkos->atom_map_classic) {
         // map_nbucket = prime just larger than map_nhash
@@ -141,9 +140,9 @@ void AtomKokkos::map_clear()
     }
   } else {
     if (lmp->kokkos->atom_map_classic) {
+      Atom::map_clear();
       k_map_hash.h_view.clear();
       k_map_hash.modify_host();
-      Atom::map_clear(); 
     } else {
       k_map_hash.d_view.clear();
       k_map_hash.modify_device();

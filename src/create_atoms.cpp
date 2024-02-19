@@ -175,7 +175,6 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "mol") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms mol", error);
-      int molecular = atom->molecular;
       int imol = atom->find_molecule(arg[iarg + 1]);
       if (imol == -1)
         error->all(FLERR, "Molecule template ID {} for create_atoms does not exist", arg[iarg + 1]);
@@ -184,9 +183,8 @@ void CreateAtoms::command(int narg, char **arg)
                        "Only the first set will be used.");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
-      if ((molecular == Atom::TEMPLATE) && (onemol != atom->avec->onemols[0]))
-        error->all(FLERR, "When using atom style template, create_atoms must use the same "
-                   "molecule template as the atom style");
+      if (atom->molecular == Atom::TEMPLATE && onemol != atom->avec->onemols[0])
+        error->all(FLERR, "create_atoms molecule template ID must be same as atom style template ID");
       molseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
     } else if (strcmp(arg[iarg], "units") == 0) {

@@ -270,9 +270,9 @@ the molecule.
 
 .. note::
 
-  If you are using the :doc:`atom style template <atom_style>` command, 
-  the molecule template-ID of the atom style must be the same as the 
-  template-ID argument to this command.
+  If you are using the *mol* keyword in combination with the
+  :doc:`atom style template <atom_style>` command, they must use
+  the same molecule template-ID.
 
 Using a lattice to add molecules, e.g. via the *box* or *region* or
 *single* styles, is exactly the same as adding atoms on lattice

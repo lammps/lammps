@@ -11,24 +11,23 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/flow ax vf T seed N coords ... keyword value
+   fix ID group-ID wall/flow axis vflow T seed N coords ... keyword value
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/flow = style name of this fix command
-* ax = flow axis (*x*, *y*, or *z* character)
-* vf = *ax* component of generated flow velocity
+* axis = flow axis (*x*, *y*, or *z*)
+* vflow = generated flow velocity in *axis* direction (velocity units)
 * T = flow temperature (temperature units)
 * seed = random seed for stochasticity (positive integer)
-* N = number of walls (positive integer)
-* coords = set of N wall coordinates (box units) along *ax* axis arranged in ascending order. Note that an additional implicit wall is introduced at the boundary of the simulation domain, so the resulting system always has N+1 walls.
-
+* N = number of walls
+* coords = list of N wall positions along the *axis* direction in ascending order (distance units)
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
 
   .. parsed-literal::
 
        *units* value = *lattice* or *box*
-         *lattice* = the wall positions are defined in lattice units
+         *lattice* = wall positions are defined in lattice units
          *box* = the wall positions are defined in simulation box units
 
 Examples
@@ -36,65 +35,96 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 g_flow wall/flow x ${VFLOW} ${TEMP} 123 ${nwall} ${w1} ${w2} ${w3} ${w4}
-   fix 2 all wall/flow 0.4 0.2 3 1 400
+   fix 1 all wall/flow x 0.4 1.5 593894 4 2.0 4.0 6.0 8.0
 
 Description
 """""""""""
 
 .. versionadded:: TBD
 
-This fix implements flow boundary conditions (FBC) introduced in :ref:`(Pavlov1) <fbc-Pavlov1>` and :ref:`(Pavlov2) <fbc-Pavlov2>`.
-The goal is to generate a stationary flow with a shifted Maxwell velocity distribution:
+This fix implements flow boundary conditions (FBC) introduced in
+:ref:`(Pavlov1) <fbc-Pavlov1>` and :ref:`(Pavlov2) <fbc-Pavlov2>`.
+The goal is to generate a stationary flow with a shifted Maxwell
+velocity distribution:
 
 .. math::
 
-   f_z(v_z) \propto \exp{\left(-\frac{m (v_z-v_{\text{flow}})^2}{2 k T}\right)}
+   f_a(v_a) \propto \exp{\left(-\frac{m (v_a-v_{\text{flow}})^2}{2 kB T}\right)}
 
-This is achieved by reassigning the velocity of each particle that passes a wall.
-Such reassigning represents an emission of a new particle into the system with
-simultaneous removal of a particle with the same position.
-The velocity components parallel to the wall are re-assigned according
-to the Maxwell velocity distribution. The perpendicular component is assigned
-according to the following velocity distribution:
+where :math:`v_a` is the component of velocity along the specified
+*axis* argument (a = x,y,z), :math:`v_{\text{flow}}` is the flow
+velocity specified as the *vflow* argument, *T* is the specified flow
+temperature, *m* is the particle mass, and *kB* is the Boltzmann
+constant.
+
+This is achieved by defining a series of *N* transparent walls along
+the flow *axis* direction.  Each wall is at the specified position
+listed in the *coords* argument.  Note that an additional transparent
+wall is defined by the code at the boundary of the (periodic)
+simulation domain in the *axis* direction.  So there are effectively
+N+1 walls.
+
+Each time a particle in the specified group passes through one of the
+transparent walls, its velocity is re-assigned.  Particles not in the
+group do not interact with the wall.
+
+Conceptually, the velocity re-assignment represents creation of a new
+particle within the system with simultaneous removal of the particle
+which passed through the wall.  The velocity components in directions
+parallel to the wall are re-assigned according to the standard Maxwell
+velocity distribution for the specified temperature *T*.  The velocity
+component perpendicular to the wall is re-assigned according to the
+shifted Maxwell distribution defined above:
 
 .. math::
 
-   f_{\text{z generated}}(v_z) \propto v_z f_z(v_z)
+   f_{\text{a generated}}(v_a) \propto v_a f_a(v_a)
 
-It can be shown that in an ideal-gas scenario this makes the velocity
-distribution of particles between walls exactly as desired.
+It can be shown that for an ideal-gas scenario this procedure makes
+the velocity distribution of particles between walls exactly as
+desired.
 
-Since in most cases simulated systems are not ideal gas,
-the need for multiple walls might arise, as a single wall may not be
-sufficient for maintaining a stationary flow without congestion
-manifesting as areas with increased density located upstream from static obstacles.
+Since in most cases simulated systems are not an ideal gas, multiple
+walls can be defined, since a single wall may not be sufficient for
+maintaining a stationary flow without "congestion" which can manifest
+itself as regions in the flow with increased particle density located
+upstream from static obstacles.
 
-For the same reason, the actual temperature and velocity of the generated
-flow may differ from ones requested. The degree of such discrepancy is determined
-by how different from the ideal gas the simulated system is. Therefore, a calibration procedure is required for each system as described in :ref:`(Pavlov) <fbc-Pavlov2>`.
+For the same reason, the actual temperature and velocity of the
+generated flow may differ from what is requested.  The degree of
+discrepancy is determined by how different from an ideal gas the
+simulated system is.  Therefore, a calibration procedure may be
+required for such a system as described in :ref:`(Pavlov)
+<fbc-Pavlov2>`.
 
-The interactions between particles on different sides of a wall are not disabled or neglected and the
-particle positions are not affected by the velocity reassignment.
-This removes the need to modify the force field to work correctly in cases when a particle is close
-to a wall (for example, if particle positions were uniformly redistributed across the surface of the wall,
-two particles could end up too close to each other, potentially causing the simulation to explode).
-However due to this compromise, some collective phenomena such as areas with increased/decreased density
-or collective movements are not fully removed when particles cross a wall.
-This unwanted consequence can also be potentially mitigated by using more than one wall.
+Note that the interactions between particles on different sides of a
+transparent wall are not disabled or neglected.  Likewise particle
+positions are not altered by the velocity reassignment.  This removes
+the need to modify the force field to work correctly in cases when a
+particle is close to a wall.
 
+For example, if particle positions were uniformly redistributed across
+the surface of a wall, two particles could end up too close to each
+other, potentially causing the simulation to explode.  However due to
+this compromise, some collective phenomena such as regions with
+increased/decreased density or collective movements are not fully
+removed when particles cross a wall.  This unwanted consequence can
+also be potentially mitigated by using more multiple walls.
 
-----------
+.. note::
 
-Note that when high flow velocity is reached, a lost atoms error may
-occur (see :doc:`error messages <Errors_messages>`).
-If this message appears when using this fix, you can, for example, reduce the frequency of the
-neighbor list rebuild via :doc:`neigh_modify <neigh_modify>` command.
+  When the specified flow has a high velocity, a lost atoms error can
+  occur (see :doc:`error messages <Errors_messages>`).  If this
+  happens, you should ensure the checks for neighbor list rebuilds,
+  set via the :doc:`neigh_modify <neigh_modify>` command, are as
+  conservative as possible (every timestep if needed).  Those are the
+  default settings.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to
 this fix.
@@ -114,8 +144,8 @@ Fix *wall_flow* is part of the EXTRA-FIX package.  It is only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-Flow boundary conditions should not be used with rigid bodies such as those
-defined by a "fix rigid" command.
+Flow boundary conditions should not be used with rigid bodies such as
+those defined by a "fix rigid" command.
 
 Related commands
 """"""""""""""""

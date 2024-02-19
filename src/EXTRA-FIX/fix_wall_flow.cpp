@@ -200,10 +200,13 @@ void FixWallFlow::end_of_step()
       int prev_segment = current_segment[i];
       current_segment[i] = compute_current_segment(pos);
 
-      if (prev_segment != current_segment[i]) { generate_velocity(i); }
+      if (prev_segment != current_segment[i])
+        generate_velocity(i);
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixWallFlow::generate_velocity(int atom_i)
 {
@@ -249,6 +252,8 @@ void FixWallFlow::generate_velocity(int atom_i)
   vel[(flowax + 2) % 3] = random->gaussian() / (gamma * MathConst::MY_SQRT2);
 }
 
+/* ---------------------------------------------------------------------- */
+
 int FixWallFlow::compute_current_segment(double pos) const
 {
   int result = 0;
@@ -258,21 +263,29 @@ int FixWallFlow::compute_current_segment(double pos) const
   return -1;    // -1 is "out of box" region
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixWallFlow::grow_arrays(int nmax)
 {
   memory->grow(current_segment, nmax, "WallFlow::current_segment");
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixWallFlow::copy_arrays(int i, int j, int)
 {
   current_segment[j] = current_segment[i];
 }
 
+/* ---------------------------------------------------------------------- */
+
 int FixWallFlow::pack_exchange(int i, double *buf)
 {
   buf[0] = static_cast<double>(current_segment[i]);
   return 1;
 }
+
+/* ---------------------------------------------------------------------- */
 
 int FixWallFlow::unpack_exchange(int i, double *buf)
 {

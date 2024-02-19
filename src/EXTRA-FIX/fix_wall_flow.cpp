@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_flow.h"
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
@@ -200,8 +201,7 @@ void FixWallFlow::end_of_step()
       int prev_segment = current_segment[i];
       current_segment[i] = compute_current_segment(pos);
 
-      if (prev_segment != current_segment[i])
-        generate_velocity(i);
+      if (prev_segment != current_segment[i]) generate_velocity(i);
     }
   }
 }

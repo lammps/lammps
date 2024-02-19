@@ -268,6 +268,12 @@ molecule can be specified in the molecule file.  See the
 required to be in this file are the coordinates and types of atoms in
 the molecule.
 
+.. note::
+
+  If you are using the :doc:`atom style template <atom_style>` command, 
+  the molecule template-ID of the atom style must be the same as the 
+  template-ID argument to this command.
+
 Using a lattice to add molecules, e.g. via the *box* or *region* or
 *single* styles, is exactly the same as adding atoms on lattice
 points, except that entire molecules are added at each point, i.e. on

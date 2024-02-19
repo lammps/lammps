@@ -132,9 +132,12 @@ size does not change in time, and axis-aligned planes.
 The method only works with two-body pair interactions, because it
 requires the class method ``Pair::single()`` to be implemented, which is
 not possible for manybody potentials.  In particular, compute
-*stress/mop/profile* and *stress/mop* do not work with more than two-body pair
-interactions, long range (kspace) interactions and
+*stress/mop/profile* and *stress/mop* do not work with more than two-body
+pair interactions, long range (kspace) interactions and
 improper intramolecular interactions.
+
+The impact of fixes that affect the stress (e.g. fix langevin) is
+also not included in the stress computed here.
 
 Related commands
 """"""""""""""""

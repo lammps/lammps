@@ -692,18 +692,18 @@ Restrictions
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
-The gpu style of this command can only be invoked if LAMMPS was built
+The *gpu* style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-The intel style of this command can only be invoked if LAMMPS was
+The *intel* style of this command can only be invoked if LAMMPS was
 built with the INTEL package.  See the :doc:`Build package <Build_package>` page for more info.
 
-The kk style of this command can only be invoked if LAMMPS was built
+The *kokkos* style of this command can only be invoked if LAMMPS was built
 with the KOKKOS package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-The omp style of this command can only be invoked if LAMMPS was built
+The *omp* style of this command can only be invoked if LAMMPS was built
 with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
@@ -712,19 +712,27 @@ Related commands
 
 :doc:`suffix <suffix>`, :doc:`-pk command-line switch <Run_options>`
 
-Default
-"""""""
+Defaults
+""""""""
 
-For the GPU package, the default is Ngpu = 0 and the option defaults are neigh
-= yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1,
-omp = 0, and platform=-1.  These settings are made automatically if the "-sf
-gpu" :doc:`command-line switch <Run_options>` is used.  If it is not used, you
-must invoke the package gpu command in your input script or via the "-pk gpu"
-:doc:`command-line switch <Run_options>`.
+For the GPU package, the default parameters and settings are:
 
-For the INTEL package, the default is Nphi = 1 and the option defaults are omp
-= 0, mode = mixed, lrt = no, balance = -1, tpc = 4, tptask = 240, pppm_table =
-yes.  The default ghost option is determined by the pair style being used.
+.. parsed-literal::
+
+   Ngpu = 0, neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, omp = 0, platform=-1.
+
+These settings are made automatically if the "-sf gpu"
+:doc:`command-line switch <Run_options>` is used.  If it is not used,
+you must invoke the package gpu command in your input script or via the
+"-pk gpu" :doc:`command-line switch <Run_options>`.
+
+For the INTEL package, the default parameters and settings are:
+
+.. parsed-literal::
+
+   Nphi = 1, omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4, tptask = 240, pppm_table = yes
+
+The default ghost option is determined by the pair style being used.
 This value is output to the screen in the offload report at the end of each
 run.  Note that all of these settings, except "omp" and "mode", are ignored if
 LAMMPS was not built with Xeon Phi co-processor support.  These settings are
@@ -732,20 +740,35 @@ made automatically if the "-sf intel" :doc:`command-line switch <Run_options>`
 is used.  If it is not used, you must invoke the package intel command in your
 input script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
 
-For the KOKKOS package, the option defaults for GPUs are neigh = full, neigh/qeq
-= full, newton = off, binsize for GPUs = 2x LAMMPS default value, comm = device,
-sort = device, atom/map = device, neigh/transpose = off, and gpu/aware = on.
-When LAMMPS can safely detect that GPU-aware MPI is not available, the default
-value of gpu/aware becomes "off". For CPUs or Xeon Phis, the option defaults are
-neigh = half, neigh/qeq = half, newton = on, binsize = 0.0, comm = no, sort =
-no, and atom/map = no. For GPUs, option neigh/thread = on when there are 16k
-atoms or less on an MPI rank, otherwise it is "off". These settings are made
-automatically by the required "-k on" :doc:`command-line switch <Run_options>`.
-You can change them by using the package kokkos command in your input script or
+For the KOKKOS package when using GPUs, the option defaults are:
+
+.. parsed-literal::
+
+   neigh = full, neigh/qeq = full, newton = off, binsize = 2x LAMMPS default value, comm = device, sort = device, atom/map = device, neigh/transpose = off, gpu/aware = on
+
+For GPUs, option neigh/thread = on when there are 16k atoms or less on
+an MPI rank, otherwise it is "off". When LAMMPS can safely detect that
+GPU-aware MPI is not available, the default value of gpu/aware becomes
+"off".
+
+For the KOKKOS package when using CPUs or Xeon Phis, the option defaults are:
+
+.. parsed-literal::
+
+   neigh = half, neigh/qeq = half, newton = on, binsize = 0.0, comm = no, sort = no, atom/map = no
+
+These settings are made automatically by
+the required "-k on" :doc:`command-line switch <Run_options>`.  You can
+change them by using the package kokkos command in your input script or
 via the :doc:`-pk kokkos command-line switch <Run_options>`.
 
-For the OMP package, the default is Nthreads = 0 and the option defaults are
-neigh = yes.  These settings are made automatically if the "-sf omp"
-:doc:`command-line switch <Run_options>` is used.  If it is not used, you must
-invoke the package omp command in your input script or via the "-pk omp"
-:doc:`command-line switch <Run_options>`.
+For the OMP package, the defaults are
+
+.. parsed-literal::
+
+   Nthreads = 0, neigh = yes
+
+These settings are made automatically if the "-sf omp"
+:doc:`command-line switch <Run_options>` is used.  If it is not used,
+you must invoke the package omp command in your input script or via the
+"-pk omp" :doc:`command-line switch <Run_options>`.

@@ -1281,7 +1281,12 @@ void Variable::remove(int n)
     reader[i-1] = reader[i];
     data[i-1] = data[i];
     dvalue[i-1] = dvalue[i];
+
+    // copy VecVar struct from vecs[i] to vecs[i-1]
+    
+    memcpy(&vecs[i-1],&vecs[i],sizeof(VecVar));
   }
+  
   nvar--;
   data[nvar] = nullptr;
   reader[nvar] = nullptr;

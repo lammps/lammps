@@ -5,7 +5,7 @@ fix deform command
 ==================
 
 :doc:`fix deform/pressure <fix_deform_pressure>` command
-==================
+========================================================
 
 Accelerator Variants: *deform/kk*
 
@@ -110,7 +110,7 @@ Examples
    fix 1 all deform 1 xy erate 0.001 remap v
    fix 1 all deform 10 y delta -0.5 0.5 xz vel 1.0
 
-   See examples for :doc:`fix deform/pressure <fix_deform_pressure>` on its doc page
+See examples for :doc:`fix deform/pressure <fix_deform_pressure>` on its doc page
    
 Description
 """""""""""

@@ -66,7 +66,10 @@ N+1 walls.
 
 Each time a particle in the specified group passes through one of the
 transparent walls, its velocity is re-assigned.  Particles not in the
-group do not interact with the wall.
+group do not interact with the wall. This can be used, for example, to
+add obstacles composed of atoms, or to simulate a solution of complex
+molecules in a one-atom liquid (note that the fix has been tested for
+one-atom systems only).
 
 Conceptually, the velocity re-assignment represents creation of a new
 particle within the system with simultaneous removal of the particle
@@ -146,6 +149,10 @@ if LAMMPS was built with that package.  See the :doc:`Build package
 
 Flow boundary conditions should not be used with rigid bodies such as
 those defined by a "fix rigid" command.
+
+This fix can only be used with periodic boundary conditions along the
+flow axis. The size of the box in this direction must not change. Also,
+the fix is designed to work only in an orthogonal simulation box.
 
 Related commands
 """"""""""""""""

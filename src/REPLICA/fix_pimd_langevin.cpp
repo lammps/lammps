@@ -35,6 +35,7 @@
 #include "force.h"
 #include "group.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "random_mars.h"
@@ -48,7 +49,10 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using MathConst::MY_PI;
+using MathConst::MY_2PI;
 using MathConst::THIRD;
+using MathConst::MY_SQRT2;
+using MathSpecial::powint;
 
 enum { PIMD, NMPIMD };
 enum { PHYSICAL, NORMAL };
@@ -436,7 +440,7 @@ void FixPIMDLangevin::init()
     planck = force->hplanck;
   }
   planck *= sp;
-  hbar = planck / (2.0 * MY_PI);
+  hbar = planck / (MY_2PI);
   double beta = 1.0 / (force->boltz * temp);
   double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
 
@@ -738,10 +742,11 @@ void FixPIMDLangevin::collect_xc()
       }
     }
 
+    const double sqrtnp = sqrt((double)np);
     for (int i = 0; i < nlocal; i++) {
-      xcall[3 * (tag[i] - 1) + 0] = x[i][0] / sqrt(np);
-      xcall[3 * (tag[i] - 1) + 1] = x[i][1] / sqrt(np);
-      xcall[3 * (tag[i] - 1) + 2] = x[i][2] / sqrt(np);
+      xcall[3 * (tag[i] - 1) + 0] = x[i][0] / sqrtnp;
+      xcall[3 * (tag[i] - 1) + 1] = x[i][1] / sqrtnp;
+      xcall[3 * (tag[i] - 1) + 2] = x[i][2] / sqrtnp;
     }
 
     if (cmode == MULTI_PROC) {
@@ -1107,19 +1112,20 @@ void FixPIMDLangevin::nmpimd_init()
   }
 
   // Set up eigenvectors for degenerated modes
+  const double sqrtnp = sqrt((double)np);
   for (int j = 0; j < np; j++) {
     for (int i = 1; i < int(np / 2) + 1; i++) {
-      M_x2xp[i][j] = sqrt(2.0) * cos(2.0 * MY_PI * double(i) * double(j) / double(np)) / sqrt(np);
+      M_x2xp[i][j] = MY_SQRT2 * cos(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
     }
     for (int i = int(np / 2) + 1; i < np; i++) {
-      M_x2xp[i][j] = sqrt(2.0) * sin(2.0 * MY_PI * double(i) * double(j) / double(np)) / sqrt(np);
+      M_x2xp[i][j] = MY_SQRT2 * sin(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
     }
   }
 
   // Set up eigenvectors for non-degenerated modes
   for (int i = 0; i < np; i++) {
-    M_x2xp[0][i] = 1.0 / sqrt(np);
-    if (np % 2 == 0) M_x2xp[np / 2][i] = 1.0 / sqrt(np) * pow(-1.0, i);
+    M_x2xp[0][i] = 1.0 / sqrtnp;
+    if (np % 2 == 0) M_x2xp[np / 2][i] = 1.0 / sqrtnp * powint(-1.0, i);
   }
 
   // Set up Ut

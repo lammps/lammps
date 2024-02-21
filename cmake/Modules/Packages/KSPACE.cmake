@@ -91,7 +91,7 @@ if(FFT_USE_HEFFTE)
     string(REPLACE "@Heffte_GIT_HASH@" "(unknown)" HEFFTE_CFG_FILE_TEXT "${HEFFTE_CFG_FILE_TEXT}")
     file(WRITE ${heffte_project_SOURCE_DIR}/include/heffte_config.cmake.h "${HEFFTE_CFG_FILE_TEXT}")
 
-    add_subdirectory(${heffte_project_SOURCE_DIR} ${heffte_project_BINARY_DIR})
+    add_subdirectory(${heffte_project_SOURCE_DIR} ${heffte_project_BINARY_DIR} EXCLUDE_FROM_ALL)
     add_library(Heffte::Heffte ALIAS Heffte)
     if(BUILD_SHARED_LIBS_WAS_ON)
       set(BUILD_SHARED_LIBS ON)

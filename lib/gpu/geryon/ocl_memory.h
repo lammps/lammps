@@ -491,17 +491,17 @@ template<int mem1, int mem2> struct _ucl_memcpy;
 // Both are images
 template<> struct _ucl_memcpy<2,2> {
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const p2 &src, const size_t n,
-                        cl_command_queue &cq, const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const p2 &/*src*/, const size_t /*n*/,
+                        cl_command_queue &/*cq*/, const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
-                        const size_t spitch, const size_t cols,
-                        const size_t rows, cl_command_queue &cq,
-                        const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const size_t /*dpitch*/, const p2 &/*src*/,
+                        const size_t /*spitch*/, const size_t /*cols*/,
+                        const size_t /*rows*/, cl_command_queue &/*cq*/,
+                        const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
 };
@@ -509,17 +509,17 @@ template<> struct _ucl_memcpy<2,2> {
 // Destination is texture, source on device
 template<> struct _ucl_memcpy<2,0> {
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const p2 &src, const size_t n,
-                        cl_command_queue &cq, const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const p2 &/*src*/, const size_t /*n*/,
+                        cl_command_queue &/*cq*/, const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
-                        const size_t spitch, const size_t cols,
-                        const size_t rows, cl_command_queue &cq,
-                        const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const size_t /*dpitch*/, const p2 &/*src*/,
+                        const size_t /*spitch*/, const size_t /*cols*/,
+                        const size_t /*rows*/, cl_command_queue &/*cq*/,
+                        const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
 };
@@ -527,17 +527,17 @@ template<> struct _ucl_memcpy<2,0> {
 // Destination is texture, source on host
 template<> struct _ucl_memcpy<2,1> {
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const p2 &src, const size_t n,
-                        cl_command_queue &cq, const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const p2 &/*src*/, const size_t /*n*/,
+                        cl_command_queue &/*cq*/, const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
-                        const size_t spitch, const size_t cols,
-                        const size_t rows, cl_command_queue &cq,
-                        const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const size_t /*dpitch*/, const p2 &/*src*/,
+                        const size_t /*spitch*/, const size_t /*cols*/,
+                        const size_t /*rows*/, cl_command_queue &/*cq*/,
+                        const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
 };
@@ -545,17 +545,17 @@ template<> struct _ucl_memcpy<2,1> {
 // Source is texture, dest on device
 template<> struct _ucl_memcpy<0,2> {
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const p2 &src, const size_t n,
-                        cl_command_queue &cq, const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const p2 &/*src*/, const size_t /*n*/,
+                        cl_command_queue &/*cq*/, const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
-                        const size_t spitch, const size_t cols,
-                        const size_t rows, cl_command_queue &cq,
-                        const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const size_t /*dpitch*/, const p2 &/*src*/,
+                        const size_t /*spitch*/, const size_t /*cols*/,
+                        const size_t /*rows*/, cl_command_queue &/*cq*/,
+                        const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
 };
@@ -563,17 +563,17 @@ template<> struct _ucl_memcpy<0,2> {
 // Source is texture, dest on host
 template<> struct _ucl_memcpy<1,2> {
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const p2 &src, const size_t n,
-                        cl_command_queue &cq, const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const p2 &/*src*/, const size_t /*n*/,
+                        cl_command_queue &/*cq*/, const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
   template <class p1, class p2>
-  static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
-                        const size_t spitch, const size_t cols,
-                        const size_t rows, cl_command_queue &cq,
-                        const cl_bool block,
-                        const size_t dst_offset, const size_t src_offset) {
+  static inline void mc(p1 &/*dst*/, const size_t /*dpitch*/, const p2 &/*src*/,
+                        const size_t /*spitch*/, const size_t /*cols*/,
+                        const size_t /*rows*/, cl_command_queue &/*cq*/,
+                        const cl_bool /*block*/,
+                        const size_t /*dst_offset*/, const size_t /*src_offset*/) {
     assert(0==1);
   }
 };

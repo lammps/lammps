@@ -57,7 +57,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   reverse_pair_comm_changed = 0;
   forward_fix_comm_changed = 0;
   reverse_comm_changed = 0;
-  sort_changed = 0;
+  sort_changed = atom_map_changed = 0;
 
   delete memory;
   memory = new MemoryKokkos(lmp);
@@ -225,6 +225,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 0;
     forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 0;
     sort_classic = 0;
+    atom_map_classic = 0;
 
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   } else {
@@ -240,6 +241,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     exchange_comm_classic = forward_comm_classic = reverse_comm_classic = 1;
     forward_pair_comm_classic = reverse_pair_comm_classic = forward_fix_comm_classic = 1;
     sort_classic = 1;
+    atom_map_classic = 1;
 
     exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
   }
@@ -503,6 +505,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else error->all(FLERR,"Illegal package kokkos command");
       sort_changed = 0;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"atom/map") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      else if (strcmp(arg[iarg+1],"no") == 0) atom_map_classic = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) atom_map_classic = 1;
+      else if (strcmp(arg[iarg+1],"device") == 0) atom_map_classic = 0;
+      else error->all(FLERR,"Illegal package kokkos command");
+      atom_map_changed = 0;
+      iarg += 2;
     } else if ((strcmp(arg[iarg],"gpu/aware") == 0)
                || (strcmp(arg[iarg],"cuda/aware") == 0)) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -563,6 +573,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       sort_classic = 1;
       sort_changed = 1;
     }
+    if (atom_map_classic == 0) {
+      atom_map_classic = 1;
+      atom_map_changed = 1;
+    }
   }
 
   // if "gpu/aware on" and "pair/only off", and comm flags were changed previously, change them back
@@ -598,6 +612,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
     if (sort_changed) {
       sort_classic = 0;
       sort_changed = 0;
+    }
+    if (atom_map_changed) {
+      atom_map_classic = 0;
+      atom_map_changed = 0;
     }
   }
 

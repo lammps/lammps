@@ -14,10 +14,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID fixstyle N parameter style args ... keyword value ...
+   fix ID group-ID fix_style N parameter style args ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* fixstyle = *deform* or *deform/pressure*
+* fix_style = *deform* or *deform/pressure*
 * N = perform box deformation every this many timesteps
 * one or more parameter/style/args sequences of arguments may be appended
 
@@ -644,8 +644,8 @@ command.
 Related commands
 """"""""""""""""
 
-:doc:`fix deform/pressure <fix_deform_pressure>`, :doc:`change_box
-     <change_box>`
+:doc:`fix deform/pressure <fix_deform_pressure>`,
+:doc:`change_box <change_box>`
 
 Default
 """""""

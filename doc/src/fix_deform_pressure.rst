@@ -109,7 +109,7 @@ specific details of a simulation. Testing different values is recommended.
 
 By default, there is no limit on the resulting strain rate in any dimension.
 A maximum limit can be applied using the :ref:`max/rate <deform_max_rate>`
-option. Akin to :ref:`fix nh <fix_nh>`, pressures in different dimensions
+option. Akin to :doc:`fix nh <fix_nh>`, pressures in different dimensions
 can be coupled using the :ref:`couple <deform_couple>` option. This means
 the instantaneous pressure along coupled dimensions are averaged and the box
 strains identically along the coupled dimensions.
@@ -313,9 +313,7 @@ The option defaults are normalize/pressure = no.
 
 ----------
 
-.. _Li2014b:
+.. _Huang2014:
 
-**(Huang2014)** X. Huang,
-"Exploring critical-state behavior using DEM",
-Doctoral dissertation, Imperial College.
-(2014). https://doi.org/10.25560/25316
+**(Huang2014)** X. Huang, "Exploring critical-state behavior using DEM",
+Doctoral dissertation, Imperial College. (2014). https://doi.org/10.25560/25316

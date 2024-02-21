@@ -55,7 +55,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
   memset(set_extra, 0, 7 * sizeof(SetExtra));
   memset(&set_box, 0, sizeof(Set));
 
-  // parse child-specific arguments
+  // parse only parameter/style arguments specific to this child class
 
   int index, iarg;
   int i = 0;
@@ -115,6 +115,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
         set_extra[index].pgain = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         i += 4;
       } else error->all(FLERR, "Illegal fix deform/pressure command: {}", arg[iarg + 1]);
+      
     } else if (strcmp(arg[iarg], "box") == 0) {
       if (strcmp(arg[iarg + 1], "volume") == 0) {
         set_box.style = VOLUME;
@@ -850,7 +851,6 @@ void FixDeformPressure::restart(char *buf)
   }
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void FixDeformPressure::options(int i, int narg, char **arg)
@@ -860,6 +860,8 @@ void FixDeformPressure::options(int i, int narg, char **arg)
   vol_balance_flag = 0;
   normalize_pressure_flag = 0;
 
+  // parse only options not handled by parent class
+  
   int iarg, nskip;
   while (i < leftover_iarg.size()) {
     iarg = leftover_iarg[i];

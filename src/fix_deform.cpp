@@ -72,7 +72,8 @@ irregular(nullptr), set(nullptr)
   set = new Set[6];
   memset(set, 0, 6 * sizeof(Set));
 
-  // parse arguments
+  // parse all parameter/style arguments for this parent and also child classes
+  // for child classes, simply store them in leftover_iarg and skip over them
 
   triclinic = domain->triclinic;
 
@@ -1008,6 +1009,9 @@ void FixDeform::options(int narg, char **arg)
                           {"normalize/pressure", 2},
                           {"vol/balance/p", 2}});
   }
+
+  // parse all optional arguments for this parent and also child classes
+  // for child classes, simply store them in leftover_iarg and skip over them
 
   int iarg = 0;
   while (iarg < narg) {

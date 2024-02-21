@@ -8,12 +8,12 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID deform N parameter args ... keyword value ...
+   fix ID group-ID deform/pressure N parameter style args ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* deform = style name of this fix command
+* deform/pressure = style name of this fix command
 * N = perform box deformation every this many timesteps
-* one or more parameter/arg pairs may be appended
+* one or more parameter/arg sequences may be appended
 
   .. parsed-literal::
 
@@ -26,13 +26,15 @@ Syntax
            *pressure/mean* values = target gain
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
-           All other styles operate identically to those in :doc:`fix deform <fix_deform>`
+           NOTE: All other styles are documented by the :doc:`fix deform <fix_deform>` command
+           
        *xy*, *xz*, *yz* args = style value
          style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable* or *pressure*
            *pressure* values = target gain
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
-           All other styles operate identically to those in :doc:`fix deform <fix_deform>`
+           NOTE: All other styles are documented by the :doc:`fix deform <fix_deform>` command
+           
        *box* = style value
          style = *volume* or *pressure*
            *volume* value = none = isotropically adjust system to preserve volume of system
@@ -53,7 +55,7 @@ Syntax
          rate = maximum strain rate for pressure control
        *normalize/pressure* value = *yes* or *no*
          Modifies pressure controls such that the deviation in pressure is normalized by the target pressure
-       All other options operate identically to those in :doc:`fix deform <fix_deform>`
+       NOTE: All other keywords are documented by the :doc:`fix deform <fix_deform>` command
 
 Examples
 """"""""
@@ -67,19 +69,20 @@ Examples
 Description
 """""""""""
 
-This fix is an extension of :doc:`fix deform <fix_deform>`, inheriting
-all of its features and adding new pressure-based controls to allow for
-new deformation protocols. All details in :doc:`fix deform <fix_deform>`
-apply to this fix unless otherwise noted.
+This fix is an extension of the :doc:`fix deform <fix_deform>`
+command, which allows all of its options to be used as well as new
+pressure-based controls implemented by this command.
+
+All arguments described on the :doc:`fix deform <fix_deform>` doc page
+also apply to this fix unless otherwise noted below.  The rest of this
+doc page explains the arguments specific to this fix.  Note that a
+simulation can define only a single deformation command: fix deform or
+fix deform/pressure.
 
 ----------
 
-For the *x*, *y*, and *z* parameters, this is the meaning of their
-styles and values.
-
-The *final*, *delta*, *scale*, *vel*, *erate*, *trate*, *volume*,
-*wiggle*, and *variable* styles all behave identically to those in
-:doc:`fix deform <fix_deform>`. Additional styles are described below.
+For the *x*, *y*, and *z* parameters, this is the meaning of the
+styles and values provided by this fix.
 
 The *pressure* style adjusts a dimension's box length to control the
 corresponding component of the pressure tensor. This option attempts to
@@ -127,13 +130,9 @@ along one dimension.
 
 ----------
 
-For the *xy*, *xz*, and *yz* parameters, this is the meaning of their
-styles and values.  Note that changing the tilt factors of a triclinic
-box does not change its volume.
-
-The *final*, *delta*, *vel*, *erate*, *trate*, *wiggle*, and *variable*
-styles all behave identically to those in :doc:`fix deform <fix_deform>`.
-Additional styles are described below.
+For the *xy*, *xz*, and *yz* parameters, this is the meaning of the
+styles and values provided by this fix.  Note that changing the
+tilt factors of a triclinic box does not change its volume.
 
 The *pressure* style adjusts a tilt factor to control the corresponding
 off-diagonal component of the pressure tensor. This option attempts to
@@ -144,29 +143,32 @@ tilt factor T evolves according to the equation
 
    \frac{d T(t)}{dt} = L(t) k (P - P_t)
 
-where :math:`k` is a proportional gain constant, :math:`P_t` is the target
-pressure, :math:`P` is the current pressure, and :math:`L` is the perpendicular
-box length. The target pressure accepts either a constant numeric value or a
-LAMMPS :ref:`variable <variable>`. Notably, this variable can be a function
-of time or other components of the pressure tensor. By default, :math:`k`
-has units of 1/(time * pressure) although this will change if the
-*normalize/pessure* option is set as :ref:`discussed below <deform_normalize>`.
-There is no proven method to choosing an appropriate value of :math:`k` as it
-will depend on thespecific details of a simulation and testing different
-values is recommended. One can also apply a maximum limit to the magnitude
-of the applied strain using the :ref:`max/rate <deform_max_rate>` option.
+where :math:`k` is a proportional gain constant, :math:`P_t` is the
+target pressure, :math:`P` is the current pressure, and :math:`L` is
+the perpendicular box length. The target pressure accepts either a
+constant numeric value or a LAMMPS :ref:`variable
+<variable>`. Notably, this variable can be a function of time or other
+components of the pressure tensor. By default, :math:`k` has units of
+1/(time * pressure) although this will change if the
+*normalize/pessure* option is set as :ref:`discussed below
+<deform_normalize>`.  There is no proven method to choosing an
+appropriate value of :math:`k` as it will depend on the specific
+details of a simulation and testing different values is
+recommended. One can also apply a maximum limit to the magnitude of
+the applied strain using the :ref:`max/rate <deform_max_rate>` option.
 
 ----------
 
-The *box* parameter provides an additonal control over the *x*, *y*,
-and *z* box lengths by isotropically dilating or contracting the box to
-either maintain a fixed mean pressure or volume. This isotropic scaling
-is applied after the box is deformed by the above *x*, *y*, *z*, *xy*,
-*xz*, and *yz* styles, acting as a second deformation step. This parameter
-will change the overall strain rate in the *x*, *y*, or *z* dimensions.
-This parameter can only be used in combination with the *x*, *y*, or *z*
-commands: *vel*, *erate*, *trate*, *pressure*, or *wiggle*. This is the meaning
-of its styles and values.
+The *box* parameter provides an additional control over the *x*, *y*,
+and *z* box lengths by isotropically dilating or contracting the box
+to either maintain a fixed mean pressure or volume. This isotropic
+scaling is applied after the box is deformed by the above *x*, *y*,
+*z*, *xy*, *xz*, and *yz* styles, acting as a second deformation
+step. This parameter will change the overall strain rate in the *x*,
+*y*, or *z* dimensions.  This parameter can only be used in
+combination with the *x*, *y*, or *z* commands: *vel*, *erate*,
+*trate*, *pressure*, or *wiggle*. This is the meaning of its styles
+and values.
 
 The *volume* style isotropically scales box lengths to maintain a constant
 box volume in response to deformation from other parameters. This style
@@ -186,9 +188,7 @@ dimensions (deforming the shape of the box), while maintaining a mean pressure.
 
 ----------
 
-The *flip*, *remap*, and *units* keywords all behave identically
-to those in :doc:`fix deform <fix_deform>`. Additional optional
-keywords are described below.
+The optional keywords provided by this fix are described below.
 
 .. _deform_normalize:
 
@@ -240,44 +240,47 @@ dimension equal using a method described in :ref:`(Huang2014) <Huang2014>`.
 ----------
 
 If any pressure controls are used, this fix computes a temperature and
-pressure each timestep. To do this, the fix creates its own computes of
-style "temp" and "pressure", as if these commands had been issued:
+pressure each timestep. To do this, the fix creates its own computes
+of style "temp" and "pressure", as if these commands had been issued:
 
 .. code-block:: LAMMPS
 
    compute fix-ID_temp group-ID temp
    compute fix-ID_press group-ID pressure fix-ID_temp
 
-See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure <compute_pressure>` commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
+See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure
+<compute_pressure>` commands for details.  Note that the IDs of the
+new computes are the fix-ID + underscore + "temp" or fix_ID
 + underscore + "press", and the group for the new computes is the same
 as the fix group.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
-and *thermo_press*.  This means you can change the attributes of this
-fix's temperature or pressure via the
-:doc:`compute_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the
-:doc:`thermo_style custom <thermo_style>` command using the appropriate
-compute-ID. It also means that changing attributes of *thermo_temp* or
-*thermo_press* will have no effect on this fix.
+the :doc:`thermo_style <thermo_style>` command) with ID =
+*thermo_temp* and *thermo_press*.  This means you can change the
+attributes of this fix's temperature or pressure via the
+:doc:`compute_modify <compute_modify>` command or print this
+temperature or pressure during thermodynamic output via the
+:doc:`thermo_style custom <thermo_style>` command using the
+appropriate compute-ID. It also means that changing attributes of
+*thermo_temp* or *thermo_press* will have no effect on this fix.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix will restore the initial box settings from :doc:`binary restart files <restart>`, which allows the fix to be properly continue
+This fix will restore the initial box settings from :doc:`binary
+restart files <restart>`, which allows the fix to be properly continue
 deformation, when using the start/stop options of the :doc:`run <run>`
-command.  No global or per-atom quantities are stored by this fix for access
-by various :doc:`output commands <Howto_output>`.
+command.  No global or per-atom quantities are stored by this fix for
+access by various :doc:`output commands <Howto_output>`.
 
-If any pressure controls are used, the :doc:`fix_modify <fix_modify>` *temp*
-and *press* options are supported by this fix, unklike in :doc:`fix deform <fix_deform>`.
-You can use them to assign a :doc:`compute <compute>` you have defined to
-this fix which will be used in its temperature and pressure calculations.
-If you do this, note that the kinetic energy derived from the compute
-temperature should be consistent with the virial term computed using all
-atoms for the pressure.  LAMMPS will warn you if you choose to compute
+If any pressure controls are used, the :doc:`fix_modify <fix_modify>`
+*temp* and *press* options are supported by this fix, unlike in
+:doc:`fix deform <fix_deform>`.  You can use them to assign a
+:doc:`compute <compute>` you have defined to this fix which will be
+used in its temperature and pressure calculations.  If you do this,
+note that the kinetic energy derived from the compute temperature
+should be consistent with the virial term computed using all atoms for
+the pressure.  LAMMPS will warn you if you choose to compute
 temperature on a subset of atoms.
 
 This fix can perform deformation over multiple runs, using the *start*
@@ -292,8 +295,9 @@ Restrictions
 You cannot apply x, y, or z deformations to a dimension that is
 shrink-wrapped via the :doc:`boundary <boundary>` command.
 
-You cannot apply xy, yz, or xz deformations to a second dimension (y in
-xy) that is shrink-wrapped via the :doc:`boundary <boundary>` command.
+You cannot apply xy, yz, or xz deformations to a second dimension (y
+in xy) that is shrink-wrapped via the :doc:`boundary <boundary>`
+command.
 
 Related commands
 """"""""""""""""
@@ -303,8 +307,7 @@ Related commands
 Default
 """""""
 
-The option defaults are remap = x, flip = yes, units = lattice, and
-normalize/pressure = no.
+The option defaults are normalize/pressure = no.
 
 ----------
 

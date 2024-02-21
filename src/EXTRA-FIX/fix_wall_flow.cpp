@@ -62,6 +62,9 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_fix_wall_flow_c);
   if (narg < 9) utils::missing_cmd_args(FLERR, "fix wall/flow", error);
 
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Fix wall/flow cannot be used with triclinic simulation box");
+
   dynamic_group_allow = 1;
   bool do_abort = false;
 
@@ -76,6 +79,10 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   else
     error->all(FLERR, "Illegal fix wall/flow argument: axis must by x or y or z, but {} specified",
                arg[iarg]);
+
+  if (domain->periodicity[flowax] != 1)
+    error->all(FLERR,
+               "Fix wall/flow cannot be used with a non-periodic boundary along the flow axis");
 
   ++iarg;
   // parsing velocity
@@ -135,6 +142,12 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   if (!std::is_sorted(walls.begin(), walls.end(), std::less_equal<double>())) {
     error->all(FLERR,
                "Wrong fix wall/flow wall ordering or some walls are outside simulation domain");
+  }
+
+  if (std::adjacent_find(walls.begin(), walls.end()) != walls.end()) {
+    error->all(FLERR,
+               "Wrong fix wall/flow wall coordinates: some walls have the same coordinates or lie "
+               "on the boundary");
   }
 
   memory->grow(current_segment, atom->nmax, "WallFlow::current_segment");

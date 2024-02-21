@@ -794,8 +794,6 @@ void FixDeformPressure::write_restart(FILE *fp)
   if (comm->me == 0) {
     int size = 9 * sizeof(double) + 7 * sizeof(Set) + 7 * sizeof(SetExtra);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(h_rate, sizeof(double), 6, fp);
-    fwrite(h_ratelo, sizeof(double), 3, fp);
     fwrite(set, sizeof(Set), 6, fp);
     fwrite(&set_box, sizeof(Set), 1, fp);
     fwrite(set_extra, sizeof(SetExtra), 7, fp);

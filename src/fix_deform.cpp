@@ -372,16 +372,6 @@ irregular(nullptr), set(nullptr)
 
   if (force_reneighbor) irregular = new Irregular(lmp);
   else irregular = nullptr;
-
-  // initialize all rates to 0.0 in constructor instead of init so values persist
-  // across run statements and ghosts have correct velocities until the destructor
-  h_rate = domain->h_rate;
-  h_ratelo = domain->h_ratelo;
-
-  for (int i = 0; i < 3; i++)
-    h_rate[i] = h_ratelo[i] = 0.0;
-  for (int i = 3; i < 6; i++)
-    h_rate[i] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -597,13 +587,18 @@ void FixDeform::init()
   }
 
   // set domain->h_rate values for use by domain and other fixes/computes
+  // initialize all rates to 0.0
   // cannot set here for TRATE,VOLUME,WIGGLE,VARIABLE since not constant
 
+  h_rate = domain->h_rate;
+  h_ratelo = domain->h_ratelo;
+
   for (int i = 0; i < 3; i++) {
+    h_rate[i] = h_ratelo[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA ||
         set[i].style == SCALE || set[i].style == VEL ||
         set[i].style == ERATE) {
-      double dlo_dt,dhi_dt;
+      double dlo_dt, dhi_dt;
       if (delt != 0.0) {
         dlo_dt = (set[i].lo_stop - set[i].lo_start) / delt;
         dhi_dt = (set[i].hi_stop - set[i].hi_start) / delt;
@@ -614,6 +609,7 @@ void FixDeform::init()
   }
 
   for (int i = 3; i < 6; i++) {
+    h_rate[i] = 0.0;
     if (set[i].style == FINAL || set[i].style == DELTA ||
         set[i].style == VEL || set[i].style == ERATE) {
       if (delt != 0.0)
@@ -961,10 +957,8 @@ void FixDeform::update_domain()
 void FixDeform::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
-    int size = 9 * sizeof(double) + 6 * sizeof(Set);
+    int size = 6 * sizeof(Set);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(h_rate, sizeof(double), 6, fp);
-    fwrite(h_ratelo, sizeof(double), 3, fp);
     fwrite(set, sizeof(Set), 6, fp);
   }
 }
@@ -975,15 +969,8 @@ void FixDeform::write_restart(FILE *fp)
 
 void FixDeform::restart(char *buf)
 {
-  int n = 0;
-  auto list = (double *) buf;
-  for (int i = 0; i < 6; i++)
-    h_rate[i] = list[n++];
-  for (int i = 0; i < 3; i++)
-    h_ratelo[i] = list[n++];
-
   int samestyle = 1;
-  Set *set_restart = (Set *) &buf[n * sizeof(double)];
+  Set *set_restart = (Set *) buf;
   for (int i = 0; i < 6; ++i) {
     // restore data from initial state
     set[i].lo_initial = set_restart[i].lo_initial;

@@ -44,7 +44,7 @@ Syntax
              v_name1 = variable with name1 for box length change as function of time
              v_name2 = variable with name2 for change rate as function of time
        *xy*, *xz*, *yz* args = style value
-         style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle*
+         style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable*
            *final* value = tilt
              tilt = tilt factor at end of run (distance units)
            *delta* value = dtilt
@@ -95,7 +95,9 @@ Change the volume and/or shape of the simulation box during a dynamics
 run.  Orthogonal simulation boxes have 3 adjustable parameters
 (x,y,z).  Triclinic (non-orthogonal) simulation boxes have 6
 adjustable parameters (x,y,z,xy,xz,yz).  Any or all of them can be
-adjusted independently and simultaneously by this command.
+adjusted independently and simultaneously by this command.  For
+additional pressure-based controls, see
+:doc:`fix deform/pressure <fix_deform_pressure>`.
 
 This fix can be used to perform non-equilibrium MD (NEMD) simulations
 of a continuously strained system.  See the :doc:`fix nvt/sllod <fix_nvt_sllod>` and :doc:`compute temp/deform <compute_temp_deform>` commands for more details.  Note
@@ -592,7 +594,7 @@ xy) that is shrink-wrapped via the :doc:`boundary <boundary>` command.
 Related commands
 """"""""""""""""
 
-:doc:`change_box <change_box>`
+:doc:`fix deform/pressure <fix_deform_pressure>`, :doc:`change_box <change_box>`
 
 Default
 """""""

@@ -36,7 +36,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static constexpr int DELTA = 4;
-static constexpr int PGDELTA = 1;
 static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */

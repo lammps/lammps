@@ -44,7 +44,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 This fix computes different metrics of the nonaffine displacement of
 particles. The first metric, *d2min* calculates the :math:`D^2_\mathrm{min}`

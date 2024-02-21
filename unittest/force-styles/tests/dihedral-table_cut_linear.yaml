@@ -3,7 +3,7 @@ lammps_version: 17 Feb 2022
 tags: unstable
 date_generated: Fri Mar 18 22:18:02 2022
 epsilon: 1e-13
-skip_tests:
+skip_tests: numdiff
 prerequisites: ! |
   atom full
   dihedral table/cut

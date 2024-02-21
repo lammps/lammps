@@ -49,6 +49,7 @@
 #include "neighbor.h"
 #include "npair_ssa_kokkos.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
+#include "random_external_state.h"
 #include "update.h"
 
 #include <cmath>
@@ -58,7 +59,7 @@ using namespace FixConst;
 using namespace random_external_state;
 
 static constexpr double EPSILON = 1.0e-10;
-#define EPSILON_SQUARED ((EPSILON) * (EPSILON))
+static constexpr double EPSILON_SQUARED = EPSILON * EPSILON;
 
 /* ---------------------------------------------------------------------- */
 

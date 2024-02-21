@@ -2455,7 +2455,7 @@ static int set_variable_deprecated_flag = 1;
 /** Set the value of a string-style variable.
 \verbatim embed:rst
 
-.. deprecated:: TBD
+.. deprecated:: 7Feb2024
 
 This function assigns a new value from the string str to the
 string-style variable *name*.  This is a way to directly change the
@@ -2493,7 +2493,7 @@ int lammps_set_variable(void *handle, const char *name, const char *str)
 /** Set the value of a string-style variable.
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 This function assigns a new value from the string str to the
 string-style variable *name*.  This is a way to directly change the
@@ -2530,6 +2530,8 @@ int lammps_set_string_variable(void *handle, const char *name, const char *str)
 /** Set the value of an internal-style variable.
  *
 \verbatim embed:rst
+
+.. versionadded:: 7Feb2024
 
 This function assigns a new value from the floating point number *value*
 to the internal-style variable *name*.  This is a way to directly change

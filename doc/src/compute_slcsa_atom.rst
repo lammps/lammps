@@ -32,7 +32,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 Define a computation that performs the Supervised Learning Crystal
 Structure Analysis (SL-CSA) from :ref:`(Lafourcade) <Lafourcade2023_1>`

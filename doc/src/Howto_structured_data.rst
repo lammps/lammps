@@ -52,8 +52,8 @@ JSON
      "ke": 2.4962152903997174569
    }
 
-YAML format thermo_style output
-===============================
+YAML format thermo_style or dump_style output
+=============================================
 
 Extracting data from log file
 -----------------------------
@@ -111,6 +111,9 @@ of that run:
 
    Number of runs:  2
    TotEng  =  -4.62140097780047
+
+Extracting data from dump file
+------------------------------
 
 .. versionadded:: 4May2022
 

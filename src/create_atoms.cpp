@@ -301,6 +301,8 @@ void CreateAtoms::command(int narg, char **arg)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
+    if (atom->molecular == Atom::TEMPLATE && onemol != atom->avec->onemols[0])
+      error->all(FLERR, "Create_atoms molecule template ID must be same as atom style template ID");
 
     onemol->check_attributes();
 

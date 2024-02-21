@@ -111,7 +111,7 @@ Examples
    fix 1 all deform 10 y delta -0.5 0.5 xz vel 1.0
 
 See examples for :doc:`fix deform/pressure <fix_deform_pressure>` on its doc page
-   
+
 Description
 """""""""""
 

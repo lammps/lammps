@@ -27,14 +27,14 @@ Syntax
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
            NOTE: All other styles are documented by the :doc:`fix deform <fix_deform>` command
-           
+
        *xy*, *xz*, *yz* args = style value
          style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable* or *pressure*
            *pressure* values = target gain
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
            NOTE: All other styles are documented by the :doc:`fix deform <fix_deform>` command
-           
+
        *box* = style value
          style = *volume* or *pressure*
            *volume* value = none = isotropically adjust system to preserve volume of system
@@ -68,6 +68,8 @@ Examples
 
 Description
 """""""""""
+
+.. versionadded:: TBD
 
 This fix is an extension of the :doc:`fix deform <fix_deform>`
 command, which allows all of its options to be used as well as new

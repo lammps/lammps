@@ -115,7 +115,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
         set_extra[index].pgain = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         i += 4;
       } else error->all(FLERR, "Illegal fix deform/pressure command: {}", arg[iarg + 1]);
-      
+
     } else if (strcmp(arg[iarg], "box") == 0) {
       if (strcmp(arg[iarg + 1], "volume") == 0) {
         set_box.style = VOLUME;
@@ -861,7 +861,7 @@ void FixDeformPressure::options(int i, int narg, char **arg)
   normalize_pressure_flag = 0;
 
   // parse only options not handled by parent class
-  
+
   int iarg, nskip;
   while (i < leftover_iarg.size()) {
     iarg = leftover_iarg[i];

@@ -210,9 +210,9 @@ void FixWallFlow::init()
   }
 
   if (nrigid && comm->me == 0)
-    error->warning(FLERR, "FixWallFlow is not compatible with rigid bodies");
+    error->all(FLERR, "FixWallFlow is not compatible with rigid bodies");
   if (box_change_flowax && comm->me == 0)
-    error->warning(
+    error->all(
         FLERR,
         "FixWallFlow is not compatible with simulation box size changing along flow direction");
 

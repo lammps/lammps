@@ -20,8 +20,9 @@ PairStyle(rebomos,PairREBOMoS);
 #ifndef LMP_PAIR_REBOMOS_H
 #define LMP_PAIR_REBOMOS_H
 
-#include "math_const.h"
 #include "pair.h"
+#include "math_const.h"
+
 #include <cmath>
 
 namespace LAMMPS_NS {

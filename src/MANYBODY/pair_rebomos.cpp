@@ -33,7 +33,6 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
@@ -46,14 +45,12 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;
 
-#define MAXLINE 1024
-#define TOL 1.0e-9
-#define PGDELTA 1
+static constexpr double TOL = 1.0e-9;
+static constexpr int PGDELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 

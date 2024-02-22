@@ -259,28 +259,7 @@ double PairREBOMoS::init_one(int i, int j)
 
   cut3rebo = 3.0 * rcmax[0][0];
 
-  // cutljrebosq = furthest distance from an owned atom a ghost atom can be
-  //               to need its REBO neighs computed
-  // interaction = M-K-I-J-L-N with I = owned and J = ghost
-  //   this insures N is in the REBO neigh list of L
-  //   since I-J < rcLJmax and J-L < rmax
-
-  double cutljrebo = rcLJmax[0][0] + rcmax[0][0];
-  cutljrebosq = cutljrebo * cutljrebo;
-
-  // cutmax = furthest distance from an owned atom
-  //          at which another atom will feel force, i.e. the ghost cutoff
-  // for REBO term in potential:
-  //   interaction = M-K-I-J-L-N with I = owned and J = ghost
-  //   I to N is max distance = 3 REBO distances
-  // for LJ term in potential:
-  //   short interaction = M-K-I-J-L-N with I = owned, J = ghost, I-J < rcLJmax
-  //   rcLJmax + 2*rcmax, since I-J < rcLJmax and J-L,L-N = REBO distances
-  //   long interaction = I-J with I = owned and J = ghost
-  //   cutlj*sigma, since I-J < LJ cutoff
   // cutghost = REBO cutoff used in REBO_neigh() for neighbors of ghosts
-
-  double cutmax = MAX(cut3rebo,rcLJmax[0][0] + 2.0*rcmax[0][0]);
 
   cutghost[i][j] = rcmax[ii][jj];
   lj1[ii][jj] = 48.0 * epsilon[ii][jj] * powint(sigma[ii][jj],12);
@@ -294,7 +273,7 @@ double PairREBOMoS::init_one(int i, int j)
   lj3[jj][ii] = lj3[ii][jj];
   lj4[jj][ii] = lj4[ii][jj];
 
-  return cutmax;
+  return cut3rebo;
 }
 
 /* ----------------------------------------------------------------------

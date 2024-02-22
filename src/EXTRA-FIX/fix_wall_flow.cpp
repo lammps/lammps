@@ -187,12 +187,34 @@ int FixWallFlow::setmask()
 void FixWallFlow::init()
 {
   int nrigid = 0;
-
-  for (auto ifix : modify->get_fix_list())
+  int box_change_flowax = 0;
+  for (auto ifix : modify->get_fix_list()) {
     if (ifix->rigid_flag) nrigid++;
+    switch (flowax) {
+      case FlowAxis::AX_X:
+        if (ifix->box_change & Fix::BOX_CHANGE_X) box_change_flowax++;
+        if (ifix->box_change & Fix::BOX_CHANGE_XY) box_change_flowax++;
+        if (ifix->box_change & Fix::BOX_CHANGE_XZ) box_change_flowax++;
+        break;
+      case FlowAxis::AX_Y:
+        if (ifix->box_change & Fix::BOX_CHANGE_Y) box_change_flowax++;
+        if (ifix->box_change & Fix::BOX_CHANGE_YZ) box_change_flowax++;
+        if (ifix->box_change & Fix::BOX_CHANGE_XY) box_change_flowax++;
+        break;
+      case FlowAxis::AX_Z:
+        if (ifix->box_change & Fix::BOX_CHANGE_Z) box_change_flowax++;
+        if (ifix->box_change & Fix::BOX_CHANGE_YZ) box_change_flowax++;
+        if (ifix->box_change & Fix::BOX_CHANGE_XZ) box_change_flowax++;
+        break;
+    }
+  }
 
   if (nrigid && comm->me == 0)
     error->warning(FLERR, "FixWallFlow is not compatible with rigid bodies");
+  if (box_change_flowax && comm->me == 0)
+    error->warning(
+        FLERR,
+        "FixWallFlow is not compatible with simulation box size changing along flow direction");
 
   for (int i = 0; i < atom->nlocal; ++i) {
     double pos = atom->x[i][flowax];

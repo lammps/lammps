@@ -268,6 +268,12 @@ molecule can be specified in the molecule file.  See the
 required to be in this file are the coordinates and types of atoms in
 the molecule.
 
+.. note::
+
+  If you are using the *mol* keyword in combination with the
+  :doc:`atom style template <atom_style>` command, they must use
+  the same molecule template-ID.
+
 Using a lattice to add molecules, e.g. via the *box* or *region* or
 *single* styles, is exactly the same as adding atoms on lattice
 points, except that entire molecules are added at each point, i.e. on
@@ -535,6 +541,11 @@ command.
 
 A rotation vector specified for a single molecule must be in
 the z-direction for a 2d model.
+
+For :doc:`molecule templates <molecule>` that are created from multiple
+files, i.e. contain multiple molecule *sets*, only the first set is
+used.  To create multiple molecules the files currently need to be
+merged and different molecule IDs assigned with a Molecules section.
 
 Related commands
 """"""""""""""""

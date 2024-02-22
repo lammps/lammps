@@ -13,23 +13,24 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "pair_lj_cut_tip4p_long_omp.h"
-#include <cmath>
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "ewald_const.h"
-#include "force.h"
-#include "neighbor.h"
+#include "domain.h"
 #include "error.h"
 #include "ewald_const.h"
+#include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-
+#include "neighbor.h"
 #include "suffix.h"
-using namespace LAMMPS_NS;
 
+#include <cmath>
+
+#include "omp_compat.h"
+
+using namespace LAMMPS_NS;
 using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */

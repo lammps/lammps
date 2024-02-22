@@ -64,7 +64,6 @@ kPath::kPath(DynMat *dm, QNodes *qn)
    for (int j = 0; j < 3; ++j) pos[i][j] = atpos[i][j];
    spgnum  = spg_get_international(symbol, latvec, (double (*)[3])pos, attyp, num_atom, symprec);
    memory->destroy(pos);
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -89,7 +88,6 @@ void kPath::show_info()
  
    printf("The space group number of your unit cell is: %d => %s\n", spgnum, symbol);
    puts("--------------------------------------------------------------------------------");
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -102,8 +100,6 @@ kPath::~kPath( )
    delete memory;
    dynmat = NULL;
    q = NULL;
-
-   return;
 }
   
 /* ----------------------------------------------------------------------------
@@ -2764,15 +2760,14 @@ void kPath::kpath( )
       q->nqbin.push_back(nqpt);
    }
 
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * Show the k-path info
  * ---------------------------------------------------------------------------- */
 void kPath::show_path()
 {
-   if (q == NULL) return;
+   if (q == nullptr) return;
    int nbin = q->ndstr.size();
    if (nbin > 0){
       puts("\n--------------------------------------------------------------------------------");
@@ -2787,7 +2782,6 @@ void kPath::show_path()
       puts("--------------------------------------------------------------------------------");
    }
 
-   return;
-}
+   }
 /* ---------------------------------------------------------------------------- */
 #endif

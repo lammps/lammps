@@ -179,7 +179,8 @@ void CreateAtoms::command(int narg, char **arg)
       if (imol == -1)
         error->all(FLERR, "Molecule template ID {} for create_atoms does not exist", arg[iarg + 1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
-        error->warning(FLERR, "Molecule template for create_atoms has multiple molecules");
+        error->warning(FLERR, "Molecule template for create_atoms has multiple molecule sets. "
+                       "Only the first set will be used.");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
       molseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
@@ -300,6 +301,8 @@ void CreateAtoms::command(int narg, char **arg)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
+    if (atom->molecular == Atom::TEMPLATE && onemol != atom->avec->onemols[0])
+      error->all(FLERR, "Create_atoms molecule template ID must be same as atom style template ID");
 
     onemol->check_attributes();
 
@@ -504,7 +507,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molcreate = # of molecules I created
 
-    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
+    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms * onemol->nmolecules;
 
     // increment total bonds,angles,etc
 

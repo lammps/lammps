@@ -147,7 +147,7 @@ protected:
         fclose(fp);
 
         command(fmt::format("molecule {} {} {}", name, file, args));
-        platform::unlink(file.c_str());
+        platform::unlink(file);
     }
 };
 

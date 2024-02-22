@@ -58,7 +58,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
   // parse only parameter/style arguments specific to this child class
 
   int index, iarg;
-  int i = 0;
+  std::size_t i = 0;
   while (i < leftover_iarg.size()) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "x") == 0 ||
@@ -616,7 +616,7 @@ void FixDeformPressure::apply_volume()
     int dynamic2 = set[i].dynamic2;
     int fixed = set[i].fixed;
     double v0 = set[i].vol_start;
-    double shift;
+    double shift = 0.0;
 
     if (set[i].substyle == ONE_FROM_ONE) {
       shift = 0.5 * (v0 / (set[dynamic1].hi_target - set[dynamic1].lo_target) /
@@ -862,8 +862,8 @@ void FixDeformPressure::options(int i, int narg, char **arg)
 
   // parse only options not handled by parent class
 
-  int iarg, nskip;
-  while (i < leftover_iarg.size()) {
+  int iarg;
+  while (i < (int) leftover_iarg.size()) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "couple") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure couple", error);

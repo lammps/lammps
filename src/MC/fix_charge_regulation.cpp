@@ -191,7 +191,7 @@ int FixChargeRegulation::setmask() {
 
 void FixChargeRegulation::init() {
 
-  if (!atom->mass) error->all(FLERR, "Fix charge/regulation requires per atom type masses", style);
+  if (!atom->mass) error->all(FLERR, "Fix charge/regulation requires per atom type masses");
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
                    "velocity initialization");

@@ -235,7 +235,7 @@ int FixSemiGrandCanonicalMC::setmask()
  *********************************************************************/
 void FixSemiGrandCanonicalMC::init()
 {
-  if (!atom->mass) error->all(FLERR, "Fix sgcmc requires per atom type masses", style);
+  if (!atom->mass) error->all(FLERR, "Fix sgcmc requires per atom type masses");
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix sgcmc will use per atom type masses for velocity initialization");
 

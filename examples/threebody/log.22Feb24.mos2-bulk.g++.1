@@ -1,5 +1,4 @@
-LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-70-ge51a65696d-modified)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-73-g36fa601fe0)
   using 1 OpenMP thread(s) per MPI task
 units metal
 
@@ -40,46 +39,46 @@ run 20
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 20.1
-  ghost atom cutoff = 20.1
-  binsize = 10.05, bins = 3 3 2
+  master list distance cutoff = 13.4
+  ghost atom cutoff = 13.4
+  binsize = 6.7, bins = 5 4 3
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair rebomos, perpetual
       attributes: full, newton on, ghost
       pair build: full/bin/ghost
       stencil: full/ghost/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 6.759 | 6.759 | 6.759 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.996 | 4.996 | 4.996 Mbytes
    Step          Temp          Press          PotEng         KinEng       CellGamma        Volume    
          0   0              28799.53      -2061.6112      0              113.40187      5922.4926    
         10   80.776057      13540.088     -2064.6132      2.9966028      113.40187      5922.4926    
         20   146.17503     -20669.371     -2067.0428      5.4227518      113.40187      5922.4926    
-Loop time of 0.173901 on 1 procs for 20 steps with 288 atoms
+Loop time of 0.058071 on 1 procs for 20 steps with 288 atoms
 
-Performance: 9.937 ns/day, 2.415 hours/ns, 115.008 timesteps/s, 33.122 katom-step/s
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 29.757 ns/day, 0.807 hours/ns, 344.406 timesteps/s, 99.189 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.17213    | 0.17213    | 0.17213    |   0.0 | 98.98
+Pair    | 0.057666   | 0.057666   | 0.057666   |   0.0 | 99.30
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0013913  | 0.0013913  | 0.0013913  |   0.0 |  0.80
-Output  | 5.0377e-05 | 5.0377e-05 | 5.0377e-05 |   0.0 |  0.03
-Modify  | 6.9212e-05 | 6.9212e-05 | 6.9212e-05 |   0.0 |  0.04
-Other   |            | 0.000264   |            |       |  0.15
+Comm    | 0.00024654 | 0.00024654 | 0.00024654 |   0.0 |  0.42
+Output  | 2.3975e-05 | 2.3975e-05 | 2.3975e-05 |   0.0 |  0.04
+Modify  | 3.8394e-05 | 3.8394e-05 | 3.8394e-05 |   0.0 |  0.07
+Other   |            | 9.596e-05  |            |       |  0.17
 
 Nlocal:            288 ave         288 max         288 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:          10002 ave       10002 max       10002 min
+Nghost:           4285 ave        4285 max        4285 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:              0 ave           0 max           0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:       477120 ave      477120 max      477120 min
+FullNghs:       142848 ave      142848 max      142848 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 477120
-Ave neighs/atom = 1656.6667
+Total # of neighbors = 142848
+Ave neighs/atom = 496
 Neighbor list builds = 0
 Dangerous builds = 0
 

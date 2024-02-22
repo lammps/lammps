@@ -235,11 +235,13 @@ int FixSemiGrandCanonicalMC::setmask()
  *********************************************************************/
 void FixSemiGrandCanonicalMC::init()
 {
-  // Make sure the user has defined only one Monte-Carlo fix.
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"sgcmc") == 0) count++;
-  if (count > 1) error->all(FLERR, "More than one fix sgcmc defined.");
+  if (!atom->mass) error->all(FLERR, "Fix sgcmc requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix sgcmc will use per atom type masses for velocity initialization");
+
+  // Make sure the user has defined only one Semi-Grand Monte-Carlo fix.
+  if (modify->get_fix_by_style("sgcmc").size() > 1)
+    error->all(FLERR, "More than one fix sgcmc defined.");
 
   // Save a pointer to the EAM potential.
   pairEAM = dynamic_cast<PairEAM*>(force->pair);
@@ -248,7 +250,8 @@ void FixSemiGrandCanonicalMC::init()
       utils::logmesg(lmp, "  SGC - Using naive total energy calculation for MC -> SLOW!\n");
 
     if (comm->nprocs > 1)
-      error->all(FLERR, "Can not run fix vcsgc with naive total energy calculation and more than one MPI process.");
+      error->all(FLERR, "Can not run fix sgcmc with naive total energy calculation "
+                 "and more than one MPI process.");
 
     // Create a compute that will provide the total energy of the system.
     // This is needed by computeTotalEnergy().

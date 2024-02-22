@@ -1,7 +1,10 @@
 .. index:: pair_style rebomos
+.. index:: pair_style rebomos/omp
 
 pair_style rebomos command
-=========================
+==========================
+
+Accelerator Variants: *rebomos/omp*
 
 Syntax
 """"""
@@ -24,7 +27,9 @@ Examples
 Description
 """""""""""
 
-The *rebomos* pair style computes
+.. versionadded:: TBD
+
+The *rebomos* pair style computes <fill in the rest here>
 
 
 ----------
@@ -57,6 +62,10 @@ as NULL, the mapping is not performed.  This can be used when a
 *rebomos* potential is used as part of the *hybrid* pair style.  The
 NULL values are placeholders for atom types that will be used with other
 potentials.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 
@@ -107,3 +116,11 @@ Default
 none
 
 ----------
+
+.. _Stewart:
+
+**(Steward)**  Stewart, Spearot,  Modelling Simul. Mater. Sci. Eng. 21,(2013)
+
+.. _Liang:
+
+**(Liang)**  Liang, Phillpot, Sinnott Phys. Rev. B79 245110, (2009), Erratum: Phys. Rev. B85 199903(E), (2012)

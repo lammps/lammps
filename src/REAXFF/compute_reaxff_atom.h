@@ -40,7 +40,7 @@ class ComputeReaxFFAtom : public Compute {
 
  protected:
   bigint invoked_bonds;     // last timestep on which compute_bonds() was invoked
-  int nlocal;
+  int nmax;
   int nbonds;
   int prev_nbonds;
   int nsub;

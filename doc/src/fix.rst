@@ -226,6 +226,7 @@ accelerated styles exist.
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
 * :doc:`damping/cundall <fix_damping_cundall>` - Cundall non-viscous damping for granular simulations
 * :doc:`deform <fix_deform>` - change the simulation box size/shape
+* :doc:`deform/pressure <fix_deform_pressure>` - change the simulation box size/shape with additional loading conditions
 * :doc:`deposit <fix_deposit>` - add new atoms above a surface
 * :doc:`dpd/energy <fix_dpd_energy>` - constant energy dissipative particle dynamics
 * :doc:`drag <fix_drag>` - drag atoms towards a defined coordinate

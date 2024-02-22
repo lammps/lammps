@@ -209,12 +209,11 @@ void FixWallFlow::init()
     }
   }
 
-  if (nrigid && comm->me == 0)
-    error->all(FLERR, "FixWallFlow is not compatible with rigid bodies");
-  if (box_change_flowax && comm->me == 0)
+  if (nrigid) error->all(FLERR, "Fix wall/flow is not compatible with rigid bodies");
+  if (box_change_flowax)
     error->all(
         FLERR,
-        "FixWallFlow is not compatible with simulation box size changing along flow direction");
+        "Fix wall/flow is not compatible with simulation box size changing along flow direction");
 
   for (int i = 0; i < atom->nlocal; ++i) {
     double pos = atom->x[i][flowax];

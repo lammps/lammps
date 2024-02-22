@@ -38,8 +38,7 @@ static constexpr double TOL = 1.0e-9;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) :
-  PairAIREBO(lmp), ThrOMP(lmp, THR_PAIR)
+PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) : PairAIREBO(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -1121,12 +1120,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
       cosjik = MIN(cosjik,1.0);
       cosjik = MAX(cosjik,-1.0);
 
-      dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) -
-        (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
-      dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) -
-        (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
-      dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) -
-        (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
+      dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) - (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
+      dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) - (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
+      dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) - (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
       dcosjikdrk[0] = (-rij[0]*invrijkm) + (cosjik*(rik[0]*invrikm2));
       dcosjikdrk[1] = (-rij[1]*invrijkm) + (cosjik*(rik[1]*invrikm2));
       dcosjikdrk[2] = (-rij[2]*invrijkm) + (cosjik*(rik[2]*invrikm2));

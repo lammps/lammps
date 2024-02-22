@@ -135,7 +135,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
 
   walls.resize(wallcount + 2);
   walls.front() = domain->boxlo[flowax];
-  for (size_t w = 1; w <= wallcount; ++w, ++iarg) {
+  for (int w = 1; w <= wallcount; ++w, ++iarg) {
     walls[w] = utils::numeric(FLERR, arg[iarg], do_abort, lmp) * scale;
   }
   walls.back() = domain->boxhi[flowax];
@@ -291,7 +291,7 @@ void FixWallFlow::generate_velocity(int atom_i)
 int FixWallFlow::compute_current_segment(double pos) const
 {
   int result = 0;
-  for (; result < walls.size() - 1; ++result) {
+  for (; result < (int)walls.size() - 1; ++result) {
     if (pos >= walls[result] && pos < walls[result + 1]) { return result; }
   }
   return -1;    // -1 is "out of box" region

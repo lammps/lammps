@@ -23,8 +23,6 @@
 #include "math_const.h"
 #include "memory_kokkos.h"
 
-#include <iostream>
-
 using namespace LAMMPS_NS;
 
 template <class DeviceType>
@@ -44,7 +42,7 @@ FixWallFlowKokkos<DeviceType>::FixWallFlowKokkos(LAMMPS *lmp, int narg, char **a
 
   d_walls = d_walls_t("FixWallFlowKokkos::walls", walls.size());
   auto h_walls = Kokkos::create_mirror_view(d_walls);
-  for (int i = 0; i < walls.size(); ++i) { h_walls(i) = walls[i]; }
+  for (int i = 0; i < (int) walls.size(); ++i) h_walls(i) = walls[i];
   Kokkos::deep_copy(d_walls, h_walls);
 }
 
@@ -161,7 +159,7 @@ KOKKOS_INLINE_FUNCTION int
 FixWallFlowKokkos<DeviceType>::compute_current_segment_kk(double pos) const
 {
   int result = 0;
-  for (; result < d_walls.extent(0) - 1; ++result) {
+  for (; result < (int) d_walls.extent(0) - 1; ++result) {
     if (pos >= d_walls[result] && pos < d_walls[result + 1]) { return result; }
   }
   return -1;    // -1 is "out of box" region
@@ -224,7 +222,7 @@ int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(const int &nsend,
                                                         DAT::tdual_xfloat_2d &k_buf,
                                                         DAT::tdual_int_1d k_sendlist,
                                                         DAT::tdual_int_1d k_copylist,
-                                                        ExecutionSpace space)
+                                                        ExecutionSpace /*space*/)
 {
   k_current_segment.template sync<DeviceType>();
 
@@ -271,7 +269,7 @@ template <class DeviceType>
 void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                                                            DAT::tdual_int_1d &k_indices, int nrecv,
                                                            int /*nrecv1*/, int /*nextrarecv1*/,
-                                                           ExecutionSpace space)
+                                                           ExecutionSpace /*space*/)
 {
   d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(k_buf.template view<DeviceType>().data(),
                                                           k_buf.extent(0) * k_buf.extent(1));

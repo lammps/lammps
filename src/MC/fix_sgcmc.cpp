@@ -235,6 +235,10 @@ int FixSemiGrandCanonicalMC::setmask()
  *********************************************************************/
 void FixSemiGrandCanonicalMC::init()
 {
+  if (!atom->mass) error->all(FLERR, "Fix {} requires per atom type masses", style);
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix {} will use per-type masses for velocity initialization");
+
   // Make sure the user has defined only one Monte-Carlo fix.
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)

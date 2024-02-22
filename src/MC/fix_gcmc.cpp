@@ -463,6 +463,10 @@ int FixGCMC::setmask()
 
 void FixGCMC::init()
 {
+  if (!atom->mass) error->all(FLERR, "Fix {} requires per atom type masses", style);
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix {} will use per-type masses for velocity initialization");
+
   triclinic = domain->triclinic;
 
   // set index and check validity of region

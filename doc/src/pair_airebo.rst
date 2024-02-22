@@ -156,7 +156,7 @@ pair_coeff command:
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three C arguments map LAMMPS atom types 1,2,3 to the C
 element in the AIREBO file.  The final H argument maps LAMMPS atom
-type 4 to the H element in the SW file.  If a mapping value is
+type 4 to the H element in the AIREBO file.  If a mapping value is
 specified as NULL, the mapping is not performed.  This can be used
 when a *airebo* potential is used as part of the *hybrid* pair style.
 The NULL values are placeholders for atom types that will be used with
@@ -222,12 +222,12 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 These pair potentials require the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
-The CH.airebo and CH.airebo-m potential files provided with LAMMPS
-(see the potentials directory) are parameterized for metal :doc:`units <units>`.
-You can use the AIREBO, AIREBO-M or REBO potential with any LAMMPS units,
-but you would need to create your own AIREBO or AIREBO-M potential file
-with coefficients listed in the appropriate units, if your simulation
-does not use "metal" units.
+The CH.airebo and CH.airebo-m potential files provided with LAMMPS (see
+the potentials directory) are parameterized for metal :doc:`units
+<units>`.  You can use the pair styles with *any* LAMMPS units, but you
+would need to create your own AIREBO or AIREBO-M potential file with
+coefficients listed in the appropriate units, if your simulation does
+not use "metal" units.
 
 The pair styles provided here **only** support potential files parameterized
 for the elements carbon and hydrogen (designated with "C" and "H" in the

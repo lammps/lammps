@@ -281,9 +281,9 @@ int FixWidom::setmask()
 
 void FixWidom::init()
 {
-  if (!atom->mass) error->all(FLERR, "Fix {} requires per atom type masses", style);
+  if (!atom->mass) error->all(FLERR, "Fix widom requires per atom type masses", style);
   if (atom->rmass_flag && (comm->me == 0))
-    error->warning(FLERR, "Fix {} will use per-type masses for velocity initialization");
+    error->warning(FLERR, "Fix widom will use per atom type masses for velocity initialization");
 
   triclinic = domain->triclinic;
 

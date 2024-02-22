@@ -188,7 +188,7 @@ void FixWallFlow::init()
 {
   int nrigid = 0;
   int box_change_flowax = 0;
-  for (auto ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (ifix->rigid_flag) nrigid++;
     switch (flowax) {
       case FlowAxis::AX_X:

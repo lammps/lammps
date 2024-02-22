@@ -1,0 +1,109 @@
+.. index:: pair_style rebomos
+
+pair_style rebomos command
+=========================
+
+Syntax
+""""""
+
+.. code-block:: LAMMPS
+
+   pair_style rebomos
+
+* rebomos = name of this pair style
+
+Examples
+""""""""
+
+.. code-block:: LAMMPS
+
+   pair_style rebomos
+   pair_coeff * * ../potentials/MoS.rebomos Mo S
+
+
+Description
+"""""""""""
+
+The *rebomos* pair style computes
+
+
+----------
+
+Only a single pair_coeff command is used with the *rebomos* pair style
+which specifies an REBOMoS potential file with parameters for Mo and S.
+These are mapped to LAMMPS atom types by specifying N additional
+arguments after the filename in the pair_coeff command, where N is the
+number of LAMMPS atom types:
+
+* filename
+* :math:`N` element names = mapping of REBOMoS elements to atom types
+
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
+to specify the path for the potential file.
+
+As an example, if your LAMMPS simulation has three atom types and you want
+the first two to be Mo, and the third to be S, you would use the following
+pair_coeff command:
+
+.. code-block:: LAMMPS
+
+   pair_coeff * * MoS.rebomos Mo Mo S
+
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first two Mo arguments map LAMMPS atom types 1 and 2 to the Mo
+element in the REBOMoS file.  The final S argument maps LAMMPS atom type
+3 to the S element in the REBOMoS file.  If a mapping value is specified
+as NULL, the mapping is not performed.  This can be used when a
+*rebomos* potential is used as part of the *hybrid* pair style.  The
+NULL values are placeholders for atom types that will be used with other
+potentials.
+
+----------
+
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This pair style does not support the :doc:`pair_modify <pair_modify>`
+mix, shift, table, and tail options.
+
+This pair style does not write their information to :doc:`binary restart
+files <restart>`, since it is stored in potential files.  Thus, you need
+to re-specify the pair_style and pair_coeff commands in an input script
+that reads a restart file.
+
+This pair styles can only be used via the *pair* keyword of the
+:doc:`run_style respa <run_style>` command.  It does not support the
+*inner*, *middle*, *outer* keywords.
+
+Restrictions
+""""""""""""
+
+This pair style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
+These pair potentials require the :doc:`newton <newton>` setting to be
+"on" for pair interactions.
+
+The MoS.rebomos potential file provided with LAMMPS (see the potentials
+directory) is parameterized for metal :doc:`units <units>`.  You can use
+the *rebomos* pair style with any LAMMPS units setting, but you would
+need to create your own REBOMoS potential file with coefficients listed
+in the appropriate units.
+
+The pair style provided here **only** supports potential files parameterized
+for the elements molybdenum and sulfur (designated with "Mo" and "S" in the
+*pair_coeff* command.  Using potential files for other elements will trigger
+an error.
+
+Related commands
+""""""""""""""""
+
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair style rebo <pair_airebo>`
+
+Default
+"""""""
+
+none
+
+----------

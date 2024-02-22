@@ -84,7 +84,7 @@ Au_u3 = Gold universal 3
 The suffix of each file indicates the pair style it is used with:
 
 adp           ADP angular dependent potential
-airebo        AI-REBO and REBO potentials
+airebo        AI-REBO potentials
 bop.table     BOP potential, tabulated form
 cdeam         concentration-dependent EAM
 comb          COMB potential
@@ -107,6 +107,8 @@ nb3b.harmonic nonbonded 3-body harmonic potential
 pod           ML potential with proper orthogonal descriptors (POD)
 poly          polymorphic 3-body potential
 reax          ReaxFF potential (see README.reax for more info)
+rebo          REBO potentials
+rebomos       REBOMoS potential
 smtbq         second moment tight binding QEq (SMTBQ) potential
 snap          SNAP potential
 snapcoeff     SNAP potential

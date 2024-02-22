@@ -333,6 +333,7 @@ accelerated styles exist.
 * :doc:`rann <pair_rann>` -
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
+* :doc:`rebomos <pair_rebomos>` - REBOMoS potential for MoS2
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
 * :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions

@@ -23,14 +23,34 @@ Examples
    pair_style rebomos
    pair_coeff * * ../potentials/MoS.rebomos Mo S
 
+Example input scripts available: examples/threebody/
 
 Description
 """""""""""
 
 .. versionadded:: TBD
 
-The *rebomos* pair style computes <fill in the rest here>
+The *rebomos* pair style computes the interactions between molybdenum
+and sulfur atoms :ref:`(Stewart) <Stewart>` utilizing an adaptive
+interatomic reactive empirical bond order potential that is similar in
+form to the AIREBO potential :ref:`(Stuart) <Stuart2>`.  The potential
+is based on an earlier parameterizations for :math:`\text{MoS}_2`
+developed by :ref:`(Liang) <Liang>`.
 
+The REBOMoS potential consists of two terms:
+
+.. math::
+
+   E & = \frac{1}{2} \sum_i \sum_{j \neq i}
+   \left[ E^{\text{REBO}}_{ij} + E^{\text{LJ}}_{ij}  \right] \\
+
+The :math:`E^{\text{REBO}}` term describes the covalently bonded
+interactions between Mo and S atoms while the :math:`E^{\text{LJ}}` term
+describes longer range dispersion forces between layers.  A cubic spline
+function is applied to smoothly switch between covalent bonding at short
+distances to dispersion interactions at longer distances. This allows
+the model to capture bond formation and breaking events which may occur
+between adjacent MoS2 layers, edges, defects, and more.
 
 ----------
 
@@ -120,6 +140,10 @@ none
 .. _Stewart:
 
 **(Steward)**  Stewart, Spearot,  Modelling Simul. Mater. Sci. Eng. 21,(2013)
+
+.. _Stuart2:
+
+**(Stuart)** Stuart, Tutein, Harrison, J Chem Phys, 112, 6472-6486. (2000).
 
 .. _Liang:
 

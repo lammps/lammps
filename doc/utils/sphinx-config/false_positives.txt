@@ -3599,6 +3599,7 @@ tesselation
 tesselations
 Tetot
 tex
+textrm
 tfac
 tfmc
 tfMC

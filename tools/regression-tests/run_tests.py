@@ -502,6 +502,14 @@ if __name__ == "__main__":
   # if the example folders are not specified from the command-line argument -example-folders
   if len(example_subfolders) == 0:
     example_subfolders.append("../../examples/melt")
+    example_subfolders.append('../../examples/flow')
+    example_subfolders.append('../../examples/indent')
+    example_subfolders.append('../../examples/shear')
+    example_subfolders.append('../../examples/steinhardt')
+
+    # prd  log file parsing issue
+    # neb  log file parsing issue
+    # snap log files obsolete?
 
     # append the example subfolders depending on the installed packages
     if 'ASPHERE' in packages:
@@ -533,11 +541,15 @@ if __name__ == "__main__":
     if 'COLLOID' in packages:
       example_subfolders.append('../../examples/colloid')
 
+    if 'CRACK' in packages:
+      example_subfolders.append('../../examples/crack')
+
     if 'DIELECTRIC' in packages:
       example_subfolders.append('../../examples/PACKAGES/dielectric')
 
     if 'DIPOLE' in packages:
       example_subfolders.append('../../examples/dipole')
+
 
     if 'DPD-BASIC' in packages:
       example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd')

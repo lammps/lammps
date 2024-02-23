@@ -423,6 +423,7 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
   double *energy = atom->esph;
   double *temperature = atom->temperature;
   int *type = atom->type;
+  int *status = atom->status;
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -444,6 +445,11 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
       }
     }
   }
+
+  // Add temporary options, wiped by preceding fix rheo preforce
+  for (int i = 0; i < nall; i++)
+    if (status[i] & STATUS_SOLID)
+      status[i] |= STATUS_NO_SHIFT;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -481,39 +487,79 @@ void FixRHEOThermal::break_bonds()
   tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
 
-  int nlocal = atom->nlocal;
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
 
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+
+  // Rapidly delete all bonds for local atoms that melt (no shifting)
   for (int i = 0; i < nlocal; i++) {
+    if (!(status[i] & STATUS_MELTING)) continue;
     for (m = 0; m < num_bond[i]; m++) {
       j = atom->map(bond_atom[i][m]);
-      if (!(status[i] & STATUS_MELTING) && !(status[j] & STATUS_MELTING)) continue;
+      bond_type[i][m] = 0;
 
       if (n_histories > 0)
         for (auto &ihistory: histories)
-          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i, num_bond[i] - 1);
+          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i, m);
 
-      if (fix_update_special_bonds) fix_update_special_bonds->add_broken_bond(i, j);
+      if (fix_update_special_bonds)
+        fix_update_special_bonds->add_broken_bond(i, j);
+    }
+    num_bond[i] = 0;
+  }
 
-      // For non-melting neighbors, selectively delete bond if necessary
-      if (j >= nlocal || (status[j] & STATUS_MELTING)) continue;
-      for (n = 0; n < num_bond[j]; n++) {
-        if (bond_atom[j][n] == tag[i]) {
-          bond_type[j][n] = 0;
-          nmax = num_bond[j] - 1;
-          bond_type[j][n] = bond_type[j][nmax];
-          bond_atom[j][n] = bond_atom[j][nmax];
-          if (n_histories > 0) {
+  // Update bond list and break solid-melted bonds
+  for (n = 0; n < nbondlist; n++) {
+
+    // skip bond if already broken
+    if (bondlist[n][2] <= 0) continue;
+    i = bondlist[n][0];
+    j = bondlist[n][1];
+
+    if (!(status[i] & STATUS_MELTING) && !(status[j] & STATUS_MELTING)) continue;
+
+    bondlist[n][2] = 0;
+
+    // Delete bonds for non-melted local atoms (shifting)
+    if (i < nlocal) {
+      for (m = 0; m < num_bond[i]; m++) {
+        if (bond_atom[i][m] == tag[j]) {
+          nmax = num_bond[i] - 1;
+          bond_type[i][m] = bond_type[i][nmax];
+          bond_atom[i][m] = bond_atom[i][nmax];
+          if (n_histories > 0)
             for (auto &ihistory: histories) {
-              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(j, n, nmax);
-              dynamic_cast<FixBondHistory *>(ihistory)->delete_history(j, nmax);
+              auto fix_bond_history = dynamic_cast<FixBondHistory *>  (ihistory);
+              fix_bond_history->shift_history(i, m, nmax);
+              fix_bond_history->delete_history(i, nmax);
             }
-          }
+          bond_type[i][nmax] = 0;
+          num_bond[i]--;
+          break;
+        }
+      }
+    }
+
+    if (j < nlocal) {
+      for (m = 0; m < num_bond[j]; m++) {
+        if (bond_atom[j][m] == tag[i]) {
+          nmax = num_bond[j] - 1;
+          bond_type[j][m] = bond_type[j][nmax];
+          bond_atom[j][m] = bond_atom[j][nmax];
+          if (n_histories > 0)
+            for (auto &ihistory: histories) {
+              auto fix_bond_history = dynamic_cast<FixBondHistory *>  (ihistory);
+              fix_bond_history->shift_history(j, m, nmax);
+              fix_bond_history->delete_history(j, nmax);
+            }
+          bond_type[j][nmax] = 0;
           num_bond[j]--;
           break;
         }
       }
     }
-    num_bond[i] = 0;
   }
 }
 

@@ -467,7 +467,7 @@ void FixRHEOTension::pre_force(int vflag)
 
     if (wsame[i] < wmin) continue;
 
-    weight = MAX(1.0, wsame[i] * wmin_inv);
+    weight = MIN(1.0, wsame[i] * wmin_inv); //MAX -> MIN 2/14/24
     itype = type[i];
 
     if (norm[i] != 0)

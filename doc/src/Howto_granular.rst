@@ -45,10 +45,15 @@ atoms, and should be used for granular system instead of the fix style
 
 To model heat conduction, one must add the temperature and heatflow
 atom variables with:
+
 * :doc:`fix property/atom <fix_property_atom>`
+
 a temperature integration fix
+
 * :doc:`fix heat/flow <fix_heat_flow>`
+
 and a heat conduction option defined in both
+
 * :doc:`pair_style granular <pair_granular>`
 * :doc:`fix wall/gran <fix_wall_gran>`
 

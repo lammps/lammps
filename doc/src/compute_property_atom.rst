@@ -23,8 +23,9 @@ Syntax
                              spx, spy, spz, sp, fmx, fmy, fmz,
                              nbonds,
                              radius, diameter, omegax, omegay, omegaz,
+                             temperature, heatflow,
                              angmomx, angmomy, angmomz,
-                             shapex,shapey, shapez,
+                             shapex, shapey, shapez,
                              quatw, quati, quatj, quatk, tqx, tqy, tqz,
                              end1x, end1y, end1z, end2x, end2y, end2z,
                              corner1x, corner1y, corner1z,
@@ -56,6 +57,8 @@ Syntax
            *nbonds* = number of bonds assigned to an atom
            *radius,diameter* = radius,diameter of spherical particle
            *omegax,omegay,omegaz* = angular velocity of spherical particle
+           *temperature* = internal temperature of spherical particle
+           *heatflow* = internal heat flow of spherical particle
            *angmomx,angmomy,angmomz* = angular momentum of aspherical particle
            *shapex,shapey,shapez* = 3 diameters of aspherical particle
            *quatw,quati,quatj,quatk* = quaternion components for aspherical or body particles

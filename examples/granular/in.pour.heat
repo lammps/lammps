@@ -73,7 +73,8 @@ thermo          100
 
 timestep        0.001
 
-#dump           1 all custom 1000 ${name}.dump id type radius mass x y z temperature heatflow
+compute        1 all property/atom temperature heatflow
+#dump           1 all custom 1000 ${name}.dump id type radius mass x y z c_1[*]
 
 run             100000
 

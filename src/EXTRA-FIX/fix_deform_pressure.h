@@ -36,7 +36,7 @@ class FixDeformPressure : public FixDeform {
   int modify_param(int, char **) override;
 
  protected:
-  int pcouple, dimension;
+  int pcouple;
   double max_h_rate;
   int strain_flag;               // 1 if strain-based option is used, 0 if not
   int pressure_flag;             // 1 if pressure tensor used, 0 if not

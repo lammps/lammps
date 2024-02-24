@@ -39,6 +39,7 @@ else()
     target_link_libraries(lammps INTERFACE ${LAMMPS_SOURCE_DIR}/../build/liblammps.a)
   endif()
 endif()
+
 ################################################################################
 # MPI configuration
 if(NOT CMAKE_CROSSCOMPILING)
@@ -92,13 +93,9 @@ if(BUILD_MPI)
       # Download and configure custom MPICH files for Windows
       message(STATUS "Downloading and configuring MPICH-1.4.1 for Windows")
       set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/mpich2-win64-devel.tar.gz" CACHE STRING "URL for MPICH2 (win64) tarball")
-      set(MPICH2_WIN32_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/mpich2-win32-devel.tar.gz" CACHE STRING "URL for MPICH2 (win32) tarball")
       set(MPICH2_WIN64_DEVEL_MD5 "4939fdb59d13182fd5dd65211e469f14" CACHE STRING "MD5 checksum of MPICH2 (win64) tarball")
-      set(MPICH2_WIN32_DEVEL_MD5 "a61d153500dce44e21b755ee7257e031" CACHE STRING "MD5 checksum of MPICH2 (win32) tarball")
       mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-      mark_as_advanced(MPICH2_WIN32_DEVEL_URL)
       mark_as_advanced(MPICH2_WIN64_DEVEL_MD5)
-      mark_as_advanced(MPICH2_WIN32_DEVEL_MD5)
 
       include(ExternalProject)
       if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
@@ -141,6 +138,8 @@ else()
   target_include_directories(lammps INTERFACE "${LAMMPS_SOURCE_DIR}/STUBS")
 endif()
 
+################
+# integer size selection
 set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS integer sizes (smallsmall: all 32-bit, smallbig: 64-bit #atoms #timesteps, bigbig: also 64-bit imageint, 64-bit atom ids)")
 set(LAMMPS_SIZES_VALUES smallbig bigbig smallsmall)
 set_property(CACHE LAMMPS_SIZES PROPERTY STRINGS ${LAMMPS_SIZES_VALUES})

@@ -533,6 +533,8 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
             drho2mds2 = a2 * rhoa2mi * arg1j2m - 2.0 / 3.0 * arho2mb[j] * rhoa2mi;
             drho3mds1 = a3 * rhoa3mj * arg1i3m - a3a * rhoa3mj * arg3i3m;
             drho3mds2 = a3 * rhoa3mi * arg1j3m - a3a * rhoa3mi * arg3j3m;
+            drho1mds1 *= -1;
+            drho1mds2 *= -1;
             drho3mds1 *= -1;
             drho3mds2 *= -1;
           } else {

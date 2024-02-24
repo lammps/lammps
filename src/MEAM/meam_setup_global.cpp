@@ -38,7 +38,7 @@ void MEAM::meam_setup_global(int nelt, lattice_t *lat, int *ielement, double * /
                              double *b2m, double *b3m, double *t1m, double *t2m, double *t3m)
 {
   int i;
-  double tmplat[maxelt];
+  double tmplat[MAXELT];
 
   neltypes = nelt;
 

@@ -47,7 +47,8 @@ enum { NOCOUPLE = 0, XYZ, XY, YZ, XZ };
 /* ---------------------------------------------------------------------- */
 
 FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
-    FixDeform(lmp, narg, arg), id_temp(nullptr), id_press(nullptr)
+  FixDeform(lmp, narg, arg), id_temp(nullptr), id_press(nullptr), temperature(nullptr),
+  pressure(nullptr)
 {
   // set defaults
 
@@ -58,7 +59,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
   // parse only parameter/style arguments specific to this child class
 
   int index, iarg;
-  int i = 0;
+  std::size_t i = 0;
   while (i < leftover_iarg.size()) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "x") == 0 ||
@@ -233,7 +234,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
 
   if (pcouple != NOCOUPLE) {
 
-    if (dimension == 2)
+    if (domain->dimension == 2)
       if (pcouple == XYZ || pcouple == XZ || pcouple == YZ)
         error->all(FLERR, "Cannot couple Z dimension in fix deform/pressure in 2D");
 
@@ -365,7 +366,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
     //   and thus its KE/temperature contribution should use group all
 
     id_temp = utils::strdup(std::string(id) + "_temp");
-    modify->add_compute(fmt::format("{} all temp",id_temp));
+    temperature = modify->add_compute(fmt::format("{} all temp", id_temp));
     tflag = 1;
 
     // create a new compute pressure style
@@ -373,7 +374,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
     // pass id_temp as 4th arg to pressure constructor
 
     id_press = utils::strdup(std::string(id) + "_press");
-    modify->add_compute(fmt::format("{} all pressure {}",id_press, id_temp));
+    pressure = modify->add_compute(fmt::format("{} all pressure {}", id_press, id_temp));
     pflag = 1;
   }
 }
@@ -420,13 +421,13 @@ void FixDeformPressure::init()
   // Find pressure/temp computes if needed
 
   if (pressure_flag) {
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all(FLERR, "Temperature ID for fix deform/pressure does not exist");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR, "Temperature ID {} for fix deform/pressure does not exist", id_temp);
 
-    icompute = modify->find_compute(id_press);
-    if (icompute < 0) error->all(FLERR, "Pressure ID for fix deform/pressure does not exist");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure)
+      error->all(FLERR, "Pressure ID {} for fix deform/pressure does not exist", id_press);
   }
 }
 
@@ -513,7 +514,7 @@ void FixDeformPressure::apply_pressure()
   // Find current (possibly coupled/hydrostatic) pressure for X, Y, Z
   double *tensor = pressure->vector;
   double scalar = pressure->scalar;
-  double p_current[3];
+  double p_current[3] = {0.0, 0.0, 0.0};
 
   if (pcouple == XYZ) {
     double ave = THIRD * (tensor[0] + tensor[1] + tensor[2]);
@@ -616,7 +617,7 @@ void FixDeformPressure::apply_volume()
     int dynamic2 = set[i].dynamic2;
     int fixed = set[i].fixed;
     double v0 = set[i].vol_start;
-    double shift;
+    double shift = 0.0;
 
     if (set[i].substyle == ONE_FROM_ONE) {
       shift = 0.5 * (v0 / (set[dynamic1].hi_target - set[dynamic1].lo_target) /
@@ -730,7 +731,7 @@ void FixDeformPressure::adjust_linked_rates(double &e_larger, double &e_smaller,
 void FixDeformPressure::apply_box()
 {
   int i;
-  double scale, shift;
+  double scale, shift = 0.0;
   double v_rate;
 
   if (set_box.style == VOLUME) {
@@ -862,8 +863,8 @@ void FixDeformPressure::options(int i, int narg, char **arg)
 
   // parse only options not handled by parent class
 
-  int iarg, nskip;
-  while (i < leftover_iarg.size()) {
+  int iarg;
+  while (i < (int) leftover_iarg.size()) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "couple") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure couple", error);

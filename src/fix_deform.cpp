@@ -782,7 +782,7 @@ void FixDeform::apply_volume()
     int dynamic2 = set[i].dynamic2;
     int fixed = set[i].fixed;
     double v0 = set[i].vol_start;
-    double shift;
+    double shift = 0.0;
 
     if (set[i].substyle == ONE_FROM_ONE) {
       shift = 0.5 * (v0 / (set[dynamic1].hi_target - set[dynamic1].lo_target) /
@@ -1002,11 +1002,8 @@ void FixDeform::options(int narg, char **arg)
   // arguments for child classes
 
   std::unordered_map<std::string, int> child_options;
-  int nskip;
   if (utils::strmatch(style, "^deform/pressure")) {
-    child_options.insert({{"couple", 2},
-                          {"max/rate", 2},
-                          {"normalize/pressure", 2},
+    child_options.insert({{"couple", 2}, {"max/rate", 2}, {"normalize/pressure", 2},
                           {"vol/balance/p", 2}});
   }
 
@@ -1033,10 +1030,10 @@ void FixDeform::options(int narg, char **arg)
       flipflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (child_options.find(arg[iarg]) != child_options.end()) {
-      nskip = child_options[arg[iarg]];
+      auto nskip = child_options[arg[iarg]];
       if (iarg + nskip > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg]), error);
-        for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
+      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
       iarg += nskip;
     } else error->all(FLERR, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }

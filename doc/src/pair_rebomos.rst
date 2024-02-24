@@ -139,11 +139,11 @@ none
 
 .. _Stewart:
 
-**(Steward)**  Stewart, Spearot,  Modelling Simul. Mater. Sci. Eng. 21,(2013)
+**(Steward)**  Stewart, Spearot, Modelling Simul. Mater. Sci. Eng. 21, 045003, (2013).
 
 .. _Stuart2:
 
-**(Stuart)** Stuart, Tutein, Harrison, J Chem Phys, 112, 6472-6486. (2000).
+**(Stuart)** Stuart, Tutein, Harrison, J Chem Phys, 112, 6472-6486, (2000).
 
 .. _Liang:
 

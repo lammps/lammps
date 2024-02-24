@@ -23,11 +23,21 @@ function(validate_option name values)
 endfunction(validate_option)
 
 #################################################################################
-# LAMMPS C++ interface. We only need the header related parts.
+# LAMMPS C++ interface. We only need the header related parts for shared linkage
+# but the library .a file for real static or quasi-static linkage (of LAMMPS).
 add_library(lammps INTERFACE)
 target_include_directories(lammps INTERFACE ${LAMMPS_HEADER_DIR})
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
   target_link_libraries(lammps INTERFACE ${CMAKE_BINARY_DIR}/../liblammps.dll.a)
+else()
+  # make a best guess where the static lammps library could be
+  if(EXISTS ${CMAKE_BINARY_DIR}/../liblammps.a)
+    target_link_libraries(lammps INTERFACE ${CMAKE_BINARY_DIR}/../liblammps.a)
+  elseif(EXISTS ${LAMMPS_SOURCE_DIR}/liblammps.a)
+    target_link_libraries(lammps INTERFACE ${LAMMPS_SOURCE_DIR}/liblammps.a)
+  elseif(EXISTS ${LAMMPS_SOURCE_DIR}/../build/liblammps.a)
+    target_link_libraries(lammps INTERFACE ${LAMMPS_SOURCE_DIR}/../build/liblammps.a)
+  endif()
 endif()
 ################################################################################
 # MPI configuration

@@ -186,6 +186,9 @@ int FixWallFlow::setmask()
 
 void FixWallFlow::init()
 {
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Fix wall/flow cannot be used with triclinic simulation box");
+
   int nrigid = 0;
   int box_change_flowax = 0;
   for (const auto &ifix : modify->get_fix_list()) {
@@ -193,18 +196,12 @@ void FixWallFlow::init()
     switch (flowax) {
       case FlowAxis::AX_X:
         if (ifix->box_change & Fix::BOX_CHANGE_X) box_change_flowax++;
-        if (ifix->box_change & Fix::BOX_CHANGE_XY) box_change_flowax++;
-        if (ifix->box_change & Fix::BOX_CHANGE_XZ) box_change_flowax++;
         break;
       case FlowAxis::AX_Y:
         if (ifix->box_change & Fix::BOX_CHANGE_Y) box_change_flowax++;
-        if (ifix->box_change & Fix::BOX_CHANGE_YZ) box_change_flowax++;
-        if (ifix->box_change & Fix::BOX_CHANGE_XY) box_change_flowax++;
         break;
       case FlowAxis::AX_Z:
         if (ifix->box_change & Fix::BOX_CHANGE_Z) box_change_flowax++;
-        if (ifix->box_change & Fix::BOX_CHANGE_YZ) box_change_flowax++;
-        if (ifix->box_change & Fix::BOX_CHANGE_XZ) box_change_flowax++;
         break;
     }
   }

@@ -401,7 +401,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   double **x = atom->x, *x0 = x[0];
-  double **mu = atom->mu, *mu0 = mu[0], *imu, *jmu;
+  double **mu = atom->mu, *mu0 = mu[0];
   double **tq = atom->torque, *tq0 = tq[0], *tqi;
   double **f = atom->f, *f0 = f[0], *fi = f0, fx, fy, fz;
   double *q = atom->q, qi = 0, qj;
@@ -435,7 +435,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
     memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
-    memcpy(mui, imu = mu0+(i<<2), 3*sizeof(double));
+    memcpy(mui, mu0+(i<<2), 3*sizeof(double));
 
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
@@ -453,7 +453,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
       r2inv = 1.0/rsq;
 
       if (order3 && (rsq < cut_coulsq)) {               // dipole
-        memcpy(muj, jmu = mu0+(j<<2), 3*sizeof(double));
+        memcpy(muj, mu0+(j<<2), 3*sizeof(double));
         {                                               // series real space
           double r = sqrt(rsq);
           double x = g_ewald*r;

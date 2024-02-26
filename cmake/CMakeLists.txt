@@ -224,7 +224,7 @@ target_link_libraries(lmp PRIVATE lammps)
 set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
 # re-export all symbols for plugins
 if(PKG_PLUGIN AND (NOT ((CMAKE_SYSTEM_NAME STREQUAL "Windows"))))
-  set_target_properties(lmp PROPERTIES LINK_FLAGS "-rdynamic")
+  set_target_properties(lmp PROPERTIES ENABLE_EXPORTS TRUE)
 endif()
 install(TARGETS lmp EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
 

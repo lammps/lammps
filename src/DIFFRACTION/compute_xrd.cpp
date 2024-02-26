@@ -35,7 +35,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
 
 static const char cite_compute_xrd_c[] =
   "compute xrd command: doi:10.1088/0965-0393/21/5/055020\n\n"

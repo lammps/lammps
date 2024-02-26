@@ -119,7 +119,7 @@ as
 
 .. math::
 
-   F^t_{ab}  =  \frac{15}{3\, \mathrm{Tr}(N)} (T_{ab} - \frac{1}{3} \mathrm{Tr}(T) \delta_{ab})
+   F^t_{ab}  =  \frac{5}{\mathrm{Tr}(N)} (T_{ab} - \frac{1}{3} \mathrm{Tr}(T) \delta_{ab})
 
 where the tensor :math:`T` is defined as
 

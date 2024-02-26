@@ -536,7 +536,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::deallocate_array()
 {
   memoryKK->destroy_kokkos(k_s,s);
   memoryKK->destroy_kokkos(k_chi_field,chi_field);
-  memoryKK->destroy_kokkos(X_diag);
+  memoryKK->destroy_kokkos(k_X_diag,X_diag);
   memoryKK->destroy_kokkos(k_d,d);
   memoryKK->destroy_kokkos(k_q_hat,q_hat);
   memoryKK->destroy_kokkos(k_y,y);

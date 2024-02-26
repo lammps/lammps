@@ -158,8 +158,7 @@ struct AtomVecBondKokkos_PackBorder {
   typedef ArrayTypes<DeviceType> AT;
 
   typename AT::t_xfloat_2d _buf;
-  const typename AT::t_int_2d_const _list;
-  const int _iswap;
+  const typename AT::t_int_1d_const _list;
   const typename AT::t_x_array_randomread _x;
   const typename AT::t_tagint_1d _tag;
   const typename AT::t_int_1d _type;
@@ -169,21 +168,20 @@ struct AtomVecBondKokkos_PackBorder {
 
   AtomVecBondKokkos_PackBorder(
       const typename AT::t_xfloat_2d &buf,
-      const typename AT::t_int_2d_const &list,
-      const int & iswap,
+      const typename AT::t_int_1d_const &list,
       const typename AT::t_x_array &x,
       const typename AT::t_tagint_1d &tag,
       const typename AT::t_int_1d &type,
       const typename AT::t_int_1d &mask,
       const typename AT::t_tagint_1d &molecule,
       const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
-      _buf(buf),_list(list),_iswap(iswap),
+      _buf(buf),_list(list),
       _x(x),_tag(tag),_type(type),_mask(mask),_molecule(molecule),
       _dx(dx),_dy(dy),_dz(dz) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-      const int j = _list(_iswap,i);
+      const int j = _list(i);
       if (PBC_FLAG == 0) {
           _buf(i,0) = _x(j,0);
           _buf(i,1) = _x(j,1);
@@ -206,8 +204,8 @@ struct AtomVecBondKokkos_PackBorder {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecBondKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                          DAT::tdual_xfloat_2d buf,int iswap,
+int AtomVecBondKokkos::pack_border_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                          DAT::tdual_xfloat_2d buf,
                                           int pbc_flag, int *pbc, ExecutionSpace space)
 {
   X_FLOAT dx,dy,dz;
@@ -225,12 +223,12 @@ int AtomVecBondKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
     if (space==Host) {
       AtomVecBondKokkos_PackBorder<LMPHostType,1> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,h_molecule,dx,dy,dz);
+        h_x,h_tag,h_type,h_mask,h_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecBondKokkos_PackBorder<LMPDeviceType,1> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,d_molecule,dx,dy,dz);
+        d_x,d_tag,d_type,d_mask,d_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     }
 
@@ -239,12 +237,12 @@ int AtomVecBondKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
     if (space==Host) {
       AtomVecBondKokkos_PackBorder<LMPHostType,0> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,h_molecule,dx,dy,dz);
+        h_x,h_tag,h_type,h_mask,h_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecBondKokkos_PackBorder<LMPDeviceType,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,d_molecule,dx,dy,dz);
+        d_x,d_tag,d_type,d_mask,d_molecule,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     }
   }

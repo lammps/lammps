@@ -1808,12 +1808,11 @@ int FixShakeKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                                        int iswap_in, DAT::tdual_xfloat_1d &k_buf,
-                                                        int pbc_flag, int* pbc)
+int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                         DAT::tdual_xfloat_1d &k_buf,
+                                                         int pbc_flag, int* pbc)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
   d_buf = k_buf.view<DeviceType>();
 
   if (domain->triclinic == 0) {
@@ -1837,7 +1836,7 @@ template<class DeviceType>
 template<int PBC_FLAG>
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakePackForwardComm<PBC_FLAG>, const int &i) const {
-  const int j = d_sendlist(iswap, i);
+  const int j = d_sendlist(i);
 
   if (PBC_FLAG == 0) {
     d_buf[3*i] = d_xshake(j,0);

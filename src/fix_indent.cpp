@@ -347,7 +347,6 @@ void FixIndent::post_force(int /*vflag*/)
 
     double radiuslo { rlostr ? input->variable->compute_equal(rlovar) : rlovalue };
     if (radiuslo < 0.0) error->all(FLERR, "Illegal fix indent cone lower radius: {}", radiuslo);
-
     double radiushi { rhistr ? input->variable->compute_equal(rhivar) : rhivalue };
     if (radiushi < 0.0) error->all(FLERR, "Illegal fix indent cone high radius: {}", radiushi);
 
@@ -485,8 +484,6 @@ int FixIndent::geometry(int narg, char **arg)
   istyle = NONE;
   xstr = ystr = zstr = rstr = pstr = nullptr;
   xvalue = yvalue = zvalue = rvalue = pvalue = 0.0;
-  scaleflag = 1;
-  side = OUTSIDE;
 
   // sphere
   
@@ -559,33 +556,27 @@ int FixIndent::geometry(int narg, char **arg)
     
     if (strcmp(arg[1],"x") == 0) {
       cdim = 0;
-      
       if (utils::strmatch(arg[2],"^v_")) {
         ystr = utils::strdup(arg[2]+2);
       } else yvalue = utils::numeric(FLERR,arg[2],false,lmp);
-      
       if (utils::strmatch(arg[3],"^v_")) {
         zstr = utils::strdup(arg[3]+2);
       } else zvalue = utils::numeric(FLERR,arg[3],false,lmp);
       
     } else if (strcmp(arg[1],"y") == 0) {
       cdim = 1;
-      
       if (utils::strmatch(arg[2],"^v_")) {
         xstr = utils::strdup(arg[2]+2);
       } else xvalue = utils::numeric(FLERR,arg[2],false,lmp);
-      
       if (utils::strmatch(arg[3],"^v_")) {
         zstr = utils::strdup(arg[3]+2);
       } else zvalue = utils::numeric(FLERR,arg[3],false,lmp);
       
     } else if (strcmp(arg[1],"z") == 0) {
       cdim = 2;
-      
       if (utils::strmatch(arg[2],"^v_")) {
         xstr = utils::strdup(arg[2]+2);
       } else xvalue = utils::numeric(FLERR,arg[2],false,lmp);
-      
       if (utils::strmatch(arg[3],"^v_")) {
         ystr = utils::strdup(arg[3]+2);
       } else yvalue = utils::numeric(FLERR,arg[3],false,lmp);
@@ -595,15 +586,12 @@ int FixIndent::geometry(int narg, char **arg)
     if (utils::strmatch(arg[4],"^v_")) {
       rlostr = utils::strdup(arg[4]+2);
     } else rlovalue = utils::numeric(FLERR,arg[4],false,lmp);
-    
     if (utils::strmatch(arg[5],"^v_")) {
       rhistr = utils::strdup(arg[5]+2);
     } else rhivalue = utils::numeric(FLERR,arg[5],false,lmp);
-    
     if (utils::strmatch(arg[6],"^v_")) {
       lostr = utils::strdup(arg[6]+2);
     } else lovalue = utils::numeric(FLERR,arg[6],false,lmp);
-    
     if (utils::strmatch(arg[7],"^v_")) {
       histr = utils::strdup(arg[7]+2);
     } else hivalue = utils::numeric(FLERR,arg[7],false,lmp);
@@ -646,6 +634,9 @@ int FixIndent::geometry(int narg, char **arg)
 
 void FixIndent::options(int narg, char **arg)
 {
+  scaleflag = 1;
+  side = OUTSIDE;
+
   int iarg = 0;
   
   while (iarg < narg) {

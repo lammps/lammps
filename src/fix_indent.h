@@ -53,7 +53,7 @@ class FixIndent : public Fix {
   int rlovar, rhivar, lovar, hivar;
   double rlovalue, rhivalue, lovalue, hivalue;
 
-  // methods for argument
+  // methods for argument parsing
   
   int geometry(int, char **);
   void options(int, char **);

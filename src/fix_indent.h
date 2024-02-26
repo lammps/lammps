@@ -53,7 +53,20 @@ class FixIndent : public Fix {
   int rlovar, rhivar, lovar, hivar;
   double rlovalue, rhivalue, lovalue, hivalue;
 
+  // methods for argument
+  
+  int geometry(int, char **);
   void options(int, char **);
+
+  // methods for conical indenter
+  
+  bool PointInsideCone(int, double *, double, double, double, double, double *);
+  void DistanceExteriorPoint(int, double *, double, double, double, double,
+                             double &, double &, double &);
+  void DistanceInteriorPoint(int, double *, double, double, double, double,
+                             double &, double &, double &);
+  void point_on_line_segment(double *, double *, double *, double *);
+  double closest(double *, double *, double *, double);
 };
 
 }    // namespace LAMMPS_NS

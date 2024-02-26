@@ -697,9 +697,6 @@ endforeach()
 
 if(PKG_PLUGIN)
   target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
-  if(NOT BUILD_SHARED_LIBS)
-    message(WARNING "Using plugins benefits from compiling LAMMPS with -DBUILD_SHARED_LIBS=yes")
-  endif()
 endif()
 
 # link with -ldl or equivalent for plugin loading; except on Windows

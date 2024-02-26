@@ -428,6 +428,7 @@ accelerated styles exist.
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` - time integration for body particles of style :doc:`rounded/polyhedron <Howto_body>`
 * :doc:`wall/colloid <fix_wall>` - Lennard-Jones wall interacting with finite-size particles
 * :doc:`wall/ees <fix_wall_ees>` - wall for ellipsoidal particles
+* :doc:`wall/flow <fix_wall_flow>` - flow boundary conditions
 * :doc:`wall/gran <fix_wall_gran>` - frictional wall(s) for granular simulations
 * :doc:`wall/gran/region <fix_wall_gran_region>` - :doc:`fix wall/region <fix_wall_region>` equivalent for use with granular particles
 * :doc:`wall/harmonic <fix_wall>` - harmonic spring wall

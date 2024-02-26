@@ -1371,6 +1371,8 @@
 /pair_reaxff.h
 /pair_rebo.cpp
 /pair_rebo.h
+/pair_rebomos.cpp
+/pair_rebomos.h
 /pair_resquared.cpp
 /pair_resquared.h
 /pair_saip_metal.cpp

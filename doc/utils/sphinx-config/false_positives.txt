@@ -2266,6 +2266,7 @@ morris
 Morriss
 morse
 Morteza
+MoS
 Mosayebi
 Moseler
 Moskalev
@@ -3070,6 +3071,7 @@ reaxff
 ReaxFF
 REAXFF
 rebo
+rebomos
 recurse
 recursing
 Ree
@@ -3597,6 +3599,7 @@ tesselation
 tesselations
 Tetot
 tex
+textrm
 tfac
 tfmc
 tfMC

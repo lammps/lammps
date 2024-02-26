@@ -2260,8 +2260,6 @@ will search the directory (or directories) listed in this path for files
 with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
 try to load the contained plugins automatically at start-up.
 
-It is preferred to build LAMMPS in shared library mode when using this package.
-
 **Authors:** Axel Kohlmeyer (Temple U)
 
 .. versionadded:: 8Apr2021

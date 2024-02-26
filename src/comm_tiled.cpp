@@ -54,7 +54,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
   rcbinfo = nullptr;
   cutghostmulti = nullptr;
   cutghostmultiold = nullptr;
-  init_buffers();
+  init_buffers_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,7 +69,7 @@ CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   style = Comm::TILED;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
-  init_buffers();
+  init_buffers_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,7 +94,7 @@ void CommTiled::init_buffers()
   buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
   grow_send(maxsend,2);
-  memory->create(buf_recv,maxrecv,"comm:buf_recv");
+  grow_recv(maxrecv,1);
 
   maxoverlap = 0;
   overlap = nullptr;
@@ -113,6 +113,11 @@ void CommTiled::init_buffers()
 
 void CommTiled::init()
 {
+  if (init_buffers_flag) {
+    init_buffers();
+    init_buffers_flag = 0;
+  }
+
   Comm::init();
 
   // cannot set nswap in init_buffers() b/c
@@ -2236,12 +2241,15 @@ void CommTiled::grow_send(int n, int flag)
 }
 
 /* ----------------------------------------------------------------------
-   free/malloc the size of the recv buffer as needed with BUFFACTOR
+   free/malloc the size of the recv buffer as needed
+   flag = 0, realloc with BUFFACTOR
+   flag = 1, free/malloc w/out BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommTiled::grow_recv(int n)
+void CommTiled::grow_recv(int n, int flag)
 {
-  maxrecv = static_cast<int> (BUFFACTOR * n);
+  if (flag) maxrecv = n;
+  else maxrecv = static_cast<int> (BUFFACTOR * n);
   memory->destroy(buf_recv);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 }
@@ -2428,8 +2436,10 @@ void CommTiled::deallocate_swap(int n)
 
     delete [] maxsendlist[i];
 
-    for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
-    delete [] sendlist[i];
+    if (sendlist && sendlist[i]) {
+      for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
+      delete [] sendlist[i];
+    }
   }
 
   delete [] sendproc;

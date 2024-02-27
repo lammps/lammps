@@ -347,7 +347,7 @@ static double memory_usage(TYPE &data)
 }
 
 /* ----------------------------------------------------------------------
-  legacy functions 
+  legacy functions
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>

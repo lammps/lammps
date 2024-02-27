@@ -64,15 +64,15 @@ enum { ISO, ANISO, TRICLINIC };
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
-// clang-format off
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr),
-    id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr),
-    etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
+    Fix(lmp, narg, arg), irregular(nullptr), id_temp(nullptr), id_press(nullptr), eta(nullptr),
+    eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr), etap(nullptr), etap_dot(nullptr),
+    etap_dotdot(nullptr), etap_mass(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
+  // clang-format off
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix bocs",error);
 
   restart_global = 1;
@@ -89,8 +89,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   pcouple = NONE;
   drag = 0.0;
-  allremap = 1;
-  id_dilate = nullptr;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -288,7 +286,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
     if (p_flag[5]) box_change |= BOX_CHANGE_XY;
     no_change_box = 1;
-    if (allremap == 0) restart_pbc = 1;
 
     pstyle = ISO; // MRD this is the only one that can happen
 
@@ -407,7 +404,6 @@ FixBocs::~FixBocs()
 {
   if (copymode) return;
 
-  delete[] id_dilate;
   delete irregular;
 
   // delete temperature and pressure if fix created them
@@ -458,14 +454,6 @@ int FixBocs::setmask()
 
 void FixBocs::init()
 {
-  // recheck that dilate group has not been deleted
-  if (allremap == 0) {
-    int idilate = group->find(id_dilate);
-    if (idilate == -1)
-      error->all(FLERR,"Fix bocs dilate group ID does not exist");
-    dilate_group_bit = group->bitmask[idilate];
-  }
-
   // ensure no conflict with fix deform
 
   if (pstat_flag) {
@@ -1125,19 +1113,15 @@ void FixBocs::couple()
 }
 
 /* ----------------------------------------------------------------------
-   change box size
-   remap all atoms or dilate group atoms depending on allremap flag
+   change box size, remap all atoms
    if rigid bodies exist, scale rigid body centers-of-mass
 ------------------------------------------------------------------------- */
 
 void FixBocs::remap()
 {
-  int i;
   double oldlo,oldhi;
   double expfac;
 
-  double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
 
@@ -1147,12 +1131,7 @@ void FixBocs::remap()
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
-  if (allremap) domain->x2lamda(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domain->x2lamda(x[i],x[i]);
-  }
+  domain->x2lamda(nlocal);
 
   for (auto &ifix : rfix) ifix->deform(0);
 
@@ -1292,12 +1271,7 @@ void FixBocs::remap()
 
   // convert pertinent atoms and rigid bodies back to box coords
 
-  if (allremap) domain->lamda2x(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domain->lamda2x(x[i],x[i]);
-  }
+  domain->lamda2x(nlocal);
 
   for (auto &ifix : rfix) ifix->deform(1);
 }

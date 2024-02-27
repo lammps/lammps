@@ -133,7 +133,6 @@ class AtomVecKokkos : virtual public AtomVec {
   HAT::t_v_array h_v;
   HAT::t_f_array h_f;
 
-  class CommKokkos *commKK;
   size_t buffer_size;
   void* buffer;
 

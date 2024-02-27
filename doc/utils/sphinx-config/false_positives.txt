@@ -1770,6 +1770,7 @@ Kolafa
 Kollman
 kolmogorov
 Kolmogorov
+Kolotinskii
 Kondor
 konglt
 Koning
@@ -2775,6 +2776,7 @@ PEigenDense
 Peng
 peptide
 peratom
+Perf
 Pergamon
 pergrid
 peri
@@ -3887,7 +3889,9 @@ Verlet
 versa
 Verstraelen
 ves
+vf
 vflag
+vflow
 vfrac
 vhi
 vibrational

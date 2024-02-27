@@ -117,8 +117,9 @@ class CommTiled : public Comm {
   double *sublo, *subhi;
   int dimension;
 
-  int init_buffers_flag;
+  void init_pointers();
   void init_buffers();
+  int init_buffers_flag;
 
   // box drop and other functions
 

@@ -47,14 +47,9 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
   style = Comm::TILED;
   layout = Comm::LAYOUT_UNIFORM;
-  pbc_flag = nullptr;
-  buf_send = nullptr;
-  buf_recv = nullptr;
-  overlap = nullptr;
-  rcbinfo = nullptr;
-  cutghostmulti = nullptr;
-  cutghostmultiold = nullptr;
-  init_buffers_flag = 1;
+  init_pointers();
+  init_buffers_flag = 0;
+  maxswap = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,7 +64,9 @@ CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   style = Comm::TILED;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
-  init_buffers_flag = 1;
+  init_pointers();
+  init_buffers_flag = 0;
+  maxswap = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,23 +83,58 @@ CommTiled::~CommTiled()
 }
 
 /* ----------------------------------------------------------------------
+   initialize comm pointers to nullptr
+------------------------------------------------------------------------- */
+
+void CommTiled::init_pointers()
+{
+  buf_send = buf_recv = nullptr;
+  overlap = nullptr;
+  rcbinfo = nullptr;
+  cutghostmulti = nullptr;
+  cutghostmultiold = nullptr;
+
+  nsendproc = nullptr;
+  nrecvproc = nullptr;
+  sendother = nullptr;
+  recvother = nullptr;
+  sendself = nullptr;
+  sendproc = nullptr;
+  recvproc = nullptr;
+  sendnum = nullptr;
+  recvnum = nullptr;
+  size_forward_recv = nullptr;
+  firstrecv = nullptr;
+  size_reverse_send = nullptr;
+  size_reverse_recv = nullptr;
+  forward_recv_offset = nullptr;
+  reverse_recv_offset = nullptr;
+  pbc_flag = nullptr;
+  pbc = nullptr;
+  sendbox = nullptr;
+  sendbox_multi = nullptr;
+  sendbox_multiold = nullptr;
+  maxsendlist = nullptr;
+  sendlist = nullptr;
+  requests = nullptr;
+  nprocmax = nullptr;
+  nexchproc = nullptr;
+  nexchprocmax = nullptr;
+  exchproc = nullptr;
+  exchnum = nullptr;
+}
+
+/* ----------------------------------------------------------------------
    initialize comm buffers and other data structs local to CommTiled
 ------------------------------------------------------------------------- */
 
 void CommTiled::init_buffers()
 {
-  buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
   grow_send(maxsend,2);
   grow_recv(maxrecv,1);
 
   maxoverlap = 0;
-  overlap = nullptr;
-  rcbinfo = nullptr;
-  cutghostmulti = nullptr;
-  cutghostmultiold = nullptr;
-  sendbox_multi = nullptr;
-  sendbox_multiold = nullptr;
 
   // Note this may skip growing multi arrays, will call again in init()
   maxswap = 6;
@@ -113,9 +145,9 @@ void CommTiled::init_buffers()
 
 void CommTiled::init()
 {
-  if (init_buffers_flag) {
+  if (!init_buffers_flag) {
     init_buffers();
-    init_buffers_flag = 0;
+    init_buffers_flag = 1;
   }
 
   Comm::init();
@@ -2436,10 +2468,8 @@ void CommTiled::deallocate_swap(int n)
 
     delete [] maxsendlist[i];
 
-    if (sendlist && sendlist[i]) {
-      for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
-      delete [] sendlist[i];
-    }
+    for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
+    delete [] sendlist[i];
   }
 
   delete [] sendproc;

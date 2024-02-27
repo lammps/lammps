@@ -36,7 +36,6 @@ static constexpr int BUFEXTRA = 1000;
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp) : CommTiled(_lmp)
 {
-  sendlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,7 +47,6 @@ CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp) : CommTiled(_lmp)
 
 CommTiledKokkos::CommTiledKokkos(LAMMPS *_lmp, Comm *oldcomm) : CommTiled(_lmp,oldcomm)
 {
-  sendlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,6 +57,7 @@ CommTiledKokkos::~CommTiledKokkos()
   sendlist = nullptr;
   buf_send = nullptr;
   buf_recv = nullptr;
+  maxswap = 0;
 }
 
 /* ---------------------------------------------------------------------- */

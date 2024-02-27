@@ -145,15 +145,14 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix bocs command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix bocs temp", error);
       tstat_flag = 1;
       t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       t_target = t_start;
       t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (t_start <= 0.0 || t_stop <= 0.0)
-        error->all(FLERR,
-                   "Target temperature for fix bocs cannot be 0.0");
+        error->all(FLERR, "Target temperature for fix bocs cannot be 0.0");
       iarg += 4;
     } else if (strcmp(arg[iarg],"iso") == 0) {
       error->all(FLERR,"Illegal fix bocs command. Pressure fix must be "
@@ -164,12 +163,9 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
                          "followed by: P_0 P_f P_coupl");
       p_match_flag = 1;
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] =
-                                        utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = p_stop[1] = p_stop[2] =
-                                        utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = p_period[1] = p_period[2] =
-                                        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
 
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_flag[3] = p_flag[4] = p_flag[5] = 0; // MRD
@@ -383,7 +379,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   // and thus its KE/temperature contribution should use group all
 
   id_temp = utils::strdup(std::string(id)+"_temp");
-  modify->add_compute(fmt::format("{} all temp",id_temp));
+  temperature = modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
@@ -391,7 +387,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id)+"_press");
-  modify->add_compute(fmt::format("{} all PRESSURE/BOCS {}",id_press,id_temp));
+  pressure = modify->add_compute(fmt::format("{} all PRESSURE/BOCS {}",id_press,id_temp));
   pcomputeflag = 1;
 
 /*~ MRD End of stuff copied from fix_npt.cpp~*/
@@ -1435,24 +1431,22 @@ int FixBocs::modify_param(int narg, char **arg)
     delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR,"Could not find fix_modify temperature compute {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature compute {} does not compute temperature", id_temp);
     if (temperature->igroup != 0 && comm->me == 0)
-      error->warning(FLERR,"Temperature for fix modify is not for group all");
+      error->warning(FLERR,"Temperature compute {} for fix modify is not for group all", id_temp);
 
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      icompute = modify->find_compute(id_press);
-      if (icompute < 0)
-        error->all(FLERR,"Pressure ID for fix modify does not exist");
-      modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+      pressure = modify->get_compute_by_id(id_press);
+      if (!pressure)
+        error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
+      pressure->reset_extra_compute_fix(id_temp);
     }
 
     return 2;

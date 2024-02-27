@@ -346,6 +346,65 @@ static double memory_usage(TYPE &data)
   return data.span() * sizeof(typename TYPE::value_type);
 }
 
+/* ----------------------------------------------------------------------
+  legacy functions 
+------------------------------------------------------------------------- */
+
+template <typename TYPE>
+TYPE destroy_kokkos(TYPE &data)
+{
+  data = TYPE();
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, const char *name)
+{
+  data = TYPE();
+  data = TYPE(std::string(name),n1);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, const char *name)
+{
+  data = TYPE();
+  data = TYPE(std::string(name),n1,n2);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3 ,const char *name)
+{
+  data = TYPE();
+  data = TYPE(std::string(name),n1,n2,n3);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3, int n4 ,const char *name)
+{
+  data = TYPE();
+  data = TYPE(std::string(name),n1,n2,n3,n4);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3, int n4, int n5 ,const char *name)
+{
+  data = TYPE();
+  data = TYPE(std::string(name),n1,n2,n3,n4,n5);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3, int n4, int n5 , int n6 ,const char *name)
+{
+  data = TYPE();
+  data = TYPE(std::string(name) ,n1,n2,n3,n4,n5,n6);
+  return data;
+}
+
 };
 
 }

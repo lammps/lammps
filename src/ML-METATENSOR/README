@@ -1,0 +1,16 @@
+The ML-METATENSOR package provides the metatensor pair style, which allow to use
+arbitrary machine learning models with LAMMPS.
+
+
+The easiest way to build and install this code is with CMake, by configuring
+LAMMPS with `cmake -DPKG_ML-METATENSOR=ON`. This will download and build
+metatensor-torch for you. You still need to provide an installation of the C++
+libtorch. The easiest way to do this is to install one with pip/conda, and then pass
+`-DCMAKE_PREFIX_PATH=$(python -c "import torch; print(torch.utils.cmake_prefix_path)")`
+to cmake during configuration.
+
+
+TODO: build without CMake
+
+See also the documentation for metatensor atomistic models for more information:
+https://lab-cosmo.github.io/metatensor/latest/atomistic/index.html

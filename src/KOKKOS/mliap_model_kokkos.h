@@ -29,14 +29,12 @@ template <class DeviceType> class MLIAPModelKokkos : protected Pointers {
   MLIAPModelKokkos(LAMMPS *lmp, MLIAPModel *model_in) : Pointers(lmp), model(model_in) {}
   virtual ~MLIAPModelKokkos()
   {
-    memoryKK->destroy_kokkos(k_coeffelem);
     model->coeffelem = nullptr;
   }
 
   void set_k_coeffelem()
   {
     double **tmp = nullptr;
-    memoryKK->destroy_kokkos(k_coeffelem);
     memoryKK->create_kokkos(k_coeffelem, tmp, model->nelements, model->nparams,
                             "MLIAPModelKokkos::coeffelem");
     for (int i = 0; i < model->nelements; ++i)

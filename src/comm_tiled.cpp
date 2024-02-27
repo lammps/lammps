@@ -2468,8 +2468,10 @@ void CommTiled::deallocate_swap(int n)
 
     delete [] maxsendlist[i];
 
-    for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
-    delete [] sendlist[i];
+    if (sendlist && sendlist[i]) {
+      for (int j = 0; j < nprocmax[i]; j++) memory->destroy(sendlist[i][j]);
+      delete [] sendlist[i];
+    }
   }
 
   delete [] sendproc;

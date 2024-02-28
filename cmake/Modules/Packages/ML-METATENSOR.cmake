@@ -2,7 +2,7 @@ include(FetchContent)
 set(BUILD_METATENSOR_TORCH ON)
 FetchContent_Declare(metatensor
     GIT_REPOSITORY https://github.com/lab-cosmo/metatensor
-    GIT_TAG        ec74215ec48bb0dd902bf6f8fbb980d1d5e89117
+    GIT_TAG        6c807e1550fac9c309cd2e78930a2d9610240feb
     GIT_SHALLOW    ON
 )
 

@@ -208,7 +208,7 @@ double PairMetatensor::init_one(int /*i*/, int /*j*/) {
 
     if (range < 0) {
         error->all(FLERR, "interaction_range is negative for this model");
-    } else if (!isfinite(range)) {
+    } else if (!std::isfinite(range)) {
         error->all(FLERR, "interaction_range is infinite for this model, this is not yet supported");
     } else if (range < 1) {
         return 1.0;

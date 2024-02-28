@@ -50,8 +50,7 @@ using namespace LAMMPS_NS;
 enum { SCALAR, VECTOR, ARRAY };
 ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
-    pace_peratom(nullptr), map(nullptr), cg(nullptr), c_pe(nullptr), c_virial(nullptr),
-    acecimpl(nullptr)
+    pace_peratom(nullptr), map(nullptr), c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
 {
   array_flag = 1;
   extarray = 0;

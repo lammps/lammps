@@ -582,7 +582,7 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
               dt2ds2 = a2j * (t2mi - t2j * MathSpecial::square(t2mi));
               dt3ds1 = a3i * (t3mj - t3i * MathSpecial::square(t3mj));
               dt3ds2 = a3j * (t3mi - t3j * MathSpecial::square(t3mi));
-	      
+
             } else if (ialloy == 2) {
 
               dt1ds1 = 0.0;

@@ -75,7 +75,7 @@ class CommTiledKokkos : public CommTiled {
   void grow_send_kokkos(int, int, ExecutionSpace space = Host);
   void grow_recv_kokkos(int, int, ExecutionSpace space = Host);
   void grow_list(int, int, int) override;
-  void grow_swap_send(int, int, int);     // grow swap arrays for send and recv
+  void grow_swap_send(int, int, int) override;     // grow swap arrays for send and recv
 };
 
 }    // namespace LAMMPS_NS

@@ -45,8 +45,10 @@ class ComputePACE : public Compute {
   int bikflag, bik_rows, dgradflag, dgrad_rows;
   double *cg;
   double cutmax;
+
   Compute *c_pe;
   Compute *c_virial;
+  std::string id_virial;
 
   void dbdotr_compute();
   struct ACECimpl *acecimpl;

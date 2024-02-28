@@ -12,7 +12,6 @@
 
 #include "compute_pace.h"
 
-#include "ace-evaluator/ace_abstract_basis.h"
 #include "ace-evaluator/ace_c_basis.h"
 #include "ace-evaluator/ace_evaluator.h"
 #include "ace-evaluator/ace_types.h"
@@ -24,13 +23,9 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
-
-#include <cstring>
-#include <map>
 
 namespace LAMMPS_NS {
 struct ACECimpl {

@@ -34,6 +34,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "pair.h"
 #include "update.h"
 

@@ -16,13 +16,8 @@
 #include "atom_masks.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
-#include "modify.h"
-#include "neighbor_kokkos.h"
-
-#include <cmath>
 
 using namespace LAMMPS_NS;
 

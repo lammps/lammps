@@ -60,6 +60,7 @@
 #include <cstring>
 
 #include <algorithm>
+#include <exception>
 #include <fstream>
 #include <iomanip>
 

@@ -14,20 +14,12 @@
 
 #include "fix_shake_kokkos.h"
 
-#include "fix_rattle.h"
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "molecule.h"
 #include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "bond.h"
-#include "angle.h"
 #include "comm.h"
 #include "group.h"
-#include "fix_respa.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
@@ -35,7 +27,6 @@
 #include "atom_masks.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

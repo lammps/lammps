@@ -22,7 +22,6 @@
 #include "modify.h"
 #include "molecule.h"
 
-#include <cstring>
 #include <map>
 #include <set>
 

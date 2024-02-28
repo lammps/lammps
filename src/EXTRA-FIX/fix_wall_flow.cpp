@@ -24,16 +24,14 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "input.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
 #include "random_mars.h"
-#include "update.h"
-#include "variable.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <functional>
 

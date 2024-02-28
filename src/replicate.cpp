@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "memory.h"
+#include "molecule.h"
 #include "special.h"
 #include "label_map.h"
 

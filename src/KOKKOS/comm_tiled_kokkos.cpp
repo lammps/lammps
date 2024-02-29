@@ -293,7 +293,6 @@ template<class DeviceType>
 void CommTiledKokkos::reverse_comm_device()
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Request request;
   double *buf;
 
   // exchange data with another set of procs in each swap
@@ -623,10 +622,8 @@ void CommTiledKokkos::grow_list(int iswap, int iwhich, int n)
 {
   int size = static_cast<int> (BUFFACTOR * n);
 
-  if (exchange_comm_classic) { // force realloc on Host
-    k_sendlist.sync<LMPHostType>();
-    k_sendlist.modify<LMPHostType>();
-  }
+  k_sendlist.sync<LMPHostType>();
+  k_sendlist.modify<LMPHostType>();
 
   int nsend = k_sendlist.extent(1);
 

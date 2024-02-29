@@ -218,6 +218,7 @@ struct AtomVecDipoleKokkos_PackBorder {
       const typename ArrayTypes<DeviceType>::t_float_1d &q,
       const typename ArrayTypes<DeviceType>::t_mu_array_randomread &mu,
       const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
+      _buf(buf),_list(list),
       _x(x),_tag(tag),_type(type),_mask(mask),_q(q),_mu(mu),
       _dx(dx),_dy(dy),_dz(dz) {}
 
